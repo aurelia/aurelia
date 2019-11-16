@@ -144,7 +144,7 @@ import {
 } from '@aurelia/kernel';
 import { IFile } from '../system/interfaces';
 import { NPMPackage } from '../system/npm-package-loader';
-import { IModule, ResolveSet, ResolvedBindingRecord, Realm } from './realm';
+import { IModule, ResolveSet, ResolvedBindingRecord, Realm, ExecutionContext } from './realm';
 import { PatternMatcher } from '../system/pattern-matcher';
 import { $ModuleEnvRec, $EnvRec, $DeclarativeEnvRec } from './types/environment-record';
 import { $AbstractRelationalComparison, $InstanceOfOperator, $AbstractEqualityComparison, $StrictEqualityComparison, $Call } from './operations';
@@ -1243,7 +1243,7 @@ export class $VariableStatement implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-runtime-semantics-evaluation
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-runtime-semantics-evaluation
   public Evaluate(): $Any {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-runtime-semantics-evaluation
 
     // LexicalDeclaration : LetOrConst BindingList ;
@@ -2680,7 +2680,7 @@ export class $ThisExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-this-keyword-runtime-semantics-evaluation
   public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // PrimaryExpression : this
 
     // 1. Return ? ResolveThisBinding().
@@ -2706,7 +2706,7 @@ export class $SuperExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-super-keyword-runtime-semantics-evaluation
   public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // SuperProperty : super [ Expression ]
 
     // 1. Let env be GetThisEnvironment().
@@ -2990,7 +2990,7 @@ export class $PropertyAccessExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-property-accessors-runtime-semantics-evaluation
   public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // MemberExpression : MemberExpression . IdentifierName
 
     // 1. Let baseReference be the result of evaluating MemberExpression.
@@ -3030,7 +3030,7 @@ export class $ElementAccessExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-property-accessors-runtime-semantics-evaluation
   public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // MemberExpression : MemberExpression [ Expression ]
 
     // 1. Let baseReference be the result of evaluating MemberExpression.
@@ -3207,7 +3207,7 @@ export class $NewExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-new-operator-runtime-semantics-evaluation
   public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // NewExpression : new NewExpression
 
     // 1. Return ? EvaluateNew(NewExpression, empty).
@@ -3256,7 +3256,7 @@ export class $TaggedTemplateExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-tagged-templates-runtime-semantics-evaluation
   public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // MemberExpression : MemberExpression TemplateLiteral
 
     // 1. Let tagRef be the result of evaluating MemberExpression.
@@ -3362,7 +3362,7 @@ export class $FunctionExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-runtime-semantics-evaluation
   public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
 
     // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluation
 
@@ -3701,7 +3701,7 @@ export class $ClassExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-runtime-semantics-evaluation
   public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // ClassExpression : class BindingIdentifier opt ClassTail
 
     // 1. If BindingIdentifieropt is not present, let className be undefined.
@@ -3767,7 +3767,7 @@ export class $MetaProperty implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-meta-properties-runtime-semantics-evaluation
   public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // NewTarget : new . target
 
     // 1. Return GetNewTarget().
@@ -3804,7 +3804,7 @@ export class $DeleteExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-delete-operator-runtime-semantics-evaluation
   public Evaluate(): $Boolean {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // 1. Let ref be the result of evaluating UnaryExpression.
     // 2. ReturnIfAbrupt(ref).
     // 3. If Type(ref) is not Reference, return true.
@@ -3849,7 +3849,7 @@ export class $TypeOfExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-typeof-operator-runtime-semantics-evaluation
   public Evaluate(): $String {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // UnaryExpression : typeof UnaryExpression
 
     // 1. Let val be the result of evaluating UnaryExpression.
@@ -3886,7 +3886,7 @@ export class $VoidExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-void-operator
   public Evaluate(): $Undefined {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // UnaryExpression : void UnaryExpression
 
     // 1. Let expr be the result of evaluating UnaryExpression.
@@ -3921,7 +3921,7 @@ export class $AwaitExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-runtime-semantics-evaluation
   public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // AwaitExpression : await UnaryExpression
 
     // 1. Let exprRef be the result of evaluating UnaryExpression.
@@ -3959,7 +3959,7 @@ export class $PrefixUnaryExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-unary-plus-operator-runtime-semantics-evaluation
   // http://www.ecma-international.org/ecma-262/#sec-unary-minus-operator-runtime-semantics-evaluation
   public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // http://www.ecma-international.org/ecma-262/#sec-prefix-increment-operator-runtime-semantics-evaluation
 
     // UpdateExpression : ++ UnaryExpression
@@ -4028,7 +4028,7 @@ export class $PostfixUnaryExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-postfix-increment-operator-runtime-semantics-evaluation
   // http://www.ecma-international.org/ecma-262/#sec-postfix-decrement-operator-runtime-semantics-evaluation
   public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // http://www.ecma-international.org/ecma-262/#sec-postfix-increment-operator-runtime-semantics-evaluation
 
     // UpdateExpression : LeftHandSideExpression ++
@@ -4122,7 +4122,7 @@ export class $BinaryExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-binary-logical-operators-runtime-semantics-evaluation
   // http://www.ecma-international.org/ecma-262/#sec-assignment-operators-runtime-semantics-evaluation
   public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     const realm = this.realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -4802,7 +4802,7 @@ export class $ConditionalExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-conditional-operator-runtime-semantics-evaluation
   public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // ConditionalExpression : LogicalORExpression ? AssignmentExpression : AssignmentExpression
 
     // 1. Let lref be the result of evaluating LogicalORExpression.
@@ -4918,7 +4918,7 @@ export class $ArrowFunction implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-runtime-semantics-evaluation
   public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // ArrowFunction : ArrowParameters => ConciseBody
 
     // 1. If the function code for this ArrowFunction is strict mode code, let strict be true. Otherwise let strict be false.
@@ -4955,7 +4955,7 @@ export class $YieldExpression implements I$Node {
   }
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
   public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // YieldExpression : yield
 
     // 1. Let generatorKind be ! GetGeneratorKind().
@@ -5077,7 +5077,7 @@ export class $TemplateHead implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
   public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
 
     return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
@@ -5101,7 +5101,7 @@ export class $TemplateMiddle implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
   public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
 
     return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
@@ -5125,7 +5125,7 @@ export class $TemplateTail implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
   public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
 
     // TemplateSpans : TemplateTail
 
@@ -5164,7 +5164,7 @@ export class $TemplateSpan implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
   public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // TemplateSpans : TemplateMiddleList TemplateTail
 
     // 1. Let head be the result of evaluating TemplateMiddleList.
@@ -5342,7 +5342,7 @@ export class $JsxElement implements I$Node {
   }
 
   public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
 
     return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
@@ -5406,7 +5406,7 @@ export class $JsxSelfClosingElement implements I$Node {
   }
 
   public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
 
     return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
@@ -5439,7 +5439,7 @@ export class $JsxFragment implements I$Node {
   }
 
   public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
 
     return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
@@ -5462,7 +5462,7 @@ export class $JsxText implements I$Node {
   }
 
   public Evaluate(): $Any {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
 
     return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
@@ -5491,7 +5491,7 @@ export class $JsxOpeningElement implements I$Node {
   }
 
   public Evaluate(): $Any {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
 
     return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
@@ -5518,7 +5518,7 @@ export class $JsxClosingElement implements I$Node {
   }
 
   public Evaluate(): $Any {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
 
     return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
@@ -5541,7 +5541,7 @@ export class $JsxOpeningFragment implements I$Node {
   }
 
   public Evaluate(): $Any {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
 
     return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
@@ -5564,7 +5564,7 @@ export class $JsxClosingFragment implements I$Node {
   }
 
   public Evaluate(): $Any {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
 
     return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
@@ -5631,7 +5631,7 @@ export class $JsxAttributes implements I$Node {
   }
 
   public Evaluate(): $Any {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
 
     return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
@@ -5658,7 +5658,7 @@ export class $JsxSpreadAttribute implements I$Node {
   }
 
   public Evaluate(): $Any {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
 
     return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
@@ -5685,7 +5685,7 @@ export class $JsxExpression implements I$Node {
   }
 
   public Evaluate(): $Any {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
 
     return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
@@ -5762,7 +5762,7 @@ export class $BigIntLiteral implements I$Node {
   }
 
   public Evaluate(): $Number {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
 
     return this.realm['[[Intrinsics]]']['0']; // TODO: implement this
   }
@@ -6227,6 +6227,8 @@ export class $SourceFile implements I$Node, IModule {
 
   public readonly DirectivePrologue: DirectivePrologue;
 
+  public ExecutionResult: $Any; // Temporary property for testing purposes
+
   // http://www.ecma-international.org/ecma-262/#sec-module-semantics-static-semantics-exportedbindings
   public readonly ExportedBindings: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-module-semantics-static-semantics-exportednames
@@ -6266,6 +6268,9 @@ export class $SourceFile implements I$Node, IModule {
     public readonly compilerOptions: CompilerOptions,
   ) {
     this.id = realm.registerNode(this);
+
+    this.ExecutionResult = realm['[[Intrinsics]]'].empty;
+
     const intrinsics = realm['[[Intrinsics]]'];
     this['[[Environment]]'] = intrinsics.undefined;
     this['[[Namespace]]'] = intrinsics.undefined;
@@ -7004,9 +7009,175 @@ export class $SourceFile implements I$Node, IModule {
     return starResolution;
   }
 
+  // http://www.ecma-international.org/ecma-262/#sec-moduleevaluation
+  public EvaluateModule(): $Any {
+    // 1. Let module be this Cyclic Module Record.
+    // 2. Assert: module.[[Status]] is "instantiated" or "evaluated".
+    // 3. Let stack be a new empty List.
+    const stack: $SourceFile[] = [];
+
+    // 4. Let result be InnerModuleEvaluation(module, stack, 0).
+    const result = this.EvaluateModuleInner(stack, 0);
+
+    // 5. If result is an abrupt completion, then
+    if (result.isAbrupt) {
+      // 5. a. For each module m in stack, do
+      for (const m of stack) {
+        // 5. a. i. Assert: m.[[Status]] is "evaluating".
+        // 5. a. ii. Set m.[[Status]] to "evaluated".
+        m.Status = 'evaluated';
+
+        // 5. a. iii. Set m.[[EvaluationError]] to result.
+        // TODO
+      }
+
+      // 5. b. Assert: module.[[Status]] is "evaluated" and module.[[EvaluationError]] is result.
+      // 5. c. Return result.
+      return result;
+    }
+
+    // 6. Assert: module.[[Status]] is "evaluated" and module.[[EvaluationError]] is undefined.
+    // 7. Assert: stack is empty.
+    // 8. Return undefined.
+    return this.realm['[[Intrinsics]]'].undefined;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-innermoduleevaluation
+  public EvaluateModuleInner(stack: $SourceFile[], index: number): $Number {
+    const realm = this.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // 1. If module is not a Cyclic Module Record, then
+      // 1. a. Perform ? module.Evaluate().
+      // 1. b. Return index.
+    // 2. If module.[[Status]] is "evaluated", then
+    if (this.Status === 'evaluated') {
+      // 2. a. If module.[[EvaluationError]] is undefined, return index.
+      return new $Number(realm, index); // TODO
+
+      // 2. b. Otherwise return module.[[EvaluationError]].
+    }
+
+    // 3. If module.[[Status]] is "evaluating", return index.
+    if (this.Status === 'evaluating') {
+      return new $Number(realm, index);
+    }
+
+    // 4. Assert: module.[[Status]] is "instantiated".
+    // 5. Set module.[[Status]] to "evaluating".
+    this.Status = 'evaluating';
+
+    // 6. Set module.[[DFSIndex]] to index.
+    this.DFSIndex = index;
+
+    // 7. Set module.[[DFSAncestorIndex]] to index.
+    this.DFSAncestorIndex = index;
+
+    // 8. Increase index by 1.
+    ++index;
+
+    // 9. Append module to stack.
+    stack.push(this);
+
+    // 10. For each String required that is an element of module.[[RequestedModules]], do
+    for (const required of this.RequestedModules) {
+      // 10. a. Let requiredModule be ! HostResolveImportedModule(module, required).
+      const requiredModule = realm.HostResolveImportedModule(this, required) as $SourceFile; // TODO
+
+      // 10. b. NOTE: Instantiate must be completed successfully prior to invoking this method, so every requested module is guaranteed to resolve successfully.
+      // 10. c. Set index to ? InnerModuleEvaluation(requiredModule, stack, index).
+      index = requiredModule.EvaluateModuleInner(stack, index)['[[Value]]'];
+
+      // 10. d. Assert: requiredModule.[[Status]] is either "evaluating" or "evaluated".
+      // 10. e. Assert: requiredModule.[[Status]] is "evaluating" if and only if requiredModule is in stack.
+      // 10. f. If requiredModule.[[Status]] is "evaluating", then
+      if (requiredModule.Status === 'evaluating') {
+        // 10. f. i. Assert: requiredModule is a Cyclic Module Record.
+        // 10. f. ii. Set module.[[DFSAncestorIndex]] to min(module.[[DFSAncestorIndex]], requiredModule.[[DFSAncestorIndex]]).
+        this.DFSAncestorIndex = Math.min(this.DFSAncestorIndex, requiredModule.DFSAncestorIndex!);
+      }
+    }
+
+    // 11. Perform ? module.ExecuteModule().
+    this.ExecutionResult = this.ExecuteModule();
+
+    // 12. Assert: module occurs exactly once in stack.
+    // 13. Assert: module.[[DFSAncestorIndex]] is less than or equal to module.[[DFSIndex]].
+    // 14. If module.[[DFSAncestorIndex]] equals module.[[DFSIndex]], then
+    if (this.DFSAncestorIndex === this.DFSIndex) {
+      // 14. a. Let done be false.
+      let done = false;
+      // 14. b. Repeat, while done is false,
+      while (!done) {
+        // 14. b. i. Let requiredModule be the last element in stack.
+        // 14. b. ii. Remove the last element of stack.
+        const requiredModule = stack.pop()!;
+
+        // 14. b. iii. Set requiredModule.[[Status]] to "evaluated".
+        requiredModule.Status = 'evaluated';
+
+        // 14. b. iv. If requiredModule and module are the same Module Record, set done to true.
+        if (requiredModule === this) {
+          done = true;
+        }
+      }
+    }
+
+    // 15. Return index.
+    return new $Number(realm, index);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-source-text-module-record-execute-module
+  public ExecuteModule(): $Any {
+    const realm = this.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // 1. Let module be this Source Text Module Record.
+    // 2. Let moduleCxt be a new ECMAScript code execution context.
+    const moduleCxt = new ExecutionContext();
+
+    // 3. Set the Function of moduleCxt to null.
+    moduleCxt.Function = intrinsics.null;
+
+    // 4. Assert: module.[[Realm]] is not undefined.
+
+    // 5. Set the Realm of moduleCxt to module.[[Realm]].
+    moduleCxt.Realm = realm;
+
+    // 6. Set the ScriptOrModule of moduleCxt to module.
+    moduleCxt.ScriptOrModule = this;
+
+    // 7. Assert: module has been linked and declarations in its module environment have been instantiated.
+    // 8. Set the VariableEnvironment of moduleCxt to module.[[Environment]].
+    moduleCxt.VariableEnvironment = this['[[Environment]]'] as $EnvRec;
+
+    // 9. Set the LexicalEnvironment of moduleCxt to module.[[Environment]].
+    moduleCxt.LexicalEnvironment = this['[[Environment]]'] as $EnvRec;
+
+    // 10. Suspend the currently running execution context.
+    const stack = realm.stack;
+    stack.top.suspend();
+
+    // 11. Push moduleCxt on to the execution context stack; moduleCxt is now the running execution context.
+    stack.push(moduleCxt);
+
+    // 12. Let result be the result of evaluating module.[[ECMAScriptCode]].
+    const result = this.Evaluate();
+
+    // 13. Suspend moduleCxt and remove it from the execution context stack.
+    moduleCxt.suspend();
+    stack.pop();
+
+    // 14. Resume the context that is now on the top of the execution context stack as the running execution context.
+    // TODO
+
+    // 15. Return Completion(result).
+    return result;
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-module-semantics-runtime-semantics-evaluation
   public Evaluate(): $Any {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     const realm = this.realm;
     const stack = realm.stack;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -8469,7 +8640,7 @@ export class $Block implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-block-runtime-semantics-evaluation
   public Evaluate(): $Any {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     const { $statements, realm } = this;
 
     // Block : { }
@@ -8522,7 +8693,7 @@ export class $EmptyStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-empty-statement-runtime-semantics-evaluation
   public Evaluate(): $Any {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // EmptyStatement : ;
 
     // 1. Return NormalCompletion(empty).
@@ -8563,7 +8734,7 @@ export class $ExpressionStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-expression-statement-runtime-semantics-evaluation
   public Evaluate(): $Any {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // ExpressionStatement : Expression ;
 
     // 1. Let exprRef be the result of evaluating Expression.
@@ -8614,7 +8785,7 @@ export class $IfStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-if-statement-runtime-semantics-evaluation
   public Evaluate(): $Any {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
 
     const { $expression, $thenStatement, $elseStatement, realm } = this;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -8949,7 +9120,7 @@ export class $ForInStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-evaluation
   public Evaluate(): $Any {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // ForBinding : BindingIdentifier
 
     // 1. Let bindingId be StringValue of BindingIdentifier.
@@ -9058,7 +9229,7 @@ export class $ForOfStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-evaluation
   public Evaluate(): $Any {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
 
     return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
@@ -9092,7 +9263,7 @@ export class $ContinueStatement implements I$Node {
     const realm = this.realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // ContinueStatement : continue ;
 
     // 1. Return Completion { [[Type]]: continue, [[Value]]: empty, [[Target]]: empty }.
@@ -9136,7 +9307,7 @@ export class $BreakStatement implements I$Node {
     const realm = this.realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // BreakStatement : break ;
 
     // 1. Return Completion { [[Type]]: break, [[Value]]: empty, [[Target]]: empty }.
@@ -9184,7 +9355,7 @@ export class $ReturnStatement implements I$Node {
     const realm = this.realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // ReturnStatement : return ;
 
     // 1. Return Completion { [[Type]]: return, [[Value]]: undefined, [[Target]]: empty }.
@@ -9236,7 +9407,7 @@ export class $WithStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-with-statement-runtime-semantics-evaluation
   public Evaluate(): $Any {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // WithStatement : with ( Expression ) Statement
 
     // 1. Let val be the result of evaluating Expression.
@@ -9304,7 +9475,7 @@ export class $SwitchStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-runtime-semantics-evaluation
   public Evaluate(): $Any {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     const { realm } = this;
     // SwitchStatement : switch ( Expression ) CaseBlock
 
@@ -9527,7 +9698,7 @@ export class $LabeledStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-runtime-semantics-evaluation
   public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // LabelledStatement : LabelIdentifier : LabelledItem
 
     // 1. Let newLabelSet be a new empty List.
@@ -9562,7 +9733,7 @@ export class $ThrowStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-throw-statement-runtime-semantics-evaluation
   public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // ThrowStatement : throw Expression ;
 
     // 1. Let exprRef be the result of evaluating Expression.
@@ -9628,7 +9799,7 @@ export class $TryStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-try-statement-runtime-semantics-evaluation
   public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // TryStatement : try Block Catch
 
     // 1. Let B be the result of evaluating Block.
@@ -9677,7 +9848,7 @@ export class $DebuggerStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-debugger-statement-runtime-semantics-evaluation
   public Evaluate(): $Any {
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug('Evaluate()');
     // DebuggerStatement : debugger ;
 
     // 1. If an implementation-defined debugging facility is available and enabled, then

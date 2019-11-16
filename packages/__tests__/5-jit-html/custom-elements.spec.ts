@@ -454,7 +454,7 @@ describe('custom-elements', function () {
       function setupChangeHandlerTest(template: string) {
         const options = setup(template, app, [Foo]);
         const fooEl = options.appHost.querySelector('foo') as CustomElementHost;
-        const fooVm = fooEl.$controller.viewModel as Foo;
+        const fooVm = CustomElement.for(fooEl).viewModel as Foo;
         return {
           fooVm: fooVm,
           tearDown: () => {
@@ -521,7 +521,7 @@ describe('custom-elements', function () {
       function setupChangeHandlerTest(template: string) {
         const options = setup(template, app, [Foo]);
         const fooEl = options.appHost.querySelector('foo') as CustomElementHost;
-        const fooVm = fooEl.$controller.viewModel as Foo;
+        const fooVm = CustomElement.for(fooEl).viewModel as Foo;
         return {
           fooVm: fooVm,
           rootVm: options.au.root.viewModel as any,
@@ -603,7 +603,7 @@ describe('custom-elements', function () {
       function setupChangeHandlerTest(template: string) {
         const options = setup(template, app, [Foo]);
         const fooEl = options.appHost.querySelector('foo') as CustomElementHost;
-        const fooVm = fooEl.$controller.viewModel as Foo;
+        const fooVm = CustomElement.for(fooEl).viewModel as Foo;
         return {
           fooVm: fooVm,
           rootVm: options.au.root.viewModel as any,

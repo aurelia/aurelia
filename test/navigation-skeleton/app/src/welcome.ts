@@ -1,7 +1,8 @@
 import { customElement, valueConverter } from "@aurelia/runtime";
-import * as html from './welcome.html';
 
-@customElement({ name: 'welcome', template: html })
+import * as template from './welcome.html';
+
+@customElement({ name: 'welcome', template })
 export class Welcome {
   public heading: string = 'Welcome to the Aurelia Navigation App!';
   public firstName: string = 'John';
@@ -10,7 +11,7 @@ export class Welcome {
 
   // Getters can't be directly observed, so they must be dirty checked.
   // However, if you tell Aurelia the dependencies, it no longer needs to dirty check the property.
-  get fullName(): string {
+  public get fullName(): string {
     return `${this.firstName} ${this.lastName}`;
   }
 

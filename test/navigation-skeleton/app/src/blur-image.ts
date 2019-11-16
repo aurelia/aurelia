@@ -1,9 +1,9 @@
-import { inject } from '@aurelia/kernel';
+import { INode } from '@aurelia/runtime';
 
-@inject(Element)
 export class BlurImageCustomAttribute {
-  public constructor(private element: Element) {
-  }
+  public constructor(
+    @INode private readonly element: Element
+  ) {}
 
   public valueChanged(newImage: HTMLImageElement) {
     if (newImage.complete) {

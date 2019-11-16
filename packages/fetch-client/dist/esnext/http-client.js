@@ -44,7 +44,7 @@ let HttpClient = class HttpClient {
             normalizedConfig.defaults = { ...this.defaults };
             normalizedConfig.interceptors = this.interceptors;
             const c = config(normalizedConfig);
-            if (Object.prototype.isPrototypeOf.call(HttpClientConfiguration, c)) {
+            if (Object.prototype.isPrototypeOf.call(HttpClientConfiguration.prototype, c)) {
                 normalizedConfig = c;
             }
         }
@@ -52,7 +52,7 @@ let HttpClient = class HttpClient {
             throw new Error('invalid config');
         }
         const defaults = normalizedConfig.defaults;
-        if (defaults !== undefined && Object.prototype.isPrototypeOf.call(Headers, defaults.headers)) {
+        if (defaults !== undefined && Object.prototype.isPrototypeOf.call(Headers.prototype, defaults.headers)) {
             // Headers instances are not iterable in all browsers. Require a plain
             // object here to allow default headers to be merged into request headers.
             throw new Error('Default headers must be a plain object.');
@@ -60,10 +60,10 @@ let HttpClient = class HttpClient {
         const interceptors = normalizedConfig.interceptors;
         if (interceptors !== undefined && interceptors.length) {
             // find if there is a RetryInterceptor
-            if (interceptors.filter(x => Object.prototype.isPrototypeOf.call(RetryInterceptor, x)).length > 1) {
+            if (interceptors.filter(x => Object.prototype.isPrototypeOf.call(RetryInterceptor.prototype, x)).length > 1) {
                 throw new Error('Only one RetryInterceptor is allowed.');
             }
-            const retryInterceptorIndex = interceptors.findIndex(x => Object.prototype.isPrototypeOf.call(RetryInterceptor, x));
+            const retryInterceptorIndex = interceptors.findIndex(x => Object.prototype.isPrototypeOf.call(RetryInterceptor.prototype, x));
             if (retryInterceptorIndex >= 0 && retryInterceptorIndex !== interceptors.length - 1) {
                 throw new Error('The retry interceptor must be the last interceptor defined.');
             }
@@ -93,10 +93,10 @@ let HttpClient = class HttpClient {
         let request = this.buildRequest(input, init);
         return this.processRequest(request, this.interceptors).then(result => {
             let response;
-            if (Object.prototype.isPrototypeOf.call(Response, result)) {
+            if (Object.prototype.isPrototypeOf.call(Response.prototype, result)) {
                 response = Promise.resolve(result);
             }
-            else if (Object.prototype.isPrototypeOf.call(Request, result)) {
+            else if (Object.prototype.isPrototypeOf.call(Request.prototype, result)) {
                 request = result;
                 response = fetch(request);
             }
@@ -106,7 +106,7 @@ let HttpClient = class HttpClient {
             return this.processResponse(response, this.interceptors, request);
         })
             .then(result => {
-            if (Object.prototype.isPrototypeOf.call(Request, result)) {
+            if (Object.prototype.isPrototypeOf.call(Request.prototype, result)) {
                 return this.fetch(result);
             }
             return result;
@@ -125,7 +125,7 @@ let HttpClient = class HttpClient {
         let body;
         let requestContentType;
         const parsedDefaultHeaders = parseHeaderValues(defaults.headers);
-        if (Object.prototype.isPrototypeOf.call(Request, input)) {
+        if (Object.prototype.isPrototypeOf.call(Request.prototype, input)) {
             request = input;
             requestContentType = new Headers(request.headers).get('Content-Type');
         }
@@ -148,7 +148,7 @@ let HttpClient = class HttpClient {
             }
         }
         setDefaultHeaders(request.headers, parsedDefaultHeaders);
-        if (body !== undefined && Object.prototype.isPrototypeOf.call(Blob, body) && body.type) {
+        if (body !== undefined && Object.prototype.isPrototypeOf.call(Blob.prototype, body) && body.type) {
             // work around bug in IE & Edge where the Blob type is ignored in the request
             // https://connect.microsoft.com/IE/feedback/details/2136163
             request.headers.set('Content-Type', body.type);

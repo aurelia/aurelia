@@ -35,10 +35,12 @@
     "test/1kcomponents",
     "test/browserstack",
     "test/cypress",
+    "test/doc-example/app",
     "test/fractals-tree",
     "test/grid",
     "test/js-framework-benchmark",
     "test/kitchen-sink",
+    "test/navigation-skeleton/app",
     "test/rainbow-spiral",
     "test/realworld",
     "test/sierpinski-triangle"

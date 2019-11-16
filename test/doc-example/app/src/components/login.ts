@@ -1,17 +1,21 @@
-import { inject } from '@aurelia/kernel';
-import { customElement, ICustomElementType } from '@aurelia/runtime';
+import { customElement } from '@aurelia/runtime';
 import { IRouter, ViewportInstruction } from '@aurelia/router';
 import { State } from '../state';
 
 @customElement({
-  name: 'login', template: `
-<div class="login">
-  <p>You need to be logged in to continue.</p>
-  <button data-test="login-button" click.trigger="login()">Okay, log me in</button>
-</div>` })
-@inject(State, IRouter)
+  name: 'login',
+  template: `
+    <div class="login">
+      <p>You need to be logged in to continue.</p>
+      <button data-test="login-button" click.trigger="login()">Okay, log me in</button>
+    </div>
+  `
+})
 export class Login {
-  public constructor(private readonly state: State, private readonly router: IRouter) { }
+  public constructor(
+    private readonly state: State,
+    @IRouter private readonly router: IRouter
+  ) {}
 
   public login() {
     this.state.loggedIn = true;
@@ -21,7 +25,6 @@ export class Login {
     const goto = this.router.instructionResolver.stringifyViewportInstructions(instructions);
     console.log(goto);
     this.state.loginReturnTo = [];
-    this.router.goto(goto, { replace: true });
+    this.router.goto(goto, { replace: true }).catch(err => { throw err; });
   }
 }
-export interface Login extends ICustomElementType { }

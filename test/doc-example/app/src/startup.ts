@@ -1,6 +1,3 @@
-// Promise polyfill for old browsers
-import 'promise-polyfill/lib/polyfill';
-
 import { DebugConfiguration } from '@aurelia/debug';
 import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
 import { RouterConfiguration } from '@aurelia/router';
@@ -26,37 +23,37 @@ import { LoginSpecial } from './components/login-special';
 import { Main } from './components/main';
 import { State } from './state';
 
-const globalResources = [
-  State,
+(async function () {
+  const au = new Aurelia()
+    .register(
+      State,
 
-  About,
-  AboutAuthors,
-  AboutBooks,
-  Author,
-  AuthorDetails,
-  Authors,
-  Book,
-  BookDetails,
-  Books,
+      About,
+      AboutAuthors,
+      AboutBooks,
+      Author,
+      AuthorDetails,
+      Authors,
+      Book,
+      BookDetails,
+      Books,
 
-  Chat,
-  ChatUser,
-  ChatUsers,
+      Chat,
+      ChatUser,
+      ChatUsers,
 
-  Login,
-  LoginSpecial,
-  Main,
-] as any;
+      Login,
+      LoginSpecial,
+      Main,
 
-(global as any).au = new Aurelia()
-  .register(
-    JitHtmlBrowserConfiguration,
-    DebugConfiguration,
-    RouterConfiguration,
-    ...globalResources,
-  )
-  .app({
-    host: document.querySelector('app'),
-    component: App
-  })
-  .start();
+      JitHtmlBrowserConfiguration,
+      RouterConfiguration,
+      DebugConfiguration,
+    )
+    .app({
+      host: document.querySelector('app'),
+      component: App,
+    });
+
+  await au.start().wait();
+})().catch(console.error);

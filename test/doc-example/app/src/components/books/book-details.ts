@@ -1,15 +1,20 @@
 import { customElement } from '@aurelia/runtime';
 import { BooksRepository } from '../../repositories/books';
 
-@customElement({ name: 'book-details', template: `<template>
-<h3>Details about the book</h3>
-<p>Here's details about <strong>\${book.title}</strong>...</p>
-</template>` })
+@customElement({
+  name: 'book-details',
+  template: `
+    <h3>Details about the book</h3>
+    <p>Here's details about <strong>\${book.title}</strong>...</p>
+  `
+})
 export class BookDetails {
-  public static parameters = ['id'];
+  public static parameters: string[] = ['id'];
 
-  public book = {};
-  public constructor(private readonly booksRepository: BooksRepository) { }
+  public book: any = {};
+  public constructor(
+    private readonly booksRepository: BooksRepository
+  ) {}
 
   public enter(parameters) {
     if (parameters.id) {

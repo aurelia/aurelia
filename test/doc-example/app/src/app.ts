@@ -1,64 +1,67 @@
-import { inject } from '@aurelia/kernel';
 import { IRouter } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime';
 import { AuthorsRepository } from './repositories/authors';
 import { State } from './state';
 
-@inject(IRouter, AuthorsRepository, State)
 @customElement({
-  name: 'app', template:
-    `
-<div class="info">
-  <label><input data-test="timed-out-checkbox" type="checkbox" checked.two-way="state.timedOut">Timed out</label><br>
-  <label><input data-test="special-timed-out-checkbox" type="checkbox" checked.two-way="state.specialTimedOut"><i>Special</i> timed out</label><br>
-</div>
-<div><a href="login">login</a></div>
-<au-viewport no-scope name="gate" used-by="main,login" default="\${!state.loggedIn ? 'login' : 'main'}"></au-viewport>
-` })
+  name: 'app',
+  template: `
+    <div class="info">
+      <label><input data-test="timed-out-checkbox" type="checkbox" checked.two-way="state.timedOut">Timed out</label><br>
+      <label><input data-test="special-timed-out-checkbox" type="checkbox" checked.two-way="state.specialTimedOut"><i>Special</i> timed out</label><br>
+    </div>
+    <div><a href="login">login</a></div>
+    <au-viewport no-scope name="gate" used-by="main,login" default="\${!state.loggedIn ? 'login' : 'main'}"></au-viewport>
+  `
+})
 export class App {
-  public constructor(private readonly router: IRouter, authorsRepository: AuthorsRepository, private readonly state: State) {
+  public constructor(
+    @IRouter private readonly router: IRouter,
+    authorsRepository: AuthorsRepository,
+    private readonly state: State,
+  ) {
     authorsRepository.authors(); // Only here to initialize repositories
   }
 
   public bound() {
     // this.router.activate({
-      // transformFromUrl: (path, router) => {
-      //   if (!path.length) {
-      //     return path;
-      //   }
-      //   if (path.startsWith('/')) {
-      //     path = path.slice(1);
-      //   }
-      //   // Fetch components for the "lists" viewport
-      //   const listsComponents = router.rootScope.viewports().lists.options.usedBy.split(',');
-      //   const states = [];
-      //   const parts = path.split('/');
-      //   while (parts.length) {
-      //     const component = parts.shift();
-      //     const state: ViewportInstruction = { component: component };
-      //     // Components in "lists" viewport can't have parameters so continue
-      //     if (listsComponents.indexOf(component) >= 0) {
-      //       states.push(state);
-      //       continue;
-      //     }
-      //     // It can have parameters, but does it?
-      //     if (parts.length > 0) {
-      //       state.parameters = { id: parts.shift() };
-      //     }
-      //     states.push(state);
-      //   }
-      //   return states;
-      // },
-      // transformToUrl: (states: ViewportInstruction[], router) => {
-      //   const parts = [];
-      //   for (const state of states) {
-      //     parts.push(state.component);
-      //     if (state.parameters) {
-      //       parts.push(state.parameters.id);
-      //     }
-      //   }
-      //   return parts.join('/');
-      // }
+    // transformFromUrl: (path, router) => {
+    //   if (!path.length) {
+    //     return path;
+    //   }
+    //   if (path.startsWith('/')) {
+    //     path = path.slice(1);
+    //   }
+    //   // Fetch components for the "lists" viewport
+    //   const listsComponents = router.rootScope.viewports().lists.options.usedBy.split(',');
+    //   const states = [];
+    //   const parts = path.split('/');
+    //   while (parts.length) {
+    //     const component = parts.shift();
+    //     const state: ViewportInstruction = { component: component };
+    //     // Components in "lists" viewport can't have parameters so continue
+    //     if (listsComponents.indexOf(component) >= 0) {
+    //       states.push(state);
+    //       continue;
+    //     }
+    //     // It can have parameters, but does it?
+    //     if (parts.length > 0) {
+    //       state.parameters = { id: parts.shift() };
+    //     }
+    //     states.push(state);
+    //   }
+    //   return states;
+    // },
+    // transformToUrl: (states: ViewportInstruction[], router) => {
+    //   const parts = [];
+    //   for (const state of states) {
+    //     parts.push(state.component);
+    //     if (state.parameters) {
+    //       parts.push(state.parameters.id);
+    //     }
+    //   }
+    //   return parts.join('/');
+    // }
     // }).catch(error => { throw error; });
 
     this.router.guardian.addGuard((instructions) => {
@@ -74,7 +77,7 @@ export class App {
       // this.state.loginReturnTo.push(this.router.instructionResolver.stringifyViewportInstructions(instructions));
       alert("You've timed out!");
       this.state.loggedIn = false;
-      this.router.goto('login');
+      this.router.goto('login').catch(err => { throw err; });
       return false;
     }, { exclude: ['', 'login'] });
 
@@ -89,7 +92,7 @@ export class App {
         ...instructions
       ]);
       this.state.loggedInSpecial = false;
-      this.router.goto(`login-special`);
+      this.router.goto(`login-special`).catch(err => { throw err; });
       return [];
     }, { include: [{ viewport: 'author-tabs' }], exclude: ['', 'login-special'] });
 
@@ -128,7 +131,7 @@ export class App {
   }
 
   private notify(message, instructions) {
-    alert(message + ': ' + instructions.map(i => i.componentName).join(', '));
+    alert(`${message}: ${instructions.map(i => i.componentName).join(', ')}`);
     console.log('#####', message, instructions);
     return true;
   }

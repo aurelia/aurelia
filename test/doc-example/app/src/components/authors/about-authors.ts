@@ -1,28 +1,30 @@
-import { inject } from '@aurelia/kernel';
 import { customElement } from '@aurelia/runtime';
 import { State } from '../../state';
 
 @customElement({
-  name: 'about-authors', template: `<template>
-<div>
-<h3>About authors [Entry: \${entries}]
-[
-  Reentry behavior:
-  <label repeat.for="behavior of reentryBehaviors">
-    <input type="radio" name="reentry" model.bind="behavior" checked.two-way="reentryBehavior">\${behavior}
-  </label>
-]</h3>
-<p>Authors write books. Books are good for you. End of story.</p>
-<div class="scrollbox">Space out!</div>
-</div>
-</template>` })
-@inject(State)
+  name: 'about-authors',
+  template: `
+    <div>
+    <h3>About authors [Entry: \${entries}]
+    [
+      Reentry behavior:
+      <label repeat.for="behavior of reentryBehaviors">
+        <input type="radio" name="reentry" model.bind="behavior" checked.two-way="reentryBehavior">\${behavior}
+      </label>
+    ]</h3>
+    <p>Authors write books. Books are good for you. End of story.</p>
+    <div class="scrollbox">Space out!</div>
+    </div>
+  `
+})
 export class AboutAuthors {
-  public reentryBehaviors = ['default', 'disallow', 'refresh', 'enter'];
+  public reentryBehaviors: string[] = ['default', 'disallow', 'refresh', 'enter'];
   public reentryBehavior: string = 'default';
-  public entries = 0;
+  public entries: number = 0;
 
-  public constructor(private readonly state: State) { }
+  public constructor(
+    private readonly state: State,
+  ) {}
 
   public canEnter() {
     console.log('### about-authors: canEnter');

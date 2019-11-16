@@ -4,7 +4,7 @@ import { Realm } from '../realm';
 import { $Object } from './object';
 import { $String } from './string';
 import { $Number } from './number';
-import { $ComputedPropertyName } from '../ast';
+import { $ComputedPropertyName, $ContinueStatement } from '../ast';
 import { $Boolean } from './boolean';
 
 export interface empty { '<empty>': unknown }
@@ -45,7 +45,7 @@ export class $Empty {
     public readonly realm: Realm,
     type: PotentialEmptyCompletionType = CompletionType.normal,
     target: CompletionTarget = realm['[[Intrinsics]]'].empty,
-    public readonly sourceNode: $ComputedPropertyName | null = null,
+    public readonly sourceNode: $ComputedPropertyName | $ContinueStatement | null = null,
   ) {
     this['[[Type]]'] = type;
     this['[[Target]]'] = target;

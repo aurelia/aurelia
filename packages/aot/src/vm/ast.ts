@@ -9022,17 +9022,22 @@ export class $BreakStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-break-statement-runtime-semantics-evaluation
   public Evaluate(): $Any {
+    const realm = this.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('EvaluateLabelled()');
     // BreakStatement : break ;
 
     // 1. Return Completion { [[Type]]: break, [[Value]]: empty, [[Target]]: empty }.
+    if (this.$label === void 0) {
+      return new $Empty(realm, CompletionType.break, intrinsics.empty, this);
+    }
 
     // BreakStatement : break LabelIdentifier ;
 
     // 1. Let label be the StringValue of LabelIdentifier.
     // 2. Return Completion { [[Type]]: break, [[Value]]: empty, [[Target]]: label }.
-
-    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
+    return new $Empty(realm, CompletionType.break, this.$label.StringValue, this);
   }
 }
 

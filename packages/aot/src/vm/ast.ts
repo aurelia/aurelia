@@ -1054,8 +1054,8 @@ function isIIFE(expr: $FunctionExpression | $ArrowFunction): boolean {
   return (parent.node as Node).kind === SyntaxKind.CallExpression && (parent as $CallExpression).node.expression === prev.node;
 }
 
-function evaluateStatement(statement: $$ESStatement) {
-  let stmtCompletion: $Any = null as any; // which one is missing?
+function evaluateStatement(statement: $$ESStatement): $Any {
+  let stmtCompletion: $Any = statement.realm['[[Intrinsics]]'].empty;
   switch (statement.$kind) {
     case SyntaxKind.Block:
     case SyntaxKind.VariableStatement:
@@ -1317,7 +1317,7 @@ export class $VariableStatement implements I$Node {
     // 2. Let rval be ? GetValue(rhs).
     // 3. Return the result of performing BindingInitialization for BindingPattern passing rval and undefined as arguments.
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
 }
 
@@ -2701,7 +2701,7 @@ export class $SuperExpression implements I$Node {
     // 7. Let thisER be GetThisEnvironment().
     // 8. Return ? thisER.BindThisValue(result).
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 }
 
@@ -2810,7 +2810,7 @@ export class $ArrayLiteralExpression implements I$Node {
     // 5. Perform Set(array, "length", ToUint32(padding + len), false).
     // 6. NOTE: The above Set cannot fail because of the nature of the object returned by ArrayCreate.
     // 7. Return array.
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]']['%ObjectPrototype%']; // TODO: implement this
   }
 }
 
@@ -2925,7 +2925,7 @@ export class $ObjectLiteralExpression implements I$Node {
     // 1. Let exprValue be the result of evaluating AssignmentExpression.
     // 2. Let propName be ? GetValue(exprValue).
     // 3. Return ? ToPropertyKey(propName).
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]']['%ObjectPrototype%']; // TODO: implement this
   }
 }
 
@@ -2965,7 +2965,7 @@ export class $PropertyAccessExpression implements I$Node {
     // 5. If the code matched by this MemberExpression is strict mode code, let strict be true, else let strict be false.
     // 6. Return a value of type Reference whose base value component is bv, whose referenced name component is propertyNameString, and whose strict reference flag is strict.
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 }
 
@@ -3007,7 +3007,7 @@ export class $ElementAccessExpression implements I$Node {
     // 7. If the code matched by this MemberExpression is strict mode code, let strict be true, else let strict be false.
     // 8. Return a value of type Reference whose base value component is bv, whose referenced name component is propertyKey, and whose strict reference flag is strict.
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 }
 
@@ -3066,7 +3066,7 @@ export class $CallExpression implements I$Node {
     // 4. Let tailCall be IsInTailPosition(thisCall).
     // 5. Return ? EvaluateCall(func, ref, Arguments, tailCall).
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 }
 
@@ -3105,7 +3105,7 @@ export class $NewExpression implements I$Node {
 
     // 1. Return ? EvaluateNew(MemberExpression, Arguments).
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 }
 
@@ -3162,7 +3162,7 @@ export class $TaggedTemplateExpression implements I$Node {
     // 4. Let tailCall be IsInTailPosition(thisCall).
     // 5. Return ? EvaluateCall(tagFunc, tagRef, TemplateLiteral, tailCall).
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 }
 
@@ -3363,7 +3363,7 @@ export class $FunctionExpression implements I$Node {
     // 10. Set closure.[[SourceText]] to the source text matched by AsyncFunctionExpression.
     // 11. Return closure.
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 }
 
@@ -3460,7 +3460,7 @@ export class $TemplateExpression implements I$Node {
     // 5. Let sub be ? GetValue(subRef).
     // 6. Let last be ? ToString(sub).
     // 7. Return the sequence of code units consisting of the elements of rest followed by the code units of middle followed by the elements of last.
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]']['']; // TODO: implement this
   }
 }
 
@@ -3600,7 +3600,7 @@ export class $ClassExpression implements I$Node {
     // 5. Set value.[[SourceText]] to the source text matched by ClassExpression.
     // 6. Return value.
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 }
 
@@ -3661,7 +3661,7 @@ export class $MetaProperty implements I$Node {
 
     // 1. Return GetNewTarget().
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 }
 
@@ -3710,7 +3710,7 @@ export class $DeleteExpression implements I$Node {
     // 6. a. Let bindings be GetBase(ref).
     // 6. b. Return ? bindings.DeleteBinding(GetReferencedName(ref)).
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].true; // TODO: implement this
   }
 }
 
@@ -3747,7 +3747,7 @@ export class $TypeOfExpression implements I$Node {
     // 3. Set val to ? GetValue(val).
     // 4. Return a String according to Table 35.
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]']['']; // TODO: implement this
   }
 }
 
@@ -3782,7 +3782,7 @@ export class $VoidExpression implements I$Node {
     // 2. Perform ? GetValue(expr).
     // 3. Return undefined.
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 }
 
@@ -3817,7 +3817,7 @@ export class $AwaitExpression implements I$Node {
     // 2. Let value be ? GetValue(exprRef).
     // 3. Return ? Await(value).
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 }
 
@@ -3888,7 +3888,7 @@ export class $PrefixUnaryExpression implements I$Node {
     // 3. If oldValue is NaN, return NaN.
     // 4. Return the result of negating oldValue; that is, compute a Number with the same magnitude but opposite sign.
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 }
 
@@ -3939,7 +3939,7 @@ export class $PostfixUnaryExpression implements I$Node {
     // 4. Perform ? PutValue(lhs, newValue).
     // 5. Return oldValue.
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 }
 
@@ -4626,7 +4626,7 @@ export class $BinaryExpression implements I$Node {
         // 4. Let rval be ? GetValue(rref).
         // 5. Perform ? DestructuringAssignmentEvaluation of assignmentPattern using rval as the argument.
         // 6. Return rval.
-        return null as any; // TODO: implement this
+        return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
       }
       case SyntaxKind.AsteriskAsteriskEqualsToken:
       case SyntaxKind.AsteriskEqualsToken:
@@ -4650,11 +4650,11 @@ export class $BinaryExpression implements I$Node {
         // 6. Let r be the result of applying op to lval and rval as if evaluating the expression lval op rval.
         // 7. Perform ? PutValue(lref, r).
         // 8. Return r.
-        return null as any; // TODO: implement this
+        return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
       }
     }
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 }
 
@@ -4703,7 +4703,7 @@ export class $ConditionalExpression implements I$Node {
     // 4. a. Let falseRef be the result of evaluating the second AssignmentExpression.
     // 4. b. Return ? GetValue(falseRef).
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 }
 
@@ -4817,7 +4817,7 @@ export class $ArrowFunction implements I$Node {
     // 5. Set closure.[[SourceText]] to the source text matched by ArrowFunction.
     // 6. Return closure.
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 }
 
@@ -4912,7 +4912,7 @@ export class $YieldExpression implements I$Node {
     // 7. c. ix. If generatorKind is async, then set received to AsyncGeneratorYield(? IteratorValue(innerReturnResult)).
     // 7. c. x. Else, set received to GeneratorYield(innerReturnResult).
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 }
 
@@ -4968,7 +4968,7 @@ export class $TemplateHead implements I$Node {
   public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 }
 
@@ -4992,7 +4992,7 @@ export class $TemplateMiddle implements I$Node {
   public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 }
 
@@ -5021,7 +5021,7 @@ export class $TemplateTail implements I$Node {
     // 1. Let tail be the TV of TemplateTail as defined in 11.8.6.
     // 2. Return the String value consisting of the code units of tail.
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 }
 
@@ -5079,7 +5079,7 @@ export class $TemplateSpan implements I$Node {
     // 6. Let last be ? ToString(sub).
     // 7. Return the sequence of code units consisting of the elements of rest followed by the code units of middle followed by the elements of last.
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 }
 
@@ -5233,7 +5233,7 @@ export class $JsxElement implements I$Node {
   public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 }
 
@@ -5297,7 +5297,7 @@ export class $JsxSelfClosingElement implements I$Node {
   public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 }
 
@@ -5330,7 +5330,7 @@ export class $JsxFragment implements I$Node {
   public Evaluate(): $AnyNonEmpty {
     this.logger.debug('EvaluateLabelled()');
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 }
 
@@ -5353,7 +5353,7 @@ export class $JsxText implements I$Node {
   public Evaluate(): $Any {
     this.logger.debug('EvaluateLabelled()');
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
 }
 
@@ -5382,7 +5382,7 @@ export class $JsxOpeningElement implements I$Node {
   public Evaluate(): $Any {
     this.logger.debug('EvaluateLabelled()');
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
 }
 
@@ -5409,7 +5409,7 @@ export class $JsxClosingElement implements I$Node {
   public Evaluate(): $Any {
     this.logger.debug('EvaluateLabelled()');
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
 }
 
@@ -5432,7 +5432,7 @@ export class $JsxOpeningFragment implements I$Node {
   public Evaluate(): $Any {
     this.logger.debug('EvaluateLabelled()');
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
 }
 
@@ -5455,7 +5455,7 @@ export class $JsxClosingFragment implements I$Node {
   public Evaluate(): $Any {
     this.logger.debug('EvaluateLabelled()');
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
 }
 
@@ -5522,7 +5522,7 @@ export class $JsxAttributes implements I$Node {
   public Evaluate(): $Any {
     this.logger.debug('EvaluateLabelled()');
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
 }
 
@@ -5549,7 +5549,7 @@ export class $JsxSpreadAttribute implements I$Node {
   public Evaluate(): $Any {
     this.logger.debug('EvaluateLabelled()');
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
 }
 
@@ -5576,7 +5576,7 @@ export class $JsxExpression implements I$Node {
   public Evaluate(): $Any {
     this.logger.debug('EvaluateLabelled()');
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
 }
 
@@ -5653,7 +5653,7 @@ export class $BigIntLiteral implements I$Node {
   public Evaluate(): $Number {
     this.logger.debug('EvaluateLabelled()');
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]']['0']; // TODO: implement this
   }
 }
 
@@ -5743,7 +5743,7 @@ export class $RegularExpressionLiteral implements I$Node {
     // 1. Let pattern be the String value consisting of the UTF16Encoding of each code point of BodyText of RegularExpressionLiteral.
     // 2. Let flags be the String value consisting of the UTF16Encoding of each code point of FlagText of RegularExpressionLiteral.
     // 3. Return RegExpCreate(pattern, flags).
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]']['%ObjectPrototype%']; // TODO: implement this
   }
 }
 
@@ -5779,7 +5779,7 @@ export class $NoSubstitutionTemplateLiteral implements I$Node {
     // TemplateLiteral : NoSubstitutionTemplate
 
     // 1. Return the String value whose code units are the elements of the TV of NoSubstitutionTemplate as defined in 11.8.6.
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]']['']; // TODO: implement this
   }
 }
 
@@ -8593,7 +8593,7 @@ export class $DoStatement implements I$Node {
     // 2. e. Let exprValue be ? GetValue(exprRef).
     // 2. f. If ToBoolean(exprValue) is false, return NormalCompletion(V).
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
 }
 
@@ -8638,7 +8638,7 @@ export class $WhileStatement implements I$Node {
     // 2. e. If LoopContinues(stmtResult, labelSet) is false, return Completion(UpdateEmpty(stmtResult, V)).
     // 2. f. If stmtResult.[[Value]] is not empty, set V to stmtResult.[[Value]].
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
 }
 
@@ -8735,7 +8735,7 @@ export class $ForStatement implements I$Node {
     // 12. Set the running execution context's LexicalEnvironment to oldEnv.
     // 13. Return Completion(bodyResult).
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
 }
 
@@ -8833,7 +8833,7 @@ export class $ForInStatement implements I$Node {
     // 1. Let keyResult be ? ForIn/OfHeadEvaluation(BoundNames of ForDeclaration, AssignmentExpression, async-iterate).
     // 2. Return ? ForIn/OfBodyEvaluation(ForDeclaration, Statement, keyResult, iterate, lexicalBinding, labelSet, async).
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-evaluation
@@ -8844,7 +8844,7 @@ export class $ForInStatement implements I$Node {
     // 1. Let bindingId be StringValue of BindingIdentifier.
     // 2. Return ? ResolveBinding(bindingId).
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
 }
 
@@ -8942,14 +8942,14 @@ export class $ForOfStatement implements I$Node {
     // 1. Let keyResult be ? ForIn/OfHeadEvaluation(BoundNames of ForDeclaration, AssignmentExpression, async-iterate).
     // 2. Return ? ForIn/OfBodyEvaluation(ForDeclaration, Statement, keyResult, iterate, lexicalBinding, labelSet, async).
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-evaluation
   public Evaluate(): $Any {
     this.logger.debug('EvaluateLabelled()');
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
 }
 
@@ -8988,7 +8988,7 @@ export class $ContinueStatement implements I$Node {
     // 1. Let label be the StringValue of LabelIdentifier.
     // 2. Return Completion { [[Type]]: continue, [[Value]]: empty, [[Target]]: label }.
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
 }
 
@@ -9027,7 +9027,7 @@ export class $BreakStatement implements I$Node {
     // 1. Let label be the StringValue of LabelIdentifier.
     // 2. Return Completion { [[Type]]: break, [[Value]]: empty, [[Target]]: label }.
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
 }
 
@@ -9128,7 +9128,7 @@ export class $WithStatement implements I$Node {
     // 8. Set the running execution context's LexicalEnvironment to oldEnv.
     // 9. Return Completion(UpdateEmpty(C, undefined)).
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
 }
 
@@ -9401,7 +9401,7 @@ export class $LabeledStatement implements I$Node {
 
     // 1. Return the result of evaluating FunctionDeclaration.
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-runtime-semantics-evaluation
@@ -9412,7 +9412,7 @@ export class $LabeledStatement implements I$Node {
     // 1. Let newLabelSet be a new empty List.
     // 2. Return LabelledEvaluation of this LabelledStatement with argument newLabelSet.
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 }
 
@@ -9448,7 +9448,7 @@ export class $ThrowStatement implements I$Node {
     // 2. Let exprValue be ? GetValue(exprRef).
     // 3. Return ThrowCompletion(exprValue).
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 }
 
@@ -9531,7 +9531,7 @@ export class $TryStatement implements I$Node {
     // 5. If F.[[Type]] is normal, set F to C.
     // 6. Return Completion(UpdateEmpty(F, undefined)).
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
 }
 
@@ -9566,7 +9566,7 @@ export class $DebuggerStatement implements I$Node {
     // 2. a. Let result be NormalCompletion(empty).
     // 3. Return result.
 
-    return null as any; // TODO: implement this
+    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
   }
 }
 

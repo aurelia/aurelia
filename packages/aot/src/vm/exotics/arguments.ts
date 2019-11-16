@@ -305,7 +305,11 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-makearggetter
-function MakeArgGetter(realm: Realm, name: $String, env: $EnvRec): $Function {
+function MakeArgGetter(
+  realm: Realm,
+  name: $String,
+  env: $EnvRec,
+): $Function {
   // 2. Let getter be CreateBuiltinFunction(steps, « [[Name]], [[Env]] »).
   const getter = $CreateBuiltinFunction(
     realm,
@@ -342,7 +346,11 @@ function MakeArgGetter(realm: Realm, name: $String, env: $EnvRec): $Function {
 
 
 // http://www.ecma-international.org/ecma-262/#sec-makeargsetter
-function MakeArgSetter(realm: Realm, name: $String, env: $EnvRec): $Function {
+function MakeArgSetter(
+  realm: Realm,
+  name: $String,
+  env: $EnvRec,
+): $Function {
   // 2. Let getter be CreateBuiltinFunction(steps, « [[Name]], [[Env]] »).
   const setter = $CreateBuiltinFunction(
     realm,

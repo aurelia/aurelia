@@ -240,7 +240,11 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-arrayspeciescreate
-export function $ArraySpeciesCreate(realm: Realm, originalArray: $Object, length: $Number): $Object {
+export function $ArraySpeciesCreate(
+  realm: Realm,
+  originalArray: $Object,
+  length: $Number,
+): $Object {
   const intrinsics = realm['[[Intrinsics]]'];
 
   // 1. Assert: length is an integer Number ≥ 0.

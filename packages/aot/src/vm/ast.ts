@@ -147,7 +147,7 @@ import { NPMPackage } from '../system/npm-package-loader';
 import { IModule, ResolveSet, ResolvedBindingRecord, Realm } from './realm';
 import { PatternMatcher } from '../system/pattern-matcher';
 import { $ModuleEnvRec, $EnvRec, $DeclarativeEnvRec } from './types/environment-record';
-import { $AbstractRelationalComparison, $InstanceOfOperator, $AbstractEqualityComparison, $StrictEqualityComparison } from './operations';
+import { $AbstractRelationalComparison, $InstanceOfOperator, $AbstractEqualityComparison, $StrictEqualityComparison, $Call } from './operations';
 import { $NamespaceExoticObject } from './exotics/namespace';
 import { $String } from './types/string';
 import { $Undefined } from './types/undefined';
@@ -3072,26 +3072,48 @@ export class $CallExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-function-calls-runtime-semantics-evaluation
   public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('EvaluateLabelled()');
+    const realm = this.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    this.logger.debug('Evaluate()');
     // CallExpression : CoverCallExpressionAndAsyncArrowHead
 
     // 1. Let expr be CoveredCallExpression of CoverCallExpressionAndAsyncArrowHead.
     // 2. Let memberExpr be the MemberExpression of expr.
+    const memberExpr = this.$expression;
+
     // 3. Let arguments be the Arguments of expr.
+    const $arguments = this.$arguments;
+
     // 4. Let ref be the result of evaluating memberExpr.
+    const ref = memberExpr.Evaluate();
+
     // 5. Let func be ? GetValue(ref).
+    const func = ref.GetValue();
+
     // 6. If Type(ref) is Reference and IsPropertyReference(ref) is false and GetReferencedName(ref) is "eval", then
-    // 6. a. If SameValue(func, %eval%) is true, then
-    // 6. a. i. Let argList be ? ArgumentListEvaluation of arguments.
-    // 6. a. ii. If argList has no elements, return undefined.
-    // 6. a. iii. Let evalText be the first element of argList.
-    // 6. a. iv. If the source code matching this CallExpression is strict mode code, let strictCaller be true. Otherwise let strictCaller be false.
-    // 6. a. v. Let evalRealm be the current Realm Record.
-    // 6. a. vi. Perform ? HostEnsureCanCompileStrings(evalRealm, evalRealm).
-    // 6. a. vii. Return ? PerformEval(evalText, evalRealm, strictCaller, true).
+    if (ref instanceof $Reference && ref.IsPropertyReference().isFalsey && ref.GetReferencedName()['[[Value]]'] === 'eval') {
+      // 6. a. If SameValue(func, %eval%) is true, then
+      if (func.is(intrinsics['%eval%'])) { // TODO
+        // 6. a. i. Let argList be ? ArgumentListEvaluation of arguments.
+
+        // 6. a. ii. If argList has no elements, return undefined.
+        // 6. a. iii. Let evalText be the first element of argList.
+        // 6. a. iv. If the source code matching this CallExpression is strict mode code, let strictCaller be true. Otherwise let strictCaller be false.
+        // 6. a. v. Let evalRealm be the current Realm Record.
+        // 6. a. vi. Perform ? HostEnsureCanCompileStrings(evalRealm, evalRealm).
+        // 6. a. vii. Return ? PerformEval(evalText, evalRealm, strictCaller, true).
+      }
+    }
+
     // 7. Let thisCall be this CallExpression.
+    const thisCall = this;
+
     // 8. Let tailCall be IsInTailPosition(thisCall).
+    // TODO
+
     // 9. Return ? EvaluateCall(func, ref, arguments, tailCall).
+    return $EvaluateCall(realm, func, ref as $Any, $arguments, intrinsics.false);
 
     // CallExpression : CallExpression Arguments
 
@@ -3103,6 +3125,60 @@ export class $CallExpression implements I$Node {
 
     return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
   }
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-evaluatecall
+function $EvaluateCall(
+  realm: Realm,
+  func: $Any,
+  ref: $Any,
+  $arguments: readonly $$ArgumentOrArrayLiteralElement[],
+  tailPosition: $Boolean,
+): $AnyNonEmpty {
+  let thisValue: $AnyNonEmpty;
+
+  // 1. If Type(ref) is Reference, then
+  if (ref instanceof $Reference) {
+    // 1. a. If IsPropertyReference(ref) is true, then
+    if (ref.IsPropertyReference().isTruthy) {
+      // 1. a. i. Let thisValue be GetThisValue(ref).
+      thisValue = ref.GetThisValue();
+    }
+    // 1. b. Else the base of ref is an Environment Record,
+    else {
+      // 1. b. i. Let refEnv be GetBase(ref).
+      const refEnv = ref.GetBase() as $EnvRec;
+
+      // 1. b. ii. Let thisValue be refEnv.WithBaseObject().
+      thisValue = refEnv.WithBaseObject();
+    }
+  }
+  // 2. Else Type(ref) is not Reference,
+  else {
+    // 2. a. Let thisValue be undefined.
+    thisValue = realm['[[Intrinsics]]'].undefined;
+  }
+
+  // 3. Let argList be ArgumentListEvaluation of arguments.
+  const argList: $AnyNonEmpty[] = []; // TODO
+
+  // 4. ReturnIfAbrupt(argList).
+  // 5. If Type(func) is not Object, throw a TypeError exception.
+  // 6. If IsCallable(func) is false, throw a TypeError exception.
+  if (!func.isFunction) {
+    throw new TypeError();
+  }
+
+  // 7. If tailPosition is true, perform PrepareForTailCall().
+  // TODO
+
+  // 8. Let result be Call(func, thisValue, argList).
+  const result = $Call(func as $Function, thisValue, argList);
+
+  // 9. Assert: If tailPosition is true, the above call will not return here, but instead evaluation will continue as if the following return has already occurred.
+  // 10. Assert: If result is not an abrupt completion, then Type(result) is an ECMAScript language type.
+  // 11. Return result.
+  return result;
 }
 
 export class $NewExpression implements I$Node {
@@ -6986,7 +7062,7 @@ export class $SourceFile implements I$Node, IModule {
           sl = $statement.Evaluate();
           break;
         case SyntaxKind.FunctionDeclaration:
-          // sl = $statement.Evaluate();
+          sl = $statement.Evaluate();
           break;
         case SyntaxKind.ClassDeclaration:
           // sl = $statement.Evaluate();

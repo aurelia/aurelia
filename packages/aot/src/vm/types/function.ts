@@ -4,7 +4,7 @@ import { $EnvRec, $FunctionEnvRec } from './environment-record';
 import { $FunctionDeclaration, $MethodDeclaration, $ArrowFunction, $SourceFile } from '../ast';
 import { $Boolean } from './boolean';
 import { $String } from './string';
-import { $Any, $AnyNonEmpty } from './_shared';
+import { $Any, $AnyNonEmpty, CompletionType } from './_shared';
 import { $PropertyDescriptor } from './property-descriptor';
 import { $Number } from './number';
 import { $DefinePropertyOrThrow, $Get } from '../operations';
@@ -42,7 +42,7 @@ export class $Function<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects-call-thisargument-argumentslist
-  public '[[Call]]'(thisArgument: $AnyNonEmpty, argumentsList: readonly $Any[]): $AnyNonEmpty {
+  public '[[Call]]'(thisArgument: $AnyNonEmpty, argumentsList: readonly $AnyNonEmpty[]): $AnyNonEmpty {
     // 1. Assert: F is an ECMAScript function object.
     const F = this;
     const realm = F['[[Realm]]'];
@@ -65,15 +65,23 @@ export class $Function<
     $OrdinaryCallBindThis(F, calleeContext, thisArgument);
 
     // 7. Let result be OrdinaryCallEvaluateBody(F, argumentsList).
-    const result = $OrdinaryCallEvaluateBody(F, argumentsList);
+    const result = (F['[[ECMAScriptCode]]'] as $FunctionDeclaration).EvaluateBody(F, argumentsList);
 
     // 8. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
     stack.pop(); // TODO: verify
 
     // 9. If result.[[Type]] is return, return NormalCompletion(result.[[Value]]).
+    if (result['[[Type]]'] === CompletionType.return) {
+      return result.ToCompletion(CompletionType.normal, intrinsics.empty);
+    }
+
     // 10. ReturnIfAbrupt(result).
+    if (result.isAbrupt) {
+      return result as $AnyNonEmpty; // TODO: ensure we don't need to cast this. Need to squeeze $Empty out of the union in a normal way somehow. Can StatementList guarantee that it never returns $Empty? In that case we can return $AnyNonEmpty from EvaluateBody
+    }
+
     // 11. Return NormalCompletion(undefined).
-    return result;
+    return new $Undefined(realm, CompletionType.normal, intrinsics.empty);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget

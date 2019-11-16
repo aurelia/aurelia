@@ -1,0 +1,41 @@
+{
+  "name": "navigation-skeleton",
+  "version": "0.1.1",
+  "scripts": {
+    "watch": "webpack-dev-server --no-inline",
+    "build": "rimraf dist && webpack --config webpack.config.js",
+    "serve": "http-server -c-1 -p 9000 dist",
+    "build-serve": "rimraf dist && webpack --config webpack.config.js && http-server -c-1 -p 9000 dist",
+    "now": "rimraf dist && webpack --config webpack.config.js && cd dist && now && cd .."
+  },
+  "dependencies": {
+    "@aurelia/debug": "0.5.0",
+    "@aurelia/fetch-client": "0.5.0",
+    "@aurelia/jit-html": "0.5.0",
+    "@aurelia/jit-html-browser": "0.5.0",
+    "@aurelia/jit": "0.5.0",
+    "@aurelia/kernel": "0.5.0",
+    "@aurelia/runtime-html": "0.5.0",
+    "@aurelia/runtime-html-browser": "0.5.0",
+    "@aurelia/runtime": "0.5.0",
+    "@aurelia/router": "0.5.0",
+    "bootstrap": "^3.3.6",
+    "font-awesome": "^4.6.3"
+  },
+  "devDependencies": {
+    "@types/node": "^12.12.7",
+    "css-loader": "^3.2.0",
+    "file-loader": "^4.2.0",
+    "html-loader": "^0.5.5",
+    "html-webpack-plugin": "^3.2.0",
+    "http-server": "0.9.0",
+    "rimraf": "^3.0.0",
+    "style-loader": "^1.0.0",
+    "ts-loader": "^6.2.1",
+    "typescript": "^3.7.2",
+    "url-loader": "^2.2.0",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.9.0"
+  }
+}

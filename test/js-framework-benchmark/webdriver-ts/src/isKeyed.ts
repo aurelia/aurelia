@@ -19,7 +19,7 @@ const allArgs = process.argv.length<=2 ? [] : process.argv.slice(2,process.argv.
 const runBenchmarksFromDirectoryNamesArgs = !args.framework;
 
 const init = `
-window.nonKeyedDetector_reset = function() {
+window.nonKeyedDetector_reset = function () {
     window.nonKeyedDetector_tradded = 0;
     window.nonKeyedDetector_trremoved = 0;
     window.nonKeyedDetector_removedStoredTr = 0;
@@ -29,7 +29,7 @@ window.nonKeyedDetector_setUseShadowDom = function(useShadowDom ) {
     window.nonKeyedDetector_shadowRoot = useShadowDom;
 }
 
-window.nonKeyedDetector_instrument = function() {
+window.nonKeyedDetector_instrument = function () {
     let node = document;
     if (window.nonKeyedDetector_shadowRoot) {
         let main = document.querySelector("main-element");
@@ -74,10 +74,10 @@ window.nonKeyedDetector_instrument = function() {
     observer.observe(target, config);
     return true;
 }
-window.nonKeyedDetector_result = function() {
+window.nonKeyedDetector_result = function () {
     return {tradded: nonKeyedDetector_tradded, trremoved: nonKeyedDetector_trremoved, removedStoredTr: nonKeyedDetector_removedStoredTr};
 }
-window.nonKeyedDetector_storeTr = function() {
+window.nonKeyedDetector_storeTr = function () {
     let node = document;
     if (window.nonKeyedDetector_shadowRoot) {
         let main = document.querySelector("main-element");

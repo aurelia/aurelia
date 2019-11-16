@@ -1,13 +1,13 @@
 import { BooksComponent, Shared, BookComponent } from './selectors.po';
 
-describe('doc-example / books route', function() {
-  it('navigates to books route', function() {
+describe('doc-example / books route', function () {
+  it('navigates to books route', function () {
     cy.visit('/#/books+about')
       .url()
       .should('contain', '/#/books+about');
   });
 
-  it('displays the correct viewports', function() {
+  it('displays the correct viewports', function () {
     cy.get(Shared.listsViewport)
       .should('exist');
     cy.get(Shared.listsViewportHeader)
@@ -24,8 +24,8 @@ describe('doc-example / books route', function() {
       .should('contain', 'Viewport: chat  : null');
   });
 
-  describe('books component', function() {
-    it('displays the correct titles and authors', function() {
+  describe('books component', function () {
+    it('displays the correct titles and authors', function () {
       const books = [
         {
           title: 'The Colour of Magic',
@@ -110,14 +110,14 @@ describe('doc-example / books route', function() {
     });
   });
 
-  describe('book details component', function() {
+  describe('book details component', function () {
     before(() => {
       cy.get(BooksComponent.bookLinks)
         .eq(0)
         .click();
     });
 
-    it('displays the correct viewports', function() {
+    it('displays the correct viewports', function () {
       cy.get(Shared.contentViewport)
         .should('exist');
       cy.get(Shared.contentViewportHeader)
@@ -129,7 +129,7 @@ describe('doc-example / books route', function() {
         .should('contain', 'Viewport: book-tabs  : book-details');
     });
 
-    it('displays the correct book details', function() {
+    it('displays the correct book details', function () {
       cy.get(BookComponent.bookName)
         .should('contain', 'The Colour of Magic');
 
@@ -154,7 +154,7 @@ describe('doc-example / books route', function() {
       });
     });
 
-    it('displays the correct book tabs', function() {
+    it('displays the correct book tabs', function () {
       const tabs = [
         'Details',
         'About books',

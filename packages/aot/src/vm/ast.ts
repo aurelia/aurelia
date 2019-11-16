@@ -1593,6 +1593,25 @@ export class $FunctionDeclaration implements I$Node {
     return F;
   }
 
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
+  public EvaluateBody(
+    functionObject: $Function,
+    argumentsList: readonly $Any[],
+  ): $Any {
+    // FunctionBody : FunctionStatementList
+
+    // 1. Perform ? FunctionDeclarationInstantiation(functionObject, argumentsList).
+    const fdiResult = $FunctionDeclarationInstantiation(functionObject, argumentsList);
+    if (fdiResult.isAbrupt) {
+      return fdiResult;
+    }
+
+    // 2. Return the result of evaluating FunctionStatementList.
+    return this.$body.Evaluate();
+  }
+
+
+
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluation
   public Evaluate(): $Empty {
     const realm = this.realm;
@@ -1909,6 +1928,7 @@ function $FunctionDeclarationInstantiation(
   }
 
   // 37. Return NormalCompletion(empty).
+  return new $Empty(realm, CompletionType.normal, intrinsics.empty);
 }
 
 function $heritageClauseList(

@@ -229,36 +229,36 @@ describe('custom-attributes', function () {
       }
     }
 
-    it('does not invoke change handler when starts with plain usage', function () {
+    it('does not invoke change handler when starts with plain usage', async function () {
       const { fooVm, tearDown } = setupChangeHandlerTest('<div foo="prop"></div>');
       assert.strictEqual(fooVm.propChangedCallCount, 0);
       fooVm.prop = '5';
       assert.strictEqual(fooVm.propChangedCallCount, 1);
-      tearDown();
+      await tearDown();
     });
 
-    it('does not invoke chane handler when starts with commands', function () {
+    it('does not invoke chane handler when starts with commands', async function () {
       const { fooVm, tearDown } = setupChangeHandlerTest('<div foo.bind="prop"></foo>');
       assert.strictEqual(fooVm.propChangedCallCount, 0);
       fooVm.prop = '5';
       assert.strictEqual(fooVm.propChangedCallCount, 1);
-      tearDown();
+      await tearDown();
     });
 
-    it('does not invoke chane handler when starts with interpolation', function () {
+    it('does not invoke chane handler when starts with interpolation', async function () {
       const { fooVm, tearDown } = setupChangeHandlerTest(`<div foo="\${prop}"></foo>`);
       assert.strictEqual(fooVm.propChangedCallCount, 0);
       fooVm.prop = '5';
       assert.strictEqual(fooVm.propChangedCallCount, 1);
-      tearDown();
+      await tearDown();
     });
 
-    it('does not invoke chane handler when starts with two way binding', function () {
+    it('does not invoke chane handler when starts with two way binding', async function () {
       const { fooVm, tearDown } = setupChangeHandlerTest(`<div foo.two-way="prop"></foo>`);
       assert.strictEqual(fooVm.propChangedCallCount, 0, '#1 should have had 0 calls at start');
       fooVm.prop = '5';
       assert.strictEqual(fooVm.propChangedCallCount, 1, '#2 shoulda had 1 call after mutation');
-      tearDown();
+      await tearDown();
     });
 
     function setupChangeHandlerTest(template: string) {
@@ -267,10 +267,7 @@ describe('custom-attributes', function () {
       const fooVm = CustomAttribute.for(fooEl, 'foo').viewModel as Foo;
       return {
         fooVm: fooVm,
-        tearDown: () => {
-          options.au.stop();
-          options.appHost.remove();
-        }
+        tearDown: () => options.tearDown()
       };
     }
   });
@@ -371,7 +368,7 @@ describe('custom-attributes', function () {
     eachCartesianJoin(
       [templateUsages, testCases],
       ([usageDesc, usageSyntax], testCase) => {
-        it(`does not invoke change handler when starts with ${usageDesc} usage`, function () {
+        it(`does not invoke change handler when starts with ${usageDesc} usage`, async function () {
           const template = `<div foo1${usageSyntax} foo2${usageSyntax} foo3${usageSyntax}></div>`;
           const { foos, tearDown } = setupChangeHandlerTest(template);
           const callCounts = testCase.callCounts;
@@ -394,13 +391,13 @@ describe('custom-attributes', function () {
             }
           });
 
-          tearDown();
+          await tearDown();
         });
       }
     );
 
     describe('04.1 + with two-way', function () {
-      it('does not invoke change handler when starts with two-way usage', function () {
+      it('does not invoke change handler when starts with two-way usage', async function () {
         const template = `<div foo1.two-way="prop"></div>`;
         const options = setup(
           template,
@@ -431,7 +428,7 @@ describe('custom-attributes', function () {
         assert.strictEqual(foo1Vm.prop, 6);
         assert.strictEqual(rootVm['prop'], 6);
 
-        options.au.stop();
+        await options.tearDown();
       });
 
       // Foo1 should cover both Foo2, and Foo3
@@ -451,15 +448,14 @@ describe('custom-attributes', function () {
         foo2Vm,
         foo3Vm,
         foos: [foo1Vm, foo2Vm, foo3Vm] as [IChangeHandlerTestViewModel, IChangeHandlerTestViewModel, IChangeHandlerTestViewModel],
-        tearDown: () => {
-          options.au.stop();
-          options.appHost.remove();
-        }
+        tearDown: () => options.tearDown()
       };
     }
   });
 
   describe('05. with setter/getter', function () {
+    this.afterEach(assert.isSchedulerEmpty);
+
     /**
      * Specs:
      * - with setter coercing to string for "prop" property
@@ -589,7 +585,7 @@ describe('custom-attributes', function () {
     eachCartesianJoin(
       [templateUsages, testCases],
       ([usageType, usageSyntax], [mutationValue, ...getFooVmProps]) => {
-        it(`does not invoke change handler when starts with ${UsageType[usageType]} usage`, function () {
+        it(`does not invoke change handler when starts with ${UsageType[usageType]} usage`, async function () {
           const template =
             `<div
               foo1${usageSyntax}
@@ -615,7 +611,7 @@ describe('custom-attributes', function () {
             );
           });
 
-          tearDown();
+          await tearDown();
         });
       }
     );
@@ -644,15 +640,12 @@ describe('custom-attributes', function () {
         foo3Vm,
         foo4Vm,
         foos: [foo1Vm, foo2Vm, foo3Vm, foo4Vm] as IChangeHandlerTestViewModel[],
-        tearDown: () => {
-          options.au.stop();
-          options.appHost.remove();
-        }
+        tearDown: () => options.tearDown()
       };
     }
 
     describe('05.1 + with two-way', function () {
-      it('works properly when two-way binding with number setter interceptor', function () {
+      it('works properly when two-way binding with number setter interceptor', async function () {
         const template = `<div foo1.two-way="prop">\${prop}</div>`;
         const options = setup(
           template,
@@ -682,11 +675,10 @@ describe('custom-attributes', function () {
         options.scheduler.getRenderTaskQueue().flush();
         assert.strictEqual(options.appHost.textContent, date.toString());
 
-        options.au.stop();
-        options.appHost.remove();
+        await options.tearDown();
       });
 
-      it('does not result in overflow error when dealing with NaN', function () {
+      it('does not result in overflow error when dealing with NaN', async function () {
         /**
          * Specs:
          * - With bindable with getter coerce to string, setter coerce to number for "prop" property
@@ -735,8 +727,7 @@ describe('custom-attributes', function () {
         options.scheduler.getRenderTaskQueue().flush();
         assert.strictEqual(options.appHost.textContent, 'NaN');
 
-        options.au.stop();
-        options.appHost.remove();
+        await options.tearDown();
       });
     });
   });

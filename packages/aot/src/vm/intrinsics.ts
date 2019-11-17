@@ -7,6 +7,7 @@ import { $Number } from './types/number';
 import { $String } from './types/string';
 import { $Symbol } from './types/symbol';
 import { $Object } from './types/object';
+import { $Function } from './types/function';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
@@ -298,7 +299,7 @@ export class Intrinsics {
   public readonly '%parseInt%': $Object<'%parseInt%'>;
   public readonly '%JSONParse%': $Object<'%JSONParse%'>;
   public readonly '%JSONStringify%': $Object<'%JSONStringify%'>;
-  public readonly '%ThrowTypeError%': $Object<'%ThrowTypeError%'>;
+  public readonly '%ThrowTypeError%': $Function<'%ThrowTypeError%'>;
 
   public readonly '%ArrayProto_entries%': $Object<'%ArrayProto_entries%'>;
   public readonly '%ArrayProto_forEach%': $Object<'%ArrayProto_forEach%'>;
@@ -485,7 +486,7 @@ export class Intrinsics {
     this['%parseInt%'] = new $Object(realm, '%parseInt%', this['%FunctionPrototype%']);
     this['%JSONParse%'] = new $Object(realm, '%JSONParse%', this['%FunctionPrototype%']);
     this['%JSONStringify%'] = new $Object(realm, '%JSONStringify%', this['%FunctionPrototype%']);
-    this['%ThrowTypeError%'] = new $Object(realm, '%ThrowTypeError%', this['%FunctionPrototype%']);
+    this['%ThrowTypeError%'] = new $Function(realm, '%ThrowTypeError%', this['%FunctionPrototype%']);
 
     this['%ArrayProto_entries%'] = new $Object(realm, '%ArrayProto_entries%', this['%FunctionPrototype%']);
     this['%ArrayProto_forEach%'] = new $Object(realm, '%ArrayProto_forEach%', this['%FunctionPrototype%']);

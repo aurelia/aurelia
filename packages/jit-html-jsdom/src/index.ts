@@ -41,7 +41,6 @@ export const JitHtmlJsdomConfiguration = {
    * Create a new container with this configuration applied to it.
    */
   createContainer(): IContainer {
-    const container = this.register(DI.createContainer());
-    return container;
+    return this.register(DI.createContainer());
   }
 };

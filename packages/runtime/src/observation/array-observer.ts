@@ -10,6 +10,8 @@ import {
 import { CollectionLengthObserver } from './collection-length-observer';
 import { collectionSubscriberCollection } from './subscriber-collection';
 
+const observerLookup = new WeakMap<unknown[], ArrayObserver>();
+
 // https://tc39.github.io/ecma262/#sec-sortcompare
 function sortCompare(x: unknown, y: unknown): number {
   if (x === y) {
@@ -156,12 +158,12 @@ const methods: ['push', 'unshift', 'pop', 'shift', 'splice', 'reverse', 'sort'] 
 
 const observe = {
   // https://tc39.github.io/ecma262/#sec-array.prototype.push
-  push: function(this: IObservedArray, ...args: unknown[]): ReturnType<typeof Array.prototype.push> {
+  push: function (this: IObservedArray, ...args: unknown[]): ReturnType<typeof Array.prototype.push> {
     let $this = this;
     if ($this.$raw !== void 0) {
       $this = $this.$raw;
     }
-    const o = $this.$observer;
+    const o = observerLookup.get($this);
     if (o === void 0) {
       return $push.apply($this, args);
     }
@@ -181,12 +183,12 @@ const observe = {
     return $this.length;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.unshift
-  unshift: function(this: IObservedArray, ...args: unknown[]): ReturnType<typeof Array.prototype.unshift>  {
+  unshift: function (this: IObservedArray, ...args: unknown[]): ReturnType<typeof Array.prototype.unshift>  {
     let $this = this;
     if ($this.$raw !== void 0) {
       $this = $this.$raw;
     }
-    const o = $this.$observer;
+    const o = observerLookup.get($this);
     if (o === void 0) {
       return $unshift.apply($this, args);
     }
@@ -202,12 +204,12 @@ const observe = {
     return len;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.pop
-  pop: function(this: IObservedArray): ReturnType<typeof Array.prototype.pop> {
+  pop: function (this: IObservedArray): ReturnType<typeof Array.prototype.pop> {
     let $this = this;
     if ($this.$raw !== void 0) {
       $this = $this.$raw;
     }
-    const o = $this.$observer;
+    const o = observerLookup.get($this);
     if (o === void 0) {
       return $pop.call($this);
     }
@@ -223,12 +225,12 @@ const observe = {
     return element;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.shift
-  shift: function(this: IObservedArray): ReturnType<typeof Array.prototype.shift> {
+  shift: function (this: IObservedArray): ReturnType<typeof Array.prototype.shift> {
     let $this = this;
     if ($this.$raw !== void 0) {
       $this = $this.$raw;
     }
-    const o = $this.$observer;
+    const o = observerLookup.get($this);
     if (o === void 0) {
       return $shift.call($this);
     }
@@ -243,14 +245,14 @@ const observe = {
     return element;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.splice
-  splice: function(this: IObservedArray, ...args: [number, number, ...unknown[]]): ReturnType<typeof Array.prototype.splice> {
+  splice: function (this: IObservedArray, ...args: [number, number, ...unknown[]]): ReturnType<typeof Array.prototype.splice> {
     const start: number = args[0];
     const deleteCount: number|undefined = args[1];
     let $this = this;
     if ($this.$raw !== void 0) {
       $this = $this.$raw;
     }
-    const o = $this.$observer;
+    const o = observerLookup.get($this);
     if (o === void 0) {
       return $splice.apply($this, args);
     }
@@ -286,12 +288,12 @@ const observe = {
     return deleted;
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.reverse
-  reverse: function(this: IObservedArray): ReturnType<typeof Array.prototype.reverse> {
+  reverse: function (this: IObservedArray): ReturnType<typeof Array.prototype.reverse> {
     let $this = this;
     if ($this.$raw !== void 0) {
       $this = $this.$raw;
     }
-    const o = $this.$observer;
+    const o = observerLookup.get($this);
     if (o === void 0) {
       $reverse.call($this);
       return this;
@@ -312,12 +314,12 @@ const observe = {
   },
   // https://tc39.github.io/ecma262/#sec-array.prototype.sort
   // https://github.com/v8/v8/blob/master/src/js/array.js
-  sort: function(this: IObservedArray, compareFn?: (a: unknown, b: unknown) => number): IObservedArray {
+  sort: function (this: IObservedArray, compareFn?: (a: unknown, b: unknown) => number): IObservedArray {
     let $this = this;
     if ($this.$raw !== void 0) {
       $this = $this.$raw;
     }
-    const o = $this.$observer;
+    const o = observerLookup.get($this);
     if (o === void 0) {
       $sort.call($this, compareFn);
       return this;
@@ -394,17 +396,7 @@ export class ArrayObserver {
     this.lifecycle = lifecycle;
     this.lengthObserver = (void 0)!;
 
-    Reflect.defineProperty(
-      array,
-      '$observer',
-      {
-        value: this,
-        enumerable: false,
-        writable: true,
-        configurable: true,
-      },
-    );
-
+    observerLookup.set(array, this);
   }
 
   public notify(): void {
@@ -438,10 +430,11 @@ export class ArrayObserver {
 }
 
 export function getArrayObserver(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray): ArrayObserver {
-  if (array.$observer === void 0) {
-    array.$observer = new ArrayObserver(flags, lifecycle, array);
+  const observer = observerLookup.get(array);
+  if (observer === void 0) {
+    return new ArrayObserver(flags, lifecycle, array);
   }
-  return array.$observer;
+  return observer;
 }
 
 /**

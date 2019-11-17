@@ -3,7 +3,7 @@ import { Aurelia, CustomElement, CustomElementHost } from '@aurelia/runtime';
 import { Blur, Focus } from '@aurelia/runtime-html';
 import { assert, eachCartesianJoin, HTMLTestContext, TestContext } from '@aurelia/testing';
 
-describe('blur.integration.spec.ts', function() {
+describe('blur.integration.spec.ts', function () {
 
   if (!PLATFORM.isBrowserLike) {
     return;
@@ -13,8 +13,8 @@ describe('blur.integration.spec.ts', function() {
     hasFocus: boolean;
   }
 
-  describe('>> with mouse', function() {
-    describe('>> Basic scenarios', function() {
+  describe('>> with mouse', function () {
+    describe('>> Basic scenarios', function () {
       // Note that from-view binding are not working at the moment
       // as blur has a guard to prevent unnecessary work,
       // it checks if value is already false and short circuit all checks
@@ -108,7 +108,7 @@ describe('blur.integration.spec.ts', function() {
       eachCartesianJoin(
         [blurAttrs, normalUsageTestCases],
         (command, { title, template, getFocusable, app, assertFn }: IBlurTestCase) => {
-          it(title(command), async function() {
+          it(title(command), async function () {
             const { ctx, component, testHost, dispose } = await setup<IApp>(
               template(command),
               app
@@ -122,7 +122,7 @@ describe('blur.integration.spec.ts', function() {
       );
     });
 
-    describe.skip('Abnormal scenarios', function() {
+    describe.skip('Abnormal scenarios', function () {
       const blurAttrs = [
         // 'blur.bind=hasFocus',
         'blur.two-way=hasFocus',
@@ -200,7 +200,7 @@ describe('blur.integration.spec.ts', function() {
         [blurAttrs, abnormalCases],
         (command, abnormalCase, callIndex) => {
           const { title, template, app, assertFn } = abnormalCase;
-          it(title(callIndex, command), async function() {
+          it(title(callIndex, command), async function () {
             const { component, testHost, ctx, dispose } = await setup<IApp>(
               template(command),
               app,
@@ -221,7 +221,7 @@ describe('blur.integration.spec.ts', function() {
     });
   });
 
-  describe('with shadowDOM', function() {
+  describe('with shadowDOM', function () {
     const testCases: IBlurTestCase[] = [
       {
         title: (...args) => `works with event originating inside shadow dom`,
@@ -269,8 +269,8 @@ describe('blur.integration.spec.ts', function() {
 
           const $ceA: CustomElementHost & HTMLElement = host.querySelector('ce-a');
           const $ceB: CustomElementHost & HTMLElement = host.querySelector('ce-b');
-          const ceA = $ceA.$controller.viewModel as IApp;
-          const ceB = $ceB.$controller.viewModel as IApp;
+          const ceA = CustomElement.for($ceA).viewModel as IApp;
+          const ceB = CustomElement.for($ceB).viewModel as IApp;
 
           dispatchEventWith(ctx, host.querySelector('ce-a'), EVENTS.MouseDown);
           assert.equal(component.aHasFocus, true, '.aHasFocus === true');
@@ -301,7 +301,7 @@ describe('blur.integration.spec.ts', function() {
     eachCartesianJoin(
       [testCases],
       ({ title, template, dependencies = [], app, assertFn }: IBlurTestCase) => {
-        it(title(), async function() {
+        it(title(), async function () {
           const { ctx, component, testHost, dispose } = await setup<IApp>(
             template(''),
             app,

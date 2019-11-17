@@ -1,7 +1,12 @@
-import { $Object, $String, $Boolean, $PropertyKey, $Undefined, $Any } from '../value';
-import { IModule, ResolveSet, ResolvedBindingRecord, Realm } from '../realm';
+import { $Object } from '../types/object';
+import { IModule, ResolveSet, ResolvedBindingRecord, ExecutionContext } from '../realm';
+import { $String } from '../types/string';
+import { Realm } from '../realm';
+import { $Boolean } from '../types/boolean';
 import { $SetImmutablePrototype } from '../operations';
-import { $PropertyDescriptor } from '../property-descriptor';
+import { $PropertyKey, $Any, $AnyNonEmpty } from '../types/_shared';
+import { $PropertyDescriptor } from '../types/property-descriptor';
+import { $Undefined } from '../types/undefined';
 
 // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects
 export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
@@ -36,31 +41,41 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
 
 
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-setprototypeof-v
-  public '[[SetPrototypeOf]]'(V: $Object): $Boolean {
+  public '[[SetPrototypeOf]]'(
+    ctx: ExecutionContext,
+    V: $Object,
+  ): $Boolean {
     // 1. Return ? SetImmutablePrototype(O, V).
-    return $SetImmutablePrototype(this, V);
+    return $SetImmutablePrototype(ctx, this, V);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-isextensible
-  public '[[IsExtensible]]'(): $Boolean<false> {
+  public '[[IsExtensible]]'(
+    ctx: ExecutionContext,
+  ): $Boolean<false> {
     // 1. Return false.
     return this.realm['[[Intrinsics]]'].false;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-preventextensions
-  public '[[PreventExtensions]]'(): $Boolean<true> {
+  public '[[PreventExtensions]]'(
+    ctx: ExecutionContext,
+  ): $Boolean<true> {
     // 1. Return true.
     return this.realm['[[Intrinsics]]'].true;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-getownproperty-p
-  public '[[GetOwnProperty]]'(P: $PropertyKey): $PropertyDescriptor | $Undefined {
+  public '[[GetOwnProperty]]'(
+    ctx: ExecutionContext,
+    P: $PropertyKey,
+  ): $PropertyDescriptor | $Undefined {
     // 1. If Type(P) is Symbol, return OrdinaryGetOwnProperty(O, P).
     if (P.isSymbol) {
-      return super['[[GetOwnProperty]]'](P);
+      return super['[[GetOwnProperty]]'](ctx, P);
     }
 
-    const realm = this.realm;
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
     const O = this;
 
@@ -73,7 +88,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
     }
 
     // 4. Let value be ? O.[[Get]](P, O).
-    const value = O['[[Get]]'](P, O);
+    const value = O['[[Get]]'](ctx, P, O);
 
     // 5. Return PropertyDescriptor { [[Value]]: value, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: false }.
     const desc = new $PropertyDescriptor(realm, P);
@@ -86,18 +101,22 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-defineownproperty-p-desc
-  public '[[DefineOwnProperty]]'(P: $PropertyKey, Desc: $PropertyDescriptor): $Boolean {
+  public '[[DefineOwnProperty]]'(
+    ctx: ExecutionContext,
+    P: $PropertyKey,
+    Desc: $PropertyDescriptor,
+  ): $Boolean {
     // 1. If Type(P) is Symbol, return OrdinaryDefineOwnProperty(O, P, Desc).
     if (P.isSymbol) {
-      return super['[[DefineOwnProperty]]'](P, Desc);
+      return super['[[DefineOwnProperty]]'](ctx, P, Desc);
     }
 
-    const realm = this.realm;
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
     const O = this;
 
     // 2. Let current be ? O.[[GetOwnProperty]](P).
-    const current = O['[[GetOwnProperty]]'](P);
+    const current = O['[[GetOwnProperty]]'](ctx, P);
 
     // 3. If current is undefined, return false.
     if (current.isUndefined) {
@@ -110,17 +129,17 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
     }
 
     // 5. If Desc.[[Writable]] is present and has value false, return false.
-    if (Desc['[[Writable]]'].value === false) {
+    if (Desc['[[Writable]]'].hasValue && Desc['[[Writable]]'].isFalsey) {
       return intrinsics.false;
     }
 
     // 6. If Desc.[[Enumerable]] is present and has value false, return false.
-    if (Desc['[[Enumerable]]'].value === false) {
+    if (Desc['[[Enumerable]]'].hasValue && Desc['[[Enumerable]]'].isFalsey) {
       return intrinsics.false;
     }
 
     // 7. If Desc.[[Configurable]] is present and has value true, return false.
-    if (Desc['[[Configurable]]'].value === true) {
+    if (Desc['[[Configurable]]'].hasValue === Desc['[[Configurable]]'].isTruthy) {
       return intrinsics.false;
     }
 
@@ -137,13 +156,16 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-hasproperty-p
-  public '[[HasProperty]]'(P: $PropertyKey): $Boolean {
+  public '[[HasProperty]]'(
+    ctx: ExecutionContext,
+    P: $PropertyKey,
+  ): $Boolean {
     // 1. If Type(P) is Symbol, return OrdinaryHasProperty(O, P).
     if (P.isSymbol) {
-      return super['[[HasProperty]]'](P);
+      return super['[[HasProperty]]'](ctx, P);
     }
 
-    const realm = this.realm;
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
     const O = this;
 
@@ -160,15 +182,19 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-get-p-receiver
-  public '[[Get]]'(P: $PropertyKey, Receiver: $Object): $Any {
+  public '[[Get]]'(
+    ctx: ExecutionContext,
+    P: $PropertyKey,
+    Receiver: $Object,
+  ): $AnyNonEmpty {
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. If Type(P) is Symbol, then
     // 2. a. Return ? OrdinaryGet(O, P, Receiver).
     if (P.isSymbol) {
-      return super['[[Get]]'](P, Receiver);
+      return super['[[Get]]'](ctx, P, Receiver);
     }
 
-    const realm = this.realm;
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
     const O = this;
 
@@ -184,7 +210,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
     const m = O['[[Module]]'];
 
     // 6. Let binding be ! m.ResolveExport(P, « »).
-    const binding = m.ResolveExport(P, new ResolveSet()) as ResolvedBindingRecord;
+    const binding = m.ResolveExport(ctx, P, new ResolveSet()) as ResolvedBindingRecord;
 
     // 7. Assert: binding is a ResolvedBinding Record.
     // 8. Let targetModule be binding.[[Module]].
@@ -201,25 +227,33 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
 
     // 12. Let targetEnvRec be targetEnv's EnvironmentRecord.
     // 13. Return ? targetEnvRec.GetBindingValue(binding.[[BindingName]], true).
-    return targetEnv.GetBindingValue(binding.BindingName, intrinsics.true);
+    return targetEnv.GetBindingValue(ctx, binding.BindingName, intrinsics.true);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-set-p-v-receiver
-  public '[[Set]]'(P: $PropertyKey, V: $Any, Receiver: $Object): $Boolean<false> {
+  public '[[Set]]'(
+    ctx: ExecutionContext,
+    P: $PropertyKey,
+    V: $AnyNonEmpty,
+    Receiver: $Object,
+  ): $Boolean<false> {
     // 1. Return false.
-    return this.realm['[[Intrinsics]]'].false;
+    return ctx.Realm['[[Intrinsics]]'].false;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-delete-p
-  public '[[Delete]]'(P: $PropertyKey): $Boolean {
+  public '[[Delete]]'(
+    ctx: ExecutionContext,
+    P: $PropertyKey,
+  ): $Boolean {
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. If Type(P) is Symbol, then
     // 2. a. Return ? OrdinaryDelete(O, P).
     if (P.isSymbol) {
-      return super['[[Delete]]'](P);
+      return super['[[Delete]]'](ctx, P);
     }
 
-    const realm = this.realm;
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
     const O = this;
 
@@ -236,10 +270,19 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-ownpropertykeys
-  public '[[OwnPropertyKeys]]'() {
+  public '[[OwnPropertyKeys]]'(
+    ctx: ExecutionContext,
+  ): readonly $PropertyKey[] {
     // 1. Let exports be a copy of O.[[Exports]].
+    const $exports = this['[[Exports]]'].slice() as $PropertyKey[];
+
     // 2. Let symbolKeys be ! OrdinaryOwnPropertyKeys(O).
+    const symbolKeys = super['[[OwnPropertyKeys]]'](ctx);
+
     // 3. Append all the entries of symbolKeys to the end of exports.
+    $exports.push(...symbolKeys);
+
     // 4. Return exports.
+    return $exports;
   }
 }

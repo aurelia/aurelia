@@ -165,7 +165,7 @@ describe('LinkHandler', function () {
         sut.deactivate();
         (sut as Writable<typeof sut>)['handler'] = origHandler;
 
-        tearDown();
+        await tearDown();
       }
     });
   }

@@ -38,7 +38,7 @@ const relevant = args.skipIrrelevant && !_.some(core, isDifferent)
 
 _.each(skippable, ([dir,name]) => console.log(`*** Skipping ${dir}${name}`));
 
-_.each([].concat(relevant, core), function([dir,name]) {
+_.each([].concat(relevant, core), function ([dir,name]) {
   const fullname = dir + name;
   if(fs.statSync(fullname).isDirectory() && fs.existsSync(path.join(fullname, "package.json"))) {
     console.log(`*** Executing npm i in ${fullname}`);
@@ -55,7 +55,7 @@ _.each([].concat(relevant, core), function([dir,name]) {
 });
 
 const testable = args.check ? relevant : [];
-_.each(testable, function([dir,name]) {
+_.each(testable, function ([dir,name]) {
   const fullname = dir + name;
   if(fs.statSync(fullname).isDirectory() && fs.existsSync(path.join(fullname, "package.json"))) {
     console.log(`*** Executing npm run selenium for ${fullname}`);
@@ -67,7 +67,10 @@ _.each(testable, function([dir,name]) {
 });
 
 function isDifferent([dir,name]) {
-  try { exec(`git diff --quiet ${referenceBranch} -- ${dir}${name}`); }
-  catch(e) { return true; }
+  try {
+    exec(`git diff --quiet ${referenceBranch} -- ${dir}${name}`);
+  } catch(e) {
+    return true;
+  }
   return false;
 }

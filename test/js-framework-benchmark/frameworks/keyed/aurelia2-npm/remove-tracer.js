@@ -14,7 +14,7 @@ async function* walk(dir) {
   }
 }
 
-(async function() {
+(async function () {
   const aurelia = path.resolve(__dirname, "node_modules", "@aurelia");
 
   for await (const file of walk(aurelia)) {
@@ -24,4 +24,4 @@ async function* walk(dir) {
       await fs.writeFile(file, newContent);
     }
   }
-})();
+})().catch((error) => { throw error; });

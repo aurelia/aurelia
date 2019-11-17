@@ -420,7 +420,7 @@ export const getPrototypeChain = (function () {
   let i = 0;
   let chain: [Constructable, ...Constructable[]] | undefined = void 0;
 
-  return function <T extends Constructable>(Type: T): readonly [T, ...Constructable[]] {
+  return function <T extends Constructable> (Type: T): readonly [T, ...Constructable[]] {
     chain = cache.get(Type);
     if (chain === void 0) {
       cache.set(Type, chain = [proto = Type]);

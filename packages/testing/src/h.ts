@@ -54,7 +54,7 @@ const eventCmds = { delegate: 1, capture: 1, call: 1 };
 /**
  * jsx with aurelia binding command friendly version of h
  */
-export const hJsx = function(name: string, attrs: Record<string, string> | null, ...children: (Node | string | (Node | string)[])[]) {
+export const hJsx = function (name: string, attrs: Record<string, string> | null, ...children: (Node | string | (Node | string)[])[]) {
   const el = DOM.createElement(name === 'let$' ? 'let' : name);
   if (attrs != null) {
     let value: string | string[];
@@ -69,20 +69,18 @@ export const hJsx = function(name: string, attrs: Record<string, string> | null,
             ? value
             : (`${value}`).split(' ');
         el.classList.add(...value as string[]);
-      }
-      // for attributes with matching properties, simply assign
-      // other if special attribute like data, or ones start with _
-      // assign as well
-      else if (attr in el || attr === 'data' || attr.startsWith('_')) {
+      } else if (attr in el || attr === 'data' || attr.startsWith('_')) {
+        // for attributes with matching properties, simply assign
+        // other if special attribute like data, or ones start with _
+        // assign as well
         // @ts-ignore // TODO: https://github.com/microsoft/TypeScript/issues/31904
         (el as Writable<typeof el>)[attr as keyof typeof el] = value;
-      }
-      // if it's an asElement attribute, camel case it
-      else if (attr === 'asElement') {
+      } else if (attr === 'asElement') {
+        // if it's an asElement attribute, camel case it
         el.setAttribute('as-element', value);
-      }
-      // ortherwise do fallback check
-      else {
+      } else {
+        // ortherwise do fallback check
+
         // is it an event handler?
         if (attr.startsWith('o') && attr[1] === 'n' && !attr.endsWith('$')) {
           const decoded = kebabCase(attr.slice(2));

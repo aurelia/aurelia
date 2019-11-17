@@ -330,7 +330,6 @@ jobs:
           name: "Install e2e tests"
           command: |
             cd test/browserstack
-            npm i
             npm run build
       - run:
           name: "Serve e2e app in the background"
@@ -352,24 +351,23 @@ jobs:
       - run:
           name: "Install cypress"
           command: |
-            cd packages/__tests__/router/e2e/doc-example
+            cd test/doc-example
             npm i
       - run:
           name: "Install and build test app"
           command: |
-            cd packages/__tests__/router/e2e/doc-example/app
-            npm i
+            cd test/doc-example/app
             npm run build
       - run:
           name: "Serve test app in the background"
           background: true
           command: |
-            cd packages/__tests__/router/e2e/doc-example/app
+            cd test/doc-example/app
             npm run serve
       - run:
           name: "Run e2e tests"
           command: |
-            cd packages/__tests__/router/e2e/doc-example
+            cd test/doc-example
             npm run test
 
   e2e_cypress:
@@ -480,18 +478,18 @@ workflows:
           <<: *filter_ignore_develop_release
           name: unit_test_chrome
           e: docker-circleci
-          npm_command: "test-chrome"
+          npm_command: "test-chrome:verbose"
       - unit_test:
          <<: *filter_ignore_develop_release
          name: unit_test_firefox
          e: docker-circleci
-         npm_command: "test-firefox"
+         npm_command: "test-firefox:verbose"
          coverage: false
       - unit_test:
          <<: *filter_ignore_develop_release
          name: unit_test_node
          e: docker-circleci
-         npm_command: "test-node"
+         npm_command: "test-node:verbose"
          coverage: false
       - unit_test:
          <<: *filter_ignore_develop_release
@@ -597,18 +595,18 @@ workflows:
           <<: *filter_only_tag
           name: unit_test_chrome
           e: docker-circleci
-          npm_command: "test-chrome"
+          npm_command: "test-chrome:verbose"
       - unit_test:
          <<: *filter_only_tag
          name: unit_test_firefox
          e: docker-circleci
-         npm_command: "test-firefox"
+         npm_command: "test-firefox:verbose"
          coverage: false
       - unit_test:
          <<: *filter_only_tag
          name: unit_test_node
          e: docker-circleci
-         npm_command: "test-node"
+         npm_command: "test-node:verbose"
          coverage: false
       - unit_test:
          <<: *filter_only_tag

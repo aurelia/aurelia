@@ -25,7 +25,8 @@ import {
   IDOM,
   INode,
   INodeSequence,
-  IRenderLocation
+  IRenderLocation,
+  DOM
 } from '../dom';
 import {
   IController,
@@ -55,7 +56,40 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
 
 export type CustomElementType<T extends Constructable = Constructable> = ResourceType<T, IViewModel & (T extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
 export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDefinition> & {
-  behaviorFor<T extends INode = INode>(node: T): IController<T> | undefined;
+  /**
+   * Returns the closest controller that is associated with either this node (if it is a custom element) or the first
+   * parent node (including containerless) that is a custom element.
+   *
+   * As long as the provided node was directly or indirectly created by Aurelia, this method is guaranteed to return a controller.
+   *
+   * @param node - The node relative to which to get the closest controller.
+   * @param searchParents - Also search the parent nodes (including containerless).
+   * @returns The closest controller relative to the provided node.
+   */
+  for<T extends INode = INode>(node: T, searchParents: true): IController<T>;
+  /**
+   * Returns the controller that is associated with this node, if it is a custom element with the provided name.
+   *
+   * @param node - The node to retrieve the controller for, if it is a custom element with the provided name.
+   * @returns The controller associated with the provided node, if it is a custom element with the provided name, or otherwise `undefined`.
+   */
+  for<T extends INode = INode>(node: T, name: string): IController<T> | undefined;
+  /**
+   * Returns the closest controller that is associated with either this node (if it is a custom element) or the first
+   * parent node (including containerless) that is a custom element with the provided name.
+   *
+   * @param node - The node relative to which to get the closest controller of a custom element with the provided name.
+   * @param searchParents - Also search the parent nodes (including containerless).
+   * @returns The closest controller of a custom element with the provided name, relative to the provided node, if one can be found, or otherwise `undefined`.
+   */
+  for<T extends INode = INode>(node: T, name: string, searchParents: true): IController<T> | undefined;
+  /**
+   * Returns the controller that is associated with this node, if it is a custom element.
+   *
+   * @param node - The node to retrieve the controller for, if it is a custom element.
+   * @returns The controller associated with the provided node, if it is a custom element, or otherwise `undefined`.
+   */
+  for<T extends INode = INode>(node: T): IController<T> | undefined;
   isType<T>(value: T): value is (T extends Constructable ? CustomElementType<T> : never);
   define<T extends Constructable>(name: string, Type: T): CustomElementType<T>;
   define<T extends Constructable>(def: PartialCustomElementDefinition, Type: T): CustomElementType<T>;
@@ -320,8 +354,48 @@ export const CustomElement: CustomElementKind = {
   isType<T>(value: T): value is (T extends Constructable ? CustomElementType<T> : never) {
     return typeof value === 'function' && Metadata.hasOwn(CustomElement.name, value);
   },
-  behaviorFor<T extends INode = INode>(node: T): IController<T> | undefined {
-    return (node as CustomElementHost<T>).$controller;
+  for<T extends INode = INode>(node: T, nameOrSearchParents?: string | boolean, searchParents?: boolean): IController<T> { // This should be IController | undefined but TS doesn't like that for some reason, even though CustomElementKind is accurately typed.
+    if (nameOrSearchParents === void 0) {
+      return Metadata.getOwn(CustomElement.name, node)!;
+    }
+    if (typeof nameOrSearchParents === 'string') {
+      if (searchParents !== true) {
+        const controller = Metadata.getOwn(CustomElement.name, node);
+        if (controller === void 0) {
+          return (void 0)!;
+        }
+
+        if (controller.is(nameOrSearchParents)) {
+          return controller;
+        }
+
+        return (void 0)!;
+      }
+
+      let cur = node as INode | null;
+      while (cur !== null) {
+        const controller = Metadata.getOwn(CustomElement.name, node);
+        if (controller !== void 0 && controller.is(nameOrSearchParents)) {
+          return controller;
+        }
+
+        cur = DOM.getEffectiveParentNode(node);
+      }
+
+      return (void 0)!;
+    }
+
+    let cur = node as INode | null;
+    while (cur !== null) {
+      const controller = Metadata.getOwn(CustomElement.name, node);
+      if (controller !== void 0) {
+        return controller;
+      }
+
+      cur = DOM.getEffectiveParentNode(node);
+    }
+
+    return (void 0)!;
   },
   define<T extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type?: T | null): CustomElementType<T> {
     const definition = CustomElementDefinition.create(nameOrDef, Type as Constructable | null);
@@ -363,7 +437,7 @@ export const CustomElement: CustomElementKind = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const defaultProto = {} as any;
 
-    return function <P extends {} = {}>(
+    return function <P extends {} = {}> (
       name: string,
       proto: P = defaultProto,
     ): CustomElementType<Constructable<P>> {

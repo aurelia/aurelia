@@ -3,6 +3,63 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.5.0"></a>
+# 0.5.0 (2019-11-15)
+
+### Features:
+
+* **dom:** add setEffectiveParentNode for portal-like components ([5f40cd5](https://github.com/aurelia/aurelia/commit/5f40cd5))
+* **dom:** let the getEffectiveParentNode api also traverse out of shadow roots ([325601b](https://github.com/aurelia/aurelia/commit/325601b))
+* **custom-element:** add 'name' and 'searchParents' parameters to CustomElement.for api ([46da0dc](https://github.com/aurelia/aurelia/commit/46da0dc))
+* **controller:** add 'is' api for checking if the resource name matches ([47b61a6](https://github.com/aurelia/aurelia/commit/47b61a6))
+* **dom:** add getEffectiveParentNode api for containerless support ([77a04e0](https://github.com/aurelia/aurelia/commit/77a04e0))
+* **custom-attribute:** add behaviorFor api ([31145e1](https://github.com/aurelia/aurelia/commit/31145e1))
+* **kernel:** add isNativeFunction helper ([6e2fdda](https://github.com/aurelia/aurelia/commit/6e2fdda))
+* **kernel:** add isNullOrUndefined function ([a783f07](https://github.com/aurelia/aurelia/commit/a783f07))
+* **kernel:** add isObject function ([c158a22](https://github.com/aurelia/aurelia/commit/c158a22))
+* **test:** Added the projects under test to lerna ([7b1d1ad](https://github.com/aurelia/aurelia/commit/7b1d1ad))
+* **replace:** Nested replaceables didn't render ([71e815c](https://github.com/aurelia/aurelia/commit/71e815c))
+* **kernel:** initial logger implementation ([7f77340](https://github.com/aurelia/aurelia/commit/7f77340))
+
+
+### Bug Fixes:
+
+* **getEffectiveParentNode:** skip over sibling containerless elements above the node ([6a6dd76](https://github.com/aurelia/aurelia/commit/6a6dd76))
+* **test-nod:** verbose script ([42a18a8](https://github.com/aurelia/aurelia/commit/42a18a8))
+* **repeat:** unsubscribe from array observer when unbinding ([ebf237d](https://github.com/aurelia/aurelia/commit/ebf237d))
+* **kernel:** use WeakMap for isNativeFunction for mem leaks ([61f29a6](https://github.com/aurelia/aurelia/commit/61f29a6))
+* **i18n:** do not use DOM types in constructor args ([bef63b3](https://github.com/aurelia/aurelia/commit/bef63b3))
+* **router:** do not use DOM types in constructor args ([778e48f](https://github.com/aurelia/aurelia/commit/778e48f))
+* **runtime-html:** do not use DOM types in constructor args ([4505abd](https://github.com/aurelia/aurelia/commit/4505abd))
+* **attribute:** do not use DOM type in constructor param ([bc383c1](https://github.com/aurelia/aurelia/commit/bc383c1))
+* **di:** warn instead of throwing on native function dependencies ([7d56668](https://github.com/aurelia/aurelia/commit/7d56668))
+* **integration:** fixing testfor FF ([edaae69](https://github.com/aurelia/aurelia/commit/edaae69))
+* **runtime-html:** style-attribute-accessor issue ([40db3dc](https://github.com/aurelia/aurelia/commit/40db3dc))
+* **runtime-html:** uniform syntax for class CA ([feede3a](https://github.com/aurelia/aurelia/commit/feede3a))
+* **runtime:** remove stray semicolon triggering Terser error ([0fabdee](https://github.com/aurelia/aurelia/commit/0fabdee))
+* **renderer:** revert to observer.setValue again ([9038263](https://github.com/aurelia/aurelia/commit/9038263))
+* **renderer:** set default value instead ([f9d5960](https://github.com/aurelia/aurelia/commit/f9d5960))
+* **renderer:** add fromBinding to setPropertyBinding ([ac1c8ac](https://github.com/aurelia/aurelia/commit/ac1c8ac))
+
+
+### Performance Improvements:
+
+* **collection-observation:** store observers in weakmaps ([c6e0a70](https://github.com/aurelia/aurelia/commit/c6e0a70))
+* **collection-observation:** store observers in weakmaps ([26114ea](https://github.com/aurelia/aurelia/commit/26114ea))
+* **all:** remove unnecessary Object.freezes ([16b0484](https://github.com/aurelia/aurelia/commit/16b0484))
+
+
+### Refactorings:
+
+* **ref:** check element name again ([2625040](https://github.com/aurelia/aurelia/commit/2625040))
+* **all:** rename behaviorFor to for ([0823dfe](https://github.com/aurelia/aurelia/commit/0823dfe))
+* **au-dom:** use new resource apis ([2d8d6f0](https://github.com/aurelia/aurelia/commit/2d8d6f0))
+* **router:** use new resource apis ([6fc87ae](https://github.com/aurelia/aurelia/commit/6fc87ae))
+* **runtime:** use metadata api to associate resources with nodes ([f46dacc](https://github.com/aurelia/aurelia/commit/f46dacc))
+* **custom-element:** retrieve controller from metadata ([2c715f5](https://github.com/aurelia/aurelia/commit/2c715f5))
+* **metadata:** improve error detection and reporting ([8c17492](https://github.com/aurelia/aurelia/commit/8c17492))
+* **reporter:** improve and document log levels ([aa78655](https://github.com/aurelia/aurelia/commit/aa78655))
+
 <a name="0.4.0"></a>
 # 0.4.0 (2019-10-26)
 

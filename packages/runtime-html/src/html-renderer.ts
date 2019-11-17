@@ -62,6 +62,7 @@ export class ListenerBindingRenderer implements IInstructionRenderer {
   ) {}
 
   public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: IListenerBindingInstruction): void {
+    // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsEventCommand | (instruction.strategy + BindingType.DelegationStrategyDelta));
     const binding = new Listener(dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context);
     addBinding(renderable, binding);

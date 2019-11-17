@@ -1,14 +1,12 @@
-import {
-  $Empty,
-  $Undefined,
-  $Null,
-  $Boolean,
-  $Number,
-  $String,
-  $Symbol,
-  $Object,
-} from './value';
 import { Realm } from './realm';
+import { $Boolean } from './types/boolean';
+import { $Empty } from './types/empty';
+import { $Undefined } from './types/undefined';
+import { $Null } from './types/null';
+import { $Number } from './types/number';
+import { $String } from './types/string';
+import { $Symbol } from './types/symbol';
+import { $Object } from './types/object';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
@@ -153,6 +151,25 @@ export class Intrinsics {
   public readonly '$name': $String<'name'>;
   public readonly '$toString': $String<'toString'>;
   public readonly '$valueOf': $String<'valueOf'>;
+
+  public readonly '$enumerable': $String<'enumerable'>;
+  public readonly '$configurable': $String<'configurable'>;
+  public readonly '$writable': $String<'writable'>;
+  public readonly '$value': $String<'value'>;
+
+  public readonly '$getPrototypeOf': $String<'getPrototypeOf'>;
+  public readonly '$setPrototypeOf': $String<'setPrototypeOf'>;
+  public readonly '$isExtensible': $String<'isExtensible'>;
+  public readonly '$preventExtensions': $String<'preventExtensions'>;
+  public readonly '$getOwnPropertyDescriptor': $String<'getOwnPropertyDescriptor'>;
+  public readonly '$defineProperty': $String<'defineProperty'>;
+  public readonly '$has': $String<'has'>;
+  public readonly '$get': $String<'get'>;
+  public readonly '$set': $String<'set'>;
+  public readonly '$deleteProperty': $String<'deleteProperty'>;
+  public readonly '$ownKeys': $String<'ownKeys'>;
+  public readonly '$apply': $String<'apply'>;
+  public readonly '$construct': $String<'construct'>;
 
   public readonly '@@asyncIterator': $Symbol<$String<'Symbol.asyncIterator'>>;
   public readonly '@@hasInstance': $Symbol<$String<'Symbol.hasInstance'>>;
@@ -321,6 +338,25 @@ export class Intrinsics {
     this['$name'] = new $String(realm, 'name');
     this['$toString'] = new $String(realm, 'toString');
     this['$valueOf'] = new $String(realm, 'valueOf');
+
+    this['$enumerable'] = new $String(realm, 'enumerable');
+    this['$configurable'] = new $String(realm, 'configurable');
+    this['$writable'] = new $String(realm, 'writable');
+    this['$value'] = new $String(realm, 'value');
+
+    this['$getPrototypeOf'] = new $String(realm, 'getPrototypeOf');
+    this['$setPrototypeOf'] = new $String(realm, 'setPrototypeOf');
+    this['$isExtensible'] = new $String(realm, 'isExtensible');
+    this['$preventExtensions'] = new $String(realm, 'preventExtensions');
+    this['$getOwnPropertyDescriptor'] = new $String(realm, 'getOwnPropertyDescriptor');
+    this['$defineProperty'] = new $String(realm, 'defineProperty');
+    this['$has'] = new $String(realm, 'has');
+    this['$get'] = new $String(realm, 'get');
+    this['$set'] = new $String(realm, 'set');
+    this['$deleteProperty'] = new $String(realm, 'deleteProperty');
+    this['$ownKeys'] = new $String(realm, 'ownKeys');
+    this['$apply'] = new $String(realm, 'apply');
+    this['$construct'] = new $String(realm, 'construct');
 
     this['@@asyncIterator'] = new $Symbol(realm, new $String(realm, 'Symbol.asyncIterator'));
     this['@@hasInstance'] = new $Symbol(realm, new $String(realm, 'Symbol.hasInstance'));

@@ -1,10 +1,10 @@
 import { $Object } from '../types/object';
 import { Realm, ExecutionContext } from '../realm';
-import { $Function } from '../types/function';
+import { $Function, $BuiltinFunction } from '../types/function';
 import { $ParameterDeclaration, getBoundNames } from '../ast';
 import { $Any, $PropertyKey, $AnyNonEmpty } from '../types/_shared';
 import { $EnvRec } from '../types/environment-record';
-import { $CreateDataProperty, $DefinePropertyOrThrow, $HasOwnProperty, $Get, $Set, $CreateBuiltinFunction } from '../operations';
+import { $CreateDataProperty, $DefinePropertyOrThrow, $HasOwnProperty, $Get, $Set } from '../operations';
 import { $String } from '../types/string';
 import { $PropertyDescriptor, $IsDataDescriptor } from '../types/property-descriptor';
 import { $Number } from '../types/number';
@@ -92,10 +92,10 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
         // 21. b. ii. If index < len, then
         if (index < len) {
           // 21. b. ii. 1. Let g be MakeArgGetter(name, env).
-          const g = MakeArgGetter(ctx, name, env);
+          const g = new $ArgGetter(realm, name, env);
 
           // 21. b. ii. 2. Let p be MakeArgSetter(name, env).
-          const p = MakeArgSetter(ctx, name, env);
+          const p = new $ArgSetter(realm, name, env);
 
           // 21. b. ii. 3. Perform map.[[DefineOwnProperty]](! ToString(index), PropertyDescriptor { [[Set]]: p, [[Get]]: g, [[Enumerable]]: false, [[Configurable]]: true }).
           const desc = new $PropertyDescriptor(
@@ -332,93 +332,84 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
   }
 }
 
+
+
 // http://www.ecma-international.org/ecma-262/#sec-makearggetter
-function MakeArgGetter(
-  ctx: ExecutionContext,
-  name: $String,
-  env: $EnvRec,
-): $Function {
-  const realm = ctx.Realm;
-  const intrinsics = realm['[[Intrinsics]]'];
+export class $ArgGetter extends $BuiltinFunction {
+  public readonly '[[Name]]': $String;
+  public readonly '[[Env]]': $EnvRec;
 
-  // 2. Let getter be CreateBuiltinFunction(steps, « [[Name]], [[Env]] »).
-  const getter = $CreateBuiltinFunction(
-    ctx,
-    'ArgGetter',
-    // 1. Let steps be the steps of an ArgGetter function as specified below.
-    function steps(
-      ctx2: ExecutionContext,
-      thisArgument: $AnyNonEmpty,
-      argumentsList: readonly $AnyNonEmpty[],
-      NewTarget: $AnyNonEmpty,
-    ): $Any {
-      // 1. Let f be the active function object.
-      const f = getter;
+  public constructor(
+    realm: Realm,
+    name: $String,
+    env: $EnvRec,
+  ) {
+    super(realm, 'ArgGetter');
 
-      // 2. Let name be f.[[Name]].
-      const name = f['[[Name]]'];
+    // 3. Set getter.[[Name]] to name.
+    this['[[Name]]'] = name;
+    // 4. Set getter.[[Env]] to env.
+    this['[[Env]]'] = env;
+  }
 
-      // 3. Let env be f.[[Env]].
-      const env = f['[[Env]]'];
+  public performSteps(
+    ctx: ExecutionContext,
+    thisArgument: $AnyNonEmpty,
+    argumentsList: readonly $AnyNonEmpty[],
+    NewTarget: $AnyNonEmpty,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
 
-      // 4. Return env.GetBindingValue(name, false).
-      return env.GetBindingValue(ctx2, name, intrinsics.false);
-    },
-    {
-      // 3. Set getter.[[Name]] to name.
-      '[[Name]]': name,
-      // 4. Set getter.[[Env]] to env.
-      '[[Env]]': env,
-    },
-  );
+    // 1. Let f be the active function object.
+    // 2. Let name be f.[[Name]].
+    const name = this['[[Name]]'];
 
-  // 5. Return getter.
-  return getter;
+    // 3. Let env be f.[[Env]].
+    const env = this['[[Env]]'];
+
+    // 4. Return env.GetBindingValue(name, false).
+    return env.GetBindingValue(ctx, name, intrinsics.false);
+  }
 }
 
-
 // http://www.ecma-international.org/ecma-262/#sec-makeargsetter
-function MakeArgSetter(
-  ctx: ExecutionContext,
-  name: $String,
-  env: $EnvRec,
-): $Function {
-  const realm = ctx.Realm;
-  const intrinsics = realm['[[Intrinsics]]'];
+export class $ArgSetter extends $BuiltinFunction {
+  public readonly '[[Name]]': $String;
+  public readonly '[[Env]]': $EnvRec;
 
-  // 2. Let getter be CreateBuiltinFunction(steps, « [[Name]], [[Env]] »).
-  const setter = $CreateBuiltinFunction(
-    ctx,
-    'ArgGetter',
-    // 1. Let steps be the steps of an ArgGetter function as specified below.
-    function steps(
-      ctx2: ExecutionContext,
-      thisArgument: $AnyNonEmpty,
-      [value]: readonly $AnyNonEmpty[],
-      NewTarget: $AnyNonEmpty,
-    ): $Any {
-      // 1. Let f be the active function object.
-      const f = setter;
+  public constructor(
+    realm: Realm,
+    name: $String,
+    env: $EnvRec,
+  ) {
+    super(realm, 'ArgSetter');
 
-      // 2. Let name be f.[[Name]].
-      const name = f['[[Name]]'];
+    // 3. Set getter.[[Name]] to name.
+    this['[[Name]]'] = name;
+    // 4. Set getter.[[Env]] to env.
+    this['[[Env]]'] = env;
+  }
 
-      // 3. Let env be f.[[Env]].
-      const env = f['[[Env]]'];
+  public performSteps(
+    ctx: ExecutionContext,
+    thisArgument: $AnyNonEmpty,
+    [value]: readonly $AnyNonEmpty[],
+    NewTarget: $AnyNonEmpty,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
 
-      // 4. Return env.SetMutableBinding(name, value, false).
-      return env.SetMutableBinding(ctx2, name, value, intrinsics.false);
-    },
-    {
-      // 3. Set getter.[[Name]] to name.
-      '[[Name]]': name,
-      // 4. Set getter.[[Env]] to env.
-      '[[Env]]': env,
-    },
-  );
+    // 1. Let f be the active function object.
+    // 2. Let name be f.[[Name]].
+    const name = this['[[Name]]'];
 
-  // 5. Return getter.
-  return setter;
+    // 3. Let env be f.[[Env]].
+    const env = this['[[Env]]'];
+
+    // 4. Return env.SetMutableBinding(name, value, false).
+    return env.SetMutableBinding(ctx, name, value, intrinsics.false) as $AnyNonEmpty; // TODO: we probably need to change the signature of performSteps to return $Any but that may open a new can of worms, so leave it for now and revisit when we're further down the road and implemented more natives
+  }
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-createunmappedargumentsobject

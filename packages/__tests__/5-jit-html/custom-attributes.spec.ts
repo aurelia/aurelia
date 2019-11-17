@@ -489,7 +489,6 @@ describe('custom-attributes', function () {
     @customAttribute('foo3')
     class Foo3 {
       @bindable({
-        get: String,
         set: String,
       })
       public prop: any;
@@ -687,7 +686,7 @@ describe('custom-attributes', function () {
         options.appHost.remove();
       });
 
-      it('does not result in overflow error when getter/setter are different, but getter convert to primitive value', function () {
+      it('does not result in overflow error when dealing with NaN', function () {
         /**
          * Specs:
          * - With bindable with getter coerce to string, setter coerce to number for "prop" property
@@ -695,7 +694,6 @@ describe('custom-attributes', function () {
         @customAttribute('foo5')
         class Foo5 {
           @bindable({
-            get: String,
             set: Number,
           })
           public prop: any;
@@ -711,14 +709,14 @@ describe('custom-attributes', function () {
         );
         const fooEl = options.appHost.querySelector('div');
         const rootVm = options.au.root.viewModel as any;
-        const foo5Vm = CustomAttribute.for(fooEl, 'foo1').viewModel as Foo5;
+        const foo5Vm = CustomAttribute.for(fooEl, 'foo5').viewModel as Foo5;
 
-        assert.strictEqual(foo5Vm.prop, 'NaN', '#1 <-> Foo1 initial');
+        assert.strictEqual(foo5Vm.prop, NaN, '#1 <-> Foo1 initial');
         assert.strictEqual(rootVm.prop, 'prop', '#1 <-> RootVm initial');
         assert.strictEqual(options.appHost.textContent, 'prop');
 
         rootVm.prop = 5;
-        assert.strictEqual(foo5Vm.prop, '5', '#2 <-> RootVm.prop << 5 -> foo5Vm');
+        assert.strictEqual(foo5Vm.prop, 5, '#2 <-> RootVm.prop << 5 -> foo5Vm');
         assert.strictEqual((foo5Vm as any).$observers.prop.currentValue, 5, '#2 Foo5.$observer.prop.currentValue');
         assert.strictEqual(rootVm.prop, 5, '#2 <-> RootVm.prop << 5 -> rootVm');
         options.scheduler.getRenderTaskQueue().flush();
@@ -726,10 +724,16 @@ describe('custom-attributes', function () {
 
         const date = new Date();
         foo5Vm.prop = date;
-        assert.strictEqual(foo5Vm.prop, date.getTime().toString(), '#3 <-> foo1Vm.prop << Date');
+        assert.strictEqual(foo5Vm.prop, date.getTime(), '#3 <-> foo1Vm.prop << Date');
         assert.strictEqual(rootVm.prop, date.getTime(), '#3 <-> foo1Vm.prop << Date');
         options.scheduler.getRenderTaskQueue().flush();
         assert.strictEqual(options.appHost.textContent, date.getTime().toString());
+
+        rootVm.prop = NaN;
+        assert.strictEqual(Object.is(foo5Vm.prop, NaN), true, '#1 <-> Foo1 initial');
+        assert.strictEqual(Object.is(rootVm.prop, NaN), true, '#1 <-> RootVm initial');
+        options.scheduler.getRenderTaskQueue().flush();
+        assert.strictEqual(options.appHost.textContent, 'NaN');
 
         options.au.stop();
         options.appHost.remove();

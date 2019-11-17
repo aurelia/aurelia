@@ -1037,7 +1037,6 @@ function createObservers(
         useProxy ? ProxyObserver.getOrCreate(instance).proxy : instance as IIndexable,
         name,
         bindable.callback,
-        bindable.get,
         bindable.set,
       );
     }

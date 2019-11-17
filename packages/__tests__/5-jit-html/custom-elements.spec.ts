@@ -2,13 +2,13 @@ import {
   bindable,
   customElement,
   CustomElement,
-  LifecycleFlags,
   alias,
   CustomElementHost,
   Aurelia
 } from '@aurelia/runtime';
-import { TestConfiguration, assert, setup, TestContext } from '@aurelia/testing';
-import { Registration } from '@aurelia/kernel';
+import { TestConfiguration, assert, setup, TestContext, HTMLTestContext, eachCartesianJoin } from '@aurelia/testing';
+import { Registration, IIndexable } from '@aurelia/kernel';
+import { InterceptorFunc } from '@aurelia/runtime/dist/templating/bindable';
 
 interface Person { firstName?: string; lastName?: string; fullName?: string }
 const app = class { public value: string = 'wOOt'; };
@@ -617,56 +617,181 @@ describe('custom-elements', function () {
   });
 
   describe('09. with setter', function () {
-    it('works with direct input binding', function () {
-      const ctx = TestContext.createHTMLTestContext();
-      const au = new Aurelia(ctx.container);
-      const host = ctx.createElement('app');
+    interface IBindableSetterHtmlInputTestCase {
+      title: string;
+      template: string;
+      setter: InterceptorFunc,
+      assertionFn: (ctx: HTMLTestContext, rootVm: IIndexable, inputEl: HTMLElement) => void;
+    }
 
-      @customElement({
-        name: 'app',
-        template: `<input value.bind="value">`
-      })
-      class App {
-        @bindable({
-          set: Number
-        })
-        public value: number;
+    const testCases: IBindableSetterHtmlInputTestCase[] = [
+      {
+        title: 'works <input />',
+        template: '<input value.bind="value">',
+        setter: Number,
+        assertionFn: (ctx, rootVm, host) => {
+          const inputEl = host.querySelector('input');
+
+          assert.strictEqual(inputEl.value, '');
+          assert.strictEqual(rootVm.value, undefined);
+
+          inputEl.value = '5';
+          inputEl.dispatchEvent(new ctx.CustomEvent('input'));
+          assert.strictEqual(rootVm.value, 5);
+
+          // emulate wrong input scenario
+          // that it won't cause an overflow, because guarded with Object.is(newValue, currentValue)
+          inputEl.value = 'a5';
+          inputEl.dispatchEvent(new ctx.CustomEvent('input'));
+          assert.strictEqual(Object.is(rootVm.value, NaN), true);
+
+          // emulate view model value change
+          rootVm.value = 4;
+          assert.strictEqual(inputEl.value, 'a5');
+          ctx.scheduler.getRenderTaskQueue().flush();
+          assert.strictEqual(inputEl.value, '4');
+
+          // emulate wrong value assignment
+          rootVm.value = NaN;
+          assert.strictEqual(Object.is(rootVm.value, NaN), true);
+          ctx.scheduler.getRenderTaskQueue().flush();
+          assert.strictEqual(inputEl.value, 'NaN');
+        }
+      },
+      {
+        title: 'works with <input type="range">',
+        template: '<input type="range" min="100" max="1000" value.bind="value">',
+        setter: Number,
+        assertionFn: (ctx, rootVm, host) => {
+          const inputEl = host.querySelector('input');
+
+          assert.strictEqual(inputEl.value, /* (100 + 1000)/2 */'550'); // start at the middle when value is undefined
+          assert.strictEqual(rootVm.value, undefined);
+
+          // emulate input 1
+          inputEl.value = '5';
+          inputEl.dispatchEvent(new ctx.CustomEvent('input'));
+          assert.strictEqual(inputEl.value, '100');
+          assert.strictEqual(rootVm.value, 100);
+
+          // emulate input 2
+          inputEl.value = '5555';
+          inputEl.dispatchEvent(new ctx.CustomEvent('input'));
+          assert.strictEqual(inputEl.value, '1000');
+          assert.strictEqual(rootVm.value, 1000);
+
+          // emulate input 3
+          inputEl.value = '555';
+          inputEl.dispatchEvent(new ctx.CustomEvent('input'));
+          assert.strictEqual(inputEl.value, '555');
+          assert.strictEqual(rootVm.value, 555);
+
+          // emulate view model change 1
+          // valid value: in side min-max range
+          rootVm.value = 444;
+          ctx.scheduler.getRenderTaskQueue().flush();
+          assert.strictEqual(inputEl.value, '444');
+          assert.strictEqual(rootVm.value, 444);
+
+          // emulate view model change 2
+          // invalid value: outside min-max range
+          rootVm.value = 11;
+          // should it should be 100 here?
+          // todo:  define how to handle range input properly.
+          //        This means ValueAttributeObserver needs to be more intelligent about the input/type combo & extra signals
+          assert.strictEqual(rootVm.value, 11);
+          assert.strictEqual(inputEl.value, '444');
+          ctx.scheduler.getRenderTaskQueue().flush();
+          assert.strictEqual(inputEl.value, '100');
+        }
+      },
+      {
+        title: 'works with <select />',
+        template: '<select value.bind="value"><option>1 <option>2 <option>3',
+        setter: Number,
+        assertionFn: (ctx, rootVm, host) => {
+          const selectEl = host.querySelector('select');
+
+          // while there is also an out-of-sync behavior here
+          // it's different to range input issue above
+          // as during start up, it is OK to only use view model as source of truth and disregard the view value
+          assert.strictEqual(selectEl.value, '1');
+          assert.strictEqual(rootVm.value, undefined);
+
+          selectEl.options.item(1).selected = true;
+          assert.strictEqual(rootVm.value, undefined);
+          selectEl.dispatchEvent(new ctx.CustomEvent('change'));
+          assert.strictEqual(rootVm.value, 2);
+
+          // emulate vm change from intercomponent binding
+          rootVm.value = 'wack';
+          assert.strictEqual(selectEl.value, '2');
+          ctx.scheduler.getRenderTaskQueue().flush();
+          assert.strictEqual(rootVm.value, NaN);
+          assert.strictEqual(selectEl.value, '1');
+        }
+      },
+      {
+        title: 'works with model binding + <select />',
+        template: [
+          '<select value.bind="value">',
+            '<option model.bind="1">Neutral',
+            '<option model.bind="2">Female',
+            '<option model.bind="3">Male'
+        ].join(''),
+        setter: Number,
+        assertionFn: (ctx, rootVm, host) => {
+          const selectEl = host.querySelector('select');
+
+          assert.strictEqual(selectEl.value, 'Neutral');
+          assert.strictEqual(rootVm.value, undefined);
+
+          // emulate programmatically changed input
+          selectEl.options.item(1).selected = true;
+          assert.strictEqual(rootVm.value, undefined);
+          selectEl.dispatchEvent(new ctx.CustomEvent('change'));
+          assert.strictEqual(rootVm.value, 2);
+
+          // emulate normal input change
+          selectEl.value = 'Male';
+          selectEl.dispatchEvent(new ctx.CustomEvent('change'));
+          assert.strictEqual(rootVm.value, 3);
+
+          // emulate vm change from intercomponent binding
+          rootVm.value = 'wack';
+          assert.strictEqual(selectEl.value, 'Male');
+          ctx.scheduler.getRenderTaskQueue().flush();
+          assert.strictEqual(rootVm.value, NaN);
+          assert.strictEqual(selectEl.value, 'Neutral');
+        }
       }
+    ];
 
-      au.app({ host: host, component: App });
-      au.start();
+    for (const testCase of testCases) {
+      const {
+        title,
+        template,
+        setter,
+        assertionFn
+      } = testCase;
 
-      const rootVm = au.root.viewModel as any as App;
-      const inputEl = host.querySelector('input');
+      it(title, function() {
+        const ctx = TestContext.createHTMLTestContext();
+        const au = new Aurelia(ctx.container);
+        const host = ctx.createElement('app');
 
-      assert.strictEqual(inputEl.value, '');
-      assert.strictEqual(rootVm.value, undefined);
+        @customElement({ name: 'app', template: template })
+        class App {
+          @bindable({ set: setter })
+          public value: number;
+        }
 
-      inputEl.value = '5';
-      inputEl.dispatchEvent(new ctx.CustomEvent('input'));
-      assert.strictEqual(rootVm.value, 5);
+        au.app({ host: host, component: App });
+        au.start();
 
-      // emulate wrong input scenario
-      // that it won't cause an overflow, because guarded with Object.is(newValue, currentValue)
-      inputEl.value = 'a5';
-      inputEl.dispatchEvent(new ctx.CustomEvent('input'));
-      assert.strictEqual(Object.is(rootVm.value, NaN), true);
-
-      // emulate view model value change
-      rootVm.value = 4;
-      assert.strictEqual(inputEl.value, 'a5');
-      ctx.scheduler.getRenderTaskQueue().flush();
-      assert.strictEqual(inputEl.value, '4');
-
-      // emulate wrong value assignment
-      rootVm.value = NaN;
-      assert.strictEqual(Object.is(rootVm.value, NaN), true);
-      ctx.scheduler.getRenderTaskQueue().flush();
-      assert.strictEqual(inputEl.value, 'NaN');
-    });
-
-    // it('works with range input', function() {
-
-    // });
+        assertionFn(ctx, au.root.viewModel as any, host);
+        au.stop();
+      });
+    }
   });
 });

@@ -26,7 +26,6 @@ export class BindableObserver {
   private readonly callback?: (newValue: unknown, oldValue: unknown, flags: LifecycleFlags) => void;
   private readonly propertyChangedCallback?: HasPropertyChangedCallback['propertyChanged'];
   private readonly hasPropertyChangedCallback: boolean;
-  private readonly shouldInterceptGet: boolean;
   private readonly shouldInterceptSet: boolean;
 
   public constructor(
@@ -35,8 +34,7 @@ export class BindableObserver {
     public readonly obj: IIndexable,
     public readonly propertyKey: string,
     cbName: string,
-    private readonly getterInterceptor: InterceptorFunc,
-    private readonly setterInterceptor: InterceptorFunc,
+    private readonly $set: InterceptorFunc,
   ) {
     let isProxy = false;
     if (ProxyObserver.isProxy(obj)) {
@@ -50,15 +48,12 @@ export class BindableObserver {
     const propertyChangedCallback = this.propertyChangedCallback = (this.obj as IMayHavePropertyChangedCallback).propertyChanged;
     const hasPropertyChangedCallback = this.hasPropertyChangedCallback = typeof propertyChangedCallback === 'function';
 
-    const shouldInterceptGet = this.shouldInterceptGet = getterInterceptor !== PLATFORM.noop;
-    const shouldInterceptSet = this.shouldInterceptSet = setterInterceptor !== PLATFORM.noop;
-    // when user declare @bindable({ set, get })
+    const shouldInterceptSet = this.shouldInterceptSet = $set !== PLATFORM.noop;
+    // when user declare @bindable({ set })
     // it's expected to work from the start,
     // regardless where the assignment comes from: either direct view model assignment or from binding during render
     // so if either getter/setter config is present, alter the accessor straight await
-    const shouldCreateGetterSetter = shouldInterceptGet || shouldInterceptSet;
-
-    if (this.callback === void 0 && !hasPropertyChangedCallback && !shouldCreateGetterSetter) {
+    if (this.callback === void 0 && !hasPropertyChangedCallback && !shouldInterceptSet) {
       this.observing = false;
     } else {
       this.observing = true;
@@ -66,7 +61,7 @@ export class BindableObserver {
       const currentValue = obj[propertyKey];
       this.currentValue = shouldInterceptSet
         ? currentValue
-        : setterInterceptor(currentValue);
+        : $set(currentValue);
       if (!isProxy) {
         this.createGetterSetter();
       }
@@ -79,21 +74,12 @@ export class BindableObserver {
   }
 
   public getValue(): unknown {
-    const currentValue = this.currentValue;
-    return this.shouldInterceptGet
-      // only intercepting getValue() call means there are cases where incoming value in setValue()
-      // is not the same with out going value in getValue(), but the assignment wont be considered a change
-      // example: two way binding
-      //    - setter: Number
-      //    - getter: String
-      //    someVm.prop = '5' <-- triggers setter
-      ? this.getterInterceptor(currentValue)
-      : currentValue;
+    return this.currentValue;
   }
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     if (this.shouldInterceptSet) {
-      newValue = this.setterInterceptor(newValue);
+      newValue = this.$set(newValue);
     }
 
     if (this.observing) {
@@ -133,7 +119,7 @@ export class BindableObserver {
       this.observing = true;
       const currentValue = this.obj[this.propertyKey];
       this.currentValue = this.shouldInterceptSet
-        ? this.setterInterceptor(currentValue)
+        ? this.$set(currentValue)
         : currentValue;
       this.createGetterSetter();
     }
@@ -149,8 +135,7 @@ export class BindableObserver {
         {
           enumerable: true,
           configurable: true,
-          // todo: opt memory usage?
-          get: () => this.getValue(),
+          get: () => this.currentValue,
           set: (value: unknown) => {
             this.setValue(value, LifecycleFlags.none);
           }

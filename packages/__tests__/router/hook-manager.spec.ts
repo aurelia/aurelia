@@ -19,6 +19,9 @@ describe('HookManager', function () {
 
     const host = doc.createElement('div');
     if (App === void 0) {
+      dependencies = dependencies.map(dep => typeof dep === 'string'
+        ? CustomElement.define({ name: dep, template: `!${dep}!` })
+        : dep);
       App = CustomElement.define({ name: 'app', template: '<au-viewport></au-viewport>', dependencies });
     }
     const au = new Aurelia(container)
@@ -282,10 +285,7 @@ describe('HookManager', function () {
   });
 
   it('can prevent navigation', async function () {
-    const One = CustomElement.define({ name: 'one', template: '!one!', });
-    const Two = CustomElement.define({ name: 'two', template: '!two!', });
-
-    const { router, tearDown, scheduler, host } = await setup(undefined, undefined, [One, Two]);
+    const { router, tearDown, scheduler, host } = await setup(undefined, undefined, ['one', 'two']);
 
     await $goto('one', router, scheduler);
     assert.strictEqual(host.textContent, `!one!`, `one`);
@@ -307,11 +307,7 @@ describe('HookManager', function () {
   });
 
   it('can redirect navigation', async function () {
-    const One = CustomElement.define({ name: 'one', template: '!one!', });
-    const Two = CustomElement.define({ name: 'two', template: '!two!', });
-    const Three = CustomElement.define({ name: 'three', template: '!three!', });
-
-    const { router, tearDown, scheduler, host } = await setup(undefined, undefined, [One, Two, Three]);
+    const { router, tearDown, scheduler, host } = await setup(undefined, undefined, ['one', 'two', 'three']);
 
     await $goto('one', router, scheduler);
     assert.strictEqual(host.textContent, `!one!`, `one`);
@@ -322,6 +318,50 @@ describe('HookManager', function () {
     router.addHook((instructions: ViewportInstruction[], navigation: INavigatorInstruction) => {
       return [router.createViewportInstruction('three', instructions[0].viewport)];
     }, { type: HookTypes.BeforeNavigation, include: ['two'] });
+
+    await $goto('one', router, scheduler);
+    assert.strictEqual(host.textContent, `!one!`, `one`);
+
+    await $goto('two', router, scheduler);
+    assert.strictEqual(host.textContent, `!three!`, `three`);
+
+    await tearDown();
+  });
+
+  it('can transform from url to string', async function () {
+    const { router, tearDown, scheduler, host } = await setup(undefined, undefined, ['one', 'two', 'three']);
+
+    await $goto('one', router, scheduler);
+    assert.strictEqual(host.textContent, `!one!`, `one`);
+
+    await $goto('two', router, scheduler);
+    assert.strictEqual(host.textContent, `!two!`, `two`);
+
+    router.addHook((url: string, navigation: INavigatorInstruction) => {
+      return url === 'two' ? 'three' : url;
+    }, { type: HookTypes.TransformFromUrl });
+
+    await $goto('one', router, scheduler);
+    assert.strictEqual(host.textContent, `!one!`, `one`);
+
+    await $goto('two', router, scheduler);
+    assert.strictEqual(host.textContent, `!three!`, `three`);
+
+    await tearDown();
+  });
+
+  it('can transform from url to viewport instructions', async function () {
+    const { router, tearDown, scheduler, host } = await setup(undefined, undefined, ['one', 'two', 'three']);
+
+    await $goto('one', router, scheduler);
+    assert.strictEqual(host.textContent, `!one!`, `one`);
+
+    await $goto('two', router, scheduler);
+    assert.strictEqual(host.textContent, `!two!`, `two`);
+
+    router.addHook((url: string, navigation: INavigatorInstruction) => {
+      return url === 'two' ? [router.createViewportInstruction('three')] : url;
+    }, { type: HookTypes.TransformFromUrl });
 
     await $goto('one', router, scheduler);
     assert.strictEqual(host.textContent, `!one!`, `one`);

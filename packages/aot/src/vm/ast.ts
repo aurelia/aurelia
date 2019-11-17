@@ -1721,7 +1721,7 @@ function $FunctionDeclarationInstantiation(
   const hasParameterExpressions = code.ContainsExpression;
 
   // 11. Let varNames be the VarDeclaredNames of code.
-  const varNames = [] as $String[]; // TODO
+  const varNames = code.VarDeclaredNames;
 
   // 12. Let varDeclarations be the VarScopedDeclarations of code.
   const varDeclarations = code.VarScopedDeclarations;
@@ -5023,12 +5023,18 @@ export class $ArrowFunction implements I$Node {
   public readonly IsSimpleParameterList: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredformalslist
   public readonly CoveredFormalsList: readonly $ParameterDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-lexicallydeclarednames
+  // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-LexicallyDeclaredNames
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-lexicallyscopeddeclarations
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-LexicallyScopedDeclarations
-  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-vardeclarednames
+  // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-VarDeclaredNames
+  public readonly VarDeclaredNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-varscopeddeclarations
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-VarScopedDeclarations
-  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
   public readonly DirectivePrologue: DirectivePrologue;
 
@@ -5070,10 +5076,6 @@ export class $ArrowFunction implements I$Node {
       this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
       this.IsSimpleParameterList = $parameters.every(getIsSimpleParameterList);
       this.CoveredFormalsList = $parameters;
-
-      // TODO: we sure about this?
-      this.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
-      this.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
     } else {
       this.DirectivePrologue = emptyArray;
       this.ContainsUseStrict = false;
@@ -5085,9 +5087,6 @@ export class $ArrowFunction implements I$Node {
       this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
       this.IsSimpleParameterList = $parameters.every(getIsSimpleParameterList);
       this.CoveredFormalsList = $parameters;
-
-      this.LexicallyScopedDeclarations = emptyArray;
-      this.VarScopedDeclarations = emptyArray;
     }
   }
 

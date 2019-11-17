@@ -2,7 +2,7 @@ import { nextValueId, $PropertyKey, $Any, $Primitive, compareIndices, PotentialN
 import { $PropertyDescriptor } from './property-descriptor';
 import { $Null } from './null';
 import { $Boolean } from './boolean';
-import { Realm } from '../realm';
+import { Realm, ExecutionContext } from '../realm';
 import { $String } from './string';
 import { $Number } from './number';
 import { $Call, $Get, $ValidateAndApplyPropertyDescriptor, $OrdinarySetWithOwnDescriptor } from '../operations';
@@ -74,11 +74,12 @@ export class $Object<
 
   // http://www.ecma-international.org/ecma-262/#sec-objectcreate
   public static ObjectCreate<T extends string = string, TSlots extends {} = {}>(
+    ctx: ExecutionContext,
     IntrinsicName: T,
     proto: $Object,
     internalSlotsList?: TSlots,
   ): $Object<T> & TSlots {
-    const realm = proto.realm;
+    const realm = ctx.Realm;
 
     // 1. If internalSlotsList is not present, set internalSlotsList to a new empty List.
     // 2. Let obj be a newly created object with an internal slot for each name in internalSlotsList.
@@ -113,61 +114,90 @@ export class $Object<
     // 3. Return Completion { [[Type]]: completionRecord.[[Type]], [[Value]]: value, [[Target]]: completionRecord.[[Target]] }.
   }
 
-  public ToObject(): this {
+  public ToObject(
+    ctx: ExecutionContext,
+  ): this {
     return this;
   }
 
-  public ToPropertyKey(): $String {
-    return this.ToString();
+  public ToPropertyKey(
+    ctx: ExecutionContext,
+  ): $String {
+    return this.ToString(ctx);
   }
 
-  public ToLength(): $Number {
-    return this.ToNumber().ToLength();
+  public ToLength(
+    ctx: ExecutionContext,
+  ): $Number {
+    return this.ToNumber(ctx).ToLength(ctx);
   }
 
-  public ToBoolean(): $Boolean {
-    return this.ToPrimitive('number').ToBoolean();
+  public ToBoolean(
+    ctx: ExecutionContext,
+  ): $Boolean {
+    return this.ToPrimitive(ctx, 'number').ToBoolean(ctx);
   }
 
-  public ToNumber(): $Number {
-    return this.ToPrimitive('number').ToNumber();
+  public ToNumber(
+    ctx: ExecutionContext,
+  ): $Number {
+    return this.ToPrimitive(ctx, 'number').ToNumber(ctx);
   }
 
-  public ToInt32(): $Number {
-    return this.ToPrimitive('number').ToInt32();
+  public ToInt32(
+    ctx: ExecutionContext,
+  ): $Number {
+    return this.ToPrimitive(ctx, 'number').ToInt32(ctx);
   }
 
-  public ToUint32(): $Number {
-    return this.ToPrimitive('number').ToUint32();
+  public ToUint32(
+    ctx: ExecutionContext,
+  ): $Number {
+    return this.ToPrimitive(ctx, 'number').ToUint32(ctx);
   }
 
-  public ToInt16(): $Number {
-    return this.ToPrimitive('number').ToInt16();
+  public ToInt16(
+    ctx: ExecutionContext,
+  ): $Number {
+    return this.ToPrimitive(ctx, 'number').ToInt16(ctx);
   }
 
-  public ToUint16(): $Number {
-    return this.ToPrimitive('number').ToUint16();
+  public ToUint16(
+    ctx: ExecutionContext,
+  ): $Number {
+    return this.ToPrimitive(ctx, 'number').ToUint16(ctx);
   }
 
-  public ToInt8(): $Number {
-    return this.ToPrimitive('number').ToInt8();
+  public ToInt8(
+    ctx: ExecutionContext,
+  ): $Number {
+    return this.ToPrimitive(ctx, 'number').ToInt8(ctx);
   }
 
-  public ToUint8(): $Number {
-    return this.ToPrimitive('number').ToUint8();
+  public ToUint8(
+    ctx: ExecutionContext,
+  ): $Number {
+    return this.ToPrimitive(ctx, 'number').ToUint8(ctx);
   }
 
-  public ToUint8Clamp(): $Number {
-    return this.ToPrimitive('number').ToUint8Clamp();
+  public ToUint8Clamp(
+    ctx: ExecutionContext,
+  ): $Number {
+    return this.ToPrimitive(ctx, 'number').ToUint8Clamp(ctx);
   }
 
-  public ToString(): $String {
-    return this.ToPrimitive('string').ToString();
+  public ToString(
+    ctx: ExecutionContext,
+  ): $String {
+    return this.ToPrimitive(ctx,  'string').ToString(ctx);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-toprimitive
-  public ToPrimitive(PreferredType: 'default' | 'string' | 'number' = 'default'): $Primitive {
-    const realm = this.realm;
+  public ToPrimitive(
+    ctx: ExecutionContext,
+    PreferredType: 'default' | 'string' | 'number' = 'default',
+  ): $Primitive {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
     const input = this;
 
@@ -179,12 +209,12 @@ export class $Object<
     let hint = intrinsics[PreferredType];
 
     // 2. d. Let exoticToPrim be ? GetMethod(input, @@toPrimitive).
-    const exoticToPrim = input.GetMethod(intrinsics['@@toPrimitive']);
+    const exoticToPrim = input.GetMethod(ctx, intrinsics['@@toPrimitive']);
 
     // 2. e. If exoticToPrim is not undefined, then
     if (!exoticToPrim.isUndefined) {
       // 2. e. i. Let result be ? Call(exoticToPrim, input, « hint »).
-      const result = $Call(exoticToPrim, input, [hint]);
+      const result = $Call(ctx, exoticToPrim, input, [hint]);
 
       // 2. e. ii. If Type(result) is not Object, return result.
       if (result.isPrimitive) {
@@ -201,15 +231,18 @@ export class $Object<
     }
 
     // 2. g. Return ? OrdinaryToPrimitive(input, hint).
-    return input.OrdinaryToPrimitive(hint['[[Value]]']);
+    return input.OrdinaryToPrimitive(ctx, hint['[[Value]]']);
 
     // 3. Return input.
     // N/A since this is always an object
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinarytoprimitive
-  public OrdinaryToPrimitive(hint: 'string' | 'number'): $Primitive {
-    const realm = this.realm;
+  public OrdinaryToPrimitive(
+    ctx: ExecutionContext,
+    hint: 'string' | 'number',
+  ): $Primitive {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
     const O = this;
 
@@ -220,12 +253,12 @@ export class $Object<
       // 3. a. Let methodNames be « "toString", "valueOf" ».
       // 5. For each name in methodNames in List order, do
       // 5. a. Let method be ? Get(O, name).
-      let method = $Get(O, intrinsics.$toString);
+      let method = $Get(ctx, O, intrinsics.$toString);
 
       // 5. b. If IsCallable(method) is true, then
       if (method.isFunction) {
         // 5. b. i. Let result be ? Call(method, O).
-        const result = $Call(method as $Function, O);
+        const result = $Call(ctx, method as $Function, O);
 
         // 5. b. ii. If Type(result) is not Object, return result.
         if (result.isPrimitive) {
@@ -233,12 +266,12 @@ export class $Object<
         }
       }
 
-      method = $Get(O, intrinsics.$valueOf);
+      method = $Get(ctx, O, intrinsics.$valueOf);
 
       // 5. b. If IsCallable(method) is true, then
       if (method.isFunction) {
         // 5. b. i. Let result be ? Call(method, O).
-        const result = $Call(method as $Function, O);
+        const result = $Call(ctx, method as $Function, O);
 
         // 5. b. ii. If Type(result) is not Object, return result.
         if (result.isPrimitive) {
@@ -254,12 +287,12 @@ export class $Object<
       // 4. a. Let methodNames be « "valueOf", "toString" ».
       // 5. For each name in methodNames in List order, do
       // 5. a. Let method be ? Get(O, name).
-      let method = $Get(O, intrinsics.$valueOf);
+      let method = $Get(ctx, O, intrinsics.$valueOf);
 
       // 5. b. If IsCallable(method) is true, then
       if (method.isFunction) {
         // 5. b. i. Let result be ? Call(method, O).
-        const result = $Call(method as $Function, O);
+        const result = $Call(ctx, method as $Function, O);
 
         // 5. b. ii. If Type(result) is not Object, return result.
         if (result.isPrimitive) {
@@ -267,12 +300,12 @@ export class $Object<
         }
       }
 
-      method = $Get(O, intrinsics.$toString);
+      method = $Get(ctx, O, intrinsics.$toString);
 
       // 5. b. If IsCallable(method) is true, then
       if (method.isFunction) {
         // 5. b. i. Let result be ? Call(method, O).
-        const result = $Call(method as $Function, O);
+        const result = $Call(ctx, method as $Function, O);
 
         // 5. b. ii. If Type(result) is not Object, return result.
         if (result.isPrimitive) {
@@ -290,14 +323,17 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-getmethod
-  public GetMethod(P: $PropertyKey): $Function | $Undefined {
-    const realm = this.realm;
+  public GetMethod(
+    ctx: ExecutionContext,
+    P: $PropertyKey,
+  ): $Function | $Undefined {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
     const V = this;
 
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let func be ? GetV(V, P).
-    const func = V['[[Get]]'](P, V);
+    const func = V['[[Get]]'](ctx, P, V);
 
     // 3. If func is either undefined or null, return undefined.
     if (func.isNil) {
@@ -342,7 +378,9 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
-  public '[[GetPrototypeOf]]'(): $Object | $Null {
+  public '[[GetPrototypeOf]]'(
+    ctx: ExecutionContext,
+  ): $Object | $Null {
     // 1. Return ! OrdinaryGetPrototypeOf(O)
 
     // http://www.ecma-international.org/ecma-262/#sec-ordinarygetprototypeof
@@ -353,7 +391,10 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-setprototypeof-v
-  public '[[SetPrototypeOf]]'(V: $Object | $Null): $Boolean {
+  public '[[SetPrototypeOf]]'(
+    ctx: ExecutionContext,
+    V: $Object | $Null,
+  ): $Boolean {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return ! OrdinarySetPrototypeOf(O, V).
@@ -415,7 +456,9 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-isextensible
-  public '[[IsExtensible]]'(): $Boolean {
+  public '[[IsExtensible]]'(
+    ctx: ExecutionContext,
+  ): $Boolean {
     // 1. Return ! OrdinaryIsExtensible(O).
 
     // http://www.ecma-international.org/ecma-262/#sec-ordinaryisextensible
@@ -426,7 +469,9 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions
-  public '[[PreventExtensions]]'(): $Boolean {
+  public '[[PreventExtensions]]'(
+    ctx: ExecutionContext,
+  ): $Boolean {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return ! OrdinaryPreventExtensions(O).
@@ -442,8 +487,11 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p
-  public '[[GetOwnProperty]]'(P: $PropertyKey): $PropertyDescriptor | $Undefined {
-    const realm = this.realm;
+  public '[[GetOwnProperty]]'(
+    ctx: ExecutionContext,
+    P: $PropertyKey,
+  ): $PropertyDescriptor | $Undefined {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Return ! OrdinaryGetOwnProperty(O, P).
@@ -491,25 +539,33 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-defineownproperty-p-desc
-  public '[[DefineOwnProperty]]'(P: $PropertyKey, Desc: $PropertyDescriptor): $Boolean {
+  public '[[DefineOwnProperty]]'(
+    ctx: ExecutionContext,
+    P: $PropertyKey,
+    Desc: $PropertyDescriptor,
+  ): $Boolean {
     // 1. Return ? OrdinaryDefineOwnProperty(O, P, Desc).
     const O = this;
 
     // http://www.ecma-international.org/ecma-262/#sec-ordinarydefineownproperty
 
     // 1. Let current be ? O.[[GetOwnProperty]](P).
-    const current = O['[[GetOwnProperty]]'](P);
+    const current = O['[[GetOwnProperty]]'](ctx, P);
 
     // 2. Let extensible be ? IsExtensible(O).
-    const extensible = O['[[IsExtensible]]']();
+    const extensible = O['[[IsExtensible]]'](ctx);
 
     // 3. Return ValidateAndApplyPropertyDescriptor(O, P, extensible, Desc, current).
-    return $ValidateAndApplyPropertyDescriptor(O, P, extensible, Desc, current);
+    return $ValidateAndApplyPropertyDescriptor(ctx, O, P, extensible, Desc, current);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p
-  public '[[HasProperty]]'(P: $PropertyKey): $Boolean {
-    const intrinsics = this.realm['[[Intrinsics]]'];
+  public '[[HasProperty]]'(
+    ctx: ExecutionContext,
+    P: $PropertyKey,
+  ): $Boolean {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Return ? OrdinaryHasProperty(O, P).
 
@@ -519,7 +575,7 @@ export class $Object<
     // 1. Assert: IsPropertyKey(P) is true.
 
     // 2. Let hasOwn be ? O.[[GetOwnProperty]](P).
-    const hasOwn = O['[[GetOwnProperty]]'](P);
+    const hasOwn = O['[[GetOwnProperty]]'](ctx, P);
 
     // 3. If hasOwn is not undefined, return true.
     if (!hasOwn.isUndefined) {
@@ -527,12 +583,12 @@ export class $Object<
     }
 
     // 4. Let parent be ? O.[[GetPrototypeOf]]().
-    const parent = O['[[GetPrototypeOf]]']();
+    const parent = O['[[GetPrototypeOf]]'](ctx);
 
     // 5. If parent is not null, then
     if (!parent.isNull) {
       // 5. a. Return ? parent.[[HasProperty]](P).
-      return parent['[[HasProperty]]'](P);
+      return parent['[[HasProperty]]'](ctx, P);
     }
 
     // 6. Return false.
@@ -540,8 +596,13 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver
-  public '[[Get]]'(P: $PropertyKey, Receiver: $AnyNonEmpty): $AnyNonEmpty {
-    const intrinsics = this.realm['[[Intrinsics]]'];
+  public '[[Get]]'(
+    ctx: ExecutionContext,
+    P: $PropertyKey,
+    Receiver: $AnyNonEmpty,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
     // 1. Return ? OrdinaryGet(O, P, Receiver).
 
     // http://www.ecma-international.org/ecma-262/#sec-ordinaryget
@@ -549,12 +610,12 @@ export class $Object<
 
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let desc be ? O.[[GetOwnProperty]](P).
-    const desc = O['[[GetOwnProperty]]'](P);
+    const desc = O['[[GetOwnProperty]]'](ctx, P);
 
     // 3. If desc is undefined, then
     if (desc.isUndefined) {
       // 3. a. Let parent be ? O.[[GetPrototypeOf]]().
-      const parent = O['[[GetPrototypeOf]]']();
+      const parent = O['[[GetPrototypeOf]]'](ctx);
 
       // 3. b. If parent is null, return undefined.
       if (parent.isNull) {
@@ -562,7 +623,7 @@ export class $Object<
       }
 
       // 3. c. Return ? parent.[[Get]](P, Receiver).
-      return parent['[[Get]]'](P, Receiver);
+      return parent['[[Get]]'](ctx, P, Receiver);
     }
 
     // 4. If IsDataDescriptor(desc) is true, return desc.[[Value]].
@@ -580,11 +641,16 @@ export class $Object<
     }
 
     // 8. Return ? Call(getter, Receiver).
-    return $Call(getter, Receiver);
+    return $Call(ctx, getter, Receiver);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-set-p-v-receiver
-  public '[[Set]]'(P: $PropertyKey, V: $AnyNonEmpty, Receiver: $Object): $Boolean {
+  public '[[Set]]'(
+    ctx: ExecutionContext,
+    P: $PropertyKey,
+    V: $AnyNonEmpty,
+    Receiver: $Object,
+  ): $Boolean {
     // 1. Return ? OrdinarySet(O, P, V, Receiver).
 
     // http://www.ecma-international.org/ecma-262/#sec-ordinaryset
@@ -592,15 +658,19 @@ export class $Object<
 
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let ownDesc be ? O.[[GetOwnProperty]](P).
-    const ownDesc = O['[[GetOwnProperty]]'](P);
+    const ownDesc = O['[[GetOwnProperty]]'](ctx, P);
 
     // 3. Return OrdinarySetWithOwnDescriptor(O, P, V, Receiver, ownDesc).
-    return $OrdinarySetWithOwnDescriptor(O, P, V, Receiver, ownDesc);
+    return $OrdinarySetWithOwnDescriptor(ctx, O, P, V, Receiver, ownDesc);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-delete-p
-  public '[[Delete]]'(P: $PropertyKey): $Boolean {
-    const intrinsics = this.realm['[[Intrinsics]]'];
+  public '[[Delete]]'(
+    ctx: ExecutionContext,
+    P: $PropertyKey,
+  ): $Boolean {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Return ? OrdinaryDelete(O, P).
 
@@ -609,7 +679,7 @@ export class $Object<
 
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let desc be ? O.[[GetOwnProperty]](P).
-    const desc = O['[[GetOwnProperty]]'](P);
+    const desc = O['[[GetOwnProperty]]'](ctx, P);
 
     // 3. If desc is undefined, return true.
     if (desc.isUndefined) {
@@ -630,7 +700,9 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-ownpropertykeys
-  public '[[OwnPropertyKeys]]'(): readonly $PropertyKey[] {
+  public '[[OwnPropertyKeys]]'(
+    ctx: ExecutionContext,
+  ): readonly $PropertyKey[] {
     // 1. Return ! OrdinaryOwnPropertyKeys(O).
 
     // http://www.ecma-international.org/ecma-262/#sec-ordinaryownpropertykeys

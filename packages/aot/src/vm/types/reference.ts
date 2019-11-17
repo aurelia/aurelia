@@ -1,4 +1,4 @@
-import { Realm } from '../realm';
+import { Realm, ExecutionContext } from '../realm';
 import { $Object } from './object';
 import { $Boolean } from './boolean';
 import { $String } from './string';
@@ -89,7 +89,9 @@ export class $Reference {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-getvalue
-  public GetValue(): $AnyNonEmpty {
+  public GetValue(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
     // 1. ReturnIfAbrupt(V).
     // 2. If Type(V) is not Reference, return V.
     // 3. Let base be GetBase(V).
@@ -106,21 +108,27 @@ export class $Reference {
       if (this.HasPrimitiveBase().isTruthy) {
         // 5. a. i. Assert: In this case, base will never be undefined or null.
         // 5. a. ii. Set base to ! ToObject(base).
-        base = (base as $Boolean | $String | $Symbol | $Number).ToObject();
+        base = (base as $Boolean | $String | $Symbol | $Number).ToObject(ctx);
       }
 
       // 5. b. Return ? base.[[Get]](GetReferencedName(V), GetThisValue(V)).
-      return (base as $Object)['[[Get]]'](this.GetReferencedName(), this.GetThisValue());
+      return (base as $Object)['[[Get]]'](ctx, this.GetReferencedName(), this.GetThisValue());
     }
     // 6. Else base must be an Environment Record,
     else {
       // 6. a. Return ? base.GetBindingValue(GetReferencedName(V), IsStrictReference(V)) (see 8.1.1).
-      return (base as $EnvRec).GetBindingValue(this.GetReferencedName(), this.IsStrictReference());
+      return (base as $EnvRec).GetBindingValue(ctx, this.GetReferencedName(), this.IsStrictReference());
     }
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-putvalue
-  public PutValue(W: $AnyNonEmpty): $Boolean | $Empty {
+  public PutValue(
+    ctx: ExecutionContext,
+    W: $AnyNonEmpty,
+  ): $Boolean | $Empty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     // 1. ReturnIfAbrupt(V).
     // 2. ReturnIfAbrupt(W).
     // 3. If Type(V) is not Reference, throw a ReferenceError exception.
@@ -136,10 +144,10 @@ export class $Reference {
       }
 
       // 5. b. Let globalObj be GetGlobalObject().
-      const globalObj = this.realm['[[GlobalObject]]'];
+      const globalObj = realm['[[GlobalObject]]'];
 
       // 5. c. Return ? Set(globalObj, GetReferencedName(V), W, false).
-      return $Set(globalObj, this.GetReferencedName(), W, this.realm['[[Intrinsics]]'].false);
+      return $Set(ctx, globalObj, this.GetReferencedName(), W, intrinsics.false);
     }
     // 6. Else if IsPropertyReference(V) is true, then
     else if (this.IsPropertyReference().isTruthy) {
@@ -147,11 +155,11 @@ export class $Reference {
       if (this.HasPrimitiveBase().isTruthy) {
         // 6. a. i. Assert: In this case, base will never be undefined or null.
         // 6. a. ii. Set base to ! ToObject(base).
-        base = (base as $Boolean | $String | $Symbol | $Number).ToObject();
+        base = (base as $Boolean | $String | $Symbol | $Number).ToObject(ctx);
       }
 
       // 6. b. Let succeeded be ? base.[[Set]](GetReferencedName(V), W, GetThisValue(V)).
-      const succeeded = (base as $Object)['[[Set]]'](this.GetReferencedName(), W, this.GetThisValue() as $Object);
+      const succeeded = (base as $Object)['[[Set]]'](ctx, this.GetReferencedName(), W, this.GetThisValue() as $Object);
 
       // 6. c. If succeeded is false and IsStrictReference(V) is true, throw a TypeError exception.
       if (succeeded.isFalsey && this.IsStrictReference().isTruthy) {
@@ -159,12 +167,12 @@ export class $Reference {
       }
 
       // 6. d. Return.
-      return this.realm['[[Intrinsics]]'].empty;
+      return intrinsics.empty;
     }
     // 7. Else base must be an Environment Record,
     else {
       // 7. a. Return ? base.SetMutableBinding(GetReferencedName(V), W, IsStrictReference(V)) (see 8.1.1).
-      return (base as $EnvRec).SetMutableBinding(this.GetReferencedName(), W, this.IsStrictReference());
+      return (base as $EnvRec).SetMutableBinding(ctx, this.GetReferencedName(), W, this.IsStrictReference());
     }
   }
 
@@ -182,7 +190,10 @@ export class $Reference {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-initializereferencedbinding
-  public InitializeReferencedBinding(W: $AnyNonEmpty): $Boolean | $Empty {
+  public InitializeReferencedBinding(
+    ctx: ExecutionContext,
+    W: $AnyNonEmpty,
+  ): $Boolean | $Empty {
     // 1. ReturnIfAbrupt(V).
     // 2. ReturnIfAbrupt(W).
     // 3. Assert: Type(V) is Reference.
@@ -192,6 +203,6 @@ export class $Reference {
 
     // 6. Assert: base is an Environment Record.
     // 7. Return base.InitializeBinding(GetReferencedName(V), W).
-    return (base as $EnvRec).InitializeBinding(this.GetReferencedName(), W);
+    return (base as $EnvRec).InitializeBinding(ctx, this.GetReferencedName(), W);
   }
 }

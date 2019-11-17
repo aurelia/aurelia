@@ -1,6 +1,6 @@
 import { $Object } from '../types/object';
 import { $String } from '../types/string';
-import { Realm } from '../realm';
+import { Realm, ExecutionContext } from '../realm';
 import { $DefinePropertyOrThrow, $ValidateAndApplyPropertyDescriptor } from '../operations';
 import { $PropertyDescriptor } from '../types/property-descriptor';
 import { $Number } from '../types/number';
@@ -36,6 +36,7 @@ export class $StringExoticObject extends $Object<'StringExoticObject'> {
 
     // 11. Perform ! DefinePropertyOrThrow(S, "length", PropertyDescriptor { [[Value]]: length, [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: false }).
     $DefinePropertyOrThrow(
+      realm.stack.top,
       this,
       realm['[[Intrinsics]]'].length,
       new $PropertyDescriptor(
@@ -54,10 +55,13 @@ export class $StringExoticObject extends $Object<'StringExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-string-exotic-objects-getownproperty-p
-  public '[[GetOwnProperty]]'(P: $PropertyKey): $PropertyDescriptor | $Undefined {
+  public '[[GetOwnProperty]]'(
+    ctx: ExecutionContext,
+    P: $PropertyKey,
+  ): $PropertyDescriptor | $Undefined {
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let desc be OrdinaryGetOwnProperty(S, P).
-    const desc = super['[[GetOwnProperty]]'](P);
+    const desc = super['[[GetOwnProperty]]'](ctx, P);
 
     // 3. If desc is not undefined, return desc.
     if (!desc.isUndefined) {
@@ -65,17 +69,21 @@ export class $StringExoticObject extends $Object<'StringExoticObject'> {
     }
 
     // 4. Return ! StringGetOwnProperty(S, P).
-    return $StringGetOwnProperty(this.realm, this, P);
+    return $StringGetOwnProperty(ctx, this, P);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-string-exotic-objects-defineownproperty-p-desc
-  public '[[DefineOwnProperty]]'(P: $PropertyKey, Desc: $PropertyDescriptor): $Boolean {
-    const realm = this.realm;
+  public '[[DefineOwnProperty]]'(
+    ctx: ExecutionContext,
+    P: $PropertyKey,
+    Desc: $PropertyDescriptor,
+  ): $Boolean {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let stringDesc be ! StringGetOwnProperty(S, P).
-    const stringDesc = $StringGetOwnProperty(realm, this, P);
+    const stringDesc = $StringGetOwnProperty(ctx, this, P);
 
     // 3. If stringDesc is not undefined, then
     if (!stringDesc.isUndefined) {
@@ -84,6 +92,7 @@ export class $StringExoticObject extends $Object<'StringExoticObject'> {
 
       // 3. b. Return ! IsCompatiblePropertyDescriptor(extensible, Desc, stringDesc).
       return $ValidateAndApplyPropertyDescriptor(
+        ctx,
         /* O */intrinsics.undefined,
         /* P */intrinsics.undefined,
         /* extensible */extensible,
@@ -93,12 +102,14 @@ export class $StringExoticObject extends $Object<'StringExoticObject'> {
     }
 
     // 4. Return ! OrdinaryDefineOwnProperty(S, P, Desc).
-    return super['[[DefineOwnProperty]]'](P, Desc);
+    return super['[[DefineOwnProperty]]'](ctx, P, Desc);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-string-exotic-objects-ownpropertykeys
-  public '[[OwnPropertyKeys]]'(): readonly $PropertyKey[] {
-    const realm = this.realm;
+  public '[[OwnPropertyKeys]]'(
+    ctx: ExecutionContext,
+  ): readonly $PropertyKey[] {
+    const realm = ctx.Realm;
 
     // 1. Let keys be a new empty List.
     const keys = [] as $PropertyKey[];
@@ -130,30 +141,37 @@ export class $StringExoticObject extends $Object<'StringExoticObject'> {
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-stringgetownproperty
-function $StringGetOwnProperty(realm: Realm, S: $StringExoticObject, P: $PropertyKey): $PropertyDescriptor | $Undefined {
+function $StringGetOwnProperty(
+  ctx: ExecutionContext,
+  S: $StringExoticObject,
+  P: $PropertyKey,
+): $PropertyDescriptor | $Undefined {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
   // 1. Assert: S is an Object that has a [[StringData]] internal slot.
   // 2. Assert: IsPropertyKey(P) is true.
   // 3. If Type(P) is not String, return undefined.
   if (!P.isString) {
-    return realm['[[Intrinsics]]'].undefined;
+    return intrinsics.undefined;
   }
 
   // 4. Let index be ! CanonicalNumericIndexString(P).
-  const index = P.CanonicalNumericIndexString;
+  const index = P.CanonicalNumericIndexString(ctx);
 
   // 5. If index is undefined, return undefined.
   if (index.isUndefined) {
-    return realm['[[Intrinsics]]'].undefined;
+    return intrinsics.undefined;
   }
 
   // 6. If IsInteger(index) is false, return undefined.
   if (!index.IsInteger) {
-    return realm['[[Intrinsics]]'].undefined;
+    return intrinsics.undefined;
   }
 
   // 7. If index = -0, return undefined.
-  if (index.is(realm['[[Intrinsics]]']['-0'])) {
-    return realm['[[Intrinsics]]'].undefined;
+  if (index.is(intrinsics['-0'])) {
+    return intrinsics.undefined;
   }
 
   // 8. Let str be S.[[StringData]].
@@ -165,7 +183,7 @@ function $StringGetOwnProperty(realm: Realm, S: $StringExoticObject, P: $Propert
 
   // 11. If index < 0 or len ≤ index, return undefined.
   if (index['[[Value]]'] < 0 || len <= index['[[Value]]']) {
-    return realm['[[Intrinsics]]'].undefined;
+    return intrinsics.undefined;
   }
 
   // 12. Let resultStr be the String value of length 1, containing one code unit from str, specifically the code unit at index index.
@@ -177,9 +195,9 @@ function $StringGetOwnProperty(realm: Realm, S: $StringExoticObject, P: $Propert
     P,
     {
       '[[Value]]': resultStr,
-      '[[Writable]]': realm['[[Intrinsics]]'].false,
-      '[[Enumerable]]': realm['[[Intrinsics]]'].true,
-      '[[Configurable]]': realm['[[Intrinsics]]'].false,
+      '[[Writable]]': intrinsics.false,
+      '[[Enumerable]]': intrinsics.true,
+      '[[Configurable]]': intrinsics.false,
     },
   );
 }

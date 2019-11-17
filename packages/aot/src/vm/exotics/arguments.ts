@@ -1,5 +1,5 @@
 import { $Object } from '../types/object';
-import { Realm } from '../realm';
+import { Realm, ExecutionContext } from '../realm';
 import { $Function } from '../types/function';
 import { $ParameterDeclaration, getBoundNames } from '../ast';
 import { $Any, $PropertyKey, $AnyNonEmpty } from '../types/_shared';
@@ -24,7 +24,10 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
     argumentsList: readonly $AnyNonEmpty[],
     env: $EnvRec,
   ) {
-    super(realm, 'ArgumentsExoticObject', realm['[[Intrinsics]]']['%ObjectPrototype%']);
+    const intrinsics = realm['[[Intrinsics]]'];
+    super(realm, 'ArgumentsExoticObject', intrinsics['%ObjectPrototype%']);
+
+    const ctx = realm.stack.top;
 
     // 1. Assert: formals does not contain a rest parameter, any binding patterns, or any initializers. It may contain duplicate identifiers.
     // 2. Let len be the number of elements in argumentsList.
@@ -40,7 +43,7 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
     // 10. Set obj.[[Prototype]] to %ObjectPrototype%.
     // 11. Set obj.[[Extensible]] to true.
     // 12. Let map be ObjectCreate(null).
-    const map = new $Object(realm, '[[ParameterMap]]', realm['[[Intrinsics]]'].null);
+    const map = new $Object(realm, '[[ParameterMap]]', intrinsics.null);
 
     // 13. Set obj.[[ParameterMap]] to map.
     this['[[ParameterMap]]'] = map;
@@ -60,14 +63,14 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
       const val = argumentsList[index];
 
       // 17. b. Perform CreateDataProperty(obj, ! ToString(index), val).
-      $CreateDataProperty(this, new $String(realm, index.toString()), val);
+      $CreateDataProperty(ctx, this, new $String(realm, index.toString()), val);
 
       // 17. c. Increase index by 1.
       ++index;
     }
 
     // 18. Perform DefinePropertyOrThrow(obj, "length", PropertyDescriptor { [[Value]]: len, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
-    const desc = new $PropertyDescriptor(realm, realm['[[Intrinsics]]'].length);
+    const desc = new $PropertyDescriptor(realm, intrinsics.length);
     desc['[[Value]]'] = new $Number(realm, len);
 
     // 19. Let mappedNames be a new empty List.
@@ -89,10 +92,10 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
         // 21. b. ii. If index < len, then
         if (index < len) {
           // 21. b. ii. 1. Let g be MakeArgGetter(name, env).
-          const g = MakeArgGetter(realm, name, env);
+          const g = MakeArgGetter(ctx, name, env);
 
           // 21. b. ii. 2. Let p be MakeArgSetter(name, env).
-          const p = MakeArgSetter(realm, name, env);
+          const p = MakeArgSetter(ctx, name, env);
 
           // 21. b. ii. 3. Perform map.[[DefineOwnProperty]](! ToString(index), PropertyDescriptor { [[Set]]: p, [[Get]]: g, [[Enumerable]]: false, [[Configurable]]: true }).
           const desc = new $PropertyDescriptor(
@@ -101,11 +104,11 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
             {
               '[[Set]]': p,
               '[[Get]]': g,
-              '[[Enumerable]]': realm['[[Intrinsics]]'].false,
-              '[[Configurable]]': realm['[[Intrinsics]]'].true,
+              '[[Enumerable]]': intrinsics.false,
+              '[[Configurable]]': intrinsics.true,
             },
           );
-          map['[[DefineOwnProperty]]'](desc.name, desc);
+          map['[[DefineOwnProperty]]'](ctx, desc.name, desc);
         }
       }
 
@@ -116,37 +119,40 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
     // 22. Perform ! DefinePropertyOrThrow(obj, @@iterator, PropertyDescriptor { [[Value]]: %ArrayProto_values%, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
     const iteratorDesc = new $PropertyDescriptor(
       realm,
-      realm['[[Intrinsics]]']['@@iterator'],
+      intrinsics['@@iterator'],
       {
-        '[[Value]]': realm['[[Intrinsics]]']['%ArrayProto_values%'],
-        '[[Writable]]': realm['[[Intrinsics]]'].true,
-        '[[Enumerable]]': realm['[[Intrinsics]]'].false,
-        '[[Configurable]]': realm['[[Intrinsics]]'].true,
+        '[[Value]]': intrinsics['%ArrayProto_values%'],
+        '[[Writable]]': intrinsics.true,
+        '[[Enumerable]]': intrinsics.false,
+        '[[Configurable]]': intrinsics.true,
       },
     );
-    $DefinePropertyOrThrow(this, iteratorDesc.name, iteratorDesc);
+    $DefinePropertyOrThrow(ctx, this, iteratorDesc.name, iteratorDesc);
 
     // 23. Perform ! DefinePropertyOrThrow(obj, "callee", PropertyDescriptor { [[Value]]: func, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
     const calleeDesc = new $PropertyDescriptor(
       realm,
-      realm['[[Intrinsics]]'].$callee,
+      intrinsics.$callee,
       {
         '[[Value]]': func,
-        '[[Writable]]': realm['[[Intrinsics]]'].true,
-        '[[Enumerable]]': realm['[[Intrinsics]]'].false,
-        '[[Configurable]]': realm['[[Intrinsics]]'].true,
+        '[[Writable]]': intrinsics.true,
+        '[[Enumerable]]': intrinsics.false,
+        '[[Configurable]]': intrinsics.true,
       },
     );
-    $DefinePropertyOrThrow(this, calleeDesc.name, calleeDesc);
+    $DefinePropertyOrThrow(ctx, this, calleeDesc.name, calleeDesc);
 
     // 24. Return obj.
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-arguments-exotic-objects-getownproperty-p
-  public '[[GetOwnProperty]]'(P: $PropertyKey): $PropertyDescriptor | $Undefined {
+  public '[[GetOwnProperty]]'(
+    ctx: ExecutionContext,
+    P: $PropertyKey,
+  ): $PropertyDescriptor | $Undefined {
     // 1. Let args be the arguments object.
     // 2. Let desc be OrdinaryGetOwnProperty(args, P).
-    const desc = super['[[GetOwnProperty]]'](P);
+    const desc = super['[[GetOwnProperty]]'](ctx, P);
 
     // 3. If desc is undefined, return desc.
     if (desc.isUndefined) {
@@ -157,12 +163,12 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
     const map = this['[[ParameterMap]]'];
 
     // 5. Let isMapped be ! HasOwnProperty(map, P).
-    const isMapped = $HasOwnProperty(map, P).isTruthy;
+    const isMapped = $HasOwnProperty(ctx, map, P).isTruthy;
 
     // 6. If isMapped is true, then
     if (isMapped) {
       // 6. a. Set desc.[[Value]] to Get(map, P).
-      desc['[[Value]]'] = $Get(map, P);
+      desc['[[Value]]'] = $Get(ctx, map, P);
     }
 
     // 7. Return desc.
@@ -170,13 +176,20 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-arguments-exotic-objects-defineownproperty-p-desc
-  public '[[DefineOwnProperty]]'(P: $PropertyKey, Desc: $PropertyDescriptor): $Boolean {
+  public '[[DefineOwnProperty]]'(
+    ctx: ExecutionContext,
+    P: $PropertyKey,
+    Desc: $PropertyDescriptor,
+  ): $Boolean {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     // 1. Let args be the arguments object.
     // 2. Let map be args.[[ParameterMap]].
     const map = this['[[ParameterMap]]'];
 
     // 3. Let isMapped be HasOwnProperty(map, P).
-    const isMapped = $HasOwnProperty(map, P).isTruthy;
+    const isMapped = $HasOwnProperty(ctx, map, P).isTruthy;
 
     // 4. Let newArgDesc be Desc.
     let newArgDesc = Desc;
@@ -191,7 +204,7 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
           Desc.name,
           {
             // 5. a. ii. Set newArgDesc.[[Value]] to Get(map, P).
-            '[[Value]]': $Get(map, P),
+            '[[Value]]': $Get(ctx, map, P),
             '[[Writable]]': Desc['[[Writable]]'],
             '[[Enumerable]]': Desc['[[Enumerable]]'],
             '[[Configurable]]': Desc['[[Configurable]]'],
@@ -201,7 +214,7 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
     }
 
     // 6. Let allowed be ? OrdinaryDefineOwnProperty(args, P, newArgDesc).
-    const allowed = super['[[DefineOwnProperty]]'](P, newArgDesc);
+    const allowed = super['[[DefineOwnProperty]]'](ctx, P, newArgDesc);
 
     // 7. If allowed is false, return false.
     if (allowed.isFalsey) {
@@ -213,7 +226,7 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
       // 8. a. If IsAccessorDescriptor(Desc) is true, then
       if (Desc.isAccessorDescriptor) {
         // 8. a. i. Call map.[[Delete]](P).
-        map['[[Delete]]'](P);
+        map['[[Delete]]'](ctx, P);
       }
     }
     // 8. b. Else,
@@ -221,44 +234,56 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
       // 8. b. i. If Desc.[[Value]] is present, then
       if (Desc['[[Value]]'].hasValue) {
         // 8. b. i. 1. Let setStatus be Set(map, P, Desc.[[Value]], false).
-        const setStatus = $Set(map, P, Desc['[[Value]]'], this.realm['[[Intrinsics]]'].false);
+        const setStatus = $Set(ctx, map, P, Desc['[[Value]]'], intrinsics.false);
 
         // 8. b. i. 2. Assert: setStatus is true because formal parameters mapped by argument objects are always writable.
         // 8. b. ii. If Desc.[[Writable]] is present and its value is false, then
         if (Desc['[[Writable]]'].hasValue && Desc['[[Writable]]'].isFalsey) {
           // 8. b. ii. 1. Call map.[[Delete]](P).
-          map['[[Delete]]'](P);
+          map['[[Delete]]'](ctx, P);
         }
       }
     }
 
     // 9. Return true.
-    return this.realm['[[Intrinsics]]'].true;
+    return intrinsics.true;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-arguments-exotic-objects-get-p-receiver
-  public '[[Get]]'(P: $PropertyKey, Receiver: $Object): $AnyNonEmpty {
+  public '[[Get]]'(
+    ctx: ExecutionContext,
+    P: $PropertyKey,
+    Receiver: $Object,
+  ): $AnyNonEmpty {
     // 1. Let args be the arguments object.
     // 2. Let map be args.[[ParameterMap]].
     const map = this['[[ParameterMap]]'];
 
     // 3. Let isMapped be ! HasOwnProperty(map, P).
-    const isMapped = $HasOwnProperty(map, P).isTruthy;
+    const isMapped = $HasOwnProperty(ctx, map, P).isTruthy;
 
     // 4. If isMapped is false, then
     if (!isMapped) {
       // 4. a. Return ? OrdinaryGet(args, P, Receiver).
-      return super['[[Get]]'](P, Receiver);
+      return super['[[Get]]'](ctx, P, Receiver);
     }
     // 5. Else map contains a formal parameter mapping for P,
     else {
       // 5. a. Return Get(map, P).
-      return $Get(map, P);
+      return $Get(ctx, map, P);
     }
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-arguments-exotic-objects-set-p-v-receiver
-  public '[[Set]]'(P: $PropertyKey, V: $AnyNonEmpty, Receiver: $Object): $Boolean {
+  public '[[Set]]'(
+    ctx: ExecutionContext,
+    P: $PropertyKey,
+    V: $AnyNonEmpty,
+    Receiver: $Object,
+  ): $Boolean {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     // 1. Let args be the arguments object.
     // 2. If SameValue(args, Receiver) is false, then
     // 2. a. Let isMapped be false.
@@ -272,31 +297,34 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
     if (this.is(Receiver)) {
       const map = this['[[ParameterMap]]'];
 
-      const isMapped = $HasOwnProperty(map, P).isTruthy;
+      const isMapped = $HasOwnProperty(ctx, map, P).isTruthy;
       if (isMapped) {
-        const setStatus = $Set(map, P, V, this.realm['[[Intrinsics]]'].false);
+        const setStatus = $Set(ctx, map, P, V, intrinsics.false);
       }
     }
 
-    return super['[[Set]]'](P, V, Receiver);
+    return super['[[Set]]'](ctx, P, V, Receiver);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-arguments-exotic-objects-delete-p
-  public '[[Delete]]'(P: $PropertyKey): $Boolean {
+  public '[[Delete]]'(
+    ctx: ExecutionContext,
+    P: $PropertyKey,
+  ): $Boolean {
     // 1. Let args be the arguments object.
     // 2. Let map be args.[[ParameterMap]].
     const map = this['[[ParameterMap]]'];
 
     // 3. Let isMapped be ! HasOwnProperty(map, P).
-    const isMapped = $HasOwnProperty(map, P).isTruthy;
+    const isMapped = $HasOwnProperty(ctx, map, P).isTruthy;
 
     // 4. Let result be ? OrdinaryDelete(args, P).
-    const result = super['[[Delete]]'](P);
+    const result = super['[[Delete]]'](ctx, P);
 
     // 5. If result is true and isMapped is true, then
     if (result.isTruthy && isMapped) {
       // 5. a. Call map.[[Delete]](P).
-      map['[[Delete]]'](P);
+      map['[[Delete]]'](ctx, P);
     }
 
     // 6. Return result.
@@ -306,16 +334,20 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
 
 // http://www.ecma-international.org/ecma-262/#sec-makearggetter
 function MakeArgGetter(
-  realm: Realm,
+  ctx: ExecutionContext,
   name: $String,
   env: $EnvRec,
 ): $Function {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
   // 2. Let getter be CreateBuiltinFunction(steps, « [[Name]], [[Env]] »).
   const getter = $CreateBuiltinFunction(
-    realm,
+    ctx,
     'ArgGetter',
     // 1. Let steps be the steps of an ArgGetter function as specified below.
     function steps(
+      ctx2: ExecutionContext,
       thisArgument: $AnyNonEmpty,
       argumentsList: readonly $AnyNonEmpty[],
       NewTarget: $AnyNonEmpty,
@@ -330,7 +362,7 @@ function MakeArgGetter(
       const env = f['[[Env]]'];
 
       // 4. Return env.GetBindingValue(name, false).
-      return env.GetBindingValue(name, realm['[[Intrinsics]]'].false);
+      return env.GetBindingValue(ctx2, name, intrinsics.false);
     },
     {
       // 3. Set getter.[[Name]] to name.
@@ -347,16 +379,20 @@ function MakeArgGetter(
 
 // http://www.ecma-international.org/ecma-262/#sec-makeargsetter
 function MakeArgSetter(
-  realm: Realm,
+  ctx: ExecutionContext,
   name: $String,
   env: $EnvRec,
 ): $Function {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
   // 2. Let getter be CreateBuiltinFunction(steps, « [[Name]], [[Env]] »).
   const setter = $CreateBuiltinFunction(
-    realm,
+    ctx,
     'ArgGetter',
     // 1. Let steps be the steps of an ArgGetter function as specified below.
     function steps(
+      ctx2: ExecutionContext,
       thisArgument: $AnyNonEmpty,
       [value]: readonly $AnyNonEmpty[],
       NewTarget: $AnyNonEmpty,
@@ -371,7 +407,7 @@ function MakeArgSetter(
       const env = f['[[Env]]'];
 
       // 4. Return env.SetMutableBinding(name, value, false).
-      return env.SetMutableBinding(name, value, realm['[[Intrinsics]]'].false);
+      return env.SetMutableBinding(ctx2, name, value, intrinsics.false);
     },
     {
       // 3. Set getter.[[Name]] to name.

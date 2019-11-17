@@ -1,16 +1,16 @@
 /* eslint-disable */
 import { ILogger, IContainer, DI, LoggerConfiguration, LogLevel, ColorOptions, Registration } from '@aurelia/kernel';
 import { I$Node, $SourceFile, $TemplateExpression, $TaggedTemplateExpression, $DocumentFragment } from './ast';
-import { IFileSystem, FileKind, IFile, IOptions, Encoding } from '../system/interfaces';
+import { IFileSystem, FileKind, IFile, IOptions } from '../system/interfaces';
 import { NodeFileSystem, File } from '../system/file-system';
 import { NPMPackage, NPMPackageLoader } from '../system/npm-package-loader';
 import { createSourceFile, ScriptTarget, CompilerOptions } from 'typescript';
 import { normalizePath, isRelativeModulePath, resolvePath, joinPath } from '../system/path-utils';
 import { dirname, basename } from 'path';
 import { Intrinsics } from './intrinsics';
-import { $EnvRec, $ModuleEnvRec, $GlobalEnvRec, $ObjectEnvRec, $FunctionEnvRec } from './types/environment-record';
+import { $EnvRec, $ModuleEnvRec, $GlobalEnvRec, $FunctionEnvRec } from './types/environment-record';
 import { $PropertyDescriptor } from './types/property-descriptor';
-import { $DefinePropertyOrThrow, $GetIdentifierReference } from './operations';
+import { $DefinePropertyOrThrow } from './operations';
 import { JSDOM } from 'jsdom';
 import { $String } from './types/string';
 import { $Undefined } from './types/undefined';
@@ -19,6 +19,7 @@ import { $Reference } from './types/reference';
 import { $Any, $AnyNonEmpty } from './types/_shared';
 import { $Function } from './types/function';
 import { $Null } from './types/null';
+import { $Boolean } from './types/boolean';
 
 function comparePathLength(a: { path: { length: number } }, b: { path: { length: number } }): number {
   return a.path.length - b.path.length;
@@ -79,11 +80,11 @@ export interface IModule {
 
   readonly realm: Realm;
 
-  ResolveExport(exportName: $String, resolveSet: ResolveSet): ResolvedBindingRecord | null | 'ambiguous';
-  GetExportedNames(exportStarSet: Set<IModule>): readonly $String[];
-  Instantiate(): void;
+  ResolveExport(ctx: ExecutionContext, exportName: $String, resolveSet: ResolveSet): ResolvedBindingRecord | null | 'ambiguous';
+  GetExportedNames(ctx: ExecutionContext, exportStarSet: Set<IModule>): readonly $String[];
+  Instantiate(ctx: ExecutionContext): void;
   /** @internal */
-  _InnerModuleInstantiation(stack: IModule[], index: number): number;
+  _InnerModuleInstantiation(ctx: ExecutionContext, stack: IModule[], index: number): number;
 }
 
 export class DeferredModule implements IModule {
@@ -98,19 +99,19 @@ export class DeferredModule implements IModule {
     public readonly realm: Realm,
   ) { }
 
-  public ResolveExport(exportName: $String, resolveSet: ResolveSet): ResolvedBindingRecord | "ambiguous" | null {
+  public ResolveExport(ctx: ExecutionContext, exportName: $String, resolveSet: ResolveSet): ResolvedBindingRecord | "ambiguous" | null {
     throw new Error('Method not implemented.');
   }
 
-  public GetExportedNames(exportStarSet: Set<IModule>): readonly $String[] {
+  public GetExportedNames(ctx: ExecutionContext, exportStarSet: Set<IModule>): readonly $String[] {
     throw new Error('Method not implemented.');
   }
 
-  public Instantiate(): void {
+  public Instantiate(ctx: ExecutionContext): void {
     throw new Error('Method not implemented.');
   }
 
-  public _InnerModuleInstantiation(stack: IModule[], index: number): number {
+  public _InnerModuleInstantiation(ctx: ExecutionContext, stack: IModule[], index: number): number {
     throw new Error('Method not implemented.');
   }
 }
@@ -206,7 +207,7 @@ export class Realm {
     realm.stack.push(newContext);
 
     // 7. If the host requires use of an exotic object to serve as realm's global object, let global be such an object created in an implementation-defined manner. Otherwise, let global be undefined, indicating that an ordinary object should be created as the global object.
-    const globalObj = $Object.ObjectCreate('GlobalObject', intrinsics['%ObjectPrototype%']);
+    const globalObj = $Object.ObjectCreate(newContext, 'GlobalObject', intrinsics['%ObjectPrototype%']);
 
     // 8. If the host requires that the this binding in realm's global scope return an object other than the global object, let thisValue be such an object created in an implementation-defined manner. Otherwise, let thisValue be undefined, indicating that realm's global this binding should be the global object.
     const thisValue = globalObj;
@@ -251,7 +252,7 @@ export class Realm {
       desc['[[Enumerable]]'] = intrinsics.false;
       desc['[[Configurable]]'] = intrinsics.false;
       desc['[[Value]]'] = intrinsics[intrinsicName];
-      $DefinePropertyOrThrow(global, name, desc);
+      $DefinePropertyOrThrow(newContext, global, name, desc);
     }
 
     // http://www.ecma-international.org/ecma-262/#sec-value-properties-of-the-global-object
@@ -464,7 +465,7 @@ export class Realm {
     const strict = this['[[Intrinsics]]'].true; // TODO: pass strict mode from source node
 
     // 4. Return ? GetIdentifierReference(env, name, strict).
-    return $GetIdentifierReference(env, name, strict);
+    return this.GetIdentifierReference(env, name, strict);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-getthisenvironment
@@ -476,7 +477,7 @@ export class Realm {
     while (true) {
       // 2. a. Let envRec be lex's EnvironmentRecord.
       // 2. b. Let exists be envRec.HasThisBinding().
-      if (envRec.HasThisBinding().isTruthy) {
+      if (envRec.HasThisBinding(this.stack.top).isTruthy) {
         // 2. c. If exists is true, return envRec.
         return envRec as $FunctionEnvRec | $GlobalEnvRec | $ModuleEnvRec;
       }
@@ -494,7 +495,7 @@ export class Realm {
     const envRec = this.GetThisEnvironment();
 
     // 2. Return ? envRec.GetThisBinding().
-    return envRec.GetThisBinding();
+    return envRec.GetThisBinding(this.stack.top);
   }
 
   // #region helper methods
@@ -511,6 +512,41 @@ export class Realm {
     this.nodes[id] = node;
     ++this.nodeCount;
     return id;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-getidentifierreference
+  private GetIdentifierReference(
+    lex: $EnvRec | $Null,
+    name: $String,
+    strict: $Boolean,
+  ): $Reference {
+    const intrinsics = this['[[Intrinsics]]'];
+
+    // 1. If lex is the value null, then
+    if (lex.isNull) {
+      // 1. a. Return a value of type Reference whose base value component is undefined, whose referenced name component is name, and whose strict reference flag is strict.
+      return new $Reference(this, intrinsics.undefined, name, strict, intrinsics.undefined);
+    }
+
+    // 2. Let envRec be lex's EnvironmentRecord.
+    const envRec = lex;
+
+    // 3. Let exists be ? envRec.HasBinding(name).
+    const exists = envRec.HasBinding(this.stack.top, name);
+
+    // 4. If exists is true, then
+    if (exists.isTruthy) {
+      // 4. a. Return a value of type Reference whose base value component is envRec, whose referenced name component is name, and whose strict reference flag is strict.
+      return new $Reference(this, envRec, name, strict, intrinsics.undefined);
+    }
+    // 5. Else,
+    else {
+      // 5. a. Let outer be the value of lex's outer environment reference.
+      const outer = lex.outer;
+
+      // 5. b. Return ? GetIdentifierReference(outer, name, strict).
+      return this.GetIdentifierReference(outer, name, strict);
+    }
   }
 
   private loadEntryPackage(opts: IOptions): Promise<NPMPackage> {

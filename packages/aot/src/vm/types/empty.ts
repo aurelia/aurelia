@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { nextValueId, $Any, ESType, $Primitive, PotentialEmptyCompletionType, CompletionTarget, CompletionType, $AnyNonEmpty } from './_shared';
-import { Realm } from '../realm';
+import { Realm, ExecutionContext } from '../realm';
 import { $Object } from './object';
 import { $String } from './string';
 import { $Number } from './number';
@@ -72,59 +72,87 @@ export class $Empty {
     return value.ToCompletion(this['[[Type]]'] as CompletionType.normal, this['[[Target]]']);
   }
 
-  public ToObject(): $Object {
+  public ToObject(
+    ctx: ExecutionContext,
+  ): $Object {
     throw new TypeError(`Cannot convert empty to object`);
   }
 
-  public ToPropertyKey(): $String {
+  public ToPropertyKey(
+    ctx: ExecutionContext,
+  ): $String {
     throw new TypeError(`Cannot convert empty to property key`);
   }
 
-  public ToLength(): $Number {
+  public ToLength(
+    ctx: ExecutionContext,
+  ): $Number {
     throw new TypeError(`Cannot convert empty to length`);
   }
 
-  public ToPrimitive(): $Primitive {
+  public ToPrimitive(
+    ctx: ExecutionContext,
+  ): $Primitive {
     throw new TypeError(`Cannot convert empty to primitive`);
   }
 
-  public ToBoolean(): $Boolean {
+  public ToBoolean(
+    ctx: ExecutionContext,
+  ): $Boolean {
     throw new TypeError(`Cannot convert empty to boolean`);
   }
 
-  public ToNumber(): $Number {
+  public ToNumber(
+    ctx: ExecutionContext,
+  ): $Number {
     throw new TypeError(`Cannot convert empty to number`);
   }
 
-  public ToInt32(): $Number {
+  public ToInt32(
+    ctx: ExecutionContext,
+  ): $Number {
     throw new TypeError(`Cannot convert empty to Int32`);
   }
 
-  public ToUint32(): $Number {
+  public ToUint32(
+    ctx: ExecutionContext,
+  ): $Number {
     throw new TypeError(`Cannot convert empty to Uint32`);
   }
 
-  public ToInt16(): $Number {
+  public ToInt16(
+    ctx: ExecutionContext,
+  ): $Number {
     throw new TypeError(`Cannot convert empty to Int16`);
   }
 
-  public ToUint16(): $Number {
+  public ToUint16(
+    ctx: ExecutionContext,
+  ): $Number {
     throw new TypeError(`Cannot convert empty to Uint16`);
   }
 
-  public ToInt8(): $Number {
+  public ToInt8(
+    ctx: ExecutionContext,
+  ): $Number {
     throw new TypeError(`Cannot convert empty to Int8`);
   }
 
-  public ToUint8(): $Number {
+  public ToUint8(
+    ctx: ExecutionContext,
+  ): $Number {
     throw new TypeError(`Cannot convert empty to Uint8`);
   }
 
-  public ToUint8Clamp(): $Number {
+  public ToUint8Clamp(
+    ctx: ExecutionContext,
+  ): $Number {
     throw new TypeError(`Cannot convert empty to Uint8Clamp`);
   }
 
-  public ToString(): $String {
+  public ToString(
+    ctx: ExecutionContext,
+  ): $String {
     throw new TypeError(`Cannot convert empty to string`);
   }
 

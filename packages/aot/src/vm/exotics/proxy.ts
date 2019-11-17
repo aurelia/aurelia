@@ -1,6 +1,6 @@
 import { $Object } from '../types/object';
 import { $Null } from '../types/null';
-import { Realm } from '../realm';
+import { Realm, ExecutionContext } from '../realm';
 import { $PropertyKey, $AnyNonEmpty } from '../types/_shared';
 import { $Call, $ToPropertyDescriptor, $ValidateAndApplyPropertyDescriptor, $FromPropertyDescriptor, $CreateListFromArrayLike, $CreateArrayFromList, $Construct } from '../operations';
 import { $Boolean } from '../types/boolean';
@@ -62,8 +62,10 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
 
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-getprototypeof
-  public '[[GetPrototypeOf]]'(): $Object | $Null {
-    const realm = this.realm;
+  public '[[GetPrototypeOf]]'(
+    ctx: ExecutionContext,
+  ): $Object | $Null {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     const handler = this['[[ProxyHandler]]'];
@@ -79,16 +81,16 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     const target = this['[[ProxyTarget]]'] as $Object;
 
     // 5. Let trap be ? GetMethod(handler, "getPrototypeOf").
-    const trap = handler.GetMethod(intrinsics.$getPrototypeOf);
+    const trap = handler.GetMethod(ctx, intrinsics.$getPrototypeOf);
 
     // 6. If trap is undefined, then
     if (trap.isUndefined) {
       // 6. a. Return ? target.[[GetPrototypeOf]]().
-      return target['[[GetPrototypeOf]]']();
+      return target['[[GetPrototypeOf]]'](ctx);
     }
 
     // 7. Let handlerProto be ? Call(trap, handler, « target »).
-    const handlerProto = $Call(trap, handler, [target]);
+    const handlerProto = $Call(ctx, trap, handler, [target]);
 
     // 8. If Type(handlerProto) is neither Object nor Null, throw a TypeError exception.
     if (!handlerProto.isNull && !handlerProto.isObject) {
@@ -96,7 +98,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     }
 
     // 9. Let extensibleTarget be ? IsExtensible(target).
-    const extensibleTarget = target['[[IsExtensible]]']().isTruthy;
+    const extensibleTarget = target['[[IsExtensible]]'](ctx).isTruthy;
 
     // 10. If extensibleTarget is true, return handlerProto.
     if (extensibleTarget) {
@@ -104,7 +106,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     }
 
     // 11. Let targetProto be ? target.[[GetPrototypeOf]]().
-    const targetProto = target['[[GetPrototypeOf]]']();
+    const targetProto = target['[[GetPrototypeOf]]'](ctx);
 
     // 12. If SameValue(handlerProto, targetProto) is false, throw a TypeError exception.
     if (!handlerProto.is(targetProto)) {
@@ -116,8 +118,11 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-setprototypeof-v
-  public '[[SetPrototypeOf]]'(V: $Object | $Null): $Boolean {
-    const realm = this.realm;
+  public '[[SetPrototypeOf]]'(
+    ctx: ExecutionContext,
+    V: $Object | $Null,
+  ): $Boolean {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     const handler = this['[[ProxyHandler]]'];
@@ -135,16 +140,16 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     const target = this['[[ProxyTarget]]'] as $Object;
 
     // 6. Let trap be ? GetMethod(handler, "setPrototypeOf").
-    const trap = handler.GetMethod(intrinsics.$setPrototypeOf);
+    const trap = handler.GetMethod(ctx, intrinsics.$setPrototypeOf);
 
     // 7. If trap is undefined, then
     if (trap.isUndefined) {
       // 7. a. Return ? target.[[SetPrototypeOf]](V).
-      return target['[[SetPrototypeOf]]'](V);
+      return target['[[SetPrototypeOf]]'](ctx, V);
     }
 
     // 8. Let booleanTrapResult be ToBoolean(? Call(trap, handler, « target, V »)).
-    const booleanTrapResult = $Call(trap, handler, [target, V]).ToBoolean();
+    const booleanTrapResult = $Call(ctx, trap, handler, [target, V]).ToBoolean(ctx);
 
     // 9. If booleanTrapResult is false, return false.
     if (booleanTrapResult.isFalsey) {
@@ -152,13 +157,13 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     }
 
     // 10. Let extensibleTarget be ? IsExtensible(target).
-    if (target['[[IsExtensible]]']().isTruthy) {
+    if (target['[[IsExtensible]]'](ctx).isTruthy) {
       // 11. If extensibleTarget is true, return true.
       return intrinsics.true;
     }
 
     // 12. Let targetProto be ? target.[[GetPrototypeOf]]().
-    const targetProto = target['[[GetPrototypeOf]]']();
+    const targetProto = target['[[GetPrototypeOf]]'](ctx);
 
     // 13. If SameValue(V, targetProto) is false, throw a TypeError exception.
     if (V.is(targetProto)) {
@@ -170,8 +175,10 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-isextensible
-  public '[[IsExtensible]]'(): $Boolean {
-    const realm = this.realm;
+  public '[[IsExtensible]]'(
+    ctx: ExecutionContext,
+  ): $Boolean {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     const handler = this['[[ProxyHandler]]'];
@@ -187,19 +194,19 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     const target = this['[[ProxyTarget]]'] as $Object;
 
     // 5. Let trap be ? GetMethod(handler, "isExtensible").
-    const trap = handler.GetMethod(intrinsics.$isExtensible);
+    const trap = handler.GetMethod(ctx, intrinsics.$isExtensible);
 
     // 6. If trap is undefined, then
     if (trap.isUndefined) {
       // 6. a. Return ? target.[[IsExtensible]]().
-      return target['[[IsExtensible]]']();
+      return target['[[IsExtensible]]'](ctx);
     }
 
     // 7. Let booleanTrapResult be ToBoolean(? Call(trap, handler, « target »)).
-    const booleanTrapResult = $Call(trap, handler, [target]).ToBoolean();
+    const booleanTrapResult = $Call(ctx, trap, handler, [target]).ToBoolean(ctx);
 
     // 8. Let targetResult be ? target.[[IsExtensible]]().
-    const targetResult = target['[[IsExtensible]]']();
+    const targetResult = target['[[IsExtensible]]'](ctx);
 
     // 9. If SameValue(booleanTrapResult, targetResult) is false, throw a TypeError exception.
     if (!booleanTrapResult.is(targetResult)) {
@@ -211,8 +218,10 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-preventextensions
-  public '[[PreventExtensions]]'(): $Boolean {
-    const realm = this.realm;
+  public '[[PreventExtensions]]'(
+    ctx: ExecutionContext,
+  ): $Boolean {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     const handler = this['[[ProxyHandler]]'];
@@ -228,21 +237,21 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     const target = this['[[ProxyTarget]]'] as $Object;
 
     // 5. Let trap be ? GetMethod(handler, "preventExtensions").
-    const trap = handler.GetMethod(intrinsics.$preventExtensions);
+    const trap = handler.GetMethod(ctx, intrinsics.$preventExtensions);
 
     // 6. If trap is undefined, then
     if (trap.isUndefined) {
       // 6. a. Return ? target.[[PreventExtensions]]().
-      return target['[[PreventExtensions]]']();
+      return target['[[PreventExtensions]]'](ctx);
     }
 
     // 7. Let booleanTrapResult be ToBoolean(? Call(trap, handler, « target »)).
-    const booleanTrapResult = $Call(trap, handler, [target]).ToBoolean();
+    const booleanTrapResult = $Call(ctx, trap, handler, [target]).ToBoolean(ctx);
 
     // 8. If booleanTrapResult is true, then
     if (booleanTrapResult.isTruthy) {
       // 8. a. Let targetIsExtensible be ? target.[[IsExtensible]]().
-      const targetIsExtensible = target['[[IsExtensible]]']();
+      const targetIsExtensible = target['[[IsExtensible]]'](ctx);
 
       // 8. b. If targetIsExtensible is true, throw a TypeError exception.
       if (targetIsExtensible.isTruthy) {
@@ -255,8 +264,11 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-getownproperty-p
-  public '[[GetOwnProperty]]'(P: $PropertyKey): $PropertyDescriptor | $Undefined {
-    const realm = this.realm;
+  public '[[GetOwnProperty]]'(
+    ctx: ExecutionContext,
+    P: $PropertyKey,
+  ): $PropertyDescriptor | $Undefined {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Assert: IsPropertyKey(P) is true.
@@ -274,16 +286,16 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     const target = this['[[ProxyTarget]]'] as $Object;
 
     // 6. Let trap be ? GetMethod(handler, "getOwnPropertyDescriptor").
-    const trap = handler.GetMethod(intrinsics.$getOwnPropertyDescriptor);
+    const trap = handler.GetMethod(ctx, intrinsics.$getOwnPropertyDescriptor);
 
     // 7. If trap is undefined, then
     if (trap.isUndefined) {
       // 7. a. Return ? target.[[GetOwnProperty]](P).
-      return target['[[GetOwnProperty]]'](P);
+      return target['[[GetOwnProperty]]'](ctx, P);
     }
 
     // 8. Let trapResultObj be ? Call(trap, handler, « target, P »).
-    const trapResultObj = $Call(trap, handler, [target, P]);
+    const trapResultObj = $Call(ctx, trap, handler, [target, P]);
 
     // 9. If Type(trapResultObj) is neither Object nor Undefined, throw a TypeError exception.
     if (!trapResultObj.isObject && !trapResultObj.isUndefined) {
@@ -291,7 +303,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     }
 
     // 10. Let targetDesc be ? target.[[GetOwnProperty]](P).
-    const targetDesc = target['[[GetOwnProperty]]'](P);
+    const targetDesc = target['[[GetOwnProperty]]'](ctx, P);
 
     // 11. If trapResultObj is undefined, then
     if (trapResultObj.isUndefined) {
@@ -306,7 +318,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
       }
 
       // 11. c. Let extensibleTarget be ? IsExtensible(target).
-      const extensibleTarget = target['[[IsExtensible]]']();
+      const extensibleTarget = target['[[IsExtensible]]'](ctx);
 
       // 11. d. If extensibleTarget is false, throw a TypeError exception.
       if (extensibleTarget.isFalsey) {
@@ -318,16 +330,17 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     }
 
     // 12. Let extensibleTarget be ? IsExtensible(target).
-    const extensibleTarget = target['[[IsExtensible]]']();
+    const extensibleTarget = target['[[IsExtensible]]'](ctx);
 
     // 13. Let resultDesc be ? ToPropertyDescriptor(trapResultObj).
-    const resultDesc = $ToPropertyDescriptor(this.realm, trapResultObj, P);
+    const resultDesc = $ToPropertyDescriptor(ctx, trapResultObj, P);
 
     // 14. Call CompletePropertyDescriptor(resultDesc).
-    resultDesc.Complete();
+    resultDesc.Complete(ctx);
 
     // 15. Let valid be IsCompatiblePropertyDescriptor(extensibleTarget, resultDesc, targetDesc).
     const valid = $ValidateAndApplyPropertyDescriptor(
+      ctx,
       /* O */intrinsics.undefined,
       /* P */intrinsics.undefined,
       /* extensible */extensibleTarget,
@@ -354,8 +367,12 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-defineownproperty-p-desc
-  public '[[DefineOwnProperty]]'(P: $PropertyKey, Desc: $PropertyDescriptor): $Boolean {
-    const realm = this.realm;
+  public '[[DefineOwnProperty]]'(
+    ctx: ExecutionContext,
+    P: $PropertyKey,
+    Desc: $PropertyDescriptor,
+  ): $Boolean {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Assert: IsPropertyKey(P) is true.
@@ -373,19 +390,19 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     const target = this['[[ProxyTarget]]'] as $Object;
 
     // 6. Let trap be ? GetMethod(handler, "defineProperty").
-    const trap = handler.GetMethod(intrinsics.$defineProperty);
+    const trap = handler.GetMethod(ctx, intrinsics.$defineProperty);
 
     // 7. If trap is undefined, then
     if (trap.isUndefined) {
       // 7. a. Return ? target.[[DefineOwnProperty]](P, Desc).
-      return target['[[DefineOwnProperty]]'](P, Desc);
+      return target['[[DefineOwnProperty]]'](ctx, P, Desc);
     }
 
     // 8. Let descObj be FromPropertyDescriptor(Desc).
-    const descObj = $FromPropertyDescriptor(this.realm, Desc);
+    const descObj = $FromPropertyDescriptor(ctx, Desc);
 
     // 9. Let booleanTrapResult be ToBoolean(? Call(trap, handler, « target, P, descObj »)).
-    const booleanTrapResult = $Call(trap, handler, [target, P, descObj]).ToBoolean();
+    const booleanTrapResult = $Call(ctx, trap, handler, [target, P, descObj]).ToBoolean(ctx);
 
     // 10. If booleanTrapResult is false, return false.
     if (booleanTrapResult.isFalsey) {
@@ -393,10 +410,10 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     }
 
     // 11. Let targetDesc be ? target.[[GetOwnProperty]](P).
-    const targetDesc = target['[[GetOwnProperty]]'](P);
+    const targetDesc = target['[[GetOwnProperty]]'](ctx, P);
 
     // 12. Let extensibleTarget be ? IsExtensible(target).
-    const extensibleTarget = target['[[IsExtensible]]']();
+    const extensibleTarget = target['[[IsExtensible]]'](ctx);
 
     let settingConfigFalse: boolean;
     // 13. If Desc has a [[Configurable]] field and if Desc.[[Configurable]] is false, then
@@ -425,6 +442,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     else {
       // 16. a. If IsCompatiblePropertyDescriptor(extensibleTarget, Desc, targetDesc) is false, throw a TypeError exception.
       if ($ValidateAndApplyPropertyDescriptor(
+        ctx,
         /* O */intrinsics.undefined,
         /* P */intrinsics.undefined,
         /* extensible */extensibleTarget,
@@ -445,8 +463,11 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-hasproperty-p
-  public '[[HasProperty]]'(P: $PropertyKey): $Boolean {
-    const realm = this.realm;
+  public '[[HasProperty]]'(
+    ctx: ExecutionContext,
+    P: $PropertyKey,
+  ): $Boolean {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Assert: IsPropertyKey(P) is true.
@@ -464,21 +485,21 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     const target = this['[[ProxyTarget]]'] as $Object;
 
     // 6. Let trap be ? GetMethod(handler, "has").
-    const trap = handler.GetMethod(intrinsics.$has);
+    const trap = handler.GetMethod(ctx, intrinsics.$has);
 
     // 7. If trap is undefined, then
     if (trap.isUndefined) {
       // 7. a. Return ? target.[[HasProperty]](P).
-      return target['[[HasProperty]]'](P);
+      return target['[[HasProperty]]'](ctx, P);
     }
 
     // 8. Let booleanTrapResult be ToBoolean(? Call(trap, handler, « target, P »)).
-    const booleanTrapResult = $Call(trap, handler, [target, P]).ToBoolean();
+    const booleanTrapResult = $Call(ctx, trap, handler, [target, P]).ToBoolean(ctx);
 
     // 9. If booleanTrapResult is false, then
     if (booleanTrapResult.isFalsey) {
       // 9. a. Let targetDesc be ? target.[[GetOwnProperty]](P).
-      const targetDesc = target['[[GetOwnProperty]]'](P);
+      const targetDesc = target['[[GetOwnProperty]]'](ctx, P);
 
       // 9. b. If targetDesc is not undefined, then
       if (!targetDesc.isUndefined) {
@@ -488,7 +509,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
         }
 
         // 9. b. ii. Let extensibleTarget be ? IsExtensible(target).
-        if (target['[[IsExtensible]]']().isFalsey) {
+        if (target['[[IsExtensible]]'](ctx).isFalsey) {
           // 9. b. iii. If extensibleTarget is false, throw a TypeError exception.
           throw new TypeError('9. b. ii. Let extensibleTarget be ? IsExtensible(target).');
         }
@@ -500,8 +521,12 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-get-p-receiver
-  public '[[Get]]'(P: $PropertyKey, Receiver: $AnyNonEmpty): $AnyNonEmpty {
-    const realm = this.realm;
+  public '[[Get]]'(
+    ctx: ExecutionContext,
+    P: $PropertyKey,
+    Receiver: $AnyNonEmpty,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Assert: IsPropertyKey(P) is true.
@@ -519,19 +544,19 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     const target = this['[[ProxyTarget]]'] as $Object;
 
     // 6. Let trap be ? GetMethod(handler, "get").
-    const trap = handler.GetMethod(intrinsics.$get);
+    const trap = handler.GetMethod(ctx, intrinsics.$get);
 
     // 7. If trap is undefined, then
     if (trap.isUndefined) {
       // 7. a. Return ? target.[[Get]](P, Receiver).
-      return target['[[Get]]'](P, Receiver);
+      return target['[[Get]]'](ctx, P, Receiver);
     }
 
     // 8. Let trapResult be ? Call(trap, handler, « target, P, Receiver »).
-    const trapResult = $Call(trap, handler, [target, P, Receiver]);
+    const trapResult = $Call(ctx, trap, handler, [target, P, Receiver]);
 
     // 9. Let targetDesc be ? target.[[GetOwnProperty]](P).
-    const targetDesc = target['[[GetOwnProperty]]'](P);
+    const targetDesc = target['[[GetOwnProperty]]'](ctx, P);
 
     // 10. If targetDesc is not undefined and targetDesc.[[Configurable]] is false, then
     if (!targetDesc.isUndefined && targetDesc['[[Configurable]]'].isFalsey) {
@@ -557,8 +582,13 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-set-p-v-receiver
-  public '[[Set]]'(P: $PropertyKey, V: $AnyNonEmpty, Receiver: $Object): $Boolean {
-    const realm = this.realm;
+  public '[[Set]]'(
+    ctx: ExecutionContext,
+    P: $PropertyKey,
+    V: $AnyNonEmpty,
+    Receiver: $Object,
+  ): $Boolean {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Assert: IsPropertyKey(P) is true.
@@ -576,16 +606,16 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     const target = this['[[ProxyTarget]]'] as $Object;
 
     // 6. Let trap be ? GetMethod(handler, "set").
-    const trap = handler.GetMethod(intrinsics.$set);
+    const trap = handler.GetMethod(ctx, intrinsics.$set);
 
     // 7. If trap is undefined, then
     if (trap.isUndefined) {
       // 7. a. Return ? target.[[Set]](P, V, Receiver).
-      return target['[[Set]]'](P, V, Receiver);
+      return target['[[Set]]'](ctx, P, V, Receiver);
     }
 
     // 8. Let booleanTrapResult be ToBoolean(? Call(trap, handler, « target, P, V, Receiver »)).
-    const booleanTrapResult = $Call(trap, handler, [target, P, V, Receiver]).ToBoolean();
+    const booleanTrapResult = $Call(ctx, trap, handler, [target, P, V, Receiver]).ToBoolean(ctx);
 
     // 9. If booleanTrapResult is false, return false.
     if (booleanTrapResult.isFalsey) {
@@ -593,7 +623,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     }
 
     // 10. Let targetDesc be ? target.[[GetOwnProperty]](P).
-    const targetDesc = target['[[GetOwnProperty]]'](P);
+    const targetDesc = target['[[GetOwnProperty]]'](ctx, P);
 
     // 11. If targetDesc is not undefined and targetDesc.[[Configurable]] is false, then
     if (!targetDesc.isUndefined && targetDesc['[[Configurable]]'].isFalsey) {
@@ -621,8 +651,11 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-delete-p
-  public '[[Delete]]'(P: $PropertyKey): $Boolean {
-    const realm = this.realm;
+  public '[[Delete]]'(
+    ctx: ExecutionContext,
+    P: $PropertyKey,
+  ): $Boolean {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Assert: IsPropertyKey(P) is true.
@@ -640,16 +673,16 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     const target = this['[[ProxyTarget]]'] as $Object;
 
     // 6. Let trap be ? GetMethod(handler, "deleteProperty").
-    const trap = handler.GetMethod(intrinsics.$deleteProperty);
+    const trap = handler.GetMethod(ctx, intrinsics.$deleteProperty);
 
     // 7. If trap is undefined, then
     if (trap.isUndefined) {
       // 7. a. Return ? target.[[Delete]](P).
-      return target['[[Delete]]'](P);
+      return target['[[Delete]]'](ctx, P);
     }
 
     // 8. Let booleanTrapResult be ToBoolean(? Call(trap, handler, « target, P »)).
-    const booleanTrapResult = $Call(trap, handler, [target, P]).ToBoolean();
+    const booleanTrapResult = $Call(ctx, trap, handler, [target, P]).ToBoolean(ctx);
 
     // 9. If booleanTrapResult is false, return false.
     if (booleanTrapResult.isFalsey) {
@@ -657,7 +690,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     }
 
     // 10. Let targetDesc be ? target.[[GetOwnProperty]](P).
-    const targetDesc = target['[[GetOwnProperty]]'](P);
+    const targetDesc = target['[[GetOwnProperty]]'](ctx, P);
 
     // 11. If targetDesc is undefined, return true.
     if (targetDesc.isUndefined) {
@@ -674,8 +707,10 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-ownpropertykeys
-  public '[[OwnPropertyKeys]]'(): readonly $PropertyKey[] {
-    const realm = this.realm;
+  public '[[OwnPropertyKeys]]'(
+    ctx: ExecutionContext,
+  ): readonly $PropertyKey[] {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     const handler = this['[[ProxyHandler]]'];
@@ -691,19 +726,19 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     const target = this['[[ProxyTarget]]'] as $Object;
 
     // 5. Let trap be ? GetMethod(handler, "ownKeys").
-    const trap = handler.GetMethod(intrinsics.$ownKeys);
+    const trap = handler.GetMethod(ctx, intrinsics.$ownKeys);
 
     // 6. If trap is undefined, then
     if (trap.isUndefined) {
       // 6. a. Return ? target.[[OwnPropertyKeys]]().
-      return target['[[OwnPropertyKeys]]']();
+      return target['[[OwnPropertyKeys]]'](ctx);
     }
 
     // 7. Let trapResultArray be ? Call(trap, handler, « target »).
-    const trapResultArray = $Call(trap, handler, [target]);
+    const trapResultArray = $Call(ctx, trap, handler, [target]);
 
     // 8. Let trapResult be ? CreateListFromArrayLike(trapResultArray, « String, Symbol »).
-    const trapResult = $CreateListFromArrayLike(realm, trapResultArray, ['String', 'Symbol']) as readonly ($String | $Symbol)[];
+    const trapResult = $CreateListFromArrayLike(ctx, trapResultArray, ['String', 'Symbol']) as readonly ($String | $Symbol)[];
 
     // 9. If trapResult contains any duplicate entries, throw a TypeError exception.
     if (trapResult.filter((x, i) => trapResult.findIndex(y => x.is(y)) === i).length !== trapResult.length) {
@@ -711,10 +746,10 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     }
 
     // 10. Let extensibleTarget be ? IsExtensible(target).
-    const extensibleTarget = target['[[IsExtensible]]']();
+    const extensibleTarget = target['[[IsExtensible]]'](ctx);
 
     // 11. Let targetKeys be ? target.[[OwnPropertyKeys]]().
-    const targetKeys = target['[[OwnPropertyKeys]]']();
+    const targetKeys = target['[[OwnPropertyKeys]]'](ctx);
 
     // 12. Assert: targetKeys is a List containing only String and Symbol values.
     // 13. Assert: targetKeys contains no duplicate entries.
@@ -728,7 +763,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     // 16. For each element key of targetKeys, do
     for (const key of targetKeys) {
       // 16. a. Let desc be ? target.[[GetOwnProperty]](key).
-      const desc = target['[[GetOwnProperty]]'](key);
+      const desc = target['[[GetOwnProperty]]'](ctx, key);
 
       // 16. b. If desc is not undefined and desc.[[Configurable]] is false, then
       if (!desc.isUndefined && desc['[[Configurable]]'].isFalsey) {
@@ -790,8 +825,12 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-call-thisargument-argumentslist
-  public '[[Call]]'(thisArgument: $AnyNonEmpty, argumentsList: readonly $AnyNonEmpty[]): $AnyNonEmpty {
-    const realm = this.realm;
+  public '[[Call]]'(
+    ctx: ExecutionContext,
+    thisArgument: $AnyNonEmpty,
+    argumentsList: readonly $AnyNonEmpty[],
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Let handler be O.[[ProxyHandler]].
@@ -807,24 +846,28 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     const target = this['[[ProxyTarget]]'] as $Function;
 
     // 5. Let trap be ? GetMethod(handler, "apply").
-    const trap = handler.GetMethod(intrinsics.$apply);
+    const trap = handler.GetMethod(ctx, intrinsics.$apply);
 
     // 6. If trap is undefined, then
     if (trap.isUndefined) {
       // 6. a. Return ? Call(target, thisArgument, argumentsList).
-      return $Call(target, thisArgument, argumentsList);
+      return $Call(ctx, target, thisArgument, argumentsList);
     }
 
     // 7. Let argArray be CreateArrayFromList(argumentsList).
-    const argArray = $CreateArrayFromList(realm, argumentsList);
+    const argArray = $CreateArrayFromList(ctx, argumentsList);
 
     // 8. Return ? Call(trap, handler, « target, thisArgument, argArray »).
-    return $Call(trap, handler, [target, thisArgument, argArray]);
+    return $Call(ctx, trap, handler, [target, thisArgument, argArray]);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-construct-argumentslist-newtarget
-  public '[[Construct]]'(argumentsList: readonly $AnyNonEmpty[], newTarget: $Object): $Object {
-    const realm = this.realm;
+  public '[[Construct]]'(
+    ctx: ExecutionContext,
+    argumentsList: readonly $AnyNonEmpty[],
+    newTarget: $Object,
+  ): $Object {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Let handler be O.[[ProxyHandler]].
@@ -841,19 +884,19 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
 
     // 5. Assert: IsConstructor(target) is true.
     // 6. Let trap be ? GetMethod(handler, "construct").
-    const trap = handler.GetMethod(intrinsics.$construct);
+    const trap = handler.GetMethod(ctx, intrinsics.$construct);
 
     // 7. If trap is undefined, then
     if (trap.isUndefined) {
       // 7. a. Return ? Construct(target, argumentsList, newTarget).
-      return $Construct(target, argumentsList, newTarget);
+      return $Construct(ctx, target, argumentsList, newTarget);
     }
 
     // 8. Let argArray be CreateArrayFromList(argumentsList).
-    const argArray = $CreateArrayFromList(realm, argumentsList);
+    const argArray = $CreateArrayFromList(ctx, argumentsList);
 
     // 9. Let newObj be ? Call(trap, handler, « target, argArray, newTarget »).
-    const newObj = $Call(trap, handler, [target, argArray, newTarget]);
+    const newObj = $Call(ctx, trap, handler, [target, argArray, newTarget]);
 
     // 10. If Type(newObj) is not Object, throw a TypeError exception.
     if (!newObj.isObject) {

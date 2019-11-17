@@ -1,5 +1,5 @@
 import { nextValueId, ESType, getPath, $Any, $Primitive } from './_shared';
-import { Realm } from '../realm';
+import { Realm, ExecutionContext } from '../realm';
 import { $$AssignmentExpressionOrHigher } from '../ast';
 import { $Empty } from './empty';
 import { $Object } from './object';
@@ -46,59 +46,87 @@ export class $SpeculativeValue {
     return other instanceof $SpeculativeValue && this.id === other.id;
   }
 
-  public ToObject(): $Object {
+  public ToObject(
+    ctx: ExecutionContext,
+  ): $Object {
     throw new TypeError(`Cannot convert SpeculativeValue to object`);
   }
 
-  public ToPropertyKey(): $String {
+  public ToPropertyKey(
+    ctx: ExecutionContext,
+  ): $String {
     throw new TypeError(`Cannot convert SpeculativeValue to property key`);
   }
 
-  public ToLength(): $Number {
+  public ToLength(
+    ctx: ExecutionContext,
+  ): $Number {
     throw new TypeError(`Cannot convert SpeculativeValue to length`);
   }
 
-  public ToPrimitive(): $Primitive {
+  public ToPrimitive(
+    ctx: ExecutionContext,
+  ): $Primitive {
     throw new TypeError(`Cannot convert SpeculativeValue to primitive`);
   }
 
-  public ToBoolean(): $Boolean {
+  public ToBoolean(
+    ctx: ExecutionContext,
+  ): $Boolean {
     throw new TypeError(`Cannot convert SpeculativeValue to boolean`);
   }
 
-  public ToNumber(): $Number {
+  public ToNumber(
+    ctx: ExecutionContext,
+  ): $Number {
     throw new TypeError(`Cannot convert SpeculativeValue to number`);
   }
 
-  public ToInt32(): $Number {
+  public ToInt32(
+    ctx: ExecutionContext,
+  ): $Number {
     throw new TypeError(`Cannot convert SpeculativeValue to Int32`);
   }
 
-  public ToUint32(): $Number {
+  public ToUint32(
+    ctx: ExecutionContext,
+  ): $Number {
     throw new TypeError(`Cannot convert SpeculativeValue to Uint32`);
   }
 
-  public ToInt16(): $Number {
+  public ToInt16(
+    ctx: ExecutionContext,
+  ): $Number {
     throw new TypeError(`Cannot convert SpeculativeValue to Int16`);
   }
 
-  public ToUint16(): $Number {
+  public ToUint16(
+    ctx: ExecutionContext,
+  ): $Number {
     throw new TypeError(`Cannot convert SpeculativeValue to Uint16`);
   }
 
-  public ToInt8(): $Number {
+  public ToInt8(
+    ctx: ExecutionContext,
+  ): $Number {
     throw new TypeError(`Cannot convert SpeculativeValue to Int8`);
   }
 
-  public ToUint8(): $Number {
+  public ToUint8(
+    ctx: ExecutionContext,
+  ): $Number {
     throw new TypeError(`Cannot convert SpeculativeValue to Uint8`);
   }
 
-  public ToUint8Clamp(): $Number {
+  public ToUint8Clamp(
+    ctx: ExecutionContext,
+  ): $Number {
     throw new TypeError(`Cannot convert SpeculativeValue to Uint8Clamp`);
   }
 
-  public ToString(): $String {
+  public ToString(
+    ctx: ExecutionContext,
+  ): $String {
     throw new TypeError(`Cannot convert SpeculativeValue to string`);
   }
 

@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { Realm } from './realm';
+import { Realm, ExecutionContext } from './realm';
 import { $PropertyDescriptor } from './types/property-descriptor';
 import { $EnvRec } from './types/environment-record';
 import { $BoundFunctionExoticObject } from './exotics/bound-function';
@@ -15,6 +15,7 @@ import { $String } from './types/string';
 import { $Reference } from './types/reference';
 
 export type CallableFunction = (
+  ctx: ExecutionContext,
   thisArgument: $AnyNonEmpty,
   argumentsList: readonly $AnyNonEmpty[],
   NewTarget: $AnyNonEmpty,
@@ -24,19 +25,22 @@ export type FunctionPrototype = Realm['[[Intrinsics]]']['%FunctionPrototype%'];
 
 // http://www.ecma-international.org/ecma-262/#sec-createbuiltinfunction
 export function $CreateBuiltinFunction<T extends string = string, TSlots extends {} = {}>(
-  realm: Realm,
+  ctx: ExecutionContext,
   IntrinsicName: T,
   steps: CallableFunction,
   internalSlotsList?: TSlots,
   prototype?: $Object,
 ): $BuiltinFunction<T> & TSlots {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
   // 1. Assert: steps is either a set of algorithm steps or other definition of a function's behaviour provided in this specification.
   // 2. If realm is not present, set realm to the current Realm Record.
 
   // 3. Assert: realm is a Realm Record.
   // 4. If prototype is not present, set prototype to realm.[[Intrinsics]].[[%FunctionPrototype%]].
   if (prototype === void 0) {
-    prototype = realm['[[Intrinsics]]']['%FunctionPrototype%'];
+    prototype = intrinsics['%FunctionPrototype%'];
   }
 
   // 5. Let func be a new built-in function object that when called performs the action described by steps. The new function object has internal slots whose names are the elements of internalSlotsList. The initial value of each of those internal slots is undefined.
@@ -53,17 +57,19 @@ export function $CreateBuiltinFunction<T extends string = string, TSlots extends
 
 // http://www.ecma-international.org/ecma-262/#sec-get-o-p
 export function $Get(
+  ctx: ExecutionContext,
   O: $Object,
   P: $PropertyKey,
 ): $AnyNonEmpty {
   // 1. Assert: Type(O) is Object.
   // 2. Assert: IsPropertyKey(P) is true.
   // 3. Return ? O.[[Get]](P, O).
-  return O['[[Get]]'](P, O);
+  return O['[[Get]]'](ctx, P, O);
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-set-o-p-v-throw
 export function $Set(
+  ctx: ExecutionContext,
   O: $Object,
   P: $PropertyKey,
   V: $AnyNonEmpty,
@@ -73,7 +79,7 @@ export function $Set(
   // 2. Assert: IsPropertyKey(P) is true.
   // 3. Assert: Type(Throw) is Boolean.
   // 4. Let success be ? O.[[Set]](P, V, O).
-  const success = O['[[Set]]'](P, V, O);
+  const success = O['[[Set]]'](ctx, P, V, O);
 
   // 5. If success is false and Throw is true, throw a TypeError exception.
   if (success.isFalsey && Throw.isTruthy) {
@@ -86,11 +92,12 @@ export function $Set(
 
 // http://www.ecma-international.org/ecma-262/#sec-createdataproperty
 export function $CreateDataProperty(
+  ctx: ExecutionContext,
   O: $Object,
   P: $PropertyKey,
   V: $AnyNonEmpty,
 ): $Boolean {
-  const realm = O.realm;
+  const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
   // 1. Assert: Type(O) is Object.
@@ -103,30 +110,31 @@ export function $CreateDataProperty(
   newDesc['[[Configurable]]'] = intrinsics.true;
 
   // 4. Return ? O.[[DefineOwnProperty]](P, newDesc).
-  return O['[[DefineOwnProperty]]'](P, newDesc);
+  return O['[[DefineOwnProperty]]'](ctx, P, newDesc);
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-ordinarysetwithowndescriptor
 export function $OrdinarySetWithOwnDescriptor(
+  ctx: ExecutionContext,
   O: $Object,
   P: $PropertyKey,
   V: $AnyNonEmpty,
   Receiver: $Object,
   ownDesc: $PropertyDescriptor | $Undefined,
 ): $Boolean {
-  const realm = O.realm;
+  const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
   // 1. Assert: IsPropertyKey(P) is true.
   // 2. If ownDesc is undefined, then
   if (ownDesc.isUndefined) {
     // 2. a. Let parent be ? O.[[GetPrototypeOf]]().
-    const parent = O['[[GetPrototypeOf]]']();
+    const parent = O['[[GetPrototypeOf]]'](ctx);
 
     // 2. b. If parent is not null, then
     if (!parent.isNull) {
       // 2. b. i. Return ? parent.[[Set]](P, V, Receiver).
-      return parent['[[Set]]'](P, V, Receiver);
+      return parent['[[Set]]'](ctx, P, V, Receiver);
     }
     // 2. c. Else,
     else {
@@ -152,7 +160,7 @@ export function $OrdinarySetWithOwnDescriptor(
     }
 
     // 3. c. Let existingDescriptor be ? Receiver.[[GetOwnProperty]](P).
-    const existingDescriptor = Receiver['[[GetOwnProperty]]'](P);
+    const existingDescriptor = Receiver['[[GetOwnProperty]]'](ctx, P);
 
     // 3. d. If existingDescriptor is not undefined, then
     if (!existingDescriptor.isUndefined) {
@@ -171,12 +179,12 @@ export function $OrdinarySetWithOwnDescriptor(
       valueDesc['[[Value]]'] = V;
 
       // 3. d. iv. Return ? Receiver.[[DefineOwnProperty]](P, valueDesc).
-      return Receiver['[[DefineOwnProperty]]'](P, valueDesc);
+      return Receiver['[[DefineOwnProperty]]'](ctx, P, valueDesc);
     }
     // 3. e. Else Receiver does not currently have a property P,
     else {
       // 3. e. i. Return ? CreateDataProperty(Receiver, P, V).
-      return $CreateDataProperty(Receiver, P, V);
+      return $CreateDataProperty(ctx, Receiver, P, V);
     }
   }
 
@@ -190,7 +198,7 @@ export function $OrdinarySetWithOwnDescriptor(
   }
 
   // 7. Perform ? Call(setter, Receiver, « V »).
-  $Call(setter, Receiver, [V]);
+  $Call(ctx, setter, Receiver, [V]);
 
   // 8. Return true.
   return intrinsics.true;
@@ -198,16 +206,17 @@ export function $OrdinarySetWithOwnDescriptor(
 
 // http://www.ecma-international.org/ecma-262/#sec-hasownproperty
 export function $HasOwnProperty(
+  ctx: ExecutionContext,
   O: $Object,
   P: $PropertyKey,
 ): $Boolean {
-  const realm = O.realm;
+  const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
   // 1. Assert: Type(O) is Object.
   // 2. Assert: IsPropertyKey(P) is true.
   // 3. Let desc be ? O.[[GetOwnProperty]](P).
-  const desc = O['[[GetOwnProperty]]'](P);
+  const desc = O['[[GetOwnProperty]]'](ctx, P);
 
   // 4. If desc is undefined, return false.
   if (desc.isUndefined) {
@@ -220,6 +229,7 @@ export function $HasOwnProperty(
 
 // http://www.ecma-international.org/ecma-262/#sec-call
 export function $Call(
+  ctx: ExecutionContext,
   F: $Function,
   V: $AnyNonEmpty,
   argumentsList?: readonly $AnyNonEmpty[],
@@ -235,11 +245,12 @@ export function $Call(
   }
 
   // 3. Return ? F.[[Call]](V, argumentsList).
-  return F['[[Call]]'](V, argumentsList);
+  return F['[[Call]]'](ctx, V, argumentsList);
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-construct
 export function $Construct(
+  ctx: ExecutionContext,
   F: $Function,
   argumentsList?: readonly $AnyNonEmpty[],
   newTarget?: $Object,
@@ -257,11 +268,12 @@ export function $Construct(
   // 3. Assert: IsConstructor(F) is true.
   // 4. Assert: IsConstructor(newTarget) is true.
   // 5. Return ? F.[[Construct]](argumentsList, newTarget).
-  return F['[[Construct]]'](argumentsList, newTarget);
+  return F['[[Construct]]'](ctx, argumentsList, newTarget);
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-definepropertyorthrow
 export function $DefinePropertyOrThrow(
+  ctx: ExecutionContext,
   O: $Object,
   P: $PropertyKey,
   desc: $PropertyDescriptor,
@@ -269,7 +281,7 @@ export function $DefinePropertyOrThrow(
   // 1. Assert: Type(O) is Object.
   // 2. Assert: IsPropertyKey(P) is true.
   // 3. Let success be ? O.[[DefineOwnProperty]](P, desc).
-  const success = O['[[DefineOwnProperty]]'](P, desc);
+  const success = O['[[DefineOwnProperty]]'](ctx, P, desc);
 
   // 4. If success is false, throw a TypeError exception.
   if (success.isFalsey) {
@@ -282,13 +294,14 @@ export function $DefinePropertyOrThrow(
 
 // http://www.ecma-international.org/ecma-262/#sec-validateandapplypropertydescriptor
 export function $ValidateAndApplyPropertyDescriptor(
+  ctx: ExecutionContext,
   O: $Object | $Undefined,
   P: $PropertyKey | $Undefined,
   extensible: $Boolean,
   Desc: $PropertyDescriptor,
   current: $PropertyDescriptor | $Undefined,
 ): $Boolean {
-  const realm = O.realm;
+  const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
   // 1. Assert: If O is not undefined, then IsPropertyKey(P) is true.
@@ -497,6 +510,7 @@ export function $ValidateAndApplyPropertyDescriptor(
 
 // http://www.ecma-international.org/ecma-262/#sec-set-immutable-prototype
 export function $SetImmutablePrototype(
+  ctx: ExecutionContext,
   O: $Object,
   V: $Object | $Null,
 ): $Boolean {
@@ -504,7 +518,7 @@ export function $SetImmutablePrototype(
 
   // 1. Assert: Either Type(V) is Object or Type(V) is Null.
   // 2. Let current be ? O.[[GetPrototypeOf]]().
-  const current = O['[[GetPrototypeOf]]']();
+  const current = O['[[GetPrototypeOf]]'](ctx);
 
   // 3. If SameValue(V, current) is true, return true.
   if (V.is(current)) {
@@ -515,49 +529,14 @@ export function $SetImmutablePrototype(
   return intrinsics.false;
 }
 
-// http://www.ecma-international.org/ecma-262/#sec-getidentifierreference
-export function $GetIdentifierReference(
-  lex: $EnvRec | $Null,
-  name: $String,
-  strict: $Boolean,
-): $Reference {
-  const realm = lex.realm;
-  const intrinsics = realm['[[Intrinsics]]'];
-
-  // 1. If lex is the value null, then
-  if (lex.isNull) {
-    // 1. a. Return a value of type Reference whose base value component is undefined, whose referenced name component is name, and whose strict reference flag is strict.
-    return new $Reference(realm, intrinsics.undefined, name, strict, intrinsics.undefined);
-  }
-
-  // 2. Let envRec be lex's EnvironmentRecord.
-  const envRec = lex;
-
-  // 3. Let exists be ? envRec.HasBinding(name).
-  const exists = envRec.HasBinding(name);
-
-  // 4. If exists is true, then
-  if (exists.isTruthy) {
-    // 4. a. Return a value of type Reference whose base value component is envRec, whose referenced name component is name, and whose strict reference flag is strict.
-    return new $Reference(realm, envRec, name, strict, intrinsics.undefined);
-  }
-  // 5. Else,
-  else {
-    // 5. a. Let outer be the value of lex's outer environment reference.
-    const outer = lex.outer;
-
-    // 5. b. Return ? GetIdentifierReference(outer, name, strict).
-    return $GetIdentifierReference(outer, name, strict);
-  }
-}
-
 // http://www.ecma-international.org/ecma-262/#sec-abstract-relational-comparison
 export function $AbstractRelationalComparison(
+  ctx: ExecutionContext,
   leftFirst: boolean,
   x: $AnyNonEmpty,
   y: $AnyNonEmpty,
 ): $Boolean | $Undefined {
-  const realm = x.realm;
+  const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
   let px: $Primitive;
@@ -566,18 +545,18 @@ export function $AbstractRelationalComparison(
   // 1. If the LeftFirst flag is true, then
   if (leftFirst) {
     // 1. a. Let px be ? ToPrimitive(x, hint Number).
-    px = x.ToPrimitive('number');
+    px = x.ToPrimitive(ctx, 'number');
 
     // 1. b. Let py be ? ToPrimitive(y, hint Number).
-    py = y.ToPrimitive('number');
+    py = y.ToPrimitive(ctx, 'number');
   }
   // 2. Else the order of evaluation needs to be reversed to preserve left to right evaluation,
   else {
     // 2. a. Let py be ? ToPrimitive(y, hint Number).
-    py = y.ToPrimitive('number');
+    py = y.ToPrimitive(ctx, 'number');
 
     // 2. b. Let px be ? ToPrimitive(x, hint Number).
-    px = x.ToPrimitive('number');
+    px = x.ToPrimitive(ctx, 'number');
   }
 
   // 3. If Type(px) is String and Type(py) is String, then
@@ -597,10 +576,10 @@ export function $AbstractRelationalComparison(
   // 4. Else,
   // 4. a. NOTE: Because px and py are primitive values evaluation order is not important.
   // 4. b. Let nx be ? ToNumber(px).
-  const nx = px.ToNumber();
+  const nx = px.ToNumber(ctx);
 
   // 4. c. Let ny be ? ToNumber(py).
-  const ny = py.ToNumber();
+  const ny = py.ToNumber(ctx);
 
   // 4. d. If nx is NaN, return undefined.
   if (nx.isNaN) {
@@ -657,16 +636,17 @@ export function $AbstractRelationalComparison(
 
 // http://www.ecma-international.org/ecma-262/#sec-abstract-equality-comparison
 export function $AbstractEqualityComparison(
+  ctx: ExecutionContext,
   x: $AnyNonEmpty,
   y: $AnyNonEmpty,
 ): $Boolean {
-  const realm = x.realm;
+  const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
   // 1. If Type(x) is the same as Type(y), then
   if (x.constructor === y.constructor) {
     // 1. a. Return the result of performing Strict Equality Comparison x === y.
-    return $StrictEqualityComparison(x, y);
+    return $StrictEqualityComparison(ctx, x, y);
   }
 
   // 2. If x is null and y is undefined, return true.
@@ -677,7 +657,7 @@ export function $AbstractEqualityComparison(
 
   // 4. If Type(x) is Number and Type(y) is String, return the result of the comparison x == ! ToNumber(y).
   if (x.isNumber && y.isString) {
-    if (x.is(y.ToNumber())) {
+    if (x.is(y.ToNumber(ctx))) {
       return intrinsics.true;
     }
 
@@ -686,7 +666,7 @@ export function $AbstractEqualityComparison(
 
   // 5. If Type(x) is String and Type(y) is Number, return the result of the comparison ! ToNumber(x) == y.
   if (x.isString && y.isNumber) {
-    if (x.ToNumber().is(y)) {
+    if (x.ToNumber(ctx).is(y)) {
       return intrinsics.true;
     }
 
@@ -695,7 +675,7 @@ export function $AbstractEqualityComparison(
 
   // 6. If Type(x) is Boolean, return the result of the comparison ! ToNumber(x) == y.
   if (x.isBoolean) {
-    if (x.ToNumber().is(y)) {
+    if (x.ToNumber(ctx).is(y)) {
       return intrinsics.true;
     }
 
@@ -704,7 +684,7 @@ export function $AbstractEqualityComparison(
 
   // 7. If Type(y) is Boolean, return the result of the comparison x == ! ToNumber(y).
   if (y.isBoolean) {
-    if (x.is(y.ToNumber())) {
+    if (x.is(y.ToNumber(ctx))) {
       return intrinsics.true;
     }
 
@@ -713,7 +693,7 @@ export function $AbstractEqualityComparison(
 
   // 8. If Type(x) is either String, Number, or Symbol and Type(y) is Object, return the result of the comparison x == ToPrimitive(y).
   if ((x.isString || x.isNumber || x.isSymbol) && y.isObject) {
-    if (x.is(y.ToPrimitive())) {
+    if (x.is(y.ToPrimitive(ctx))) {
       return intrinsics.true;
     }
 
@@ -722,7 +702,7 @@ export function $AbstractEqualityComparison(
 
   // 9. If Type(x) is Object and Type(y) is either String, Number, or Symbol, return the result of the comparison ToPrimitive(x) == y.
   if (x.isObject && (y.isString || y.isNumber || y.isSymbol)) {
-    if (x.ToPrimitive().is(y)) {
+    if (x.ToPrimitive(ctx).is(y)) {
       return intrinsics.true;
     }
 
@@ -735,9 +715,13 @@ export function $AbstractEqualityComparison(
 
 // http://www.ecma-international.org/ecma-262/#sec-strict-equality-comparison
 export function $StrictEqualityComparison(
+  ctx: ExecutionContext,
   x: $AnyNonEmpty,
   y: $AnyNonEmpty,
 ): $Boolean {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
   // 1. If Type(x) is different from Type(y), return false.
   // 2. If Type(x) is Number, then
   // 2. a. If x is NaN, return false.
@@ -748,19 +732,20 @@ export function $StrictEqualityComparison(
   // 2. f. Return false.
   // 3. Return SameValueNonNumber(x, y).
   if (x.is(y)) {
-    return x.realm['[[Intrinsics]]'].true;
+    return intrinsics.true;
   }
 
-  return x.realm['[[Intrinsics]]'].false;
+  return intrinsics.false;
 }
 
 
 // http://www.ecma-international.org/ecma-262/#sec-instanceofoperator
 export function $InstanceOfOperator(
+  ctx: ExecutionContext,
   V: $AnyNonEmpty,
   target: $AnyNonEmpty,
 ): $Boolean {
-  const realm = V.realm;
+  const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
   // 1. If Type(target) is not Object, throw a TypeError exception.
@@ -769,12 +754,12 @@ export function $InstanceOfOperator(
   }
 
   // 2. Let instOfHandler be ? GetMethod(target, @@hasInstance).
-  const instOfhandler = target.GetMethod(intrinsics['@@hasInstance']);
+  const instOfhandler = target.GetMethod(ctx, intrinsics['@@hasInstance']);
 
   // 3. If instOfHandler is not undefined, then
   if (!instOfhandler.isUndefined) {
     // 3. a. Return ToBoolean(? Call(instOfHandler, target, « V »)).
-    return $Call(instOfhandler, target, [V]).ToBoolean();
+    return $Call(ctx, instOfhandler, target, [V]).ToBoolean(ctx);
   }
 
   // 4. If IsCallable(target) is false, throw a TypeError exception.
@@ -783,15 +768,16 @@ export function $InstanceOfOperator(
   }
 
   // 5. Return ? OrdinaryHasInstance(target, V).
-  return $OrdinaryHasInstance(target, V);
+  return $OrdinaryHasInstance(ctx, target, V);
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-ordinaryhasinstance
 export function $OrdinaryHasInstance(
+  ctx: ExecutionContext,
   C: $Object,
   O: $AnyNonEmpty,
 ): $Boolean {
-  const realm = C.realm;
+  const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
   // 1. If IsCallable(C) is false, return false.
@@ -805,7 +791,7 @@ export function $OrdinaryHasInstance(
     const BC = (C as $BoundFunctionExoticObject)['[[BoundTargetFunction]]'];
 
     // 2. b. Return ? InstanceofOperator(O, BC).
-    return $InstanceOfOperator(O, BC);
+    return $InstanceOfOperator(ctx, O, BC);
   }
 
   // 3. If Type(O) is not Object, return false.
@@ -814,7 +800,7 @@ export function $OrdinaryHasInstance(
   }
 
   // 4. Let P be ? Get(C, "prototype").
-  const P = $Get(C, intrinsics.$prototype);
+  const P = $Get(ctx, C, intrinsics.$prototype);
 
   // 5. If Type(P) is not Object, throw a TypeError exception.
   if (!P.isObject) {
@@ -824,7 +810,7 @@ export function $OrdinaryHasInstance(
   // 6. Repeat,
   while (true) {
     // 6. a. Set O to ? O.[[GetPrototypeOf]]().
-    O = O['[[GetPrototypeOf]]']();
+    O = O['[[GetPrototypeOf]]'](ctx);
 
     // 6. b. If O is null, return false.
     if (O.isNull) {
@@ -840,10 +826,11 @@ export function $OrdinaryHasInstance(
 
 // http://www.ecma-international.org/ecma-262/#sec-topropertydescriptor
 export function $ToPropertyDescriptor(
-  realm: Realm,
+  ctx: ExecutionContext,
   Obj: $AnyNonEmpty,
   key: $PropertyKey,
 ): $PropertyDescriptor {
+  const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
   // 1. If Type(Obj) is not Object, throw a TypeError exception.
@@ -856,9 +843,9 @@ export function $ToPropertyDescriptor(
 
   // 3. Let hasEnumerable be ? HasProperty(Obj, "enumerable").
   // 4. If hasEnumerable is true, then
-  if (Obj['[[HasProperty]]'](intrinsics.$enumerable)) {
+  if (Obj['[[HasProperty]]'](ctx, intrinsics.$enumerable)) {
     // 4. a. Let enumerable be ToBoolean(? Get(Obj, "enumerable")).
-    const enumerable = $Get(Obj, intrinsics.$enumerable).ToBoolean();
+    const enumerable = $Get(ctx, Obj, intrinsics.$enumerable).ToBoolean(ctx);
 
     // 4. b. Set desc.[[Enumerable]] to enumerable.
     desc['[[Enumerable]]'] = enumerable;
@@ -866,9 +853,9 @@ export function $ToPropertyDescriptor(
 
   // 5. Let hasConfigurable be ? HasProperty(Obj, "configurable").
   // 6. If hasConfigurable is true, then
-  if (Obj['[[HasProperty]]'](intrinsics.$configurable)) {
+  if (Obj['[[HasProperty]]'](ctx, intrinsics.$configurable)) {
     // 6. a. Let configurable be ToBoolean(? Get(Obj, "configurable")).
-    const configurable = $Get(Obj, intrinsics.$configurable).ToBoolean();
+    const configurable = $Get(ctx, Obj, intrinsics.$configurable).ToBoolean(ctx);
 
     // 6. b. Set desc.[[Configurable]] to configurable.
     desc['[[Enumerable]]'] = configurable;
@@ -876,9 +863,9 @@ export function $ToPropertyDescriptor(
 
   // 7. Let hasValue be ? HasProperty(Obj, "value").
   // 8. If hasValue is true, then
-  if (Obj['[[HasProperty]]'](intrinsics.$value)) {
+  if (Obj['[[HasProperty]]'](ctx, intrinsics.$value)) {
     // 8. a. Let value be ? Get(Obj, "value").
-    const value = $Get(Obj, intrinsics.$value).ToBoolean();
+    const value = $Get(ctx, Obj, intrinsics.$value).ToBoolean(ctx);
 
     // 8. b. Set desc.[[Value]] to value.
     desc['[[Enumerable]]'] = value;
@@ -886,9 +873,9 @@ export function $ToPropertyDescriptor(
 
   // 9. Let hasWritable be ? HasProperty(Obj, "writable").
   // 10. If hasWritable is true, then
-  if (Obj['[[HasProperty]]'](intrinsics.$writable)) {
+  if (Obj['[[HasProperty]]'](ctx, intrinsics.$writable)) {
     // 10. a. Let writable be ToBoolean(? Get(Obj, "writable")).
-    const writable = $Get(Obj, intrinsics.$writable).ToBoolean();
+    const writable = $Get(ctx, Obj, intrinsics.$writable).ToBoolean(ctx);
 
     // 10. b. Set desc.[[Writable]] to writable.
     desc['[[Enumerable]]'] = writable;
@@ -896,9 +883,9 @@ export function $ToPropertyDescriptor(
 
   // 11. Let hasGet be ? HasProperty(Obj, "get").
   // 12. If hasGet is true, then
-  if (Obj['[[HasProperty]]'](intrinsics.$get)) {
+  if (Obj['[[HasProperty]]'](ctx, intrinsics.$get)) {
     // 12. a. Let getter be ? Get(Obj, "get").
-    const getter = $Get(Obj, intrinsics.$get);
+    const getter = $Get(ctx, Obj, intrinsics.$get);
 
     // 12. b. If IsCallable(getter) is false and getter is not undefined, throw a TypeError exception.
     if (!getter.isFunction && !getter.isUndefined) {
@@ -911,9 +898,9 @@ export function $ToPropertyDescriptor(
 
   // 13. Let hasSet be ? HasProperty(Obj, "set").
   // 14. If hasSet is true, then
-  if (Obj['[[HasProperty]]'](intrinsics.$set)) {
+  if (Obj['[[HasProperty]]'](ctx, intrinsics.$set)) {
     // 14. a. Let setter be ? Get(Obj, "set").
-    const setter = $Get(Obj, intrinsics.$set);
+    const setter = $Get(ctx, Obj, intrinsics.$set);
 
     // 14. b. If IsCallable(setter) is false and setter is not undefined, throw a TypeError exception.
     if (!setter.isFunction && !setter.isUndefined) {
@@ -938,17 +925,18 @@ export function $ToPropertyDescriptor(
 
 // http://www.ecma-international.org/ecma-262/#sec-frompropertydescriptor
 export function $FromPropertyDescriptor(
-  realm: Realm,
+  ctx: ExecutionContext,
   Desc: $PropertyDescriptor,
 ): $Object;
 export function $FromPropertyDescriptor(
-  realm: Realm,
+  ctx: ExecutionContext,
   Desc: $Undefined,
 ): $Undefined;
 export function $FromPropertyDescriptor(
-  realm: Realm,
+  ctx: ExecutionContext,
   Desc: $PropertyDescriptor | $Undefined,
 ): $Object | $Undefined {
+  const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
   // 1. If Desc is undefined, return undefined.
@@ -957,43 +945,43 @@ export function $FromPropertyDescriptor(
   }
 
   // 2. Let obj be ObjectCreate(%ObjectPrototype%).
-  const obj = $Object.ObjectCreate('PropertyDescriptor', intrinsics['%ObjectPrototype%']);
+  const obj = $Object.ObjectCreate(ctx, 'PropertyDescriptor', intrinsics['%ObjectPrototype%']);
 
   // 3. Assert: obj is an extensible ordinary object with no own properties.
   // 4. If Desc has a [[Value]] field, then
   if (Desc['[[Value]]'].hasValue) {
     // 4. a. Perform CreateDataProperty(obj, "value", Desc.[[Value]]).
-    $CreateDataProperty(obj, intrinsics.$value, Desc['[[Value]]']);
+    $CreateDataProperty(ctx, obj, intrinsics.$value, Desc['[[Value]]']);
   }
 
   // 5. If Desc has a [[Writable]] field, then
   if (Desc['[[Writable]]'].hasValue) {
     // 5. a. Perform CreateDataProperty(obj, "writable", Desc.[[Writable]]).
-    $CreateDataProperty(obj, intrinsics.$writable, Desc['[[Writable]]']);
+    $CreateDataProperty(ctx, obj, intrinsics.$writable, Desc['[[Writable]]']);
   }
 
   // 6. If Desc has a [[Get]] field, then
   if (Desc['[[Get]]'].hasValue) {
     // 6. a. Perform CreateDataProperty(obj, "get", Desc.[[Get]]).
-    $CreateDataProperty(obj, intrinsics.$get, Desc['[[Get]]']);
+    $CreateDataProperty(ctx, obj, intrinsics.$get, Desc['[[Get]]']);
   }
 
   // 7. If Desc has a [[Set]] field, then
   if (Desc['[[Set]]'].hasValue) {
     // 7. a. Perform CreateDataProperty(obj, "set", Desc.[[Set]]).
-    $CreateDataProperty(obj, intrinsics.$set, Desc['[[Set]]']);
+    $CreateDataProperty(ctx, obj, intrinsics.$set, Desc['[[Set]]']);
   }
 
   // 8. If Desc has an [[Enumerable]] field, then
   if (Desc['[[Enumerable]]'].hasValue) {
     // 8. a. Perform CreateDataProperty(obj, "enumerable", Desc.[[Enumerable]]).
-    $CreateDataProperty(obj, intrinsics.$enumerable, Desc['[[Enumerable]]']);
+    $CreateDataProperty(ctx, obj, intrinsics.$enumerable, Desc['[[Enumerable]]']);
   }
 
   // 9. If Desc has a [[Configurable]] field, then
   if (Desc['[[Configurable]]'].hasValue) {
     // 9. a. Perform CreateDataProperty(obj, "configurable", Desc.[[Configurable]]).
-    $CreateDataProperty(obj, intrinsics.$configurable, Desc['[[Configurable]]']);
+    $CreateDataProperty(ctx, obj, intrinsics.$configurable, Desc['[[Configurable]]']);
   }
 
   // 10. Assert: All of the above CreateDataProperty operations return true.
@@ -1013,10 +1001,13 @@ const defaultElementTypes = [
 
 // http://www.ecma-international.org/ecma-262/#sec-createlistfromarraylike
 export function $CreateListFromArrayLike(
-  realm: Realm,
+  ctx: ExecutionContext,
   obj: $AnyNonEmpty,
   elementTypes: readonly ESType[] = defaultElementTypes,
 ): $AnyNonEmpty[] {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
   // 1. If elementTypes is not present, set elementTypes to « Undefined, Null, Boolean, String, Symbol, Number, Object ».
   // 2. If Type(obj) is not Object, throw a TypeError exception.
   if (!obj.isObject) {
@@ -1024,7 +1015,7 @@ export function $CreateListFromArrayLike(
   }
 
   // 3. Let len be ? ToLength(? Get(obj, "length")).
-  const len = $Get(obj, realm['[[Intrinsics]]'].length).ToLength();
+  const len = $Get(ctx, obj, intrinsics.length).ToLength(ctx);
 
   // 4. Let list be a new empty List.
   const list: $AnyNonEmpty[] = [];
@@ -1038,7 +1029,7 @@ export function $CreateListFromArrayLike(
     const indexName = new $String(realm, index.toString());
 
     // 6. b. Let next be ? Get(obj, indexName).
-    const next = $Get(obj, indexName);
+    const next = $Get(ctx, obj, indexName);
 
     // 6. c. If Type(next) is not an element of elementTypes, throw a TypeError exception.
     if (!elementTypes.includes(next.Type)) {
@@ -1057,12 +1048,15 @@ export function $CreateListFromArrayLike(
 
 // http://www.ecma-international.org/ecma-262/#sec-createarrayfromlist
 export function $CreateArrayFromList(
-  realm: Realm,
+  ctx: ExecutionContext,
   elements: readonly $AnyNonEmpty[],
 ): $ArrayExoticObject {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
   // 1. Assert: elements is a List whose elements are all ECMAScript language values.
   // 2. Let array be ! ArrayCreate(0).
-  const array = new $ArrayExoticObject(realm, realm['[[Intrinsics]]']['0']);
+  const array = new $ArrayExoticObject(realm, intrinsics['0']);
 
   // 3. Let n be 0.
   let n = 0;
@@ -1070,7 +1064,7 @@ export function $CreateArrayFromList(
   // 4. For each element e of elements, do
   for (const e of elements) {
     // 4. a. Let status be CreateDataProperty(array, ! ToString(n), e).
-    const status = $CreateDataProperty(array, new $String(realm, n.toString()), e);
+    const status = $CreateDataProperty(ctx, array, new $String(realm, n.toString()), e);
 
     // 4. b. Assert: status is true.
     // 4. c. Increment n by 1.
@@ -1083,9 +1077,12 @@ export function $CreateArrayFromList(
 
 // http://www.ecma-international.org/ecma-262/#sec-getfunctionrealm
 export function $GetFunctionRealm(
-  realm: Realm,
+  ctx: ExecutionContext,
   obj: $AnyNonEmpty,
 ): Realm {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
   // 1. Assert: obj is a callable object.
   // 2. If obj has a [[Realm]] internal slot, then
   if ('[[Realm]]' in obj) {
@@ -1097,7 +1094,7 @@ export function $GetFunctionRealm(
   if (obj.isBoundFunction) {
     // 3. a. Let target be obj.[[BoundTargetFunction]].
     // 3. b. Return ? GetFunctionRealm(target).
-    return $GetFunctionRealm(realm, (obj as $BoundFunctionExoticObject)['[[BoundTargetFunction]]']);
+    return $GetFunctionRealm(ctx, (obj as $BoundFunctionExoticObject)['[[BoundTargetFunction]]']);
   }
 
   // 4. If obj is a Proxy exotic object, then
@@ -1111,7 +1108,7 @@ export function $GetFunctionRealm(
     const proxyTarget = (obj as $ProxyExoticObject)['[[ProxyTarget]]'];
 
     // 4. c. Return ? GetFunctionRealm(proxyTarget).
-    return $GetFunctionRealm(realm, proxyTarget);
+    return $GetFunctionRealm(ctx, proxyTarget);
   }
 
   // 5. Return the current Realm Record.

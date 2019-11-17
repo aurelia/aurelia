@@ -1054,8 +1054,14 @@ function isIIFE(expr: $FunctionExpression | $ArrowFunction): boolean {
   return (parent.node as Node).kind === SyntaxKind.CallExpression && (parent as $CallExpression).node.expression === prev.node;
 }
 
-function evaluateStatement(statement: $$ESStatement): $Any {
-  let stmtCompletion: $Any = statement.realm['[[Intrinsics]]'].empty;
+function evaluateStatement(
+  ctx: ExecutionContext,
+  statement: $$ESStatement,
+): $Any {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
+  let stmtCompletion: $Any = intrinsics.empty;
   switch (statement.$kind) {
     case SyntaxKind.Block:
     case SyntaxKind.VariableStatement:
@@ -1071,14 +1077,14 @@ function evaluateStatement(statement: $$ESStatement): $Any {
     case SyntaxKind.ThrowStatement:
     case SyntaxKind.TryStatement:
     case SyntaxKind.DebuggerStatement:
-      stmtCompletion = statement.Evaluate();
+      stmtCompletion = statement.Evaluate(ctx);
       break;
     case SyntaxKind.DoStatement:
     case SyntaxKind.WhileStatement:
     case SyntaxKind.ForStatement:
     case SyntaxKind.ForInStatement:
     case SyntaxKind.ForOfStatement:
-      stmtCompletion = statement.EvaluateLabelled();
+      stmtCompletion = statement.EvaluateLabelled(ctx);
       break;
     // Note that no default case is needed here as the cases above are exhausetive $$ESStatement (http://www.ecma-international.org/ecma-262/#prod-Statement)
   }
@@ -1087,26 +1093,38 @@ function evaluateStatement(statement: $$ESStatement): $Any {
 
 // http://www.ecma-international.org/ecma-262/#sec-block-runtime-semantics-evaluation
 // StatementList : StatementList StatementListItem
-function evaluateStatementList(statements: readonly $$TSStatementListItem[], realm: Realm): $Any {
+function evaluateStatementList(
+  ctx: ExecutionContext,
+  statements: readonly $$TSStatementListItem[],
+): $Any {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
   // 1. Let sl be the result of evaluating StatementList.
   // 2. ReturnIfAbrupt(sl).
   // 3. Let s be the result of evaluating StatementListItem.
   // 4. Return Completion(UpdateEmpty(s, sl)).
-  let sl: $Any = realm['[[Intrinsics]]'].empty;
+  let sl: $Any = intrinsics.empty;
   for (const statement of statements) {
-    const s = evaluateStatement(statement as $$ESStatement); // TODO handle the declarations.
+    const s = evaluateStatement(ctx, statement as $$ESStatement); // TODO handle the declarations.
     if (s.isAbrupt) {
       return s;
     }
     sl = sl.UpdateEmpty(s);
   }
 
-  var e = realm['[[Intrinsics]]'].empty.UpdateEmpty(realm['[[Intrinsics]]'].NaN)
+  var e = intrinsics.empty.UpdateEmpty(intrinsics.NaN)
   return sl;
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-blockdeclarationinstantiation
-function blockDeclarationInstantiation(lexicallyScopedDeclarations: readonly $$ESDeclaration[], envRec: $DeclarativeEnvRec) {
+function blockDeclarationInstantiation(
+  ctx: ExecutionContext,
+  lexicallyScopedDeclarations: readonly $$ESDeclaration[],
+  envRec: $DeclarativeEnvRec,
+) {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
 
   // 1. Let envRec be env's EnvironmentRecord.
   // 2. Assert: envRec is a declarative Environment Record.
@@ -1120,11 +1138,11 @@ function blockDeclarationInstantiation(lexicallyScopedDeclarations: readonly $$E
       // 4. a. i. If IsConstantDeclaration of d is true, then
       if (d.IsConstantDeclaration) {
         // 4. a. i. 1. Perform ! envRec.CreateImmutableBinding(dn, true).
-        envRec.CreateImmutableBinding(dn, envRec.realm['[[Intrinsics]]'].true)
+        envRec.CreateImmutableBinding(ctx, dn, intrinsics.true)
       } else {
         // 4. a. ii. Else,
         // 4. a. ii. 1. Perform ! envRec.CreateMutableBinding(dn, false).
-        envRec.CreateImmutableBinding(dn, envRec.realm['[[Intrinsics]]'].false)
+        envRec.CreateImmutableBinding(ctx, dn, intrinsics.false)
       }
     }
 
@@ -1134,9 +1152,9 @@ function blockDeclarationInstantiation(lexicallyScopedDeclarations: readonly $$E
       // 4. b. i. Let fn be the sole element of the BoundNames of d.
       const fn = d.BoundNames[0];
       // 4. b. ii. Let fo be the result of performing InstantiateFunctionObject for d with argument env.
-      const fo = (d as $FunctionDeclaration).InstantiateFunctionObject(envRec);
+      const fo = (d as $FunctionDeclaration).InstantiateFunctionObject(ctx, envRec);
       // 4. b. iii. Perform envRec.InitializeBinding(fn, fo).
-      envRec.InitializeBinding(fn, fo);
+      envRec.InitializeBinding(ctx, fn, fo);
     }
   }
 }
@@ -1242,7 +1260,12 @@ export class $VariableStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-runtime-semantics-evaluation
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
     // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-runtime-semantics-evaluation
 
@@ -1317,7 +1340,7 @@ export class $VariableStatement implements I$Node {
     // 2. Let rval be ? GetValue(rhs).
     // 3. Return the result of performing BindingInitialization for BindingPattern passing rval and undefined as arguments.
 
-    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
+    return intrinsics.empty; // TODO: implement this
   }
 }
 
@@ -1546,21 +1569,22 @@ export class $FunctionDeclaration implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-instantiatefunctionobject
   public InstantiateFunctionObject(
+    ctx: ExecutionContext,
     Scope: $EnvRec,
   ): $Function {
-    const realm = this.realm;
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     // FunctionDeclaration : function ( FormalParameters ) { FunctionBody }
     if (this.$name === void 0) {
       // 1. Let F be FunctionCreate(Normal, FormalParameters, FunctionBody, scope, true).
-      const F = $Function.FunctionCreate('normal', this, Scope, intrinsics.true);
+      const F = $Function.FunctionCreate(ctx, 'normal', this, Scope, intrinsics.true);
 
       // 2. Perform MakeConstructor(F).
-      F.MakeConstructor();
+      F.MakeConstructor(ctx);
 
       // 3. Perform SetFunctionName(F, "default").
-      F.SetFunctionName(intrinsics.default);
+      F.SetFunctionName(ctx, intrinsics.default);
 
       // 4. Set F.[[SourceText]] to the source text matched by FunctionDeclaration.
       F['[[SourceText]]'] = new $String(realm, ''); // TODO: get text (need sourceFile for this)
@@ -1578,13 +1602,13 @@ export class $FunctionDeclaration implements I$Node {
     const name = this.$name.StringValue;
 
     // 3. Let F be FunctionCreate(Normal, FormalParameters, FunctionBody, scope, strict).
-    const F = $Function.FunctionCreate('normal', this, Scope, strict);
+    const F = $Function.FunctionCreate(ctx, 'normal', this, Scope, strict);
 
     // 4. Perform MakeConstructor(F).
-    F.MakeConstructor();
+    F.MakeConstructor(ctx);
 
     // 5. Perform SetFunctionName(F, name).
-    F.SetFunctionName(name);
+    F.SetFunctionName(ctx, name);
 
     // 6. Set F.[[SourceText]] to the source text matched by FunctionDeclaration.
     F['[[SourceText]]'] = new $String(realm, ''); // TODO: get text (need sourceFile for this)
@@ -1595,27 +1619,34 @@ export class $FunctionDeclaration implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
   public EvaluateBody(
+    ctx: ExecutionContext,
     functionObject: $Function,
     argumentsList: readonly $Any[],
   ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     // FunctionBody : FunctionStatementList
 
     // 1. Perform ? FunctionDeclarationInstantiation(functionObject, argumentsList).
-    const fdiResult = $FunctionDeclarationInstantiation(functionObject, argumentsList);
+    const fdiResult = $FunctionDeclarationInstantiation(ctx, functionObject, argumentsList);
     if (fdiResult.isAbrupt) {
       return fdiResult;
     }
 
     // 2. Return the result of evaluating FunctionStatementList.
-    return this.$body.Evaluate();
+    return this.$body.Evaluate(ctx);
   }
 
 
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluation
-  public Evaluate(): $Empty {
-    const realm = this.realm;
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Empty {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
+
 
     // FunctionDeclaration : function BindingIdentifier ( FormalParameters ) { FunctionBody }
 
@@ -1631,10 +1662,11 @@ export class $FunctionDeclaration implements I$Node {
 
 // http://www.ecma-international.org/ecma-262/#sec-functiondeclarationinstantiation
 function $FunctionDeclarationInstantiation(
+  ctx: ExecutionContext,
   func: $Function,
   argumentsList: readonly $Any[],
 ) {
-  const realm = func['[[Realm]]'];
+  const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
   const stack = realm.stack;
 
@@ -1740,18 +1772,18 @@ function $FunctionDeclarationInstantiation(
   // 21. For each String paramName in parameterNames, do
   for (const paramName of parameterNames) {
     // 21. a. Let alreadyDeclared be envRec.HasBinding(paramName).
-    const alreadyDeclared = envRec.HasBinding(paramName);
+    const alreadyDeclared = envRec.HasBinding(ctx, paramName);
 
     // 21. b. NOTE: Early errors ensure that duplicate parameter names can only occur in non-strict functions that do not have parameter default values or rest parameters.
     // 21. c. If alreadyDeclared is false, then
     if (alreadyDeclared.isFalsey) {
       // 21. c. i. Perform ! envRec.CreateMutableBinding(paramName, false).
-      envRec.CreateMutableBinding(paramName, intrinsics.false);
+      envRec.CreateMutableBinding(ctx, paramName, intrinsics.false);
 
       // 21. c. ii. If hasDuplicates is true, then
       if (hasDuplicates) {
         // 21. c. ii. 1. Perform ! envRec.InitializeBinding(paramName, undefined).
-        envRec.InitializeBinding(paramName, intrinsics.undefined);
+        envRec.InitializeBinding(ctx, paramName, intrinsics.undefined);
       }
     }
   }
@@ -1817,10 +1849,10 @@ function $FunctionDeclarationInstantiation(
         instantiatedVarNames.push(n);
 
         // 27. c. i. 2. Perform ! envRec.CreateMutableBinding(n, false).
-        envRec.CreateMutableBinding(n, intrinsics.false);
+        envRec.CreateMutableBinding(ctx, n, intrinsics.false);
 
         // 27. c. i. 3. Call envRec.InitializeBinding(n, undefined).
-        envRec.InitializeBinding(n, intrinsics.undefined);
+        envRec.InitializeBinding(ctx, n, intrinsics.undefined);
       }
     }
 
@@ -1849,7 +1881,7 @@ function $FunctionDeclarationInstantiation(
         instantiatedVarNames.push(n);
 
         // 28. f. i. 2. Perform ! varEnvRec.CreateMutableBinding(n, false).
-        varEnvRec.CreateMutableBinding(n, intrinsics.false);
+        varEnvRec.CreateMutableBinding(ctx, n, intrinsics.false);
 
         let initialValue: $Any;
 
@@ -1860,11 +1892,11 @@ function $FunctionDeclarationInstantiation(
         // 28. f. i. 4. Else,
         else {
           // 28. f. i. 4. a. Let initialValue be ! envRec.GetBindingValue(n, false).
-          initialValue = envRec.GetBindingValue(n, intrinsics.false);
+          initialValue = envRec.GetBindingValue(ctx, n, intrinsics.false);
         }
 
         // 28. f. i. 5. Call varEnvRec.InitializeBinding(n, initialValue).
-        varEnvRec.InitializeBinding(n, initialValue);
+        varEnvRec.InitializeBinding(ctx, n, initialValue);
 
         // 28. f. i. 6. NOTE: vars whose names are the same as a formal parameter, initially have the same value as the corresponding initialized parameter.
       }
@@ -1902,12 +1934,12 @@ function $FunctionDeclarationInstantiation(
       // 35. b. i. If IsConstantDeclaration of d is true, then
       if (d.IsConstantDeclaration) {
         // 35. b. i. 1. Perform ! lexEnvRec.CreateImmutableBinding(dn, true).
-        lexEnvRec.CreateImmutableBinding(dn, intrinsics.true);
+        lexEnvRec.CreateImmutableBinding(ctx, dn, intrinsics.true);
       }
       // 35. b. ii. Else,
       else {
         // 35. b. ii. 1. Perform ! lexEnvRec.CreateMutableBinding(dn, false).
-        lexEnvRec.CreateMutableBinding(dn, intrinsics.false);
+        lexEnvRec.CreateMutableBinding(ctx, dn, intrinsics.false);
       }
     }
   }
@@ -1920,10 +1952,10 @@ function $FunctionDeclarationInstantiation(
     // TODO: probably not right
     if (f instanceof $FunctionDeclaration) {
       // 36. b. Let fo be the result of performing InstantiateFunctionObject for f with argument lexEnv.
-      const fo = f.InstantiateFunctionObject(lexEnvRec);
+      const fo = f.InstantiateFunctionObject(ctx, lexEnvRec);
 
       // 36. c. Perform ! varEnvRec.SetMutableBinding(fn, fo, false).
-      varEnvRec.SetMutableBinding(fn, fo, intrinsics.false);
+      varEnvRec.SetMutableBinding(ctx, fn, fo, intrinsics.false);
     }
   }
 
@@ -2679,12 +2711,16 @@ export class $ThisExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-this-keyword-runtime-semantics-evaluation
-  public Evaluate(): $AnyNonEmpty {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+
     this.logger.debug('Evaluate()');
     // PrimaryExpression : this
 
     // 1. Return ? ResolveThisBinding().
-    return this.realm.ResolveThisBinding();
+    return realm.ResolveThisBinding();
   }
 }
 
@@ -2705,7 +2741,12 @@ export class $SuperExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-super-keyword-runtime-semantics-evaluation
-  public Evaluate(): $AnyNonEmpty {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
     // SuperProperty : super [ Expression ]
 
@@ -2736,7 +2777,7 @@ export class $SuperExpression implements I$Node {
     // 7. Let thisER be GetThisEnvironment().
     // 8. Return ? thisER.BindThisValue(result).
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 }
 
@@ -2818,7 +2859,12 @@ export class $ArrayLiteralExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-array-initializer-runtime-semantics-evaluation
-  public Evaluate(): $Object {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Object {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     // ArrayLiteral : [ Elision opt ]
 
     // 1. Let array be ! ArrayCreate(0).
@@ -2845,7 +2891,7 @@ export class $ArrayLiteralExpression implements I$Node {
     // 5. Perform Set(array, "length", ToUint32(padding + len), false).
     // 6. NOTE: The above Set cannot fail because of the nature of the object returned by ArrayCreate.
     // 7. Return array.
-    return this.realm['[[Intrinsics]]']['%ObjectPrototype%']; // TODO: implement this
+    return intrinsics['%ObjectPrototype%']; // TODO: implement this
   }
 }
 
@@ -2931,7 +2977,12 @@ export class $ObjectLiteralExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-evaluation
-  public Evaluate(): $Object {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Object {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     // ObjectLiteral : { }
 
     // 1. Return ObjectCreate(%ObjectPrototype%).
@@ -2960,7 +3011,7 @@ export class $ObjectLiteralExpression implements I$Node {
     // 1. Let exprValue be the result of evaluating AssignmentExpression.
     // 2. Let propName be ? GetValue(exprValue).
     // 3. Return ? ToPropertyKey(propName).
-    return this.realm['[[Intrinsics]]']['%ObjectPrototype%']; // TODO: implement this
+    return intrinsics['%ObjectPrototype%']; // TODO: implement this
   }
 }
 
@@ -2989,7 +3040,12 @@ export class $PropertyAccessExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-property-accessors-runtime-semantics-evaluation
-  public Evaluate(): $AnyNonEmpty {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
     // MemberExpression : MemberExpression . IdentifierName
 
@@ -3000,7 +3056,7 @@ export class $PropertyAccessExpression implements I$Node {
     // 5. If the code matched by this MemberExpression is strict mode code, let strict be true, else let strict be false.
     // 6. Return a value of type Reference whose base value component is bv, whose referenced name component is propertyNameString, and whose strict reference flag is strict.
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 }
 
@@ -3029,7 +3085,12 @@ export class $ElementAccessExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-property-accessors-runtime-semantics-evaluation
-  public Evaluate(): $AnyNonEmpty {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
     // MemberExpression : MemberExpression [ Expression ]
 
@@ -3042,7 +3103,7 @@ export class $ElementAccessExpression implements I$Node {
     // 7. If the code matched by this MemberExpression is strict mode code, let strict be true, else let strict be false.
     // 8. Return a value of type Reference whose base value component is bv, whose referenced name component is propertyKey, and whose strict reference flag is strict.
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 }
 
@@ -3071,8 +3132,10 @@ export class $CallExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-calls-runtime-semantics-evaluation
-  public Evaluate(): $AnyNonEmpty {
-    const realm = this.realm;
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     this.logger.debug('Evaluate()');
@@ -3086,10 +3149,10 @@ export class $CallExpression implements I$Node {
     const $arguments = this.$arguments;
 
     // 4. Let ref be the result of evaluating memberExpr.
-    const ref = memberExpr.Evaluate();
+    const ref = memberExpr.Evaluate(ctx);
 
     // 5. Let func be ? GetValue(ref).
-    const func = ref.GetValue();
+    const func = ref.GetValue(ctx);
 
     // 6. If Type(ref) is Reference and IsPropertyReference(ref) is false and GetReferencedName(ref) is "eval", then
     if (ref instanceof $Reference && ref.IsPropertyReference().isFalsey && ref.GetReferencedName()['[[Value]]'] === 'eval') {
@@ -3113,7 +3176,7 @@ export class $CallExpression implements I$Node {
     // TODO
 
     // 9. Return ? EvaluateCall(func, ref, arguments, tailCall).
-    return $EvaluateCall(realm, func, ref as $Any, $arguments, intrinsics.false);
+    return $EvaluateCall(ctx, func, ref as $Any, $arguments, intrinsics.false);
 
     // CallExpression : CallExpression Arguments
 
@@ -3123,18 +3186,21 @@ export class $CallExpression implements I$Node {
     // 4. Let tailCall be IsInTailPosition(thisCall).
     // 5. Return ? EvaluateCall(func, ref, Arguments, tailCall).
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-evaluatecall
 function $EvaluateCall(
-  realm: Realm,
+  ctx: ExecutionContext,
   func: $Any,
   ref: $Any,
   $arguments: readonly $$ArgumentOrArrayLiteralElement[],
   tailPosition: $Boolean,
 ): $AnyNonEmpty {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
   let thisValue: $AnyNonEmpty;
 
   // 1. If Type(ref) is Reference, then
@@ -3150,13 +3216,13 @@ function $EvaluateCall(
       const refEnv = ref.GetBase() as $EnvRec;
 
       // 1. b. ii. Let thisValue be refEnv.WithBaseObject().
-      thisValue = refEnv.WithBaseObject();
+      thisValue = refEnv.WithBaseObject(ctx);
     }
   }
   // 2. Else Type(ref) is not Reference,
   else {
     // 2. a. Let thisValue be undefined.
-    thisValue = realm['[[Intrinsics]]'].undefined;
+    thisValue = intrinsics.undefined;
   }
 
   // 3. Let argList be ArgumentListEvaluation of arguments.
@@ -3173,7 +3239,7 @@ function $EvaluateCall(
   // TODO
 
   // 8. Let result be Call(func, thisValue, argList).
-  const result = $Call(func as $Function, thisValue, argList);
+  const result = $Call(ctx, func as $Function, thisValue, argList);
 
   // 9. Assert: If tailPosition is true, the above call will not return here, but instead evaluation will continue as if the following return has already occurred.
   // 10. Assert: If result is not an abrupt completion, then Type(result) is an ECMAScript language type.
@@ -3206,7 +3272,12 @@ export class $NewExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-new-operator-runtime-semantics-evaluation
-  public Evaluate(): $AnyNonEmpty {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
     // NewExpression : new NewExpression
 
@@ -3216,7 +3287,7 @@ export class $NewExpression implements I$Node {
 
     // 1. Return ? EvaluateNew(MemberExpression, Arguments).
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 }
 
@@ -3255,7 +3326,12 @@ export class $TaggedTemplateExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-tagged-templates-runtime-semantics-evaluation
-  public Evaluate(): $AnyNonEmpty {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
     // MemberExpression : MemberExpression TemplateLiteral
 
@@ -3273,7 +3349,7 @@ export class $TaggedTemplateExpression implements I$Node {
     // 4. Let tailCall be IsInTailPosition(thisCall).
     // 5. Return ? EvaluateCall(tagFunc, tagRef, TemplateLiteral, tailCall).
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 }
 
@@ -3361,7 +3437,12 @@ export class $FunctionExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
   // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-runtime-semantics-evaluation
-  public Evaluate(): $AnyNonEmpty {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
 
     // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluation
@@ -3474,7 +3555,7 @@ export class $FunctionExpression implements I$Node {
     // 10. Set closure.[[SourceText]] to the source text matched by AsyncFunctionExpression.
     // 11. Return closure.
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 }
 
@@ -3531,7 +3612,12 @@ export class $TemplateExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
-  public Evaluate(): $String {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $String {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     // SubstitutionTemplate : TemplateHead Expression TemplateSpans
 
     // 1. Let head be the TV of TemplateHead as defined in 11.8.6.
@@ -3571,7 +3657,7 @@ export class $TemplateExpression implements I$Node {
     // 5. Let sub be ? GetValue(subRef).
     // 6. Let last be ? ToString(sub).
     // 7. Return the sequence of code units consisting of the elements of rest followed by the code units of middle followed by the elements of last.
-    return this.realm['[[Intrinsics]]']['']; // TODO: implement this
+    return intrinsics['']; // TODO: implement this
   }
 }
 
@@ -3603,7 +3689,12 @@ export class $ParenthesizedExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-grouping-operator-runtime-semantics-evaluation
-  public Evaluate(): $AnyNonEmpty | $Reference {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty | $Reference {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     // PrimaryExpression : CoverParenthesizedExpressionAndArrowParameterList
 
     // 1. Let expr be CoveredParenthesizedExpression of CoverParenthesizedExpressionAndArrowParameterList.
@@ -3612,7 +3703,7 @@ export class $ParenthesizedExpression implements I$Node {
     // ParenthesizedExpression : ( Expression )
 
     // 1. Return the result of evaluating Expression. This may be of type Reference.
-    return this.$expression.Evaluate();
+    return this.$expression.Evaluate(ctx);
   }
 }
 
@@ -3700,7 +3791,12 @@ export class $ClassExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-runtime-semantics-evaluation
-  public Evaluate(): $AnyNonEmpty {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
     // ClassExpression : class BindingIdentifier opt ClassTail
 
@@ -3711,7 +3807,7 @@ export class $ClassExpression implements I$Node {
     // 5. Set value.[[SourceText]] to the source text matched by ClassExpression.
     // 6. Return value.
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 }
 
@@ -3738,8 +3834,10 @@ export class $NonNullExpression implements I$Node {
   }
 
   // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
-  public Evaluate(): $AnyNonEmpty | $Reference {
-    return this.$expression.Evaluate();
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty | $Reference {
+    return this.$expression.Evaluate(ctx);
   }
 }
 
@@ -3766,13 +3864,18 @@ export class $MetaProperty implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-meta-properties-runtime-semantics-evaluation
-  public Evaluate(): $AnyNonEmpty {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
     // NewTarget : new . target
 
     // 1. Return GetNewTarget().
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 }
 
@@ -3803,7 +3906,12 @@ export class $DeleteExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-delete-operator-runtime-semantics-evaluation
-  public Evaluate(): $Boolean {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Boolean {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
     // 1. Let ref be the result of evaluating UnaryExpression.
     // 2. ReturnIfAbrupt(ref).
@@ -3821,7 +3929,7 @@ export class $DeleteExpression implements I$Node {
     // 6. a. Let bindings be GetBase(ref).
     // 6. b. Return ? bindings.DeleteBinding(GetReferencedName(ref)).
 
-    return this.realm['[[Intrinsics]]'].true; // TODO: implement this
+    return intrinsics.true; // TODO: implement this
   }
 }
 
@@ -3848,7 +3956,12 @@ export class $TypeOfExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-typeof-operator-runtime-semantics-evaluation
-  public Evaluate(): $String {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $String {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
     // UnaryExpression : typeof UnaryExpression
 
@@ -3858,7 +3971,7 @@ export class $TypeOfExpression implements I$Node {
     // 3. Set val to ? GetValue(val).
     // 4. Return a String according to Table 35.
 
-    return this.realm['[[Intrinsics]]']['']; // TODO: implement this
+    return intrinsics['']; // TODO: implement this
   }
 }
 
@@ -3885,7 +3998,12 @@ export class $VoidExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-void-operator
-  public Evaluate(): $Undefined {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Undefined {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
     // UnaryExpression : void UnaryExpression
 
@@ -3893,7 +4011,7 @@ export class $VoidExpression implements I$Node {
     // 2. Perform ? GetValue(expr).
     // 3. Return undefined.
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 }
 
@@ -3920,7 +4038,12 @@ export class $AwaitExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-runtime-semantics-evaluation
-  public Evaluate(): $AnyNonEmpty {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
     // AwaitExpression : await UnaryExpression
 
@@ -3928,7 +4051,7 @@ export class $AwaitExpression implements I$Node {
     // 2. Let value be ? GetValue(exprRef).
     // 3. Return ? Await(value).
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 }
 
@@ -3958,7 +4081,12 @@ export class $PrefixUnaryExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-prefix-decrement-operator-runtime-semantics-evaluation
   // http://www.ecma-international.org/ecma-262/#sec-unary-plus-operator-runtime-semantics-evaluation
   // http://www.ecma-international.org/ecma-262/#sec-unary-minus-operator-runtime-semantics-evaluation
-  public Evaluate(): $AnyNonEmpty {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
     // http://www.ecma-international.org/ecma-262/#sec-prefix-increment-operator-runtime-semantics-evaluation
 
@@ -3999,7 +4127,7 @@ export class $PrefixUnaryExpression implements I$Node {
     // 3. If oldValue is NaN, return NaN.
     // 4. Return the result of negating oldValue; that is, compute a Number with the same magnitude but opposite sign.
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 }
 
@@ -4027,7 +4155,12 @@ export class $PostfixUnaryExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-postfix-increment-operator-runtime-semantics-evaluation
   // http://www.ecma-international.org/ecma-262/#sec-postfix-decrement-operator-runtime-semantics-evaluation
-  public Evaluate(): $AnyNonEmpty {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
     // http://www.ecma-international.org/ecma-262/#sec-postfix-increment-operator-runtime-semantics-evaluation
 
@@ -4050,7 +4183,7 @@ export class $PostfixUnaryExpression implements I$Node {
     // 4. Perform ? PutValue(lhs, newValue).
     // 5. Return oldValue.
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 }
 
@@ -4077,8 +4210,10 @@ export class $TypeAssertion implements I$Node {
   }
 
   // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
-  public Evaluate(): $AnyNonEmpty | $Reference {
-    return this.$expression.Evaluate();
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty | $Reference {
+    return this.$expression.Evaluate(ctx);
   }
 }
 
@@ -4121,10 +4256,13 @@ export class $BinaryExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-binary-bitwise-operators-runtime-semantics-evaluation
   // http://www.ecma-international.org/ecma-262/#sec-binary-logical-operators-runtime-semantics-evaluation
   // http://www.ecma-international.org/ecma-262/#sec-assignment-operators-runtime-semantics-evaluation
-  public Evaluate(): $AnyNonEmpty {
-    this.logger.debug('Evaluate()');
-    const realm = this.realm;
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
+
+    this.logger.debug('Evaluate()');
 
     switch (this.node.operatorToken.kind) {
       case SyntaxKind.AsteriskAsteriskToken: {
@@ -4133,22 +4271,22 @@ export class $BinaryExpression implements I$Node {
         // ExponentiationExpression : UpdateExpression ** ExponentiationExpression
 
         // 1. Let left be the result of evaluating UpdateExpression.
-        const left = this.$left.Evaluate();
+        const left = this.$left.Evaluate(ctx);
 
         // 2. Let leftValue be ? GetValue(left).
-        const leftValue = left.GetValue();
+        const leftValue = left.GetValue(ctx);
 
         // 3. Let right be the result of evaluating ExponentiationExpression.
-        const right = this.$right.Evaluate();
+        const right = this.$right.Evaluate(ctx);
 
         // 4. Let rightValue be ? GetValue(right).
-        const rightValue = right.GetValue();
+        const rightValue = right.GetValue(ctx);
 
         // 5. Let base be ? ToNumber(leftValue).
-        const base = leftValue.ToNumber();
+        const base = leftValue.ToNumber(ctx);
 
         // 6. Let exponent be ? ToNumber(rightValue).
-        const exponent = rightValue.ToNumber();
+        const exponent = rightValue.ToNumber(ctx);
 
         // 7. Return the result of Applying the ** operator with base and exponent as specified in 12.6.4.
         return new $Number(realm, base['[[Value]]'] ** exponent['[[Value]]']); // TODO: add temporal state snapshot for tracing
@@ -4159,22 +4297,22 @@ export class $BinaryExpression implements I$Node {
         // MultiplicativeExpression : MultiplicativeExpression MultiplicativeOperator ExponentiationExpression
 
         // 1. Let left be the result of evaluating MultiplicativeExpression.
-        const left = this.$left.Evaluate();
+        const left = this.$left.Evaluate(ctx);
 
         // 2. Let leftValue be ? GetValue(left).
-        const leftValue = left.GetValue();
+        const leftValue = left.GetValue(ctx);
 
         // 3. Let right be the result of evaluating ExponentiationExpression.
-        const right = this.$right.Evaluate();
+        const right = this.$right.Evaluate(ctx);
 
         // 4. Let rightValue be ? GetValue(right).
-        const rightValue = right.GetValue();
+        const rightValue = right.GetValue(ctx);
 
         // 5. Let lnum be ? ToNumber(leftValue).
-        const lnum = leftValue.ToNumber();
+        const lnum = leftValue.ToNumber(ctx);
 
         // 6. Let rnum be ? ToNumber(rightValue).
-        const rnum = rightValue.ToNumber();
+        const rnum = rightValue.ToNumber(ctx);
 
         // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
         return new $Number(realm, lnum['[[Value]]'] * rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
@@ -4185,22 +4323,22 @@ export class $BinaryExpression implements I$Node {
         // MultiplicativeExpression : MultiplicativeExpression MultiplicativeOperator ExponentiationExpression
 
         // 1. Let left be the result of evaluating MultiplicativeExpression.
-        const left = this.$left.Evaluate();
+        const left = this.$left.Evaluate(ctx);
 
         // 2. Let leftValue be ? GetValue(left).
-        const leftValue = left.GetValue();
+        const leftValue = left.GetValue(ctx);
 
         // 3. Let right be the result of evaluating ExponentiationExpression.
-        const right = this.$right.Evaluate();
+        const right = this.$right.Evaluate(ctx);
 
         // 4. Let rightValue be ? GetValue(right).
-        const rightValue = right.GetValue();
+        const rightValue = right.GetValue(ctx);
 
         // 5. Let lnum be ? ToNumber(leftValue).
-        const lnum = leftValue.ToNumber();
+        const lnum = leftValue.ToNumber(ctx);
 
         // 6. Let rnum be ? ToNumber(rightValue).
-        const rnum = rightValue.ToNumber();
+        const rnum = rightValue.ToNumber(ctx);
 
         // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
         return new $Number(realm, lnum['[[Value]]'] / rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
@@ -4211,22 +4349,22 @@ export class $BinaryExpression implements I$Node {
         // MultiplicativeExpression : MultiplicativeExpression MultiplicativeOperator ExponentiationExpression
 
         // 1. Let left be the result of evaluating MultiplicativeExpression.
-        const left = this.$left.Evaluate();
+        const left = this.$left.Evaluate(ctx);
 
         // 2. Let leftValue be ? GetValue(left).
-        const leftValue = left.GetValue();
+        const leftValue = left.GetValue(ctx);
 
         // 3. Let right be the result of evaluating ExponentiationExpression.
-        const right = this.$right.Evaluate();
+        const right = this.$right.Evaluate(ctx);
 
         // 4. Let rightValue be ? GetValue(right).
-        const rightValue = right.GetValue();
+        const rightValue = right.GetValue(ctx);
 
         // 5. Let lnum be ? ToNumber(leftValue).
-        const lnum = leftValue.ToNumber();
+        const lnum = leftValue.ToNumber(ctx);
 
         // 6. Let rnum be ? ToNumber(rightValue).
-        const rnum = rightValue.ToNumber();
+        const rnum = rightValue.ToNumber(ctx);
 
         // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
         return new $Number(realm, lnum['[[Value]]'] % rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
@@ -4237,40 +4375,40 @@ export class $BinaryExpression implements I$Node {
         // AdditiveExpression : AdditiveExpression + MultiplicativeExpression
 
         // 1. Let lref be the result of evaluating AdditiveExpression.
-        const lref = this.$left.Evaluate();
+        const lref = this.$left.Evaluate(ctx);
 
         // 2. Let lval be ? GetValue(lref).
-        const lval = lref.GetValue();
+        const lval = lref.GetValue(ctx);
 
         // 3. Let rref be the result of evaluating MultiplicativeExpression.
-        const rref = this.$right.Evaluate();
+        const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
-        const rval = rref.GetValue();
+        const rval = rref.GetValue(ctx);
 
         // 5. Let lprim be ? ToPrimitive(lval).
-        const lprim = lval.ToPrimitive();
+        const lprim = lval.ToPrimitive(ctx);
 
         // 6. Let rprim be ? ToPrimitive(rval).
-        const rprim = rval.ToPrimitive();
+        const rprim = rval.ToPrimitive(ctx);
 
         // 7. If Type(lprim) is String or Type(rprim) is String, then
         if (lprim.isString || rprim.isString) {
           // 7. a. Let lstr be ? ToString(lprim).
-          const lstr = lprim.ToString();
+          const lstr = lprim.ToString(ctx);
 
           // 7. b. Let rstr be ? ToString(rprim).
-          const rstr = rprim.ToString();
+          const rstr = rprim.ToString(ctx);
 
           // 7. c. Return the string-concatenation of lstr and rstr.
           return new $String(realm, lstr['[[Value]]'] + rstr['[[Value]]']); // TODO: add temporal state snapshot for tracing
         }
 
         // 8. Let lnum be ? ToNumber(lprim).
-        const lnum = lprim.ToNumber();
+        const lnum = lprim.ToNumber(ctx);
 
         // 9. Let rnum be ? ToNumber(rprim).
-        const rnum = rprim.ToNumber();
+        const rnum = rprim.ToNumber(ctx);
 
         // 10. Return the result of applying the addition operation to lnum and rnum. See the Note below 12.8.5.
         return new $Number(realm, lnum['[[Value]]'] + rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
@@ -4281,22 +4419,22 @@ export class $BinaryExpression implements I$Node {
         // AdditiveExpression : AdditiveExpression - MultiplicativeExpression
 
         // 1. Let lref be the result of evaluating AdditiveExpression.
-        const lref = this.$left.Evaluate();
+        const lref = this.$left.Evaluate(ctx);
 
         // 2. Let lval be ? GetValue(lref).
-        const lval = lref.GetValue();
+        const lval = lref.GetValue(ctx);
 
         // 3. Let rref be the result of evaluating MultiplicativeExpression.
-        const rref = this.$right.Evaluate();
+        const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
-        const rval = rref.GetValue();
+        const rval = rref.GetValue(ctx);
 
         // 5. Let lnum be ? ToNumber(lval).
-        const lnum = lval.ToNumber();
+        const lnum = lval.ToNumber(ctx);
 
         // 6. Let rnum be ? ToNumber(rval).
-        const rnum = rval.ToNumber();
+        const rnum = rval.ToNumber(ctx);
 
         // 7. Return the result of applying the subtraction operation to lnum and rnum. See the note below 12.8.5.
         return new $Number(realm, lnum['[[Value]]'] - rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
@@ -4307,22 +4445,22 @@ export class $BinaryExpression implements I$Node {
         // ShiftExpression : ShiftExpression << AdditiveExpression
 
         // 1. Let lref be the result of evaluating ShiftExpression.
-        const lref = this.$left.Evaluate();
+        const lref = this.$left.Evaluate(ctx);
 
         // 2. Let lval be ? GetValue(lref).
-        const lval = lref.GetValue();
+        const lval = lref.GetValue(ctx);
 
         // 3. Let rref be the result of evaluating AdditiveExpression.
-        const rref = this.$right.Evaluate();
+        const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
-        const rval = rref.GetValue();
+        const rval = rref.GetValue(ctx);
 
         // 5. Let lnum be ? ToInt32(lval).
-        const lnum = lval.ToInt32();
+        const lnum = lval.ToInt32(ctx);
 
         // 6. Let rnum be ? ToUint32(rval).
-        const rnum = rval.ToUint32();
+        const rnum = rval.ToUint32(ctx);
 
         // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
         const shiftCount = rnum['[[Value]]'] & 0b11111;
@@ -4336,22 +4474,22 @@ export class $BinaryExpression implements I$Node {
         // ShiftExpression : ShiftExpression >> AdditiveExpression
 
         // 1. Let lref be the result of evaluating ShiftExpression.
-        const lref = this.$left.Evaluate();
+        const lref = this.$left.Evaluate(ctx);
 
         // 2. Let lval be ? GetValue(lref).
-        const lval = lref.GetValue();
+        const lval = lref.GetValue(ctx);
 
         // 3. Let rref be the result of evaluating AdditiveExpression.
-        const rref = this.$right.Evaluate();
+        const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
-        const rval = rref.GetValue();
+        const rval = rref.GetValue(ctx);
 
         // 5. Let lnum be ? ToInt32(lval).
-        const lnum = lval.ToInt32();
+        const lnum = lval.ToInt32(ctx);
 
         // 6. Let rnum be ? ToUint32(rval).
-        const rnum = rval.ToUint32();
+        const rnum = rval.ToUint32(ctx);
 
         // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
         const shiftCount = rnum['[[Value]]'] & 0b11111;
@@ -4365,22 +4503,22 @@ export class $BinaryExpression implements I$Node {
         // ShiftExpression : ShiftExpression >>> AdditiveExpression
 
         // 1. Let lref be the result of evaluating ShiftExpression.
-        const lref = this.$left.Evaluate();
+        const lref = this.$left.Evaluate(ctx);
 
         // 2. Let lval be ? GetValue(lref).
-        const lval = lref.GetValue();
+        const lval = lref.GetValue(ctx);
 
         // 3. Let rref be the result of evaluating AdditiveExpression.
-        const rref = this.$right.Evaluate();
+        const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
-        const rval = rref.GetValue();
+        const rval = rref.GetValue(ctx);
 
         // 5. Let lnum be ? ToUint32(lval).
-        const lnum = lval.ToUint32();
+        const lnum = lval.ToUint32(ctx);
 
         // 6. Let rnum be ? ToUint32(rval).
-        const rnum = rval.ToUint32();
+        const rnum = rval.ToUint32(ctx);
 
         // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
         const shiftCount = rnum['[[Value]]'] & 0b11111;
@@ -4393,19 +4531,19 @@ export class $BinaryExpression implements I$Node {
         // RelationalExpression : RelationalExpression < ShiftExpression
 
         // 1. Let lref be the result of evaluating RelationalExpression.
-        const lref = this.$left.Evaluate();
+        const lref = this.$left.Evaluate(ctx);
 
         // 2. Let lval be ? GetValue(lref).
-        const lval = lref.GetValue();
+        const lval = lref.GetValue(ctx);
 
         // 3. Let rref be the result of evaluating ShiftExpression.
-        const rref = this.$right.Evaluate();
+        const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
-        const rval = rref.GetValue();
+        const rval = rref.GetValue(ctx);
 
         // 5. Let r be the result of performing Abstract Relational Comparison lval < rval.
-        const r = $AbstractRelationalComparison(true, lval, rval);
+        const r = $AbstractRelationalComparison(ctx, true, lval, rval);
 
         // 6. ReturnIfAbrupt(r).
         // 7. If r is undefined, return false. Otherwise, return r.
@@ -4415,19 +4553,19 @@ export class $BinaryExpression implements I$Node {
         // RelationalExpression : RelationalExpression > ShiftExpression
 
         // 1. Let lref be the result of evaluating RelationalExpression.
-        const lref = this.$left.Evaluate();
+        const lref = this.$left.Evaluate(ctx);
 
         // 2. Let lval be ? GetValue(lref).
-        const lval = lref.GetValue();
+        const lval = lref.GetValue(ctx);
 
         // 3. Let rref be the result of evaluating ShiftExpression.
-        const rref = this.$right.Evaluate();
+        const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
-        const rval = rref.GetValue();
+        const rval = rref.GetValue(ctx);
 
         // 5. Let r be the result of performing Abstract Relational Comparison rval < lval with LeftFirst equal to false.
-        const r = $AbstractRelationalComparison(false, rval, lval);
+        const r = $AbstractRelationalComparison(ctx, false, rval, lval);
 
         // 6. ReturnIfAbrupt(r).
         // 7. If r is undefined, return false. Otherwise, return r.
@@ -4437,19 +4575,19 @@ export class $BinaryExpression implements I$Node {
         // RelationalExpression : RelationalExpression <= ShiftExpression
 
         // 1. Let lref be the result of evaluating RelationalExpression.
-        const lref = this.$left.Evaluate();
+        const lref = this.$left.Evaluate(ctx);
 
         // 2. Let lval be ? GetValue(lref).
-        const lval = lref.GetValue();
+        const lval = lref.GetValue(ctx);
 
         // 3. Let rref be the result of evaluating ShiftExpression.
-        const rref = this.$right.Evaluate();
+        const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
-        const rval = rref.GetValue();
+        const rval = rref.GetValue(ctx);
 
         // 5. Let r be the result of performing Abstract Relational Comparison rval < lval with LeftFirst equal to false.
-        const r = $AbstractRelationalComparison(false, rval, lval);
+        const r = $AbstractRelationalComparison(ctx, false, rval, lval);
 
         // 6. ReturnIfAbrupt(r).
         // 7. If r is true or undefined, return false. Otherwise, return true.
@@ -4459,19 +4597,19 @@ export class $BinaryExpression implements I$Node {
         // RelationalExpression : RelationalExpression >= ShiftExpression
 
         // 1. Let lref be the result of evaluating RelationalExpression.
-        const lref = this.$left.Evaluate();
+        const lref = this.$left.Evaluate(ctx);
 
         // 2. Let lval be ? GetValue(lref).
-        const lval = lref.GetValue();
+        const lval = lref.GetValue(ctx);
 
         // 3. Let rref be the result of evaluating ShiftExpression.
-        const rref = this.$right.Evaluate();
+        const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
-        const rval = rref.GetValue();
+        const rval = rref.GetValue(ctx);
 
         // 5. Let r be the result of performing Abstract Relational Comparison lval < rval.
-        const r = $AbstractRelationalComparison(true, lval, rval);
+        const r = $AbstractRelationalComparison(ctx, true, lval, rval);
 
         // 6. ReturnIfAbrupt(r).
         // 7. If r is true or undefined, return false. Otherwise, return true.
@@ -4481,34 +4619,34 @@ export class $BinaryExpression implements I$Node {
         // RelationalExpression : RelationalExpression instanceof ShiftExpression
 
         // 1. Let lref be the result of evaluating RelationalExpression.
-        const lref = this.$left.Evaluate();
+        const lref = this.$left.Evaluate(ctx);
 
         // 2. Let lval be ? GetValue(lref).
-        const lval = lref.GetValue();
+        const lval = lref.GetValue(ctx);
 
         // 3. Let rref be the result of evaluating ShiftExpression.
-        const rref = this.$right.Evaluate();
+        const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
-        const rval = rref.GetValue();
+        const rval = rref.GetValue(ctx);
 
         // 5. Return ? InstanceofOperator(lval, rval).
-        return $InstanceOfOperator(lval, rval);
+        return $InstanceOfOperator(ctx, lval, rval);
       }
       case SyntaxKind.InKeyword: {
         // RelationalExpression : RelationalExpression in ShiftExpression
 
         // 1. Let lref be the result of evaluating RelationalExpression.
-        const lref = this.$left.Evaluate();
+        const lref = this.$left.Evaluate(ctx);
 
         // 2. Let lval be ? GetValue(lref).
-        const lval = lref.GetValue();
+        const lval = lref.GetValue(ctx);
 
         // 3. Let rref be the result of evaluating ShiftExpression.
-        const rref = this.$right.Evaluate();
+        const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
-        const rval = rref.GetValue();
+        const rval = rref.GetValue(ctx);
 
         // 5. If Type(rval) is not Object, throw a TypeError exception.
         if (!rval.isObject) {
@@ -4516,44 +4654,44 @@ export class $BinaryExpression implements I$Node {
         }
 
         // 6. Return ? HasProperty(rval, ToPropertyKey(lval)).
-        return rval['[[HasProperty]]'](lval.ToPropertyKey());
+        return rval['[[HasProperty]]'](ctx, lval.ToPropertyKey(ctx));
       }
       // http://www.ecma-international.org/ecma-262/#sec-equality-operators-runtime-semantics-evaluation
       case SyntaxKind.EqualsEqualsToken: {
         // EqualityExpression : EqualityExpression == RelationalExpression
 
         // 1. Let lref be the result of evaluating EqualityExpression.
-        const lref = this.$left.Evaluate();
+        const lref = this.$left.Evaluate(ctx);
 
         // 2. Let lval be ? GetValue(lref).
-        const lval = lref.GetValue();
+        const lval = lref.GetValue(ctx);
 
         // 3. Let rref be the result of evaluating RelationalExpression.
-        const rref = this.$right.Evaluate();
+        const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
-        const rval = rref.GetValue();
+        const rval = rref.GetValue(ctx);
 
         // 5. Return the result of performing Abstract Equality Comparison rval == lval.
-        return $AbstractEqualityComparison(rval, lval);
+        return $AbstractEqualityComparison(ctx, rval, lval);
       }
       case SyntaxKind.ExclamationEqualsToken: {
         // EqualityExpression : EqualityExpression != RelationalExpression
 
         // 1. Let lref be the result of evaluating EqualityExpression.
-        const lref = this.$left.Evaluate();
+        const lref = this.$left.Evaluate(ctx);
 
         // 2. Let lval be ? GetValue(lref).
-        const lval = lref.GetValue();
+        const lval = lref.GetValue(ctx);
 
         // 3. Let rref be the result of evaluating RelationalExpression.
-        const rref = this.$right.Evaluate();
+        const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
-        const rval = rref.GetValue();
+        const rval = rref.GetValue(ctx);
 
         // 5. Let r be the result of performing Abstract Equality Comparison rval == lval.
-        const r = $AbstractEqualityComparison(rval, lval);
+        const r = $AbstractEqualityComparison(ctx, rval, lval);
 
         // 6. If r is true, return false. Otherwise, return true.
         return r.isTruthy ? intrinsics.false : intrinsics.true;
@@ -4562,37 +4700,37 @@ export class $BinaryExpression implements I$Node {
         // EqualityExpression : EqualityExpression === RelationalExpression
 
         // 1. Let lref be the result of evaluating EqualityExpression.
-        const lref = this.$left.Evaluate();
+        const lref = this.$left.Evaluate(ctx);
 
         // 2. Let lval be ? GetValue(lref).
-        const lval = lref.GetValue();
+        const lval = lref.GetValue(ctx);
 
         // 3. Let rref be the result of evaluating RelationalExpression.
-        const rref = this.$right.Evaluate();
+        const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
-        const rval = rref.GetValue();
+        const rval = rref.GetValue(ctx);
 
         // 5. Return the result of performing Strict Equality Comparison rval === lval.
-        return $StrictEqualityComparison(rval, lval);
+        return $StrictEqualityComparison(ctx, rval, lval);
       }
       case SyntaxKind.ExclamationEqualsEqualsToken: {
         // EqualityExpression : EqualityExpression !== RelationalExpression
 
         // 1. Let lref be the result of evaluating EqualityExpression.
-        const lref = this.$left.Evaluate();
+        const lref = this.$left.Evaluate(ctx);
 
         // 2. Let lval be ? GetValue(lref).
-        const lval = lref.GetValue();
+        const lval = lref.GetValue(ctx);
 
         // 3. Let rref be the result of evaluating RelationalExpression.
-        const rref = this.$right.Evaluate();
+        const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
-        const rval = rref.GetValue();
+        const rval = rref.GetValue(ctx);
 
         // 5. Let r be the result of performing Strict Equality Comparison rval === lval.
-        const r = $StrictEqualityComparison(rval, lval);
+        const r = $StrictEqualityComparison(ctx, rval, lval);
 
         // 6. If r is true, return false. Otherwise, return true.
         return r.isTruthy ? intrinsics.false : intrinsics.true;
@@ -4601,22 +4739,22 @@ export class $BinaryExpression implements I$Node {
         // http://www.ecma-international.org/ecma-262/#sec-binary-bitwise-operators-runtime-semantics-evaluation
 
         // 1. Let lref be the result of evaluating A.
-        const lref = this.$left.Evaluate();
+        const lref = this.$left.Evaluate(ctx);
 
         // 2. Let lval be ? GetValue(lref).
-        const lval = lref.GetValue();
+        const lval = lref.GetValue(ctx);
 
         // 3. Let rref be the result of evaluating B.
-        const rref = this.$right.Evaluate();
+        const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
-        const rval = rref.GetValue();
+        const rval = rref.GetValue(ctx);
 
         // 5. Let lnum be ? ToInt32(lval).
-        const lnum = lval.ToInt32();
+        const lnum = lval.ToInt32(ctx);
 
         // 6. Let rnum be ? ToInt32(rval).
-        const rnum = rval.ToInt32();
+        const rnum = rval.ToInt32(ctx);
 
         // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
         return new $Number(realm, lnum['[[Value]]'] & rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
@@ -4625,22 +4763,22 @@ export class $BinaryExpression implements I$Node {
         // http://www.ecma-international.org/ecma-262/#sec-binary-bitwise-operators-runtime-semantics-evaluation
 
         // 1. Let lref be the result of evaluating A.
-        const lref = this.$left.Evaluate();
+        const lref = this.$left.Evaluate(ctx);
 
         // 2. Let lval be ? GetValue(lref).
-        const lval = lref.GetValue();
+        const lval = lref.GetValue(ctx);
 
         // 3. Let rref be the result of evaluating B.
-        const rref = this.$right.Evaluate();
+        const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
-        const rval = rref.GetValue();
+        const rval = rref.GetValue(ctx);
 
         // 5. Let lnum be ? ToInt32(lval).
-        const lnum = lval.ToInt32();
+        const lnum = lval.ToInt32(ctx);
 
         // 6. Let rnum be ? ToInt32(rval).
-        const rnum = rval.ToInt32();
+        const rnum = rval.ToInt32(ctx);
 
         // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
         return new $Number(realm, lnum['[[Value]]'] ^ rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
@@ -4649,22 +4787,22 @@ export class $BinaryExpression implements I$Node {
         // http://www.ecma-international.org/ecma-262/#sec-binary-bitwise-operators-runtime-semantics-evaluation
 
         // 1. Let lref be the result of evaluating A.
-        const lref = this.$left.Evaluate();
+        const lref = this.$left.Evaluate(ctx);
 
         // 2. Let lval be ? GetValue(lref).
-        const lval = lref.GetValue();
+        const lval = lref.GetValue(ctx);
 
         // 3. Let rref be the result of evaluating B.
-        const rref = this.$right.Evaluate();
+        const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
-        const rval = rref.GetValue();
+        const rval = rref.GetValue(ctx);
 
         // 5. Let lnum be ? ToInt32(lval).
-        const lnum = lval.ToInt32();
+        const lnum = lval.ToInt32(ctx);
 
         // 6. Let rnum be ? ToInt32(rval).
-        const rnum = rval.ToInt32();
+        const rnum = rval.ToInt32(ctx);
 
         // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
         return new $Number(realm, lnum['[[Value]]'] | rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
@@ -4675,13 +4813,13 @@ export class $BinaryExpression implements I$Node {
         // LogicalANDExpression : LogicalANDExpression && BitwiseORExpression
 
         // 1. Let lref be the result of evaluating LogicalANDExpression.
-        const lref = this.$left.Evaluate();
+        const lref = this.$left.Evaluate(ctx);
 
         // 2. Let lval be ? GetValue(lref).
-        const lval = lref.GetValue();
+        const lval = lref.GetValue(ctx);
 
         // 3. Let lbool be ToBoolean(lval).
-        const lbool = lval.ToBoolean();
+        const lbool = lval.ToBoolean(ctx);
 
         // 4. If lbool is false, return lval.
         if (lbool.isFalsey) {
@@ -4689,22 +4827,22 @@ export class $BinaryExpression implements I$Node {
         }
 
         // 5. Let rref be the result of evaluating BitwiseORExpression.
-        const rref = this.$right.Evaluate();
+        const rref = this.$right.Evaluate(ctx);
 
         // 6. Return ? GetValue(rref).
-        return rref.GetValue();
+        return rref.GetValue(ctx);
       }
       case SyntaxKind.BarBarToken: {
         // LogicalORExpression : LogicalORExpression || LogicalANDExpression
 
         // 1. Let lref be the result of evaluating LogicalORExpression.
-        const lref = this.$left.Evaluate();
+        const lref = this.$left.Evaluate(ctx);
 
         // 2. Let lval be ? GetValue(lref).
-        const lval = lref.GetValue();
+        const lval = lref.GetValue(ctx);
 
         // 3. Let lbool be ToBoolean(lval).
-        const lbool = lval.ToBoolean();
+        const lbool = lval.ToBoolean(ctx);
 
         // 4. If lbool is true, return lval.
         if (lbool.isTruthy) {
@@ -4712,10 +4850,10 @@ export class $BinaryExpression implements I$Node {
         }
 
         // 5. Let rref be the result of evaluating LogicalANDExpression.
-        const rref = this.$right.Evaluate();
+        const rref = this.$right.Evaluate(ctx);
 
         // 6. Return ? GetValue(rref).
-        return rref.GetValue();
+        return rref.GetValue(ctx);
       }
       case SyntaxKind.EqualsToken: {
         // http://www.ecma-international.org/ecma-262/#sec-assignment-operators-runtime-semantics-evaluation
@@ -4737,7 +4875,7 @@ export class $BinaryExpression implements I$Node {
         // 4. Let rval be ? GetValue(rref).
         // 5. Perform ? DestructuringAssignmentEvaluation of assignmentPattern using rval as the argument.
         // 6. Return rval.
-        return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+        return intrinsics.undefined; // TODO: implement this
       }
       case SyntaxKind.AsteriskAsteriskEqualsToken:
       case SyntaxKind.AsteriskEqualsToken:
@@ -4761,11 +4899,11 @@ export class $BinaryExpression implements I$Node {
         // 6. Let r be the result of applying op to lval and rval as if evaluating the expression lval op rval.
         // 7. Perform ? PutValue(lref, r).
         // 8. Return r.
-        return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+        return intrinsics.undefined; // TODO: implement this
       }
     }
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 }
 
@@ -4801,7 +4939,12 @@ export class $ConditionalExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-conditional-operator-runtime-semantics-evaluation
-  public Evaluate(): $AnyNonEmpty {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
     // ConditionalExpression : LogicalORExpression ? AssignmentExpression : AssignmentExpression
 
@@ -4814,7 +4957,7 @@ export class $ConditionalExpression implements I$Node {
     // 4. a. Let falseRef be the result of evaluating the second AssignmentExpression.
     // 4. b. Return ? GetValue(falseRef).
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 }
 
@@ -4917,7 +5060,12 @@ export class $ArrowFunction implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-runtime-semantics-evaluation
-  public Evaluate(): $AnyNonEmpty {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
     // ArrowFunction : ArrowParameters => ConciseBody
 
@@ -4928,7 +5076,7 @@ export class $ArrowFunction implements I$Node {
     // 5. Set closure.[[SourceText]] to the source text matched by ArrowFunction.
     // 6. Return closure.
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 }
 
@@ -4954,7 +5102,12 @@ export class $YieldExpression implements I$Node {
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx)
   }
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
-  public Evaluate(): $AnyNonEmpty {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
     // YieldExpression : yield
 
@@ -5023,7 +5176,7 @@ export class $YieldExpression implements I$Node {
     // 7. c. ix. If generatorKind is async, then set received to AsyncGeneratorYield(? IteratorValue(innerReturnResult)).
     // 7. c. x. Else, set received to GeneratorYield(innerReturnResult).
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 }
 
@@ -5050,8 +5203,10 @@ export class $AsExpression implements I$Node {
   }
 
   // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
-  public Evaluate(): $AnyNonEmpty | $Reference {
-    return this.$expression.Evaluate();
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty | $Reference {
+    return this.$expression.Evaluate(ctx);
   }
 }
 
@@ -5076,10 +5231,15 @@ export class $TemplateHead implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
-  public Evaluate(): $AnyNonEmpty {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 }
 
@@ -5100,10 +5260,15 @@ export class $TemplateMiddle implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
-  public Evaluate(): $AnyNonEmpty {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 }
 
@@ -5124,7 +5289,12 @@ export class $TemplateTail implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
-  public Evaluate(): $AnyNonEmpty {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
 
     // TemplateSpans : TemplateTail
@@ -5132,7 +5302,7 @@ export class $TemplateTail implements I$Node {
     // 1. Let tail be the TV of TemplateTail as defined in 11.8.6.
     // 2. Return the String value consisting of the code units of tail.
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 }
 
@@ -5163,7 +5333,12 @@ export class $TemplateSpan implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
-  public Evaluate(): $AnyNonEmpty {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
     // TemplateSpans : TemplateMiddleList TemplateTail
 
@@ -5190,7 +5365,7 @@ export class $TemplateSpan implements I$Node {
     // 6. Let last be ? ToString(sub).
     // 7. Return the sequence of code units consisting of the elements of rest followed by the code units of middle followed by the elements of last.
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 }
 
@@ -5252,7 +5427,12 @@ export class $Identifier implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-identifiers-runtime-semantics-evaluation
-  public Evaluate(): $Reference {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Reference {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     // IdentifierReference : Identifier
 
     // 1. Return ? ResolveBinding(StringValue of Identifier).
@@ -5265,7 +5445,7 @@ export class $Identifier implements I$Node {
 
     // 1. Return ? ResolveBinding("await").
 
-    return this.realm.ResolveBinding(this.StringValue);
+    return realm.ResolveBinding(this.StringValue);
   }
 }
 
@@ -5341,10 +5521,15 @@ export class $JsxElement implements I$Node {
     this.$closingElement = new $JsxClosingElement(node.closingElement, this, ctx);
   }
 
-  public Evaluate(): $AnyNonEmpty {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 }
 
@@ -5405,10 +5590,15 @@ export class $JsxSelfClosingElement implements I$Node {
     this.$attributes = new $JsxAttributes(node.attributes, this, ctx);
   }
 
-  public Evaluate(): $AnyNonEmpty {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 }
 
@@ -5438,10 +5628,15 @@ export class $JsxFragment implements I$Node {
     this.$closingFragment = new $JsxClosingFragment(node.closingFragment, this, ctx);
   }
 
-  public Evaluate(): $AnyNonEmpty {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 }
 
@@ -5461,10 +5656,15 @@ export class $JsxText implements I$Node {
     this.id = realm.registerNode(this);
   }
 
-  public Evaluate(): $Any {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
 
-    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
+    return intrinsics.empty; // TODO: implement this
   }
 }
 
@@ -5490,10 +5690,15 @@ export class $JsxOpeningElement implements I$Node {
     this.$attributes = new $JsxAttributes(node.attributes, this, ctx);
   }
 
-  public Evaluate(): $Any {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
 
-    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
+    return intrinsics.empty; // TODO: implement this
   }
 }
 
@@ -5517,10 +5722,15 @@ export class $JsxClosingElement implements I$Node {
     this.$tagName = $$jsxTagNameExpression(node.tagName, this, ctx);
   }
 
-  public Evaluate(): $Any {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
 
-    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
+    return intrinsics.empty; // TODO: implement this
   }
 }
 
@@ -5540,10 +5750,15 @@ export class $JsxOpeningFragment implements I$Node {
     this.id = realm.registerNode(this);
   }
 
-  public Evaluate(): $Any {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
 
-    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
+    return intrinsics.empty; // TODO: implement this
   }
 }
 
@@ -5563,10 +5778,15 @@ export class $JsxClosingFragment implements I$Node {
     this.id = realm.registerNode(this);
   }
 
-  public Evaluate(): $Any {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
 
-    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
+    return intrinsics.empty; // TODO: implement this
   }
 }
 
@@ -5630,10 +5850,15 @@ export class $JsxAttributes implements I$Node {
     );
   }
 
-  public Evaluate(): $Any {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
 
-    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
+    return intrinsics.empty; // TODO: implement this
   }
 }
 
@@ -5657,10 +5882,15 @@ export class $JsxSpreadAttribute implements I$Node {
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
   }
 
-  public Evaluate(): $Any {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
 
-    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
+    return intrinsics.empty; // TODO: implement this
   }
 }
 
@@ -5684,10 +5914,15 @@ export class $JsxExpression implements I$Node {
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
   }
 
-  public Evaluate(): $Any {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
 
-    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
+    return intrinsics.empty; // TODO: implement this
   }
 }
 
@@ -5728,7 +5963,9 @@ export class $NumericLiteral implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-literals-runtime-semantics-evaluation
-  public Evaluate(): $Number {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Number {
     // 1. Return the number whose value is MV of NumericLiteral as defined in 11.8.3.
     return this.Value;
   }
@@ -5761,10 +5998,15 @@ export class $BigIntLiteral implements I$Node {
     this.id = realm.registerNode(this);
   }
 
-  public Evaluate(): $Number {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Number {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
 
-    return this.realm['[[Intrinsics]]']['0']; // TODO: implement this
+    return intrinsics['0']; // TODO: implement this
   }
 }
 
@@ -5807,7 +6049,9 @@ export class $StringLiteral implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-literals-runtime-semantics-evaluation
-  public Evaluate(): $String {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $String {
     // Literal : StringLiteral
 
     // 1. Return the StringValue of StringLiteral as defined in 11.8.4.1.
@@ -5848,13 +6092,18 @@ export class $RegularExpressionLiteral implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-regular-expression-literals-runtime-semantics-evaluation
-  public Evaluate(): $Object {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Object {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     // PrimaryExpression : RegularExpressionLiteral
 
     // 1. Let pattern be the String value consisting of the UTF16Encoding of each code point of BodyText of RegularExpressionLiteral.
     // 2. Let flags be the String value consisting of the UTF16Encoding of each code point of FlagText of RegularExpressionLiteral.
     // 3. Return RegExpCreate(pattern, flags).
-    return this.realm['[[Intrinsics]]']['%ObjectPrototype%']; // TODO: implement this
+    return intrinsics['%ObjectPrototype%']; // TODO: implement this
   }
 }
 
@@ -5886,11 +6135,16 @@ export class $NoSubstitutionTemplateLiteral implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
-  public Evaluate(): $String {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $String {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     // TemplateLiteral : NoSubstitutionTemplate
 
     // 1. Return the String value whose code units are the elements of the TV of NoSubstitutionTemplate as defined in 11.8.6.
-    return this.realm['[[Intrinsics]]']['']; // TODO: implement this
+    return intrinsics['']; // TODO: implement this
   }
 }
 
@@ -5926,7 +6180,9 @@ export class $NullLiteral implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-literals-runtime-semantics-evaluation
-  public Evaluate(): $Null {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Null {
     // Literal : NullLiteral
 
     // 1. Return null.
@@ -5967,7 +6223,9 @@ export class $BooleanLiteral implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-literals-runtime-semantics-evaluation
-  public Evaluate(): $Boolean {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Boolean {
     // Literal : BooleanLiteral
 
     // 1. If BooleanLiteral is the token false, return false.
@@ -6269,9 +6527,10 @@ export class $SourceFile implements I$Node, IModule {
   ) {
     this.id = realm.registerNode(this);
 
-    this.ExecutionResult = realm['[[Intrinsics]]'].empty;
-
     const intrinsics = realm['[[Intrinsics]]'];
+
+    this.ExecutionResult = intrinsics.empty;
+
     this['[[Environment]]'] = intrinsics.undefined;
     this['[[Namespace]]'] = intrinsics.undefined;
 
@@ -6580,12 +6839,16 @@ export class $SourceFile implements I$Node, IModule {
 
   // http://www.ecma-international.org/ecma-262/#sec-moduledeclarationinstantiation
   public Instantiate(): void {
+    const realm = this.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+    const ctx = realm.stack.top;
+
     const start = PLATFORM.now();
     this.logger.debug(`[Instantiate] starting`);
 
     // TODO: this is temporary. Should be done by RunJobs
-    if (this.realm.stack.length === 1 && this.realm.stack.top.ScriptOrModule.isNull) {
-      this.realm.stack.top.ScriptOrModule = this;
+    if (realm.stack.length === 1 && realm.stack.top.ScriptOrModule.isNull) {
+      realm.stack.top.ScriptOrModule = this;
     }
 
     // 1. Let module be this Cyclic Module Record.
@@ -6594,7 +6857,7 @@ export class $SourceFile implements I$Node, IModule {
     const stack = [] as $SourceFile[];
 
     // 4. Let result be InnerModuleInstantiation(module, stack, 0).
-    const result = this._InnerModuleInstantiation(stack, 0);
+    const result = this._InnerModuleInstantiation(ctx, stack, 0);
 
     // 5. If result is an abrupt completion, then
     // 5. a. For each module m in stack, do
@@ -6615,7 +6878,14 @@ export class $SourceFile implements I$Node, IModule {
 
   // http://www.ecma-international.org/ecma-262/#sec-innermoduleinstantiation
   /** @internal */
-  public _InnerModuleInstantiation(stack: $SourceFile[], index: number): number {
+  public _InnerModuleInstantiation(
+    ctx: ExecutionContext,
+    stack: $SourceFile[],
+    index: number,
+  ): number {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     // 1. If module is not a Cyclic Module Record, then
     // 1. a. Perform ? module.Instantiate().
     // 1. b. Return index.
@@ -6644,15 +6914,13 @@ export class $SourceFile implements I$Node, IModule {
     // 8. Append module to stack.
     stack.push(this);
 
-    const realm = this.realm;
-
     // 9. For each String required that is an element of module.[[RequestedModules]], do
     for (const required of this.RequestedModules) {
       // 9. a. Let requiredModule be ? HostResolveImportedModule(module, required).
       const requiredModule = realm.HostResolveImportedModule(this, required);
 
       // 9. b. Set index to ? InnerModuleInstantiation(requiredModule, stack, index).
-      index = requiredModule._InnerModuleInstantiation(stack, index);
+      index = requiredModule._InnerModuleInstantiation(ctx, stack, index);
 
       // 9. c. Assert: requiredModule.[[Status]] is either "instantiating", "instantiated", or "evaluated".
       // 9. d. Assert: requiredModule.[[Status]] is "instantiating" if and only if requiredModule is in stack.
@@ -6667,7 +6935,7 @@ export class $SourceFile implements I$Node, IModule {
     }
 
     // 10. Perform ? module.InitializeEnvironment().
-    this.InitializeEnvironment();
+    this.InitializeEnvironment(ctx);
 
     // 11. Assert: module occurs exactly once in stack.
     // 12. Assert: module.[[DFSAncestorIndex]] is less than or equal to module.[[DFSIndex]].
@@ -6696,14 +6964,19 @@ export class $SourceFile implements I$Node, IModule {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-source-text-module-record-initialize-environment
-  public InitializeEnvironment(): void {
+  public InitializeEnvironment(
+    ctx: ExecutionContext,
+  ): void {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug(`[InitializeEnvironment] starting`);
 
     // 1. Let module be this Source Text Module Record.
     // 2. For each ExportEntry Record e in module.[[IndirectExportEntries]], do
     for (const e of this.IndirectExportEntries) {
       // 2. a. Let resolution be ? module.ResolveExport(e.[[ExportName]], « »).
-      const resolution = this.ResolveExport(e.ExportName as $String, new ResolveSet());
+      const resolution = this.ResolveExport(ctx, e.ExportName as $String, new ResolveSet());
 
       // 2. b. If resolution is null or "ambiguous", throw a SyntaxError exception.
       if (resolution === null || resolution === 'ambiguous') {
@@ -6715,8 +6988,6 @@ export class $SourceFile implements I$Node, IModule {
 
     // 3. Assert: All named exports from module are resolvable.
     // 4. Let realm be module.[[Realm]].
-    const realm = this.realm;
-    const intrinsics = realm['[[Intrinsics]]'];
 
     // 5. Assert: Realm is not undefined.
     // 6. Let env be NewModuleEnvironment(realm.[[GlobalEnv]]).
@@ -6746,7 +7017,7 @@ export class $SourceFile implements I$Node, IModule {
           // 4. If namespace is undefined, then
           if (namespace.isUndefined) {
             // 4. a. Let exportedNames be ? module.GetExportedNames(« »).
-            const exportedNames = mod.GetExportedNames(new Set());
+            const exportedNames = mod.GetExportedNames(ctx, new Set());
 
             // 4. b. Let unambiguousNames be a new empty List.
             const unambiguousNames: $String[] = [];
@@ -6754,7 +7025,7 @@ export class $SourceFile implements I$Node, IModule {
             // 4. c. For each name that is an element of exportedNames, do
             for (const name of exportedNames) {
               // 4. c. i. Let resolution be ? module.ResolveExport(name, « »).
-              const resolution = mod.ResolveExport(name, new ResolveSet());
+              const resolution = mod.ResolveExport(ctx, name, new ResolveSet());
 
               // 4. c. ii. If resolution is a ResolvedBinding Record, append name to unambiguousNames.
               if (resolution instanceof ResolvedBindingRecord) {
@@ -6771,15 +7042,15 @@ export class $SourceFile implements I$Node, IModule {
         })(importedModule);
 
         // 9. c. ii. Perform ! envRec.CreateImmutableBinding(in.[[LocalName]], true).
-        envRec.CreateImmutableBinding(ie.LocalName, intrinsics.true);
+        envRec.CreateImmutableBinding(ctx, ie.LocalName, intrinsics.true);
 
         // 9. c. iii. Call envRec.InitializeBinding(in.[[LocalName]], namespace).
-        envRec.InitializeBinding(ie.LocalName, namespace);
+        envRec.InitializeBinding(ctx, ie.LocalName, namespace);
       }
       // 9. d. Else,
       else {
         // 9. d. i. Let resolution be ? importedModule.ResolveExport(in.[[ImportName]], « »).
-        const resolution = importedModule.ResolveExport(ie.ImportName, new ResolveSet());
+        const resolution = importedModule.ResolveExport(ctx, ie.ImportName, new ResolveSet());
 
         // 9. d. ii. If resolution is null or "ambiguous", throw a SyntaxError exception.
         if (resolution === null || resolution === 'ambiguous') {
@@ -6787,7 +7058,7 @@ export class $SourceFile implements I$Node, IModule {
         }
 
         // 9. d. iii. Call envRec.CreateImportBinding(in.[[LocalName]], resolution.[[Module]], resolution.[[BindingName]]).
-        envRec.CreateImportBinding(ie.LocalName, resolution.Module, resolution.BindingName);
+        envRec.CreateImportBinding(ctx, ie.LocalName, resolution.Module, resolution.BindingName);
       }
     }
 
@@ -6805,10 +7076,10 @@ export class $SourceFile implements I$Node, IModule {
         // 13. a. i. If dn is not an element of declaredVarNames, then
         if (!declaredVarNames.some(x => x.is(dn))) {
           // 13. a. i. 1. Perform ! envRec.CreateMutableBinding(dn, false).
-          envRec.CreateMutableBinding(dn, intrinsics.false);
+          envRec.CreateMutableBinding(ctx, dn, intrinsics.false);
 
           // 13. a. i. 2. Call envRec.InitializeBinding(dn, undefined).
-          envRec.InitializeBinding(dn, intrinsics.undefined);
+          envRec.InitializeBinding(ctx, dn, intrinsics.undefined);
 
           // 13. a. i. 3. Append dn to declaredVarNames.
           declaredVarNames.push(dn);
@@ -6826,20 +7097,20 @@ export class $SourceFile implements I$Node, IModule {
         // 15. a. i. If IsConstantDeclaration of d is true, then
         if (d.IsConstantDeclaration) {
           // 15. a. i. 1. Perform ! envRec.CreateImmutableBinding(dn, true).
-          envRec.CreateImmutableBinding(dn, intrinsics.true);
+          envRec.CreateImmutableBinding(ctx, dn, intrinsics.true);
         }
         // 15. a. ii. Else,
         else {
           // 15. a. ii. 1. Perform ! envRec.CreateMutableBinding(dn, false).
-          envRec.CreateMutableBinding(dn, intrinsics.false);
+          envRec.CreateMutableBinding(ctx, dn, intrinsics.false);
 
           // 15. a. iii. If d is a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration, then
           if (d.$kind === SyntaxKind.FunctionDeclaration) {
             // 15. a. iii. 1. Let fo be the result of performing InstantiateFunctionObject for d with argument env.
-            const fo = d.InstantiateFunctionObject(envRec);
+            const fo = d.InstantiateFunctionObject(ctx, envRec);
 
             // 15. a. iii. 2. Call envRec.InitializeBinding(dn, fo).
-            envRec.InitializeBinding(dn, fo);
+            envRec.InitializeBinding(ctx, dn, fo);
           }
         }
       }
@@ -6851,7 +7122,13 @@ export class $SourceFile implements I$Node, IModule {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-getexportednames
-  public GetExportedNames(exportStarSet: Set<IModule>): readonly $String[] {
+  public GetExportedNames(
+    ctx: ExecutionContext,
+    exportStarSet: Set<IModule>,
+  ): readonly $String[] {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     // 1. Let module be this Source Text Module Record.
     const mod = this;
 
@@ -6882,7 +7159,6 @@ export class $SourceFile implements I$Node, IModule {
       exportedNames.push(e.ExportName as $String);
     }
 
-    const realm = this.realm;
 
     // 7. For each ExportEntry Record e in module.[[StarExportEntries]], do
     for (const e of mod.StarExportEntries) {
@@ -6890,7 +7166,7 @@ export class $SourceFile implements I$Node, IModule {
       const requestedModule = realm.HostResolveImportedModule(mod, e.ModuleRequest as $String);
 
       // 7. b. Let starNames be ? requestedModule.GetExportedNames(exportStarSet).
-      const starNames = requestedModule.GetExportedNames(exportStarSet);
+      const starNames = requestedModule.GetExportedNames(ctx, exportStarSet);
 
       // 7. c. For each element n of starNames, do
       for (const n of starNames) {
@@ -6910,7 +7186,14 @@ export class $SourceFile implements I$Node, IModule {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-resolveexport
-  public ResolveExport(exportName: $String, resolveSet: ResolveSet): ResolvedBindingRecord | null | 'ambiguous' {
+  public ResolveExport(
+    ctx: ExecutionContext,
+    exportName: $String,
+    resolveSet: ResolveSet,
+  ): ResolvedBindingRecord | null | 'ambiguous' {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     // 1. Let module be this Source Text Module Record.
     // 2. For each Record { [[Module]], [[ExportName]] } r in resolveSet, do
     // 2. a. If module and r.[[Module]] are the same Module Record and SameValue(exportName, r.[[ExportName]]) is true, then
@@ -6936,7 +7219,6 @@ export class $SourceFile implements I$Node, IModule {
       }
     }
 
-    const realm = this.realm;
 
     // 5. For each ExportEntry Record e in module.[[IndirectExportEntries]], do
     for (const e of this.IndirectExportEntries) {
@@ -6949,7 +7231,7 @@ export class $SourceFile implements I$Node, IModule {
         const importedModule = realm.HostResolveImportedModule(this, e.ModuleRequest as $String);
 
         // 5. a. iii. Return importedModule.ResolveExport(e.[[ImportName]], resolveSet).
-        return importedModule.ResolveExport(e.ImportName as $String, resolveSet);
+        return importedModule.ResolveExport(ctx, e.ImportName as $String, resolveSet);
       }
     }
 
@@ -6972,7 +7254,7 @@ export class $SourceFile implements I$Node, IModule {
       const importedModule = realm.HostResolveImportedModule(this, e.ModuleRequest as $String);
 
       // 8. b. Let resolution be ? importedModule.ResolveExport(exportName, resolveSet).
-      const resolution = importedModule.ResolveExport(exportName, resolveSet);
+      const resolution = importedModule.ResolveExport(ctx, exportName, resolveSet);
 
       // 8. c. If resolution is "ambiguous", return "ambiguous".
       if (resolution === 'ambiguous') {
@@ -7011,13 +7293,17 @@ export class $SourceFile implements I$Node, IModule {
 
   // http://www.ecma-international.org/ecma-262/#sec-moduleevaluation
   public EvaluateModule(): $Any {
+    const realm = this.realm;
+    const ctx = realm.stack.top;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     // 1. Let module be this Cyclic Module Record.
     // 2. Assert: module.[[Status]] is "instantiated" or "evaluated".
     // 3. Let stack be a new empty List.
     const stack: $SourceFile[] = [];
 
     // 4. Let result be InnerModuleEvaluation(module, stack, 0).
-    const result = this.EvaluateModuleInner(stack, 0);
+    const result = this.EvaluateModuleInner(ctx, stack, 0);
 
     // 5. If result is an abrupt completion, then
     if (result.isAbrupt) {
@@ -7039,16 +7325,20 @@ export class $SourceFile implements I$Node, IModule {
     // 6. Assert: module.[[Status]] is "evaluated" and module.[[EvaluationError]] is undefined.
     // 7. Assert: stack is empty.
     // 8. Return undefined.
-    return this.realm['[[Intrinsics]]'].undefined;
+    return intrinsics.undefined;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-innermoduleevaluation
-  public EvaluateModuleInner(stack: $SourceFile[], index: number): $Number {
-    const realm = this.realm;
+  public EvaluateModuleInner(
+    ctx: ExecutionContext,
+    stack: $SourceFile[],
+    index: number,
+  ): $Number {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. If module is not a Cyclic Module Record, then
-      // 1. a. Perform ? module.Evaluate().
+      // 1. a. Perform ? module.Evaluate(ctx).
       // 1. b. Return index.
     // 2. If module.[[Status]] is "evaluated", then
     if (this.Status === 'evaluated') {
@@ -7086,7 +7376,7 @@ export class $SourceFile implements I$Node, IModule {
 
       // 10. b. NOTE: Instantiate must be completed successfully prior to invoking this method, so every requested module is guaranteed to resolve successfully.
       // 10. c. Set index to ? InnerModuleEvaluation(requiredModule, stack, index).
-      index = requiredModule.EvaluateModuleInner(stack, index)['[[Value]]'];
+      index = requiredModule.EvaluateModuleInner(ctx, stack, index)['[[Value]]'];
 
       // 10. d. Assert: requiredModule.[[Status]] is either "evaluating" or "evaluated".
       // 10. e. Assert: requiredModule.[[Status]] is "evaluating" if and only if requiredModule is in stack.
@@ -7099,7 +7389,7 @@ export class $SourceFile implements I$Node, IModule {
     }
 
     // 11. Perform ? module.ExecuteModule().
-    this.ExecutionResult = this.ExecuteModule();
+    this.ExecutionResult = this.ExecuteModule(ctx);
 
     // 12. Assert: module occurs exactly once in stack.
     // 13. Assert: module.[[DFSAncestorIndex]] is less than or equal to module.[[DFSIndex]].
@@ -7128,8 +7418,10 @@ export class $SourceFile implements I$Node, IModule {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-source-text-module-record-execute-module
-  public ExecuteModule(): $Any {
-    const realm = this.realm;
+  public ExecuteModule(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Let module be this Source Text Module Record.
@@ -7162,7 +7454,7 @@ export class $SourceFile implements I$Node, IModule {
     stack.push(moduleCxt);
 
     // 12. Let result be the result of evaluating module.[[ECMAScriptCode]].
-    const result = this.Evaluate();
+    const result = this.Evaluate(ctx);
 
     // 13. Suspend moduleCxt and remove it from the execution context stack.
     moduleCxt.suspend();
@@ -7176,11 +7468,13 @@ export class $SourceFile implements I$Node, IModule {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-semantics-runtime-semantics-evaluation
-  public Evaluate(): $Any {
-    this.logger.debug('Evaluate()');
-    const realm = this.realm;
-    const stack = realm.stack;
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
+
+    this.logger.debug('Evaluate()');
     const $statements = this.$statements;
 
     // Module : [empty]
@@ -7212,94 +7506,94 @@ export class $SourceFile implements I$Node, IModule {
 
       switch ($statement.$kind) {
         case SyntaxKind.ModuleDeclaration:
-          // sl = $statement.Evaluate();
+          // sl = $statement.Evaluate(ctx);
           break;
         case SyntaxKind.NamespaceExportDeclaration:
-          // sl = $statement.Evaluate();
+          // sl = $statement.Evaluate(ctx);
           break;
         case SyntaxKind.ImportEqualsDeclaration:
-          // sl = $statement.Evaluate();
+          // sl = $statement.Evaluate(ctx);
           break;
         case SyntaxKind.ImportDeclaration:
-          // sl = $statement.Evaluate();
+          // sl = $statement.Evaluate(ctx);
           break;
         case SyntaxKind.ExportAssignment:
-          // sl = $statement.Evaluate();
+          // sl = $statement.Evaluate(ctx);
           break;
         case SyntaxKind.ExportDeclaration:
-          // sl = $statement.Evaluate();
+          // sl = $statement.Evaluate(ctx);
           break;
         case SyntaxKind.VariableStatement:
-          sl = $statement.Evaluate();
+          sl = $statement.Evaluate(ctx);
           break;
         case SyntaxKind.FunctionDeclaration:
-          sl = $statement.Evaluate();
+          sl = $statement.Evaluate(ctx);
           break;
         case SyntaxKind.ClassDeclaration:
-          // sl = $statement.Evaluate();
+          // sl = $statement.Evaluate(ctx);
           break;
         case SyntaxKind.InterfaceDeclaration:
-          // sl = $statement.Evaluate();
+          // sl = $statement.Evaluate(ctx);
           break;
         case SyntaxKind.TypeAliasDeclaration:
-          // sl = $statement.Evaluate();
+          // sl = $statement.Evaluate(ctx);
           break;
         case SyntaxKind.EnumDeclaration:
-          // sl = $statement.Evaluate();
+          // sl = $statement.Evaluate(ctx);
           break;
         case SyntaxKind.Block:
-          sl = $statement.Evaluate();
+          sl = $statement.Evaluate(ctx);
           break;
         case SyntaxKind.EmptyStatement:
-          sl = $statement.Evaluate();
+          sl = $statement.Evaluate(ctx);
           break;
         case SyntaxKind.ExpressionStatement:
-          sl = $statement.Evaluate();
+          sl = $statement.Evaluate(ctx);
           break;
         case SyntaxKind.IfStatement:
-          sl = $statement.Evaluate();
+          sl = $statement.Evaluate(ctx);
           break;
         case SyntaxKind.DoStatement:
-          sl = $statement.EvaluateLabelled();
+          sl = $statement.EvaluateLabelled(ctx);
           break;
         case SyntaxKind.WhileStatement:
-          sl = $statement.EvaluateLabelled();
+          sl = $statement.EvaluateLabelled(ctx);
           break;
         case SyntaxKind.ForStatement:
-          sl = $statement.EvaluateLabelled();
+          sl = $statement.EvaluateLabelled(ctx);
           break;
         case SyntaxKind.ForInStatement:
-          sl = $statement.EvaluateLabelled();
+          sl = $statement.EvaluateLabelled(ctx);
           break;
         case SyntaxKind.ForOfStatement:
-          sl = $statement.EvaluateLabelled();
+          sl = $statement.EvaluateLabelled(ctx);
           break;
         case SyntaxKind.ContinueStatement:
-          sl = $statement.Evaluate();
+          sl = $statement.Evaluate(ctx);
           break;
         case SyntaxKind.BreakStatement:
-          sl = $statement.Evaluate();
+          sl = $statement.Evaluate(ctx);
           break;
         case SyntaxKind.ReturnStatement:
-          sl = $statement.Evaluate();
+          sl = $statement.Evaluate(ctx);
           break;
         case SyntaxKind.WithStatement:
-          sl = $statement.Evaluate();
+          sl = $statement.Evaluate(ctx);
           break;
         case SyntaxKind.SwitchStatement:
-          sl = $statement.Evaluate();
+          sl = $statement.Evaluate(ctx);
           break;
         case SyntaxKind.LabeledStatement:
-          sl = $statement.EvaluateLabelled();
+          sl = $statement.EvaluateLabelled(ctx);
           break;
         case SyntaxKind.ThrowStatement:
-          sl = $statement.Evaluate();
+          sl = $statement.Evaluate(ctx);
           break;
         case SyntaxKind.TryStatement:
-          sl = $statement.Evaluate();
+          sl = $statement.Evaluate(ctx);
           break;
         case SyntaxKind.DebuggerStatement:
-          sl = $statement.Evaluate();
+          sl = $statement.Evaluate(ctx);
           break;
         default:
           throw new Error(`Unexpected syntax node: ${SyntaxKind[$statement.$kind]}.`);
@@ -7342,22 +7636,35 @@ export class $DocumentFragment implements I$Node, IModule {
     this.logger = pkg.container.get(ILogger).root.scopeTo(`DocumentFragment<(...)${$file.rootlessPath}>`);
   }
 
-  public ResolveExport(exportName: $String, resolveSet: ResolveSet): ResolvedBindingRecord | null | 'ambiguous' {
+  public ResolveExport(
+    ctx: ExecutionContext,
+    exportName: $String,
+    resolveSet: ResolveSet,
+  ): ResolvedBindingRecord | null | 'ambiguous' {
     this.logger.debug(`[ResolveExport] returning content as '${exportName['[[Value]]']}'`);
 
     return new ResolvedBindingRecord(this, exportName);
   }
 
-  public GetExportedNames(exportStarSet: Set<IModule>): readonly $String[] {
+  public GetExportedNames(
+    ctx: ExecutionContext,
+    exportStarSet: Set<IModule>,
+  ): readonly $String[] {
     return [];
   }
 
-  public Instantiate(): void {
+  public Instantiate(
+    ctx: ExecutionContext,
+  ): void {
 
   }
 
   /** @internal */
-  public _InnerModuleInstantiation(stack: IModule[], index: number): number {
+  public _InnerModuleInstantiation(
+    ctx: ExecutionContext,
+    stack: IModule[],
+    index: number,
+  ): number {
     return index;
   }
 }
@@ -8639,14 +8946,19 @@ export class $Block implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-block-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
-    const { $statements, realm } = this;
+    const $statements = this.$statements;
 
     // Block : { }
     // 1. Return NormalCompletion(empty).
     if ($statements.length === 0) {
-      return realm['[[Intrinsics]]'].empty;
+      return intrinsics.empty;
     }
 
     // Block : { StatementList }
@@ -8656,13 +8968,13 @@ export class $Block implements I$Node {
     const blockEnv = new $DeclarativeEnvRec(realm, oldEnv);
 
     // 3. Perform BlockDeclarationInstantiation(StatementList, blockEnv).
-    blockDeclarationInstantiation(this.LexicallyScopedDeclarations, blockEnv);
+    blockDeclarationInstantiation(ctx, this.LexicallyScopedDeclarations, blockEnv);
 
     // 4. Set the running execution context's LexicalEnvironment to blockEnv.
     realm.SetCurrentLexicalEnvironment(blockEnv);
 
     // 5. Let blockValue be the result of evaluating StatementList.
-    const blockValue = evaluateStatementList($statements, realm);
+    const blockValue = evaluateStatementList(ctx, $statements);
 
     // 6. Set the running execution context's LexicalEnvironment to oldEnv.
     realm.SetCurrentLexicalEnvironment(oldEnv);
@@ -8692,12 +9004,17 @@ export class $EmptyStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-empty-statement-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
     // EmptyStatement : ;
 
     // 1. Return NormalCompletion(empty).
-    return this.realm['[[Intrinsics]]'].empty;
+    return intrinsics.empty;
   }
 }
 
@@ -8733,14 +9050,16 @@ export class $ExpressionStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-expression-statement-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
     this.logger.debug('Evaluate()');
     // ExpressionStatement : Expression ;
 
     // 1. Let exprRef be the result of evaluating Expression.
     // 2. Return ? GetValue(exprRef).
 
-    return this.$expression.Evaluate().GetValue();
+    return this.$expression.Evaluate(ctx).GetValue(ctx);
   }
 }
 
@@ -8784,14 +9103,18 @@ export class $IfStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-if-statement-runtime-semantics-evaluation
-  public Evaluate(): $Any {
-    this.logger.debug('Evaluate()');
-
-    const { $expression, $thenStatement, $elseStatement, realm } = this;
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    const exprRef = $expression.Evaluate();
-    const exprValue = exprRef.GetValue().ToBoolean();
+    this.logger.debug('Evaluate()');
+
+    const { $expression, $thenStatement, $elseStatement } = this;
+
+    const exprRef = $expression.Evaluate(ctx);
+    const exprValue = exprRef.GetValue(ctx).ToBoolean(ctx);
 
     if ($elseStatement !== undefined) {
       // IfStatement : if ( Expression ) Statement else Statement
@@ -8803,11 +9126,11 @@ export class $IfStatement implements I$Node {
       // 3. If exprValue is true, then
       if (exprValue.is(intrinsics.true)) {
         // 3. a. Let stmtCompletion be the result of evaluating the first Statement.
-        stmtCompletion = evaluateStatement($thenStatement);
+        stmtCompletion = evaluateStatement(ctx, $thenStatement);
       } else {
         // 4. Else,
         // 4. a. Let stmtCompletion be the result of evaluating the second Statement.
-        stmtCompletion = evaluateStatement($elseStatement);
+        stmtCompletion = evaluateStatement(ctx, $elseStatement);
       }
       // 5. Return Completion(UpdateEmpty(stmtCompletion, undefined)).
       stmtCompletion.UpdateEmpty(intrinsics.undefined);
@@ -8825,7 +9148,7 @@ export class $IfStatement implements I$Node {
       } else {
         // 4. Else,
         // 4. a. Let stmtCompletion be the result of evaluating Statement.
-        stmtCompletion = evaluateStatement($thenStatement);
+        stmtCompletion = evaluateStatement(ctx, $thenStatement);
         // 4. b. Return Completion(UpdateEmpty(stmtCompletion, undefined)).
         stmtCompletion.UpdateEmpty(intrinsics.undefined);
         return stmtCompletion;
@@ -8862,7 +9185,12 @@ export class $DoStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-do-while-statement-runtime-semantics-labelledevaluation
-  public EvaluateLabelled(): $Any {
+  public EvaluateLabelled(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('EvaluateLabelled()');
     // IterationStatement : do Statement while ( Expression ) ;
 
@@ -8875,7 +9203,7 @@ export class $DoStatement implements I$Node {
     // 2. e. Let exprValue be ? GetValue(exprRef).
     // 2. f. If ToBoolean(exprValue) is false, return NormalCompletion(V).
 
-    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
+    return intrinsics.empty; // TODO: implement this
   }
 }
 
@@ -8907,7 +9235,12 @@ export class $WhileStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-while-statement-runtime-semantics-labelledevaluation
-  public EvaluateLabelled(): $Any {
+  public EvaluateLabelled(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('EvaluateLabelled()');
     // IterationStatement : while ( Expression ) Statement
 
@@ -8920,7 +9253,7 @@ export class $WhileStatement implements I$Node {
     // 2. e. If LoopContinues(stmtResult, labelSet) is false, return Completion(UpdateEmpty(stmtResult, V)).
     // 2. f. If stmtResult.[[Value]] is not empty, set V to stmtResult.[[Value]].
 
-    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
+    return intrinsics.empty; // TODO: implement this
   }
 }
 
@@ -8980,7 +9313,12 @@ export class $ForStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-for-statement-runtime-semantics-labelledevaluation
-  public EvaluateLabelled(): $Any {
+  public EvaluateLabelled(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('EvaluateLabelled()');
     // IterationStatement : for ( Expression opt ; Expression opt ; Expression opt ) Statement
 
@@ -9017,7 +9355,7 @@ export class $ForStatement implements I$Node {
     // 12. Set the running execution context's LexicalEnvironment to oldEnv.
     // 13. Return Completion(bodyResult).
 
-    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
+    return intrinsics.empty; // TODO: implement this
   }
 }
 
@@ -9068,7 +9406,12 @@ export class $ForInStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-labelledevaluation
-  public EvaluateLabelled(): $Any {
+  public EvaluateLabelled(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('EvaluateLabelled()');
     // IterationStatement : for ( LeftHandSideExpression in Expression ) Statement
 
@@ -9115,18 +9458,23 @@ export class $ForInStatement implements I$Node {
     // 1. Let keyResult be ? ForIn/OfHeadEvaluation(BoundNames of ForDeclaration, AssignmentExpression, async-iterate).
     // 2. Return ? ForIn/OfBodyEvaluation(ForDeclaration, Statement, keyResult, iterate, lexicalBinding, labelSet, async).
 
-    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
+    return intrinsics.empty; // TODO: implement this
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
     // ForBinding : BindingIdentifier
 
     // 1. Let bindingId be StringValue of BindingIdentifier.
     // 2. Return ? ResolveBinding(bindingId).
 
-    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
+    return intrinsics.empty; // TODO: implement this
   }
 }
 
@@ -9177,7 +9525,12 @@ export class $ForOfStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-labelledevaluation
-  public EvaluateLabelled(): $Any {
+  public EvaluateLabelled(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('EvaluateLabelled()');
     // IterationStatement : for ( LeftHandSideExpression in Expression ) Statement
 
@@ -9224,14 +9577,19 @@ export class $ForOfStatement implements I$Node {
     // 1. Let keyResult be ? ForIn/OfHeadEvaluation(BoundNames of ForDeclaration, AssignmentExpression, async-iterate).
     // 2. Return ? ForIn/OfBodyEvaluation(ForDeclaration, Statement, keyResult, iterate, lexicalBinding, labelSet, async).
 
-    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
+    return intrinsics.empty; // TODO: implement this
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
 
-    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
+    return intrinsics.empty; // TODO: implement this
   }
 }
 
@@ -9259,8 +9617,10 @@ export class $ContinueStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-continue-statement-runtime-semantics-evaluation
-  public Evaluate(): $Empty {
-    const realm = this.realm;
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Empty {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     this.logger.debug('Evaluate()');
@@ -9303,8 +9663,10 @@ export class $BreakStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-break-statement-runtime-semantics-evaluation
-  public Evaluate(): $Any {
-    const realm = this.realm;
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     this.logger.debug('Evaluate()');
@@ -9351,8 +9713,10 @@ export class $ReturnStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-return-statement
-  public Evaluate(): $AnyNonEmpty {
-    const realm = this.realm;
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     this.logger.debug('Evaluate()');
@@ -9366,10 +9730,10 @@ export class $ReturnStatement implements I$Node {
     // ReturnStatement : return Expression ;
 
     // 1. Let exprRef be the result of evaluating Expression.
-    const exprRef = this.$expression.Evaluate();
+    const exprRef = this.$expression.Evaluate(ctx);
 
     // 2. Let exprValue be ? GetValue(exprRef).
-    const exprValue = exprRef.GetValue();
+    const exprValue = exprRef.GetValue(ctx);
 
     // 3. If ! GetGeneratorKind() is async, set exprValue to ? Await(exprValue). // TODO
 
@@ -9406,7 +9770,12 @@ export class $WithStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-with-statement-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
     // WithStatement : with ( Expression ) Statement
 
@@ -9420,7 +9789,7 @@ export class $WithStatement implements I$Node {
     // 8. Set the running execution context's LexicalEnvironment to oldEnv.
     // 9. Return Completion(UpdateEmpty(C, undefined)).
 
-    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
+    return intrinsics.empty; // TODO: implement this
   }
 }
 
@@ -9474,14 +9843,18 @@ export class $SwitchStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
-    const { realm } = this;
     // SwitchStatement : switch ( Expression ) CaseBlock
 
     // 1. Let exprRef be the result of evaluating Expression.
     // 2. Let switchValue be ? GetValue(exprRef).
-    const switchValue = this.$expression.Evaluate().GetValue();
+    const switchValue = this.$expression.Evaluate(ctx).GetValue(ctx);
 
     // 3. Let oldEnv be the running execution context's LexicalEnvironment.
     const oldEnv = realm.GetCurrentLexicalEnvironment();
@@ -9490,13 +9863,13 @@ export class $SwitchStatement implements I$Node {
     const blockEnv = new $DeclarativeEnvRec(realm, oldEnv);
 
     // 5. Perform BlockDeclarationInstantiation(CaseBlock, blockEnv).
-    blockDeclarationInstantiation(this.LexicallyScopedDeclarations, blockEnv);
+    blockDeclarationInstantiation(ctx, this.LexicallyScopedDeclarations, blockEnv);
 
     // 6. Set the running execution context's LexicalEnvironment to blockEnv.
     realm.SetCurrentLexicalEnvironment(blockEnv);
 
     // 7. Let R be the result of performing CaseBlockEvaluation of CaseBlock with argument switchValue.
-    const R = this.EvaluateCaseBlock(switchValue);
+    const R = this.EvaluateCaseBlock(ctx, switchValue);
 
     // 8. Set the running execution context's LexicalEnvironment to oldEnv.
     realm.SetCurrentLexicalEnvironment(oldEnv);
@@ -9506,8 +9879,14 @@ export class $SwitchStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-caseblockevaluation
-  private EvaluateCaseBlock(switchValue: $Any) {
-    const { $caseBlock: { $clauses: clauses }, realm } = this;
+  private EvaluateCaseBlock(
+    ctx: ExecutionContext,
+    switchValue: $Any,
+  ) {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    const { $caseBlock: { $clauses: clauses } } = this;
     const { undefined: $undefined, empty } = realm['[[Intrinsics]]'];
     // CaseBlock : { }
     // 1. Return NormalCompletion(undefined).
@@ -9530,12 +9909,12 @@ export class $SwitchStatement implements I$Node {
         // 4. a. If found is false, then
         if (!found) {
           // 4. a. i. Set found to ? CaseClauseIsSelected(C, input).
-          found = this.IsCaseClauseSelected(C, switchValue);
+          found = this.IsCaseClauseSelected(ctx, C, switchValue);
         }
         // 4. b. If found is true, then
         if (found) {
           // 4. b. i. Let R be the result of evaluating C.
-          const R = evaluateStatementList(C.$statements, realm);
+          const R = evaluateStatementList(ctx, C.$statements);
           // 4. b. ii. If R.[[Value]] is not empty, set V to R.[[Value]].
           if (R.hasValue) {
             V = R;
@@ -9548,7 +9927,7 @@ export class $SwitchStatement implements I$Node {
       }
       // 5. Return NormalCompletion(V).
       return new CaseClausesEvaluationResult(
-        V.ToCompletion(CompletionType.normal, realm['[[Intrinsics]]'].empty),
+        V.ToCompletion(CompletionType.normal, intrinsics.empty),
         found,
         false,
       );
@@ -9613,12 +9992,16 @@ export class $SwitchStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-caseclauseisselected
-  private IsCaseClauseSelected(clause: $CaseClause, switchValue: $Any): boolean {
+  private IsCaseClauseSelected(
+    ctx: ExecutionContext,
+    clause: $CaseClause,
+    switchValue: $Any,
+  ): boolean {
     // 1. Assert: C is an instance of the production CaseClause:caseExpression:StatementListopt .
     // 2. Let exprRef be the result of evaluating the Expression of C.
     // 3. Let clauseSelector be ? GetValue(exprRef).
     // 4. Return the result of performing Strict Equality Comparison input === clauseSelector.
-    return clause.$expression.Evaluate().GetValue() === switchValue;
+    return clause.$expression.Evaluate(ctx).GetValue(ctx) === switchValue;
   }
 }
 
@@ -9671,7 +10054,12 @@ export class $LabeledStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-runtime-semantics-labelledevaluation
-  public EvaluateLabelled(): $AnyNonEmpty {
+  public EvaluateLabelled(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('EvaluateLabelled()');
     // LabelledStatement : LabelIdentifier : LabelledItem
 
@@ -9693,18 +10081,23 @@ export class $LabeledStatement implements I$Node {
 
     // 1. Return the result of evaluating FunctionDeclaration.
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-runtime-semantics-evaluation
-  public Evaluate(): $AnyNonEmpty {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
     // LabelledStatement : LabelIdentifier : LabelledItem
 
     // 1. Let newLabelSet be a new empty List.
     // 2. Return LabelledEvaluation of this LabelledStatement with argument newLabelSet.
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 }
 
@@ -9732,7 +10125,12 @@ export class $ThrowStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-throw-statement-runtime-semantics-evaluation
-  public Evaluate(): $AnyNonEmpty {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
     // ThrowStatement : throw Expression ;
 
@@ -9740,7 +10138,7 @@ export class $ThrowStatement implements I$Node {
     // 2. Let exprValue be ? GetValue(exprRef).
     // 3. Return ThrowCompletion(exprValue).
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 }
 
@@ -9798,7 +10196,12 @@ export class $TryStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-try-statement-runtime-semantics-evaluation
-  public Evaluate(): $AnyNonEmpty {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
     // TryStatement : try Block Catch
 
@@ -9823,7 +10226,7 @@ export class $TryStatement implements I$Node {
     // 5. If F.[[Type]] is normal, set F to C.
     // 6. Return Completion(UpdateEmpty(F, undefined)).
 
-    return this.realm['[[Intrinsics]]'].undefined; // TODO: implement this
+    return intrinsics.undefined; // TODO: implement this
   }
 }
 
@@ -9847,7 +10250,12 @@ export class $DebuggerStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-debugger-statement-runtime-semantics-evaluation
-  public Evaluate(): $Any {
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     this.logger.debug('Evaluate()');
     // DebuggerStatement : debugger ;
 
@@ -9858,7 +10266,7 @@ export class $DebuggerStatement implements I$Node {
     // 2. a. Let result be NormalCompletion(empty).
     // 3. Return result.
 
-    return this.realm['[[Intrinsics]]'].empty; // TODO: implement this
+    return intrinsics.empty; // TODO: implement this
   }
 }
 

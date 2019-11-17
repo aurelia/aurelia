@@ -1,7 +1,7 @@
 import { $Undefined } from './undefined';
 import { $String } from './string';
 import { nextValueId, $Any, Int32, Uint32, Int16, Uint16, Int8, Uint8, Uint8Clamp, PotentialNonEmptyCompletionType, CompletionTarget, CompletionType } from './_shared';
-import { Realm } from '../realm';
+import { Realm, ExecutionContext } from '../realm';
 import { $Object } from './object';
 import { $Number } from './number';
 import { $Boolean } from './boolean';
@@ -75,23 +75,42 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
     // 3. Return Completion { [[Type]]: completionRecord.[[Type]], [[Value]]: value, [[Target]]: completionRecord.[[Target]] }.
   }
 
-  public ToObject(): $Object {
-    return $Object.ObjectCreate('symbol', this.realm['[[Intrinsics]]']['%SymbolPrototype%'], { '[[SymbolData]]': this });
+  public ToObject(
+    ctx: ExecutionContext,
+  ): $Object {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+    return $Object.ObjectCreate(
+      ctx,
+      'symbol',
+      intrinsics['%SymbolPrototype%'],
+      {
+        '[[SymbolData]]': this,
+      },
+    );
   }
 
-  public ToPropertyKey(): $String {
-    return this.ToString();
+  public ToPropertyKey(
+    ctx: ExecutionContext,
+  ): $String {
+    return this.ToString(ctx);
   }
 
-  public ToLength(): $Number {
-    return this.ToNumber().ToLength();
+  public ToLength(
+    ctx: ExecutionContext,
+  ): $Number {
+    return this.ToNumber(ctx).ToLength(ctx);
   }
 
-  public ToPrimitive(): this {
+  public ToPrimitive(
+    ctx: ExecutionContext,
+  ): this {
     return this;
   }
 
-  public ToBoolean(): $Boolean {
+  public ToBoolean(
+    ctx: ExecutionContext,
+  ): $Boolean {
     return new $Boolean(
       /* realm */this.realm,
       /* value */Boolean(this['[[Value]]']),
@@ -102,7 +121,9 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
     );
   }
 
-  public ToNumber(): $Number {
+  public ToNumber(
+    ctx: ExecutionContext,
+  ): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Number(this['[[Value]]']),
@@ -113,7 +134,9 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
     );
   }
 
-  public ToInt32(): $Number {
+  public ToInt32(
+    ctx: ExecutionContext,
+  ): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Int32(this['[[Value]]']),
@@ -124,7 +147,9 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
     );
   }
 
-  public ToUint32(): $Number {
+  public ToUint32(
+    ctx: ExecutionContext,
+  ): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Uint32(this['[[Value]]']),
@@ -135,7 +160,9 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
     );
   }
 
-  public ToInt16(): $Number {
+  public ToInt16(
+    ctx: ExecutionContext,
+  ): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Int16(this['[[Value]]']),
@@ -146,7 +173,9 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
     );
   }
 
-  public ToUint16(): $Number {
+  public ToUint16(
+    ctx: ExecutionContext,
+  ): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Uint16(this['[[Value]]']),
@@ -157,7 +186,9 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
     );
   }
 
-  public ToInt8(): $Number {
+  public ToInt8(
+    ctx: ExecutionContext,
+  ): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Int8(this['[[Value]]']),
@@ -168,7 +199,9 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
     );
   }
 
-  public ToUint8(): $Number {
+  public ToUint8(
+    ctx: ExecutionContext,
+  ): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Uint8(this['[[Value]]']),
@@ -179,7 +212,9 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
     );
   }
 
-  public ToUint8Clamp(): $Number {
+  public ToUint8Clamp(
+    ctx: ExecutionContext,
+  ): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Uint8Clamp(this['[[Value]]']),
@@ -190,7 +225,9 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
     );
   }
 
-  public ToString(): $String {
+  public ToString(
+    ctx: ExecutionContext,
+  ): $String {
     return new $String(
       /* realm */this.realm,
       /* value */String(this['[[Value]]']),

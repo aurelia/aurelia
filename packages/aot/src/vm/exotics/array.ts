@@ -1,5 +1,5 @@
 import { $Object } from '../types/object';
-import { Realm } from '../realm';
+import { Realm, ExecutionContext } from '../realm';
 import { $Number } from '../types/number';
 import { $PropertyDescriptor } from '../types/property-descriptor';
 import { $PropertyKey } from '../types/_shared';
@@ -17,16 +17,18 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
     length: $Number,
     proto?: $Object,
   ) {
+    const intrinsics = realm['[[Intrinsics]]'];
+
     if (proto === void 0) {
-      proto = realm['[[Intrinsics]]']['%ArrayPrototype%'];
+      proto = intrinsics['%ArrayPrototype%'];
     }
 
     super(realm, 'ArrayExoticObject', proto);
 
     // 1. Assert: length is an integer Number ≥ 0.
     // 2. If length is -0, set length to +0.
-    if (length.is(realm['[[Intrinsics]]']['-0'])) {
-      length = realm['[[Intrinsics]]']['0'];
+    if (length.is(intrinsics['-0'])) {
+      length = intrinsics['0'];
     }
 
     // 3. If length > 232 - 1, throw a RangeError exception.
@@ -42,15 +44,16 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
     // 9. Set A.[[Extensible]] to true.
     // 10. Perform ! OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor { [[Value]]: length, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
     super['[[DefineOwnProperty]]'](
-      realm['[[Intrinsics]]'].length,
+      realm.stack.top,
+      intrinsics.length,
       new $PropertyDescriptor(
         realm,
-        realm['[[Intrinsics]]'].length,
+        intrinsics.length,
         {
           '[[Value]]': length,
-          '[[Writable]]': realm['[[Intrinsics]]'].true,
-          '[[Enumerable]]': realm['[[Intrinsics]]'].false,
-          '[[Configurable]]': realm['[[Intrinsics]]'].false,
+          '[[Writable]]': intrinsics.true,
+          '[[Enumerable]]': intrinsics.false,
+          '[[Configurable]]': intrinsics.false,
         },
       ),
     );
@@ -59,27 +62,31 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-array-exotic-objects-defineownproperty-p-desc
-  public '[[DefineOwnProperty]]'(P: $PropertyKey, Desc: $PropertyDescriptor): $Boolean {
-    const realm = this.realm;
+  public '[[DefineOwnProperty]]'(
+    ctx: ExecutionContext,
+    P: $PropertyKey,
+    Desc: $PropertyDescriptor,
+  ): $Boolean {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. If P is "length", then
     if (P.is(intrinsics.length)) {
       // 2. a. Return ? ArraySetLength(A, Desc).
-      return this.ArraySetLength(Desc);
+      return this.ArraySetLength(ctx, Desc);
     }
     // 3. Else if P is an array index, then
     else if (P.IsArrayIndex) {
       // 3. a. Let oldLenDesc be OrdinaryGetOwnProperty(A, "length").
-      const oldLenDesc = super['[[GetOwnProperty]]'](intrinsics.length) as $PropertyDescriptor;
+      const oldLenDesc = super['[[GetOwnProperty]]'](ctx, intrinsics.length) as $PropertyDescriptor;
 
       // 3. b. Assert: oldLenDesc will never be undefined or an accessor descriptor because Array objects are created with a length data property that cannot be deleted or reconfigured.
       // 3. c. Let oldLen be oldLenDesc.[[Value]].
       const oldLen = oldLenDesc['[[Value]]'] as $Number;
 
       // 3. d. Let index be ! ToUint32(P).
-      const index = P.ToUint32();
+      const index = P.ToUint32(ctx);
 
       // 3. e. If index ≥ oldLen and oldLenDesc.[[Writable]] is false, return false.
       if (index['[[Value]]'] >= oldLen['[[Value]]'] && oldLenDesc['[[Writable]]'].isFalsey) {
@@ -87,7 +94,7 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
       }
 
       // 3. f. Let succeeded be ! OrdinaryDefineOwnProperty(A, P, Desc).
-      const succeeded = super['[[DefineOwnProperty]]'](P, Desc);
+      const succeeded = super['[[DefineOwnProperty]]'](ctx, P, Desc);
 
       // 3. g. If succeeded is false, return false.
       if (succeeded.isFalsey) {
@@ -100,7 +107,7 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
         oldLenDesc['[[Value]]'] = new $Number(realm, index['[[Value]]'] + 1);
 
         // 3. h. ii. Let succeeded be OrdinaryDefineOwnProperty(A, "length", oldLenDesc).
-        const succeeded = super['[[DefineOwnProperty]]'](intrinsics.length, oldLenDesc);
+        const succeeded = super['[[DefineOwnProperty]]'](ctx, intrinsics.length, oldLenDesc);
 
         // 3. h. iii. Assert: succeeded is true.
       }
@@ -110,18 +117,21 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
     }
 
     // 4. Return OrdinaryDefineOwnProperty(A, P, Desc).
-    return super['[[DefineOwnProperty]]'](P, Desc);
+    return super['[[DefineOwnProperty]]'](ctx, P, Desc);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-arraysetlength
-  public ArraySetLength(Desc: $PropertyDescriptor): $Boolean {
-    const realm = this.realm;
+  public ArraySetLength(
+    ctx: ExecutionContext,
+    Desc: $PropertyDescriptor,
+  ): $Boolean {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. If Desc.[[Value]] is absent, then
     if (Desc['[[Value]]'].isEmpty) {
       // 1. a. Return OrdinaryDefineOwnProperty(A, "length", Desc).
-      return super['[[DefineOwnProperty]]'](intrinsics.length, Desc);
+      return super['[[DefineOwnProperty]]'](ctx, intrinsics.length, Desc);
     }
 
     // 2. Let newLenDesc be a copy of Desc.
@@ -136,10 +146,10 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
     );
 
     // 3. Let newLen be ? ToUint32(Desc.[[Value]]).
-    const newLen = Desc['[[Value]]'].ToUint32();
+    const newLen = Desc['[[Value]]'].ToUint32(ctx);
 
     // 4. Let numberLen be ? ToNumber(Desc.[[Value]]).
-    const numberLen = Desc['[[Value]]'].ToNumber();
+    const numberLen = Desc['[[Value]]'].ToNumber(ctx);
 
     // 5. If newLen ≠ numberLen, throw a RangeError exception.
     if (!newLen.is(numberLen)) {
@@ -150,7 +160,7 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
     newLenDesc['[[Value]]'] = newLen;
 
     // 7. Let oldLenDesc be OrdinaryGetOwnProperty(A, "length").
-    const oldLenDesc = super['[[GetOwnProperty]]'](intrinsics.length) as $PropertyDescriptor;
+    const oldLenDesc = super['[[GetOwnProperty]]'](ctx, intrinsics.length) as $PropertyDescriptor;
 
     // 8. Assert: oldLenDesc will never be undefined or an accessor descriptor because Array objects are created with a length data property that cannot be deleted or reconfigured.
     // 9. Let oldLen be oldLenDesc.[[Value]].
@@ -159,7 +169,7 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
     // 10. If newLen ≥ oldLen, then
     if (newLen['[[Value]]'] >= oldLen['[[Value]]']) {
       // 10. a. Return OrdinaryDefineOwnProperty(A, "length", newLenDesc).
-      return super['[[DefineOwnProperty]]'](intrinsics.length, newLenDesc);
+      return super['[[DefineOwnProperty]]'](ctx, intrinsics.length, newLenDesc);
     }
 
     // 11. If oldLenDesc.[[Writable]] is false, return false.
@@ -183,7 +193,7 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
     }
 
     // 14. Let succeeded be ! OrdinaryDefineOwnProperty(A, "length", newLenDesc).
-    const succeeded = super['[[DefineOwnProperty]]'](intrinsics.length, newLenDesc);
+    const succeeded = super['[[DefineOwnProperty]]'](ctx, intrinsics.length, newLenDesc);
 
     // 15. If succeeded is false, return false.
     if (succeeded.isFalsey) {
@@ -199,7 +209,7 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
       --$oldLen;
 
       // 16. b. Let deleteSucceeded be ! A.[[Delete]](! ToString(oldLen)).
-      const deleteSucceeded = this['[[Delete]]'](new $Number(realm, $oldLen).ToString());
+      const deleteSucceeded = this['[[Delete]]'](ctx, new $Number(realm, $oldLen).ToString(ctx));
 
       // 16. c. If deleteSucceeded is false, then
       if (deleteSucceeded.isFalsey) {
@@ -212,7 +222,7 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
         }
 
         // 16. c. iii. Perform ! OrdinaryDefineOwnProperty(A, "length", newLenDesc).
-        super['[[DefineOwnProperty]]'](intrinsics.length, newLenDesc);
+        super['[[DefineOwnProperty]]'](ctx, intrinsics.length, newLenDesc);
 
         // 16. c. iv. Return false.
         return intrinsics.false;
@@ -223,6 +233,7 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
     if (!newWritable) {
       // 17. a. Return OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor { [[Writable]]: false }). This call will always return true.
       return super['[[DefineOwnProperty]]'](
+        ctx,
         intrinsics.length,
         new $PropertyDescriptor(
           realm,
@@ -241,10 +252,11 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
 
 // http://www.ecma-international.org/ecma-262/#sec-arrayspeciescreate
 export function $ArraySpeciesCreate(
-  realm: Realm,
+  ctx: ExecutionContext,
   originalArray: $Object,
   length: $Number,
 ): $Object {
+  const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
   // 1. Assert: length is an integer Number ≥ 0.
@@ -260,7 +272,7 @@ export function $ArraySpeciesCreate(
   }
 
   // 5. Let C be ? Get(originalArray, "constructor").
-  let C = $Get(originalArray, intrinsics.$constructor);
+  let C = $Get(ctx, originalArray, intrinsics.$constructor);
 
   // 6. If IsConstructor(C) is true, then
   if (C.isFunction) {
@@ -268,7 +280,7 @@ export function $ArraySpeciesCreate(
     const thisRealm = realm;
 
     // 6. b. Let realmC be ? GetFunctionRealm(C).
-    const realmC = $GetFunctionRealm(realm, C);
+    const realmC = $GetFunctionRealm(ctx, C);
 
     // 6. c. If thisRealm and realmC are not the same Realm Record, then
     if (thisRealm !== realmC) {
@@ -282,7 +294,7 @@ export function $ArraySpeciesCreate(
   // 7. If Type(C) is Object, then
   if (C.isObject) {
     // 7. a. Set C to ? Get(C, @@species).
-    C = $Get(C, intrinsics['@@species']);
+    C = $Get(ctx, C, intrinsics['@@species']);
 
     // 7. b. If C is null, set C to undefined.
     if (C.isNull) {
@@ -301,6 +313,6 @@ export function $ArraySpeciesCreate(
   }
 
   // 10. Return ? Construct(C, « length »).
-  return $Construct(C as $Function, [length]);
+  return $Construct(ctx, C as $Function, [length]);
 }
 

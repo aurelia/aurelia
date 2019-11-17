@@ -1,5 +1,5 @@
 import { nextValueId, $Any, Int32, Uint32, Int16, Uint16, Int8, Uint8, Uint8Clamp, PotentialNonEmptyCompletionType, CompletionTarget, CompletionType } from './_shared';
-import { Realm } from '../realm';
+import { Realm, ExecutionContext } from '../realm';
 import { $NumericLiteral } from '../ast';
 import { $Object } from './object';
 import { $String } from './string';
@@ -89,19 +89,36 @@ export class $Number<T extends number = number> {
     return Math.floor(Math.abs(this['[[Value]]'])) === Math.abs(this['[[Value]]']);
   }
 
-  public ToObject(): $Object {
-    return $Object.ObjectCreate('number', this.realm['[[Intrinsics]]']['%NumberPrototype%'], { '[[NumberData]]': this });
+  public ToObject(
+    ctx: ExecutionContext,
+  ): $Object {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+    return $Object.ObjectCreate(
+      ctx,
+      'number',
+      intrinsics['%NumberPrototype%'],
+      {
+        '[[NumberData]]': this,
+      },
+    );
   }
 
-  public ToPropertyKey(): $String {
-    return this.ToString();
+  public ToPropertyKey(
+    ctx: ExecutionContext,
+  ): $String {
+    return this.ToString(ctx);
   }
 
-  public ToPrimitive(): this {
+  public ToPrimitive(
+    ctx: ExecutionContext,
+  ): this {
     return this;
   }
 
-  public ToBoolean(): $Boolean {
+  public ToBoolean(
+    ctx: ExecutionContext,
+  ): $Boolean {
     return new $Boolean(
       /* realm */this.realm,
       /* value */Boolean(this['[[Value]]']),
@@ -112,12 +129,16 @@ export class $Number<T extends number = number> {
     );
   }
 
-  public ToNumber(): $Number {
+  public ToNumber(
+    ctx: ExecutionContext,
+  ): $Number {
     return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-tointeger
-  public ToInteger(): $Number {
+  public ToInteger(
+    ctx: ExecutionContext,
+  ): $Number {
     // 1. Let number be ? ToNumber(argument).
 
     const value = this['[[Value]]'];
@@ -126,8 +147,8 @@ export class $Number<T extends number = number> {
       return new $Number(
         /* realm */this.realm,
         /* value */0,
-      /* type */this['[[Type]]'],
-      /* target */this['[[Target]]'],
+        /* type */this['[[Type]]'],
+        /* target */this['[[Target]]'],
         /* sourceNode */null,
         /* conversionSource */this,
       );
@@ -151,9 +172,11 @@ export class $Number<T extends number = number> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-tolength
-  public ToLength(): $Number {
+  public ToLength(
+    ctx: ExecutionContext,
+  ): $Number {
     // 1. Let len be ? ToInteger(argument).
-    const len = this.ToInteger();
+    const len = this.ToInteger(ctx);
 
     // 2. If len ≤ +0, return +0.
     if (len['[[Value]]'] < 0) {
@@ -182,7 +205,9 @@ export class $Number<T extends number = number> {
     return this;
   }
 
-  public ToInt32(): $Number {
+  public ToInt32(
+    ctx: ExecutionContext,
+  ): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Int32(this['[[Value]]']),
@@ -193,7 +218,9 @@ export class $Number<T extends number = number> {
     );
   }
 
-  public ToUint32(): $Number {
+  public ToUint32(
+    ctx: ExecutionContext,
+  ): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Uint32(this['[[Value]]']),
@@ -204,7 +231,9 @@ export class $Number<T extends number = number> {
     );
   }
 
-  public ToInt16(): $Number {
+  public ToInt16(
+    ctx: ExecutionContext,
+  ): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Int16(this['[[Value]]']),
@@ -215,7 +244,9 @@ export class $Number<T extends number = number> {
     );
   }
 
-  public ToUint16(): $Number {
+  public ToUint16(
+    ctx: ExecutionContext,
+  ): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Uint16(this['[[Value]]']),
@@ -226,7 +257,9 @@ export class $Number<T extends number = number> {
     );
   }
 
-  public ToInt8(): $Number {
+  public ToInt8(
+    ctx: ExecutionContext,
+  ): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Int8(this['[[Value]]']),
@@ -237,7 +270,9 @@ export class $Number<T extends number = number> {
     );
   }
 
-  public ToUint8(): $Number {
+  public ToUint8(
+    ctx: ExecutionContext,
+  ): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Uint8(this['[[Value]]']),
@@ -248,7 +283,9 @@ export class $Number<T extends number = number> {
     );
   }
 
-  public ToUint8Clamp(): $Number {
+  public ToUint8Clamp(
+    ctx: ExecutionContext,
+  ): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Uint8Clamp(this['[[Value]]']),
@@ -259,7 +296,9 @@ export class $Number<T extends number = number> {
     );
   }
 
-  public ToString(): $String {
+  public ToString(
+    ctx: ExecutionContext,
+  ): $String {
     return new $String(
       /* realm */this.realm,
       /* value */String(this['[[Value]]']),

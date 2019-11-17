@@ -42,7 +42,11 @@ export class $Function<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects-call-thisargument-argumentslist
-  public '[[Call]]'(thisArgument: $AnyNonEmpty, argumentsList: readonly $AnyNonEmpty[]): $AnyNonEmpty {
+  public '[[Call]]'(
+    ctx: ExecutionContext,
+    thisArgument: $AnyNonEmpty,
+    argumentsList: readonly $AnyNonEmpty[],
+  ): $AnyNonEmpty {
     // 1. Assert: F is an ECMAScript function object.
     const F = this;
     const realm = F['[[Realm]]'];
@@ -54,21 +58,18 @@ export class $Function<
     }
 
     // 3. Let callerContext be the running execution context.
-    const stack = realm.stack;
-    const callerContext = stack.top;
-
     // 4. Let calleeContext be PrepareForOrdinaryCall(F, undefined).
-    const calleeContext = $PrepareForOrdinaryCall(F, intrinsics.undefined);
+    const calleeContext = $PrepareForOrdinaryCall(ctx, F, intrinsics.undefined);
 
     // 5. Assert: calleeContext is now the running execution context.
     // 6. Perform OrdinaryCallBindThis(F, calleeContext, thisArgument).
-    $OrdinaryCallBindThis(F, calleeContext, thisArgument);
+    $OrdinaryCallBindThis(ctx, F, calleeContext, thisArgument);
 
     // 7. Let result be OrdinaryCallEvaluateBody(F, argumentsList).
-    const result = (F['[[ECMAScriptCode]]'] as $FunctionDeclaration).EvaluateBody(F, argumentsList);
+    const result = (F['[[ECMAScriptCode]]'] as $FunctionDeclaration).EvaluateBody(calleeContext, F, argumentsList);
 
     // 8. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
-    stack.pop(); // TODO: verify
+    realm.stack.pop();
 
     // 9. If result.[[Type]] is return, return NormalCompletion(result.[[Value]]).
     if (result['[[Type]]'] === CompletionType.return) {
@@ -85,17 +86,19 @@ export class $Function<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget
-  public '[[Construct]]'(argumentsList: readonly $Any[], newTarget: $Object): $Object {
+  public '[[Construct]]'(
+    ctx: ExecutionContext,
+    argumentsList: readonly $Any[],
+    newTarget: $Object,
+  ): $Object {
     // 1. Assert: F is an ECMAScript function object.
     const F = this;
-    const realm = F['[[Realm]]'];
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
     const stack = realm.stack;
 
     // 2. Assert: Type(newTarget) is Object.
     // 3. Let callerContext be the running execution context.
-    const callerContext = stack.top;
-
     // 4. Let kind be F.[[ConstructorKind]].
     const kind = F['[[ConstructorKind]]'];
 
@@ -103,18 +106,18 @@ export class $Function<
     // 5. If kind is "base", then
     if (kind === 'base') {
       // 5. a. Let thisArgument be ? OrdinaryCreateFromConstructor(newTarget, "%ObjectPrototype%").
-      thisArgument = $OrdinaryCreateFromConstructor(newTarget, '%ObjectPrototype%');
+      thisArgument = $OrdinaryCreateFromConstructor(ctx, newTarget, '%ObjectPrototype%');
     } else {
       thisArgument = intrinsics.undefined;
     }
 
     // 6. Let calleeContext be PrepareForOrdinaryCall(F, newTarget).
-    const calleeContext = $PrepareForOrdinaryCall(F, newTarget);
+    const calleeContext = $PrepareForOrdinaryCall(ctx, F, newTarget);
 
     // 7. Assert: calleeContext is now the running execution context.
     // 8. If kind is "base", perform OrdinaryCallBindThis(F, calleeContext, thisArgument).
     if (kind === 'base') {
-      $OrdinaryCallBindThis(F, calleeContext, thisArgument);
+      $OrdinaryCallBindThis(ctx, F, calleeContext, thisArgument);
     }
 
     // 9. Let constructorEnv be the LexicalEnvironment of calleeContext.
@@ -122,28 +125,49 @@ export class $Function<
     const envRec = calleeContext.LexicalEnvironment;
 
     // 11. Let result be OrdinaryCallEvaluateBody(F, argumentsList).
-    const result = $OrdinaryCallEvaluateBody(F, argumentsList);
+    const result = (F['[[ECMAScriptCode]]'] as $FunctionDeclaration).EvaluateBody(calleeContext, F, argumentsList);
 
     // 12. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
     stack.pop();
 
     // 13. If result.[[Type]] is return, then
-    // 13. a. If Type(result.[[Value]]) is Object, return NormalCompletion(result.[[Value]]).
-    // 13. b. If kind is "base", return NormalCompletion(thisArgument).
-    // 13. c. If result.[[Value]] is not undefined, throw a TypeError exception.
-    // 14. Else, ReturnIfAbrupt(result).
-    // 15. Return ? envRec.GetThisBinding().
+    if (result['[[Type]]'] === CompletionType.return) {
+      // 13. a. If Type(result.[[Value]]) is Object, return NormalCompletion(result.[[Value]]).
+      if (result.isObject) {
+        return result.ToCompletion(CompletionType.normal, intrinsics.empty);
+      }
 
-    // TODO: integrate with CompletionRecord
-    return result as $Object;
+      // 13. b. If kind is "base", return NormalCompletion(thisArgument).
+      if (kind === 'base') {
+        return (thisArgument as $Object).ToCompletion(CompletionType.normal, intrinsics.empty);
+      }
+
+      // 13. c. If result.[[Value]] is not undefined, throw a TypeError exception.
+      if (!result.isUndefined) {
+        throw new TypeError();
+      }
+    }
+    // 14. Else, ReturnIfAbrupt(result).
+    else {
+      if (result.isAbrupt) {
+        return result as $Object;
+      }
+    }
+
+    // 15. Return ? envRec.GetThisBinding().
+    return (envRec as $FunctionEnvRec).GetThisBinding(ctx) as $Object;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-functionallocate
   public static FunctionAllocate(
+    ctx: ExecutionContext,
     functionPrototype: $Object,
     strict: $Boolean,
     functionKind: 'normal' | 'non-constructor' | 'generator' | 'async' | 'async generator',
   ): $Function {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     // 1. Assert: Type(functionPrototype) is Object.
     // 2. Assert: functionKind is either "normal", "non-constructor", "generator", "async", or "async generator".
     // 3. If functionKind is "normal", let needsConstruct be true.
@@ -154,9 +178,6 @@ export class $Function<
     if (functionKind === 'non-constructor') {
       functionKind = 'normal';
     }
-
-    const realm = functionPrototype.realm;
-    const intrinsics = realm['[[Intrinsics]]'];
 
     // 6. Let F be a newly created ECMAScript function object with the internal slots listed in Table 27. All of those internal slots are initialized to undefined.
     const F = new $Function(realm, 'function', functionPrototype);
@@ -191,12 +212,13 @@ export class $Function<
 
   // http://www.ecma-international.org/ecma-262/#sec-functioninitialize
   public static FunctionInitialize(
+    ctx: ExecutionContext,
     F: $Function,
     kind: 'normal' | 'method' | 'arrow',
     node: $FunctionDeclaration | $MethodDeclaration | $ArrowFunction,
     Scope: $EnvRec,
   ): $Function {
-    const realm = F['[[Realm]]'];
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Let len be the ExpectedArgumentCount of ParameterList.
@@ -208,7 +230,7 @@ export class $Function<
     Desc['[[Writable]]'] = intrinsics.false;
     Desc['[[Enumerable]]'] = intrinsics.false;
     Desc['[[Configurable]]'] = intrinsics.true;
-    $DefinePropertyOrThrow(F, intrinsics.length, Desc);
+    $DefinePropertyOrThrow(ctx, F, intrinsics.length, Desc);
 
     // 3. Let Strict be F.[[Strict]].
     const Strict = F['[[Strict]]'];
@@ -243,13 +265,14 @@ export class $Function<
 
   // http://www.ecma-international.org/ecma-262/#sec-functioncreate
   public static FunctionCreate(
+    ctx: ExecutionContext,
     kind: 'normal' | 'method' | 'arrow',
     node: $FunctionDeclaration | $MethodDeclaration | $ArrowFunction,
     Scope: $EnvRec,
     Strict: $Boolean,
     prototype?: $Object,
   ) {
-    const realm = node.realm;
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. If prototype is not present, then
@@ -269,15 +292,19 @@ export class $Function<
     }
 
     // 4. Let F be FunctionAllocate(prototype, Strict, allocKind).
-    const F = this.FunctionAllocate(prototype!, Strict, allocKind);
+    const F = this.FunctionAllocate(ctx, prototype!, Strict, allocKind);
 
     // 5. Return FunctionInitialize(F, kind, ParameterList, Body, Scope).
-    return this.FunctionInitialize(F, kind, node, Scope);
+    return this.FunctionInitialize(ctx, F, kind, node, Scope);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-makeconstructor
-  public MakeConstructor(writablePrototype?: $Boolean, prototype?: $Object): void {
-    const realm = this.realm;
+  public MakeConstructor(
+    ctx: ExecutionContext,
+    writablePrototype?: $Boolean,
+    prototype?: $Object,
+  ): void {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
     const F = this;
 
@@ -292,7 +319,7 @@ export class $Function<
     // 5. If prototype is not present, then
     if (prototype === void 0) {
       // 5. a. Set prototype to ObjectCreate(%ObjectPrototype%).
-      prototype = $Object.ObjectCreate('constructor', intrinsics['%ObjectPrototype%']);
+      prototype = $Object.ObjectCreate(ctx, 'constructor', intrinsics['%ObjectPrototype%']);
 
       // 5. b. Perform ! DefinePropertyOrThrow(prototype, "constructor", PropertyDescriptor { [[Value]]: F, [[Writable]]: writablePrototype, [[Enumerable]]: false, [[Configurable]]: true }).
       const Desc = new $PropertyDescriptor(realm, intrinsics.$constructor);
@@ -301,7 +328,7 @@ export class $Function<
       Desc['[[Enumerable]]'] = intrinsics.false;
       Desc['[[Configurable]]'] = intrinsics.true;
 
-      $DefinePropertyOrThrow(prototype, intrinsics.$constructor, Desc);
+      $DefinePropertyOrThrow(ctx, prototype, intrinsics.$constructor, Desc);
     }
 
     // 6. Perform ! DefinePropertyOrThrow(F, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: writablePrototype, [[Enumerable]]: false, [[Configurable]]: false }).
@@ -311,14 +338,18 @@ export class $Function<
     Desc['[[Enumerable]]'] = intrinsics.false;
     Desc['[[Configurable]]'] = intrinsics.false;
 
-    $DefinePropertyOrThrow(F, intrinsics.$prototype, Desc);
+    $DefinePropertyOrThrow(ctx, F, intrinsics.$prototype, Desc);
 
     // 7. Return NormalCompletion(undefined).
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-setfunctionname
-  public SetFunctionName(name: $String | $Symbol, prefix?: $String): $Boolean {
-    const realm = this.realm;
+  public SetFunctionName(
+    ctx: ExecutionContext,
+    name: $String | $Symbol,
+    prefix?: $String,
+  ): $Boolean {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Assert: F is an extensible object that does not have a name own property.
@@ -352,37 +383,39 @@ export class $Function<
     Desc['[[Enumerable]]'] = intrinsics.false;
     Desc['[[Configurable]]'] = intrinsics.true;
 
-    return $DefinePropertyOrThrow(this, intrinsics.$name, Desc);
+    return $DefinePropertyOrThrow(ctx, this, intrinsics.$name, Desc);
   }
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-ordinarycreatefromconstructor
 function $OrdinaryCreateFromConstructor<T extends keyof Intrinsics = keyof Intrinsics, TSlots extends {} = {}>(
+  ctx: ExecutionContext,
   constructor: $Object,
   intrinsicDefaultProto: T,
   internalSlotsList?: TSlots,
 ): $Object<T> & TSlots {
   // 1. Assert: intrinsicDefaultProto is a String value that is this specification's name of an intrinsic object. The corresponding object must be an intrinsic that is intended to be used as the [[Prototype]] value of an object.
   // 2. Let proto be ? GetPrototypeFromConstructor(constructor, intrinsicDefaultProto).
-  const proto = $GetPrototypeFromConstructor(constructor, intrinsicDefaultProto);
+  const proto = $GetPrototypeFromConstructor(ctx, constructor, intrinsicDefaultProto);
 
   // 3. Return ObjectCreate(proto, internalSlotsList).
-  return $Object.ObjectCreate(intrinsicDefaultProto, proto, internalSlotsList);
+  return $Object.ObjectCreate(ctx, intrinsicDefaultProto, proto, internalSlotsList);
 }
 
 
 // http://www.ecma-international.org/ecma-262/#sec-getprototypefromconstructor
 function $GetPrototypeFromConstructor<T extends keyof Intrinsics = keyof Intrinsics>(
+  ctx: ExecutionContext,
   constructor: $Object,
   intrinsicDefaultProto: T,
 ): $Object {
-  const realm = constructor.realm;
+  const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
   // 1. Assert: intrinsicDefaultProto is a String value that is this specification's name of an intrinsic object. The corresponding object must be an intrinsic that is intended to be used as the [[Prototype]] value of an object.
   // 2. Assert: IsCallable(constructor) is true.
   // 3. Let proto be ? Get(constructor, "prototype").
-  let proto = $Get(constructor, intrinsics.$prototype);
+  let proto = $Get(ctx, constructor, intrinsics.$prototype);
 
   // 4. If Type(proto) is not Object, then
   if (!proto.isObject) {
@@ -396,13 +429,14 @@ function $GetPrototypeFromConstructor<T extends keyof Intrinsics = keyof Intrins
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-prepareforordinarycall
-function $PrepareForOrdinaryCall(F: $Function, newTarget: $Object | $Undefined): ExecutionContext {
-  const realm = F.realm;
-  const stack = realm.stack;
-
+function $PrepareForOrdinaryCall(
+  ctx: ExecutionContext,
+  F: $Function,
+  newTarget: $Object | $Undefined,
+): ExecutionContext {
   // 1. Assert: Type(newTarget) is Undefined or Object.
   // 2. Let callerContext be the running execution context.
-  const callerContext = stack.top;
+  const callerContext = ctx;
 
   // 3. Let calleeContext be a new ECMAScript code execution context.
   const calleeContext = new ExecutionContext();
@@ -411,7 +445,7 @@ function $PrepareForOrdinaryCall(F: $Function, newTarget: $Object | $Undefined):
   calleeContext.Function = F;
 
   // 5. Let calleeRealm be F.[[Realm]].
-  const calleeRealm = realm;
+  const calleeRealm = F['[[Realm]]'];
 
   // 6. Set the Realm of calleeContext to calleeRealm.
   calleeContext.Realm = calleeRealm;
@@ -420,7 +454,7 @@ function $PrepareForOrdinaryCall(F: $Function, newTarget: $Object | $Undefined):
   callerContext.ScriptOrModule = F['[[ScriptOrModule]]'];
 
   // 8. Let localEnv be NewFunctionEnvironment(F, newTarget).
-  const localEnv = new $FunctionEnvRec(realm, F, newTarget);
+  const localEnv = new $FunctionEnvRec(calleeRealm, F, newTarget);
 
   // 9. Set the LexicalEnvironment of calleeContext to localEnv.
   calleeContext.LexicalEnvironment = localEnv;
@@ -432,7 +466,7 @@ function $PrepareForOrdinaryCall(F: $Function, newTarget: $Object | $Undefined):
   callerContext.suspend();
 
   // 12. Push calleeContext onto the execution context stack; calleeContext is now the running execution context.
-  stack.push(calleeContext);
+  calleeRealm.stack.push(calleeContext);
 
   // 13. NOTE: Any exception objects produced after this point are associated with calleeRealm.
   // 14. Return calleeContext.
@@ -442,22 +476,22 @@ function $PrepareForOrdinaryCall(F: $Function, newTarget: $Object | $Undefined):
 
 // http://www.ecma-international.org/ecma-262/#sec-ordinarycallbindthis
 function $OrdinaryCallBindThis(
+  ctx: ExecutionContext,
   F: $Function,
   calleeContext: ExecutionContext,
   thisArgument: $AnyNonEmpty,
 ): $AnyNonEmpty {
-  const calleeRealm = F['[[Realm]]'];
-  const intrinsics = calleeRealm['[[Intrinsics]]'];
-
   // 1. Let thisMode be F.[[ThisMode]].
   const thisMode = F['[[ThisMode]]'];
 
   // 2. If thisMode is lexical, return NormalCompletion(undefined).
   if (thisMode === 'lexical') {
-    return intrinsics.undefined;
+    return new $Undefined(ctx.Realm);
   }
 
   // 3. Let calleeRealm be F.[[Realm]].'];
+  const calleeRealm = F['[[Realm]]'];
+
   // 4. Let localEnv be the LexicalEnvironment of calleeContext.
   const localEnv = calleeContext.LexicalEnvironment;
 
@@ -481,7 +515,7 @@ function $OrdinaryCallBindThis(
     // 6. b. Else,
     else {
       // 6. b. i. Let thisValue be ! ToObject(thisArgument).
-      thisValue = thisArgument.ToObject();
+      thisValue = thisArgument.ToObject(ctx);
 
       // 6. b. ii. NOTE: ToObject produces wrapper objects using calleeRealm.
     }
@@ -494,16 +528,7 @@ function $OrdinaryCallBindThis(
   // 9. Assert: The next step never returns an abrupt completion because envRec.[[ThisBindingStatus]] is not "initialized".
 
   // 10. Return envRec.BindThisValue(thisValue).
-  return envRec.BindThisValue(thisValue);
-}
-
-// http://www.ecma-international.org/ecma-262/#sec-ordinarycallevaluatebody
-function $OrdinaryCallEvaluateBody(
-  F: $Function,
-  argumentsList: readonly $Any[],
-): $AnyNonEmpty {
-  // TODO: hook this up to EvaluateBody
-  return null as any;
+  return envRec.BindThisValue(ctx, thisValue);
 }
 
 export type FunctionKind = 'normal' | 'classConstructor' | 'generator' | 'async' | 'async generator';

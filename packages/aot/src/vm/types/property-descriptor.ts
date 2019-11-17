@@ -1,4 +1,4 @@
-import { Realm } from '../realm';
+import { Realm, ExecutionContext } from '../realm';
 import { $Boolean } from './boolean';
 import { $Undefined } from './undefined';
 import { $Empty } from './empty';
@@ -86,8 +86,10 @@ export class $PropertyDescriptor {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-completepropertydescriptor
-  public Complete(): this {
-    const realm = this.realm;
+  public Complete(
+    ctx: ExecutionContext,
+  ): this {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Assert: Desc is a Property Descriptor.

@@ -1,5 +1,5 @@
 import { nextValueId, $Any, Int32, Uint32, Int16, Uint16, Int8, Uint8, Uint8Clamp, PotentialNonEmptyCompletionType, CompletionTarget, CompletionType } from './_shared';
-import { Realm } from '../realm';
+import { Realm, ExecutionContext } from '../realm';
 import { $ExportDeclaration, $ExportSpecifier, $ClassDeclaration, $FunctionDeclaration, $VariableStatement, $SourceFile, $NullLiteral } from '../ast';
 import { $Object } from './object';
 import { $String } from './string';
@@ -70,23 +70,33 @@ export class $Null {
     // 3. Return Completion { [[Type]]: completionRecord.[[Type]], [[Value]]: value, [[Target]]: completionRecord.[[Target]] }.
   }
 
-  public ToObject(): $Object {
+  public ToObject(
+    ctx: ExecutionContext,
+  ): $Object {
     throw new TypeError(`Cannot convert null to object`);
   }
 
-  public ToPropertyKey(): $String {
-    return this.ToString();
+  public ToPropertyKey(
+    ctx: ExecutionContext,
+  ): $String {
+    return this.ToString(ctx);
   }
 
-  public ToLength(): $Number {
-    return this.ToNumber().ToLength();
+  public ToLength(
+    ctx: ExecutionContext,
+  ): $Number {
+    return this.ToNumber(ctx).ToLength(ctx);
   }
 
-  public ToPrimitive(): this {
+  public ToPrimitive(
+    ctx: ExecutionContext,
+  ): this {
     return this;
   }
 
-  public ToBoolean(): $Boolean {
+  public ToBoolean(
+    ctx: ExecutionContext,
+  ): $Boolean {
     return new $Boolean(
       /* realm */this.realm,
       /* value */Boolean(this['[[Value]]']),
@@ -97,7 +107,9 @@ export class $Null {
     );
   }
 
-  public ToNumber(): $Number {
+  public ToNumber(
+    ctx: ExecutionContext,
+  ): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Number(this['[[Value]]']),
@@ -108,7 +120,9 @@ export class $Null {
     );
   }
 
-  public ToInt32(): $Number {
+  public ToInt32(
+    ctx: ExecutionContext,
+  ): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Int32(this['[[Value]]']),
@@ -119,7 +133,9 @@ export class $Null {
     );
   }
 
-  public ToUint32(): $Number {
+  public ToUint32(
+    ctx: ExecutionContext,
+  ): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Uint32(this['[[Value]]']),
@@ -130,7 +146,9 @@ export class $Null {
     );
   }
 
-  public ToInt16(): $Number {
+  public ToInt16(
+    ctx: ExecutionContext,
+  ): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Int16(this['[[Value]]']),
@@ -141,7 +159,9 @@ export class $Null {
     );
   }
 
-  public ToUint16(): $Number {
+  public ToUint16(
+    ctx: ExecutionContext,
+  ): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Uint16(this['[[Value]]']),
@@ -152,7 +172,9 @@ export class $Null {
     );
   }
 
-  public ToInt8(): $Number {
+  public ToInt8(
+    ctx: ExecutionContext,
+  ): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Int8(this['[[Value]]']),
@@ -163,7 +185,9 @@ export class $Null {
     );
   }
 
-  public ToUint8(): $Number {
+  public ToUint8(
+    ctx: ExecutionContext,
+  ): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Uint8(this['[[Value]]']),
@@ -174,7 +198,9 @@ export class $Null {
     );
   }
 
-  public ToUint8Clamp(): $Number {
+  public ToUint8Clamp(
+    ctx: ExecutionContext,
+  ): $Number {
     return new $Number(
       /* realm */this.realm,
       /* value */Uint8Clamp(this['[[Value]]']),
@@ -185,7 +211,9 @@ export class $Null {
     );
   }
 
-  public ToString(): $String {
+  public ToString(
+    ctx: ExecutionContext,
+  ): $String {
     return new $String(
       /* realm */this.realm,
       /* value */String(this['[[Value]]']),

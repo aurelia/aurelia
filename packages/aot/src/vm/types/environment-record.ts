@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { IModule, Realm } from '../realm';
+import { IModule, Realm, ExecutionContext } from '../realm';
 import { $Get, $DefinePropertyOrThrow, $Set, $HasOwnProperty } from '../operations';
 import { $PropertyDescriptor } from './property-descriptor';
 import { $Any, $AnyNonEmpty } from './_shared';
@@ -76,7 +76,10 @@ export class $DeclarativeEnvRec {
 
   // Overrides
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-hasbinding-n
-  public HasBinding(N: $String): $Boolean {
+  public HasBinding(
+    ctx: ExecutionContext,
+    N: $String,
+  ): $Boolean {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the declarative Environment Record for which the method was invoked.
@@ -92,7 +95,11 @@ export class $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-createmutablebinding-n-d
-  public CreateMutableBinding(N: $String, D: $Boolean): $Empty {
+  public CreateMutableBinding(
+    ctx: ExecutionContext,
+    N: $String,
+    D: $Boolean,
+  ): $Empty {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the declarative Environment Record for which the method was invoked.
@@ -116,7 +123,11 @@ export class $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-createimmutablebinding-n-s
-  public CreateImmutableBinding(N: $String, S: $Boolean): $Empty {
+  public CreateImmutableBinding(
+    ctx: ExecutionContext,
+    N: $String,
+    S: $Boolean,
+  ): $Empty {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the declarative Environment Record for which the method was invoked.
@@ -140,7 +151,11 @@ export class $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-initializebinding-n-v
-  public InitializeBinding(N: $String, V: $AnyNonEmpty): $Empty {
+  public InitializeBinding(
+    ctx: ExecutionContext,
+    N: $String,
+    V: $AnyNonEmpty,
+  ): $Empty {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the declarative Environment Record for which the method was invoked.
@@ -160,7 +175,12 @@ export class $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-setmutablebinding-n-v-s
-  public SetMutableBinding(N: $String, V: $AnyNonEmpty, S: $Boolean): $Empty {
+  public SetMutableBinding(
+    ctx: ExecutionContext,
+    N: $String,
+    V: $AnyNonEmpty,
+    S: $Boolean,
+  ): $Empty {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the declarative Environment Record for which the method was invoked.
@@ -176,10 +196,10 @@ export class $DeclarativeEnvRec {
       }
 
       // 2. b. Perform envRec.CreateMutableBinding(N, true).
-      envRec.CreateMutableBinding(N, intrinsics.true);
+      envRec.CreateMutableBinding(ctx, N, intrinsics.true);
 
       // 2. c. Perform envRec.InitializeBinding(N, V).
-      envRec.InitializeBinding(N, V);
+      envRec.InitializeBinding(ctx, N, V);
 
       // 2. d. Return NormalCompletion(empty).
       return intrinsics.empty;
@@ -212,7 +232,11 @@ export class $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-getbindingvalue-n-s
-  public GetBindingValue(N: $String, S: $Boolean): $AnyNonEmpty {
+  public GetBindingValue(
+    ctx: ExecutionContext,
+    N: $String,
+    S: $Boolean,
+  ): $AnyNonEmpty {
     // 1. Let envRec be the declarative Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -229,7 +253,10 @@ export class $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-deletebinding-n
-  public DeleteBinding(N: $String): $Boolean {
+  public DeleteBinding(
+    ctx: ExecutionContext,
+    N: $String,
+  ): $Boolean {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the declarative Environment Record for which the method was invoked.
@@ -252,7 +279,9 @@ export class $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-hasthisbinding
-  public HasThisBinding(): $Boolean {
+  public HasThisBinding(
+    ctx: ExecutionContext,
+  ): $Boolean {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return false.
@@ -260,7 +289,9 @@ export class $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-hassuperbinding
-  public HasSuperBinding(): $Boolean {
+  public HasSuperBinding(
+    ctx: ExecutionContext,
+  ): $Boolean {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return false.
@@ -268,7 +299,9 @@ export class $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-withbaseobject
-  public WithBaseObject(): $Undefined {
+  public WithBaseObject(
+    ctx: ExecutionContext,
+  ): $Undefined {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return undefined.
@@ -309,7 +342,10 @@ export class $ObjectEnvRec {
 
   // Overrides
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-hasbinding-n
-  public HasBinding(N: $String): $Boolean {
+  public HasBinding(
+    ctx: ExecutionContext,
+    N: $String,
+  ): $Boolean {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
 
@@ -320,7 +356,7 @@ export class $ObjectEnvRec {
     const bindings = envRec.bindingObject;
 
     // 3. Let foundBinding be ? HasProperty(bindings, N).
-    const foundBinding = bindings['[[HasProperty]]'](N);
+    const foundBinding = bindings['[[HasProperty]]'](ctx, N);
 
     // 4. If foundBinding is false, return false.
     if (foundBinding.isFalsey) {
@@ -333,12 +369,12 @@ export class $ObjectEnvRec {
     }
 
     // 6. Let unscopables be ? Get(bindings, @@unscopables).
-    const unscopables = $Get(bindings, intrinsics['@@unscopables']);
+    const unscopables = $Get(ctx, bindings, intrinsics['@@unscopables']);
 
     // 7. If Type(unscopables) is Object, then
     if (unscopables.isObject) {
       // 7. a. Let blocked be ToBoolean(? Get(unscopables, N)).
-      const blocked = $Get(unscopables, N).isTruthy;
+      const blocked = $Get(ctx, unscopables, N).isTruthy;
 
       // 7. b. If blocked is true, return false.
       if (blocked) {
@@ -351,8 +387,12 @@ export class $ObjectEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-createmutablebinding-n-d
-  public CreateMutableBinding(N: $String, D: $Boolean): $Boolean {
-    const realm = this.realm;
+  public CreateMutableBinding(
+    ctx: ExecutionContext,
+    N: $String,
+    D: $Boolean,
+  ): $Boolean {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the object Environment Record for which the method was invoked.
@@ -367,17 +407,25 @@ export class $ObjectEnvRec {
     Desc['[[Writable]]'] = intrinsics.true;
     Desc['[[Enumerable]]'] = intrinsics.true;
     Desc['[[Configurable]]'] = D;
-    return $DefinePropertyOrThrow(bindings, N, Desc);
+    return $DefinePropertyOrThrow(ctx, bindings, N, Desc);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-createimmutablebinding-n-s
-  public CreateImmutableBinding(N: $String, S: $Boolean): $Boolean {
+  public CreateImmutableBinding(
+    ctx: ExecutionContext,
+    N: $String,
+    S: $Boolean,
+  ): $Boolean {
     // The concrete Environment Record method CreateImmutableBinding is never used within this specification in association with object Environment Records.
     throw new Error('Should not be called');
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-initializebinding-n-v
-  public InitializeBinding(N: $String, V: $AnyNonEmpty): $Boolean {
+  public InitializeBinding(
+    ctx: ExecutionContext,
+    N: $String,
+    V: $AnyNonEmpty,
+  ): $Boolean {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the object Environment Record for which the method was invoked.
@@ -388,11 +436,16 @@ export class $ObjectEnvRec {
     // TODO: record
 
     // 4. Return ? envRec.SetMutableBinding(N, V, false).
-    return envRec.SetMutableBinding(N, V, intrinsics.false);
+    return envRec.SetMutableBinding(ctx, N, V, intrinsics.false);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-setmutablebinding-n-v-s
-  public SetMutableBinding(N: $String, V: $AnyNonEmpty, S: $Boolean): $Boolean {
+  public SetMutableBinding(
+    ctx: ExecutionContext,
+    N: $String,
+    V: $AnyNonEmpty,
+    S: $Boolean,
+  ): $Boolean {
     // 1. Let envRec be the object Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -400,11 +453,15 @@ export class $ObjectEnvRec {
     const bindings = envRec.bindingObject;
 
     // 3. Return ? Set(bindings, N, V, S).
-    return $Set(bindings, N, V, S);
+    return $Set(ctx, bindings, N, V, S);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-getbindingvalue-n-s
-  public GetBindingValue(N: $String, S: $Boolean): $AnyNonEmpty {
+  public GetBindingValue(
+    ctx: ExecutionContext,
+    N: $String,
+    S: $Boolean,
+  ): $AnyNonEmpty {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the object Environment Record for which the method was invoked.
@@ -414,7 +471,7 @@ export class $ObjectEnvRec {
     const bindings = envRec.bindingObject;
 
     // 3. Let value be ? HasProperty(bindings, N).
-    const value = bindings['[[HasProperty]]'](N);
+    const value = bindings['[[HasProperty]]'](ctx, N);
 
     // 4. If value is false, then
     if (value.isFalsey) {
@@ -427,11 +484,14 @@ export class $ObjectEnvRec {
     }
 
     // 5. Return ? Get(bindings, N).
-    return $Get(bindings, N);
+    return $Get(ctx, bindings, N);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-deletebinding-n
-  public DeleteBinding(N: $String): $Boolean {
+  public DeleteBinding(
+    ctx: ExecutionContext,
+    N: $String,
+  ): $Boolean {
     // 1. Let envRec be the object Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -439,11 +499,13 @@ export class $ObjectEnvRec {
     const bindings = envRec.bindingObject;
 
     // 3. Return ? bindings.[[Delete]](N).
-    return bindings['[[Delete]]'](N);
+    return bindings['[[Delete]]'](ctx, N);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-hasthisbinding
-  public HasThisBinding(): $Boolean<false> {
+  public HasThisBinding(
+    ctx: ExecutionContext,
+  ): $Boolean<false> {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return false.
@@ -451,7 +513,9 @@ export class $ObjectEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-hassuperbinding
-  public HasSuperBinding(): $Boolean<false> {
+  public HasSuperBinding(
+    ctx: ExecutionContext,
+  ): $Boolean<false> {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return false.
@@ -459,7 +523,9 @@ export class $ObjectEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-withbaseobject
-  public WithBaseObject(): $Object | $Undefined {
+  public WithBaseObject(
+    ctx: ExecutionContext,
+  ): $Object | $Undefined {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the object Environment Record for which the method was invoked.
@@ -543,7 +609,9 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
 
   // Overrides
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-hasthisbinding
-  public HasThisBinding(): $Boolean {
+  public HasThisBinding(
+    ctx: ExecutionContext,
+  ): $Boolean {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the function Environment Record for which the method was invoked.
@@ -558,7 +626,9 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-hassuperbinding
-  public HasSuperBinding(): $Boolean {
+  public HasSuperBinding(
+    ctx: ExecutionContext,
+  ): $Boolean {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the function Environment Record for which the method was invoked.
@@ -579,7 +649,10 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
 
   // Additions
   // http://www.ecma-international.org/ecma-262/#sec-bindthisvalue
-  public BindThisValue<T extends $AnyNonEmpty>(V: T): T {
+  public BindThisValue<T extends $AnyNonEmpty>(
+    ctx: ExecutionContext,
+    V: T,
+  ): T {
     // 1. Let envRec be the function Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -600,7 +673,9 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-environment-records-getthisbinding
-  public GetThisBinding(): $AnyNonEmpty {
+  public GetThisBinding(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
     // 1. Let envRec be the function Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -615,7 +690,9 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-getsuperbase
-  public GetSuperBase(): $Object | $Null | $Undefined {
+  public GetSuperBase(
+    ctx: ExecutionContext,
+  ): $Object | $Null | $Undefined {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the function Environment Record for which the method was invoked.
@@ -631,7 +708,7 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
 
     // 4. Assert: Type(home) is Object.
     // 5. Return ? home.[[GetPrototypeOf]]().
-    return home['[[GetPrototypeOf]]']();
+    return home['[[GetPrototypeOf]]'](ctx);
   }
 }
 
@@ -695,7 +772,10 @@ export class $GlobalEnvRec {
 
   // Overrides
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-hasbinding-n
-  public HasBinding(N: $String): $Boolean {
+  public HasBinding(
+    ctx: ExecutionContext,
+    N: $String,
+  ): $Boolean {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the global Environment Record for which the method was invoked.
@@ -705,7 +785,7 @@ export class $GlobalEnvRec {
     const dclRec = envRec['[[DeclarativeRecord]]'];
 
     // 3. If DclRec.HasBinding(N) is true, return true.
-    if (dclRec.HasBinding(N).isTruthy) {
+    if (dclRec.HasBinding(ctx, N).isTruthy) {
       return intrinsics.true;
     }
 
@@ -713,11 +793,15 @@ export class $GlobalEnvRec {
     const objRec = envRec['[[ObjectRecord]]'];
 
     // 5. Return ? ObjRec.HasBinding(N).
-    return objRec.HasBinding(N);
+    return objRec.HasBinding(ctx, N);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-createmutablebinding-n-d
-  public CreateMutableBinding(N: $String, D: $Boolean): $Empty {
+  public CreateMutableBinding(
+    ctx: ExecutionContext,
+    N: $String,
+    D: $Boolean,
+  ): $Empty {
     // 1. Let envRec be the global Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -725,16 +809,20 @@ export class $GlobalEnvRec {
     const dclRec = envRec['[[DeclarativeRecord]]'];
 
     // 3. If DclRec.HasBinding(N) is true, throw a TypeError exception.
-    if (dclRec.HasBinding(N).isTruthy) {
+    if (dclRec.HasBinding(ctx, N).isTruthy) {
       throw new TypeError('3. If DclRec.HasBinding(N) is true, throw a TypeError exception.');
     }
 
     // 4. Return DclRec.CreateMutableBinding(N, D).
-    return dclRec.CreateMutableBinding(N, D);
+    return dclRec.CreateMutableBinding(ctx, N, D);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-createimmutablebinding-n-s
-  public CreateImmutableBinding(N: $String, S: $Boolean): $Empty {
+  public CreateImmutableBinding(
+    ctx: ExecutionContext,
+    N: $String,
+    S: $Boolean,
+  ): $Empty {
     // 1. Let envRec be the global Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -742,16 +830,20 @@ export class $GlobalEnvRec {
     const dclRec = envRec['[[DeclarativeRecord]]'];
 
     // 3. If DclRec.HasBinding(N) is true, throw a TypeError exception.
-    if (dclRec.HasBinding(N).isTruthy) {
+    if (dclRec.HasBinding(ctx, N).isTruthy) {
       throw new TypeError('3. If DclRec.HasBinding(N) is true, throw a TypeError exception.');
     }
 
     // 4. Return DclRec.CreateImmutableBinding(N, S).
-    return dclRec.CreateImmutableBinding(N, S);
+    return dclRec.CreateImmutableBinding(ctx, N, S);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-initializebinding-n-v
-  public InitializeBinding(N: $String, V: $AnyNonEmpty): $Boolean | $Empty {
+  public InitializeBinding(
+    ctx: ExecutionContext,
+    N: $String,
+    V: $AnyNonEmpty,
+  ): $Boolean | $Empty {
     // 1. Let envRec be the global Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -759,9 +851,9 @@ export class $GlobalEnvRec {
     const dclRec = envRec['[[DeclarativeRecord]]'];
 
     // 3. If DclRec.HasBinding(N) is true, then
-    if (dclRec.HasBinding(N).isTruthy) {
+    if (dclRec.HasBinding(ctx, N).isTruthy) {
       // 3. a. Return DclRec.InitializeBinding(N, V).
-      return dclRec.InitializeBinding(N, V);
+      return dclRec.InitializeBinding(ctx, N, V);
     }
 
     // 4. Assert: If the binding exists, it must be in the object Environment Record.
@@ -769,11 +861,16 @@ export class $GlobalEnvRec {
     const objRec = envRec['[[ObjectRecord]]'];
 
     // 6. Return ? ObjRec.InitializeBinding(N, V).
-    return objRec.InitializeBinding(N, V);
+    return objRec.InitializeBinding(ctx, N, V);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-setmutablebinding-n-v-s
-  public SetMutableBinding(N: $String, V: $AnyNonEmpty, S: $Boolean): $Boolean | $Empty {
+  public SetMutableBinding(
+    ctx: ExecutionContext,
+    N: $String,
+    V: $AnyNonEmpty,
+    S: $Boolean,
+  ): $Boolean | $Empty {
     // 1. Let envRec be the global Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -781,20 +878,24 @@ export class $GlobalEnvRec {
     const dclRec = envRec['[[DeclarativeRecord]]'];
 
     // 3. If DclRec.HasBinding(N) is true, then
-    if (dclRec.HasBinding(N).isTruthy) {
+    if (dclRec.HasBinding(ctx, N).isTruthy) {
       // 3. a. Return DclRec.SetMutableBinding(N, V, S).
-      return dclRec.SetMutableBinding(N, V, S);
+      return dclRec.SetMutableBinding(ctx, N, V, S);
     }
 
     // 4. Let ObjRec be envRec.[[ObjectRecord]].
     const objRec = envRec['[[ObjectRecord]]'];
 
     // 5. Return ? ObjRec.SetMutableBinding(N, V, S).
-    return objRec.SetMutableBinding(N, V, S);
+    return objRec.SetMutableBinding(ctx, N, V, S);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-getbindingvalue-n-s
-  public GetBindingValue(N: $String, S: $Boolean): $AnyNonEmpty {
+  public GetBindingValue(
+    ctx: ExecutionContext,
+    N: $String,
+    S: $Boolean,
+  ): $AnyNonEmpty {
     // 1. Let envRec be the global Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -802,20 +903,23 @@ export class $GlobalEnvRec {
     const dclRec = envRec['[[DeclarativeRecord]]'];
 
     // 3. If DclRec.HasBinding(N) is true, then
-    if (dclRec.HasBinding(N).isTruthy) {
+    if (dclRec.HasBinding(ctx, N).isTruthy) {
       // 3. a. Return DclRec.GetBindingValue(N, S).
-      return dclRec.GetBindingValue(N, S);
+      return dclRec.GetBindingValue(ctx, N, S);
     }
 
     // 4. Let ObjRec be envRec.[[ObjectRecord]].
     const objRec = envRec['[[ObjectRecord]]'];
 
     // 5. Return ? ObjRec.GetBindingValue(N, S).
-    return objRec.GetBindingValue(N, S);
+    return objRec.GetBindingValue(ctx, N, S);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-deletebinding-n
-  public DeleteBinding(N: $String): $Boolean {
+  public DeleteBinding(
+    ctx: ExecutionContext,
+    N: $String,
+  ): $Boolean {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the global Environment Record for which the method was invoked.
@@ -825,9 +929,9 @@ export class $GlobalEnvRec {
     const dclRec = envRec['[[DeclarativeRecord]]'];
 
     // 3. If DclRec.HasBinding(N) is true, then
-    if (dclRec.HasBinding(N).isTruthy) {
+    if (dclRec.HasBinding(ctx, N).isTruthy) {
       // 3. a. Return DclRec.DeleteBinding(N).
-      return dclRec.DeleteBinding(N);
+      return dclRec.DeleteBinding(ctx, N);
     }
 
     // 4. Let ObjRec be envRec.[[ObjectRecord]].
@@ -837,12 +941,12 @@ export class $GlobalEnvRec {
     const globalObject = objRec.bindingObject;
 
     // 6. Let existingProp be ? HasOwnProperty(globalObject, N).
-    const existingProp = $HasOwnProperty(globalObject, N);
+    const existingProp = $HasOwnProperty(ctx, globalObject, N);
 
     // 7. If existingProp is true, then
     if (existingProp.isTruthy) {
       // 7. a. Let status be ? ObjRec.DeleteBinding(N).
-      const status = objRec.DeleteBinding(N);
+      const status = objRec.DeleteBinding(ctx, N);
 
       // 7. b. If status is true, then
       if (status.isTruthy) {
@@ -865,7 +969,9 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-hasthisbinding
-  public HasThisBinding(): $Boolean<true> {
+  public HasThisBinding(
+    ctx: ExecutionContext,
+  ): $Boolean<true> {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return true.
@@ -873,7 +979,9 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-hassuperbinding
-  public HasSuperBinding(): $Boolean<false> {
+  public HasSuperBinding(
+    ctx: ExecutionContext,
+  ): $Boolean<false> {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return false.
@@ -881,7 +989,9 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-withbaseobject
-  public WithBaseObject(): $Undefined {
+  public WithBaseObject(
+    ctx: ExecutionContext,
+  ): $Undefined {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return undefined.
@@ -890,7 +1000,9 @@ export class $GlobalEnvRec {
 
   // Additions
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-getthisbinding
-  public GetThisBinding(): $Object {
+  public GetThisBinding(
+    ctx: ExecutionContext,
+  ): $Object {
     // 1. Let envRec be the global Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -899,7 +1011,10 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-hasvardeclaration
-  public HasVarDeclaration(N: $String): $Boolean {
+  public HasVarDeclaration(
+    ctx: ExecutionContext,
+    N: $String,
+  ): $Boolean {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the global Environment Record for which the method was invoked.
@@ -918,7 +1033,10 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-haslexicaldeclaration
-  public HasLexicalDeclaration(N: $String): $Boolean {
+  public HasLexicalDeclaration(
+    ctx: ExecutionContext,
+    N: $String,
+  ): $Boolean {
     // 1. Let envRec be the global Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -926,11 +1044,14 @@ export class $GlobalEnvRec {
     const dclRec = envRec['[[DeclarativeRecord]]'];
 
     // 3. Return DclRec.HasBinding(N).
-    return dclRec.HasBinding(N);
+    return dclRec.HasBinding(ctx, N);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-hasrestrictedglobalproperty
-  public HasRestrictedGlobalProperty(N: $String): $Boolean {
+  public HasRestrictedGlobalProperty(
+    ctx: ExecutionContext,
+    N: $String,
+  ): $Boolean {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the global Environment Record for which the method was invoked.
@@ -943,7 +1064,7 @@ export class $GlobalEnvRec {
     const globalObject = objRec.bindingObject;
 
     // 4. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
-    const existingProp = globalObject['[[GetOwnProperty]]'](N);
+    const existingProp = globalObject['[[GetOwnProperty]]'](ctx, N);
 
     // 5. If existingProp is undefined, return false.
     if (existingProp.isUndefined) {
@@ -960,7 +1081,10 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-candeclareglobalvar
-  public CanDeclareGlobalVar(N: $String): $Boolean {
+  public CanDeclareGlobalVar(
+    ctx: ExecutionContext,
+    N: $String,
+  ): $Boolean {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the global Environment Record for which the method was invoked.
@@ -973,7 +1097,7 @@ export class $GlobalEnvRec {
     const globalObject = objRec.bindingObject;
 
     // 4. Let hasProperty be ? HasOwnProperty(globalObject, N).
-    const hasProperty = $HasOwnProperty(globalObject, N);
+    const hasProperty = $HasOwnProperty(ctx, globalObject, N);
 
     // 5. If hasProperty is true, return true.
     if (hasProperty.isTruthy) {
@@ -981,11 +1105,14 @@ export class $GlobalEnvRec {
     }
 
     // 6. Return ? IsExtensible(globalObject).
-    return globalObject['[[IsExtensible]]']();
+    return globalObject['[[IsExtensible]]'](ctx);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-candeclareglobalfunction
-  public CanDeclareGlobalFunction(N: $String): $Boolean {
+  public CanDeclareGlobalFunction(
+    ctx: ExecutionContext,
+    N: $String,
+  ): $Boolean {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the global Environment Record for which the method was invoked.
@@ -998,11 +1125,11 @@ export class $GlobalEnvRec {
     const globalObject = objRec.bindingObject;
 
     // 4. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
-    const existingProp = globalObject['[[GetOwnProperty]]'](N);
+    const existingProp = globalObject['[[GetOwnProperty]]'](ctx, N);
 
     // 5. If existingProp is undefined, return ? IsExtensible(globalObject).
     if (existingProp.isUndefined) {
-      return globalObject['[[IsExtensible]]']();
+      return globalObject['[[IsExtensible]]'](ctx);
     }
 
     // 6. If existingProp.[[Configurable]] is true, return true.
@@ -1020,7 +1147,11 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-createglobalvarbinding
-  public CreateGlobalVarBinding(N: $String, D: $Boolean): $Empty {
+  public CreateGlobalVarBinding(
+    ctx: ExecutionContext,
+    N: $String,
+    D: $Boolean,
+  ): $Empty {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the global Environment Record for which the method was invoked.
@@ -1033,18 +1164,18 @@ export class $GlobalEnvRec {
     const globalObject = objRec.bindingObject;
 
     // 4. Let hasProperty be ? HasOwnProperty(globalObject, N).
-    const hasProperty = $HasOwnProperty(globalObject, N);
+    const hasProperty = $HasOwnProperty(ctx, globalObject, N);
 
     // 5. Let extensible be ? IsExtensible(globalObject).
-    const extensible = globalObject['[[IsExtensible]]']();
+    const extensible = globalObject['[[IsExtensible]]'](ctx);
 
     // 6. If hasProperty is false and extensible is true, then
     if (hasProperty.isFalsey && extensible.isTruthy) {
       // 6. a. Perform ? ObjRec.CreateMutableBinding(N, D).
-      objRec.CreateMutableBinding(N, D);
+      objRec.CreateMutableBinding(ctx, N, D);
 
       // 6. b. Perform ? ObjRec.InitializeBinding(N, undefined).
-      objRec.InitializeBinding(N, intrinsics.undefined);
+      objRec.InitializeBinding(ctx, N, intrinsics.undefined);
     }
 
     // 7. Let varDeclaredNames be envRec.[[VarNames]].
@@ -1061,8 +1192,13 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-createglobalfunctionbinding
-  public CreateGlobalFunctionBinding(N: $String, V: $AnyNonEmpty, D: $Boolean): $Empty {
-    const realm = this.realm;
+  public CreateGlobalFunctionBinding(
+    ctx: ExecutionContext,
+    N: $String,
+    V: $AnyNonEmpty,
+    D: $Boolean,
+  ): $Empty {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the global Environment Record for which the method was invoked.
@@ -1075,7 +1211,7 @@ export class $GlobalEnvRec {
     const globalObject = objRec.bindingObject;
 
     // 4. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
-    const existingProp = globalObject['[[GetOwnProperty]]'](N);
+    const existingProp = globalObject['[[GetOwnProperty]]'](ctx, N);
 
     let desc: $PropertyDescriptor;
     // 5. If existingProp is undefined or existingProp.[[Configurable]] is true, then
@@ -1097,13 +1233,13 @@ export class $GlobalEnvRec {
     }
 
     // 7. Perform ? DefinePropertyOrThrow(globalObject, N, desc).
-    $DefinePropertyOrThrow(globalObject, N, desc);
+    $DefinePropertyOrThrow(ctx, globalObject, N, desc);
 
     // 8. Record that the binding for N in ObjRec has been initialized.
     // TODO: record
 
     // 9. Perform ? Set(globalObject, N, V, false).
-    $Set(globalObject, N, V, intrinsics.false);
+    $Set(ctx, globalObject, N, V, intrinsics.false);
 
     // 10. Let varDeclaredNames be envRec.[[VarNames]].
     const varDeclaredNames = envRec['[[VarNames]]'];
@@ -1150,7 +1286,11 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec {
 
   // Overrides
   // http://www.ecma-international.org/ecma-262/#sec-module-environment-records-getbindingvalue-n-s
-  public GetBindingValue(N: $String, S: $Boolean): $AnyNonEmpty {
+  public GetBindingValue(
+    ctx: ExecutionContext,
+    N: $String,
+    S: $Boolean,
+  ): $AnyNonEmpty {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Assert: S is true.
@@ -1176,7 +1316,7 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec {
 
       // 4. d. Let targetER be targetEnv's EnvironmentRecord.
       // 4. e. Return ? targetER.GetBindingValue(N2, true).
-      return targetER.GetBindingValue(N2, intrinsics.true);
+      return targetER.GetBindingValue(ctx, N2, intrinsics.true);
     }
 
     // 5. If the binding for N in envRec is an uninitialized binding, throw a ReferenceError exception.
@@ -1189,13 +1329,18 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-environment-records-deletebinding-n
-  public DeleteBinding(N: never): never {
+  public DeleteBinding(
+    ctx: ExecutionContext,
+    N: never,
+  ): never {
     // 1. Assert: This method is never invoked. See 12.5.3.1.
     throw new Error('1. Assert: This method is never invoked. See 12.5.3.1.');
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-environment-records-hasthisbinding
-  public HasThisBinding(): $Boolean<true> {
+  public HasThisBinding(
+    ctx: ExecutionContext,
+  ): $Boolean<true> {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return true.
@@ -1204,7 +1349,9 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec {
 
   // Additions
   // http://www.ecma-international.org/ecma-262/#sec-module-environment-records-getthisbinding
-  public GetThisBinding(): $Undefined {
+  public GetThisBinding(
+    ctx: ExecutionContext,
+  ): $Undefined {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return undefined.
@@ -1212,7 +1359,12 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-createimportbinding
-  public CreateImportBinding(N: $String, M: IModule, N2: $String): $Empty {
+  public CreateImportBinding(
+    ctx: ExecutionContext,
+    N: $String,
+    M: IModule,
+    N2: $String,
+  ): $Empty {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the module Environment Record for which the method was invoked.

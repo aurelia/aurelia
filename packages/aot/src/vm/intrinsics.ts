@@ -1,4 +1,4 @@
-import { Realm } from './realm';
+import { Realm, ExecutionContext } from './realm';
 import { $Boolean } from './types/boolean';
 import { $Empty } from './types/empty';
 import { $Undefined } from './types/undefined';
@@ -7,9 +7,10 @@ import { $Number } from './types/number';
 import { $String } from './types/string';
 import { $Symbol } from './types/symbol';
 import { $Object } from './types/object';
-import { $Function } from './types/function';
-import { $DefinePropertyOrThrow, $CreateBuiltinFunction } from './operations';
+import { $Function, $BuiltinFunction } from './types/function';
+import { $DefinePropertyOrThrow } from './operations';
 import { $PropertyDescriptor } from './types/property-descriptor';
+import { $AnyNonEmpty } from './types/_shared';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
@@ -507,21 +508,31 @@ export class Intrinsics {
   }
 }
 
+// http://www.ecma-international.org/ecma-262/#sec-%iteratorprototype%-@@iterator
+export class $Symbol_Iterator extends $BuiltinFunction {
+  public constructor(
+    realm: Realm,
+  ) {
+    super(realm, '[Symbol.iterator]');
+    this.SetFunctionName(realm.stack.top, new $String(realm, '[Symbol.iterator]'));
+  }
+
+  public performSteps(
+    ctx: ExecutionContext,
+    thisArgument: $AnyNonEmpty,
+    argumentsList: readonly $AnyNonEmpty[],
+    NewTarget: $AnyNonEmpty,
+  ): $AnyNonEmpty {
+    return thisArgument;
+  }
+}
+
 // http://www.ecma-international.org/ecma-262/#sec-%iteratorprototype%-object
 export class $IteratorPrototype extends $Object<'%IteratorPrototype%'> {
   public constructor(
     realm: Realm,
   ) {
     super(realm, '%IteratorPrototype%', realm['[[Intrinsics]]']['%ObjectPrototype%']);
-
-    const symbolIterator = $CreateBuiltinFunction(
-      realm.stack.top,
-      '[Symbol.iterator]',
-      (ctx, thisArgument, argumentsList, NewTarget) => {
-        return this;
-      },
-    );
-    symbolIterator.SetFunctionName(realm.stack.top, new $String(realm, '[Symbol.iterator]'));
 
     $DefinePropertyOrThrow(
       realm.stack.top,
@@ -531,7 +542,7 @@ export class $IteratorPrototype extends $Object<'%IteratorPrototype%'> {
         realm,
         realm['[[Intrinsics]]']['@@iterator'],
         {
-          '[[Value]]': symbolIterator,
+          '[[Value]]': new $Symbol_Iterator(realm),
         },
       ),
     );

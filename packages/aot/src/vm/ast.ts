@@ -1890,7 +1890,7 @@ function $FunctionDeclarationInstantiation(
     // 28. a. NOTE: A separate Environment Record is needed to ensure that closures created by expressions in the formal parameter list do not have visibility of declarations in the function body.
     // 28. b. Let varEnv be NewDeclarativeEnvironment(env).
     // 28. c. Let varEnvRec be varEnv's EnvironmentRecord.
-    varEnvRec = new $DeclarativeEnvRec(realm, envRec);
+    varEnvRec = new $DeclarativeEnvRec(code.logger, realm, envRec);
 
     // 28. d. Set the VariableEnvironment of calleeContext to varEnv.
     calleeContext.VariableEnvironment = varEnvRec;
@@ -1935,7 +1935,7 @@ function $FunctionDeclarationInstantiation(
   // 30. If strict is false, then
   if (strict.isFalsey) {
     // 30. a. Let lexEnv be NewDeclarativeEnvironment(varEnv).
-    lexEnvRec = new $DeclarativeEnvRec(realm, varEnvRec);
+    lexEnvRec = new $DeclarativeEnvRec(code.logger, realm, varEnvRec);
 
     // 30. b. NOTE: Non-strict functions use a separate lexical Environment Record for top-level lexical declarations so that a direct eval can determine whether any var scoped declarations introduced by the eval code conflict with pre-existing top-level lexically scoped declarations. This is not needed for strict functions because a strict direct eval always places all declarations into a new Environment Record.
   }
@@ -7034,7 +7034,7 @@ export class $SourceFile implements I$Node, IModule {
 
     // 5. Assert: Realm is not undefined.
     // 6. Let env be NewModuleEnvironment(realm.[[GlobalEnv]]).
-    const envRec = new $ModuleEnvRec(realm, realm['[[GlobalEnv]]']);
+    const envRec = new $ModuleEnvRec(this.logger, realm, realm['[[GlobalEnv]]']);
 
     // 7. Set module.[[Environment]] to env.
     this['[[Environment]]'] = envRec;
@@ -9039,7 +9039,7 @@ export class $Block implements I$Node {
     // 1. Let oldEnv be the running execution context's LexicalEnvironment.
     const oldEnv = realm.GetCurrentLexicalEnvironment();
     // 2. Let blockEnv be NewDeclarativeEnvironment(oldEnv).
-    const blockEnv = new $DeclarativeEnvRec(realm, oldEnv);
+    const blockEnv = new $DeclarativeEnvRec(this.logger, realm, oldEnv);
 
     // 3. Perform BlockDeclarationInstantiation(StatementList, blockEnv).
     blockDeclarationInstantiation(ctx, this.LexicallyScopedDeclarations, blockEnv);
@@ -9996,7 +9996,7 @@ export class $SwitchStatement implements I$Node {
     const oldEnv = realm.GetCurrentLexicalEnvironment();
 
     // 4. Let blockEnv be NewDeclarativeEnvironment(oldEnv).
-    const blockEnv = new $DeclarativeEnvRec(realm, oldEnv);
+    const blockEnv = new $DeclarativeEnvRec(this.logger, realm, oldEnv);
 
     // 5. Perform BlockDeclarationInstantiation(CaseBlock, blockEnv).
     blockDeclarationInstantiation(ctx, this.LexicallyScopedDeclarations, blockEnv);

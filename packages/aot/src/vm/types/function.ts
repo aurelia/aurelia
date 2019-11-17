@@ -454,7 +454,7 @@ function $PrepareForOrdinaryCall(
   callerContext.ScriptOrModule = F['[[ScriptOrModule]]'];
 
   // 8. Let localEnv be NewFunctionEnvironment(F, newTarget).
-  const localEnv = new $FunctionEnvRec(calleeRealm, F, newTarget);
+  const localEnv = new $FunctionEnvRec(F['[[ECMAScriptCode]]'].logger, calleeRealm, F, newTarget);
 
   // 9. Set the LexicalEnvironment of calleeContext to localEnv.
   calleeContext.LexicalEnvironment = localEnv;

@@ -1,4 +1,4 @@
-import { Realm } from './realm';
+import { Realm, ExecutionContext } from './realm';
 import { $Boolean } from './types/boolean';
 import { $Empty } from './types/empty';
 import { $Undefined } from './types/undefined';
@@ -7,6 +7,10 @@ import { $Number } from './types/number';
 import { $String } from './types/string';
 import { $Symbol } from './types/symbol';
 import { $Object } from './types/object';
+import { $Function, $BuiltinFunction } from './types/function';
+import { $DefinePropertyOrThrow } from './operations';
+import { $PropertyDescriptor } from './types/property-descriptor';
+import { $AnyNonEmpty } from './types/_shared';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
@@ -145,6 +149,7 @@ export class Intrinsics {
   public readonly 'string': $String<'string'>;
   public readonly 'number': $String<'number'>;
   public readonly 'length': $String<'length'>;
+  public readonly '$arguments': $String<'arguments'>;
   public readonly '$callee': $String<'callee'>;
   public readonly '$constructor': $String<'constructor'>;
   public readonly '$prototype': $String<'prototype'>;
@@ -156,6 +161,7 @@ export class Intrinsics {
   public readonly '$configurable': $String<'configurable'>;
   public readonly '$writable': $String<'writable'>;
   public readonly '$value': $String<'value'>;
+  public readonly '$done': $String<'done'>;
 
   public readonly '$getPrototypeOf': $String<'getPrototypeOf'>;
   public readonly '$setPrototypeOf': $String<'setPrototypeOf'>;
@@ -199,7 +205,7 @@ export class Intrinsics {
   public readonly '%Generator%': $Object<'%Generator%'>;
   public readonly '%AsyncGenerator%': $Object<'%AsyncGenerator%'>;
 
-  public readonly '%IteratorPrototype%': $Object<'%IteratorPrototype%'>;
+  public readonly '%IteratorPrototype%': $IteratorPrototype;
   public readonly '%ArrayIteratorPrototype%': $Object<'%ArrayIteratorPrototype%'>;
   public readonly '%MapIteratorPrototype%': $Object<'%MapIteratorPrototype%'>;
   public readonly '%SetIteratorPrototype%': $Object<'%SetIteratorPrototype%'>;
@@ -298,7 +304,7 @@ export class Intrinsics {
   public readonly '%parseInt%': $Object<'%parseInt%'>;
   public readonly '%JSONParse%': $Object<'%JSONParse%'>;
   public readonly '%JSONStringify%': $Object<'%JSONStringify%'>;
-  public readonly '%ThrowTypeError%': $Object<'%ThrowTypeError%'>;
+  public readonly '%ThrowTypeError%': $Function<'%ThrowTypeError%'>;
 
   public readonly '%ArrayProto_entries%': $Object<'%ArrayProto_entries%'>;
   public readonly '%ArrayProto_forEach%': $Object<'%ArrayProto_forEach%'>;
@@ -332,6 +338,7 @@ export class Intrinsics {
     this['string'] = new $String(realm, 'string');
     this['number'] = new $String(realm, 'number');
     this['length'] = new $String(realm, 'length');
+    this['$arguments'] = new $String(realm, 'arguments');
     this['$callee'] = new $String(realm, 'callee');
     this['$constructor'] = new $String(realm, 'constructor');
     this['$prototype'] = new $String(realm, 'prototype');
@@ -343,6 +350,7 @@ export class Intrinsics {
     this['$configurable'] = new $String(realm, 'configurable');
     this['$writable'] = new $String(realm, 'writable');
     this['$value'] = new $String(realm, 'value');
+    this['$done'] = new $String(realm, 'done');
 
     this['$getPrototypeOf'] = new $String(realm, 'getPrototypeOf');
     this['$setPrototypeOf'] = new $String(realm, 'setPrototypeOf');
@@ -386,7 +394,7 @@ export class Intrinsics {
     this['%Generator%'] = new $Object(realm, '%Generator%', this['%FunctionPrototype%']);
     this['%AsyncGenerator%'] = new $Object(realm, '%AsyncGenerator%', this['%FunctionPrototype%']);
 
-    this['%IteratorPrototype%'] = new $Object(realm, '%IteratorPrototype%', this['%ObjectPrototype%']);
+    this['%IteratorPrototype%'] = new $IteratorPrototype(realm);
     this['%ArrayIteratorPrototype%'] = new $Object(realm, '%ArrayIteratorPrototype%', this['%IteratorPrototype%']);
     this['%MapIteratorPrototype%'] = new $Object(realm, '%MapIteratorPrototype%', this['%IteratorPrototype%']);
     this['%SetIteratorPrototype%'] = new $Object(realm, '%SetIteratorPrototype%', this['%IteratorPrototype%']);
@@ -485,7 +493,7 @@ export class Intrinsics {
     this['%parseInt%'] = new $Object(realm, '%parseInt%', this['%FunctionPrototype%']);
     this['%JSONParse%'] = new $Object(realm, '%JSONParse%', this['%FunctionPrototype%']);
     this['%JSONStringify%'] = new $Object(realm, '%JSONStringify%', this['%FunctionPrototype%']);
-    this['%ThrowTypeError%'] = new $Object(realm, '%ThrowTypeError%', this['%FunctionPrototype%']);
+    this['%ThrowTypeError%'] = new $Function(realm, '%ThrowTypeError%', this['%FunctionPrototype%']);
 
     this['%ArrayProto_entries%'] = new $Object(realm, '%ArrayProto_entries%', this['%FunctionPrototype%']);
     this['%ArrayProto_forEach%'] = new $Object(realm, '%ArrayProto_forEach%', this['%FunctionPrototype%']);
@@ -497,5 +505,46 @@ export class Intrinsics {
     this['%Promise_all%'] = new $Object(realm, '%Promise_all%', this['%FunctionPrototype%']);
     this['%Promise_reject%'] = new $Object(realm, '%Promise_reject%', this['%FunctionPrototype%']);
     this['%Promise_resolve%'] = new $Object(realm, '%Promise_resolve%', this['%FunctionPrototype%']);
+  }
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-%iteratorprototype%-@@iterator
+export class $Symbol_Iterator extends $BuiltinFunction {
+  public constructor(
+    realm: Realm,
+  ) {
+    super(realm, '[Symbol.iterator]');
+    this.SetFunctionName(realm.stack.top, new $String(realm, '[Symbol.iterator]'));
+  }
+
+  public performSteps(
+    ctx: ExecutionContext,
+    thisArgument: $AnyNonEmpty,
+    argumentsList: readonly $AnyNonEmpty[],
+    NewTarget: $AnyNonEmpty,
+  ): $AnyNonEmpty {
+    return thisArgument;
+  }
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-%iteratorprototype%-object
+export class $IteratorPrototype extends $Object<'%IteratorPrototype%'> {
+  public constructor(
+    realm: Realm,
+  ) {
+    super(realm, '%IteratorPrototype%', realm['[[Intrinsics]]']['%ObjectPrototype%']);
+
+    $DefinePropertyOrThrow(
+      realm.stack.top,
+      this,
+      realm['[[Intrinsics]]']['@@iterator'],
+      new $PropertyDescriptor(
+        realm,
+        realm['[[Intrinsics]]']['@@iterator'],
+        {
+          '[[Value]]': new $Symbol_Iterator(realm),
+        },
+      ),
+    );
   }
 }

@@ -226,7 +226,7 @@ export class Realm {
     realm['[[GlobalObject]]'] = globalObj as $Object;
 
     // 5. Let newGlobalEnv be NewGlobalEnvironment(globalObj, thisValue).
-    const newGlobalEnv = new $GlobalEnvRec(realm, globalObj as $Object, thisValue as $Object);
+    const newGlobalEnv = new $GlobalEnvRec(logger, realm, globalObj as $Object, thisValue as $Object);
 
     // 6. Set realmRec.[[GlobalEnv]] to newGlobalEnv.
     realm['[[GlobalEnv]]'] = newGlobalEnv;

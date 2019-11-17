@@ -159,6 +159,7 @@ import { $Number } from './types/number';
 import { $Null } from './types/null';
 import { $Boolean } from './types/boolean';
 import { $Empty, empty } from './types/empty';
+import { $CreateUnmappedArgumentsObject, $ArgumentsExoticObject } from './exotics/arguments';
 const {
   emptyArray,
   emptyObject,
@@ -1193,6 +1194,8 @@ export class $VariableStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-boundnames
   public readonly BoundNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
@@ -1204,6 +1207,7 @@ export class $VariableStatement implements I$Node {
   public readonly ExportEntries: readonly ExportEntryRecord[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-isconstantdeclaration
   public readonly IsConstantDeclaration: boolean;
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-lexicallyscopeddeclarations
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-modulerequests
@@ -1243,6 +1247,7 @@ export class $VariableStatement implements I$Node {
     this.IsConstantDeclaration = $declarationList.IsConstantDeclaration;
 
     const BoundNames = this.BoundNames = $declarationList.BoundNames;
+    this.VarDeclaredNames = $declarationList.VarDeclaredNames;
     this.VarScopedDeclarations = $declarationList.VarScopedDeclarations;
 
     if (hasBit(ctx, Context.InExport)) {
@@ -1406,6 +1411,9 @@ function getContainsExpression<T>(obj: { ContainsExpression: T }): T { return ob
 function getHasInitializer<T>(obj: { HasInitializer: T }): T { return obj.HasInitializer; }
 function getIsSimpleParameterList<T>(obj: { IsSimpleParameterList: T }): T { return obj.IsSimpleParameterList; }
 export function getBoundNames<T>(obj: { BoundNames: T }): T { return obj.BoundNames; }
+function getLexicallyDeclaredNames<T>(obj: { LexicallyDeclaredNames: T }): T { return obj.LexicallyDeclaredNames; }
+function getLexicallyScopedDeclarations<T>(obj: { LexicallyScopedDeclarations: T }): T { return obj.LexicallyScopedDeclarations; }
+function getVarDeclaredNames<T>(obj: { VarDeclaredNames: T }): T { return obj.VarDeclaredNames; }
 function getVarScopedDeclarations<T>(obj: { VarScopedDeclarations: T }): T { return obj.VarScopedDeclarations; }
 function getLocalName<T>(obj: { LocalName: T }): T { return obj.LocalName; }
 function getImportEntriesForModule<T>(obj: { ImportEntriesForModule: T }): T { return obj.ImportEntriesForModule; }
@@ -1454,8 +1462,12 @@ export class $FunctionDeclaration implements I$Node {
   public readonly IsFunctionDefinition: true = true;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-issimpleparameterlist
   public readonly IsSimpleParameterList: boolean;
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallydeclarednames
+  public readonly LexicallyDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallyscopeddeclarations
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
@@ -1515,7 +1527,9 @@ export class $FunctionDeclaration implements I$Node {
     const HasName = this.HasName = $name !== void 0;
     this.IsSimpleParameterList = $parameters.every(getIsSimpleParameterList);
 
+    this.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
     this.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
+    this.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
     this.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
 
     if ($name === void 0) {
@@ -1588,6 +1602,8 @@ export class $FunctionDeclaration implements I$Node {
     ctx: ExecutionContext,
     Scope: $EnvRec,
   ): $Function {
+
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1637,8 +1653,10 @@ export class $FunctionDeclaration implements I$Node {
   public EvaluateBody(
     ctx: ExecutionContext,
     functionObject: $Function,
-    argumentsList: readonly $Any[],
+    argumentsList: readonly $AnyNonEmpty[],
   ): $Any {
+    this.logger.debug('EvaluateBody()');
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1680,7 +1698,7 @@ export class $FunctionDeclaration implements I$Node {
 function $FunctionDeclarationInstantiation(
   ctx: ExecutionContext,
   func: $Function,
-  argumentsList: readonly $Any[],
+  argumentsList: readonly $AnyNonEmpty[],
 ) {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
@@ -1703,7 +1721,7 @@ function $FunctionDeclarationInstantiation(
   const formals = code.$parameters;
 
   // 7. Let parameterNames be the BoundNames of formals.
-  const parameterNames = code.BoundNames;
+  const parameterNames = formals.flatMap(getBoundNames);
 
   // 8. If parameterNames has any duplicate entries, let hasDuplicates be true. Otherwise, let hasDuplicates be false.
   let hasDuplicates = false;
@@ -1724,13 +1742,13 @@ function $FunctionDeclarationInstantiation(
   const hasParameterExpressions = code.ContainsExpression;
 
   // 11. Let varNames be the VarDeclaredNames of code.
-  const varNames = [] as $String[]; // TODO
+  const varNames = code.VarDeclaredNames;
 
   // 12. Let varDeclarations be the VarScopedDeclarations of code.
   const varDeclarations = code.VarScopedDeclarations;
 
   // 13. Let lexicalNames be the LexicallyDeclaredNames of code.
-  const lexicalNames = [] as $String[]; // TODO
+  const lexicalNames = code.LexicallyDeclaredNames;
 
   // 14. Let functionNames be a new empty List.
   const functionNames = [] as $String[];
@@ -1804,37 +1822,44 @@ function $FunctionDeclarationInstantiation(
     }
   }
 
-  let parameterBindings: $String[] = []; // TODO
+  let ao: $Object;
+  let parameterBindings: $String[];
 
   // 22. If argumentsObjectNeeded is true, then
   if (argumentsObjectNeeded) {
-    // TODO: implement arguments mapped and unmapped objects
-
     // 22. a. If strict is true or if simpleParameterList is false, then
     if (strict.isTruthy || !simpleParameterList) {
       // 22. a. i. Let ao be CreateUnmappedArgumentsObject(argumentsList).
+      ao = $CreateUnmappedArgumentsObject(ctx, argumentsList);
     }
     // 22. b. Else,
     else {
       // 22. b. i. NOTE: mapped argument object is only provided for non-strict functions that don't have a rest parameter, any parameter default value initializers, or any destructured parameters.
       // 22. b. ii. Let ao be CreateMappedArgumentsObject(func, formals, argumentsList, envRec).
+      ao = new $ArgumentsExoticObject(realm, func, formals, argumentsList, envRec);
     }
 
     // 22. c. If strict is true, then
     if (strict.isTruthy) {
       // 22. c. i. Perform ! envRec.CreateImmutableBinding("arguments", false).
+      envRec.CreateImmutableBinding(ctx, intrinsics.$arguments, intrinsics.false);
     }
     // 22. d. Else,
     else {
       // 22. d. i. Perform ! envRec.CreateMutableBinding("arguments", false).
+      envRec.CreateMutableBinding(ctx, intrinsics.$arguments, intrinsics.false);
     }
 
     // 22. e. Call envRec.InitializeBinding("arguments", ao).
+    envRec.InitializeBinding(ctx, intrinsics.$arguments, ao);
+
     // 22. f. Let parameterBindings be a new List of parameterNames with "arguments" appended.
+    parameterBindings = parameterNames.concat(intrinsics.$arguments);
   }
   // 23. Else,
   else {
     // 23. a. Let parameterBindings be parameterNames.
+    parameterBindings = parameterNames;
   }
 
   // TODO: implement iterator
@@ -1881,7 +1906,7 @@ function $FunctionDeclarationInstantiation(
     // 28. a. NOTE: A separate Environment Record is needed to ensure that closures created by expressions in the formal parameter list do not have visibility of declarations in the function body.
     // 28. b. Let varEnv be NewDeclarativeEnvironment(env).
     // 28. c. Let varEnvRec be varEnv's EnvironmentRecord.
-    varEnvRec = new $DeclarativeEnvRec(realm, envRec);
+    varEnvRec = new $DeclarativeEnvRec(code.logger, realm, envRec);
 
     // 28. d. Set the VariableEnvironment of calleeContext to varEnv.
     calleeContext.VariableEnvironment = varEnvRec;
@@ -1926,7 +1951,7 @@ function $FunctionDeclarationInstantiation(
   // 30. If strict is false, then
   if (strict.isFalsey) {
     // 30. a. Let lexEnv be NewDeclarativeEnvironment(varEnv).
-    lexEnvRec = new $DeclarativeEnvRec(realm, varEnvRec);
+    lexEnvRec = new $DeclarativeEnvRec(code.logger, realm, varEnvRec);
 
     // 30. b. NOTE: Non-strict functions use a separate lexical Environment Record for top-level lexical declarations so that a direct eval can determine whether any var scoped declarations introduced by the eval code conflict with pre-existing top-level lexically scoped declarations. This is not needed for strict functions because a strict direct eval always places all declarations into a new Environment Record.
   }
@@ -2084,6 +2109,7 @@ export class $ClassDeclaration implements I$Node {
   public readonly NonConstructorMethodDefinitions: readonly $$MethodDefinition[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-prototypepropertynamelist
   public readonly PrototypePropertyNameList: readonly $String[];
+  public readonly VarDeclaredNames: readonly $String[] = emptyArray; // TODO: this is actually not explicitly specced. Need to double check
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
@@ -2094,6 +2120,7 @@ export class $ClassDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportentries
   public readonly ExportEntries: readonly ExportEntryRecord[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-lexicallyscopeddeclarations
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray; // TODO: this is actually not explicitly specced. Need to double check
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-modulerequests
   public readonly ModuleRequests: readonly $String[];
@@ -2232,7 +2259,9 @@ export class $InterfaceDeclaration implements I$Node {
   public readonly modifierFlags: ModifierFlags;
 
   public readonly BoundNames: readonly [$String];
+  public readonly VarDeclaredNames: readonly $String[] = emptyArray;
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
   public readonly ExportedBindings: readonly $String[];
@@ -2300,7 +2329,9 @@ export class $TypeAliasDeclaration implements I$Node {
   public readonly modifierFlags: ModifierFlags;
 
   public readonly BoundNames: readonly [$String];
+  public readonly VarDeclaredNames: readonly $String[] = emptyArray;
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
   public readonly ExportedBindings: readonly $String[];
@@ -2383,7 +2414,9 @@ export class $EnumDeclaration implements I$Node {
   public readonly modifierFlags: ModifierFlags;
 
   public readonly BoundNames: readonly [$String];
+  public readonly VarDeclaredNames: readonly $String[] = emptyArray;
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
   public readonly ExportedBindings: readonly $String[];
@@ -2460,9 +2493,13 @@ export class $VariableDeclaration implements I$Node {
   public readonly $name: $$BindingName;
   public readonly $initializer: $$AssignmentExpressionOrHigher | undefined;
 
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-boundnames
   // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-static-semantics-boundnames
   public readonly BoundNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
@@ -2501,9 +2538,11 @@ export class $VariableDeclaration implements I$Node {
 
     this.BoundNames = $name.BoundNames;
     if (hasBit(ctx, Context.IsVar)) { // TODO: what about parameter and for declarations?
+      this.VarDeclaredNames = this.BoundNames;
       this.VarScopedDeclarations = [this];
       this.IsConstantDeclaration = false;
     } else {
+      this.VarDeclaredNames = emptyArray;
       this.VarScopedDeclarations = emptyArray;
       this.IsConstantDeclaration = hasBit(ctx, Context.IsConst);
     }
@@ -2570,8 +2609,12 @@ export class $VariableDeclarationList implements I$Node {
 
   public readonly isLexical: boolean;
 
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-boundnames
   public readonly BoundNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
@@ -2613,6 +2656,7 @@ export class $VariableDeclarationList implements I$Node {
     const $declarations = this.$declarations = $variableDeclarationList(node.declarations, this, ctx);
 
     this.BoundNames = $declarations.flatMap(getBoundNames);
+    this.VarDeclaredNames = $declarations.flatMap(getVarDeclaredNames);
     this.VarScopedDeclarations = $declarations.flatMap(getVarScopedDeclarations);
   }
 }
@@ -5038,12 +5082,18 @@ export class $ArrowFunction implements I$Node {
   public readonly IsSimpleParameterList: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredformalslist
   public readonly CoveredFormalsList: readonly $ParameterDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-lexicallydeclarednames
+  // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-LexicallyDeclaredNames
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-lexicallyscopeddeclarations
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-LexicallyScopedDeclarations
-  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-vardeclarednames
+  // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-VarDeclaredNames
+  public readonly VarDeclaredNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-varscopeddeclarations
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-VarScopedDeclarations
-  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
   public readonly DirectivePrologue: DirectivePrologue;
 
@@ -5085,10 +5135,6 @@ export class $ArrowFunction implements I$Node {
       this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
       this.IsSimpleParameterList = $parameters.every(getIsSimpleParameterList);
       this.CoveredFormalsList = $parameters;
-
-      // TODO: we sure about this?
-      this.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
-      this.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
     } else {
       this.DirectivePrologue = emptyArray;
       this.ContainsUseStrict = false;
@@ -5100,9 +5146,6 @@ export class $ArrowFunction implements I$Node {
       this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
       this.IsSimpleParameterList = $parameters.every(getIsSimpleParameterList);
       this.CoveredFormalsList = $parameters;
-
-      this.LexicallyScopedDeclarations = emptyArray;
-      this.VarScopedDeclarations = emptyArray;
     }
   }
 
@@ -7038,7 +7081,7 @@ export class $SourceFile implements I$Node, IModule {
 
     // 5. Assert: Realm is not undefined.
     // 6. Let env be NewModuleEnvironment(realm.[[GlobalEnv]]).
-    const envRec = new $ModuleEnvRec(realm, realm['[[GlobalEnv]]']);
+    const envRec = new $ModuleEnvRec(this.logger, realm, realm['[[GlobalEnv]]']);
 
     // 7. Set module.[[Environment]] to env.
     this['[[Environment]]'] = envRec;
@@ -9089,12 +9132,20 @@ export class $Block implements I$Node {
 
   public readonly $statements: readonly $$TSStatementListItem[];
 
+  // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-lexicallydeclarednames
+  public readonly LexicallyDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-lexicallyscopeddeclarations
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-toplevellexicallydeclarednames
+  public readonly TopLevelLexicallyDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-toplevellexicallyscopeddeclarations
   public readonly TopLevelLexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-toplevelvardeclarednames
+  public readonly TopLevelVarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-toplevelvarscopeddeclarations
   public readonly TopLevelVarScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
@@ -9114,9 +9165,13 @@ export class $Block implements I$Node {
 
     const $statements = this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
 
+    const LexicallyDeclaredNames = this.LexicallyDeclaredNames = [] as $String[];
     const LexicallyScopedDeclarations = this.LexicallyScopedDeclarations = [] as $$ESDeclaration[];
+    const TopLevelLexicallyDeclaredNames = this.TopLevelLexicallyDeclaredNames = [] as $String[];
     const TopLevelLexicallyScopedDeclarations = this.TopLevelLexicallyScopedDeclarations = [] as $$ESDeclaration[];
+    const TopLevelVarDeclaredNames = this.TopLevelVarDeclaredNames = [] as $String[];
     const TopLevelVarScopedDeclarations = this.TopLevelVarScopedDeclarations = [] as $$ESDeclaration[];
+    const VarDeclaredNames = this.VarDeclaredNames = [] as $String[];
     const VarScopedDeclarations = this.VarScopedDeclarations = [] as $$ESDeclaration[];
 
     const len = $statements.length;
@@ -9125,27 +9180,42 @@ export class $Block implements I$Node {
       $statement = $statements[i];
       switch ($statement.$kind) {
         case SyntaxKind.FunctionDeclaration:
+          LexicallyDeclaredNames.push(...$statement.BoundNames);
           LexicallyScopedDeclarations.push($statement);
 
+          TopLevelVarDeclaredNames.push(...$statement.BoundNames);
           TopLevelVarScopedDeclarations.push($statement);
           break;
         case SyntaxKind.ClassDeclaration:
+          LexicallyDeclaredNames.push(...$statement.BoundNames);
           LexicallyScopedDeclarations.push($statement);
 
+          TopLevelLexicallyDeclaredNames.push(...$statement.BoundNames);
           TopLevelLexicallyScopedDeclarations.push($statement);
           break;
         case SyntaxKind.VariableStatement:
           if ($statement.isLexical) {
+            LexicallyDeclaredNames.push(...$statement.BoundNames);
             LexicallyScopedDeclarations.push($statement);
 
+            TopLevelLexicallyDeclaredNames.push(...$statement.BoundNames);
             TopLevelLexicallyScopedDeclarations.push($statement);
           } else {
+            TopLevelVarDeclaredNames.push(...$statement.VarDeclaredNames);
+            TopLevelVarScopedDeclarations.push(...$statement.VarScopedDeclarations);
+
+            VarDeclaredNames.push(...$statement.VarDeclaredNames);
             VarScopedDeclarations.push(...$statement.VarScopedDeclarations);
           }
           break;
         case SyntaxKind.LabeledStatement:
+          LexicallyDeclaredNames.push(...$statement.LexicallyDeclaredNames);
           LexicallyScopedDeclarations.push(...$statement.LexicallyScopedDeclarations);
 
+          TopLevelVarDeclaredNames.push(...$statement.TopLevelVarDeclaredNames);
+          TopLevelVarScopedDeclarations.push(...$statement.TopLevelVarScopedDeclarations);
+
+          VarDeclaredNames.push(...$statement.VarDeclaredNames);
           VarScopedDeclarations.push(...$statement.VarScopedDeclarations);
           break;
         case SyntaxKind.Block:
@@ -9158,6 +9228,10 @@ export class $Block implements I$Node {
         case SyntaxKind.WithStatement:
         case SyntaxKind.SwitchStatement:
         case SyntaxKind.TryStatement:
+          TopLevelVarDeclaredNames.push(...$statement.VarDeclaredNames);
+          TopLevelVarScopedDeclarations.push(...$statement.VarScopedDeclarations);
+
+          VarDeclaredNames.push(...$statement.VarDeclaredNames);
           VarScopedDeclarations.push(...$statement.VarScopedDeclarations);
       }
     }
@@ -9183,7 +9257,7 @@ export class $Block implements I$Node {
     // 1. Let oldEnv be the running execution context's LexicalEnvironment.
     const oldEnv = realm.GetCurrentLexicalEnvironment();
     // 2. Let blockEnv be NewDeclarativeEnvironment(oldEnv).
-    const blockEnv = new $DeclarativeEnvRec(realm, oldEnv);
+    const blockEnv = new $DeclarativeEnvRec(this.logger, realm, oldEnv);
 
     // 3. Perform BlockDeclarationInstantiation(StatementList, blockEnv).
     blockDeclarationInstantiation(ctx, this.LexicallyScopedDeclarations, blockEnv);
@@ -9206,6 +9280,10 @@ export class $EmptyStatement implements I$Node {
   public readonly $kind = SyntaxKind.EmptyStatement;
   public readonly id: number;
 
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
@@ -9250,6 +9328,10 @@ export class $ExpressionStatement implements I$Node {
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
@@ -9289,7 +9371,11 @@ export class $IfStatement implements I$Node {
   public readonly $thenStatement: $$ESStatement;
   public readonly $elseStatement: $$ESStatement | undefined;
 
-  // http://www.ecma-international.org/ecma-262/#sec-if-statement-static-semantics-varscopeddeclarations
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-if-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-if-statement-static-semantics-varscopeddeclaration
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public constructor(
@@ -9309,10 +9395,15 @@ export class $IfStatement implements I$Node {
     if (node.elseStatement === void 0) {
       this.$elseStatement = void 0;
 
+      this.VarDeclaredNames = $thenStatement.VarDeclaredNames;
       this.VarScopedDeclarations = $thenStatement.VarScopedDeclarations;
     } else {
       const $elseStatement = this.$elseStatement = $$esStatement(node.elseStatement as $StatementNode, this, ctx);
 
+      this.VarDeclaredNames = [
+        ...$thenStatement.VarDeclaredNames,
+        ...$elseStatement.VarDeclaredNames,
+      ];
       this.VarScopedDeclarations = [
         ...$thenStatement.VarScopedDeclarations,
         ...$elseStatement.VarScopedDeclarations,
@@ -9382,6 +9473,10 @@ export class $DoStatement implements I$Node {
   public readonly $statement: $$ESStatement;
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-do-while-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-do-while-statement-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
@@ -9399,6 +9494,7 @@ export class $DoStatement implements I$Node {
     const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
 
+    this.VarDeclaredNames = $statement.VarDeclaredNames;
     this.VarScopedDeclarations = $statement.VarScopedDeclarations;
   }
 
@@ -9432,6 +9528,10 @@ export class $WhileStatement implements I$Node {
   public readonly $statement: $$ESStatement;
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-while-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-while-statement-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
@@ -9449,6 +9549,7 @@ export class $WhileStatement implements I$Node {
     const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
 
+    this.VarDeclaredNames = $statement.VarDeclaredNames;
     this.VarScopedDeclarations = $statement.VarScopedDeclarations;
   }
 
@@ -9489,6 +9590,10 @@ export class $ForStatement implements I$Node {
   public readonly $incrementor: $$AssignmentExpressionOrHigher | undefined;
   public readonly $statement: $$ESStatement;
 
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-for-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-for-statement-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
@@ -9510,13 +9615,19 @@ export class $ForStatement implements I$Node {
     if (node.initializer === void 0) {
       this.$initializer = void 0;
 
+      this.VarDeclaredNames = $statement.VarDeclaredNames;
       this.VarScopedDeclarations = $statement.VarScopedDeclarations;
     } else {
       if (node.initializer.kind === SyntaxKind.VariableDeclarationList) {
         const $initializer = this.$initializer = new $VariableDeclarationList(node.initializer as VariableDeclarationList, this, ctx);
         if ($initializer.isLexical) {
+          this.VarDeclaredNames = $statement.VarDeclaredNames;
           this.VarScopedDeclarations = $statement.VarScopedDeclarations;
         } else {
+          this.VarDeclaredNames = [
+            ...$initializer.VarDeclaredNames,
+            ...$statement.VarDeclaredNames,
+          ];
           this.VarScopedDeclarations = [
             ...$initializer.VarScopedDeclarations,
             ...$statement.VarScopedDeclarations,
@@ -9525,6 +9636,7 @@ export class $ForStatement implements I$Node {
       } else {
         this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
 
+        this.VarDeclaredNames = $statement.VarDeclaredNames;
         this.VarScopedDeclarations = $statement.VarScopedDeclarations;
       }
     }
@@ -9585,7 +9697,11 @@ export class $ForInStatement implements I$Node {
   public readonly $expression: $$AssignmentExpressionOrHigher;
   public readonly $statement: $$ESStatement;
 
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   public readonly BoundNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
@@ -9607,11 +9723,16 @@ export class $ForInStatement implements I$Node {
       const $initializer = this.$initializer = new $VariableDeclarationList(node.initializer as VariableDeclarationList, this, ctx);
       if ($initializer.isLexical) {
         this.BoundNames = $initializer.BoundNames;
+        this.VarDeclaredNames = $statement.VarDeclaredNames;
         this.VarScopedDeclarations = $statement.VarScopedDeclarations;
       } else {
         this.BoundNames = emptyArray;
+        this.VarDeclaredNames = [
+          ...$initializer.VarDeclaredNames,
+          ...$statement.VarDeclaredNames,
+        ];
         this.VarScopedDeclarations = [
-          ...$initializer.$declarations,
+          ...$initializer.VarScopedDeclarations,
           ...$statement.VarScopedDeclarations,
         ];
       }
@@ -9619,6 +9740,7 @@ export class $ForInStatement implements I$Node {
       this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
 
       this.BoundNames = emptyArray;
+      this.VarDeclaredNames = $statement.VarDeclaredNames;
       this.VarScopedDeclarations = $statement.VarScopedDeclarations;
     }
   }
@@ -9704,7 +9826,11 @@ export class $ForOfStatement implements I$Node {
   public readonly $expression: $$AssignmentExpressionOrHigher;
   public readonly $statement: $$ESStatement;
 
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   public readonly BoundNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
@@ -9726,11 +9852,16 @@ export class $ForOfStatement implements I$Node {
       const $initializer = this.$initializer = new $VariableDeclarationList(node.initializer as VariableDeclarationList, this, ctx);
       if ($initializer.isLexical) {
         this.BoundNames = $initializer.BoundNames;
+        this.VarDeclaredNames = $statement.VarDeclaredNames;
         this.VarScopedDeclarations = $statement.VarScopedDeclarations;
       } else {
         this.BoundNames = emptyArray;
+        this.VarDeclaredNames = [
+          ...$initializer.VarDeclaredNames,
+          ...$statement.VarDeclaredNames,
+        ];
         this.VarScopedDeclarations = [
-          ...$initializer.$declarations,
+          ...$initializer.VarScopedDeclarations,
           ...$statement.VarScopedDeclarations,
         ];
       }
@@ -9738,6 +9869,7 @@ export class $ForOfStatement implements I$Node {
       this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
 
       this.BoundNames = emptyArray;
+      this.VarDeclaredNames = $statement.VarDeclaredNames;
       this.VarScopedDeclarations = $statement.VarScopedDeclarations;
     }
   }
@@ -9817,6 +9949,10 @@ export class $ContinueStatement implements I$Node {
 
   public readonly $label: $Identifier | undefined;
 
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
@@ -9863,6 +9999,10 @@ export class $BreakStatement implements I$Node {
 
   public readonly $label: $Identifier | undefined;
 
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
@@ -9909,6 +10049,10 @@ export class $ReturnStatement implements I$Node {
 
   public readonly $expression: $$AssignmentExpressionOrHigher | undefined;
 
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
@@ -9967,6 +10111,10 @@ export class $WithStatement implements I$Node {
   public readonly $expression: $$AssignmentExpressionOrHigher;
   public readonly $statement: $$ESStatement;
 
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-with-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-with-statement-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
@@ -9984,6 +10132,7 @@ export class $WithStatement implements I$Node {
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
     const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
 
+    this.VarDeclaredNames = $statement.VarDeclaredNames;
     this.VarScopedDeclarations = $statement.VarScopedDeclarations;
   }
 
@@ -10018,10 +10167,14 @@ export class $SwitchStatement implements I$Node {
   public readonly $expression: $$AssignmentExpressionOrHigher;
   public readonly $caseBlock: $CaseBlock;
 
-  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-varscopeddeclarations
-  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallydeclarednames
+  public readonly LexicallyDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallyscopeddeclarations
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public constructor(
     public readonly node: SwitchStatement,
@@ -10037,27 +10190,10 @@ export class $SwitchStatement implements I$Node {
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
     const $caseBlock = this.$caseBlock = new $CaseBlock(node.caseBlock, this, ctx);
 
+    this.LexicallyDeclaredNames = $caseBlock.LexicallyDeclaredNames;
+    this.LexicallyScopedDeclarations = $caseBlock.LexicallyScopedDeclarations;
+    this.VarDeclaredNames = $caseBlock.VarDeclaredNames;
     this.VarScopedDeclarations = $caseBlock.VarScopedDeclarations;
-    const LexicallyScopedDeclarations = this.LexicallyScopedDeclarations = [] as $$ESDeclaration[];
-
-    for (const clause of $caseBlock.$clauses) {
-      for (const statement of clause.$statements) {
-        switch (statement.$kind) {
-          case SyntaxKind.FunctionDeclaration:
-          case SyntaxKind.ClassDeclaration:
-            LexicallyScopedDeclarations.push(statement);
-            break;
-          case SyntaxKind.VariableStatement:
-            if (statement.isLexical) {
-              LexicallyScopedDeclarations.push(statement);
-            }
-            break;
-          case SyntaxKind.LabeledStatement:
-            LexicallyScopedDeclarations.push(...statement.LexicallyScopedDeclarations);
-            break;
-        }
-      }
-    }
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-runtime-semantics-evaluation
@@ -10078,7 +10214,7 @@ export class $SwitchStatement implements I$Node {
     const oldEnv = realm.GetCurrentLexicalEnvironment();
 
     // 4. Let blockEnv be NewDeclarativeEnvironment(oldEnv).
-    const blockEnv = new $DeclarativeEnvRec(realm, oldEnv);
+    const blockEnv = new $DeclarativeEnvRec(this.logger, realm, oldEnv);
 
     // 5. Perform BlockDeclarationInstantiation(CaseBlock, blockEnv).
     blockDeclarationInstantiation(ctx, this.LexicallyScopedDeclarations, blockEnv);
@@ -10230,12 +10366,20 @@ export class $LabeledStatement implements I$Node {
   public readonly $label: $Identifier;
   public readonly $statement: $$ESLabelledItem;
 
+  // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-lexicallydeclarednames
+  public readonly LexicallyDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-lexicallyscopeddeclarations
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-toplevellexicallydeclarednames
+  public readonly TopLevelLexicallyDeclaredNames: readonly $String[] = emptyArray;;
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-toplevellexicallyscopeddeclarations
   public readonly TopLevelLexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-toplevelvardeclarednames
+  public readonly TopLevelVarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-toplevelvarscopeddeclarations
   public readonly TopLevelVarScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
@@ -10257,17 +10401,24 @@ export class $LabeledStatement implements I$Node {
     const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx);
 
     if ($statement.$kind === SyntaxKind.FunctionDeclaration) {
+      this.LexicallyDeclaredNames = $statement.BoundNames;
       this.LexicallyScopedDeclarations = [$statement];
+      this.TopLevelVarDeclaredNames = $statement.BoundNames;
       this.TopLevelVarScopedDeclarations = [$statement];
+      this.VarDeclaredNames = emptyArray;
       this.VarScopedDeclarations = emptyArray;
     } else {
+      this.LexicallyDeclaredNames = emptyArray;
       this.LexicallyScopedDeclarations = emptyArray;
       if ($statement.$kind === SyntaxKind.LabeledStatement) {
+        this.TopLevelVarDeclaredNames = $statement.TopLevelVarDeclaredNames;
         this.TopLevelVarScopedDeclarations = $statement.TopLevelVarScopedDeclarations;
       } else {
+        this.TopLevelVarDeclaredNames = $statement.VarDeclaredNames;
         this.TopLevelVarScopedDeclarations = $statement.VarScopedDeclarations;
       }
-      this.VarScopedDeclarations = $statement.VarScopedDeclarations
+      this.VarDeclaredNames = $statement.VarDeclaredNames;
+      this.VarScopedDeclarations = $statement.VarScopedDeclarations;
     };
   }
 
@@ -10325,6 +10476,10 @@ export class $ThrowStatement implements I$Node {
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
@@ -10368,6 +10523,10 @@ export class $TryStatement implements I$Node {
   public readonly $catchClause: $CatchClause | undefined;
   public readonly $finallyBlock: $Block | undefined;
 
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-try-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-try-statement-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
@@ -10388,6 +10547,10 @@ export class $TryStatement implements I$Node {
       this.$catchClause = void 0;
       const $finallyBlock = this.$finallyBlock = new $Block(node.finallyBlock!, this, ctx);
 
+      this.VarDeclaredNames = [
+        ...$tryBlock.VarDeclaredNames,
+        ...$finallyBlock.VarDeclaredNames,
+      ];
       this.VarScopedDeclarations = [
         ...$tryBlock.VarScopedDeclarations,
         ...$finallyBlock.VarScopedDeclarations,
@@ -10397,6 +10560,10 @@ export class $TryStatement implements I$Node {
       const $catchClause = this.$catchClause = new $CatchClause(node.catchClause!, this, ctx);
       this.$finallyBlock = void 0;
 
+      this.VarDeclaredNames = [
+        ...$tryBlock.VarDeclaredNames,
+        ...$catchClause.VarDeclaredNames,
+      ];
       this.VarScopedDeclarations = [
         ...$tryBlock.VarScopedDeclarations,
         ...$catchClause.VarScopedDeclarations,
@@ -10405,6 +10572,11 @@ export class $TryStatement implements I$Node {
       const $catchClause = this.$catchClause = new $CatchClause(node.catchClause!, this, ctx);
       const $finallyBlock = this.$finallyBlock = new $Block(node.finallyBlock!, this, ctx);
 
+      this.VarDeclaredNames = [
+        ...$tryBlock.VarDeclaredNames,
+        ...$catchClause.VarDeclaredNames,
+        ...$finallyBlock.VarDeclaredNames,
+      ];
       this.VarScopedDeclarations = [
         ...$tryBlock.VarScopedDeclarations,
         ...$catchClause.VarScopedDeclarations,
@@ -10500,6 +10672,10 @@ export class $DebuggerStatement implements I$Node {
   public readonly $kind = SyntaxKind.DebuggerStatement;
   public readonly id: number;
 
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
@@ -10544,6 +10720,12 @@ export class $CaseBlock implements I$Node {
   public readonly $kind = SyntaxKind.CaseBlock;
   public readonly id: number;
 
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallydeclarednames
+  public readonly LexicallyDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallyscopeddeclarations
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
@@ -10566,6 +10748,9 @@ export class $CaseBlock implements I$Node {
         : new $DefaultClause(x, this, ctx)
     );
 
+    this.LexicallyDeclaredNames = $clauses.flatMap(getLexicallyDeclaredNames);
+    this.LexicallyScopedDeclarations = $clauses.flatMap(getLexicallyScopedDeclarations);
+    this.VarDeclaredNames = $clauses.flatMap(getVarDeclaredNames);
     this.VarScopedDeclarations = $clauses.flatMap(getVarScopedDeclarations);
   }
 }
@@ -10574,6 +10759,12 @@ export class $CaseClause implements I$Node {
   public readonly $kind = SyntaxKind.CaseClause;
   public readonly id: number;
 
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallydeclarednames
+  public readonly LexicallyDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallyscopeddeclarations
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
@@ -10594,6 +10785,9 @@ export class $CaseClause implements I$Node {
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
     const $statements = this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
 
+    this.LexicallyDeclaredNames = $statements.flatMap(getLexicallyDeclaredNames);
+    this.LexicallyScopedDeclarations = $statements.flatMap(getLexicallyScopedDeclarations);
+    this.VarDeclaredNames = $statements.flatMap(getVarDeclaredNames);
     this.VarScopedDeclarations = $statements.flatMap(getVarScopedDeclarations);
   }
 }
@@ -10602,6 +10796,12 @@ export class $DefaultClause implements I$Node {
   public readonly $kind = SyntaxKind.DefaultClause;
   public readonly id: number;
 
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallydeclarednames
+  public readonly LexicallyDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallyscopeddeclarations
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
@@ -10620,6 +10820,9 @@ export class $DefaultClause implements I$Node {
 
     const $statements = this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
 
+    this.LexicallyDeclaredNames = $statements.flatMap(getLexicallyDeclaredNames);
+    this.LexicallyScopedDeclarations = $statements.flatMap(getLexicallyScopedDeclarations);
+    this.VarDeclaredNames = $statements.flatMap(getVarDeclaredNames);
     this.VarScopedDeclarations = $statements.flatMap(getVarScopedDeclarations);
   }
 }
@@ -10628,7 +10831,9 @@ export class $CatchClause implements I$Node {
   public readonly $kind = SyntaxKind.CatchClause;
   public readonly id: number;
 
-  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-varscopeddeclarations
+  // http://www.ecma-international.org/ecma-262/#sec-try-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-try-statement-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public readonly $variableDeclaration: $VariableDeclaration | undefined;
@@ -10654,6 +10859,7 @@ export class $CatchClause implements I$Node {
     }
     const $block = this.$block = new $Block(node.block, this, ctx);
 
+    this.VarDeclaredNames = $block.VarDeclaredNames;
     this.VarScopedDeclarations = $block.VarScopedDeclarations;
   }
 

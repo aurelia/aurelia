@@ -10,6 +10,7 @@ import { $Empty } from './empty';
 import { $Undefined } from './undefined';
 import { $Object } from './object';
 import { $Function } from './function';
+import { ILogger } from '@aurelia/kernel';
 
 export type $EnvRec = (
   $DeclarativeEnvRec |
@@ -64,9 +65,11 @@ export class $DeclarativeEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-newdeclarativeenvironment
   public constructor(
+    public readonly logger: ILogger,
     public readonly realm: Realm,
     public readonly outer: $EnvRec | $Null,
   ) {
+    this.logger = logger.scopeTo('DeclarativeEnvRec');
     // 1. Let env be a new Lexical Environment.
     // 2. Let envRec be a new declarative Environment Record containing no bindings.
     // 3. Set env's EnvironmentRecord to envRec.
@@ -100,6 +103,8 @@ export class $DeclarativeEnvRec {
     N: $String,
     D: $Boolean,
   ): $Empty {
+    this.logger.debug(`CreateMutableBinding(${N['[[Value]]']})`);
+
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the declarative Environment Record for which the method was invoked.
@@ -128,6 +133,8 @@ export class $DeclarativeEnvRec {
     N: $String,
     S: $Boolean,
   ): $Empty {
+    this.logger.debug(`CreateImmutableBinding(${N['[[Value]]']})`);
+
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the declarative Environment Record for which the method was invoked.
@@ -156,6 +163,8 @@ export class $DeclarativeEnvRec {
     N: $String,
     V: $AnyNonEmpty,
   ): $Empty {
+    this.logger.debug(`InitializeBinding(${N['[[Value]]']})`);
+
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the declarative Environment Record for which the method was invoked.
@@ -181,6 +190,8 @@ export class $DeclarativeEnvRec {
     V: $AnyNonEmpty,
     S: $Boolean,
   ): $Empty {
+    this.logger.debug(`SetMutableBinding(${N['[[Value]]']})`);
+
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the declarative Environment Record for which the method was invoked.
@@ -237,6 +248,8 @@ export class $DeclarativeEnvRec {
     N: $String,
     S: $Boolean,
   ): $AnyNonEmpty {
+    this.logger.debug(`GetBindingValue(${N['[[Value]]']})`);
+
     // 1. Let envRec be the declarative Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -257,6 +270,8 @@ export class $DeclarativeEnvRec {
     ctx: ExecutionContext,
     N: $String,
   ): $Boolean {
+    this.logger.debug(`DeleteBinding(${N['[[Value]]']})`);
+
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the declarative Environment Record for which the method was invoked.
@@ -329,10 +344,12 @@ export class $ObjectEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-newobjectenvironment
   public constructor(
+    public readonly logger: ILogger,
     public readonly realm: Realm,
     public readonly outer: $EnvRec | $Null,
     public readonly bindingObject: $Object,
   ) {
+    this.logger = logger.scopeTo('ObjectEnvRec');
     // 1. Let env be a new Lexical Environment.
     // 2. Let envRec be a new object Environment Record containing O as the binding object.
     // 3. Set env's EnvironmentRecord to envRec.
@@ -392,6 +409,8 @@ export class $ObjectEnvRec {
     N: $String,
     D: $Boolean,
   ): $Boolean {
+    this.logger.debug(`CreateMutableBinding(${N['[[Value]]']})`);
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -426,6 +445,8 @@ export class $ObjectEnvRec {
     N: $String,
     V: $AnyNonEmpty,
   ): $Boolean {
+    this.logger.debug(`InitializeBinding(${N['[[Value]]']})`);
+
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the object Environment Record for which the method was invoked.
@@ -446,6 +467,8 @@ export class $ObjectEnvRec {
     V: $AnyNonEmpty,
     S: $Boolean,
   ): $Boolean {
+    this.logger.debug(`SetMutableBinding(${N['[[Value]]']})`);
+
     // 1. Let envRec be the object Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -492,6 +515,8 @@ export class $ObjectEnvRec {
     ctx: ExecutionContext,
     N: $String,
   ): $Boolean {
+    this.logger.debug(`DeleteBinding(${N['[[Value]]']})`);
+
     // 1. Let envRec be the object Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -567,11 +592,13 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-newfunctionenvironment
   public constructor(
+    public readonly logger: ILogger,
     realm: Realm,
     F: $Function,
     newTarget: $Object | $Undefined,
   ) {
-    super(realm, F['[[Environment]]']);
+    super(logger, realm, F['[[Environment]]']);
+    this.logger = logger.scopeTo('FunctionEnvRec');
 
     // 1. Assert: F is an ECMAScript function.
     // 2. Assert: Type(newTarget) is Undefined or Object.
@@ -737,18 +764,20 @@ export class $GlobalEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-newglobalenvironment
   public constructor(
+    public readonly logger: ILogger,
     public readonly realm: Realm,
     G: $Object,
     thisValue: $Object,
   ) {
+    this.logger = logger.scopeTo('GlobalEnvRec');
     this.outer = realm['[[Intrinsics]]'].null;
 
     // 1. Let env be a new Lexical Environment.
     // 2. Let objRec be a new object Environment Record containing G as the binding object.
-    const objRec = new $ObjectEnvRec(realm, realm['[[Intrinsics]]'].null, G);
+    const objRec = new $ObjectEnvRec(logger, realm, realm['[[Intrinsics]]'].null, G);
 
     // 3. Let dclRec be a new declarative Environment Record containing no bindings.
-    const dclRec = new $DeclarativeEnvRec(realm, realm['[[Intrinsics]]'].null);
+    const dclRec = new $DeclarativeEnvRec(logger, realm, realm['[[Intrinsics]]'].null);
 
     // 4. Let globalRec be a new global Environment Record.
     const globalRec = this;
@@ -802,6 +831,8 @@ export class $GlobalEnvRec {
     N: $String,
     D: $Boolean,
   ): $Empty {
+    this.logger.debug(`CreateMutableBinding(${N['[[Value]]']})`);
+
     // 1. Let envRec be the global Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -823,6 +854,8 @@ export class $GlobalEnvRec {
     N: $String,
     S: $Boolean,
   ): $Empty {
+    this.logger.debug(`CreateImmutableBinding(${N['[[Value]]']})`);
+
     // 1. Let envRec be the global Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -844,6 +877,8 @@ export class $GlobalEnvRec {
     N: $String,
     V: $AnyNonEmpty,
   ): $Boolean | $Empty {
+    this.logger.debug(`InitializeBinding(${N['[[Value]]']})`);
+
     // 1. Let envRec be the global Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -871,6 +906,8 @@ export class $GlobalEnvRec {
     V: $AnyNonEmpty,
     S: $Boolean,
   ): $Boolean | $Empty {
+    this.logger.debug(`SetMutableBinding(${N['[[Value]]']})`);
+
     // 1. Let envRec be the global Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -920,6 +957,8 @@ export class $GlobalEnvRec {
     ctx: ExecutionContext,
     N: $String,
   ): $Boolean {
+    this.logger.debug(`DeleteBinding(${N['[[Value]]']})`);
+
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the global Environment Record for which the method was invoked.
@@ -1152,6 +1191,8 @@ export class $GlobalEnvRec {
     N: $String,
     D: $Boolean,
   ): $Empty {
+    this.logger.debug(`CreateGlobalVarBinding(${N['[[Value]]']})`);
+
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the global Environment Record for which the method was invoked.
@@ -1198,6 +1239,8 @@ export class $GlobalEnvRec {
     V: $AnyNonEmpty,
     D: $Boolean,
   ): $Empty {
+    this.logger.debug(`CreateGlobalFunctionBinding(${N['[[Value]]']})`);
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1273,10 +1316,12 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec {
 
   // http://www.ecma-international.org/ecma-262/#sec-newmoduleenvironment
   public constructor(
+    public readonly logger: ILogger,
     realm: Realm,
     outer: $EnvRec,
   ) {
-    super(realm, outer);
+    super(logger, realm, outer);
+    this.logger = logger.scopeTo('ModuleEnvRec');
     // 1. Let env be a new Lexical Environment.
     // 2. Let envRec be a new module Environment Record containing no bindings.
     // 3. Set env's EnvironmentRecord to envRec.
@@ -1365,6 +1410,8 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec {
     M: IModule,
     N2: $String,
   ): $Empty {
+    this.logger.debug(`CreateImportBinding(${N['[[Value]]']})`);
+
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the module Environment Record for which the method was invoked.

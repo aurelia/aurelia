@@ -420,3 +420,95 @@ function MakeArgSetter(
   // 5. Return getter.
   return setter;
 }
+
+// http://www.ecma-international.org/ecma-262/#sec-createunmappedargumentsobject
+export function $CreateUnmappedArgumentsObject(
+  ctx: ExecutionContext,
+  argumentsList: readonly $AnyNonEmpty[],
+): $Object {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
+  // 1. Let len be the number of elements in argumentsList.
+  const len = argumentsList.length;
+
+  // 2. Let obj be ObjectCreate(%ObjectPrototype%, « [[ParameterMap]] »).
+  const obj = $Object.ObjectCreate(
+    ctx,
+    'UnmappedArgumentsObject',
+    intrinsics['%ObjectPrototype%'],
+    {
+      '[[ParameterMap]]': intrinsics.undefined,
+    },
+  );
+
+  // 3. Set obj.[[ParameterMap]] to undefined.
+  // 4. Perform DefinePropertyOrThrow(obj, "length", PropertyDescriptor { [[Value]]: len, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
+  $DefinePropertyOrThrow(
+    ctx,
+    obj,
+    intrinsics.length,
+    new $PropertyDescriptor(
+      realm,
+      intrinsics.length,
+      {
+        '[[Value]]': new $Number(realm, len),
+        '[[Writable]]': intrinsics.true,
+        '[[Enumerable]]': intrinsics.false,
+        '[[Configurable]]': intrinsics.true,
+      },
+    ),
+  );
+
+  // 5. Let index be 0.
+  let index = 0;
+
+  // 6. Repeat, while index < len,
+  while (index < len) {
+    // 6. a. Let val be argumentsList[index].
+    const val = argumentsList[index];
+
+    // 6. b. Perform CreateDataProperty(obj, ! ToString(index), val).
+    $CreateDataProperty(ctx, obj, new $String(realm, index.toString()), val);
+
+    // 6. c. Increase index by 1.
+    ++index;
+  }
+
+  // 7. Perform ! DefinePropertyOrThrow(obj, @@iterator, PropertyDescriptor { [[Value]]: %ArrayProto_values%, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
+  $DefinePropertyOrThrow(
+    ctx,
+    obj,
+    intrinsics['@@iterator'],
+    new $PropertyDescriptor(
+      realm,
+      intrinsics['@@iterator'],
+      {
+        '[[Value]]': intrinsics['%ArrayProto_values%'],
+        '[[Writable]]': intrinsics.true,
+        '[[Enumerable]]': intrinsics.false,
+        '[[Configurable]]': intrinsics.true,
+      },
+    ),
+  );
+
+  // 8. Perform ! DefinePropertyOrThrow(obj, "callee", PropertyDescriptor { [[Get]]: %ThrowTypeError%, [[Set]]: %ThrowTypeError%, [[Enumerable]]: false, [[Configurable]]: false }).
+  $DefinePropertyOrThrow(
+    ctx,
+    obj,
+    intrinsics.$callee,
+    new $PropertyDescriptor(
+      realm,
+      intrinsics.$callee,
+      {
+        '[[Get]]': intrinsics['%ThrowTypeError%'],
+        '[[Set]]': intrinsics['%ThrowTypeError%'],
+        '[[Enumerable]]': intrinsics.false,
+        '[[Configurable]]': intrinsics.false,
+      },
+    ),
+  );
+
+  // 9. Return obj.
+  return obj;
+}

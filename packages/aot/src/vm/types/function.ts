@@ -88,7 +88,7 @@ export class $Function<
   // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget
   public '[[Construct]]'(
     ctx: ExecutionContext,
-    argumentsList: readonly $Any[],
+    argumentsList: readonly $AnyNonEmpty[],
     newTarget: $Object,
   ): $Object {
     // 1. Assert: F is an ECMAScript function object.
@@ -454,7 +454,7 @@ function $PrepareForOrdinaryCall(
   callerContext.ScriptOrModule = F['[[ScriptOrModule]]'];
 
   // 8. Let localEnv be NewFunctionEnvironment(F, newTarget).
-  const localEnv = new $FunctionEnvRec(calleeRealm, F, newTarget);
+  const localEnv = new $FunctionEnvRec(F['[[ECMAScriptCode]]'].logger, calleeRealm, F, newTarget);
 
   // 9. Set the LexicalEnvironment of calleeContext to localEnv.
   calleeContext.LexicalEnvironment = localEnv;
@@ -536,7 +536,7 @@ export type ConstructorKind = 'base' | 'derived';
 export type ThisMode = 'lexical' | 'strict' | 'global';
 
 // http://www.ecma-international.org/ecma-262/#sec-built-in-function-objects
-export class $BuiltinFunction<
+export abstract class $BuiltinFunction<
   T extends string = string,
 > extends $Function<T> {
   public readonly '<$BuiltinFunction>': unknown;
@@ -544,9 +544,91 @@ export class $BuiltinFunction<
   public constructor(
     realm: Realm,
     IntrinsicName: T,
-    proto: $Object,
-    private readonly $invoke: CallableFunction,
+    proto: $Object = realm['[[Intrinsics]]']['%FunctionPrototype%'],
   ) {
     super(realm, IntrinsicName, proto);
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-built-in-function-objects-call-thisargument-argumentslist
+  public '[[Call]]'(
+    ctx: ExecutionContext,
+    thisArgument: $AnyNonEmpty,
+    argumentsList: readonly $AnyNonEmpty[],
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // 1. Let callerContext be the running execution context.
+    // 2. If callerContext is not already suspended, suspend callerContext.
+    // 3. Let calleeContext be a new ECMAScript code execution context.
+    const calleeContext = new ExecutionContext();
+
+    // 4. Set the Function of calleeContext to F.
+    calleeContext.Function = this;
+
+    // 5. Let calleeRealm be F.[[Realm]].
+    // 6. Set the Realm of calleeContext to calleeRealm.
+    calleeContext.Realm = this['[[Realm]]'];;
+
+    // 7. Set the ScriptOrModule of calleeContext to F.[[ScriptOrModule]].
+    calleeContext.ScriptOrModule = this['[[ScriptOrModule]]'];
+
+    // 8. Perform any necessary implementation-defined initialization of calleeContext.
+    // 9. Push calleeContext onto the execution context stack; calleeContext is now the running execution context.
+    realm.stack.push(calleeContext);
+
+    // 10. Let result be the Completion Record that is the result of evaluating F in an implementation-defined manner that conforms to the specification of F. thisArgument is the this value, argumentsList provides the named parameters, and the NewTarget value is undefined.
+    const result = this.performSteps(calleeContext, thisArgument, argumentsList, intrinsics.undefined);
+
+    // 11. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
+    realm.stack.pop();
+
+    // 12. Return result.
+    return result;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-built-in-function-objects-construct-argumentslist-newtarget
+  public '[[Construct]]'(
+    ctx: ExecutionContext,
+    argumentsList: readonly $AnyNonEmpty[],
+    newTarget: $Object,
+  ): $Object {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // 1. Let callerContext be the running execution context.
+    // 2. If callerContext is not already suspended, suspend callerContext.
+    // 3. Let calleeContext be a new ECMAScript code execution context.
+    const calleeContext = new ExecutionContext();
+
+    // 4. Set the Function of calleeContext to F.
+    calleeContext.Function = this;
+
+    // 5. Let calleeRealm be F.[[Realm]].
+    // 6. Set the Realm of calleeContext to calleeRealm.
+    calleeContext.Realm = this['[[Realm]]'];;
+
+    // 7. Set the ScriptOrModule of calleeContext to F.[[ScriptOrModule]].
+    calleeContext.ScriptOrModule = this['[[ScriptOrModule]]'];
+
+    // 8. Perform any necessary implementation-defined initialization of calleeContext.
+    // 9. Push calleeContext onto the execution context stack; calleeContext is now the running execution context.
+    realm.stack.push(calleeContext);
+
+    // 10. Let result be the Completion Record that is the result of evaluating F in an implementation-defined manner that conforms to the specification of F. The this value is uninitialized, argumentsList provides the named parameters, and newTarget provides the NewTarget value.
+    const result = this.performSteps(calleeContext, intrinsics.undefined, argumentsList, newTarget) as $Object;
+
+    // 11. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
+    realm.stack.pop();
+
+    // 12. Return result.
+    return result;
+  }
+
+  public abstract performSteps(
+    ctx: ExecutionContext,
+    thisArgument: $AnyNonEmpty,
+    argumentsList: readonly $AnyNonEmpty[],
+    NewTarget: $AnyNonEmpty,
+  ): $AnyNonEmpty;
 }

@@ -721,6 +721,9 @@ export class Router implements IRouter {
     let route = new FoundRoute();
     if (typeof instruction === 'string') {
       instruction = transformUrl ? this.options.transformFromUrl!(instruction, this) : instruction;
+      instruction = transformUrl
+        ? this.hookManager.invokeTransformFromUrl(instruction as string, this.processingNavigation as INavigatorInstruction)
+        : instruction;
       if (Array.isArray(instruction)) {
         route.instructions = instruction;
       } else {

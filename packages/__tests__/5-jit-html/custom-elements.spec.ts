@@ -620,7 +620,7 @@ describe('custom-elements', function () {
     interface IBindableSetterHtmlInputTestCase {
       title: string;
       template: string;
-      setter: InterceptorFunc,
+      setter: InterceptorFunc;
       assertionFn: (ctx: HTMLTestContext, rootVm: IIndexable, inputEl: HTMLElement) => void;
     }
 
@@ -735,9 +735,9 @@ describe('custom-elements', function () {
         title: 'works with model binding + <select />',
         template: [
           '<select value.bind="value">',
-            '<option model.bind="1">Neutral',
-            '<option model.bind="2">Female',
-            '<option model.bind="3">Male'
+          '<option model.bind="1">Neutral',
+          '<option model.bind="2">Female',
+          '<option model.bind="3">Male'
         ].join(''),
         setter: Number,
         assertionFn: (ctx, rootVm, host) => {
@@ -775,7 +775,7 @@ describe('custom-elements', function () {
         assertionFn
       } = testCase;
 
-      it(title, function() {
+      it(title, function () {
         const ctx = TestContext.createHTMLTestContext();
         const au = new Aurelia(ctx.container);
         const host = ctx.createElement('app');

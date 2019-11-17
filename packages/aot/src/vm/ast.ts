@@ -152,7 +152,7 @@ import { $NamespaceExoticObject } from './exotics/namespace';
 import { $String } from './types/string';
 import { $Undefined } from './types/undefined';
 import { $Function } from './types/function';
-import { $Any, CompletionType, $AnyNonEmpty } from './types/_shared';
+import { $Any, CompletionType, $AnyNonEmpty, $PropertyKey } from './types/_shared';
 import { $Object } from './types/object';
 import { $Reference } from './types/reference';
 import { $Number } from './types/number';
@@ -1168,12 +1168,12 @@ function requireObjectCoercible(value: $Any, realm: Realm) {
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-isanonymousfunctiondefinition
-function isAnonymousFunctionDefinition(expr: $$AssignmentExpressionOrHigher): expr is $ArrowFunction {
+function isAnonymousFunctionDefinition(ctx: ExecutionContext, expr: $$AssignmentExpressionOrHigher): expr is $ArrowFunction {
   // 1. If IsFunctionDefinition of expr is false, return false.
   // 2. Let hasName be the result of HasName of expr.
   // 3. If hasName is true, return false.
   // 4. Return true.
-  return expr instanceof $ArrowFunction || expr instanceof $Function && !expr['[[HasProperty]]'](expr.realm['[[Intrinsics]]'].$name);
+  return expr instanceof $ArrowFunction || expr instanceof $Function && !expr['[[HasProperty]]'](ctx, expr.realm['[[Intrinsics]]'].$name);
 }
 // #endregion
 
@@ -2548,9 +2548,11 @@ export class $VariableDeclaration implements I$Node {
     }
   }
 
-  public InitializeBinding(value: $Any, envRec: $DeclarativeEnvRec | undefined) {
-    const kind = this.$name.$kind;
-    const boundNames = this.$name.BoundNames;
+  public InitializeBinding(ctx: ExecutionContext, value: $AnyNonEmpty) {
+    const bindingName = this.$name;
+    const kind = bindingName.$kind;
+    const boundNames = bindingName.BoundNames;
+    const envRec = ctx.LexicalEnvironment;
     if ((boundNames?.length ?? 0) > 0) {
       switch (kind) {
         // http://www.ecma-international.org/ecma-262/#sec-identifiers-runtime-semantics-bindinginitialization
@@ -2562,18 +2564,24 @@ export class $VariableDeclaration implements I$Node {
           if (envRec !== undefined) {
             // 2. a. Let env be the EnvironmentRecord component of environment.
             // 2. b. Perform env.InitializeBinding(name, value).
-            envRec.InitializeBinding(name, value);
+            envRec.InitializeBinding(ctx, name, value);
             // 2. c. Return NormalCompletion(undefined).
-            return CompletionRecord.createNormal(this.realm['[[Intrinsics]]'].undefined, this.realm);
+            return this.realm['[[Intrinsics]]'].undefined;
           } else {
             // 3. Else,
             // 3. a. Let lhs be ResolveBinding(name).
             const lhs = this.realm.ResolveBinding(name);
             // 3. b. Return ? PutValue(lhs, value).
-            lhs.PutValue(value);
+            lhs.PutValue(ctx, value);
           }
+          break;
+
         case SyntaxKind.ObjectBindingPattern:
+          (bindingName as $ObjectBindingPattern).InitializeBinding(ctx, value);
+          break;
+
         case SyntaxKind.ArrayBindingPattern:
+          // TODO
           break;
       }
     }
@@ -8651,9 +8659,11 @@ export class $ObjectBindingPattern implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-bindinginitialization
-  public InitializeBinding(value: $Any, envRec: $DeclarativeEnvRec) {
-    const { realm, $elements } = this;
-    const { empty, undefined: $undefined } = realm['[[Intrinsics]]'];
+  public InitializeBinding(ctx: ExecutionContext, value: $Any) {
+    const realm = ctx.Realm;
+    const elements = this.$elements;
+    const empty = realm['[[Intrinsics]]'].empty;
+    const $undefined = realm['[[Intrinsics]]'].undefined;
 
     // BindingPattern : ObjectBindingPattern
 
@@ -8663,9 +8673,9 @@ export class $ObjectBindingPattern implements I$Node {
     // 2. Return the result of performing BindingInitialization for ObjectBindingPattern using value and environment as arguments.
 
     // ObjectBindingPattern : { }
-    if ($elements.length === 0) {
+    if (elements.length === 0) {
       // 1. Return NormalCompletion(empty).
-      return CompletionRecord.createNormal(empty, realm);
+      return empty;
     }
 
     // ObjectBindingPattern : { BindingPropertyList } { BindingPropertyList , }
@@ -8704,8 +8714,8 @@ export class $ObjectBindingPattern implements I$Node {
     // 2. ReturnIfAbrupt(P).
     // 3. Perform ? KeyedBindingInitialization of BindingElement with value, environment, and P as the arguments.
     // 4. Return a new List containing P.
-    for (let i = 0, { length } = $elements; i < length; i++) {
-      const element = $elements[i];
+    for (let i = 0, { length } = elements; i < length; i++) {
+      const element = elements[i];
       const { $name } = element;
 
       switch (true) {
@@ -8719,7 +8729,7 @@ export class $ObjectBindingPattern implements I$Node {
             const name = element.BoundNames[0];
 
             // 2. Perform ? KeyedBindingInitialization for SingleNameBinding using value, environment, and name as the arguments.
-            this.InitializeKeyedBindingIdentifier(value, envRec, name, element);
+            this.InitializeKeyedBindingIdentifier(ctx, value, name, element);
             // 3. Return a new List containing name.
             return [name];
           } else {
@@ -8729,21 +8739,21 @@ export class $ObjectBindingPattern implements I$Node {
             let P: $Reference | $String<string> | $Number<number>;
             switch (propertyName.$kind) {
               case SyntaxKind.Identifier:
-                P = propertyName.Evaluate().GetReferencedName();
+                P = propertyName.Evaluate(ctx).GetReferencedName();
                 break;
               case SyntaxKind.NumericLiteral:
               case SyntaxKind.StringLiteral:
-                P = propertyName.Evaluate().ToString();
+                P = propertyName.Evaluate(ctx).ToString(ctx);
                 break;
 
               case SyntaxKind.ComputedPropertyName:
-                P = propertyName.$expression.Evaluate().GetValue().ToString();
+                P = propertyName.$expression.Evaluate(ctx).GetValue(ctx).ToString(ctx);
                 break;
             }
             // 2. ReturnIfAbrupt(P). // TODO ?
 
             // 3. Perform ? KeyedBindingInitialization of BindingElement with value, environment, and P as the arguments.
-            this.InitializeKeyedBindingIdentifier(value, envRec, P.GetValue(), element);
+            this.InitializeKeyedBindingIdentifier(ctx, value, P.GetValue() as $PropertyKey, element);
 
             // 4. Return a new List containing P.
             return [P];
@@ -8781,14 +8791,15 @@ export class $ObjectBindingPattern implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-keyedbindinginitialization
   // SingleNameBinding : BindingIdentifier Initializer opt
   private InitializeKeyedBindingIdentifier(
+    ctx: ExecutionContext,
     value: $Any,
-    envRec: $DeclarativeEnvRec,
     name: $PropertyKey,
     element: $BindingElement
   ) {
     const realm = this.realm;
     const { undefined: $undefined } = realm['[[Intrinsics]]'];
     const { $name: bindingIdentifier, $initializer } = element;
+    const envRec = ctx.LexicalEnvironment;
     // 1. Let bindingId be StringValue of BindingIdentifier.
     const bindingId = (bindingIdentifier as $Identifier).PropName;
 
@@ -8796,28 +8807,28 @@ export class $ObjectBindingPattern implements I$Node {
     const lhs = realm.ResolveBinding(bindingId, envRec);
 
     // 3. Let v be ? GetV(value, propertyName).
-    let v = value.ToObject()['[[Get]]'](name, $undefined);
+    let v = value.ToObject(ctx)['[[Get]]'](ctx, name, $undefined);
 
     // 4. If Initializer is present and v is undefined, then
     if (element.HasInitializer && v.is($undefined)) {
       // 4. a. If IsAnonymousFunctionDefinition(Initializer) is true, then
-      if (isAnonymousFunctionDefinition($initializer!)) {
+      if (isAnonymousFunctionDefinition(ctx, $initializer!)) {
         // 4. a. i. Set v to the result of performing NamedEvaluation for Initializer with argument bindingId.
         // TODO implement this
       } else {
         // 4. b. Else,
         // 4. b. i. Let defaultValue be the result of evaluating Initializer.
-        const defaultValue = $initializer?.Evaluate();
+        const defaultValue = $initializer?.Evaluate(ctx);
         // 4. b. ii. Set v to ? GetValue(defaultValue).
-        v = defaultValue?.GetValue() ?? $undefined;
+        v = defaultValue?.GetValue(ctx) ?? $undefined;
       }
     }
     // 5. If environment is undefined, return ? PutValue(lhs, v).
     if (envRec === undefined) {
-      return lhs.PutValue(v);
+      return lhs.PutValue(ctx, v);
     } else {
       // 6. Return InitializeReferencedBinding(lhs, v).
-      return lhs.InitializeReferencedBinding(v);
+      return lhs.InitializeReferencedBinding(ctx, v);
     }
   }
 }
@@ -10617,40 +10628,40 @@ export class $TryStatement implements I$Node {
     // 6. Return Completion(UpdateEmpty(F, undefined)).
 
     const { $tryBlock, $catchClause, $finallyBlock, realm: { '[[Intrinsics]]': { undefined: $undefined } } } = this;
-    let result = $tryBlock.Evaluate();
+    let result = $tryBlock.Evaluate(ctx);
 
     if ($catchClause !== undefined) {
-      result = result.Type === CompletionKind.throw ? this.EvaluateCatchClause(result.Value) : result;
+      result = result['[[Type]]'] === CompletionType.throw ? this.EvaluateCatchClause(ctx, result.GetValue()) : result;
     }
     if ($finallyBlock !== undefined) {
-      const F = $finallyBlock.Evaluate();
-      result = F.Type !== CompletionKind.normal ? F : result;
+      const F = $finallyBlock.Evaluate(ctx);
+      result = F['[[Type]]'] !== CompletionType.normal ? F : result;
     }
     result.UpdateEmpty($undefined);
 
-    return result;
+    return result as $AnyNonEmpty;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-catchclauseevaluation
-  private EvaluateCatchClause(thrownValue: $Any): CompletionRecord {
+  private EvaluateCatchClause(ctx: ExecutionContext, thrownValue: $Any): $Any {
 
     const realm = this.realm;
 
     // Catch : catch ( CatchParameter ) Block
 
     // 1. Let oldEnv be the running execution context's LexicalEnvironment.
-    const oldEnv = realm.GetCurrentLexicalEnvironment();
+    const oldEnv = ctx.LexicalEnvironment;
 
     // 2. Let catchEnv be NewDeclarativeEnvironment(oldEnv).
     // 3. Let catchEnvRec be catchEnv's EnvironmentRecord.
-    const catchEnvRec = new $DeclarativeEnvRec(realm, oldEnv);
+    ctx.LexicalEnvironment = new $DeclarativeEnvRec(this.logger, realm, oldEnv);
 
     // 4. For each element argName of the BoundNames of CatchParameter, do
     // 4. a. Perform ! catchEnvRec.CreateMutableBinding(argName, false).
-    this.$catchClause?.CreateBinding(catchEnvRec, realm);
+    this.$catchClause?.CreateBinding(ctx, realm);
 
     // 5. Set the running execution context's LexicalEnvironment to catchEnv.
-    realm.SetCurrentLexicalEnvironment(catchEnvRec);
+    realm.stack.push(ctx);
 
     // 6. Let status be the result of performing BindingInitialization for CatchParameter passing thrownValue and catchEnv as arguments.
     this.$catchClause?.$variableDeclaration?.$initializer.
@@ -10864,34 +10875,9 @@ export class $CatchClause implements I$Node {
   }
 
   //#region helper methods
-  public CreateBinding(catchEnvRec: $DeclarativeEnvRec, realm: Realm) {
+  public CreateBinding(ctx: ExecutionContext, realm: Realm) {
     for (const argName of this.$variableDeclaration?.BoundNames ?? []) {
-      catchEnvRec.CreateMutableBinding(argName, realm['[[Intrinsics]]'].false);
-    }
-  }
-
-  public InitializeCatchParameterBinding(thrownValue: $Any, catchEnvRec: $DeclarativeEnvRec) {
-    const kind = this.$variableDeclaration?.$name.$kind;
-    const boundNames = this.$variableDeclaration?.$name.BoundNames;
-    if ((boundNames?.length ?? 0) > 0) {
-      switch (kind) {
-        case SyntaxKind.Identifier:
-          // 1. Assert: Type(name) is String.
-          // 2. If environment is not undefined, then
-          // 2. a. Let env be the EnvironmentRecord component of environment.
-          // 2. b. Perform env.InitializeBinding(name, value).
-          catchEnvRec.InitializeBinding(boundNames![0]?.GetValue(), thrownValue);
-          // 2. c. Return NormalCompletion(undefined).
-          return CompletionRecord.createNormal(this.realm['[[Intrinsics]]'].undefined, this.realm);
-        // Else is not needed in this case as catchEnvRec is always truthy
-        // 3. Else,
-        // 3. a. Let lhs be ResolveBinding(name).
-        // 3. b. Return ? PutValue(lhs, value).
-        // break;
-        case SyntaxKind.ObjectBindingPattern:
-        case SyntaxKind.ArrayBindingPattern:
-          break;
-      }
+      ctx.LexicalEnvironment.CreateMutableBinding(ctx, argName, realm['[[Intrinsics]]'].false);
     }
   }
   //#endregion

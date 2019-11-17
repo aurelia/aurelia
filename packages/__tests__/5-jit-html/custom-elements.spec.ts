@@ -6,7 +6,7 @@ import {
   CustomElementHost,
   Aurelia
 } from '@aurelia/runtime';
-import { TestConfiguration, assert, setup, TestContext, HTMLTestContext, eachCartesianJoin } from '@aurelia/testing';
+import { TestConfiguration, assert, setup, TestContext, HTMLTestContext } from '@aurelia/testing';
 import { Registration, IIndexable } from '@aurelia/kernel';
 import { InterceptorFunc } from '@aurelia/runtime/dist/templating/bindable';
 

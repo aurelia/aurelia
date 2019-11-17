@@ -88,7 +88,7 @@ export class $Function<
   // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget
   public '[[Construct]]'(
     ctx: ExecutionContext,
-    argumentsList: readonly $Any[],
+    argumentsList: readonly $AnyNonEmpty[],
     newTarget: $Object,
   ): $Object {
     // 1. Assert: F is an ECMAScript function object.

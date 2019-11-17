@@ -159,6 +159,7 @@ import { $Number } from './types/number';
 import { $Null } from './types/null';
 import { $Boolean } from './types/boolean';
 import { $Empty, empty } from './types/empty';
+import { $CreateUnmappedArgumentsObject, $ArgumentsExoticObject } from './exotics/arguments';
 const {
   emptyArray,
   emptyObject,
@@ -1585,6 +1586,8 @@ export class $FunctionDeclaration implements I$Node {
     ctx: ExecutionContext,
     Scope: $EnvRec,
   ): $Function {
+
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1634,8 +1637,10 @@ export class $FunctionDeclaration implements I$Node {
   public EvaluateBody(
     ctx: ExecutionContext,
     functionObject: $Function,
-    argumentsList: readonly $Any[],
+    argumentsList: readonly $AnyNonEmpty[],
   ): $Any {
+    this.logger.debug('EvaluateBody()');
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1677,7 +1682,7 @@ export class $FunctionDeclaration implements I$Node {
 function $FunctionDeclarationInstantiation(
   ctx: ExecutionContext,
   func: $Function,
-  argumentsList: readonly $Any[],
+  argumentsList: readonly $AnyNonEmpty[],
 ) {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
@@ -1727,7 +1732,7 @@ function $FunctionDeclarationInstantiation(
   const varDeclarations = code.VarScopedDeclarations;
 
   // 13. Let lexicalNames be the LexicallyDeclaredNames of code.
-  const lexicalNames = [] as $String[]; // TODO
+  const lexicalNames = code.LexicallyDeclaredNames;
 
   // 14. Let functionNames be a new empty List.
   const functionNames = [] as $String[];
@@ -1801,37 +1806,44 @@ function $FunctionDeclarationInstantiation(
     }
   }
 
-  let parameterBindings: $String[] = []; // TODO
+  let ao: $Object;
+  let parameterBindings: $String[];
 
   // 22. If argumentsObjectNeeded is true, then
   if (argumentsObjectNeeded) {
-    // TODO: implement arguments mapped and unmapped objects
-
     // 22. a. If strict is true or if simpleParameterList is false, then
     if (strict.isTruthy || !simpleParameterList) {
       // 22. a. i. Let ao be CreateUnmappedArgumentsObject(argumentsList).
+      ao = $CreateUnmappedArgumentsObject(ctx, argumentsList);
     }
     // 22. b. Else,
     else {
       // 22. b. i. NOTE: mapped argument object is only provided for non-strict functions that don't have a rest parameter, any parameter default value initializers, or any destructured parameters.
       // 22. b. ii. Let ao be CreateMappedArgumentsObject(func, formals, argumentsList, envRec).
+      ao = new $ArgumentsExoticObject(realm, func, formals, argumentsList, envRec);
     }
 
     // 22. c. If strict is true, then
     if (strict.isTruthy) {
       // 22. c. i. Perform ! envRec.CreateImmutableBinding("arguments", false).
+      envRec.CreateImmutableBinding(ctx, intrinsics.$arguments, intrinsics.false);
     }
     // 22. d. Else,
     else {
       // 22. d. i. Perform ! envRec.CreateMutableBinding("arguments", false).
+      envRec.CreateMutableBinding(ctx, intrinsics.$arguments, intrinsics.false);
     }
 
     // 22. e. Call envRec.InitializeBinding("arguments", ao).
+    envRec.InitializeBinding(ctx, intrinsics.$arguments, ao);
+
     // 22. f. Let parameterBindings be a new List of parameterNames with "arguments" appended.
+    parameterBindings = parameterNames.concat(intrinsics.$arguments);
   }
   // 23. Else,
   else {
     // 23. a. Let parameterBindings be parameterNames.
+    parameterBindings = parameterNames;
   }
 
   // TODO: implement iterator

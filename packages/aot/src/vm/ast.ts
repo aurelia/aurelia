@@ -1687,7 +1687,7 @@ function $FunctionDeclarationInstantiation(
   const formals = code.$parameters;
 
   // 7. Let parameterNames be the BoundNames of formals.
-  const parameterNames = code.BoundNames;
+  const parameterNames = formals.flatMap(getBoundNames);
 
   // 8. If parameterNames has any duplicate entries, let hasDuplicates be true. Otherwise, let hasDuplicates be false.
   let hasDuplicates = false;

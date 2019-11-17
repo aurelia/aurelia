@@ -149,6 +149,7 @@ export class Intrinsics {
   public readonly 'string': $String<'string'>;
   public readonly 'number': $String<'number'>;
   public readonly 'length': $String<'length'>;
+  public readonly 'next': $String<'next'>;
   public readonly '$arguments': $String<'arguments'>;
   public readonly '$callee': $String<'callee'>;
   public readonly '$constructor': $String<'constructor'>;
@@ -161,6 +162,7 @@ export class Intrinsics {
   public readonly '$configurable': $String<'configurable'>;
   public readonly '$writable': $String<'writable'>;
   public readonly '$value': $String<'value'>;
+  public readonly '$return': $String<'return'>;
   public readonly '$done': $String<'done'>;
 
   public readonly '$getPrototypeOf': $String<'getPrototypeOf'>;
@@ -338,6 +340,7 @@ export class Intrinsics {
     this['string'] = new $String(realm, 'string');
     this['number'] = new $String(realm, 'number');
     this['length'] = new $String(realm, 'length');
+    this['next'] = new $String(realm, 'next');
     this['$arguments'] = new $String(realm, 'arguments');
     this['$callee'] = new $String(realm, 'callee');
     this['$constructor'] = new $String(realm, 'constructor');
@@ -350,6 +353,7 @@ export class Intrinsics {
     this['$configurable'] = new $String(realm, 'configurable');
     this['$writable'] = new $String(realm, 'writable');
     this['$value'] = new $String(realm, 'value');
+    this['$return'] = new $String(realm, 'return');
     this['$done'] = new $String(realm, 'done');
 
     this['$getPrototypeOf'] = new $String(realm, 'getPrototypeOf');

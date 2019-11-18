@@ -94,4 +94,19 @@ describe('AOT (smoke tests)', function () {
 
     assert.strictEqual(mod.ExecutionResult['[[Value]]'], 2);
   });
+
+  it('simple function declaration with parameters and binary expression', async function () {
+    const { realm, mod } = await setup(`
+      function foo(a, b) {
+        return a + b;
+      }
+      return foo(1, 1);
+    `);
+
+    mod.Instantiate();
+
+    mod.EvaluateModule();
+
+    assert.strictEqual(mod.ExecutionResult['[[Value]]'], 2);
+  });
 });

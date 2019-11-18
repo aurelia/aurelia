@@ -3277,9 +3277,15 @@ function $EvaluateCall(
   }
 
   // 3. Let argList be ArgumentListEvaluation of arguments.
-  const argList: $AnyNonEmpty[] = []; // TODO
+  const argList = $ArgumentListEvaluation(ctx, $arguments);
 
   // 4. ReturnIfAbrupt(argList).
+  for (const arg of argList) {
+    if (arg.isAbrupt) {
+      return arg; // TODO: normalize list somehow
+    }
+  }
+
   // 5. If Type(func) is not Object, throw a TypeError exception.
   // 6. If IsCallable(func) is false, throw a TypeError exception.
   if (!func.isFunction) {
@@ -3296,6 +3302,70 @@ function $EvaluateCall(
   // 10. Assert: If result is not an abrupt completion, then Type(result) is an ECMAScript language type.
   // 11. Return result.
   return result;
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-argument-lists-runtime-semantics-argumentlistevaluation
+export function $ArgumentListEvaluation(
+  ctx: ExecutionContext,
+  args: readonly $$ArgumentOrArrayLiteralElement[],
+): readonly $AnyNonEmpty[] {
+  // Arguments : ( )
+
+  // 1. Return a new empty List.
+
+  // ArgumentList : AssignmentExpression
+
+  // 1. Let ref be the result of evaluating AssignmentExpression.
+  // 2. Let arg be ? GetValue(ref).
+  // 3. Return a List whose sole item is arg.
+
+  // ArgumentList : ... AssignmentExpression // TODO
+
+  // 1. Let list be a new empty List.
+  // 2. Let spreadRef be the result of evaluating AssignmentExpression.
+  // 3. Let spreadObj be ? GetValue(spreadRef).
+  // 4. Let iteratorRecord be ? GetIterator(spreadObj).
+  // 5. Repeat,
+    // 5. a. Let next be ? IteratorStep(iteratorRecord).
+    // 5. b. If next is false, return list.
+    // 5. c. Let nextArg be ? IteratorValue(next).
+    // 5. d. Append nextArg as the last element of list.
+
+  // ArgumentList : ArgumentList , AssignmentExpression
+
+  // 1. Let precedingArgs be ArgumentListEvaluation of ArgumentList.
+  // 2. ReturnIfAbrupt(precedingArgs).
+  // 3. Let ref be the result of evaluating AssignmentExpression.
+  // 4. Let arg be ? GetValue(ref).
+  // 5. Append arg to the end of precedingArgs.
+  // 6. Return precedingArgs.
+  const list: $AnyNonEmpty[] = [];
+  for (const arg of args) {
+    const ref = arg.Evaluate(ctx);
+    if (ref.isAbrupt) {
+      return [ref];
+    }
+    const value = ref.GetValue(ctx);
+    if (value.isAbrupt) {
+      return [value];
+    }
+    list.push(value);
+  }
+  return list;
+
+  // ArgumentList : ArgumentList , ... AssignmentExpression // TODO
+
+  // 1. Let precedingArgs be ArgumentListEvaluation of ArgumentList.
+  // 2. ReturnIfAbrupt(precedingArgs).
+  // 3. Let spreadRef be the result of evaluating AssignmentExpression.
+  // 4. Let iteratorRecord be ? GetIterator(? GetValue(spreadRef)).
+  // 5. Repeat,
+    // 5. a. Let next be ? IteratorStep(iteratorRecord).
+    // 5. b. If next is false, return precedingArgs.
+    // 5. c. Let nextArg be ? IteratorValue(next).
+    // 5. d. Append nextArg as the last element of precedingArgs.
+
+
 }
 
 export class $NewExpression implements I$Node {
@@ -9436,6 +9506,12 @@ export class $SpreadElement implements I$Node {
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
   }
+
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    return null as any; // TODO: implement this;
+  }
 }
 
 export class $PropertyAssignment implements I$Node {
@@ -9584,6 +9660,12 @@ export class $OmittedExpression implements I$Node {
 
     // 2. Return NormalCompletion(empty).
     return new $Empty(realm);
+  }
+
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty {
+    return null as any; // TODO: implement this;
   }
 }
 

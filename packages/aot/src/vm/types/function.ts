@@ -70,6 +70,7 @@ export class $Function<
 
     // 8. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
     realm.stack.pop();
+    ctx.resume();
 
     // 9. If result.[[Type]] is return, return NormalCompletion(result.[[Value]]).
     if (result['[[Type]]'] === CompletionType.return) {
@@ -272,6 +273,8 @@ export class $Function<
     Strict: $Boolean,
     prototype?: $Object,
   ) {
+    node.logger.debug(`$Function.FunctionCreate(#${ctx.id}, ${JSON.stringify(kind)})`);
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -436,22 +439,20 @@ function $PrepareForOrdinaryCall(
 ): ExecutionContext {
   // 1. Assert: Type(newTarget) is Undefined or Object.
   // 2. Let callerContext be the running execution context.
-  const callerContext = ctx;
 
   // 3. Let calleeContext be a new ECMAScript code execution context.
-  const calleeContext = new ExecutionContext();
+  const calleeRealm = F['[[Realm]]'];
+  const calleeContext = new ExecutionContext(calleeRealm);
 
   // 4. Set the Function of calleeContext to F.
   calleeContext.Function = F;
 
   // 5. Let calleeRealm be F.[[Realm]].
-  const calleeRealm = F['[[Realm]]'];
 
   // 6. Set the Realm of calleeContext to calleeRealm.
-  calleeContext.Realm = calleeRealm;
 
   // 7. Set the ScriptOrModule of calleeContext to F.[[ScriptOrModule]].
-  callerContext.ScriptOrModule = F['[[ScriptOrModule]]'];
+  calleeContext.ScriptOrModule = F['[[ScriptOrModule]]'];
 
   // 8. Let localEnv be NewFunctionEnvironment(F, newTarget).
   const localEnv = new $FunctionEnvRec(F['[[ECMAScriptCode]]'].logger, calleeRealm, F, newTarget);
@@ -460,10 +461,10 @@ function $PrepareForOrdinaryCall(
   calleeContext.LexicalEnvironment = localEnv;
 
   // 10. Set the VariableEnvironment of calleeContext to localEnv.
-  callerContext.VariableEnvironment = localEnv;
+  calleeContext.VariableEnvironment = localEnv;
 
   // 11. If callerContext is not already suspended, suspend callerContext.
-  callerContext.suspend();
+  ctx.suspend();
 
   // 12. Push calleeContext onto the execution context stack; calleeContext is now the running execution context.
   calleeRealm.stack.push(calleeContext);
@@ -560,15 +561,17 @@ export abstract class $BuiltinFunction<
 
     // 1. Let callerContext be the running execution context.
     // 2. If callerContext is not already suspended, suspend callerContext.
+    ctx.suspend();
+
     // 3. Let calleeContext be a new ECMAScript code execution context.
-    const calleeContext = new ExecutionContext();
+    const calleeRealm = this['[[Realm]]'];
+    const calleeContext = new ExecutionContext(calleeRealm);
 
     // 4. Set the Function of calleeContext to F.
     calleeContext.Function = this;
 
     // 5. Let calleeRealm be F.[[Realm]].
     // 6. Set the Realm of calleeContext to calleeRealm.
-    calleeContext.Realm = this['[[Realm]]'];;
 
     // 7. Set the ScriptOrModule of calleeContext to F.[[ScriptOrModule]].
     calleeContext.ScriptOrModule = this['[[ScriptOrModule]]'];
@@ -582,6 +585,7 @@ export abstract class $BuiltinFunction<
 
     // 11. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
     realm.stack.pop();
+    ctx.resume();
 
     // 12. Return result.
     return result;
@@ -598,15 +602,17 @@ export abstract class $BuiltinFunction<
 
     // 1. Let callerContext be the running execution context.
     // 2. If callerContext is not already suspended, suspend callerContext.
+    ctx.suspend();
+
     // 3. Let calleeContext be a new ECMAScript code execution context.
-    const calleeContext = new ExecutionContext();
+    const calleeRealm = this['[[Realm]]'];
+    const calleeContext = new ExecutionContext(calleeRealm);
 
     // 4. Set the Function of calleeContext to F.
     calleeContext.Function = this;
 
     // 5. Let calleeRealm be F.[[Realm]].
     // 6. Set the Realm of calleeContext to calleeRealm.
-    calleeContext.Realm = this['[[Realm]]'];;
 
     // 7. Set the ScriptOrModule of calleeContext to F.[[ScriptOrModule]].
     calleeContext.ScriptOrModule = this['[[ScriptOrModule]]'];
@@ -620,6 +626,7 @@ export abstract class $BuiltinFunction<
 
     // 11. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
     realm.stack.pop();
+    ctx.resume();
 
     // 12. Return result.
     return result;

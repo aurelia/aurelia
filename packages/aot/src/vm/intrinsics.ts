@@ -326,6 +326,14 @@ export class Intrinsics {
     this['empty'] = new $Empty(realm);
     this['undefined'] = new $Undefined(realm);
     this['null'] = new $Null(realm);
+
+    // Synthetic root context for intrinsics that need the context to be there during initialization.
+    // Creating a valid ExecutionContext requires the null value, which is why we do it right here and neither earlier nor later.
+    const root = new ExecutionContext(realm);
+    root.Function = this['null'];
+    root.ScriptOrModule = this['null'];
+    realm.stack.push(root);
+
     this['true'] = new $Boolean(realm, true);
     this['false'] = new $Boolean(realm, false);
     this['NaN'] = new $Number(realm, NaN);

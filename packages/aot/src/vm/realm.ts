@@ -116,33 +116,19 @@ export class DeferredModule implements IModule {
   }
 }
 
-export class ExecutionContextStack extends Array<ExecutionContext> {
-  public get top(): ExecutionContext {
-    return this[this.length - 1];
-  }
-
-  public push(context: ExecutionContext): number {
-    return super.push(context);
-  }
-
-  public pop(): ExecutionContext {
-    return super.pop()!;
-  }
-}
-
 // http://www.ecma-international.org/ecma-262/#sec-code-realms
 export class Realm {
   public readonly jsdom: JSDOM;
   public readonly nodes: I$Node[] = [];
   public nodeCount: number = 0;
+  public contextId: number = 0;
 
-  public readonly stack: ExecutionContextStack = new ExecutionContextStack();
+  public readonly stack: ExecutionContextStack;
 
   public '[[Intrinsics]]': Intrinsics;
   public '[[GlobalObject]]': $Object;
   public '[[GlobalEnv]]': $GlobalEnvRec;
   public '[[TemplateMap]]': { '[[Site]]': $TemplateExpression | $TaggedTemplateExpression; '[[Array]]': $Object }[];
-
 
   private readonly compilerOptionsCache: Map<string, CompilerOptions> = new Map();
   private readonly moduleCache: Map<string, IModule> = new Map();
@@ -153,6 +139,8 @@ export class Realm {
     private readonly fs: IFileSystem,
   ) {
     this.jsdom = new JSDOM('');
+
+    this.stack = new ExecutionContextStack(logger);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-createrealm
@@ -192,13 +180,12 @@ export class Realm {
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 2. Let newContext be a new execution context.
-    const newContext = new ExecutionContext();
+    const newContext = new ExecutionContext(realm);
 
     // 3. Set the Function of newContext to null.
     newContext.Function = intrinsics.null;
 
     // 4. Set the Realm of newContext to realm.
-    newContext.Realm = realm;
 
     // 5. Set the ScriptOrModule of newContext to null.
     newContext.ScriptOrModule = intrinsics.null;
@@ -617,14 +604,70 @@ export class Realm {
   }
 }
 
+export class ExecutionContextStack extends Array<ExecutionContext> {
+  public constructor(
+    private readonly logger: ILogger,
+  ) {
+    super();
+    this.logger = logger.root.scopeTo('ExecutionContextStack');
+  }
+
+  public get top(): ExecutionContext {
+    return this[this.length - 1];
+  }
+
+  public push(context: ExecutionContext): number {
+    this.logger.debug(`push(#${context.id}) - new stack size: ${this.length + 1}`);
+
+    return super.push(context);
+  }
+
+  public pop(): ExecutionContext {
+    this.logger.debug(`pop(#${this.top.id}) - new stack size: ${this.length - 1}`);
+
+    return super.pop()!;
+  }
+}
+
 export class ExecutionContext {
+  public readonly id: number;
+
   public Function!: $Function | $Null;
-  public Realm!: Realm;
   public ScriptOrModule!: $SourceFile | $Null;
   public LexicalEnvironment!: $EnvRec;
   public VariableEnvironment!: $EnvRec;
 
-  public suspend(): void {
+  public suspended: boolean = false;
 
+  private readonly logger: ILogger;
+
+  public constructor(
+    public readonly Realm: Realm,
+  ) {
+    this.id = ++Realm.contextId;
+    this.logger = Realm['logger'].root.scopeTo(`ExecutionContext #${this.id}`);
+    this.logger.debug(`constructor()`);
+  }
+
+  public resume(): void {
+    this.logger.debug(`resume()`);
+    if (!this.suspended) {
+      throw new Error('ExecutionContext is not suspended');
+    }
+    if (this.Realm.stack.top !== this) {
+      throw new Error('ExecutionContext is not at the top of the stack');
+    }
+    this.suspended = false;
+  }
+
+  public suspend(): void {
+    this.logger.debug(`suspend()`);
+    if (this.suspended) {
+      throw new Error('ExecutionContext is already suspended');
+    }
+    if (this.Realm.stack.top !== this) {
+      throw new Error('ExecutionContext is not at the top of the stack');
+    }
+    this.suspended = true;
   }
 }

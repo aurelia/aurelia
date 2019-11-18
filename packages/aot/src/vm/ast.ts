@@ -1272,7 +1272,7 @@ export class $VariableStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-runtime-semantics-evaluation
 
     // LexicalDeclaration : LetOrConst BindingList ;
@@ -1587,7 +1587,7 @@ export class $FunctionDeclaration implements I$Node {
     ctx: ExecutionContext,
     Scope: $EnvRec,
   ): $Function {
-
+    this.logger.debug(`InstantiateFunctionObject(#${ctx.id})`);
 
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -1640,7 +1640,7 @@ export class $FunctionDeclaration implements I$Node {
     functionObject: $Function,
     argumentsList: readonly $AnyNonEmpty[],
   ): $Any {
-    this.logger.debug('EvaluateBody()');
+    this.logger.debug(`EvaluateBody(#${ctx.id})`);
 
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -1663,6 +1663,8 @@ export class $FunctionDeclaration implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Empty {
+    this.logger.debug(`Evaluate(#${ctx.id})`);
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -2761,7 +2763,7 @@ export class $ThisExpression implements I$Node {
   ): $AnyNonEmpty {
     const realm = ctx.Realm;
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // PrimaryExpression : this
 
     // 1. Return ? ResolveThisBinding().
@@ -2792,7 +2794,7 @@ export class $SuperExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // SuperProperty : super [ Expression ]
 
     // 1. Let env be GetThisEnvironment().
@@ -3091,7 +3093,7 @@ export class $PropertyAccessExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // MemberExpression : MemberExpression . IdentifierName
 
     // 1. Let baseReference be the result of evaluating MemberExpression.
@@ -3136,7 +3138,7 @@ export class $ElementAccessExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // MemberExpression : MemberExpression [ Expression ]
 
     // 1. Let baseReference be the result of evaluating MemberExpression.
@@ -3183,7 +3185,7 @@ export class $CallExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // CallExpression : CoverCallExpressionAndAsyncArrowHead
 
     // 1. Let expr be CoveredCallExpression of CoverCallExpressionAndAsyncArrowHead.
@@ -3323,7 +3325,7 @@ export class $NewExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // NewExpression : new NewExpression
 
     // 1. Return ? EvaluateNew(NewExpression, empty).
@@ -3377,7 +3379,7 @@ export class $TaggedTemplateExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // MemberExpression : MemberExpression TemplateLiteral
 
     // 1. Let tagRef be the result of evaluating MemberExpression.
@@ -3488,7 +3490,7 @@ export class $FunctionExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
 
     // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluation
 
@@ -3859,7 +3861,7 @@ export class $ClassExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // ClassExpression : class BindingIdentifier opt ClassTail
 
     // 1. If BindingIdentifieropt is not present, let className be undefined.
@@ -3932,7 +3934,7 @@ export class $MetaProperty implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // NewTarget : new . target
 
     // 1. Return GetNewTarget().
@@ -3974,7 +3976,7 @@ export class $DeleteExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // 1. Let ref be the result of evaluating UnaryExpression.
     // 2. ReturnIfAbrupt(ref).
     // 3. If Type(ref) is not Reference, return true.
@@ -4024,7 +4026,7 @@ export class $TypeOfExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // UnaryExpression : typeof UnaryExpression
 
     // 1. Let val be the result of evaluating UnaryExpression.
@@ -4066,7 +4068,7 @@ export class $VoidExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // UnaryExpression : void UnaryExpression
 
     // 1. Let expr be the result of evaluating UnaryExpression.
@@ -4106,7 +4108,7 @@ export class $AwaitExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // AwaitExpression : await UnaryExpression
 
     // 1. Let exprRef be the result of evaluating UnaryExpression.
@@ -4149,7 +4151,7 @@ export class $PrefixUnaryExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // http://www.ecma-international.org/ecma-262/#sec-prefix-increment-operator-runtime-semantics-evaluation
 
     // UpdateExpression : ++ UnaryExpression
@@ -4223,7 +4225,7 @@ export class $PostfixUnaryExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // http://www.ecma-international.org/ecma-262/#sec-postfix-increment-operator-runtime-semantics-evaluation
 
     // UpdateExpression : LeftHandSideExpression ++
@@ -4324,7 +4326,7 @@ export class $BinaryExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
 
     switch (this.node.operatorToken.kind) {
       case SyntaxKind.AsteriskAsteriskToken: {
@@ -5007,7 +5009,7 @@ export class $ConditionalExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // ConditionalExpression : LogicalORExpression ? AssignmentExpression : AssignmentExpression
 
     // 1. Let lref be the result of evaluating LogicalORExpression.
@@ -5127,7 +5129,7 @@ export class $ArrowFunction implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // ArrowFunction : ArrowParameters => ConciseBody
 
     // 1. If the function code for this ArrowFunction is strict mode code, let strict be true. Otherwise let strict be false.
@@ -5169,7 +5171,7 @@ export class $YieldExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // YieldExpression : yield
 
     // 1. Let generatorKind be ! GetGeneratorKind().
@@ -5298,7 +5300,7 @@ export class $TemplateHead implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
 
     return intrinsics.undefined; // TODO: implement this
   }
@@ -5327,7 +5329,7 @@ export class $TemplateMiddle implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
 
     return intrinsics.undefined; // TODO: implement this
   }
@@ -5356,7 +5358,7 @@ export class $TemplateTail implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
 
     // TemplateSpans : TemplateTail
 
@@ -5400,7 +5402,7 @@ export class $TemplateSpan implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // TemplateSpans : TemplateMiddleList TemplateTail
 
     // 1. Let head be the result of evaluating TemplateMiddleList.
@@ -5515,6 +5517,8 @@ export class $Identifier implements I$Node {
     value: $AnyNonEmpty,
     environment: $EnvRec | undefined,
   ): readonly [$String] {
+    this.logger.debug(`InitializePropertyBinding(#${ctx.id})`);
+
     // BindingProperty : SingleNameBinding
 
     // 1. Let name be the string that is the only element of BoundNames of SingleNameBinding.
@@ -5534,6 +5538,8 @@ export class $Identifier implements I$Node {
     environment: $EnvRec | undefined,
     initializer?: $$AssignmentExpressionOrHigher,
   ): $Any {
+    this.logger.debug(`InitializeIteratorBinding(#${ctx.id})`);
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -5616,6 +5622,8 @@ export class $Identifier implements I$Node {
     propertyName: $String,
     initializer?: $$AssignmentExpressionOrHigher,
   ): $Any {
+    this.logger.debug(`InitializeKeyedBinding(#${ctx.id})`);
+
     const realm = ctx.Realm;
 
     // SingleNameBinding : BindingIdentifier Initializer opt
@@ -5734,7 +5742,7 @@ export class $JsxElement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
 
     return intrinsics.undefined; // TODO: implement this
   }
@@ -5803,7 +5811,7 @@ export class $JsxSelfClosingElement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
 
     return intrinsics.undefined; // TODO: implement this
   }
@@ -5841,7 +5849,7 @@ export class $JsxFragment implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
 
     return intrinsics.undefined; // TODO: implement this
   }
@@ -5869,7 +5877,7 @@ export class $JsxText implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
   }
@@ -5903,7 +5911,7 @@ export class $JsxOpeningElement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
   }
@@ -5935,7 +5943,7 @@ export class $JsxClosingElement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
   }
@@ -5963,7 +5971,7 @@ export class $JsxOpeningFragment implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
   }
@@ -5991,7 +5999,7 @@ export class $JsxClosingFragment implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
   }
@@ -6063,7 +6071,7 @@ export class $JsxAttributes implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
   }
@@ -6095,7 +6103,7 @@ export class $JsxSpreadAttribute implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
   }
@@ -6127,7 +6135,7 @@ export class $JsxExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
   }
@@ -6211,7 +6219,7 @@ export class $BigIntLiteral implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
 
     return intrinsics['0']; // TODO: implement this
   }
@@ -7054,7 +7062,7 @@ export class $SourceFile implements I$Node, IModule {
     this.logger.debug(`[Instantiate] starting`);
 
     // TODO: this is temporary. Should be done by RunJobs
-    if (realm.stack.length === 1 && realm.stack.top.ScriptOrModule.isNull) {
+    if (realm.stack.top.ScriptOrModule.isNull) {
       realm.stack.top.ScriptOrModule = this;
     }
 
@@ -7090,6 +7098,8 @@ export class $SourceFile implements I$Node, IModule {
     stack: $SourceFile[],
     index: number,
   ): number {
+    this.logger.debug(`_InnerModuleInstantiation(#${ctx.id})`);
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -7174,10 +7184,10 @@ export class $SourceFile implements I$Node, IModule {
   public InitializeEnvironment(
     ctx: ExecutionContext,
   ): void {
+    this.logger.debug(`InitializeEnvironment(#${ctx.id})`);
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
-
-    this.logger.debug(`[InitializeEnvironment] starting`);
 
     // 1. Let module be this Source Text Module Record.
     // 2. For each ExportEntry Record e in module.[[IndirectExportEntries]], do
@@ -7324,8 +7334,6 @@ export class $SourceFile implements I$Node, IModule {
     }
 
     // 16. Return NormalCompletion(empty).
-
-    this.logger.debug(`[InitializeEnvironment] done`);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-getexportednames
@@ -7500,6 +7508,8 @@ export class $SourceFile implements I$Node, IModule {
 
   // http://www.ecma-international.org/ecma-262/#sec-moduleevaluation
   public EvaluateModule(): $Any {
+    this.logger.debug(`EvaluateModule()`);
+
     const realm = this.realm;
     const ctx = realm.stack.top;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -7541,6 +7551,8 @@ export class $SourceFile implements I$Node, IModule {
     stack: $SourceFile[],
     index: number,
   ): $Number {
+    this.logger.debug(`EvaluateModuleInner(#${ctx.id})`);
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -7628,12 +7640,14 @@ export class $SourceFile implements I$Node, IModule {
   public ExecuteModule(
     ctx: ExecutionContext,
   ): $Any {
+    this.logger.debug(`ExecuteModule(#${ctx.id})`);
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Let module be this Source Text Module Record.
     // 2. Let moduleCxt be a new ECMAScript code execution context.
-    const moduleCxt = new ExecutionContext();
+    const moduleCxt = new ExecutionContext(realm);
 
     // 3. Set the Function of moduleCxt to null.
     moduleCxt.Function = intrinsics.null;
@@ -7641,7 +7655,6 @@ export class $SourceFile implements I$Node, IModule {
     // 4. Assert: module.[[Realm]] is not undefined.
 
     // 5. Set the Realm of moduleCxt to module.[[Realm]].
-    moduleCxt.Realm = realm;
 
     // 6. Set the ScriptOrModule of moduleCxt to module.
     moduleCxt.ScriptOrModule = this;
@@ -7655,20 +7668,20 @@ export class $SourceFile implements I$Node, IModule {
 
     // 10. Suspend the currently running execution context.
     const stack = realm.stack;
-    stack.top.suspend();
+    ctx.suspend();
 
     // 11. Push moduleCxt on to the execution context stack; moduleCxt is now the running execution context.
     stack.push(moduleCxt);
 
     // 12. Let result be the result of evaluating module.[[ECMAScriptCode]].
-    const result = this.Evaluate(ctx);
+    const result = this.Evaluate(moduleCxt);
 
     // 13. Suspend moduleCxt and remove it from the execution context stack.
     moduleCxt.suspend();
     stack.pop();
 
     // 14. Resume the context that is now on the top of the execution context stack as the running execution context.
-    // TODO
+    ctx.resume();
 
     // 15. Return Completion(result).
     return result;
@@ -7681,7 +7694,7 @@ export class $SourceFile implements I$Node, IModule {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     const $statements = this.$statements;
 
     // Module : [empty]
@@ -8789,6 +8802,8 @@ export class $ObjectBindingPattern implements I$Node {
     value: $AnyNonEmpty,
     environment: $EnvRec | undefined,
   ): $Any {
+    this.logger.debug(`InitializeBinding(#${ctx.id})`);
+
     const realm = ctx.Realm;
 
     // BindingPattern : ObjectBindingPattern
@@ -8919,6 +8934,8 @@ export class $ArrayBindingPattern implements I$Node {
     value: $Object,
     environment: $EnvRec | undefined,
   ): $Any {
+    this.logger.debug(`InitializeBinding(#${ctx.id})`);
+
     // BindingPattern : ArrayBindingPattern
 
     // 1. Let iteratorRecord be ? GetIterator(value).
@@ -8942,6 +8959,8 @@ export class $ArrayBindingPattern implements I$Node {
     iteratorRecord: $IteratorRecord,
     environment: $EnvRec | undefined,
   ): $Any {
+    this.logger.debug(`InitializeIteratorBinding(#${ctx.id})`);
+
     const realm = ctx.Realm;
 
     const elements = this.$elements;
@@ -9095,6 +9114,8 @@ export class $BindingElement implements I$Node {
     value: $AnyNonEmpty,
     environment: $EnvRec | undefined,
   ): readonly $String[] | $Any {
+    this.logger.debug(`InitializePropertyBinding(#${ctx.id})`);
+
     const PropertyName = this.$propertyName;
 
     // BindingProperty : SingleNameBinding
@@ -9133,6 +9154,8 @@ export class $BindingElement implements I$Node {
     propertyName: $String,
     initializer?: $$AssignmentExpressionOrHigher,
   ): $Any {
+    this.logger.debug(`InitializeKeyedBinding(#${ctx.id})`);
+
     const realm = ctx.Realm;
 
     const BindingElement = this.$name;
@@ -9179,6 +9202,8 @@ export class $BindingElement implements I$Node {
     iteratorRecord: $IteratorRecord,
     environment: $EnvRec | undefined,
   ): $Any {
+    this.logger.debug(`InitializeIteratorBinding(#${ctx.id})`);
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -9415,6 +9440,8 @@ export class $OmittedExpression implements I$Node {
     ctx: ExecutionContext,
     iteratorRecord: $IteratorRecord,
   ): $Any {
+    this.logger.debug(`EvaluateDestructuringAssignmentIterator(#${ctx.id})`);
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -9564,7 +9591,7 @@ export class $Block implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     const $statements = this.$statements;
 
     // Block : { }
@@ -9626,7 +9653,7 @@ export class $EmptyStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // EmptyStatement : ;
 
     // 1. Return NormalCompletion(empty).
@@ -9673,7 +9700,7 @@ export class $ExpressionStatement implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // ExpressionStatement : Expression ;
 
     // 1. Let exprRef be the result of evaluating Expression.
@@ -9738,7 +9765,7 @@ export class $IfStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
 
     const { $expression, $thenStatement, $elseStatement } = this;
 
@@ -9825,7 +9852,7 @@ export class $DoStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug(`EvaluateLabelled(#${ctx.id})`);
     // IterationStatement : do Statement while ( Expression ) ;
 
     // 1. Let V be undefined.
@@ -9880,7 +9907,7 @@ export class $WhileStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug(`EvaluateLabelled(#${ctx.id})`);
     // IterationStatement : while ( Expression ) Statement
 
     // 1. Let V be undefined.
@@ -9969,7 +9996,7 @@ export class $ForStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug(`EvaluateLabelled(#${ctx.id})`);
     // IterationStatement : for ( Expression opt ; Expression opt ; Expression opt ) Statement
 
     // 1. If the first Expression is present, then
@@ -10072,7 +10099,7 @@ export class $ForInStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug(`EvaluateLabelled(#${ctx.id})`);
     // IterationStatement : for ( LeftHandSideExpression in Expression ) Statement
 
     // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », Expression, enumerate).
@@ -10128,7 +10155,7 @@ export class $ForInStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // ForBinding : BindingIdentifier
 
     // 1. Let bindingId be StringValue of BindingIdentifier.
@@ -10201,7 +10228,7 @@ export class $ForOfStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug(`EvaluateLabelled(#${ctx.id})`);
     // IterationStatement : for ( LeftHandSideExpression in Expression ) Statement
 
     // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », Expression, enumerate).
@@ -10257,7 +10284,7 @@ export class $ForOfStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
   }
@@ -10297,7 +10324,7 @@ export class $ContinueStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // ContinueStatement : continue ;
 
     // 1. Return Completion { [[Type]]: continue, [[Value]]: empty, [[Target]]: empty }.
@@ -10347,7 +10374,7 @@ export class $BreakStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // BreakStatement : break ;
 
     // 1. Return Completion { [[Type]]: break, [[Value]]: empty, [[Target]]: empty }.
@@ -10401,7 +10428,7 @@ export class $ReturnStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // ReturnStatement : return ;
 
     // 1. Return Completion { [[Type]]: return, [[Value]]: undefined, [[Target]]: empty }.
@@ -10463,7 +10490,7 @@ export class $WithStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // WithStatement : with ( Expression ) Statement
 
     // 1. Let val be the result of evaluating Expression.
@@ -10523,7 +10550,7 @@ export class $SwitchStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // SwitchStatement : switch ( Expression ) CaseBlock
 
     // 1. Let exprRef be the result of evaluating Expression.
@@ -10749,7 +10776,7 @@ export class $LabeledStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('EvaluateLabelled()');
+    this.logger.debug(`EvaluateLabelled(#${ctx.id})`);
     // LabelledStatement : LabelIdentifier : LabelledItem
 
     // 1. Let label be the StringValue of LabelIdentifier.
@@ -10780,7 +10807,7 @@ export class $LabeledStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // LabelledStatement : LabelIdentifier : LabelledItem
 
     // 1. Let newLabelSet be a new empty List.
@@ -10824,7 +10851,7 @@ export class $ThrowStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // ThrowStatement : throw Expression ;
 
     // 1. Let exprRef be the result of evaluating Expression.
@@ -10912,7 +10939,7 @@ export class $TryStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // TryStatement : try Block Catch
 
     // 1. Let B be the result of evaluating Block.
@@ -10970,7 +10997,7 @@ export class $DebuggerStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug('Evaluate()');
+    this.logger.debug(`Evaluate(#${ctx.id})`);
     // DebuggerStatement : debugger ;
 
     // 1. If an implementation-defined debugging facility is available and enabled, then

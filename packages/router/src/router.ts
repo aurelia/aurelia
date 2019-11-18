@@ -292,7 +292,7 @@ export class Router implements IRouter {
       //   return Promise.resolve(); }
     }
     let clearUsedViewports: boolean = fullStateInstruction;
-    let configuredRoute = this.findInstructions(
+    let configuredRoute = await this.findInstructions(
       this.rootScope!,
       instruction.instruction,
       instruction.scope || this.rootScope!,
@@ -350,7 +350,7 @@ export class Router implements IRouter {
         viewportInstructions = outcome;
       }
 
-      const hooked = this.hookManager.invokeBeforeNavigation(viewportInstructions, instruction);
+      const hooked = await this.hookManager.invokeBeforeNavigation(viewportInstructions, instruction);
       if (hooked === false) {
         return this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
       } else {
@@ -408,7 +408,7 @@ export class Router implements IRouter {
           .map(instr => instr.viewport)
           .filter((value, index, arr) => arr.indexOf(value) === index) as Viewport[];
         for (const viewport of routeViewports) {
-          configured = this.findInstructions(
+          configured = await this.findInstructions(
             viewport,
             configuredRoute.remaining,
             viewport.scope || viewport.owningScope!);
@@ -710,12 +710,12 @@ export class Router implements IRouter {
     return this.instructionResolver.createViewportInstruction(component, viewport, parameters, ownsScope, nextScopeInstructions);
   }
 
-  private findInstructions(scope: Viewport, instruction: string | ViewportInstruction[], instructionScope: Viewport, transformUrl: boolean = false): FoundRoute {
+  private async findInstructions(scope: Viewport, instruction: string | ViewportInstruction[], instructionScope: Viewport, transformUrl: boolean = false): Promise<FoundRoute> {
     let route = new FoundRoute();
     if (typeof instruction === 'string') {
       instruction = transformUrl ? this.options.transformFromUrl!(instruction, this) : instruction;
       instruction = transformUrl
-        ? this.hookManager.invokeTransformFromUrl(instruction as string, this.processingNavigation as INavigatorInstruction)
+        ? await this.hookManager.invokeTransformFromUrl(instruction as string, this.processingNavigation as INavigatorInstruction)
         : instruction;
       if (Array.isArray(instruction)) {
         route.instructions = instruction;

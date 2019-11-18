@@ -9,9 +9,9 @@ export const enum HookTypes {
   TransformFromUrl = 'transformFromUrl',
   TransformToUrl = 'transformToUrl',
 }
-export type BeforeNavigationHookFunction = (viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction) => boolean | ViewportInstruction[];
-export type TransformFromUrlHookFunction = (url: string, navigationInstruction: INavigatorInstruction) => string | ViewportInstruction[];
-export type TransformToUrlHookFunction = (state: string | ViewportInstruction[], navigationInstruction: INavigatorInstruction) => string | ViewportInstruction[];
+export type BeforeNavigationHookFunction = (viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction) => Promise<boolean | ViewportInstruction[]>;
+export type TransformFromUrlHookFunction = (url: string, navigationInstruction: INavigatorInstruction) => Promise<string | ViewportInstruction[]>;
+export type TransformToUrlHookFunction = (state: string | ViewportInstruction[], navigationInstruction: INavigatorInstruction) => Promise<string | ViewportInstruction[]>;
 
 export type HookFunction = BeforeNavigationHookFunction | TransformFromUrlHookFunction | TransformToUrlHookFunction;
 export type HookParameter = string | ViewportInstruction[];
@@ -73,20 +73,20 @@ export class HookManager {
     }
   }
 
-  public invokeBeforeNavigation(viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction): boolean | ViewportInstruction[] {
-    return this.invoke(HookTypes.BeforeNavigation, navigationInstruction, viewportInstructions) as boolean | ViewportInstruction[];
+  public invokeBeforeNavigation(viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction): Promise<boolean | ViewportInstruction[]> {
+    return this.invoke(HookTypes.BeforeNavigation, navigationInstruction, viewportInstructions) as Promise<boolean | ViewportInstruction[]>;
   }
-  public invokeTransformFromUrl(url: string, navigationInstruction: INavigatorInstruction): string | ViewportInstruction[] {
-    return this.invoke(HookTypes.TransformFromUrl, navigationInstruction, url) as string | ViewportInstruction[];
+  public invokeTransformFromUrl(url: string, navigationInstruction: INavigatorInstruction): Promise<string | ViewportInstruction[]> {
+    return this.invoke(HookTypes.TransformFromUrl, navigationInstruction, url) as Promise<string | ViewportInstruction[]>;
   }
-  public invokeTransformToUrl(state: string | ViewportInstruction[], navigationInstruction: INavigatorInstruction): string | ViewportInstruction[] {
-    return this.invoke(HookTypes.TransformToUrl, navigationInstruction, state) as string | ViewportInstruction[];
+  public invokeTransformToUrl(state: string | ViewportInstruction[], navigationInstruction: INavigatorInstruction): Promise<string | ViewportInstruction[]> {
+    return this.invoke(HookTypes.TransformToUrl, navigationInstruction, state) as Promise<string | ViewportInstruction[]>;
   }
 
-  public invoke(type: HookTypes, navigationInstruction: INavigatorInstruction, arg: HookParameter): HookResult {
+  public async invoke(type: HookTypes, navigationInstruction: INavigatorInstruction, arg: HookParameter): Promise<HookResult> {
     for (const hook of this.hooks[type]) {
       if (!hook.wantsMatch || hook.matches(arg)) {
-        const outcome: HookParameter | HookResult = hook.invoke(navigationInstruction, arg);
+        const outcome: HookParameter | HookResult = await hook.invoke(navigationInstruction, arg);
         if (typeof outcome === 'boolean') {
           if (!outcome) {
             return false;

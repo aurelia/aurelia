@@ -141,4 +141,20 @@ describe('AOT (smoke tests)', function () {
 
     assert.strictEqual(mod.ExecutionResult['[[Value]]'], 1);
   });
+
+  it('try catch with no error', async function () {
+    const { mod } = await setup(`
+      try {
+        return 42;
+      } catch {
+        return 1;
+      }
+    `);
+
+    mod.Instantiate();
+
+    mod.EvaluateModule();
+
+    assert.strictEqual(mod.ExecutionResult['[[Value]]'], 42);
+  });
 });

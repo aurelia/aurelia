@@ -157,4 +157,57 @@ describe('AOT (smoke tests)', function () {
 
     assert.strictEqual(mod.ExecutionResult['[[Value]]'], 42);
   });
+
+  it('simple switch', async function () {
+    const { mod } = await setup(`
+      switch(1){
+        case 1:
+          return 1;
+        default:
+          return 2;
+      }
+    `);
+
+    mod.Instantiate();
+
+    mod.EvaluateModule();
+
+    assert.strictEqual(mod.ExecutionResult['[[Value]]'], 1);
+  });
+
+  it('switch with default', async function () {
+    const { mod } = await setup(`
+      switch(2){
+        case 1:
+          return 1;
+        default:
+          return 2;
+      }
+    `);
+
+    mod.Instantiate();
+
+    mod.EvaluateModule();
+
+    assert.strictEqual(mod.ExecutionResult['[[Value]]'], 2);
+  });
+
+  it('switch with default in the middle', async function () {
+    const { mod } = await setup(`
+      switch(3){
+        case 1:
+          return 1;
+        default:
+          return 2;
+        case 3:
+          return 3;
+      }
+    `);
+
+    mod.Instantiate();
+
+    mod.EvaluateModule();
+
+    assert.strictEqual(mod.ExecutionResult['[[Value]]'], 3);
+  });
 });

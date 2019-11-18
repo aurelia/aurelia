@@ -9840,21 +9840,22 @@ export class $Block implements I$Node {
 
     // Block : { StatementList }
     // 1. Let oldEnv be the running execution context's LexicalEnvironment.
-    const oldEnv = realm.GetCurrentLexicalEnvironment();
+    const oldEnv = ctx.LexicalEnvironment;
     // 2. Let blockEnv be NewDeclarativeEnvironment(oldEnv).
-    const blockEnv = new $DeclarativeEnvRec(this.logger, realm, oldEnv);
+    const blockEnv = ctx.LexicalEnvironment = new $DeclarativeEnvRec(this.logger, realm, oldEnv);
 
     // 3. Perform BlockDeclarationInstantiation(StatementList, blockEnv).
     blockDeclarationInstantiation(ctx, this.LexicallyScopedDeclarations, blockEnv);
 
     // 4. Set the running execution context's LexicalEnvironment to blockEnv.
-    realm.SetCurrentLexicalEnvironment(blockEnv);
+    realm.stack.push(ctx);
 
     // 5. Let blockValue be the result of evaluating StatementList.
     const blockValue = evaluateStatementList(ctx, $statements);
 
     // 6. Set the running execution context's LexicalEnvironment to oldEnv.
-    realm.SetCurrentLexicalEnvironment(oldEnv);
+    realm.stack.pop();
+    ctx.LexicalEnvironment = oldEnv;
 
     // 7. Return blockValue.
     return blockValue;
@@ -10785,10 +10786,8 @@ export class $SwitchStatement implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
-    const realm = ctx.Realm;
-    const intrinsics = realm['[[Intrinsics]]'];
-
     this.logger.debug(`Evaluate(#${ctx.id})`);
+    const realm = ctx.Realm;
     // SwitchStatement : switch ( Expression ) CaseBlock
 
     // 1. Let exprRef be the result of evaluating Expression.
@@ -10796,22 +10795,23 @@ export class $SwitchStatement implements I$Node {
     const switchValue = this.$expression.Evaluate(ctx).GetValue(ctx);
 
     // 3. Let oldEnv be the running execution context's LexicalEnvironment.
-    const oldEnv = realm.GetCurrentLexicalEnvironment();
+    const oldEnv = ctx.LexicalEnvironment;
 
     // 4. Let blockEnv be NewDeclarativeEnvironment(oldEnv).
-    const blockEnv = new $DeclarativeEnvRec(this.logger, realm, oldEnv);
+    const blockEnv = ctx.LexicalEnvironment = new $DeclarativeEnvRec(this.logger, realm, oldEnv);
 
     // 5. Perform BlockDeclarationInstantiation(CaseBlock, blockEnv).
     blockDeclarationInstantiation(ctx, this.LexicallyScopedDeclarations, blockEnv);
 
     // 6. Set the running execution context's LexicalEnvironment to blockEnv.
-    realm.SetCurrentLexicalEnvironment(blockEnv);
+    realm.stack.push(ctx);
 
     // 7. Let R be the result of performing CaseBlockEvaluation of CaseBlock with argument switchValue.
     const R = this.EvaluateCaseBlock(ctx, switchValue);
 
     // 8. Set the running execution context's LexicalEnvironment to oldEnv.
-    realm.SetCurrentLexicalEnvironment(oldEnv);
+    realm.stack.pop();
+    ctx.LexicalEnvironment = oldEnv;
 
     // 9. Return R.
     return R;
@@ -10940,7 +10940,7 @@ export class $SwitchStatement implements I$Node {
     // 2. Let exprRef be the result of evaluating the Expression of C.
     // 3. Let clauseSelector be ? GetValue(exprRef).
     // 4. Return the result of performing Strict Equality Comparison input === clauseSelector.
-    return clause.$expression.Evaluate(ctx).GetValue(ctx) === switchValue;
+    return clause.$expression.Evaluate(ctx).GetValue(ctx)['[[Value]]'] === switchValue['[[Value]]'];
   }
 }
 

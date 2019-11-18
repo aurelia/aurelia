@@ -152,7 +152,7 @@ import { $NamespaceExoticObject } from './exotics/namespace';
 import { $String } from './types/string';
 import { $Undefined } from './types/undefined';
 import { $Function } from './types/function';
-import { $Any, CompletionType, $AnyNonEmpty } from './types/_shared';
+import { $Any, CompletionType, $AnyNonEmpty, $PropertyKey } from './types/_shared';
 import { $Object } from './types/object';
 import { $Reference } from './types/reference';
 import { $Number } from './types/number';
@@ -179,26 +179,26 @@ function clearBit(flag: number, bit: number): number {
 }
 
 const enum Context {
-  None                      = 0b00000000000000000,
-  InTopLevel                = 0b00000000000000001,
-  InExpressionStatement     = 0b00000000000000010,
-  InVariableStatement       = 0b00000000000000100,
-  IsBindingName             = 0b00000000000001000,
-  InParameterDeclaration    = 0b00000000000010000,
-  InCatchClause             = 0b00000000000100000,
-  InBindingPattern          = 0b00000000001000000,
-  InTypeElement             = 0b00000000010000000,
-  IsPropertyAccessName      = 0b00000000100000000,
-  IsMemberName              = 0b00000001000000000,
-  IsLabel                   = 0b00000010000000000,
-  IsLabelReference          = 0b00000100000000000,
-  InExport                  = 0b00001000000000000,
-  IsConst                   = 0b00010000000000000,
-  IsLet                     = 0b00100000000000000,
-  IsBlockScoped             = 0b00110000000000000,
-  IsVar                     = 0b01000000000000000,
-  IsFunctionScoped          = 0b01000000000000000,
-  InStrictMode              = 0b10000000000000000,
+  None = 0b00000000000000000,
+  InTopLevel = 0b00000000000000001,
+  InExpressionStatement = 0b00000000000000010,
+  InVariableStatement = 0b00000000000000100,
+  IsBindingName = 0b00000000000001000,
+  InParameterDeclaration = 0b00000000000010000,
+  InCatchClause = 0b00000000000100000,
+  InBindingPattern = 0b00000000001000000,
+  InTypeElement = 0b00000000010000000,
+  IsPropertyAccessName = 0b00000000100000000,
+  IsMemberName = 0b00000001000000000,
+  IsLabel = 0b00000010000000000,
+  IsLabelReference = 0b00000100000000000,
+  InExport = 0b00001000000000000,
+  IsConst = 0b00010000000000000,
+  IsLet = 0b00100000000000000,
+  IsBlockScoped = 0b00110000000000000,
+  IsVar = 0b01000000000000000,
+  IsFunctionScoped = 0b01000000000000000,
+  InStrictMode = 0b10000000000000000,
 }
 
 const modifiersToModifierFlags = (function () {
@@ -2532,6 +2532,46 @@ export class $VariableDeclaration implements I$Node {
       this.VarDeclaredNames = emptyArray;
       this.VarScopedDeclarations = emptyArray;
       this.IsConstantDeclaration = hasBit(ctx, Context.IsConst);
+    }
+  }
+
+
+  public InitializeBinding(ctx: ExecutionContext, value: $AnyNonEmpty) {
+    const bindingName = this.$name;
+    const kind = bindingName.$kind;
+    const boundNames = bindingName.BoundNames;
+    const envRec = ctx.LexicalEnvironment;
+    if ((boundNames?.length ?? 0) > 0) {
+      switch (kind) {
+        // http://www.ecma-international.org/ecma-262/#sec-identifiers-runtime-semantics-bindinginitialization
+        // http://www.ecma-international.org/ecma-262/#sec-initializeboundname
+        case SyntaxKind.Identifier:
+          const name = boundNames![0]?.GetValue();
+          // 1. Assert: Type(name) is String.
+          // 2. If environment is not undefined, then
+          if (envRec !== void 0) {
+            // 2. a. Let env be the EnvironmentRecord component of environment.
+            // 2. b. Perform env.InitializeBinding(name, value).
+            envRec.InitializeBinding(ctx, name, value);
+            // 2. c. Return NormalCompletion(undefined).
+            return this.realm['[[Intrinsics]]'].undefined;
+          } else {
+            // 3. Else,
+            // 3. a. Let lhs be ResolveBinding(name).
+            const lhs = this.realm.ResolveBinding(name);
+            // 3. b. Return ? PutValue(lhs, value).
+            lhs.PutValue(ctx, value);
+          }
+          break;
+
+        case SyntaxKind.ObjectBindingPattern:
+          (bindingName as $ObjectBindingPattern).InitializeBinding(ctx, value, envRec);
+          break;
+
+        case SyntaxKind.ArrayBindingPattern:
+          // TODO
+          break;
+      }
     }
   }
 }
@@ -7557,8 +7597,8 @@ export class $SourceFile implements I$Node, IModule {
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. If module is not a Cyclic Module Record, then
-      // 1. a. Perform ? module.Evaluate(ctx).
-      // 1. b. Return index.
+    // 1. a. Perform ? module.Evaluate(ctx).
+    // 1. b. Return index.
     // 2. If module.[[Status]] is "evaluated", then
     if (this.Status === 'evaluated') {
       // 2. a. If module.[[EvaluationError]] is undefined, return index.
@@ -8986,7 +9026,7 @@ export class $ArrayBindingPattern implements I$Node {
           // ArrayBindingPattern : [ Elision opt BindingRestElement ]
 
           // 1. If Elision is present, then
-            // 1. a. Perform ? IteratorDestructuringAssignmentEvaluation of Elision with iteratorRecord as the argument.
+          // 1. a. Perform ? IteratorDestructuringAssignmentEvaluation of Elision with iteratorRecord as the argument.
           // 2. Return the result of performing IteratorBindingInitialization for BindingRestElement with iteratorRecord and environment as arguments.
 
           // ArrayBindingPattern : [ BindingElementList ]
@@ -9003,7 +9043,7 @@ export class $ArrayBindingPattern implements I$Node {
 
           // 1. Perform ? IteratorBindingInitialization for BindingElementList with iteratorRecord and environment as arguments.
           // 2. If Elision is present, then
-            // 2. a. Perform ? IteratorDestructuringAssignmentEvaluation of Elision with iteratorRecord as the argument.
+          // 2. a. Perform ? IteratorDestructuringAssignmentEvaluation of Elision with iteratorRecord as the argument.
           // 3. Return the result of performing IteratorBindingInitialization for BindingRestElement with iteratorRecord and environment as arguments.
 
           const result = el.InitializeIteratorBinding(ctx, iteratorRecord, environment);
@@ -9166,11 +9206,11 @@ export class $BindingElement implements I$Node {
     // 2. Let lhs be ? ResolveBinding(bindingId, environment).
     // 3. Let v be ? GetV(value, propertyName).
     // 4. If Initializer is present and v is undefined, then
-      // 4. a. If IsAnonymousFunctionDefinition(Initializer) is true, then
-        // 4. a. i. Set v to the result of performing NamedEvaluation for Initializer with argument bindingId.
-      // 4. b. Else,
-        // 4. b. i. Let defaultValue be the result of evaluating Initializer.
-        // 4. b. ii. Set v to ? GetValue(defaultValue).
+    // 4. a. If IsAnonymousFunctionDefinition(Initializer) is true, then
+    // 4. a. i. Set v to the result of performing NamedEvaluation for Initializer with argument bindingId.
+    // 4. b. Else,
+    // 4. b. i. Let defaultValue be the result of evaluating Initializer.
+    // 4. b. ii. Set v to ? GetValue(defaultValue).
     // 5. If environment is undefined, return ? PutValue(lhs, v).
     // 6. Return InitializeReferencedBinding(lhs, v).
     if (BindingElement.$kind === SyntaxKind.Identifier) {
@@ -9218,21 +9258,21 @@ export class $BindingElement implements I$Node {
     // 1. Let bindingId be StringValue of BindingIdentifier.
     // 2. Let lhs be ? ResolveBinding(bindingId, environment).
     // 3. If iteratorRecord.[[Done]] is false, then
-      // 3. a. Let next be IteratorStep(iteratorRecord).
-      // 3. b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
-      // 3. c. ReturnIfAbrupt(next).
-      // 3. d. If next is false, set iteratorRecord.[[Done]] to true.
-      // 3. e. Else,
-        // 3. e. i. Let v be IteratorValue(next).
-        // 3. e. ii. If v is an abrupt completion, set iteratorRecord.[[Done]] to true.
-        // 3. e. iii. ReturnIfAbrupt(v).
+    // 3. a. Let next be IteratorStep(iteratorRecord).
+    // 3. b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
+    // 3. c. ReturnIfAbrupt(next).
+    // 3. d. If next is false, set iteratorRecord.[[Done]] to true.
+    // 3. e. Else,
+    // 3. e. i. Let v be IteratorValue(next).
+    // 3. e. ii. If v is an abrupt completion, set iteratorRecord.[[Done]] to true.
+    // 3. e. iii. ReturnIfAbrupt(v).
     // 4. If iteratorRecord.[[Done]] is true, let v be undefined.
     // 5. If Initializer is present and v is undefined, then
-      // 5. a. If IsAnonymousFunctionDefinition(Initializer) is true, then
-        // 5. a. i. Set v to the result of performing NamedEvaluation for Initializer with argument bindingId.
-      // 5. b. Else,
-        // 5. b. i. Let defaultValue be the result of evaluating Initializer.
-        // 5. b. ii. Set v to ? GetValue(defaultValue).
+    // 5. a. If IsAnonymousFunctionDefinition(Initializer) is true, then
+    // 5. a. i. Set v to the result of performing NamedEvaluation for Initializer with argument bindingId.
+    // 5. b. Else,
+    // 5. b. i. Let defaultValue be the result of evaluating Initializer.
+    // 5. b. ii. Set v to ? GetValue(defaultValue).
     // 6. If environment is undefined, return ? PutValue(lhs, v).
     // 7. Return InitializeReferencedBinding(lhs, v).
 
@@ -10936,10 +10976,8 @@ export class $TryStatement implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty {
-    const realm = ctx.Realm;
-    const intrinsics = realm['[[Intrinsics]]'];
-
     this.logger.debug(`Evaluate(#${ctx.id})`);
+    const realm = ctx.Realm;
     // TryStatement : try Block Catch
 
     // 1. Let B be the result of evaluating Block.
@@ -10963,7 +11001,74 @@ export class $TryStatement implements I$Node {
     // 5. If F.[[Type]] is normal, set F to C.
     // 6. Return Completion(UpdateEmpty(F, undefined)).
 
-    return intrinsics.undefined; // TODO: implement this
+    let result = this.$tryBlock.Evaluate(ctx);
+
+    if (this.$catchClause !== void 0) {
+      result = result['[[Type]]'] === CompletionType.throw ? this.EvaluateCatchClause(ctx, result.GetValue()) : result;
+    }
+    const $finallyBlock = this.$finallyBlock;
+    if ($finallyBlock !== void 0) {
+      const F = $finallyBlock.Evaluate(ctx);
+      result = F['[[Type]]'] !== CompletionType.normal ? F : result;
+    }
+    result.UpdateEmpty(realm['[[Intrinsics]]'].undefined);
+
+    return result as $AnyNonEmpty;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-catchclauseevaluation
+  private EvaluateCatchClause(ctx: ExecutionContext, thrownValue: $AnyNonEmpty): $AnyNonEmpty {
+
+    const realm = this.realm;
+    const catchClause = this.$catchClause;
+    const varDeclarations = catchClause?.$variableDeclaration;
+    const hasCatchParamteres = varDeclarations !== void 0;
+
+    // Catch : catch Block
+
+    // 1. Return the result of evaluating Block.
+
+    // Catch : catch ( CatchParameter ) Block
+
+    // 1. Let oldEnv be the running execution context's LexicalEnvironment.
+    const oldEnv = ctx.LexicalEnvironment;
+
+    if (hasCatchParamteres) {
+      // 2. Let catchEnv be NewDeclarativeEnvironment(oldEnv).
+      // 3. Let catchEnvRec be catchEnv's EnvironmentRecord.
+      ctx.LexicalEnvironment = new $DeclarativeEnvRec(this.logger, realm, oldEnv);
+
+      // 4. For each element argName of the BoundNames of CatchParameter, do
+      // 4. a. Perform ! catchEnvRec.CreateMutableBinding(argName, false).
+      catchClause?.CreateBinding(ctx, realm);
+
+      // 5. Set the running execution context's LexicalEnvironment to catchEnv.
+      realm.stack.push(ctx);
+
+      // 6. Let status be the result of performing BindingInitialization for CatchParameter passing thrownValue and catchEnv as arguments.
+      const status = varDeclarations?.InitializeBinding(ctx, thrownValue);
+
+      // 7. If status is an abrupt completion, then
+      if (status?.isAbrupt) {
+        // 7. a. Set the running execution context's LexicalEnvironment to oldEnv.
+        realm.stack.pop();
+        ctx.LexicalEnvironment = oldEnv;
+
+        // 7. b. Return Completion(status).
+        return status;
+      }
+    }
+    // 8. Let B be the result of evaluating Block.
+    const B = catchClause?.$block.Evaluate(ctx);
+
+    // 9. Set the running execution context's LexicalEnvironment to oldEnv.
+    if (hasCatchParamteres) {
+      realm.stack.pop();
+      ctx.LexicalEnvironment = oldEnv;
+    }
+
+    // 10. Return Completion(B).
+    return B as $AnyNonEmpty; // TODO fix typings
   }
 }
 
@@ -11160,6 +11265,11 @@ export class $CatchClause implements I$Node {
 
     this.VarDeclaredNames = $block.VarDeclaredNames;
     this.VarScopedDeclarations = $block.VarScopedDeclarations;
+  }
+  public CreateBinding(ctx: ExecutionContext, realm: Realm) {
+    for (const argName of this.$variableDeclaration?.BoundNames ?? []) {
+      ctx.LexicalEnvironment.CreateMutableBinding(ctx, argName, realm['[[Intrinsics]]'].false);
+    }
   }
 }
 

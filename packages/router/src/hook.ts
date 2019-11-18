@@ -43,7 +43,7 @@ export class Hook {
   }
 
   // tslint:disable-next-line:max-line-length
-  public invoke(navigationInstruction: INavigatorInstruction, arg: HookParameter): HookResult {
+  public invoke(navigationInstruction: INavigatorInstruction, arg: HookParameter): Promise<HookResult> {
     // TODO: Fix the type here
     return this.hook(arg as any, navigationInstruction);
   }

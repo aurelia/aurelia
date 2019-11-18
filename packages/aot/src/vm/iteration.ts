@@ -347,7 +347,7 @@ export class $ListIterator extends $Object<'ListIterator'> {
 export class $IteratorRecord {
   public readonly '[[Iterator]]': $Object;
   public readonly '[[NextMethod]]': $Function;
-  public readonly '[[Done]]': $Boolean;
+  public '[[Done]]': $Boolean;
 
   public constructor(
     iterator: $Object,

@@ -147,7 +147,7 @@ import { NPMPackage } from '../system/npm-package-loader';
 import { IModule, ResolveSet, ResolvedBindingRecord, Realm, ExecutionContext } from './realm';
 import { PatternMatcher } from '../system/pattern-matcher';
 import { $ModuleEnvRec, $EnvRec, $DeclarativeEnvRec } from './types/environment-record';
-import { $AbstractRelationalComparison, $InstanceOfOperator, $AbstractEqualityComparison, $StrictEqualityComparison, $Call } from './operations';
+import { $AbstractRelationalComparison, $InstanceOfOperator, $AbstractEqualityComparison, $StrictEqualityComparison, $Call, $Get } from './operations';
 import { $NamespaceExoticObject } from './exotics/namespace';
 import { $String } from './types/string';
 import { $Undefined } from './types/undefined';
@@ -160,6 +160,7 @@ import { $Null } from './types/null';
 import { $Boolean } from './types/boolean';
 import { $Empty, empty } from './types/empty';
 import { $CreateUnmappedArgumentsObject, $ArgumentsExoticObject } from './exotics/arguments';
+import { $CreateListIteratorRecord, $IteratorRecord, $IteratorStep, $IteratorValue } from './iteration';
 const {
   emptyArray,
   emptyObject,
@@ -1846,9 +1847,9 @@ function $FunctionDeclarationInstantiation(
     parameterBindings = parameterNames;
   }
 
-  // TODO: implement iterator
-
   // 24. Let iteratorRecord be CreateListIteratorRecord(argumentsList).
+  const iteratorRecord = $CreateListIteratorRecord(ctx, argumentsList);
+
   // 25. If hasDuplicates is true, then
   if (hasDuplicates) {
     // 25. a. Perform ? IteratorBindingInitialization for formals with iteratorRecord and undefined as arguments.
@@ -3483,7 +3484,7 @@ export class $FunctionExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-runtime-semantics-evaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty {
+  ): $Function {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -3599,7 +3600,24 @@ export class $FunctionExpression implements I$Node {
     // 10. Set closure.[[SourceText]] to the source text matched by AsyncFunctionExpression.
     // 11. Return closure.
 
-    return intrinsics.undefined; // TODO: implement this
+    return intrinsics.undefined as any; // TODO: implement this
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-namedevaluation
+  public EvaluateNamed(
+    ctx: ExecutionContext,
+    name: $String,
+  ): $Function {
+    // FunctionExpression : function ( FormalParameters ) { FunctionBody }
+
+    // 1. Let closure be the result of evaluating this FunctionExpression.
+    const closure = this.Evaluate(ctx);
+
+    // 2. Perform SetFunctionName(closure, name).
+    closure.SetFunctionName(ctx, name);
+
+    // 3. Return closure.
+    return closure;
   }
 }
 
@@ -5489,6 +5507,152 @@ export class $Identifier implements I$Node {
     // 1. Return ? ResolveBinding("await").
 
     return realm.ResolveBinding(this.StringValue);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-propertybindinginitialization
+  public InitializePropertyBinding(
+    ctx: ExecutionContext,
+    value: $AnyNonEmpty,
+    environment: $EnvRec | undefined,
+  ): readonly [$String] {
+    // BindingProperty : SingleNameBinding
+
+    // 1. Let name be the string that is the only element of BoundNames of SingleNameBinding.
+    const [name] = this.BoundNames;
+
+    // 2. Perform ? KeyedBindingInitialization for SingleNameBinding using value, environment, and name as the arguments.
+    this.InitializeKeyedBinding(ctx, value, environment, name)
+
+    // 3. Return a new List containing name.
+    return this.BoundNames;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-iteratorbindinginitialization
+  public InitializeIteratorBinding(
+    ctx: ExecutionContext,
+    iteratorRecord: $IteratorRecord,
+    environment: $EnvRec | undefined,
+    initializer?: $$AssignmentExpressionOrHigher,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // SingleNameBinding : BindingIdentifier Initializer opt
+
+    // 1. Let bindingId be StringValue of BindingIdentifier.
+    const bindingId = this.StringValue;
+
+    // 2. Let lhs be ? ResolveBinding(bindingId, environment).
+    const lhs = realm.ResolveBinding(bindingId, environment);
+
+    let v: $AnyNonEmpty = intrinsics.undefined; // TODO: sure about this?
+
+    // 3. If iteratorRecord.[[Done]] is false, then
+    if (iteratorRecord['[[Done]]'].isFalsey) {
+      // 3. a. Let next be IteratorStep(iteratorRecord).
+      const next = $IteratorStep(ctx, iteratorRecord);
+
+      // 3. b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
+      if (next.isAbrupt) {
+        iteratorRecord['[[Done]]'] = intrinsics.true;
+        // 3. c. ReturnIfAbrupt(next).
+        return next;
+      }
+
+      // 3. d. If next is false, set iteratorRecord.[[Done]] to true.
+      if (next.isFalsey) {
+        iteratorRecord['[[Done]]'] = intrinsics.true;
+      }
+      // 3. e. Else,
+      else {
+        // 3. e. i. Let v be IteratorValue(next).
+        v = $IteratorValue(ctx, next);
+
+        // 3. e. ii. If v is an abrupt completion, set iteratorRecord.[[Done]] to true.
+        if (v.isAbrupt) {
+          iteratorRecord['[[Done]]'] = intrinsics.true;
+          // 3. e. iii. ReturnIfAbrupt(v).
+          return v;
+        }
+      }
+    }
+
+    // 4. If iteratorRecord.[[Done]] is true, let v be undefined.
+    if (iteratorRecord['[[Done]]'].isTruthy) {
+      v = intrinsics.undefined;
+    }
+
+    // 5. If Initializer is present and v is undefined, then
+    if (initializer !== void 0 && v.isUndefined) {
+      // 5. a. If IsAnonymousFunctionDefinition(Initializer) is true, then
+      if (initializer instanceof $FunctionExpression && !initializer.HasName) {
+        // 5. a. i. Set v to the result of performing NamedEvaluation for Initializer with argument bindingId.
+        v = initializer.EvaluateNamed(ctx, bindingId);
+      }
+      // 5. b. Else,
+      else {
+        // 5. b. i. Let defaultValue be the result of evaluating Initializer.
+        const defaultValue = initializer.Evaluate(ctx);
+
+        // 5. b. ii. Set v to ? GetValue(defaultValue).
+        v = defaultValue.GetValue(ctx);
+      }
+    }
+
+    // 6. If environment is undefined, return ? PutValue(lhs, v).
+    if (environment === void 0) {
+      return lhs.PutValue(ctx, v);
+    }
+
+    // 7. Return InitializeReferencedBinding(lhs, v).
+    return lhs.InitializeReferencedBinding(ctx, v);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-keyedbindinginitialization
+  public InitializeKeyedBinding(
+    ctx: ExecutionContext,
+    value: $AnyNonEmpty,
+    environment: $EnvRec | undefined,
+    propertyName: $String,
+    initializer?: $$AssignmentExpressionOrHigher,
+  ): $Any {
+    const realm = ctx.Realm;
+
+    // SingleNameBinding : BindingIdentifier Initializer opt
+
+    // 1. Let bindingId be StringValue of BindingIdentifier.
+    const bindingId = this.StringValue;
+
+    // 2. Let lhs be ? ResolveBinding(bindingId, environment).
+    const lhs = realm.ResolveBinding(bindingId, environment);
+
+    // 3. Let v be ? GetV(value, propertyName).
+    let v = $Get(ctx, value.ToObject(ctx), propertyName);
+
+    // 4. If Initializer is present and v is undefined, then
+    if (initializer !== void 0 && v.isUndefined) {
+      // 4. a. If IsAnonymousFunctionDefinition(Initializer) is true, then
+      if (initializer instanceof $FunctionExpression && !initializer.HasName) {
+        // 4. a. i. Set v to the result of performing NamedEvaluation for Initializer with argument bindingId.
+        v = initializer.EvaluateNamed(ctx, bindingId);
+      }
+      // 4. b. Else,
+      else {
+        // 4. b. i. Let defaultValue be the result of evaluating Initializer.
+        const defaultValue = initializer.Evaluate(ctx);
+
+        // 4. b. ii. Set v to ? GetValue(defaultValue).
+        v = defaultValue.GetValue(ctx);
+      }
+    }
+
+    // 5. If environment is undefined, return ? PutValue(lhs, v).
+    if (environment === void 0) {
+      return lhs.PutValue(ctx, v);
+    }
+
+    // 6. Return InitializeReferencedBinding(lhs, v).
+    return lhs.InitializeReferencedBinding(ctx, v);
   }
 }
 

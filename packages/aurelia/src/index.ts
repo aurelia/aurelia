@@ -534,7 +534,7 @@ export {
 
   // ProxyObserver,
 
-  // SelfObserver,
+  // BindableObserver,
 
   // SetterObserver,
 

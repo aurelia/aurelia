@@ -71,7 +71,7 @@ function handleChange(eventName, src) {
   }
 }
 
-const watched = sourceDirs.flatMap((dir) => [path.join(cwd, dir, '**/*.html'), path.join(cwd, dir, '**/*.css')]);
+const watched = sourceDirs.reduce((allDirs, dir) => allDirs.concat([path.join(cwd, dir, '**/*.html'), path.join(cwd, dir, '**/*.css')]), []);
 
 const watcher = chokidar.watch(watched, {
   awaitWriteFinish: true

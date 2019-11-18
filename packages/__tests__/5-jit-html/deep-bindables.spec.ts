@@ -96,7 +96,7 @@
 //       const calls = {
 //         'ProxyObserver': [] as ITraceInfo[],
 //         'ProxySubscriberCollection': [] as ITraceInfo[],
-//         'SelfObserver': [] as ITraceInfo[],
+//         'BindableObserver': [] as ITraceInfo[],
 //         'SetterObserver': [] as ITraceInfo[]
 //       };
 //       if (trace) {
@@ -139,7 +139,7 @@
 //         assert.strictEqual(calls['ProxyObserver'].length, 0, 'calls[\'ProxyObserver\'].length', `calls['ProxyObserver'].length`);
 //       }
 //       // TODO: deeply verify observer call counts
-//       // const names = ['ProxyObserver', 'ProxySubscriberCollection', 'SelfObserver', 'SetterObserver'];
+//       // const names = ['ProxyObserver', 'ProxySubscriberCollection', 'BindableObserver', 'SetterObserver'];
 //       // for (const {} of names) {
 //       //   calls[`${name}.constructor`].sort((a, b) => a.depth < b.depth ? -1 : b.depth < a.depth ? 1 : 0);
 //       //   for (const call of calls[`${name}.constructor`]) {

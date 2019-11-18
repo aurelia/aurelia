@@ -57,8 +57,8 @@ import {
   ProxyObserver,
 } from '../observation/proxy-observer';
 import {
-  SelfObserver,
-} from '../observation/self-observer';
+  BindableObserver,
+} from '../observation/bindable-observer';
 import {
   ChildrenObserver,
   IRenderingEngine,
@@ -71,6 +71,7 @@ import {
   CustomElement
 } from '../resources/custom-element';
 import { CustomAttributeDefinition, CustomAttribute } from '../resources/custom-attribute';
+import { BindableDefinition } from './bindable';
 
 type Definition = CustomAttributeDefinition | CustomElementDefinition;
 type Kind = { name: string };
@@ -1013,7 +1014,7 @@ function createObservers(
   instance: object,
 ): void {
   const hasLookup = (instance as IIndexable).$observers != void 0;
-  const observers: Record<string, SelfObserver | ChildrenObserver> = hasLookup ? (instance as IIndexable).$observers as Record<string, SelfObserver> : {};
+  const observers: Record<string, BindableObserver | ChildrenObserver> = hasLookup ? (instance as IIndexable).$observers as Record<string, BindableObserver> : {};
   const bindables = description.bindables;
   const observableNames = Object.getOwnPropertyNames(bindables);
   const useProxy = (flags & LifecycleFlags.proxyStrategy) > 0 ;
@@ -1022,16 +1023,21 @@ function createObservers(
 
   const length = observableNames.length;
   let name: string;
+  let bindable: BindableDefinition;
+
   for (let i = 0; i < length; ++i) {
     name = observableNames[i];
 
     if (observers[name] == void 0) {
-      observers[name] = new SelfObserver(
+      bindable = bindables[name];
+
+      observers[name] = new BindableObserver(
         lifecycle,
         flags,
         useProxy ? ProxyObserver.getOrCreate(instance).proxy : instance as IIndexable,
         name,
-        bindables[name].callback
+        bindable.callback,
+        bindable.set,
       );
     }
   }

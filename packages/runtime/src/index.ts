@@ -174,8 +174,8 @@ export {
   ProxyObserver
 } from './observation/proxy-observer';
 export {
-  SelfObserver
-} from './observation/self-observer';
+  BindableObserver
+} from './observation/bindable-observer';
 export {
   SetterObserver
 } from './observation/setter-observer';

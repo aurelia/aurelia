@@ -6,10 +6,13 @@ import {
   firstDefined,
   getPrototypeChain,
   Writable,
+  PLATFORM,
 } from '@aurelia/kernel';
 import {
   BindingMode,
 } from '../flags';
+
+export type InterceptorFunc<TInput = unknown, TOutput = unknown> = (value: TInput) => TOutput;
 
 export type PartialBindableDefinition = {
   mode?: BindingMode;
@@ -17,6 +20,7 @@ export type PartialBindableDefinition = {
   attribute?: string;
   property?: string;
   primary?: boolean;
+  set?: InterceptorFunc;
 };
 
 type PartialBindableDefinitionPropertyRequired = PartialBindableDefinition & {
@@ -89,7 +93,7 @@ function isBindableAnnotation(key: string): boolean {
 
 type BFluent = {
   add(config: PartialBindableDefinitionPropertyRequired): BFluent;
-  add(property: string): BFluent & B1234;
+  add(property: string): BFluent & B12345;
 };
 
 type B1<T = {}> = {
@@ -108,11 +112,16 @@ type B4<T = {}> = {
   primary(): BFluent & T;
 };
 
+type B5<T = {}> = {
+  set(setterFn: InterceptorFunc): BFluent & T;
+};
+
 // An important self-imposed limitation for this to be viable (e.g. avoid exponential combination growth),
 // is to keep the fluent API invocation order in a single direction.
-type B34 = B4 & B3<B4>;
-type B234 = B34 & B2<B34>;
-type B1234 = B234 & B1<B234>;
+type B45 = B5 & B4<B5>;
+type B345 = B45 & B3<B45>;
+type B2345 = B345 & B2<B345>;
+type B12345 = B2345 & B1<B2345>;
 
 export const Bindable = {
   name: Protocol.annotation.keyFor('bindable'),
@@ -150,8 +159,8 @@ export const Bindable = {
   for(Type: Constructable): BFluent {
     let def: Writable<BindableDefinition>;
 
-    const builder: BFluent & B1234 = {
-      add(configOrProp: string | PartialBindableDefinitionPropertyRequired): BFluent & B1234 {
+    const builder: BFluent & B12345 = {
+      add(configOrProp: string | PartialBindableDefinitionPropertyRequired): BFluent & B12345 {
         let prop: string;
         let config: PartialBindableDefinitionPropertyRequired;
         if (typeof configOrProp === 'string') {
@@ -170,26 +179,31 @@ export const Bindable = {
 
         return builder;
       },
-      mode(mode: BindingMode): BFluent & B1234 {
+      mode(mode: BindingMode): BFluent & B12345 {
         def.mode = mode;
 
         return builder;
       },
-      callback(callback: string): BFluent & B1234 {
+      callback(callback: string): BFluent & B12345 {
         def.callback = callback;
 
         return builder;
       },
-      attribute(attribute: string): BFluent & B1234 {
+      attribute(attribute: string): BFluent & B12345 {
         def.attribute = attribute;
 
         return builder;
       },
-      primary(): BFluent & B1234 {
+      primary(): BFluent & B12345 {
         def.primary = true;
 
         return builder;
       },
+      set(setInterpreter: InterceptorFunc): BFluent & B12345 {
+        def.set = setInterpreter;
+
+        return builder;
+      }
     };
 
     return builder;
@@ -223,6 +237,7 @@ export class BindableDefinition {
     public readonly mode: BindingMode,
     public readonly primary: boolean,
     public readonly property: string,
+    public readonly set: InterceptorFunc,
   ) { }
 
   public static create(prop: string, def: PartialBindableDefinition = {}): BindableDefinition {
@@ -232,6 +247,7 @@ export class BindableDefinition {
       firstDefined(def.mode, BindingMode.toView),
       firstDefined(def.primary, false),
       firstDefined(def.property, prop),
+      firstDefined(def.set, PLATFORM.noop),
     );
   }
 }
@@ -259,7 +275,15 @@ function apiTypeCheck() {
     @bindable({ callback: 'propChanged' })
     @bindable({ attribute: 'prop' })
     @bindable({ primary: true })
-    @bindable({ mode: BindingMode.twoWay, callback: 'propChanged', attribute: 'prop', primary: true })
+    @bindable({ set: value => String(value) })
+    @bindable({ set: value => Number(value) })
+    @bindable({
+      mode: BindingMode.twoWay,
+      callback: 'propChanged',
+      attribute: 'prop',
+      primary: true,
+      set: value => String(value)
+    })
     public prop: unknown;
   }
 
@@ -291,6 +315,8 @@ function apiTypeCheck() {
     .add('prop').mode(BindingMode.twoWay).callback('propChanged')
     .add('prop').mode(BindingMode.twoWay).callback('propChanged').attribute('prop')
     .add('prop').mode(BindingMode.twoWay).callback('propChanged').attribute('prop').primary()
+    .add('prop').mode(BindingMode.twoWay).set((value: unknown) => Number(value))
+    .add('prop').mode(BindingMode.twoWay).callback('propChanged').set(value => Number(value))
     .add('prop').callback('propChanged')
     .add('prop').callback('propChanged').attribute('prop')
     .add('prop').callback('propChanged').attribute('prop').primary()

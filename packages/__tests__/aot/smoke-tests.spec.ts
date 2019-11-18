@@ -109,4 +109,20 @@ describe('AOT (smoke tests)', function () {
 
     assert.strictEqual(mod.ExecutionResult['[[Value]]'], 2);
   });
+
+  it('simple try catch with handled error', async function () {
+    const { mod } = await setup(`
+      try {
+        foo.bar;
+      } catch {
+        return 1;
+      }
+    `);
+
+    mod.Instantiate();
+
+    mod.EvaluateModule();
+
+    assert.strictEqual(mod.ExecutionResult['[[Value]]'], 1);
+  });
 });

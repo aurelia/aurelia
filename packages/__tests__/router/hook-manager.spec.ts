@@ -6,7 +6,7 @@ import { DebugConfiguration } from '@aurelia/debug';
 describe('HookManager', function () {
   this.timeout(5000);
 
-  async function setup(config?, App?, dependencies: any[] = []) {
+  async function setup(config?, App?, dependencies: any[] = [], stateSpy?) {
     const ctx = TestContext.createHTMLTestContext();
     const { container, scheduler, doc, wnd } = ctx;
 
@@ -30,11 +30,15 @@ describe('HookManager', function () {
         !config ? RouterConfiguration : RouterConfiguration.customize(config),
         App)
       .app({ host: host, component: App });
-    await au.start().wait();
 
     const router = container.get(IRouter);
+    const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
+
+    await au.start().wait();
+
 
     async function tearDown() {
+      unspyNavigationStates(router, _pushState, _replaceState);
       router.deactivate();
       RouterConfiguration.customize();
       await au.stop().wait();
@@ -45,6 +49,29 @@ describe('HookManager', function () {
     return { au, container, scheduler, host, router, tearDown, navigationInstruction, viewportInstructions };
   }
 
+  function spyNavigationStates(router, spy) {
+    let _pushState;
+    let _replaceState;
+    if (spy) {
+      _pushState = router.navigation.history.pushState;
+      router.navigation.history.pushState = function (data, title, path) {
+        spy('push', data, title, path);
+        _pushState.call(router.navigation.history, data, title, path);
+      };
+      _replaceState = router.navigation.history.replaceState;
+      router.navigation.history.replaceState = function (data, title, path) {
+        spy('replace', data, title, path);
+        _replaceState.call(router.navigation.history, data, title, path);
+      };
+    }
+    return { _pushState, _replaceState };
+  }
+  function unspyNavigationStates(router, _push, _replace) {
+    if (_push) {
+      router.navigation.history.pushState = _push;
+      router.navigation.history.replaceState = _replace;
+    }
+  }
   const $goto = async (path: string, router: IRouter, scheduler: IScheduler) => {
     await router.goto(path);
     scheduler.getRenderTaskQueue().flush();
@@ -248,7 +275,9 @@ describe('HookManager', function () {
 
   it('sets a TransformToUrl hook with alternating types during initialization', async function () {
     const hookFunction = (input: string | ViewportInstruction[], navigationInstruction: INavigatorInstruction): string | ViewportInstruction[] =>
-      typeof input === 'string' ? [router.createViewportInstruction(`hooked-${input}`)] : `hooked-${input[0].componentName}`;
+      input.length > 0
+        ? typeof input === 'string' ? [router.createViewportInstruction(`hooked-${input}`)] : `hooked-${input[0].componentName}`
+        : input;
     const hook = { hook: hookFunction, options: { type: HookTypes.TransformToUrl } };
     const { router, tearDown, navigationInstruction } = await setup({
       hooks: [hook, hook, hook],
@@ -272,7 +301,9 @@ describe('HookManager', function () {
     assert.strictEqual(hooked, `${str}`, `not hooked`);
 
     const hookFunction = async (input: string | ViewportInstruction[], navigationInstruction: INavigatorInstruction): Promise<string | ViewportInstruction[]> =>
-      typeof input === 'string' ? [router.createViewportInstruction(`hooked-${input}`)] : `hooked-${input[0].componentName}`;
+      input.length > 0
+        ? typeof input === 'string' ? [router.createViewportInstruction(`hooked-${input}`)] : `hooked-${input[0].componentName}`
+        : input;
 
     router.addHook(hookFunction, { type: HookTypes.TransformToUrl });
     router.addHook(hookFunction, { type: HookTypes.TransformToUrl });
@@ -372,4 +403,102 @@ describe('HookManager', function () {
     await tearDown();
   });
 
+  it('can transform from viewport instructions to url', async function () {
+    let locationPath: string;
+    const locationCallback = (type, data, title, path) => {
+      // console.log(type, data, title, path);
+      locationPath = path;
+    };
+    const { router, tearDown, scheduler, host } = await setup(undefined, undefined, ['one', 'two', 'three'], locationCallback);
+
+    await $goto('one', router, scheduler);
+    assert.strictEqual(host.textContent, `!one!`, `one`);
+    assert.strictEqual(locationPath, `#/one`, `locationPath one`);
+
+    await $goto('two', router, scheduler);
+    assert.strictEqual(host.textContent, `!two!`, `two`);
+    assert.strictEqual(locationPath, `#/two`, `locationPath two`);
+
+    router.addHook(async (state: string | ViewportInstruction[], navigation: INavigatorInstruction) => {
+      return typeof state === 'string'
+        ? state === 'two' ? 'hooked-two' : state
+        : state[0].componentName === 'two' ? 'hooked-two' : state;
+    }, { type: HookTypes.TransformToUrl });
+
+    await $goto('one', router, scheduler);
+    assert.strictEqual(host.textContent, `!one!`, `one`);
+    assert.strictEqual(locationPath, `#/one`, `locationPath one`);
+
+    await $goto('two', router, scheduler);
+    assert.strictEqual(host.textContent, `!two!`, `two`);
+    assert.strictEqual(locationPath, `#/hooked-two`, `locationPath hooked-two`);
+
+    await tearDown();
+  });
+
+  it('can transform from string to url', async function () {
+    let locationPath: string;
+    const locationCallback = (type, data, title, path) => {
+      // console.log(type, data, title, path);
+      locationPath = path;
+    };
+    const { router, tearDown, scheduler, host } = await setup(undefined, undefined, ['one', 'two', 'three'], locationCallback);
+
+    await $goto('one', router, scheduler);
+    assert.strictEqual(host.textContent, `!one!`, `one`);
+    assert.strictEqual(locationPath, `#/one`, `locationPath one`);
+
+    await $goto('two', router, scheduler);
+    assert.strictEqual(host.textContent, `!two!`, `two`);
+    assert.strictEqual(locationPath, `#/two`, `locationPath two`);
+
+    router.addHook(async (state: string | ViewportInstruction[], navigation: INavigatorInstruction) => {
+      return typeof state === 'string'
+        ? state === 'two' ? 'hooked-two' : state
+        : state[0].componentName === 'two' ? 'hooked-two' : state;
+    }, { type: HookTypes.TransformToUrl });
+
+    await $goto('one', router, scheduler);
+    assert.strictEqual(host.textContent, `!one!`, `one`);
+    assert.strictEqual(locationPath, `#/one`, `locationPath one`);
+
+    await $goto('two', router, scheduler);
+    assert.strictEqual(host.textContent, `!two!`, `two`);
+    assert.strictEqual(locationPath, `#/hooked-two`, `locationPath hooked-two`);
+
+    await tearDown();
+  });
+
+  it('can transform from viewport instructions to string to url', async function () {
+    let locationPath: string;
+    const locationCallback = (type, data, title, path) => {
+      // console.log(type, data, title, path);
+      locationPath = path;
+    };
+    const { router, tearDown, scheduler, host } = await setup(undefined, undefined, ['one', 'two', 'three'], locationCallback);
+
+    await $goto('one', router, scheduler);
+    assert.strictEqual(host.textContent, `!one!`, `one`);
+    assert.strictEqual(locationPath, `#/one`, `locationPath one`);
+
+    await $goto('two', router, scheduler);
+    assert.strictEqual(host.textContent, `!two!`, `two`);
+    assert.strictEqual(locationPath, `#/two`, `locationPath two`);
+
+    router.addHook(async (state: string | ViewportInstruction[], navigation: INavigatorInstruction) => {
+      return typeof state === 'string'
+        ? state === 'hooked-two' ? 'hooked-hooked-two' : state
+        : state[0].componentName === 'two' ? 'hooked-two' : state;
+    }, { type: HookTypes.TransformToUrl });
+
+    await $goto('one', router, scheduler);
+    assert.strictEqual(host.textContent, `!one!`, `one`);
+    assert.strictEqual(locationPath, `#/one`, `locationPath one`);
+
+    await $goto('two', router, scheduler);
+    assert.strictEqual(host.textContent, `!two!`, `two`);
+    assert.strictEqual(locationPath, `#/hooked-hooked-two`, `locationPath hooked-hooked-two`);
+
+    await tearDown();
+  });
 });

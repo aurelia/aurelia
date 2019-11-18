@@ -160,7 +160,7 @@ import { $Null } from './types/null';
 import { $Boolean } from './types/boolean';
 import { $Empty, empty } from './types/empty';
 import { $CreateUnmappedArgumentsObject, $ArgumentsExoticObject } from './exotics/arguments';
-import { $CreateListIteratorRecord, $IteratorRecord, $IteratorStep, $IteratorValue } from './iteration';
+import { $CreateListIteratorRecord, $IteratorRecord, $IteratorStep, $IteratorValue, $GetIterator, $IteratorClose } from './iteration';
 const {
   emptyArray,
   emptyObject,
@@ -8663,6 +8663,22 @@ export class $ComputedPropertyName implements I$Node {
 
     this.PropName = new $Empty(realm, void 0, void 0, this);
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-evaluation
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $String {
+    // ComputedPropertyName : [ AssignmentExpression ]
+
+    // 1. Let exprValue be the result of evaluating AssignmentExpression.
+    const exprValue = this.$expression.Evaluate(ctx);
+
+    // 2. Let propName be ? GetValue(exprValue).
+    const propName = exprValue.GetValue(ctx);
+
+    // 3. Return ? ToPropertyKey(propName).
+    return propName.ToPropertyKey(ctx);
+  }
 }
 
 
@@ -8766,6 +8782,57 @@ export class $ObjectBindingPattern implements I$Node {
     this.HasInitializer = $elements.some(getHasInitializer);
     this.IsSimpleParameterList = $elements.every(getIsSimpleParameterList);
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-bindinginitialization
+  public InitializeBinding(
+    ctx: ExecutionContext,
+    value: $AnyNonEmpty,
+    environment: $EnvRec | undefined,
+  ): $Any {
+    const realm = ctx.Realm;
+
+    // BindingPattern : ObjectBindingPattern
+
+    // 1. Perform ? RequireObjectCoercible(value).
+    if (value.isNil) {
+      throw new TypeError('1. Perform ? RequireObjectCoercible(value).');
+    }
+
+    // 2. Return the result of performing BindingInitialization for ObjectBindingPattern using value and environment as arguments.
+
+    // ObjectBindingPattern : { }
+
+    // 1. Return NormalCompletion(empty).
+
+    // ObjectBindingPattern : { BindingPropertyList } { BindingPropertyList , }
+
+    // 1. Perform ? PropertyBindingInitialization for BindingPropertyList using value and environment as the arguments.
+    // 2. Return NormalCompletion(empty).
+
+    // ObjectBindingPattern : { BindingRestProperty }
+
+    // 1. Let excludedNames be a new empty List.
+    // 2. Return the result of performing RestBindingInitialization of BindingRestProperty with value, environment, and excludedNames as the arguments.
+
+    // ObjectBindingPattern : { BindingPropertyList , BindingRestProperty }
+
+    // 1. Let excludedNames be the result of performing ? PropertyBindingInitialization of BindingPropertyList using value and environment as arguments.
+    // 2. Return the result of performing RestBindingInitialization of BindingRestProperty with value, environment, and excludedNames as the arguments.
+
+    // TODO: implement rest element thingy
+
+    const excludedNames: $String[] = [];
+    const elements = this.$elements;
+    for (let i = 0, ii = elements.length; i < ii; ++i) {
+      const el = elements[i];
+      const result = el.InitializePropertyBinding(ctx, value, environment);
+      if (i + 1 === ii) {
+        // return result;
+      }
+    }
+
+    return new $Empty(realm);
+  }
 }
 
 type $$ArrayBindingElement = (
@@ -8844,6 +8911,94 @@ export class $ArrayBindingPattern implements I$Node {
     this.ContainsExpression = $elements.some(getContainsExpression);
     this.HasInitializer = $elements.some(getHasInitializer);
     this.IsSimpleParameterList = $elements.every(getIsSimpleParameterList);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-bindinginitialization
+  public InitializeBinding(
+    ctx: ExecutionContext,
+    value: $Object,
+    environment: $EnvRec | undefined,
+  ): $Any {
+    // BindingPattern : ArrayBindingPattern
+
+    // 1. Let iteratorRecord be ? GetIterator(value).
+    const iteratorRecord = $GetIterator(ctx, value);
+
+    // 2. Let result be IteratorBindingInitialization for ArrayBindingPattern using iteratorRecord and environment as arguments.
+    const result = this.InitializeIteratorBinding(ctx, iteratorRecord, environment);
+
+    // 3. If iteratorRecord.[[Done]] is false, return ? IteratorClose(iteratorRecord, result).
+    if (iteratorRecord['[[Done]]'].isFalsey) {
+      return $IteratorClose(ctx, iteratorRecord, result);
+    }
+
+    // 4. Return result.
+    return result;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-iteratorbindinginitialization
+  public InitializeIteratorBinding(
+    ctx: ExecutionContext,
+    iteratorRecord: $IteratorRecord,
+    environment: $EnvRec | undefined,
+  ): $Any {
+    const realm = ctx.Realm;
+
+    const elements = this.$elements;
+    for (let i = 0, ii = elements.length; i < ii; ++i) {
+      const el = elements[i];
+      switch (el.$kind) {
+        case SyntaxKind.OmittedExpression:
+          if (i + 1 === ii) {
+            // If the last element is an elision, skip it as per the runtime semantics:
+
+            // ArrayBindingPattern : [ BindingElementList , ]
+
+            // 1. Return the result of performing IteratorBindingInitialization for BindingElementList with iteratorRecord and environment as arguments.
+
+            // ArrayBindingPattern : [ Elision ]
+
+            // 1. Return the result of performing IteratorDestructuringAssignmentEvaluation of Elision with iteratorRecord as the argument.
+            break;
+          }
+          el.EvaluateDestructuringAssignmentIterator(ctx, iteratorRecord);
+          break;
+        case SyntaxKind.BindingElement: {
+          // ArrayBindingPattern : [ Elision opt BindingRestElement ]
+
+          // 1. If Elision is present, then
+            // 1. a. Perform ? IteratorDestructuringAssignmentEvaluation of Elision with iteratorRecord as the argument.
+          // 2. Return the result of performing IteratorBindingInitialization for BindingRestElement with iteratorRecord and environment as arguments.
+
+          // ArrayBindingPattern : [ BindingElementList ]
+
+          // 1. Return the result of performing IteratorBindingInitialization for BindingElementList with iteratorRecord and environment as arguments.
+
+
+          // ArrayBindingPattern : [ BindingElementList , Elision ]
+
+          // 1. Perform ? IteratorBindingInitialization for BindingElementList with iteratorRecord and environment as arguments.
+          // 2. Return the result of performing IteratorDestructuringAssignmentEvaluation of Elision with iteratorRecord as the argument.
+
+          // ArrayBindingPattern : [ BindingElementList , Elision opt BindingRestElement ]
+
+          // 1. Perform ? IteratorBindingInitialization for BindingElementList with iteratorRecord and environment as arguments.
+          // 2. If Elision is present, then
+            // 2. a. Perform ? IteratorDestructuringAssignmentEvaluation of Elision with iteratorRecord as the argument.
+          // 3. Return the result of performing IteratorBindingInitialization for BindingRestElement with iteratorRecord and environment as arguments.
+
+          const result = el.InitializeIteratorBinding(ctx, iteratorRecord, environment);
+          if (i + 1 === ii) {
+            return result;
+          }
+        }
+      }
+    }
+
+    // ArrayBindingPattern : [ ]
+
+    // 1. Return NormalCompletion(empty).
+    return new $Empty(realm);
   }
 }
 
@@ -8932,6 +9087,192 @@ export class $BindingElement implements I$Node {
         this.IsSimpleParameterList = false;
       }
     }
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-propertybindinginitialization
+  public InitializePropertyBinding(
+    ctx: ExecutionContext,
+    value: $AnyNonEmpty,
+    environment: $EnvRec | undefined,
+  ): readonly $String[] | $Any {
+    const PropertyName = this.$propertyName;
+
+    // BindingProperty : SingleNameBinding
+
+    if (PropertyName === void 0) {
+      // 1. Let name be the string that is the only element of BoundNames of SingleNameBinding.
+      // 2. Perform ? KeyedBindingInitialization for SingleNameBinding using value, environment, and name as the arguments.
+      // 3. Return a new List containing name.
+
+      // Cast is safe because when propertyName is undefined, destructuring is syntactically not possible
+      return (this.$name as $Identifier).InitializePropertyBinding(ctx, value, environment);
+    }
+
+    // BindingProperty : PropertyName : BindingElement
+
+    // 1. Let P be the result of evaluating PropertyName.
+    const P = PropertyName.Evaluate(ctx);
+
+    // 2. ReturnIfAbrupt(P).
+    if (P.isAbrupt) {
+      return P;
+    }
+
+    // 3. Perform ? KeyedBindingInitialization of BindingElement with value, environment, and P as the arguments.
+    this.InitializeKeyedBinding(ctx, value, environment, P as $String); // TODO: this cast is very wrong. Need to revisit later
+
+    // 4. Return a new List containing P.
+    return [P as $String]; // TODO: this cast is very wrong. Need to revisit later
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-keyedbindinginitialization
+  public InitializeKeyedBinding(
+    ctx: ExecutionContext,
+    value: $AnyNonEmpty,
+    environment: $EnvRec | undefined,
+    propertyName: $String,
+    initializer?: $$AssignmentExpressionOrHigher,
+  ): $Any {
+    const realm = ctx.Realm;
+
+    const BindingElement = this.$name;
+
+    // SingleNameBinding : BindingIdentifier Initializer opt
+
+    // 1. Let bindingId be StringValue of BindingIdentifier.
+    // 2. Let lhs be ? ResolveBinding(bindingId, environment).
+    // 3. Let v be ? GetV(value, propertyName).
+    // 4. If Initializer is present and v is undefined, then
+      // 4. a. If IsAnonymousFunctionDefinition(Initializer) is true, then
+        // 4. a. i. Set v to the result of performing NamedEvaluation for Initializer with argument bindingId.
+      // 4. b. Else,
+        // 4. b. i. Let defaultValue be the result of evaluating Initializer.
+        // 4. b. ii. Set v to ? GetValue(defaultValue).
+    // 5. If environment is undefined, return ? PutValue(lhs, v).
+    // 6. Return InitializeReferencedBinding(lhs, v).
+    if (BindingElement.$kind === SyntaxKind.Identifier) {
+      return BindingElement.InitializeKeyedBinding(ctx, value, environment, propertyName, initializer);
+    }
+
+
+    // BindingElement : BindingPattern Initializer opt
+
+    // 1. Let v be ? GetV(value, propertyName).
+    let v = $Get(ctx, value.ToObject(ctx), propertyName);
+
+    // 2. If Initializer is present and v is undefined, then
+    if (initializer !== void 0 && v.isUndefined) {
+      // 2. a. Let defaultValue be the result of evaluating Initializer.
+      const defaultValue = initializer.Evaluate(ctx);
+
+      // 2. b. Set v to ? GetValue(defaultValue).
+      v = defaultValue.GetValue(ctx);
+    }
+
+    // 3. Return the result of performing BindingInitialization for BindingPattern passing v and environment as arguments.
+    return BindingElement.InitializeBinding(ctx, v as $Object, environment);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-iteratorbindinginitialization
+  public InitializeIteratorBinding(
+    ctx: ExecutionContext,
+    iteratorRecord: $IteratorRecord,
+    environment: $EnvRec | undefined,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    const BindingElement = this.$name;
+
+    // BindingElement : SingleNameBinding
+
+    // 1. Return the result of performing IteratorBindingInitialization for SingleNameBinding with iteratorRecord and environment as the arguments.
+
+    // SingleNameBinding : BindingIdentifier Initializer opt
+
+    // 1. Let bindingId be StringValue of BindingIdentifier.
+    // 2. Let lhs be ? ResolveBinding(bindingId, environment).
+    // 3. If iteratorRecord.[[Done]] is false, then
+      // 3. a. Let next be IteratorStep(iteratorRecord).
+      // 3. b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
+      // 3. c. ReturnIfAbrupt(next).
+      // 3. d. If next is false, set iteratorRecord.[[Done]] to true.
+      // 3. e. Else,
+        // 3. e. i. Let v be IteratorValue(next).
+        // 3. e. ii. If v is an abrupt completion, set iteratorRecord.[[Done]] to true.
+        // 3. e. iii. ReturnIfAbrupt(v).
+    // 4. If iteratorRecord.[[Done]] is true, let v be undefined.
+    // 5. If Initializer is present and v is undefined, then
+      // 5. a. If IsAnonymousFunctionDefinition(Initializer) is true, then
+        // 5. a. i. Set v to the result of performing NamedEvaluation for Initializer with argument bindingId.
+      // 5. b. Else,
+        // 5. b. i. Let defaultValue be the result of evaluating Initializer.
+        // 5. b. ii. Set v to ? GetValue(defaultValue).
+    // 6. If environment is undefined, return ? PutValue(lhs, v).
+    // 7. Return InitializeReferencedBinding(lhs, v).
+
+    if (BindingElement.$kind === SyntaxKind.Identifier) {
+      return BindingElement.InitializeIteratorBinding(ctx, iteratorRecord, environment, this.$initializer);
+    }
+
+    // BindingElement : BindingPattern Initializer opt
+
+    let v: $Any = intrinsics.undefined; // TODO: sure about this?
+
+    // 1. If iteratorRecord.[[Done]] is false, then
+    if (iteratorRecord['[[Done]]'].isFalsey) {
+      // 1. a. Let next be IteratorStep(iteratorRecord).
+      const next = $IteratorStep(ctx, iteratorRecord);
+
+      // 1. b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
+      if (next.isAbrupt) {
+        iteratorRecord['[[Done]]'] = intrinsics.true;
+
+        // 1. c. ReturnIfAbrupt(next).
+        if (next.isAbrupt) {
+          return next;
+        }
+      }
+
+      // 1. d. If next is false, set iteratorRecord.[[Done]] to true.
+      if (next.isFalsey) {
+        iteratorRecord['[[Done]]'] = intrinsics.true;
+      }
+      // 1. e. Else,
+      else {
+        // 1. e. i. Let v be IteratorValue(next).
+        v = $IteratorValue(ctx, next);
+
+        // 1. e. ii. If v is an abrupt completion, set iteratorRecord.[[Done]] to true.
+        if (v.isAbrupt) {
+          iteratorRecord['[[Done]]'] = intrinsics.true;
+
+          // 1. e. iii. ReturnIfAbrupt(v).
+          if (v.isAbrupt) {
+            return v;
+          }
+        }
+      }
+    }
+
+    // 2. If iteratorRecord.[[Done]] is true, let v be undefined.
+    if (iteratorRecord['[[Done]]'].isTruthy) {
+      v = intrinsics.undefined;
+    }
+
+    const initializer = this.$initializer;
+
+    // 3. If Initializer is present and v is undefined, then
+    if (initializer !== void 0 && v.isUndefined) {
+      // 3. a. Let defaultValue be the result of evaluating Initializer.
+      const defaultValue = initializer.Evaluate(ctx);
+
+      // 3. b. Set v to ? GetValue(defaultValue).
+      v = defaultValue.GetValue(ctx);
+    }
+
+    // 4. Return the result of performing BindingInitialization of BindingPattern with v and environment as the arguments.
+    return BindingElement.InitializeBinding(ctx, v as $Object, environment);
   }
 }
 
@@ -9067,6 +9408,39 @@ export class $OmittedExpression implements I$Node {
     public readonly logger: ILogger = parent.logger.scopeTo('OmittedExpression'),
   ) {
     this.id = realm.registerNode(this);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-iteratordestructuringassignmentevaluation
+  public EvaluateDestructuringAssignmentIterator(
+    ctx: ExecutionContext,
+    iteratorRecord: $IteratorRecord,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // Elision : ,
+
+    // 1. If iteratorRecord.[[Done]] is false, then
+    if (iteratorRecord['[[Done]]'].isFalsey) {
+      // 1. a. Let next be IteratorStep(iteratorRecord).
+      const next = $IteratorStep(ctx, iteratorRecord);
+
+      // 1. b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
+      if (next.isAbrupt) {
+        iteratorRecord['[[Done]]'] = intrinsics.true;
+
+        // 1. c. ReturnIfAbrupt(next).
+        return next;
+      }
+
+      // 1. d. If next is false, set iteratorRecord.[[Done]] to true.
+      if (next.isFalsey) {
+        iteratorRecord['[[Done]]'] = intrinsics.true;
+      }
+    }
+
+    // 2. Return NormalCompletion(empty).
+    return new $Empty(realm);
   }
 }
 

@@ -15,6 +15,8 @@ import { $Set } from '../operations';
 export class $Reference {
   public readonly '<$Reference>': unknown;
 
+  public get isAbrupt(): false { return false; }
+
   public constructor(
     public readonly realm: Realm,
     public readonly baseValue: $Object | $Boolean | $String | $Symbol | $Number | $EnvRec | $Undefined,

@@ -11093,10 +11093,13 @@ export class $ThrowStatement implements I$Node {
     // ThrowStatement : throw Expression ;
 
     // 1. Let exprRef be the result of evaluating Expression.
-    // 2. Let exprValue be ? GetValue(exprRef).
-    // 3. Return ThrowCompletion(exprValue).
+    const exprRef = this.$expression.Evaluate(ctx);
 
-    return intrinsics.undefined; // TODO: implement this
+    // 2. Let exprValue be ? GetValue(exprRef).
+    const exprValue = exprRef.GetValue(ctx);
+
+    // 3. Return ThrowCompletion(exprValue).
+    return exprValue.ToCompletion(CompletionType.throw, intrinsics.empty);
   }
 }
 

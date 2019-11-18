@@ -844,7 +844,7 @@ export class Router implements IRouter {
     return this.rootScope!;
   }
 
-  private replacePaths(instruction: INavigatorInstruction): Promise<void> {
+  private async replacePaths(instruction: INavigatorInstruction): Promise<void> {
     (this.rootScope as Viewport).content.content.nextScopeInstructions = (this.rootScope as Viewport).reparentViewportInstructions();
     const viewports: Viewport[] = (this.rootScope as Viewport).children.filter((viewport) => viewport.enabled && !viewport.content.content.isEmpty());
     let instructions = viewports.map(viewport => viewport.content.content);
@@ -866,13 +866,21 @@ export class Router implements IRouter {
     this.activeComponents = instructions;
     this.activeRoute = instruction.route;
 
-    let state = this.instructionResolver.stringifyViewportInstructions(instructions, false, true);
-
-    if (this.options.transformToUrl) {
-      // TODO: Review this. Also, should it perhaps get full state?
-      const routeOrInstructions = this.options.transformToUrl(this.instructionResolver.parseViewportInstructions(state), this);
-      state = Array.isArray(routeOrInstructions) ? this.instructionResolver.stringifyViewportInstructions(routeOrInstructions) : routeOrInstructions;
+    // First invoke with viewport instructions (should it perhaps get full state?)
+    let state: string | ViewportInstruction[] = await this.hookManager.invokeTransformToUrl(instructions, instruction);
+    if (typeof state !== 'string') {
+      // Convert to string if necessary
+      state = this.instructionResolver.stringifyViewportInstructions(state, false, true);
     }
+    // Invoke again with string
+    state = await this.hookManager.invokeTransformToUrl(state, instruction);
+
+    // let state = this.instructionResolver.stringifyViewportInstructions(instructions, false, true);
+    // if (this.options.transformToUrl) {
+    //   // TODO: Review this. Also, should it perhaps get full state?
+    //   const routeOrInstructions = this.options.transformToUrl(this.instructionResolver.parseViewportInstructions(state), this);
+    //   state = Array.isArray(routeOrInstructions) ? this.instructionResolver.stringifyViewportInstructions(routeOrInstructions) : routeOrInstructions;
+    // }
 
     const query = (instruction.query && instruction.query.length ? `?${instruction.query}` : '');
     // if (instruction.path === void 0 || instruction.path.length === 0 || instruction.path === '/') {

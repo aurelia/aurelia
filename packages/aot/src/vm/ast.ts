@@ -1689,14 +1689,12 @@ function $FunctionDeclarationInstantiation(
 ) {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
-  const stack = realm.stack;
 
   // 1. Let calleeContext be the running execution context.
-  const calleeContext = stack.top;
 
   // 2. Let env be the LexicalEnvironment of calleeContext.
   // 3. Let envRec be env's EnvironmentRecord.
-  const envRec = calleeContext.LexicalEnvironment;
+  const envRec = ctx.LexicalEnvironment;
 
   // 4. Let code be func.[[ECMAScriptCode]].
   const code = func['[[ECMAScriptCode]]'] as $FunctionDeclaration | $ArrowFunction; // TODO: MethodDeclaration may need to be included as well?
@@ -1855,10 +1853,16 @@ function $FunctionDeclarationInstantiation(
   // 25. If hasDuplicates is true, then
   if (hasDuplicates) {
     // 25. a. Perform ? IteratorBindingInitialization for formals with iteratorRecord and undefined as arguments.
+    for (const formal of formals) {
+      formal.InitializeIteratorBinding(ctx, iteratorRecord, void 0);
+    }
   }
   // 26. Else,
   else {
     // 26. a. Perform ? IteratorBindingInitialization for formals with iteratorRecord and env as arguments.
+    for (const formal of formals) {
+      formal.InitializeIteratorBinding(ctx, iteratorRecord, envRec);
+    }
   }
 
   let varEnvRec: $EnvRec;
@@ -1896,7 +1900,7 @@ function $FunctionDeclarationInstantiation(
     varEnvRec = new $DeclarativeEnvRec(code.logger, realm, envRec);
 
     // 28. d. Set the VariableEnvironment of calleeContext to varEnv.
-    calleeContext.VariableEnvironment = varEnvRec;
+    ctx.VariableEnvironment = varEnvRec;
 
     // 28. e. Let instantiatedVarNames be a new empty List.
     const instantiatedVarNames = [] as $String[];
@@ -1904,7 +1908,7 @@ function $FunctionDeclarationInstantiation(
     // 28. f. For each n in varNames, do
     for (const n of varNames) {
       // 28. f. i. If n is not an element of instantiatedVarNames, then
-      if (!varNames.some(x => x.is(n))) {
+      if (!instantiatedVarNames.some(x => x.is(n))) {
         // 28. f. i. 1. Append n to instantiatedVarNames.
         instantiatedVarNames.push(n);
 
@@ -1949,7 +1953,7 @@ function $FunctionDeclarationInstantiation(
 
   // 32. Let lexEnvRec be lexEnv's EnvironmentRecord.
   // 33. Set the LexicalEnvironment of calleeContext to lexEnv.
-  calleeContext.LexicalEnvironment = lexEnvRec;
+  ctx.LexicalEnvironment = lexEnvRec;
 
   // 34. Let lexDeclarations be the LexicallyScopedDeclarations of code.
   const lexDeclarations = code.LexicallyScopedDeclarations;
@@ -5474,7 +5478,7 @@ export class $Identifier implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('Identifier'),
+    public readonly logger: ILogger = parent.logger.scopeTo(`Identifier(${node.text})`),
   ) {
     this.id = realm.registerNode(this);
 
@@ -8749,6 +8753,117 @@ export class $ParameterDeclaration implements I$Node {
       this.IsSimpleParameterList = false;
     }
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-iteratorbindinginitialization
+  public InitializeIteratorBinding(
+    ctx: ExecutionContext,
+    iteratorRecord: $IteratorRecord,
+    environment: $EnvRec | undefined,
+  ) {
+    this.logger.debug(`InitializeIteratorBinding(#${ctx.id})`);
+
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    const BindingElement = this.$name;
+
+    if (BindingElement.$kind === SyntaxKind.Identifier) {
+      return BindingElement.InitializeIteratorBinding(ctx, iteratorRecord, environment, this.$initializer);
+    }
+
+    // FormalParameter : BindingElement
+    if (!this.ContainsExpression) {
+      // 1. If ContainsExpression of BindingElement is false, return the result of performing IteratorBindingInitialization for BindingElement using iteratorRecord and environment as the arguments.
+
+      // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-iteratorbindinginitialization
+      // NOTE: this section is duplicated in BindingElement
+      // BindingElement : BindingPattern Initializer opt
+      let v: $Any = intrinsics.undefined; // TODO: sure about this?
+
+      // 1. If iteratorRecord.[[Done]] is false, then
+      if (iteratorRecord['[[Done]]'].isFalsey) {
+        // 1. a. Let next be IteratorStep(iteratorRecord).
+        const next = $IteratorStep(ctx, iteratorRecord);
+
+        // 1. b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
+        if (next.isAbrupt) {
+          iteratorRecord['[[Done]]'] = intrinsics.true;
+
+          // 1. c. ReturnIfAbrupt(next).
+          if (next.isAbrupt) {
+            return next;
+          }
+        }
+
+        // 1. d. If next is false, set iteratorRecord.[[Done]] to true.
+        if (next.isFalsey) {
+          iteratorRecord['[[Done]]'] = intrinsics.true;
+        }
+        // 1. e. Else,
+        else {
+          // 1. e. i. Let v be IteratorValue(next).
+          v = $IteratorValue(ctx, next);
+
+          // 1. e. ii. If v is an abrupt completion, set iteratorRecord.[[Done]] to true.
+          if (v.isAbrupt) {
+            iteratorRecord['[[Done]]'] = intrinsics.true;
+
+            // 1. e. iii. ReturnIfAbrupt(v).
+            if (v.isAbrupt) {
+              return v;
+            }
+          }
+        }
+      }
+
+      // 2. If iteratorRecord.[[Done]] is true, let v be undefined.
+      if (iteratorRecord['[[Done]]'].isTruthy) {
+        v = intrinsics.undefined;
+      }
+
+      const initializer = this.$initializer;
+
+      // 3. If Initializer is present and v is undefined, then
+      if (initializer !== void 0 && v.isUndefined) {
+        // 3. a. Let defaultValue be the result of evaluating Initializer.
+        const defaultValue = initializer.Evaluate(ctx);
+
+        // 3. b. Set v to ? GetValue(defaultValue).
+        v = defaultValue.GetValue(ctx);
+      }
+
+      // 4. Return the result of performing BindingInitialization of BindingPattern with v and environment as the arguments.
+      return BindingElement.InitializeBinding(ctx, v as $Object, environment);
+    }
+
+    // TODO: implement the rest of this
+    // 2. Let currentContext be the running execution context.
+    // 3. Let originalEnv be the VariableEnvironment of currentContext.
+    // 4. Assert: The VariableEnvironment and LexicalEnvironment of currentContext are the same.
+    // 5. Assert: environment and originalEnv are the same.
+    // 6. Let paramVarEnv be NewDeclarativeEnvironment(originalEnv).
+    // 7. Set the VariableEnvironment of currentContext to paramVarEnv.
+    // 8. Set the LexicalEnvironment of currentContext to paramVarEnv.
+    // 9. Let result be the result of performing IteratorBindingInitialization for BindingElement using iteratorRecord and environment as the arguments.
+    // 10. Set the VariableEnvironment of currentContext to originalEnv.
+    // 11. Set the LexicalEnvironment of currentContext to originalEnv.
+    // 12. Return result.
+
+    // FunctionRestParameter : BindingRestElement
+
+    // 1. If ContainsExpression of BindingRestElement is false, return the result of performing IteratorBindingInitialization for BindingRestElement using iteratorRecord and environment as the arguments.
+    // 2. Let currentContext be the running execution context.
+    // 3. Let originalEnv be the VariableEnvironment of currentContext.
+    // 4. Assert: The VariableEnvironment and LexicalEnvironment of currentContext are the same.
+    // 5. Assert: environment and originalEnv are the same.
+    // 6. Let paramVarEnv be NewDeclarativeEnvironment(originalEnv).
+    // 7. Set the VariableEnvironment of currentContext to paramVarEnv.
+    // 8. Set the LexicalEnvironment of currentContext to paramVarEnv.
+    // 9. Let result be the result of performing IteratorBindingInitialization for BindingRestElement using iteratorRecord and environment as the arguments.
+    // 10. Set the VariableEnvironment of currentContext to originalEnv.
+    // 11. Set the LexicalEnvironment of currentContext to originalEnv.
+    // 12. Return result.
+  }
 }
 
 
@@ -9240,6 +9355,7 @@ export class $BindingElement implements I$Node {
       return BindingElement.InitializeIteratorBinding(ctx, iteratorRecord, environment, this.$initializer);
     }
 
+    // NOTE: this section is duplicated in ParameterDeclaration
     // BindingElement : BindingPattern Initializer opt
 
     let v: $Any = intrinsics.undefined; // TODO: sure about this?

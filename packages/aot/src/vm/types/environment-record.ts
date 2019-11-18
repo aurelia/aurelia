@@ -163,7 +163,7 @@ export class $DeclarativeEnvRec {
     N: $String,
     V: $AnyNonEmpty,
   ): $Empty {
-    this.logger.debug(`InitializeBinding(${N['[[Value]]']})`);
+    this.logger.debug(`InitializeBinding(#${ctx.id}, ${N['[[Value]]']}, ${JSON.stringify(V['[[Value]]'])})`);
 
     const intrinsics = this.realm['[[Intrinsics]]'];
 
@@ -445,7 +445,7 @@ export class $ObjectEnvRec {
     N: $String,
     V: $AnyNonEmpty,
   ): $Boolean {
-    this.logger.debug(`InitializeBinding(${N['[[Value]]']})`);
+    this.logger.debug(`InitializeBinding(#${ctx.id}, ${N['[[Value]]']}, ${JSON.stringify(V['[[Value]]'])})`);
 
     const intrinsics = this.realm['[[Intrinsics]]'];
 
@@ -877,7 +877,7 @@ export class $GlobalEnvRec {
     N: $String,
     V: $AnyNonEmpty,
   ): $Boolean | $Empty {
-    this.logger.debug(`InitializeBinding(${N['[[Value]]']})`);
+    this.logger.debug(`InitializeBinding(#${ctx.id}, ${N['[[Value]]']}, ${JSON.stringify(V['[[Value]]'])})`);
 
     // 1. Let envRec be the global Environment Record for which the method was invoked.
     const envRec = this;

@@ -12,6 +12,7 @@ import { $Symbol } from './symbol';
 import { Intrinsics } from '../intrinsics';
 import { $Undefined } from './undefined';
 import { ExecutionContext, Realm } from '../realm';
+import { $Null } from './null';
 
 // http://www.ecma-international.org/ecma-262/#table-6
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects
@@ -27,7 +28,7 @@ export class $Function<
   public ['[[ECMAScriptCode]]']: $FunctionDeclaration | $MethodDeclaration | $ArrowFunction;
   public ['[[ConstructorKind]]']: ConstructorKind;
   public ['[[Realm]]']: Realm;
-  public ['[[ScriptOrModule]]']: $SourceFile;
+  public ['[[ScriptOrModule]]']: $SourceFile | $Null;
   public ['[[ThisMode]]']: ThisMode;
   public ['[[Strict]]']: $Boolean;
   public ['[[HomeObject]]']: $Object;
@@ -542,12 +543,28 @@ export abstract class $BuiltinFunction<
 > extends $Function<T> {
   public readonly '<$BuiltinFunction>': unknown;
 
+  // http://www.ecma-international.org/ecma-262/#sec-createbuiltinfunction
   public constructor(
     realm: Realm,
     IntrinsicName: T,
     proto: $Object = realm['[[Intrinsics]]']['%FunctionPrototype%'],
   ) {
     super(realm, IntrinsicName, proto);
+
+    // 1. Assert: steps is either a set of algorithm steps or other definition of a function's behaviour provided in this specification.
+    // 2. If realm is not present, set realm to the current Realm Record.
+    // 3. Assert: realm is a Realm Record.
+    // 4. If prototype is not present, set prototype to realm.[[Intrinsics]].[[%FunctionPrototype%]].
+    // 5. Let func be a new built-in function object that when called performs the action described by steps. The new function object has internal slots whose names are the elements of internalSlotsList. The initial value of each of those internal slots is undefined.
+    // 6. Set func.[[Realm]] to realm.
+    this['[[Realm]]'] = realm;
+
+    // 7. Set func.[[Prototype]] to prototype. // done by $Object
+    // 8. Set func.[[Extensible]] to true. // done by $Object
+    // 9. Set func.[[ScriptOrModule]] to null.
+    this['[[ScriptOrModule]]'] = realm['[[Intrinsics]]'].null;
+
+    // 10. Return func.
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-built-in-function-objects-call-thisargument-argumentslist

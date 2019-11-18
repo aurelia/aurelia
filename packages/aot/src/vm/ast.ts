@@ -10643,39 +10643,58 @@ export class $TryStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-catchclauseevaluation
-  private EvaluateCatchClause(ctx: ExecutionContext, thrownValue: $Any): $Any {
+  private EvaluateCatchClause(ctx: ExecutionContext, thrownValue: $AnyNonEmpty): $AnyNonEmpty {
 
     const realm = this.realm;
+    const catchClause = this.$catchClause;
+    const varDeclarations = catchClause?.$variableDeclaration;
+    const hasCatchParamteres = varDeclarations !== void 0;
+
+    // Catch : catch Block
+
+    // 1. Return the result of evaluating Block.
 
     // Catch : catch ( CatchParameter ) Block
 
     // 1. Let oldEnv be the running execution context's LexicalEnvironment.
     const oldEnv = ctx.LexicalEnvironment;
 
-    // 2. Let catchEnv be NewDeclarativeEnvironment(oldEnv).
-    // 3. Let catchEnvRec be catchEnv's EnvironmentRecord.
-    ctx.LexicalEnvironment = new $DeclarativeEnvRec(this.logger, realm, oldEnv);
+    if (hasCatchParamteres) {
+      // 2. Let catchEnv be NewDeclarativeEnvironment(oldEnv).
+      // 3. Let catchEnvRec be catchEnv's EnvironmentRecord.
+      ctx.LexicalEnvironment = new $DeclarativeEnvRec(this.logger, realm, oldEnv);
 
-    // 4. For each element argName of the BoundNames of CatchParameter, do
-    // 4. a. Perform ! catchEnvRec.CreateMutableBinding(argName, false).
-    this.$catchClause?.CreateBinding(ctx, realm);
+      // 4. For each element argName of the BoundNames of CatchParameter, do
+      // 4. a. Perform ! catchEnvRec.CreateMutableBinding(argName, false).
+      catchClause?.CreateBinding(ctx, realm);
 
-    // 5. Set the running execution context's LexicalEnvironment to catchEnv.
-    realm.stack.push(ctx);
+      // 5. Set the running execution context's LexicalEnvironment to catchEnv.
+      realm.stack.push(ctx);
 
-    // 6. Let status be the result of performing BindingInitialization for CatchParameter passing thrownValue and catchEnv as arguments.
-    this.$catchClause?.$variableDeclaration?.$initializer.
+      // 6. Let status be the result of performing BindingInitialization for CatchParameter passing thrownValue and catchEnv as arguments.
+      const status = varDeclarations?.InitializeBinding(ctx, thrownValue);
 
-    // 7. If status is an abrupt completion, then
-    // 7. a. Set the running execution context's LexicalEnvironment to oldEnv.
-    // 7. b. Return Completion(status).
+      // 7. If status is an abrupt completion, then
+      if (status?.isAbrupt) {
+        // 7. a. Set the running execution context's LexicalEnvironment to oldEnv.
+        realm.stack.pop();
+        ctx.LexicalEnvironment = oldEnv;
+
+        // 7. b. Return Completion(status).
+        return status;
+      }
+    }
     // 8. Let B be the result of evaluating Block.
+    const B = catchClause?.$block.Evaluate(ctx);
+
     // 9. Set the running execution context's LexicalEnvironment to oldEnv.
+    if(hasCatchParamteres) {
+      realm.stack.pop();
+      ctx.LexicalEnvironment = oldEnv;
+    }
+
     // 10. Return Completion(B).
-
-    // Catch : catch Block
-
-    // 1. Return the result of evaluating Block.
+    return B as $AnyNonEmpty; // TODO fix typings
   }
 }
 

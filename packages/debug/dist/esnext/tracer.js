@@ -246,7 +246,7 @@ const BindingArgsProcessor = {
             case 'SetObserver':
                 return flagsText(info);
             case 'SetterObserver':
-            case 'SelfObserver':
+            case 'BindableObserver':
                 return `${flagsText(info)},${ctorName(info, 1)},${primitive(info, 2)}`;
             case 'ProxyObserver':
                 return ctorName(info);

@@ -5,7 +5,7 @@ import { ILifecycle, } from '../lifecycle';
 import { AggregateContinuationTask, ContinuationTask, hasAsyncWork, LifecycleTask, } from '../lifecycle-task';
 import { Scope, } from '../observation/binding-context';
 import { ProxyObserver, } from '../observation/proxy-observer';
-import { SelfObserver, } from '../observation/self-observer';
+import { BindableObserver, } from '../observation/bindable-observer';
 import { ChildrenObserver, IRenderingEngine, } from '../rendering-engine';
 import { IProjectorLocator, CustomElement } from '../resources/custom-element';
 import { CustomAttribute } from '../resources/custom-attribute';
@@ -712,10 +712,12 @@ function createObservers(controller, description, flags, instance) {
     const hasChildrenObservers = 'childrenObservers' in description;
     const length = observableNames.length;
     let name;
+    let bindable;
     for (let i = 0; i < length; ++i) {
         name = observableNames[i];
         if (observers[name] == void 0) {
-            observers[name] = new SelfObserver(lifecycle, flags, useProxy ? ProxyObserver.getOrCreate(instance).proxy : instance, name, bindables[name].callback);
+            bindable = bindables[name];
+            observers[name] = new BindableObserver(lifecycle, flags, useProxy ? ProxyObserver.getOrCreate(instance).proxy : instance, name, bindable.callback, bindable.set);
         }
     }
     if (hasChildrenObservers) {

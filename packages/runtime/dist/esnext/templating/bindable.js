@@ -1,5 +1,5 @@
 import { __decorate, __metadata } from "tslib";
-import { kebabCase, Metadata, Protocol, firstDefined, getPrototypeChain, } from '@aurelia/kernel';
+import { kebabCase, Metadata, Protocol, firstDefined, getPrototypeChain, PLATFORM, } from '@aurelia/kernel';
 import { BindingMode, } from '../flags';
 export function bindable(configOrTarget, prop) {
     let config;
@@ -105,6 +105,10 @@ export const Bindable = {
                 def.primary = true;
                 return builder;
             },
+            set(setInterpreter) {
+                def.set = setInterpreter;
+                return builder;
+            }
         };
         return builder;
     },
@@ -129,15 +133,16 @@ export const Bindable = {
     },
 };
 export class BindableDefinition {
-    constructor(attribute, callback, mode, primary, property) {
+    constructor(attribute, callback, mode, primary, property, set) {
         this.attribute = attribute;
         this.callback = callback;
         this.mode = mode;
         this.primary = primary;
         this.property = property;
+        this.set = set;
     }
     static create(prop, def = {}) {
-        return new BindableDefinition(firstDefined(def.attribute, kebabCase(prop)), firstDefined(def.callback, `${prop}Changed`), firstDefined(def.mode, BindingMode.toView), firstDefined(def.primary, false), firstDefined(def.property, prop));
+        return new BindableDefinition(firstDefined(def.attribute, kebabCase(prop)), firstDefined(def.callback, `${prop}Changed`), firstDefined(def.mode, BindingMode.toView), firstDefined(def.primary, false), firstDefined(def.property, prop), firstDefined(def.set, PLATFORM.noop));
     }
 }
 /* eslint-disable @typescript-eslint/no-unused-vars,spaced-comment */
@@ -165,7 +170,15 @@ function apiTypeCheck() {
         bindable({ callback: 'propChanged' }),
         bindable({ attribute: 'prop' }),
         bindable({ primary: true }),
-        bindable({ mode: BindingMode.twoWay, callback: 'propChanged', attribute: 'prop', primary: true }),
+        bindable({ set: value => String(value) }),
+        bindable({ set: value => Number(value) }),
+        bindable({
+            mode: BindingMode.twoWay,
+            callback: 'propChanged',
+            attribute: 'prop',
+            primary: true,
+            set: value => String(value)
+        }),
         __metadata("design:type", Object)
     ], Foo.prototype, "prop", void 0);
     Foo = __decorate([
@@ -201,6 +214,8 @@ function apiTypeCheck() {
         .add('prop').mode(BindingMode.twoWay).callback('propChanged')
         .add('prop').mode(BindingMode.twoWay).callback('propChanged').attribute('prop')
         .add('prop').mode(BindingMode.twoWay).callback('propChanged').attribute('prop').primary()
+        .add('prop').mode(BindingMode.twoWay).set((value) => Number(value))
+        .add('prop').mode(BindingMode.twoWay).callback('propChanged').set(value => Number(value))
         .add('prop').callback('propChanged')
         .add('prop').callback('propChanged').attribute('prop')
         .add('prop').callback('propChanged').attribute('prop').primary()

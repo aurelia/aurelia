@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../definitions", "../dom", "../lifecycle", "../lifecycle-task", "../observation/binding-context", "../observation/proxy-observer", "../observation/self-observer", "../rendering-engine", "../resources/custom-element", "../resources/custom-attribute"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../definitions", "../dom", "../lifecycle", "../lifecycle-task", "../observation/binding-context", "../observation/proxy-observer", "../observation/bindable-observer", "../rendering-engine", "../resources/custom-element", "../resources/custom-attribute"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -16,7 +16,7 @@
     const lifecycle_task_1 = require("../lifecycle-task");
     const binding_context_1 = require("../observation/binding-context");
     const proxy_observer_1 = require("../observation/proxy-observer");
-    const self_observer_1 = require("../observation/self-observer");
+    const bindable_observer_1 = require("../observation/bindable-observer");
     const rendering_engine_1 = require("../rendering-engine");
     const custom_element_1 = require("../resources/custom-element");
     const custom_attribute_1 = require("../resources/custom-attribute");
@@ -724,10 +724,12 @@
         const hasChildrenObservers = 'childrenObservers' in description;
         const length = observableNames.length;
         let name;
+        let bindable;
         for (let i = 0; i < length; ++i) {
             name = observableNames[i];
             if (observers[name] == void 0) {
-                observers[name] = new self_observer_1.SelfObserver(lifecycle, flags, useProxy ? proxy_observer_1.ProxyObserver.getOrCreate(instance).proxy : instance, name, bindables[name].callback);
+                bindable = bindables[name];
+                observers[name] = new bindable_observer_1.BindableObserver(lifecycle, flags, useProxy ? proxy_observer_1.ProxyObserver.getOrCreate(instance).proxy : instance, name, bindable.callback, bindable.set);
             }
         }
         if (hasChildrenObservers) {

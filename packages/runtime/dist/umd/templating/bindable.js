@@ -117,6 +117,10 @@
                     def.primary = true;
                     return builder;
                 },
+                set(setInterpreter) {
+                    def.set = setInterpreter;
+                    return builder;
+                }
             };
             return builder;
         },
@@ -141,15 +145,16 @@
         },
     };
     class BindableDefinition {
-        constructor(attribute, callback, mode, primary, property) {
+        constructor(attribute, callback, mode, primary, property, set) {
             this.attribute = attribute;
             this.callback = callback;
             this.mode = mode;
             this.primary = primary;
             this.property = property;
+            this.set = set;
         }
         static create(prop, def = {}) {
-            return new BindableDefinition(kernel_1.firstDefined(def.attribute, kernel_1.kebabCase(prop)), kernel_1.firstDefined(def.callback, `${prop}Changed`), kernel_1.firstDefined(def.mode, flags_1.BindingMode.toView), kernel_1.firstDefined(def.primary, false), kernel_1.firstDefined(def.property, prop));
+            return new BindableDefinition(kernel_1.firstDefined(def.attribute, kernel_1.kebabCase(prop)), kernel_1.firstDefined(def.callback, `${prop}Changed`), kernel_1.firstDefined(def.mode, flags_1.BindingMode.toView), kernel_1.firstDefined(def.primary, false), kernel_1.firstDefined(def.property, prop), kernel_1.firstDefined(def.set, kernel_1.PLATFORM.noop));
         }
     }
     exports.BindableDefinition = BindableDefinition;
@@ -178,7 +183,15 @@
             bindable({ callback: 'propChanged' }),
             bindable({ attribute: 'prop' }),
             bindable({ primary: true }),
-            bindable({ mode: flags_1.BindingMode.twoWay, callback: 'propChanged', attribute: 'prop', primary: true }),
+            bindable({ set: value => String(value) }),
+            bindable({ set: value => Number(value) }),
+            bindable({
+                mode: flags_1.BindingMode.twoWay,
+                callback: 'propChanged',
+                attribute: 'prop',
+                primary: true,
+                set: value => String(value)
+            }),
             tslib_1.__metadata("design:type", Object)
         ], Foo.prototype, "prop", void 0);
         Foo = tslib_1.__decorate([
@@ -214,6 +227,8 @@
             .add('prop').mode(flags_1.BindingMode.twoWay).callback('propChanged')
             .add('prop').mode(flags_1.BindingMode.twoWay).callback('propChanged').attribute('prop')
             .add('prop').mode(flags_1.BindingMode.twoWay).callback('propChanged').attribute('prop').primary()
+            .add('prop').mode(flags_1.BindingMode.twoWay).set((value) => Number(value))
+            .add('prop').mode(flags_1.BindingMode.twoWay).callback('propChanged').set(value => Number(value))
             .add('prop').callback('propChanged')
             .add('prop').callback('propChanged').attribute('prop')
             .add('prop').callback('propChanged').attribute('prop').primary()

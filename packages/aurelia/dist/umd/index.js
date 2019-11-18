@@ -329,7 +329,7 @@
     // PrimitiveObserver,
     // PropertyAccessor,
     // ProxyObserver,
-    // SelfObserver,
+    // BindableObserver,
     // SetterObserver,
     exports.ISignaler = runtime_1.ISignaler;
     exports.subscriberCollection = runtime_1.subscriberCollection;

@@ -1,11 +1,13 @@
 import { Constructable } from '@aurelia/kernel';
 import { BindingMode } from '../flags';
+export declare type InterceptorFunc<TInput = unknown, TOutput = unknown> = (value: TInput) => TOutput;
 export declare type PartialBindableDefinition = {
     mode?: BindingMode;
     callback?: string;
     attribute?: string;
     property?: string;
     primary?: boolean;
+    set?: InterceptorFunc;
 };
 declare type PartialBindableDefinitionPropertyRequired = PartialBindableDefinition & {
     property: string;
@@ -32,7 +34,7 @@ export declare function bindable(prop: string): (target: Constructable) => void;
 export declare function bindable(target: {}, prop: string): void;
 declare type BFluent = {
     add(config: PartialBindableDefinitionPropertyRequired): BFluent;
-    add(property: string): BFluent & B1234;
+    add(property: string): BFluent & B12345;
 };
 declare type B1<T = {}> = {
     mode(mode: BindingMode): BFluent & T;
@@ -46,9 +48,13 @@ declare type B3<T = {}> = {
 declare type B4<T = {}> = {
     primary(): BFluent & T;
 };
-declare type B34 = B4 & B3<B4>;
-declare type B234 = B34 & B2<B34>;
-declare type B1234 = B234 & B1<B234>;
+declare type B5<T = {}> = {
+    set(setterFn: InterceptorFunc): BFluent & T;
+};
+declare type B45 = B5 & B4<B5>;
+declare type B345 = B45 & B3<B45>;
+declare type B2345 = B345 & B2<B345>;
+declare type B12345 = B2345 & B1<B2345>;
 export declare const Bindable: {
     name: string;
     keyFrom(name: string): string;
@@ -62,6 +68,7 @@ export declare class BindableDefinition {
     readonly mode: BindingMode;
     readonly primary: boolean;
     readonly property: string;
+    readonly set: InterceptorFunc;
     private constructor();
     static create(prop: string, def?: PartialBindableDefinition): BindableDefinition;
 }

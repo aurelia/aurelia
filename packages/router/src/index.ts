@@ -11,23 +11,10 @@ export {
 } from './link-handler';
 
 export {
-  Guard,
-} from './guard';
-
-export {
-  GuardTypes,
-  GuardIdentity,
-  IGuardOptions,
-  Guardian,
-} from './guardian';
-
-export {
   InstructionResolver,
 } from './instruction-resolver';
 
 export {
-  GuardFunction,
-  GuardTarget,
   INavigatorInstruction,
   IRouteableComponent,
   RouteableComponentType,

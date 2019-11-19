@@ -43,7 +43,8 @@ export class App implements IViewModel {
   }
 
   public async binding() {
-    this.router.guardian.addGuard(
+    // this.router.guardian.addGuard(
+    this.router.addHook(
       () => {
         if (this.state.isAuthenticated) {
           return true;

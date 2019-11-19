@@ -251,7 +251,7 @@ export class App {
     //   return false;
     // }, { include: [{ viewport: 'author-tabs' }] });
 
-    console.log('#### guardian', this.router.guardian.guards);
+    // console.log('#### guardian', this.router.guardian.guards);
     // console.log('#### passes', this.guardian.passes(GuardTypes.Before, { path: 'some-component', fullStatePath: null }));
   }
 

@@ -147,7 +147,7 @@ import { NPMPackage } from '../system/npm-package-loader';
 import { IModule, ResolveSet, ResolvedBindingRecord, Realm, ExecutionContext } from './realm';
 import { PatternMatcher } from '../system/pattern-matcher';
 import { $ModuleEnvRec, $EnvRec, $DeclarativeEnvRec } from './types/environment-record';
-import { $AbstractRelationalComparison, $InstanceOfOperator, $AbstractEqualityComparison, $StrictEqualityComparison, $Call } from './operations';
+import { $AbstractRelationalComparison, $InstanceOfOperator, $AbstractEqualityComparison, $StrictEqualityComparison, $Call, $Construct } from './operations';
 import { $NamespaceExoticObject } from './exotics/namespace';
 import { $String } from './types/string';
 import { $Undefined } from './types/undefined';
@@ -162,6 +162,7 @@ import { $Empty, empty } from './types/empty';
 import { $CreateUnmappedArgumentsObject, $ArgumentsExoticObject } from './exotics/arguments';
 import { $CreateListIteratorRecord, $IteratorRecord, $IteratorStep, $IteratorValue, $GetIterator, $IteratorClose } from './iteration';
 import { IModuleResolver } from '../service-host';
+import { $TypeError, $Error } from './types/error';
 const {
   emptyArray,
   emptyObject,
@@ -1161,6 +1162,20 @@ function blockDeclarationInstantiation(
     }
   }
 }
+
+// http://www.ecma-international.org/ecma-262/#sec-isconstructor
+function IsConstructor(ctx: ExecutionContext, argument: $Any): argument is $Function {
+  const intrinsics = ctx.Realm['[[Intrinsics]]'];
+  // 1. If Type(argument) is not Object, return false.
+  if (!argument.isObject) { return intrinsics.false.GetValue()['[[Value]]']; }
+
+  // 2. If argument has a [[Construct]] internal method, return true.
+  if (argument instanceof $Function && argument['[[Construct]]'] !== void 0) { return intrinsics.true.GetValue()['[[Value]]']; }
+
+  // 3. Return false.
+  return intrinsics.false.GetValue()['[[Value]]'];
+}
+
 // #endregion
 
 // #region AST
@@ -3449,7 +3464,41 @@ export class $NewExpression implements I$Node {
 
     // 1. Return ? EvaluateNew(MemberExpression, Arguments).
 
-    return intrinsics.undefined; // TODO: implement this
+    // http://www.ecma-international.org/ecma-262/#sec-evaluatenew
+
+    // 1. Assert: constructExpr is either a NewExpression or a MemberExpression.
+    // 2. Assert: arguments is either empty or an Arguments.
+    // 3. Let ref be the result of evaluating constructExpr.
+    const ref = this.$expression.Evaluate(ctx);
+
+    // 4. Let constructor be ? GetValue(ref).
+    let constructor = ref.GetValue(ctx);
+    if (constructor.isAbrupt) { return constructor; }
+
+    const $arguments = this.$arguments;
+    // 5. If arguments is empty, let argList be a new empty List.
+    let argList: readonly $AnyNonEmpty[] = [];
+    // 6. Else,
+    if ($arguments.length !== 0) {
+      // 6. a. Let argList be ArgumentListEvaluation of arguments.
+      argList = $ArgumentListEvaluation(ctx, $arguments);
+      const arg0 = argList[0];
+      // 6. b. ReturnIfAbrupt(argList).
+      if (arg0.isAbrupt) {
+        return arg0;
+      }
+    }
+    // 7. If IsConstructor(constructor) is false, throw a TypeError exception.
+    if (!IsConstructor(ctx, constructor)) {
+      return (
+        new $TypeError(
+          realm,
+          "If IsConstructor(constructor) is false, throw a TypeError exception.")
+      ) as unknown as $AnyNonEmpty;
+    }
+    // 8. Return ? Construct(constructor, argList).
+    const instance = $Construct(ctx, constructor, argList);
+    return instance;
   }
 }
 
@@ -4179,7 +4228,7 @@ export class $VoidExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-void-operator
   public Evaluate(
     ctx: ExecutionContext,
-  ): $Undefined {
+  ): $AnyNonEmpty {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -4187,10 +4236,16 @@ export class $VoidExpression implements I$Node {
     // UnaryExpression : void UnaryExpression
 
     // 1. Let expr be the result of evaluating UnaryExpression.
-    // 2. Perform ? GetValue(expr).
-    // 3. Return undefined.
+    const expr = this.$expression.Evaluate(ctx);
 
-    return intrinsics.undefined; // TODO: implement this
+    // 2. Perform ? GetValue(expr).
+    const value = expr.GetValue(ctx);
+    if (value.isAbrupt) {
+      return value;
+    }
+
+    // 3. Return undefined.
+    return intrinsics.undefined;
   }
 }
 

@@ -92,6 +92,32 @@ describe('AOT (smoke tests)', function () {
     assert.strictEqual(result['[[Value]]'], 2);
   });
 
+  it.only('new object', async function () {
+    const result = await execute(`
+      class Foo {
+      }
+      return new Foo();
+    `);
+
+    assert.instanceOf(result['[[Value]]'], Number);
+  });
+
+  it('new Number', async function () {
+    const result = await execute(`
+      return new Number();
+    `);
+
+    assert.instanceOf(result['[[Value]]'], Number);
+  });
+
+  it('new error', async function () {
+    const result = await execute(`
+      return new Error();
+    `);
+
+    assert.instanceOf(result['[[Value]]'], Error);
+  });
+
   it('try catch with thrown error', async function () {
     const result = await execute(`
       try {
@@ -168,4 +194,27 @@ describe('AOT (smoke tests)', function () {
 
     assert.strictEqual(result['[[Value]]'], 3);
   });
+
+  it('void operator', async function () {
+    const result = await execute(`
+      function answer(){
+        return 42;
+      }
+      return void answer();
+    `);
+
+    assert.strictEqual(result['[[Value]]'], undefined);
+  });
+
+  it('void operator with throw', async function () {
+    const result = await execute(`
+      function answer(){
+        throw new Error();
+      }
+      return void answer();
+    `);
+
+    assert.instanceOf(result['[[Value]]'], Error);
+  });
+
 });

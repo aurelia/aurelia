@@ -7,7 +7,7 @@ import { $Empty } from './types/empty';
 
 export const ISourceFileProvider = DI.createInterface<ISourceFileProvider>('ISourceFileProvider').noDefault();
 export interface ISourceFileProvider {
-  GetSourceFiles(): Promise<readonly $SourceFile[]>;
+  GetSourceFiles(ctx: ExecutionContext): Promise<readonly $SourceFile[]>;
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-agents
@@ -34,7 +34,7 @@ export class Agent {
 
     // 2. In an implementation-dependent manner, obtain the ECMAScript source texts (see clause 10) and any associated host-defined values for zero or more ECMAScript scripts and/or ECMAScript modules. For each such sourceText and hostDefined, do
     const sfProvider = container.get(ISourceFileProvider);
-    const sourceFiles = await sfProvider.GetSourceFiles();
+    const sourceFiles = await sfProvider.GetSourceFiles(rootCtx);
     for (const sourceFile of sourceFiles) {
       // 2. a. If sourceText is the source code of a script, then
       if (false) { // Leave this branch be, we need to implement it eventually

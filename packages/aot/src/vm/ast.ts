@@ -142,7 +142,7 @@ import {
   Writable,
   ILogger,
 } from '@aurelia/kernel';
-import { IFile } from '../system/interfaces';
+import { IFile, $CompilerOptions } from '../system/interfaces';
 import { NPMPackage } from '../system/npm-package-loader';
 import { IModule, ResolveSet, ResolvedBindingRecord, Realm, ExecutionContext } from './realm';
 import { PatternMatcher } from '../system/pattern-matcher';
@@ -161,6 +161,7 @@ import { $Boolean } from './types/boolean';
 import { $Empty, empty } from './types/empty';
 import { $CreateUnmappedArgumentsObject, $ArgumentsExoticObject } from './exotics/arguments';
 import { $CreateListIteratorRecord, $IteratorRecord, $IteratorStep, $IteratorValue, $GetIterator, $IteratorClose } from './iteration';
+import { IModuleResolver } from '../service-host';
 const {
   emptyArray,
   emptyObject,
@@ -6807,9 +6808,6 @@ export class $SourceFile implements I$Node, IModule {
   public readonly ctx: Context = Context.None;
   public readonly depth: number = 0;
 
-  public readonly matcher: PatternMatcher | null;
-  public readonly logger: ILogger;
-
   public readonly $statements: readonly $$TSModuleItem[];
 
   public readonly DirectivePrologue: DirectivePrologue;
@@ -6848,11 +6846,13 @@ export class $SourceFile implements I$Node, IModule {
   public get isNull(): false { return false; }
 
   public constructor(
+    public readonly logger: ILogger,
     public readonly $file: IFile,
     public readonly node: SourceFile,
     public readonly realm: Realm,
     public readonly pkg: NPMPackage | null,
-    public readonly compilerOptions: CompilerOptions,
+    public readonly moduleResolver: IModuleResolver,
+    public readonly compilerOptions: $CompilerOptions,
   ) {
     this.id = realm.registerNode(this);
 
@@ -6863,9 +6863,7 @@ export class $SourceFile implements I$Node, IModule {
     this['[[Environment]]'] = intrinsics.undefined;
     this['[[Namespace]]'] = intrinsics.undefined;
 
-    this.logger = realm.container.get(ILogger).root.scopeTo(`SourceFile<(...)${$file.rootlessPath}>`);
-
-    this.matcher = PatternMatcher.getOrCreate(compilerOptions, realm.container);
+    this.logger = logger.root.scopeTo(`SourceFile<(...)${$file.rootlessPath}>`);
 
     let ctx = Context.InTopLevel;
     this.DirectivePrologue = GetDirectivePrologue(node.statements);
@@ -7250,7 +7248,7 @@ export class $SourceFile implements I$Node, IModule {
     // 9. For each String required that is an element of module.[[RequestedModules]], do
     for (const required of this.RequestedModules) {
       // 9. a. Let requiredModule be ? HostResolveImportedModule(module, required).
-      const requiredModule = realm.HostResolveImportedModule(this, required);
+      const requiredModule = this.moduleResolver.ResolveImportedModule(ctx, this, required);
 
       // 9. b. Set index to ? InnerModuleInstantiation(requiredModule, stack, index).
       index = requiredModule._InnerModuleInstantiation(ctx, stack, index);
@@ -7333,7 +7331,7 @@ export class $SourceFile implements I$Node, IModule {
     // 9. For each ImportEntry Record in in module.[[ImportEntries]], do
     for (const ie of this.ImportEntries) {
       // 9. a. Let importedModule be ! HostResolveImportedModule(module, in.[[ModuleRequest]]).
-      const importedModule = realm.HostResolveImportedModule(this, ie.ModuleRequest);
+      const importedModule = this.moduleResolver.ResolveImportedModule(ctx, this, ie.ModuleRequest);
 
       // 9. b. NOTE: The above call cannot fail because imported module requests are a subset of module.[[RequestedModules]], and these have been resolved earlier in this algorithm.
       // 9. c. If in.[[ImportName]] is "*", then
@@ -7494,7 +7492,7 @@ export class $SourceFile implements I$Node, IModule {
     // 7. For each ExportEntry Record e in module.[[StarExportEntries]], do
     for (const e of mod.StarExportEntries) {
       // 7. a. Let requestedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
-      const requestedModule = realm.HostResolveImportedModule(mod, e.ModuleRequest as $String);
+      const requestedModule = this.moduleResolver.ResolveImportedModule(ctx, mod, e.ModuleRequest as $String);
 
       // 7. b. Let starNames be ? requestedModule.GetExportedNames(exportStarSet).
       const starNames = requestedModule.GetExportedNames(ctx, exportStarSet);
@@ -7559,7 +7557,7 @@ export class $SourceFile implements I$Node, IModule {
         this.logger.debug(`[ResolveExport] found specific imported binding for ${exportName['[[Value]]']}`);
 
         // 5. a. ii. Let importedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
-        const importedModule = realm.HostResolveImportedModule(this, e.ModuleRequest as $String);
+        const importedModule = this.moduleResolver.ResolveImportedModule(ctx, this, e.ModuleRequest as $String);
 
         // 5. a. iii. Return importedModule.ResolveExport(e.[[ImportName]], resolveSet).
         return importedModule.ResolveExport(ctx, e.ImportName as $String, resolveSet);
@@ -7582,7 +7580,7 @@ export class $SourceFile implements I$Node, IModule {
     // 8. For each ExportEntry Record e in module.[[StarExportEntries]], do
     for (const e of this.StarExportEntries) {
       // 8. a. Let importedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
-      const importedModule = realm.HostResolveImportedModule(this, e.ModuleRequest as $String);
+      const importedModule = this.moduleResolver.ResolveImportedModule(ctx, this, e.ModuleRequest as $String);
 
       // 8. b. Let resolution be ? importedModule.ResolveExport(exportName, resolveSet).
       const resolution = importedModule.ResolveExport(ctx, exportName, resolveSet);
@@ -7658,7 +7656,7 @@ export class $SourceFile implements I$Node, IModule {
     // 6. Assert: module.[[Status]] is "evaluated" and module.[[EvaluationError]] is undefined.
     // 7. Assert: stack is empty.
     // 8. Return undefined.
-    return intrinsics.undefined;
+    return new $Undefined(realm, CompletionType.normal, intrinsics.empty, this);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-innermoduleevaluation
@@ -7707,7 +7705,7 @@ export class $SourceFile implements I$Node, IModule {
     // 10. For each String required that is an element of module.[[RequestedModules]], do
     for (const required of this.RequestedModules) {
       // 10. a. Let requiredModule be ! HostResolveImportedModule(module, required).
-      const requiredModule = realm.HostResolveImportedModule(this, required) as $SourceFile; // TODO
+      const requiredModule = this.moduleResolver.ResolveImportedModule(ctx, this, required) as $SourceFile; // TODO
 
       // 10. b. NOTE: Instantiate must be completed successfully prior to invoking this method, so every requested module is guaranteed to resolve successfully.
       // 10. c. Set index to ? InnerModuleEvaluation(requiredModule, stack, index).
@@ -7950,8 +7948,6 @@ export class $DocumentFragment implements I$Node, IModule {
   public readonly ctx: Context = Context.None;
   public readonly depth: number = 0;
 
-  public readonly logger: ILogger;
-
   public '[[Environment]]': $ModuleEnvRec | $Undefined;
   public '[[Namespace]]': $Object | $Undefined;
   public '[[HostDefined]]': any;
@@ -7959,17 +7955,18 @@ export class $DocumentFragment implements I$Node, IModule {
   public get isNull(): false { return false; }
 
   public constructor(
+    public readonly logger: ILogger,
     public readonly $file: IFile,
     public readonly node: DocumentFragment,
     public readonly realm: Realm,
-    public readonly pkg: NPMPackage,
+    public readonly pkg: NPMPackage | null,
   ) {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
     this['[[Environment]]'] = intrinsics.undefined;
     this['[[Namespace]]'] = intrinsics.undefined;
 
-    this.logger = pkg.container.get(ILogger).root.scopeTo(`DocumentFragment<(...)${$file.rootlessPath}>`);
+    this.logger = logger.root.scopeTo(`DocumentFragment<(...)${$file.rootlessPath}>`);
   }
 
   public ResolveExport(

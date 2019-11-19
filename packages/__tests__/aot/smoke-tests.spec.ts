@@ -1,24 +1,22 @@
 import { DI, LoggerConfiguration, LogLevel, ColorOptions, Registration } from '@aurelia/kernel';
-import { IFileSystem, NodeFileSystem, IOptions, Realm, FileKind } from '@aurelia/aot';
+import { IFileSystem, FileKind, ServiceHost, $Undefined, $SourceFile } from '@aurelia/aot';
 import { VirtualFileSystem } from './virtual-file-system';
 import { assert } from '@aurelia/testing';
-import { $Number } from '@aurelia/aot/dist/vm/types/number';
-import { $Null } from '@aurelia/aot/dist/vm/types/null';
 
 // NOTE: These tests are not meant to be even close to exhaustive. That's what the 262 test suite is for.
 // These tests exist solely for having an easy way to quickly test some high-level things when a feature is not yet ready for exposure to the 262 test suite.
 
 describe('AOT (smoke tests)', function () {
-  async function setup(content: string) {
+  async function execute(content: string) {
     const container = DI.createContainer();
     container.register(
       LoggerConfiguration.create(console, LogLevel.debug, ColorOptions.colors),
       Registration.singleton(IFileSystem, VirtualFileSystem),
-      Registration.instance(IOptions, { rootDir: 'c:' }),
     );
 
-    const realm = Realm.Create(container);
-    const mod = await realm.loadFile({
+    const host = new ServiceHost(container);
+
+    const result = await host.executeSpecificFile({
       shortName: '',
       shortPath: '',
       kind: FileKind.Script,
@@ -35,37 +33,33 @@ describe('AOT (smoke tests)', function () {
       },
     });
 
-    return { realm, mod };
+    if (!result.isUndefined) {
+      assert.fail(`Evaluation error`);
+    }
+
+    return ((result as $Undefined).sourceNode as $SourceFile).ExecutionResult;
   }
 
   it('simple return statement with binary expression', async function () {
-    const { realm, mod } = await setup(`
+    const result = await execute(`
       return 1 + 1;
     `);
 
-    mod.Instantiate();
-
-    mod.EvaluateModule();
-
-    assert.strictEqual(mod.ExecutionResult['[[Value]]'], 2);
+    assert.strictEqual(result['[[Value]]'], 2);
   });
 
   it('simple if statement with binary expression', async function () {
-    const { realm, mod } = await setup(`
+    const result = await execute(`
       if (true) {
         return 1 + 1;
       }
     `);
 
-    mod.Instantiate();
-
-    mod.EvaluateModule();
-
-    assert.strictEqual(mod.ExecutionResult['[[Value]]'], 2);
+    assert.strictEqual(result['[[Value]]'], 2);
   });
 
   it('simple if/else statement with binary expression', async function () {
-    const { realm, mod } = await setup(`
+    const result = await execute(`
       if (false) {
         return 1 + 1;
       } else {
@@ -73,45 +67,33 @@ describe('AOT (smoke tests)', function () {
       }
     `);
 
-    mod.Instantiate();
-
-    mod.EvaluateModule();
-
-    assert.strictEqual(mod.ExecutionResult['[[Value]]'], 5);
+    assert.strictEqual(result['[[Value]]'], 5);
   });
 
   it('simple function declaration with binary expression', async function () {
-    const { realm, mod } = await setup(`
+    const result = await execute(`
       function foo() {
         return 1 + 1;
       }
       return foo();
     `);
 
-    mod.Instantiate();
-
-    mod.EvaluateModule();
-
-    assert.strictEqual(mod.ExecutionResult['[[Value]]'], 2);
+    assert.strictEqual(result['[[Value]]'], 2);
   });
 
   it('simple function declaration with parameters and binary expression', async function () {
-    const { realm, mod } = await setup(`
+    const result = await execute(`
       function foo(a, b) {
         return a + b;
       }
       return foo(1, 1);
     `);
 
-    mod.Instantiate();
-
-    mod.EvaluateModule();
-
-    assert.strictEqual(mod.ExecutionResult['[[Value]]'], 2);
+    assert.strictEqual(result['[[Value]]'], 2);
   });
 
   it('try catch with thrown error', async function () {
-    const { mod } = await setup(`
+    const result = await execute(`
       try {
         throw new Error();
       } catch {
@@ -119,15 +101,11 @@ describe('AOT (smoke tests)', function () {
       }
     `);
 
-    mod.Instantiate();
-
-    mod.EvaluateModule();
-
-    assert.strictEqual(mod.ExecutionResult['[[Value]]'], 1);
+    assert.strictEqual(result['[[Value]]'], 1);
   });
 
   it('try catch with reference error', async function () {
-    const { mod } = await setup(`
+    const result = await execute(`
       try {
         foo.bar;
       } catch {
@@ -135,15 +113,11 @@ describe('AOT (smoke tests)', function () {
       }
     `);
 
-    mod.Instantiate();
-
-    mod.EvaluateModule();
-
-    assert.strictEqual(mod.ExecutionResult['[[Value]]'], 1);
+    assert.strictEqual(result['[[Value]]'], 1);
   });
 
   it('try catch with no error', async function () {
-    const { mod } = await setup(`
+    const result = await execute(`
       try {
         return 42;
       } catch {
@@ -151,15 +125,11 @@ describe('AOT (smoke tests)', function () {
       }
     `);
 
-    mod.Instantiate();
-
-    mod.EvaluateModule();
-
-    assert.strictEqual(mod.ExecutionResult['[[Value]]'], 42);
+    assert.strictEqual(result['[[Value]]'], 42);
   });
 
   it('simple switch', async function () {
-    const { mod } = await setup(`
+    const result = await execute(`
       switch(1){
         case 1:
           return 1;
@@ -168,15 +138,11 @@ describe('AOT (smoke tests)', function () {
       }
     `);
 
-    mod.Instantiate();
-
-    mod.EvaluateModule();
-
-    assert.strictEqual(mod.ExecutionResult['[[Value]]'], 1);
+    assert.strictEqual(result['[[Value]]'], 1);
   });
 
   it('switch with default', async function () {
-    const { mod } = await setup(`
+    const result = await execute(`
       switch(2){
         case 1:
           return 1;
@@ -185,15 +151,11 @@ describe('AOT (smoke tests)', function () {
       }
     `);
 
-    mod.Instantiate();
-
-    mod.EvaluateModule();
-
-    assert.strictEqual(mod.ExecutionResult['[[Value]]'], 2);
+    assert.strictEqual(result['[[Value]]'], 2);
   });
 
   it('switch with default in the middle', async function () {
-    const { mod } = await setup(`
+    const result = await execute(`
       switch(3){
         case 1:
           return 1;
@@ -204,10 +166,6 @@ describe('AOT (smoke tests)', function () {
       }
     `);
 
-    mod.Instantiate();
-
-    mod.EvaluateModule();
-
-    assert.strictEqual(mod.ExecutionResult['[[Value]]'], 3);
+    assert.strictEqual(result['[[Value]]'], 3);
   });
 });

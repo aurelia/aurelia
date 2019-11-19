@@ -1,6 +1,6 @@
 import { nextValueId, $Any, Int32, Uint32, Int16, Uint16, Int8, Uint8, Uint8Clamp, PotentialNonEmptyCompletionType, CompletionTarget, CompletionType } from './_shared';
 import { Realm, ExecutionContext } from '../realm';
-import { $FunctionDeclaration, $ExportSpecifier, $ImportSpecifier, $ImportClause, $ImportDeclaration, $ClassDeclaration } from '../ast';
+import { $FunctionDeclaration, $ExportSpecifier, $ImportSpecifier, $ImportClause, $ImportDeclaration, $ClassDeclaration, $SourceFile } from '../ast';
 import { $Object } from './object';
 import { $String } from './string';
 import { $Number } from './number';
@@ -46,7 +46,7 @@ export class $Undefined {
     public readonly realm: Realm,
     type: PotentialNonEmptyCompletionType = CompletionType.normal,
     target: CompletionTarget = realm['[[Intrinsics]]'].empty,
-    public readonly sourceNode: $FunctionDeclaration | $ExportSpecifier | $ImportSpecifier | $ImportClause | $ImportDeclaration | $ClassDeclaration | null = null,
+    public readonly sourceNode: $SourceFile | $FunctionDeclaration | $ExportSpecifier | $ImportSpecifier | $ImportClause | $ImportDeclaration | $ClassDeclaration | null = null,
   ) {
     this['[[Type]]'] = type;
     this['[[Target]]'] = target;

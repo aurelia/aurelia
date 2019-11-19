@@ -1,29 +1,19 @@
 /* eslint-disable */
-import { ILogger, IContainer, DI, LoggerConfiguration, LogLevel, ColorOptions, Registration } from '@aurelia/kernel';
-import { I$Node, $SourceFile, $TemplateExpression, $TaggedTemplateExpression, $DocumentFragment } from './ast';
-import { IFileSystem, FileKind, IFile, IOptions } from '../system/interfaces';
-import { NodeFileSystem, File } from '../system/file-system';
-import { NPMPackage, NPMPackageLoader } from '../system/npm-package-loader';
-import { createSourceFile, ScriptTarget, CompilerOptions } from 'typescript';
-import { normalizePath, isRelativeModulePath, resolvePath, joinPath } from '../system/path-utils';
-import { dirname, basename } from 'path';
+import { ILogger, IContainer } from '@aurelia/kernel';
+import { I$Node, $SourceFile, $TemplateExpression, $TaggedTemplateExpression } from './ast';
+import { IFileSystem, IFile } from '../system/interfaces';
 import { Intrinsics } from './intrinsics';
 import { $EnvRec, $ModuleEnvRec, $GlobalEnvRec, $FunctionEnvRec } from './types/environment-record';
 import { $PropertyDescriptor } from './types/property-descriptor';
 import { $DefinePropertyOrThrow } from './operations';
-import { JSDOM } from 'jsdom';
 import { $String } from './types/string';
 import { $Undefined } from './types/undefined';
 import { $Object } from './types/object';
 import { $Reference } from './types/reference';
-import { $Any, $AnyNonEmpty } from './types/_shared';
+import { $AnyNonEmpty } from './types/_shared';
 import { $Function } from './types/function';
 import { $Null } from './types/null';
 import { $Boolean } from './types/boolean';
-
-function comparePathLength(a: { path: { length: number } }, b: { path: { length: number } }): number {
-  return a.path.length - b.path.length;
-}
 
 export class ResolveSet {
   private readonly modules: IModule[] = [];
@@ -118,7 +108,6 @@ export class DeferredModule implements IModule {
 
 // http://www.ecma-international.org/ecma-262/#sec-code-realms
 export class Realm {
-  public readonly jsdom: JSDOM;
   public readonly nodes: I$Node[] = [];
   public nodeCount: number = 0;
   public contextId: number = 0;
@@ -130,15 +119,11 @@ export class Realm {
   public '[[GlobalEnv]]': $GlobalEnvRec;
   public '[[TemplateMap]]': { '[[Site]]': $TemplateExpression | $TaggedTemplateExpression; '[[Array]]': $Object }[];
 
-  private readonly compilerOptionsCache: Map<string, CompilerOptions> = new Map();
-  private readonly moduleCache: Map<string, IModule> = new Map();
-
   private constructor(
     public readonly container: IContainer,
     private readonly logger: ILogger,
     private readonly fs: IFileSystem,
   ) {
-    this.jsdom = new JSDOM('');
 
     this.stack = new ExecutionContextStack(logger);
   }
@@ -299,112 +284,6 @@ export class Realm {
     return realm;
   }
 
-  public async loadEntryFile(): Promise<$SourceFile> {
-    const opts = this.container.get(IOptions);
-
-    this.logger.info(`Loading entry file: ${JSON.stringify(opts)}`);
-
-    const pkg = await this.loadEntryPackage(opts);
-
-    this.logger.info(`Finished loading entry file`);
-
-    return this.getESModule(pkg.entryFile, pkg);
-  }
-
-  public async loadFile(file: IFile): Promise<$SourceFile> {
-    return this.getESModule(file, null)
-  }
-
-  // http://www.ecma-international.org/ecma-262/#sec-hostresolveimportedmodule
-  public HostResolveImportedModule(referencingModule: $SourceFile, $specifier: $String): IModule {
-    const specifier = normalizePath($specifier['[[Value]]']);
-    const isRelative = isRelativeModulePath(specifier);
-    const pkg = referencingModule.pkg;
-
-    // Single file scenario; lazily resolve the import
-    if (pkg === null) {
-      if (!isRelative) {
-        throw new Error(`Absolute module resolution not yet implemented for single-file scenario.`);
-      }
-      // TODO: this is currently just for the 262 test suite but we need to resolve the other stuff properly too for end users that don't want to use the package eager load mechanism
-      const dir = referencingModule.$file.dir;
-      const ext = '.js';
-      const name = basename(specifier);
-      const shortName = name.slice(0, -3);
-      const path = joinPath(dir, name);
-      const file = new File(this.fs, path, dir, specifier, name, shortName, ext);
-      return this.getESModule(file, null);
-    }
-
-    if (isRelative) {
-      this.logger.debug(`[ResolveImport] resolving internal relative module: '${$specifier['[[Value]]']}' for ${referencingModule.$file.name}`);
-
-      const filePath = resolvePath(dirname(referencingModule.$file.path), specifier);
-      const files = pkg.files.filter(x => x.shortPath === filePath || x.path === filePath).sort(comparePathLength);
-      if (files.length === 0) {
-        throw new Error(`Cannot find file "${filePath}" (imported as "${specifier}" by "${referencingModule.$file.name}")`);
-      }
-
-      let file = files.find(x => x.kind === FileKind.Script);
-      if (file === void 0) {
-        // TODO: make this less messy/patchy
-        file = files.find(x => x.kind === FileKind.Markup);
-        if (file === void 0) {
-          file = files[0];
-          let deferred = this.moduleCache.get(file.path);
-          if (deferred === void 0) {
-            deferred = new DeferredModule(file, this);
-            this.moduleCache.set(file.path, deferred);
-          }
-
-          return deferred;
-        }
-
-        return this.getHTMLModule(file, pkg);
-      }
-
-      return this.getESModule(file, pkg);
-    } else {
-      const pkgDep = pkg.deps.find(n => n.refName === specifier || specifier.startsWith(n.refName + '/'));
-      if (pkgDep === void 0) {
-        this.logger.debug(`[ResolveImport] resolving internal absolute module: '${$specifier['[[Value]]']}' for ${referencingModule.$file.name}`);
-
-        if (referencingModule.matcher !== null) {
-          const file = referencingModule.matcher.findMatch(pkg.files, specifier);
-          return this.getESModule(file, pkg);
-        } else {
-          throw new Error(`Cannot resolve absolute file path without path mappings in tsconfig`);
-        }
-      } else {
-        this.logger.debug(`[ResolveImport] resolving external absolute module: '${$specifier['[[Value]]']}' for ${referencingModule.$file.name}`);
-
-        const externalPkg = pkg.loader.getCachedPackage(pkgDep.refName);
-        if (pkgDep.refName !== specifier) {
-          if (externalPkg.entryFile.shortName === specifier) {
-            return this.getESModule(externalPkg.entryFile, externalPkg);
-          }
-
-          let file = externalPkg.files.find(x => x.shortPath === externalPkg.dir && x.ext === '.js');
-          if (file === void 0) {
-            const indexModulePath = joinPath(externalPkg.dir, 'index');
-            file = externalPkg.files.find(f => f.shortPath === indexModulePath && f.ext === '.js');
-            if (file === void 0) {
-              const partialAbsolutePath = joinPath('node_modules', specifier);
-              file = externalPkg.files.find(f => f.shortPath.endsWith(partialAbsolutePath) && f.ext === '.js');
-              if (file === void 0) {
-                throw new Error(`Unable to resolve file "${externalPkg.dir}" or "${indexModulePath}" (refName="${pkgDep.refName}", entryFile="${externalPkg.entryFile.shortPath}", specifier=${specifier})`);
-              }
-            }
-          }
-
-          return this.getESModule(file, externalPkg);
-        } else {
-          return this.getESModule(externalPkg.entryFile, externalPkg);
-        }
-      }
-    }
-  }
-
   // http://www.ecma-international.org/ecma-262/#sec-getactivescriptormodule
   public GetActiveScriptOrModule(): $SourceFile {
     const stack = this.stack;
@@ -526,73 +405,6 @@ export class Realm {
       // 5. b. Return ? GetIdentifierReference(outer, name, strict).
       return this.GetIdentifierReference(outer, name, strict);
     }
-  }
-
-  private loadEntryPackage(opts: IOptions): Promise<NPMPackage> {
-    this.logger.trace(`loadEntryPackage(${JSON.stringify(opts)})`);
-
-    const loader = this.container.get(NPMPackageLoader);
-
-    return loader.loadEntryPackage(opts.rootDir);
-  }
-
-  private getHTMLModule(file: IFile, pkg: NPMPackage): $DocumentFragment {
-    let hm = this.moduleCache.get(file.path);
-    if (hm === void 0) {
-      const sourceText = file.getContentSync();
-      const template = this.jsdom.window.document.createElement('template');
-      template.innerHTML = sourceText;
-      hm = new $DocumentFragment(file, template.content, this, pkg);
-
-      this.moduleCache.set(file.path, hm);
-    }
-
-    return hm as $DocumentFragment;
-  }
-
-  private getESModule(file: IFile, pkg: NPMPackage | null): $SourceFile {
-    let esm = this.moduleCache.get(file.path);
-    if (esm === void 0) {
-      const compilerOptions = this.getCompilerOptions(file.path, pkg);
-      const sourceText = file.getContentSync();
-      const sourceFile = createSourceFile(file.path, sourceText, ScriptTarget.Latest, false);
-      esm = new $SourceFile(file, sourceFile, this, pkg, compilerOptions);
-
-      this.moduleCache.set(file.path, esm);
-    }
-
-    return esm as $SourceFile;
-  }
-
-  private getCompilerOptions(path: string, pkg: NPMPackage | null): CompilerOptions {
-    // TODO: this is a very simple/naive impl, needs more work for inheritance etc
-    path = normalizePath(path);
-
-    let compilerOptions = this.compilerOptionsCache.get(path);
-    if (compilerOptions === void 0) {
-      const dir = normalizePath(dirname(path));
-      if (dir === path || pkg === null/* TODO: maybe still try to find tsconfig? */) {
-        compilerOptions = {};
-      } else {
-        const tsConfigPath = joinPath(path, 'tsconfig.json');
-        const tsConfigFile = pkg.files.find(x => x.path === tsConfigPath);
-        if (tsConfigFile === void 0) {
-          compilerOptions = this.getCompilerOptions(dir, pkg);
-        } else {
-          const tsConfigText = tsConfigFile.getContentSync();
-          // tsconfig allows some stuff that's not valid JSON, so parse it as a JS object instead
-          const tsConfigObj = new Function(`return ${tsConfigText}`)();
-          compilerOptions = tsConfigObj.compilerOptions;
-          if (compilerOptions === null || typeof compilerOptions !== 'object') {
-            compilerOptions = {};
-          }
-        }
-      }
-
-      this.compilerOptionsCache.set(path, compilerOptions);
-    }
-
-    return compilerOptions;
   }
 }
 

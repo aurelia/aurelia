@@ -1,22 +1,21 @@
 import { ILogger, IContainer } from '@aurelia/kernel';
 import { joinPath, resolvePath } from './path-utils';
-import { IFile, IOptions } from './interfaces';
-import { CompilerOptions } from 'typescript';
+import { IFile, $CompilerOptions } from './interfaces';
 
-const lookup: WeakMap<CompilerOptions, PatternMatcher | null> = new WeakMap();
+const lookup: WeakMap<$CompilerOptions, PatternMatcher | null> = new WeakMap();
 
 export class PatternMatcher {
   public readonly basePath: string;
   public readonly sources: readonly PatternSource[];
+  public readonly rootDir: string;
 
   private constructor(
     private readonly logger: ILogger,
-    public readonly rootDir: string,
-    public readonly compilerOptions: CompilerOptions,
+    public readonly compilerOptions: $CompilerOptions,
   ) {
     this.logger = logger.scopeTo(this.constructor.name);
 
-    this.rootDir = resolvePath(rootDir);
+    this.rootDir = resolvePath(compilerOptions.__dirname);
     this.basePath = joinPath(this.rootDir, compilerOptions.baseUrl!);
     this.sources = Object.keys(compilerOptions.paths!).map(x => new PatternSource(this.logger, this, x));
   }
@@ -40,15 +39,14 @@ export class PatternMatcher {
   }
 
   public static getOrCreate(
-    compilerOptions: CompilerOptions,
+    compilerOptions: $CompilerOptions,
     container: IContainer,
   ): PatternMatcher | null {
     let matcher = lookup.get(compilerOptions);
     if (matcher === void 0) {
       if (compilerOptions.baseUrl !== void 0 && compilerOptions.paths !== void 0) {
         const logger = container.get(ILogger);
-        const opts = container.get(IOptions);
-        matcher = new PatternMatcher(logger, opts.rootDir, compilerOptions);
+        matcher = new PatternMatcher(logger, compilerOptions);
       } else {
         matcher = null;
       }

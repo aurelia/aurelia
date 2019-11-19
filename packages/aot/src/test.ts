@@ -3,8 +3,9 @@ import { DebugConfiguration } from '@aurelia/debug';
 import { resolve } from 'path';
 import { Realm } from './vm/realm';
 import { DI, LoggerConfiguration, LogLevel, ColorOptions, Registration } from '@aurelia/kernel';
-import { IFileSystem, IOptions } from './system/interfaces';
+import { IFileSystem } from './system/interfaces';
 import { NodeFileSystem } from './system/file-system';
+import { ServiceHost } from './service-host';
 
 (async function () {
   DebugConfiguration.register();
@@ -16,12 +17,11 @@ import { NodeFileSystem } from './system/file-system';
   container.register(
     LoggerConfiguration.create(console, LogLevel.debug, ColorOptions.colors),
     Registration.singleton(IFileSystem, NodeFileSystem),
-    Registration.instance(IOptions, { rootDir: root }),
   );
 
-  const realm = Realm.Create(container);
-  const file = await realm.loadEntryFile();
-  file.Instantiate();
+  const host = new ServiceHost(container);
+
+  await host.executeEntryFile(root);
 
 })().catch(err => {
   console.error(err);

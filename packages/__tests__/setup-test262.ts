@@ -12,11 +12,16 @@ import {
 import {
   IFileSystem,
   NodeFileSystem,
-  Realm,
+  ServiceHost,
   IFile,
+  ExecutionContext,
+  $SourceFile,
+  Realm,
+  IServiceHost,
+  $Any,
 } from '@aurelia/aot';
 import { resolve, join } from 'path';
-import { $SourceFile } from '@aurelia/aot/dist/vm/ast';
+import { createSourceFile } from 'typescript';
 
 class TestPhaseResult<T extends 'early' | 'resolution' | 'runtime' = 'early' | 'resolution' | 'runtime'> {
   public constructor(
@@ -95,6 +100,15 @@ class TestCase {
   public readonly meta: TestMetadata | null;
   public readonly files: readonly IFile[];
 
+  private _host: IServiceHost | null = null;
+  public get host(): IServiceHost {
+    let host = this._host;
+    if (host === null) {
+      host = new ServiceHost(this.container);
+    }
+    return host;
+  }
+
   public constructor(
     public readonly container: IContainer,
     public readonly logger: ILogger,
@@ -105,50 +119,14 @@ class TestCase {
     this.files = [...prerequisites, file];
   }
 
-  public async run(): Promise<TestResult> {
-    const realm = Realm.Create(this.container);
-    const files = this.files;
-
-    for (let i = 0; i < files.length; ++i) {
-      const result = await this.execute(realm, files[i]);
-      if (result.last.err !== null || i === files.length - 1) {
-        return result;
-      }
-    }
+  public async GetSourceFiles(ctx: ExecutionContext): Promise<readonly $SourceFile[]> {
+    const host = this.host;
+    const sourceFiles = await Promise.all(this.files.map(x => host.loadSpecificFile(ctx, x)));
+    return sourceFiles;
   }
 
-  private async execute(realm: Realm, file: IFile): Promise<TestResult> {
-    const result = new TestResult();
-
-    let mod: $SourceFile;
-    try {
-      result.phase = 'early';
-      mod = await realm.loadFile(file);
-      result.early = new TestPhaseResult('early', file, void 0);
-    } catch (err) {
-      result.early = new TestPhaseResult('early', file, void 0, err);
-      return result;
-    }
-
-    try {
-      result.phase = 'resolution';
-      mod.Instantiate();
-      result.resolution = new TestPhaseResult('resolution', file, void 0);
-    } catch (err) {
-      result.resolution = new TestPhaseResult('resolution', file, void 0, err);
-      return result;
-    }
-
-    try {
-      result.phase = 'runtime';
-      const res = mod.EvaluateModule();
-      result.runtime = new TestPhaseResult('runtime', file, void 0);
-    } catch (err) {
-      result.runtime = new TestPhaseResult('runtime', file, void 0, err);
-      return result;
-    }
-
-    return result;
+  public run(): Promise<$Any> {
+    return this.host.executeProvider(this);
   }
 }
 
@@ -231,21 +209,22 @@ class TestRunner {
       }
       const result = await tc.run();
 
-      if (tc.meta.negative === null) {
-        if (result.last.err === null) {
-          logger.info(`${format.green('PASS')} - ${tc.file.rootlessPath}`);
-        } else {
-          logger.info(`${format.red('FAIL')} - ${tc.file.rootlessPath} (expected no error, but got: ${result.last.err.message} ${result.last.err.stack})`);
-        }
-      } else {
-        if (result.last.err === null) {
-          logger.info(`${format.red('FAIL')} - ${tc.file.rootlessPath} (expected error ${tc.meta.negative.type}, but got none)`);
-        } else if (result.last.err.name !== tc.meta.negative.type) {
-          logger.info(`${format.red('FAIL')} - ${tc.file.rootlessPath} (expected error ${tc.meta.negative.type}, but got: ${result.last.err.name})`);
-        } else {
-          logger.info(`${format.green('PASS')} - ${tc.file.rootlessPath}`);
-        }
-      }
+      // TODO: fix this again
+      // if (tc.meta.negative === null) {
+      //   if (result.last.err === null) {
+      //     logger.info(`${format.green('PASS')} - ${tc.file.rootlessPath}`);
+      //   } else {
+      //     logger.info(`${format.red('FAIL')} - ${tc.file.rootlessPath} (expected no error, but got: ${result.last.err.message} ${result.last.err.stack})`);
+      //   }
+      // } else {
+      //   if (result.last.err === null) {
+      //     logger.info(`${format.red('FAIL')} - ${tc.file.rootlessPath} (expected error ${tc.meta.negative.type}, but got none)`);
+      //   } else if (result.last.err.name !== tc.meta.negative.type) {
+      //     logger.info(`${format.red('FAIL')} - ${tc.file.rootlessPath} (expected error ${tc.meta.negative.type}, but got: ${result.last.err.name})`);
+      //   } else {
+      //     logger.info(`${format.green('PASS')} - ${tc.file.rootlessPath}`);
+      //   }
+      // }
     }
   }
 }

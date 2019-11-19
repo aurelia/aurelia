@@ -25,7 +25,7 @@ export function loader(
   try {
     const result = _preprocess(
       { path: filePath, contents },
-      preprocessOptions({ ...options, stringModuleWrap })
+      preprocessOptions(options || {})
     );
     // webpack uses source-map 0.6.1 typings for RawSourceMap which
     // contains typing error version: string (should be number).
@@ -40,8 +40,4 @@ export function loader(
   } catch (e) {
     cb(e);
   }
-}
-
-function stringModuleWrap(id: string) {
-  return `!!raw-loader!${id}`;
 }

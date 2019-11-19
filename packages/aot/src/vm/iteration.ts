@@ -3,9 +3,11 @@ import { $Object } from './types/object';
 import { $Function, $BuiltinFunction } from './types/function';
 import { $Boolean } from './types/boolean';
 import { $Any, $AnyNonEmpty, CompletionType } from './types/_shared';
-import { $CreateDataProperty, $Call } from './operations';
+import { $CreateDataProperty, $Call, $DefinePropertyOrThrow } from './operations';
 import { $Number } from './types/number';
 import { $Undefined } from './types/undefined';
+import { $String } from '..';
+import { $PropertyDescriptor } from './types/property-descriptor';
 
 // http://www.ecma-international.org/ecma-262/#sec-getiterator
 export function $GetIterator(
@@ -388,5 +390,46 @@ export class $AsyncFromSyncIterator extends $Object<'AsyncFromSyncIterator'> {
 
     // 2. Set asyncIterator.[[SyncIteratorRecord]] to syncIteratorRecord.
     this['[[SyncIteratorRecord]]'] = syncIteratorRecord;
+  }
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-%iteratorprototype%-@@iterator
+export class $Symbol_Iterator extends $BuiltinFunction<'[Symbol.iterator]'> {
+  public constructor(
+    realm: Realm,
+  ) {
+    super(realm, '[Symbol.iterator]');
+    this.SetFunctionName(realm.stack.top, new $String(realm, '[Symbol.iterator]'));
+  }
+
+  public performSteps(
+    ctx: ExecutionContext,
+    thisArgument: $AnyNonEmpty,
+    argumentsList: readonly $AnyNonEmpty[],
+    NewTarget: $AnyNonEmpty,
+  ): $AnyNonEmpty {
+    return thisArgument;
+  }
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-%iteratorprototype%-object
+export class $IteratorPrototype extends $Object<'%IteratorPrototype%'> {
+  public constructor(
+    realm: Realm,
+  ) {
+    super(realm, '%IteratorPrototype%', realm['[[Intrinsics]]']['%ObjectPrototype%']);
+
+    $DefinePropertyOrThrow(
+      realm.stack.top,
+      this,
+      realm['[[Intrinsics]]']['@@iterator'],
+      new $PropertyDescriptor(
+        realm,
+        realm['[[Intrinsics]]']['@@iterator'],
+        {
+          '[[Value]]': new $Symbol_Iterator(realm),
+        },
+      ),
+    );
   }
 }

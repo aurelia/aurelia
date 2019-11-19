@@ -7,10 +7,8 @@ import { $Number } from './types/number';
 import { $String } from './types/string';
 import { $Symbol } from './types/symbol';
 import { $Object } from './types/object';
-import { $Function, $BuiltinFunction } from './types/function';
-import { $DefinePropertyOrThrow } from './operations';
-import { $PropertyDescriptor } from './types/property-descriptor';
-import { $AnyNonEmpty } from './types/_shared';
+import { $Function } from './types/function';
+import { $IteratorPrototype } from './iteration';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
@@ -517,46 +515,5 @@ export class Intrinsics {
     this['%Promise_all%'] = new $Object(realm, '%Promise_all%', this['%FunctionPrototype%']);
     this['%Promise_reject%'] = new $Object(realm, '%Promise_reject%', this['%FunctionPrototype%']);
     this['%Promise_resolve%'] = new $Object(realm, '%Promise_resolve%', this['%FunctionPrototype%']);
-  }
-}
-
-// http://www.ecma-international.org/ecma-262/#sec-%iteratorprototype%-@@iterator
-export class $Symbol_Iterator extends $BuiltinFunction {
-  public constructor(
-    realm: Realm,
-  ) {
-    super(realm, '[Symbol.iterator]');
-    this.SetFunctionName(realm.stack.top, new $String(realm, '[Symbol.iterator]'));
-  }
-
-  public performSteps(
-    ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
-    argumentsList: readonly $AnyNonEmpty[],
-    NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty {
-    return thisArgument;
-  }
-}
-
-// http://www.ecma-international.org/ecma-262/#sec-%iteratorprototype%-object
-export class $IteratorPrototype extends $Object<'%IteratorPrototype%'> {
-  public constructor(
-    realm: Realm,
-  ) {
-    super(realm, '%IteratorPrototype%', realm['[[Intrinsics]]']['%ObjectPrototype%']);
-
-    $DefinePropertyOrThrow(
-      realm.stack.top,
-      this,
-      realm['[[Intrinsics]]']['@@iterator'],
-      new $PropertyDescriptor(
-        realm,
-        realm['[[Intrinsics]]']['@@iterator'],
-        {
-          '[[Value]]': new $Symbol_Iterator(realm),
-        },
-      ),
-    );
   }
 }

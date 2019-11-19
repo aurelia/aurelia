@@ -1,7 +1,6 @@
 import { DI, IContainer, Key, Reporter } from '@aurelia/kernel';
 import { Aurelia, IController, IRenderContext, IViewModel, Controller } from '@aurelia/runtime';
 import { BrowserNavigator } from './browser-navigator';
-import { Guardian, GuardTypes } from './guardian';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
 import { INavigatorInstruction, IRouteableComponent, NavigationInstruction, IRoute, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
@@ -57,7 +56,6 @@ export interface IRouter {
   readonly instructionResolver: InstructionResolver;
   navigator: Navigator;
   readonly navigation: BrowserNavigator;
-  readonly guardian: Guardian;
   readonly hookManager: HookManager;
   readonly linkHandler: LinkHandler;
   readonly navs: Readonly<Record<string, Nav>>;
@@ -115,7 +113,6 @@ export class Router implements IRouter {
 
   public rootScope: Viewport | null = null;
 
-  public guardian: Guardian;
   public hookManager: HookManager;
 
   public navs: Record<string, Nav> = {};
@@ -144,7 +141,6 @@ export class Router implements IRouter {
     public linkHandler: LinkHandler,
     public instructionResolver: InstructionResolver
   ) {
-    this.guardian = new Guardian();
     this.hookManager = new HookManager();
   }
 
@@ -341,14 +337,6 @@ export class Router implements IRouter {
       }
       defaultViewports = [];
       const changedViewports: Viewport[] = [];
-
-      const outcome = this.guardian.passes(GuardTypes.Before, viewportInstructions, instruction);
-      if (!outcome) {
-        return this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
-      }
-      if (typeof outcome !== 'boolean') {
-        viewportInstructions = outcome;
-      }
 
       const hooked = await this.hookManager.invokeBeforeNavigation(viewportInstructions, instruction);
       if (hooked === false) {

@@ -55,9 +55,6 @@ export interface IComponentAndOrViewportOrNothing {
 
 export type NavigationInstruction = ComponentAppellation | IViewportInstruction | ViewportInstruction;
 
-export type GuardFunction = (viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction) => boolean | ViewportInstruction[];
-export type GuardTarget = ComponentAppellation | IComponentAndOrViewportOrNothing;
-
 export type ComponentAppellation = string | RouteableComponentType | IRouteableComponent | Constructable;
 export type ViewportHandle = string | Viewport;
 export type ComponentParameters = string | Record<string, unknown> | unknown[];

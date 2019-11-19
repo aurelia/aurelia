@@ -36,7 +36,6 @@ describe('HookManager', function () {
 
     await au.start().wait();
 
-
     async function tearDown() {
       unspyNavigationStates(router, _pushState, _replaceState);
       router.deactivate();
@@ -85,7 +84,7 @@ describe('HookManager', function () {
     const { router, tearDown, navigationInstruction } = await setup();
 
     const sut = new HookManager();
-    sut.addHook(async (url: string, navigationInstruction: INavigatorInstruction) => `hooked:${url}`,
+    sut.addHook((url: string, navigationInstruction: INavigatorInstruction): Promise<string | ViewportInstruction[]> => Promise.resolve(`hooked:${url}`),
       { type: HookTypes.TransformFromUrl });
     const hooked = await sut.invokeTransformFromUrl('testing', navigationInstruction);
     assert.strictEqual(hooked, 'hooked:testing', `hooked`);
@@ -97,9 +96,9 @@ describe('HookManager', function () {
     const { router, tearDown, navigationInstruction } = await setup();
 
     const sut = new HookManager();
-    sut.addHook(async (url: string, navigationInstruction: INavigatorInstruction) => `hooked:${url}`,
+    sut.addHook((url: string, navigationInstruction: INavigatorInstruction) => Promise.resolve(`hooked:${url}`),
       { type: HookTypes.TransformFromUrl });
-    sut.addHook(async (url: string, navigationInstruction: INavigatorInstruction) => `hooked2:${url}`,
+    sut.addHook((url: string, navigationInstruction: INavigatorInstruction) => Promise.resolve(`hooked2:${url}`),
       { type: HookTypes.TransformFromUrl });
 
     const hooked = await sut.invokeTransformFromUrl('testing', navigationInstruction);
@@ -122,7 +121,7 @@ describe('HookManager', function () {
     const { router, tearDown, navigationInstruction } = await setup();
 
     const sut = new HookManager();
-    sut.addHook(async (url: string, navigationInstruction: INavigatorInstruction) => `hooked:${url}`,
+    sut.addHook((url: string, navigationInstruction: INavigatorInstruction) => Promise.resolve(`hooked:${url}`),
       { type: HookTypes.TransformFromUrl });
     const hooked = await sut.invokeTransformFromUrl('testing', navigationInstruction);
     assert.strictEqual(hooked, 'hooked:testing', `hooked`);
@@ -134,8 +133,9 @@ describe('HookManager', function () {
     const { router, tearDown, navigationInstruction } = await setup();
 
     const sut = new HookManager();
-    sut.addHook(async (url: string, navigationInstruction: INavigatorInstruction) =>
-      [router.createViewportInstruction(`hooked-${url}`)],
+    sut.addHook(
+      (url: string, navigationInstruction: INavigatorInstruction) =>
+        Promise.resolve([router.createViewportInstruction(`hooked-${url}`)]),
       { type: HookTypes.TransformFromUrl });
     const hooked = await sut.invokeTransformFromUrl('testing', navigationInstruction) as ViewportInstruction[];
     assert.strictEqual(hooked[0].componentName, 'hooked-testing', `hooked[0].componentName`);
@@ -147,8 +147,9 @@ describe('HookManager', function () {
     const { router, tearDown, navigationInstruction } = await setup();
 
     const sut = new HookManager();
-    sut.addHook(async (viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction) =>
-      [router.createViewportInstruction(`hooked-${viewportInstructions[0].componentName}`)],
+    sut.addHook(
+      (viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction) =>
+        Promise.resolve([router.createViewportInstruction(`hooked-${viewportInstructions[0].componentName}`)]),
       { type: HookTypes.TransformToUrl });
 
     const hooked = await sut.invokeTransformToUrl(
@@ -162,8 +163,9 @@ describe('HookManager', function () {
     const { router, tearDown, navigationInstruction } = await setup();
 
     const sut = new HookManager();
-    sut.addHook(async (viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction) =>
-      `hooked-${viewportInstructions[0].componentName}`,
+    sut.addHook(
+      (viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction) =>
+        Promise.resolve(`hooked-${viewportInstructions[0].componentName}`),
       { type: HookTypes.TransformToUrl });
 
     const hooked = await sut.invokeTransformToUrl(
@@ -177,8 +179,9 @@ describe('HookManager', function () {
     const { router, tearDown, navigationInstruction } = await setup();
 
     const sut = new HookManager();
-    sut.addHook(async (url: string, navigationInstruction: INavigatorInstruction) =>
-      [router.createViewportInstruction(`hooked-${url}`)],
+    sut.addHook(
+      (url: string, navigationInstruction: INavigatorInstruction) =>
+        Promise.resolve([router.createViewportInstruction(`hooked-${url}`)]),
       { type: HookTypes.TransformToUrl });
 
     const hooked = await sut.invokeTransformToUrl('testing', navigationInstruction) as ViewportInstruction[];
@@ -191,7 +194,7 @@ describe('HookManager', function () {
     const { router, tearDown, navigationInstruction } = await setup();
 
     const sut = new HookManager();
-    sut.addHook(async (url: string, navigationInstruction: INavigatorInstruction) => `hooked-${url}`,
+    sut.addHook((url: string, navigationInstruction: INavigatorInstruction) => Promise.resolve(`hooked-${url}`),
       { type: HookTypes.TransformToUrl });
 
     const hooked = await sut.invokeTransformToUrl('testing', navigationInstruction) as string;
@@ -204,8 +207,8 @@ describe('HookManager', function () {
     const { router, tearDown, navigationInstruction } = await setup();
 
     const sut = new HookManager();
-    const hook = async (input: string | ViewportInstruction[], navigationInstruction: INavigatorInstruction): Promise<string | ViewportInstruction[]> =>
-      typeof input === 'string' ? [router.createViewportInstruction(`hooked-${input}`)] : `hooked-${input[0].componentName}`;
+    const hook = (input: string | ViewportInstruction[], navigationInstruction: INavigatorInstruction): Promise<string | ViewportInstruction[]> =>
+      Promise.resolve(typeof input === 'string' ? [router.createViewportInstruction(`hooked-${input}`)] : `hooked-${input[0].componentName}`);
     const str = 'testing';
 
     sut.addHook(hook, { type: HookTypes.TransformToUrl });
@@ -235,8 +238,9 @@ describe('HookManager', function () {
     const { router, tearDown, navigationInstruction } = await setup();
 
     const sut = new HookManager();
-    sut.addHook(async (viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction) =>
-      [router.createViewportInstruction(`hooked-${viewportInstructions[0].componentName}`)],
+    sut.addHook(
+      (viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction) =>
+        Promise.resolve([router.createViewportInstruction(`hooked-${viewportInstructions[0].componentName}`)]),
       { type: HookTypes.BeforeNavigation });
 
     const hooked = await sut.invokeBeforeNavigation(
@@ -250,7 +254,7 @@ describe('HookManager', function () {
     const { router, tearDown, navigationInstruction } = await setup();
 
     const sut = new HookManager();
-    sut.addHook(async (viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction) => true,
+    sut.addHook((viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction) => Promise.resolve(true),
       { type: HookTypes.BeforeNavigation });
 
     const hooked = await sut.invokeBeforeNavigation(
@@ -264,7 +268,7 @@ describe('HookManager', function () {
     const { router, tearDown, navigationInstruction } = await setup();
 
     const sut = new HookManager();
-    sut.addHook(async (viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction) => false,
+    sut.addHook((viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction) => Promise.resolve(false),
       { type: HookTypes.BeforeNavigation });
 
     const hooked = await sut.invokeBeforeNavigation([router.createViewportInstruction('testing')], navigationInstruction) as boolean;
@@ -300,10 +304,10 @@ describe('HookManager', function () {
     let hooked: string | ViewportInstruction[] = await router.hookManager.invokeTransformToUrl(str, navigationInstruction) as string;
     assert.strictEqual(hooked, `${str}`, `not hooked`);
 
-    const hookFunction = async (input: string | ViewportInstruction[], navigationInstruction: INavigatorInstruction): Promise<string | ViewportInstruction[]> =>
-      input.length > 0
+    const hookFunction = (input: string | ViewportInstruction[], navigationInstruction: INavigatorInstruction): Promise<string | ViewportInstruction[]> =>
+      Promise.resolve(input.length > 0
         ? typeof input === 'string' ? [router.createViewportInstruction(`hooked-${input}`)] : `hooked-${input[0].componentName}`
-        : input;
+        : input);
 
     router.addHook(hookFunction, { type: HookTypes.TransformToUrl });
     router.addHook(hookFunction, { type: HookTypes.TransformToUrl });
@@ -324,9 +328,8 @@ describe('HookManager', function () {
     await $goto('two', router, scheduler);
     assert.strictEqual(host.textContent, `!two!`, `two`);
 
-    router.addHook(async (instructions: ViewportInstruction[], navigation: INavigatorInstruction) => {
-      return false;
-    }, { type: HookTypes.BeforeNavigation, include: ['two'] });
+    router.addHook((instructions: ViewportInstruction[], navigation: INavigatorInstruction) => Promise.resolve(false),
+      { type: HookTypes.BeforeNavigation, include: ['two'] });
 
     await $goto('one', router, scheduler);
     assert.strictEqual(host.textContent, `!one!`, `one`);
@@ -346,9 +349,10 @@ describe('HookManager', function () {
     await $goto('two', router, scheduler);
     assert.strictEqual(host.textContent, `!two!`, `two`);
 
-    router.addHook(async (instructions: ViewportInstruction[], navigation: INavigatorInstruction) => {
-      return [router.createViewportInstruction('three', instructions[0].viewport)];
-    }, { type: HookTypes.BeforeNavigation, include: ['two'] });
+    router.addHook(
+      (instructions: ViewportInstruction[], navigation: INavigatorInstruction) =>
+        Promise.resolve([router.createViewportInstruction('three', instructions[0].viewport)]),
+      { type: HookTypes.BeforeNavigation, include: ['two'] });
 
     await $goto('one', router, scheduler);
     assert.strictEqual(host.textContent, `!one!`, `one`);
@@ -368,9 +372,9 @@ describe('HookManager', function () {
     await $goto('two', router, scheduler);
     assert.strictEqual(host.textContent, `!two!`, `two`);
 
-    router.addHook(async (url: string, navigation: INavigatorInstruction) => {
-      return url === 'two' ? 'three' : url;
-    }, { type: HookTypes.TransformFromUrl });
+    router.addHook(
+      (url: string, navigation: INavigatorInstruction) => Promise.resolve(url === 'two' ? 'three' : url),
+      { type: HookTypes.TransformFromUrl });
 
     await $goto('one', router, scheduler);
     assert.strictEqual(host.textContent, `!one!`, `one`);
@@ -390,9 +394,10 @@ describe('HookManager', function () {
     await $goto('two', router, scheduler);
     assert.strictEqual(host.textContent, `!two!`, `two`);
 
-    router.addHook(async (url: string, navigation: INavigatorInstruction) => {
-      return url === 'two' ? [router.createViewportInstruction('three')] : url;
-    }, { type: HookTypes.TransformFromUrl });
+    router.addHook(
+      (url: string, navigation: INavigatorInstruction) =>
+        Promise.resolve(url === 'two' ? [router.createViewportInstruction('three')] : url),
+      { type: HookTypes.TransformFromUrl });
 
     await $goto('one', router, scheduler);
     assert.strictEqual(host.textContent, `!one!`, `one`);
@@ -419,11 +424,13 @@ describe('HookManager', function () {
     assert.strictEqual(host.textContent, `!two!`, `two`);
     assert.strictEqual(locationPath, `#/two`, `locationPath two`);
 
-    router.addHook(async (state: string | ViewportInstruction[], navigation: INavigatorInstruction) => {
-      return typeof state === 'string'
-        ? state === 'two' ? 'hooked-two' : state
-        : state[0].componentName === 'two' ? 'hooked-two' : state;
-    }, { type: HookTypes.TransformToUrl });
+    router.addHook(
+      (state: string | ViewportInstruction[], navigation: INavigatorInstruction) =>
+        Promise.resolve(
+          typeof state === 'string'
+            ? state === 'two' ? 'hooked-two' : state
+            : state[0].componentName === 'two' ? 'hooked-two' : state),
+      { type: HookTypes.TransformToUrl });
 
     await $goto('one', router, scheduler);
     assert.strictEqual(host.textContent, `!one!`, `one`);
@@ -452,11 +459,12 @@ describe('HookManager', function () {
     assert.strictEqual(host.textContent, `!two!`, `two`);
     assert.strictEqual(locationPath, `#/two`, `locationPath two`);
 
-    router.addHook(async (state: string | ViewportInstruction[], navigation: INavigatorInstruction) => {
-      return typeof state === 'string'
-        ? state === 'two' ? 'hooked-two' : state
-        : state[0].componentName === 'two' ? 'hooked-two' : state;
-    }, { type: HookTypes.TransformToUrl });
+    router.addHook(
+      (state: string | ViewportInstruction[], navigation: INavigatorInstruction) =>
+        Promise.resolve(typeof state === 'string'
+          ? state === 'two' ? 'hooked-two' : state
+          : state[0].componentName === 'two' ? 'hooked-two' : state),
+      { type: HookTypes.TransformToUrl });
 
     await $goto('one', router, scheduler);
     assert.strictEqual(host.textContent, `!one!`, `one`);
@@ -485,11 +493,12 @@ describe('HookManager', function () {
     assert.strictEqual(host.textContent, `!two!`, `two`);
     assert.strictEqual(locationPath, `#/two`, `locationPath two`);
 
-    router.addHook(async (state: string | ViewportInstruction[], navigation: INavigatorInstruction) => {
-      return typeof state === 'string'
-        ? state === 'hooked-two' ? 'hooked-hooked-two' : state
-        : state[0].componentName === 'two' ? 'hooked-two' : state;
-    }, { type: HookTypes.TransformToUrl });
+    router.addHook(
+      (state: string | ViewportInstruction[], navigation: INavigatorInstruction) =>
+        Promise.resolve(typeof state === 'string'
+          ? state === 'hooked-two' ? 'hooked-hooked-two' : state
+          : state[0].componentName === 'two' ? 'hooked-two' : state),
+      { type: HookTypes.TransformToUrl });
 
     await $goto('one', router, scheduler);
     assert.strictEqual(host.textContent, `!one!`, `one`);

@@ -110,7 +110,7 @@ export class InstructionResolver {
           excludeCurrentComponent = true;
         }
       }
-      let route: string | null = instruction.route;
+      const route: string | null = instruction.route;
       const nextInstructions: ViewportInstruction[] | null = instruction.nextScopeInstructions;
       let stringified: string = '';
       // It's a configured route

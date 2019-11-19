@@ -788,7 +788,7 @@ export function $ToPropertyDescriptor(
 
   // 3. Let hasEnumerable be ? HasProperty(Obj, "enumerable").
   // 4. If hasEnumerable is true, then
-  if (Obj['[[HasProperty]]'](ctx, intrinsics.$enumerable)) {
+  if (Obj['[[HasProperty]]'](ctx, intrinsics.$enumerable).isTruthy) {
     // 4. a. Let enumerable be ToBoolean(? Get(Obj, "enumerable")).
     const enumerable = Obj['[[Get]]'](ctx, intrinsics.$enumerable, Obj).ToBoolean(ctx);
 
@@ -798,7 +798,7 @@ export function $ToPropertyDescriptor(
 
   // 5. Let hasConfigurable be ? HasProperty(Obj, "configurable").
   // 6. If hasConfigurable is true, then
-  if (Obj['[[HasProperty]]'](ctx, intrinsics.$configurable)) {
+  if (Obj['[[HasProperty]]'](ctx, intrinsics.$configurable).isTruthy) {
     // 6. a. Let configurable be ToBoolean(? Get(Obj, "configurable")).
     const configurable = Obj['[[Get]]'](ctx, intrinsics.$configurable, Obj).ToBoolean(ctx);
 
@@ -808,7 +808,7 @@ export function $ToPropertyDescriptor(
 
   // 7. Let hasValue be ? HasProperty(Obj, "value").
   // 8. If hasValue is true, then
-  if (Obj['[[HasProperty]]'](ctx, intrinsics.$value)) {
+  if (Obj['[[HasProperty]]'](ctx, intrinsics.$value).isTruthy) {
     // 8. a. Let value be ? Get(Obj, "value").
     const value = Obj['[[Get]]'](ctx, intrinsics.$value, Obj).ToBoolean(ctx);
 
@@ -818,7 +818,7 @@ export function $ToPropertyDescriptor(
 
   // 9. Let hasWritable be ? HasProperty(Obj, "writable").
   // 10. If hasWritable is true, then
-  if (Obj['[[HasProperty]]'](ctx, intrinsics.$writable)) {
+  if (Obj['[[HasProperty]]'](ctx, intrinsics.$writable).isTruthy) {
     // 10. a. Let writable be ToBoolean(? Get(Obj, "writable")).
     const writable = Obj['[[Get]]'](ctx, intrinsics.$writable, Obj).ToBoolean(ctx);
 
@@ -828,7 +828,7 @@ export function $ToPropertyDescriptor(
 
   // 11. Let hasGet be ? HasProperty(Obj, "get").
   // 12. If hasGet is true, then
-  if (Obj['[[HasProperty]]'](ctx, intrinsics.$get)) {
+  if (Obj['[[HasProperty]]'](ctx, intrinsics.$get).isTruthy) {
     // 12. a. Let getter be ? Get(Obj, "get").
     const getter = Obj['[[Get]]'](ctx, intrinsics.$get, Obj);
 
@@ -843,7 +843,7 @@ export function $ToPropertyDescriptor(
 
   // 13. Let hasSet be ? HasProperty(Obj, "set").
   // 14. If hasSet is true, then
-  if (Obj['[[HasProperty]]'](ctx, intrinsics.$set)) {
+  if (Obj['[[HasProperty]]'](ctx, intrinsics.$set).isTruthy) {
     // 14. a. Let setter be ? Get(Obj, "set").
     const setter = Obj['[[Get]]'](ctx, intrinsics.$set, Obj);
 

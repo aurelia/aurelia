@@ -11,12 +11,15 @@ export class GotoCustomAttribute {
   private listener: IDisposable | null = null;
   private hasHref: boolean | null = null;
 
+  private readonly element: HTMLElement;
   public constructor(
     @IDOM private readonly dom: IDOM,
-    @INode private readonly element: HTMLElement,
+    @INode element: INode,
     @IRouter private readonly router: IRouter,
     @IEventManager private readonly eventManager: IEventManager,
-  ) { }
+  ) {
+    this.element = element as HTMLElement;
+  }
 
   public binding(): void {
     this.listener = this.eventManager.addEventListener(

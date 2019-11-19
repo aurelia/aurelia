@@ -144,15 +144,7 @@ export class Realm {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-createrealm
-  public static Create(container?: IContainer): Realm {
-    if (container === void 0) {
-      container = DI.createContainer();
-      container.register(
-        LoggerConfiguration.create(console, LogLevel.info, ColorOptions.colors),
-        Registration.singleton(IFileSystem, NodeFileSystem),
-      );
-    }
-
+  public static Create(container: IContainer): Realm {
     const logger = container.get(ILogger).root.scopeTo('Realm');
     const fs = container.get(IFileSystem);
     logger.debug('Creating new realm');

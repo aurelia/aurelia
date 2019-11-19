@@ -6,19 +6,16 @@ import { $Empty } from './types/empty';
 
 // http://www.ecma-international.org/ecma-262/#table-25
 export abstract class Job {
-  public '[[Arguments]]': readonly $AnyNonEmpty[];
   public '[[Realm]]': Realm;
   public '[[ScriptOrModule]]': $SourceFile;
 
   public constructor(
     public readonly logger: ILogger,
-    $arguments: readonly $AnyNonEmpty[],
     realm: Realm,
     scriptOrModule: $SourceFile,
   ) {
     this.logger = logger.scopeTo(`Job`);
 
-    this['[[Arguments]]'] = $arguments;
     this['[[Realm]]'] = realm;
     this['[[ScriptOrModule]]'] = scriptOrModule;
   }
@@ -26,8 +23,8 @@ export abstract class Job {
   public abstract Run(ctx: ExecutionContext): $Any;
 }
 
-export abstract class JobQueue {
-  public readonly queue: Job[] = [];
+export class JobQueue<T extends Job = Job> {
+  public readonly queue: T[] = [];
 
   public get isEmpty(): boolean {
     return this.queue.length === 0;
@@ -43,7 +40,7 @@ export abstract class JobQueue {
   // http://www.ecma-international.org/ecma-262/#sec-enqueuejob
   public EnqueueJob(
     ctx: ExecutionContext,
-    $arguments: readonly $AnyNonEmpty[],
+    job: T,
   ): $Empty {
     const realm = ctx.Realm;
 
@@ -56,18 +53,11 @@ export abstract class JobQueue {
     // 5. Let callerRealm be callerContext's Realm.
     // 6. Let callerScriptOrModule be callerContext's ScriptOrModule.
     // 7. Let pending be PendingJob { [[Job]]: job, [[Arguments]]: arguments, [[Realm]]: callerRealm, [[ScriptOrModule]]: callerScriptOrModule, [[HostDefined]]: undefined }.
-    const pending = this.createJob(ctx, $arguments);
-
     // 8. Perform any implementation or host environment defined processing of pending. This may include modifying the [[HostDefined]] field or any other field of pending.
     // 9. Add pending at the back of the Job Queue named by queueName.
-    this.queue.push(pending);
+    this.queue.push(job);
 
     // 10. Return NormalCompletion(empty).
     return new $Empty(realm);
   }
-
-  public abstract createJob(
-    ctx: ExecutionContext,
-    $arguments: readonly $AnyNonEmpty[],
-  ): Job;
 }

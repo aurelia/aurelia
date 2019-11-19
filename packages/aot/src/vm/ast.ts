@@ -7167,7 +7167,7 @@ export class $SourceFile implements I$Node, IModule {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-moduledeclarationinstantiation
-  public Instantiate(): void {
+  public Instantiate(): $Any {
     const realm = this.realm;
     const intrinsics = realm['[[Intrinsics]]'];
     const ctx = realm.stack.top;
@@ -7203,6 +7203,8 @@ export class $SourceFile implements I$Node, IModule {
 
     const end = PLATFORM.now();
     this.logger.debug(`[Instantiate] done in ${Math.round(end - start)}ms`);
+
+    return new $Undefined(realm);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-innermoduleinstantiation

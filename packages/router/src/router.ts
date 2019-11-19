@@ -539,12 +539,6 @@ export class Router implements IRouter {
           }
         }
       }
-      // instructions = NavigationInstructionResolver.toViewportInstructions(this, instructions);
-      // for (const instruction of instructions as ViewportInstruction[]) {
-      //   if (instruction.scope === null) {
-      //     instruction.scope = scope;
-      //   }
-      // }
     } else {
       instructions = NavigationInstructionResolver.toViewportInstructions(this, instructions);
     }
@@ -554,11 +548,6 @@ export class Router implements IRouter {
       this.appendInstructions(instructions as ViewportInstruction[], scope);
       // Can't return current navigation promise since it can lead to deadlock in enter
       return Promise.resolve();
-      // } else {
-      //   // Can only append after first load has happened (defaults can fire too early)
-      //   if (!this.loadedFirst) {
-      //     return Promise.resolve();
-      //   }
     }
 
     const entry: INavigatorEntry = {
@@ -848,13 +837,6 @@ export class Router implements IRouter {
     }
     // Invoke again with string
     state = await this.hookManager.invokeTransformToUrl(state, instruction);
-
-    // let state = this.instructionResolver.stringifyViewportInstructions(instructions, false, true);
-    // if (this.options.transformToUrl) {
-    //   // TODO: Review this. Also, should it perhaps get full state?
-    //   const routeOrInstructions = this.options.transformToUrl(this.instructionResolver.parseViewportInstructions(state), this);
-    //   state = Array.isArray(routeOrInstructions) ? this.instructionResolver.stringifyViewportInstructions(routeOrInstructions) : routeOrInstructions;
-    // }
 
     const query = (instruction.query && instruction.query.length ? `?${instruction.query}` : '');
     // if (instruction.path === void 0 || instruction.path.length === 0 || instruction.path === '/') {

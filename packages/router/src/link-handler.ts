@@ -45,14 +45,12 @@ export class LinkHandler {
   public window: Window;
   public document: Document;
 
-  // tslint:disable-next-line:no-empty
   private options: ILinkHandlerOptions = {
     useHref: true,
+    // tslint:disable-next-line:no-empty
     callback: () => { }
   };
   private isActive: boolean = false;
-
-  // private handler: EventListener;
 
   public constructor(
     dom: HTMLDOM
@@ -144,8 +142,6 @@ export class LinkHandler {
 
     this.isActive = true;
     this.options = { ...options };
-
-    // this.document.addEventListener('click', this.handler, true);
   }
 
   /**
@@ -155,7 +151,6 @@ export class LinkHandler {
     if (!this.isActive) {
       throw new Error('Link handler has not been activated');
     }
-    // this.document.removeEventListener('click', this.handler, true);
     this.isActive = false;
   }
 

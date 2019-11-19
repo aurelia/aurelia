@@ -110,13 +110,28 @@ export class InstructionResolver {
           excludeCurrentComponent = true;
         }
       }
-      let stringified: string = instruction.route !== null
-        ? instruction.route
-        : this.stringifyAViewportInstruction(instruction, excludeCurrentViewport, excludeCurrentComponent);
-      if (instruction.nextScopeInstructions && instruction.nextScopeInstructions.length) {
-        stringified += instruction.nextScopeInstructions.length === 1
-          ? `${this.separators.scope}${this.stringifyViewportInstructions(instruction.nextScopeInstructions, excludeViewport, viewportContext)}`
-          : `${this.separators.scope}${this.separators.scopeStart}${this.stringifyViewportInstructions(instruction.nextScopeInstructions, excludeViewport, viewportContext)}${this.separators.scopeEnd}`;
+      let route: string | null = instruction.route;
+      const nextInstructions: ViewportInstruction[] | null = instruction.nextScopeInstructions;
+      let stringified: string = '';
+      // It's a configured route
+      if (route !== null) {
+        // Already added as part of a configuration, skip to next scope
+        if (route === '') {
+          return Array.isArray(nextInstructions)
+            ? this.stringifyViewportInstructions(nextInstructions, excludeViewport, viewportContext)
+            : '';
+        }
+        stringified += route.endsWith(this.separators.scope) ? route.slice(0, -this.separators.scope.length) : route;
+      } else {
+        stringified += this.stringifyAViewportInstruction(instruction, excludeCurrentViewport, excludeCurrentComponent);
+      }
+      if (Array.isArray(nextInstructions) && nextInstructions.length) {
+        const nextStringified: string = this.stringifyViewportInstructions(nextInstructions, excludeViewport, viewportContext);
+        if (nextStringified.length > 0) {
+          stringified += nextInstructions.length === 1 // TODO: This should really also check that the instructions have value
+            ? `${this.separators.scope}${nextStringified}`
+            : `${this.separators.scope}${this.separators.scopeStart}${nextStringified}${this.separators.scopeEnd}`;
+        }
       }
       return stringified;
     }

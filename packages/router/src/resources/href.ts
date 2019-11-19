@@ -10,13 +10,16 @@ export class HrefCustomAttribute {
   public value: string | undefined;
 
   private eventListener: IDisposable | null = null;
+  private readonly element: HTMLElement;
 
   public constructor(
     @IDOM private readonly dom: IDOM,
-    @INode private readonly element: HTMLElement,
+    @INode element: INode,
     @IRouter private readonly router: IRouter,
     @IEventManager private readonly eventManager: IEventManager,
-  ) { }
+  ) {
+    this.element = element as HTMLElement;
+  }
 
   public binding(): void {
     if (this.router.options.useHref &&

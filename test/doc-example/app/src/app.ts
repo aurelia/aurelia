@@ -29,49 +29,50 @@ export class App {
     authorsRepository.authors(); // Only here to initialize repositories
   }
 
+  // KEEP THIS!
   public match(current) {
-    const rootScope = this.router['rootScope'];
+    // const rootScope = this.router['rootScope'];
 
-    const match = rootScope.routeTable.findMatchingRoute(current.path);
-    console.log('matching route', match);
+    // const match = rootScope.routeTable.findMatchingRoute(current.path);
+    // console.log('matching route', match);
 
-    let routes = rootScope.routeTable.routes;
-    for (const route of routes) {
-      console.log(route, this.isWithin(route, current));
-    }
-    routes = routes.filter(route => this.isWithin(route, current));
-    console.log('routes within', routes.slice());
-    let length = routes.length + 1;
-    while (length > routes.length) {
-      length = routes.length;
-      for (let i = 0; i < routes.length; i++) {
-        for (let j = 0; j < routes.length; j++) {
-          if (i !== j && this.isWithin(routes[i], routes[j])) {
-            routes.splice(i, 1);
-            i--;
-            break;
-          }
-        }
-      }
-    }
-    console.log('routes within not within', routes);
+    // let routes = rootScope.routeTable.routes;
+    // for (const route of routes) {
+    //   console.log(route, this.isWithin(route, current));
+    // }
+    // routes = routes.filter(route => this.isWithin(route, current));
+    // console.log('routes within', routes.slice());
+    // let length = routes.length + 1;
+    // while (length > routes.length) {
+    //   length = routes.length;
+    //   for (let i = 0; i < routes.length; i++) {
+    //     for (let j = 0; j < routes.length; j++) {
+    //       if (i !== j && this.isWithin(routes[i], routes[j])) {
+    //         routes.splice(i, 1);
+    //         i--;
+    //         break;
+    //       }
+    //     }
+    //   }
+    // }
+    // console.log('routes within not within', routes);
 
-    const urlRoutes = [];
-    const currentInstructions = this.router.instructionResolver.flattenViewportInstructions(current.instructions);
-    while (currentInstructions.length > 0 && routes.length > 0) {
-      for (const route of routes) {
-        if (this.isWithin(route, { instructions: currentInstructions })) {
-          urlRoutes.push(route);
-          for (const part of route.instructions) {
-            const index = currentInstructions.findIndex(match => part.sameComponent(match) && part.sameViewport(match));
-            if (index > -1) {
-              currentInstructions.splice(index, 1);
-            }
-          }
-        }
-      }
-    }
-    console.log('routes end', urlRoutes, routes, currentInstructions);
+    // const urlRoutes = [];
+    // const currentInstructions = this.router.instructionResolver.flattenViewportInstructions(current.instructions);
+    // while (currentInstructions.length > 0 && routes.length > 0) {
+    //   for (const route of routes) {
+    //     if (this.isWithin(route, { instructions: currentInstructions })) {
+    //       urlRoutes.push(route);
+    //       for (const part of route.instructions) {
+    //         const index = currentInstructions.findIndex(match => part.sameComponent(match) && part.sameViewport(match));
+    //         if (index > -1) {
+    //           currentInstructions.splice(index, 1);
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
+    // console.log('routes end', urlRoutes, routes, currentInstructions);
 
   }
   public isWithin(find, lookup) {

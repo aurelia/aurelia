@@ -45,11 +45,13 @@ export class Author {
   public created() {
     console.log('### created', this);
   }
-  public match(current) {
-    const rootScope = this.router['rootScope'];
 
-    const match = rootScope.routeTable.findMatchingRoute(current.path);
-    console.log('matching route', match);
+  // KEEP THIS!
+  public match(current) {
+    // const rootScope = this.router['rootScope'];
+
+    // const match = rootScope.routeTable.findMatchingRoute(current.path);
+    // console.log('matching route', match);
   }
 
   public canEnter(parameters) {

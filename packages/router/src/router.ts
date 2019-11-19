@@ -9,24 +9,12 @@ import { INavigatorEntry, INavigatorFlags, INavigatorOptions, INavigatorViewerEv
 import { IParsedQuery, parseQuery } from './parser';
 import { QueueItem } from './queue';
 import { INavClasses } from './resources/nav';
-import { RouteTable } from './route-table';
 import { NavigationInstructionResolver } from './type-resolvers';
 import { arrayRemove, closestController } from './utils';
 import { IViewportOptions, Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 import { FoundRoute } from './found-route';
 import { HookManager, IHookDefinition, HookIdentity, HookFunction, IHookOptions, BeforeNavigationHookFunction, TransformFromUrlHookFunction, TransformToUrlHookFunction } from './hook-manager';
-
-export interface IRouteTransformer {
-  transformFromUrl?(route: string, router: IRouter): string | ViewportInstruction[];
-  transformToUrl?(instructions: ViewportInstruction[], router: IRouter): string | ViewportInstruction[];
-
-  addRoutes?(router: IRouter, routes: IRoute[], parent?: string): IRoute[];
-  removeRoutes?(router: IRouter, routes: IRoute[] | string[]): void;
-  findMatchingRoute?(router: IRouter, path: string): { match: IRoute | null; matching: string; remaining: string };
-}
-
-export const IRouteTransformer = DI.createInterface<IRouteTransformer>('IRouteTransformer').withDefault(x => x.singleton(RouteTable));
 
 export interface IGotoOptions {
   title?: string;
@@ -37,7 +25,7 @@ export interface IGotoOptions {
   origin?: IViewModel | Element;
 }
 
-export interface IRouterOptions extends INavigatorOptions, IRouteTransformer {
+export interface IRouterOptions extends INavigatorOptions {
   separators?: IRouteSeparators;
   useUrlFragmentHash?: boolean;
   useHref?: boolean;
@@ -109,7 +97,7 @@ export interface IRouter {
 export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x.singleton(Router));
 
 export class Router implements IRouter {
-  public static readonly inject: readonly Key[] = [IContainer, Navigator, BrowserNavigator, IRouteTransformer, LinkHandler, InstructionResolver];
+  public static readonly inject: readonly Key[] = [IContainer, Navigator, BrowserNavigator, LinkHandler, InstructionResolver];
 
   public rootScope: Viewport | null = null;
 
@@ -137,7 +125,6 @@ export class Router implements IRouter {
     public readonly container: IContainer,
     public navigator: Navigator,
     public navigation: BrowserNavigator,
-    private readonly routeTransformer: IRouteTransformer,
     public linkHandler: LinkHandler,
     public instructionResolver: InstructionResolver
   ) {
@@ -160,10 +147,7 @@ export class Router implements IRouter {
     this.isActive = true;
     this.options = {
       ...this.options,
-      ...{
-        transformFromUrl: this.routeTransformer.transformFromUrl,
-        transformToUrl: this.routeTransformer.transformToUrl,
-      }, ...options
+      ...options
     };
     if (this.options.hooks !== void 0) {
       this.addHooks(this.options.hooks);
@@ -292,7 +276,7 @@ export class Router implements IRouter {
       this.rootScope!,
       instruction.instruction,
       instruction.scope || this.rootScope!,
-      this.options.transformFromUrl && !fullStateInstruction);
+      !fullStateInstruction);
     let instructions = configuredRoute.instructions;
     let configuredRoutePath: string | null = null;
 
@@ -679,12 +663,15 @@ export class Router implements IRouter {
   }
 
   public addRoutes(routes: IRoute[], context?: IViewModel | Element): IRoute[] {
-    const viewport = (context !== void 0 ? this.closestViewport(context) : this.rootScope) || this.rootScope as Viewport;
-    return viewport.addRoutes(routes);
+    // TODO: This should add to the context instead
+    return [];
+    // const viewport = (context !== void 0 ? this.closestViewport(context) : this.rootScope) || this.rootScope as Viewport;
+    // return viewport.addRoutes(routes);
   }
   public removeRoutes(routes: IRoute[] | string[], context?: IViewModel | Element): void {
-    const viewport = (context !== void 0 ? this.closestViewport(context) : this.rootScope) || this.rootScope as Viewport;
-    return viewport.removeRoutes(routes);
+    // TODO: This should remove from the context instead
+    // const viewport = (context !== void 0 ? this.closestViewport(context) : this.rootScope) || this.rootScope as Viewport;
+    // return viewport.removeRoutes(routes);
   }
 
   public addHooks(hooks: IHookDefinition[]): HookIdentity[] {
@@ -708,7 +695,6 @@ export class Router implements IRouter {
   private async findInstructions(scope: Viewport, instruction: string | ViewportInstruction[], instructionScope: Viewport, transformUrl: boolean = false): Promise<FoundRoute> {
     let route = new FoundRoute();
     if (typeof instruction === 'string') {
-      instruction = transformUrl ? this.options.transformFromUrl!(instruction, this) : instruction;
       instruction = transformUrl
         ? await this.hookManager.invokeTransformFromUrl(instruction as string, this.processingNavigation as INavigatorInstruction)
         : instruction;

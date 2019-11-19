@@ -991,35 +991,6 @@ export function $CreateListFromArrayLike(
   return list;
 }
 
-// http://www.ecma-international.org/ecma-262/#sec-createarrayfromlist
-export function $CreateArrayFromList(
-  ctx: ExecutionContext,
-  elements: readonly $AnyNonEmpty[],
-): $ArrayExoticObject {
-  const realm = ctx.Realm;
-  const intrinsics = realm['[[Intrinsics]]'];
-
-  // 1. Assert: elements is a List whose elements are all ECMAScript language values.
-  // 2. Let array be ! ArrayCreate(0).
-  const array = new $ArrayExoticObject(realm, intrinsics['0']);
-
-  // 3. Let n be 0.
-  let n = 0;
-
-  // 4. For each element e of elements, do
-  for (const e of elements) {
-    // 4. a. Let status be CreateDataProperty(array, ! ToString(n), e).
-    const status = $CreateDataProperty(ctx, array, new $String(realm, n.toString()), e);
-
-    // 4. b. Assert: status is true.
-    // 4. c. Increment n by 1.
-    ++n;
-  }
-
-  // 5. Return array.
-  return array;
-}
-
 // http://www.ecma-international.org/ecma-262/#sec-getfunctionrealm
 export function $GetFunctionRealm(
   ctx: ExecutionContext,

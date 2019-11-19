@@ -2,10 +2,11 @@ import { $Object } from '../types/object';
 import { Realm, ExecutionContext } from '../realm';
 import { $Number } from '../types/number';
 import { $PropertyDescriptor } from '../types/property-descriptor';
-import { $PropertyKey } from '../types/_shared';
+import { $PropertyKey, $AnyNonEmpty } from '../types/_shared';
 import { $Boolean } from '../types/boolean';
-import { $GetFunctionRealm, $Construct } from '../operations';
+import { $GetFunctionRealm, $Construct, $CreateDataProperty } from '../operations';
 import { $Function } from '../types/function';
+import { $String } from '../types/string';
 
 // http://www.ecma-international.org/ecma-262/#sec-array-exotic-objects
 export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
@@ -316,3 +317,31 @@ export function $ArraySpeciesCreate(
   return $Construct(ctx, C as $Function, [length]);
 }
 
+// http://www.ecma-international.org/ecma-262/#sec-createarrayfromlist
+export function $CreateArrayFromList(
+  ctx: ExecutionContext,
+  elements: readonly $AnyNonEmpty[],
+): $ArrayExoticObject {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
+  // 1. Assert: elements is a List whose elements are all ECMAScript language values.
+  // 2. Let array be ! ArrayCreate(0).
+  const array = new $ArrayExoticObject(realm, intrinsics['0']);
+
+  // 3. Let n be 0.
+  let n = 0;
+
+  // 4. For each element e of elements, do
+  for (const e of elements) {
+    // 4. a. Let status be CreateDataProperty(array, ! ToString(n), e).
+    const status = $CreateDataProperty(ctx, array, new $String(realm, n.toString()), e);
+
+    // 4. b. Assert: status is true.
+    // 4. c. Increment n by 1.
+    ++n;
+  }
+
+  // 5. Return array.
+  return array;
+}

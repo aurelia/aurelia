@@ -101,10 +101,7 @@ export class ViewportInstruction {
     }
   }
 
-  // TODO: Convert strings to array or object
-  // String is always generated based on array or object
   public setParameters(parameters?: ComponentParameters | null): void {
-    // TODO: Initialize parameters better and more of them and just fix this
     if (parameters === undefined || parameters === null || parameters === '') {
       this.parametersType = ParametersType.none;
       parameters = null;
@@ -169,8 +166,6 @@ export class ViewportInstruction {
     if (this.componentInstance !== null) {
       return this.componentInstance;
     }
-    // TODO: Remove once "local registration is fixed"
-    // const component = this.toComponentName();
     const container = context.get(IContainer);
     if (container !== void 0 && container !== null) {
       if (this.isComponentType()) {
@@ -216,13 +211,8 @@ export class ViewportInstruction {
     let index: number = specifications.length;
     // Add all remaining unnamed...
     for (const parameter of parameters.filter(param => param.key === void 0)) {
-      // // ..as value=value or...
-      // if (typeof parameter.value === 'string') {
-      //   specified[parameter.value] = parameter.value;
-      // } else {
       // ..with an index
       specified[index++] = parameter.value;
-      // }
     }
     return specified;
   }

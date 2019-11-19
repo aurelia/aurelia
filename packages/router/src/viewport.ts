@@ -629,17 +629,6 @@ export class Viewport {
     }
   }
 
-  // public addRoutes(routes: IRoute[]): IRoute[] {
-  //   if (this.routeTable === null) {
-  //     this.routeTable = new RouteTable();
-  //   }
-  //   return this.routeTable.addRoutes(this.router, routes);
-  // }
-  // public removeRoutes(routes: IRoute[] | string[]): void {
-  //   if (this.routeTable !== null) {
-  //     this.routeTable.removeRoutes(this.router, routes);
-  //   }
-  // }
   public findMatchingRoute(path: string): FoundRoute | null {
     let componentType: RouteableComponentType | null =
       this.nextContent !== null

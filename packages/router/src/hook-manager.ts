@@ -99,14 +99,3 @@ export class HookManager {
     return arg;
   }
 }
-
-const beforeNavigation = (viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction): boolean | ViewportInstruction[] => {
-  return true;
-};
-const transformFromUrl = (url: string, navigationInstruction: INavigatorInstruction): string | ViewportInstruction[] => {
-  return url;
-};
-const transformToUrl = (state: string | ViewportInstruction[], navigationInstruction: INavigatorInstruction): string | ViewportInstruction[] => {
-  return state;
-};
-

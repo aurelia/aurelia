@@ -1,5 +1,4 @@
-// tslint:disable:max-line-length
-import { HookFunction, HookTarget, HookIdentity, HookTypes, IHookOptions, BeforeNavigationHookFunction, HookResult, HookParameter, } from './hook-manager';
+import { HookFunction, HookTarget, HookIdentity, HookTypes, IHookOptions, HookResult, HookParameter, } from './hook-manager';
 import { IComponentAndOrViewportOrNothing, INavigatorInstruction, RouteableComponentType } from './interfaces';
 import { ComponentAppellationResolver, ViewportHandleResolver } from './type-resolvers';
 import { Viewport } from './viewport';
@@ -31,7 +30,6 @@ export class Hook {
     return this.includeTargets.length > 0 || this.excludeTargets.length > 0;
   }
 
-  // public matches(...args: (unknown | unknown[])[]): boolean;
   public matches(viewportInstructions: HookParameter): boolean {
     if (this.includeTargets.length && !this.includeTargets.some(target => target.matches(viewportInstructions as ViewportInstruction[]))) {
       return false;
@@ -42,7 +40,6 @@ export class Hook {
     return true;
   }
 
-  // tslint:disable-next-line:max-line-length
   public invoke(navigationInstruction: INavigatorInstruction, arg: HookParameter): Promise<HookResult> {
     // TODO: Fix the type here
     return this.hook(arg as any, navigationInstruction);

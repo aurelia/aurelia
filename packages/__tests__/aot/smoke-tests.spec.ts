@@ -33,7 +33,7 @@ describe('AOT (smoke tests)', function () {
       },
     });
 
-    if (!result.isUndefined) {
+    if (!result.isEmpty && !result.isUndefined) {
       assert.fail(`Evaluation error`);
     }
 

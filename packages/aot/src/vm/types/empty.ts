@@ -4,7 +4,7 @@ import { Realm, ExecutionContext } from '../realm';
 import { $Object } from './object';
 import { $String } from './string';
 import { $Number } from './number';
-import { $ComputedPropertyName, $ContinueStatement, $BreakStatement, $FunctionDeclaration } from '../ast';
+import { $ComputedPropertyName, $ContinueStatement, $BreakStatement, $FunctionDeclaration, $SourceFile } from '../ast';
 import { $Boolean } from './boolean';
 
 export interface empty { '<empty>': unknown }
@@ -45,7 +45,7 @@ export class $Empty {
     public readonly realm: Realm,
     type: PotentialEmptyCompletionType = CompletionType.normal,
     target: CompletionTarget = realm['[[Intrinsics]]'].empty,
-    public readonly sourceNode: $ComputedPropertyName | $ContinueStatement | $BreakStatement | $FunctionDeclaration | null = null,
+    public readonly sourceNode: $SourceFile | $ComputedPropertyName | $ContinueStatement | $BreakStatement | $FunctionDeclaration | null = null,
   ) {
     this['[[Type]]'] = type;
     this['[[Target]]'] = target;

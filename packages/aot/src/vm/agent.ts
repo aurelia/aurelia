@@ -2,7 +2,7 @@ import { JobQueue, Job } from './job';
 import { $SourceFile } from './ast';
 import { DI, IContainer, ILogger } from '@aurelia/kernel';
 import { Realm, ExecutionContext } from './realm';
-import { $Any } from './types/_shared';
+import { $Any, CompletionType } from './types/_shared';
 import { $Empty } from './types/empty';
 
 export const ISourceFileProvider = DI.createInterface<ISourceFileProvider>('ISourceFileProvider').noDefault();
@@ -48,6 +48,7 @@ export class Agent {
     }
 
     let ctx = rootCtx;
+    let lastFile: $SourceFile | null = null;
 
     // 3. Repeat,
     while (true) {
@@ -64,7 +65,7 @@ export class Agent {
       if (this.ScriptJobs.isEmpty) {
         if (this.PromiseJobs.isEmpty) {
           this.logger.debug(`Finished successfully`);
-          return new $Empty(realm);
+          return new $Empty(realm, CompletionType.normal, intrinsics.empty, lastFile);
         } else {
           // 3. d. Let nextPending be the PendingJob record at the front of nextQueue. Remove that record from nextQueue.
           nextPending = this.PromiseJobs.queue.shift()!;
@@ -82,7 +83,7 @@ export class Agent {
 
       // 3. g. Set newContext's Realm to nextPending.[[Realm]].
       // 3. h. Set newContext's ScriptOrModule to nextPending.[[ScriptOrModule]].
-      newContext.ScriptOrModule = nextPending['[[ScriptOrModule]]'];
+      lastFile = newContext.ScriptOrModule = nextPending['[[ScriptOrModule]]'];
 
       // 3. i. Push newContext onto the execution context stack; newContext is now the running execution context.
       stack.push(newContext);

@@ -39,10 +39,10 @@ export {
   $TypeError,
   $URIError,
 } from './vm/types/error';
-export {
-  $BuiltinFunction,
-  $Function,
-} from './vm/types/function';
+// export {
+//   $BuiltinFunction,
+//   $Function,
+// } from './vm/types/function';
 export {
   $Null,
 } from './vm/types/null';

@@ -11,7 +11,7 @@ export function loader(contents, _preprocess = preprocess // for testing
     const options = getOptions(this);
     const filePath = this.resourcePath;
     try {
-        const result = _preprocess({ path: filePath, contents }, preprocessOptions({ ...options, stringModuleWrap }));
+        const result = _preprocess({ path: filePath, contents }, preprocessOptions(options || {}));
         // webpack uses source-map 0.6.1 typings for RawSourceMap which
         // contains typing error version: string (should be number).
         // use result.map as any to bypass the typing issue.
@@ -25,8 +25,5 @@ export function loader(contents, _preprocess = preprocess // for testing
     catch (e) {
         cb(e);
     }
-}
-function stringModuleWrap(id) {
-    return `!!raw-loader!${id}`;
 }
 //# sourceMappingURL=index.js.map

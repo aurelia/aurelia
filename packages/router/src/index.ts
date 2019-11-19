@@ -80,7 +80,6 @@ export {
 } from './route-recognizer';
 
 export {
-  IRouteTransformer,
   IRouterOptions,
   IRouter,
   Router,

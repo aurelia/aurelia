@@ -8,7 +8,6 @@ import { IRouter } from './router';
 import { arrayRemove } from './utils';
 import { ViewportContent } from './viewport-content';
 import { ViewportInstruction } from './viewport-instruction';
-import { RouteTable } from './route-table';
 import { NavigationInstructionResolver } from './type-resolvers';
 
 export interface IFindViewportsResult {
@@ -40,7 +39,6 @@ export class Viewport {
   public children: Viewport[] = [];
   public replacedChildren: Viewport[] = [];
 
-  public routeTable: RouteTable | null = null;
   public path: string | null = null;
 
   private clear: boolean = false;
@@ -631,17 +629,17 @@ export class Viewport {
     }
   }
 
-  public addRoutes(routes: IRoute[]): IRoute[] {
-    if (this.routeTable === null) {
-      this.routeTable = new RouteTable();
-    }
-    return this.routeTable.addRoutes(this.router, routes);
-  }
-  public removeRoutes(routes: IRoute[] | string[]): void {
-    if (this.routeTable !== null) {
-      this.routeTable.removeRoutes(this.router, routes);
-    }
-  }
+  // public addRoutes(routes: IRoute[]): IRoute[] {
+  //   if (this.routeTable === null) {
+  //     this.routeTable = new RouteTable();
+  //   }
+  //   return this.routeTable.addRoutes(this.router, routes);
+  // }
+  // public removeRoutes(routes: IRoute[] | string[]): void {
+  //   if (this.routeTable !== null) {
+  //     this.routeTable.removeRoutes(this.router, routes);
+  //   }
+  // }
   public findMatchingRoute(path: string): FoundRoute | null {
     let componentType: RouteableComponentType | null =
       this.nextContent !== null

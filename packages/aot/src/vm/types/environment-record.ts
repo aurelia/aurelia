@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { IModule, Realm, ExecutionContext } from '../realm';
-import { $Get, $DefinePropertyOrThrow, $Set, $HasOwnProperty } from '../operations';
+import { $DefinePropertyOrThrow, $Set, $HasOwnProperty } from '../operations';
 import { $PropertyDescriptor } from './property-descriptor';
 import { $Any, $AnyNonEmpty } from './_shared';
 import { $String } from './string';
@@ -386,12 +386,12 @@ export class $ObjectEnvRec {
     }
 
     // 6. Let unscopables be ? Get(bindings, @@unscopables).
-    const unscopables = $Get(ctx, bindings, intrinsics['@@unscopables']);
+    const unscopables = bindings['[[Get]]'](ctx, intrinsics['@@unscopables'], bindings);
 
     // 7. If Type(unscopables) is Object, then
     if (unscopables.isObject) {
       // 7. a. Let blocked be ToBoolean(? Get(unscopables, N)).
-      const blocked = $Get(ctx, unscopables, N).isTruthy;
+      const blocked = unscopables['[[Get]]'](ctx, N, unscopables).isTruthy;
 
       // 7. b. If blocked is true, return false.
       if (blocked) {
@@ -507,7 +507,7 @@ export class $ObjectEnvRec {
     }
 
     // 5. Return ? Get(bindings, N).
-    return $Get(ctx, bindings, N);
+    return bindings['[[Get]]'](ctx, N, bindings);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-deletebinding-n

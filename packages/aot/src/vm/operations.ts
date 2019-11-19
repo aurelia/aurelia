@@ -4,26 +4,13 @@ import { $PropertyDescriptor } from './types/property-descriptor';
 import { $BoundFunctionExoticObject } from './exotics/bound-function';
 import { $ArrayExoticObject } from './exotics/array';
 import { $ProxyExoticObject } from './exotics/proxy';
-import { $PropertyKey, $Primitive, ESType, $AnyNonEmpty, $Any } from './types/_shared';
+import { $PropertyKey, $Primitive, ESType, $AnyNonEmpty } from './types/_shared';
 import { $Object } from './types/object';
 import { $Function } from './types/function';
 import { $Boolean } from './types/boolean';
 import { $Undefined } from './types/undefined';
 import { $Null } from './types/null';
 import { $String } from './types/string';
-import { $Number } from './types/number';
-
-// http://www.ecma-international.org/ecma-262/#sec-get-o-p
-export function $Get(
-  ctx: ExecutionContext,
-  O: $Object,
-  P: $PropertyKey,
-): $AnyNonEmpty {
-  // 1. Assert: Type(O) is Object.
-  // 2. Assert: IsPropertyKey(P) is true.
-  // 3. Return ? O.[[Get]](P, O).
-  return O['[[Get]]'](ctx, P, O);
-}
 
 // http://www.ecma-international.org/ecma-262/#sec-set-o-p-v-throw
 export function $Set(
@@ -758,7 +745,7 @@ export function $OrdinaryHasInstance(
   }
 
   // 4. Let P be ? Get(C, "prototype").
-  const P = $Get(ctx, C, intrinsics.$prototype);
+  const P = C['[[Get]]'](ctx, intrinsics.$prototype, C);
 
   // 5. If Type(P) is not Object, throw a TypeError exception.
   if (!P.isObject) {
@@ -803,7 +790,7 @@ export function $ToPropertyDescriptor(
   // 4. If hasEnumerable is true, then
   if (Obj['[[HasProperty]]'](ctx, intrinsics.$enumerable)) {
     // 4. a. Let enumerable be ToBoolean(? Get(Obj, "enumerable")).
-    const enumerable = $Get(ctx, Obj, intrinsics.$enumerable).ToBoolean(ctx);
+    const enumerable = Obj['[[Get]]'](ctx, intrinsics.$enumerable, Obj).ToBoolean(ctx);
 
     // 4. b. Set desc.[[Enumerable]] to enumerable.
     desc['[[Enumerable]]'] = enumerable;
@@ -813,7 +800,7 @@ export function $ToPropertyDescriptor(
   // 6. If hasConfigurable is true, then
   if (Obj['[[HasProperty]]'](ctx, intrinsics.$configurable)) {
     // 6. a. Let configurable be ToBoolean(? Get(Obj, "configurable")).
-    const configurable = $Get(ctx, Obj, intrinsics.$configurable).ToBoolean(ctx);
+    const configurable = Obj['[[Get]]'](ctx, intrinsics.$configurable, Obj).ToBoolean(ctx);
 
     // 6. b. Set desc.[[Configurable]] to configurable.
     desc['[[Enumerable]]'] = configurable;
@@ -823,7 +810,7 @@ export function $ToPropertyDescriptor(
   // 8. If hasValue is true, then
   if (Obj['[[HasProperty]]'](ctx, intrinsics.$value)) {
     // 8. a. Let value be ? Get(Obj, "value").
-    const value = $Get(ctx, Obj, intrinsics.$value).ToBoolean(ctx);
+    const value = Obj['[[Get]]'](ctx, intrinsics.$value, Obj).ToBoolean(ctx);
 
     // 8. b. Set desc.[[Value]] to value.
     desc['[[Enumerable]]'] = value;
@@ -833,7 +820,7 @@ export function $ToPropertyDescriptor(
   // 10. If hasWritable is true, then
   if (Obj['[[HasProperty]]'](ctx, intrinsics.$writable)) {
     // 10. a. Let writable be ToBoolean(? Get(Obj, "writable")).
-    const writable = $Get(ctx, Obj, intrinsics.$writable).ToBoolean(ctx);
+    const writable = Obj['[[Get]]'](ctx, intrinsics.$writable, Obj).ToBoolean(ctx);
 
     // 10. b. Set desc.[[Writable]] to writable.
     desc['[[Enumerable]]'] = writable;
@@ -843,7 +830,7 @@ export function $ToPropertyDescriptor(
   // 12. If hasGet is true, then
   if (Obj['[[HasProperty]]'](ctx, intrinsics.$get)) {
     // 12. a. Let getter be ? Get(Obj, "get").
-    const getter = $Get(ctx, Obj, intrinsics.$get);
+    const getter = Obj['[[Get]]'](ctx, intrinsics.$get, Obj);
 
     // 12. b. If IsCallable(getter) is false and getter is not undefined, throw a TypeError exception.
     if (!getter.isFunction && !getter.isUndefined) {
@@ -858,7 +845,7 @@ export function $ToPropertyDescriptor(
   // 14. If hasSet is true, then
   if (Obj['[[HasProperty]]'](ctx, intrinsics.$set)) {
     // 14. a. Let setter be ? Get(Obj, "set").
-    const setter = $Get(ctx, Obj, intrinsics.$set);
+    const setter = Obj['[[Get]]'](ctx, intrinsics.$set, Obj);
 
     // 14. b. If IsCallable(setter) is false and setter is not undefined, throw a TypeError exception.
     if (!setter.isFunction && !setter.isUndefined) {
@@ -973,7 +960,7 @@ export function $CreateListFromArrayLike(
   }
 
   // 3. Let len be ? ToLength(? Get(obj, "length")).
-  const len = $Get(ctx, obj, intrinsics.length).ToLength(ctx);
+  const len = obj['[[Get]]'](ctx, intrinsics.length, obj).ToLength(ctx);
 
   // 4. Let list be a new empty List.
   const list: $AnyNonEmpty[] = [];
@@ -987,7 +974,7 @@ export function $CreateListFromArrayLike(
     const indexName = new $String(realm, index.toString());
 
     // 6. b. Let next be ? Get(obj, indexName).
-    const next = $Get(ctx, obj, indexName);
+    const next = obj['[[Get]]'](ctx, indexName, obj);
 
     // 6. c. If Type(next) is not an element of elementTypes, throw a TypeError exception.
     if (!elementTypes.includes(next.Type)) {

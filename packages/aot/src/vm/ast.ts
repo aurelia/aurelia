@@ -147,7 +147,7 @@ import { NPMPackage } from '../system/npm-package-loader';
 import { IModule, ResolveSet, ResolvedBindingRecord, Realm, ExecutionContext } from './realm';
 import { PatternMatcher } from '../system/pattern-matcher';
 import { $ModuleEnvRec, $EnvRec, $DeclarativeEnvRec } from './types/environment-record';
-import { $AbstractRelationalComparison, $InstanceOfOperator, $AbstractEqualityComparison, $StrictEqualityComparison, $Call, $Get } from './operations';
+import { $AbstractRelationalComparison, $InstanceOfOperator, $AbstractEqualityComparison, $StrictEqualityComparison, $Call } from './operations';
 import { $NamespaceExoticObject } from './exotics/namespace';
 import { $String } from './types/string';
 import { $Undefined } from './types/undefined';
@@ -5750,7 +5750,7 @@ export class $Identifier implements I$Node {
     const lhs = realm.ResolveBinding(bindingId, environment);
 
     // 3. Let v be ? GetV(value, propertyName).
-    let v = $Get(ctx, value.ToObject(ctx), propertyName);
+    let v = value.ToObject(ctx)['[[Get]]'](ctx, propertyName, value.ToObject(ctx));
 
     // 4. If Initializer is present and v is undefined, then
     if (initializer !== void 0 && v.isUndefined) {
@@ -9405,7 +9405,7 @@ export class $BindingElement implements I$Node {
     // BindingElement : BindingPattern Initializer opt
 
     // 1. Let v be ? GetV(value, propertyName).
-    let v = $Get(ctx, value.ToObject(ctx), propertyName);
+    let v = value.ToObject(ctx)['[[Get]]'](ctx, propertyName, value.ToObject(ctx));
 
     // 2. If Initializer is present and v is undefined, then
     if (initializer !== void 0 && v.isUndefined) {

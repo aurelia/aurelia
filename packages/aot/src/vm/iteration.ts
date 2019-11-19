@@ -3,7 +3,7 @@ import { $Object } from './types/object';
 import { $Function, $BuiltinFunction } from './types/function';
 import { $Boolean } from './types/boolean';
 import { $Any, $AnyNonEmpty, CompletionType } from './types/_shared';
-import { $CreateDataProperty, $Call, $Get } from './operations';
+import { $CreateDataProperty, $Call } from './operations';
 import { $Number } from './types/number';
 import { $Undefined } from './types/undefined';
 
@@ -56,7 +56,7 @@ export function $GetIterator(
   }
 
   // 6. Let nextMethod be ? GetV(iterator, "next").
-  const nextMethod = $Get(ctx, iterator, intrinsics.next) as $Function;
+  const nextMethod = iterator['[[Get]]'](ctx, intrinsics.next, iterator) as $Function;
 
   // 7. Let iteratorRecord be Record { [[Iterator]]: iterator, [[NextMethod]]: nextMethod, [[Done]]: false }.
   const iteratorRecord = new $IteratorRecord(
@@ -107,7 +107,7 @@ export function $IteratorComplete(
 
   // 1. Assert: Type(iterResult) is Object.
   // 2. Return ToBoolean(? Get(iterResult, "done")).
-  return $Get(ctx, iterResult, intrinsics.$done).ToBoolean(ctx);
+  return iterResult['[[Get]]'](ctx, intrinsics.$done, iterResult).ToBoolean(ctx);
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-iteratorvalue
@@ -120,7 +120,7 @@ export function $IteratorValue(
 
   // 1. Assert: Type(iterResult) is Object.
   // 2. Return ? Get(iterResult, "value").
-  return $Get(ctx, iterResult, intrinsics.$value);
+  return iterResult['[[Get]]'](ctx, intrinsics.$value, iterResult);
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-iteratorstep

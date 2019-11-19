@@ -4,7 +4,7 @@ import { $Number } from '../types/number';
 import { $PropertyDescriptor } from '../types/property-descriptor';
 import { $PropertyKey } from '../types/_shared';
 import { $Boolean } from '../types/boolean';
-import { $Get, $GetFunctionRealm, $Construct } from '../operations';
+import { $GetFunctionRealm, $Construct } from '../operations';
 import { $Function } from '../types/function';
 
 // http://www.ecma-international.org/ecma-262/#sec-array-exotic-objects
@@ -272,7 +272,7 @@ export function $ArraySpeciesCreate(
   }
 
   // 5. Let C be ? Get(originalArray, "constructor").
-  let C = $Get(ctx, originalArray, intrinsics.$constructor);
+  let C = originalArray['[[Get]]'](ctx, intrinsics.$constructor, originalArray);
 
   // 6. If IsConstructor(C) is true, then
   if (C.isFunction) {
@@ -294,7 +294,7 @@ export function $ArraySpeciesCreate(
   // 7. If Type(C) is Object, then
   if (C.isObject) {
     // 7. a. Set C to ? Get(C, @@species).
-    C = $Get(ctx, C, intrinsics['@@species']);
+    C = C['[[Get]]'](ctx, intrinsics['@@species'], C);
 
     // 7. b. If C is null, set C to undefined.
     if (C.isNull) {

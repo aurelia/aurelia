@@ -4,10 +4,10 @@ import { $EnvRec, $FunctionEnvRec } from './environment-record';
 import { $FunctionDeclaration, $MethodDeclaration, $ArrowFunction, $SourceFile } from '../ast';
 import { $Boolean } from './boolean';
 import { $String } from './string';
-import { $Any, $AnyNonEmpty, CompletionType } from './_shared';
+import { $AnyNonEmpty, CompletionType } from './_shared';
 import { $PropertyDescriptor } from './property-descriptor';
 import { $Number } from './number';
-import { $DefinePropertyOrThrow, $Get } from '../operations';
+import { $DefinePropertyOrThrow } from '../operations';
 import { $Symbol } from './symbol';
 import { Intrinsics } from '../intrinsics';
 import { $Undefined } from './undefined';
@@ -419,7 +419,7 @@ function $GetPrototypeFromConstructor<T extends keyof Intrinsics = keyof Intrins
   // 1. Assert: intrinsicDefaultProto is a String value that is this specification's name of an intrinsic object. The corresponding object must be an intrinsic that is intended to be used as the [[Prototype]] value of an object.
   // 2. Assert: IsCallable(constructor) is true.
   // 3. Let proto be ? Get(constructor, "prototype").
-  let proto = $Get(ctx, constructor, intrinsics.$prototype);
+  let proto = constructor['[[Get]]'](ctx, intrinsics.$prototype, constructor);
 
   // 4. If Type(proto) is not Object, then
   if (!proto.isObject) {

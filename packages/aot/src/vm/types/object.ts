@@ -5,7 +5,7 @@ import { $Boolean } from './boolean';
 import { Realm, ExecutionContext } from '../realm';
 import { $String } from './string';
 import { $Number } from './number';
-import { $Call, $Get, $ValidateAndApplyPropertyDescriptor, $OrdinarySetWithOwnDescriptor } from '../operations';
+import { $Call, $ValidateAndApplyPropertyDescriptor, $OrdinarySetWithOwnDescriptor } from '../operations';
 import { $Function } from './function';
 import { $Undefined } from './undefined';
 import { $Symbol } from './symbol';
@@ -253,7 +253,7 @@ export class $Object<
       // 3. a. Let methodNames be « "toString", "valueOf" ».
       // 5. For each name in methodNames in List order, do
       // 5. a. Let method be ? Get(O, name).
-      let method = $Get(ctx, O, intrinsics.$toString);
+      let method = O['[[Get]]'](ctx, intrinsics.$toString, O);
 
       // 5. b. If IsCallable(method) is true, then
       if (method.isFunction) {
@@ -266,7 +266,7 @@ export class $Object<
         }
       }
 
-      method = $Get(ctx, O, intrinsics.$valueOf);
+      method = O['[[Get]]'](ctx, intrinsics.$valueOf, O);
 
       // 5. b. If IsCallable(method) is true, then
       if (method.isFunction) {
@@ -287,7 +287,7 @@ export class $Object<
       // 4. a. Let methodNames be « "valueOf", "toString" ».
       // 5. For each name in methodNames in List order, do
       // 5. a. Let method be ? Get(O, name).
-      let method = $Get(ctx, O, intrinsics.$valueOf);
+      let method = O['[[Get]]'](ctx, intrinsics.$valueOf, O);
 
       // 5. b. If IsCallable(method) is true, then
       if (method.isFunction) {
@@ -300,7 +300,7 @@ export class $Object<
         }
       }
 
-      method = $Get(ctx, O, intrinsics.$toString);
+      method = O['[[Get]]'](ctx, intrinsics.$toString, O);
 
       // 5. b. If IsCallable(method) is true, then
       if (method.isFunction) {

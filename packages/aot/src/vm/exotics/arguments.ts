@@ -2,9 +2,9 @@ import { $Object } from '../types/object';
 import { Realm, ExecutionContext } from '../realm';
 import { $Function, $BuiltinFunction } from '../types/function';
 import { $ParameterDeclaration, getBoundNames } from '../ast';
-import { $Any, $PropertyKey, $AnyNonEmpty } from '../types/_shared';
+import { $PropertyKey, $AnyNonEmpty } from '../types/_shared';
 import { $EnvRec } from '../types/environment-record';
-import { $CreateDataProperty, $DefinePropertyOrThrow, $HasOwnProperty, $Get, $Set } from '../operations';
+import { $CreateDataProperty, $DefinePropertyOrThrow, $HasOwnProperty, $Set } from '../operations';
 import { $String } from '../types/string';
 import { $PropertyDescriptor, $IsDataDescriptor } from '../types/property-descriptor';
 import { $Number } from '../types/number';
@@ -168,7 +168,7 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
     // 6. If isMapped is true, then
     if (isMapped) {
       // 6. a. Set desc.[[Value]] to Get(map, P).
-      desc['[[Value]]'] = $Get(ctx, map, P);
+      desc['[[Value]]'] = map['[[Get]]'](ctx, P, map);
     }
 
     // 7. Return desc.
@@ -204,7 +204,7 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
           Desc.name,
           {
             // 5. a. ii. Set newArgDesc.[[Value]] to Get(map, P).
-            '[[Value]]': $Get(ctx, map, P),
+            '[[Value]]': map['[[Get]]'](ctx, P, map),
             '[[Writable]]': Desc['[[Writable]]'],
             '[[Enumerable]]': Desc['[[Enumerable]]'],
             '[[Configurable]]': Desc['[[Configurable]]'],
@@ -270,7 +270,7 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
     // 5. Else map contains a formal parameter mapping for P,
     else {
       // 5. a. Return Get(map, P).
-      return $Get(ctx, map, P);
+      return map['[[Get]]'](ctx, P, map);
     }
   }
 

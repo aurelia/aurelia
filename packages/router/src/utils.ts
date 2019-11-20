@@ -1,15 +1,15 @@
 import { CustomElementHost, CustomElement, IController, IViewModel } from '@aurelia/runtime';
 
-export function closestCustomElement(element: CustomElementHost<Element>): CustomElementHost | null {
-  let el: CustomElementHost<Element> | null = element;
-  while (el !== null) {
-    if (CustomElement.for(el) !== void 0) {
-      break;
-    }
-    el = el.parentElement;
-  }
-  return el;
-}
+// export function closestCustomElement(element: CustomElementHost<Element>): CustomElementHost | null {
+//   let el: CustomElementHost<Element> | null = element;
+//   while (el !== null) {
+//     if (CustomElement.for(el) !== void 0) {
+//       break;
+//     }
+//     el = el.parentElement;
+//   }
+//   return el;
+// }
 
 export function closestController(elementOrViewModel: Element | IViewModel): IController | undefined {
   // if ('$controller' in elementOrViewModel) {
@@ -25,10 +25,10 @@ export function closestController(elementOrViewModel: Element | IViewModel): ICo
     return attributeController.parent;
   }
   let element: Element = elementOrViewModel as Element;
-  let controller: IController<Element> | undefined = CustomElement.behaviorFor(element);
+  let controller: IController<Element> | undefined = CustomElement.for(element);
   while (controller === void 0 && element.parentElement) {
     element = element.parentElement;
-    controller = CustomElement.behaviorFor(element);
+    controller = CustomElement.for(element);
   }
   return controller;
 }

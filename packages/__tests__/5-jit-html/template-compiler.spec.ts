@@ -445,6 +445,7 @@ const defaultCustomElementDefinitionProperties = {
   bindables: {},
   childrenObservers: {},
   containerless: false,
+  injectable: null,
   isStrictBinding: false,
   hasSlots: false,
   shadowOptions: null,

@@ -173,6 +173,7 @@ export interface IRenderingEngine {
     definition: CustomElementDefinition,
     parentContext?: IContainer | IRenderContext<T>,
     componentType?: CustomElementType,
+    component?: IViewModel,
   ): ITemplate<T>|undefined;
 
   getViewFactory<T extends INode = INode>(
@@ -197,7 +198,8 @@ export class RenderingEngine implements IRenderingEngine {
     dom: IDOM<T>,
     definition: CustomElementDefinition,
     parentContext?: IContainer | IRenderContext<T>,
-    componentType?: CustomElementType
+    componentType?: CustomElementType,
+    componentInstance?: IViewModel,
   ): ITemplate<T> | undefined {
     if (definition == void 0) {
       return void 0;
@@ -206,7 +208,7 @@ export class RenderingEngine implements IRenderingEngine {
       parentContext = this.container as ExposedContext;
     }
 
-    return this.templateFromSource(dom, definition, parentContext, componentType);
+    return this.templateFromSource(dom, definition, parentContext, componentType, componentInstance);
   }
 
   public getViewFactory<T extends INode = INode>(
@@ -240,7 +242,10 @@ export class RenderingEngine implements IRenderingEngine {
       const template = this.templateFromSource(dom, definition, parentContext, void 0);
       factory = new ViewFactory(definition.name, template, this.lifecycle);
       factory.setCacheSize(definition.cache, true);
-      Metadata.define(factorykey, factory, definition);
+      if (definition.injectable === null) {
+        // Never cache view factories for an injectable since we always need a new render context per instance
+        Metadata.define(factorykey, factory, definition);
+      }
     }
 
     return factory as IViewFactory<T>;
@@ -250,14 +255,18 @@ export class RenderingEngine implements IRenderingEngine {
     dom: IDOM,
     definition: CustomElementDefinition,
     parentContext: IContainer | IRenderContext,
-    componentType?: CustomElementType
+    componentType?: CustomElementType,
+    componentInstance?: IViewModel,
   ): ITemplate<T> {
     const templateKey = CustomElement.keyFrom(`${parentContext.path}:template`);
 
     let template = Metadata.getOwn(templateKey, definition);
     if (template === void 0) {
-      template = this.templateFromSourceCore(dom, definition, parentContext, componentType);
-      Metadata.define(templateKey, template, definition);
+      template = this.templateFromSourceCore(dom, definition, parentContext, componentType, componentInstance);
+      if (definition.injectable === null) {
+        // Never cache templates for an injectable since we always need a new render context per instance
+        Metadata.define(templateKey, template, definition);
+      }
     }
 
     return template;
@@ -267,9 +276,10 @@ export class RenderingEngine implements IRenderingEngine {
     dom: IDOM,
     definition: CustomElementDefinition,
     parentContext: IContainer | IRenderContext,
-    componentType?: CustomElementType
+    componentType?: CustomElementType,
+    componentInstance?: IViewModel,
   ): ITemplate {
-    const renderContext = new RenderContext(dom, parentContext, definition.dependencies, componentType);
+    const renderContext = new RenderContext(dom, parentContext, definition.dependencies, componentType, componentInstance);
 
     if (definition.template != void 0 && definition.needsCompile) {
       const compiledDefinitionKey = CustomElement.keyFrom(`${parentContext.path}:compiled-definition`);

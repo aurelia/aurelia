@@ -10,11 +10,12 @@ import {
   Resolved,
   RuntimeCompilationResources,
   Transformer,
+  Registration,
 } from '@aurelia/kernel';
 import { ITargetedInstruction, PartialCustomElementDefinitionParts } from './definitions';
 import { IDOM, INode, IRenderLocation } from './dom';
 import { LifecycleFlags } from './flags';
-import { IController, IRenderContext, IViewFactory } from './lifecycle';
+import { IController, IRenderContext, IViewFactory, IViewModel } from './lifecycle';
 import { ExposedContext, IRenderer, IRenderingEngine } from './rendering-engine';
 import { CustomElementDefinition, CustomElementType, CustomElement } from './resources/custom-element';
 
@@ -41,8 +42,9 @@ export class RenderContext implements IRenderContext {
   public constructor(
     private readonly dom: IDOM,
     private readonly parentContainer: IContainer,
-    private readonly dependencies: readonly Key[],
-    private readonly componentType?: CustomElementType,
+    dependencies: readonly Key[],
+    componentType?: CustomElementType,
+    componentInstance?: IViewModel,
   ) {
     const container = (
       this.container = parentContainer.createChild()
@@ -77,7 +79,16 @@ export class RenderContext implements IRenderContext {
 
     // If the element has a view, support Recursive Components by adding self to own view template container.
     if (componentType) {
-      CustomElement.getDefinition(componentType).register(container);
+      const def = CustomElement.getDefinition(componentType);
+      def.register(container);
+      if (componentInstance !== void 0) {
+        const injectable = def.injectable;
+        if (injectable !== null) {
+          // If the element is registered as injectable, support injecting the instance into children
+          // Note: this provider is never disposed at the moment. Perhaps we need to at some point, but not disposing it here doesn't necessarily need to cause memory leaks. Keep an eye on it though.
+          Registration.instance(injectable, componentInstance).register(container);
+        }
+      }
     }
   }
 

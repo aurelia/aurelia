@@ -181,26 +181,26 @@ function clearBit(flag: number, bit: number): number {
 }
 
 const enum Context {
-  None                      = 0b00000000000000000,
-  InTopLevel                = 0b00000000000000001,
-  InExpressionStatement     = 0b00000000000000010,
-  InVariableStatement       = 0b00000000000000100,
-  IsBindingName             = 0b00000000000001000,
-  InParameterDeclaration    = 0b00000000000010000,
-  InCatchClause             = 0b00000000000100000,
-  InBindingPattern          = 0b00000000001000000,
-  InTypeElement             = 0b00000000010000000,
-  IsPropertyAccessName      = 0b00000000100000000,
-  IsMemberName              = 0b00000001000000000,
-  IsLabel                   = 0b00000010000000000,
-  IsLabelReference          = 0b00000100000000000,
-  InExport                  = 0b00001000000000000,
-  IsConst                   = 0b00010000000000000,
-  IsLet                     = 0b00100000000000000,
-  IsBlockScoped             = 0b00110000000000000,
-  IsVar                     = 0b01000000000000000,
-  IsFunctionScoped          = 0b01000000000000000,
-  InStrictMode              = 0b10000000000000000,
+  None = 0b00000000000000000,
+  InTopLevel = 0b00000000000000001,
+  InExpressionStatement = 0b00000000000000010,
+  InVariableStatement = 0b00000000000000100,
+  IsBindingName = 0b00000000000001000,
+  InParameterDeclaration = 0b00000000000010000,
+  InCatchClause = 0b00000000000100000,
+  InBindingPattern = 0b00000000001000000,
+  InTypeElement = 0b00000000010000000,
+  IsPropertyAccessName = 0b00000000100000000,
+  IsMemberName = 0b00000001000000000,
+  IsLabel = 0b00000010000000000,
+  IsLabelReference = 0b00000100000000000,
+  InExport = 0b00001000000000000,
+  IsConst = 0b00010000000000000,
+  IsLet = 0b00100000000000000,
+  IsBlockScoped = 0b00110000000000000,
+  IsVar = 0b01000000000000000,
+  IsFunctionScoped = 0b01000000000000000,
+  InStrictMode = 0b10000000000000000,
 }
 
 const modifiersToModifierFlags = (function () {
@@ -3382,10 +3382,10 @@ export function $ArgumentListEvaluation(
   // 3. Let spreadObj be ? GetValue(spreadRef).
   // 4. Let iteratorRecord be ? GetIterator(spreadObj).
   // 5. Repeat,
-    // 5. a. Let next be ? IteratorStep(iteratorRecord).
-    // 5. b. If next is false, return list.
-    // 5. c. Let nextArg be ? IteratorValue(next).
-    // 5. d. Append nextArg as the last element of list.
+  // 5. a. Let next be ? IteratorStep(iteratorRecord).
+  // 5. b. If next is false, return list.
+  // 5. c. Let nextArg be ? IteratorValue(next).
+  // 5. d. Append nextArg as the last element of list.
 
   // ArgumentList : ArgumentList , AssignmentExpression
 
@@ -3416,10 +3416,10 @@ export function $ArgumentListEvaluation(
   // 3. Let spreadRef be the result of evaluating AssignmentExpression.
   // 4. Let iteratorRecord be ? GetIterator(? GetValue(spreadRef)).
   // 5. Repeat,
-    // 5. a. Let next be ? IteratorStep(iteratorRecord).
-    // 5. b. If next is false, return precedingArgs.
-    // 5. c. Let nextArg be ? IteratorValue(next).
-    // 5. d. Append nextArg as the last element of precedingArgs.
+  // 5. a. Let next be ? IteratorStep(iteratorRecord).
+  // 5. b. If next is false, return precedingArgs.
+  // 5. c. Let nextArg be ? IteratorValue(next).
+  // 5. d. Append nextArg as the last element of precedingArgs.
 
 
 }
@@ -4186,7 +4186,7 @@ export class $TypeOfExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-typeof-operator-runtime-semantics-evaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $String {
+  ): $String | $Undefined {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -4194,12 +4194,56 @@ export class $TypeOfExpression implements I$Node {
     // UnaryExpression : typeof UnaryExpression
 
     // 1. Let val be the result of evaluating UnaryExpression.
+    let val = this.$expression.Evaluate(ctx);
+
     // 2. If Type(val) is Reference, then
     // 2. a. If IsUnresolvableReference(val) is true, return "undefined".
+    if (val instanceof $Reference && val.IsUnresolvableReference()['[[Value]]']) {
+      return new $Undefined(realm);
+    }
     // 3. Set val to ? GetValue(val).
-    // 4. Return a String according to Table 35.
+    val = val.GetValue(ctx);
+    if (val.isAbrupt) {
+      return val as $String;
+    }
 
-    return intrinsics['']; // TODO: implement this
+    // 4. Return a String according to Table 35.
+    // Table 35: typeof Operator Results
+    switch (true) {
+      // Type of val   Result
+      // Undefined   	"undefined"
+      case val instanceof $Undefined:
+        return new $String(realm, "undefined");
+
+      // Boolean   	  "boolean"
+      case val instanceof $Boolean:
+        return new $String(realm, "boolean");
+
+      // Number    	  "number"
+      case val instanceof $Number:
+        return new $String(realm, "number");
+
+      // String    	  "string"
+      case val instanceof $String:
+        return new $String(realm, "string");
+
+      // Symbol    	  "symbol"
+      // case val instanceof $Symbol:
+      //   return new $String(realm, "symbol");
+
+      // Object        (implements [[Call]])	"function"
+      case val instanceof $Function:
+        return new $String(realm, "function");
+
+      // Object        (ordinary and does not implement [[Call]])	"object"
+      // Object        (standard exotic and does not implement [[Call]])	"object"
+      // Object        (non-standard exotic and does not implement [[Call]])	Implementation-defined. Must not be "undefined", "boolean", "function", "number", "symbol", or "string".
+      case val instanceof $Object:
+      // Null    	    "object"
+      case val instanceof $Null:
+      default:
+        return new $String(realm, "object");
+    }
   }
 }
 
@@ -7273,8 +7317,8 @@ export class $SourceFile implements I$Node, IModule {
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. If module is not a Cyclic Module Record, then
-      // 1. a. Perform ? module.Evaluate(ctx).
-      // 1. b. Return index.
+    // 1. a. Perform ? module.Evaluate(ctx).
+    // 1. b. Return index.
 
     // We only deal with cyclic module records for now
 
@@ -9265,7 +9309,7 @@ export class $ArrayBindingPattern implements I$Node {
           // ArrayBindingPattern : [ Elision opt BindingRestElement ]
 
           // 1. If Elision is present, then
-            // 1. a. Perform ? IteratorDestructuringAssignmentEvaluation of Elision with iteratorRecord as the argument.
+          // 1. a. Perform ? IteratorDestructuringAssignmentEvaluation of Elision with iteratorRecord as the argument.
           // 2. Return the result of performing IteratorBindingInitialization for BindingRestElement with iteratorRecord and environment as arguments.
 
           // ArrayBindingPattern : [ BindingElementList ]
@@ -9282,7 +9326,7 @@ export class $ArrayBindingPattern implements I$Node {
 
           // 1. Perform ? IteratorBindingInitialization for BindingElementList with iteratorRecord and environment as arguments.
           // 2. If Elision is present, then
-            // 2. a. Perform ? IteratorDestructuringAssignmentEvaluation of Elision with iteratorRecord as the argument.
+          // 2. a. Perform ? IteratorDestructuringAssignmentEvaluation of Elision with iteratorRecord as the argument.
           // 3. Return the result of performing IteratorBindingInitialization for BindingRestElement with iteratorRecord and environment as arguments.
 
           const result = el.InitializeIteratorBinding(ctx, iteratorRecord, environment);
@@ -9445,11 +9489,11 @@ export class $BindingElement implements I$Node {
     // 2. Let lhs be ? ResolveBinding(bindingId, environment).
     // 3. Let v be ? GetV(value, propertyName).
     // 4. If Initializer is present and v is undefined, then
-      // 4. a. If IsAnonymousFunctionDefinition(Initializer) is true, then
-        // 4. a. i. Set v to the result of performing NamedEvaluation for Initializer with argument bindingId.
-      // 4. b. Else,
-        // 4. b. i. Let defaultValue be the result of evaluating Initializer.
-        // 4. b. ii. Set v to ? GetValue(defaultValue).
+    // 4. a. If IsAnonymousFunctionDefinition(Initializer) is true, then
+    // 4. a. i. Set v to the result of performing NamedEvaluation for Initializer with argument bindingId.
+    // 4. b. Else,
+    // 4. b. i. Let defaultValue be the result of evaluating Initializer.
+    // 4. b. ii. Set v to ? GetValue(defaultValue).
     // 5. If environment is undefined, return ? PutValue(lhs, v).
     // 6. Return InitializeReferencedBinding(lhs, v).
     if (BindingElement.$kind === SyntaxKind.Identifier) {
@@ -9497,21 +9541,21 @@ export class $BindingElement implements I$Node {
     // 1. Let bindingId be StringValue of BindingIdentifier.
     // 2. Let lhs be ? ResolveBinding(bindingId, environment).
     // 3. If iteratorRecord.[[Done]] is false, then
-      // 3. a. Let next be IteratorStep(iteratorRecord).
-      // 3. b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
-      // 3. c. ReturnIfAbrupt(next).
-      // 3. d. If next is false, set iteratorRecord.[[Done]] to true.
-      // 3. e. Else,
-        // 3. e. i. Let v be IteratorValue(next).
-        // 3. e. ii. If v is an abrupt completion, set iteratorRecord.[[Done]] to true.
-        // 3. e. iii. ReturnIfAbrupt(v).
+    // 3. a. Let next be IteratorStep(iteratorRecord).
+    // 3. b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
+    // 3. c. ReturnIfAbrupt(next).
+    // 3. d. If next is false, set iteratorRecord.[[Done]] to true.
+    // 3. e. Else,
+    // 3. e. i. Let v be IteratorValue(next).
+    // 3. e. ii. If v is an abrupt completion, set iteratorRecord.[[Done]] to true.
+    // 3. e. iii. ReturnIfAbrupt(v).
     // 4. If iteratorRecord.[[Done]] is true, let v be undefined.
     // 5. If Initializer is present and v is undefined, then
-      // 5. a. If IsAnonymousFunctionDefinition(Initializer) is true, then
-        // 5. a. i. Set v to the result of performing NamedEvaluation for Initializer with argument bindingId.
-      // 5. b. Else,
-        // 5. b. i. Let defaultValue be the result of evaluating Initializer.
-        // 5. b. ii. Set v to ? GetValue(defaultValue).
+    // 5. a. If IsAnonymousFunctionDefinition(Initializer) is true, then
+    // 5. a. i. Set v to the result of performing NamedEvaluation for Initializer with argument bindingId.
+    // 5. b. Else,
+    // 5. b. i. Let defaultValue be the result of evaluating Initializer.
+    // 5. b. ii. Set v to ? GetValue(defaultValue).
     // 6. If environment is undefined, return ? PutValue(lhs, v).
     // 7. Return InitializeReferencedBinding(lhs, v).
 

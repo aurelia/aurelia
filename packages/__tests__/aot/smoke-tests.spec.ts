@@ -217,4 +217,43 @@ describe('AOT (smoke tests)', function () {
     assert.instanceOf(result['[[Value]]'], Error);
   });
 
+  it.skip('delete', async function () {
+    const result = await execute(`
+      function foo(){}
+      // foo.a = 123;
+      foo.b = 123;
+      // delete foo.a;
+      return foo;
+    `);
+
+    const foo: any = result['[[Value]]'];
+    assert.equal(foo.a, void 0);
+    assert.equal(foo.b, 123);
+  });
+
+  [
+    { input: undefined, type: "undefined" },
+    { input: null, type: "object" },
+    { input: true, type: "boolean" },
+    { input: 1, type: "number" },
+    { input: "'1'", type: "string" },
+    { input: '{ }', type: "object" },
+  ].map(({ input, type }) =>
+    it.only(`typeof ${input} is "${type}"`, async function () {
+      const result = await execute(`
+      return typeof ${input};
+    `);
+
+      assert.strictEqual(result['[[Value]]'], type);
+    }));
+
+  it.only(`typeof function is "function"`, async function () {
+    const result = await execute(`
+      function foo() { }
+      return typeof foo;
+    `);
+
+    assert.strictEqual(result['[[Value]]'], "function");
+  });
+
 });

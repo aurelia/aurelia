@@ -144,21 +144,21 @@
                 }
                 let cur = node;
                 while (cur !== null) {
-                    const controller = kernel_1.Metadata.getOwn(exports.CustomElement.name, node);
+                    const controller = kernel_1.Metadata.getOwn(exports.CustomElement.name, cur);
                     if (controller !== void 0 && controller.is(nameOrSearchParents)) {
                         return controller;
                     }
-                    cur = dom_1.DOM.getEffectiveParentNode(node);
+                    cur = dom_1.DOM.getEffectiveParentNode(cur);
                 }
                 return (void 0);
             }
             let cur = node;
             while (cur !== null) {
-                const controller = kernel_1.Metadata.getOwn(exports.CustomElement.name, node);
+                const controller = kernel_1.Metadata.getOwn(exports.CustomElement.name, cur);
                 if (controller !== void 0) {
                     return controller;
                 }
-                cur = dom_1.DOM.getEffectiveParentNode(node);
+                cur = dom_1.DOM.getEffectiveParentNode(cur);
             }
             return (void 0);
         },

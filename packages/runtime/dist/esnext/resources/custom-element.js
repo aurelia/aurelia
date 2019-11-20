@@ -128,21 +128,21 @@ export const CustomElement = {
             }
             let cur = node;
             while (cur !== null) {
-                const controller = Metadata.getOwn(CustomElement.name, node);
+                const controller = Metadata.getOwn(CustomElement.name, cur);
                 if (controller !== void 0 && controller.is(nameOrSearchParents)) {
                     return controller;
                 }
-                cur = DOM.getEffectiveParentNode(node);
+                cur = DOM.getEffectiveParentNode(cur);
             }
             return (void 0);
         }
         let cur = node;
         while (cur !== null) {
-            const controller = Metadata.getOwn(CustomElement.name, node);
+            const controller = Metadata.getOwn(CustomElement.name, cur);
             if (controller !== void 0) {
                 return controller;
             }
-            cur = DOM.getEffectiveParentNode(node);
+            cur = DOM.getEffectiveParentNode(cur);
         }
         return (void 0);
     },

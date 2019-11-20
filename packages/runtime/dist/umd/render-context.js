@@ -16,11 +16,9 @@
     const rendering_engine_1 = require("./rendering-engine");
     const custom_element_1 = require("./resources/custom-element");
     class RenderContext {
-        constructor(dom, parentContainer, dependencies, componentType) {
+        constructor(dom, parentContainer, dependencies, componentType, componentInstance) {
             this.dom = dom;
             this.parentContainer = parentContainer;
-            this.dependencies = dependencies;
-            this.componentType = componentType;
             const container = (this.container = parentContainer.createChild());
             const renderableProvider = (this.renderableProvider = new kernel_1.InstanceProvider());
             const elementProvider = (this.elementProvider = new kernel_1.InstanceProvider());
@@ -38,7 +36,16 @@
             }
             // If the element has a view, support Recursive Components by adding self to own view template container.
             if (componentType) {
-                custom_element_1.CustomElement.getDefinition(componentType).register(container);
+                const def = custom_element_1.CustomElement.getDefinition(componentType);
+                def.register(container);
+                if (componentInstance !== void 0) {
+                    const injectable = def.injectable;
+                    if (injectable !== null) {
+                        // If the element is registered as injectable, support injecting the instance into children
+                        // Note: this provider is never disposed at the moment. Perhaps we need to at some point, but not disposing it here doesn't necessarily need to cause memory leaks. Keep an eye on it though.
+                        kernel_1.Registration.instance(injectable, componentInstance).register(container);
+                    }
+                }
             }
         }
         get id() {

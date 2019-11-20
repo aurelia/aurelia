@@ -88,7 +88,7 @@ export class Controller {
                     }
                 }
                 else {
-                    template = renderingEngine.getElementTemplate(parentContext.get(IDOM), definition, parentContext, Type);
+                    template = renderingEngine.getElementTemplate(parentContext.get(IDOM), definition, parentContext, Type, viewModel);
                 }
                 if (template !== void 0) {
                     if (template.definition == null ||

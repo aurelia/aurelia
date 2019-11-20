@@ -144,6 +144,7 @@ export declare const AuDOMTest: {
         readonly template?: unknown;
         readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
         readonly dependencies?: readonly Key[] | undefined;
+        readonly injectable?: import("@aurelia/runtime/dist/resources/custom-element").InjectableToken<any> | null | undefined;
         readonly needsCompile?: boolean | undefined;
         readonly surrogates?: readonly ITargetedInstruction[] | undefined;
         readonly bindables?: readonly string[] | Record<string, import("@aurelia/runtime").PartialBindableDefinition> | undefined;
@@ -163,6 +164,7 @@ export declare const AuDOMTest: {
         readonly template?: unknown;
         readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
         readonly dependencies?: readonly Key[] | undefined;
+        readonly injectable?: import("@aurelia/runtime/dist/resources/custom-element").InjectableToken<any> | null | undefined;
         readonly needsCompile?: boolean | undefined;
         readonly surrogates?: readonly ITargetedInstruction[] | undefined;
         readonly bindables?: readonly string[] | Record<string, import("@aurelia/runtime").PartialBindableDefinition> | undefined;
@@ -182,6 +184,7 @@ export declare const AuDOMTest: {
         readonly template?: unknown;
         readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
         readonly dependencies?: readonly Key[] | undefined;
+        readonly injectable?: import("@aurelia/runtime/dist/resources/custom-element").InjectableToken<any> | null | undefined;
         readonly needsCompile?: boolean | undefined;
         readonly surrogates?: readonly ITargetedInstruction[] | undefined;
         readonly bindables?: readonly string[] | Record<string, import("@aurelia/runtime").PartialBindableDefinition> | undefined;
@@ -201,6 +204,7 @@ export declare const AuDOMTest: {
         readonly template?: unknown;
         readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
         readonly dependencies?: readonly Key[] | undefined;
+        readonly injectable?: import("@aurelia/runtime/dist/resources/custom-element").InjectableToken<any> | null | undefined;
         readonly needsCompile?: boolean | undefined;
         readonly surrogates?: readonly ITargetedInstruction[] | undefined;
         readonly bindables?: readonly string[] | Record<string, import("@aurelia/runtime").PartialBindableDefinition> | undefined;
@@ -220,6 +224,7 @@ export declare const AuDOMTest: {
         readonly template?: unknown;
         readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
         readonly dependencies?: readonly Key[] | undefined;
+        readonly injectable?: import("@aurelia/runtime/dist/resources/custom-element").InjectableToken<any> | null | undefined;
         readonly needsCompile?: boolean | undefined;
         readonly surrogates?: readonly ITargetedInstruction[] | undefined;
         readonly bindables?: readonly string[] | Record<string, import("@aurelia/runtime").PartialBindableDefinition> | undefined;
@@ -239,6 +244,7 @@ export declare const AuDOMTest: {
         readonly template?: unknown;
         readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
         readonly dependencies?: readonly Key[] | undefined;
+        readonly injectable?: import("@aurelia/runtime/dist/resources/custom-element").InjectableToken<any> | null | undefined;
         readonly needsCompile?: boolean | undefined;
         readonly surrogates?: readonly ITargetedInstruction[] | undefined;
         readonly bindables?: readonly string[] | Record<string, import("@aurelia/runtime").PartialBindableDefinition> | undefined;
@@ -258,6 +264,7 @@ export declare const AuDOMTest: {
         readonly template?: unknown;
         readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
         readonly dependencies?: readonly Key[] | undefined;
+        readonly injectable?: import("@aurelia/runtime/dist/resources/custom-element").InjectableToken<any> | null | undefined;
         readonly needsCompile?: boolean | undefined;
         readonly surrogates?: readonly ITargetedInstruction[] | undefined;
         readonly bindables?: readonly string[] | Record<string, import("@aurelia/runtime").PartialBindableDefinition> | undefined;
@@ -277,6 +284,7 @@ export declare const AuDOMTest: {
         readonly template?: unknown;
         readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
         readonly dependencies?: readonly Key[] | undefined;
+        readonly injectable?: import("@aurelia/runtime/dist/resources/custom-element").InjectableToken<any> | null | undefined;
         readonly needsCompile?: boolean | undefined;
         readonly surrogates?: readonly ITargetedInstruction[] | undefined;
         readonly bindables?: readonly string[] | Record<string, import("@aurelia/runtime").PartialBindableDefinition> | undefined;
@@ -296,6 +304,7 @@ export declare const AuDOMTest: {
         readonly template?: unknown;
         readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
         readonly dependencies?: readonly Key[] | undefined;
+        readonly injectable?: import("@aurelia/runtime/dist/resources/custom-element").InjectableToken<any> | null | undefined;
         readonly needsCompile?: boolean | undefined;
         readonly surrogates?: readonly ITargetedInstruction[] | undefined;
         readonly bindables?: readonly string[] | Record<string, import("@aurelia/runtime").PartialBindableDefinition> | undefined;

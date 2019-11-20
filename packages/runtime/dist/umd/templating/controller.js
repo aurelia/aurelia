@@ -99,7 +99,7 @@
                         }
                     }
                     else {
-                        template = renderingEngine.getElementTemplate(parentContext.get(dom_1.IDOM), definition, parentContext, Type);
+                        template = renderingEngine.getElementTemplate(parentContext.get(dom_1.IDOM), definition, parentContext, Type, viewModel);
                     }
                     if (template !== void 0) {
                         if (template.definition == null ||

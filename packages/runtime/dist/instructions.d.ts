@@ -72,6 +72,7 @@ export declare class HydrateElementInstruction implements IHydrateElementInstruc
         readonly template?: unknown;
         readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
         readonly dependencies?: readonly import("@aurelia/kernel").Key[] | undefined;
+        readonly injectable?: import("./resources/custom-element").InjectableToken<any> | null | undefined;
         readonly needsCompile?: boolean | undefined;
         readonly surrogates?: readonly ITargetedInstruction[] | undefined;
         readonly bindables?: readonly string[] | Record<string, import(".").PartialBindableDefinition> | undefined;
@@ -92,6 +93,7 @@ export declare class HydrateElementInstruction implements IHydrateElementInstruc
         readonly template?: unknown;
         readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
         readonly dependencies?: readonly import("@aurelia/kernel").Key[] | undefined;
+        readonly injectable?: import("./resources/custom-element").InjectableToken<any> | null | undefined;
         readonly needsCompile?: boolean | undefined;
         readonly surrogates?: readonly ITargetedInstruction[] | undefined;
         readonly bindables?: readonly string[] | Record<string, import(".").PartialBindableDefinition> | undefined;
@@ -123,6 +125,7 @@ export declare class HydrateTemplateController implements IHydrateTemplateContro
         readonly template?: unknown;
         readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
         readonly dependencies?: readonly import("@aurelia/kernel").Key[] | undefined;
+        readonly injectable?: import("./resources/custom-element").InjectableToken<any> | null | undefined;
         readonly needsCompile?: boolean | undefined;
         readonly surrogates?: readonly ITargetedInstruction[] | undefined;
         readonly bindables?: readonly string[] | Record<string, import(".").PartialBindableDefinition> | undefined;
@@ -143,6 +146,7 @@ export declare class HydrateTemplateController implements IHydrateTemplateContro
         readonly template?: unknown;
         readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
         readonly dependencies?: readonly import("@aurelia/kernel").Key[] | undefined;
+        readonly injectable?: import("./resources/custom-element").InjectableToken<any> | null | undefined;
         readonly needsCompile?: boolean | undefined;
         readonly surrogates?: readonly ITargetedInstruction[] | undefined;
         readonly bindables?: readonly string[] | Record<string, import(".").PartialBindableDefinition> | undefined;

@@ -48,7 +48,7 @@ export interface IRenderer {
 }
 export declare const IRenderer: import("@aurelia/kernel").InterfaceSymbol<IRenderer>;
 export interface IRenderingEngine {
-    getElementTemplate<T extends INode = INode>(dom: IDOM<T>, definition: CustomElementDefinition, parentContext?: IContainer | IRenderContext<T>, componentType?: CustomElementType): ITemplate<T> | undefined;
+    getElementTemplate<T extends INode = INode>(dom: IDOM<T>, definition: CustomElementDefinition, parentContext?: IContainer | IRenderContext<T>, componentType?: CustomElementType, component?: IViewModel): ITemplate<T> | undefined;
     getViewFactory<T extends INode = INode>(dom: IDOM<T>, source: PartialCustomElementDefinition, parentContext?: IContainer | IRenderContext<T>): IViewFactory<T>;
 }
 export declare const IRenderingEngine: import("@aurelia/kernel").InterfaceSymbol<IRenderingEngine>;

@@ -54,14 +54,14 @@ let RenderingEngine = class RenderingEngine {
         this.lifecycle = lifecycle;
         this.compiler = compiler;
     }
-    getElementTemplate(dom, definition, parentContext, componentType) {
+    getElementTemplate(dom, definition, parentContext, componentType, componentInstance) {
         if (definition == void 0) {
             return void 0;
         }
         if (parentContext == void 0) {
             parentContext = this.container;
         }
-        return this.templateFromSource(dom, definition, parentContext, componentType);
+        return this.templateFromSource(dom, definition, parentContext, componentType, componentInstance);
     }
     getViewFactory(dom, partialDefinition, parentContext) {
         if (partialDefinition == void 0) {
@@ -89,21 +89,27 @@ let RenderingEngine = class RenderingEngine {
             const template = this.templateFromSource(dom, definition, parentContext, void 0);
             factory = new ViewFactory(definition.name, template, this.lifecycle);
             factory.setCacheSize(definition.cache, true);
-            Metadata.define(factorykey, factory, definition);
+            if (definition.injectable === null) {
+                // Never cache view factories for an injectable since we always need a new render context per instance
+                Metadata.define(factorykey, factory, definition);
+            }
         }
         return factory;
     }
-    templateFromSource(dom, definition, parentContext, componentType) {
+    templateFromSource(dom, definition, parentContext, componentType, componentInstance) {
         const templateKey = CustomElement.keyFrom(`${parentContext.path}:template`);
         let template = Metadata.getOwn(templateKey, definition);
         if (template === void 0) {
-            template = this.templateFromSourceCore(dom, definition, parentContext, componentType);
-            Metadata.define(templateKey, template, definition);
+            template = this.templateFromSourceCore(dom, definition, parentContext, componentType, componentInstance);
+            if (definition.injectable === null) {
+                // Never cache templates for an injectable since we always need a new render context per instance
+                Metadata.define(templateKey, template, definition);
+            }
         }
         return template;
     }
-    templateFromSourceCore(dom, definition, parentContext, componentType) {
-        const renderContext = new RenderContext(dom, parentContext, definition.dependencies, componentType);
+    templateFromSourceCore(dom, definition, parentContext, componentType, componentInstance) {
+        const renderContext = new RenderContext(dom, parentContext, definition.dependencies, componentType, componentInstance);
         if (definition.template != void 0 && definition.needsCompile) {
             const compiledDefinitionKey = CustomElement.keyFrom(`${parentContext.path}:compiled-definition`);
             let compiledDefinition = Metadata.getOwn(compiledDefinitionKey, definition);

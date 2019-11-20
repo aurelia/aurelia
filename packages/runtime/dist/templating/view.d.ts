@@ -31,6 +31,7 @@ export declare const Views: {
         readonly template?: unknown;
         readonly instructions?: readonly (readonly import("../definitions").ITargetedInstruction[])[] | undefined;
         readonly dependencies?: readonly import("@aurelia/kernel").Key[] | undefined;
+        readonly injectable?: import("../resources/custom-element").InjectableToken<any> | null | undefined;
         readonly needsCompile?: boolean | undefined;
         readonly surrogates?: readonly import("../definitions").ITargetedInstruction[] | undefined;
         readonly bindables?: readonly string[] | Record<string, import("./bindable").PartialBindableDefinition> | undefined;

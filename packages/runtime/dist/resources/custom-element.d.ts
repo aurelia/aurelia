@@ -1,4 +1,4 @@
-import { Constructable, IContainer, IResourceKind, ResourceType, PartialResourceDefinition, Key, ResourceDefinition } from '@aurelia/kernel';
+import { Constructable, IContainer, IResourceKind, ResourceType, PartialResourceDefinition, Key, ResourceDefinition, Injectable } from '@aurelia/kernel';
 import { ITargetedInstruction, HooksDefinition } from '../definitions';
 import { IDOM, INode, INodeSequence, IRenderLocation } from '../dom';
 import { IController, IViewModel } from '../lifecycle';
@@ -10,6 +10,7 @@ export declare type PartialCustomElementDefinition = PartialResourceDefinition<{
     readonly template?: unknown;
     readonly instructions?: readonly (readonly ITargetedInstruction[])[];
     readonly dependencies?: readonly Key[];
+    readonly injectable?: InjectableToken | null;
     readonly needsCompile?: boolean;
     readonly surrogates?: readonly ITargetedInstruction[];
     readonly bindables?: Record<string, PartialBindableDefinition> | readonly string[];
@@ -69,6 +70,7 @@ export declare type CustomElementKind = IResourceKind<CustomElementType, CustomE
     annotate<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K, value: PartialCustomElementDefinition[K]): void;
     getAnnotation<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K): PartialCustomElementDefinition[K];
     generateName(): string;
+    createInjectable<T extends Key = Key>(): InjectableToken<T>;
     generateType<P extends {} = {}>(name: string, proto?: P): CustomElementType<Constructable<P>>;
 };
 export declare type CustomElementDecorator = <T extends Constructable>(Type: T) => CustomElementType<T>;
@@ -112,6 +114,7 @@ export declare class CustomElementDefinition<T extends Constructable = Construct
     readonly template: unknown;
     readonly instructions: readonly (readonly ITargetedInstruction[])[];
     readonly dependencies: readonly Key[];
+    readonly injectable: InjectableToken<T> | null;
     readonly needsCompile: boolean;
     readonly surrogates: readonly ITargetedInstruction[];
     readonly bindables: Record<string, BindableDefinition>;
@@ -131,6 +134,7 @@ export declare class CustomElementDefinition<T extends Constructable = Construct
     static create<T extends Constructable = Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type?: CustomElementType<T> | null): CustomElementDefinition<T>;
     register(container: IContainer): void;
 }
+export declare type InjectableToken<K = any> = (target: Injectable<K>, property: string, index: number) => void;
 export declare const CustomElement: CustomElementKind;
 export declare type CustomElementHost<T extends INode = INode> = IRenderLocation<T> & T & {
     $controller?: IController<T>;

@@ -1,15 +1,13 @@
-import { InstanceProvider, Reporter, RuntimeCompilationResources, } from '@aurelia/kernel';
+import { InstanceProvider, Reporter, RuntimeCompilationResources, Registration, } from '@aurelia/kernel';
 import { ITargetedInstruction } from './definitions';
 import { IDOM, IRenderLocation } from './dom';
 import { IController, IViewFactory } from './lifecycle';
 import { IRenderer, IRenderingEngine } from './rendering-engine';
 import { CustomElement } from './resources/custom-element';
 export class RenderContext {
-    constructor(dom, parentContainer, dependencies, componentType) {
+    constructor(dom, parentContainer, dependencies, componentType, componentInstance) {
         this.dom = dom;
         this.parentContainer = parentContainer;
-        this.dependencies = dependencies;
-        this.componentType = componentType;
         const container = (this.container = parentContainer.createChild());
         const renderableProvider = (this.renderableProvider = new InstanceProvider());
         const elementProvider = (this.elementProvider = new InstanceProvider());
@@ -27,7 +25,16 @@ export class RenderContext {
         }
         // If the element has a view, support Recursive Components by adding self to own view template container.
         if (componentType) {
-            CustomElement.getDefinition(componentType).register(container);
+            const def = CustomElement.getDefinition(componentType);
+            def.register(container);
+            if (componentInstance !== void 0) {
+                const injectable = def.injectable;
+                if (injectable !== null) {
+                    // If the element is registered as injectable, support injecting the instance into children
+                    // Note: this provider is never disposed at the moment. Perhaps we need to at some point, but not disposing it here doesn't necessarily need to cause memory leaks. Keep an eye on it though.
+                    Registration.instance(injectable, componentInstance).register(container);
+                }
+            }
         }
     }
     get id() {

@@ -53,7 +53,7 @@
     }
     exports.strict = strict;
     class CustomElementDefinition {
-        constructor(Type, name, aliases, key, cache, template, instructions, dependencies, needsCompile, surrogates, bindables, childrenObservers, containerless, isStrictBinding, shadowOptions, hasSlots, strategy, hooks, scopeParts) {
+        constructor(Type, name, aliases, key, cache, template, instructions, dependencies, injectable, needsCompile, surrogates, bindables, childrenObservers, containerless, isStrictBinding, shadowOptions, hasSlots, strategy, hooks, scopeParts) {
             this.Type = Type;
             this.name = name;
             this.aliases = aliases;
@@ -62,6 +62,7 @@
             this.template = template;
             this.instructions = instructions;
             this.dependencies = dependencies;
+            this.injectable = injectable;
             this.needsCompile = needsCompile;
             this.surrogates = surrogates;
             this.bindables = bindables;
@@ -91,12 +92,12 @@
                 else {
                     Type = exports.CustomElement.generateType(kernel_1.pascalCase(name));
                 }
-                return new CustomElementDefinition(Type, name, kernel_1.mergeArrays(def.aliases), kernel_1.fromDefinitionOrDefault('key', def, () => exports.CustomElement.keyFrom(name)), kernel_1.fromDefinitionOrDefault('cache', def, () => 0), kernel_1.fromDefinitionOrDefault('template', def, () => null), kernel_1.mergeArrays(def.instructions), kernel_1.mergeArrays(def.dependencies), kernel_1.fromDefinitionOrDefault('needsCompile', def, () => true), kernel_1.mergeArrays(def.surrogates), bindable_1.Bindable.from(def.bindables), children_1.Children.from(def.childrenObservers), kernel_1.fromDefinitionOrDefault('containerless', def, () => false), kernel_1.fromDefinitionOrDefault('isStrictBinding', def, () => false), kernel_1.fromDefinitionOrDefault('shadowOptions', def, () => null), kernel_1.fromDefinitionOrDefault('hasSlots', def, () => false), kernel_1.fromDefinitionOrDefault('strategy', def, () => 1 /* getterSetter */), kernel_1.fromDefinitionOrDefault('hooks', def, () => definitions_1.HooksDefinition.none), kernel_1.mergeArrays(def.scopeParts));
+                return new CustomElementDefinition(Type, name, kernel_1.mergeArrays(def.aliases), kernel_1.fromDefinitionOrDefault('key', def, () => exports.CustomElement.keyFrom(name)), kernel_1.fromDefinitionOrDefault('cache', def, () => 0), kernel_1.fromDefinitionOrDefault('template', def, () => null), kernel_1.mergeArrays(def.instructions), kernel_1.mergeArrays(def.dependencies), kernel_1.fromDefinitionOrDefault('injectable', def, () => null), kernel_1.fromDefinitionOrDefault('needsCompile', def, () => true), kernel_1.mergeArrays(def.surrogates), bindable_1.Bindable.from(def.bindables), children_1.Children.from(def.childrenObservers), kernel_1.fromDefinitionOrDefault('containerless', def, () => false), kernel_1.fromDefinitionOrDefault('isStrictBinding', def, () => false), kernel_1.fromDefinitionOrDefault('shadowOptions', def, () => null), kernel_1.fromDefinitionOrDefault('hasSlots', def, () => false), kernel_1.fromDefinitionOrDefault('strategy', def, () => 1 /* getterSetter */), kernel_1.fromDefinitionOrDefault('hooks', def, () => definitions_1.HooksDefinition.none), kernel_1.mergeArrays(def.scopeParts));
             }
             // If a type is passed in, we ignore the Type property on the definition if it exists.
             // TODO: document this behavior
             if (typeof nameOrDef === 'string') {
-                return new CustomElementDefinition(Type, nameOrDef, kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'aliases'), Type.aliases), exports.CustomElement.keyFrom(nameOrDef), kernel_1.fromAnnotationOrTypeOrDefault('cache', Type, () => 0), kernel_1.fromAnnotationOrTypeOrDefault('template', Type, () => null), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'instructions'), Type.instructions), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'dependencies'), Type.dependencies), kernel_1.fromAnnotationOrTypeOrDefault('needsCompile', Type, () => true), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'surrogates'), Type.surrogates), bindable_1.Bindable.from(...bindable_1.Bindable.getAll(Type), exports.CustomElement.getAnnotation(Type, 'bindables'), Type.bindables), children_1.Children.from(...children_1.Children.getAll(Type), exports.CustomElement.getAnnotation(Type, 'childrenObservers'), Type.childrenObservers), kernel_1.fromAnnotationOrTypeOrDefault('containerless', Type, () => false), kernel_1.fromAnnotationOrTypeOrDefault('isStrictBinding', Type, () => false), kernel_1.fromAnnotationOrTypeOrDefault('shadowOptions', Type, () => null), kernel_1.fromAnnotationOrTypeOrDefault('hasSlots', Type, () => false), kernel_1.fromAnnotationOrTypeOrDefault('strategy', Type, () => 1 /* getterSetter */), 
+                return new CustomElementDefinition(Type, nameOrDef, kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'aliases'), Type.aliases), exports.CustomElement.keyFrom(nameOrDef), kernel_1.fromAnnotationOrTypeOrDefault('cache', Type, () => 0), kernel_1.fromAnnotationOrTypeOrDefault('template', Type, () => null), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'instructions'), Type.instructions), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'dependencies'), Type.dependencies), kernel_1.fromAnnotationOrTypeOrDefault('injectable', Type, () => null), kernel_1.fromAnnotationOrTypeOrDefault('needsCompile', Type, () => true), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'surrogates'), Type.surrogates), bindable_1.Bindable.from(...bindable_1.Bindable.getAll(Type), exports.CustomElement.getAnnotation(Type, 'bindables'), Type.bindables), children_1.Children.from(...children_1.Children.getAll(Type), exports.CustomElement.getAnnotation(Type, 'childrenObservers'), Type.childrenObservers), kernel_1.fromAnnotationOrTypeOrDefault('containerless', Type, () => false), kernel_1.fromAnnotationOrTypeOrDefault('isStrictBinding', Type, () => false), kernel_1.fromAnnotationOrTypeOrDefault('shadowOptions', Type, () => null), kernel_1.fromAnnotationOrTypeOrDefault('hasSlots', Type, () => false), kernel_1.fromAnnotationOrTypeOrDefault('strategy', Type, () => 1 /* getterSetter */), 
                 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
                 kernel_1.fromAnnotationOrTypeOrDefault('hooks', Type, () => new definitions_1.HooksDefinition(Type.prototype)), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'scopeParts'), Type.scopeParts));
             }
@@ -106,7 +107,7 @@
             // if this turns out to be too opinionated.
             // eslint-disable-next-line @typescript-eslint/unbound-method
             const name = kernel_1.fromDefinitionOrDefault('name', nameOrDef, exports.CustomElement.generateName);
-            return new CustomElementDefinition(Type, name, kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases), exports.CustomElement.keyFrom(name), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, () => 0), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, () => null), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, () => true), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates), bindable_1.Bindable.from(...bindable_1.Bindable.getAll(Type), exports.CustomElement.getAnnotation(Type, 'bindables'), Type.bindables, nameOrDef.bindables), children_1.Children.from(...children_1.Children.getAll(Type), exports.CustomElement.getAnnotation(Type, 'childrenObservers'), Type.childrenObservers, nameOrDef.childrenObservers), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, () => false), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('isStrictBinding', nameOrDef, Type, () => false), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, () => null), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, () => false), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('strategy', nameOrDef, Type, () => 1 /* getterSetter */), 
+            return new CustomElementDefinition(Type, name, kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases), exports.CustomElement.keyFrom(name), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, () => 0), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, () => null), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, () => null), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, () => true), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates), bindable_1.Bindable.from(...bindable_1.Bindable.getAll(Type), exports.CustomElement.getAnnotation(Type, 'bindables'), Type.bindables, nameOrDef.bindables), children_1.Children.from(...children_1.Children.getAll(Type), exports.CustomElement.getAnnotation(Type, 'childrenObservers'), Type.childrenObservers, nameOrDef.childrenObservers), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, () => false), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('isStrictBinding', nameOrDef, Type, () => false), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, () => null), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, () => false), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('strategy', nameOrDef, Type, () => 1 /* getterSetter */), 
             // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
             kernel_1.fromAnnotationOrTypeOrDefault('hooks', Type, () => new definitions_1.HooksDefinition(Type.prototype)), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'scopeParts'), nameOrDef.scopeParts, Type.scopeParts));
         }
@@ -187,6 +188,27 @@
                 return `unnamed-${++id}`;
             };
         })(),
+        createInjectable() {
+            const $injectable = function (target, property, index) {
+                const annotationParamtypes = kernel_1.DI.getOrCreateAnnotationParamTypes(target);
+                annotationParamtypes[index] = $injectable;
+                return target;
+            };
+            $injectable.register = function (container) {
+                // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+                return {
+                    resolve(container, requestor) {
+                        if (requestor.has($injectable, true)) {
+                            return requestor.get($injectable);
+                        }
+                        else {
+                            return null;
+                        }
+                    },
+                };
+            };
+            return $injectable;
+        },
         generateType: (function () {
             const nameDescriptor = {
                 value: '',

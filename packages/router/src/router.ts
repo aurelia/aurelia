@@ -1,5 +1,5 @@
 import { DI, IContainer, Key, Reporter } from '@aurelia/kernel';
-import { Aurelia, IController, IRenderContext, IViewModel, Controller } from '@aurelia/runtime';
+import { Aurelia, IController, IRenderContext, IViewModel, Controller, CustomElement } from '@aurelia/runtime';
 import { BrowserNavigator } from './browser-navigator';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
 import { INavigatorInstruction, IRouteableComponent, NavigationInstruction, IRoute, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces';
@@ -631,23 +631,43 @@ export class Router implements IRouter {
     //   el = el.parentElement;
     //   CustomElement.for(el);
     // }
+
+    // if ((elementOrViewModelOrController as IViewModel).$controller !== void 0) {
+    //   elementOrViewModelOrController = (elementOrViewModelOrController as IViewModel).$controller;
+    // }
+    // const element: HTMLElement = elementOrViewModelOrController instanceof Controller
+    //   ? elementOrViewModelOrController.host
+    //   : elementOrViewModelOrController;
+    // const controller: IController<HTMLElement> | undefined = CustomElement.for(element, 'au-viewport', true);
+    // return controller !== void 0 && controller.viewModel !== void 0
+    //   ? (controller.viewModel as IViewModel & { viewport: Viewport }).viewport : null;
+
     let controller: any = elementOrViewModelOrController instanceof Controller ? elementOrViewModelOrController : closestController(elementOrViewModelOrController);
     // Make sure we don't include the provided element, view model or controller
     if (controller) {
       controller = controller.parent;
     }
-    while (controller) {
-      if (controller.host && controller.host.$au && controller.host.$au['au-viewport'] && controller.host.$au['au-viewport'].viewModel && controller.host.$au['au-viewport'].viewModel.viewport) {
-        return controller.host.$au['au-viewport'].viewModel.viewport;
-      }
-      // if (controller.host) {
-      //   const viewport = this.allViewports().find((item) => item.element === controller!.host);
-      //   if (viewport) {
-      //     return viewport;
-      //   }
-      // }
+    while (controller && !controller.host) {
       controller = controller.parent;
     }
+    if (controller !== void 0 && controller.host !== void 0) {
+      controller = CustomElement.for(controller.host, 'au-viewport', true);
+      if (controller !== void 0) {
+        return controller.viewModel.viewport;
+      }
+    }
+    // while (controller) {
+    //   if (controller.host && controller.host.$au && controller.host.$au['au-viewport'] && controller.host.$au['au-viewport'].viewModel && controller.host.$au['au-viewport'].viewModel.viewport) {
+    //     return controller.host.$au['au-viewport'].viewModel.viewport;
+    //   }
+    //   // if (controller.host) {
+    //   //   const viewport = this.allViewports().find((item) => item.element === controller!.host);
+    //   //   if (viewport) {
+    //   //     return viewport;
+    //   //   }
+    //   // }
+    //   controller = controller.parent;
+    // }
     return null;
   }
 

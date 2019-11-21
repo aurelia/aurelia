@@ -1,5 +1,5 @@
 import { ILogger } from '@aurelia/kernel';
-import { $AnyNonEmpty, $Any } from './types/_shared'
+import { $Any } from './types/_shared'
 import { Realm, ExecutionContext } from './realm';
 import { $SourceFile } from './ast';
 import { $Empty } from './types/empty';

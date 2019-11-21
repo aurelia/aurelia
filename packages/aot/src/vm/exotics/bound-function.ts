@@ -1,8 +1,9 @@
 import { $Object } from '../types/object';
 import { $Function } from '../types/function';
-import { $Any, $AnyNonEmpty } from '../types/_shared';
+import { $AnyNonError, $AnyNonEmpty, $AnyObject } from '../types/_shared';
 import { Realm, ExecutionContext } from '../realm';
 import { $Call, $Construct } from '../operations';
+import { $Error } from '../types/error';
 
 // http://www.ecma-international.org/ecma-262/#sec-bound-function-exotic-objects
 export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObject'> {
@@ -21,13 +22,16 @@ export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObje
   ) {
     // 1. Assert: Type(targetFunction) is Object.
     // 2. Let proto be ? targetFunction.[[GetPrototypeOf]]().
+    const proto = targetFunction['[[GetPrototypeOf]]'](realm.stack.top);
+    if (proto.isAbrupt) { return proto as any; } // TODO: put this in static method so we can return error completion
+
     // 3. Let obj be a newly created object.
     // 4. Set obj's essential internal methods to the default ordinary object definitions specified in 9.1.
     // 5. Set obj.[[Call]] as described in 9.4.1.1.
     // 6. If IsConstructor(targetFunction) is true, then
     // 6. a. Set obj.[[Construct]] as described in 9.4.1.2.
     // 7. Set obj.[[Prototype]] to proto.
-    super(realm, 'BoundFunctionExoticObject', targetFunction['[[GetPrototypeOf]]'](realm.stack.top));
+    super(realm, 'BoundFunctionExoticObject', proto);
 
     // 8. Set obj.[[Extensible]] to true.
     // 9. Set obj.[[BoundTargetFunction]] to targetFunction.
@@ -47,7 +51,7 @@ export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObje
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmpty,
     argumentsList: readonly $AnyNonEmpty[],
-  ): $AnyNonEmpty {
+  ): $AnyNonEmpty | $Error {
     const F = this;
 
     // 1. Let target be F.[[BoundTargetFunction]].
@@ -74,8 +78,8 @@ export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObje
   public '[[Construct]]'(
     ctx: ExecutionContext,
     argumentsList: readonly $AnyNonEmpty[],
-    newTarget: $Object,
-  ) {
+    newTarget: $AnyObject,
+  ): $AnyNonEmpty | $Error {
     const F = this;
 
     // 1. Let target be F.[[BoundTargetFunction]].

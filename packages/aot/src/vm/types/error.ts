@@ -1,5 +1,5 @@
-import { nextValueId, CompletionTarget, CompletionType } from './_shared';
-import { Realm } from '../realm';
+import { nextValueId, CompletionTarget, CompletionType, $AnyNonError, PotentialNonEmptyCompletionType, $Any } from './_shared';
+import { Realm, ExecutionContext } from '../realm';
 
 export abstract class $Error<T extends Error = Error, N extends string = string> {
   public readonly '<$Error>': unknown;
@@ -12,6 +12,8 @@ export abstract class $Error<T extends Error = Error, N extends string = string>
   public readonly '[[Target]]': CompletionTarget;
 
   public get isAbrupt(): true { return true; }
+  public get isEmpty(): false { return false; }
+  public get hasValue(): true { return true; }
 
   public constructor(
     public readonly realm: Realm,
@@ -23,6 +25,88 @@ export abstract class $Error<T extends Error = Error, N extends string = string>
     this['[[Value]]'] = err;
     this['[[Target]]'] = realm['[[Intrinsics]]'].empty;
   }
+
+  public is(other: $AnyNonError): boolean {
+    return other instanceof $Error && other.id === this.id;
+  }
+
+  public ToCompletion(
+    type: PotentialNonEmptyCompletionType,
+    target: CompletionTarget,
+  ): this {
+    return this;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-getvalue
+  public GetValue(ctx: ExecutionContext): this {
+    // 1. ReturnIfAbrupt(V)
+    return this;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-updateempty
+  public UpdateEmpty(value: $Any): this {
+    // 1. Assert: If completionRecord.[[Type]] is either return or throw, then completionRecord.[[Value]] is not empty.
+    // 2. If completionRecord.[[Value]] is not empty, return Completion(completionRecord).
+    return this;
+    // 3. Return Completion { [[Type]]: completionRecord.[[Type]], [[Value]]: value, [[Target]]: completionRecord.[[Target]] }.
+  }
+
+  public ToObject(ctx: ExecutionContext): this {
+    return this;
+  }
+
+  public ToPropertyKey(ctx: ExecutionContext): this {
+    return this;
+  }
+
+  public ToLength(ctx: ExecutionContext): this {
+    return this;
+  }
+
+  public ToPrimitive(ctx: ExecutionContext): this {
+    return this;
+  }
+
+  public ToBoolean(ctx: ExecutionContext): this {
+    return this;
+  }
+
+  public ToNumber(ctx: ExecutionContext): this {
+    return this;
+  }
+
+  public ToInt32(ctx: ExecutionContext): this {
+    return this;
+  }
+
+  public ToUint32(ctx: ExecutionContext): this {
+    return this;
+  }
+
+  public ToInt16(ctx: ExecutionContext): this {
+    return this;
+  }
+
+  public ToUint16(ctx: ExecutionContext): this {
+    return this;
+  }
+
+  public ToInt8(ctx: ExecutionContext): this {
+    return this;
+  }
+
+  public ToUint8(ctx: ExecutionContext): this {
+    return this;
+  }
+
+  public ToUint8Clamp(ctx: ExecutionContext): this {
+    return this;
+  }
+
+  public ToString(ctx: ExecutionContext): this {
+    return this;
+  }
+
 }
 
 export class $SyntaxError extends $Error<SyntaxError, 'SyntaxError'> {

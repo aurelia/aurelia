@@ -3,14 +3,16 @@ import { $Null } from '../types/null';
 import { $Number } from '../types/number';
 import { $String } from '../types/string';
 import { Realm, ExecutionContext } from '../realm';
-import { $PropertyKey, $AnyNonEmpty } from '../types/_shared';
+import { $PropertyKey, $AnyNonEmpty, $AnyObject } from '../types/_shared';
 import { $PropertyDescriptor } from '../types/property-descriptor';
 import { $Undefined } from '../types/undefined';
 import { $Boolean } from '../types/boolean';
+import { $Error } from '../types/error';
+import { $List } from '../types/list';
 
 // http://www.ecma-international.org/ecma-262/#sec-integer-indexed-exotic-objects
 export class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticObject'> {
-  public '[[ViewedArrayBuffer]]': $Object | $Null;
+  public '[[ViewedArrayBuffer]]': $AnyObject | $Null;
   public '[[ArrayLength]]': $Number;
   public '[[ByteOffset]]': $Number;
   public '[[TypedArrayName]]': $String;
@@ -18,7 +20,7 @@ export class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticOb
   // http://www.ecma-international.org/ecma-262/#sec-integerindexedobjectcreate
   public constructor(
     realm: Realm,
-    proto: $Object | $Null,
+    proto: $AnyObject | $Null,
   ) {
     super(realm, 'IntegerIndexedExoticObject', proto);
 
@@ -40,7 +42,7 @@ export class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticOb
   public '[[GetOwnProperty]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
-  ): $PropertyDescriptor | $Undefined {
+  ): $PropertyDescriptor | $Undefined | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -60,7 +62,7 @@ export class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticOb
   public '[[HasProperty]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
-  ): $Boolean {
+  ): $Boolean | $Error {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     return null as any; // TODO
@@ -84,7 +86,7 @@ export class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticOb
     ctx: ExecutionContext,
     P: $PropertyKey,
     Desc: $PropertyDescriptor,
-  ): $Boolean {
+  ): $Boolean | $Error {
     return null as any; // TODO
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Assert: O is an Object that has a [[ViewedArrayBuffer]] internal slot.
@@ -112,7 +114,7 @@ export class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticOb
     ctx: ExecutionContext,
     P: $PropertyKey,
     Receiver: $AnyNonEmpty,
-  ): $AnyNonEmpty {
+  ): $AnyNonEmpty | $Error {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     return null as any; // TODO
@@ -129,8 +131,8 @@ export class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticOb
     ctx: ExecutionContext,
     P: $PropertyKey,
     V: $AnyNonEmpty,
-    Receiver: $Object,
-  ): $Boolean {
+    Receiver: $AnyObject,
+  ): $Boolean | $Error {
     return null as any; // TODO
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. If Type(P) is String, then
@@ -143,7 +145,7 @@ export class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticOb
   // http://www.ecma-international.org/ecma-262/#sec-integer-indexed-exotic-objects-ownpropertykeys
   public '[[OwnPropertyKeys]]'(
     ctx: ExecutionContext,
-  ): readonly $PropertyKey[] {
+  ): $List<$PropertyKey> {
     return null as any; // TODO
     // 1. Let keys be a new empty List.
     // 2. Assert: O is an Object that has [[ViewedArrayBuffer]], [[ArrayLength]], [[ByteOffset]], and [[TypedArrayName]] internal slots.

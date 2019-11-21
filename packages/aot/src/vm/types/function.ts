@@ -4,7 +4,7 @@ import { $EnvRec, $FunctionEnvRec } from './environment-record';
 import { $FunctionDeclaration, $MethodDeclaration, $ArrowFunction, $SourceFile } from '../ast';
 import { $Boolean } from './boolean';
 import { $String } from './string';
-import { $AnyNonEmpty, CompletionType } from './_shared';
+import { $AnyNonEmpty, CompletionType, $AnyObject } from './_shared';
 import { $PropertyDescriptor } from './property-descriptor';
 import { $Number } from './number';
 import { $DefinePropertyOrThrow } from '../operations';
@@ -13,6 +13,7 @@ import { Intrinsics } from '../intrinsics';
 import { $Undefined } from './undefined';
 import { ExecutionContext, Realm } from '../realm';
 import { $Null } from './null';
+import { $TypeError, $Error } from './error';
 
 // http://www.ecma-international.org/ecma-262/#table-6
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects
@@ -31,13 +32,13 @@ export class $Function<
   public ['[[ScriptOrModule]]']: $SourceFile | $Null;
   public ['[[ThisMode]]']: ThisMode;
   public ['[[Strict]]']: $Boolean;
-  public ['[[HomeObject]]']: $Object;
+  public ['[[HomeObject]]']: $AnyObject;
   public ['[[SourceText]]']: $String;
 
   public constructor(
     realm: Realm,
     IntrinsicName: T,
-    proto: $Object,
+    proto: $AnyObject,
   ) {
     super(realm, IntrinsicName, proto);
   }
@@ -47,7 +48,7 @@ export class $Function<
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmpty,
     argumentsList: readonly $AnyNonEmpty[],
-  ): $AnyNonEmpty {
+  ): $AnyNonEmpty | $Error {
     // 1. Assert: F is an ECMAScript function object.
     const F = this;
     const realm = F['[[Realm]]'];
@@ -55,7 +56,7 @@ export class $Function<
 
     // 2. If F.[[FunctionKind]] is "classConstructor", throw a TypeError exception.
     if (F['[[FunctionKind]]'] === 'classConstructor') {
-      throw new TypeError('2. If F.[[FunctionKind]] is "classConstructor", throw a TypeError exception.');
+      return new $TypeError(realm);
     }
 
     // 3. Let callerContext be the running execution context.
@@ -80,7 +81,7 @@ export class $Function<
 
     // 10. ReturnIfAbrupt(result).
     if (result.isAbrupt) {
-      return result as $AnyNonEmpty; // TODO: ensure we don't need to cast this. Need to squeeze $Empty out of the union in a normal way somehow. Can StatementList guarantee that it never returns $Empty? In that case we can return $AnyNonEmpty from EvaluateBody
+      return result;
     }
 
     // 11. Return NormalCompletion(undefined).
@@ -91,8 +92,8 @@ export class $Function<
   public '[[Construct]]'(
     ctx: ExecutionContext,
     argumentsList: readonly $AnyNonEmpty[],
-    newTarget: $Object,
-  ): $Object {
+    newTarget: $AnyObject,
+  ): $AnyObject | $Error {
     // 1. Assert: F is an ECMAScript function object.
     const F = this;
     const realm = ctx.Realm;
@@ -104,7 +105,7 @@ export class $Function<
     // 4. Let kind be F.[[ConstructorKind]].
     const kind = F['[[ConstructorKind]]'];
 
-    let thisArgument: $AnyNonEmpty;
+    let thisArgument: $AnyNonEmpty | $Error;
     // 5. If kind is "base", then
     if (kind === 'base') {
       // 5. a. Let thisArgument be ? OrdinaryCreateFromConstructor(newTarget, "%ObjectPrototype%").
@@ -112,6 +113,7 @@ export class $Function<
     } else {
       thisArgument = intrinsics.undefined;
     }
+    if (thisArgument.isAbrupt) { return thisArgument; }
 
     // 6. Let calleeContext be PrepareForOrdinaryCall(F, newTarget).
     const calleeContext = $PrepareForOrdinaryCall(ctx, F, newTarget);
@@ -146,13 +148,13 @@ export class $Function<
 
       // 13. c. If result.[[Value]] is not undefined, throw a TypeError exception.
       if (!result.isUndefined) {
-        throw new TypeError();
+        return new $TypeError(realm);
       }
     }
     // 14. Else, ReturnIfAbrupt(result).
     else {
       if (result.isAbrupt) {
-        return result as $Object;
+        return result;
       }
     }
 
@@ -163,7 +165,7 @@ export class $Function<
   // http://www.ecma-international.org/ecma-262/#sec-functionallocate
   public static FunctionAllocate(
     ctx: ExecutionContext,
-    functionPrototype: $Object,
+    functionPrototype: $AnyObject,
     strict: $Boolean,
     functionKind: 'normal' | 'non-constructor' | 'generator' | 'async' | 'async generator',
   ): $Function {
@@ -272,7 +274,7 @@ export class $Function<
     node: $FunctionDeclaration | $MethodDeclaration | $ArrowFunction,
     Scope: $EnvRec,
     Strict: $Boolean,
-    prototype?: $Object,
+    prototype?: $AnyObject,
   ) {
     node.logger.debug(`$Function.FunctionCreate(#${ctx.id}, ${JSON.stringify(kind)})`);
 
@@ -306,7 +308,7 @@ export class $Function<
   public MakeConstructor(
     ctx: ExecutionContext,
     writablePrototype?: $Boolean,
-    prototype?: $Object,
+    prototype?: $AnyObject,
   ): void {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -352,7 +354,7 @@ export class $Function<
     ctx: ExecutionContext,
     name: $String | $Symbol,
     prefix?: $String,
-  ): $Boolean {
+  ): $Boolean | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -394,13 +396,14 @@ export class $Function<
 // http://www.ecma-international.org/ecma-262/#sec-ordinarycreatefromconstructor
 function $OrdinaryCreateFromConstructor<T extends keyof Intrinsics = keyof Intrinsics, TSlots extends {} = {}>(
   ctx: ExecutionContext,
-  constructor: $Object,
+  constructor: $AnyObject,
   intrinsicDefaultProto: T,
   internalSlotsList?: TSlots,
-): $Object<T> & TSlots {
+): ($Object<T> & TSlots) | $Error {
   // 1. Assert: intrinsicDefaultProto is a String value that is this specification's name of an intrinsic object. The corresponding object must be an intrinsic that is intended to be used as the [[Prototype]] value of an object.
   // 2. Let proto be ? GetPrototypeFromConstructor(constructor, intrinsicDefaultProto).
   const proto = $GetPrototypeFromConstructor(ctx, constructor, intrinsicDefaultProto);
+  if (proto.isAbrupt) { return proto as ($Object<T> & TSlots) | $Error; }
 
   // 3. Return ObjectCreate(proto, internalSlotsList).
   return $Object.ObjectCreate(ctx, intrinsicDefaultProto, proto, internalSlotsList);
@@ -410,9 +413,9 @@ function $OrdinaryCreateFromConstructor<T extends keyof Intrinsics = keyof Intri
 // http://www.ecma-international.org/ecma-262/#sec-getprototypefromconstructor
 function $GetPrototypeFromConstructor<T extends keyof Intrinsics = keyof Intrinsics>(
   ctx: ExecutionContext,
-  constructor: $Object,
+  constructor: $AnyObject,
   intrinsicDefaultProto: T,
-): $Object {
+): $AnyObject | $Error {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
@@ -420,6 +423,7 @@ function $GetPrototypeFromConstructor<T extends keyof Intrinsics = keyof Intrins
   // 2. Assert: IsCallable(constructor) is true.
   // 3. Let proto be ? Get(constructor, "prototype").
   let proto = constructor['[[Get]]'](ctx, intrinsics.$prototype, constructor);
+  if (proto.isAbrupt) { return proto; }
 
   // 4. If Type(proto) is not Object, then
   if (!proto.isObject) {
@@ -436,14 +440,14 @@ function $GetPrototypeFromConstructor<T extends keyof Intrinsics = keyof Intrins
 function $PrepareForOrdinaryCall(
   ctx: ExecutionContext,
   F: $Function,
-  newTarget: $Object | $Undefined,
-): ExecutionContext {
+  newTarget: $AnyObject | $Undefined,
+): ExecutionContext<$FunctionEnvRec, $FunctionEnvRec> {
   // 1. Assert: Type(newTarget) is Undefined or Object.
   // 2. Let callerContext be the running execution context.
 
   // 3. Let calleeContext be a new ECMAScript code execution context.
   const calleeRealm = F['[[Realm]]'];
-  const calleeContext = new ExecutionContext(calleeRealm);
+  const calleeContext = new ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>(calleeRealm);
 
   // 4. Set the Function of calleeContext to F.
   calleeContext.Function = F;
@@ -482,7 +486,7 @@ function $OrdinaryCallBindThis(
   F: $Function,
   calleeContext: ExecutionContext,
   thisArgument: $AnyNonEmpty,
-): $AnyNonEmpty {
+): $AnyNonEmpty | $Error {
   // 1. Let thisMode be F.[[ThisMode]].
   const thisMode = F['[[ThisMode]]'];
 
@@ -547,7 +551,7 @@ export abstract class $BuiltinFunction<
   public constructor(
     realm: Realm,
     IntrinsicName: T,
-    proto: $Object = realm['[[Intrinsics]]']['%FunctionPrototype%'],
+    proto: $AnyObject = realm['[[Intrinsics]]']['%FunctionPrototype%'],
   ) {
     super(realm, IntrinsicName, proto);
 
@@ -572,7 +576,7 @@ export abstract class $BuiltinFunction<
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmpty,
     argumentsList: readonly $AnyNonEmpty[],
-  ): $AnyNonEmpty {
+  ): $AnyNonEmpty | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -612,8 +616,8 @@ export abstract class $BuiltinFunction<
   public '[[Construct]]'(
     ctx: ExecutionContext,
     argumentsList: readonly $AnyNonEmpty[],
-    newTarget: $Object,
-  ): $Object {
+    newTarget: $AnyObject,
+  ): $AnyObject | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -654,5 +658,5 @@ export abstract class $BuiltinFunction<
     thisArgument: $AnyNonEmpty,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty;
+  ): $AnyNonEmpty | $Error;
 }

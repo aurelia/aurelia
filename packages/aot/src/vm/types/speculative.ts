@@ -1,4 +1,4 @@
-import { nextValueId, ESType, getPath, $Any, $Primitive } from './_shared';
+import { nextValueId, ESType, getPath, $AnyNonError, $Primitive } from './_shared';
 import { Realm, ExecutionContext } from '../realm';
 import { $$AssignmentExpressionOrHigher } from '../ast';
 import { $Empty } from './empty';
@@ -6,6 +6,7 @@ import { $Object } from './object';
 import { $String } from './string';
 import { $Number } from './number';
 import { $Boolean } from './boolean';
+import { $TypeError, $Error } from './error';
 
 
 export class $SpeculativeValue {
@@ -14,7 +15,7 @@ export class $SpeculativeValue {
   public readonly path: string;
   public readonly id: number = nextValueId();
 
-  public get Type(): ESType { throw new TypeError(); }
+  public get Type(): $Error { return new $TypeError(this.realm); }
   public get isEmpty(): false { return false; }
   public get isUndefined(): false { return false; }
   public get isNull(): false { return false; }
@@ -42,95 +43,95 @@ export class $SpeculativeValue {
     this.path = `((${antecedents.map(getPath).join('+')})/${this.id})`;
   }
 
-  public is(other: $Any): other is $Empty {
+  public is(other: $AnyNonError): other is $Empty {
     return other instanceof $SpeculativeValue && this.id === other.id;
   }
 
   public ToObject(
     ctx: ExecutionContext,
-  ): $Object {
-    throw new TypeError(`Cannot convert SpeculativeValue to object`);
+  ): $Error {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToPropertyKey(
     ctx: ExecutionContext,
-  ): $String {
-    throw new TypeError(`Cannot convert SpeculativeValue to property key`);
+  ): $Error {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToLength(
     ctx: ExecutionContext,
-  ): $Number {
-    throw new TypeError(`Cannot convert SpeculativeValue to length`);
+  ): $Error {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToPrimitive(
     ctx: ExecutionContext,
-  ): $Primitive {
-    throw new TypeError(`Cannot convert SpeculativeValue to primitive`);
+  ): $Error {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToBoolean(
     ctx: ExecutionContext,
-  ): $Boolean {
-    throw new TypeError(`Cannot convert SpeculativeValue to boolean`);
+  ): $Error {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToNumber(
     ctx: ExecutionContext,
-  ): $Number {
-    throw new TypeError(`Cannot convert SpeculativeValue to number`);
+  ): $Error {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToInt32(
     ctx: ExecutionContext,
-  ): $Number {
-    throw new TypeError(`Cannot convert SpeculativeValue to Int32`);
+  ): $Error {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToUint32(
     ctx: ExecutionContext,
-  ): $Number {
-    throw new TypeError(`Cannot convert SpeculativeValue to Uint32`);
+  ): $Error {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToInt16(
     ctx: ExecutionContext,
-  ): $Number {
-    throw new TypeError(`Cannot convert SpeculativeValue to Int16`);
+  ): $Error {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToUint16(
     ctx: ExecutionContext,
-  ): $Number {
-    throw new TypeError(`Cannot convert SpeculativeValue to Uint16`);
+  ): $Error {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToInt8(
     ctx: ExecutionContext,
-  ): $Number {
-    throw new TypeError(`Cannot convert SpeculativeValue to Int8`);
+  ): $Error {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToUint8(
     ctx: ExecutionContext,
-  ): $Number {
-    throw new TypeError(`Cannot convert SpeculativeValue to Uint8`);
+  ): $Error {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToUint8Clamp(
     ctx: ExecutionContext,
-  ): $Number {
-    throw new TypeError(`Cannot convert SpeculativeValue to Uint8Clamp`);
+  ): $Error {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToString(
     ctx: ExecutionContext,
-  ): $String {
-    throw new TypeError(`Cannot convert SpeculativeValue to string`);
+  ): $Error {
+    return new $TypeError(ctx.Realm);
   }
 
-  public GetValue(): never {
-    throw new TypeError(`SpeculativeValue has no evaluatable value`);
+  public GetValue(): $Error {
+    return new $TypeError(this.realm);
   }
 }

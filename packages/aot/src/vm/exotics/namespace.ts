@@ -4,20 +4,22 @@ import { $String } from '../types/string';
 import { Realm } from '../realm';
 import { $Boolean } from '../types/boolean';
 import { $SetImmutablePrototype } from '../operations';
-import { $PropertyKey, $Any, $AnyNonEmpty } from '../types/_shared';
+import { $PropertyKey, $AnyNonError, $AnyNonEmpty, $AnyObject } from '../types/_shared';
 import { $PropertyDescriptor } from '../types/property-descriptor';
 import { $Undefined } from '../types/undefined';
+import { $Error, $ReferenceError } from '../types/error';
+import { $List } from '../types/list';
 
 // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects
 export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   public readonly '[[Module]]': IModule;
-  public readonly '[[Exports]]': readonly $String[];
+  public readonly '[[Exports]]': $List<$String>;
 
   // http://www.ecma-international.org/ecma-262/#sec-modulenamespacecreate
   public constructor(
     realm: Realm,
     mod: IModule,
-    exports: readonly $String[],
+    exports: $List<$String>,
   ) {
     super(realm, 'NamespaceExoticObject', realm['[[Intrinsics]]'].null);
     // 1. Assert: module is a Module Record.
@@ -30,7 +32,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
 
     // 7. Let sortedExports be a new List containing the same values as the list exports where the values are ordered as if an Array of the same values had been sorted using Array.prototype.sort using undefined as comparefn.
     // 8. Set M.[[Exports]] to sortedExports.
-    this['[[Exports]]'] = exports.slice().sort();
+    this['[[Exports]]'] = exports.$copy();
 
     // 9. Create own properties of M corresponding to the definitions in 26.3.
     // 10. Set module.[[Namespace]] to M.
@@ -43,8 +45,8 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-setprototypeof-v
   public '[[SetPrototypeOf]]'(
     ctx: ExecutionContext,
-    V: $Object,
-  ): $Boolean {
+    V: $AnyObject,
+  ): $Boolean | $Error {
     // 1. Return ? SetImmutablePrototype(O, V).
     return $SetImmutablePrototype(ctx, this, V);
   }
@@ -69,7 +71,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   public '[[GetOwnProperty]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
-  ): $PropertyDescriptor | $Undefined {
+  ): $PropertyDescriptor | $Undefined | $Error {
     // 1. If Type(P) is Symbol, return OrdinaryGetOwnProperty(O, P).
     if (P.isSymbol) {
       return super['[[GetOwnProperty]]'](ctx, P);
@@ -89,6 +91,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
 
     // 4. Let value be ? O.[[Get]](P, O).
     const value = O['[[Get]]'](ctx, P, O);
+    if (value.isAbrupt) { return value; }
 
     // 5. Return PropertyDescriptor { [[Value]]: value, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: false }.
     const desc = new $PropertyDescriptor(realm, P);
@@ -105,7 +108,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
     ctx: ExecutionContext,
     P: $PropertyKey,
     Desc: $PropertyDescriptor,
-  ): $Boolean {
+  ): $Boolean | $Error {
     // 1. If Type(P) is Symbol, return OrdinaryDefineOwnProperty(O, P, Desc).
     if (P.isSymbol) {
       return super['[[DefineOwnProperty]]'](ctx, P, Desc);
@@ -117,6 +120,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
 
     // 2. Let current be ? O.[[GetOwnProperty]](P).
     const current = O['[[GetOwnProperty]]'](ctx, P);
+    if (current.isAbrupt) { return current; }
 
     // 3. If current is undefined, return false.
     if (current.isUndefined) {
@@ -159,7 +163,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   public '[[HasProperty]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
-  ): $Boolean {
+  ): $Boolean | $Error {
     // 1. If Type(P) is Symbol, return OrdinaryHasProperty(O, P).
     if (P.isSymbol) {
       return super['[[HasProperty]]'](ctx, P);
@@ -185,8 +189,8 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   public '[[Get]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
-    Receiver: $Object,
-  ): $AnyNonEmpty {
+    Receiver: $AnyNonEmpty,
+  ): $AnyNonEmpty | $Error {
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. If Type(P) is Symbol, then
     // 2. a. Return ? OrdinaryGet(O, P, Receiver).
@@ -222,7 +226,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
 
     // 11. If targetEnv is undefined, throw a ReferenceError exception.
     if (targetEnv.isUndefined) {
-      throw new ReferenceError('11. If targetEnv is undefined, throw a ReferenceError exception.');
+      return new $ReferenceError(realm);
     }
 
     // 12. Let targetEnvRec be targetEnv's EnvironmentRecord.
@@ -235,7 +239,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
     ctx: ExecutionContext,
     P: $PropertyKey,
     V: $AnyNonEmpty,
-    Receiver: $Object,
+    Receiver: $AnyObject,
   ): $Boolean<false> {
     // 1. Return false.
     return ctx.Realm['[[Intrinsics]]'].false;
@@ -245,7 +249,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   public '[[Delete]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
-  ): $Boolean {
+  ): $Boolean | $Error {
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. If Type(P) is Symbol, then
     // 2. a. Return ? OrdinaryDelete(O, P).
@@ -272,12 +276,12 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-ownpropertykeys
   public '[[OwnPropertyKeys]]'(
     ctx: ExecutionContext,
-  ): readonly $PropertyKey[] {
+  ): $List<$PropertyKey> {
     // 1. Let exports be a copy of O.[[Exports]].
-    const $exports = this['[[Exports]]'].slice() as $PropertyKey[];
+    const $exports = this['[[Exports]]'].$copy<$PropertyKey>();
 
     // 2. Let symbolKeys be ! OrdinaryOwnPropertyKeys(O).
-    const symbolKeys = super['[[OwnPropertyKeys]]'](ctx);
+    const symbolKeys = super['[[OwnPropertyKeys]]'](ctx) as $List<$PropertyKey>;
 
     // 3. Append all the entries of symbolKeys to the end of exports.
     $exports.push(...symbolKeys);

@@ -1,4 +1,4 @@
-import { nextValueId, $PropertyKey, $Any, $Primitive, compareIndices, PotentialNonEmptyCompletionType, CompletionTarget, CompletionType, $AnyNonEmpty } from './_shared';
+import { nextValueId, $PropertyKey, $AnyNonError, $Primitive, compareIndices, PotentialNonEmptyCompletionType, CompletionTarget, CompletionType, $AnyNonEmpty, $AnyObject, $Any } from './_shared';
 import { $PropertyDescriptor } from './property-descriptor';
 import { $Null } from './null';
 import { $Boolean } from './boolean';
@@ -9,6 +9,8 @@ import { $Call, $ValidateAndApplyPropertyDescriptor, $OrdinarySetWithOwnDescript
 import { $Function } from './function';
 import { $Undefined } from './undefined';
 import { $Symbol } from './symbol';
+import { $TypeError, $Error } from './error';
+import { $List } from './list';
 
 // http://www.ecma-international.org/ecma-262/#sec-object-type
 export class $Object<
@@ -30,13 +32,16 @@ export class $Object<
   }
   public '[[Target]]': CompletionTarget;
 
-  public get isAbrupt(): boolean { return this['[[Type]]'] !== CompletionType.normal; }
+  // Note: this typing is incorrect, but we do it this way to prevent having to cast in 100+ places.
+  // The purpose is to ensure the `isAbrupt === true` flow narrows down to the $Error type.
+  // It could be done correctly, but that would require complex conditional types which is not worth the effort right now.
+  public get isAbrupt(): false { return (this['[[Type]]'] !== CompletionType.normal) as false; }
 
-  private readonly propertyMap: Map<string | symbol, number> = new Map();
-  private readonly propertyDescriptors: $PropertyDescriptor[] = [];
-  private readonly propertyKeys: $PropertyKey[] = [];
+  public readonly propertyMap: Map<string | symbol, number> = new Map();
+  public readonly propertyDescriptors: $PropertyDescriptor[] = [];
+  public readonly propertyKeys: $PropertyKey[] = [];
 
-  public ['[[Prototype]]']: $Object | $Null;
+  public ['[[Prototype]]']: $AnyObject | $Null;
   public ['[[Extensible]]']: $Boolean;
 
   public get Type(): 'Object' { return 'Object'; }
@@ -62,7 +67,7 @@ export class $Object<
   public constructor(
     public readonly realm: Realm,
     public readonly IntrinsicName: T,
-    proto: $Object | $Null,
+    proto: $AnyObject | $Null,
     type: PotentialNonEmptyCompletionType = CompletionType.normal,
     target: CompletionTarget = realm['[[Intrinsics]]'].empty,
   ) {
@@ -76,7 +81,7 @@ export class $Object<
   public static ObjectCreate<T extends string = string, TSlots extends {} = {}>(
     ctx: ExecutionContext,
     IntrinsicName: T,
-    proto: $Object,
+    proto: $AnyObject,
     internalSlotsList?: TSlots,
   ): $Object<T> & TSlots {
     const realm = ctx.Realm;
@@ -93,7 +98,7 @@ export class $Object<
     return obj as $Object<T> & TSlots;
   }
 
-  public is(other: $Any): other is $Object<T> {
+  public is(other: $AnyNonError): other is $Object<T> {
     return this.id === other.id;
   }
 
@@ -122,73 +127,73 @@ export class $Object<
 
   public ToPropertyKey(
     ctx: ExecutionContext,
-  ): $String {
+  ): $String | $Error {
     return this.ToString(ctx);
   }
 
   public ToLength(
     ctx: ExecutionContext,
-  ): $Number {
+  ): $Number | $Error {
     return this.ToNumber(ctx).ToLength(ctx);
   }
 
   public ToBoolean(
     ctx: ExecutionContext,
-  ): $Boolean {
+  ): $Boolean | $Error {
     return this.ToPrimitive(ctx, 'number').ToBoolean(ctx);
   }
 
   public ToNumber(
     ctx: ExecutionContext,
-  ): $Number {
+  ): $Number | $Error {
     return this.ToPrimitive(ctx, 'number').ToNumber(ctx);
   }
 
   public ToInt32(
     ctx: ExecutionContext,
-  ): $Number {
+  ): $Number | $Error {
     return this.ToPrimitive(ctx, 'number').ToInt32(ctx);
   }
 
   public ToUint32(
     ctx: ExecutionContext,
-  ): $Number {
+  ): $Number | $Error {
     return this.ToPrimitive(ctx, 'number').ToUint32(ctx);
   }
 
   public ToInt16(
     ctx: ExecutionContext,
-  ): $Number {
+  ): $Number | $Error {
     return this.ToPrimitive(ctx, 'number').ToInt16(ctx);
   }
 
   public ToUint16(
     ctx: ExecutionContext,
-  ): $Number {
+  ): $Number | $Error {
     return this.ToPrimitive(ctx, 'number').ToUint16(ctx);
   }
 
   public ToInt8(
     ctx: ExecutionContext,
-  ): $Number {
+  ): $Number | $Error {
     return this.ToPrimitive(ctx, 'number').ToInt8(ctx);
   }
 
   public ToUint8(
     ctx: ExecutionContext,
-  ): $Number {
+  ): $Number | $Error {
     return this.ToPrimitive(ctx, 'number').ToUint8(ctx);
   }
 
   public ToUint8Clamp(
     ctx: ExecutionContext,
-  ): $Number {
+  ): $Number | $Error {
     return this.ToPrimitive(ctx, 'number').ToUint8Clamp(ctx);
   }
 
   public ToString(
     ctx: ExecutionContext,
-  ): $String {
+  ): $String | $Error {
     return this.ToPrimitive(ctx,  'string').ToString(ctx);
   }
 
@@ -196,7 +201,7 @@ export class $Object<
   public ToPrimitive(
     ctx: ExecutionContext,
     PreferredType: 'default' | 'string' | 'number' = 'default',
-  ): $Primitive {
+  ): $Primitive | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
     const input = this;
@@ -210,11 +215,13 @@ export class $Object<
 
     // 2. d. Let exoticToPrim be ? GetMethod(input, @@toPrimitive).
     const exoticToPrim = input.GetMethod(ctx, intrinsics['@@toPrimitive']);
+    if (exoticToPrim.isAbrupt) { return exoticToPrim; }
 
     // 2. e. If exoticToPrim is not undefined, then
     if (!exoticToPrim.isUndefined) {
       // 2. e. i. Let result be ? Call(exoticToPrim, input, « hint »).
       const result = $Call(ctx, exoticToPrim, input, [hint]);
+      if (result.isAbrupt) { return result; }
 
       // 2. e. ii. If Type(result) is not Object, return result.
       if (result.isPrimitive) {
@@ -222,7 +229,7 @@ export class $Object<
       }
 
       // 2. e. iii. Throw a TypeError exception.
-      throw new TypeError('2. e. iii. Throw a TypeError exception.');
+      return new $TypeError(realm);
     }
 
     // 2. f. If hint is "default", set hint to "number".
@@ -241,7 +248,7 @@ export class $Object<
   public OrdinaryToPrimitive(
     ctx: ExecutionContext,
     hint: 'string' | 'number',
-  ): $Primitive {
+  ): $Primitive | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
     const O = this;
@@ -254,11 +261,13 @@ export class $Object<
       // 5. For each name in methodNames in List order, do
       // 5. a. Let method be ? Get(O, name).
       let method = O['[[Get]]'](ctx, intrinsics.$toString, O);
+      if (method.isAbrupt) { return method; }
 
       // 5. b. If IsCallable(method) is true, then
       if (method.isFunction) {
         // 5. b. i. Let result be ? Call(method, O).
         const result = $Call(ctx, method as $Function, O);
+        if (result.isAbrupt) { return result; }
 
         // 5. b. ii. If Type(result) is not Object, return result.
         if (result.isPrimitive) {
@@ -267,11 +276,13 @@ export class $Object<
       }
 
       method = O['[[Get]]'](ctx, intrinsics.$valueOf, O);
+      if (method.isAbrupt) { return method; }
 
       // 5. b. If IsCallable(method) is true, then
       if (method.isFunction) {
         // 5. b. i. Let result be ? Call(method, O).
         const result = $Call(ctx, method as $Function, O);
+        if (result.isAbrupt) { return result; }
 
         // 5. b. ii. If Type(result) is not Object, return result.
         if (result.isPrimitive) {
@@ -280,7 +291,7 @@ export class $Object<
       }
 
       // 6. Throw a TypeError exception.
-      throw new TypeError('6. Throw a TypeError exception.');
+      return new $TypeError(realm);
     }
     // 4. Else,
     else {
@@ -288,11 +299,13 @@ export class $Object<
       // 5. For each name in methodNames in List order, do
       // 5. a. Let method be ? Get(O, name).
       let method = O['[[Get]]'](ctx, intrinsics.$valueOf, O);
+      if (method.isAbrupt) { return method; }
 
       // 5. b. If IsCallable(method) is true, then
       if (method.isFunction) {
         // 5. b. i. Let result be ? Call(method, O).
         const result = $Call(ctx, method as $Function, O);
+        if (result.isAbrupt) { return result; }
 
         // 5. b. ii. If Type(result) is not Object, return result.
         if (result.isPrimitive) {
@@ -301,11 +314,13 @@ export class $Object<
       }
 
       method = O['[[Get]]'](ctx, intrinsics.$toString, O);
+      if (method.isAbrupt) { return method; }
 
       // 5. b. If IsCallable(method) is true, then
       if (method.isFunction) {
         // 5. b. i. Let result be ? Call(method, O).
         const result = $Call(ctx, method as $Function, O);
+        if (result.isAbrupt) { return result; }
 
         // 5. b. ii. If Type(result) is not Object, return result.
         if (result.isPrimitive) {
@@ -314,11 +329,13 @@ export class $Object<
       }
 
       // 6. Throw a TypeError exception.
-      throw new TypeError('6. Throw a TypeError exception.');
+      return new $TypeError(realm);
     }
   }
 
-  public GetValue(): this {
+  public GetValue(
+    ctx: ExecutionContext,
+  ): this {
     return this;
   }
 
@@ -326,7 +343,7 @@ export class $Object<
   public GetMethod(
     ctx: ExecutionContext,
     P: $PropertyKey,
-  ): $Function | $Undefined {
+  ): $Function | $Undefined | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
     const V = this;
@@ -334,6 +351,7 @@ export class $Object<
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let func be ? GetV(V, P).
     const func = V['[[Get]]'](ctx, P, V);
+    if (func.isAbrupt) { return func; }
 
     // 3. If func is either undefined or null, return undefined.
     if (func.isNil) {
@@ -342,22 +360,22 @@ export class $Object<
 
     // 4. If IsCallable(func) is false, throw a TypeError exception.
     if (!func.isFunction) {
-      throw new TypeError('If IsCallable(func) is false, throw a TypeError exception.');
+      return new $TypeError(realm);
     }
 
     // 5. Return func.
     return func as $Function;
   }
 
-  protected hasProperty(key: $PropertyKey): boolean {
+  public hasProperty(key: $PropertyKey): boolean {
     return this.propertyMap.has(key['[[Value]]']);
   }
 
-  protected getProperty(key: $PropertyKey): $PropertyDescriptor {
+  public getProperty(key: $PropertyKey): $PropertyDescriptor {
     return this.propertyDescriptors[this.propertyMap.get(key['[[Value]]'])!];
   }
 
-  protected setProperty(desc: $PropertyDescriptor): void {
+  public setProperty(desc: $PropertyDescriptor): void {
     if (this.propertyMap.has(desc.name['[[Value]]'])) {
       const idx = this.propertyMap.get(desc.name['[[Value]]'])!;
       this.propertyDescriptors[idx] = desc;
@@ -370,7 +388,7 @@ export class $Object<
     }
   }
 
-  protected deleteProperty(key: $PropertyKey): void {
+  public deleteProperty(key: $PropertyKey): void {
     const idx = this.propertyMap.get(key['[[Value]]'])!;
     this.propertyMap.delete(key['[[Value]]']);
     this.propertyDescriptors.splice(idx, 1)
@@ -379,8 +397,9 @@ export class $Object<
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
   public '[[GetPrototypeOf]]'(
+    this: $AnyObject,
     ctx: ExecutionContext,
-  ): $Object | $Null {
+  ): $AnyObject | $Null | $Error {
     // 1. Return ! OrdinaryGetPrototypeOf(O)
 
     // http://www.ecma-international.org/ecma-262/#sec-ordinarygetprototypeof
@@ -392,9 +411,10 @@ export class $Object<
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-setprototypeof-v
   public '[[SetPrototypeOf]]'(
+    this: $AnyObject,
     ctx: ExecutionContext,
-    V: $Object | $Null,
-  ): $Boolean {
+    V: $AnyObject | $Null,
+  ): $Boolean | $Error {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return ! OrdinarySetPrototypeOf(O, V).
@@ -457,8 +477,9 @@ export class $Object<
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-isextensible
   public '[[IsExtensible]]'(
+    this: $AnyObject,
     ctx: ExecutionContext,
-  ): $Boolean {
+  ): $Boolean | $Error {
     // 1. Return ! OrdinaryIsExtensible(O).
 
     // http://www.ecma-international.org/ecma-262/#sec-ordinaryisextensible
@@ -470,8 +491,9 @@ export class $Object<
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions
   public '[[PreventExtensions]]'(
+    this: $AnyObject,
     ctx: ExecutionContext,
-  ): $Boolean {
+  ): $Boolean | $Error {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Return ! OrdinaryPreventExtensions(O).
@@ -488,9 +510,10 @@ export class $Object<
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p
   public '[[GetOwnProperty]]'(
+    this: $AnyObject,
     ctx: ExecutionContext,
     P: $PropertyKey,
-  ): $PropertyDescriptor | $Undefined {
+  ): $PropertyDescriptor | $Undefined | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -540,10 +563,11 @@ export class $Object<
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-defineownproperty-p-desc
   public '[[DefineOwnProperty]]'(
+    this: $AnyObject,
     ctx: ExecutionContext,
     P: $PropertyKey,
     Desc: $PropertyDescriptor,
-  ): $Boolean {
+  ): $Boolean | $Error {
     // 1. Return ? OrdinaryDefineOwnProperty(O, P, Desc).
     const O = this;
 
@@ -551,9 +575,11 @@ export class $Object<
 
     // 1. Let current be ? O.[[GetOwnProperty]](P).
     const current = O['[[GetOwnProperty]]'](ctx, P);
+    if (current.isAbrupt) { return current; }
 
     // 2. Let extensible be ? IsExtensible(O).
     const extensible = O['[[IsExtensible]]'](ctx);
+    if (extensible.isAbrupt) { return extensible; }
 
     // 3. Return ValidateAndApplyPropertyDescriptor(O, P, extensible, Desc, current).
     return $ValidateAndApplyPropertyDescriptor(ctx, O, P, extensible, Desc, current);
@@ -561,9 +587,10 @@ export class $Object<
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p
   public '[[HasProperty]]'(
+    this: $AnyObject,
     ctx: ExecutionContext,
     P: $PropertyKey,
-  ): $Boolean {
+  ): $Boolean | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -576,6 +603,7 @@ export class $Object<
 
     // 2. Let hasOwn be ? O.[[GetOwnProperty]](P).
     const hasOwn = O['[[GetOwnProperty]]'](ctx, P);
+    if (hasOwn.isAbrupt) { return hasOwn; }
 
     // 3. If hasOwn is not undefined, return true.
     if (!hasOwn.isUndefined) {
@@ -584,6 +612,7 @@ export class $Object<
 
     // 4. Let parent be ? O.[[GetPrototypeOf]]().
     const parent = O['[[GetPrototypeOf]]'](ctx);
+    if (parent.isAbrupt) { return parent; }
 
     // 5. If parent is not null, then
     if (!parent.isNull) {
@@ -597,10 +626,11 @@ export class $Object<
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver
   public '[[Get]]'(
+    this: $AnyObject,
     ctx: ExecutionContext,
     P: $PropertyKey,
     Receiver: $AnyNonEmpty,
-  ): $AnyNonEmpty {
+  ): $AnyNonEmpty | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
     // 1. Return ? OrdinaryGet(O, P, Receiver).
@@ -611,11 +641,13 @@ export class $Object<
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let desc be ? O.[[GetOwnProperty]](P).
     const desc = O['[[GetOwnProperty]]'](ctx, P);
+    if (desc.isAbrupt) { return desc; }
 
     // 3. If desc is undefined, then
     if (desc.isUndefined) {
       // 3. a. Let parent be ? O.[[GetPrototypeOf]]().
       const parent = O['[[GetPrototypeOf]]'](ctx);
+      if (parent.isAbrupt) { return parent; }
 
       // 3. b. If parent is null, return undefined.
       if (parent.isNull) {
@@ -646,11 +678,12 @@ export class $Object<
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-set-p-v-receiver
   public '[[Set]]'(
+    this: $AnyObject,
     ctx: ExecutionContext,
     P: $PropertyKey,
     V: $AnyNonEmpty,
-    Receiver: $Object,
-  ): $Boolean {
+    Receiver: $AnyObject,
+  ): $Boolean | $Error {
     // 1. Return ? OrdinarySet(O, P, V, Receiver).
 
     // http://www.ecma-international.org/ecma-262/#sec-ordinaryset
@@ -659,6 +692,7 @@ export class $Object<
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let ownDesc be ? O.[[GetOwnProperty]](P).
     const ownDesc = O['[[GetOwnProperty]]'](ctx, P);
+    if (ownDesc.isAbrupt) { return ownDesc; }
 
     // 3. Return OrdinarySetWithOwnDescriptor(O, P, V, Receiver, ownDesc).
     return $OrdinarySetWithOwnDescriptor(ctx, O, P, V, Receiver, ownDesc);
@@ -666,9 +700,10 @@ export class $Object<
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-delete-p
   public '[[Delete]]'(
+    this: $AnyObject,
     ctx: ExecutionContext,
     P: $PropertyKey,
-  ): $Boolean {
+  ): $Boolean | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -680,6 +715,7 @@ export class $Object<
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let desc be ? O.[[GetOwnProperty]](P).
     const desc = O['[[GetOwnProperty]]'](ctx, P);
+    if (desc.isAbrupt) { return desc; }
 
     // 3. If desc is undefined, return true.
     if (desc.isUndefined) {
@@ -701,14 +737,15 @@ export class $Object<
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-ownpropertykeys
   public '[[OwnPropertyKeys]]'(
+    this: $AnyObject,
     ctx: ExecutionContext,
-  ): readonly $PropertyKey[] {
+  ): $List<$PropertyKey> | $Error {
     // 1. Return ! OrdinaryOwnPropertyKeys(O).
 
     // http://www.ecma-international.org/ecma-262/#sec-ordinaryownpropertykeys
 
     // 1. Let keys be a new empty List.
-    const keys = [] as $PropertyKey[];
+    const keys = new $List<$PropertyKey>();
 
     let arrayIndexLen = 0;
     let stringLen = 0;

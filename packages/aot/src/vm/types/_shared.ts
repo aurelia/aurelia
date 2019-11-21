@@ -7,10 +7,16 @@ import { $Symbol } from './symbol';
 import { $Number } from './number';
 import { $Empty } from './empty';
 import { $Object } from './object';
-import { $Function } from './function';
+import { $Function, $BuiltinFunction } from './function';
 import { $BoundFunctionExoticObject } from '../exotics/bound-function';
 import { $ArrayExoticObject } from '../exotics/array';
 import { $ProxyExoticObject } from '../exotics/proxy';
+import { $ImmutablePrototypeExoticObject } from '../exotics/immutable-prototype';
+import { $NamespaceExoticObject } from '../exotics/namespace';
+import { $StringExoticObject } from '../exotics/string';
+import { $IntegerIndexedExoticObject } from '../exotics/integer-indexed';
+import { $ArgumentsExoticObject } from '../exotics/arguments';
+import { $Error } from './error';
 
 export const enum CompletionType {
   normal   = 1,
@@ -64,16 +70,31 @@ export type $Primitive = (
 
 export type $AnyNonEmpty = (
   $Primitive |
-  $Object |
-  $Function |
-  $BoundFunctionExoticObject |
+  $AnyObject
+);
+
+export type $AnyObject = (
+  $ArgumentsExoticObject |
   $ArrayExoticObject |
-  $ProxyExoticObject
+  $BoundFunctionExoticObject |
+  $BuiltinFunction |
+  $Function |
+  $ImmutablePrototypeExoticObject |
+  $IntegerIndexedExoticObject |
+  $NamespaceExoticObject |
+  $Object |
+  $ProxyExoticObject |
+  $StringExoticObject
+);
+
+export type $AnyNonError = (
+  $Empty |
+  $AnyNonEmpty
 );
 
 export type $Any = (
-  $Empty |
-  $AnyNonEmpty
+  $AnyNonError |
+  $Error
 );
 
 export type $PropertyKey = (
@@ -85,7 +106,7 @@ export type ESType = 'Undefined' | 'Null' | 'Boolean' | 'String' | 'Symbol' | 'N
 
 export type $NonNumberPrimitive = Exclude<$Primitive, $Number>;
 export type $NonNilPrimitive = Exclude<$Primitive, $Undefined | $Null>;
-export type $NonNil = Exclude<$Any, $Undefined | $Null>;
+export type $NonNil = Exclude<$AnyNonError, $Undefined | $Null>;
 
 export function getPath(obj: { path: string }): string {
   return obj.path;

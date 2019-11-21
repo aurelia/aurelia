@@ -6,27 +6,31 @@ import { $Symbol } from './symbol';
 import { $Number } from './number';
 import { $EnvRec } from './environment-record';
 import { $Undefined } from './undefined';
-import { $AnyNonEmpty } from './_shared';
+import { $AnyNonEmpty, $AnyObject } from './_shared';
 import { $Empty } from './empty';
 import { $Set } from '../operations';
+import { $TypeError, $ReferenceError, $Error } from './error';
 
 
 // http://www.ecma-international.org/ecma-262/#sec-reference-specification-type
 export class $Reference {
   public readonly '<$Reference>': unknown;
 
+  // Note: this typing is incorrect, but we do it this way to prevent having to cast in 100+ places.
+  // The purpose is to ensure the `isAbrupt === true` flow narrows down to the $Error type.
+  // It could be done correctly, but that would require complex conditional types which is not worth the effort right now.
   public get isAbrupt(): false { return false; }
 
   public constructor(
     public readonly realm: Realm,
-    public readonly baseValue: $Object | $Boolean | $String | $Symbol | $Number | $EnvRec | $Undefined,
+    public readonly baseValue: $AnyObject | $Boolean | $String | $Symbol | $Number | $EnvRec | $Undefined,
     public readonly referencedName: $String,
     public readonly strict: $Boolean,
-    public readonly thisValue: $Object | $Boolean | $String | $Symbol | $Number | $Undefined,
+    public readonly thisValue: $AnyObject | $Boolean | $String | $Symbol | $Number | $Undefined,
   ) {}
 
   // http://www.ecma-international.org/ecma-262/#sec-getbase
-  public GetBase(): $Object | $Boolean | $String | $Symbol | $Number | $EnvRec | $Undefined {
+  public GetBase(): $AnyObject | $Boolean | $String | $Symbol | $Number | $EnvRec | $Undefined {
     // 1. Assert: Type(V) is Reference.
     // 2. Return the base value component of V.
     return this.baseValue;
@@ -93,7 +97,7 @@ export class $Reference {
   // http://www.ecma-international.org/ecma-262/#sec-getvalue
   public GetValue(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty {
+  ): $AnyNonEmpty | $Error {
     // 1. ReturnIfAbrupt(V).
     // 2. If Type(V) is not Reference, return V.
     // 3. Let base be GetBase(V).
@@ -101,7 +105,7 @@ export class $Reference {
 
     // 4. If IsUnresolvableReference(V) is true, throw a ReferenceError exception.
     if (this.IsUnresolvableReference().isTruthy) {
-      throw new ReferenceError(`4. If IsUnresolvableReference(V) is true, throw a ReferenceError exception.`);
+      return new $ReferenceError(ctx.Realm);
     }
 
     // 5. If IsPropertyReference(V) is true, then
@@ -127,7 +131,7 @@ export class $Reference {
   public PutValue(
     ctx: ExecutionContext,
     W: $AnyNonEmpty,
-  ): $Boolean | $Empty {
+  ): $Boolean | $Empty | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -142,7 +146,7 @@ export class $Reference {
       // 5. a. If IsStrictReference(V) is true, then
       if (this.IsStrictReference().isTruthy) {
         // 5. a. i. Throw a ReferenceError exception.
-        throw new ReferenceError();
+        return new $ReferenceError(realm);
       }
 
       // 5. b. Let globalObj be GetGlobalObject().
@@ -162,10 +166,11 @@ export class $Reference {
 
       // 6. b. Let succeeded be ? base.[[Set]](GetReferencedName(V), W, GetThisValue(V)).
       const succeeded = (base as $Object)['[[Set]]'](ctx, this.GetReferencedName(), W, this.GetThisValue() as $Object);
+      if (succeeded.isAbrupt) { return succeeded; }
 
       // 6. c. If succeeded is false and IsStrictReference(V) is true, throw a TypeError exception.
       if (succeeded.isFalsey && this.IsStrictReference().isTruthy) {
-        throw new TypeError();
+        return new $TypeError(realm);
       }
 
       // 6. d. Return.
@@ -179,7 +184,7 @@ export class $Reference {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-getthisvalue
-  public GetThisValue(): $Object | $Boolean | $String | $Symbol | $Number {
+  public GetThisValue(): $AnyObject | $Boolean | $String | $Symbol | $Number {
     // 1. Assert: IsPropertyReference(V) is true.
     // 2. If IsSuperReference(V) is true, then
     if (this.IsSuperReference().isTruthy) {
@@ -195,7 +200,7 @@ export class $Reference {
   public InitializeReferencedBinding(
     ctx: ExecutionContext,
     W: $AnyNonEmpty,
-  ): $Boolean | $Empty {
+  ): $Boolean | $Empty | $Error {
     // 1. ReturnIfAbrupt(V).
     // 2. ReturnIfAbrupt(W).
     // 3. Assert: Type(V) is Reference.

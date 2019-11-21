@@ -2,7 +2,7 @@
 import { IModule, Realm, ExecutionContext } from '../realm';
 import { $DefinePropertyOrThrow, $Set, $HasOwnProperty } from '../operations';
 import { $PropertyDescriptor } from './property-descriptor';
-import { $Any, $AnyNonEmpty } from './_shared';
+import { $AnyNonError, $AnyNonEmpty, $AnyObject } from './_shared';
 import { $String } from './string';
 import { $Null } from './null';
 import { $Boolean } from './boolean';
@@ -11,6 +11,7 @@ import { $Undefined } from './undefined';
 import { $Object } from './object';
 import { $Function } from './function';
 import { ILogger } from '@aurelia/kernel';
+import { $Error, $TypeError, $ReferenceError } from './error';
 
 export type $EnvRec = (
   $DeclarativeEnvRec |
@@ -36,7 +37,7 @@ export class $Binding {
     public isStrict: boolean,
     public isInitialized: boolean,
     public canBeDeleted: boolean,
-    public value: $Any,
+    public value: $AnyNonError,
     public name: string,
     public origin: $EnvRec,
     public M: IModule | null = null,
@@ -189,7 +190,7 @@ export class $DeclarativeEnvRec {
     N: $String,
     V: $AnyNonEmpty,
     S: $Boolean,
-  ): $Empty {
+  ): $Empty | $Error {
     this.logger.debug(`SetMutableBinding(${N['[[Value]]']})`);
 
     const intrinsics = this.realm['[[Intrinsics]]'];
@@ -203,7 +204,7 @@ export class $DeclarativeEnvRec {
     if (binding === void 0) {
       // 2. a. If S is true, throw a ReferenceError exception.
       if (S.isTruthy) {
-        throw new ReferenceError('2. a. If S is true, throw a ReferenceError exception.');
+        return new $ReferenceError(ctx.Realm);
       }
 
       // 2. b. Perform envRec.CreateMutableBinding(N, true).
@@ -223,7 +224,7 @@ export class $DeclarativeEnvRec {
 
     // 4. If the binding for N in envRec has not yet been initialized, throw a ReferenceError exception.
     if (!binding.isInitialized) {
-      throw new ReferenceError('4. If the binding for N in envRec has not yet been initialized, throw a ReferenceError exception.');
+      return new $ReferenceError(ctx.Realm);
     }
     // 5. Else if the binding for N in envRec is a mutable binding, change its bound value to V.
     else if (binding.isMutable) {
@@ -234,7 +235,7 @@ export class $DeclarativeEnvRec {
       // 6. a. Assert: This is an attempt to change the value of an immutable binding.
       // 6. b. If S is true, throw a TypeError exception.
       if (S.isTruthy) {
-        throw new TypeError('6. b. If S is true, throw a TypeError exception.');
+        return new $TypeError(ctx.Realm);
       }
     }
 
@@ -247,7 +248,7 @@ export class $DeclarativeEnvRec {
     ctx: ExecutionContext,
     N: $String,
     S: $Boolean,
-  ): $AnyNonEmpty {
+  ): $AnyNonEmpty | $Error {
     this.logger.debug(`GetBindingValue(${N['[[Value]]']})`);
 
     // 1. Let envRec be the declarative Environment Record for which the method was invoked.
@@ -258,7 +259,7 @@ export class $DeclarativeEnvRec {
 
     // 3. If the binding for N in envRec is an uninitialized binding, throw a ReferenceError exception.
     if (!binding.isInitialized) {
-      throw new ReferenceError('3. If the binding for N in envRec is an uninitialized binding, throw a ReferenceError exception.');
+      return new $ReferenceError(ctx.Realm);
     }
 
     // 4. Return the value currently bound to N in envRec.
@@ -347,7 +348,7 @@ export class $ObjectEnvRec {
     public readonly logger: ILogger,
     public readonly realm: Realm,
     public readonly outer: $EnvRec | $Null,
-    public readonly bindingObject: $Object,
+    public readonly bindingObject: $AnyObject,
   ) {
     this.logger = logger.scopeTo('ObjectEnvRec');
     // 1. Let env be a new Lexical Environment.
@@ -362,7 +363,7 @@ export class $ObjectEnvRec {
   public HasBinding(
     ctx: ExecutionContext,
     N: $String,
-  ): $Boolean {
+  ): $Boolean | $Error {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
 
@@ -374,6 +375,7 @@ export class $ObjectEnvRec {
 
     // 3. Let foundBinding be ? HasProperty(bindings, N).
     const foundBinding = bindings['[[HasProperty]]'](ctx, N);
+    if (foundBinding.isAbrupt) { return foundBinding; }
 
     // 4. If foundBinding is false, return false.
     if (foundBinding.isFalsey) {
@@ -387,14 +389,18 @@ export class $ObjectEnvRec {
 
     // 6. Let unscopables be ? Get(bindings, @@unscopables).
     const unscopables = bindings['[[Get]]'](ctx, intrinsics['@@unscopables'], bindings);
+    if (unscopables.isAbrupt) { return unscopables; }
 
     // 7. If Type(unscopables) is Object, then
     if (unscopables.isObject) {
       // 7. a. Let blocked be ToBoolean(? Get(unscopables, N)).
-      const blocked = unscopables['[[Get]]'](ctx, N, unscopables).isTruthy;
+      const _blocked = unscopables['[[Get]]'](ctx, N, unscopables);
+      if (_blocked.isAbrupt) { return _blocked; }
+      const blocked = _blocked.ToBoolean(ctx);
+      if (blocked.isAbrupt) { return blocked; }
 
       // 7. b. If blocked is true, return false.
-      if (blocked) {
+      if (blocked.isTruthy) {
         return intrinsics.false;
       }
     }
@@ -408,7 +414,7 @@ export class $ObjectEnvRec {
     ctx: ExecutionContext,
     N: $String,
     D: $Boolean,
-  ): $Boolean {
+  ): $Boolean | $Error {
     this.logger.debug(`CreateMutableBinding(${N['[[Value]]']})`);
 
     const realm = ctx.Realm;
@@ -434,7 +440,7 @@ export class $ObjectEnvRec {
     ctx: ExecutionContext,
     N: $String,
     S: $Boolean,
-  ): $Boolean {
+  ): $Boolean | $Error {
     // The concrete Environment Record method CreateImmutableBinding is never used within this specification in association with object Environment Records.
     throw new Error('Should not be called');
   }
@@ -444,7 +450,7 @@ export class $ObjectEnvRec {
     ctx: ExecutionContext,
     N: $String,
     V: $AnyNonEmpty,
-  ): $Boolean {
+  ): $Boolean | $Error {
     this.logger.debug(`InitializeBinding(#${ctx.id}, ${N['[[Value]]']}, ${JSON.stringify(V['[[Value]]'])})`);
 
     const intrinsics = this.realm['[[Intrinsics]]'];
@@ -466,7 +472,7 @@ export class $ObjectEnvRec {
     N: $String,
     V: $AnyNonEmpty,
     S: $Boolean,
-  ): $Boolean {
+  ): $Boolean | $Error {
     this.logger.debug(`SetMutableBinding(${N['[[Value]]']})`);
 
     // 1. Let envRec be the object Environment Record for which the method was invoked.
@@ -484,7 +490,7 @@ export class $ObjectEnvRec {
     ctx: ExecutionContext,
     N: $String,
     S: $Boolean,
-  ): $AnyNonEmpty {
+  ): $AnyNonEmpty | $Error {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the object Environment Record for which the method was invoked.
@@ -495,6 +501,7 @@ export class $ObjectEnvRec {
 
     // 3. Let value be ? HasProperty(bindings, N).
     const value = bindings['[[HasProperty]]'](ctx, N);
+    if (value.isAbrupt) { return value; }
 
     // 4. If value is false, then
     if (value.isFalsey) {
@@ -503,7 +510,7 @@ export class $ObjectEnvRec {
         return intrinsics.undefined;
       }
 
-      throw new ReferenceError('4. a. If S is false, return the value undefined; otherwise throw a ReferenceError exception.');
+      return new $ReferenceError(ctx.Realm);
     }
 
     // 5. Return ? Get(bindings, N).
@@ -514,7 +521,7 @@ export class $ObjectEnvRec {
   public DeleteBinding(
     ctx: ExecutionContext,
     N: $String,
-  ): $Boolean {
+  ): $Boolean | $Error {
     this.logger.debug(`DeleteBinding(${N['[[Value]]']})`);
 
     // 1. Let envRec be the object Environment Record for which the method was invoked.
@@ -550,7 +557,7 @@ export class $ObjectEnvRec {
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-withbaseobject
   public WithBaseObject(
     ctx: ExecutionContext,
-  ): $Object | $Undefined {
+  ): $AnyObject | $Undefined {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the object Environment Record for which the method was invoked.
@@ -574,8 +581,8 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
   public '[[ThisValue]]': $AnyNonEmpty;
   public '[[ThisBindingStatus]]': BindingStatus;
   public '[[FunctionObject]]': $Function;
-  public '[[HomeObject]]': $Object | $Undefined;
-  public '[[NewTarget]]': $Object | $Undefined;
+  public '[[HomeObject]]': $AnyObject | $Undefined;
+  public '[[NewTarget]]': $AnyObject | $Undefined;
 
   // Everything is false because an environment record should not appear like any kind of normal ES value.
   public get isEmpty(): false { return false; }
@@ -595,7 +602,7 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
     public readonly logger: ILogger,
     realm: Realm,
     F: $Function,
-    newTarget: $Object | $Undefined,
+    newTarget: $AnyObject | $Undefined,
   ) {
     super(logger, realm, F['[[Environment]]']);
     this.logger = logger.scopeTo('FunctionEnvRec');
@@ -679,14 +686,14 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
   public BindThisValue<T extends $AnyNonEmpty>(
     ctx: ExecutionContext,
     V: T,
-  ): T {
+  ): T | $Error {
     // 1. Let envRec be the function Environment Record for which the method was invoked.
     const envRec = this;
 
     // 2. Assert: envRec.[[ThisBindingStatus]] is not "lexical".
     // 3. If envRec.[[ThisBindingStatus]] is "initialized", throw a ReferenceError exception.
     if (envRec['[[ThisBindingStatus]]'] === 'initialized') {
-      throw new ReferenceError('3. If envRec.[[ThisBindingStatus]] is "initialized", throw a ReferenceError exception.');
+      return new $ReferenceError(ctx.Realm);
     }
 
     // 4. Set envRec.[[ThisValue]] to V.
@@ -702,14 +709,14 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
   // http://www.ecma-international.org/ecma-262/#sec-function-environment-records-getthisbinding
   public GetThisBinding(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty {
+  ): $AnyNonEmpty | $Error {
     // 1. Let envRec be the function Environment Record for which the method was invoked.
     const envRec = this;
 
     // 2. Assert: envRec.[[ThisBindingStatus]] is not "lexical".
     // 3. If envRec.[[ThisBindingStatus]] is "uninitialized", throw a ReferenceError exception.
     if (envRec['[[ThisBindingStatus]]'] === 'uninitialized') {
-      throw new ReferenceError('3. If envRec.[[ThisBindingStatus]] is "uninitialized", throw a ReferenceError exception.');
+      return new $ReferenceError(ctx.Realm);
     }
 
     // 4. Return envRec.[[ThisValue]].
@@ -719,7 +726,7 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
   // http://www.ecma-international.org/ecma-262/#sec-getsuperbase
   public GetSuperBase(
     ctx: ExecutionContext,
-  ): $Object | $Null | $Undefined {
+  ): $AnyObject | $Null | $Undefined | $Error {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the function Environment Record for which the method was invoked.
@@ -743,7 +750,7 @@ export class $GlobalEnvRec {
   public readonly '<$GlobalEnvRec>': unknown;
 
   public '[[ObjectRecord]]': $ObjectEnvRec;
-  public '[[GlobalThisValue]]': $Object;
+  public '[[GlobalThisValue]]': $AnyObject;
   public '[[DeclarativeRecord]]': $DeclarativeEnvRec;
   public '[[VarNames]]': string[];
 
@@ -766,8 +773,8 @@ export class $GlobalEnvRec {
   public constructor(
     public readonly logger: ILogger,
     public readonly realm: Realm,
-    G: $Object,
-    thisValue: $Object,
+    G: $AnyObject,
+    thisValue: $AnyObject,
   ) {
     this.logger = logger.scopeTo('GlobalEnvRec');
     this.outer = realm['[[Intrinsics]]'].null;
@@ -804,7 +811,7 @@ export class $GlobalEnvRec {
   public HasBinding(
     ctx: ExecutionContext,
     N: $String,
-  ): $Boolean {
+  ): $Boolean | $Error {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the global Environment Record for which the method was invoked.
@@ -830,7 +837,7 @@ export class $GlobalEnvRec {
     ctx: ExecutionContext,
     N: $String,
     D: $Boolean,
-  ): $Empty {
+  ): $Empty | $Error {
     this.logger.debug(`CreateMutableBinding(${N['[[Value]]']})`);
 
     // 1. Let envRec be the global Environment Record for which the method was invoked.
@@ -841,7 +848,7 @@ export class $GlobalEnvRec {
 
     // 3. If DclRec.HasBinding(N) is true, throw a TypeError exception.
     if (dclRec.HasBinding(ctx, N).isTruthy) {
-      throw new TypeError('3. If DclRec.HasBinding(N) is true, throw a TypeError exception.');
+      return new $TypeError(ctx.Realm);
     }
 
     // 4. Return DclRec.CreateMutableBinding(N, D).
@@ -853,7 +860,7 @@ export class $GlobalEnvRec {
     ctx: ExecutionContext,
     N: $String,
     S: $Boolean,
-  ): $Empty {
+  ): $Empty | $Error {
     this.logger.debug(`CreateImmutableBinding(${N['[[Value]]']})`);
 
     // 1. Let envRec be the global Environment Record for which the method was invoked.
@@ -864,7 +871,7 @@ export class $GlobalEnvRec {
 
     // 3. If DclRec.HasBinding(N) is true, throw a TypeError exception.
     if (dclRec.HasBinding(ctx, N).isTruthy) {
-      throw new TypeError('3. If DclRec.HasBinding(N) is true, throw a TypeError exception.');
+      return new $TypeError(ctx.Realm);
     }
 
     // 4. Return DclRec.CreateImmutableBinding(N, S).
@@ -876,7 +883,7 @@ export class $GlobalEnvRec {
     ctx: ExecutionContext,
     N: $String,
     V: $AnyNonEmpty,
-  ): $Boolean | $Empty {
+  ): $Boolean | $Empty | $Error {
     this.logger.debug(`InitializeBinding(#${ctx.id}, ${N['[[Value]]']}, ${JSON.stringify(V['[[Value]]'])})`);
 
     // 1. Let envRec be the global Environment Record for which the method was invoked.
@@ -905,7 +912,7 @@ export class $GlobalEnvRec {
     N: $String,
     V: $AnyNonEmpty,
     S: $Boolean,
-  ): $Boolean | $Empty {
+  ): $Boolean | $Empty | $Error {
     this.logger.debug(`SetMutableBinding(${N['[[Value]]']})`);
 
     // 1. Let envRec be the global Environment Record for which the method was invoked.
@@ -932,7 +939,7 @@ export class $GlobalEnvRec {
     ctx: ExecutionContext,
     N: $String,
     S: $Boolean,
-  ): $AnyNonEmpty {
+  ): $AnyNonEmpty | $Error {
     // 1. Let envRec be the global Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -956,7 +963,7 @@ export class $GlobalEnvRec {
   public DeleteBinding(
     ctx: ExecutionContext,
     N: $String,
-  ): $Boolean {
+  ): $Boolean | $Error {
     this.logger.debug(`DeleteBinding(${N['[[Value]]']})`);
 
     const intrinsics = this.realm['[[Intrinsics]]'];
@@ -981,11 +988,13 @@ export class $GlobalEnvRec {
 
     // 6. Let existingProp be ? HasOwnProperty(globalObject, N).
     const existingProp = $HasOwnProperty(ctx, globalObject, N);
+    if (existingProp.isAbrupt) { return existingProp; }
 
     // 7. If existingProp is true, then
     if (existingProp.isTruthy) {
       // 7. a. Let status be ? ObjRec.DeleteBinding(N).
       const status = objRec.DeleteBinding(ctx, N);
+      if (status.isAbrupt) { return status; }
 
       // 7. b. If status is true, then
       if (status.isTruthy) {
@@ -1041,7 +1050,7 @@ export class $GlobalEnvRec {
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-getthisbinding
   public GetThisBinding(
     ctx: ExecutionContext,
-  ): $Object {
+  ): $AnyObject {
     // 1. Let envRec be the global Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -1090,7 +1099,7 @@ export class $GlobalEnvRec {
   public HasRestrictedGlobalProperty(
     ctx: ExecutionContext,
     N: $String,
-  ): $Boolean {
+  ): $Boolean | $Error {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the global Environment Record for which the method was invoked.
@@ -1104,6 +1113,7 @@ export class $GlobalEnvRec {
 
     // 4. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
     const existingProp = globalObject['[[GetOwnProperty]]'](ctx, N);
+    if (existingProp.isAbrupt) { return existingProp; }
 
     // 5. If existingProp is undefined, return false.
     if (existingProp.isUndefined) {
@@ -1123,7 +1133,7 @@ export class $GlobalEnvRec {
   public CanDeclareGlobalVar(
     ctx: ExecutionContext,
     N: $String,
-  ): $Boolean {
+  ): $Boolean | $Error {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the global Environment Record for which the method was invoked.
@@ -1137,6 +1147,7 @@ export class $GlobalEnvRec {
 
     // 4. Let hasProperty be ? HasOwnProperty(globalObject, N).
     const hasProperty = $HasOwnProperty(ctx, globalObject, N);
+    if (hasProperty.isAbrupt) { return hasProperty; }
 
     // 5. If hasProperty is true, return true.
     if (hasProperty.isTruthy) {
@@ -1151,7 +1162,7 @@ export class $GlobalEnvRec {
   public CanDeclareGlobalFunction(
     ctx: ExecutionContext,
     N: $String,
-  ): $Boolean {
+  ): $Boolean | $Error {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the global Environment Record for which the method was invoked.
@@ -1165,6 +1176,7 @@ export class $GlobalEnvRec {
 
     // 4. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
     const existingProp = globalObject['[[GetOwnProperty]]'](ctx, N);
+    if (existingProp.isAbrupt) { return existingProp; }
 
     // 5. If existingProp is undefined, return ? IsExtensible(globalObject).
     if (existingProp.isUndefined) {
@@ -1190,7 +1202,7 @@ export class $GlobalEnvRec {
     ctx: ExecutionContext,
     N: $String,
     D: $Boolean,
-  ): $Empty {
+  ): $Empty | $Error {
     this.logger.debug(`CreateGlobalVarBinding(${N['[[Value]]']})`);
 
     const intrinsics = this.realm['[[Intrinsics]]'];
@@ -1206,17 +1218,21 @@ export class $GlobalEnvRec {
 
     // 4. Let hasProperty be ? HasOwnProperty(globalObject, N).
     const hasProperty = $HasOwnProperty(ctx, globalObject, N);
+    if (hasProperty.isAbrupt) { return hasProperty; }
 
     // 5. Let extensible be ? IsExtensible(globalObject).
     const extensible = globalObject['[[IsExtensible]]'](ctx);
+    if (extensible.isAbrupt) { return extensible; }
 
     // 6. If hasProperty is false and extensible is true, then
     if (hasProperty.isFalsey && extensible.isTruthy) {
       // 6. a. Perform ? ObjRec.CreateMutableBinding(N, D).
-      objRec.CreateMutableBinding(ctx, N, D);
+      const $CreateMutableBinding = objRec.CreateMutableBinding(ctx, N, D);
+      if ($CreateMutableBinding.isAbrupt) { return $CreateMutableBinding; }
 
       // 6. b. Perform ? ObjRec.InitializeBinding(N, undefined).
-      objRec.InitializeBinding(ctx, N, intrinsics.undefined);
+      const $InitializeBinding = objRec.InitializeBinding(ctx, N, intrinsics.undefined);
+      if ($InitializeBinding.isAbrupt) { return $InitializeBinding; }
     }
 
     // 7. Let varDeclaredNames be envRec.[[VarNames]].
@@ -1238,7 +1254,7 @@ export class $GlobalEnvRec {
     N: $String,
     V: $AnyNonEmpty,
     D: $Boolean,
-  ): $Empty {
+  ): $Empty | $Error {
     this.logger.debug(`CreateGlobalFunctionBinding(${N['[[Value]]']})`);
 
     const realm = ctx.Realm;
@@ -1255,6 +1271,7 @@ export class $GlobalEnvRec {
 
     // 4. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
     const existingProp = globalObject['[[GetOwnProperty]]'](ctx, N);
+    if (existingProp.isAbrupt) { return existingProp; }
 
     let desc: $PropertyDescriptor;
     // 5. If existingProp is undefined or existingProp.[[Configurable]] is true, then
@@ -1276,13 +1293,15 @@ export class $GlobalEnvRec {
     }
 
     // 7. Perform ? DefinePropertyOrThrow(globalObject, N, desc).
-    $DefinePropertyOrThrow(ctx, globalObject, N, desc);
+    const $DefinePropertyOrThrowResult = $DefinePropertyOrThrow(ctx, globalObject, N, desc);
+    if ($DefinePropertyOrThrowResult.isAbrupt) { return $DefinePropertyOrThrowResult; }
 
     // 8. Record that the binding for N in ObjRec has been initialized.
     // TODO: record
 
     // 9. Perform ? Set(globalObject, N, V, false).
-    $Set(ctx, globalObject, N, V, intrinsics.false);
+    const $SetResult = $Set(ctx, globalObject, N, V, intrinsics.false);
+    if ($SetResult.isAbrupt) { return $SetResult; }
 
     // 10. Let varDeclaredNames be envRec.[[VarNames]].
     const varDeclaredNames = envRec['[[VarNames]]'];
@@ -1335,7 +1354,7 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec {
     ctx: ExecutionContext,
     N: $String,
     S: $Boolean,
-  ): $AnyNonEmpty {
+  ): $AnyNonEmpty | $Error {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Assert: S is true.
@@ -1356,7 +1375,7 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec {
 
       // 4. c. If targetEnv is undefined, throw a ReferenceError exception.
       if (targetER.isUndefined) {
-        throw new ReferenceError('4. c. If targetEnv is undefined, throw a ReferenceError exception.');
+        return new $ReferenceError(ctx.Realm);
       }
 
       // 4. d. Let targetER be targetEnv's EnvironmentRecord.
@@ -1366,7 +1385,7 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec {
 
     // 5. If the binding for N in envRec is an uninitialized binding, throw a ReferenceError exception.
     if (!binding.isInitialized) {
-      throw new ReferenceError('5. If the binding for N in envRec is an uninitialized binding, throw a ReferenceError exception.');
+      return new $ReferenceError(ctx.Realm);
     }
 
     // 6. Return the value currently bound to N in envRec.

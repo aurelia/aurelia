@@ -3,7 +3,7 @@ import { ILogger, IContainer } from '@aurelia/kernel';
 import { I$Node, $SourceFile, $TemplateExpression, $TaggedTemplateExpression } from './ast';
 import { IFileSystem, IFile } from '../system/interfaces';
 import { Intrinsics } from './intrinsics';
-import { $EnvRec, $ModuleEnvRec, $GlobalEnvRec, $FunctionEnvRec } from './types/environment-record';
+import { $EnvRec, $ModuleEnvRec, $GlobalEnvRec, $FunctionEnvRec, $DeclarativeEnvRec } from './types/environment-record';
 import { $PropertyDescriptor } from './types/property-descriptor';
 import { $DefinePropertyOrThrow } from './operations';
 import { $String } from './types/string';
@@ -14,6 +14,11 @@ import { $AnyNonEmpty } from './types/_shared';
 import { $Function } from './types/function';
 import { $Null } from './types/null';
 import { $Boolean } from './types/boolean';
+import { $Error } from './types/error';
+import { $NamespaceExoticObject } from './exotics/namespace';
+import { $Empty } from './types/empty';
+import { $List } from './types/list';
+import { $Number } from './types/number';
 
 export class ResolveSet {
   private readonly modules: IModule[] = [];
@@ -53,6 +58,10 @@ export class ResolveSet {
 }
 
 export class ResolvedBindingRecord {
+  public get isAbrupt(): false { return false; }
+  public get isNull(): false { return false; }
+  public get isAmbiguous(): false { return false; }
+
   public constructor(
     public readonly Module: IModule,
     public readonly BindingName: $String,
@@ -64,44 +73,48 @@ export interface IModule {
   /** This field is never used. Its only purpose is to help TS distinguish this interface from others. */
   readonly '<IModule>': unknown;
 
+  readonly isAbrupt: false;
+
   '[[Environment]]': $ModuleEnvRec | $Undefined;
-  '[[Namespace]]': $Object | $Undefined;
+  '[[Namespace]]': $NamespaceExoticObject | $Undefined;
   '[[HostDefined]]': any;
 
   readonly realm: Realm;
 
-  ResolveExport(ctx: ExecutionContext, exportName: $String, resolveSet: ResolveSet): ResolvedBindingRecord | null | 'ambiguous';
-  GetExportedNames(ctx: ExecutionContext, exportStarSet: Set<IModule>): readonly $String[];
-  Instantiate(ctx: ExecutionContext): void;
+  ResolveExport(ctx: ExecutionContext, exportName: $String, resolveSet: ResolveSet): ResolvedBindingRecord | $Null | $String<'ambiguous'> | $Error;
+  GetExportedNames(ctx: ExecutionContext, exportStarSet: Set<IModule>): $List<$String> | $Error;
+  Instantiate(ctx: ExecutionContext): $Undefined | $Error;
   /** @internal */
-  _InnerModuleInstantiation(ctx: ExecutionContext, stack: IModule[], index: number): number;
+  _InnerModuleInstantiation(ctx: ExecutionContext, stack: IModule[], index: $Number): $Number | $Error;
 }
 
 export class DeferredModule implements IModule {
   public readonly '<IModule>': unknown;
 
   public '[[Environment]]': $ModuleEnvRec | $Undefined;
-  public '[[Namespace]]': $Object | $Undefined;
+  public '[[Namespace]]': $NamespaceExoticObject | $Undefined;
   public '[[HostDefined]]': any;
+
+  public get isAbrupt(): false { return false; }
 
   public constructor(
     public readonly $file: IFile,
     public readonly realm: Realm,
   ) { }
 
-  public ResolveExport(ctx: ExecutionContext, exportName: $String, resolveSet: ResolveSet): ResolvedBindingRecord | "ambiguous" | null {
+  public ResolveExport(ctx: ExecutionContext, exportName: $String, resolveSet: ResolveSet): ResolvedBindingRecord | $Null | $String<'ambiguous'> | $Error {
     throw new Error('Method not implemented.');
   }
 
-  public GetExportedNames(ctx: ExecutionContext, exportStarSet: Set<IModule>): readonly $String[] {
+  public GetExportedNames(ctx: ExecutionContext, exportStarSet: Set<IModule>): $List<$String> | $Error {
     throw new Error('Method not implemented.');
   }
 
-  public Instantiate(ctx: ExecutionContext): void {
+  public Instantiate(ctx: ExecutionContext): $Undefined | $Error {
     throw new Error('Method not implemented.');
   }
 
-  public _InnerModuleInstantiation(ctx: ExecutionContext, stack: IModule[], index: number): number {
+  public _InnerModuleInstantiation(ctx: ExecutionContext, stack: IModule[], index: $Number): $Number | $Error {
     throw new Error('Method not implemented.');
   }
 }
@@ -118,6 +131,8 @@ export class Realm {
   public '[[GlobalObject]]': $Object;
   public '[[GlobalEnv]]': $GlobalEnvRec;
   public '[[TemplateMap]]': { '[[Site]]': $TemplateExpression | $TaggedTemplateExpression; '[[Array]]': $Object }[];
+
+  public get isAbrupt(): false { return false; }
 
   private constructor(
     public readonly container: IContainer,
@@ -311,7 +326,7 @@ export class Realm {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-resolvebinding
-  public ResolveBinding(name: $String, env?: $EnvRec): $Reference {
+  public ResolveBinding(name: $String, env?: $EnvRec): $Reference | $Error {
     // 1. If env is not present or if env is undefined, then
     if (env === void 0) {
       // 1. a. Set env to the running execution context's LexicalEnvironment.
@@ -348,7 +363,7 @@ export class Realm {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-resolvethisbinding
-  public ResolveThisBinding(): $AnyNonEmpty {
+  public ResolveThisBinding(): $AnyNonEmpty | $Error {
     // 1. Let envRec be GetThisEnvironment().
     const envRec = this.GetThisEnvironment();
 
@@ -377,7 +392,7 @@ export class Realm {
     lex: $EnvRec | $Null,
     name: $String,
     strict: $Boolean,
-  ): $Reference {
+  ): $Reference | $Error {
     const intrinsics = this['[[Intrinsics]]'];
 
     // 1. If lex is the value null, then
@@ -391,6 +406,7 @@ export class Realm {
 
     // 3. Let exists be ? envRec.HasBinding(name).
     const exists = envRec.HasBinding(this.stack.top, name);
+    if (exists.isAbrupt) { return exists; }
 
     // 4. If exists is true, then
     if (exists.isTruthy) {
@@ -433,13 +449,13 @@ export class ExecutionContextStack extends Array<ExecutionContext> {
   }
 }
 
-export class ExecutionContext {
+export class ExecutionContext<TLex extends $EnvRec = $EnvRec, TVar extends ($ModuleEnvRec | $FunctionEnvRec | $DeclarativeEnvRec) = ($ModuleEnvRec | $FunctionEnvRec | $DeclarativeEnvRec)> {
   public readonly id: number;
 
   public Function!: $Function | $Null;
   public ScriptOrModule!: $SourceFile | $Null;
-  public LexicalEnvironment!: $EnvRec;
-  public VariableEnvironment!: $EnvRec;
+  public LexicalEnvironment!: TLex;
+  public VariableEnvironment!: TVar;
 
   public suspended: boolean = false;
 

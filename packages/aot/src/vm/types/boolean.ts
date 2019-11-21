@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { nextValueId, $Any, Int32, Uint32, Int16, Uint16, Int8, Uint8, Uint8Clamp, CompletionType, PotentialNonEmptyCompletionType, CompletionTarget } from './_shared';
+import { nextValueId, $AnyNonError, Int32, Uint32, Int16, Uint16, Int8, Uint8, Uint8Clamp, CompletionType, PotentialNonEmptyCompletionType, CompletionTarget, $Any } from './_shared';
 import { Realm, ExecutionContext } from '../realm';
 import { $BooleanLiteral } from '../ast';
 import { $Object } from './object';
@@ -17,7 +17,10 @@ export class $Boolean<T extends boolean = boolean> {
   public readonly '[[Value]]': T;
   public '[[Target]]': CompletionTarget;
 
-  public get isAbrupt(): boolean { return this['[[Type]]'] !== CompletionType.normal; }
+  // Note: this typing is incorrect, but we do it this way to prevent having to cast in 100+ places.
+  // The purpose is to ensure the `isAbrupt === true` flow narrows down to the $Error type.
+  // It could be done correctly, but that would require complex conditional types which is not worth the effort right now.
+  public get isAbrupt(): false { return (this['[[Type]]'] !== CompletionType.normal) as false; }
 
   public get Type(): 'Boolean' { return 'Boolean'; }
   public get isEmpty(): false { return false; }
@@ -45,14 +48,14 @@ export class $Boolean<T extends boolean = boolean> {
     type: PotentialNonEmptyCompletionType = CompletionType.normal,
     target: CompletionTarget = realm['[[Intrinsics]]'].empty,
     public readonly sourceNode: $BooleanLiteral | null = null,
-    public readonly conversionSource: $Any | null = null,
+    public readonly conversionSource: $AnyNonError | null = null,
   ) {
     this['[[Value]]'] = value;
     this['[[Type]]'] = type;
     this['[[Target]]'] = target;
   }
 
-  public is(other: $Any): other is $Boolean<T> {
+  public is(other: $AnyNonError): other is $Boolean<T> {
     return other instanceof $Boolean && this['[[Value]]'] === other['[[Value]]'];
   }
 
@@ -229,7 +232,9 @@ export class $Boolean<T extends boolean = boolean> {
     );
   }
 
-  public GetValue(): this {
+  public GetValue(
+    ctx: ExecutionContext,
+  ): this {
     return this;
   }
 }

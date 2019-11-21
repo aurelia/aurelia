@@ -1,10 +1,11 @@
 import { $Undefined } from './undefined';
 import { $String } from './string';
-import { nextValueId, $Any, Int32, Uint32, Int16, Uint16, Int8, Uint8, Uint8Clamp, PotentialNonEmptyCompletionType, CompletionTarget, CompletionType } from './_shared';
+import { nextValueId, $AnyNonError, Int32, Uint32, Int16, Uint16, Int8, Uint8, Uint8Clamp, PotentialNonEmptyCompletionType, CompletionTarget, CompletionType, $Any } from './_shared';
 import { Realm, ExecutionContext } from '../realm';
 import { $Object } from './object';
 import { $Number } from './number';
 import { $Boolean } from './boolean';
+import { $TypeError, $Error } from './error';
 
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-symbol-type
 export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
@@ -17,7 +18,10 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
   public readonly '[[Value]]': symbol;
   public '[[Target]]': CompletionTarget;
 
-  public get isAbrupt(): boolean { return this['[[Type]]'] !== CompletionType.normal; }
+  // Note: this typing is incorrect, but we do it this way to prevent having to cast in 100+ places.
+  // The purpose is to ensure the `isAbrupt === true` flow narrows down to the $Error type.
+  // It could be done correctly, but that would require complex conditional types which is not worth the effort right now.
+  public get isAbrupt(): false { return (this['[[Type]]'] !== CompletionType.normal) as false; }
 
   public get Type(): 'Symbol' { return 'Symbol'; }
   public get isEmpty(): false { return false; }
@@ -54,7 +58,7 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
     this['[[Target]]'] = target;
   }
 
-  public is(other: $Any): other is $Symbol<T> {
+  public is(other: $AnyNonError): other is $Symbol<T> {
     return other instanceof $Symbol && this['[[Value]]'] === other['[[Value]]'];
   }
 
@@ -98,8 +102,9 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
 
   public ToLength(
     ctx: ExecutionContext,
-  ): $Number {
-    return this.ToNumber(ctx).ToLength(ctx);
+  ): $Error {
+    // Short circuit
+    return this.ToNumber(ctx);
   }
 
   public ToPrimitive(
@@ -123,106 +128,57 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
 
   public ToNumber(
     ctx: ExecutionContext,
-  ): $Number {
-    return new $Number(
-      /* realm */this.realm,
-      /* value */Number(this['[[Value]]']),
-      /* type */this['[[Type]]'],
-      /* target */this['[[Target]]'],
-      /* sourceNode */null,
-      /* conversionSource */this,
-    );
+  ): $Error {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToInt32(
     ctx: ExecutionContext,
-  ): $Number {
-    return new $Number(
-      /* realm */this.realm,
-      /* value */Int32(this['[[Value]]']),
-      /* type */this['[[Type]]'],
-      /* target */this['[[Target]]'],
-      /* sourceNode */null,
-      /* conversionSource */this,
-    );
+  ): $Error {
+    // Short circuit
+    return this.ToNumber(ctx);
   }
 
   public ToUint32(
     ctx: ExecutionContext,
-  ): $Number {
-    return new $Number(
-      /* realm */this.realm,
-      /* value */Uint32(this['[[Value]]']),
-      /* type */this['[[Type]]'],
-      /* target */this['[[Target]]'],
-      /* sourceNode */null,
-      /* conversionSource */this,
-    );
+  ): $Error {
+    // Short circuit
+    return this.ToNumber(ctx);
   }
 
   public ToInt16(
     ctx: ExecutionContext,
-  ): $Number {
-    return new $Number(
-      /* realm */this.realm,
-      /* value */Int16(this['[[Value]]']),
-      /* type */this['[[Type]]'],
-      /* target */this['[[Target]]'],
-      /* sourceNode */null,
-      /* conversionSource */this,
-    );
+  ): $Error {
+    // Short circuit
+    return this.ToNumber(ctx);
   }
 
   public ToUint16(
     ctx: ExecutionContext,
-  ): $Number {
-    return new $Number(
-      /* realm */this.realm,
-      /* value */Uint16(this['[[Value]]']),
-      /* type */this['[[Type]]'],
-      /* target */this['[[Target]]'],
-      /* sourceNode */null,
-      /* conversionSource */this,
-    );
+  ): $Error {
+    // Short circuit
+    return this.ToNumber(ctx);
   }
 
   public ToInt8(
     ctx: ExecutionContext,
-  ): $Number {
-    return new $Number(
-      /* realm */this.realm,
-      /* value */Int8(this['[[Value]]']),
-      /* type */this['[[Type]]'],
-      /* target */this['[[Target]]'],
-      /* sourceNode */null,
-      /* conversionSource */this,
-    );
+  ): $Error {
+    // Short circuit
+    return this.ToNumber(ctx);
   }
 
   public ToUint8(
     ctx: ExecutionContext,
-  ): $Number {
-    return new $Number(
-      /* realm */this.realm,
-      /* value */Uint8(this['[[Value]]']),
-      /* type */this['[[Type]]'],
-      /* target */this['[[Target]]'],
-      /* sourceNode */null,
-      /* conversionSource */this,
-    );
+  ): $Error {
+    // Short circuit
+    return this.ToNumber(ctx);
   }
 
   public ToUint8Clamp(
     ctx: ExecutionContext,
-  ): $Number {
-    return new $Number(
-      /* realm */this.realm,
-      /* value */Uint8Clamp(this['[[Value]]']),
-      /* type */this['[[Type]]'],
-      /* target */this['[[Target]]'],
-      /* sourceNode */null,
-      /* conversionSource */this,
-    );
+  ): $Error {
+    // Short circuit
+    return this.ToNumber(ctx);
   }
 
   public ToString(
@@ -238,7 +194,9 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
     );
   }
 
-  public GetValue(): this {
+  public GetValue(
+    ctx: ExecutionContext,
+  ): this {
     return this;
   }
 }

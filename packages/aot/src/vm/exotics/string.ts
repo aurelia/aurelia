@@ -4,9 +4,10 @@ import { Realm, ExecutionContext } from '../realm';
 import { $DefinePropertyOrThrow, $ValidateAndApplyPropertyDescriptor } from '../operations';
 import { $PropertyDescriptor } from '../types/property-descriptor';
 import { $Number } from '../types/number';
-import { $PropertyKey } from '../types/_shared';
+import { $PropertyKey, $AnyObject } from '../types/_shared';
 import { $Undefined } from '../types/undefined';
 import { $Boolean } from '../types/boolean';
+import { $List } from '../types/list';
 
 // http://www.ecma-international.org/ecma-262/#sec-string-exotic-objects
 export class $StringExoticObject extends $Object<'StringExoticObject'> {
@@ -16,7 +17,7 @@ export class $StringExoticObject extends $Object<'StringExoticObject'> {
   public constructor(
     realm: Realm,
     value: $String,
-    proto: $Object,
+    proto: $AnyObject,
   ) {
     super(realm, 'StringExoticObject', proto);
 
@@ -61,7 +62,7 @@ export class $StringExoticObject extends $Object<'StringExoticObject'> {
   ): $PropertyDescriptor | $Undefined {
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let desc be OrdinaryGetOwnProperty(S, P).
-    const desc = super['[[GetOwnProperty]]'](ctx, P);
+    const desc = super['[[GetOwnProperty]]'](ctx, P) as $PropertyDescriptor | $Undefined;
 
     // 3. If desc is not undefined, return desc.
     if (!desc.isUndefined) {
@@ -102,17 +103,17 @@ export class $StringExoticObject extends $Object<'StringExoticObject'> {
     }
 
     // 4. Return ! OrdinaryDefineOwnProperty(S, P, Desc).
-    return super['[[DefineOwnProperty]]'](ctx, P, Desc);
+    return super['[[DefineOwnProperty]]'](ctx, P, Desc) as $Boolean;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-string-exotic-objects-ownpropertykeys
   public '[[OwnPropertyKeys]]'(
     ctx: ExecutionContext,
-  ): readonly $PropertyKey[] {
+  ): $List<$PropertyKey> {
     const realm = ctx.Realm;
 
     // 1. Let keys be a new empty List.
-    const keys = [] as $PropertyKey[];
+    const keys = new $List<$PropertyKey>();
 
     // 2. Let str be O.[[StringData]].
     const str = this['[[StringData]]'];

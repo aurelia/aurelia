@@ -15,6 +15,7 @@ import { $String } from './vm/types/string';
 import { PatternMatcher } from './system/pattern-matcher';
 import { ISourceFileProvider, Agent } from './vm/agent';
 import { $Any } from './vm/types/_shared';
+import { $Error } from './vm/types/error';
 
 function comparePathLength(a: { path: { length: number } }, b: { path: { length: number } }): number {
   return a.path.length - b.path.length;
@@ -25,7 +26,7 @@ export interface IModuleResolver {
     ctx: ExecutionContext,
     referencingModule: $SourceFile,
     $specifier: $String,
-  ): IModule;
+  ): IModule | $Error;
 }
 
 export interface IServiceHost extends IModuleResolver {
@@ -118,7 +119,7 @@ export class ServiceHost implements IServiceHost {
     ctx: ExecutionContext,
     referencingModule: $SourceFile,
     $specifier: $String,
-  ): IModule {
+  ): IModule | $Error {
     const specifier = normalizePath($specifier['[[Value]]']);
     const isRelative = isRelativeModulePath(specifier);
     const pkg = referencingModule.pkg;

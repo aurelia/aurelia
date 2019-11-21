@@ -2,11 +2,12 @@ import { $Object } from '../types/object';
 import { Realm, ExecutionContext } from '../realm';
 import { $Number } from '../types/number';
 import { $PropertyDescriptor } from '../types/property-descriptor';
-import { $PropertyKey, $AnyNonEmpty } from '../types/_shared';
+import { $PropertyKey, $AnyNonEmpty, $AnyObject } from '../types/_shared';
 import { $Boolean } from '../types/boolean';
 import { $GetFunctionRealm, $Construct, $CreateDataProperty } from '../operations';
 import { $Function } from '../types/function';
 import { $String } from '../types/string';
+import { $Error, $RangeError, $TypeError } from '../types/error';
 
 // http://www.ecma-international.org/ecma-262/#sec-array-exotic-objects
 export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
@@ -16,7 +17,7 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
   public constructor(
     realm: Realm,
     length: $Number,
-    proto?: $Object,
+    proto?: $AnyObject,
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -34,6 +35,7 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
 
     // 3. If length > 232 - 1, throw a RangeError exception.
     if (length['[[Value]]'] > (2 ** 32 - 1)) {
+      // TODO: move logic to static method so we can return an error completion
       throw new RangeError('3. If length > 2^32 - 1, throw a RangeError exception.');
     }
 
@@ -67,7 +69,7 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
     ctx: ExecutionContext,
     P: $PropertyKey,
     Desc: $PropertyDescriptor,
-  ): $Boolean {
+  ): $Boolean | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -95,7 +97,7 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
       }
 
       // 3. f. Let succeeded be ! OrdinaryDefineOwnProperty(A, P, Desc).
-      const succeeded = super['[[DefineOwnProperty]]'](ctx, P, Desc);
+      const succeeded = super['[[DefineOwnProperty]]'](ctx, P, Desc) as $Boolean;
 
       // 3. g. If succeeded is false, return false.
       if (succeeded.isFalsey) {
@@ -125,7 +127,7 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
   public ArraySetLength(
     ctx: ExecutionContext,
     Desc: $PropertyDescriptor,
-  ): $Boolean {
+  ): $Boolean | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -148,13 +150,15 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
 
     // 3. Let newLen be ? ToUint32(Desc.[[Value]]).
     const newLen = Desc['[[Value]]'].ToUint32(ctx);
+    if (newLen.isAbrupt) { return newLen; }
 
     // 4. Let numberLen be ? ToNumber(Desc.[[Value]]).
     const numberLen = Desc['[[Value]]'].ToNumber(ctx);
+    if (numberLen.isAbrupt) { return numberLen; }
 
     // 5. If newLen ≠ numberLen, throw a RangeError exception.
     if (!newLen.is(numberLen)) {
-      throw new RangeError('5. If newLen ≠ numberLen, throw a RangeError exception.');
+      return new $RangeError(ctx.Realm, '5. If newLen ≠ numberLen, throw a RangeError exception.');
     }
 
     // 6. Set newLenDesc.[[Value]] to newLen.
@@ -194,7 +198,7 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
     }
 
     // 14. Let succeeded be ! OrdinaryDefineOwnProperty(A, "length", newLenDesc).
-    const succeeded = super['[[DefineOwnProperty]]'](ctx, intrinsics.length, newLenDesc);
+    const succeeded = super['[[DefineOwnProperty]]'](ctx, intrinsics.length, newLenDesc) as $Boolean;
 
     // 15. If succeeded is false, return false.
     if (succeeded.isFalsey) {
@@ -210,7 +214,7 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
       --$oldLen;
 
       // 16. b. Let deleteSucceeded be ! A.[[Delete]](! ToString(oldLen)).
-      const deleteSucceeded = this['[[Delete]]'](ctx, new $Number(realm, $oldLen).ToString(ctx));
+      const deleteSucceeded = this['[[Delete]]'](ctx, new $Number(realm, $oldLen).ToString(ctx)) as $Boolean;
 
       // 16. c. If deleteSucceeded is false, then
       if (deleteSucceeded.isFalsey) {
@@ -254,9 +258,9 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
 // http://www.ecma-international.org/ecma-262/#sec-arrayspeciescreate
 export function $ArraySpeciesCreate(
   ctx: ExecutionContext,
-  originalArray: $Object,
+  originalArray: $AnyObject,
   length: $Number,
-): $Object {
+): $AnyObject | $Error {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
@@ -274,6 +278,7 @@ export function $ArraySpeciesCreate(
 
   // 5. Let C be ? Get(originalArray, "constructor").
   let C = originalArray['[[Get]]'](ctx, intrinsics.$constructor, originalArray);
+  if (C.isAbrupt) { return C; }
 
   // 6. If IsConstructor(C) is true, then
   if (C.isFunction) {
@@ -282,6 +287,7 @@ export function $ArraySpeciesCreate(
 
     // 6. b. Let realmC be ? GetFunctionRealm(C).
     const realmC = $GetFunctionRealm(ctx, C);
+    if (realmC.isAbrupt) { return realmC; }
 
     // 6. c. If thisRealm and realmC are not the same Realm Record, then
     if (thisRealm !== realmC) {
@@ -296,6 +302,7 @@ export function $ArraySpeciesCreate(
   if (C.isObject) {
     // 7. a. Set C to ? Get(C, @@species).
     C = C['[[Get]]'](ctx, intrinsics['@@species'], C);
+    if (C.isAbrupt) { return C; }
 
     // 7. b. If C is null, set C to undefined.
     if (C.isNull) {
@@ -310,7 +317,7 @@ export function $ArraySpeciesCreate(
 
   // 9. If IsConstructor(C) is false, throw a TypeError exception.
   if (!C.isFunction) {
-    throw new TypeError('9. If IsConstructor(C) is false, throw a TypeError exception.');
+    return new $TypeError(realm);
   }
 
   // 10. Return ? Construct(C, « length »).

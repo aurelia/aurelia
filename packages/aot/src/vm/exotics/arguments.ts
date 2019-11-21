@@ -2,7 +2,7 @@ import { $Object } from '../types/object';
 import { Realm, ExecutionContext } from '../realm';
 import { $Function, $BuiltinFunction } from '../types/function';
 import { $ParameterDeclaration, getBoundNames } from '../ast';
-import { $PropertyKey, $AnyNonEmpty } from '../types/_shared';
+import { $PropertyKey, $AnyNonEmpty, $AnyObject } from '../types/_shared';
 import { $EnvRec } from '../types/environment-record';
 import { $CreateDataProperty, $DefinePropertyOrThrow, $HasOwnProperty, $Set } from '../operations';
 import { $String } from '../types/string';
@@ -10,11 +10,12 @@ import { $PropertyDescriptor, $IsDataDescriptor } from '../types/property-descri
 import { $Number } from '../types/number';
 import { $Undefined } from '../types/undefined';
 import { $Boolean } from '../types/boolean';
+import { $Error } from '../types/error';
 
 
 // http://www.ecma-international.org/ecma-262/#sec-arguments-exotic-objects
 export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
-  public readonly '[[ParameterMap]]': $Object;
+  public readonly '[[ParameterMap]]': $AnyObject;
 
   // http://www.ecma-international.org/ecma-262/#sec-createmappedargumentsobject
   public constructor(
@@ -152,7 +153,7 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
   ): $PropertyDescriptor | $Undefined {
     // 1. Let args be the arguments object.
     // 2. Let desc be OrdinaryGetOwnProperty(args, P).
-    const desc = super['[[GetOwnProperty]]'](ctx, P);
+    const desc = super['[[GetOwnProperty]]'](ctx, P) as $PropertyDescriptor | $Undefined;
 
     // 3. If desc is undefined, return desc.
     if (desc.isUndefined) {
@@ -163,12 +164,12 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
     const map = this['[[ParameterMap]]'];
 
     // 5. Let isMapped be ! HasOwnProperty(map, P).
-    const isMapped = $HasOwnProperty(ctx, map, P).isTruthy;
+    const isMapped = ($HasOwnProperty(ctx, map, P) as $Boolean).isTruthy;
 
     // 6. If isMapped is true, then
     if (isMapped) {
       // 6. a. Set desc.[[Value]] to Get(map, P).
-      desc['[[Value]]'] = map['[[Get]]'](ctx, P, map);
+      desc['[[Value]]'] = map['[[Get]]'](ctx, P, map) as $AnyNonEmpty;
     }
 
     // 7. Return desc.
@@ -180,7 +181,7 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
     ctx: ExecutionContext,
     P: $PropertyKey,
     Desc: $PropertyDescriptor,
-  ): $Boolean {
+  ): $Boolean | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -189,7 +190,7 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
     const map = this['[[ParameterMap]]'];
 
     // 3. Let isMapped be HasOwnProperty(map, P).
-    const isMapped = $HasOwnProperty(ctx, map, P).isTruthy;
+    const isMapped = ($HasOwnProperty(ctx, map, P) as $Boolean).isTruthy;
 
     // 4. Let newArgDesc be Desc.
     let newArgDesc = Desc;
@@ -204,7 +205,7 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
           Desc.name,
           {
             // 5. a. ii. Set newArgDesc.[[Value]] to Get(map, P).
-            '[[Value]]': map['[[Get]]'](ctx, P, map),
+            '[[Value]]': map['[[Get]]'](ctx, P, map) as $AnyNonEmpty,
             '[[Writable]]': Desc['[[Writable]]'],
             '[[Enumerable]]': Desc['[[Enumerable]]'],
             '[[Configurable]]': Desc['[[Configurable]]'],
@@ -215,6 +216,7 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
 
     // 6. Let allowed be ? OrdinaryDefineOwnProperty(args, P, newArgDesc).
     const allowed = super['[[DefineOwnProperty]]'](ctx, P, newArgDesc);
+    if (allowed.isAbrupt) { return allowed; }
 
     // 7. If allowed is false, return false.
     if (allowed.isFalsey) {
@@ -253,14 +255,14 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
   public '[[Get]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
-    Receiver: $Object,
-  ): $AnyNonEmpty {
+    Receiver: $AnyObject,
+  ): $AnyNonEmpty | $Error {
     // 1. Let args be the arguments object.
     // 2. Let map be args.[[ParameterMap]].
     const map = this['[[ParameterMap]]'];
 
     // 3. Let isMapped be ! HasOwnProperty(map, P).
-    const isMapped = $HasOwnProperty(ctx, map, P).isTruthy;
+    const isMapped = ($HasOwnProperty(ctx, map, P) as $Boolean).isTruthy;
 
     // 4. If isMapped is false, then
     if (!isMapped) {
@@ -279,8 +281,8 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
     ctx: ExecutionContext,
     P: $PropertyKey,
     V: $AnyNonEmpty,
-    Receiver: $Object,
-  ): $Boolean {
+    Receiver: $AnyObject,
+  ): $Boolean | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -297,7 +299,7 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
     if (this.is(Receiver)) {
       const map = this['[[ParameterMap]]'];
 
-      const isMapped = $HasOwnProperty(ctx, map, P).isTruthy;
+      const isMapped = ($HasOwnProperty(ctx, map, P) as $Boolean).isTruthy;
       if (isMapped) {
         const setStatus = $Set(ctx, map, P, V, intrinsics.false);
       }
@@ -310,16 +312,17 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
   public '[[Delete]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
-  ): $Boolean {
+  ): $Boolean | $Error {
     // 1. Let args be the arguments object.
     // 2. Let map be args.[[ParameterMap]].
     const map = this['[[ParameterMap]]'];
 
     // 3. Let isMapped be ! HasOwnProperty(map, P).
-    const isMapped = $HasOwnProperty(ctx, map, P).isTruthy;
+    const isMapped = ($HasOwnProperty(ctx, map, P) as $Boolean).isTruthy;
 
     // 4. Let result be ? OrdinaryDelete(args, P).
     const result = super['[[Delete]]'](ctx, P);
+    if (result.isAbrupt) { return result; }
 
     // 5. If result is true and isMapped is true, then
     if (result.isTruthy && isMapped) {
@@ -357,7 +360,7 @@ export class $ArgGetter extends $BuiltinFunction {
     thisArgument: $AnyNonEmpty,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty {
+  ): $AnyNonEmpty | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -396,7 +399,7 @@ export class $ArgSetter extends $BuiltinFunction {
     thisArgument: $AnyNonEmpty,
     [value]: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty {
+  ): $AnyNonEmpty | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -416,7 +419,7 @@ export class $ArgSetter extends $BuiltinFunction {
 export function $CreateUnmappedArgumentsObject(
   ctx: ExecutionContext,
   argumentsList: readonly $AnyNonEmpty[],
-): $Object {
+): $AnyObject {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 

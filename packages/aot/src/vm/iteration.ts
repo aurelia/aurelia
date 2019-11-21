@@ -2,20 +2,21 @@ import { ExecutionContext, Realm } from './realm';
 import { $Object } from './types/object';
 import { $Function, $BuiltinFunction } from './types/function';
 import { $Boolean } from './types/boolean';
-import { $Any, $AnyNonEmpty, CompletionType } from './types/_shared';
+import { $AnyNonError, $AnyNonEmpty, CompletionType, $AnyObject } from './types/_shared';
 import { $CreateDataProperty, $Call, $DefinePropertyOrThrow } from './operations';
 import { $Number } from './types/number';
 import { $Undefined } from './types/undefined';
-import { $String } from '..';
+import { $TypeError, $Error } from './types/error';
+import { $String } from './types/string';
 import { $PropertyDescriptor } from './types/property-descriptor';
 
 // http://www.ecma-international.org/ecma-262/#sec-getiterator
 export function $GetIterator(
   ctx: ExecutionContext,
-  obj: $Object,
+  obj: $AnyObject,
   hint?: 'sync' | 'async',
   method?: $Function | $Undefined,
-): $IteratorRecord {
+): $IteratorRecord | $Error {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
@@ -30,35 +31,43 @@ export function $GetIterator(
     // 3. a. If hint is async, then
     if (hint === 'async') {
       // 3. a. i. Set method to ? GetMethod(obj, @@asyncIterator).
-      method = obj.GetMethod(ctx, intrinsics['@@asyncIterator']);
+      const $method = obj.GetMethod(ctx, intrinsics['@@asyncIterator']);
+      if ($method.isAbrupt) { return $method; }
+      method = $method;
 
       // 3. a. ii. If method is undefined, then
       if (method.isUndefined) {
         // 3. a. ii. 1. Let syncMethod be ? GetMethod(obj, @@iterator).
         const syncMethod = obj.GetMethod(ctx, intrinsics['@@iterator']);
+        if (syncMethod.isAbrupt) { return syncMethod; }
 
         // 3. a. ii. 2. Let syncIteratorRecord be ? GetIterator(obj, sync, syncMethod).
         const syncIteratorRecord = $GetIterator(ctx, obj, 'sync', syncMethod);
+        if (syncIteratorRecord.isAbrupt) { return syncIteratorRecord; }
 
         // 3. a. ii. 3. Return ? CreateAsyncFromSyncIterator(syncIteratorRecord).
         return $CreateAsyncFromSyncIterator(ctx, syncIteratorRecord);
       }
     } else {
       // 3. b. Otherwise, set method to ? GetMethod(obj, @@iterator).
-      method = obj.GetMethod(ctx, intrinsics['@@iterator']);
+      const $method = obj.GetMethod(ctx, intrinsics['@@iterator']);
+      if ($method.isAbrupt) { return $method; }
+      method = $method;
     }
   }
 
   // 4. Let iterator be ? Call(method, obj).
   const iterator = $Call(ctx, method as $Function, obj);
+  if (iterator.isAbrupt) { return iterator; }
 
   // 5. If Type(iterator) is not Object, throw a TypeError exception.
   if (!iterator.isObject) {
-    throw new TypeError('5. If Type(iterator) is not Object, throw a TypeError exception.');
+    return new $TypeError(realm);
   }
 
   // 6. Let nextMethod be ? GetV(iterator, "next").
-  const nextMethod = iterator['[[Get]]'](ctx, intrinsics.next, iterator) as $Function;
+  const nextMethod = iterator['[[Get]]'](ctx, intrinsics.next, iterator) as $Function | $Error;
+  if (nextMethod.isAbrupt) { return nextMethod; }
 
   // 7. Let iteratorRecord be Record { [[Iterator]]: iterator, [[NextMethod]]: nextMethod, [[Done]]: false }.
   const iteratorRecord = new $IteratorRecord(
@@ -76,23 +85,27 @@ export function $IteratorNext(
   ctx: ExecutionContext,
   iteratorRecord: $IteratorRecord,
   value?: $AnyNonEmpty,
-): $Object {
+): $AnyObject | $Error {
   let result: $AnyNonEmpty;
 
   // 1. If value is not present, then
   if (value === void 0) {
     // 1. a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]], « »).
-    result = $Call(ctx, iteratorRecord['[[NextMethod]]'], iteratorRecord['[[Iterator]]']);
+    const $result = $Call(ctx, iteratorRecord['[[NextMethod]]'], iteratorRecord['[[Iterator]]']);
+    if ($result.isAbrupt) { return $result; }
+    result = $result;
   }
   // 2. Else,
   else {
     // 2. a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]], « value »).
-    result = $Call(ctx, iteratorRecord['[[NextMethod]]'], iteratorRecord['[[Iterator]]'], [value]);
+    const $result = $Call(ctx, iteratorRecord['[[NextMethod]]'], iteratorRecord['[[Iterator]]'], [value]);
+    if ($result.isAbrupt) { return $result; }
+    result = $result;
   }
 
   // 3. If Type(result) is not Object, throw a TypeError exception.
   if (!result.isObject) {
-    throw new TypeError('3. If Type(result) is not Object, throw a TypeError exception.');
+    return new $TypeError(ctx.Realm);
   }
 
   // 4. Return result.
@@ -102,8 +115,8 @@ export function $IteratorNext(
 // http://www.ecma-international.org/ecma-262/#sec-iteratorcomplete
 export function $IteratorComplete(
   ctx: ExecutionContext,
-  iterResult: $Object,
-): $Boolean {
+  iterResult: $AnyObject,
+): $Boolean | $Error {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
@@ -115,8 +128,8 @@ export function $IteratorComplete(
 // http://www.ecma-international.org/ecma-262/#sec-iteratorvalue
 export function $IteratorValue(
   ctx: ExecutionContext,
-  iterResult: $Object,
-): $AnyNonEmpty {
+  iterResult: $AnyObject,
+): $AnyNonEmpty | $Error {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
@@ -129,15 +142,17 @@ export function $IteratorValue(
 export function $IteratorStep(
   ctx: ExecutionContext,
   iteratorRecord: $IteratorRecord,
-): $Object | $Boolean<false> {
+): $AnyObject | $Boolean<false> | $Error {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
   // 1. Let result be ? IteratorNext(iteratorRecord).
   const result = $IteratorNext(ctx, iteratorRecord);
+  if (result.isAbrupt) { return result; }
 
   // 2. Let done be ? IteratorComplete(result).
   const done = $IteratorComplete(ctx, result);
+  if (done.isAbrupt) { return done; }
 
   // 3. If done is true, return false.
   if (done.isTruthy) {
@@ -152,8 +167,8 @@ export function $IteratorStep(
 export function $IteratorClose(
   ctx: ExecutionContext,
   iteratorRecord: $IteratorRecord,
-  completion: $Any,
-): $Any {
+  completion: $AnyNonError,
+): $AnyNonError | $Error {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
@@ -164,6 +179,7 @@ export function $IteratorClose(
 
   // 4. Let return be ? GetMethod(iterator, "return").
   const $return = iterator.GetMethod(ctx, intrinsics.$return);
+  if ($return.isAbrupt) { return $return; }
 
   // 5. If return is undefined, return Completion(completion).
   if ($return.isUndefined) {
@@ -185,7 +201,7 @@ export function $IteratorClose(
 
   // 9. If Type(innerResult.[[Value]]) is not Object, throw a TypeError exception.
   if (!innerResult.isObject) {
-    throw new TypeError('9. If Type(innerResult.[[Value]]) is not Object, throw a TypeError exception.');
+    return new $TypeError(realm);
   }
 
   // 10. Return Completion(completion).
@@ -196,8 +212,8 @@ export function $IteratorClose(
 export function $AsyncIteratorClose(
   ctx: ExecutionContext,
   iteratorRecord: $IteratorRecord,
-  completion: $Any,
-): $Any {
+  completion: $AnyNonError,
+): $AnyNonError | $Error {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
@@ -208,6 +224,7 @@ export function $AsyncIteratorClose(
 
   // 4. Let return be ? GetMethod(iterator, "return").
   const $return = iterator.GetMethod(ctx, intrinsics.$return);
+  if ($return.isAbrupt) { return $return; }
 
   // 5. If return is undefined, return Completion(completion).
   if ($return.isUndefined) {
@@ -235,7 +252,7 @@ export function $AsyncIteratorClose(
 
   // 10. If Type(innerResult.[[Value]]) is not Object, throw a TypeError exception.
   if (!innerResult.isObject) {
-    throw new TypeError('10. If Type(innerResult.[[Value]]) is not Object, throw a TypeError exception.');
+    return new $TypeError(realm);
   }
 
   // 11. Return Completion(completion).
@@ -297,7 +314,7 @@ export class $ListIterator_next extends $BuiltinFunction<'ListIterator_next'> {
     thisArgument: $AnyNonEmpty,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty {
+  ): $AnyNonEmpty | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -333,6 +350,8 @@ export class $ListIterator extends $Object<'ListIterator'> {
   public readonly '[[IteratedList]]': readonly $AnyNonEmpty[];
   public '[[ListIteratorNextIndex]]': $Number;
 
+  public get isAbrupt(): false { return false; }
+
   public constructor(
     realm: Realm,
     list: readonly $AnyNonEmpty[],
@@ -347,12 +366,14 @@ export class $ListIterator extends $Object<'ListIterator'> {
 }
 
 export class $IteratorRecord {
-  public readonly '[[Iterator]]': $Object;
+  public readonly '[[Iterator]]': $AnyObject;
   public readonly '[[NextMethod]]': $Function;
   public '[[Done]]': $Boolean;
 
+  public get isAbrupt(): false { return false; }
+
   public constructor(
-    iterator: $Object,
+    iterator: $AnyObject,
     next: $Function,
     done: $Boolean,
   ) {
@@ -366,7 +387,7 @@ export class $IteratorRecord {
 export function $CreateAsyncFromSyncIterator(
   ctx: ExecutionContext,
   syncIteratorRecord: $IteratorRecord,
-): $IteratorRecord {
+): $IteratorRecord | $Error {
   const realm = ctx.Realm;
 
   // 1. Let asyncIterator be ! ObjectCreate(%AsyncFromSyncIteratorPrototype%, « [[SyncIteratorRecord]] »).
@@ -407,7 +428,7 @@ export class $Symbol_Iterator extends $BuiltinFunction<'[Symbol.iterator]'> {
     thisArgument: $AnyNonEmpty,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty {
+  ): $AnyNonEmpty | $Error {
     return thisArgument;
   }
 }

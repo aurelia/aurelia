@@ -1,10 +1,11 @@
-import { nextValueId, $Any, Int32, Uint32, Int16, Uint16, Int8, Uint8, Uint8Clamp, PotentialNonEmptyCompletionType, CompletionTarget, CompletionType } from './_shared';
+import { nextValueId, $AnyNonError, Int32, Uint32, Int16, Uint16, Int8, Uint8, Uint8Clamp, PotentialNonEmptyCompletionType, CompletionTarget, CompletionType, $Any } from './_shared';
 import { Realm, ExecutionContext } from '../realm';
 import { $FunctionDeclaration, $ExportSpecifier, $ImportSpecifier, $ImportClause, $ImportDeclaration, $ClassDeclaration, $SourceFile } from '../ast';
 import { $Object } from './object';
 import { $String } from './string';
 import { $Number } from './number';
 import { $Boolean } from './boolean';
+import { $TypeError, $Error } from './error';
 
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-undefined-type
 export class $Undefined {
@@ -17,7 +18,10 @@ export class $Undefined {
   public readonly '[[Value]]': undefined = void 0;
   public '[[Target]]': CompletionTarget;
 
-  public get isAbrupt(): boolean { return this['[[Type]]'] !== CompletionType.normal; }
+  // Note: this typing is incorrect, but we do it this way to prevent having to cast in 100+ places.
+  // The purpose is to ensure the `isAbrupt === true` flow narrows down to the $Error type.
+  // It could be done correctly, but that would require complex conditional types which is not worth the effort right now.
+  public get isAbrupt(): false { return (this['[[Type]]'] !== CompletionType.normal) as false; }
 
   public get Type(): 'Undefined' { return 'Undefined'; }
   public get isEmpty(): false { return false; }
@@ -52,7 +56,7 @@ export class $Undefined {
     this['[[Target]]'] = target;
   }
 
-  public is(other: $Any): other is $Undefined {
+  public is(other: $AnyNonError): other is $Undefined {
     return other instanceof $Undefined;
   }
 
@@ -75,8 +79,8 @@ export class $Undefined {
 
   public ToObject(
     ctx: ExecutionContext,
-  ): $Object {
-    throw new TypeError(`Cannot convert undefined to object`);
+  ): $Error {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToPropertyKey(
@@ -227,7 +231,9 @@ export class $Undefined {
     );
   }
 
-  public GetValue(): this {
+  public GetValue(
+    ctx: ExecutionContext,
+  ): this {
     return this;
   }
 }

@@ -2,14 +2,14 @@ import { $Object } from '../types/object';
 import { $Null } from '../types/null';
 import { Realm, ExecutionContext } from '../realm';
 import { $Boolean } from '../types/boolean';
+import { $Error } from '../types/error';
+import { $AnyObject } from '../types/_shared';
 
 // http://www.ecma-international.org/ecma-262/#sec-string-exotic-objects
 export class $ImmutablePrototypeExoticObject extends $Object<'ImmutablePrototypeExoticObject'> {
-  public readonly '[[Prototype]]': $Object | $Null;
-
   public constructor(
     realm: Realm,
-    proto: $Object | $Null,
+    proto: $AnyObject | $Null,
   ) {
     super(realm, 'ImmutablePrototypeExoticObject', proto);
   }
@@ -17,8 +17,8 @@ export class $ImmutablePrototypeExoticObject extends $Object<'ImmutablePrototype
   // http://www.ecma-international.org/ecma-262/#sec-immutable-prototype-exotic-objects-setprototypeof-v
   public '[[SetPrototypeOf]]'(
     ctx: ExecutionContext,
-    V: $Object | $Null,
-  ): $Boolean {
+    V: $AnyObject | $Null,
+  ): $Boolean | $Error {
     // 1. Return ? SetImmutablePrototype(O, V).
 
     // http://www.ecma-international.org/ecma-262/#sec-set-immutable-prototype
@@ -26,6 +26,7 @@ export class $ImmutablePrototypeExoticObject extends $Object<'ImmutablePrototype
     // 1. Assert: Either Type(V) is Object or Type(V) is Null.
     // 2. Let current be ? O.[[GetPrototypeOf]]().
     const current = super['[[GetPrototypeOf]]'](ctx);
+    if (current.isAbrupt) { return current; }
 
     // 3. If SameValue(V, current) is true, return true.
     if (V.is(current)) {

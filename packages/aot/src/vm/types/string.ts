@@ -1,4 +1,4 @@
-import { nextValueId, $Any, Int32, Uint32, Int16, Uint16, Int8, Uint8, Uint8Clamp, PotentialNonEmptyCompletionType, CompletionTarget, CompletionType } from './_shared';
+import { nextValueId, $AnyNonError, Int32, Uint32, Int16, Uint16, Int8, Uint8, Uint8Clamp, PotentialNonEmptyCompletionType, CompletionTarget, CompletionType, $Any } from './_shared';
 import { $Number } from './number';
 import { $Undefined } from './undefined';
 import { Realm, ExecutionContext } from '../realm';
@@ -17,7 +17,10 @@ export class $String<T extends string = string> {
   public readonly '[[Value]]': T;
   public '[[Target]]': CompletionTarget;
 
-  public get isAbrupt(): boolean { return this['[[Type]]'] !== CompletionType.normal; }
+  // Note: this typing is incorrect, but we do it this way to prevent having to cast in 100+ places.
+  // The purpose is to ensure the `isAbrupt === true` flow narrows down to the $Error type.
+  // It could be done correctly, but that would require complex conditional types which is not worth the effort right now.
+  public get isAbrupt(): false { return (this['[[Type]]'] !== CompletionType.normal) as false; }
 
   public get Type(): 'String' { return 'String'; }
   public get isEmpty(): false { return false; }
@@ -38,6 +41,14 @@ export class $String<T extends string = string> {
   public get isFalsey(): boolean { return this['[[Value]]'].length === 0; }
   public get isSpeculative(): false { return false; }
   public get hasValue(): true { return true; }
+  // Only used in contexts where a value is always 'ambiguous' if it is a $String
+  public get isAmbiguous(): true {
+    if (this['[[Value]]'] !== 'ambiguous') {
+      // Just make sure that we don't actually violate that invariant
+      throw new Error(`Expected "${this['[[Value]]']}" to be "ambiguous"`);
+    }
+    return true;
+  }
 
   // http://www.ecma-international.org/ecma-262/#sec-canonicalnumericindexstring
   public CanonicalNumericIndexString(
@@ -73,14 +84,14 @@ export class $String<T extends string = string> {
     type: PotentialNonEmptyCompletionType = CompletionType.normal,
     target: CompletionTarget = realm['[[Intrinsics]]'].empty,
     public readonly sourceNode: $Identifier | $StringLiteral | $NumericLiteral | null = null,
-    public readonly conversionSource: $Any | null = null,
+    public readonly conversionSource: $AnyNonError | null = null,
   ) {
     this['[[Value]]'] = value;
     this['[[Type]]'] = type;
     this['[[Target]]'] = target;
   }
 
-  public is(other: $Any): other is $String<T> {
+  public is(other: $AnyNonError): other is $String<T> {
     return other instanceof $String && this['[[Value]]'] === other['[[Value]]'];
   }
 
@@ -257,7 +268,9 @@ export class $String<T extends string = string> {
     return this;
   }
 
-  public GetValue(): this {
+  public GetValue(
+    ctx: ExecutionContext,
+  ): this {
     return this;
   }
 }

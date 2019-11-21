@@ -1,11 +1,12 @@
 /* eslint-disable */
-import { nextValueId, $Any, ESType, $Primitive, PotentialEmptyCompletionType, CompletionTarget, CompletionType, $AnyNonEmpty } from './_shared';
+import { nextValueId, $AnyNonError, ESType, $Primitive, PotentialEmptyCompletionType, CompletionTarget, CompletionType, $AnyNonEmpty, $Any } from './_shared';
 import { Realm, ExecutionContext } from '../realm';
 import { $Object } from './object';
 import { $String } from './string';
 import { $Number } from './number';
 import { $ComputedPropertyName, $ContinueStatement, $BreakStatement, $FunctionDeclaration, $SourceFile } from '../ast';
 import { $Boolean } from './boolean';
+import { $TypeError } from './error';
 
 export interface empty { '<empty>': unknown }
 export const empty = Symbol('empty') as unknown as empty;
@@ -19,9 +20,12 @@ export class $Empty {
   public readonly '[[Value]]': empty = empty;
   public '[[Target]]': CompletionTarget;
 
-  public get isAbrupt(): boolean { return this['[[Type]]'] !== CompletionType.normal; }
+  // Note: this typing is incorrect, but we do it this way to prevent having to cast in 100+ places.
+  // The purpose is to ensure the `isAbrupt === true` flow narrows down to the $Error type.
+  // It could be done correctly, but that would require complex conditional types which is not worth the effort right now.
+  public get isAbrupt(): false { return (this['[[Type]]'] !== CompletionType.normal) as false; }
 
-  public get Type(): ESType { throw new TypeError(); }
+  public get Type(): $TypeError { return new $TypeError(this.realm); }
   public get isEmpty(): true { return true; }
   public get isUndefined(): false { return false; }
   public get isNull(): false { return false; }
@@ -51,7 +55,7 @@ export class $Empty {
     this['[[Target]]'] = target;
   }
 
-  public is(other: $Any): other is $Empty {
+  public is(other: $AnyNonError): other is $Empty {
     return other instanceof $Empty;
   }
 
@@ -74,89 +78,91 @@ export class $Empty {
 
   public ToObject(
     ctx: ExecutionContext,
-  ): $Object {
-    throw new TypeError(`Cannot convert empty to object`);
+  ): $TypeError {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToPropertyKey(
     ctx: ExecutionContext,
-  ): $String {
-    throw new TypeError(`Cannot convert empty to property key`);
+  ): $TypeError {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToLength(
     ctx: ExecutionContext,
-  ): $Number {
-    throw new TypeError(`Cannot convert empty to length`);
+  ): $TypeError {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToPrimitive(
     ctx: ExecutionContext,
-  ): $Primitive {
-    throw new TypeError(`Cannot convert empty to primitive`);
+  ): $TypeError {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToBoolean(
     ctx: ExecutionContext,
-  ): $Boolean {
-    throw new TypeError(`Cannot convert empty to boolean`);
+  ): $TypeError {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToNumber(
     ctx: ExecutionContext,
-  ): $Number {
-    throw new TypeError(`Cannot convert empty to number`);
+  ): $TypeError {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToInt32(
     ctx: ExecutionContext,
-  ): $Number {
-    throw new TypeError(`Cannot convert empty to Int32`);
+  ): $TypeError {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToUint32(
     ctx: ExecutionContext,
-  ): $Number {
-    throw new TypeError(`Cannot convert empty to Uint32`);
+  ): $TypeError {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToInt16(
     ctx: ExecutionContext,
-  ): $Number {
-    throw new TypeError(`Cannot convert empty to Int16`);
+  ): $TypeError {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToUint16(
     ctx: ExecutionContext,
-  ): $Number {
-    throw new TypeError(`Cannot convert empty to Uint16`);
+  ): $TypeError {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToInt8(
     ctx: ExecutionContext,
-  ): $Number {
-    throw new TypeError(`Cannot convert empty to Int8`);
+  ): $TypeError {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToUint8(
     ctx: ExecutionContext,
-  ): $Number {
-    throw new TypeError(`Cannot convert empty to Uint8`);
+  ): $TypeError {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToUint8Clamp(
     ctx: ExecutionContext,
-  ): $Number {
-    throw new TypeError(`Cannot convert empty to Uint8Clamp`);
+  ): $TypeError {
+    return new $TypeError(ctx.Realm);
   }
 
   public ToString(
     ctx: ExecutionContext,
-  ): $String {
-    throw new TypeError(`Cannot convert empty to string`);
+  ): $TypeError {
+    return new $TypeError(ctx.Realm);
   }
 
-  public GetValue(): never {
-    throw new TypeError(`empty has no evaluatable value`);
+  public GetValue(
+    ctx: ExecutionContext,
+  ): $TypeError {
+    return new $TypeError(ctx.Realm);
   }
 }

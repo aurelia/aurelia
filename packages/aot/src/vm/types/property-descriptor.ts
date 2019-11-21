@@ -3,7 +3,7 @@ import { $Boolean } from './boolean';
 import { $Undefined } from './undefined';
 import { $Empty } from './empty';
 import { $Function } from './function';
-import { $Any, $PropertyKey } from './_shared';
+import { $AnyNonError, $PropertyKey } from './_shared';
 
 let descriptorId = 0;
 
@@ -12,6 +12,8 @@ export class $PropertyDescriptor {
   public readonly '<$PropertyDescriptor>': unknown;
 
   public readonly id: number = ++descriptorId;
+
+  public get isAbrupt(): false { return false; }
 
   public get isEmpty(): false { return false; }
   public get isUndefined(): false { return false; }
@@ -31,7 +33,7 @@ export class $PropertyDescriptor {
   public '[[Get]]': $Function | $Undefined | $Empty;
   public '[[Set]]': $Function | $Undefined | $Empty;
 
-  public '[[Value]]': $Any;
+  public '[[Value]]': $AnyNonError;
   public '[[Writable]]': $Boolean | $Undefined | $Empty;
 
   // http://www.ecma-international.org/ecma-262/#sec-isaccessordescriptor
@@ -67,7 +69,7 @@ export class $PropertyDescriptor {
       '[[Get]]'?: $Function | $Undefined | $Empty;
       '[[Set]]'?: $Function | $Undefined | $Empty;
 
-      '[[Value]]'?: $Any;
+      '[[Value]]'?: $AnyNonError;
       '[[Writable]]'?: $Boolean | $Undefined | $Empty;
     },
   ) {

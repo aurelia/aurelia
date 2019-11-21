@@ -1,9 +1,10 @@
 import { $Object } from './types/object';
 import { $Function, $BuiltinFunction } from './types/function';
 import { ExecutionContext, Realm } from './realm';
-import { $AnyNonEmpty } from './types/_shared';
+import { $AnyNonEmpty, $AnyObject } from './types/_shared';
 import { $Undefined } from './types/undefined';
 import { $IteratorRecord } from './iteration';
+import { $Error } from './types/error';
 
 // http://www.ecma-international.org/ecma-262/#sec-promise-abstract-operations
 // #region 25.6.1 Promise Abstract Operation
@@ -101,7 +102,7 @@ export class $PromiseRejectFunction extends $BuiltinFunction<'PromiseRejectFunct
     thisArgument: $AnyNonEmpty,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty {
+  ): $AnyNonEmpty | $Error {
     // 1. Let F be the active function object.
     // 2. Assert: F has a [[Promise]] internal slot whose value is an Object.
     // 3. Let promise be F.[[Promise]].
@@ -135,7 +136,7 @@ export class $PromiseResolveFunction extends $BuiltinFunction<'PromiseResolveFun
     thisArgument: $AnyNonEmpty,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty {
+  ): $AnyNonEmpty | $Error {
     // 1. Let F be the active function object.
     // 2. Assert: F has a [[Promise]] internal slot whose value is an Object.
     // 3. Let promise be F.[[Promise]].
@@ -213,7 +214,7 @@ export class $GetCapabilitiesExecutor extends $BuiltinFunction<'GetCapabilitiesE
     thisArgument: $AnyNonEmpty,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty {
+  ): $AnyNonEmpty | $Error {
     // 1. Let F be the active function object.
     // 2. Assert: F has a [[Capability]] internal slot whose value is a PromiseCapability Record.
     // 3. Let promiseCapability be F.[[Capability]].
@@ -289,7 +290,7 @@ export class $PromiseConstructor extends $BuiltinFunction<'%Promise%'> {
     thisArgument: $AnyNonEmpty,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty {
+  ): $AnyNonEmpty | $Error{
     // 1. If NewTarget is undefined, throw a TypeError exception.
     // 2. If IsCallable(executor) is false, throw a TypeError exception.
     // 3. Let promise be ? OrdinaryCreateFromConstructor(NewTarget, "%PromisePrototype%", « [[PromiseState]], [[PromiseResult]], [[PromiseFulfillReactions]], [[PromiseRejectReactions]], [[PromiseIsHandled]] »).
@@ -325,7 +326,7 @@ export class $Promise_race extends $BuiltinFunction<'%Promise_race%'> {
     thisArgument: $AnyNonEmpty,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty {
+  ): $AnyNonEmpty | $Error {
     // 1. Let C be the this value.
     // 2. If Type(C) is not Object, throw a TypeError exception.
     // 3. Let promiseCapability be ? NewPromiseCapability(C).
@@ -378,7 +379,7 @@ export class $Promise_all extends $BuiltinFunction<'%Promise_all%'> {
     thisArgument: $AnyNonEmpty,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty {
+  ): $AnyNonEmpty | $Error {
     // 1. Let C be the this value.
     // 2. If Type(C) is not Object, throw a TypeError exception.
     // 3. Let promiseCapability be ? NewPromiseCapability(C).
@@ -407,7 +408,7 @@ export class $Promise_reject extends $BuiltinFunction<'%Promise_reject%'> {
     thisArgument: $AnyNonEmpty,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty {
+  ): $AnyNonEmpty | $Error {
     // 1. Let C be the this value.
     // 2. If Type(C) is not Object, throw a TypeError exception.
     // 3. Let promiseCapability be ? NewPromiseCapability(C).
@@ -431,7 +432,7 @@ export class $Promise_resolve extends $BuiltinFunction<'%Promise_resolve%'> {
     thisArgument: $AnyNonEmpty,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty {
+  ): $AnyNonEmpty | $Error {
     // http://www.ecma-international.org/ecma-262/#sec-promise.resolve
 
     // 1. Let C be the this value.
@@ -455,7 +456,7 @@ export class $Promise_resolve extends $BuiltinFunction<'%Promise_resolve%'> {
 // http://www.ecma-international.org/ecma-262/#sec-promise-resolve
 export function $PromiseResolve(
   ctx: ExecutionContext,
-  C: $Object,
+  C: $AnyObject,
   x: $AnyNonEmpty,
 ): $PromiseInstance {
   // 1. Assert: Type(C) is Object.
@@ -492,7 +493,7 @@ export class $PromiseProto_catch extends $BuiltinFunction<'%PromiseProto_catch%'
     thisArgument: $AnyNonEmpty,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty {
+  ): $AnyNonEmpty | $Error {
     // 1. Let promise be the this value.
     // 2. Return ? Invoke(promise, "then", « undefined, onRejected »).
     throw new Error('Method not implemented.');
@@ -513,7 +514,7 @@ export class $PromiseProto_finally extends $BuiltinFunction<'%PromiseProto_final
     thisArgument: $AnyNonEmpty,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty {
+  ): $AnyNonEmpty | $Error {
     // 1. Let promise be the this value.
     // 2. If Type(promise) is not Object, throw a TypeError exception.
     // 3. Let C be ? SpeciesConstructor(promise, %Promise%).
@@ -549,7 +550,7 @@ export class $PromiseProto_then extends $BuiltinFunction<'%PromiseProto_then%'> 
     thisArgument: $AnyNonEmpty,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty {
+  ): $AnyNonEmpty | $Error {
     // 1. Let promise be the this value.
     // 2. If IsPromise(promise) is false, throw a TypeError exception.
     // 3. Let C be ? SpeciesConstructor(promise, %Promise%).

@@ -1534,32 +1534,69 @@ export class $FunctionExpression implements I$Node {
 
     this.logger.debug(`Evaluate(#${ctx.id})`);
 
+    const BindingIdentifier = this.$name;
+
     // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluation
 
-    // FunctionExpression : function ( FormalParameters ) { FunctionBody }
+    if (BindingIdentifier === void 0) {
+      // FunctionExpression : function ( FormalParameters ) { FunctionBody }
 
-    // 1. If the function code for FunctionExpression is strict mode code, let strict be true. Otherwise let strict be false.
-    // 2. Let scope be the LexicalEnvironment of the running execution context.
-    // 3. Let closure be FunctionCreate(Normal, FormalParameters, FunctionBody, scope, strict).
-    // 4. Perform MakeConstructor(closure).
-    // 5. Set closure.[[SourceText]] to the source text matched by FunctionExpression.
-    // 6. Return closure.
+      // 1. If the function code for FunctionExpression is strict mode code, let strict be true. Otherwise let strict be false.
+      const strict = intrinsics.true;
+
+      // 2. Let scope be the LexicalEnvironment of the running execution context.
+      const scope = ctx.LexicalEnvironment;
+
+      // 3. Let closure be FunctionCreate(Normal, FormalParameters, FunctionBody, scope, strict).
+      const closure = $Function.FunctionCreate(ctx, 'normal', this, scope, strict);
+
+      // 4. Perform MakeConstructor(closure).
+      closure.MakeConstructor(ctx);
+
+      // 5. Set closure.[[SourceText]] to the source text matched by FunctionExpression.
+      closure['[[SourceText]]'] = new $String(realm, this.node.getText(this.sourceFile.node));
+
+      // 6. Return closure.
+      return closure;
+    }
 
     // FunctionExpression : function BindingIdentifier ( FormalParameters ) { FunctionBody }
 
     // 1. If the function code for FunctionExpression is strict mode code, let strict be true. Otherwise let strict be false.
+    const strict = intrinsics.true;
+
     // 2. Let scope be the running execution context's LexicalEnvironment.
+    const scope = ctx.LexicalEnvironment;
+
     // 3. Let funcEnv be NewDeclarativeEnvironment(scope).
+    const funcEnv = new $DeclarativeEnvRec(this.logger, realm, scope);
+
     // 4. Let envRec be funcEnv's EnvironmentRecord.
     // 5. Let name be StringValue of BindingIdentifier.
-    // 6. Perform envRec.CreateImmutableBinding(name, false).
-    // 7. Let closure be FunctionCreate(Normal, FormalParameters, FunctionBody, funcEnv, strict).
-    // 8. Perform MakeConstructor(closure).
-    // 9. Perform SetFunctionName(closure, name).
-    // 10. Set closure.[[SourceText]] to the source text matched by FunctionExpression.
-    // 11. Perform envRec.InitializeBinding(name, closure).
-    // 12. Return closure.
+    const name = BindingIdentifier.StringValue;
 
+    // 6. Perform envRec.CreateImmutableBinding(name, false).
+    funcEnv.CreateImmutableBinding(ctx, name, intrinsics.false);
+
+    // 7. Let closure be FunctionCreate(Normal, FormalParameters, FunctionBody, funcEnv, strict).
+    const closure = $Function.FunctionCreate(ctx, 'normal', this, funcEnv, strict);
+
+    // 8. Perform MakeConstructor(closure).
+    closure.MakeConstructor(ctx);
+
+    // 9. Perform SetFunctionName(closure, name).
+    closure.SetFunctionName(ctx, name);
+
+    // 10. Set closure.[[SourceText]] to the source text matched by FunctionExpression.
+    closure['[[SourceText]]'] = new $String(realm, this.node.getText(this.sourceFile.node));
+
+    // 11. Perform envRec.InitializeBinding(name, closure).
+    funcEnv.InitializeBinding(ctx, name, closure);
+
+    // 12. Return closure.
+    return closure;
+
+    // TODO: impl generator and async
 
     // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
 

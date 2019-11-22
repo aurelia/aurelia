@@ -43,7 +43,7 @@ export class RenderContext implements IRenderContext {
     private readonly dom: IDOM,
     private readonly parentContainer: IContainer,
     dependencies: readonly Key[],
-    componentType?: CustomElementType,
+    private readonly componentType?: CustomElementType,
     componentInstance?: IViewModel,
   ) {
     const container = (

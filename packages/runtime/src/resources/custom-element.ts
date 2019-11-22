@@ -400,8 +400,10 @@ export const CustomElement: CustomElementKind = {
 
     let cur = node as INode | null;
     while (cur !== null) {
-      const controller = Metadata.getOwn(CustomElement.name, cur);
-      if (controller !== void 0) {
+      const nodeResourceName: string = (cur as Element).nodeName.toLowerCase();
+      const controller = Metadata.getOwn(`${CustomElement.name}:${nodeResourceName}`, cur)
+      || Metadata.getOwn(CustomElement.name, cur);
+  if (controller !== void 0) {
         return controller;
       }
 

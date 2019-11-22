@@ -680,7 +680,7 @@ export class $ElementAccessExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-property-accessors-runtime-semantics-evaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $Reference | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -688,15 +688,33 @@ export class $ElementAccessExpression implements I$Node {
     // MemberExpression : MemberExpression [ Expression ]
 
     // 1. Let baseReference be the result of evaluating MemberExpression.
-    // 2. Let baseValue be ? GetValue(baseReference).
-    // 3. Let propertyNameReference be the result of evaluating Expression.
-    // 4. Let propertyNameValue be ? GetValue(propertyNameReference).
-    // 5. Let bv be ? RequireObjectCoercible(baseValue).
-    // 6. Let propertyKey be ? ToPropertyKey(propertyNameValue).
-    // 7. If the code matched by this MemberExpression is strict mode code, let strict be true, else let strict be false.
-    // 8. Return a value of type Reference whose base value component is bv, whose referenced name component is propertyKey, and whose strict reference flag is strict.
+    const baseReference = this.$expression.Evaluate(ctx);
 
-    return intrinsics.undefined; // TODO: implement this
+    // 2. Let baseValue be ? GetValue(baseReference).
+    const baseValue = baseReference.GetValue(ctx);
+    if (baseValue.isAbrupt) { return baseValue; }
+
+    // 3. Let propertyNameReference be the result of evaluating Expression.
+    const propertyNameReference = this.$argumentExpression.Evaluate(ctx);
+
+    // 4. Let propertyNameValue be ? GetValue(propertyNameReference).
+    const propertyNameValue = propertyNameReference.GetValue(ctx);
+    if (propertyNameValue.isAbrupt) { return propertyNameValue; }
+
+    // 5. Let bv be ? RequireObjectCoercible(baseValue).
+    if (baseValue.isNil) {
+      return new $TypeError(realm);
+    }
+
+    // 6. Let propertyKey be ? ToPropertyKey(propertyNameValue).
+    const propertyKey = propertyNameValue.ToPropertyKey(ctx);
+    if (propertyKey.isAbrupt) { return propertyKey; }
+
+    // 7. If the code matched by this MemberExpression is strict mode code, let strict be true, else let strict be false.
+    const strict = intrinsics.true; // TODO: use static semantics
+
+    // 8. Return a value of type Reference whose base value component is bv, whose referenced name component is propertyKey, and whose strict reference flag is strict.
+    return new $Reference(realm, baseValue, propertyKey, strict, intrinsics.undefined);
   }
 }
 

@@ -4283,6 +4283,53 @@ export class $ClassExpression implements I$Node {
     // 25. Return F.
     return F;
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-bindingclassdeclarationevaluation
+  public EvaluateBindingClassDeclaration(
+    ctx: ExecutionContext,
+  ): $Function | $Error {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    const name = this.$name;
+    if (name === void 0) {
+      // ClassDeclaration : class ClassTail
+
+      // 1. Let value be the result of ClassDefinitionEvaluation of ClassTail with arguments undefined and "default".
+      const value = this.EvaluateClassDefinition(ctx, intrinsics.undefined, intrinsics.default);
+
+      // 2. ReturnIfAbrupt(value).
+      if (value.isAbrupt) { return value; }
+
+      // 3. Set value.[[SourceText]] to the source text matched by ClassDeclaration.
+      value['[[SourceText]]'] = new $String(realm, this.node.getText(this.sourceFile.node));
+
+      // 4. Return value.
+      return value;
+    }
+
+    // ClassDeclaration : class BindingIdentifier ClassTail
+
+    // 1. Let className be StringValue of BindingIdentifier.
+    const className = name.StringValue;
+
+    // 2. Let value be the result of ClassDefinitionEvaluation of ClassTail with arguments className and className.
+    const value = this.EvaluateClassDefinition(ctx, className, className);
+
+    // 3. ReturnIfAbrupt(value).
+    if (value.isAbrupt) { return value; }
+
+    // 4. Set value.[[SourceText]] to the source text matched by ClassDeclaration.
+    value['[[SourceText]]'] = new $String(realm, this.node.getText(this.sourceFile.node));
+
+    // 5. Let env be the running execution context's LexicalEnvironment.
+    // 6. Perform ? InitializeBoundName(className, value, env).
+    const $InitializeBoundNameResult = ctx.LexicalEnvironment.InitializeBinding(ctx, className, value);
+    if ($InitializeBoundNameResult.isAbrupt) { return $InitializeBoundNameResult; }
+
+    // 7. Return value.
+    return value;
+  }
 }
 
 export class $NonNullExpression implements I$Node {

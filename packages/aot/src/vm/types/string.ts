@@ -2,9 +2,10 @@ import { nextValueId, $AnyNonError, Int32, Uint32, Int16, Uint16, Int8, Uint8, U
 import { $Number } from './number';
 import { $Undefined } from './undefined';
 import { Realm, ExecutionContext } from '../realm';
-import { $Identifier, $StringLiteral, $NumericLiteral } from '../ast';
 import { $Object } from './object';
 import { $Boolean } from './boolean';
+import { $Identifier } from '../ast/expressions';
+import { $StringLiteral, $NumericLiteral } from '../ast/literals';
 
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-string-type
 export class $String<T extends string = string> {

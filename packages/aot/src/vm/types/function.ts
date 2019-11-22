@@ -1,7 +1,6 @@
 /* eslint-disable */
 import { $Object } from './object';
 import { $EnvRec, $FunctionEnvRec } from './environment-record';
-import { $FunctionDeclaration, $MethodDeclaration, $ArrowFunction, $SourceFile, $ConstructorDeclaration, $GetAccessorDeclaration, $SetAccessorDeclaration, $FunctionExpression } from '../ast';
 import { $Boolean } from './boolean';
 import { $String } from './string';
 import { $AnyNonEmpty, CompletionType, $AnyObject } from './_shared';
@@ -14,6 +13,9 @@ import { $Undefined } from './undefined';
 import { ExecutionContext, Realm } from '../realm';
 import { $Null } from './null';
 import { $TypeError, $Error } from './error';
+import { $FunctionDeclaration, $FunctionExpression, $ArrowFunction, $ConstructorDeclaration } from '../ast/functions';
+import { $MethodDeclaration, $GetAccessorDeclaration, $SetAccessorDeclaration } from '../ast/methods';
+import { $SourceFile } from '../ast/modules';
 
 // http://www.ecma-international.org/ecma-262/#table-6
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects

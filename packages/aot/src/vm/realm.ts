@@ -1,6 +1,5 @@
 /* eslint-disable */
 import { ILogger, IContainer } from '@aurelia/kernel';
-import { I$Node, $SourceFile, $TemplateExpression, $TaggedTemplateExpression } from './ast';
 import { IFileSystem, IFile } from '../system/interfaces';
 import { Intrinsics } from './intrinsics';
 import { $EnvRec, $ModuleEnvRec, $GlobalEnvRec, $FunctionEnvRec, $DeclarativeEnvRec } from './types/environment-record';
@@ -19,6 +18,9 @@ import { $NamespaceExoticObject } from './exotics/namespace';
 import { $Empty } from './types/empty';
 import { $List } from './types/list';
 import { $Number } from './types/number';
+import { I$Node } from './ast/_shared';
+import { $TemplateExpression, $TaggedTemplateExpression } from './ast/expressions';
+import { $SourceFile } from './ast/modules';
 
 export class ResolveSet {
   private readonly modules: IModule[] = [];

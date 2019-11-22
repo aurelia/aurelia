@@ -68,9 +68,11 @@ export {
 
 export {
   $SourceFile,
-  I$Node,
   $DocumentFragment,
-} from './vm/ast';
+} from './vm/ast/modules';
+export {
+  I$Node,
+} from './vm/ast/_shared';
 
 export {
   Job,

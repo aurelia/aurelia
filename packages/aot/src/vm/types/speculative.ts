@@ -1,12 +1,12 @@
 import { nextValueId, ESType, getPath, $AnyNonError, $Primitive } from './_shared';
 import { Realm, ExecutionContext } from '../realm';
-import { $$AssignmentExpressionOrHigher } from '../ast';
 import { $Empty } from './empty';
 import { $Object } from './object';
 import { $String } from './string';
 import { $Number } from './number';
 import { $Boolean } from './boolean';
 import { $TypeError, $Error } from './error';
+import { $$AssignmentExpressionOrHigher } from '../ast/_shared';
 
 
 export class $SpeculativeValue {

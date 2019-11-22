@@ -1,7 +1,7 @@
 import { $Object } from '../types/object';
 import { Realm, ExecutionContext } from '../realm';
 import { $Function, $BuiltinFunction } from '../types/function';
-import { $ParameterDeclaration, getBoundNames } from '../ast';
+
 import { $PropertyKey, $AnyNonEmpty, $AnyObject } from '../types/_shared';
 import { $EnvRec } from '../types/environment-record';
 import { $CreateDataProperty, $DefinePropertyOrThrow, $HasOwnProperty, $Set } from '../operations';
@@ -11,6 +11,8 @@ import { $Number } from '../types/number';
 import { $Undefined } from '../types/undefined';
 import { $Boolean } from '../types/boolean';
 import { $Error } from '../types/error';
+import { $ParameterDeclaration } from '../ast/functions';
+import { getBoundNames } from '../ast/_shared';
 
 
 // http://www.ecma-international.org/ecma-262/#sec-arguments-exotic-objects

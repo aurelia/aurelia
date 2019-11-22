@@ -1,0 +1,2452 @@
+/* eslint-disable */
+import {
+  ArrayBindingElement,
+  ArrayBindingPattern,
+  ArrayLiteralExpression,
+  ArrowFunction,
+  AsExpression,
+  AwaitExpression,
+  BigIntLiteral,
+  BinaryExpression,
+  BindingElement,
+  BindingName,
+  Block,
+  BooleanLiteral,
+  BreakStatement,
+  CallExpression,
+  CaseBlock,
+  CaseClause,
+  CatchClause,
+  ClassDeclaration,
+  ClassExpression,
+  CompilerOptions,
+  ComputedPropertyName,
+  ConditionalExpression,
+  ConstructorDeclaration,
+  ContinueStatement,
+  createIdentifier,
+  createSourceFile,
+  DebuggerStatement,
+  Decorator,
+  DefaultClause,
+  DeleteExpression,
+  DoStatement,
+  ElementAccessExpression,
+  EmptyStatement,
+  EnumDeclaration,
+  EnumMember,
+  ExportAssignment,
+  ExportDeclaration,
+  ExportSpecifier,
+  ExpressionStatement,
+  ExpressionWithTypeArguments,
+  ExternalModuleReference,
+  ForInStatement,
+  ForOfStatement,
+  ForStatement,
+  FunctionDeclaration,
+  FunctionExpression,
+  GetAccessorDeclaration,
+  HeritageClause,
+  Identifier,
+  IfStatement,
+  ImportClause,
+  ImportDeclaration,
+  ImportEqualsDeclaration,
+  ImportSpecifier,
+  InterfaceDeclaration,
+  JsxAttribute,
+  JsxAttributes,
+  JsxChild,
+  JsxClosingElement,
+  JsxClosingFragment,
+  JsxElement,
+  JsxExpression,
+  JsxFragment,
+  JsxOpeningElement,
+  JsxOpeningFragment,
+  JsxSelfClosingElement,
+  JsxSpreadAttribute,
+  JsxTagNameExpression,
+  JsxText,
+  LabeledStatement,
+  MetaProperty,
+  MethodDeclaration,
+  Modifier,
+  ModifierFlags,
+  ModuleBlock,
+  ModuleDeclaration,
+  NamedExports,
+  NamedImports,
+  NamespaceExportDeclaration,
+  NamespaceImport,
+  NewExpression,
+  Node,
+  NodeArray,
+  NodeFlags,
+  NonNullExpression,
+  NoSubstitutionTemplateLiteral,
+  NullLiteral,
+  NumericLiteral,
+  ObjectBindingPattern,
+  ObjectLiteralElementLike,
+  ObjectLiteralExpression,
+  OmittedExpression,
+  ParameterDeclaration,
+  ParenthesizedExpression,
+  PostfixUnaryExpression,
+  PrefixUnaryExpression,
+  PropertyAccessExpression,
+  PropertyAssignment,
+  PropertyDeclaration,
+  PropertyName,
+  QualifiedName,
+  RegularExpressionLiteral,
+  ReturnStatement,
+  ScriptTarget,
+  SemicolonClassElement,
+  SetAccessorDeclaration,
+  ShorthandPropertyAssignment,
+  SourceFile,
+  SpreadAssignment,
+  SpreadElement,
+  StringLiteral,
+  SuperExpression,
+  SwitchStatement,
+  SyntaxKind,
+  TaggedTemplateExpression,
+  TemplateExpression,
+  TemplateHead,
+  TemplateMiddle,
+  TemplateSpan,
+  TemplateTail,
+  ThisExpression,
+  ThrowStatement,
+  tokenToString,
+  TryStatement,
+  TypeAliasDeclaration,
+  TypeAssertion,
+  TypeOfExpression,
+  VariableDeclaration,
+  VariableDeclarationList,
+  VariableStatement,
+  VoidExpression,
+  WhileStatement,
+  WithStatement,
+  YieldExpression,
+  Statement,
+  Expression,
+  createConstructor,
+  createParameter,
+  createToken,
+  createBlock,
+  createExpressionStatement,
+  createCall,
+  createSuper,
+  createSpread,
+} from 'typescript';
+import {
+  PLATFORM,
+  Writable,
+  ILogger,
+} from '@aurelia/kernel';
+import {
+  IFile,
+  $CompilerOptions,
+} from '../../system/interfaces';
+import {
+  NPMPackage,
+} from '../../system/npm-package-loader';
+import {
+  IModule,
+  ResolveSet,
+  ResolvedBindingRecord,
+  Realm,
+  ExecutionContext,
+} from '../realm';
+import {
+  PatternMatcher,
+} from '../../system/pattern-matcher';
+import {
+  $ModuleEnvRec,
+  $EnvRec,
+  $DeclarativeEnvRec,
+  $FunctionEnvRec,
+} from '../types/environment-record';
+import {
+  $AbstractRelationalComparison,
+  $InstanceOfOperator,
+  $AbstractEqualityComparison,
+  $StrictEqualityComparison,
+  $Call,
+  $Construct,
+  $DefinePropertyOrThrow,
+} from '../operations';
+import {
+  $NamespaceExoticObject,
+} from '../exotics/namespace';
+import {
+  $String,
+} from '../types/string';
+import {
+  $Undefined,
+} from '../types/undefined';
+import {
+  $Function,
+} from '../types/function';
+import {
+  $Any,
+  CompletionType,
+  $AnyNonEmpty,
+  $PropertyKey,
+  $AnyObject,
+  $AnyNonError,
+} from '../types/_shared';
+import {
+  $Object,
+} from '../types/object';
+import {
+  $Reference,
+} from '../types/reference';
+import {
+  $Number,
+} from '../types/number';
+import {
+  $Null,
+} from '../types/null';
+import {
+  $Boolean,
+} from '../types/boolean';
+import {
+  $Empty,
+  empty,
+} from '../types/empty';
+import {
+  $CreateUnmappedArgumentsObject,
+  $ArgumentsExoticObject,
+} from '../exotics/arguments';
+import {
+  $CreateListIteratorRecord,
+  $IteratorRecord,
+  $IteratorStep,
+  $IteratorValue,
+  $GetIterator,
+  $IteratorClose,
+} from '../iteration';
+import {
+  IModuleResolver,
+} from '../../service-host';
+import {
+  $TypeError,
+  $Error,
+  $SyntaxError,
+} from '../types/error';
+import {
+  $ArrayExoticObject,
+} from '../exotics/array';
+import {
+  $List,
+} from '../types/list';
+import {
+  $PropertyDescriptor,
+} from '../types/property-descriptor';
+import {
+  I$Node,
+  Context,
+  $$ESDeclaration,
+  $NodeWithStatements,
+  clearBit,
+  modifiersToModifierFlags,
+  hasBit,
+  $identifier,
+  $heritageClauseList,
+  $$PropertyName,
+  $$AssignmentExpressionOrHigher,
+  $$propertyName,
+  $assignmentExpression,
+  $AssignmentExpressionNode,
+  $$TSDeclaration,
+  $$BindingName,
+  $$bindingName,
+  getBoundNames,
+  getVarDeclaredNames,
+  getVarScopedDeclarations,
+  $$TSStatementListItem,
+  $$tsStatementList,
+  $StatementNode,
+  blockDeclarationInstantiation,
+  evaluateStatementList,
+  $$ESStatement,
+  $$esStatement,
+  evaluateStatement,
+  $$ESLabelledItem,
+  $$esLabelledItem,
+  getLexicallyDeclaredNames,
+  getLexicallyScopedDeclarations,
+} from './_shared';
+import {
+  ExportEntryRecord,
+  $SourceFile,
+} from './modules';
+import {
+  $Identifier,
+} from './expressions';
+import {
+  $HeritageClause,
+} from './classes';
+import {
+  $ObjectBindingPattern,
+} from './bindings';
+
+const {
+  emptyArray,
+  emptyObject,
+} = PLATFORM;
+
+export class $VariableStatement implements I$Node {
+  public readonly $kind = SyntaxKind.VariableStatement;
+  public readonly id: number;
+
+  public readonly modifierFlags: ModifierFlags;
+  public readonly nodeFlags: NodeFlags;
+
+  public readonly $declarationList: $VariableDeclarationList;
+
+  public readonly isLexical: boolean;
+
+  // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-boundnames
+  public readonly BoundNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+
+  // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportedbindings
+  public readonly ExportedBindings: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportednames
+  public readonly ExportedNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportentries
+  public readonly ExportEntries: readonly ExportEntryRecord[];
+  // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-isconstantdeclaration
+  public readonly IsConstantDeclaration: boolean;
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-lexicallyscopeddeclarations
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-modulerequests
+  public readonly ModuleRequests: readonly $String[];
+
+  public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
+  public readonly IsType: false = false;
+
+  public constructor(
+    public readonly node: VariableStatement,
+    public readonly parent: $NodeWithStatements,
+    public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly realm: Realm = parent.realm,
+    public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('VariableStatement'),
+  ) {
+    this.id = realm.registerNode(this);
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    this.nodeFlags = node.flags;
+
+    ctx |= Context.InVariableStatement;
+
+    if (hasBit(this.modifierFlags, ModifierFlags.Export)) {
+      ctx |= Context.InExport;
+    }
+
+    const $declarationList = this.$declarationList = new $VariableDeclarationList(
+      node.declarationList,
+      this,
+      ctx,
+    );
+
+    const isLexical = this.isLexical = $declarationList.isLexical;
+    this.IsConstantDeclaration = $declarationList.IsConstantDeclaration;
+
+    const BoundNames = this.BoundNames = $declarationList.BoundNames;
+    this.VarDeclaredNames = $declarationList.VarDeclaredNames;
+    this.VarScopedDeclarations = $declarationList.VarScopedDeclarations;
+
+    if (hasBit(ctx, Context.InExport)) {
+      this.ExportedBindings = BoundNames;
+      this.ExportedNames = BoundNames;
+      this.ExportEntries = BoundNames.map(name =>
+        new ExportEntryRecord(
+          /* source */this,
+          /* ExportName */name,
+          /* ModuleRequest */intrinsics.null,
+          /* ImportName */intrinsics.null,
+          /* LocalName */name,
+        )
+      );
+
+      if (isLexical) {
+        this.LexicallyScopedDeclarations = [this];
+      } else {
+        this.LexicallyScopedDeclarations = emptyArray;
+      }
+    } else {
+      this.ExportedBindings = emptyArray;
+      this.ExportedNames = emptyArray;
+      this.ExportEntries = emptyArray;
+
+      this.LexicallyScopedDeclarations = emptyArray;
+    }
+
+    this.ModuleRequests = emptyArray;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-runtime-semantics-evaluation
+  // http://www.ecma-international.org/ecma-262/#sec-variable-statement-runtime-semantics-evaluation
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    this.logger.debug(`Evaluate(#${ctx.id})`);
+    // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-runtime-semantics-evaluation
+
+    // LexicalDeclaration : LetOrConst BindingList ;
+
+    // 1. Let next be the result of evaluating BindingList.
+    // 2. ReturnIfAbrupt(next).
+    // 3. Return NormalCompletion(empty).
+
+    // BindingList : BindingList , LexicalBinding
+
+    // 1. Let next be the result of evaluating BindingList.
+    // 2. ReturnIfAbrupt(next).
+    // 3. Return the result of evaluating LexicalBinding.
+
+    // LexicalBinding : BindingIdentifier
+
+    // 1. Let lhs be ResolveBinding(StringValue of BindingIdentifier).
+    // 2. Return InitializeReferencedBinding(lhs, undefined).
+
+    // LexicalBinding : BindingIdentifier Initializer
+
+    // 1. Let bindingId be StringValue of BindingIdentifier.
+    // 2. Let lhs be ResolveBinding(bindingId).
+    // 3. If IsAnonymousFunctionDefinition(Initializer) is true, then
+    // 3. a. Let value be the result of performing NamedEvaluation for Initializer with argument bindingId.
+    // 4. Else,
+    // 4. a. Let rhs be the result of evaluating Initializer.
+    // 4. b. Let value be ? GetValue(rhs).
+    // 5. Return InitializeReferencedBinding(lhs, value).
+
+    // LexicalBinding : BindingPattern Initializer
+
+    // 1. Let rhs be the result of evaluating Initializer.
+    // 2. Let value be ? GetValue(rhs).
+    // 3. Let env be the running execution context's LexicalEnvironment.
+    // 4. Return the result of performing BindingInitialization for BindingPattern using value and env as the arguments.
+
+
+    // http://www.ecma-international.org/ecma-262/#sec-variable-statement-runtime-semantics-evaluation
+
+    // VariableStatement : var VariableDeclarationList ;
+
+    // 1. Let next be the result of evaluating VariableDeclarationList.
+    // 2. ReturnIfAbrupt(next).
+    // 3. Return NormalCompletion(empty).
+
+    // VariableDeclarationList : VariableDeclarationList , VariableDeclaration
+
+    // 1. Let next be the result of evaluating VariableDeclarationList.
+    // 2. ReturnIfAbrupt(next).
+    // 3. Return the result of evaluating VariableDeclaration.
+
+    // VariableDeclaration : BindingIdentifier
+
+    // 1. Return NormalCompletion(empty).
+
+    // VariableDeclaration : BindingIdentifier Initializer
+
+    // 1. Let bindingId be StringValue of BindingIdentifier.
+    // 2. Let lhs be ? ResolveBinding(bindingId).
+    // 3. If IsAnonymousFunctionDefinition(Initializer) is true, then
+    // 3. a. Let value be the result of performing NamedEvaluation for Initializer with argument bindingId.
+    // 4. Else,
+    // 4. a. Let rhs be the result of evaluating Initializer.
+    // 4. b. Let value be ? GetValue(rhs).
+    // 5. Return ? PutValue(lhs, value).
+
+    // VariableDeclaration : BindingPattern Initializer
+
+    // 1. Let rhs be the result of evaluating Initializer.
+    // 2. Let rval be ? GetValue(rhs).
+    // 3. Return the result of performing BindingInitialization for BindingPattern passing rval and undefined as arguments.
+
+    return intrinsics.empty; // TODO: implement this
+  }
+}
+
+export class $VariableDeclaration implements I$Node {
+  public readonly $kind = SyntaxKind.VariableDeclaration;
+  public readonly id: number;
+
+  public readonly modifierFlags: ModifierFlags;
+  public readonly combinedModifierFlags: ModifierFlags;
+  public readonly nodeFlags: NodeFlags;
+  public readonly combinedNodeFlags: NodeFlags;
+
+  public readonly $name: $$BindingName;
+  public readonly $initializer: $$AssignmentExpressionOrHigher | undefined;
+
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-boundnames
+  // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-static-semantics-boundnames
+  public readonly BoundNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+
+  // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-static-semantics-isconstantdeclaration
+  public readonly IsConstantDeclaration: boolean;
+
+  public constructor(
+    public readonly node: VariableDeclaration,
+    public readonly parent: $VariableDeclarationList | $CatchClause,
+    public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly realm: Realm = parent.realm,
+    public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('VariableDeclaration'),
+  ) {
+    this.id = realm.registerNode(this);
+
+    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    this.nodeFlags = node.flags;
+
+    if (hasBit(ctx, Context.InVariableStatement)) {
+      this.combinedNodeFlags = node.flags | (parent as $VariableDeclarationList).combinedNodeFlags;
+      this.combinedModifierFlags = modifierFlags | (parent as $VariableDeclarationList).combinedModifierFlags;
+    } else {
+      this.combinedNodeFlags = node.flags;
+      this.combinedModifierFlags = modifierFlags;
+    }
+
+    const $name = this.$name = $$bindingName(node.name, this, ctx);
+
+    // Clear this flag because it's used inside $Identifier to declare locals/exports
+    // and we don't want to do that on the identifiers in types/initializers.
+    ctx = clearBit(ctx, Context.InVariableStatement);
+
+    this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
+
+    this.BoundNames = $name.BoundNames;
+    if (hasBit(ctx, Context.IsVar)) { // TODO: what about parameter and for declarations?
+      this.VarDeclaredNames = this.BoundNames;
+      this.VarScopedDeclarations = [this];
+      this.IsConstantDeclaration = false;
+    } else {
+      this.VarDeclaredNames = emptyArray;
+      this.VarScopedDeclarations = emptyArray;
+      this.IsConstantDeclaration = hasBit(ctx, Context.IsConst);
+    }
+  }
+
+
+  public InitializeBinding(ctx: ExecutionContext, value: $AnyNonEmpty): $Any {
+    const bindingName = this.$name;
+    const kind = bindingName.$kind;
+    const boundNames = bindingName.BoundNames;
+    const envRec = ctx.LexicalEnvironment;
+    if ((boundNames?.length ?? 0) > 0) {
+      switch (kind) {
+        // http://www.ecma-international.org/ecma-262/#sec-identifiers-runtime-semantics-bindinginitialization
+        // http://www.ecma-international.org/ecma-262/#sec-initializeboundname
+        case SyntaxKind.Identifier:
+          const name = boundNames![0]?.GetValue(ctx);
+          // 1. Assert: Type(name) is String.
+          // 2. If environment is not undefined, then
+          if (envRec !== void 0) {
+            // 2. a. Let env be the EnvironmentRecord component of environment.
+            // 2. b. Perform env.InitializeBinding(name, value).
+            envRec.InitializeBinding(ctx, name, value);
+            // 2. c. Return NormalCompletion(undefined).
+            return this.realm['[[Intrinsics]]'].undefined;
+          } else {
+            // 3. Else,
+            // 3. a. Let lhs be ResolveBinding(name).
+            const lhs = this.realm.ResolveBinding(name);
+            if (lhs.isAbrupt) { return lhs; } // TODO: is this correct? spec doesn't say it
+
+            // 3. b. Return ? PutValue(lhs, value).
+            return lhs.PutValue(ctx, value);
+          }
+          break;
+
+        case SyntaxKind.ObjectBindingPattern:
+          (bindingName as $ObjectBindingPattern).InitializeBinding(ctx, value, envRec);
+          break;
+
+        case SyntaxKind.ArrayBindingPattern:
+          // TODO
+          break;
+      }
+    }
+
+    return ctx.Realm['[[Intrinsics]]'].empty;
+  }
+}
+
+export function $variableDeclarationList(
+  nodes: readonly VariableDeclaration[],
+  parent: $VariableDeclarationList,
+  ctx: Context,
+): readonly $VariableDeclaration[] {
+  if (nodes === void 0 || nodes.length === 0) {
+    return emptyArray;
+  }
+
+  const len = nodes.length;
+  const $nodes: $VariableDeclaration[] = Array(len);
+  for (let i = 0; i < len; ++i) {
+    $nodes[i] = new $VariableDeclaration(nodes[i], parent, ctx);
+  }
+  return $nodes;
+}
+
+export class $VariableDeclarationList implements I$Node {
+  public readonly $kind = SyntaxKind.VariableDeclarationList;
+  public readonly id: number;
+
+  public readonly combinedModifierFlags: ModifierFlags;
+  public readonly nodeFlags: NodeFlags;
+  public readonly combinedNodeFlags: NodeFlags;
+
+  public readonly $declarations: readonly $VariableDeclaration[];
+
+  public readonly isLexical: boolean;
+
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-boundnames
+  public readonly BoundNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+
+  // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-static-semantics-isconstantdeclaration
+  public readonly IsConstantDeclaration: boolean;
+
+  public constructor(
+    public readonly node: VariableDeclarationList,
+    public readonly parent: $VariableStatement | $ForStatement | $ForOfStatement | $ForInStatement,
+    public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly realm: Realm = parent.realm,
+    public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('VariableDeclarationList'),
+  ) {
+    this.id = realm.registerNode(this);
+
+    this.nodeFlags = node.flags;
+
+    this.isLexical = (node.flags & (NodeFlags.Const | NodeFlags.Let)) > 0;
+    this.IsConstantDeclaration = (node.flags & NodeFlags.Const) > 0;
+
+    if (hasBit(ctx, Context.InVariableStatement)) {
+      this.combinedNodeFlags = node.flags | (parent as $VariableStatement).nodeFlags;
+      this.combinedModifierFlags = (parent as $VariableStatement).modifierFlags;
+    } else {
+      this.combinedNodeFlags = node.flags;
+      this.combinedModifierFlags = ModifierFlags.None;
+    }
+
+    if (hasBit(node.flags, NodeFlags.Const)) {
+      ctx |= Context.IsConst;
+    } else if (hasBit(node.flags, NodeFlags.Let)) {
+      ctx |= Context.IsLet;
+    } else {
+      ctx |= Context.IsVar;
+    }
+
+    const $declarations = this.$declarations = $variableDeclarationList(node.declarations, this, ctx);
+
+    this.BoundNames = $declarations.flatMap(getBoundNames);
+    this.VarDeclaredNames = $declarations.flatMap(getVarDeclaredNames);
+    this.VarScopedDeclarations = $declarations.flatMap(getVarScopedDeclarations);
+  }
+}
+
+// #region Statements
+
+export class $Block implements I$Node {
+  public readonly $kind = SyntaxKind.Block;
+  public readonly id: number;
+
+  public readonly $statements: readonly $$TSStatementListItem[];
+
+  // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-lexicallydeclarednames
+  public readonly LexicallyDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-lexicallyscopeddeclarations
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-toplevellexicallydeclarednames
+  public readonly TopLevelLexicallyDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-toplevellexicallyscopeddeclarations
+  public readonly TopLevelLexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-toplevelvardeclarednames
+  public readonly TopLevelVarDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-toplevelvarscopeddeclarations
+  public readonly TopLevelVarScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+
+  public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
+  public readonly IsType: false = false;
+
+  public constructor(
+    public readonly node: Block,
+    public readonly parent: $NodeWithStatements,
+    public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly realm: Realm = parent.realm,
+    public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('Block'),
+  ) {
+    this.id = realm.registerNode(this);
+
+    const $statements = this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
+
+    const LexicallyDeclaredNames = this.LexicallyDeclaredNames = [] as $String[];
+    const LexicallyScopedDeclarations = this.LexicallyScopedDeclarations = [] as $$ESDeclaration[];
+    const TopLevelLexicallyDeclaredNames = this.TopLevelLexicallyDeclaredNames = [] as $String[];
+    const TopLevelLexicallyScopedDeclarations = this.TopLevelLexicallyScopedDeclarations = [] as $$ESDeclaration[];
+    const TopLevelVarDeclaredNames = this.TopLevelVarDeclaredNames = [] as $String[];
+    const TopLevelVarScopedDeclarations = this.TopLevelVarScopedDeclarations = [] as $$ESDeclaration[];
+    const VarDeclaredNames = this.VarDeclaredNames = [] as $String[];
+    const VarScopedDeclarations = this.VarScopedDeclarations = [] as $$ESDeclaration[];
+
+    const len = $statements.length;
+    let $statement: $$TSStatementListItem;
+    for (let i = 0; i < len; ++i) {
+      $statement = $statements[i];
+      switch ($statement.$kind) {
+        case SyntaxKind.FunctionDeclaration:
+          LexicallyDeclaredNames.push(...$statement.BoundNames);
+          LexicallyScopedDeclarations.push($statement);
+
+          TopLevelVarDeclaredNames.push(...$statement.BoundNames);
+          TopLevelVarScopedDeclarations.push($statement);
+          break;
+        case SyntaxKind.ClassDeclaration:
+          LexicallyDeclaredNames.push(...$statement.BoundNames);
+          LexicallyScopedDeclarations.push($statement);
+
+          TopLevelLexicallyDeclaredNames.push(...$statement.BoundNames);
+          TopLevelLexicallyScopedDeclarations.push($statement);
+          break;
+        case SyntaxKind.VariableStatement:
+          if ($statement.isLexical) {
+            LexicallyDeclaredNames.push(...$statement.BoundNames);
+            LexicallyScopedDeclarations.push($statement);
+
+            TopLevelLexicallyDeclaredNames.push(...$statement.BoundNames);
+            TopLevelLexicallyScopedDeclarations.push($statement);
+          } else {
+            TopLevelVarDeclaredNames.push(...$statement.VarDeclaredNames);
+            TopLevelVarScopedDeclarations.push(...$statement.VarScopedDeclarations);
+
+            VarDeclaredNames.push(...$statement.VarDeclaredNames);
+            VarScopedDeclarations.push(...$statement.VarScopedDeclarations);
+          }
+          break;
+        case SyntaxKind.LabeledStatement:
+          LexicallyDeclaredNames.push(...$statement.LexicallyDeclaredNames);
+          LexicallyScopedDeclarations.push(...$statement.LexicallyScopedDeclarations);
+
+          TopLevelVarDeclaredNames.push(...$statement.TopLevelVarDeclaredNames);
+          TopLevelVarScopedDeclarations.push(...$statement.TopLevelVarScopedDeclarations);
+
+          VarDeclaredNames.push(...$statement.VarDeclaredNames);
+          VarScopedDeclarations.push(...$statement.VarScopedDeclarations);
+          break;
+        case SyntaxKind.Block:
+        case SyntaxKind.IfStatement:
+        case SyntaxKind.DoStatement:
+        case SyntaxKind.WhileStatement:
+        case SyntaxKind.ForStatement:
+        case SyntaxKind.ForInStatement:
+        case SyntaxKind.ForOfStatement:
+        case SyntaxKind.WithStatement:
+        case SyntaxKind.SwitchStatement:
+        case SyntaxKind.TryStatement:
+          TopLevelVarDeclaredNames.push(...$statement.VarDeclaredNames);
+          TopLevelVarScopedDeclarations.push(...$statement.VarScopedDeclarations);
+
+          VarDeclaredNames.push(...$statement.VarDeclaredNames);
+          VarScopedDeclarations.push(...$statement.VarScopedDeclarations);
+      }
+    }
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-block-runtime-semantics-evaluation
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    this.logger.debug(`Evaluate(#${ctx.id})`);
+    const $statements = this.$statements;
+
+    // Block : { }
+    // 1. Return NormalCompletion(empty).
+    if ($statements.length === 0) {
+      return intrinsics.empty;
+    }
+
+    // Block : { StatementList }
+    // 1. Let oldEnv be the running execution context's LexicalEnvironment.
+    const oldEnv = ctx.LexicalEnvironment;
+    // 2. Let blockEnv be NewDeclarativeEnvironment(oldEnv).
+    const blockEnv = ctx.LexicalEnvironment = new $DeclarativeEnvRec(this.logger, realm, oldEnv);
+
+    // 3. Perform BlockDeclarationInstantiation(StatementList, blockEnv).
+    blockDeclarationInstantiation(ctx, this.LexicallyScopedDeclarations, blockEnv);
+
+    // 4. Set the running execution context's LexicalEnvironment to blockEnv.
+    realm.stack.push(ctx);
+
+    // 5. Let blockValue be the result of evaluating StatementList.
+    const blockValue = evaluateStatementList(ctx, $statements);
+
+    // 6. Set the running execution context's LexicalEnvironment to oldEnv.
+    realm.stack.pop();
+    ctx.LexicalEnvironment = oldEnv;
+
+    // 7. Return blockValue.
+    return blockValue;
+  }
+}
+
+export class $EmptyStatement implements I$Node {
+  public readonly $kind = SyntaxKind.EmptyStatement;
+  public readonly id: number;
+
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+
+  public constructor(
+    public readonly node: EmptyStatement,
+    public readonly parent: $NodeWithStatements,
+    public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly realm: Realm = parent.realm,
+    public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('EmptyStatement'),
+  ) {
+    this.id = realm.registerNode(this);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-empty-statement-runtime-semantics-evaluation
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    this.logger.debug(`Evaluate(#${ctx.id})`);
+    // EmptyStatement : ;
+
+    // 1. Return NormalCompletion(empty).
+    return intrinsics.empty;
+  }
+}
+
+export type ExpressionStatement_T<T extends Expression> = ExpressionStatement & {
+  readonly expression: T;
+};
+
+export type DirectivePrologue = readonly ExpressionStatement_T<StringLiteral>[] & {
+  readonly ContainsUseStrict?: true;
+};
+
+export class $ExpressionStatement implements I$Node {
+  public readonly $kind = SyntaxKind.ExpressionStatement;
+  public readonly id: number;
+
+  public readonly $expression: $$AssignmentExpressionOrHigher;
+
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+
+  public constructor(
+    public readonly node: ExpressionStatement,
+    public readonly parent: $NodeWithStatements,
+    public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly realm: Realm = parent.realm,
+    public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ExpressionStatement'),
+  ) {
+    this.id = realm.registerNode(this);
+
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx | Context.InExpressionStatement);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-expression-statement-runtime-semantics-evaluation
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    this.logger.debug(`Evaluate(#${ctx.id})`);
+    // ExpressionStatement : Expression ;
+
+    // 1. Let exprRef be the result of evaluating Expression.
+    // 2. Return ? GetValue(exprRef).
+
+    return this.$expression.Evaluate(ctx).GetValue(ctx);
+  }
+}
+
+export class $IfStatement implements I$Node {
+  public readonly $kind = SyntaxKind.IfStatement;
+  public readonly id: number;
+
+  public readonly $expression: $$AssignmentExpressionOrHigher;
+  public readonly $thenStatement: $$ESStatement;
+  public readonly $elseStatement: $$ESStatement | undefined;
+
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-if-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-if-statement-static-semantics-varscopeddeclaration
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+
+  public constructor(
+    public readonly node: IfStatement,
+    public readonly parent: $NodeWithStatements,
+    public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly realm: Realm = parent.realm,
+    public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('IfStatement'),
+  ) {
+    this.id = realm.registerNode(this);
+
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+    const $thenStatement = this.$thenStatement = $$esStatement(node.thenStatement as $StatementNode, this, ctx);
+
+    if (node.elseStatement === void 0) {
+      this.$elseStatement = void 0;
+
+      this.VarDeclaredNames = $thenStatement.VarDeclaredNames;
+      this.VarScopedDeclarations = $thenStatement.VarScopedDeclarations;
+    } else {
+      const $elseStatement = this.$elseStatement = $$esStatement(node.elseStatement as $StatementNode, this, ctx);
+
+      this.VarDeclaredNames = [
+        ...$thenStatement.VarDeclaredNames,
+        ...$elseStatement.VarDeclaredNames,
+      ];
+      this.VarScopedDeclarations = [
+        ...$thenStatement.VarScopedDeclarations,
+        ...$elseStatement.VarScopedDeclarations,
+      ];
+    }
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-if-statement-runtime-semantics-evaluation
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    this.logger.debug(`Evaluate(#${ctx.id})`);
+
+    const { $expression, $thenStatement, $elseStatement } = this;
+
+    const exprRef = $expression.Evaluate(ctx);
+    const exprValue = exprRef.GetValue(ctx).ToBoolean(ctx);
+
+    if ($elseStatement !== undefined) {
+      // IfStatement : if ( Expression ) Statement else Statement
+
+      // 1. Let exprRef be the result of evaluating Expression.
+      // 2. Let exprValue be ToBoolean(? GetValue(exprRef)).
+
+      let stmtCompletion: $Any;
+      // 3. If exprValue is true, then
+      if (exprValue.is(intrinsics.true)) {
+        // 3. a. Let stmtCompletion be the result of evaluating the first Statement.
+        stmtCompletion = evaluateStatement(ctx, $thenStatement);
+      } else {
+        // 4. Else,
+        // 4. a. Let stmtCompletion be the result of evaluating the second Statement.
+        stmtCompletion = evaluateStatement(ctx, $elseStatement);
+      }
+      // 5. Return Completion(UpdateEmpty(stmtCompletion, undefined)).
+      stmtCompletion.UpdateEmpty(intrinsics.undefined);
+      return stmtCompletion;
+    } else {
+      // IfStatement : if ( Expression ) Statement
+
+      // 1. Let exprRef be the result of evaluating Expression.
+      // 2. Let exprValue be ToBoolean(? GetValue(exprRef)).
+      let stmtCompletion: $Any;
+      // 3. If exprValue is false, then
+      if (exprValue.is(intrinsics.false)) {
+        // 3. a. Return NormalCompletion(undefined).
+        return new $Undefined(realm);
+      } else {
+        // 4. Else,
+        // 4. a. Let stmtCompletion be the result of evaluating Statement.
+        stmtCompletion = evaluateStatement(ctx, $thenStatement);
+        // 4. b. Return Completion(UpdateEmpty(stmtCompletion, undefined)).
+        stmtCompletion.UpdateEmpty(intrinsics.undefined);
+        return stmtCompletion;
+      }
+    }
+  }
+}
+
+export class $DoStatement implements I$Node {
+  public readonly $kind = SyntaxKind.DoStatement;
+  public readonly id: number;
+
+  public readonly $statement: $$ESStatement;
+  public readonly $expression: $$AssignmentExpressionOrHigher;
+
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-do-while-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-do-while-statement-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+
+  public constructor(
+    public readonly node: DoStatement,
+    public readonly parent: $NodeWithStatements,
+    public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly realm: Realm = parent.realm,
+    public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('DoStatement'),
+  ) {
+    this.id = realm.registerNode(this);
+
+    const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+
+    this.VarDeclaredNames = $statement.VarDeclaredNames;
+    this.VarScopedDeclarations = $statement.VarScopedDeclarations;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-do-while-statement-runtime-semantics-labelledevaluation
+  public EvaluateLabelled(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    this.logger.debug(`EvaluateLabelled(#${ctx.id})`);
+    // IterationStatement : do Statement while ( Expression ) ;
+
+    // 1. Let V be undefined.
+    // 2. Repeat,
+    // 2. a. Let stmtResult be the result of evaluating Statement.
+    // 2. b. If LoopContinues(stmtResult, labelSet) is false, return Completion(UpdateEmpty(stmtResult, V)).
+    // 2. c. If stmtResult.[[Value]] is not empty, set V to stmtResult.[[Value]].
+    // 2. d. Let exprRef be the result of evaluating Expression.
+    // 2. e. Let exprValue be ? GetValue(exprRef).
+    // 2. f. If ToBoolean(exprValue) is false, return NormalCompletion(V).
+
+    return intrinsics.empty; // TODO: implement this
+  }
+}
+
+export class $WhileStatement implements I$Node {
+  public readonly $kind = SyntaxKind.WhileStatement;
+  public readonly id: number;
+
+  public readonly $statement: $$ESStatement;
+  public readonly $expression: $$AssignmentExpressionOrHigher;
+
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-while-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-while-statement-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+
+  public constructor(
+    public readonly node: WhileStatement,
+    public readonly parent: $NodeWithStatements,
+    public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly realm: Realm = parent.realm,
+    public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('WhileStatement'),
+  ) {
+    this.id = realm.registerNode(this);
+
+    const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+
+    this.VarDeclaredNames = $statement.VarDeclaredNames;
+    this.VarScopedDeclarations = $statement.VarScopedDeclarations;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-while-statement-runtime-semantics-labelledevaluation
+  public EvaluateLabelled(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    this.logger.debug(`EvaluateLabelled(#${ctx.id})`);
+    // IterationStatement : while ( Expression ) Statement
+
+    // 1. Let V be undefined.
+    // 2. Repeat,
+    // 2. a. Let exprRef be the result of evaluating Expression.
+    // 2. b. Let exprValue be ? GetValue(exprRef).
+    // 2. c. If ToBoolean(exprValue) is false, return NormalCompletion(V).
+    // 2. d. Let stmtResult be the result of evaluating Statement.
+    // 2. e. If LoopContinues(stmtResult, labelSet) is false, return Completion(UpdateEmpty(stmtResult, V)).
+    // 2. f. If stmtResult.[[Value]] is not empty, set V to stmtResult.[[Value]].
+
+    return intrinsics.empty; // TODO: implement this
+  }
+}
+
+export type $$Initializer = (
+  $$AssignmentExpressionOrHigher |
+  $VariableDeclarationList
+);
+
+export class $ForStatement implements I$Node {
+  public readonly $kind = SyntaxKind.ForStatement;
+  public readonly id: number;
+
+  public readonly $initializer: $$Initializer | undefined;
+  public readonly $condition: $$AssignmentExpressionOrHigher | undefined;
+  public readonly $incrementor: $$AssignmentExpressionOrHigher | undefined;
+  public readonly $statement: $$ESStatement;
+
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-for-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-for-statement-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+
+  public constructor(
+    public readonly node: ForStatement,
+    public readonly parent: $NodeWithStatements,
+    public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly realm: Realm = parent.realm,
+    public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ForStatement'),
+  ) {
+    this.id = realm.registerNode(this);
+
+    this.$condition = $assignmentExpression(node.condition as $AssignmentExpressionNode, this, ctx);
+    this.$incrementor = $assignmentExpression(node.incrementor as $AssignmentExpressionNode, this, ctx);
+    const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
+
+    if (node.initializer === void 0) {
+      this.$initializer = void 0;
+
+      this.VarDeclaredNames = $statement.VarDeclaredNames;
+      this.VarScopedDeclarations = $statement.VarScopedDeclarations;
+    } else {
+      if (node.initializer.kind === SyntaxKind.VariableDeclarationList) {
+        const $initializer = this.$initializer = new $VariableDeclarationList(node.initializer as VariableDeclarationList, this, ctx);
+        if ($initializer.isLexical) {
+          this.VarDeclaredNames = $statement.VarDeclaredNames;
+          this.VarScopedDeclarations = $statement.VarScopedDeclarations;
+        } else {
+          this.VarDeclaredNames = [
+            ...$initializer.VarDeclaredNames,
+            ...$statement.VarDeclaredNames,
+          ];
+          this.VarScopedDeclarations = [
+            ...$initializer.VarScopedDeclarations,
+            ...$statement.VarScopedDeclarations,
+          ];
+        }
+      } else {
+        this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
+
+        this.VarDeclaredNames = $statement.VarDeclaredNames;
+        this.VarScopedDeclarations = $statement.VarScopedDeclarations;
+      }
+    }
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-for-statement-runtime-semantics-labelledevaluation
+  public EvaluateLabelled(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    this.logger.debug(`EvaluateLabelled(#${ctx.id})`);
+    // IterationStatement : for ( Expression opt ; Expression opt ; Expression opt ) Statement
+
+    // 1. If the first Expression is present, then
+    // 1. a. Let exprRef be the result of evaluating the first Expression.
+    // 1. b. Perform ? GetValue(exprRef).
+    // 2. Return ? ForBodyEvaluation(the second Expression, the third Expression, Statement, « », labelSet).
+
+    // IterationStatement : for ( var VariableDeclarationList ; Expression opt ; Expression opt ) Statement
+
+    // 1. Let varDcl be the result of evaluating VariableDeclarationList.
+    // 2. ReturnIfAbrupt(varDcl).
+    // 3. Return ? ForBodyEvaluation(the first Expression, the second Expression, Statement, « », labelSet).
+
+    // IterationStatement : for ( LexicalDeclaration Expression opt ; Expression opt ) Statement
+
+    // 1. Let oldEnv be the running execution context's LexicalEnvironment.
+    // 2. Let loopEnv be NewDeclarativeEnvironment(oldEnv).
+    // 3. Let loopEnvRec be loopEnv's EnvironmentRecord.
+    // 4. Let isConst be the result of performing IsConstantDeclaration of LexicalDeclaration.
+    // 5. Let boundNames be the BoundNames of LexicalDeclaration.
+    // 6. For each element dn of boundNames, do
+    // 6. a. If isConst is true, then
+    // 6. a. i. Perform ! loopEnvRec.CreateImmutableBinding(dn, true).
+    // 6. b. Else,
+    // 6. b. i. Perform ! loopEnvRec.CreateMutableBinding(dn, false).
+    // 7. Set the running execution context's LexicalEnvironment to loopEnv.
+    // 8. Let forDcl be the result of evaluating LexicalDeclaration.
+    // 9. If forDcl is an abrupt completion, then
+    // 9. a. Set the running execution context's LexicalEnvironment to oldEnv.
+    // 9. b. Return Completion(forDcl).
+    // 10. If isConst is false, let perIterationLets be boundNames; otherwise let perIterationLets be « ».
+    // 11. Let bodyResult be ForBodyEvaluation(the first Expression, the second Expression, Statement, perIterationLets, labelSet).
+    // 12. Set the running execution context's LexicalEnvironment to oldEnv.
+    // 13. Return Completion(bodyResult).
+
+    return intrinsics.empty; // TODO: implement this
+  }
+}
+
+export class $ForInStatement implements I$Node {
+  public readonly $kind = SyntaxKind.ForInStatement;
+  public readonly id: number;
+
+  public readonly $initializer: $$Initializer;
+  public readonly $expression: $$AssignmentExpressionOrHigher;
+  public readonly $statement: $$ESStatement;
+
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  public readonly BoundNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+
+  public constructor(
+    public readonly node: ForInStatement,
+    public readonly parent: $NodeWithStatements,
+    public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly realm: Realm = parent.realm,
+    public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ForInStatement'),
+  ) {
+    this.id = realm.registerNode(this);
+
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+    const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
+
+    if (node.initializer.kind === SyntaxKind.VariableDeclarationList) {
+      const $initializer = this.$initializer = new $VariableDeclarationList(node.initializer as VariableDeclarationList, this, ctx);
+      if ($initializer.isLexical) {
+        this.BoundNames = $initializer.BoundNames;
+        this.VarDeclaredNames = $statement.VarDeclaredNames;
+        this.VarScopedDeclarations = $statement.VarScopedDeclarations;
+      } else {
+        this.BoundNames = emptyArray;
+        this.VarDeclaredNames = [
+          ...$initializer.VarDeclaredNames,
+          ...$statement.VarDeclaredNames,
+        ];
+        this.VarScopedDeclarations = [
+          ...$initializer.VarScopedDeclarations,
+          ...$statement.VarScopedDeclarations,
+        ];
+      }
+    } else {
+      this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
+
+      this.BoundNames = emptyArray;
+      this.VarDeclaredNames = $statement.VarDeclaredNames;
+      this.VarScopedDeclarations = $statement.VarScopedDeclarations;
+    }
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-labelledevaluation
+  public EvaluateLabelled(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    this.logger.debug(`EvaluateLabelled(#${ctx.id})`);
+    // IterationStatement : for ( LeftHandSideExpression in Expression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », Expression, enumerate).
+    // 2. Return ? ForIn/OfBodyEvaluation(LeftHandSideExpression, Statement, keyResult, enumerate, assignment, labelSet).
+
+    // IterationStatement : for ( var ForBinding in Expression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », Expression, enumerate).
+    // 2. Return ? ForIn/OfBodyEvaluation(ForBinding, Statement, keyResult, enumerate, varBinding, labelSet).
+
+    // IterationStatement : for ( ForDeclaration in Expression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(BoundNames of ForDeclaration, Expression, enumerate).
+    // 2. Return ? ForIn/OfBodyEvaluation(ForDeclaration, Statement, keyResult, enumerate, lexicalBinding, labelSet).
+
+    // IterationStatement : for ( LeftHandSideExpression of AssignmentExpression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », AssignmentExpression, iterate).
+    // 2. Return ? ForIn/OfBodyEvaluation(LeftHandSideExpression, Statement, keyResult, iterate, assignment, labelSet).
+
+    // IterationStatement : for ( var ForBinding of AssignmentExpression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », AssignmentExpression, iterate).
+    // 2. Return ? ForIn/OfBodyEvaluation(ForBinding, Statement, keyResult, iterate, varBinding, labelSet).
+
+    // IterationStatement : for ( ForDeclaration of AssignmentExpression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(BoundNames of ForDeclaration, AssignmentExpression, iterate).
+    // 2. Return ? ForIn/OfBodyEvaluation(ForDeclaration, Statement, keyResult, iterate, lexicalBinding, labelSet).
+
+    // IterationStatement : for await ( LeftHandSideExpression of AssignmentExpression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », AssignmentExpression, async-iterate).
+    // 2. Return ? ForIn/OfBodyEvaluation(LeftHandSideExpression, Statement, keyResult, iterate, assignment, labelSet, async).
+
+    // IterationStatement : for await ( var ForBinding of AssignmentExpression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », AssignmentExpression, async-iterate).
+    // 2. Return ? ForIn/OfBodyEvaluation(ForBinding, Statement, keyResult, iterate, varBinding, labelSet, async).
+
+    // IterationStatement : for await ( ForDeclaration of AssignmentExpression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(BoundNames of ForDeclaration, AssignmentExpression, async-iterate).
+    // 2. Return ? ForIn/OfBodyEvaluation(ForDeclaration, Statement, keyResult, iterate, lexicalBinding, labelSet, async).
+
+    return intrinsics.empty; // TODO: implement this
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-evaluation
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    this.logger.debug(`Evaluate(#${ctx.id})`);
+    // ForBinding : BindingIdentifier
+
+    // 1. Let bindingId be StringValue of BindingIdentifier.
+    // 2. Return ? ResolveBinding(bindingId).
+
+    return intrinsics.empty; // TODO: implement this
+  }
+}
+
+export class $ForOfStatement implements I$Node {
+  public readonly $kind = SyntaxKind.ForOfStatement;
+  public readonly id: number;
+
+  public readonly $initializer: $$Initializer;
+  public readonly $expression: $$AssignmentExpressionOrHigher;
+  public readonly $statement: $$ESStatement;
+
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  public readonly BoundNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+
+  public constructor(
+    public readonly node: ForOfStatement,
+    public readonly parent: $NodeWithStatements,
+    public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly realm: Realm = parent.realm,
+    public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ForOfStatement'),
+  ) {
+    this.id = realm.registerNode(this);
+
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+    const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
+
+    if (node.initializer.kind === SyntaxKind.VariableDeclarationList) {
+      const $initializer = this.$initializer = new $VariableDeclarationList(node.initializer as VariableDeclarationList, this, ctx);
+      if ($initializer.isLexical) {
+        this.BoundNames = $initializer.BoundNames;
+        this.VarDeclaredNames = $statement.VarDeclaredNames;
+        this.VarScopedDeclarations = $statement.VarScopedDeclarations;
+      } else {
+        this.BoundNames = emptyArray;
+        this.VarDeclaredNames = [
+          ...$initializer.VarDeclaredNames,
+          ...$statement.VarDeclaredNames,
+        ];
+        this.VarScopedDeclarations = [
+          ...$initializer.VarScopedDeclarations,
+          ...$statement.VarScopedDeclarations,
+        ];
+      }
+    } else {
+      this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
+
+      this.BoundNames = emptyArray;
+      this.VarDeclaredNames = $statement.VarDeclaredNames;
+      this.VarScopedDeclarations = $statement.VarScopedDeclarations;
+    }
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-labelledevaluation
+  public EvaluateLabelled(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    this.logger.debug(`EvaluateLabelled(#${ctx.id})`);
+    // IterationStatement : for ( LeftHandSideExpression in Expression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », Expression, enumerate).
+    // 2. Return ? ForIn/OfBodyEvaluation(LeftHandSideExpression, Statement, keyResult, enumerate, assignment, labelSet).
+
+    // IterationStatement : for ( var ForBinding in Expression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », Expression, enumerate).
+    // 2. Return ? ForIn/OfBodyEvaluation(ForBinding, Statement, keyResult, enumerate, varBinding, labelSet).
+
+    // IterationStatement : for ( ForDeclaration in Expression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(BoundNames of ForDeclaration, Expression, enumerate).
+    // 2. Return ? ForIn/OfBodyEvaluation(ForDeclaration, Statement, keyResult, enumerate, lexicalBinding, labelSet).
+
+    // IterationStatement : for ( LeftHandSideExpression of AssignmentExpression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », AssignmentExpression, iterate).
+    // 2. Return ? ForIn/OfBodyEvaluation(LeftHandSideExpression, Statement, keyResult, iterate, assignment, labelSet).
+
+    // IterationStatement : for ( var ForBinding of AssignmentExpression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », AssignmentExpression, iterate).
+    // 2. Return ? ForIn/OfBodyEvaluation(ForBinding, Statement, keyResult, iterate, varBinding, labelSet).
+
+    // IterationStatement : for ( ForDeclaration of AssignmentExpression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(BoundNames of ForDeclaration, AssignmentExpression, iterate).
+    // 2. Return ? ForIn/OfBodyEvaluation(ForDeclaration, Statement, keyResult, iterate, lexicalBinding, labelSet).
+
+    // IterationStatement : for await ( LeftHandSideExpression of AssignmentExpression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », AssignmentExpression, async-iterate).
+    // 2. Return ? ForIn/OfBodyEvaluation(LeftHandSideExpression, Statement, keyResult, iterate, assignment, labelSet, async).
+
+    // IterationStatement : for await ( var ForBinding of AssignmentExpression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », AssignmentExpression, async-iterate).
+    // 2. Return ? ForIn/OfBodyEvaluation(ForBinding, Statement, keyResult, iterate, varBinding, labelSet, async).
+
+    // IterationStatement : for await ( ForDeclaration of AssignmentExpression ) Statement
+
+    // 1. Let keyResult be ? ForIn/OfHeadEvaluation(BoundNames of ForDeclaration, AssignmentExpression, async-iterate).
+    // 2. Return ? ForIn/OfBodyEvaluation(ForDeclaration, Statement, keyResult, iterate, lexicalBinding, labelSet, async).
+
+    return intrinsics.empty; // TODO: implement this
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-evaluation
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    this.logger.debug(`Evaluate(#${ctx.id})`);
+
+    return intrinsics.empty; // TODO: implement this
+  }
+}
+
+export class $ContinueStatement implements I$Node {
+  public readonly $kind = SyntaxKind.ContinueStatement;
+  public readonly id: number;
+
+  public readonly $label: $Identifier | undefined;
+
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+
+  public constructor(
+    public readonly node: ContinueStatement,
+    public readonly parent: $NodeWithStatements,
+    public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly realm: Realm = parent.realm,
+    public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ContinueStatement'),
+  ) {
+    this.id = realm.registerNode(this);
+
+    this.$label = $identifier(node.label, this, ctx | Context.IsLabelReference);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-continue-statement-runtime-semantics-evaluation
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Empty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    this.logger.debug(`Evaluate(#${ctx.id})`);
+    // ContinueStatement : continue ;
+
+    // 1. Return Completion { [[Type]]: continue, [[Value]]: empty, [[Target]]: empty }.
+    if (this.$label === void 0) {
+      return new $Empty(realm, CompletionType.continue, intrinsics.empty, this);
+    }
+
+    // ContinueStatement : continue LabelIdentifier ;
+
+    // 1. Let label be the StringValue of LabelIdentifier.
+    // 2. Return Completion { [[Type]]: continue, [[Value]]: empty, [[Target]]: label }.
+    return new $Empty(realm, CompletionType.continue, this.$label.StringValue, this);
+  }
+}
+
+export class $BreakStatement implements I$Node {
+  public readonly $kind = SyntaxKind.BreakStatement;
+  public readonly id: number;
+
+  public readonly $label: $Identifier | undefined;
+
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+
+  public constructor(
+    public readonly node: BreakStatement,
+    public readonly parent: $NodeWithStatements,
+    public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly realm: Realm = parent.realm,
+    public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('BreakStatement'),
+  ) {
+    this.id = realm.registerNode(this);
+
+    this.$label = $identifier(node.label, this, ctx | Context.IsLabelReference);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-break-statement-runtime-semantics-evaluation
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    this.logger.debug(`Evaluate(#${ctx.id})`);
+    // BreakStatement : break ;
+
+    // 1. Return Completion { [[Type]]: break, [[Value]]: empty, [[Target]]: empty }.
+    if (this.$label === void 0) {
+      return new $Empty(realm, CompletionType.break, intrinsics.empty, this);
+    }
+
+    // BreakStatement : break LabelIdentifier ;
+
+    // 1. Let label be the StringValue of LabelIdentifier.
+    // 2. Return Completion { [[Type]]: break, [[Value]]: empty, [[Target]]: label }.
+    return new $Empty(realm, CompletionType.break, this.$label.StringValue, this);
+  }
+}
+
+export class $ReturnStatement implements I$Node {
+  public readonly $kind = SyntaxKind.ReturnStatement;
+  public readonly id: number;
+
+  public readonly $expression: $$AssignmentExpressionOrHigher | undefined;
+
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+
+  public constructor(
+    public readonly node: ReturnStatement,
+    public readonly parent: $NodeWithStatements,
+    public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly realm: Realm = parent.realm,
+    public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ReturnStatement'),
+  ) {
+    this.id = realm.registerNode(this);
+
+    if (node.expression === void 0) {
+      this.$expression = void 0;
+    } else {
+      this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+    }
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-return-statement
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty | $Error {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    this.logger.debug(`Evaluate(#${ctx.id})`);
+    // ReturnStatement : return ;
+
+    // 1. Return Completion { [[Type]]: return, [[Value]]: undefined, [[Target]]: empty }.
+    if (this.$expression === void 0) {
+      return new $Undefined(realm, CompletionType.return);
+    }
+
+    // ReturnStatement : return Expression ;
+
+    // 1. Let exprRef be the result of evaluating Expression.
+    const exprRef = this.$expression.Evaluate(ctx);
+
+    // 2. Let exprValue be ? GetValue(exprRef).
+    const exprValue = exprRef.GetValue(ctx);
+    if (exprValue.isAbrupt) { return exprValue; }
+
+    // 3. If ! GetGeneratorKind() is async, set exprValue to ? Await(exprValue). // TODO
+
+    // 4. Return Completion { [[Type]]: return, [[Value]]: exprValue, [[Target]]: empty }.
+    return exprValue.ToCompletion(CompletionType.return, intrinsics.empty);
+  }
+}
+
+export class $WithStatement implements I$Node {
+  public readonly $kind = SyntaxKind.WithStatement;
+  public readonly id: number;
+
+  public readonly $expression: $$AssignmentExpressionOrHigher;
+  public readonly $statement: $$ESStatement;
+
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-with-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-with-statement-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+
+  public constructor(
+    public readonly node: WithStatement,
+    public readonly parent: $NodeWithStatements,
+    public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly realm: Realm = parent.realm,
+    public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('WithStatement'),
+  ) {
+    this.id = realm.registerNode(this);
+
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+    const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
+
+    this.VarDeclaredNames = $statement.VarDeclaredNames;
+    this.VarScopedDeclarations = $statement.VarScopedDeclarations;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-with-statement-runtime-semantics-evaluation
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    this.logger.debug(`Evaluate(#${ctx.id})`);
+    // WithStatement : with ( Expression ) Statement
+
+    // 1. Let val be the result of evaluating Expression.
+    // 2. Let obj be ? ToObject(? GetValue(val)).
+    // 3. Let oldEnv be the running execution context's LexicalEnvironment.
+    // 4. Let newEnv be NewObjectEnvironment(obj, oldEnv).
+    // 5. Set the withEnvironment flag of newEnv's EnvironmentRecord to true.
+    // 6. Set the running execution context's LexicalEnvironment to newEnv.
+    // 7. Let C be the result of evaluating Statement.
+    // 8. Set the running execution context's LexicalEnvironment to oldEnv.
+    // 9. Return Completion(UpdateEmpty(C, undefined)).
+
+    return intrinsics.empty; // TODO: implement this
+  }
+}
+
+export class $SwitchStatement implements I$Node {
+  public readonly $kind = SyntaxKind.SwitchStatement;
+  public readonly id: number;
+
+  public readonly $expression: $$AssignmentExpressionOrHigher;
+  public readonly $caseBlock: $CaseBlock;
+
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallydeclarednames
+  public readonly LexicallyDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallyscopeddeclarations
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+
+  public constructor(
+    public readonly node: SwitchStatement,
+    public readonly parent: $NodeWithStatements,
+    public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly realm: Realm = parent.realm,
+    public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('SwitchStatement'),
+  ) {
+    this.id = realm.registerNode(this);
+
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+    const $caseBlock = this.$caseBlock = new $CaseBlock(node.caseBlock, this, ctx);
+
+    this.LexicallyDeclaredNames = $caseBlock.LexicallyDeclaredNames;
+    this.LexicallyScopedDeclarations = $caseBlock.LexicallyScopedDeclarations;
+    this.VarDeclaredNames = $caseBlock.VarDeclaredNames;
+    this.VarScopedDeclarations = $caseBlock.VarScopedDeclarations;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-runtime-semantics-evaluation
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    this.logger.debug(`Evaluate(#${ctx.id})`);
+    const realm = ctx.Realm;
+    // SwitchStatement : switch ( Expression ) CaseBlock
+
+    // 1. Let exprRef be the result of evaluating Expression.
+    // 2. Let switchValue be ? GetValue(exprRef).
+    const switchValue = this.$expression.Evaluate(ctx).GetValue(ctx);
+    if (switchValue.isAbrupt) { return switchValue; }
+
+    // 3. Let oldEnv be the running execution context's LexicalEnvironment.
+    const oldEnv = ctx.LexicalEnvironment;
+
+    // 4. Let blockEnv be NewDeclarativeEnvironment(oldEnv).
+    const blockEnv = ctx.LexicalEnvironment = new $DeclarativeEnvRec(this.logger, realm, oldEnv);
+
+    // 5. Perform BlockDeclarationInstantiation(CaseBlock, blockEnv).
+    blockDeclarationInstantiation(ctx, this.LexicallyScopedDeclarations, blockEnv);
+
+    // 6. Set the running execution context's LexicalEnvironment to blockEnv.
+    realm.stack.push(ctx);
+
+    // 7. Let R be the result of performing CaseBlockEvaluation of CaseBlock with argument switchValue.
+    const R = this.EvaluateCaseBlock(ctx, switchValue);
+
+    // 8. Set the running execution context's LexicalEnvironment to oldEnv.
+    realm.stack.pop();
+    ctx.LexicalEnvironment = oldEnv;
+
+    // 9. Return R.
+    return R;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-caseblockevaluation
+  private EvaluateCaseBlock(
+    ctx: ExecutionContext,
+    switchValue: $Any,
+  ) {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    const { $caseBlock: { $clauses: clauses } } = this;
+    const { undefined: $undefined, empty } = realm['[[Intrinsics]]'];
+    // CaseBlock : { }
+    // 1. Return NormalCompletion(undefined).
+    if (clauses.length === 0) {
+      return new $Undefined(realm);
+    }
+
+    let V: $Any = $undefined;
+    const defaultClauseIndex: number = clauses.findIndex((clause) => clause.$kind === SyntaxKind.DefaultClause);
+    class CaseClausesEvaluationResult {
+      constructor(public result: $Any, public found: boolean, public isAbrupt: boolean) { }
+    }
+    const evaluateCaseClauses = (inclusiveStartIndex: number, exclusiveEndIndex: number, found = false) => {
+      // 1. Let V be undefined.
+      // 2. Let A be the List of CaseClause items in CaseClauses, in source text order.
+      // 3. Let found be false.
+      // 4. For each CaseClause C in A, do
+      for (let i = inclusiveStartIndex; i < exclusiveEndIndex; i++) {
+        const C = clauses[i] as $CaseClause;
+        // 4. a. If found is false, then
+        if (!found) {
+          // 4. a. i. Set found to ? CaseClauseIsSelected(C, input).
+          found = this.IsCaseClauseSelected(ctx, C, switchValue);
+        }
+        // 4. b. If found is true, then
+        if (found) {
+          // 4. b. i. Let R be the result of evaluating C.
+          const R = evaluateStatementList(ctx, C.$statements);
+
+          // 4. b. ii. If R.[[Value]] is not empty, set V to R.[[Value]].
+          if (R.hasValue) {
+            V = R;
+          }
+          // 4. b. iii. If R is an abrupt completion, return Completion(UpdateEmpty(R, V)).
+          if (R.isAbrupt) {
+            return new CaseClausesEvaluationResult(R.UpdateEmpty(V), found, true);
+          }
+        }
+      }
+      // 5. Return NormalCompletion(V).
+      return new CaseClausesEvaluationResult(
+        V.ToCompletion(CompletionType.normal, intrinsics.empty),
+        found,
+        false,
+      );
+    }
+
+    // CaseBlock : { CaseClauses }
+    if (defaultClauseIndex === -1) {
+      return evaluateCaseClauses(0, clauses.length).result;
+    }
+
+    // CaseBlock : { CaseClauses opt DefaultClause CaseClauses opt }
+    // 1. Let V be undefined.
+    // 2. If the first CaseClauses is present, then
+    // 2. a. Let A be the List of CaseClause items in the first CaseClauses, in source text order.
+    // 3. Else,
+    // 3. a. Let A be « ».
+    // 4. Let found be false.
+    // 5. For each CaseClause C in A, do
+    // 5. a. If found is false, then
+    // 5. a. i. Set found to ? CaseClauseIsSelected(C, input).
+    // 5. b. If found is true, then
+    // 5. b. i. Let R be the result of evaluating C.
+    // 5. b. ii. If R.[[Value]] is not empty, set V to R.[[Value]].
+    // 5. b. iii. If R is an abrupt completion, return Completion(UpdateEmpty(R, V)).
+    let { result, found, isAbrupt } = evaluateCaseClauses(0, defaultClauseIndex);
+    if (isAbrupt) {
+      return result;
+    }
+    // 6. Let foundInB be false.
+    // 7. If the second CaseClauses is present, then
+    // 7. a. Let B be the List of CaseClause items in the second CaseClauses, in source text order.
+    // 8. Else,
+    // 8. a. Let B be « ».
+    // 9. If found is false, then
+    if (!found) {
+      // 9. a. For each CaseClause C in B, do
+      // 9. a. i. If foundInB is false, then
+      // 9. a. i. 1. Set foundInB to ? CaseClauseIsSelected(C, input).
+      // 9. a. ii. If foundInB is true, then
+      // 9. a. ii. 1. Let R be the result of evaluating CaseClause C.
+      // 9. a. ii. 2. If R.[[Value]] is not empty, set V to R.[[Value]].
+      // 9. a. ii. 3. If R is an abrupt completion, return Completion(UpdateEmpty(R, V)).
+      // 10. If foundInB is true, return NormalCompletion(V).
+      ({ result, isAbrupt, found } = evaluateCaseClauses(defaultClauseIndex + 1, clauses.length));
+      if (isAbrupt || found) {
+        return result;
+      }
+    }
+    // 11. Let R be the result of evaluating DefaultClause.
+    // 12. If R.[[Value]] is not empty, set V to R.[[Value]].
+    // 13. If R is an abrupt completion, return Completion(UpdateEmpty(R, V)).
+    ({ result, isAbrupt } = evaluateCaseClauses(defaultClauseIndex, defaultClauseIndex + 1, true));
+    if (isAbrupt) {
+      return result;
+    }
+    // 14. For each CaseClause C in B (NOTE: this is another complete iteration of the second CaseClauses), do
+    // 14. a. Let R be the result of evaluating CaseClause C.
+    // 14. b. If R.[[Value]] is not empty, set V to R.[[Value]].
+    // 14. c. If R is an abrupt completion, return Completion(UpdateEmpty(R, V)).
+    // 15. Return NormalCompletion(V).
+    return evaluateCaseClauses(defaultClauseIndex + 1, clauses.length, true).result;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-caseclauseisselected
+  private IsCaseClauseSelected(
+    ctx: ExecutionContext,
+    clause: $CaseClause,
+    switchValue: $Any,
+  ): boolean {
+    // 1. Assert: C is an instance of the production CaseClause:caseExpression:StatementListopt .
+    // 2. Let exprRef be the result of evaluating the Expression of C.
+    // 3. Let clauseSelector be ? GetValue(exprRef).
+    // 4. Return the result of performing Strict Equality Comparison input === clauseSelector.
+    return clause.$expression.Evaluate(ctx).GetValue(ctx)['[[Value]]'] === switchValue['[[Value]]'];
+  }
+}
+
+export class $LabeledStatement implements I$Node {
+  public readonly $kind = SyntaxKind.LabeledStatement;
+  public readonly id: number;
+
+  public readonly $label: $Identifier;
+  public readonly $statement: $$ESLabelledItem;
+
+  // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-lexicallydeclarednames
+  public readonly LexicallyDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-lexicallyscopeddeclarations
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-toplevellexicallydeclarednames
+  public readonly TopLevelLexicallyDeclaredNames: readonly $String[] = emptyArray;;
+  // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-toplevellexicallyscopeddeclarations
+  public readonly TopLevelLexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-toplevelvardeclarednames
+  public readonly TopLevelVarDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-toplevelvarscopeddeclarations
+  public readonly TopLevelVarScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+
+  public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
+  public readonly IsType: false = false;
+
+  public constructor(
+    public readonly node: LabeledStatement,
+    public readonly parent: $NodeWithStatements,
+    public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly realm: Realm = parent.realm,
+    public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('LabeledStatement'),
+  ) {
+    this.id = realm.registerNode(this);
+
+    this.$label = $identifier(node.label, this, ctx | Context.IsLabel);
+    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx);
+
+    if ($statement.$kind === SyntaxKind.FunctionDeclaration) {
+      this.LexicallyDeclaredNames = $statement.BoundNames;
+      this.LexicallyScopedDeclarations = [$statement];
+      this.TopLevelVarDeclaredNames = $statement.BoundNames;
+      this.TopLevelVarScopedDeclarations = [$statement];
+      this.VarDeclaredNames = emptyArray;
+      this.VarScopedDeclarations = emptyArray;
+    } else {
+      this.LexicallyDeclaredNames = emptyArray;
+      this.LexicallyScopedDeclarations = emptyArray;
+      if ($statement.$kind === SyntaxKind.LabeledStatement) {
+        this.TopLevelVarDeclaredNames = $statement.TopLevelVarDeclaredNames;
+        this.TopLevelVarScopedDeclarations = $statement.TopLevelVarScopedDeclarations;
+      } else {
+        this.TopLevelVarDeclaredNames = $statement.VarDeclaredNames;
+        this.TopLevelVarScopedDeclarations = $statement.VarScopedDeclarations;
+      }
+      this.VarDeclaredNames = $statement.VarDeclaredNames;
+      this.VarScopedDeclarations = $statement.VarScopedDeclarations;
+    };
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-runtime-semantics-labelledevaluation
+  public EvaluateLabelled(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty | $Error {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    this.logger.debug(`EvaluateLabelled(#${ctx.id})`);
+    // LabelledStatement : LabelIdentifier : LabelledItem
+
+    // 1. Let label be the StringValue of LabelIdentifier.
+    // 2. Append label as an element of labelSet.
+    // 3. Let stmtResult be LabelledEvaluation of LabelledItem with argument labelSet.
+    // 4. If stmtResult.[[Type]] is break and SameValue(stmtResult.[[Target]], label) is true, then
+    // 4. a. Set stmtResult to NormalCompletion(stmtResult.[[Value]]).
+    // 5. Return Completion(stmtResult).
+
+    // LabelledItem : Statement
+
+    // 1. If Statement is either a LabelledStatement or a BreakableStatement, then
+    // 1. a. Return LabelledEvaluation of Statement with argument labelSet.
+    // 2. Else,
+    // 2. a. Return the result of evaluating Statement.
+
+    // LabelledItem : FunctionDeclaration
+
+    // 1. Return the result of evaluating FunctionDeclaration.
+
+    return intrinsics.undefined; // TODO: implement this
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-runtime-semantics-evaluation
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty | $Error {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    this.logger.debug(`Evaluate(#${ctx.id})`);
+    // LabelledStatement : LabelIdentifier : LabelledItem
+
+    // 1. Let newLabelSet be a new empty List.
+    // 2. Return LabelledEvaluation of this LabelledStatement with argument newLabelSet.
+
+    return intrinsics.undefined; // TODO: implement this
+  }
+}
+
+export class $ThrowStatement implements I$Node {
+  public readonly $kind = SyntaxKind.ThrowStatement;
+  public readonly id: number;
+
+  public readonly $expression: $$AssignmentExpressionOrHigher;
+
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+
+  public constructor(
+    public readonly node: ThrowStatement,
+    public readonly parent: $NodeWithStatements,
+    public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly realm: Realm = parent.realm,
+    public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('ThrowStatement'),
+  ) {
+    this.id = realm.registerNode(this);
+
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-throw-statement-runtime-semantics-evaluation
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty | $Error {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    this.logger.debug(`Evaluate(#${ctx.id})`);
+    // ThrowStatement : throw Expression ;
+
+    // 1. Let exprRef be the result of evaluating Expression.
+    const exprRef = this.$expression.Evaluate(ctx);
+
+    // 2. Let exprValue be ? GetValue(exprRef).
+    const exprValue = exprRef.GetValue(ctx);
+    if (exprValue.isAbrupt) { return exprValue; }
+
+    // 3. Return ThrowCompletion(exprValue).
+    return exprValue.ToCompletion(CompletionType.throw, intrinsics.empty);
+  }
+}
+
+export class $TryStatement implements I$Node {
+  public readonly $kind = SyntaxKind.TryStatement;
+  public readonly id: number;
+
+  public readonly $tryBlock: $Block;
+  public readonly $catchClause: $CatchClause | undefined;
+  public readonly $finallyBlock: $Block | undefined;
+
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-try-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-try-statement-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+
+  public constructor(
+    public readonly node: TryStatement,
+    public readonly parent: $NodeWithStatements,
+    public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly realm: Realm = parent.realm,
+    public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('TryStatement'),
+  ) {
+    this.id = realm.registerNode(this);
+
+    const $tryBlock = this.$tryBlock = new $Block(node.tryBlock, this, ctx);
+    if (node.catchClause === void 0) {
+      // finallyBlock must be defined
+      this.$catchClause = void 0;
+      const $finallyBlock = this.$finallyBlock = new $Block(node.finallyBlock!, this, ctx);
+
+      this.VarDeclaredNames = [
+        ...$tryBlock.VarDeclaredNames,
+        ...$finallyBlock.VarDeclaredNames,
+      ];
+      this.VarScopedDeclarations = [
+        ...$tryBlock.VarScopedDeclarations,
+        ...$finallyBlock.VarScopedDeclarations,
+      ];
+    } else if (node.finallyBlock === void 0) {
+      // catchClause must be defined
+      const $catchClause = this.$catchClause = new $CatchClause(node.catchClause!, this, ctx);
+      this.$finallyBlock = void 0;
+
+      this.VarDeclaredNames = [
+        ...$tryBlock.VarDeclaredNames,
+        ...$catchClause.VarDeclaredNames,
+      ];
+      this.VarScopedDeclarations = [
+        ...$tryBlock.VarScopedDeclarations,
+        ...$catchClause.VarScopedDeclarations,
+      ];
+    } else {
+      const $catchClause = this.$catchClause = new $CatchClause(node.catchClause!, this, ctx);
+      const $finallyBlock = this.$finallyBlock = new $Block(node.finallyBlock!, this, ctx);
+
+      this.VarDeclaredNames = [
+        ...$tryBlock.VarDeclaredNames,
+        ...$catchClause.VarDeclaredNames,
+        ...$finallyBlock.VarDeclaredNames,
+      ];
+      this.VarScopedDeclarations = [
+        ...$tryBlock.VarScopedDeclarations,
+        ...$catchClause.VarScopedDeclarations,
+        ...$finallyBlock.VarScopedDeclarations,
+      ];
+    }
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-try-statement-runtime-semantics-evaluation
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $AnyNonEmpty | $Error {
+    this.logger.debug(`Evaluate(#${ctx.id})`);
+    const realm = ctx.Realm;
+    // TryStatement : try Block Catch
+
+    // 1. Let B be the result of evaluating Block.
+    // 2. If B.[[Type]] is throw, let C be CatchClauseEvaluation of Catch with argument B.[[Value]].
+    // 3. Else, let C be B.
+    // 4. Return Completion(UpdateEmpty(C, undefined)).
+
+    // TryStatement : try Block Finally
+
+    // 1. Let B be the result of evaluating Block.
+    // 2. Let F be the result of evaluating Finally.
+    // 3. If F.[[Type]] is normal, set F to B.
+    // 4. Return Completion(UpdateEmpty(F, undefined)).
+
+    // TryStatement : try Block Catch Finally
+
+    // 1. Let B be the result of evaluating Block.
+    // 2. If B.[[Type]] is throw, let C be CatchClauseEvaluation of Catch with argument B.[[Value]].
+    // 3. Else, let C be B.
+    // 4. Let F be the result of evaluating Finally.
+    // 5. If F.[[Type]] is normal, set F to C.
+    // 6. Return Completion(UpdateEmpty(F, undefined)).
+
+    let result = this.$tryBlock.Evaluate(ctx);
+
+    if (this.$catchClause !== void 0) {
+      result = result['[[Type]]'] === CompletionType.throw ? this.EvaluateCatchClause(ctx, result.GetValue(ctx) as $AnyNonEmpty) : result; // TODO: fix types
+    }
+    const $finallyBlock = this.$finallyBlock;
+    if ($finallyBlock !== void 0) {
+      const F = $finallyBlock.Evaluate(ctx);
+      result = F['[[Type]]'] !== CompletionType.normal ? F : result;
+    }
+    result.UpdateEmpty(realm['[[Intrinsics]]'].undefined);
+
+    return result as $AnyNonEmpty;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-catchclauseevaluation
+  private EvaluateCatchClause(ctx: ExecutionContext, thrownValue: $AnyNonEmpty): $AnyNonEmpty | $Error {
+
+    const realm = this.realm;
+    const catchClause = this.$catchClause;
+    const varDeclarations = catchClause?.$variableDeclaration;
+    const hasCatchParamteres = varDeclarations !== void 0;
+
+    // Catch : catch Block
+
+    // 1. Return the result of evaluating Block.
+
+    // Catch : catch ( CatchParameter ) Block
+
+    // 1. Let oldEnv be the running execution context's LexicalEnvironment.
+    const oldEnv = ctx.LexicalEnvironment;
+
+    if (hasCatchParamteres) {
+      // 2. Let catchEnv be NewDeclarativeEnvironment(oldEnv).
+      // 3. Let catchEnvRec be catchEnv's EnvironmentRecord.
+      ctx.LexicalEnvironment = new $DeclarativeEnvRec(this.logger, realm, oldEnv);
+
+      // 4. For each element argName of the BoundNames of CatchParameter, do
+      // 4. a. Perform ! catchEnvRec.CreateMutableBinding(argName, false).
+      catchClause?.CreateBinding(ctx, realm);
+
+      // 5. Set the running execution context's LexicalEnvironment to catchEnv.
+      realm.stack.push(ctx);
+
+      // 6. Let status be the result of performing BindingInitialization for CatchParameter passing thrownValue and catchEnv as arguments.
+      const status = varDeclarations?.InitializeBinding(ctx, thrownValue);
+
+      // 7. If status is an abrupt completion, then
+      if (status?.isAbrupt) {
+        // 7. a. Set the running execution context's LexicalEnvironment to oldEnv.
+        realm.stack.pop();
+        ctx.LexicalEnvironment = oldEnv;
+
+        // 7. b. Return Completion(status).
+        return status;
+      }
+    }
+    // 8. Let B be the result of evaluating Block.
+    const B = catchClause?.$block.Evaluate(ctx);
+
+    // 9. Set the running execution context's LexicalEnvironment to oldEnv.
+    if (hasCatchParamteres) {
+      realm.stack.pop();
+      ctx.LexicalEnvironment = oldEnv;
+    }
+
+    // 10. Return Completion(B).
+    return B as $AnyNonEmpty; // TODO fix typings
+  }
+}
+
+export class $DebuggerStatement implements I$Node {
+  public readonly $kind = SyntaxKind.DebuggerStatement;
+  public readonly id: number;
+
+  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[] = emptyArray;
+  // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+
+  public constructor(
+    public readonly node: DebuggerStatement,
+    public readonly parent: $NodeWithStatements,
+    public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly realm: Realm = parent.realm,
+    public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('DebuggerStatement'),
+  ) {
+    this.id = realm.registerNode(this);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-debugger-statement-runtime-semantics-evaluation
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    this.logger.debug(`Evaluate(#${ctx.id})`);
+    // DebuggerStatement : debugger ;
+
+    // 1. If an implementation-defined debugging facility is available and enabled, then
+    // 1. a. Perform an implementation-defined debugging action.
+    // 1. b. Let result be an implementation-defined Completion value.
+    // 2. Else,
+    // 2. a. Let result be NormalCompletion(empty).
+    // 3. Return result.
+
+    return intrinsics.empty; // TODO: implement this
+  }
+}
+
+// #endregion
+
+// #region Statement members
+
+export class $CaseBlock implements I$Node {
+  public readonly $kind = SyntaxKind.CaseBlock;
+  public readonly id: number;
+
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallydeclarednames
+  public readonly LexicallyDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallyscopeddeclarations
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+
+  public readonly $clauses: readonly ($CaseClause | $DefaultClause)[];
+
+  public constructor(
+    public readonly node: CaseBlock,
+    public readonly parent: $SwitchStatement,
+    public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly realm: Realm = parent.realm,
+    public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('CaseBlock'),
+  ) {
+    this.id = realm.registerNode(this);
+
+    const $clauses = this.$clauses = node.clauses.map(
+      x => x.kind === SyntaxKind.CaseClause
+        ? new $CaseClause(x, this, ctx)
+        : new $DefaultClause(x, this, ctx)
+    );
+
+    this.LexicallyDeclaredNames = $clauses.flatMap(getLexicallyDeclaredNames);
+    this.LexicallyScopedDeclarations = $clauses.flatMap(getLexicallyScopedDeclarations);
+    this.VarDeclaredNames = $clauses.flatMap(getVarDeclaredNames);
+    this.VarScopedDeclarations = $clauses.flatMap(getVarScopedDeclarations);
+  }
+}
+
+export class $CaseClause implements I$Node {
+  public readonly $kind = SyntaxKind.CaseClause;
+  public readonly id: number;
+
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallydeclarednames
+  public readonly LexicallyDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallyscopeddeclarations
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+
+  public readonly $expression: $$AssignmentExpressionOrHigher;
+  public readonly $statements: readonly $$TSStatementListItem[];
+
+  public constructor(
+    public readonly node: CaseClause,
+    public readonly parent: $CaseBlock,
+    public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly realm: Realm = parent.realm,
+    public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('CaseClause'),
+  ) {
+    this.id = realm.registerNode(this);
+
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+    const $statements = this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
+
+    this.LexicallyDeclaredNames = $statements.flatMap(getLexicallyDeclaredNames);
+    this.LexicallyScopedDeclarations = $statements.flatMap(getLexicallyScopedDeclarations);
+    this.VarDeclaredNames = $statements.flatMap(getVarDeclaredNames);
+    this.VarScopedDeclarations = $statements.flatMap(getVarScopedDeclarations);
+  }
+}
+
+export class $DefaultClause implements I$Node {
+  public readonly $kind = SyntaxKind.DefaultClause;
+  public readonly id: number;
+
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallydeclarednames
+  public readonly LexicallyDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallyscopeddeclarations
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+
+  public readonly $statements: readonly $$TSStatementListItem[];
+
+  public constructor(
+    public readonly node: DefaultClause,
+    public readonly parent: $CaseBlock,
+    public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly realm: Realm = parent.realm,
+    public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('DefaultClause'),
+  ) {
+    this.id = realm.registerNode(this);
+
+    const $statements = this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
+
+    this.LexicallyDeclaredNames = $statements.flatMap(getLexicallyDeclaredNames);
+    this.LexicallyScopedDeclarations = $statements.flatMap(getLexicallyScopedDeclarations);
+    this.VarDeclaredNames = $statements.flatMap(getVarDeclaredNames);
+    this.VarScopedDeclarations = $statements.flatMap(getVarScopedDeclarations);
+  }
+}
+
+export class $CatchClause implements I$Node {
+  public readonly $kind = SyntaxKind.CatchClause;
+  public readonly id: number;
+
+  // http://www.ecma-international.org/ecma-262/#sec-try-statement-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-try-statement-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+
+  public readonly $variableDeclaration: $VariableDeclaration | undefined;
+  public readonly $block: $Block;
+
+  public constructor(
+    public readonly node: CatchClause,
+    public readonly parent: $TryStatement,
+    public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly realm: Realm = parent.realm,
+    public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('CatchClause'),
+  ) {
+    this.id = realm.registerNode(this);
+
+    ctx |= Context.InCatchClause;
+
+    if (node.variableDeclaration === void 0) {
+      this.$variableDeclaration = void 0;
+    } else {
+      this.$variableDeclaration = new $VariableDeclaration(node.variableDeclaration, this, ctx);
+    }
+    const $block = this.$block = new $Block(node.block, this, ctx);
+
+    this.VarDeclaredNames = $block.VarDeclaredNames;
+    this.VarScopedDeclarations = $block.VarScopedDeclarations;
+  }
+  public CreateBinding(ctx: ExecutionContext, realm: Realm) {
+    for (const argName of this.$variableDeclaration?.BoundNames ?? []) {
+      ctx.LexicalEnvironment.CreateMutableBinding(ctx, argName, realm['[[Intrinsics]]'].false);
+    }
+  }
+}
+
+// #endregion

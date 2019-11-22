@@ -4,9 +4,12 @@ import { Realm, ExecutionContext } from '../realm';
 import { $Object } from './object';
 import { $String } from './string';
 import { $Number } from './number';
-import { $ComputedPropertyName, $ContinueStatement, $BreakStatement, $FunctionDeclaration, $SourceFile } from '../ast';
 import { $Boolean } from './boolean';
 import { $TypeError } from './error';
+import { $SourceFile } from '../ast/modules';
+import { $ComputedPropertyName } from '../ast/bindings';
+import { $ContinueStatement, $BreakStatement } from '../ast/statements';
+import { $FunctionDeclaration } from '../ast/functions';
 
 export interface empty { '<empty>': unknown }
 export const empty = Symbol('empty') as unknown as empty;

@@ -1,11 +1,15 @@
 import { nextValueId, $AnyNonError, Int32, Uint32, Int16, Uint16, Int8, Uint8, Uint8Clamp, PotentialNonEmptyCompletionType, CompletionTarget, CompletionType, $Any } from './_shared';
 import { Realm, ExecutionContext } from '../realm';
-import { $ExportDeclaration, $ExportSpecifier, $ClassDeclaration, $FunctionDeclaration, $VariableStatement, $SourceFile, $NullLiteral } from '../ast';
 import { $Object } from './object';
 import { $String } from './string';
 import { $Number } from './number';
 import { $Boolean } from './boolean';
 import { $TypeError, $Error } from './error';
+import { $ExportDeclaration, $ExportSpecifier, $SourceFile } from '../ast/modules';
+import { $ClassDeclaration } from '../ast/classes';
+import { $FunctionDeclaration } from '../ast/functions';
+import { $VariableStatement } from '../ast/statements';
+import { $NullLiteral } from '../ast/literals';
 
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-null-type
 export class $Null {

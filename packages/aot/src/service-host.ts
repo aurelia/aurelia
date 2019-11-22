@@ -10,7 +10,7 @@ import { NPMPackage, NPMPackageLoader } from './system/npm-package-loader';
 import { File } from './system/file-system';
 
 import { IModule, DeferredModule, ExecutionContext } from './vm/realm';
-import { $SourceFile, $DocumentFragment } from './vm/ast';
+import { $SourceFile, $DocumentFragment } from './vm/ast/modules';
 import { $String } from './vm/types/string';
 import { PatternMatcher } from './system/pattern-matcher';
 import { ISourceFileProvider, Agent } from './vm/agent';

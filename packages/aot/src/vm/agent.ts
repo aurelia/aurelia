@@ -1,9 +1,9 @@
 import { JobQueue, Job } from './job';
-import { $SourceFile } from './ast';
 import { DI, IContainer, ILogger } from '@aurelia/kernel';
 import { Realm, ExecutionContext } from './realm';
 import { CompletionType, $Any } from './types/_shared';
 import { $Empty } from './types/empty';
+import { $SourceFile } from './ast/modules';
 
 export const ISourceFileProvider = DI.createInterface<ISourceFileProvider>('ISourceFileProvider').noDefault();
 export interface ISourceFileProvider {

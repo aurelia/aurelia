@@ -1433,6 +1433,229 @@ function getExportedNames<T>(obj: { ExportedNames: T }): T { return obj.Exported
 function getExportEntriesForModule<T>(obj: { ExportEntriesForModule: T }): T { return obj.ExportEntriesForModule; }
 function getReferencedBindings<T>(obj: { ReferencedBindings: T }): T { return obj.ReferencedBindings; }
 
+export class $FunctionExpression implements I$Node {
+  public readonly $kind = SyntaxKind.FunctionExpression;
+  public readonly id: number;
+
+  public readonly modifierFlags: ModifierFlags;
+
+  public readonly isIIFE: boolean;
+
+  public readonly $name: $Identifier | undefined;
+  public readonly $parameters: readonly $ParameterDeclaration[];
+  public readonly $body: $Block;
+
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-boundnames
+  public readonly BoundNames: readonly [$String | $String<'*default*'>] | readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-containsexpression
+  public readonly ContainsExpression: boolean;
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-containsusestrict
+  public readonly ContainsUseStrict: boolean;
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-expectedargumentcount
+  public readonly ExpectedArgumentCount: number;
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-hasinitializer
+  public readonly HasInitializer: boolean;
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-hasname
+  public readonly HasName: boolean;
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-isconstantdeclaration
+  public readonly IsConstantDeclaration: false = false;
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-isfunctiondefinition
+  public readonly IsFunctionDefinition: true = true;
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-issimpleparameterlist
+  public readonly IsSimpleParameterList: boolean;
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallyscopeddeclarations
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+
+  public readonly DirectivePrologue: DirectivePrologue;
+
+  public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
+  public readonly IsType: false = false;
+
+  public constructor(
+    public readonly node: FunctionExpression,
+    public readonly parent: $AnyParentNode,
+    public readonly ctx: Context,
+    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly realm: Realm = parent.realm,
+    public readonly depth: number = parent.depth + 1,
+    public readonly logger: ILogger = parent.logger.scopeTo('FunctionExpression'),
+  ) {
+    this.id = realm.registerNode(this);
+
+    if (this.isIIFE = isIIFE(this)) {
+      ctx = clearBit(ctx, Context.InExpressionStatement);
+    } else {
+      ctx = clearBit(ctx, Context.InExpressionStatement | Context.InTopLevel);
+    }
+
+    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+
+    const DirectivePrologue = this.DirectivePrologue = GetDirectivePrologue(node.body!.statements);
+    if (DirectivePrologue.ContainsUseStrict) {
+      ctx |= Context.InStrictMode;
+    }
+
+    const $name = this.$name = $identifier(node.name, this, ctx);
+    const $parameters = this.$parameters = $parameterDeclarationList(node.parameters, this, ctx);
+    const $body = this.$body = new $Block(node.body, this, ctx);
+
+    this.BoundNames = $parameters.flatMap(getBoundNames);
+    this.ContainsExpression = $parameters.some(getContainsExpression);
+    this.ContainsUseStrict = DirectivePrologue.ContainsUseStrict === true;
+    this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
+    this.HasInitializer = $parameters.some(getHasInitializer);
+    this.HasName = $name !== void 0;
+    this.IsSimpleParameterList = $parameters.every(getIsSimpleParameterList);
+
+    this.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
+    this.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluation
+  // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
+  // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions
+  // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-runtime-semantics-evaluation
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Function {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    this.logger.debug(`Evaluate(#${ctx.id})`);
+
+    // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluation
+
+    // FunctionExpression : function ( FormalParameters ) { FunctionBody }
+
+    // 1. If the function code for FunctionExpression is strict mode code, let strict be true. Otherwise let strict be false.
+    // 2. Let scope be the LexicalEnvironment of the running execution context.
+    // 3. Let closure be FunctionCreate(Normal, FormalParameters, FunctionBody, scope, strict).
+    // 4. Perform MakeConstructor(closure).
+    // 5. Set closure.[[SourceText]] to the source text matched by FunctionExpression.
+    // 6. Return closure.
+
+    // FunctionExpression : function BindingIdentifier ( FormalParameters ) { FunctionBody }
+
+    // 1. If the function code for FunctionExpression is strict mode code, let strict be true. Otherwise let strict be false.
+    // 2. Let scope be the running execution context's LexicalEnvironment.
+    // 3. Let funcEnv be NewDeclarativeEnvironment(scope).
+    // 4. Let envRec be funcEnv's EnvironmentRecord.
+    // 5. Let name be StringValue of BindingIdentifier.
+    // 6. Perform envRec.CreateImmutableBinding(name, false).
+    // 7. Let closure be FunctionCreate(Normal, FormalParameters, FunctionBody, funcEnv, strict).
+    // 8. Perform MakeConstructor(closure).
+    // 9. Perform SetFunctionName(closure, name).
+    // 10. Set closure.[[SourceText]] to the source text matched by FunctionExpression.
+    // 11. Perform envRec.InitializeBinding(name, closure).
+    // 12. Return closure.
+
+
+    // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
+
+    // GeneratorExpression : function * ( FormalParameters ) { GeneratorBody }
+
+    // 1. If the function code for this GeneratorExpression is strict mode code, let strict be true. Otherwise let strict be false.
+    // 2. Let scope be the LexicalEnvironment of the running execution context.
+    // 3. Let closure be GeneratorFunctionCreate(Normal, FormalParameters, GeneratorBody, scope, strict).
+    // 4. Let prototype be ObjectCreate(%GeneratorPrototype%).
+    // 5. Perform DefinePropertyOrThrow(closure, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
+    // 6. Set closure.[[SourceText]] to the source text matched by GeneratorExpression.
+    // 7. Return closure.
+
+    // GeneratorExpression : function * BindingIdentifier ( FormalParameters ) { GeneratorBody }
+
+    // 1. If the function code for this GeneratorExpression is strict mode code, let strict be true. Otherwise let strict be false.
+    // 2. Let scope be the running execution context's LexicalEnvironment.
+    // 3. Let funcEnv be NewDeclarativeEnvironment(scope).
+    // 4. Let envRec be funcEnv's EnvironmentRecord.
+    // 5. Let name be StringValue of BindingIdentifier.
+    // 6. Perform envRec.CreateImmutableBinding(name, false).
+    // 7. Let closure be GeneratorFunctionCreate(Normal, FormalParameters, GeneratorBody, funcEnv, strict).
+    // 8. Let prototype be ObjectCreate(%GeneratorPrototype%).
+    // 9. Perform DefinePropertyOrThrow(closure, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
+    // 10. Perform SetFunctionName(closure, name).
+    // 11. Perform envRec.InitializeBinding(name, closure).
+    // 12. Set closure.[[SourceText]] to the source text matched by GeneratorExpression.
+    // 13. Return closure.
+
+
+
+    // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions
+
+    // AsyncGeneratorExpression : async function * ( FormalParameters ) { AsyncGeneratorBody }
+
+    // 1. If the function code for this AsyncGeneratorExpression is strict mode code, let strict be true. Otherwise let strict be false.
+    // 2. Let scope be the LexicalEnvironment of the running execution context.
+    // 3. Let closure be ! AsyncGeneratorFunctionCreate(Normal, FormalParameters, AsyncGeneratorBody, scope, strict).
+    // 4. Let prototype be ! ObjectCreate(%AsyncGeneratorPrototype%).
+    // 5. Perform ! DefinePropertyOrThrow(closure, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
+    // 6. Set closure.[[SourceText]] to the source text matched by AsyncGeneratorExpression.
+    // 7. Return closure.
+
+    // AsyncGeneratorExpression : async function * BindingIdentifier ( FormalParameters ) { AsyncGeneratorBody }
+
+    // 1. If the function code for this AsyncGeneratorExpression is strict mode code, let strict be true. Otherwise let strict be false.
+    // 2. Let scope be the running execution context's LexicalEnvironment.
+    // 3. Let funcEnv be ! NewDeclarativeEnvironment(scope).
+    // 4. Let envRec be funcEnv's EnvironmentRecord.
+    // 5. Let name be StringValue of BindingIdentifier.
+    // 6. Perform ! envRec.CreateImmutableBinding(name).
+    // 7. Let closure be ! AsyncGeneratorFunctionCreate(Normal, FormalParameters, AsyncGeneratorBody, funcEnv, strict).
+    // 8. Let prototype be ! ObjectCreate(%AsyncGeneratorPrototype%).
+    // 9. Perform ! DefinePropertyOrThrow(closure, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
+    // 10. Perform ! SetFunctionName(closure, name).
+    // 11. Perform ! envRec.InitializeBinding(name, closure).
+    // 12. Set closure.[[SourceText]] to the source text matched by AsyncGeneratorExpression.
+    // 13. Return closure.
+
+
+    // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-runtime-semantics-evaluation
+
+    // AsyncFunctionExpression : async function ( FormalParameters ) { AsyncFunctionBody }
+
+    // 1. If the function code for AsyncFunctionExpression is strict mode code, let strict be true. Otherwise let strict be false.
+    // 2. Let scope be the LexicalEnvironment of the running execution context.
+    // 3. Let closure be ! AsyncFunctionCreate(Normal, FormalParameters, AsyncFunctionBody, scope, strict).
+    // 4. Set closure.[[SourceText]] to the source text matched by AsyncFunctionExpression.
+    // 5. Return closure.
+
+    // AsyncFunctionExpression : async function BindingIdentifier ( FormalParameters ) { AsyncFunctionBody }
+
+    // 1. If the function code for AsyncFunctionExpression is strict mode code, let strict be true. Otherwise let strict be false.
+    // 2. Let scope be the LexicalEnvironment of the running execution context.
+    // 3. Let funcEnv be ! NewDeclarativeEnvironment(scope).
+    // 4. Let envRec be funcEnv's EnvironmentRecord.
+    // 5. Let name be StringValue of BindingIdentifier.
+    // 6. Perform ! envRec.CreateImmutableBinding(name).
+    // 7. Let closure be ! AsyncFunctionCreate(Normal, FormalParameters, AsyncFunctionBody, funcEnv, strict).
+    // 8. Perform ! SetFunctionName(closure, name).
+    // 9. Perform ! envRec.InitializeBinding(name, closure).
+    // 10. Set closure.[[SourceText]] to the source text matched by AsyncFunctionExpression.
+    // 11. Return closure.
+
+    return intrinsics.undefined as any; // TODO: implement this
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-namedevaluation
+  public EvaluateNamed(
+    ctx: ExecutionContext,
+    name: $String,
+  ): $Function {
+    // FunctionExpression : function ( FormalParameters ) { FunctionBody }
+
+    // 1. Let closure be the result of evaluating this FunctionExpression.
+    const closure = this.Evaluate(ctx);
+
+    // 2. Perform SetFunctionName(closure, name).
+    closure.SetFunctionName(ctx, name);
+
+    // 3. Return closure.
+    return closure;
+  }
+}
+
 export class $FunctionDeclaration implements I$Node {
   public readonly $kind = SyntaxKind.FunctionDeclaration;
   public readonly id: number;
@@ -3985,229 +4208,6 @@ export class $TaggedTemplateExpression implements I$Node {
     // 5. Return ? EvaluateCall(tagFunc, tagRef, TemplateLiteral, tailCall).
 
     return intrinsics.undefined; // TODO: implement this
-  }
-}
-
-export class $FunctionExpression implements I$Node {
-  public readonly $kind = SyntaxKind.FunctionExpression;
-  public readonly id: number;
-
-  public readonly modifierFlags: ModifierFlags;
-
-  public readonly isIIFE: boolean;
-
-  public readonly $name: $Identifier | undefined;
-  public readonly $parameters: readonly $ParameterDeclaration[];
-  public readonly $body: $Block;
-
-  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-boundnames
-  public readonly BoundNames: readonly [$String | $String<'*default*'>] | readonly $String[];
-  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-containsexpression
-  public readonly ContainsExpression: boolean;
-  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-containsusestrict
-  public readonly ContainsUseStrict: boolean;
-  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-expectedargumentcount
-  public readonly ExpectedArgumentCount: number;
-  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-hasinitializer
-  public readonly HasInitializer: boolean;
-  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-hasname
-  public readonly HasName: boolean;
-  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-isconstantdeclaration
-  public readonly IsConstantDeclaration: false = false;
-  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-isfunctiondefinition
-  public readonly IsFunctionDefinition: true = true;
-  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-issimpleparameterlist
-  public readonly IsSimpleParameterList: boolean;
-  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallyscopeddeclarations
-  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
-  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
-  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
-
-  public readonly DirectivePrologue: DirectivePrologue;
-
-  public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
-  public readonly IsType: false = false;
-
-  public constructor(
-    public readonly node: FunctionExpression,
-    public readonly parent: $AnyParentNode,
-    public readonly ctx: Context,
-    public readonly sourceFile: $SourceFile = parent.sourceFile,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('FunctionExpression'),
-  ) {
-    this.id = realm.registerNode(this);
-
-    if (this.isIIFE = isIIFE(this)) {
-      ctx = clearBit(ctx, Context.InExpressionStatement);
-    } else {
-      ctx = clearBit(ctx, Context.InExpressionStatement | Context.InTopLevel);
-    }
-
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
-
-    const DirectivePrologue = this.DirectivePrologue = GetDirectivePrologue(node.body!.statements);
-    if (DirectivePrologue.ContainsUseStrict) {
-      ctx |= Context.InStrictMode;
-    }
-
-    const $name = this.$name = $identifier(node.name, this, ctx);
-    const $parameters = this.$parameters = $parameterDeclarationList(node.parameters, this, ctx);
-    const $body = this.$body = new $Block(node.body, this, ctx);
-
-    this.BoundNames = $parameters.flatMap(getBoundNames);
-    this.ContainsExpression = $parameters.some(getContainsExpression);
-    this.ContainsUseStrict = DirectivePrologue.ContainsUseStrict === true;
-    this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
-    this.HasInitializer = $parameters.some(getHasInitializer);
-    this.HasName = $name !== void 0;
-    this.IsSimpleParameterList = $parameters.every(getIsSimpleParameterList);
-
-    this.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
-    this.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
-  }
-
-  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluation
-  // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
-  // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions
-  // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-runtime-semantics-evaluation
-  public Evaluate(
-    ctx: ExecutionContext,
-  ): $Function {
-    const realm = ctx.Realm;
-    const intrinsics = realm['[[Intrinsics]]'];
-
-    this.logger.debug(`Evaluate(#${ctx.id})`);
-
-    // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluation
-
-    // FunctionExpression : function ( FormalParameters ) { FunctionBody }
-
-    // 1. If the function code for FunctionExpression is strict mode code, let strict be true. Otherwise let strict be false.
-    // 2. Let scope be the LexicalEnvironment of the running execution context.
-    // 3. Let closure be FunctionCreate(Normal, FormalParameters, FunctionBody, scope, strict).
-    // 4. Perform MakeConstructor(closure).
-    // 5. Set closure.[[SourceText]] to the source text matched by FunctionExpression.
-    // 6. Return closure.
-
-    // FunctionExpression : function BindingIdentifier ( FormalParameters ) { FunctionBody }
-
-    // 1. If the function code for FunctionExpression is strict mode code, let strict be true. Otherwise let strict be false.
-    // 2. Let scope be the running execution context's LexicalEnvironment.
-    // 3. Let funcEnv be NewDeclarativeEnvironment(scope).
-    // 4. Let envRec be funcEnv's EnvironmentRecord.
-    // 5. Let name be StringValue of BindingIdentifier.
-    // 6. Perform envRec.CreateImmutableBinding(name, false).
-    // 7. Let closure be FunctionCreate(Normal, FormalParameters, FunctionBody, funcEnv, strict).
-    // 8. Perform MakeConstructor(closure).
-    // 9. Perform SetFunctionName(closure, name).
-    // 10. Set closure.[[SourceText]] to the source text matched by FunctionExpression.
-    // 11. Perform envRec.InitializeBinding(name, closure).
-    // 12. Return closure.
-
-
-    // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
-
-    // GeneratorExpression : function * ( FormalParameters ) { GeneratorBody }
-
-    // 1. If the function code for this GeneratorExpression is strict mode code, let strict be true. Otherwise let strict be false.
-    // 2. Let scope be the LexicalEnvironment of the running execution context.
-    // 3. Let closure be GeneratorFunctionCreate(Normal, FormalParameters, GeneratorBody, scope, strict).
-    // 4. Let prototype be ObjectCreate(%GeneratorPrototype%).
-    // 5. Perform DefinePropertyOrThrow(closure, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
-    // 6. Set closure.[[SourceText]] to the source text matched by GeneratorExpression.
-    // 7. Return closure.
-
-    // GeneratorExpression : function * BindingIdentifier ( FormalParameters ) { GeneratorBody }
-
-    // 1. If the function code for this GeneratorExpression is strict mode code, let strict be true. Otherwise let strict be false.
-    // 2. Let scope be the running execution context's LexicalEnvironment.
-    // 3. Let funcEnv be NewDeclarativeEnvironment(scope).
-    // 4. Let envRec be funcEnv's EnvironmentRecord.
-    // 5. Let name be StringValue of BindingIdentifier.
-    // 6. Perform envRec.CreateImmutableBinding(name, false).
-    // 7. Let closure be GeneratorFunctionCreate(Normal, FormalParameters, GeneratorBody, funcEnv, strict).
-    // 8. Let prototype be ObjectCreate(%GeneratorPrototype%).
-    // 9. Perform DefinePropertyOrThrow(closure, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
-    // 10. Perform SetFunctionName(closure, name).
-    // 11. Perform envRec.InitializeBinding(name, closure).
-    // 12. Set closure.[[SourceText]] to the source text matched by GeneratorExpression.
-    // 13. Return closure.
-
-
-
-    // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions
-
-    // AsyncGeneratorExpression : async function * ( FormalParameters ) { AsyncGeneratorBody }
-
-    // 1. If the function code for this AsyncGeneratorExpression is strict mode code, let strict be true. Otherwise let strict be false.
-    // 2. Let scope be the LexicalEnvironment of the running execution context.
-    // 3. Let closure be ! AsyncGeneratorFunctionCreate(Normal, FormalParameters, AsyncGeneratorBody, scope, strict).
-    // 4. Let prototype be ! ObjectCreate(%AsyncGeneratorPrototype%).
-    // 5. Perform ! DefinePropertyOrThrow(closure, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
-    // 6. Set closure.[[SourceText]] to the source text matched by AsyncGeneratorExpression.
-    // 7. Return closure.
-
-    // AsyncGeneratorExpression : async function * BindingIdentifier ( FormalParameters ) { AsyncGeneratorBody }
-
-    // 1. If the function code for this AsyncGeneratorExpression is strict mode code, let strict be true. Otherwise let strict be false.
-    // 2. Let scope be the running execution context's LexicalEnvironment.
-    // 3. Let funcEnv be ! NewDeclarativeEnvironment(scope).
-    // 4. Let envRec be funcEnv's EnvironmentRecord.
-    // 5. Let name be StringValue of BindingIdentifier.
-    // 6. Perform ! envRec.CreateImmutableBinding(name).
-    // 7. Let closure be ! AsyncGeneratorFunctionCreate(Normal, FormalParameters, AsyncGeneratorBody, funcEnv, strict).
-    // 8. Let prototype be ! ObjectCreate(%AsyncGeneratorPrototype%).
-    // 9. Perform ! DefinePropertyOrThrow(closure, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
-    // 10. Perform ! SetFunctionName(closure, name).
-    // 11. Perform ! envRec.InitializeBinding(name, closure).
-    // 12. Set closure.[[SourceText]] to the source text matched by AsyncGeneratorExpression.
-    // 13. Return closure.
-
-
-    // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-runtime-semantics-evaluation
-
-    // AsyncFunctionExpression : async function ( FormalParameters ) { AsyncFunctionBody }
-
-    // 1. If the function code for AsyncFunctionExpression is strict mode code, let strict be true. Otherwise let strict be false.
-    // 2. Let scope be the LexicalEnvironment of the running execution context.
-    // 3. Let closure be ! AsyncFunctionCreate(Normal, FormalParameters, AsyncFunctionBody, scope, strict).
-    // 4. Set closure.[[SourceText]] to the source text matched by AsyncFunctionExpression.
-    // 5. Return closure.
-
-    // AsyncFunctionExpression : async function BindingIdentifier ( FormalParameters ) { AsyncFunctionBody }
-
-    // 1. If the function code for AsyncFunctionExpression is strict mode code, let strict be true. Otherwise let strict be false.
-    // 2. Let scope be the LexicalEnvironment of the running execution context.
-    // 3. Let funcEnv be ! NewDeclarativeEnvironment(scope).
-    // 4. Let envRec be funcEnv's EnvironmentRecord.
-    // 5. Let name be StringValue of BindingIdentifier.
-    // 6. Perform ! envRec.CreateImmutableBinding(name).
-    // 7. Let closure be ! AsyncFunctionCreate(Normal, FormalParameters, AsyncFunctionBody, funcEnv, strict).
-    // 8. Perform ! SetFunctionName(closure, name).
-    // 9. Perform ! envRec.InitializeBinding(name, closure).
-    // 10. Set closure.[[SourceText]] to the source text matched by AsyncFunctionExpression.
-    // 11. Return closure.
-
-    return intrinsics.undefined as any; // TODO: implement this
-  }
-
-  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-namedevaluation
-  public EvaluateNamed(
-    ctx: ExecutionContext,
-    name: $String,
-  ): $Function {
-    // FunctionExpression : function ( FormalParameters ) { FunctionBody }
-
-    // 1. Let closure be the result of evaluating this FunctionExpression.
-    const closure = this.Evaluate(ctx);
-
-    // 2. Perform SetFunctionName(closure, name).
-    closure.SetFunctionName(ctx, name);
-
-    // 3. Return closure.
-    return closure;
   }
 }
 

@@ -5,12 +5,17 @@ import {
   IRenderContext,
   LifecycleFlags,
   customElement,
+  CustomElement,
 } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { IViewportOptions, Viewport } from '../viewport';
+import { IContainer, Registration } from '@aurelia/kernel';
+
+export const ParentViewport = CustomElement.createInjectable();
 
 @customElement({
-  name: 'au-viewport'
+  name: 'au-viewport',
+  injectable: ParentViewport
 })
 export class ViewportCustomElement {
   @bindable public name: string = 'default';
@@ -31,10 +36,14 @@ export class ViewportCustomElement {
   public constructor(
     @IRouter private readonly router: IRouter,
     @INode element: INode,
+    @ParentViewport private readonly parent: ViewportCustomElement,
   ) {
     this.element = element as HTMLElement;
   }
 
+  public created() {
+    this.router.setClosestViewport(this);
+  }
   // public created(...rest): void {
   //   console.log('Created', rest);
   //   const booleanAttributes = {
@@ -70,11 +79,11 @@ export class ViewportCustomElement {
     this.disconnect();
   }
 
-  public attached(): void {
-    if (this.viewport) {
-      this.viewport.clearTaggedNodes();
-    }
-  }
+  // public attached(): void {
+  //   if (this.viewport) {
+  //     this.viewport.clearTaggedNodes();
+  //   }
+  // }
 
   public connect(): void {
     const options: IViewportOptions = { scope: !this.element.hasAttribute('no-scope') };
@@ -96,7 +105,7 @@ export class ViewportCustomElement {
     if (this.element.hasAttribute('stateful')) {
       options.stateful = true;
     }
-    this.viewport = this.router.connectViewport(this.name, this.element, this.$controller.context as IRenderContext, options);
+    this.viewport = this.router.connectViewport(this.name, this.element, this.$controller.context as IRenderContext, this.parent ? this.parent.viewport : null, options);
   }
   public disconnect(): void {
     if (this.viewport) {

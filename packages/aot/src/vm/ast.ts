@@ -136,6 +136,14 @@ import {
   YieldExpression,
   Statement,
   Expression,
+  createConstructor,
+  createParameter,
+  createToken,
+  createBlock,
+  createExpressionStatement,
+  createCall,
+  createSuper,
+  createSpread,
 } from 'typescript';
 import {
   PLATFORM,
@@ -147,7 +155,7 @@ import { NPMPackage } from '../system/npm-package-loader';
 import { IModule, ResolveSet, ResolvedBindingRecord, Realm, ExecutionContext } from './realm';
 import { PatternMatcher } from '../system/pattern-matcher';
 import { $ModuleEnvRec, $EnvRec, $DeclarativeEnvRec, $FunctionEnvRec } from './types/environment-record';
-import { $AbstractRelationalComparison, $InstanceOfOperator, $AbstractEqualityComparison, $StrictEqualityComparison, $Call, $Construct } from './operations';
+import { $AbstractRelationalComparison, $InstanceOfOperator, $AbstractEqualityComparison, $StrictEqualityComparison, $Call, $Construct, $DefinePropertyOrThrow } from './operations';
 import { $NamespaceExoticObject } from './exotics/namespace';
 import { $String } from './types/string';
 import { $Undefined } from './types/undefined';
@@ -165,6 +173,7 @@ import { IModuleResolver } from '../service-host';
 import { $TypeError, $Error, $SyntaxError } from './types/error';
 import { $ArrayExoticObject } from './exotics/array';
 import { $List } from './types/list';
+import { $PropertyDescriptor } from './types/property-descriptor';
 const {
   emptyArray,
   emptyObject,
@@ -3946,10 +3955,12 @@ export class $ClassExpression implements I$Node {
   public readonly $heritageClauses: readonly $HeritageClause[];
   public readonly $members: readonly $$ClassElement[];
 
+  public readonly ClassHeritage: $HeritageClause | undefined;
+
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-boundnames
   public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-constructormethod
-  public readonly ConstructorMethod: any;
+  public readonly ConstructorMethod: $ConstructorDeclaration | undefined = void 0;
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-hasname
   public readonly HasName: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-isconstantdeclaration
@@ -3957,7 +3968,7 @@ export class $ClassExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-isfunctiondefinition
   public readonly IsFunctionDefinition: true = true;
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-nonconstructormethoddefinitions
-  public readonly NonConstructorMethodDefinitions: any[];
+  public readonly NonConstructorMethodDefinitions: $$MethodDefinition[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-prototypepropertynamelist
   public readonly PrototypePropertyNameList: readonly $String[];
 
@@ -3979,8 +3990,10 @@ export class $ClassExpression implements I$Node {
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     const $name = this.$name = $identifier(node.name, this, ctx);
-    this.$heritageClauses = $heritageClauseList(node.heritageClauses, this, ctx);
+    const $heritageClauses = this.$heritageClauses = $heritageClauseList(node.heritageClauses, this, ctx);
     const $members = this.$members = $$classElementList(node.members as NodeArray<$ClassElementNode>, this, ctx);
+
+    this.ClassHeritage = $heritageClauses.find(h => h.node.token === SyntaxKind.ExtendsKeyword);
 
     if ($name === void 0) {
       this.BoundNames = [intrinsics['*default*']];
@@ -4037,6 +4050,238 @@ export class $ClassExpression implements I$Node {
     // 6. Return value.
 
     return intrinsics.undefined; // TODO: implement this
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-classdefinitionevaluation
+  public EvaluateClassDefinition(
+    ctx: ExecutionContext,
+    classBinding: $String | $Undefined,
+    className: $String,
+  ): $Function | $Error {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // ClassTail : ClassHeritage opt { ClassBody opt }
+
+    // 1. Let lex be the LexicalEnvironment of the running execution context.
+    const lex = ctx.LexicalEnvironment;
+
+    // 2. Let classScope be NewDeclarativeEnvironment(lex).
+    const classScope = new $DeclarativeEnvRec(this.logger, realm, lex);
+
+    // 3. Let classScopeEnvRec be classScope's EnvironmentRecord.
+    // 4. If classBinding is not undefined, then
+    if (!classBinding.isUndefined) {
+      // 4. a. Perform classScopeEnvRec.CreateImmutableBinding(classBinding, true).
+      classScope.CreateImmutableBinding(ctx, classBinding, intrinsics.true);
+    }
+
+    let protoParent: $Object | $Null;
+    let constructorParent: $Object;
+
+    // 5. If ClassHeritageopt is not present, then
+    if (this.ClassHeritage === void 0) {
+      // 5. a. Let protoParent be the intrinsic object %ObjectPrototype%.
+      protoParent = intrinsics['%ObjectPrototype%'];
+
+      // 5. b. Let constructorParent be the intrinsic object %FunctionPrototype%.
+      constructorParent = intrinsics['%FunctionPrototype%'];
+    }
+    // 6. Else,
+    else {
+      // 6. a. Set the running execution context's LexicalEnvironment to classScope.
+      ctx.LexicalEnvironment = classScope;
+
+      // 6. b. Let superclassRef be the result of evaluating ClassHeritage.
+      const superClassRef = this.ClassHeritage.$types[0].$expression.Evaluate(ctx);
+
+      // 6. c. Set the running execution context's LexicalEnvironment to lex.
+      ctx.LexicalEnvironment = lex;
+
+      // 6. d. Let superclass be ? GetValue(superclassRef).
+      const superClass = superClassRef.GetValue(ctx);
+      if (superClass.isAbrupt) { return superClass; }
+
+      // 6. e. If superclass is null, then
+      if (superClass.isNull) {
+        // 6. e. i. Let protoParent be null.
+        protoParent = intrinsics.null;
+
+        // 6. e. ii. Let constructorParent be the intrinsic object %FunctionPrototype%.
+        constructorParent = intrinsics['%FunctionPrototype%'];
+      }
+      // 6. f. Else if IsConstructor(superclass) is false, throw a TypeError exception.
+      else if (!superClass.isFunction) {
+        return new $TypeError(realm);
+      }
+      // 6. g. Else,
+      else {
+        // 6. g. i. Let protoParent be ? Get(superclass, "prototype").
+        const $protoParent = superClass['[[Get]]'](ctx, intrinsics.$prototype, superClass);
+        if ($protoParent.isAbrupt) { return $protoParent; }
+
+        // 6. g. ii. If Type(protoParent) is neither Object nor Null, throw a TypeError exception.
+        if (!$protoParent.isObject && !$protoParent.isNull) {
+          return new $TypeError(realm);
+        }
+
+        protoParent = $protoParent;
+
+        // 6. g. iii. Let constructorParent be superclass.
+        constructorParent = superClass;
+      }
+    }
+
+    // 7. Let proto be ObjectCreate(protoParent).
+    const proto = new $Object(realm, 'proto', protoParent);
+
+    let constructor: $ConstructorDeclaration | $Empty;
+
+    // 8. If ClassBodyopt is not present, let constructor be empty.
+    if (this.ConstructorMethod === void 0) {
+      constructor = intrinsics.empty;
+    }
+    // 9. Else, let constructor be ConstructorMethod of ClassBody.
+    else {
+      constructor = this.ConstructorMethod;
+    }
+
+    // 10. If constructor is empty, then
+    if (constructor instanceof $Empty) {
+      // 10. a. If ClassHeritageopt is present, then
+      if (this.ClassHeritage !== void 0) {
+        // 10. a. i. Set constructor to the result of parsing the source text constructor(... args){ super (...args);} using the syntactic grammar with the goal symbol MethodDefinition[~Yield, ~Await].
+        constructor = new $ConstructorDeclaration(
+          createConstructor(
+            void 0,
+            void 0,
+            [
+              createParameter(
+                void 0,
+                void 0,
+                createToken(SyntaxKind.DotDotDotToken),
+                createIdentifier('args'),
+              ),
+            ],
+            createBlock(
+              [
+                createExpressionStatement(
+                  createCall(
+                    createSuper(),
+                    void 0,
+                    [
+                      createSpread(
+                        createIdentifier('args'),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          this,
+          clearBit(this.ctx, Context.InExpressionStatement | Context.InTopLevel),
+        );
+      }
+      // 10. b. Else,
+      else {
+        // 10. b. i. Set constructor to the result of parsing the source text constructor(){ } using the syntactic grammar with the goal symbol MethodDefinition[~Yield, ~Await].
+        constructor = new $ConstructorDeclaration(
+          createConstructor(
+            void 0,
+            void 0,
+            [],
+            createBlock([]),
+          ),
+          this,
+          clearBit(this.ctx, Context.InExpressionStatement | Context.InTopLevel),
+        );
+      }
+    }
+
+    // 11. Set the running execution context's LexicalEnvironment to classScope.
+    ctx.LexicalEnvironment = classScope;
+
+    // 12. Let constructorInfo be the result of performing DefineMethod for constructor with arguments proto and constructorParent as the optional functionPrototype argument.
+    const constructorInfo = constructor.DefineMethod(ctx, proto, constructorParent);
+
+    // 13. Assert: constructorInfo is not an abrupt completion.
+    // 14. Let F be constructorInfo.[[Closure]].
+    const F = constructorInfo['[[Closure]]'];
+
+    // 15. If ClassHeritageopt is present, set F.[[ConstructorKind]] to "derived".
+    if (this.ClassHeritage !== void 0) {
+      F['[[ConstructorKind]]'] = 'derived';
+    }
+
+    // 16. Perform MakeConstructor(F, false, proto).
+    F.MakeConstructor(ctx, intrinsics.false, proto);
+
+    // 17. Perform MakeClassConstructor(F).
+    F['[[FunctionKind]]'] = 'classConstructor';
+
+    // 18. If className is not undefined, then
+    if (!className.isUndefined) {
+      // 18. a. Perform SetFunctionName(F, className).
+      F.SetFunctionName(ctx, className);
+    }
+
+    // 19. Perform CreateMethodProperty(proto, "constructor", F).
+    proto['[[DefineOwnProperty]]'](
+      ctx,
+      intrinsics.$constructor,
+      new $PropertyDescriptor(
+        realm,
+        intrinsics.$constructor,
+        {
+          '[[Value]]': F,
+          '[[Writable]]': intrinsics.true,
+          '[[Enumerable]]': intrinsics.false,
+          '[[Configurable]]': intrinsics.true,
+        },
+      ),
+    );
+
+    // 20. If ClassBodyopt is not present, let methods be a new empty List.
+    // 21. Else, let methods be NonConstructorMethodDefinitions of ClassBody.
+    const methods = this.NonConstructorMethodDefinitions;
+
+    let status: $Any;
+
+    // 22. For each ClassElement m in order from methods, do
+    for (const m of methods) {
+      // 22. a. If IsStatic of m is false, then
+      if (!m.IsStatic) {
+        // 22. a. i. Let status be the result of performing PropertyDefinitionEvaluation for m with arguments proto and false.
+        status = m.EvaluatePropertyDefinition(ctx, proto, intrinsics.false);
+      }
+      // 22. b. Else,
+      else {
+        // 22. b. i. Let status be the result of performing PropertyDefinitionEvaluation for m with arguments F and false.
+        status = m.EvaluatePropertyDefinition(ctx, F, intrinsics.false);
+      }
+
+      // 22. c. If status is an abrupt completion, then
+      if (status.isAbrupt) {
+        // 22. c. i. Set the running execution context's LexicalEnvironment to lex.
+        ctx.LexicalEnvironment = lex;
+
+        // 22. c. ii. Return Completion(status).
+        return status;
+      }
+    }
+
+    // 23. Set the running execution context's LexicalEnvironment to lex.
+    ctx.LexicalEnvironment = lex;
+
+    // 24. If classBinding is not undefined, then
+    if (!classBinding.isUndefined) {
+      // 24. a. Perform classScopeEnvRec.InitializeBinding(classBinding, F).
+      classScope.InitializeBinding(ctx, classBinding, F);
+    }
+
+    // 25. Return F.
+    return F;
   }
 }
 
@@ -5808,6 +6053,13 @@ export class $Identifier implements I$Node {
     return realm.ResolveBinding(this.StringValue);
   }
 
+  // based on http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-evaluation
+  public EvaluatePropName(
+    ctx: ExecutionContext,
+  ): $String {
+    return this.PropName;
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-propertybindinginitialization
   public InitializePropertyBinding(
     ctx: ExecutionContext,
@@ -6486,6 +6738,13 @@ export class $NumericLiteral implements I$Node {
     // 1. Return the number whose value is MV of NumericLiteral as defined in 11.8.3.
     return this.Value;
   }
+
+  // based on http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-evaluation
+  public EvaluatePropName(
+    ctx: ExecutionContext,
+  ): $String {
+    return this.PropName;
+  }
 }
 
 export class $BigIntLiteral implements I$Node {
@@ -6573,6 +6832,13 @@ export class $StringLiteral implements I$Node {
 
     // 1. Return the StringValue of StringLiteral as defined in 11.8.4.1.
     return this.Value;
+  }
+
+  // based on http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-evaluation
+  public EvaluatePropName(
+    ctx: ExecutionContext,
+  ): $String {
+    return this.PropName;
   }
 }
 
@@ -6825,6 +7091,87 @@ export class $MethodDeclaration implements I$Node {
     this.PropName = $name.PropName;
     this.IsStatic = hasBit(modifierFlags, ModifierFlags.Static);
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-definemethod
+  public DefineMethod(
+    ctx: ExecutionContext,
+    object: $Object,
+  ): MethodDefinitionRecord | $Error {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+    // NOTE: this logic and signature is adapted to the fact that this is never a constructor method (that's what $ConstructorDeclaration is for)
+
+    // MethodDefinition : PropertyName ( UniqueFormalParameters ) { FunctionBody }
+
+    // 1. Let propKey be the result of evaluating PropertyName.
+    const propKey = this.$name.EvaluatePropName(ctx);
+
+    // 2. ReturnIfAbrupt(propKey).
+    if (propKey.isAbrupt) { return propKey; }
+
+    // 3. If the function code for this MethodDefinition is strict mode code, let strict be true. Otherwise let strict be false.
+    const strict = intrinsics.true; // TODO: use static semantics
+
+    // 4. Let scope be the running execution context's LexicalEnvironment.
+    const scope = ctx.LexicalEnvironment;
+
+    // 5. If functionPrototype is present as a parameter, then
+      // 5. a. Let kind be Normal.
+      // 5. b. Let prototype be functionPrototype.
+    // 6. Else,
+      // 6. a. Let kind be Method.
+      // 6. b. Let prototype be the intrinsic object %FunctionPrototype%.
+
+    const functionPrototype = intrinsics['%FunctionPrototype%'];
+
+    // 7. Let closure be FunctionCreate(kind, UniqueFormalParameters, FunctionBody, scope, strict, prototype).
+    const closure = $Function.FunctionCreate(ctx, 'method', this, scope, strict, functionPrototype);
+
+    // 8. Perform MakeMethod(closure, object).
+    closure['[[HomeObject]]'] = object;
+
+    // 9. Set closure.[[SourceText]] to the source text matched by MethodDefinition.
+    closure['[[SourceText]]'] = new $String(realm, this.node.getText(this.sourceFile.node));
+
+    // 10. Return the Record { [[Key]]: propKey, [[Closure]]: closure }.
+    return new MethodDefinitionRecord(propKey, closure);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-method-definitions-runtime-semantics-propertydefinitionevaluation
+  public EvaluatePropertyDefinition(
+    ctx: ExecutionContext,
+    object: $Object,
+    enumerable: $Boolean,
+  ): $Boolean | $Error {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // MethodDefinition : PropertyName ( UniqueFormalParameters ) { FunctionBody }
+
+    // 1. Let methodDef be DefineMethod of MethodDefinition with argument object.
+    const methodDef = this.DefineMethod(ctx, object);
+
+    // 2. ReturnIfAbrupt(methodDef).
+    if (methodDef.isAbrupt) { return methodDef; }
+
+    // 3. Perform SetFunctionName(methodDef.[[Closure]], methodDef.[[Key]]).
+    methodDef['[[Closure]]'].SetFunctionName(ctx, methodDef['[[Key]]']);
+
+    // 4. Let desc be the PropertyDescriptor { [[Value]]: methodDef.[[Closure]], [[Writable]]: true, [[Enumerable]]: enumerable, [[Configurable]]: true }.
+    const desc = new $PropertyDescriptor(
+      realm,
+      methodDef['[[Key]]'],
+      {
+        '[[Value]]': methodDef['[[Closure]]'],
+        '[[Writable]]': intrinsics.true,
+        '[[Enumerable]]': enumerable,
+        '[[Configurable]]': intrinsics.true,
+      },
+    );
+
+    // 5. Return ? DefinePropertyOrThrow(object, methodDef.[[Key]], desc).
+    return $DefinePropertyOrThrow(ctx, object, methodDef['[[Key]]'], desc);
+  }
 }
 
 export class $GetAccessorDeclaration implements I$Node {
@@ -6865,6 +7212,57 @@ export class $GetAccessorDeclaration implements I$Node {
 
     this.PropName = $name.PropName;
     this.IsStatic = hasBit(modifierFlags, ModifierFlags.Static);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-method-definitions-runtime-semantics-propertydefinitionevaluation
+  public EvaluatePropertyDefinition(
+    ctx: ExecutionContext,
+    object: $Object,
+    enumerable: $Boolean,
+  ): $Boolean | $Error {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // MethodDefinition : get PropertyName ( ) { FunctionBody }
+
+    // 1. Let propKey be the result of evaluating PropertyName.
+    const propKey = this.$name.EvaluatePropName(ctx);
+
+    // 2. ReturnIfAbrupt(propKey).
+    if (propKey.isAbrupt) { return propKey; }
+
+    // 3. If the function code for this MethodDefinition is strict mode code, let strict be true. Otherwise let strict be false.
+    const strict = intrinsics.true; // TODO: use static semantics
+
+    // 4. Let scope be the running execution context's LexicalEnvironment.
+    const scope = ctx.LexicalEnvironment;
+
+    // 5. Let formalParameterList be an instance of the production FormalParameters:[empty] .
+    // 6. Let closure be FunctionCreate(Method, formalParameterList, FunctionBody, scope, strict).
+    const closure = $Function.FunctionCreate(ctx, 'method', this, scope, strict);
+
+    // 7. Perform MakeMethod(closure, object).
+    closure['[[HomeObject]]'] = object;
+
+    // 8. Perform SetFunctionName(closure, propKey, "get").
+    closure.SetFunctionName(ctx, propKey, intrinsics.$get);
+
+    // 9. Set closure.[[SourceText]] to the source text matched by MethodDefinition.
+    closure['[[SourceText]]'] = new $String(realm, this.node.getText(this.sourceFile.node));
+
+    // 10. Let desc be the PropertyDescriptor { [[Get]]: closure, [[Enumerable]]: enumerable, [[Configurable]]: true }.
+    const desc = new $PropertyDescriptor(
+      realm,
+      propKey,
+      {
+        '[[Get]]': closure,
+        '[[Enumerable]]': enumerable,
+        '[[Configurable]]': intrinsics.true,
+      },
+    );
+
+    // 11. Return ? DefinePropertyOrThrow(object, propKey, desc).
+    return $DefinePropertyOrThrow(ctx, object, propKey, desc);
   }
 }
 
@@ -6907,6 +7305,56 @@ export class $SetAccessorDeclaration implements I$Node {
     this.PropName = $name.PropName;
     this.IsStatic = hasBit(modifierFlags, ModifierFlags.Static);
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-method-definitions-runtime-semantics-propertydefinitionevaluation
+  public EvaluatePropertyDefinition(
+    ctx: ExecutionContext,
+    object: $Object,
+    enumerable: $Boolean,
+  ): $Boolean | $Error {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // MethodDefinition : set PropertyName ( PropertySetParameterList ) { FunctionBody }
+
+    // 1. Let propKey be the result of evaluating PropertyName.
+    const propKey = this.$name.EvaluatePropName(ctx);
+
+    // 2. ReturnIfAbrupt(propKey).
+    if (propKey.isAbrupt) { return propKey; }
+
+    // 3. If the function code for this MethodDefinition is strict mode code, let strict be true. Otherwise let strict be false.
+    const strict = intrinsics.true; // TODO: use static semantics
+
+    // 4. Let scope be the running execution context's LexicalEnvironment.
+    const scope = ctx.LexicalEnvironment;
+
+    // 5. Let closure be FunctionCreate(Method, PropertySetParameterList, FunctionBody, scope, strict).
+    const closure = $Function.FunctionCreate(ctx, 'method', this, scope, strict);
+
+    // 6. Perform MakeMethod(closure, object).
+    closure['[[HomeObject]]'] = object;
+
+    // 7. Perform SetFunctionName(closure, propKey, "set").
+    closure.SetFunctionName(ctx, propKey, intrinsics.$set);
+
+    // 8. Set closure.[[SourceText]] to the source text matched by MethodDefinition.
+    closure['[[SourceText]]'] = new $String(realm, this.node.getText(this.sourceFile.node));
+
+    // 9. Let desc be the PropertyDescriptor { [[Set]]: closure, [[Enumerable]]: enumerable, [[Configurable]]: true }.
+    const desc = new $PropertyDescriptor(
+      realm,
+      propKey,
+      {
+        '[[Set]]': closure,
+        '[[Enumerable]]': enumerable,
+        '[[Configurable]]': intrinsics.true,
+      },
+    );
+
+    // 10. Return ? DefinePropertyOrThrow(object, propKey, desc).
+    return $DefinePropertyOrThrow(ctx, object, propKey, desc);
+  }
 }
 
 export class $SemicolonClassElement implements I$Node {
@@ -6931,6 +7379,21 @@ export class $SemicolonClassElement implements I$Node {
   }
 }
 
+export class MethodDefinitionRecord {
+  public '[[Key]]': $PropertyKey;
+  public '[[Closure]]': $Function;
+
+  public get isAbrupt(): false { return false; }
+
+  public constructor(
+    key: $PropertyKey,
+    closure: $Function,
+  ) {
+    this['[[Key]]'] = key;
+    this['[[Closure]]'] = closure;
+  }
+}
+
 export class $ConstructorDeclaration implements I$Node {
   public readonly $kind = SyntaxKind.Constructor;
   public readonly id: number;
@@ -6940,6 +7403,9 @@ export class $ConstructorDeclaration implements I$Node {
   public readonly $decorators: readonly $Decorator[];
   public readonly $parameters: readonly $ParameterDeclaration[];
   public readonly $body: $Block;
+
+  // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-expectedargumentcount
+  public readonly ExpectedArgumentCount: number;
 
   public constructor(
     public readonly node: ConstructorDeclaration,
@@ -6955,8 +7421,54 @@ export class $ConstructorDeclaration implements I$Node {
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     this.$decorators = $decoratorList(node.decorators, this, ctx);
-    this.$parameters = $parameterDeclarationList(node.parameters, this, ctx);
+    const $parameters = this.$parameters = $parameterDeclarationList(node.parameters, this, ctx);
+
+    this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
+
     this.$body = new $Block(node.body!, this, ctx);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-definemethod
+  public DefineMethod(
+    ctx: ExecutionContext,
+    object: $Object,
+    functionPrototype: $Object,
+  ): MethodDefinitionRecord {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+    // NOTE: this logic and signature is adapted to the fact that this is always a constructor method
+
+
+    // MethodDefinition : PropertyName ( UniqueFormalParameters ) { FunctionBody }
+
+    // 1. Let propKey be the result of evaluating PropertyName.
+    const propKey = intrinsics.$constructor;
+
+    // 2. ReturnIfAbrupt(propKey).
+    // 3. If the function code for this MethodDefinition is strict mode code, let strict be true. Otherwise let strict be false.
+    const strict = intrinsics.true; // TODO: use static semantics
+
+    // 4. Let scope be the running execution context's LexicalEnvironment.
+    const scope = ctx.LexicalEnvironment;
+
+    // 5. If functionPrototype is present as a parameter, then
+      // 5. a. Let kind be Normal.
+      // 5. b. Let prototype be functionPrototype.
+    // 6. Else,
+      // 6. a. Let kind be Method.
+      // 6. b. Let prototype be the intrinsic object %FunctionPrototype%.
+
+    // 7. Let closure be FunctionCreate(kind, UniqueFormalParameters, FunctionBody, scope, strict, prototype).
+    const closure = $Function.FunctionCreate(ctx, 'normal', this, scope, strict, functionPrototype);
+
+    // 8. Perform MakeMethod(closure, object).
+    closure['[[HomeObject]]'] = object;
+
+    // 9. Set closure.[[SourceText]] to the source text matched by MethodDefinition.
+    closure['[[SourceText]]'] = new $String(realm, this.node.getText(this.sourceFile.node));
+
+    // 10. Return the Record { [[Key]]: propKey, [[Closure]]: closure }.
+    return new MethodDefinitionRecord(propKey, closure);
   }
 }
 
@@ -9023,6 +9535,13 @@ export class $ComputedPropertyName implements I$Node {
 
     // 3. Return ? ToPropertyKey(propName).
     return propName.ToPropertyKey(ctx);
+  }
+
+  // based on http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-evaluation
+  public EvaluatePropName(
+    ctx: ExecutionContext,
+  ): $String | $Error {
+    return this.Evaluate(ctx);
   }
 }
 

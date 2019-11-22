@@ -1,7 +1,7 @@
 /* eslint-disable */
 import { $Object } from './object';
 import { $EnvRec, $FunctionEnvRec } from './environment-record';
-import { $FunctionDeclaration, $MethodDeclaration, $ArrowFunction, $SourceFile } from '../ast';
+import { $FunctionDeclaration, $MethodDeclaration, $ArrowFunction, $SourceFile, $ConstructorDeclaration, $GetAccessorDeclaration, $SetAccessorDeclaration } from '../ast';
 import { $Boolean } from './boolean';
 import { $String } from './string';
 import { $AnyNonEmpty, CompletionType, $AnyObject } from './_shared';
@@ -26,7 +26,7 @@ export class $Function<
 
   public ['[[Environment]]']: $EnvRec;
   public ['[[FunctionKind]]']: FunctionKind;
-  public ['[[ECMAScriptCode]]']: $FunctionDeclaration | $MethodDeclaration | $ArrowFunction;
+  public ['[[ECMAScriptCode]]']: $FunctionDeclaration | $MethodDeclaration | $ArrowFunction | $ConstructorDeclaration | $GetAccessorDeclaration | $SetAccessorDeclaration;
   public ['[[ConstructorKind]]']: ConstructorKind;
   public ['[[Realm]]']: Realm;
   public ['[[ScriptOrModule]]']: $SourceFile | $Null;
@@ -219,7 +219,7 @@ export class $Function<
     ctx: ExecutionContext,
     F: $Function,
     kind: 'normal' | 'method' | 'arrow',
-    node: $FunctionDeclaration | $MethodDeclaration | $ArrowFunction,
+    node: $FunctionDeclaration | $MethodDeclaration | $ArrowFunction | $ConstructorDeclaration | $GetAccessorDeclaration | $SetAccessorDeclaration,
     Scope: $EnvRec,
   ): $Function {
     const realm = ctx.Realm;
@@ -271,7 +271,7 @@ export class $Function<
   public static FunctionCreate(
     ctx: ExecutionContext,
     kind: 'normal' | 'method' | 'arrow',
-    node: $FunctionDeclaration | $MethodDeclaration | $ArrowFunction,
+    node: $FunctionDeclaration | $MethodDeclaration | $ArrowFunction | $ConstructorDeclaration | $GetAccessorDeclaration | $SetAccessorDeclaration,
     Scope: $EnvRec,
     Strict: $Boolean,
     prototype?: $AnyObject,
@@ -309,7 +309,7 @@ export class $Function<
     ctx: ExecutionContext,
     writablePrototype?: $Boolean,
     prototype?: $AnyObject,
-  ): void {
+  ): $Undefined {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
     const F = this;
@@ -347,6 +347,7 @@ export class $Function<
     $DefinePropertyOrThrow(ctx, F, intrinsics.$prototype, Desc);
 
     // 7. Return NormalCompletion(undefined).
+    return intrinsics.undefined;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-setfunctionname
@@ -354,7 +355,7 @@ export class $Function<
     ctx: ExecutionContext,
     name: $String | $Symbol,
     prefix?: $String,
-  ): $Boolean | $Error {
+  ): $Boolean {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -389,7 +390,7 @@ export class $Function<
     Desc['[[Enumerable]]'] = intrinsics.false;
     Desc['[[Configurable]]'] = intrinsics.true;
 
-    return $DefinePropertyOrThrow(ctx, this, intrinsics.$name, Desc);
+    return $DefinePropertyOrThrow(ctx, this, intrinsics.$name, Desc) as $Boolean;
   }
 }
 

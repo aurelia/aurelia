@@ -154,11 +154,8 @@ describe('InstructionResolver', function () {
     const instructions: ViewportInstruction[] = [a, h];
 
     const instructionsString = router.instructionResolver.stringifyViewportInstructions(instructions);
-    console.log('Instructions', instructionsString);
     const parsedInstructions = router.instructionResolver.parseViewportInstructions(instructionsString);
-    console.log('Parsed', parsedInstructions);
     const stringified = router.instructionResolver.stringifyViewportInstructions(parsedInstructions);
-    console.log('Stringified', stringified);
     assert.strictEqual(stringified, instructionsString, `stringified`);
 
     await tearDown();

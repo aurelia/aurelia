@@ -2207,7 +2207,7 @@ export class $ClassExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-runtime-semantics-evaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $Function | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -2216,12 +2216,19 @@ export class $ClassExpression implements I$Node {
 
     // 1. If BindingIdentifieropt is not present, let className be undefined.
     // 2. Else, let className be StringValue of BindingIdentifier.
-    // 3. Let value be the result of ClassDefinitionEvaluation of ClassTail with arguments className and className.
-    // 4. ReturnIfAbrupt(value).
-    // 5. Set value.[[SourceText]] to the source text matched by ClassExpression.
-    // 6. Return value.
+    const className = this.$name === void 0 ? intrinsics.undefined : this.$name.StringValue;
 
-    return intrinsics.undefined; // TODO: implement this
+    // 3. Let value be the result of ClassDefinitionEvaluation of ClassTail with arguments className and className.
+    const value = $ClassDeclaration.prototype.EvaluateClassDefinition.call(this, ctx, className, className);
+
+    // 4. ReturnIfAbrupt(value).
+    if (value.isAbrupt) { return value; }
+
+    // 5. Set value.[[SourceText]] to the source text matched by ClassExpression.
+    value['[[SourceText]]'] = new $String(realm, this.node.getText(this.sourceFile.node));
+
+    // 6. Return value.
+    return value;
   }
 }
 
@@ -2401,7 +2408,7 @@ export class $ClassDeclaration implements I$Node {
     this: $ClassDeclaration | $ClassExpression,
     ctx: ExecutionContext,
     classBinding: $String | $Undefined,
-    className: $String,
+    className: $String | $Undefined,
   ): $Function | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];

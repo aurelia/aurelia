@@ -623,7 +623,7 @@ export class $PropertyAccessExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-property-accessors-runtime-semantics-evaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $Reference | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -631,13 +631,25 @@ export class $PropertyAccessExpression implements I$Node {
     // MemberExpression : MemberExpression . IdentifierName
 
     // 1. Let baseReference be the result of evaluating MemberExpression.
-    // 2. Let baseValue be ? GetValue(baseReference).
-    // 3. Let bv be ? RequireObjectCoercible(baseValue).
-    // 4. Let propertyNameString be StringValue of IdentifierName.
-    // 5. If the code matched by this MemberExpression is strict mode code, let strict be true, else let strict be false.
-    // 6. Return a value of type Reference whose base value component is bv, whose referenced name component is propertyNameString, and whose strict reference flag is strict.
+    const baseReference = this.$expression.Evaluate(ctx);
 
-    return intrinsics.undefined; // TODO: implement this
+    // 2. Let baseValue be ? GetValue(baseReference).
+    const baseValue = baseReference.GetValue(ctx);
+    if (baseValue.isAbrupt) { return baseValue; }
+
+    // 3. baseValue bv be ? RequireObjectCoercible(baseValue).
+    if (baseValue.isNil) {
+      return new $TypeError(realm);
+    }
+
+    // 4. Let propertyNameString be StringValue of IdentifierName.
+    const propertyNameString = this.$name.StringValue;
+
+    // 5. If the code matched by this MemberExpression is strict mode code, let strict be true, else let strict be false.
+    const strict = intrinsics.true; // TODO: use static semantics
+
+    // 6. Return a value of type Reference whose base value component is bv, whose referenced name component is propertyNameString, and whose strict reference flag is strict.
+    return new $Reference(realm, baseValue, propertyNameString, strict, intrinsics.undefined);
   }
 }
 

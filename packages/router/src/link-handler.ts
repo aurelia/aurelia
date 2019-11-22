@@ -107,15 +107,15 @@ export class LinkHandler {
    * @param el - The element to search upward from.
    * @returns The link element that is the closest ancestor.
    */
-  private static closestAnchor(el: Element): Element | null {
-    while (el !== null && el !== void 0) {
-      if (el.tagName === 'A') {
-        return el;
-      }
-      el = el.parentNode as Element;
-    }
-    return null;
-  }
+  // private static closestAnchor(el: Element): Element | null {
+  //   while (el !== null && el !== void 0) {
+  //     if (el.tagName === 'A') {
+  //       return el;
+  //     }
+  //     el = el.parentNode as Element;
+  //   }
+  //   return null;
+  // }
 
   /**
    * Gets a value indicating whether or not an anchor targets the current window.

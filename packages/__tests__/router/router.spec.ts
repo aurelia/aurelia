@@ -1,5 +1,5 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { PLATFORM, inject } from '@aurelia/kernel';
+import { PLATFORM, inject, IContainer } from '@aurelia/kernel';
 import { IRouter, RouterConfiguration } from '@aurelia/router';
 import { Aurelia, CustomElement, customElement, IScheduler } from '@aurelia/runtime';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
@@ -50,10 +50,24 @@ describe('Router', function () {
       public static parameters = ['id', 'name'];
       public id = 'no id';
       public name = 'no name';
+
+      // public static inject = [IRouter];
+      // public constructor(private readonly router: IRouter) { }
+      // public created() {
+      //   console.log('created', 'closest viewport', this.router.getClosestViewport(this));
+      // }
+      // public canEnter() {
+      //   console.log('canEnter', 'closest viewport', this.router.getClosestViewport(this));
+      //   return true;
+      // }
       public enter(params) {
+        // console.log('enter', 'closest viewport', this.router.getClosestViewport(this));
         if (params.id) { this.id = params.id; }
         if (params.name) { this.name = params.name; }
       }
+      // public binding() {
+      //   console.log('binding', 'closest viewport', this.router.getClosestViewport(this));
+      // }
     });
     const Baz = CustomElement.define({ name: 'baz', template: `<template>Viewport: baz Parameter id: [\${id}] <au-viewport name="baz"></au-viewport></template>` }, class {
       public static parameters = ['id'];
@@ -458,7 +472,6 @@ describe('Router', function () {
 
     for (let i = 0; i < tests.length; i++) {
       const test = tests[i];
-      console.log('link', test);
 
       (host.getElementsByTagName('A')[i] as HTMLElement).click();
 

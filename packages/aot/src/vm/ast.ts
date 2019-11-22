@@ -1513,6 +1513,15 @@ export class $FunctionExpression implements I$Node {
     this.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
   }
 
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
+  public EvaluateBody(
+    ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
+    functionObject: $Function,
+    argumentsList: readonly $AnyNonEmpty[],
+  ): $Any {
+    return $FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluation
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
   // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions
@@ -1886,6 +1895,7 @@ export class $FunctionDeclaration implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
   public EvaluateBody(
+    this: $FunctionDeclaration | $FunctionExpression,
     ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
     functionObject: $Function,
     argumentsList: readonly $AnyNonEmpty[],

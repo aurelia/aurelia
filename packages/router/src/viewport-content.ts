@@ -136,7 +136,8 @@ export class ViewportContent {
   }
 
   public async enter(previousInstruction: INavigatorInstruction): Promise<void> {
-    if (!this.reentry && (this.contentStatus !== ContentStatus.created || this.entered)) {
+    // if (!this.reentry && (this.contentStatus !== ContentStatus.created || this.entered)) {
+    if (!this.reentry && (this.contentStatus !== ContentStatus.loaded || this.entered)) {
       return;
     }
     if (this.content.componentInstance && this.content.componentInstance.enter) {
@@ -158,7 +159,8 @@ export class ViewportContent {
   }
 
   public loadComponent(context: IRenderContext | IContainer, element: Element, viewport: Viewport): Promise<void> {
-    if (this.contentStatus !== ContentStatus.created || !this.entered || !this.content.componentInstance) {
+    // if (this.contentStatus !== ContentStatus.created || !this.entered || !this.content.componentInstance) {
+    if (this.contentStatus !== ContentStatus.created || this.entered || !this.content.componentInstance) {
       return Promise.resolve();
     }
     // Don't load cached content or instantiated history content
@@ -170,14 +172,14 @@ export class ViewportContent {
         (element as Element & { $controller: Controller }).$controller;
     }
     // Temporarily tag content so that it can find parent scope before viewport is attached
-    const childNodes = this.content.componentInstance.$controller!.nodes!.childNodes;
-    for (let i = 0; i < childNodes.length; i++) {
-      const child = childNodes[i] as Element;
-      if (child.nodeType === 1) {
-        Reflect.set(child, '$viewport', viewport);
-        this.taggedNodes.push(child);
-      }
-    }
+    // const childNodes = this.content.componentInstance.$controller!.nodes!.childNodes;
+    // for (let i = 0; i < childNodes.length; i++) {
+    //   const child = childNodes[i] as Element;
+    //   if (child.nodeType === 1) {
+    //     Reflect.set(child, '$viewport', viewport);
+    //     this.taggedNodes.push(child);
+    //   }
+    // }
     this.contentStatus = ContentStatus.loaded;
     return Promise.resolve();
   }
@@ -187,7 +189,7 @@ export class ViewportContent {
       return;
     }
 
-    this.clearTaggedNodes();
+    // this.clearTaggedNodes();
 
     // Don't unload components when stateful
     if (!stateful) {
@@ -196,12 +198,12 @@ export class ViewportContent {
       cache.push(this);
     }
   }
-  public clearTaggedNodes(): void {
-    for (const node of this.taggedNodes) {
-      Reflect.deleteProperty(node, '$viewport');
-    }
-    this.taggedNodes = [];
-  }
+  // public clearTaggedNodes(): void {
+  //   for (const node of this.taggedNodes) {
+  //     Reflect.deleteProperty(node, '$viewport');
+  //   }
+  //   this.taggedNodes = [];
+  // }
 
   public initializeComponent(parent: IController): void {
     if (this.contentStatus !== ContentStatus.loaded) {

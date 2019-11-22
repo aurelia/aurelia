@@ -1,6 +1,6 @@
 import { RouteRecognizer, RouteHandler, ConfigurableRoute, RecognizeResult } from './route-recognizer';
 import { IContainer, Reporter } from '@aurelia/kernel';
-import { IRenderContext, LifecycleFlags, IController } from '@aurelia/runtime';
+import { IRenderContext, LifecycleFlags, IController, CustomElement, INode } from '@aurelia/runtime';
 import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, ReentryBehavior, IRoute, RouteableComponentType } from './interfaces';
 import { INavigatorFlags } from './navigator';
 import { FoundRoute } from './found-route';
@@ -244,6 +244,7 @@ export class Viewport {
     await this.waitForElement();
 
     (this.nextContent as ViewportContent).createComponent(this.context as IRenderContext, this.options.fallback);
+    await (this.nextContent as ViewportContent).loadComponent(this.context as IRenderContext, this.element as Element, this);
 
     return (this.nextContent as ViewportContent).canEnter(this, this.content.instruction);
   }
@@ -260,8 +261,8 @@ export class Viewport {
     }
 
     await this.nextContent.enter(this.content.instruction);
-    await this.nextContent.loadComponent(this.context as IRenderContext, this.element as Element, this);
-    this.nextContent.initializeComponent((this.element as Element & { $controller: IController }).$controller);
+    // await this.nextContent.loadComponent(this.context as IRenderContext, this.element as Element, this);
+    this.nextContent.initializeComponent(CustomElement.for(this.element as INode) as IController);
     return true;
   }
 
@@ -301,14 +302,14 @@ export class Viewport {
     return true;
   }
 
-  public clearTaggedNodes(): void {
-    if ((this.content || null) !== null) {
-      this.content.clearTaggedNodes();
-    }
-    if (this.nextContent) {
-      this.nextContent.clearTaggedNodes();
-    }
-  }
+  // public clearTaggedNodes(): void {
+  //   if ((this.content || null) !== null) {
+  //     this.content.clearTaggedNodes();
+  //   }
+  //   if (this.nextContent) {
+  //     this.nextContent.clearTaggedNodes();
+  //   }
+  // }
 
   public finalizeContentChange(): void {
     this.previousViewportState = null;
@@ -357,7 +358,7 @@ export class Viewport {
 
   public binding(flags: LifecycleFlags): void {
     if (this.content.componentInstance) {
-      this.content.initializeComponent((this.element as Element & { $controller: IController }).$controller);
+      this.content.initializeComponent(CustomElement.for(this.element as INode) as IController);
     }
   }
 

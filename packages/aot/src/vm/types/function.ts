@@ -1,21 +1,65 @@
 /* eslint-disable */
-import { $Object } from './object';
-import { $EnvRec, $FunctionEnvRec } from './environment-record';
-import { $Boolean } from './boolean';
-import { $String } from './string';
-import { $AnyNonEmpty, CompletionType, $AnyObject } from './_shared';
-import { $PropertyDescriptor } from './property-descriptor';
-import { $Number } from './number';
-import { $DefinePropertyOrThrow } from '../operations';
-import { $Symbol } from './symbol';
-import { Intrinsics } from '../intrinsics';
-import { $Undefined } from './undefined';
-import { ExecutionContext, Realm } from '../realm';
-import { $Null } from './null';
-import { $TypeError, $Error } from './error';
-import { $FunctionDeclaration, $FunctionExpression, $ArrowFunction, $ConstructorDeclaration } from '../ast/functions';
-import { $MethodDeclaration, $GetAccessorDeclaration, $SetAccessorDeclaration } from '../ast/methods';
-import { $SourceFile } from '../ast/modules';
+import {
+  $Object,
+} from './object';
+import {
+  $EnvRec,
+  $FunctionEnvRec,
+} from './environment-record';
+import {
+  $Boolean,
+} from './boolean';
+import {
+  $String,
+} from './string';
+import {
+  $AnyNonEmpty,
+  CompletionType,
+  $AnyObject,
+} from './_shared';
+import {
+  $PropertyDescriptor,
+} from './property-descriptor';
+import {
+  $Number,
+} from './number';
+import {
+  $DefinePropertyOrThrow,
+} from '../operations';
+import {
+  $Symbol,
+} from './symbol';
+import {
+  Intrinsics,
+} from '../intrinsics';
+import {
+  $Undefined,
+} from './undefined';
+import {
+  ExecutionContext,
+  Realm,
+} from '../realm';
+import {
+  $Null,
+} from './null';
+import {
+  $TypeError,
+  $Error,
+} from './error';
+import {
+  $FunctionDeclaration,
+  $FunctionExpression,
+  $ArrowFunction,
+  $ConstructorDeclaration,
+} from '../ast/functions';
+import {
+  $MethodDeclaration,
+  $GetAccessorDeclaration,
+  $SetAccessorDeclaration,
+} from '../ast/methods';
+import {
+  $SourceFile,
+} from '../ast/modules';
 
 // http://www.ecma-international.org/ecma-262/#table-6
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects

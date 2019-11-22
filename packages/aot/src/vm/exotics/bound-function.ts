@@ -1,9 +1,24 @@
-import { $Object } from '../types/object';
-import { $Function } from '../types/function';
-import { $AnyNonError, $AnyNonEmpty, $AnyObject } from '../types/_shared';
-import { Realm, ExecutionContext } from '../realm';
-import { $Call, $Construct } from '../operations';
-import { $Error } from '../types/error';
+import {
+  $Object,
+} from '../types/object';
+import {
+  $Function,
+} from '../types/function';
+import {
+  $AnyNonEmpty,
+  $AnyObject,
+} from '../types/_shared';
+import {
+  Realm,
+  ExecutionContext,
+} from '../realm';
+import {
+  $Call,
+  $Construct,
+} from '../operations';
+import {
+  $Error,
+} from '../types/error';
 
 // http://www.ecma-international.org/ecma-262/#sec-bound-function-exotic-objects
 export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObject'> {

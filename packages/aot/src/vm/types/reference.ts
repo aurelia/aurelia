@@ -1,15 +1,43 @@
-import { Realm, ExecutionContext } from '../realm';
-import { $Object } from './object';
-import { $Boolean } from './boolean';
-import { $String } from './string';
-import { $Symbol } from './symbol';
-import { $Number } from './number';
-import { $EnvRec } from './environment-record';
-import { $Undefined } from './undefined';
-import { $AnyNonEmpty, $AnyObject } from './_shared';
-import { $Empty } from './empty';
-import { $Set } from '../operations';
-import { $TypeError, $ReferenceError, $Error } from './error';
+import {
+  Realm,
+  ExecutionContext,
+} from '../realm';
+import {
+  $Object,
+} from './object';
+import {
+  $Boolean,
+} from './boolean';
+import {
+  $String,
+} from './string';
+import {
+  $Symbol,
+} from './symbol';
+import {
+  $Number,
+} from './number';
+import {
+  $EnvRec,
+} from './environment-record';
+import {
+  $Undefined,
+} from './undefined';
+import {
+  $AnyNonEmpty,
+  $AnyObject,
+} from './_shared';
+import {
+  $Empty,
+} from './empty';
+import {
+  $Set,
+} from '../operations';
+import {
+  $TypeError,
+  $ReferenceError,
+  $Error,
+} from './error';
 
 
 // http://www.ecma-international.org/ecma-262/#sec-reference-specification-type

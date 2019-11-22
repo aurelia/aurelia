@@ -1,14 +1,39 @@
-import { $Object } from '../types/object';
-import { $Null } from '../types/null';
-import { $Number } from '../types/number';
-import { $String } from '../types/string';
-import { Realm, ExecutionContext } from '../realm';
-import { $PropertyKey, $AnyNonEmpty, $AnyObject } from '../types/_shared';
-import { $PropertyDescriptor } from '../types/property-descriptor';
-import { $Undefined } from '../types/undefined';
-import { $Boolean } from '../types/boolean';
-import { $Error } from '../types/error';
-import { $List } from '../types/list';
+import {
+  $Object,
+} from '../types/object';
+import {
+  $Null,
+} from '../types/null';
+import {
+  $Number,
+} from '../types/number';
+import {
+  $String,
+} from '../types/string';
+import {
+  Realm,
+  ExecutionContext,
+} from '../realm';
+import {
+  $PropertyKey,
+  $AnyNonEmpty,
+  $AnyObject,
+} from '../types/_shared';
+import {
+  $PropertyDescriptor,
+} from '../types/property-descriptor';
+import {
+  $Undefined,
+} from '../types/undefined';
+import {
+  $Boolean,
+} from '../types/boolean';
+import {
+  $Error,
+} from '../types/error';
+import {
+  $List,
+} from '../types/list';
 
 // http://www.ecma-international.org/ecma-262/#sec-integer-indexed-exotic-objects
 export class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticObject'> {

@@ -1,8 +1,19 @@
-import { ILogger } from '@aurelia/kernel';
-import { $Any } from './types/_shared'
-import { Realm, ExecutionContext } from './realm';
-import { $Empty } from './types/empty';
-import { $SourceFile } from './ast/modules';
+import {
+  ILogger,
+} from '@aurelia/kernel';
+import {
+  $Any,
+} from './types/_shared'
+import {
+  Realm,
+  ExecutionContext,
+} from './realm';
+import {
+  $Empty,
+} from './types/empty';
+import {
+  $SourceFile,
+} from './ast/modules';
 
 // http://www.ecma-international.org/ecma-262/#table-25
 export abstract class Job {

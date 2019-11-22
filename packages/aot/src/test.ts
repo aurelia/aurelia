@@ -1,11 +1,29 @@
 /* eslint-disable import/no-nodejs-modules */
-import { DebugConfiguration } from '@aurelia/debug';
-import { resolve } from 'path';
-import { Realm } from './vm/realm';
-import { DI, LoggerConfiguration, LogLevel, ColorOptions, Registration } from '@aurelia/kernel';
-import { IFileSystem } from './system/interfaces';
-import { NodeFileSystem } from './system/file-system';
-import { ServiceHost } from './service-host';
+import {
+  DebugConfiguration,
+} from '@aurelia/debug';
+import {
+  resolve,
+} from 'path';
+import {
+  Realm,
+} from './vm/realm';
+import {
+  DI,
+  LoggerConfiguration,
+  LogLevel,
+  ColorOptions,
+  Registration,
+} from '@aurelia/kernel';
+import {
+  IFileSystem,
+} from './system/interfaces';
+import {
+  NodeFileSystem,
+} from './system/file-system';
+import {
+  ServiceHost,
+} from './service-host';
 
 (async function () {
   DebugConfiguration.register();

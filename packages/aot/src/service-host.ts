@@ -1,21 +1,67 @@
-import { IContainer, ILogger, Writable, Registration } from '@aurelia/kernel';
+import {
+  IContainer,
+  ILogger,
+  Writable,
+  Registration,
+} from '@aurelia/kernel';
 
-import { basename, dirname } from 'path';
-import { createSourceFile, ScriptTarget } from 'typescript';
-import { JSDOM } from 'jsdom';
+import {
+  basename,
+  dirname,
+} from 'path';
+import {
+  createSourceFile,
+  ScriptTarget,
+} from 'typescript';
+import {
+  JSDOM,
+} from 'jsdom';
 
-import { IFileSystem, IFile, FileKind, $CompilerOptions } from './system/interfaces';
-import { normalizePath, isRelativeModulePath, joinPath, resolvePath } from './system/path-utils';
-import { NPMPackage, NPMPackageLoader } from './system/npm-package-loader';
-import { File } from './system/file-system';
+import {
+  IFileSystem,
+  IFile,
+  FileKind,
+  $CompilerOptions,
+} from './system/interfaces';
+import {
+  normalizePath,
+  isRelativeModulePath,
+  joinPath,
+  resolvePath,
+} from './system/path-utils';
+import {
+  NPMPackage,
+  NPMPackageLoader,
+} from './system/npm-package-loader';
+import {
+  File,
+} from './system/file-system';
 
-import { IModule, DeferredModule, ExecutionContext } from './vm/realm';
-import { $SourceFile, $DocumentFragment } from './vm/ast/modules';
-import { $String } from './vm/types/string';
-import { PatternMatcher } from './system/pattern-matcher';
-import { ISourceFileProvider, Agent } from './vm/agent';
-import { $Any } from './vm/types/_shared';
-import { $Error } from './vm/types/error';
+import {
+  IModule,
+  DeferredModule,
+  ExecutionContext,
+} from './vm/realm';
+import {
+  $SourceFile,
+  $DocumentFragment,
+} from './vm/ast/modules';
+import {
+  $String,
+} from './vm/types/string';
+import {
+  PatternMatcher,
+} from './system/pattern-matcher';
+import {
+  ISourceFileProvider,
+  Agent,
+} from './vm/agent';
+import {
+  $Any,
+} from './vm/types/_shared';
+import {
+  $Error,
+} from './vm/types/error';
 
 function comparePathLength(a: { path: { length: number } }, b: { path: { length: number } }): number {
   return a.path.length - b.path.length;

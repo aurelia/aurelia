@@ -1,17 +1,48 @@
 /* eslint-disable */
-import { IModule, Realm, ExecutionContext } from '../realm';
-import { $DefinePropertyOrThrow, $Set, $HasOwnProperty } from '../operations';
-import { $PropertyDescriptor } from './property-descriptor';
-import { $AnyNonError, $AnyNonEmpty, $AnyObject } from './_shared';
-import { $String } from './string';
-import { $Null } from './null';
-import { $Boolean } from './boolean';
-import { $Empty } from './empty';
-import { $Undefined } from './undefined';
-import { $Object } from './object';
-import { $Function } from './function';
-import { ILogger } from '@aurelia/kernel';
-import { $Error, $TypeError, $ReferenceError } from './error';
+import {
+  IModule,
+  Realm,
+  ExecutionContext,
+} from '../realm';
+import {
+  $DefinePropertyOrThrow,
+  $Set,
+  $HasOwnProperty,
+} from '../operations';
+import {
+  $PropertyDescriptor,
+} from './property-descriptor';
+import {
+  $AnyNonError,
+  $AnyNonEmpty,
+  $AnyObject,
+} from './_shared';
+import {
+  $String,
+} from './string';
+import {
+  $Null,
+} from './null';
+import {
+  $Boolean,
+} from './boolean';
+import {
+  $Empty,
+} from './empty';
+import {
+  $Undefined,
+} from './undefined';
+import {
+  $Function,
+} from './function';
+import {
+  ILogger,
+} from '@aurelia/kernel';
+import {
+  $Error,
+  $TypeError,
+  $ReferenceError,
+} from './error';
 
 export type $EnvRec = (
   $DeclarativeEnvRec |

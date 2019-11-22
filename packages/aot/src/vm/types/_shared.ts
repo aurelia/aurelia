@@ -1,22 +1,59 @@
 /* eslint-disable */
-import { $Undefined } from './undefined';
-import { $Null } from './null';
-import { $Boolean } from './boolean';
-import { $String } from './string';
-import { $Symbol } from './symbol';
-import { $Number } from './number';
-import { $Empty } from './empty';
-import { $Object } from './object';
-import { $Function, $BuiltinFunction } from './function';
-import { $BoundFunctionExoticObject } from '../exotics/bound-function';
-import { $ArrayExoticObject } from '../exotics/array';
-import { $ProxyExoticObject } from '../exotics/proxy';
-import { $ImmutablePrototypeExoticObject } from '../exotics/immutable-prototype';
-import { $NamespaceExoticObject } from '../exotics/namespace';
-import { $StringExoticObject } from '../exotics/string';
-import { $IntegerIndexedExoticObject } from '../exotics/integer-indexed';
-import { $ArgumentsExoticObject } from '../exotics/arguments';
-import { $Error } from './error';
+import {
+  $Undefined,
+} from './undefined';
+import {
+  $Null,
+} from './null';
+import {
+  $Boolean,
+} from './boolean';
+import {
+  $String,
+} from './string';
+import {
+  $Symbol,
+} from './symbol';
+import {
+  $Number,
+} from './number';
+import {
+  $Empty,
+} from './empty';
+import {
+  $Object,
+} from './object';
+import {
+  $Function,
+  $BuiltinFunction,
+} from './function';
+import {
+  $BoundFunctionExoticObject,
+} from '../exotics/bound-function';
+import {
+  $ArrayExoticObject,
+} from '../exotics/array';
+import {
+  $ProxyExoticObject,
+} from '../exotics/proxy';
+import {
+  $ImmutablePrototypeExoticObject,
+} from '../exotics/immutable-prototype';
+import {
+  $NamespaceExoticObject,
+} from '../exotics/namespace';
+import {
+  $StringExoticObject,
+} from '../exotics/string';
+import {
+  $IntegerIndexedExoticObject,
+} from '../exotics/integer-indexed';
+import {
+  $ArgumentsExoticObject,
+} from '../exotics/arguments';
+import {
+  $Error,
+} from './error';
 
 export const enum CompletionType {
   normal   = 1,

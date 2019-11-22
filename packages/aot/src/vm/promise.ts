@@ -1,10 +1,27 @@
-import { $Object } from './types/object';
-import { $Function, $BuiltinFunction } from './types/function';
-import { ExecutionContext, Realm } from './realm';
-import { $AnyNonEmpty, $AnyObject } from './types/_shared';
-import { $Undefined } from './types/undefined';
-import { $IteratorRecord } from './iteration';
-import { $Error } from './types/error';
+import {
+  $Object,
+} from './types/object';
+import {
+  $Function,
+  $BuiltinFunction,
+} from './types/function';
+import {
+  ExecutionContext,
+  Realm,
+} from './realm';
+import {
+  $AnyNonEmpty,
+  $AnyObject,
+} from './types/_shared';
+import {
+  $Undefined,
+} from './types/undefined';
+import {
+  $IteratorRecord,
+} from './iteration';
+import {
+  $Error,
+} from './types/error';
 
 // http://www.ecma-international.org/ecma-262/#sec-promise-abstract-operations
 // #region 25.6.1 Promise Abstract Operation

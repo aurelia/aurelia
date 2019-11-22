@@ -1,5 +1,9 @@
-import { DI } from '@aurelia/kernel';
-import { CompilerOptions } from 'typescript';
+import {
+  DI,
+} from '@aurelia/kernel';
+import {
+  CompilerOptions,
+} from 'typescript';
 
 export const enum Encoding {
   utf8 = 'utf8',

@@ -1,10 +1,27 @@
 /* eslint-disable import/no-nodejs-modules */
-import { ILogger, PLATFORM, IContainer } from '@aurelia/kernel';
-import { Char } from '@aurelia/jit';
-import { IFileSystem, IFile } from './interfaces';
-import { normalizePath, joinPath } from './path-utils';
-import { basename, dirname } from 'path';
-import { Package } from './package-types';
+import {
+  ILogger,
+  PLATFORM,
+  IContainer,
+} from '@aurelia/kernel';
+import {
+  Char,
+} from '@aurelia/jit';
+import {
+  IFileSystem,
+  IFile,
+} from './interfaces';
+import {
+  normalizePath,
+  joinPath,
+} from './path-utils';
+import {
+  basename,
+  dirname,
+} from 'path';
+import {
+  Package,
+} from './package-types';
 
 function countSlashes(path: string): number {
   let count = 0;

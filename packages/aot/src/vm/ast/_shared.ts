@@ -1,46 +1,31 @@
 /* eslint-disable */
 import {
-  ArrayBindingElement,
-  ArrayBindingPattern,
   ArrayLiteralExpression,
   ArrowFunction,
   AsExpression,
   AwaitExpression,
   BigIntLiteral,
   BinaryExpression,
-  BindingElement,
   BindingName,
   Block,
   BooleanLiteral,
   BreakStatement,
   CallExpression,
-  CaseBlock,
-  CaseClause,
-  CatchClause,
   ClassDeclaration,
   ClassExpression,
-  CompilerOptions,
-  ComputedPropertyName,
   ConditionalExpression,
   ConstructorDeclaration,
   ContinueStatement,
-  createIdentifier,
-  createSourceFile,
   DebuggerStatement,
   Decorator,
-  DefaultClause,
   DeleteExpression,
   DoStatement,
   ElementAccessExpression,
   EmptyStatement,
   EnumDeclaration,
-  EnumMember,
   ExportAssignment,
   ExportDeclaration,
-  ExportSpecifier,
   ExpressionStatement,
-  ExpressionWithTypeArguments,
-  ExternalModuleReference,
   ForInStatement,
   ForOfStatement,
   ForStatement,
@@ -50,46 +35,25 @@ import {
   HeritageClause,
   Identifier,
   IfStatement,
-  ImportClause,
   ImportDeclaration,
   ImportEqualsDeclaration,
-  ImportSpecifier,
   InterfaceDeclaration,
-  JsxAttribute,
-  JsxAttributes,
-  JsxChild,
-  JsxClosingElement,
-  JsxClosingFragment,
   JsxElement,
-  JsxExpression,
   JsxFragment,
-  JsxOpeningElement,
-  JsxOpeningFragment,
   JsxSelfClosingElement,
-  JsxSpreadAttribute,
-  JsxTagNameExpression,
-  JsxText,
   LabeledStatement,
   MetaProperty,
   MethodDeclaration,
   Modifier,
   ModifierFlags,
-  ModuleBlock,
   ModuleDeclaration,
-  NamedExports,
-  NamedImports,
   NamespaceExportDeclaration,
-  NamespaceImport,
   NewExpression,
   Node,
-  NodeArray,
-  NodeFlags,
   NonNullExpression,
   NoSubstitutionTemplateLiteral,
   NullLiteral,
   NumericLiteral,
-  ObjectBindingPattern,
-  ObjectLiteralElementLike,
   ObjectLiteralExpression,
   OmittedExpression,
   ParameterDeclaration,
@@ -97,18 +61,12 @@ import {
   PostfixUnaryExpression,
   PrefixUnaryExpression,
   PropertyAccessExpression,
-  PropertyAssignment,
   PropertyDeclaration,
   PropertyName,
-  QualifiedName,
   RegularExpressionLiteral,
   ReturnStatement,
-  ScriptTarget,
   SemicolonClassElement,
   SetAccessorDeclaration,
-  ShorthandPropertyAssignment,
-  SourceFile,
-  SpreadAssignment,
   SpreadElement,
   StringLiteral,
   SuperExpression,
@@ -116,155 +74,176 @@ import {
   SyntaxKind,
   TaggedTemplateExpression,
   TemplateExpression,
-  TemplateHead,
-  TemplateMiddle,
-  TemplateSpan,
-  TemplateTail,
   ThisExpression,
   ThrowStatement,
-  tokenToString,
   TryStatement,
   TypeAliasDeclaration,
   TypeAssertion,
   TypeOfExpression,
-  VariableDeclaration,
-  VariableDeclarationList,
   VariableStatement,
   VoidExpression,
   WhileStatement,
   WithStatement,
   YieldExpression,
   Statement,
-  Expression,
-  createConstructor,
-  createParameter,
-  createToken,
-  createBlock,
-  createExpressionStatement,
-  createCall,
-  createSuper,
-  createSpread,
 } from 'typescript';
 import {
   PLATFORM,
   Writable,
-  ILogger,
 } from '@aurelia/kernel';
 import {
-  IFile,
-  $CompilerOptions,
-} from '../../system/interfaces';
-import {
-  NPMPackage,
-} from '../../system/npm-package-loader';
-import {
-  IModule,
-  ResolveSet,
-  ResolvedBindingRecord,
   Realm,
   ExecutionContext,
 } from '../realm';
 import {
-  PatternMatcher,
-} from '../../system/pattern-matcher';
-import {
-  $ModuleEnvRec,
-  $EnvRec,
   $DeclarativeEnvRec,
-  $FunctionEnvRec,
 } from '../types/environment-record';
-import {
-  $AbstractRelationalComparison,
-  $InstanceOfOperator,
-  $AbstractEqualityComparison,
-  $StrictEqualityComparison,
-  $Call,
-  $Construct,
-  $DefinePropertyOrThrow,
-} from '../operations';
-import {
-  $NamespaceExoticObject,
-} from '../exotics/namespace';
-import {
-  $String,
-} from '../types/string';
-import {
-  $Undefined,
-} from '../types/undefined';
 import {
   $Function,
 } from '../types/function';
 import {
   $Any,
-  CompletionType,
   $AnyNonEmpty,
-  $PropertyKey,
-  $AnyObject,
-  $AnyNonError,
 } from '../types/_shared';
 import {
-  $Object,
-} from '../types/object';
+  $$TSModuleItem,
+  $ExportSpecifier,
+  $ExternalModuleReference,
+  $ImportClause,
+  $ImportSpecifier,
+  $ModuleBlock,
+  $NamedImports,
+  $NamespaceImport,
+  $QualifiedName,
+  $ModuleDeclaration,
+  $ExportAssignment,
+  $ExportDeclaration,
+  $ImportDeclaration,
+  $ImportEqualsDeclaration,
+} from './modules';
 import {
-  $Reference,
-} from '../types/reference';
+  $ArrayBindingPattern,
+  $BindingElement,
+  $ComputedPropertyName,
+  $ObjectBindingPattern,
+  $SpreadElement,
+  $$NamedDeclaration,
+} from './bindings';
 import {
-  $Number,
-} from '../types/number';
+  $ArrayLiteralExpression,
+  $AsExpression,
+  $AwaitExpression,
+  $BinaryExpression,
+  $CallExpression,
+  $ConditionalExpression,
+  $Decorator,
+  $DeleteExpression,
+  $ElementAccessExpression,
+  $MetaProperty,
+  $NewExpression,
+  $NonNullExpression,
+  $ObjectLiteralExpression,
+  $ParenthesizedExpression,
+  $PostfixUnaryExpression,
+  $PrefixUnaryExpression,
+  $PropertyAccessExpression,
+  $PropertyAssignment,
+  $ShorthandPropertyAssignment,
+  $SpreadAssignment,
+  $TaggedTemplateExpression,
+  $TemplateExpression,
+  $TypeAssertion,
+  $TypeOfExpression,
+  $VoidExpression,
+  $YieldExpression,
+  $Identifier,
+  $ThisExpression,
+  $SuperExpression,
+} from './expressions';
 import {
-  $Null,
-} from '../types/null';
+  $ArrowFunction,
+  $ConstructorDeclaration,
+  $FunctionExpression,
+  $ParameterDeclaration,
+  $FunctionDeclaration,
+} from './functions';
 import {
-  $Boolean,
-} from '../types/boolean';
+  $Block,
+  $BreakStatement,
+  $CaseBlock,
+  $CaseClause,
+  $CatchClause,
+  $ContinueStatement,
+  $DefaultClause,
+  $DoStatement,
+  $ExpressionStatement,
+  $ForInStatement,
+  $ForOfStatement,
+  $ForStatement,
+  $IfStatement,
+  $LabeledStatement,
+  $ReturnStatement,
+  $SwitchStatement,
+  $ThrowStatement,
+  $TryStatement,
+  $VariableDeclaration,
+  $VariableDeclarationList,
+  $WhileStatement,
+  $WithStatement,
+  $VariableStatement,
+  $EmptyStatement,
+  $DebuggerStatement,
+  DirectivePrologue,
+  ExpressionStatement_T,
+} from './statements';
 import {
-  $Empty,
-  empty,
-} from '../types/empty';
+  $ClassExpression,
+  $ExpressionWithTypeArguments,
+  $HeritageClause,
+  $PropertyDeclaration,
+  $ClassDeclaration,
+  $$NodeWithHeritageClauses,
+  $SemicolonClassElement,
+} from './classes';
 import {
-  $CreateUnmappedArgumentsObject,
-  $ArgumentsExoticObject,
-} from '../exotics/arguments';
+  $EnumMember,
+  $InterfaceDeclaration,
+  $TypeAliasDeclaration,
+  $EnumDeclaration,
+} from './types';
 import {
-  $CreateListIteratorRecord,
-  $IteratorRecord,
-  $IteratorStep,
-  $IteratorValue,
-  $GetIterator,
-  $IteratorClose,
-} from '../iteration';
+  $GetAccessorDeclaration,
+  $MethodDeclaration,
+  $SetAccessorDeclaration,
+} from './methods';
 import {
-  IModuleResolver,
-} from '../../service-host';
+  $JsxAttribute,
+  $JsxAttributes,
+  $JsxClosingElement,
+  $JsxElement,
+  $JsxExpression,
+  $JsxFragment,
+  $JsxOpeningElement,
+  $JsxSelfClosingElement,
+  $JsxSpreadAttribute,
+  $$JsxParent,
+} from './jsx';
 import {
-  $TypeError,
-  $Error,
-  $SyntaxError,
-} from '../types/error';
+  $SourceFile,
+} from './modules';
 import {
-  $ArrayExoticObject,
-} from '../exotics/array';
-import {
-  $List,
-} from '../types/list';
-import {
-  $PropertyDescriptor,
-} from '../types/property-descriptor';
-import { $$TSModuleItem, $ExportSpecifier, $ExternalModuleReference, $ImportClause, $ImportSpecifier, $ModuleBlock, $NamedImports, $NamespaceImport, $QualifiedName, $ModuleDeclaration, $ExportAssignment, $ExportDeclaration, $ImportDeclaration, $ImportEqualsDeclaration } from './modules';
-import { $ArrayBindingPattern, $BindingElement, $ComputedPropertyName, $ObjectBindingPattern, $SpreadElement, $$NamedDeclaration } from './bindings';
-import { $ArrayLiteralExpression, $AsExpression, $AwaitExpression, $BinaryExpression, $CallExpression, $ConditionalExpression, $Decorator, $DeleteExpression, $ElementAccessExpression, $MetaProperty, $NewExpression, $NonNullExpression, $ObjectLiteralExpression, $ParenthesizedExpression, $PostfixUnaryExpression, $PrefixUnaryExpression, $PropertyAccessExpression, $PropertyAssignment, $ShorthandPropertyAssignment, $SpreadAssignment, $TaggedTemplateExpression, $TemplateExpression, $TypeAssertion, $TypeOfExpression, $VoidExpression, $YieldExpression, $Identifier, $ThisExpression, $SuperExpression } from './expressions';
-import { $ArrowFunction, $ConstructorDeclaration, $FunctionExpression, $ParameterDeclaration, $FunctionDeclaration } from './functions';
-import { $Block, $BreakStatement, $CaseBlock, $CaseClause, $CatchClause, $ContinueStatement, $DefaultClause, $DoStatement, $ExpressionStatement, $ForInStatement, $ForOfStatement, $ForStatement, $IfStatement, $LabeledStatement, $ReturnStatement, $SwitchStatement, $ThrowStatement, $TryStatement, $VariableDeclaration, $VariableDeclarationList, $WhileStatement, $WithStatement, $VariableStatement, $EmptyStatement, $DebuggerStatement, DirectivePrologue, ExpressionStatement_T } from './statements';
-import { $ClassExpression, $ExpressionWithTypeArguments, $HeritageClause, $PropertyDeclaration, $ClassDeclaration, $$NodeWithHeritageClauses, $SemicolonClassElement } from './classes';
-import { $EnumMember, $InterfaceDeclaration, $TypeAliasDeclaration, $EnumDeclaration } from './types';
-import { $GetAccessorDeclaration, $MethodDeclaration, $SetAccessorDeclaration } from './methods';
-import { $JsxAttribute, $JsxAttributes, $JsxClosingElement, $JsxElement, $JsxExpression, $JsxFragment, $JsxOpeningElement, $JsxSelfClosingElement, $JsxSpreadAttribute, $$JsxParent } from './jsx';
-import { $SourceFile } from './modules';
-import { $TemplateSpan, $BigIntLiteral, $BooleanLiteral, $NoSubstitutionTemplateLiteral, $NullLiteral, $NumericLiteral, $RegularExpressionLiteral, $StringLiteral } from './literals';
+  $TemplateSpan,
+  $BigIntLiteral,
+  $BooleanLiteral,
+  $NoSubstitutionTemplateLiteral,
+  $NullLiteral,
+  $NumericLiteral,
+  $RegularExpressionLiteral,
+  $StringLiteral,
+} from './literals';
 
 const {
   emptyArray,
-  emptyObject,
 } = PLATFORM;
 
 // #region TS AST unions
@@ -1139,7 +1118,6 @@ export function evaluateStatementList(
     sl = sl.UpdateEmpty(s);
   }
 
-  var e = intrinsics.empty.UpdateEmpty(intrinsics.NaN)
   return sl;
 }
 

@@ -1,16 +1,56 @@
-import { nextValueId, $PropertyKey, $AnyNonError, $Primitive, compareIndices, PotentialNonEmptyCompletionType, CompletionTarget, CompletionType, $AnyNonEmpty, $AnyObject, $Any } from './_shared';
-import { $PropertyDescriptor } from './property-descriptor';
-import { $Null } from './null';
-import { $Boolean } from './boolean';
-import { Realm, ExecutionContext } from '../realm';
-import { $String } from './string';
-import { $Number } from './number';
-import { $Call, $ValidateAndApplyPropertyDescriptor, $OrdinarySetWithOwnDescriptor } from '../operations';
-import { $Function } from './function';
-import { $Undefined } from './undefined';
-import { $Symbol } from './symbol';
-import { $TypeError, $Error } from './error';
-import { $List } from './list';
+import {
+  nextValueId,
+  $PropertyKey,
+  $AnyNonError,
+  $Primitive,
+  compareIndices,
+  PotentialNonEmptyCompletionType,
+  CompletionTarget,
+  CompletionType,
+  $AnyNonEmpty,
+  $AnyObject,
+  $Any,
+} from './_shared';
+import {
+  $PropertyDescriptor,
+} from './property-descriptor';
+import {
+  $Null,
+} from './null';
+import {
+  $Boolean,
+} from './boolean';
+import {
+  Realm,
+  ExecutionContext,
+} from '../realm';
+import {
+  $String,
+} from './string';
+import {
+  $Number,
+} from './number';
+import {
+  $Call,
+  $ValidateAndApplyPropertyDescriptor,
+  $OrdinarySetWithOwnDescriptor,
+} from '../operations';
+import {
+  $Function,
+} from './function';
+import {
+  $Undefined,
+} from './undefined';
+import {
+  $Symbol,
+} from './symbol';
+import {
+  $TypeError,
+  $Error,
+} from './error';
+import {
+  $List,
+} from './list';
 
 // http://www.ecma-international.org/ecma-262/#sec-object-type
 export class $Object<

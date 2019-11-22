@@ -1,26 +1,74 @@
 /* eslint-disable */
-import { ILogger, IContainer } from '@aurelia/kernel';
-import { IFileSystem, IFile } from '../system/interfaces';
-import { Intrinsics } from './intrinsics';
-import { $EnvRec, $ModuleEnvRec, $GlobalEnvRec, $FunctionEnvRec, $DeclarativeEnvRec } from './types/environment-record';
-import { $PropertyDescriptor } from './types/property-descriptor';
-import { $DefinePropertyOrThrow } from './operations';
-import { $String } from './types/string';
-import { $Undefined } from './types/undefined';
-import { $Object } from './types/object';
-import { $Reference } from './types/reference';
-import { $AnyNonEmpty } from './types/_shared';
-import { $Function } from './types/function';
-import { $Null } from './types/null';
-import { $Boolean } from './types/boolean';
-import { $Error } from './types/error';
-import { $NamespaceExoticObject } from './exotics/namespace';
-import { $Empty } from './types/empty';
-import { $List } from './types/list';
-import { $Number } from './types/number';
-import { I$Node } from './ast/_shared';
-import { $TemplateExpression, $TaggedTemplateExpression } from './ast/expressions';
-import { $SourceFile } from './ast/modules';
+import {
+  ILogger,
+  IContainer,
+} from '@aurelia/kernel';
+import {
+  IFileSystem,
+  IFile,
+} from '../system/interfaces';
+import {
+  Intrinsics,
+} from './intrinsics';
+import {
+  $EnvRec,
+  $ModuleEnvRec,
+  $GlobalEnvRec,
+  $FunctionEnvRec,
+  $DeclarativeEnvRec,
+} from './types/environment-record';
+import {
+  $PropertyDescriptor,
+} from './types/property-descriptor';
+import {
+  $DefinePropertyOrThrow,
+} from './operations';
+import {
+  $String,
+} from './types/string';
+import {
+  $Undefined,
+} from './types/undefined';
+import {
+  $Object,
+} from './types/object';
+import {
+  $Reference,
+} from './types/reference';
+import {
+  $AnyNonEmpty,
+} from './types/_shared';
+import {
+  $Function,
+} from './types/function';
+import {
+  $Null,
+} from './types/null';
+import {
+  $Boolean,
+} from './types/boolean';
+import {
+  $Error,
+} from './types/error';
+import {
+  $NamespaceExoticObject,
+} from './exotics/namespace';
+import {
+  $List,
+} from './types/list';
+import {
+  $Number,
+} from './types/number';
+import {
+  I$Node,
+} from './ast/_shared';
+import {
+  $TemplateExpression,
+  $TaggedTemplateExpression,
+} from './ast/expressions';
+import {
+  $SourceFile,
+} from './ast/modules';
 
 export class ResolveSet {
   private readonly modules: IModule[] = [];

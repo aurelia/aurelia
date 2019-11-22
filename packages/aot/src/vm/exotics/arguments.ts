@@ -1,18 +1,54 @@
-import { $Object } from '../types/object';
-import { Realm, ExecutionContext } from '../realm';
-import { $Function, $BuiltinFunction } from '../types/function';
+import {
+  $Object,
+} from '../types/object';
+import {
+  Realm,
+  ExecutionContext,
+} from '../realm';
+import {
+  $Function,
+  $BuiltinFunction,
+} from '../types/function';
 
-import { $PropertyKey, $AnyNonEmpty, $AnyObject } from '../types/_shared';
-import { $EnvRec } from '../types/environment-record';
-import { $CreateDataProperty, $DefinePropertyOrThrow, $HasOwnProperty, $Set } from '../operations';
-import { $String } from '../types/string';
-import { $PropertyDescriptor, $IsDataDescriptor } from '../types/property-descriptor';
-import { $Number } from '../types/number';
-import { $Undefined } from '../types/undefined';
-import { $Boolean } from '../types/boolean';
-import { $Error } from '../types/error';
-import { $ParameterDeclaration } from '../ast/functions';
-import { getBoundNames } from '../ast/_shared';
+import {
+  $PropertyKey,
+  $AnyNonEmpty,
+  $AnyObject,
+} from '../types/_shared';
+import {
+  $EnvRec,
+} from '../types/environment-record';
+import {
+  $CreateDataProperty,
+  $DefinePropertyOrThrow,
+  $HasOwnProperty,
+  $Set,
+} from '../operations';
+import {
+  $String,
+} from '../types/string';
+import {
+  $PropertyDescriptor,
+  $IsDataDescriptor,
+} from '../types/property-descriptor';
+import {
+  $Number,
+} from '../types/number';
+import {
+  $Undefined,
+} from '../types/undefined';
+import {
+  $Boolean,
+} from '../types/boolean';
+import {
+  $Error,
+} from '../types/error';
+import {
+  $ParameterDeclaration,
+} from '../ast/functions';
+import {
+  getBoundNames,
+} from '../ast/_shared';
 
 
 // http://www.ecma-international.org/ecma-262/#sec-arguments-exotic-objects

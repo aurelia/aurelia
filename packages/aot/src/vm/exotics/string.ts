@@ -1,13 +1,36 @@
-import { $Object } from '../types/object';
-import { $String } from '../types/string';
-import { Realm, ExecutionContext } from '../realm';
-import { $DefinePropertyOrThrow, $ValidateAndApplyPropertyDescriptor } from '../operations';
-import { $PropertyDescriptor } from '../types/property-descriptor';
-import { $Number } from '../types/number';
-import { $PropertyKey, $AnyObject } from '../types/_shared';
-import { $Undefined } from '../types/undefined';
-import { $Boolean } from '../types/boolean';
-import { $List } from '../types/list';
+import {
+  $Object,
+} from '../types/object';
+import {
+  $String,
+} from '../types/string';
+import {
+  Realm,
+  ExecutionContext,
+} from '../realm';
+import {
+  $DefinePropertyOrThrow,
+  $ValidateAndApplyPropertyDescriptor,
+} from '../operations';
+import {
+  $PropertyDescriptor,
+} from '../types/property-descriptor';
+import {
+  $Number,
+} from '../types/number';
+import {
+  $PropertyKey,
+  $AnyObject,
+} from '../types/_shared';
+import {
+  $Undefined,
+} from '../types/undefined';
+import {
+  $Boolean,
+} from '../types/boolean';
+import {
+  $List,
+} from '../types/list';
 
 // http://www.ecma-international.org/ecma-262/#sec-string-exotic-objects
 export class $StringExoticObject extends $Object<'StringExoticObject'> {

@@ -1,10 +1,35 @@
 /* eslint-disable */
-import { nextValueId, $AnyNonError, Int32, Uint32, Int16, Uint16, Int8, Uint8, Uint8Clamp, CompletionType, PotentialNonEmptyCompletionType, CompletionTarget, $Any } from './_shared';
-import { Realm, ExecutionContext } from '../realm';
-import { $Object } from './object';
-import { $String } from './string';
-import { $Number } from './number';
-import { $BooleanLiteral } from '../ast/literals';
+import {
+  nextValueId,
+  $AnyNonError,
+  Int32,
+  Uint32,
+  Int16,
+  Uint16,
+  Int8,
+  Uint8,
+  Uint8Clamp,
+  CompletionType,
+  PotentialNonEmptyCompletionType,
+  CompletionTarget,
+  $Any,
+} from './_shared';
+import {
+  Realm,
+  ExecutionContext,
+} from '../realm';
+import {
+  $Object,
+} from './object';
+import {
+  $String,
+} from './string';
+import {
+  $Number,
+} from './number';
+import {
+  $BooleanLiteral,
+} from '../ast/literals';
 
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-boolean-type
 export class $Boolean<T extends boolean = boolean> {

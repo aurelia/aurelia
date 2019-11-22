@@ -1,5 +1,15 @@
-import { nextValueId, CompletionTarget, CompletionType, $AnyNonError, PotentialNonEmptyCompletionType, $Any } from './_shared';
-import { Realm, ExecutionContext } from '../realm';
+import {
+  nextValueId,
+  CompletionTarget,
+  CompletionType,
+  $AnyNonError,
+  PotentialNonEmptyCompletionType,
+  $Any,
+} from './_shared';
+import {
+  Realm,
+  ExecutionContext,
+} from '../realm';
 
 export abstract class $Error<T extends Error = Error, N extends string = string> {
   public readonly '<$Error>': unknown;

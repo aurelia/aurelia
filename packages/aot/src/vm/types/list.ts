@@ -1,4 +1,6 @@
-import { $AnyNonEmpty } from './_shared';
+import {
+  $AnyNonEmpty,
+} from './_shared';
 
 export class $List<T extends $AnyNonEmpty = $AnyNonEmpty> extends Array<T> {
   public get isAbrupt(): false { return false; }

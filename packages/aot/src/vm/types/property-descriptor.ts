@@ -1,9 +1,23 @@
-import { Realm, ExecutionContext } from '../realm';
-import { $Boolean } from './boolean';
-import { $Undefined } from './undefined';
-import { $Empty } from './empty';
-import { $Function } from './function';
-import { $AnyNonError, $PropertyKey } from './_shared';
+import {
+  Realm,
+  ExecutionContext,
+} from '../realm';
+import {
+  $Boolean,
+} from './boolean';
+import {
+  $Undefined,
+} from './undefined';
+import {
+  $Empty,
+} from './empty';
+import {
+  $Function,
+} from './function';
+import {
+  $AnyNonError,
+  $PropertyKey,
+} from './_shared';
 
 let descriptorId = 0;
 

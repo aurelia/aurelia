@@ -1,14 +1,44 @@
-import { ExecutionContext, Realm } from './realm';
-import { $Object } from './types/object';
-import { $Function, $BuiltinFunction } from './types/function';
-import { $Boolean } from './types/boolean';
-import { $AnyNonError, $AnyNonEmpty, CompletionType, $AnyObject } from './types/_shared';
-import { $CreateDataProperty, $Call, $DefinePropertyOrThrow } from './operations';
-import { $Number } from './types/number';
-import { $Undefined } from './types/undefined';
-import { $TypeError, $Error } from './types/error';
-import { $String } from './types/string';
-import { $PropertyDescriptor } from './types/property-descriptor';
+import {
+  ExecutionContext,
+  Realm,
+} from './realm';
+import {
+  $Object,
+} from './types/object';
+import {
+  $Function,
+  $BuiltinFunction,
+} from './types/function';
+import {
+  $Boolean,
+} from './types/boolean';
+import {
+  $AnyNonError,
+  $AnyNonEmpty,
+  CompletionType,
+  $AnyObject,
+} from './types/_shared';
+import {
+  $CreateDataProperty,
+  $Call,
+  $DefinePropertyOrThrow,
+} from './operations';
+import {
+  $Number,
+} from './types/number';
+import {
+  $Undefined,
+} from './types/undefined';
+import {
+  $TypeError,
+  $Error,
+} from './types/error';
+import {
+  $String,
+} from './types/string';
+import {
+  $PropertyDescriptor,
+} from './types/property-descriptor';
 
 // http://www.ecma-international.org/ecma-262/#sec-getiterator
 export function $GetIterator(

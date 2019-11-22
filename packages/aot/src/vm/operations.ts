@@ -1,17 +1,49 @@
 /* eslint-disable */
-import { Realm, ExecutionContext } from './realm';
-import { $PropertyDescriptor } from './types/property-descriptor';
-import { $BoundFunctionExoticObject } from './exotics/bound-function';
-import { $ProxyExoticObject } from './exotics/proxy';
-import { $PropertyKey, $Primitive, ESType, $AnyNonEmpty, $AnyObject } from './types/_shared';
-import { $Function } from './types/function';
-import { $Boolean } from './types/boolean';
-import { $Undefined } from './types/undefined';
-import { $Null } from './types/null';
-import { $String } from './types/string';
-import { $TypeError, $Error } from './types/error';
-import { $Object } from './types/object';
-import { $List } from './types/list';
+import {
+  Realm,
+  ExecutionContext,
+} from './realm';
+import {
+  $PropertyDescriptor,
+} from './types/property-descriptor';
+import {
+  $BoundFunctionExoticObject,
+} from './exotics/bound-function';
+import {
+  $ProxyExoticObject,
+} from './exotics/proxy';
+import {
+  $PropertyKey,
+  $Primitive,
+  ESType,
+  $AnyNonEmpty,
+  $AnyObject,
+} from './types/_shared';
+import {
+  $Function,
+} from './types/function';
+import {
+  $Boolean,
+} from './types/boolean';
+import {
+  $Undefined,
+} from './types/undefined';
+import {
+  $Null,
+} from './types/null';
+import {
+  $String,
+} from './types/string';
+import {
+  $TypeError,
+  $Error,
+} from './types/error';
+import {
+  $Object,
+} from './types/object';
+import {
+  $List,
+} from './types/list';
 
 // http://www.ecma-international.org/ecma-262/#sec-set-o-p-v-throw
 export function $Set(

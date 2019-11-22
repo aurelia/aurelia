@@ -1,14 +1,42 @@
-import { $Object } from '../types/object';
-import { IModule, ResolveSet, ResolvedBindingRecord, ExecutionContext } from '../realm';
-import { $String } from '../types/string';
-import { Realm } from '../realm';
-import { $Boolean } from '../types/boolean';
-import { $SetImmutablePrototype } from '../operations';
-import { $PropertyKey, $AnyNonError, $AnyNonEmpty, $AnyObject } from '../types/_shared';
-import { $PropertyDescriptor } from '../types/property-descriptor';
-import { $Undefined } from '../types/undefined';
-import { $Error, $ReferenceError } from '../types/error';
-import { $List } from '../types/list';
+import {
+  $Object,
+} from '../types/object';
+import {
+  IModule,
+  ResolveSet,
+  ResolvedBindingRecord,
+  ExecutionContext,
+} from '../realm';
+import {
+  $String,
+} from '../types/string';
+import {
+  Realm,
+} from '../realm';
+import {
+  $Boolean,
+} from '../types/boolean';
+import {
+  $SetImmutablePrototype,
+} from '../operations';
+import {
+  $PropertyKey,
+  $AnyNonEmpty,
+  $AnyObject,
+} from '../types/_shared';
+import {
+  $PropertyDescriptor,
+} from '../types/property-descriptor';
+import {
+  $Undefined,
+} from '../types/undefined';
+import {
+  $Error,
+  $ReferenceError,
+} from '../types/error';
+import {
+  $List,
+} from '../types/list';
 
 // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects
 export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {

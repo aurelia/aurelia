@@ -1,15 +1,32 @@
 /* eslint-disable */
-import { nextValueId, $AnyNonError, ESType, $Primitive, PotentialEmptyCompletionType, CompletionTarget, CompletionType, $AnyNonEmpty, $Any } from './_shared';
-import { Realm, ExecutionContext } from '../realm';
-import { $Object } from './object';
-import { $String } from './string';
-import { $Number } from './number';
-import { $Boolean } from './boolean';
-import { $TypeError } from './error';
-import { $SourceFile } from '../ast/modules';
-import { $ComputedPropertyName } from '../ast/bindings';
-import { $ContinueStatement, $BreakStatement } from '../ast/statements';
-import { $FunctionDeclaration } from '../ast/functions';
+import {
+  nextValueId,
+  $AnyNonError,
+  PotentialEmptyCompletionType,
+  CompletionTarget,
+  CompletionType,
+  $Any,
+} from './_shared';
+import {
+  Realm,
+  ExecutionContext,
+} from '../realm';
+import {
+  $TypeError,
+} from './error';
+import {
+  $SourceFile,
+} from '../ast/modules';
+import {
+  $ComputedPropertyName,
+} from '../ast/bindings';
+import {
+  $ContinueStatement,
+  $BreakStatement,
+} from '../ast/statements';
+import {
+  $FunctionDeclaration,
+} from '../ast/functions';
 
 export interface empty { '<empty>': unknown }
 export const empty = Symbol('empty') as unknown as empty;

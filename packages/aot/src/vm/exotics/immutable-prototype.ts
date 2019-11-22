@@ -1,9 +1,22 @@
-import { $Object } from '../types/object';
-import { $Null } from '../types/null';
-import { Realm, ExecutionContext } from '../realm';
-import { $Boolean } from '../types/boolean';
-import { $Error } from '../types/error';
-import { $AnyObject } from '../types/_shared';
+import {
+  $Object,
+} from '../types/object';
+import {
+  $Null,
+} from '../types/null';
+import {
+  Realm,
+  ExecutionContext,
+} from '../realm';
+import {
+  $Boolean,
+} from '../types/boolean';
+import {
+  $Error,
+} from '../types/error';
+import {
+  $AnyObject,
+} from '../types/_shared';
 
 // http://www.ecma-international.org/ecma-262/#sec-string-exotic-objects
 export class $ImmutablePrototypeExoticObject extends $Object<'ImmutablePrototypeExoticObject'> {

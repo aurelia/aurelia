@@ -1,141 +1,15 @@
 /* eslint-disable */
 import {
-  ArrayBindingElement,
-  ArrayBindingPattern,
-  ArrayLiteralExpression,
-  ArrowFunction,
-  AsExpression,
-  AwaitExpression,
-  BigIntLiteral,
-  BinaryExpression,
-  BindingElement,
-  BindingName,
-  Block,
-  BooleanLiteral,
-  BreakStatement,
-  CallExpression,
-  CaseBlock,
-  CaseClause,
-  CatchClause,
   ClassDeclaration,
   ClassExpression,
-  CompilerOptions,
-  ComputedPropertyName,
-  ConditionalExpression,
-  ConstructorDeclaration,
-  ContinueStatement,
   createIdentifier,
-  createSourceFile,
-  DebuggerStatement,
-  Decorator,
-  DefaultClause,
-  DeleteExpression,
-  DoStatement,
-  ElementAccessExpression,
-  EmptyStatement,
-  EnumDeclaration,
-  EnumMember,
-  ExportAssignment,
-  ExportDeclaration,
-  ExportSpecifier,
-  ExpressionStatement,
   ExpressionWithTypeArguments,
-  ExternalModuleReference,
-  ForInStatement,
-  ForOfStatement,
-  ForStatement,
-  FunctionDeclaration,
-  FunctionExpression,
-  GetAccessorDeclaration,
   HeritageClause,
-  Identifier,
-  IfStatement,
-  ImportClause,
-  ImportDeclaration,
-  ImportEqualsDeclaration,
-  ImportSpecifier,
-  InterfaceDeclaration,
-  JsxAttribute,
-  JsxAttributes,
-  JsxChild,
-  JsxClosingElement,
-  JsxClosingFragment,
-  JsxElement,
-  JsxExpression,
-  JsxFragment,
-  JsxOpeningElement,
-  JsxOpeningFragment,
-  JsxSelfClosingElement,
-  JsxSpreadAttribute,
-  JsxTagNameExpression,
-  JsxText,
-  LabeledStatement,
-  MetaProperty,
-  MethodDeclaration,
-  Modifier,
   ModifierFlags,
-  ModuleBlock,
-  ModuleDeclaration,
-  NamedExports,
-  NamedImports,
-  NamespaceExportDeclaration,
-  NamespaceImport,
-  NewExpression,
-  Node,
   NodeArray,
-  NodeFlags,
-  NonNullExpression,
-  NoSubstitutionTemplateLiteral,
-  NullLiteral,
-  NumericLiteral,
-  ObjectBindingPattern,
-  ObjectLiteralElementLike,
-  ObjectLiteralExpression,
-  OmittedExpression,
-  ParameterDeclaration,
-  ParenthesizedExpression,
-  PostfixUnaryExpression,
-  PrefixUnaryExpression,
-  PropertyAccessExpression,
-  PropertyAssignment,
   PropertyDeclaration,
-  PropertyName,
-  QualifiedName,
-  RegularExpressionLiteral,
-  ReturnStatement,
-  ScriptTarget,
   SemicolonClassElement,
-  SetAccessorDeclaration,
-  ShorthandPropertyAssignment,
-  SourceFile,
-  SpreadAssignment,
-  SpreadElement,
-  StringLiteral,
-  SuperExpression,
-  SwitchStatement,
   SyntaxKind,
-  TaggedTemplateExpression,
-  TemplateExpression,
-  TemplateHead,
-  TemplateMiddle,
-  TemplateSpan,
-  TemplateTail,
-  ThisExpression,
-  ThrowStatement,
-  tokenToString,
-  TryStatement,
-  TypeAliasDeclaration,
-  TypeAssertion,
-  TypeOfExpression,
-  VariableDeclaration,
-  VariableDeclarationList,
-  VariableStatement,
-  VoidExpression,
-  WhileStatement,
-  WithStatement,
-  YieldExpression,
-  Statement,
-  Expression,
   createConstructor,
   createParameter,
   createToken,
@@ -147,44 +21,15 @@ import {
 } from 'typescript';
 import {
   PLATFORM,
-  Writable,
   ILogger,
 } from '@aurelia/kernel';
 import {
-  IFile,
-  $CompilerOptions,
-} from '../../system/interfaces';
-import {
-  NPMPackage,
-} from '../../system/npm-package-loader';
-import {
-  IModule,
-  ResolveSet,
-  ResolvedBindingRecord,
   Realm,
   ExecutionContext,
 } from '../realm';
 import {
-  PatternMatcher,
-} from '../../system/pattern-matcher';
-import {
-  $ModuleEnvRec,
-  $EnvRec,
   $DeclarativeEnvRec,
-  $FunctionEnvRec,
 } from '../types/environment-record';
-import {
-  $AbstractRelationalComparison,
-  $InstanceOfOperator,
-  $AbstractEqualityComparison,
-  $StrictEqualityComparison,
-  $Call,
-  $Construct,
-  $DefinePropertyOrThrow,
-} from '../operations';
-import {
-  $NamespaceExoticObject,
-} from '../exotics/namespace';
 import {
   $String,
 } from '../types/string';
@@ -196,57 +41,21 @@ import {
 } from '../types/function';
 import {
   $Any,
-  CompletionType,
-  $AnyNonEmpty,
-  $PropertyKey,
-  $AnyObject,
-  $AnyNonError,
 } from '../types/_shared';
 import {
   $Object,
 } from '../types/object';
 import {
-  $Reference,
-} from '../types/reference';
-import {
-  $Number,
-} from '../types/number';
-import {
   $Null,
 } from '../types/null';
-import {
-  $Boolean,
-} from '../types/boolean';
 import {
   $Empty,
   empty,
 } from '../types/empty';
 import {
-  $CreateUnmappedArgumentsObject,
-  $ArgumentsExoticObject,
-} from '../exotics/arguments';
-import {
-  $CreateListIteratorRecord,
-  $IteratorRecord,
-  $IteratorStep,
-  $IteratorValue,
-  $GetIterator,
-  $IteratorClose,
-} from '../iteration';
-import {
-  IModuleResolver,
-} from '../../service-host';
-import {
   $TypeError,
   $Error,
-  $SyntaxError,
 } from '../types/error';
-import {
-  $ArrayExoticObject,
-} from '../exotics/array';
-import {
-  $List,
-} from '../types/list';
 import {
   $PropertyDescriptor,
 } from '../types/property-descriptor';
@@ -266,23 +75,6 @@ import {
   $assignmentExpression,
   $AssignmentExpressionNode,
   $$TSDeclaration,
-  $$BindingName,
-  $$bindingName,
-  getBoundNames,
-  getVarDeclaredNames,
-  getVarScopedDeclarations,
-  $$TSStatementListItem,
-  $$tsStatementList,
-  $StatementNode,
-  blockDeclarationInstantiation,
-  evaluateStatementList,
-  $$ESStatement,
-  $$esStatement,
-  evaluateStatement,
-  $$ESLabelledItem,
-  $$esLabelledItem,
-  getLexicallyDeclaredNames,
-  getLexicallyScopedDeclarations,
   $$LHSExpressionOrHigher,
   $LHSExpression,
   $LHSExpressionNode,
@@ -302,9 +94,6 @@ import {
   $Identifier, $Decorator,
 } from './expressions';
 import {
-  $ObjectBindingPattern,
-} from './bindings';
-import {
   $InterfaceDeclaration,
 } from './types';
 import {
@@ -313,7 +102,6 @@ import {
 
 const {
   emptyArray,
-  emptyObject,
 } = PLATFORM;
 
 

@@ -1,13 +1,48 @@
-import { nextValueId, $AnyNonError, Int32, Uint32, Int16, Uint16, Int8, Uint8, Uint8Clamp, PotentialNonEmptyCompletionType, CompletionTarget, CompletionType, $Any } from './_shared';
-import { Realm, ExecutionContext } from '../realm';
-import { $Object } from './object';
-import { $String } from './string';
-import { $Number } from './number';
-import { $Boolean } from './boolean';
-import { $TypeError, $Error } from './error';
-import { $SourceFile, $ExportSpecifier, $ImportSpecifier, $ImportClause, $ImportDeclaration } from '../ast/modules';
-import { $FunctionDeclaration } from '../ast/functions';
-import { $ClassDeclaration } from '../ast/classes';
+import {
+  nextValueId,
+  $AnyNonError,
+  Int32,
+  Uint32,
+  Int16,
+  Uint16,
+  Int8,
+  Uint8,
+  Uint8Clamp,
+  PotentialNonEmptyCompletionType,
+  CompletionTarget,
+  CompletionType,
+  $Any,
+} from './_shared';
+import {
+  Realm,
+  ExecutionContext,
+} from '../realm';
+import {
+  $String,
+} from './string';
+import {
+  $Number,
+} from './number';
+import {
+  $Boolean,
+} from './boolean';
+import {
+  $TypeError,
+  $Error,
+} from './error';
+import {
+  $SourceFile,
+  $ExportSpecifier,
+  $ImportSpecifier,
+  $ImportClause,
+  $ImportDeclaration,
+} from '../ast/modules';
+import {
+  $FunctionDeclaration,
+} from '../ast/functions';
+import {
+  $ClassDeclaration,
+} from '../ast/classes';
 
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-undefined-type
 export class $Undefined {

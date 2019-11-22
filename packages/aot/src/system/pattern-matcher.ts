@@ -1,6 +1,15 @@
-import { ILogger, IContainer } from '@aurelia/kernel';
-import { joinPath, resolvePath } from './path-utils';
-import { IFile, $CompilerOptions } from './interfaces';
+import {
+  ILogger,
+  IContainer,
+} from '@aurelia/kernel';
+import {
+  joinPath,
+  resolvePath,
+} from './path-utils';
+import {
+  IFile,
+  $CompilerOptions,
+} from './interfaces';
 
 const lookup: WeakMap<$CompilerOptions, PatternMatcher | null> = new WeakMap();
 

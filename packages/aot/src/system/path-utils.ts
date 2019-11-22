@@ -1,6 +1,11 @@
 /* eslint-disable import/no-nodejs-modules */
-import { join, resolve } from 'path';
-import { Char } from '@aurelia/jit';
+import {
+  join,
+  resolve,
+} from 'path';
+import {
+  Char,
+} from '@aurelia/jit';
 
 export const normalizePath = (function () {
   const cache: Record<string, string | undefined> = Object.create(null);

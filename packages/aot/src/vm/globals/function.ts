@@ -27,18 +27,10 @@ import {
 // http://www.ecma-international.org/ecma-262/#sec-function-constructor
 export class $FunctionConstructor extends $BuiltinFunction<'%Function%'> {
   public get $prototype(): $FunctionPrototype {
-    return this.getProperty(
-      this.realm['[[Intrinsics]]'].$prototype,
-    )['[[Value]]'] as $FunctionPrototype;
+    return this.getProperty(this.realm['[[Intrinsics]]'].$prototype)['[[Value]]'] as $FunctionPrototype;
   }
   public set $prototype(value: $FunctionPrototype) {
-    this.setDataProperty(
-      this.realm['[[Intrinsics]]'].$prototype,
-      value,
-      false,
-      false,
-      false,
-    );
+    this.setDataProperty(this.realm['[[Intrinsics]]'].$prototype, value, false, false, false);
   }
 
   public constructor(
@@ -65,22 +57,18 @@ export class $FunctionConstructor extends $BuiltinFunction<'%Function%'> {
 // http://www.ecma-international.org/ecma-262/#sec-properties-of-the-function-prototype-object
 export class $FunctionPrototype extends $Object<'%FunctionPrototype%'> {
   public get $constructor(): $FunctionConstructor {
-    return this.getProperty(
-      this.realm['[[Intrinsics]]'].$constructor,
-    )['[[Value]]'] as $FunctionConstructor;
+    return this.getProperty(this.realm['[[Intrinsics]]'].$constructor)['[[Value]]'] as $FunctionConstructor;
   }
   public set $constructor(value: $FunctionConstructor) {
-    this.setDataProperty(
-      this.realm['[[Intrinsics]]'].$constructor,
-      value,
-    );
+    this.setDataProperty(this.realm['[[Intrinsics]]'].$constructor, value);
   }
 
   public constructor(
     realm: Realm,
     objectPrototype: $ObjectPrototype,
   ) {
-    super(realm, '%FunctionPrototype%', objectPrototype, CompletionType.normal, realm['[[Intrinsics]]'].empty);
+    const intrinsics = realm['[[Intrinsics]]'];
+    super(realm, '%FunctionPrototype%', objectPrototype, CompletionType.normal, intrinsics.empty);
   }
 }
 

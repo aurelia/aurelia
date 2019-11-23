@@ -38,6 +38,7 @@ import {
 import {
   $ObjectConstructor,
   $ObjectPrototype,
+  $ObjProto_toString,
 } from './globals/object';
 import {
   $FunctionPrototype,
@@ -347,7 +348,7 @@ export class Intrinsics {
   public readonly '%ArrayProto_forEach%': $Object<'%ArrayProto_forEach%'>;
   public readonly '%ArrayProto_keys%': $Object<'%ArrayProto_keys%'>;
   public readonly '%ArrayProto_values%': $Object<'%ArrayProto_values%'>;
-  public readonly '%ObjProto_toString%': $Object<'%ObjProto_toString%'>;
+  public readonly '%ObjProto_toString%': $ObjProto_toString;
   public readonly '%ObjProto_valueOf%': $Object<'%ObjProto_valueOf%'>;
   public readonly '%PromiseProto_then%': $Object<'%PromiseProto_then%'>;
   public readonly '%Promise_all%': $Object<'%Promise_all%'>;
@@ -434,6 +435,8 @@ export class Intrinsics {
 
     const functionConstructor = this['%Function%'] = new $FunctionConstructor(realm, functionPrototype);
     (functionConstructor.$prototype = functionPrototype).$constructor = functionConstructor;
+
+    objectPrototype.$toString = this['%ObjProto_toString%'] = new $ObjProto_toString(realm, 'Object.prototype.toString', functionPrototype);
 
     this['%BooleanPrototype%'] = new $Object(realm, '%BooleanPrototype%', objectPrototype, CompletionType.normal, empty);
     this['%NumberPrototype%'] = new $Object(realm, '%NumberPrototype%', objectPrototype, CompletionType.normal, empty);

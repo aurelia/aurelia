@@ -34,18 +34,10 @@ import {
 // http://www.ecma-international.org/ecma-262/#sec-object-constructor
 export class $ObjectConstructor extends $BuiltinFunction<'%Object%'> {
   public get $prototype(): $ObjectPrototype {
-    return this.getProperty(
-      this.realm['[[Intrinsics]]'].$prototype,
-    )['[[Value]]'] as $ObjectPrototype;
+    return this.getProperty(this.realm['[[Intrinsics]]'].$prototype)['[[Value]]'] as $ObjectPrototype;
   }
   public set $prototype(value: $ObjectPrototype) {
-    this.setDataProperty(
-      this.realm['[[Intrinsics]]'].$prototype,
-      value,
-      false,
-      false,
-      false,
-    );
+    this.setDataProperty(this.realm['[[Intrinsics]]'].$prototype, value, false, false, false);
   }
 
   public constructor(
@@ -84,22 +76,24 @@ export class $ObjectConstructor extends $BuiltinFunction<'%Object%'> {
 // http://www.ecma-international.org/ecma-262/#sec-properties-of-the-object-prototype-object
 export class $ObjectPrototype extends $Object<'%ObjectPrototype%'> {
   public get $constructor(): $ObjectConstructor {
-    return this.getProperty(
-      this.realm['[[Intrinsics]]'].$constructor,
-    )['[[Value]]'] as $ObjectConstructor;
+    return this.getProperty(this.realm['[[Intrinsics]]'].$constructor)['[[Value]]'] as $ObjectConstructor;
   }
   public set $constructor(value: $ObjectConstructor) {
-    this.setDataProperty(
-      this.realm['[[Intrinsics]]'].$constructor,
-      value,
-    );
+    this.setDataProperty(this.realm['[[Intrinsics]]'].$constructor, value);
+  }
+
+  public get $toString(): $ObjProto_toString {
+    return this.getProperty(this.realm['[[Intrinsics]]'].$toString)['[[Value]]'] as $ObjProto_toString;
+  }
+  public set $toString(value: $ObjProto_toString) {
+    this.setDataProperty(this.realm['[[Intrinsics]]'].$toString, value);
   }
 
   public constructor(
     realm: Realm,
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
-    super(realm, '%ObjectPrototype%', intrinsics.null, CompletionType.normal, realm['[[Intrinsics]]'].empty);
+    super(realm, '%ObjectPrototype%', intrinsics.null, CompletionType.normal, intrinsics.empty);
   }
 }
 

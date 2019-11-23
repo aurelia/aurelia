@@ -755,6 +755,23 @@ export class $ClassDeclaration implements I$Node {
     // 7. Return value.
     return value;
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-class-definitions-runtime-semantics-evaluation
+  public Evaluate(
+    ctx: ExecutionContext,
+  ): $Empty | $Error {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // ClassDeclaration : class BindingIdentifier ClassTail
+
+    // 1. Perform ? BindingClassDeclarationEvaluation of this ClassDeclaration.
+    const $EvaluateBindingClassDeclarationResult = this.EvaluateBindingClassDeclaration(ctx);
+    if ($EvaluateBindingClassDeclarationResult.isAbrupt) { return $EvaluateBindingClassDeclarationResult; }
+
+    // 2. Return NormalCompletion(empty).
+    return intrinsics.empty;
+  }
 }
 
 export class $PropertyDeclaration implements I$Node {

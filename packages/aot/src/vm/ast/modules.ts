@@ -1263,7 +1263,7 @@ export class $SourceFile implements I$Node, IModule {
           sl = $statement.Evaluate(ctx);
           break;
         case SyntaxKind.ClassDeclaration:
-          // sl = $statement.Evaluate(ctx);
+          sl = $statement.Evaluate(ctx);
           break;
         case SyntaxKind.InterfaceDeclaration:
           // sl = $statement.Evaluate(ctx);

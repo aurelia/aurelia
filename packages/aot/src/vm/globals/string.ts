@@ -1,25 +1,27 @@
 import {
-  $BuiltinFunction, $GetPrototypeFromConstructor, $Function
-} from './types/function';
+  $BuiltinFunction,
+  $GetPrototypeFromConstructor,
+  $Function,
+} from '../types/function';
 import {
   Realm,
   ExecutionContext,
-} from './realm';
+} from '../realm';
 import {
   $AnyNonEmpty,
-} from './types/_shared';
+} from '../types/_shared';
 import {
   $Error,
-} from './types/error';
+} from '../types/error';
 import {
   $String,
-} from './types/string';
+} from '../types/string';
 import {
   $Undefined,
-} from './types/undefined';
+} from '../types/undefined';
 import {
   $StringExoticObject,
-} from './exotics/string';
+} from '../exotics/string';
 
 
 // http://www.ecma-international.org/ecma-262/#sec-string-constructor

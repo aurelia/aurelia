@@ -27,12 +27,14 @@ import {
   $Object,
 } from './types/object';
 import {
-  $Function, $BuiltinFunction,
+  $Function,
 } from './types/function';
 import {
   $IteratorPrototype,
 } from './iteration';
-import { $StringConstructor } from './text';
+import {
+  $StringConstructor,
+} from './globals/string';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;

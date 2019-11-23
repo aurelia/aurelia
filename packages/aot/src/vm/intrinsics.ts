@@ -35,6 +35,7 @@ import {
 import {
   $StringConstructor,
 } from './globals/string';
+import { $ObjectConstructor } from './globals/object';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
@@ -469,7 +470,7 @@ export class Intrinsics {
     this['%TypeErrorPrototype%'] = new $Object(realm, '%TypeErrorPrototype%', this['%ErrorPrototype%']);
     this['%URIErrorPrototype%'] = new $Object(realm, '%URIErrorPrototype%', this['%ErrorPrototype%']);
 
-    this['%Object%'] = new $Object(realm, '%Object%', this['%FunctionPrototype%']);
+    this['%Object%'] = new $ObjectConstructor(realm);
     this['%Boolean%'] = new $Object(realm, '%Boolean%', this['%FunctionPrototype%']);
     this['%Number%'] = new $Object(realm, '%Number%', this['%FunctionPrototype%']);
     this['%String%'] = new $StringConstructor(realm);

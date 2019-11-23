@@ -441,7 +441,7 @@ export class $Function<
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-ordinarycreatefromconstructor
-function $OrdinaryCreateFromConstructor<T extends keyof Intrinsics = keyof Intrinsics, TSlots extends {} = {}>(
+export function $OrdinaryCreateFromConstructor<T extends keyof Intrinsics = keyof Intrinsics, TSlots extends {} = {}>(
   ctx: ExecutionContext,
   constructor: $AnyObject,
   intrinsicDefaultProto: T,

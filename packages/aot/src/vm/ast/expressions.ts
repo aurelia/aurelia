@@ -94,6 +94,7 @@ import {
 import {
   $TypeError,
   $Error,
+  $ReferenceError,
 } from '../types/error';
 import {
   $ArrayExoticObject,
@@ -1534,46 +1535,144 @@ export class $PrefixUnaryExpression implements I$Node {
     const intrinsics = realm['[[Intrinsics]]'];
 
     this.logger.debug(`Evaluate(#${ctx.id})`);
-    // http://www.ecma-international.org/ecma-262/#sec-prefix-increment-operator-runtime-semantics-evaluation
 
-    // UpdateExpression : ++ UnaryExpression
+    switch (this.node.operator) {
+      case SyntaxKind.PlusPlusToken: {
+        // http://www.ecma-international.org/ecma-262/#sec-prefix-increment-operator-runtime-semantics-evaluation
 
-    // 1. Let expr be the result of evaluating UnaryExpression.
-    // 2. Let oldValue be ? ToNumber(? GetValue(expr)).
-    // 3. Let newValue be the result of adding the value 1 to oldValue, using the same rules as for the + operator (see 12.8.5).
-    // 4. Perform ? PutValue(expr, newValue).
-    // 5. Return newValue.
+        // UpdateExpression : ++ UnaryExpression
 
+        // 1. Let expr be the result of evaluating UnaryExpression.
+        const expr = this.$operand.Evaluate(ctx);
+        if (expr.isAbrupt) { return expr; }
 
-    // http://www.ecma-international.org/ecma-262/#sec-prefix-decrement-operator-runtime-semantics-evaluation
+        // 2. Let oldValue be ? ToNumber(? GetValue(expr)).
+        const $oldValue = expr.GetValue(ctx);
+        if ($oldValue.isAbrupt) { return $oldValue; }
+        const oldValue = $oldValue.ToNumber(ctx);
+        if (oldValue.isAbrupt) { return oldValue; }
 
-    // UpdateExpression : -- UnaryExpression
+        // 3. Let newValue be the result of adding the value 1 to oldValue, using the same rules as for the + operator (see 12.8.5).
+        const newValue = new $Number(realm, oldValue['[[Value]]'] + 1);
 
-    // 1. Let expr be the result of evaluating UnaryExpression.
-    // 2. Let oldValue be ? ToNumber(? GetValue(expr)).
-    // 3. Let newValue be the result of subtracting the value 1 from oldValue, using the same rules as for the - operator (see 12.8.5).
-    // 4. Perform ? PutValue(expr, newValue).
-    // 5. Return newValue.
+        // 4. Perform ? PutValue(expr, newValue).
+        if (!(expr instanceof $Reference)) {
+          return new $ReferenceError(realm);
+        }
+        const $PutValueResult = expr.PutValue(ctx, newValue);
+        if ($PutValueResult.isAbrupt) { return $PutValueResult; }
 
+        // 5. Return newValue.
+        return newValue;
+      }
+      case SyntaxKind.MinusMinusToken: {
+        // http://www.ecma-international.org/ecma-262/#sec-prefix-decrement-operator-runtime-semantics-evaluation
 
-    // http://www.ecma-international.org/ecma-262/#sec-unary-plus-operator-runtime-semantics-evaluation
+        // UpdateExpression : -- UnaryExpression
 
-    // UnaryExpression : + UnaryExpression
+        // 1. Let expr be the result of evaluating UnaryExpression.
+        const expr = this.$operand.Evaluate(ctx);
+        if (expr.isAbrupt) { return expr; }
 
-    // 1. Let expr be the result of evaluating UnaryExpression.
-    // 2. Return ? ToNumber(? GetValue(expr)).
+        // 2. Let oldValue be ? ToNumber(? GetValue(expr)).
+        const $oldValue = expr.GetValue(ctx);
+        if ($oldValue.isAbrupt) { return $oldValue; }
+        const oldValue = $oldValue.ToNumber(ctx);
+        if (oldValue.isAbrupt) { return oldValue; }
 
+        // 3. Let newValue be the result of subtracting the value 1 from oldValue, using the same rules as for the - operator (see 12.8.5).
+        const newValue = new $Number(realm, oldValue['[[Value]]'] - 1);
 
-    // http://www.ecma-international.org/ecma-262/#sec-unary-minus-operator-runtime-semantics-evaluation
+        // 4. Perform ? PutValue(expr, newValue).
+        if (!(expr instanceof $Reference)) {
+          return new $ReferenceError(realm);
+        }
+        const $PutValueResult = expr.PutValue(ctx, newValue);
+        if ($PutValueResult.isAbrupt) { return $PutValueResult; }
 
-    // UnaryExpression : - UnaryExpression
+        // 5. Return newValue.
+        return newValue;
+      }
+      case SyntaxKind.PlusToken: {
+        // http://www.ecma-international.org/ecma-262/#sec-unary-plus-operator-runtime-semantics-evaluation
 
-    // 1. Let expr be the result of evaluating UnaryExpression.
-    // 2. Let oldValue be ? ToNumber(? GetValue(expr)).
-    // 3. If oldValue is NaN, return NaN.
-    // 4. Return the result of negating oldValue; that is, compute a Number with the same magnitude but opposite sign.
+        // UnaryExpression : + UnaryExpression
 
-    return intrinsics.undefined; // TODO: implement this
+        // 1. Let expr be the result of evaluating UnaryExpression.
+        const expr = this.$operand.Evaluate(ctx);
+        if (expr.isAbrupt) { return expr; }
+
+        // 2. Return ? ToNumber(? GetValue(expr)).
+        const $value = expr.GetValue(ctx);
+        if ($value.isAbrupt) { return $value; }
+        const value = $value.ToNumber(ctx);
+        if (value.isAbrupt) { return value; }
+      }
+      case SyntaxKind.MinusToken: {
+        // http://www.ecma-international.org/ecma-262/#sec-unary-minus-operator-runtime-semantics-evaluation
+
+        // UnaryExpression : - UnaryExpression
+
+        // 1. Let expr be the result of evaluating UnaryExpression.
+        const expr = this.$operand.Evaluate(ctx);
+        if (expr.isAbrupt) { return expr; }
+
+        // 2. Let oldValue be ? ToNumber(? GetValue(expr)).
+        const $oldValue = expr.GetValue(ctx);
+        if ($oldValue.isAbrupt) { return $oldValue; }
+        const oldValue = $oldValue.ToNumber(ctx);
+        if (oldValue.isAbrupt) { return oldValue; }
+
+        // 3. If oldValue is NaN, return NaN.
+        if (oldValue.isNaN) {
+          return oldValue;
+        }
+
+        // 4. Return the result of negating oldValue; that is, compute a Number with the same magnitude but opposite sign.
+        return new $Number(realm, -oldValue['[[Value]]']);
+      }
+      case SyntaxKind.TildeToken: {
+        // http://www.ecma-international.org/ecma-262/#sec-bitwise-not-operator-runtime-semantics-evaluation
+
+        // UnaryExpression : ~ UnaryExpression
+
+        // 1. Let expr be the result of evaluating UnaryExpression.
+        const expr = this.$operand.Evaluate(ctx);
+        if (expr.isAbrupt) { return expr; }
+
+        // 2. Let oldValue be ? ToInt32(? GetValue(expr)).
+        const $oldValue = expr.GetValue(ctx);
+        if ($oldValue.isAbrupt) { return $oldValue; }
+        const oldValue = $oldValue.ToInt32(ctx);
+        if (oldValue.isAbrupt) { return oldValue; }
+
+        // 3. Return the result of applying bitwise complement to oldValue. The result is a signed 32-bit integer.
+        return new $Number(realm, ~oldValue['[[Value]]']);
+      }
+      case SyntaxKind.ExclamationToken: {
+        // http://www.ecma-international.org/ecma-262/#sec-logical-not-operator-runtime-semantics-evaluation
+
+        // UnaryExpression : ! UnaryExpression
+
+        // 1. Let expr be the result of evaluating UnaryExpression.
+        const expr = this.$operand.Evaluate(ctx);
+        if (expr.isAbrupt) { return expr; }
+
+        // 2. Let oldValue be ToBoolean(? GetValue(expr)).
+        const $oldValue = expr.GetValue(ctx);
+        if ($oldValue.isAbrupt) { return $oldValue; }
+        const oldValue = $oldValue.ToBoolean(ctx);
+        if (oldValue.isAbrupt) { return oldValue; }
+
+        // 3. If oldValue is true, return false.
+        if (oldValue.isTruthy) {
+          return intrinsics.false;
+        }
+
+        // 4. Return true.
+        return intrinsics.true;
+      }
+    }
   }
 }
 

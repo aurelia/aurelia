@@ -32,19 +32,26 @@ import {
 
 // http://www.ecma-international.org/ecma-262/#sec-object-constructor
 export class $ObjectConstructor extends $BuiltinFunction<'%Object%'> {
-  public readonly $prototype: $ObjectPrototype;
+  public get $prototype(): $ObjectPrototype {
+    return this.getProperty(
+      this.realm['[[Intrinsics]]'].$prototype,
+    )['[[Value]]'] as $ObjectPrototype;
+  }
+  public set $prototype(value: $ObjectPrototype) {
+    this.setDataProperty(
+      this.realm['[[Intrinsics]]'].$prototype,
+      value,
+      false,
+      false,
+      false,
+    );
+  }
 
   public constructor(
     realm: Realm,
-    objectPrototype: $ObjectPrototype,
     functionPrototype: $FunctionPrototype,
   ) {
-    const intrinsics = realm['[[Intrinsics]]'];
-
     super(realm, '%Object%', functionPrototype);
-
-    this.setDataProperty(intrinsics.$prototype, this.$prototype = objectPrototype, false, false, false);
-    objectPrototype.setDataProperty(intrinsics.$constructor, objectPrototype.$constructor = this);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-value
@@ -75,7 +82,17 @@ export class $ObjectConstructor extends $BuiltinFunction<'%Object%'> {
 
 // http://www.ecma-international.org/ecma-262/#sec-properties-of-the-object-prototype-object
 export class $ObjectPrototype extends $Object<'%ObjectPrototype%'> {
-  public $constructor!: $ObjectConstructor;
+  public get $constructor(): $ObjectConstructor {
+    return this.getProperty(
+      this.realm['[[Intrinsics]]'].$constructor,
+    )['[[Value]]'] as $ObjectConstructor;
+  }
+  public set $constructor(value: $ObjectConstructor) {
+    this.setDataProperty(
+      this.realm['[[Intrinsics]]'].$constructor,
+      value,
+    );
+  }
 
   public constructor(
     realm: Realm,

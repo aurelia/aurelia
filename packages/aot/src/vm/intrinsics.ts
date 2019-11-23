@@ -425,8 +425,12 @@ export class Intrinsics {
 
     const objectPrototype = this['%ObjectPrototype%'] = new $ObjectPrototype(realm);
     const functionPrototype = this['%FunctionPrototype%'] = new $FunctionPrototype(realm, objectPrototype);
-    const objectConstructor = this['%Object%'] = new $ObjectConstructor(realm, objectPrototype, functionPrototype);
+
+    const objectConstructor = this['%Object%'] = new $ObjectConstructor(realm, functionPrototype);
+    (objectConstructor.$prototype = objectPrototype).$constructor = objectConstructor;
+
     const functionConstructor = this['%Function%'] = new $FunctionConstructor(realm, functionPrototype);
+    (functionConstructor.$prototype = functionPrototype).$constructor = functionConstructor;
 
     this['%BooleanPrototype%'] = new $Object(realm, '%BooleanPrototype%', objectPrototype);
     this['%NumberPrototype%'] = new $Object(realm, '%NumberPrototype%', objectPrototype);

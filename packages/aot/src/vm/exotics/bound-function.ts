@@ -7,6 +7,7 @@ import {
 import {
   $AnyNonEmpty,
   $AnyObject,
+  CompletionType,
 } from '../types/_shared';
 import {
   Realm,
@@ -46,7 +47,7 @@ export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObje
     // 6. If IsConstructor(targetFunction) is true, then
     // 6. a. Set obj.[[Construct]] as described in 9.4.1.2.
     // 7. Set obj.[[Prototype]] to proto.
-    super(realm, 'BoundFunctionExoticObject', proto);
+    super(realm, 'BoundFunctionExoticObject', proto, CompletionType.normal, realm['[[Intrinsics]]'].empty);
 
     // 8. Set obj.[[Extensible]] to true.
     // 9. Set obj.[[BoundTargetFunction]] to targetFunction.

@@ -43,6 +43,9 @@ import {
   $FunctionPrototype,
   $FunctionConstructor,
 } from './globals/function';
+import {
+  CompletionType,
+} from './types/_shared';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
@@ -355,7 +358,7 @@ export class Intrinsics {
   public constructor(realm: Realm) {
     realm['[[Intrinsics]]'] = this;
 
-    this['empty'] = new $Empty(realm);
+    const empty = this['empty'] = new $Empty(realm);
     this['undefined'] = new $Undefined(realm);
     this['null'] = new $Null(realm);
 
@@ -432,126 +435,126 @@ export class Intrinsics {
     const functionConstructor = this['%Function%'] = new $FunctionConstructor(realm, functionPrototype);
     (functionConstructor.$prototype = functionPrototype).$constructor = functionConstructor;
 
-    this['%BooleanPrototype%'] = new $Object(realm, '%BooleanPrototype%', objectPrototype);
-    this['%NumberPrototype%'] = new $Object(realm, '%NumberPrototype%', objectPrototype);
-    this['%StringPrototype%'] = new $Object(realm, '%StringPrototype%', objectPrototype);
-    this['%SymbolPrototype%'] = new $Object(realm, '%SymbolPrototype%', objectPrototype);
-    this['%PromisePrototype%'] = new $Object(realm, '%PromisePrototype%', objectPrototype);
-    this['%RegExpPrototype%'] = new $Object(realm, '%RegExpPrototype%', objectPrototype);
-    this['%DatePrototype%'] = new $Object(realm, '%DatePrototype%', objectPrototype);
+    this['%BooleanPrototype%'] = new $Object(realm, '%BooleanPrototype%', objectPrototype, CompletionType.normal, empty);
+    this['%NumberPrototype%'] = new $Object(realm, '%NumberPrototype%', objectPrototype, CompletionType.normal, empty);
+    this['%StringPrototype%'] = new $Object(realm, '%StringPrototype%', objectPrototype, CompletionType.normal, empty);
+    this['%SymbolPrototype%'] = new $Object(realm, '%SymbolPrototype%', objectPrototype, CompletionType.normal, empty);
+    this['%PromisePrototype%'] = new $Object(realm, '%PromisePrototype%', objectPrototype, CompletionType.normal, empty);
+    this['%RegExpPrototype%'] = new $Object(realm, '%RegExpPrototype%', objectPrototype, CompletionType.normal, empty);
+    this['%DatePrototype%'] = new $Object(realm, '%DatePrototype%', objectPrototype, CompletionType.normal, empty);
 
-    this['%AsyncFunctionPrototype%'] = new $Object(realm, '%AsyncFunctionPrototype%', functionPrototype);
+    this['%AsyncFunctionPrototype%'] = new $Object(realm, '%AsyncFunctionPrototype%', functionPrototype, CompletionType.normal, empty);
 
-    this['%Generator%'] = new $Object(realm, '%Generator%', functionPrototype);
-    this['%AsyncGenerator%'] = new $Object(realm, '%AsyncGenerator%', functionPrototype);
+    this['%Generator%'] = new $Object(realm, '%Generator%', functionPrototype, CompletionType.normal, empty);
+    this['%AsyncGenerator%'] = new $Object(realm, '%AsyncGenerator%', functionPrototype, CompletionType.normal, empty);
 
     this['%IteratorPrototype%'] = new $IteratorPrototype(realm);
-    this['%ArrayIteratorPrototype%'] = new $Object(realm, '%ArrayIteratorPrototype%', this['%IteratorPrototype%']);
-    this['%MapIteratorPrototype%'] = new $Object(realm, '%MapIteratorPrototype%', this['%IteratorPrototype%']);
-    this['%SetIteratorPrototype%'] = new $Object(realm, '%SetIteratorPrototype%', this['%IteratorPrototype%']);
-    this['%StringIteratorPrototype%'] = new $Object(realm, '%StringIteratorPrototype%', this['%IteratorPrototype%']);
-    this['%GeneratorPrototype%'] = new $Object(realm, '%GeneratorPrototype%', this['%IteratorPrototype%']);
+    this['%ArrayIteratorPrototype%'] = new $Object(realm, '%ArrayIteratorPrototype%', this['%IteratorPrototype%'], CompletionType.normal, empty);
+    this['%MapIteratorPrototype%'] = new $Object(realm, '%MapIteratorPrototype%', this['%IteratorPrototype%'], CompletionType.normal, empty);
+    this['%SetIteratorPrototype%'] = new $Object(realm, '%SetIteratorPrototype%', this['%IteratorPrototype%'], CompletionType.normal, empty);
+    this['%StringIteratorPrototype%'] = new $Object(realm, '%StringIteratorPrototype%', this['%IteratorPrototype%'], CompletionType.normal, empty);
+    this['%GeneratorPrototype%'] = new $Object(realm, '%GeneratorPrototype%', this['%IteratorPrototype%'], CompletionType.normal, empty);
 
-    this['%AsyncIteratorPrototype%'] = new $Object(realm, '%AsyncIteratorPrototype%', objectPrototype);
-    this['%AsyncFromSyncIteratorPrototype%'] = new $Object(realm, '%AsyncFromSyncIteratorPrototype%', this['%AsyncIteratorPrototype%']);
-    this['%AsyncGeneratorPrototype%'] = new $Object(realm, '%AsyncGeneratorPrototype%', this['%AsyncIteratorPrototype%']);
+    this['%AsyncIteratorPrototype%'] = new $Object(realm, '%AsyncIteratorPrototype%', objectPrototype, CompletionType.normal, empty);
+    this['%AsyncFromSyncIteratorPrototype%'] = new $Object(realm, '%AsyncFromSyncIteratorPrototype%', this['%AsyncIteratorPrototype%'], CompletionType.normal, empty);
+    this['%AsyncGeneratorPrototype%'] = new $Object(realm, '%AsyncGeneratorPrototype%', this['%AsyncIteratorPrototype%'], CompletionType.normal, empty);
 
-    this['%ArrayPrototype%'] = new $Object(realm, '%ArrayPrototype%', objectPrototype);
-    this['%MapPrototype%'] = new $Object(realm, '%MapPrototype%', objectPrototype);
-    this['%WeakMapPrototype%'] = new $Object(realm, '%WeakMapPrototype%', objectPrototype);
-    this['%SetPrototype%'] = new $Object(realm, '%SetPrototype%', objectPrototype);
-    this['%WeakSetPrototype%'] = new $Object(realm, '%WeakSetPrototype%', objectPrototype);
-    this['%DataViewPrototype%'] = new $Object(realm, '%DataViewPrototype%', objectPrototype);
-    this['%ArrayBufferPrototype%'] = new $Object(realm, '%ArrayBufferPrototype%', objectPrototype);
-    this['%SharedArrayBufferPrototype%'] = new $Object(realm, '%SharedArrayBufferPrototype%', objectPrototype);
+    this['%ArrayPrototype%'] = new $Object(realm, '%ArrayPrototype%', objectPrototype, CompletionType.normal, empty);
+    this['%MapPrototype%'] = new $Object(realm, '%MapPrototype%', objectPrototype, CompletionType.normal, empty);
+    this['%WeakMapPrototype%'] = new $Object(realm, '%WeakMapPrototype%', objectPrototype, CompletionType.normal, empty);
+    this['%SetPrototype%'] = new $Object(realm, '%SetPrototype%', objectPrototype, CompletionType.normal, empty);
+    this['%WeakSetPrototype%'] = new $Object(realm, '%WeakSetPrototype%', objectPrototype, CompletionType.normal, empty);
+    this['%DataViewPrototype%'] = new $Object(realm, '%DataViewPrototype%', objectPrototype, CompletionType.normal, empty);
+    this['%ArrayBufferPrototype%'] = new $Object(realm, '%ArrayBufferPrototype%', objectPrototype, CompletionType.normal, empty);
+    this['%SharedArrayBufferPrototype%'] = new $Object(realm, '%SharedArrayBufferPrototype%', objectPrototype, CompletionType.normal, empty);
 
-    this['%TypedArrayPrototype%'] = new $Object(realm, '%TypedArrayPrototype%', objectPrototype);
-    this['%Float32ArrayPrototype%'] = new $Object(realm, '%Float32ArrayPrototype%', this['%TypedArrayPrototype%']);
-    this['%Float64ArrayPrototype%'] = new $Object(realm, '%Float64ArrayPrototype%', this['%TypedArrayPrototype%']);
-    this['%Int8ArrayPrototype%'] = new $Object(realm, '%Int8ArrayPrototype%', this['%TypedArrayPrototype%']);
-    this['%Int16ArrayPrototype%'] = new $Object(realm, '%Int16ArrayPrototype%', this['%TypedArrayPrototype%']);
-    this['%Int32ArrayPrototype%'] = new $Object(realm, '%Int32ArrayPrototype%', this['%TypedArrayPrototype%']);
-    this['%Uint8ArrayPrototype%'] = new $Object(realm, '%Uint8ArrayPrototype%', this['%TypedArrayPrototype%']);
-    this['%Uint8ClampedArrayPrototype%'] = new $Object(realm, '%Uint8ClampedArrayPrototype%', this['%TypedArrayPrototype%']);
-    this['%Uint16ArrayPrototype%'] = new $Object(realm, '%Uint16ArrayPrototype%', this['%TypedArrayPrototype%']);
-    this['%Uint32ArrayPrototype%'] = new $Object(realm, '%Uint32ArrayPrototype%', this['%TypedArrayPrototype%']);
+    this['%TypedArrayPrototype%'] = new $Object(realm, '%TypedArrayPrototype%', objectPrototype, CompletionType.normal, empty);
+    this['%Float32ArrayPrototype%'] = new $Object(realm, '%Float32ArrayPrototype%', this['%TypedArrayPrototype%'], CompletionType.normal, empty);
+    this['%Float64ArrayPrototype%'] = new $Object(realm, '%Float64ArrayPrototype%', this['%TypedArrayPrototype%'], CompletionType.normal, empty);
+    this['%Int8ArrayPrototype%'] = new $Object(realm, '%Int8ArrayPrototype%', this['%TypedArrayPrototype%'], CompletionType.normal, empty);
+    this['%Int16ArrayPrototype%'] = new $Object(realm, '%Int16ArrayPrototype%', this['%TypedArrayPrototype%'], CompletionType.normal, empty);
+    this['%Int32ArrayPrototype%'] = new $Object(realm, '%Int32ArrayPrototype%', this['%TypedArrayPrototype%'], CompletionType.normal, empty);
+    this['%Uint8ArrayPrototype%'] = new $Object(realm, '%Uint8ArrayPrototype%', this['%TypedArrayPrototype%'], CompletionType.normal, empty);
+    this['%Uint8ClampedArrayPrototype%'] = new $Object(realm, '%Uint8ClampedArrayPrototype%', this['%TypedArrayPrototype%'], CompletionType.normal, empty);
+    this['%Uint16ArrayPrototype%'] = new $Object(realm, '%Uint16ArrayPrototype%', this['%TypedArrayPrototype%'], CompletionType.normal, empty);
+    this['%Uint32ArrayPrototype%'] = new $Object(realm, '%Uint32ArrayPrototype%', this['%TypedArrayPrototype%'], CompletionType.normal, empty);
 
-    this['%ErrorPrototype%'] = new $Object(realm, '%ErrorPrototype%', objectPrototype);
-    this['%EvalErrorPrototype%'] = new $Object(realm, '%EvalErrorPrototype%', this['%ErrorPrototype%']);
-    this['%RangeErrorPrototype%'] = new $Object(realm, '%RangeErrorPrototype%', this['%ErrorPrototype%']);
-    this['%ReferenceErrorPrototype%'] = new $Object(realm, '%ReferenceErrorPrototype%', this['%ErrorPrototype%']);
-    this['%SyntaxErrorPrototype%'] = new $Object(realm, '%SyntaxErrorPrototype%', this['%ErrorPrototype%']);
-    this['%TypeErrorPrototype%'] = new $Object(realm, '%TypeErrorPrototype%', this['%ErrorPrototype%']);
-    this['%URIErrorPrototype%'] = new $Object(realm, '%URIErrorPrototype%', this['%ErrorPrototype%']);
+    this['%ErrorPrototype%'] = new $Object(realm, '%ErrorPrototype%', objectPrototype, CompletionType.normal, empty);
+    this['%EvalErrorPrototype%'] = new $Object(realm, '%EvalErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);
+    this['%RangeErrorPrototype%'] = new $Object(realm, '%RangeErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);
+    this['%ReferenceErrorPrototype%'] = new $Object(realm, '%ReferenceErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);
+    this['%SyntaxErrorPrototype%'] = new $Object(realm, '%SyntaxErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);
+    this['%TypeErrorPrototype%'] = new $Object(realm, '%TypeErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);
+    this['%URIErrorPrototype%'] = new $Object(realm, '%URIErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);
 
-    this['%Boolean%'] = new $Object(realm, '%Boolean%', functionPrototype);
-    this['%Number%'] = new $Object(realm, '%Number%', functionPrototype);
+    this['%Boolean%'] = new $Object(realm, '%Boolean%', functionPrototype, CompletionType.normal, empty);
+    this['%Number%'] = new $Object(realm, '%Number%', functionPrototype, CompletionType.normal, empty);
     this['%String%'] = new $StringConstructor(realm);
-    this['%Symbol%'] = new $Object(realm, '%Symbol%', functionPrototype);
-    this['%Promise%'] = new $Object(realm, '%Promise%', functionPrototype);
-    this['%RegExp%'] = new $Object(realm, '%RegExp%', functionPrototype);
-    this['%Date%'] = new $Object(realm, '%Date%', functionPrototype);
+    this['%Symbol%'] = new $Object(realm, '%Symbol%', functionPrototype, CompletionType.normal, empty);
+    this['%Promise%'] = new $Object(realm, '%Promise%', functionPrototype, CompletionType.normal, empty);
+    this['%RegExp%'] = new $Object(realm, '%RegExp%', functionPrototype, CompletionType.normal, empty);
+    this['%Date%'] = new $Object(realm, '%Date%', functionPrototype, CompletionType.normal, empty);
 
-    this['%AsyncFunction%'] = new $Object(realm, '%AsyncFunction%', functionConstructor);
+    this['%AsyncFunction%'] = new $Object(realm, '%AsyncFunction%', functionConstructor, CompletionType.normal, empty);
 
-    this['%GeneratorFunction%'] = new $Object(realm, '%GeneratorFunction%', functionConstructor);
-    this['%AsyncGeneratorFunction%'] = new $Object(realm, '%AsyncGeneratorFunction%', functionConstructor);
+    this['%GeneratorFunction%'] = new $Object(realm, '%GeneratorFunction%', functionConstructor, CompletionType.normal, empty);
+    this['%AsyncGeneratorFunction%'] = new $Object(realm, '%AsyncGeneratorFunction%', functionConstructor, CompletionType.normal, empty);
 
-    this['%Array%'] = new $Object(realm, '%Array%', functionPrototype);
-    this['%Map%'] = new $Object(realm, '%Map%', functionPrototype);
-    this['%WeakMap%'] = new $Object(realm, '%WeakMap%', functionPrototype);
-    this['%Set%'] = new $Object(realm, '%Set%', functionPrototype);
-    this['%WeakSet%'] = new $Object(realm, '%WeakSet%', functionPrototype);
-    this['%DataView%'] = new $Object(realm, '%DataView%', functionPrototype);
-    this['%ArrayBuffer%'] = new $Object(realm, '%ArrayBuffer%', functionPrototype);
-    this['%SharedArrayBuffer%'] = new $Object(realm, '%SharedArrayBuffer%', functionPrototype);
+    this['%Array%'] = new $Object(realm, '%Array%', functionPrototype, CompletionType.normal, empty);
+    this['%Map%'] = new $Object(realm, '%Map%', functionPrototype, CompletionType.normal, empty);
+    this['%WeakMap%'] = new $Object(realm, '%WeakMap%', functionPrototype, CompletionType.normal, empty);
+    this['%Set%'] = new $Object(realm, '%Set%', functionPrototype, CompletionType.normal, empty);
+    this['%WeakSet%'] = new $Object(realm, '%WeakSet%', functionPrototype, CompletionType.normal, empty);
+    this['%DataView%'] = new $Object(realm, '%DataView%', functionPrototype, CompletionType.normal, empty);
+    this['%ArrayBuffer%'] = new $Object(realm, '%ArrayBuffer%', functionPrototype, CompletionType.normal, empty);
+    this['%SharedArrayBuffer%'] = new $Object(realm, '%SharedArrayBuffer%', functionPrototype, CompletionType.normal, empty);
 
-    this['%TypedArray%'] = new $Object(realm, '%TypedArray%', functionPrototype);
-    this['%Float32Array%'] = new $Object(realm, '%Float32Array%', this['%TypedArray%']);
-    this['%Float64Array%'] = new $Object(realm, '%Float64Array%', this['%TypedArray%']);
-    this['%Int8Array%'] = new $Object(realm, '%Int8Array%', this['%TypedArray%']);
-    this['%Int16Array%'] = new $Object(realm, '%Int16Array%', this['%TypedArray%']);
-    this['%Int32Array%'] = new $Object(realm, '%Int32Array%', this['%TypedArray%']);
-    this['%Uint8Array%'] = new $Object(realm, '%Uint8Array%', this['%TypedArray%']);
-    this['%Uint8ClampedArray%'] = new $Object(realm, '%Uint8ClampedArray%', this['%TypedArray%']);
-    this['%Uint16Array%'] = new $Object(realm, '%Uint16Array%', this['%TypedArray%']);
-    this['%Uint32Array%'] = new $Object(realm, '%Uint32Array%', this['%TypedArray%']);
+    this['%TypedArray%'] = new $Object(realm, '%TypedArray%', functionPrototype, CompletionType.normal, empty);
+    this['%Float32Array%'] = new $Object(realm, '%Float32Array%', this['%TypedArray%'], CompletionType.normal, empty);
+    this['%Float64Array%'] = new $Object(realm, '%Float64Array%', this['%TypedArray%'], CompletionType.normal, empty);
+    this['%Int8Array%'] = new $Object(realm, '%Int8Array%', this['%TypedArray%'], CompletionType.normal, empty);
+    this['%Int16Array%'] = new $Object(realm, '%Int16Array%', this['%TypedArray%'], CompletionType.normal, empty);
+    this['%Int32Array%'] = new $Object(realm, '%Int32Array%', this['%TypedArray%'], CompletionType.normal, empty);
+    this['%Uint8Array%'] = new $Object(realm, '%Uint8Array%', this['%TypedArray%'], CompletionType.normal, empty);
+    this['%Uint8ClampedArray%'] = new $Object(realm, '%Uint8ClampedArray%', this['%TypedArray%'], CompletionType.normal, empty);
+    this['%Uint16Array%'] = new $Object(realm, '%Uint16Array%', this['%TypedArray%'], CompletionType.normal, empty);
+    this['%Uint32Array%'] = new $Object(realm, '%Uint32Array%', this['%TypedArray%'], CompletionType.normal, empty);
 
-    this['%Error%'] = new $Object(realm, '%Error%', functionPrototype);
-    this['%EvalError%'] = new $Object(realm, '%EvalError%', this['%Error%']);
-    this['%RangeError%'] = new $Object(realm, '%RangeError%', this['%Error%']);
-    this['%ReferenceError%'] = new $Object(realm, '%ReferenceError%', this['%Error%']);
-    this['%SyntaxError%'] = new $Object(realm, '%SyntaxError%', this['%Error%']);
-    this['%TypeError%'] = new $Object(realm, '%TypeError%', this['%Error%']);
-    this['%URIError%'] = new $Object(realm, '%URIError%', this['%Error%']);
+    this['%Error%'] = new $Object(realm, '%Error%', functionPrototype, CompletionType.normal, empty);
+    this['%EvalError%'] = new $Object(realm, '%EvalError%', this['%Error%'], CompletionType.normal, empty);
+    this['%RangeError%'] = new $Object(realm, '%RangeError%', this['%Error%'], CompletionType.normal, empty);
+    this['%ReferenceError%'] = new $Object(realm, '%ReferenceError%', this['%Error%'], CompletionType.normal, empty);
+    this['%SyntaxError%'] = new $Object(realm, '%SyntaxError%', this['%Error%'], CompletionType.normal, empty);
+    this['%TypeError%'] = new $Object(realm, '%TypeError%', this['%Error%'], CompletionType.normal, empty);
+    this['%URIError%'] = new $Object(realm, '%URIError%', this['%Error%'], CompletionType.normal, empty);
 
-    this['%Atomics%'] = new $Object(realm, '%Atomics%', objectPrototype);
-    this['%JSON%'] = new $Object(realm, '%JSON%', objectPrototype);
-    this['%Math%'] = new $Object(realm, '%Math%', objectPrototype);
-    this['%Reflect%'] = new $Object(realm, '%Reflect%', objectPrototype);
-    this['%Proxy%'] = new $Object(realm, '%Proxy%', functionPrototype);
+    this['%Atomics%'] = new $Object(realm, '%Atomics%', objectPrototype, CompletionType.normal, empty);
+    this['%JSON%'] = new $Object(realm, '%JSON%', objectPrototype, CompletionType.normal, empty);
+    this['%Math%'] = new $Object(realm, '%Math%', objectPrototype, CompletionType.normal, empty);
+    this['%Reflect%'] = new $Object(realm, '%Reflect%', objectPrototype, CompletionType.normal, empty);
+    this['%Proxy%'] = new $Object(realm, '%Proxy%', functionPrototype, CompletionType.normal, empty);
 
-    this['%decodeURI%'] = new $Object(realm, '%decodeURI%', functionPrototype);
-    this['%decodeURIComponent%'] = new $Object(realm, '%decodeURIComponent%', functionPrototype);
-    this['%encodeURI%'] = new $Object(realm, '%encodeURI%', functionPrototype);
-    this['%encodeURIComponent%'] = new $Object(realm, '%encodeURIComponent%', functionPrototype);
-    this['%eval%'] = new $Object(realm, '%eval%', functionPrototype);
-    this['%isFinite%'] = new $Object(realm, '%isFinite%', functionPrototype);
-    this['%isNaN%'] = new $Object(realm, '%isNaN%', functionPrototype);
-    this['%parseFloat%'] = new $Object(realm, '%parseFloat%', functionPrototype);
-    this['%parseInt%'] = new $Object(realm, '%parseInt%', functionPrototype);
-    this['%JSONParse%'] = new $Object(realm, '%JSONParse%', functionPrototype);
-    this['%JSONStringify%'] = new $Object(realm, '%JSONStringify%', functionPrototype);
+    this['%decodeURI%'] = new $Object(realm, '%decodeURI%', functionPrototype, CompletionType.normal, empty);
+    this['%decodeURIComponent%'] = new $Object(realm, '%decodeURIComponent%', functionPrototype, CompletionType.normal, empty);
+    this['%encodeURI%'] = new $Object(realm, '%encodeURI%', functionPrototype, CompletionType.normal, empty);
+    this['%encodeURIComponent%'] = new $Object(realm, '%encodeURIComponent%', functionPrototype, CompletionType.normal, empty);
+    this['%eval%'] = new $Object(realm, '%eval%', functionPrototype, CompletionType.normal, empty);
+    this['%isFinite%'] = new $Object(realm, '%isFinite%', functionPrototype, CompletionType.normal, empty);
+    this['%isNaN%'] = new $Object(realm, '%isNaN%', functionPrototype, CompletionType.normal, empty);
+    this['%parseFloat%'] = new $Object(realm, '%parseFloat%', functionPrototype, CompletionType.normal, empty);
+    this['%parseInt%'] = new $Object(realm, '%parseInt%', functionPrototype, CompletionType.normal, empty);
+    this['%JSONParse%'] = new $Object(realm, '%JSONParse%', functionPrototype, CompletionType.normal, empty);
+    this['%JSONStringify%'] = new $Object(realm, '%JSONStringify%', functionPrototype, CompletionType.normal, empty);
     this['%ThrowTypeError%'] = new $Function(realm, '%ThrowTypeError%', functionPrototype);
 
-    this['%ArrayProto_entries%'] = new $Object(realm, '%ArrayProto_entries%', functionPrototype);
-    this['%ArrayProto_forEach%'] = new $Object(realm, '%ArrayProto_forEach%', functionPrototype);
-    this['%ArrayProto_keys%'] = new $Object(realm, '%ArrayProto_keys%', functionPrototype);
-    this['%ArrayProto_values%'] = new $Object(realm, '%ArrayProto_values%', functionPrototype);
-    this['%ObjProto_valueOf%'] = new $Object(realm, '%ObjProto_valueOf%', functionPrototype);
-    this['%PromiseProto_then%'] = new $Object(realm, '%PromiseProto_then%', functionPrototype);
-    this['%Promise_all%'] = new $Object(realm, '%Promise_all%', functionPrototype);
-    this['%Promise_reject%'] = new $Object(realm, '%Promise_reject%', functionPrototype);
-    this['%Promise_resolve%'] = new $Object(realm, '%Promise_resolve%', functionPrototype);
+    this['%ArrayProto_entries%'] = new $Object(realm, '%ArrayProto_entries%', functionPrototype, CompletionType.normal, empty);
+    this['%ArrayProto_forEach%'] = new $Object(realm, '%ArrayProto_forEach%', functionPrototype, CompletionType.normal, empty);
+    this['%ArrayProto_keys%'] = new $Object(realm, '%ArrayProto_keys%', functionPrototype, CompletionType.normal, empty);
+    this['%ArrayProto_values%'] = new $Object(realm, '%ArrayProto_values%', functionPrototype, CompletionType.normal, empty);
+    this['%ObjProto_valueOf%'] = new $Object(realm, '%ObjProto_valueOf%', functionPrototype, CompletionType.normal, empty);
+    this['%PromiseProto_then%'] = new $Object(realm, '%PromiseProto_then%', functionPrototype, CompletionType.normal, empty);
+    this['%Promise_all%'] = new $Object(realm, '%Promise_all%', functionPrototype, CompletionType.normal, empty);
+    this['%Promise_reject%'] = new $Object(realm, '%Promise_reject%', functionPrototype, CompletionType.normal, empty);
+    this['%Promise_resolve%'] = new $Object(realm, '%Promise_resolve%', functionPrototype, CompletionType.normal, empty);
   }
 }

@@ -12,6 +12,7 @@ import {
 import {
   $AnyNonEmpty,
   $AnyObject,
+  CompletionType,
 } from './types/_shared';
 import {
   $Undefined,
@@ -638,7 +639,7 @@ export class $PromiseInstance extends $Object<'PromiseInstance'> {
     realm: Realm,
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
-    super(realm, 'PromiseInstance', intrinsics['%PromisePrototype%']);
+    super(realm, 'PromiseInstance', intrinsics['%PromisePrototype%'], CompletionType.normal, intrinsics.empty);
   }
 }
 

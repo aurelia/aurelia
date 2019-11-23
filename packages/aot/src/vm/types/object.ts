@@ -108,8 +108,8 @@ export class $Object<
     public readonly realm: Realm,
     public readonly IntrinsicName: T,
     proto: $AnyObject | $Null,
-    type: PotentialNonEmptyCompletionType = CompletionType.normal,
-    target: CompletionTarget = realm['[[Intrinsics]]'].empty,
+    type: PotentialNonEmptyCompletionType,
+    target: CompletionTarget,
   ) {
     this['[[Prototype]]'] = proto;
     this['[[Extensible]]'] = realm['[[Intrinsics]]'].true;
@@ -128,7 +128,7 @@ export class $Object<
 
     // 1. If internalSlotsList is not present, set internalSlotsList to a new empty List.
     // 2. Let obj be a newly created object with an internal slot for each name in internalSlotsList.
-    const obj = new $Object(realm, IntrinsicName, proto);
+    const obj = new $Object(realm, IntrinsicName, proto, CompletionType.normal, realm['[[Intrinsics]]'].empty);
     Object.assign(obj, internalSlotsList);
 
     // 3. Set obj's essential internal methods to the default ordinary object definitions specified in 9.1.

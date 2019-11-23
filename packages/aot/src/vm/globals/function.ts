@@ -8,6 +8,7 @@ import {
 } from '../realm';
 import {
   $AnyNonEmpty,
+  CompletionType,
 } from '../types/_shared';
 import {
   $Error,
@@ -79,7 +80,7 @@ export class $FunctionPrototype extends $Object<'%FunctionPrototype%'> {
     realm: Realm,
     objectPrototype: $ObjectPrototype,
   ) {
-    super(realm, '%FunctionPrototype%', objectPrototype);
+    super(realm, '%FunctionPrototype%', objectPrototype, CompletionType.normal, realm['[[Intrinsics]]'].empty);
   }
 }
 

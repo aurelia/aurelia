@@ -9,6 +9,7 @@ import {
 } from '../realm';
 import {
   $AnyNonEmpty,
+  CompletionType,
 } from '../types/_shared';
 import {
   $Error,
@@ -98,7 +99,7 @@ export class $ObjectPrototype extends $Object<'%ObjectPrototype%'> {
     realm: Realm,
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
-    super(realm, '%ObjectPrototype%', intrinsics.null);
+    super(realm, '%ObjectPrototype%', intrinsics.null, CompletionType.normal, realm['[[Intrinsics]]'].empty);
   }
 }
 

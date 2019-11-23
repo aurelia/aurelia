@@ -86,7 +86,7 @@ export class $Function<
     IntrinsicName: T,
     proto: $AnyObject,
   ) {
-    super(realm, IntrinsicName, proto);
+    super(realm, IntrinsicName, proto, CompletionType.normal, realm['[[Intrinsics]]'].empty);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects-call-thisargument-argumentslist
@@ -598,7 +598,7 @@ export abstract class $BuiltinFunction<
   public constructor(
     realm: Realm,
     IntrinsicName: T,
-    proto: $AnyObject = realm['[[Intrinsics]]']['%FunctionPrototype%'],
+    proto: $AnyObject,
   ) {
     super(realm, IntrinsicName, proto);
 

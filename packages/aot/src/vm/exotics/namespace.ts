@@ -23,6 +23,7 @@ import {
   $PropertyKey,
   $AnyNonEmpty,
   $AnyObject,
+  CompletionType,
 } from '../types/_shared';
 import {
   $PropertyDescriptor,
@@ -49,7 +50,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
     mod: IModule,
     exports: $List<$String>,
   ) {
-    super(realm, 'NamespaceExoticObject', realm['[[Intrinsics]]'].null);
+    super(realm, 'NamespaceExoticObject', realm['[[Intrinsics]]'].null, CompletionType.normal, realm['[[Intrinsics]]'].empty);
     // 1. Assert: module is a Module Record.
     // 2. Assert: module.[[Namespace]] is undefined.
     // 3. Assert: exports is a List of String values.

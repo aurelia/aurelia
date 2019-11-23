@@ -41,6 +41,7 @@ import {
 } from '../types/function';
 import {
   $Any,
+  CompletionType,
 } from '../types/_shared';
 import {
   $Object,
@@ -91,7 +92,8 @@ import {
   $SourceFile,
 } from './modules';
 import {
-  $Identifier, $Decorator,
+  $Identifier,
+  $Decorator,
 } from './expressions';
 import {
   $InterfaceDeclaration,
@@ -556,7 +558,7 @@ export class $ClassDeclaration implements I$Node {
     }
 
     // 7. Let proto be ObjectCreate(protoParent).
-    const proto = new $Object(realm, 'proto', protoParent);
+    const proto = new $Object(realm, 'proto', protoParent, CompletionType.normal, intrinsics.empty);
 
     let constructor: $ConstructorDeclaration | $Empty;
 

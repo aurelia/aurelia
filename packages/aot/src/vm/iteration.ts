@@ -336,7 +336,7 @@ export class $ListIterator_next extends $BuiltinFunction<'ListIterator_next'> {
   public constructor(
     realm: Realm,
   ) {
-    super(realm, 'ListIterator_next');
+    super(realm, 'ListIterator_next', realm['[[Intrinsics]]']['%FunctionPrototype%']);
   }
 
   public performSteps(
@@ -388,7 +388,7 @@ export class $ListIterator extends $Object<'ListIterator'> {
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
 
-    super(realm, 'ListIterator', intrinsics['%IteratorPrototype%']);
+    super(realm, 'ListIterator', intrinsics['%IteratorPrototype%'], CompletionType.normal, intrinsics.empty);
 
     this['[[IteratedList]]'] = list;
     this['[[ListIteratorNextIndex]]'] = new $Number(realm, 0);
@@ -437,7 +437,7 @@ export class $AsyncFromSyncIterator extends $Object<'AsyncFromSyncIterator'> {
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
     // 1. Let asyncIterator be ! ObjectCreate(%AsyncFromSyncIteratorPrototype%, « [[SyncIteratorRecord]] »).
-    super(realm, 'AsyncFromSyncIterator', intrinsics['%AsyncFromSyncIteratorPrototype%']);
+    super(realm, 'AsyncFromSyncIterator', intrinsics['%AsyncFromSyncIteratorPrototype%'], CompletionType.normal, intrinsics.empty);
 
     // 2. Set asyncIterator.[[SyncIteratorRecord]] to syncIteratorRecord.
     this['[[SyncIteratorRecord]]'] = syncIteratorRecord;
@@ -449,7 +449,7 @@ export class $Symbol_Iterator extends $BuiltinFunction<'[Symbol.iterator]'> {
   public constructor(
     realm: Realm,
   ) {
-    super(realm, '[Symbol.iterator]');
+    super(realm, '[Symbol.iterator]', realm['[[Intrinsics]]']['%FunctionPrototype%']);
     this.SetFunctionName(realm.stack.top, new $String(realm, '[Symbol.iterator]'));
   }
 
@@ -468,7 +468,7 @@ export class $IteratorPrototype extends $Object<'%IteratorPrototype%'> {
   public constructor(
     realm: Realm,
   ) {
-    super(realm, '%IteratorPrototype%', realm['[[Intrinsics]]']['%ObjectPrototype%']);
+    super(realm, '%IteratorPrototype%', realm['[[Intrinsics]]']['%ObjectPrototype%'], CompletionType.normal, realm['[[Intrinsics]]'].empty);
 
     $DefinePropertyOrThrow(
       realm.stack.top,

@@ -21,6 +21,7 @@ import {
 import {
   $PropertyKey,
   $AnyObject,
+  CompletionType,
 } from '../types/_shared';
 import {
   $Undefined,
@@ -42,7 +43,7 @@ export class $StringExoticObject extends $Object<'StringExoticObject'> {
     value: $String,
     proto: $AnyObject,
   ) {
-    super(realm, 'StringExoticObject', proto);
+    super(realm, 'StringExoticObject', proto, CompletionType.normal, realm['[[Intrinsics]]'].empty);
 
     // 1. Assert: Type(value) is String.
     // 2. Let S be a newly created String exotic object.

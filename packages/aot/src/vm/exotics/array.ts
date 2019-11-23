@@ -15,6 +15,7 @@ import {
   $PropertyKey,
   $AnyNonEmpty,
   $AnyObject,
+  CompletionType,
 } from '../types/_shared';
 import {
   $Boolean,
@@ -52,7 +53,7 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
       proto = intrinsics['%ArrayPrototype%'];
     }
 
-    super(realm, 'ArrayExoticObject', proto);
+    super(realm, 'ArrayExoticObject', proto, CompletionType.normal, intrinsics.empty);
 
     // 1. Assert: length is an integer Number ≥ 0.
     // 2. If length is -0, set length to +0.

@@ -18,6 +18,7 @@ import {
   $PropertyKey,
   $AnyNonEmpty,
   $AnyObject,
+  CompletionType,
 } from '../types/_shared';
 import {
   $PropertyDescriptor,
@@ -47,7 +48,7 @@ export class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticOb
     realm: Realm,
     proto: $AnyObject | $Null,
   ) {
-    super(realm, 'IntegerIndexedExoticObject', proto);
+    super(realm, 'IntegerIndexedExoticObject', proto, CompletionType.normal, realm['[[Intrinsics]]'].empty);
 
     // 1. Assert: internalSlotsList contains the names [[ViewedArrayBuffer]], [[ArrayLength]], [[ByteOffset]], and [[TypedArrayName]].
     // 2. Let A be a newly created object with an internal slot for each name in internalSlotsList.

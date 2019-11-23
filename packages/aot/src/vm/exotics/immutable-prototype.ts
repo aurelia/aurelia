@@ -16,6 +16,7 @@ import {
 } from '../types/error';
 import {
   $AnyObject,
+  CompletionType,
 } from '../types/_shared';
 
 // http://www.ecma-international.org/ecma-262/#sec-string-exotic-objects
@@ -24,7 +25,7 @@ export class $ImmutablePrototypeExoticObject extends $Object<'ImmutablePrototype
     realm: Realm,
     proto: $AnyObject | $Null,
   ) {
-    super(realm, 'ImmutablePrototypeExoticObject', proto);
+    super(realm, 'ImmutablePrototypeExoticObject', proto, CompletionType.normal, realm['[[Intrinsics]]'].empty);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-immutable-prototype-exotic-objects-setprototypeof-v

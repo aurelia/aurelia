@@ -14,6 +14,7 @@ import {
   $PropertyKey,
   $AnyNonEmpty,
   $AnyObject,
+  CompletionType,
 } from '../types/_shared';
 import {
   $EnvRec,
@@ -64,7 +65,7 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
     env: $EnvRec,
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
-    super(realm, 'ArgumentsExoticObject', intrinsics['%ObjectPrototype%']);
+    super(realm, 'ArgumentsExoticObject', intrinsics['%ObjectPrototype%'], CompletionType.normal, intrinsics.empty);
 
     const ctx = realm.stack.top;
 
@@ -82,7 +83,7 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
     // 10. Set obj.[[Prototype]] to %ObjectPrototype%.
     // 11. Set obj.[[Extensible]] to true.
     // 12. Let map be ObjectCreate(null).
-    const map = new $Object(realm, '[[ParameterMap]]', intrinsics.null);
+    const map = new $Object(realm, '[[ParameterMap]]', intrinsics.null, CompletionType.normal, intrinsics.empty);
 
     // 13. Set obj.[[ParameterMap]] to map.
     this['[[ParameterMap]]'] = map;
@@ -385,7 +386,7 @@ export class $ArgGetter extends $BuiltinFunction {
     name: $String,
     env: $EnvRec,
   ) {
-    super(realm, 'ArgGetter');
+    super(realm, 'ArgGetter', realm['[[Intrinsics]]']['%FunctionPrototype%']);
 
     // 3. Set getter.[[Name]] to name.
     this['[[Name]]'] = name;
@@ -424,7 +425,7 @@ export class $ArgSetter extends $BuiltinFunction {
     name: $String,
     env: $EnvRec,
   ) {
-    super(realm, 'ArgSetter');
+    super(realm, 'ArgSetter', realm['[[Intrinsics]]']['%FunctionPrototype%']);
 
     // 3. Set getter.[[Name]] to name.
     this['[[Name]]'] = name;

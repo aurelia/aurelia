@@ -12,6 +12,7 @@ import {
   $PropertyKey,
   $AnyNonEmpty,
   $AnyObject,
+  CompletionType,
 } from '../types/_shared';
 import {
   $Call,
@@ -63,7 +64,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     target: $AnyNonEmpty,
     handler: $AnyNonEmpty,
   ) {
-    super(realm, 'ProxyExoticObject', realm['[[Intrinsics]]'].null);
+    super(realm, 'ProxyExoticObject', realm['[[Intrinsics]]'].null, CompletionType.normal, realm['[[Intrinsics]]'].empty);
 
     // 1. If Type(target) is not Object, throw a TypeError exception.
     if (!target.isObject) {

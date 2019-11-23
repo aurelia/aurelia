@@ -1,5 +1,5 @@
-import { DI, IContainer, Key, Reporter, Registration } from '@aurelia/kernel';
-import { Aurelia, IController, IRenderContext, IViewModel, CustomElement, INode } from '@aurelia/runtime';
+import { DI, IContainer, Key, Reporter, Registration, Metadata } from '@aurelia/kernel';
+import { Aurelia, IController, IRenderContext, IViewModel, CustomElement, INode, DOM } from '@aurelia/runtime';
 import { BrowserNavigator } from './browser-navigator';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
 import { INavigatorInstruction, IRouteableComponent, NavigationInstruction, IRoute, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces';
@@ -487,9 +487,13 @@ export class Router implements IRouter {
     Registration.instance(ClosestViewportCustomElement, viewModel).register(container);
   }
   public getClosestViewport(viewModelOrElement: IViewModel | Element): Viewport | null {
-    const viewModel: IViewModel = '$controller' in viewModelOrElement
+    const viewModel: IViewModel | undefined = '$controller' in viewModelOrElement
       ? viewModelOrElement
-      : CustomElement.for(viewModelOrElement, true);
+      : this.CustomElementFor(viewModelOrElement); // CustomElement.for(viewModelOrElement, true)
+
+    if (viewModel === void 0) {
+      return null;
+    }
     const context = (viewModel as IViewModel & { context: IRenderContext }).context !== void 0
       ? (viewModel as IViewModel & { context: IRenderContext }).context
       : viewModel.$controller!.context;
@@ -947,5 +951,22 @@ export class Router implements IRouter {
         await this.freeComponents(nextInstruction, excludeComponents, alreadyDone);
       }
     }
+  }
+
+  // TODO: This is probably wrong since it caused test fails when in CustomElemnt.for
+  // Fred probably knows and will need to look at it
+  // This can most likely also be changed so that the node traversal isn't necessary
+  private CustomElementFor(node: INode): IController<INode> | undefined {
+    let cur: INode | null = node as INode | null;
+    while (cur !== null) {
+      const nodeResourceName: string = (cur as Element).nodeName.toLowerCase();
+      const controller: IController<INode> = Metadata.getOwn(`${CustomElement.name}:${nodeResourceName}`, cur)
+        || Metadata.getOwn(CustomElement.name, cur);
+      if (controller !== void 0) {
+        return controller;
+      }
+      cur = DOM.getEffectiveParentNode(cur);
+    }
+    return (void 0);
   }
 }

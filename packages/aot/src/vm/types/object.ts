@@ -435,6 +435,54 @@ export class $Object<
     this.propertyKeys.splice(idx, 1)
   }
 
+  public setDataProperty(
+    name: $String,
+    value: $AnyNonEmpty,
+    writable: boolean = true,
+    enumerable: boolean = false,
+    configurable: boolean = true,
+  ): void {
+    const realm = this.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    const desc = new $PropertyDescriptor(realm, name);
+    desc['[[Value]]'] = value;
+    desc['[[Writable]]'] = writable ? intrinsics.true : intrinsics.false;
+    desc['[[Enumerable]]'] = enumerable ? intrinsics.true : intrinsics.false;
+    desc['[[Configurable]]'] = configurable ? intrinsics.true : intrinsics.false;
+
+    const idx = this.propertyDescriptors.length;
+    this.propertyDescriptors[idx] = desc;
+    this.propertyKeys[idx] = name;
+    this.propertyMap.set(name['[[Value]]'], idx);
+  }
+
+  public setAccessorProperty(
+    name: $String,
+    getter: $Function | null,
+    setter: $Function | null,
+    enumerable: boolean = false,
+    configurable: boolean = true,
+  ): void {
+    const realm = this.realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    const desc = new $PropertyDescriptor(realm, name);
+    desc['[[Enumerable]]'] = enumerable ? intrinsics.true : intrinsics.false;
+    desc['[[Configurable]]'] = configurable ? intrinsics.true : intrinsics.false;
+    if (getter !== null) {
+      desc['[[Get]]'] = getter;
+    }
+    if (setter !== null) {
+      desc['[[Set]]'] = setter;
+    }
+
+    const idx = this.propertyDescriptors.length;
+    this.propertyDescriptors[idx] = desc;
+    this.propertyKeys[idx] = name;
+    this.propertyMap.set(name['[[Value]]'], idx);
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
   public '[[GetPrototypeOf]]'(
     this: $AnyObject,

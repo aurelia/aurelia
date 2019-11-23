@@ -458,7 +458,7 @@ function $OrdinaryCreateFromConstructor<T extends keyof Intrinsics = keyof Intri
 
 
 // http://www.ecma-international.org/ecma-262/#sec-getprototypefromconstructor
-function $GetPrototypeFromConstructor<T extends keyof Intrinsics = keyof Intrinsics>(
+export function $GetPrototypeFromConstructor<T extends keyof Intrinsics = keyof Intrinsics>(
   ctx: ExecutionContext,
   constructor: $AnyObject,
   intrinsicDefaultProto: T,

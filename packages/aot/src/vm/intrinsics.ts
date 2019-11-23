@@ -27,11 +27,12 @@ import {
   $Object,
 } from './types/object';
 import {
-  $Function,
+  $Function, $BuiltinFunction,
 } from './types/function';
 import {
   $IteratorPrototype,
 } from './iteration';
+import { $StringConstructor } from './text';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
@@ -270,7 +271,7 @@ export class Intrinsics {
   public readonly '%Object%': $Object<'%Object%'>;
   public readonly '%Boolean%': $Object<'%Boolean%'>;
   public readonly '%Number%': $Object<'%Number%'>;
-  public readonly '%String%': $Object<'%String%'>;
+  public readonly '%String%': $StringConstructor;
   public readonly '%Symbol%': $Object<'%Symbol%'>;
   public readonly '%Promise%': $Object<'%Promise%'>;
   public readonly '%RegExp%': $Object<'%RegExp%'>;
@@ -469,7 +470,7 @@ export class Intrinsics {
     this['%Object%'] = new $Object(realm, '%Object%', this['%FunctionPrototype%']);
     this['%Boolean%'] = new $Object(realm, '%Boolean%', this['%FunctionPrototype%']);
     this['%Number%'] = new $Object(realm, '%Number%', this['%FunctionPrototype%']);
-    this['%String%'] = new $Object(realm, '%String%', this['%FunctionPrototype%']);
+    this['%String%'] = new $StringConstructor(realm);
     this['%Symbol%'] = new $Object(realm, '%Symbol%', this['%FunctionPrototype%']);
     this['%Promise%'] = new $Object(realm, '%Promise%', this['%FunctionPrototype%']);
     this['%RegExp%'] = new $Object(realm, '%RegExp%', this['%FunctionPrototype%']);

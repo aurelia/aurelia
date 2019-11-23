@@ -401,7 +401,7 @@ export const CustomElement: CustomElementKind = {
     let cur = node as INode | null;
     while (cur !== null) {
       const controller = Metadata.getOwn(CustomElement.name, cur);
-      if (controller !== void 0 && controller.is(nameOrSearchParents)) {
+      if (controller !== void 0) {
         return controller;
       }
 

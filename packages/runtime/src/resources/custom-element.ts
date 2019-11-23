@@ -15,6 +15,8 @@ import {
   pascalCase,
   fromAnnotationOrTypeOrDefault,
   fromAnnotationOrDefinitionOrTypeOrDefault,
+  Injectable,
+  IResolver,
 } from '@aurelia/kernel';
 import {
   registerAliases,
@@ -41,6 +43,7 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly template?: unknown;
   readonly instructions?: readonly (readonly ITargetedInstruction[])[];
   readonly dependencies?: readonly Key[];
+  readonly injectable?: InjectableToken | null;
   readonly needsCompile?: boolean;
   readonly surrogates?: readonly ITargetedInstruction[];
   readonly bindables?: Record<string, PartialBindableDefinition> | readonly string[];
@@ -99,6 +102,7 @@ export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDe
   annotate<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K, value: PartialCustomElementDefinition[K]): void;
   getAnnotation<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K): PartialCustomElementDefinition[K];
   generateName(): string;
+  createInjectable<T extends Key = Key>(): InjectableToken<T>;
   generateType<P extends {} = {}>(
     name: string,
     proto?: P,
@@ -191,6 +195,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
     public readonly template: unknown,
     public readonly instructions: readonly (readonly ITargetedInstruction[])[],
     public readonly dependencies: readonly Key[],
+    public readonly injectable: InjectableToken<T> | null,
     public readonly needsCompile: boolean,
     public readonly surrogates: readonly ITargetedInstruction[],
     public readonly bindables: Record<string, BindableDefinition>,
@@ -247,6 +252,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
         fromDefinitionOrDefault('template', def, () => null),
         mergeArrays(def.instructions),
         mergeArrays(def.dependencies),
+        fromDefinitionOrDefault('injectable', def, () => null),
         fromDefinitionOrDefault('needsCompile', def, () => true),
         mergeArrays(def.surrogates),
         Bindable.from(def.bindables),
@@ -274,6 +280,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
         fromAnnotationOrTypeOrDefault('template', Type, () => null),
         mergeArrays(CustomElement.getAnnotation(Type, 'instructions'), Type.instructions),
         mergeArrays(CustomElement.getAnnotation(Type, 'dependencies'), Type.dependencies),
+        fromAnnotationOrTypeOrDefault('injectable', Type, () => null),
         fromAnnotationOrTypeOrDefault('needsCompile', Type, () => true),
         mergeArrays(CustomElement.getAnnotation(Type, 'surrogates'), Type.surrogates),
         Bindable.from(
@@ -313,6 +320,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
       fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, () => null),
       mergeArrays(CustomElement.getAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions),
       mergeArrays(CustomElement.getAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies),
+      fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, () => null),
       fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, () => true),
       mergeArrays(CustomElement.getAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates),
       Bindable.from(
@@ -346,6 +354,11 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
   }
 }
 
+export type InjectableToken<K = any> = (target: Injectable<K>, property: string, index: number) => void;
+type InternalInjectableToken<K = any> = InjectableToken<K> & {
+  register?(container: IContainer): IResolver<K>;
+};
+
 export const CustomElement: CustomElementKind = {
   name: Protocol.resource.keyFor('custom-element'),
   keyFrom(name: string): string {
@@ -374,12 +387,12 @@ export const CustomElement: CustomElementKind = {
 
       let cur = node as INode | null;
       while (cur !== null) {
-        const controller = Metadata.getOwn(CustomElement.name, node);
+        const controller = Metadata.getOwn(CustomElement.name, cur);
         if (controller !== void 0 && controller.is(nameOrSearchParents)) {
           return controller;
         }
 
-        cur = DOM.getEffectiveParentNode(node);
+        cur = DOM.getEffectiveParentNode(cur);
       }
 
       return (void 0)!;
@@ -387,12 +400,12 @@ export const CustomElement: CustomElementKind = {
 
     let cur = node as INode | null;
     while (cur !== null) {
-      const controller = Metadata.getOwn(CustomElement.name, node);
+      const controller = Metadata.getOwn(CustomElement.name, cur);
       if (controller !== void 0) {
         return controller;
       }
 
-      cur = DOM.getEffectiveParentNode(node);
+      cur = DOM.getEffectiveParentNode(cur);
     }
 
     return (void 0)!;
@@ -426,6 +439,28 @@ export const CustomElement: CustomElementKind = {
       return `unnamed-${++id}`;
     };
   })(),
+  createInjectable<K extends Key = Key>(): InjectableToken<K> {
+    const $injectable: InternalInjectableToken<K> = function (target, property, index): any {
+      const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
+      annotationParamtypes[index] = $injectable;
+      return target;
+    };
+
+    $injectable.register = function (container) {
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      return {
+        resolve(container, requestor) {
+          if (requestor.has($injectable, true)) {
+            return requestor.get($injectable);
+          } else {
+            return null;
+          }
+        },
+      } as IResolver;
+    };
+
+    return $injectable;
+  },
   generateType: (function () {
     const nameDescriptor: PropertyDescriptor = {
       value: '',

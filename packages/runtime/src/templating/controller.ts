@@ -220,7 +220,7 @@ export class Controller<
             template = result.getElementTemplate(renderingEngine, Type, parentContext);
           }
         } else {
-          template = renderingEngine.getElementTemplate(parentContext.get(IDOM), definition, parentContext, Type);
+          template = renderingEngine.getElementTemplate(parentContext.get(IDOM), definition, parentContext, Type, viewModel);
         }
 
         if (template !== void 0) {

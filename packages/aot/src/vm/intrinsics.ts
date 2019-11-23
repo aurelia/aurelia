@@ -35,7 +35,14 @@ import {
 import {
   $StringConstructor,
 } from './globals/string';
-import { $ObjectConstructor } from './globals/object';
+import {
+  $ObjectConstructor,
+  $ObjectPrototype,
+} from './globals/object';
+import {
+  $FunctionPrototype,
+  $FunctionConstructor,
+} from './globals/function';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
@@ -271,7 +278,7 @@ export class Intrinsics {
   public readonly '%TypeErrorPrototype%': $Object<'%TypeErrorPrototype%'>;
   public readonly '%URIErrorPrototype%': $Object<'%URIErrorPrototype%'>;
 
-  public readonly '%Object%': $Object<'%Object%'>;
+  public readonly '%Object%': $ObjectConstructor;
   public readonly '%Boolean%': $Object<'%Boolean%'>;
   public readonly '%Number%': $Object<'%Number%'>;
   public readonly '%String%': $StringConstructor;
@@ -416,20 +423,23 @@ export class Intrinsics {
     this['@@toStringTag'] = new $Symbol(realm, new $String(realm, 'Symbol.toStringTag'));
     this['@@unscopables'] = new $Symbol(realm, new $String(realm, 'Symbol.unscopables'));
 
-    this['%ObjectPrototype%'] = new $Object(realm, '%ObjectPrototype%', this['null']);
-    this['%BooleanPrototype%'] = new $Object(realm, '%BooleanPrototype%', this['%ObjectPrototype%']);
-    this['%NumberPrototype%'] = new $Object(realm, '%NumberPrototype%', this['%ObjectPrototype%']);
-    this['%StringPrototype%'] = new $Object(realm, '%StringPrototype%', this['%ObjectPrototype%']);
-    this['%SymbolPrototype%'] = new $Object(realm, '%SymbolPrototype%', this['%ObjectPrototype%']);
-    this['%PromisePrototype%'] = new $Object(realm, '%PromisePrototype%', this['%ObjectPrototype%']);
-    this['%RegExpPrototype%'] = new $Object(realm, '%RegExpPrototype%', this['%ObjectPrototype%']);
-    this['%DatePrototype%'] = new $Object(realm, '%DatePrototype%', this['%ObjectPrototype%']);
+    const objectPrototype = this['%ObjectPrototype%'] = new $ObjectPrototype(realm);
+    const functionPrototype = this['%FunctionPrototype%'] = new $FunctionPrototype(realm, objectPrototype);
+    const objectConstructor = this['%Object%'] = new $ObjectConstructor(realm, objectPrototype, functionPrototype);
+    const functionConstructor = this['%Function%'] = new $FunctionConstructor(realm, functionPrototype);
 
-    this['%FunctionPrototype%'] = new $Object(realm, '%FunctionPrototype%', this['%ObjectPrototype%']);
-    this['%AsyncFunctionPrototype%'] = new $Object(realm, '%AsyncFunctionPrototype%', this['%FunctionPrototype%']);
+    this['%BooleanPrototype%'] = new $Object(realm, '%BooleanPrototype%', objectPrototype);
+    this['%NumberPrototype%'] = new $Object(realm, '%NumberPrototype%', objectPrototype);
+    this['%StringPrototype%'] = new $Object(realm, '%StringPrototype%', objectPrototype);
+    this['%SymbolPrototype%'] = new $Object(realm, '%SymbolPrototype%', objectPrototype);
+    this['%PromisePrototype%'] = new $Object(realm, '%PromisePrototype%', objectPrototype);
+    this['%RegExpPrototype%'] = new $Object(realm, '%RegExpPrototype%', objectPrototype);
+    this['%DatePrototype%'] = new $Object(realm, '%DatePrototype%', objectPrototype);
 
-    this['%Generator%'] = new $Object(realm, '%Generator%', this['%FunctionPrototype%']);
-    this['%AsyncGenerator%'] = new $Object(realm, '%AsyncGenerator%', this['%FunctionPrototype%']);
+    this['%AsyncFunctionPrototype%'] = new $Object(realm, '%AsyncFunctionPrototype%', functionPrototype);
+
+    this['%Generator%'] = new $Object(realm, '%Generator%', functionPrototype);
+    this['%AsyncGenerator%'] = new $Object(realm, '%AsyncGenerator%', functionPrototype);
 
     this['%IteratorPrototype%'] = new $IteratorPrototype(realm);
     this['%ArrayIteratorPrototype%'] = new $Object(realm, '%ArrayIteratorPrototype%', this['%IteratorPrototype%']);
@@ -438,20 +448,20 @@ export class Intrinsics {
     this['%StringIteratorPrototype%'] = new $Object(realm, '%StringIteratorPrototype%', this['%IteratorPrototype%']);
     this['%GeneratorPrototype%'] = new $Object(realm, '%GeneratorPrototype%', this['%IteratorPrototype%']);
 
-    this['%AsyncIteratorPrototype%'] = new $Object(realm, '%AsyncIteratorPrototype%', this['%ObjectPrototype%']);
+    this['%AsyncIteratorPrototype%'] = new $Object(realm, '%AsyncIteratorPrototype%', objectPrototype);
     this['%AsyncFromSyncIteratorPrototype%'] = new $Object(realm, '%AsyncFromSyncIteratorPrototype%', this['%AsyncIteratorPrototype%']);
     this['%AsyncGeneratorPrototype%'] = new $Object(realm, '%AsyncGeneratorPrototype%', this['%AsyncIteratorPrototype%']);
 
-    this['%ArrayPrototype%'] = new $Object(realm, '%ArrayPrototype%', this['%ObjectPrototype%']);
-    this['%MapPrototype%'] = new $Object(realm, '%MapPrototype%', this['%ObjectPrototype%']);
-    this['%WeakMapPrototype%'] = new $Object(realm, '%WeakMapPrototype%', this['%ObjectPrototype%']);
-    this['%SetPrototype%'] = new $Object(realm, '%SetPrototype%', this['%ObjectPrototype%']);
-    this['%WeakSetPrototype%'] = new $Object(realm, '%WeakSetPrototype%', this['%ObjectPrototype%']);
-    this['%DataViewPrototype%'] = new $Object(realm, '%DataViewPrototype%', this['%ObjectPrototype%']);
-    this['%ArrayBufferPrototype%'] = new $Object(realm, '%ArrayBufferPrototype%', this['%ObjectPrototype%']);
-    this['%SharedArrayBufferPrototype%'] = new $Object(realm, '%SharedArrayBufferPrototype%', this['%ObjectPrototype%']);
+    this['%ArrayPrototype%'] = new $Object(realm, '%ArrayPrototype%', objectPrototype);
+    this['%MapPrototype%'] = new $Object(realm, '%MapPrototype%', objectPrototype);
+    this['%WeakMapPrototype%'] = new $Object(realm, '%WeakMapPrototype%', objectPrototype);
+    this['%SetPrototype%'] = new $Object(realm, '%SetPrototype%', objectPrototype);
+    this['%WeakSetPrototype%'] = new $Object(realm, '%WeakSetPrototype%', objectPrototype);
+    this['%DataViewPrototype%'] = new $Object(realm, '%DataViewPrototype%', objectPrototype);
+    this['%ArrayBufferPrototype%'] = new $Object(realm, '%ArrayBufferPrototype%', objectPrototype);
+    this['%SharedArrayBufferPrototype%'] = new $Object(realm, '%SharedArrayBufferPrototype%', objectPrototype);
 
-    this['%TypedArrayPrototype%'] = new $Object(realm, '%TypedArrayPrototype%', this['%ObjectPrototype%']);
+    this['%TypedArrayPrototype%'] = new $Object(realm, '%TypedArrayPrototype%', objectPrototype);
     this['%Float32ArrayPrototype%'] = new $Object(realm, '%Float32ArrayPrototype%', this['%TypedArrayPrototype%']);
     this['%Float64ArrayPrototype%'] = new $Object(realm, '%Float64ArrayPrototype%', this['%TypedArrayPrototype%']);
     this['%Int8ArrayPrototype%'] = new $Object(realm, '%Int8ArrayPrototype%', this['%TypedArrayPrototype%']);
@@ -462,7 +472,7 @@ export class Intrinsics {
     this['%Uint16ArrayPrototype%'] = new $Object(realm, '%Uint16ArrayPrototype%', this['%TypedArrayPrototype%']);
     this['%Uint32ArrayPrototype%'] = new $Object(realm, '%Uint32ArrayPrototype%', this['%TypedArrayPrototype%']);
 
-    this['%ErrorPrototype%'] = new $Object(realm, '%ErrorPrototype%', this['%ObjectPrototype%']);
+    this['%ErrorPrototype%'] = new $Object(realm, '%ErrorPrototype%', objectPrototype);
     this['%EvalErrorPrototype%'] = new $Object(realm, '%EvalErrorPrototype%', this['%ErrorPrototype%']);
     this['%RangeErrorPrototype%'] = new $Object(realm, '%RangeErrorPrototype%', this['%ErrorPrototype%']);
     this['%ReferenceErrorPrototype%'] = new $Object(realm, '%ReferenceErrorPrototype%', this['%ErrorPrototype%']);
@@ -470,31 +480,29 @@ export class Intrinsics {
     this['%TypeErrorPrototype%'] = new $Object(realm, '%TypeErrorPrototype%', this['%ErrorPrototype%']);
     this['%URIErrorPrototype%'] = new $Object(realm, '%URIErrorPrototype%', this['%ErrorPrototype%']);
 
-    this['%Object%'] = new $ObjectConstructor(realm);
-    this['%Boolean%'] = new $Object(realm, '%Boolean%', this['%FunctionPrototype%']);
-    this['%Number%'] = new $Object(realm, '%Number%', this['%FunctionPrototype%']);
+    this['%Boolean%'] = new $Object(realm, '%Boolean%', functionPrototype);
+    this['%Number%'] = new $Object(realm, '%Number%', functionPrototype);
     this['%String%'] = new $StringConstructor(realm);
-    this['%Symbol%'] = new $Object(realm, '%Symbol%', this['%FunctionPrototype%']);
-    this['%Promise%'] = new $Object(realm, '%Promise%', this['%FunctionPrototype%']);
-    this['%RegExp%'] = new $Object(realm, '%RegExp%', this['%FunctionPrototype%']);
-    this['%Date%'] = new $Object(realm, '%Date%', this['%FunctionPrototype%']);
+    this['%Symbol%'] = new $Object(realm, '%Symbol%', functionPrototype);
+    this['%Promise%'] = new $Object(realm, '%Promise%', functionPrototype);
+    this['%RegExp%'] = new $Object(realm, '%RegExp%', functionPrototype);
+    this['%Date%'] = new $Object(realm, '%Date%', functionPrototype);
 
-    this['%Function%'] = new $Object(realm, '%Function%', this['%FunctionPrototype%']);
-    this['%AsyncFunction%'] = new $Object(realm, '%AsyncFunction%', this['%Function%']);
+    this['%AsyncFunction%'] = new $Object(realm, '%AsyncFunction%', functionConstructor);
 
-    this['%GeneratorFunction%'] = new $Object(realm, '%GeneratorFunction%', this['%Function%']);
-    this['%AsyncGeneratorFunction%'] = new $Object(realm, '%AsyncGeneratorFunction%', this['%Function%']);
+    this['%GeneratorFunction%'] = new $Object(realm, '%GeneratorFunction%', functionConstructor);
+    this['%AsyncGeneratorFunction%'] = new $Object(realm, '%AsyncGeneratorFunction%', functionConstructor);
 
-    this['%Array%'] = new $Object(realm, '%Array%', this['%FunctionPrototype%']);
-    this['%Map%'] = new $Object(realm, '%Map%', this['%FunctionPrototype%']);
-    this['%WeakMap%'] = new $Object(realm, '%WeakMap%', this['%FunctionPrototype%']);
-    this['%Set%'] = new $Object(realm, '%Set%', this['%FunctionPrototype%']);
-    this['%WeakSet%'] = new $Object(realm, '%WeakSet%', this['%FunctionPrototype%']);
-    this['%DataView%'] = new $Object(realm, '%DataView%', this['%FunctionPrototype%']);
-    this['%ArrayBuffer%'] = new $Object(realm, '%ArrayBuffer%', this['%FunctionPrototype%']);
-    this['%SharedArrayBuffer%'] = new $Object(realm, '%SharedArrayBuffer%', this['%FunctionPrototype%']);
+    this['%Array%'] = new $Object(realm, '%Array%', functionPrototype);
+    this['%Map%'] = new $Object(realm, '%Map%', functionPrototype);
+    this['%WeakMap%'] = new $Object(realm, '%WeakMap%', functionPrototype);
+    this['%Set%'] = new $Object(realm, '%Set%', functionPrototype);
+    this['%WeakSet%'] = new $Object(realm, '%WeakSet%', functionPrototype);
+    this['%DataView%'] = new $Object(realm, '%DataView%', functionPrototype);
+    this['%ArrayBuffer%'] = new $Object(realm, '%ArrayBuffer%', functionPrototype);
+    this['%SharedArrayBuffer%'] = new $Object(realm, '%SharedArrayBuffer%', functionPrototype);
 
-    this['%TypedArray%'] = new $Object(realm, '%TypedArray%', this['%FunctionPrototype%']);
+    this['%TypedArray%'] = new $Object(realm, '%TypedArray%', functionPrototype);
     this['%Float32Array%'] = new $Object(realm, '%Float32Array%', this['%TypedArray%']);
     this['%Float64Array%'] = new $Object(realm, '%Float64Array%', this['%TypedArray%']);
     this['%Int8Array%'] = new $Object(realm, '%Int8Array%', this['%TypedArray%']);
@@ -505,7 +513,7 @@ export class Intrinsics {
     this['%Uint16Array%'] = new $Object(realm, '%Uint16Array%', this['%TypedArray%']);
     this['%Uint32Array%'] = new $Object(realm, '%Uint32Array%', this['%TypedArray%']);
 
-    this['%Error%'] = new $Object(realm, '%Error%', this['%FunctionPrototype%']);
+    this['%Error%'] = new $Object(realm, '%Error%', functionPrototype);
     this['%EvalError%'] = new $Object(realm, '%EvalError%', this['%Error%']);
     this['%RangeError%'] = new $Object(realm, '%RangeError%', this['%Error%']);
     this['%ReferenceError%'] = new $Object(realm, '%ReferenceError%', this['%Error%']);
@@ -513,34 +521,33 @@ export class Intrinsics {
     this['%TypeError%'] = new $Object(realm, '%TypeError%', this['%Error%']);
     this['%URIError%'] = new $Object(realm, '%URIError%', this['%Error%']);
 
-    this['%Atomics%'] = new $Object(realm, '%Atomics%', this['%ObjectPrototype%']);
-    this['%JSON%'] = new $Object(realm, '%JSON%', this['%ObjectPrototype%']);
-    this['%Math%'] = new $Object(realm, '%Math%', this['%ObjectPrototype%']);
-    this['%Reflect%'] = new $Object(realm, '%Reflect%', this['%ObjectPrototype%']);
-    this['%Proxy%'] = new $Object(realm, '%Proxy%', this['%FunctionPrototype%']);
+    this['%Atomics%'] = new $Object(realm, '%Atomics%', objectPrototype);
+    this['%JSON%'] = new $Object(realm, '%JSON%', objectPrototype);
+    this['%Math%'] = new $Object(realm, '%Math%', objectPrototype);
+    this['%Reflect%'] = new $Object(realm, '%Reflect%', objectPrototype);
+    this['%Proxy%'] = new $Object(realm, '%Proxy%', functionPrototype);
 
-    this['%decodeURI%'] = new $Object(realm, '%decodeURI%', this['%FunctionPrototype%']);
-    this['%decodeURIComponent%'] = new $Object(realm, '%decodeURIComponent%', this['%FunctionPrototype%']);
-    this['%encodeURI%'] = new $Object(realm, '%encodeURI%', this['%FunctionPrototype%']);
-    this['%encodeURIComponent%'] = new $Object(realm, '%encodeURIComponent%', this['%FunctionPrototype%']);
-    this['%eval%'] = new $Object(realm, '%eval%', this['%FunctionPrototype%']);
-    this['%isFinite%'] = new $Object(realm, '%isFinite%', this['%FunctionPrototype%']);
-    this['%isNaN%'] = new $Object(realm, '%isNaN%', this['%FunctionPrototype%']);
-    this['%parseFloat%'] = new $Object(realm, '%parseFloat%', this['%FunctionPrototype%']);
-    this['%parseInt%'] = new $Object(realm, '%parseInt%', this['%FunctionPrototype%']);
-    this['%JSONParse%'] = new $Object(realm, '%JSONParse%', this['%FunctionPrototype%']);
-    this['%JSONStringify%'] = new $Object(realm, '%JSONStringify%', this['%FunctionPrototype%']);
-    this['%ThrowTypeError%'] = new $Function(realm, '%ThrowTypeError%', this['%FunctionPrototype%']);
+    this['%decodeURI%'] = new $Object(realm, '%decodeURI%', functionPrototype);
+    this['%decodeURIComponent%'] = new $Object(realm, '%decodeURIComponent%', functionPrototype);
+    this['%encodeURI%'] = new $Object(realm, '%encodeURI%', functionPrototype);
+    this['%encodeURIComponent%'] = new $Object(realm, '%encodeURIComponent%', functionPrototype);
+    this['%eval%'] = new $Object(realm, '%eval%', functionPrototype);
+    this['%isFinite%'] = new $Object(realm, '%isFinite%', functionPrototype);
+    this['%isNaN%'] = new $Object(realm, '%isNaN%', functionPrototype);
+    this['%parseFloat%'] = new $Object(realm, '%parseFloat%', functionPrototype);
+    this['%parseInt%'] = new $Object(realm, '%parseInt%', functionPrototype);
+    this['%JSONParse%'] = new $Object(realm, '%JSONParse%', functionPrototype);
+    this['%JSONStringify%'] = new $Object(realm, '%JSONStringify%', functionPrototype);
+    this['%ThrowTypeError%'] = new $Function(realm, '%ThrowTypeError%', functionPrototype);
 
-    this['%ArrayProto_entries%'] = new $Object(realm, '%ArrayProto_entries%', this['%FunctionPrototype%']);
-    this['%ArrayProto_forEach%'] = new $Object(realm, '%ArrayProto_forEach%', this['%FunctionPrototype%']);
-    this['%ArrayProto_keys%'] = new $Object(realm, '%ArrayProto_keys%', this['%FunctionPrototype%']);
-    this['%ArrayProto_values%'] = new $Object(realm, '%ArrayProto_values%', this['%FunctionPrototype%']);
-    this['%ObjProto_toString%'] = new $Object(realm, '%ObjProto_toString%', this['%FunctionPrototype%']);
-    this['%ObjProto_valueOf%'] = new $Object(realm, '%ObjProto_valueOf%', this['%FunctionPrototype%']);
-    this['%PromiseProto_then%'] = new $Object(realm, '%PromiseProto_then%', this['%FunctionPrototype%']);
-    this['%Promise_all%'] = new $Object(realm, '%Promise_all%', this['%FunctionPrototype%']);
-    this['%Promise_reject%'] = new $Object(realm, '%Promise_reject%', this['%FunctionPrototype%']);
-    this['%Promise_resolve%'] = new $Object(realm, '%Promise_resolve%', this['%FunctionPrototype%']);
+    this['%ArrayProto_entries%'] = new $Object(realm, '%ArrayProto_entries%', functionPrototype);
+    this['%ArrayProto_forEach%'] = new $Object(realm, '%ArrayProto_forEach%', functionPrototype);
+    this['%ArrayProto_keys%'] = new $Object(realm, '%ArrayProto_keys%', functionPrototype);
+    this['%ArrayProto_values%'] = new $Object(realm, '%ArrayProto_values%', functionPrototype);
+    this['%ObjProto_valueOf%'] = new $Object(realm, '%ObjProto_valueOf%', functionPrototype);
+    this['%PromiseProto_then%'] = new $Object(realm, '%PromiseProto_then%', functionPrototype);
+    this['%Promise_all%'] = new $Object(realm, '%Promise_all%', functionPrototype);
+    this['%Promise_reject%'] = new $Object(realm, '%Promise_reject%', functionPrototype);
+    this['%Promise_resolve%'] = new $Object(realm, '%Promise_resolve%', functionPrototype);
   }
 }

@@ -1707,28 +1707,63 @@ export class $PostfixUnaryExpression implements I$Node {
     const intrinsics = realm['[[Intrinsics]]'];
 
     this.logger.debug(`Evaluate(#${ctx.id})`);
-    // http://www.ecma-international.org/ecma-262/#sec-postfix-increment-operator-runtime-semantics-evaluation
 
-    // UpdateExpression : LeftHandSideExpression ++
+    switch (this.node.operator) {
+      case SyntaxKind.PlusPlusToken: {
+        // http://www.ecma-international.org/ecma-262/#sec-postfix-increment-operator-runtime-semantics-evaluation
 
-    // 1. Let lhs be the result of evaluating LeftHandSideExpression.
-    // 2. Let oldValue be ? ToNumber(? GetValue(lhs)).
-    // 3. Let newValue be the result of adding the value 1 to oldValue, using the same rules as for the + operator (see 12.8.5).
-    // 4. Perform ? PutValue(lhs, newValue).
-    // 5. Return oldValue.
+        // UpdateExpression : LeftHandSideExpression ++
 
+        // 1. Let lhs be the result of evaluating LeftHandSideExpression.
+        const lhs = this.$operand.Evaluate(ctx);
 
-    // http://www.ecma-international.org/ecma-262/#sec-postfix-decrement-operator-runtime-semantics-evaluation
+        // 2. Let oldValue be ? ToNumber(? GetValue(lhs)).
+        const $oldValue = lhs.GetValue(ctx);
+        if ($oldValue.isAbrupt) { return $oldValue; }
+        const oldValue = $oldValue.ToNumber(ctx);
+        if (oldValue.isAbrupt) { return oldValue; }
 
-    // UpdateExpression : LeftHandSideExpression --
+        // 3. Let newValue be the result of adding the value 1 to oldValue, using the same rules as for the + operator (see 12.8.5).
+        const newValue = new $Number(realm, oldValue['[[Value]]'] + 1);
 
-    // 1. Let lhs be the result of evaluating LeftHandSideExpression.
-    // 2. Let oldValue be ? ToNumber(? GetValue(lhs)).
-    // 3. Let newValue be the result of subtracting the value 1 from oldValue, using the same rules as for the - operator (see 12.8.5).
-    // 4. Perform ? PutValue(lhs, newValue).
-    // 5. Return oldValue.
+        // 4. Perform ? PutValue(lhs, newValue).
+        if (!(lhs instanceof $Reference)) {
+          return new $ReferenceError(realm);
+        }
+        const $PutValueResult = lhs.PutValue(ctx, newValue);
+        if ($PutValueResult.isAbrupt) { return $PutValueResult; }
 
-    return intrinsics.undefined; // TODO: implement this
+        // 5. Return oldValue.
+        return oldValue;
+      }
+      case SyntaxKind.MinusMinusToken: {
+        // http://www.ecma-international.org/ecma-262/#sec-postfix-decrement-operator-runtime-semantics-evaluation
+
+        // UpdateExpression : LeftHandSideExpression --
+
+        // 1. Let lhs be the result of evaluating LeftHandSideExpression.
+        const lhs = this.$operand.Evaluate(ctx);
+
+        // 2. Let oldValue be ? ToNumber(? GetValue(lhs)).
+        const $oldValue = lhs.GetValue(ctx);
+        if ($oldValue.isAbrupt) { return $oldValue; }
+        const oldValue = $oldValue.ToNumber(ctx);
+        if (oldValue.isAbrupt) { return oldValue; }
+
+        // 3. Let newValue be the result of subtracting the value 1 from oldValue, using the same rules as for the - operator (see 12.8.5).
+        const newValue = new $Number(realm, oldValue['[[Value]]'] - 1);
+
+        // 4. Perform ? PutValue(lhs, newValue).
+        if (!(lhs instanceof $Reference)) {
+          return new $ReferenceError(realm);
+        }
+        const $PutValueResult = lhs.PutValue(ctx, newValue);
+        if ($PutValueResult.isAbrupt) { return $PutValueResult; }
+
+        // 5. Return oldValue.
+        return oldValue;
+      }
+    }
   }
 }
 

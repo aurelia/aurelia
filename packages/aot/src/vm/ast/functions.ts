@@ -1167,7 +1167,7 @@ export class $ConstructorDeclaration implements I$Node {
     closure['[[HomeObject]]'] = object;
 
     // 9. Set closure.[[SourceText]] to the source text matched by MethodDefinition.
-    closure['[[SourceText]]'] = new $String(realm, this.node.getText(this.sourceFile.node));
+    closure['[[SourceText]]'] = new $String(realm, this.parent.node.getText(this.sourceFile.node));
 
     // 10. Return the Record { [[Key]]: propKey, [[Closure]]: closure }.
     return new MethodDefinitionRecord(propKey, closure);

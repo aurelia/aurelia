@@ -179,6 +179,7 @@ export class $Function<
 
     // 12. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
     stack.pop();
+    ctx.resume();
 
     // 13. If result.[[Type]] is return, then
     if (result['[[Type]]'] === CompletionType.return) {

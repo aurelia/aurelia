@@ -11,7 +11,7 @@ import {
   CompletionType,
 } from '../types/_shared';
 import {
-  $Error,
+  $Error, $TypeError,
 } from '../types/error';
 import {
   $Undefined,
@@ -22,6 +22,12 @@ import {
 import {
   $ObjectPrototype,
 } from './object';
+import {
+  $List,
+} from '../types/list';
+import {
+  $Call,
+} from '../operations';
 
 
 // http://www.ecma-international.org/ecma-262/#sec-function-constructor
@@ -63,12 +69,54 @@ export class $FunctionPrototype extends $Object<'%FunctionPrototype%'> {
     this.setDataProperty(this.realm['[[Intrinsics]]'].$constructor, value);
   }
 
+  public get $call(): $FunctionPrototype_call {
+    return this.getProperty(this.realm['[[Intrinsics]]'].call)['[[Value]]'] as $FunctionPrototype_call;
+  }
+  public set $call(value: $FunctionPrototype_call) {
+    this.setDataProperty(this.realm['[[Intrinsics]]'].call, value);
+  }
+
   public constructor(
     realm: Realm,
     objectPrototype: $ObjectPrototype,
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
     super(realm, '%FunctionPrototype%', objectPrototype, CompletionType.normal, intrinsics.empty);
+  }
+}
+
+export class $FunctionPrototype_call extends $BuiltinFunction<'Function.prototype.call'> {
+  // http://www.ecma-international.org/ecma-262/#sec-function.prototype.call
+  public performSteps(
+    ctx: ExecutionContext,
+    thisArgument: $AnyNonEmpty,
+    [thisArg, ...args]: readonly $AnyNonEmpty[],
+    NewTarget: $Function | $Undefined,
+  ): $AnyNonEmpty | $Error {
+    const realm = ctx.Realm;
+
+    // 1. Let func be the this value.
+    const func = thisArgument;
+
+    // 2. If IsCallable(func) is false, throw a TypeError exception.
+    if (!func.isFunction) {
+      return new $TypeError(realm);
+    }
+
+    // 3. Let argList be a new empty List.
+    const argList = new $List<$AnyNonEmpty>();
+
+    // 4. If this method was called with more than one argument, then in left to right order, starting with the second argument, append each argument as the last element of argList.
+    if (args.length > 0) {
+      argList.push(...args);
+    }
+
+    // 5. Perform PrepareForTailCall().
+    ctx.suspend();
+    realm.stack.pop();
+
+    // 6. Return ? Call(func, thisArg, argList).
+    return $Call(realm.stack.top, func as $Function, thisArg, argList);
   }
 }
 

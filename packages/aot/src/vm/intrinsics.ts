@@ -43,6 +43,7 @@ import {
 import {
   $FunctionPrototype,
   $FunctionConstructor,
+  $FunctionPrototype_call,
 } from './globals/function';
 import {
   CompletionType,
@@ -186,6 +187,7 @@ export class Intrinsics {
   public readonly 'number': $String<'number'>;
   public readonly 'length': $String<'length'>;
   public readonly 'next': $String<'next'>;
+  public readonly 'call': $String<'call'>;
   public readonly '$arguments': $String<'arguments'>;
   public readonly '$callee': $String<'callee'>;
   public readonly '$constructor': $String<'constructor'>;
@@ -385,6 +387,7 @@ export class Intrinsics {
     this['number'] = new $String(realm, 'number');
     this['length'] = new $String(realm, 'length');
     this['next'] = new $String(realm, 'next');
+    this['call'] = new $String(realm, 'call');
     this['$arguments'] = new $String(realm, 'arguments');
     this['$callee'] = new $String(realm, 'callee');
     this['$constructor'] = new $String(realm, 'constructor');
@@ -437,6 +440,8 @@ export class Intrinsics {
     (functionConstructor.$prototype = functionPrototype).$constructor = functionConstructor;
 
     objectPrototype.$toString = this['%ObjProto_toString%'] = new $ObjProto_toString(realm, 'Object.prototype.toString', functionPrototype);
+
+    functionPrototype.$call = new $FunctionPrototype_call(realm, 'Function.prototype.call', functionPrototype);
 
     this['%BooleanPrototype%'] = new $Object(realm, '%BooleanPrototype%', objectPrototype, CompletionType.normal, empty);
     this['%NumberPrototype%'] = new $Object(realm, '%NumberPrototype%', objectPrototype, CompletionType.normal, empty);

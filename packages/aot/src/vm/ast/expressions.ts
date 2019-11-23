@@ -2526,22 +2526,85 @@ export class $BinaryExpression implements I$Node {
 
         // AssignmentExpression : LeftHandSideExpression = AssignmentExpression
 
+        const lhs = this.$left;
+        const assign = this.$right;
+
         // 1. If LeftHandSideExpression is neither an ObjectLiteral nor an ArrayLiteral, then
-        // 1. a. Let lref be the result of evaluating LeftHandSideExpression.
-        // 1. b. ReturnIfAbrupt(lref).
-        // 1. c. If IsAnonymousFunctionDefinition(AssignmentExpression) and IsIdentifierRef of LeftHandSideExpression are both true, then
-        // 1. c. i. Let rval be the result of performing NamedEvaluation for AssignmentExpression with argument GetReferencedName(lref).
-        // 1. d. Else,
-        // 1. d. i. Let rref be the result of evaluating AssignmentExpression.
-        // 1. d. ii. Let rval be ? GetValue(rref).
-        // 1. e. Perform ? PutValue(lref, rval).
-        // 1. f. Return rval.
+        if (!(lhs instanceof $ObjectLiteralExpression || lhs instanceof $ArrayLiteralExpression)) {
+          // 1. a. Let lref be the result of evaluating LeftHandSideExpression.
+          const lref = lhs.Evaluate(ctx);
+
+          // 1. b. ReturnIfAbrupt(lref).
+          if (lref.isAbrupt) { return lref; }
+
+          let rval: $AnyNonEmpty;
+          // 1. c. If IsAnonymousFunctionDefinition(AssignmentExpression) and IsIdentifierRef of LeftHandSideExpression are both true, then
+          if (assign instanceof $FunctionExpression && !assign.HasName && lref instanceof $Identifier) {
+            // 1. c. i. Let rval be the result of performing NamedEvaluation for AssignmentExpression with argument GetReferencedName(lref).
+            rval = (lref as $Reference).GetReferencedName();
+          }
+          // 1. d. Else,
+          else {
+            // 1. d. i. Let rref be the result of evaluating AssignmentExpression.
+            const rref = assign.Evaluate(ctx);
+
+            // 1. d. ii. Let rval be ? GetValue(rref).
+            const $rval = rref.GetValue(ctx);
+            if ($rval.isAbrupt) { return $rval; }
+            rval = $rval;
+          }
+
+          // 1. e. Perform ? PutValue(lref, rval).
+          if (!(lref instanceof $Reference)) {
+            return new $ReferenceError(realm);
+          }
+          const $PutValueResult = lref.PutValue(ctx, rval);
+          if ($PutValueResult.isAbrupt) { return $PutValueResult; }
+
+          // 1. f. Return rval.
+          return rval;
+        }
+
         // 2. Let assignmentPattern be the AssignmentPattern that is covered by LeftHandSideExpression.
         // 3. Let rref be the result of evaluating AssignmentExpression.
+        const rref = assign.Evaluate(ctx);
+
         // 4. Let rval be ? GetValue(rref).
+        const $rval = rref.GetValue(ctx);
+        if ($rval.isAbrupt) { return $rval; }
+        const rval = $rval;
+
         // 5. Perform ? DestructuringAssignmentEvaluation of assignmentPattern using rval as the argument.
+        // TODO
+
         // 6. Return rval.
-        return intrinsics.undefined; // TODO: implement this
+        return rval;
+      }
+      case SyntaxKind.CommaToken: {
+        // 1. Let lref be the result of evaluating LeftHandSideExpression.
+        const lref = this.$left.Evaluate(ctx);
+
+        // 2. Let lval be ? GetValue(lref).
+        const lval = lref.GetValue(ctx);
+        if (lval.isAbrupt) { return lval; }
+
+        // 3. Let rref be the result of evaluating AssignmentExpression.
+        const rref = this.$left.Evaluate(ctx);
+
+        // 4. Return ? GetValue(rref)
+        return rref.GetValue(ctx);
+      }
+      case SyntaxKind.QuestionQuestionToken: {
+        const lref = this.$left.Evaluate(ctx);
+        const lval = lref.GetValue(ctx);
+        if (lval.isAbrupt) { return lval; }
+
+        if (lval.isNil) {
+          const rref = this.$right.Evaluate(ctx);
+          return rref.GetValue(ctx);
+        }
+
+        return lval;
       }
       case SyntaxKind.AsteriskAsteriskEqualsToken:
       case SyntaxKind.AsteriskEqualsToken:
@@ -2558,18 +2621,226 @@ export class $BinaryExpression implements I$Node {
         // AssignmentExpression : LeftHandSideExpression AssignmentOperator AssignmentExpression
 
         // 1. Let lref be the result of evaluating LeftHandSideExpression.
+        const lref = this.$left.Evaluate(ctx);
+
         // 2. Let lval be ? GetValue(lref).
+        const lval = lref.GetValue(ctx);
+        if (lval.isAbrupt) { return lval; }
+
         // 3. Let rref be the result of evaluating AssignmentExpression.
+        const rref = this.$left.Evaluate(ctx);
+
         // 4. Let rval be ? GetValue(rref).
+        const rval = rref.GetValue(ctx);
+        if (rval.isAbrupt) { return rval; }
+
         // 5. Let op be the @ where AssignmentOperator is @=.
+
         // 6. Let r be the result of applying op to lval and rval as if evaluating the expression lval op rval.
+        let r: $AnyNonEmpty;
+        switch (this.node.operatorToken.kind) {
+          case SyntaxKind.AsteriskAsteriskEqualsToken: {
+            // 5. Let base be ? ToNumber(leftValue).
+            const base = lval.ToNumber(ctx);
+            if (base.isAbrupt) { return base; }
+
+            // 6. Let exponent be ? ToNumber(rightValue).
+            const exponent = rval.ToNumber(ctx);
+            if (exponent.isAbrupt) { return exponent; }
+
+            // 7. Return the result of Applying the ** operator with base and exponent as specified in 12.6.4.
+            r = new $Number(realm, base['[[Value]]'] ** exponent['[[Value]]']);
+            break;
+          }
+          case SyntaxKind.AsteriskEqualsToken: {
+            // 5. Let lnum be ? ToNumber(leftValue).
+            const lnum = lval.ToNumber(ctx);
+            if (lnum.isAbrupt) { return lnum; }
+
+            // 6. Let rnum be ? ToNumber(rightValue).
+            const rnum = rval.ToNumber(ctx);
+            if (rnum.isAbrupt) { return rnum; }
+
+            // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
+            r = new $Number(realm, lnum['[[Value]]'] * rnum['[[Value]]']);
+            break;
+          }
+          case SyntaxKind.SlashEqualsToken: {
+            // 5. Let lnum be ? ToNumber(leftValue).
+            const lnum = lval.ToNumber(ctx);
+            if (lnum.isAbrupt) { return lnum; }
+
+            // 6. Let rnum be ? ToNumber(rightValue).
+            const rnum = rval.ToNumber(ctx);
+            if (rnum.isAbrupt) { return rnum; }
+
+            // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
+            r = new $Number(realm, lnum['[[Value]]'] / rnum['[[Value]]']);
+            break;
+          }
+          case SyntaxKind.PercentEqualsToken: {
+            // 5. Let lnum be ? ToNumber(leftValue).
+            const lnum = lval.ToNumber(ctx);
+            if (lnum.isAbrupt) { return lnum; }
+
+            // 6. Let rnum be ? ToNumber(rightValue).
+            const rnum = rval.ToNumber(ctx);
+            if (rnum.isAbrupt) { return rnum; }
+
+            // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
+            r = new $Number(realm, lnum['[[Value]]'] % rnum['[[Value]]']);
+            break;
+          }
+          case SyntaxKind.PlusEqualsToken: {
+
+            // 5. Let lprim be ? ToPrimitive(lval).
+            const lprim = lval.ToPrimitive(ctx);
+            if (lprim.isAbrupt) { return lprim; }
+
+            // 6. Let rprim be ? ToPrimitive(rval).
+            const rprim = rval.ToPrimitive(ctx);
+            if (rprim.isAbrupt) { return rprim; }
+
+            // 7. If Type(lprim) is String or Type(rprim) is String, then
+            if (lprim.isString || rprim.isString) {
+              // 7. a. Let lstr be ? ToString(lprim).
+              const lstr = lprim.ToString(ctx);
+              if (lstr.isAbrupt) { return lstr; }
+
+              // 7. b. Let rstr be ? ToString(rprim).
+              const rstr = rprim.ToString(ctx);
+              if (rstr.isAbrupt) { return rstr; }
+
+              // 7. c. Return the string-concatenation of lstr and rstr.
+              r = new $String(realm, lstr['[[Value]]'] + rstr['[[Value]]']);
+              break;
+            }
+
+            // 8. Let lnum be ? ToNumber(lprim).
+            const lnum = lprim.ToNumber(ctx);
+            if (lnum.isAbrupt) { return lnum; }
+
+            // 9. Let rnum be ? ToNumber(rprim).
+            const rnum = rprim.ToNumber(ctx);
+            if (rnum.isAbrupt) { return rnum; }
+
+            // 10. Return the result of applying the addition operation to lnum and rnum. See the Note below 12.8.5.
+            r = new $Number(realm, lnum['[[Value]]'] + rnum['[[Value]]']);
+            break;
+          }
+          case SyntaxKind.MinusEqualsToken: {
+            // 5. Let lnum be ? ToNumber(lval).
+            const lnum = lval.ToNumber(ctx);
+            if (lnum.isAbrupt) { return lnum; }
+
+            // 6. Let rnum be ? ToNumber(rval).
+            const rnum = rval.ToNumber(ctx);
+            if (rnum.isAbrupt) { return rnum; }
+
+            // 7. Return the result of applying the subtraction operation to lnum and rnum. See the note below 12.8.5.
+            r = new $Number(realm, lnum['[[Value]]'] - rnum['[[Value]]']);
+            break;
+          }
+          case SyntaxKind.LessThanLessThanEqualsToken: {
+            // 5. Let lnum be ? ToInt32(lval).
+            const lnum = lval.ToInt32(ctx);
+            if (lnum.isAbrupt) { return lnum; }
+
+            // 6. Let rnum be ? ToUint32(rval).
+            const rnum = rval.ToUint32(ctx);
+            if (rnum.isAbrupt) { return rnum; }
+
+            // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
+            const shiftCount = rnum['[[Value]]'] & 0b11111;
+
+            // 8. Return the result of left shifting lnum by shiftCount bits. The result is a signed 32-bit integer.
+            r = new $Number(realm, lnum['[[Value]]'] << shiftCount);
+            break;
+          }
+          case SyntaxKind.GreaterThanGreaterThanEqualsToken: {
+            // 5. Let lnum be ? ToInt32(lval).
+            const lnum = lval.ToInt32(ctx);
+            if (lnum.isAbrupt) { return lnum; }
+
+            // 6. Let rnum be ? ToUint32(rval).
+            const rnum = rval.ToUint32(ctx);
+            if (rnum.isAbrupt) { return rnum; }
+
+            // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
+            const shiftCount = rnum['[[Value]]'] & 0b11111;
+
+            // 8. Return the result of performing a sign-extending right shift of lnum by shiftCount bits. The most significant bit is propagated. The result is a signed 32-bit integer.
+            r = new $Number(realm, lnum['[[Value]]'] >> shiftCount);
+            break;
+          }
+          case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken: {
+            // 5. Let lnum be ? ToUint32(lval).
+            const lnum = lval.ToUint32(ctx);
+            if (lnum.isAbrupt) { return lnum; }
+
+            // 6. Let rnum be ? ToUint32(rval).
+            const rnum = rval.ToUint32(ctx);
+            if (rnum.isAbrupt) { return rnum; }
+
+            // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
+            const shiftCount = rnum['[[Value]]'] & 0b11111;
+
+            // 8. Return the result of performing a zero-filling right shift of lnum by shiftCount bits. Vacated bits are filled with zero. The result is an unsigned 32-bit integer.
+            r = new $Number(realm, lnum['[[Value]]'] >>> shiftCount);
+            break;
+          }
+          case SyntaxKind.AmpersandEqualsToken: {
+            // 5. Let lnum be ? ToInt32(lval).
+            const lnum = lval.ToInt32(ctx);
+            if (lnum.isAbrupt) { return lnum; }
+
+            // 6. Let rnum be ? ToInt32(rval).
+            const rnum = rval.ToInt32(ctx);
+            if (rnum.isAbrupt) { return rnum; }
+
+            // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
+            r = new $Number(realm, lnum['[[Value]]'] & rnum['[[Value]]']);
+            break;
+          }
+          case SyntaxKind.CaretEqualsToken: {
+            // 5. Let lnum be ? ToInt32(lval).
+            const lnum = lval.ToInt32(ctx);
+            if (lnum.isAbrupt) { return lnum; }
+
+            // 6. Let rnum be ? ToInt32(rval).
+            const rnum = rval.ToInt32(ctx);
+            if (rnum.isAbrupt) { return rnum; }
+
+            // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
+            r = new $Number(realm, lnum['[[Value]]'] ^ rnum['[[Value]]']);
+            break;
+          }
+          case SyntaxKind.BarEqualsToken: {
+            // 5. Let lnum be ? ToInt32(lval).
+            const lnum = lval.ToInt32(ctx);
+            if (lnum.isAbrupt) { return lnum; }
+
+            // 6. Let rnum be ? ToInt32(rval).
+            const rnum = rval.ToInt32(ctx);
+            if (rnum.isAbrupt) { return rnum; }
+
+            // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
+            r = new $Number(realm, lnum['[[Value]]'] | rnum['[[Value]]']);
+            break;
+          }
+        }
+
         // 7. Perform ? PutValue(lref, r).
+        if (!(lref instanceof $Reference)) {
+          return new $ReferenceError(realm);
+        }
+        const $PutValueResult = lref.PutValue(ctx, r);
+        if ($PutValueResult.isAbrupt) { return $PutValueResult; }
+
         // 8. Return r.
-        return intrinsics.undefined; // TODO: implement this
+        return r;
       }
     }
-
-    return intrinsics.undefined; // TODO: implement this
   }
 }
 

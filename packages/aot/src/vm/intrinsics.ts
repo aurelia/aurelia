@@ -73,6 +73,8 @@ import {
   $ReferenceErrorPrototype,
   $SyntaxErrorConstructor,
   $SyntaxErrorPrototype,
+  $TypeErrorConstructor,
+  $TypeErrorPrototype,
 } from './globals/error';
 
 export type $True = $Boolean<true>;
@@ -529,6 +531,12 @@ export class Intrinsics {
     (syntaxErrorConstructor.$prototype = syntaxErrorPrototype).$constructor = syntaxErrorConstructor;
     syntaxErrorPrototype.message = new $String(realm, '');
     syntaxErrorPrototype.$name = new $String(realm, 'SyntaxError');
+
+    const typeErrorConstructor = this['%TypeError%'] = new $TypeErrorConstructor(realm, errorConstructor)
+    const typeErrorPrototype = this['%TypeErrorPrototype%'] = new $TypeErrorPrototype(realm, errorPrototype);
+    (typeErrorConstructor.$prototype = typeErrorPrototype).$constructor = typeErrorConstructor;
+    typeErrorPrototype.message = new $String(realm, '');
+    typeErrorPrototype.$name = new $String(realm, 'TypeError');
 
     this['%ReferenceError%'] = new $Object(realm, '%ReferenceError%', this['%Error%'], CompletionType.normal, empty);
     this['%ReferenceErrorPrototype%'] = new $Object(realm, '%ReferenceErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);

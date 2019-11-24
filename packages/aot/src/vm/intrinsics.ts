@@ -69,6 +69,8 @@ import {
   $EvalErrorPrototype,
   $RangeErrorConstructor,
   $RangeErrorPrototype,
+  $ReferenceErrorConstructor,
+  $ReferenceErrorPrototype,
 } from './globals/error';
 
 export type $True = $Boolean<true>;
@@ -513,6 +515,12 @@ export class Intrinsics {
     (rangeErrorConstructor.$prototype = rangeErrorPrototype).$constructor = rangeErrorConstructor;
     rangeErrorPrototype.message = new $String(realm, '');
     rangeErrorPrototype.$name = new $String(realm, 'RangeError');
+
+    const referenceErrorConstructor = this['%ReferenceError%'] = new $ReferenceErrorConstructor(realm, errorConstructor)
+    const referenceErrorPrototype = this['%ReferenceErrorPrototype%'] = new $ReferenceErrorPrototype(realm, errorPrototype);
+    (referenceErrorConstructor.$prototype = referenceErrorPrototype).$constructor = referenceErrorConstructor;
+    referenceErrorPrototype.message = new $String(realm, '');
+    referenceErrorPrototype.$name = new $String(realm, 'ReferenceError');
 
     this['%ReferenceError%'] = new $Object(realm, '%ReferenceError%', this['%Error%'], CompletionType.normal, empty);
     this['%ReferenceErrorPrototype%'] = new $Object(realm, '%ReferenceErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);

@@ -380,3 +380,97 @@ export class $RangeErrorPrototype extends $Object<'%RangeErrorPrototype%'> {
     super(realm, '%RangeErrorPrototype%', errorPrototype, CompletionType.normal, intrinsics.empty);
   }
 }
+
+
+
+// http://www.ecma-international.org/ecma-262/#sec-nativeerror-constructors
+export class $ReferenceErrorConstructor extends $BuiltinFunction<'%ReferenceError%'> {
+  public get $prototype(): $ReferenceErrorPrototype {
+    return this.getProperty(this.realm['[[Intrinsics]]'].$prototype)['[[Value]]'] as $ReferenceErrorPrototype;
+  }
+  public set $prototype(value: $ReferenceErrorPrototype) {
+    this.setDataProperty(this.realm['[[Intrinsics]]'].$prototype, value, false, false, false);
+  }
+
+  public constructor(
+    realm: Realm,
+    errorConstructor: $ErrorConstructor,
+  ) {
+    super(realm, '%ReferenceError%', errorConstructor);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-nativeerror
+  public performSteps(
+    ctx: ExecutionContext,
+    thisArgument: $AnyNonEmpty,
+    [message]: readonly $AnyNonEmpty[],
+    NewTarget: $Function | $Undefined,
+  ): $AnyNonEmpty | $Error {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // 1. If NewTarget is undefined, let newTarget be the active function object, else let newTarget be NewTarget.
+    const newTarget = NewTarget.isUndefined ? ctx.Function : NewTarget;
+
+    // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%ReferenceErrorPrototype%", « [[ErrorData]] »).
+    const O = $OrdinaryCreateFromConstructor(ctx, newTarget as $Function, '%ReferenceErrorPrototype%', { '[[ErrorData]]': void 0 })
+    if (O.isAbrupt) { return O; }
+
+    // 3. If message is not undefined, then
+    if (message !== void 0) {
+      // 3. a. Let msg be ? ToString(message).
+      const msg = message.ToString(ctx);
+      if (msg.isAbrupt) { return msg; }
+
+      // 3. b. Let msgDesc be the PropertyDescriptor { [[Value]]: msg, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }.
+      const msgDesc = new $PropertyDescriptor(
+        realm,
+        intrinsics.message,
+        {
+          '[[Value]]': msg,
+          '[[Writable]]': intrinsics.true,
+          '[[Enumerable]]': intrinsics.false,
+          '[[Configurable]]': intrinsics.true,
+        },
+      );
+
+      // 3. c. Perform ! DefinePropertyOrThrow(O, "message", msgDesc).
+      $DefinePropertyOrThrow(ctx, O, intrinsics.message, msgDesc);
+    }
+
+    // 4. Return O.
+    return O;
+  }
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-properties-of-the-nativeerror-prototype-objects
+export class $ReferenceErrorPrototype extends $Object<'%ReferenceErrorPrototype%'> {
+  public get $constructor(): $ReferenceErrorConstructor {
+    return this.getProperty(this.realm['[[Intrinsics]]'].$constructor)['[[Value]]'] as $ReferenceErrorConstructor;
+  }
+  public set $constructor(value: $ReferenceErrorConstructor) {
+    this.setDataProperty(this.realm['[[Intrinsics]]'].$constructor, value);
+  }
+
+  public get message(): $String {
+    return this.getProperty(this.realm['[[Intrinsics]]'].message)['[[Value]]'] as $String;
+  }
+  public set message(value: $String) {
+    this.setDataProperty(this.realm['[[Intrinsics]]'].message, value);
+  }
+
+  public get $name(): $String {
+    return this.getProperty(this.realm['[[Intrinsics]]'].$name)['[[Value]]'] as $String;
+  }
+  public set $name(value: $String) {
+    this.setDataProperty(this.realm['[[Intrinsics]]'].$name, value);
+  }
+
+  public constructor(
+    realm: Realm,
+    errorPrototype: $ErrorPrototype,
+  ) {
+    const intrinsics = realm['[[Intrinsics]]'];
+    super(realm, '%ReferenceErrorPrototype%', errorPrototype, CompletionType.normal, intrinsics.empty);
+  }
+}

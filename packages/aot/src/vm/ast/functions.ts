@@ -72,17 +72,10 @@ import {
   $$TSDeclaration,
   $$BindingName,
   $$bindingName,
-  getBoundNames,
   $AnyParentNode,
   isIIFE,
   GetDirectivePrologue,
-  $parameterDeclarationList,
-  getContainsExpression,
-  GetExpectedArgumentCount,
-  getHasInitializer,
-  getIsSimpleParameterList,
   $decoratorList,
-  $$SignatureDeclaration,
 } from './_shared';
 import {
   ExportEntryRecord,
@@ -100,10 +93,93 @@ import {
   $Block,
   DirectivePrologue,
 } from './statements';
+import {
+  $MethodDeclaration,
+  $SetAccessorDeclaration,
+  $GetAccessorDeclaration,
+} from './methods';
 
 const {
   emptyArray,
 } = PLATFORM;
+
+export type $$Function = (
+  $FunctionDeclaration |
+  $FunctionExpression |
+  $MethodDeclaration |
+  $ConstructorDeclaration |
+  $SetAccessorDeclaration |
+  $GetAccessorDeclaration |
+  $ArrowFunction
+);
+
+export class $FormalParameterList extends Array<$ParameterDeclaration> {
+  // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-boundnames
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-boundnames
+  public readonly BoundNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-containsexpression
+  public readonly ContainsExpression: boolean = false;
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-expectedargumentcount
+  public readonly ExpectedArgumentCount: number = 0;
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-hasinitializer
+  public readonly HasInitializer: boolean = false;
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-issimpleparameterlist
+  public readonly IsSimpleParameterList: boolean = true;
+  public readonly hasDuplicates: boolean = false;
+
+  public constructor(
+    nodes: readonly ParameterDeclaration[] | undefined,
+    parent: $$Function,
+    ctx: Context,
+  ) {
+    super();
+
+    if (nodes === void 0) {
+      this.BoundNames = emptyArray;
+    } else {
+      const BoundNames = this.BoundNames = [] as $String[];
+
+      const seenNames = new Set<string>();
+      let boundNamesLen = 0;
+
+      let cur: $ParameterDeclaration;
+      let curBoundNames: readonly $String[];
+      let curBoundName: $String;
+      for (let i = 0, ii = nodes.length; i < ii; ++i) {
+        cur = super[i] = new $ParameterDeclaration(nodes[i], parent, ctx);
+
+        curBoundNames = cur.BoundNames;
+        for (let j = 0, jj = curBoundNames.length; j < jj; ++j) {
+          curBoundName = curBoundNames[j];
+          if (seenNames.has(curBoundName['[[Value]]'])) {
+            this.hasDuplicates = true;
+          } else {
+            seenNames.add(curBoundName['[[Value]]']);
+          }
+
+          BoundNames[boundNamesLen++] = curBoundName;
+        }
+
+        if (cur.ContainsExpression && !this.ContainsExpression) {
+          this.ContainsExpression = true;
+        }
+
+        if (cur.HasInitializer && !this.HasInitializer) {
+          this.HasInitializer = true;
+          this.ExpectedArgumentCount = i;
+        }
+
+        if (!cur.IsSimpleParameterList && this.IsSimpleParameterList) {
+          this.IsSimpleParameterList = false;
+        }
+      }
+
+      if (!this.HasInitializer) {
+        this.ExpectedArgumentCount = nodes.length;
+      }
+    }
+  }
+}
 
 export class $FunctionExpression implements I$Node {
   public readonly $kind = SyntaxKind.FunctionExpression;
@@ -114,29 +190,26 @@ export class $FunctionExpression implements I$Node {
   public readonly isIIFE: boolean;
 
   public readonly $name: $Identifier | undefined;
-  public readonly $parameters: readonly $ParameterDeclaration[];
+  public readonly $parameters: $FormalParameterList;
   public readonly $body: $Block;
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-boundnames
-  public readonly BoundNames: readonly [$String | $String<'*default*'>] | readonly $String[];
-  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-containsexpression
-  public readonly ContainsExpression: boolean;
+  public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-containsusestrict
   public readonly ContainsUseStrict: boolean;
-  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-expectedargumentcount
-  public readonly ExpectedArgumentCount: number;
-  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-hasinitializer
-  public readonly HasInitializer: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-hasname
   public readonly HasName: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-isconstantdeclaration
   public readonly IsConstantDeclaration: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-isfunctiondefinition
   public readonly IsFunctionDefinition: true = true;
-  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-issimpleparameterlist
-  public readonly IsSimpleParameterList: boolean;
+
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallydeclarednames
+  public readonly LexicallyDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallyscopeddeclarations
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
@@ -170,18 +243,16 @@ export class $FunctionExpression implements I$Node {
     }
 
     const $name = this.$name = $identifier(node.name, this, ctx);
-    const $parameters = this.$parameters = $parameterDeclarationList(node.parameters, this, ctx);
+    this.$parameters = new $FormalParameterList(node.parameters, this, ctx);
     const $body = this.$body = new $Block(node.body, this, ctx);
 
-    this.BoundNames = $parameters.flatMap(getBoundNames);
-    this.ContainsExpression = $parameters.some(getContainsExpression);
+    this.BoundNames = emptyArray;
     this.ContainsUseStrict = DirectivePrologue.ContainsUseStrict === true;
-    this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
-    this.HasInitializer = $parameters.some(getHasInitializer);
     this.HasName = $name !== void 0;
-    this.IsSimpleParameterList = $parameters.every(getIsSimpleParameterList);
 
+    this.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
     this.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
+    this.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
     this.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
   }
 
@@ -382,7 +453,7 @@ export class $FunctionDeclaration implements I$Node {
 
   public readonly $decorators: readonly $Decorator[];
   public readonly $name: $Identifier | undefined;
-  public readonly $parameters: readonly $ParameterDeclaration[];
+  public readonly $parameters: $FormalParameterList;
   public readonly $body: $Block;
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-boundnames
@@ -390,14 +461,8 @@ export class $FunctionDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions-static-semantics-boundnames
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-static-semantics-BoundNames
   public readonly BoundNames: readonly [$String | $String<'*default*'>] | readonly $String[];
-  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-containsexpression
-  public readonly ContainsExpression: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-containsusestrict
   public readonly ContainsUseStrict: boolean;
-  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-expectedargumentcount
-  public readonly ExpectedArgumentCount: number;
-  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-hasinitializer
-  public readonly HasInitializer: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-hasname
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-static-semantics-hasname
   // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions-static-semantics-hasname
@@ -413,8 +478,7 @@ export class $FunctionDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions-static-semantics-isfunctiondefinition
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-static-semantics-IsFunctionDefinition
   public readonly IsFunctionDefinition: true = true;
-  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-issimpleparameterlist
-  public readonly IsSimpleParameterList: boolean;
+
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallydeclarednames
   public readonly LexicallyDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallyscopeddeclarations
@@ -470,15 +534,11 @@ export class $FunctionDeclaration implements I$Node {
 
     this.$decorators = $decoratorList(node.decorators, this, ctx);
     const $name = this.$name = $identifier(node.name, this, ctx);
-    const $parameters = this.$parameters = $parameterDeclarationList(node.parameters, this, ctx);
+    this.$parameters = new $FormalParameterList(node.parameters, this, ctx);
     const $body = this.$body = new $Block(node.body!, this, ctx);
 
-    this.ContainsExpression = $parameters.some(getContainsExpression);
     this.ContainsUseStrict = DirectivePrologue.ContainsUseStrict === true;
-    this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
-    this.HasInitializer = $parameters.some(getHasInitializer);
     const HasName = this.HasName = $name !== void 0;
-    this.IsSimpleParameterList = $parameters.every(getIsSimpleParameterList);
 
     this.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
     this.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
@@ -604,7 +664,7 @@ export class $FunctionDeclaration implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
   public EvaluateBody(
-    this: $FunctionDeclaration | $FunctionExpression,
+    this: $$Function,
     ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
     functionObject: $Function,
     argumentsList: readonly $AnyNonEmpty[],
@@ -623,10 +683,8 @@ export class $FunctionDeclaration implements I$Node {
     }
 
     // 2. Return the result of evaluating FunctionStatementList.
-    return this.$body.Evaluate(ctx);
+    return (this.$body as $Block).Evaluate(ctx); // $Block is guaranteed by $ArrowFunction.EvaluateBody
   }
-
-
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluation
   public Evaluate(
@@ -665,7 +723,7 @@ export function $FunctionDeclarationInstantiation(
   const envRec = ctx.LexicalEnvironment;
 
   // 4. Let code be func.[[ECMAScriptCode]].
-  const code = func['[[ECMAScriptCode]]'] as $FunctionDeclaration | $ArrowFunction; // TODO: MethodDeclaration may need to be included as well?
+  const code = func['[[ECMAScriptCode]]'];
 
   // 5. Let strict be func.[[Strict]].
   const strict = func['[[Strict]]'];
@@ -674,25 +732,16 @@ export function $FunctionDeclarationInstantiation(
   const formals = code.$parameters;
 
   // 7. Let parameterNames be the BoundNames of formals.
-  const parameterNames = formals.flatMap(getBoundNames);
+  const parameterNames = formals.BoundNames;
 
   // 8. If parameterNames has any duplicate entries, let hasDuplicates be true. Otherwise, let hasDuplicates be false.
-  let hasDuplicates = false;
-  const seen = new Set<string>();
-  for (const parameterName of parameterNames) {
-    if (seen.has(parameterName['[[Value]]'])) {
-      hasDuplicates = true;
-      break;
-    } else {
-      seen.add(parameterName['[[Value]]']);
-    }
-  }
+  const hasDuplicates = formals.hasDuplicates;
 
   // 9. Let simpleParameterList be IsSimpleParameterList of formals.
-  const simpleParameterList = code.IsSimpleParameterList;
+  const simpleParameterList = formals.IsSimpleParameterList;
 
   // 10. Let hasParameterExpressions be ContainsExpression of formals.
-  const hasParameterExpressions = code.ContainsExpression;
+  const hasParameterExpressions = formals.ContainsExpression;
 
   // 11. Let varNames be the VarDeclaredNames of code.
   const varNames = code.VarDeclaredNames;
@@ -776,7 +825,7 @@ export function $FunctionDeclarationInstantiation(
   }
 
   let ao: $Object | $ArgumentsExoticObject;
-  let parameterBindings: $String[];
+  let parameterBindings: readonly $String[];
 
   // 22. If argumentsObjectNeeded is true, then
   if (argumentsObjectNeeded) {
@@ -971,28 +1020,20 @@ export class $ArrowFunction implements I$Node {
 
   public readonly isIIFE: boolean;
 
-  public readonly $parameters: readonly $ParameterDeclaration[];
+  public readonly $parameters: $FormalParameterList;
   public readonly $body: $Block | $$AssignmentExpressionOrHigher;
 
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-boundnames
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-BoundNames
-  public readonly BoundNames: readonly $String[];
-  // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-containsexpression
-  // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-ContainsExpression
-  public readonly ContainsExpression: false = false;
+  public readonly BoundNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-containsusestrict
   public readonly ContainsUseStrict: boolean;
-  // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-expectedargumentcount
-  // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-ExpectedArgumentCount
-  public readonly ExpectedArgumentCount: number;
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-hasname
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-HasName
   public readonly HasName: false = false;
-  // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-issimpleparameterlist
-  // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-IsSimpleParameterList
-  public readonly IsSimpleParameterList: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredformalslist
-  public readonly CoveredFormalsList: readonly $ParameterDeclaration[];
+  public readonly CoveredFormalsList: $FormalParameterList;
+
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-lexicallydeclarednames
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-LexicallyDeclaredNames
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
@@ -1039,24 +1080,14 @@ export class $ArrowFunction implements I$Node {
         this.ContainsUseStrict = false;
       }
 
-      const $parameters = this.$parameters = $parameterDeclarationList(node.parameters, this, ctx);
-      const $body = this.$body = new $Block(node.body as Block, this, ctx);
-
-      this.BoundNames = $parameters.flatMap(getBoundNames);
-      this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
-      this.IsSimpleParameterList = $parameters.every(getIsSimpleParameterList);
-      this.CoveredFormalsList = $parameters;
+      this.$parameters = this.CoveredFormalsList = new $FormalParameterList(node.parameters, this as $ArrowFunction, ctx);
+      this.$body = new $Block(node.body as Block, this, ctx);
     } else {
       this.DirectivePrologue = emptyArray;
       this.ContainsUseStrict = false;
 
-      const $parameters = this.$parameters = $parameterDeclarationList(node.parameters, this, ctx);
+      this.$parameters = this.CoveredFormalsList = new $FormalParameterList(node.parameters, this, ctx);
       this.$body = $assignmentExpression(node.body as $AssignmentExpressionNode, this, ctx);
-
-      this.BoundNames = $parameters.flatMap(getBoundNames);
-      this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
-      this.IsSimpleParameterList = $parameters.every(getIsSimpleParameterList);
-      this.CoveredFormalsList = $parameters;
     }
   }
 
@@ -1076,6 +1107,30 @@ export class $ArrowFunction implements I$Node {
     // 4. Let closure be FunctionCreate(Arrow, parameters, ConciseBody, scope, strict).
     // 5. Set closure.[[SourceText]] to the source text matched by ArrowFunction.
     // 6. Return closure.
+
+    return intrinsics.undefined; // TODO: implement this
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-runtime-semantics-evaluatebody
+  public EvaluateBody(
+    ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
+    functionObject: $Function,
+    argumentsList: readonly $AnyNonEmpty[],
+  ): $Any {
+    if (this.$body.$kind === SyntaxKind.Block) {
+      return $FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
+    }
+
+    this.logger.debug(`EvaluateBody(#${ctx.id})`);
+
+    // ConciseBody : AssignmentExpression
+
+    // 1. Perform ? FunctionDeclarationInstantiation(functionObject, argumentsList).
+    // 2. Let exprRef be the result of evaluating AssignmentExpression.
+    // 3. Let exprValue be ? GetValue(exprRef).
+    // 4. Return Completion { [[Type]]: return, [[Value]]: exprValue, [[Target]]: empty }.
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
 
     return intrinsics.undefined; // TODO: implement this
   }
@@ -1103,11 +1158,17 @@ export class $ConstructorDeclaration implements I$Node {
   public readonly modifierFlags: ModifierFlags;
 
   public readonly $decorators: readonly $Decorator[];
-  public readonly $parameters: readonly $ParameterDeclaration[];
+  public readonly $parameters: $FormalParameterList;
   public readonly $body: $Block;
 
-  // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-expectedargumentcount
-  public readonly ExpectedArgumentCount: number;
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallydeclarednames
+  public readonly LexicallyDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallyscopeddeclarations
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public constructor(
     public readonly node: ConstructorDeclaration,
@@ -1123,11 +1184,14 @@ export class $ConstructorDeclaration implements I$Node {
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     this.$decorators = $decoratorList(node.decorators, this, ctx);
-    const $parameters = this.$parameters = $parameterDeclarationList(node.parameters, this, ctx);
+    this.$parameters = new $FormalParameterList(node.parameters, this, ctx);
 
-    this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
+    const $body = this.$body = new $Block(node.body!, this, ctx);
 
-    this.$body = new $Block(node.body!, this, ctx);
+    this.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
+    this.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
+    this.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
+    this.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-definemethod
@@ -1172,6 +1236,15 @@ export class $ConstructorDeclaration implements I$Node {
     // 10. Return the Record { [[Key]]: propKey, [[Closure]]: closure }.
     return new MethodDefinitionRecord(propKey, closure);
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
+  public EvaluateBody(
+    ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
+    functionObject: $Function,
+    argumentsList: readonly $AnyNonEmpty[],
+  ): $Any {
+    return $FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
+  }
 }
 
 export class $ParameterDeclaration implements I$Node {
@@ -1198,7 +1271,7 @@ export class $ParameterDeclaration implements I$Node {
 
   public constructor(
     public readonly node: ParameterDeclaration,
-    public readonly parent: $$SignatureDeclaration,
+    public readonly parent: $$Function,
     public readonly ctx: Context,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,

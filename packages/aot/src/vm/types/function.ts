@@ -47,16 +47,8 @@ import {
   $Error,
 } from './error';
 import {
-  $FunctionDeclaration,
-  $FunctionExpression,
-  $ArrowFunction,
-  $ConstructorDeclaration,
+  $$Function,
 } from '../ast/functions';
-import {
-  $MethodDeclaration,
-  $GetAccessorDeclaration,
-  $SetAccessorDeclaration,
-} from '../ast/methods';
 import {
   $SourceFile,
 } from '../ast/modules';
@@ -72,7 +64,7 @@ export class $Function<
 
   public ['[[Environment]]']: $EnvRec;
   public ['[[FunctionKind]]']: FunctionKind;
-  public ['[[ECMAScriptCode]]']: $FunctionDeclaration | $FunctionExpression | $MethodDeclaration | $ArrowFunction | $ConstructorDeclaration | $GetAccessorDeclaration | $SetAccessorDeclaration;
+  public ['[[ECMAScriptCode]]']: $$Function;
   public ['[[ConstructorKind]]']: ConstructorKind;
   public ['[[Realm]]']: Realm;
   public ['[[ScriptOrModule]]']: $SourceFile | $Null;
@@ -114,7 +106,7 @@ export class $Function<
     $OrdinaryCallBindThis(ctx, F, calleeContext, thisArgument);
 
     // 7. Let result be OrdinaryCallEvaluateBody(F, argumentsList).
-    const result = (F['[[ECMAScriptCode]]'] as $FunctionDeclaration).EvaluateBody(calleeContext, F, argumentsList);
+    const result = F['[[ECMAScriptCode]]'].EvaluateBody(calleeContext, F, argumentsList);
 
     // 8. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
     realm.stack.pop();
@@ -175,7 +167,7 @@ export class $Function<
     const envRec = calleeContext.LexicalEnvironment;
 
     // 11. Let result be OrdinaryCallEvaluateBody(F, argumentsList).
-    const result = (F['[[ECMAScriptCode]]'] as $FunctionDeclaration).EvaluateBody(calleeContext, F, argumentsList);
+    const result = F['[[ECMAScriptCode]]'].EvaluateBody(calleeContext, F, argumentsList);
 
     // 12. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
     stack.pop();
@@ -266,14 +258,14 @@ export class $Function<
     ctx: ExecutionContext,
     F: $Function,
     kind: 'normal' | 'method' | 'arrow',
-    node: $FunctionDeclaration | $FunctionExpression | $MethodDeclaration | $ArrowFunction | $ConstructorDeclaration | $GetAccessorDeclaration | $SetAccessorDeclaration,
+    code: $$Function,
     Scope: $EnvRec,
   ): $Function {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Let len be the ExpectedArgumentCount of ParameterList.
-    const len = node.ExpectedArgumentCount;
+    const len = code.$parameters.ExpectedArgumentCount;
 
     // 2. Perform ! SetFunctionLength(F, len).
     const Desc = new $PropertyDescriptor(realm, intrinsics.length);
@@ -291,7 +283,7 @@ export class $Function<
 
     // 5. Set F.[[FormalParameters]] to ParameterList.
     // 6. Set F.[[ECMAScriptCode]] to Body.
-    F['[[ECMAScriptCode]]'] = node;
+    F['[[ECMAScriptCode]]'] = code;
 
     // 7. Set F.[[ScriptOrModule]] to GetActiveScriptOrModule().
     F['[[ScriptOrModule]]'] = realm.GetActiveScriptOrModule();
@@ -318,12 +310,12 @@ export class $Function<
   public static FunctionCreate(
     ctx: ExecutionContext,
     kind: 'normal' | 'method' | 'arrow',
-    node: $FunctionDeclaration | $FunctionExpression | $MethodDeclaration | $ArrowFunction | $ConstructorDeclaration | $GetAccessorDeclaration | $SetAccessorDeclaration,
+    code: $$Function,
     Scope: $EnvRec,
     Strict: $Boolean,
     prototype?: $AnyObject,
   ) {
-    node.logger.debug(`$Function.FunctionCreate(#${ctx.id}, ${JSON.stringify(kind)})`);
+    code.logger.debug(`$Function.FunctionCreate(#${ctx.id}, ${JSON.stringify(kind)})`);
 
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -348,7 +340,7 @@ export class $Function<
     const F = this.FunctionAllocate(ctx, prototype!, Strict, allocKind);
 
     // 5. Return FunctionInitialize(F, kind, ParameterList, Body, Scope).
-    return this.FunctionInitialize(ctx, F, kind, node, Scope);
+    return this.FunctionInitialize(ctx, F, kind, code, Scope);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-makeconstructor

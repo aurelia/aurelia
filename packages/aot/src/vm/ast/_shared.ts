@@ -761,33 +761,6 @@ export function $$propertyName(
   }
 }
 
-export type $$SignatureDeclaration = (
-  $GetAccessorDeclaration |
-  $SetAccessorDeclaration |
-  $ArrowFunction |
-  $ConstructorDeclaration |
-  $FunctionDeclaration |
-  $FunctionExpression |
-  $MethodDeclaration
-);
-
-export function $parameterDeclarationList(
-  nodes: readonly ParameterDeclaration[] | undefined,
-  parent: $$SignatureDeclaration,
-  ctx: Context,
-): readonly $ParameterDeclaration[] {
-  if (nodes === void 0 || nodes.length === 0) {
-    return emptyArray;
-  }
-
-  const len = nodes.length;
-  const $nodes: $ParameterDeclaration[] = Array(len);
-  for (let i = 0; i < len; ++i) {
-    $nodes[i] = new $ParameterDeclaration(nodes[i], parent, ctx);
-  }
-  return $nodes;
-}
-
 export type $$DestructurableBinding = (
   $VariableDeclaration |
   $ParameterDeclaration |

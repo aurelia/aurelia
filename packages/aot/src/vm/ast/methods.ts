@@ -7,7 +7,6 @@ import {
   SyntaxKind,
 } from 'typescript';
 import {
-  PLATFORM,
   ILogger,
 } from '@aurelia/kernel';
 import {
@@ -46,8 +45,7 @@ import {
   $$PropertyName,
   $$propertyName,
   $decoratorList,
-  $parameterDeclarationList,
-  GetExpectedArgumentCount,
+  $$ESDeclaration,
 } from './_shared';
 import {
   $SourceFile,
@@ -61,12 +59,20 @@ import {
   $ClassExpression,
 } from './classes';
 import {
-  $ParameterDeclaration,
-  MethodDefinitionRecord
+  MethodDefinitionRecord,
+  $FormalParameterList,
+  $FunctionDeclaration
 } from './functions';
 import {
   $Block,
 } from './statements';
+import {
+  $FunctionEnvRec,
+} from '../types/environment-record';
+import {
+  $Any,
+  $AnyNonEmpty,
+} from '../types/_shared';
 
 
 export class $MethodDeclaration implements I$Node {
@@ -77,15 +83,22 @@ export class $MethodDeclaration implements I$Node {
 
   public readonly $decorators: readonly $Decorator[];
   public readonly $name: $$PropertyName;
-  public readonly $parameters: readonly $ParameterDeclaration[];
+  public readonly $parameters: $FormalParameterList;
   public readonly $body: $Block;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-isstatic
   public readonly IsStatic: boolean;
-  // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-expectedargumentcount
-  public readonly ExpectedArgumentCount: number;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
   public readonly PropName: $String | $Empty;
+
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallydeclarednames
+  public readonly LexicallyDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallyscopeddeclarations
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public constructor(
     public readonly node: MethodDeclaration,
@@ -102,12 +115,16 @@ export class $MethodDeclaration implements I$Node {
 
     this.$decorators = $decoratorList(node.decorators, this, ctx);
     const $name = this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName);
-    const $parameters = this.$parameters = $parameterDeclarationList(node.parameters, this, ctx);
-    this.$body = new $Block(node.body!, this, ctx);
+    this.$parameters = new $FormalParameterList(node.parameters, this, ctx);
+    const $body = this.$body = new $Block(node.body!, this, ctx);
 
-    this.ExpectedArgumentCount = GetExpectedArgumentCount($parameters);
     this.PropName = $name.PropName;
     this.IsStatic = hasBit(modifierFlags, ModifierFlags.Static);
+
+    this.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
+    this.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
+    this.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
+    this.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-definemethod
@@ -190,6 +207,15 @@ export class $MethodDeclaration implements I$Node {
     // 5. Return ? DefinePropertyOrThrow(object, methodDef.[[Key]], desc).
     return $DefinePropertyOrThrow(ctx, object, methodDef['[[Key]]'], desc);
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
+  public EvaluateBody(
+    ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
+    functionObject: $Function,
+    argumentsList: readonly $AnyNonEmpty[],
+  ): $Any {
+    return $FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
+  }
 }
 
 export class $GetAccessorDeclaration implements I$Node {
@@ -200,15 +226,22 @@ export class $GetAccessorDeclaration implements I$Node {
 
   public readonly $decorators: readonly $Decorator[];
   public readonly $name: $$PropertyName;
-  public readonly $parameters: readonly $ParameterDeclaration[];
+  public readonly $parameters: $FormalParameterList;
   public readonly $body: $Block;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-isstatic
   public readonly IsStatic: boolean;
-  // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-expectedargumentcount
-  public readonly ExpectedArgumentCount: number = 0;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
   public readonly PropName: $String | $Empty;
+
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallydeclarednames
+  public readonly LexicallyDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallyscopeddeclarations
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public constructor(
     public readonly node: GetAccessorDeclaration,
@@ -225,11 +258,16 @@ export class $GetAccessorDeclaration implements I$Node {
 
     this.$decorators = $decoratorList(node.decorators, this, ctx);
     const $name = this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName);
-    this.$parameters = $parameterDeclarationList(node.parameters, this, ctx);
-    this.$body = new $Block(node.body!, this, ctx);
+    this.$parameters = new $FormalParameterList(node.parameters, this, ctx);
+    const $body = this.$body = new $Block(node.body!, this, ctx);
 
     this.PropName = $name.PropName;
     this.IsStatic = hasBit(modifierFlags, ModifierFlags.Static);
+
+    this.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
+    this.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
+    this.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
+    this.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-runtime-semantics-propertydefinitionevaluation
@@ -282,6 +320,15 @@ export class $GetAccessorDeclaration implements I$Node {
     // 11. Return ? DefinePropertyOrThrow(object, propKey, desc).
     return $DefinePropertyOrThrow(ctx, object, propKey, desc);
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
+  public EvaluateBody(
+    ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
+    functionObject: $Function,
+    argumentsList: readonly $AnyNonEmpty[],
+  ): $Any {
+    return $FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
+  }
 }
 
 export class $SetAccessorDeclaration implements I$Node {
@@ -292,15 +339,22 @@ export class $SetAccessorDeclaration implements I$Node {
 
   public readonly $decorators: readonly $Decorator[];
   public readonly $name: $$PropertyName;
-  public readonly $parameters: readonly $ParameterDeclaration[];
+  public readonly $parameters: $FormalParameterList;
   public readonly $body: $Block;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-isstatic
   public readonly IsStatic: boolean;
-  // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-expectedargumentcount
-  public readonly ExpectedArgumentCount: number = 1;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
   public readonly PropName: $String | $Empty;
+
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallydeclarednames
+  public readonly LexicallyDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallyscopeddeclarations
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-vardeclarednames
+  public readonly VarDeclaredNames: readonly $String[];
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public constructor(
     public readonly node: SetAccessorDeclaration,
@@ -317,11 +371,16 @@ export class $SetAccessorDeclaration implements I$Node {
 
     this.$decorators = $decoratorList(node.decorators, this, ctx);
     const $name = this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName);
-    this.$parameters = $parameterDeclarationList(node.parameters, this, ctx);
-    this.$body = new $Block(node.body!, this, ctx);
+    this.$parameters = new $FormalParameterList(node.parameters, this, ctx);
+    const $body = this.$body = new $Block(node.body!, this, ctx);
 
     this.PropName = $name.PropName;
     this.IsStatic = hasBit(modifierFlags, ModifierFlags.Static);
+
+    this.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
+    this.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
+    this.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
+    this.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-runtime-semantics-propertydefinitionevaluation
@@ -372,5 +431,14 @@ export class $SetAccessorDeclaration implements I$Node {
 
     // 10. Return ? DefinePropertyOrThrow(object, propKey, desc).
     return $DefinePropertyOrThrow(ctx, object, propKey, desc);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
+  public EvaluateBody(
+    ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
+    functionObject: $Function,
+    argumentsList: readonly $AnyNonEmpty[],
+  ): $Any {
+    return $FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
   }
 }

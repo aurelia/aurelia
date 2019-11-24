@@ -92,14 +92,28 @@ describe('AOT (smoke tests)', function () {
     assert.strictEqual(result['[[Value]]'], 2);
   });
 
-  it.skip('new object', async function () {
+  it('new class instance', async function () {
     const result = await execute(`
-      function Foo() {
+      class Foo {
+        get value() {
+          return 42;
+        }
       }
-      return new Foo();
+      return new Foo().value;
     `);
 
-    assert.equal(result['[[Value]]'].constructor.name, "Foo");
+    assert.equal(result['[[Value]]'], "42");
+  });
+
+  it('new object', async function () {
+    const result = await execute(`
+      function Foo() {
+        this.value = 42;
+      }
+      return new Foo().value;
+    `);
+
+    assert.equal(result['[[Value]]'], "42");
   });
 
   it.skip('new Number', async function () {
@@ -239,7 +253,7 @@ describe('AOT (smoke tests)', function () {
     { input: "'1'", type: "string" },
     { input: '{ }', type: "object" },
   ].map(({ input, type }) =>
-    it.only(`typeof ${input} is "${type}"`, async function () {
+    it(`typeof ${input} is "${type}"`, async function () {
       const result = await execute(`
       return typeof ${input};
     `);
@@ -247,7 +261,7 @@ describe('AOT (smoke tests)', function () {
       assert.strictEqual(result['[[Value]]'], type);
     }));
 
-  it.only(`typeof function is "function"`, async function () {
+  it(`typeof function is "function"`, async function () {
     const result = await execute(`
       function foo() { }
       return typeof foo;

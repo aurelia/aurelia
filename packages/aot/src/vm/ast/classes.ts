@@ -22,6 +22,7 @@ import {
 import {
   PLATFORM,
   ILogger,
+  Writable,
 } from '@aurelia/kernel';
 import {
   Realm,
@@ -29,6 +30,7 @@ import {
 } from '../realm';
 import {
   $DeclarativeEnvRec,
+  $FunctionEnvRec,
 } from '../types/environment-record';
 import {
   $String,
@@ -42,6 +44,7 @@ import {
 import {
   $Any,
   CompletionType,
+  $AnyNonEmpty,
 } from '../types/_shared';
 import {
   $Object,
@@ -576,7 +579,7 @@ export class $ClassDeclaration implements I$Node {
       // 10. a. If ClassHeritageopt is present, then
       if (this.ClassHeritage !== void 0) {
         // 10. a. i. Set constructor to the result of parsing the source text constructor(... args){ super (...args);} using the syntactic grammar with the goal symbol MethodDefinition[~Yield, ~Await].
-        constructor = new $ConstructorDeclaration(
+        constructor = (this as Writable<$ClassDeclaration>).ConstructorMethod = new $ConstructorDeclaration(
           createConstructor(
             void 0,
             void 0,
@@ -611,7 +614,7 @@ export class $ClassDeclaration implements I$Node {
       // 10. b. Else,
       else {
         // 10. b. i. Set constructor to the result of parsing the source text constructor(){ } using the syntactic grammar with the goal symbol MethodDefinition[~Yield, ~Await].
-        constructor = new $ConstructorDeclaration(
+        constructor = (this as Writable<$ClassDeclaration>).ConstructorMethod = new $ConstructorDeclaration(
           createConstructor(
             void 0,
             void 0,
@@ -771,6 +774,15 @@ export class $ClassDeclaration implements I$Node {
 
     // 2. Return NormalCompletion(empty).
     return intrinsics.empty;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
+  public EvaluateBody(
+    ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
+    functionObject: $Function,
+    argumentsList: readonly $AnyNonEmpty[],
+  ): $Any {
+    return this.ConstructorMethod!.EvaluateBody(ctx, functionObject, argumentsList);
   }
 }
 

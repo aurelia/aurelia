@@ -90,7 +90,7 @@ import {
   $IteratorRecord,
   $IteratorStep,
   $IteratorValue,
-} from '../iteration';
+} from '../globals/iteration';
 import {
   $TypeError,
   $Error,

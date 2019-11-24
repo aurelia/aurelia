@@ -42,7 +42,7 @@ import {
   $IteratorValue,
   $GetIterator,
   $IteratorClose,
-} from '../iteration';
+} from '../globals/iteration';
 import {
   $TypeError,
   $Error,

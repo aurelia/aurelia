@@ -19,7 +19,7 @@ import {
 } from '../types/undefined';
 import {
   $IteratorRecord,
-} from '../iteration';
+} from './iteration';
 import {
   $Error,
 } from '../types/error';

@@ -31,7 +31,7 @@ import {
 } from './types/function';
 import {
   $IteratorPrototype,
-} from './iteration';
+} from './globals/iteration';
 import {
   $StringConstructor,
   $StringPrototype,

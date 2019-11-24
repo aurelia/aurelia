@@ -53,7 +53,7 @@ import {
   $IteratorRecord,
   $IteratorStep,
   $IteratorValue,
-} from '../iteration';
+} from '../globals/iteration';
 import {
   $Error,
 } from '../types/error';

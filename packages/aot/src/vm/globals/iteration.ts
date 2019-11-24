@@ -1,44 +1,44 @@
 import {
   ExecutionContext,
   Realm,
-} from './realm';
+} from '../realm';
 import {
   $Object,
-} from './types/object';
+} from '../types/object';
 import {
   $Function,
   $BuiltinFunction,
-} from './types/function';
+} from '../types/function';
 import {
   $Boolean,
-} from './types/boolean';
+} from '../types/boolean';
 import {
   $AnyNonError,
   $AnyNonEmpty,
   CompletionType,
   $AnyObject,
-} from './types/_shared';
+} from '../types/_shared';
 import {
   $CreateDataProperty,
   $Call,
   $DefinePropertyOrThrow,
-} from './operations';
+} from '../operations';
 import {
   $Number,
-} from './types/number';
+} from '../types/number';
 import {
   $Undefined,
-} from './types/undefined';
+} from '../types/undefined';
 import {
   $TypeError,
   $Error,
-} from './types/error';
+} from '../types/error';
 import {
   $String,
-} from './types/string';
+} from '../types/string';
 import {
   $PropertyDescriptor,
-} from './types/property-descriptor';
+} from '../types/property-descriptor';
 
 // http://www.ecma-international.org/ecma-262/#sec-getiterator
 export function $GetIterator(

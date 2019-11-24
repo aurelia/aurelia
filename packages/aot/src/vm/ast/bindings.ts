@@ -89,6 +89,18 @@ import {
 import {
   $EnumMember,
 } from './types';
+import {
+  $Number,
+} from '../types/number';
+import {
+  $ArrayExoticObject,
+} from '../exotics/array';
+import {
+  $CreateDataProperty,
+} from '../operations';
+import {
+  $Boolean,
+} from '../types/boolean';
 
 const {
   emptyArray,
@@ -735,6 +747,51 @@ export class $SpreadElement implements I$Node {
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
     return null as any; // TODO: implement this;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-arrayaccumulation
+  public AccumulateArray(
+    ctx: ExecutionContext,
+    array: $ArrayExoticObject,
+    nextIndex: $Number,
+  ): $Number | $Error {
+    const realm = ctx.Realm;
+
+    // SpreadElement : ... AssignmentExpression
+
+    // 1. Let spreadRef be the result of evaluating AssignmentExpression.
+    const spreadRef = this.$expression.Evaluate(ctx);
+
+    // 2. Let spreadObj be ? GetValue(spreadRef).
+    const spreadObj = spreadRef.GetValue(ctx);
+    if (spreadObj.isAbrupt) { return spreadObj; }
+
+    // 3. Let iteratorRecord be ? GetIterator(spreadObj).
+    const iteratorRecord = $GetIterator(ctx, spreadObj as $Object);
+    if (iteratorRecord.isAbrupt) { return iteratorRecord; }
+
+    // 4. Repeat,
+    while (true) {
+      // 4. a. Let next be ? IteratorStep(iteratorRecord).
+      const next = $IteratorStep(ctx, iteratorRecord);
+      if (next.isAbrupt) { return next; }
+
+      // 4. b. If next is false, return nextIndex.
+      if (next.isFalsey) {
+        return nextIndex;
+      }
+
+      // 4. c. Let nextValue be ? IteratorValue(next).
+      const nextValue = $IteratorValue(ctx, next);
+      if (nextValue.isAbrupt) { return nextValue; }
+
+      // 4. d. Let status be CreateDataProperty(array, ToString(ToUint32(nextIndex)), nextValue).
+      const status = $CreateDataProperty(ctx, array, nextIndex.ToUint32(ctx).ToString(ctx), nextValue) as $Boolean;
+
+      // 4. e. Assert: status is true.
+      // 4. f. Increase nextIndex by 1.
+      nextIndex = new $Number(realm, nextIndex['[[Value]]'] + 1);
+    }
   }
 }
 

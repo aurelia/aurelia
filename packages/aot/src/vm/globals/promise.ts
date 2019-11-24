@@ -1,28 +1,28 @@
 import {
   $Object,
-} from './types/object';
+} from '../types/object';
 import {
   $Function,
   $BuiltinFunction,
-} from './types/function';
+} from '../types/function';
 import {
   ExecutionContext,
   Realm,
-} from './realm';
+} from '../realm';
 import {
   $AnyNonEmpty,
   $AnyObject,
   CompletionType,
-} from './types/_shared';
+} from '../types/_shared';
 import {
   $Undefined,
-} from './types/undefined';
+} from '../types/undefined';
 import {
   $IteratorRecord,
-} from './iteration';
+} from '../iteration';
 import {
   $Error,
-} from './types/error';
+} from '../types/error';
 
 // http://www.ecma-international.org/ecma-262/#sec-promise-abstract-operations
 // #region 25.6.1 Promise Abstract Operation

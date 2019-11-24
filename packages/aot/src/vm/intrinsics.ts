@@ -61,6 +61,11 @@ import {
   $SymbolConstructor,
   $SymbolPrototype,
 } from './globals/symbol';
+import {
+  $ErrorConstructor,
+  $ErrorPrototype,
+  $ErrorPrototype_toString,
+} from './globals/error';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
@@ -201,6 +206,7 @@ export class Intrinsics {
   public readonly 'length': $String<'length'>;
   public readonly 'next': $String<'next'>;
   public readonly 'call': $String<'call'>;
+  public readonly 'message': $String<'message'>;
   public readonly '$arguments': $String<'arguments'>;
   public readonly '$callee': $String<'callee'>;
   public readonly '$constructor': $String<'constructor'>;
@@ -408,6 +414,7 @@ export class Intrinsics {
     this['length'] = new $String(realm, 'length');
     this['next'] = new $String(realm, 'next');
     this['call'] = new $String(realm, 'call');
+    this['message'] = new $String(realm, 'message');
     this['$arguments'] = new $String(realm, 'arguments');
     this['$callee'] = new $String(realm, 'callee');
     this['$constructor'] = new $String(realm, 'constructor');
@@ -479,6 +486,31 @@ export class Intrinsics {
     const symbolPrototype = this['%SymbolPrototype%'] = new $SymbolPrototype(realm, objectPrototype);
     (symbolConstructor.$prototype = symbolPrototype).$constructor = symbolConstructor;
 
+    const errorConstructor = this['%Error%'] = new $ErrorConstructor(realm, functionPrototype);
+    const errorPrototype = this['%ErrorPrototype%'] = new $ErrorPrototype(realm, objectPrototype);
+    (errorConstructor.$prototype = errorPrototype).$constructor = errorConstructor;
+    errorPrototype.message = new $String(realm, '');
+    errorPrototype.$name = new $String(realm, 'Error');
+    errorPrototype.$toString = new $ErrorPrototype_toString(realm, 'Error.prototype.toString', functionPrototype);
+
+    this['%EvalError%'] = new $Object(realm, '%EvalError%', this['%Error%'], CompletionType.normal, empty);
+    this['%EvalErrorPrototype%'] = new $Object(realm, '%EvalErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);
+
+    this['%RangeError%'] = new $Object(realm, '%RangeError%', this['%Error%'], CompletionType.normal, empty);
+    this['%RangeErrorPrototype%'] = new $Object(realm, '%RangeErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);
+
+    this['%ReferenceError%'] = new $Object(realm, '%ReferenceError%', this['%Error%'], CompletionType.normal, empty);
+    this['%ReferenceErrorPrototype%'] = new $Object(realm, '%ReferenceErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);
+
+    this['%SyntaxError%'] = new $Object(realm, '%SyntaxError%', this['%Error%'], CompletionType.normal, empty);
+    this['%SyntaxErrorPrototype%'] = new $Object(realm, '%SyntaxErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);
+
+    this['%TypeError%'] = new $Object(realm, '%TypeError%', this['%Error%'], CompletionType.normal, empty);
+    this['%TypeErrorPrototype%'] = new $Object(realm, '%TypeErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);
+
+    this['%URIError%'] = new $Object(realm, '%URIError%', this['%Error%'], CompletionType.normal, empty);
+    this['%URIErrorPrototype%'] = new $Object(realm, '%URIErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);
+
     this['%PromisePrototype%'] = new $Object(realm, '%PromisePrototype%', objectPrototype, CompletionType.normal, empty);
     this['%RegExpPrototype%'] = new $Object(realm, '%RegExpPrototype%', objectPrototype, CompletionType.normal, empty);
     this['%DatePrototype%'] = new $Object(realm, '%DatePrototype%', objectPrototype, CompletionType.normal, empty);
@@ -519,14 +551,6 @@ export class Intrinsics {
     this['%Uint16ArrayPrototype%'] = new $Object(realm, '%Uint16ArrayPrototype%', this['%TypedArrayPrototype%'], CompletionType.normal, empty);
     this['%Uint32ArrayPrototype%'] = new $Object(realm, '%Uint32ArrayPrototype%', this['%TypedArrayPrototype%'], CompletionType.normal, empty);
 
-    this['%ErrorPrototype%'] = new $Object(realm, '%ErrorPrototype%', objectPrototype, CompletionType.normal, empty);
-    this['%EvalErrorPrototype%'] = new $Object(realm, '%EvalErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);
-    this['%RangeErrorPrototype%'] = new $Object(realm, '%RangeErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);
-    this['%ReferenceErrorPrototype%'] = new $Object(realm, '%ReferenceErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);
-    this['%SyntaxErrorPrototype%'] = new $Object(realm, '%SyntaxErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);
-    this['%TypeErrorPrototype%'] = new $Object(realm, '%TypeErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);
-    this['%URIErrorPrototype%'] = new $Object(realm, '%URIErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);
-
     this['%Promise%'] = new $Object(realm, '%Promise%', functionPrototype, CompletionType.normal, empty);
     this['%RegExp%'] = new $Object(realm, '%RegExp%', functionPrototype, CompletionType.normal, empty);
     this['%Date%'] = new $Object(realm, '%Date%', functionPrototype, CompletionType.normal, empty);
@@ -555,14 +579,6 @@ export class Intrinsics {
     this['%Uint8ClampedArray%'] = new $Object(realm, '%Uint8ClampedArray%', this['%TypedArray%'], CompletionType.normal, empty);
     this['%Uint16Array%'] = new $Object(realm, '%Uint16Array%', this['%TypedArray%'], CompletionType.normal, empty);
     this['%Uint32Array%'] = new $Object(realm, '%Uint32Array%', this['%TypedArray%'], CompletionType.normal, empty);
-
-    this['%Error%'] = new $Object(realm, '%Error%', functionPrototype, CompletionType.normal, empty);
-    this['%EvalError%'] = new $Object(realm, '%EvalError%', this['%Error%'], CompletionType.normal, empty);
-    this['%RangeError%'] = new $Object(realm, '%RangeError%', this['%Error%'], CompletionType.normal, empty);
-    this['%ReferenceError%'] = new $Object(realm, '%ReferenceError%', this['%Error%'], CompletionType.normal, empty);
-    this['%SyntaxError%'] = new $Object(realm, '%SyntaxError%', this['%Error%'], CompletionType.normal, empty);
-    this['%TypeError%'] = new $Object(realm, '%TypeError%', this['%Error%'], CompletionType.normal, empty);
-    this['%URIError%'] = new $Object(realm, '%URIError%', this['%Error%'], CompletionType.normal, empty);
 
     this['%Atomics%'] = new $Object(realm, '%Atomics%', objectPrototype, CompletionType.normal, empty);
     this['%JSON%'] = new $Object(realm, '%JSON%', objectPrototype, CompletionType.normal, empty);

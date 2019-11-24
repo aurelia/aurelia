@@ -53,6 +53,8 @@ import {
   $StrictEqualityComparison,
   $Call,
   $Construct,
+  $CreateDataProperty,
+  $Set,
 } from '../operations';
 import {
   $String,
@@ -90,6 +92,7 @@ import {
   $IteratorRecord,
   $IteratorStep,
   $IteratorValue,
+  $GetIterator,
 } from '../globals/iteration';
 import {
   $TypeError,
@@ -352,10 +355,90 @@ export class $ArrayLiteralExpression implements I$Node {
     this.$elements = $argumentOrArrayLiteralElementList(node.elements as NodeArray<$ArgumentOrArrayLiteralElementNode>, this, ctx);
   }
 
+  // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-arrayaccumulation
+  public AccumulateArray(
+    ctx: ExecutionContext,
+    array: $ArrayExoticObject,
+    nextIndex: $Number,
+  ): $Number | $Error {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    const elements = this.$elements;
+    let el: $$ArgumentOrArrayLiteralElement;
+    let padding = 0;
+    let postIndex = intrinsics['0'] as $Number;
+
+    for (let i = 0, ii = elements.length; i < ii; ++i) {
+      el = elements[i];
+
+      switch (el.$kind) {
+        case SyntaxKind.OmittedExpression: {
+          ++padding;
+          break;
+        }
+        case SyntaxKind.SpreadElement: {
+          // ElementList : Elision opt SpreadElement
+
+          // 1. Let padding be the ElisionWidth of Elision; if Elision is not present, use the numeric value zero.
+          // 2. Return the result of performing ArrayAccumulation for SpreadElement with arguments array and nextIndex + padding.
+
+          // ElementList : ElementList , Elision opt SpreadElement
+
+          // 1. Let postIndex be the result of performing ArrayAccumulation for ElementList with arguments array and nextIndex.
+          // 2. ReturnIfAbrupt(postIndex).
+          // 3. Let padding be the ElisionWidth of Elision; if Elision is not present, use the numeric value zero.
+          // 4. Return the result of performing ArrayAccumulation for SpreadElement with arguments array and postIndex + padding.
+
+          const $postIndex = el.AccumulateArray(ctx, array, new $Number(realm, postIndex['[[Value]]'] + padding));
+          if ($postIndex.isAbrupt) { return $postIndex; }
+          postIndex = $postIndex;
+
+          padding = 0;
+          break;
+        }
+        default: {
+          // ElementList : Elision opt AssignmentExpression
+
+          // 1. Let padding be the ElisionWidth of Elision; if Elision is not present, use the numeric value zero.
+          // 2. Let initResult be the result of evaluating AssignmentExpression.
+          // 3. Let initValue be ? GetValue(initResult).
+          // 4. Let created be CreateDataProperty(array, ToString(ToUint32(nextIndex + padding)), initValue).
+          // 5. Assert: created is true.
+          // 6. Return nextIndex + padding + 1.
+
+          // ElementList : ElementList , Elision opt AssignmentExpression
+
+          // 1. Let postIndex be the result of performing ArrayAccumulation for ElementList with arguments array and nextIndex.
+          // 2. ReturnIfAbrupt(postIndex).
+          // 3. Let padding be the ElisionWidth of Elision; if Elision is not present, use the numeric value zero.
+          // 4. Let initResult be the result of evaluating AssignmentExpression.
+          const initResult = el.Evaluate(ctx);
+
+          // 5. Let initValue be ? GetValue(initResult).
+          const initValue = initResult.GetValue(ctx);
+          if (initValue.isAbrupt) { return initValue; }
+
+          // 6. Let created be CreateDataProperty(array, ToString(ToUint32(postIndex + padding)), initValue).
+          const created = $CreateDataProperty(ctx, array, new $Number(realm, postIndex['[[Value]]'] + padding).ToUint32(ctx).ToString(ctx), initValue) as $Boolean;
+
+          // 7. Assert: created is true.
+          // 8. Return postIndex + padding + 1.
+          postIndex = new $Number(realm, postIndex['[[Value]]'] + padding + 1);
+
+          padding = 0;
+          break;
+        }
+      }
+    }
+
+    return postIndex;
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-array-initializer-runtime-semantics-evaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $ArrayExoticObject {
+  ): $ArrayExoticObject | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -370,11 +453,20 @@ export class $ArrayLiteralExpression implements I$Node {
     // ArrayLiteral : [ ElementList ]
 
     // 1. Let array be ! ArrayCreate(0).
+    const array = new $ArrayExoticObject(realm, intrinsics['0']);
+
     // 2. Let len be the result of performing ArrayAccumulation for ElementList with arguments array and 0.
+    const len = this.AccumulateArray(ctx, array, intrinsics['0']);
+
     // 3. ReturnIfAbrupt(len).
+    if (len.isAbrupt) { return len; }
+
     // 4. Perform Set(array, "length", ToUint32(len), false).
+    $Set(ctx, array, intrinsics.length, len.ToUint32(ctx), intrinsics.false);
+
     // 5. NOTE: The above Set cannot fail because of the nature of the object returned by ArrayCreate.
     // 6. Return array.
+    return array;
 
     // ArrayLiteral : [ ElementList , Elision opt ]
 
@@ -385,7 +477,6 @@ export class $ArrayLiteralExpression implements I$Node {
     // 5. Perform Set(array, "length", ToUint32(padding + len), false).
     // 6. NOTE: The above Set cannot fail because of the nature of the object returned by ArrayCreate.
     // 7. Return array.
-    return intrinsics['%ObjectPrototype%'] as any; // TODO: implement this
   }
 }
 

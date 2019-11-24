@@ -75,6 +75,8 @@ import {
   $SyntaxErrorPrototype,
   $TypeErrorConstructor,
   $TypeErrorPrototype,
+  $URIErrorConstructor,
+  $URIErrorPrototype,
 } from './globals/error';
 
 export type $True = $Boolean<true>;
@@ -538,17 +540,11 @@ export class Intrinsics {
     typeErrorPrototype.message = new $String(realm, '');
     typeErrorPrototype.$name = new $String(realm, 'TypeError');
 
-    this['%ReferenceError%'] = new $Object(realm, '%ReferenceError%', this['%Error%'], CompletionType.normal, empty);
-    this['%ReferenceErrorPrototype%'] = new $Object(realm, '%ReferenceErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);
-
-    this['%SyntaxError%'] = new $Object(realm, '%SyntaxError%', this['%Error%'], CompletionType.normal, empty);
-    this['%SyntaxErrorPrototype%'] = new $Object(realm, '%SyntaxErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);
-
-    this['%TypeError%'] = new $Object(realm, '%TypeError%', this['%Error%'], CompletionType.normal, empty);
-    this['%TypeErrorPrototype%'] = new $Object(realm, '%TypeErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);
-
-    this['%URIError%'] = new $Object(realm, '%URIError%', this['%Error%'], CompletionType.normal, empty);
-    this['%URIErrorPrototype%'] = new $Object(realm, '%URIErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);
+    const URIErrorConstructor = this['%URIError%'] = new $URIErrorConstructor(realm, errorConstructor)
+    const URIErrorPrototype = this['%URIErrorPrototype%'] = new $URIErrorPrototype(realm, errorPrototype);
+    (URIErrorConstructor.$prototype = URIErrorPrototype).$constructor = URIErrorConstructor;
+    URIErrorPrototype.message = new $String(realm, '');
+    URIErrorPrototype.$name = new $String(realm, 'URIError');
 
     this['%PromisePrototype%'] = new $Object(realm, '%PromisePrototype%', objectPrototype, CompletionType.normal, empty);
     this['%RegExpPrototype%'] = new $Object(realm, '%RegExpPrototype%', objectPrototype, CompletionType.normal, empty);

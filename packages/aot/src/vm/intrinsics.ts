@@ -57,6 +57,10 @@ import {
   $BooleanConstructor,
   $BooleanPrototype,
 } from './globals/boolean';
+import {
+  $SymbolConstructor,
+  $SymbolPrototype,
+} from './globals/symbol';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
@@ -464,7 +468,10 @@ export class Intrinsics {
     const booleanPrototype = this['%BooleanPrototype%'] = new $BooleanPrototype(realm, objectPrototype);
     (booleanConstructor.$prototype = booleanPrototype).$constructor = booleanConstructor;
 
-    this['%SymbolPrototype%'] = new $Object(realm, '%SymbolPrototype%', objectPrototype, CompletionType.normal, empty);
+    const symbolConstructor = this['%Symbol%'] = new $SymbolConstructor(realm, functionPrototype);
+    const symbolPrototype = this['%SymbolPrototype%'] = new $SymbolPrototype(realm, objectPrototype);
+    (symbolConstructor.$prototype = symbolPrototype).$constructor = symbolConstructor;
+
     this['%PromisePrototype%'] = new $Object(realm, '%PromisePrototype%', objectPrototype, CompletionType.normal, empty);
     this['%RegExpPrototype%'] = new $Object(realm, '%RegExpPrototype%', objectPrototype, CompletionType.normal, empty);
     this['%DatePrototype%'] = new $Object(realm, '%DatePrototype%', objectPrototype, CompletionType.normal, empty);
@@ -513,7 +520,6 @@ export class Intrinsics {
     this['%TypeErrorPrototype%'] = new $Object(realm, '%TypeErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);
     this['%URIErrorPrototype%'] = new $Object(realm, '%URIErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);
 
-    this['%Symbol%'] = new $Object(realm, '%Symbol%', functionPrototype, CompletionType.normal, empty);
     this['%Promise%'] = new $Object(realm, '%Promise%', functionPrototype, CompletionType.normal, empty);
     this['%RegExp%'] = new $Object(realm, '%RegExp%', functionPrototype, CompletionType.normal, empty);
     this['%Date%'] = new $Object(realm, '%Date%', functionPrototype, CompletionType.normal, empty);

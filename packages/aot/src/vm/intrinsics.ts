@@ -243,16 +243,30 @@ export class Intrinsics {
   public readonly '@@toStringTag': $Symbol<$String<'Symbol.toStringTag'>>;
   public readonly '@@unscopables': $Symbol<$String<'Symbol.unscopables'>>;
 
-  public readonly '%ObjectPrototype%': $Object<'%ObjectPrototype%'>;
-  public readonly '%BooleanPrototype%': $Object<'%BooleanPrototype%'>;
-  public readonly '%NumberPrototype%': $Object<'%NumberPrototype%'>;
-  public readonly '%StringPrototype%': $Object<'%StringPrototype%'>;
-  public readonly '%SymbolPrototype%': $Object<'%SymbolPrototype%'>;
+  public readonly '%ObjectPrototype%': $ObjectPrototype;
+  public readonly '%FunctionPrototype%': $FunctionPrototype;
+
+  public readonly '%Object%': $ObjectConstructor;
+  public readonly '%Function%': $FunctionConstructor;
+
+  public readonly '%ObjProto_toString%': $ObjProto_toString;
+
+  public readonly '%String%': $StringConstructor;
+  public readonly '%StringPrototype%': $StringPrototype;
+
+  public readonly '%Number%': $NumberConstructor;
+  public readonly '%NumberPrototype%': $NumberPrototype;
+
+  public readonly '%Boolean%': $BooleanConstructor;
+  public readonly '%BooleanPrototype%': $BooleanPrototype;
+
+  public readonly '%Symbol%': $SymbolConstructor;
+  public readonly '%SymbolPrototype%': $SymbolPrototype;
+
   public readonly '%PromisePrototype%': $Object<'%PromisePrototype%'>;
   public readonly '%RegExpPrototype%': $Object<'%RegExpPrototype%'>;
   public readonly '%DatePrototype%': $Object<'%DatePrototype%'>;
 
-  public readonly '%FunctionPrototype%': $Object<'%FunctionPrototype%'>;
   public readonly '%AsyncFunctionPrototype%': $Object<'%AsyncFunctionPrototype%'>;
 
   public readonly '%Generator%': $Object<'%Generator%'>;
@@ -297,16 +311,10 @@ export class Intrinsics {
   public readonly '%TypeErrorPrototype%': $Object<'%TypeErrorPrototype%'>;
   public readonly '%URIErrorPrototype%': $Object<'%URIErrorPrototype%'>;
 
-  public readonly '%Object%': $ObjectConstructor;
-  public readonly '%Boolean%': $Object<'%Boolean%'>;
-  public readonly '%Number%': $Object<'%Number%'>;
-  public readonly '%String%': $StringConstructor;
-  public readonly '%Symbol%': $Object<'%Symbol%'>;
   public readonly '%Promise%': $Object<'%Promise%'>;
   public readonly '%RegExp%': $Object<'%RegExp%'>;
   public readonly '%Date%': $Object<'%Date%'>;
 
-  public readonly '%Function%': $Object<'%Function%'>;
   public readonly '%AsyncFunction%': $Object<'%AsyncFunction%'>;
 
   public readonly '%GeneratorFunction%': $Object<'%GeneratorFunction%'>;
@@ -363,7 +371,6 @@ export class Intrinsics {
   public readonly '%ArrayProto_forEach%': $Object<'%ArrayProto_forEach%'>;
   public readonly '%ArrayProto_keys%': $Object<'%ArrayProto_keys%'>;
   public readonly '%ArrayProto_values%': $Object<'%ArrayProto_values%'>;
-  public readonly '%ObjProto_toString%': $ObjProto_toString;
   public readonly '%ObjProto_valueOf%': $Object<'%ObjProto_valueOf%'>;
   public readonly '%PromiseProto_then%': $Object<'%PromiseProto_then%'>;
   public readonly '%Promise_all%': $Object<'%Promise_all%'>;

@@ -65,6 +65,8 @@ import {
   $ErrorConstructor,
   $ErrorPrototype,
   $ErrorPrototype_toString,
+  $EvalErrorConstructor,
+  $EvalErrorPrototype,
 } from './globals/error';
 
 export type $True = $Boolean<true>;
@@ -269,6 +271,27 @@ export class Intrinsics {
   public readonly '%Symbol%': $SymbolConstructor;
   public readonly '%SymbolPrototype%': $SymbolPrototype;
 
+  public readonly '%Error%': $Object<'%Error%'>;
+  public readonly '%ErrorPrototype%': $Object<'%ErrorPrototype%'>;
+
+  public readonly '%EvalError%': $Object<'%EvalError%'>;
+  public readonly '%EvalErrorPrototype%': $Object<'%EvalErrorPrototype%'>;
+
+  public readonly '%RangeError%': $Object<'%RangeError%'>;
+  public readonly '%RangeErrorPrototype%': $Object<'%RangeErrorPrototype%'>;
+
+  public readonly '%ReferenceError%': $Object<'%ReferenceError%'>;
+  public readonly '%ReferenceErrorPrototype%': $Object<'%ReferenceErrorPrototype%'>;
+
+  public readonly '%SyntaxError%': $Object<'%SyntaxError%'>;
+  public readonly '%SyntaxErrorPrototype%': $Object<'%SyntaxErrorPrototype%'>;
+
+  public readonly '%TypeError%': $Object<'%TypeError%'>;
+  public readonly '%TypeErrorPrototype%': $Object<'%TypeErrorPrototype%'>;
+
+  public readonly '%URIError%': $Object<'%URIError%'>;
+  public readonly '%URIErrorPrototype%': $Object<'%URIErrorPrototype%'>;
+
   public readonly '%PromisePrototype%': $Object<'%PromisePrototype%'>;
   public readonly '%RegExpPrototype%': $Object<'%RegExpPrototype%'>;
   public readonly '%DatePrototype%': $Object<'%DatePrototype%'>;
@@ -309,14 +332,6 @@ export class Intrinsics {
   public readonly '%Uint16ArrayPrototype%': $Object<'%Uint16ArrayPrototype%'>;
   public readonly '%Uint32ArrayPrototype%': $Object<'%Uint32ArrayPrototype%'>;
 
-  public readonly '%ErrorPrototype%': $Object<'%ErrorPrototype%'>;
-  public readonly '%EvalErrorPrototype%': $Object<'%EvalErrorPrototype%'>;
-  public readonly '%RangeErrorPrototype%': $Object<'%RangeErrorPrototype%'>;
-  public readonly '%ReferenceErrorPrototype%': $Object<'%ReferenceErrorPrototype%'>;
-  public readonly '%SyntaxErrorPrototype%': $Object<'%SyntaxErrorPrototype%'>;
-  public readonly '%TypeErrorPrototype%': $Object<'%TypeErrorPrototype%'>;
-  public readonly '%URIErrorPrototype%': $Object<'%URIErrorPrototype%'>;
-
   public readonly '%Promise%': $Object<'%Promise%'>;
   public readonly '%RegExp%': $Object<'%RegExp%'>;
   public readonly '%Date%': $Object<'%Date%'>;
@@ -345,14 +360,6 @@ export class Intrinsics {
   public readonly '%Uint8ClampedArray%': $Object<'%Uint8ClampedArray%'>;
   public readonly '%Uint16Array%': $Object<'%Uint16Array%'>;
   public readonly '%Uint32Array%': $Object<'%Uint32Array%'>;
-
-  public readonly '%Error%': $Object<'%Error%'>;
-  public readonly '%EvalError%': $Object<'%EvalError%'>;
-  public readonly '%RangeError%': $Object<'%RangeError%'>;
-  public readonly '%ReferenceError%': $Object<'%ReferenceError%'>;
-  public readonly '%SyntaxError%': $Object<'%SyntaxError%'>;
-  public readonly '%TypeError%': $Object<'%TypeError%'>;
-  public readonly '%URIError%': $Object<'%URIError%'>;
 
   public readonly '%Atomics%': $Object<'%Atomics%'>;
   public readonly '%JSON%': $Object<'%JSON%'>;
@@ -493,8 +500,11 @@ export class Intrinsics {
     errorPrototype.$name = new $String(realm, 'Error');
     errorPrototype.$toString = new $ErrorPrototype_toString(realm, 'Error.prototype.toString', functionPrototype);
 
-    this['%EvalError%'] = new $Object(realm, '%EvalError%', this['%Error%'], CompletionType.normal, empty);
-    this['%EvalErrorPrototype%'] = new $Object(realm, '%EvalErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);
+    const evalErrorConstructor = this['%EvalError%'] = new $EvalErrorConstructor(realm, errorConstructor)
+    const evalErrorPrototype = this['%EvalErrorPrototype%'] = new $EvalErrorPrototype(realm, errorPrototype);
+    (evalErrorConstructor.$prototype = evalErrorPrototype).$constructor = evalErrorConstructor;
+    evalErrorPrototype.message = new $String(realm, '');
+    evalErrorPrototype.$name = new $String(realm, 'EvalError');
 
     this['%RangeError%'] = new $Object(realm, '%RangeError%', this['%Error%'], CompletionType.normal, empty);
     this['%RangeErrorPrototype%'] = new $Object(realm, '%RangeErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);

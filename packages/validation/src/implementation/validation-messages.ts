@@ -1,5 +1,5 @@
-import { Expression } from 'aurelia-binding';
-import { ValidationMessageParser } from './validation-message-parser';
+import { DI } from '@aurelia/kernel';
+import { BindingType, IExpressionParser, IInterpolationExpression } from '@aurelia/runtime';
 
 export interface ValidationMessages {
   [key: string]: string;
@@ -27,33 +27,55 @@ export const validationMessages: ValidationMessages = {
   equals: `\${$displayName} must be \${$config.expectedValue}.`,
 };
 
+export interface IValidationMessageProvider {
+  getMessageByKey(key: string): IInterpolationExpression;
+  parseMessage(message: string): IInterpolationExpression;
+  getDisplayName(propertyName: string | number, displayName?: string | null | (() => string)): string;
+}
+
+export const IValidationMessageProvider = DI.createInterface<IValidationMessageProvider>("IValidationMessageProvider").noDefault();
+
 /**
  * Retrieves validation messages and property display names.
  */
-export class ValidationMessageProvider {
-  public static inject = [ValidationMessageParser];
+export class ValidationMessageProvider implements IValidationMessageProvider {
 
-  constructor(public parser: ValidationMessageParser) { }
+  public constructor(@IExpressionParser public parser: IExpressionParser) { }
 
   /**
    * Returns a message binding expression that corresponds to the key.
-   * @param key The message key.
    */
-  public getMessage(key: string): Expression {
+  public getMessageByKey(key: string): IInterpolationExpression {
     let message: string;
     if (key in validationMessages) {
       message = validationMessages[key];
     } else {
       message = validationMessages['default'];
     }
-    return this.parser.parse(message);
+    return this.parseMessage(message);
+  }
+
+  public parseMessage(message: string): IInterpolationExpression {
+    /*
+    // TODO
+     if (access.ancestor !== 0) {
+      throw new Error('$parent is not permitted in validation message expressions.');
+    }
+    if (['displayName', 'propertyName', 'value', 'object', 'config', 'getDisplayName'].indexOf(access.name) !== -1) {
+      LogManager.getLogger('aurelia-validation')
+        // tslint:disable-next-line:max-line-length
+        .warn(`Did you mean to use "$${access.name}" instead of "${access.name}" in this validation message template: "${this.originalMessage}"?`);
+    }
+    */
+    return this.parser.parse(message, BindingType.Interpolation);
   }
 
   /**
    * Formulates a property display name using the property name and the configured
    * displayName (if provided).
    * Override this with your own custom logic.
-   * @param propertyName The property name.
+   *
+   * @param propertyName - The property name.
    */
   public getDisplayName(propertyName: string | number, displayName?: string | null | (() => string)): string {
     if (displayName !== null && displayName !== undefined) {
@@ -65,4 +87,8 @@ export class ValidationMessageProvider {
     // capitalize first letter.
     return words.charAt(0).toUpperCase() + words.slice(1);
   }
+}
+
+export class LocalizedValidationMessageProvider extends ValidationMessageProvider {
+  // TODO no more monkey patching prototype in user code, rather a standard i18n validation message provider impl
 }

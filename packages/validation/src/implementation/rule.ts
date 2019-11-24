@@ -1,4 +1,6 @@
 import { Class } from '@aurelia/kernel';
+import { IInterpolationExpression } from '@aurelia/runtime';
+import { IValidationMessageProvider } from './validation-messages';
 
 export type IValidateable<T = any> = (Class<T> | object) & { [key in PropertyKey]: any };
 export type ValidationDisplayNameAccessor = () => string;
@@ -6,30 +8,55 @@ export type ValidationDisplayNameAccessor = () => string;
 /**
  * Information related to a property that is the subject of validation.
  */
-export interface RuleProperty {
+export class RuleProperty {
   /**
-   * The property name. null indicates the rule targets the object itself.
+   * @param {(string | number | null)} [name=null] - The property name. null indicates the rule targets the object itself.
+   * @param {(string | ValidationDisplayNameAccessor | null)} [displayName=null] - The displayName of the property (or object).
+   * @memberof RuleProperty
    */
-  name: string | number | null;
-
-  /**
-   * The displayName of the property (or object).
-   */
-  displayName: string | ValidationDisplayNameAccessor | null;
+  public constructor(
+    public name: string | number | null = null,
+    public displayName: string | ValidationDisplayNameAccessor | null = null,
+  ) { }
 }
 export type RuleCondition<TObject extends IValidateable = IValidateable, TValue = any> = (value: TValue, object?: TObject) => boolean | Promise<boolean>;
 /**
  * A rule definition. Associations a rule with a property or object.
  */
-export interface Rule<TObject extends IValidateable = IValidateable, TValue = any> {
-  property: RuleProperty;
-  condition: RuleCondition<TObject, TValue>;
-  config: object;
-  when?: ((object: TObject) => boolean);
-  messageKey: string;
-  message?: any; // Expression; // TODO fix typing
-  sequence: number;
-  tag?: string;
+export class Rule<TObject extends IValidateable = IValidateable, TValue = any> {
+  private message: IInterpolationExpression;
+
+  public constructor(
+    private readonly messageProvider: IValidationMessageProvider,
+    public property: RuleProperty,
+    public condition: RuleCondition<TObject, TValue>,
+    public config: object,
+    public sequence: number,
+    public messageKey: string = 'default',
+    public when?: ((object: TObject) => boolean),
+    public tag?: string,
+  ) {
+    this.message = (void 0)!;
+  }
+
+  public setMessageKey(key: string) {
+    this.messageKey = key;
+    this.message = (void 0)!;
+  }
+
+  public setMessage(message: string) {
+    this.messageKey = 'custom';
+    this.message = this.messageProvider.parseMessage(message);
+  }
+
+  public getMessage() {
+    let message = this.message;
+    if (message !== void 0) {
+      return message;
+    }
+    message = this.message = this.messageProvider.getMessageByKey(this.messageKey);
+    return message;
+  }
 }
 
 // TODO use metadata service for this.

@@ -1,9 +1,10 @@
-import { Rule, Rules, IValidateable } from './implementation/rule';
-import { ValidationMessageProvider } from './implementation/validation-messages';
-import { ValidateResult } from './validate-result';
 import { DI } from '@aurelia/kernel';
+import { IValidateable, Rule, Rules } from './implementation/rule';
+import { IValidationMessageProvider } from './implementation/validation-messages';
+import { ValidateResult } from './validate-result';
+import { LifecycleFlags } from '@aurelia/runtime';
 
-export const IValidator = DI.createInterface("IValidator");
+export const IValidator = DI.createInterface<IValidator>("IValidator").noDefault();
 /**
  * Validates objects and properties.
  */
@@ -34,13 +35,12 @@ export interface IValidator {
  * Responsible for validating objects and properties.
  */
 export class StandardValidator implements IValidator {
-  private readonly messageProvider: ValidationMessageProvider;
-  private readonly lookupFunctions: LookupFunctions;
   private readonly getDisplayName: (propertyName: string) => string;
 
-  public constructor(messageProvider: ValidationMessageProvider, resources: ViewResources) {
+  public constructor(
+    @IValidationMessageProvider private readonly messageProvider: IValidationMessageProvider,
+  ) {
     this.messageProvider = messageProvider;
-    this.lookupFunctions = (resources as any).lookupFunctions;
     this.getDisplayName = messageProvider.getDisplayName.bind(messageProvider);
   }
 
@@ -68,7 +68,7 @@ export class StandardValidator implements IValidator {
   }
 
   private getMessage(rule: Rule, object: any, value: any): string {
-    const expression: Expression = rule.message || this.messageProvider.getMessage(rule.messageKey);
+    const expression = rule.getMessage();
     // eslint-disable-next-line prefer-const
     let { name: propertyName, displayName } = rule.property;
     if (propertyName !== null) {
@@ -85,8 +85,10 @@ export class StandardValidator implements IValidator {
       $getDisplayName: this.getDisplayName
     };
     return expression.evaluate(
-      { bindingContext: object, overrideContext },
-      this.lookupFunctions);
+      LifecycleFlags.none,
+      // { bindingContext: object, overrideContext },
+      (void 0)!,
+      null) as string;
   }
 
   private async validateRuleSequence(

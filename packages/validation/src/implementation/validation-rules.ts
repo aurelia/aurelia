@@ -1,7 +1,7 @@
 import { PropertyAccessor, PropertyAccessorParser } from '../property-accessor-parser';
 import { Rule, RuleCondition, RuleProperty, Rules, ValidationDisplayNameAccessor, IValidateable } from './rule';
-import { ValidationMessageParser } from './validation-message-parser';
-import { validationMessages } from './validation-messages';
+import { validationMessages, IValidationMessageProvider } from './validation-messages';
+import { IContainer } from '@aurelia/kernel';
 
 /**
  * Part of the fluent rule API. Enables customizing property rules.
@@ -12,20 +12,12 @@ export class FluentRuleCustomizer<TObject, TValue> {
   public constructor(
     property: RuleProperty,
     condition: RuleCondition,
-    private readonly fluentEnsure: FluentEnsure,
+    private readonly fluentEnsure: ValidationRules,
     private readonly fluentRules: FluentRules<TValue>,
-    private readonly parsers: Parsers,
+    messageProvider: IValidationMessageProvider,
     config: object = {},
   ) {
-    this.rule = {
-      property,
-      condition,
-      config,
-      when: void 0,
-      messageKey: 'default',
-      message: null,
-      sequence: fluentRules.sequence
-    };
+    this.rule = new Rule(messageProvider, property, condition, config, fluentRules.sequence);
     this.fluentEnsure._addRule(this.rule);
   }
 
@@ -43,8 +35,7 @@ export class FluentRuleCustomizer<TObject, TValue> {
    * Specifies the key to use when looking up the rule's validation message.
    */
   public withMessageKey(key: string) {
-    this.rule.messageKey = key;
-    this.rule.message = null;
+    this.rule.setMessageKey(key);
     return this;
   }
 
@@ -52,8 +43,7 @@ export class FluentRuleCustomizer<TObject, TValue> {
    * Specifies rule's validation message.
    */
   public withMessage(message: string) {
-    this.rule.messageKey = 'custom';
-    this.rule.message = this.parsers.message.parse(message);
+    this.rule.setMessage(message);
     return this;
   }
 
@@ -257,9 +247,9 @@ export class FluentRules<TValue> {
   public sequence: number = 0;
 
   public constructor(
-    private readonly fluentEnsure: FluentEnsure,
-    private readonly parsers: Parsers,
-    private readonly property: RuleProperty
+    private readonly fluentEnsure: ValidationRules,
+    private readonly property: RuleProperty,
+    private readonly messageProvider: IValidationMessageProvider,
   ) { }
 
   /**
@@ -279,7 +269,7 @@ export class FluentRules<TValue> {
    */
   public satisfies(condition: RuleCondition, config?: object) {
     return new FluentRuleCustomizer<IValidateable, TValue>(
-      this.property, condition, this.fluentEnsure, this, this.parsers, config);
+      this.property, condition, this.fluentEnsure, this, this.messageProvider, config);
   }
 
   /**
@@ -436,94 +426,13 @@ export class FluentRules<TValue> {
 /**
  * Part of the fluent rule API. Enables targeting properties and objects with rules.
  */
-export class FluentEnsure {
-  /**
-   * Rules that have been defined using the fluent API.
-   */
-  public rules: Rule[][] = [];
-
-  public constructor(private readonly parsers: Parsers) { }
-
-  /**
-   * Target a property with validation rules.
-   *
-   * @param property - The property to target. Can be the property name or a property accessor
-   * function.
-   */
-  public ensure<TValue>(property: string | number | PropertyAccessor<IValidateable, TValue>): FluentRules<any> {
-    this.assertInitialized();
-    const name = this.parsers.property.parse(property);
-    const fluentRules = new FluentRules<TValue>(
-      this,
-      this.parsers,
-      { name, displayName: null });
-    return this.mergeRules(fluentRules, name);
-  }
-
-  /**
-   * Targets an object with validation rules.
-   */
-  public ensureObject(): FluentRules<any> {
-    this.assertInitialized();
-    const fluentRules = new FluentRules<IValidateable>(
-      this, this.parsers, { name: null, displayName: null });
-    return this.mergeRules(fluentRules, null);
-  }
-
-  /**
-   * Applies the rules to a class or object, making them discoverable by the StandardValidator.
-   *
-   * @param target - A class or object.
-   */
-  public on(target: IValidateable) {
-    Rules.set(target, this.rules);
-    return this;
-  }
-
-  /**
-   * Adds a rule definition to the sequenced ruleset.
-   *
-   * @internal
-   */
-  public _addRule(rule: Rule) {
-    while (this.rules.length < rule.sequence + 1) {
-      this.rules.push([]);
-    }
-    this.rules[rule.sequence].push(rule);
-  }
-
-  private assertInitialized() {
-    if (this.parsers) {
-      return;
-    }
-    throw new Error(`Did you forget to add ".plugin('aurelia-validation')" to your main.js?`);
-  }
-
-  private mergeRules(fluentRules: FluentRules<any>, propertyName: string | number | null) {
-    // tslint:disable-next-line:triple-equals | Use loose equality for property keys
-    const existingRules = this.rules.find(r => r.length > 0 && r[0].property.name == propertyName);
-    if (existingRules) {
-      const rule = existingRules[existingRules.length - 1];
-      fluentRules.sequence = rule.sequence;
-      if (rule.property.displayName !== null) {
-        fluentRules = fluentRules.displayName(rule.property.displayName);
-      }
-    }
-    return fluentRules;
-  }
-}
-
-/**
- * Fluent rule definition API.
- */
 export class ValidationRules {
-  private static parsers: Parsers;
+  private static propertyParser: PropertyAccessorParser;
+  private static messageProvider: IValidationMessageProvider;
 
-  public static initialize(messageParser: ValidationMessageParser, propertyParser: PropertyAccessorParser) {
-    this.parsers = {
-      message: messageParser,
-      property: propertyParser
-    };
+  public static register(container: IContainer) {
+    this.propertyParser = container.get(PropertyAccessorParser);
+    this.messageProvider = container.get(IValidationMessageProvider);
   }
 
   /**
@@ -532,14 +441,14 @@ export class ValidationRules {
    * @param property - The property to target. Can be the property name or a property accessor function.
    */
   public static ensure<TObject, TValue>(property: string | number | PropertyAccessor<TObject, TValue>) {
-    return new FluentEnsure(ValidationRules.parsers).ensure(property);
+    return new ValidationRules().ensure(property);
   }
 
   /**
    * Targets an object with validation rules.
    */
   public static ensureObject<TObject>() {
-    return new FluentEnsure(ValidationRules.parsers).ensureObject();
+    return new ValidationRules().ensureObject();
   }
 
   /**
@@ -588,9 +497,77 @@ export class ValidationRules {
   public static off(target: IValidateable): void {
     Rules.unset(target);
   }
-}
 
-export interface Parsers {
-  message: ValidationMessageParser;
-  property: PropertyAccessorParser;
+  /**
+   * Rules that have been defined using the fluent API.
+   */
+  public rules: Rule[][] = [];
+
+  /**
+   * Target a property with validation rules.
+   *
+   * @param property - The property to target. Can be the property name or a property accessor
+   * function.
+   */
+  public ensure<TValue>(property: string | number | PropertyAccessor<IValidateable, TValue>): FluentRules<any> {
+    this.assertInitialized();
+    const name = ValidationRules.propertyParser.parse(property);
+    const fluentRules = new FluentRules<TValue>(
+      this,
+      new RuleProperty(name),
+      ValidationRules.messageProvider,
+    );
+    return this.mergeRules(fluentRules, name);
+  }
+
+  /**
+   * Targets an object with validation rules.
+   */
+  public ensureObject(): FluentRules<any> {
+    this.assertInitialized();
+    const fluentRules = new FluentRules<IValidateable>(this, new RuleProperty(), ValidationRules.messageProvider);
+    return this.mergeRules(fluentRules, null);
+  }
+
+  /**
+   * Applies the rules to a class or object, making them discoverable by the StandardValidator.
+   *
+   * @param target - A class or object.
+   */
+  public on(target: IValidateable) {
+    Rules.set(target, this.rules);
+    return this;
+  }
+
+  /**
+   * Adds a rule definition to the sequenced ruleset.
+   *
+   * @internal
+   */
+  public _addRule(rule: Rule) {
+    while (this.rules.length < rule.sequence + 1) {
+      this.rules.push([]);
+    }
+    this.rules[rule.sequence].push(rule);
+  }
+
+  private assertInitialized() {
+    if (ValidationRules.messageProvider === void 0 || ValidationRules.propertyParser === void 0) {
+      return;
+    }
+    throw new Error(`Did you forget to register 'ValidationConfiguration' from '@aurelia/validation'?`);
+  }
+
+  private mergeRules(fluentRules: FluentRules<any>, propertyName: string | number | null) {
+    // eslint-disable-next-line eqeqeq
+    const existingRules = this.rules.find(r => r.length > 0 && r[0].property.name == propertyName);
+    if (existingRules !== void 0) {
+      const rule = existingRules[existingRules.length - 1];
+      fluentRules.sequence = rule.sequence;
+      if (rule.property.displayName !== null) {
+        fluentRules = fluentRules.displayName(rule.property.displayName);
+      }
+    }
+    return fluentRules;
+  }
 }

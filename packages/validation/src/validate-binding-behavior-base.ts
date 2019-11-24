@@ -1,5 +1,5 @@
 import { IScheduler, LifecycleFlags, IScope, IBinding } from '@aurelia/runtime';
-import { getTargetDOMElement } from './get-target-dom-element';
+// import { getTargetDOMElement } from './get-target-dom-element';
 import { validateTrigger } from './validate-trigger';
 import { ValidationController } from './validation-controller';
 import { optional } from '@aurelia/kernel';

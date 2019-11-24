@@ -49,6 +49,10 @@ import {
 import {
   CompletionType,
 } from './types/_shared';
+import {
+  $NumberConstructor,
+  $NumberPrototype,
+} from './globals/number';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
@@ -448,8 +452,11 @@ export class Intrinsics {
     const stringPrototype = this['%StringPrototype%'] = new $StringPrototype(realm, objectPrototype);
     (stringConstructor.$prototype = stringPrototype).$constructor = stringConstructor;
 
+    const numberConstructor = this['%Number%'] = new $NumberConstructor(realm, functionPrototype);
+    const numberPrototype = this['%NumberPrototype%'] = new $NumberPrototype(realm, objectPrototype);
+    (numberConstructor.$prototype = numberPrototype).$constructor = numberConstructor;
+
     this['%BooleanPrototype%'] = new $Object(realm, '%BooleanPrototype%', objectPrototype, CompletionType.normal, empty);
-    this['%NumberPrototype%'] = new $Object(realm, '%NumberPrototype%', objectPrototype, CompletionType.normal, empty);
     this['%SymbolPrototype%'] = new $Object(realm, '%SymbolPrototype%', objectPrototype, CompletionType.normal, empty);
     this['%PromisePrototype%'] = new $Object(realm, '%PromisePrototype%', objectPrototype, CompletionType.normal, empty);
     this['%RegExpPrototype%'] = new $Object(realm, '%RegExpPrototype%', objectPrototype, CompletionType.normal, empty);
@@ -500,7 +507,6 @@ export class Intrinsics {
     this['%URIErrorPrototype%'] = new $Object(realm, '%URIErrorPrototype%', this['%ErrorPrototype%'], CompletionType.normal, empty);
 
     this['%Boolean%'] = new $Object(realm, '%Boolean%', functionPrototype, CompletionType.normal, empty);
-    this['%Number%'] = new $Object(realm, '%Number%', functionPrototype, CompletionType.normal, empty);
     this['%Symbol%'] = new $Object(realm, '%Symbol%', functionPrototype, CompletionType.normal, empty);
     this['%Promise%'] = new $Object(realm, '%Promise%', functionPrototype, CompletionType.normal, empty);
     this['%RegExp%'] = new $Object(realm, '%RegExp%', functionPrototype, CompletionType.normal, empty);

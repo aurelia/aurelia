@@ -55,6 +55,7 @@ import {
   $Construct,
   $CreateDataProperty,
   $Set,
+  $CopyDataProperties,
 } from '../operations';
 import {
   $String,
@@ -68,6 +69,7 @@ import {
 import {
   $Any,
   $AnyNonEmpty,
+  $AnyObject,
 } from '../types/_shared';
 import {
   $Object,
@@ -775,6 +777,30 @@ export class $SpreadAssignment implements I$Node {
     this.id = realm.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-propertydefinitionevaluation
+  // 12.2.6.8 Runtime Semantics: PropertyDefinitionEvaluation
+  public EvaluatePropertyDefinition<T extends $AnyObject>(
+    ctx: ExecutionContext,
+    object: T,
+    enumerable: $Boolean,
+  ): T | $Error {
+    // PropertyDefinition :
+    //     ... AssignmentExpression
+
+    // 1. Let exprValue be the result of evaluating AssignmentExpression.
+    const exprValue = this.$expression.Evaluate(ctx);
+
+    // 2. Let fromValue be ? GetValue(exprValue).
+    const fromValue = exprValue.GetValue(ctx);
+    if (fromValue.isAbrupt) { return fromValue; }
+
+    // 3. Let excludedNames be a new empty List.
+    const excludedNames: $String[] = [];
+
+    // 4. Return ? CopyDataProperties(object, fromValue, excludedNames).
+    return $CopyDataProperties(ctx, object, fromValue, excludedNames);
   }
 }
 

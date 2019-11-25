@@ -10,6 +10,11 @@ import {
   format,
   IDisposable,
   Writable,
+  ILogEvent,
+  ILogConfig,
+  LogConfig,
+  ISink,
+  ConsoleSink,
 } from '@aurelia/kernel';
 import {
   IFileSystem,
@@ -25,6 +30,9 @@ import {
   resolve,
   join,
 } from 'path';
+import {
+  appendFileSync,
+} from 'fs';
 
 class TestMetadataNegative {
   public constructor(
@@ -187,29 +195,24 @@ class TestStats {
 }
 
 class TestReporter {
-  private readonly dirs: Record<string, TestStats>;
-  private readonly totals: TestStats;
+  private readonly dirs: Record<string, TestStats> = {};
+  private readonly totals: TestStats = new TestStats('', 'Total');
 
   public constructor(
     private readonly logger: ILogger,
-    tcs: readonly TestCase[]
-  ) {
-    const dirs = this.dirs = {};
-    const totals = this.totals = new TestStats('', 'Total');
+  ) {}
 
-    let stats: TestStats;
-    let file: IFile;
-    let tc: TestCase;
-    for (let i = 0, ii = tcs.length; i < ii; ++i) {
-      tc = tcs[i];
-      file = tc.file;
-      stats = dirs[file.dir];
-      if (stats === void 0) {
-        stats = dirs[file.dir] = new TestStats(file.dir, file.rootlessPath.split('/').slice(0, -1).join('/'));
-      }
-      ++totals.total;
-      ++stats.total;
+  public register(tc: TestCase): TestCase {
+    const dirs = this.dirs;
+    const totals = this.totals;
+    const file = tc.file;
+    let stats = dirs[file.dir];
+    if (stats === void 0) {
+      stats = dirs[file.dir] = new TestStats(file.dir, file.rootlessPath.split('/').slice(0, -1).join('/'));
     }
+    ++totals.total;
+    ++stats.total;
+    return tc;
   }
 
   public pass(tc: TestCase): void {
@@ -251,6 +254,28 @@ class TestReporter {
   }
 }
 
+
+export class BufferedFileSink {
+  private readonly buffer: ILogEvent[] = [];
+  private queued: boolean = false;
+
+  public emit(event: ILogEvent): void {
+    this.buffer.push(event);
+    if (!this.queued) {
+      this.queued = true;
+      setTimeout(() => this.flush(), 100);
+    }
+  }
+
+  private flush(): void {
+    if (this.buffer.length > 0) {
+      this.queued = false;
+      const output = this.buffer.splice(0).map(x => x.toString()).join('\n');
+      appendFileSync('aot.log', output, { encoding: 'utf8' });
+    }
+  }
+}
+
 class TestRunner {
   public readonly container: IContainer;
   public readonly fs: IFileSystem;
@@ -259,7 +284,9 @@ class TestRunner {
   public constructor() {
     const container = this.container = DI.createContainer();
     container.register(
-      LoggerConfiguration.create(console, LogLevel.info, ColorOptions.noColors),
+      Registration.instance(ILogConfig, new LogConfig(ColorOptions.noColors, LogLevel.info)),
+      Registration.instance(ISink, new BufferedFileSink()),
+      Registration.instance(ISink, new ConsoleSink(console)),
       Registration.singleton(IFileSystem, NodeFileSystem),
     );
     this.fs = container.get(IFileSystem);
@@ -274,7 +301,7 @@ class TestRunner {
 
     const testDir = join(root, 'test');
     const annexBDir = join(testDir, 'annexB');
-    const builtInsDir = join(testDir, 'built-ins');
+    const builtInsDir = join(testDir, 'built-ins', 'Array');
     const intl402Dir = join(testDir, 'intl402');
     const languageDir = join(testDir, 'language');
 
@@ -288,9 +315,9 @@ class TestRunner {
     const now = PLATFORM.now();
 
     for (const dir of [
-      annexBDir,
-      builtInsDir,
-      intl402Dir,
+      //annexBDir,
+      //builtInsDir,
+      //intl402Dir,
       languageDir,
     ]) {
       logger.info(`Loading test files from ${dir}`);
@@ -300,29 +327,35 @@ class TestRunner {
 
     logger.info(`Discovered ${files.length} test files in ${Math.round(PLATFORM.now() - now)}ms`);
 
-    const testCases = files
+    const reporter = new TestReporter(logger);
+
+    let testCases = files
       .slice()
       .sort(compareFiles)
-      .map(x => new TestCase(this.container, logger, x, prerequisites));
+      .map(x => reporter.register(new TestCase(this.container, logger, x, prerequisites)));
 
-    const reporter = new TestReporter(logger, testCases);
-
-    for (const tc of testCases) {
-      if (tc.meta != null && tc.meta.negative != null) {
-        // These error types should be caught by typescript
-        if (tc.meta.negative.phase === 'early' || tc.meta.negative.phase === 'parse') {
-          reporter.skip(tc);
-          tc.dispose();
-          continue;
+    testCases = testCases
+      .filter(tc => {
+        switch (tc.meta?.negative?.phase?.trim()) {
+          case 'early':
+          case 'parse':
+            // These error types should be caught by typescript
+            reporter.skip(tc);
+            tc.dispose();
+            return false;
         }
 
         if (excludedFeatures.some(x => tc.meta.features.includes(x))) {
           reporter.skip(tc);
           tc.dispose();
-          continue;
+          return false;
         }
-      }
 
+        return true;
+      });
+
+
+    for (const tc of testCases) {
       try {
         const result = await tc.run();
 
@@ -356,7 +389,7 @@ class TestRunner {
       } catch (err) {
         reporter.error(tc);
 
-        logger.debug(`Host threw an error: ${err.message}`)
+        logger.fatal(`${format.red('Host error')}: ${err.message}\n${err.stack}\n\nTest file: ${tc.file.rootlessPath}\n${tc.meta?.negative?.phase}`)
       } finally {
         tc.dispose();
       }

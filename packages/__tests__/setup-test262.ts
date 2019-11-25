@@ -56,15 +56,17 @@ class TestMetadata {
       }
 
       let features: string[] = [];
-      const featuresIndex = lines.findIndex(l => l.startsWith('features'));
+      const featuresIndex = lines.findIndex(l => l.startsWith('features: '));
       if (featuresIndex >= 0) {
-        features = lines[featuresIndex].split(': ')[1].slice(1, -2).split(', ');
+        const featureList = lines[featuresIndex].split(': ');
+        features = featureList[1].slice(1, -2).split(', ');
       }
 
       let flags: string[] = [];
-      const flagsIndex = lines.findIndex(l => l.startsWith('flags'));
+      const flagsIndex = lines.findIndex(l => l.startsWith('flags: '));
       if (flagsIndex >= 0) {
-        flags = lines[flagsIndex].split(': ')[1].slice(1, -2).split(', ');
+        const flagList = lines[flagsIndex].split(': ');
+        flags = flagList[1].slice(1, -2).split(', ');
       }
 
       return new TestMetadata(negative, features, flags);
@@ -153,6 +155,102 @@ function compareFiles(a: IFile, b: IFile): number {
   return -1;
 }
 
+class TestStats {
+  public pass: number = 0;
+  public fail: number = 0;
+  public error: number = 0;
+  public skip: number = 0;
+
+  private get $pass(): string { return this.pass.toString().padStart(4, ' '); }
+  private get $fail(): string { return this.fail.toString().padStart(4, ' '); }
+  private get $error(): string { return this.error.toString().padStart(4, ' '); }
+  private get $skip(): string { return this.skip.toString().padStart(4, ' '); }
+
+  public total: number = 0;
+
+  public get isDone(): boolean {
+    return this.pass + this.fail + this.error + this.skip === this.total;
+  }
+
+  public get isPass(): boolean {
+    return this.fail === 0 && this.error === 0;
+  }
+
+  public constructor(
+    public readonly dir: string,
+    public readonly name: string,
+  ) {}
+
+  public toString(): string {
+    return `${this.isPass ? format.green('PASS') : format.red('FAIL')} - [pass:${this.$pass} fail:${this.$fail} error:${this.$error} skip:${this.$skip}] - ${this.name}`;
+  }
+}
+
+class TestReporter {
+  private readonly dirs: Record<string, TestStats>;
+  private readonly totals: TestStats;
+
+  public constructor(
+    private readonly logger: ILogger,
+    tcs: readonly TestCase[]
+  ) {
+    const dirs = this.dirs = {};
+    const totals = this.totals = new TestStats('', 'Total');
+
+    let stats: TestStats;
+    let file: IFile;
+    let tc: TestCase;
+    for (let i = 0, ii = tcs.length; i < ii; ++i) {
+      tc = tcs[i];
+      file = tc.file;
+      stats = dirs[file.dir];
+      if (stats === void 0) {
+        stats = dirs[file.dir] = new TestStats(file.dir, file.rootlessPath.split('/').slice(0, -1).join('/'));
+      }
+      ++totals.total;
+      ++stats.total;
+    }
+  }
+
+  public pass(tc: TestCase): void {
+    this.progress(tc, 'pass');
+  }
+
+  public fail(tc: TestCase): void {
+    this.progress(tc, 'fail');
+  }
+
+  public error(tc: TestCase): void {
+    this.progress(tc, 'error');
+  }
+
+  public skip(tc: TestCase): void {
+    this.progress(tc, 'skip');
+  }
+
+  private progress(tc: TestCase, type: 'pass' | 'fail' | 'error' | 'skip'): void {
+    const stats = this.dirs[tc.file.dir];
+    const totals = this.totals;
+    ++stats[type];
+    ++totals[type];
+    if (stats.isDone) {
+      this.report(stats);
+    }
+    if (totals.isDone) {
+      this.reportTotals(totals);
+    }
+  }
+
+  private report(stats: TestStats): void {
+    this.logger.info(stats.toString());
+  }
+
+  private reportTotals(stats: TestStats): void {
+    this.logger.info(`------ FINISHED -------`)
+    this.logger.info(stats.toString());
+  }
+}
+
 class TestRunner {
   public readonly container: IContainer;
   public readonly fs: IFileSystem;
@@ -175,6 +273,9 @@ class TestRunner {
     const root = resolve(__dirname, '..', '..', '..', 'test262');
 
     const testDir = join(root, 'test');
+    const annexBDir = join(testDir, 'annexB');
+    const builtInsDir = join(testDir, 'built-ins');
+    const intl402Dir = join(testDir, 'intl402');
     const languageDir = join(testDir, 'language');
 
     const harnessDir = join(root, 'harness');
@@ -183,10 +284,19 @@ class TestRunner {
     const assertFile = harnessFiles.find(x => x.name === 'assert.js');
     const prerequisites = [staFile, assertFile];
 
+    const files: IFile[] = [];
     const now = PLATFORM.now();
-    logger.info(`Loading test files from ${languageDir}`);
 
-    const files = (await fs.getFiles(languageDir, true)).filter(x => !x.shortName.endsWith('FIXTURE'));
+    for (const dir of [
+      annexBDir,
+      builtInsDir,
+      intl402Dir,
+      languageDir,
+    ]) {
+      logger.info(`Loading test files from ${dir}`);
+
+      files.push(...(await fs.getFiles(dir, true)).filter(x => !x.shortName.endsWith('FIXTURE')));
+    }
 
     logger.info(`Discovered ${files.length} test files in ${Math.round(PLATFORM.now() - now)}ms`);
 
@@ -195,15 +305,19 @@ class TestRunner {
       .sort(compareFiles)
       .map(x => new TestCase(this.container, logger, x, prerequisites));
 
+    const reporter = new TestReporter(logger, testCases);
+
     for (const tc of testCases) {
       if (tc.meta != null && tc.meta.negative != null) {
         // These error types should be caught by typescript
         if (tc.meta.negative.phase === 'early' || tc.meta.negative.phase === 'parse') {
+          reporter.skip(tc);
           tc.dispose();
           continue;
         }
 
         if (excludedFeatures.some(x => tc.meta.features.includes(x))) {
+          reporter.skip(tc);
           tc.dispose();
           continue;
         }
@@ -214,23 +328,35 @@ class TestRunner {
 
         if (tc.meta.negative === null) {
           if (result.isAbrupt) {
-            logger.info(`${format.red('FAIL')} - ${tc.file.rootlessPath} (expected no error, but got: ${result['[[Value]]'].message} ${result['[[Value]]'].stack})`);
+            reporter.fail(tc);
+
+            logger.debug(`${format.red('FAIL')} - ${tc.file.rootlessPath} (expected no error, but got: ${result['[[Value]]'].message} ${result['[[Value]]'].stack})`);
           } else {
-            logger.info(`${format.green('PASS')} - ${tc.file.rootlessPath}`);
+            reporter.pass(tc);
+
+            logger.debug(`${format.green('PASS')} - ${tc.file.rootlessPath}`);
           }
         } else {
           if (result.isAbrupt) {
             if (result['[[Value]]'].name === tc.meta.negative.type) {
-              logger.info(`${format.green('PASS')} - ${tc.file.rootlessPath}`);
+              reporter.pass(tc);
+
+              logger.debug(`${format.green('PASS')} - ${tc.file.rootlessPath}`);
             } else {
-              logger.info(`${format.red('FAIL')} - ${tc.file.rootlessPath} (expected error ${tc.meta.negative.type}, but got: ${result['[[Value]]'].name})`);
+              reporter.fail(tc);
+
+              logger.debug(`${format.red('FAIL')} - ${tc.file.rootlessPath} (expected error ${tc.meta.negative.type}, but got: ${result['[[Value]]'].name})`);
             }
           } else {
-            logger.info(`${format.red('FAIL')} - ${tc.file.rootlessPath} (expected error ${tc.meta.negative.type}, but got none)`);
+            reporter.fail(tc);
+
+            logger.debug(`${format.red('FAIL')} - ${tc.file.rootlessPath} (expected error ${tc.meta.negative.type}, but got none)`);
           }
         }
       } catch (err) {
-        logger.fatal(`AOT threw an error: ${err.message}`)
+        reporter.error(tc);
+
+        logger.debug(`Host threw an error: ${err.message}`)
       } finally {
         tc.dispose();
       }

@@ -194,6 +194,7 @@ export class Realm {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-createrealm
+  // 8.2.1 CreateRealm ( )
   public static Create(container: IContainer): Realm {
     const logger = container.get(ILogger).root.scopeTo('Realm');
     const fs = container.get(IFileSystem);
@@ -217,6 +218,7 @@ export class Realm {
     // 6. Return realmRec.
 
     // http://www.ecma-international.org/ecma-262/#sec-initializehostdefinedrealm
+    // 8.5 InitializeHostDefinedRealm ( )
 
     // 1. Let realm be CreateRealm().
     const intrinsics = realm['[[Intrinsics]]'];
@@ -246,6 +248,7 @@ export class Realm {
     // 9. Perform SetRealmGlobalObject(realm, global, thisValue).
 
     // http://www.ecma-international.org/ecma-262/#sec-setrealmglobalobject
+    // 8.2.3 SetRealmGlobalObject ( realmRec , globalObj , thisValue )
     // 1. If globalObj is undefined, then
     // 1. a. Let intrinsics be realmRec.[[Intrinsics]].
     // 1. b. Set globalObj to ObjectCreate(intrinsics.[[%ObjectPrototype%]]).
@@ -264,6 +267,7 @@ export class Realm {
 
     // 10. Let globalObj be ? SetDefaultGlobalBindings(realm).
     // http://www.ecma-international.org/ecma-262/#sec-setdefaultglobalbindings
+    // 8.2.4 SetDefaultGlobalBindings ( realmRec )
 
     // 1. Let global be realmRec.[[GlobalObject]].
     const global = realm['[[GlobalObject]]'];
@@ -285,11 +289,13 @@ export class Realm {
     }
 
     // http://www.ecma-international.org/ecma-262/#sec-value-properties-of-the-global-object
+    // 18.1 Value Properties of the Global Object
     def('Infinity', 'Infinity');
     def('NaN', 'NaN');
     def('undefined', 'undefined');
 
     // http://www.ecma-international.org/ecma-262/#sec-function-properties-of-the-global-object
+    // 18.2 Function Properties of the Global Object
     def('eval', '%eval%');
     def('isFinite', '%isFinite%');
     def('isNaN', '%isNaN%');
@@ -301,6 +307,7 @@ export class Realm {
     def('encodeURIComponent', '%encodeURIComponent%');
 
     // http://www.ecma-international.org/ecma-262/#sec-constructor-properties-of-the-global-object
+    // 18.3 Constructor Properties of the Global Object
     def('Array', '%Array%');
     def('ArrayBuffer', '%ArrayBuffer%');
     def('Boolean', '%Boolean%');
@@ -337,6 +344,7 @@ export class Realm {
     def('WeakSet', '%WeakSet%');
 
     // http://www.ecma-international.org/ecma-262/#sec-other-properties-of-the-global-object
+    // 18.4 Other Properties of the Global Object
     def('Atomics', '%Atomics%');
     def('JSON', '%JSON%');
     def('Math', '%Math%');
@@ -350,6 +358,7 @@ export class Realm {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-getactivescriptormodule
+  // 8.3.1 GetActiveScriptOrModule ( )
   public GetActiveScriptOrModule(): $SourceFile {
     const stack = this.stack;
 
@@ -376,6 +385,7 @@ export class Realm {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-resolvebinding
+  // 8.3.2 ResolveBinding ( name [ , env ] )
   public ResolveBinding(name: $String, env?: $EnvRec): $Reference | $Error {
     // 1. If env is not present or if env is undefined, then
     if (env === void 0) {
@@ -392,6 +402,7 @@ export class Realm {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-getthisenvironment
+  // 8.3.3 GetThisEnvironment ( )
   public GetThisEnvironment(): $FunctionEnvRec | $GlobalEnvRec | $ModuleEnvRec {
     // 1. Let lex be the running execution context's LexicalEnvironment.
     let envRec = this.stack.top.LexicalEnvironment;
@@ -413,6 +424,7 @@ export class Realm {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-resolvethisbinding
+  // 8.3.4 ResolveThisBinding ( )
   public ResolveThisBinding(): $AnyNonEmpty | $Error {
     // 1. Let envRec be GetThisEnvironment().
     const envRec = this.GetThisEnvironment();
@@ -438,6 +450,7 @@ export class Realm {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-getidentifierreference
+  // 8.1.2.1 GetIdentifierReference ( lex , name , strict )
   private GetIdentifierReference(
     lex: $EnvRec | $Null,
     name: $String,

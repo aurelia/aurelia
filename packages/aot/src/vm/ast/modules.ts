@@ -186,20 +186,28 @@ export class $SourceFile implements I$Node, IModule {
   public ExecutionResult: $Any; // Temporary property for testing purposes
 
   // http://www.ecma-international.org/ecma-262/#sec-module-semantics-static-semantics-exportedbindings
+  // 15.2.1.5 Static Semantics: ExportedBindings
   public readonly ExportedBindings: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-module-semantics-static-semantics-exportednames
+  // 15.2.1.6 Static Semantics: ExportedNames
   public readonly ExportedNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-module-semantics-static-semantics-exportentries
+  // 15.2.1.7 Static Semantics: ExportEntries
   public readonly ExportEntries: readonly ExportEntryRecord[];
   // http://www.ecma-international.org/ecma-262/#sec-module-semantics-static-semantics-importentries
+  // 15.2.1.8 Static Semantics: ImportEntries
   public readonly ImportEntries: readonly ImportEntryRecord[];
   // http://www.ecma-international.org/ecma-262/#sec-importedlocalnames
+  // 15.2.1.9 Static Semantics: ImportedLocalNames ( importEntries )
   public readonly ImportedLocalNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-module-semantics-static-semantics-modulerequests
+  // 15.2.1.10 Static Semantics: ModuleRequests
   public readonly ModuleRequests: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-module-semantics-static-semantics-lexicallyscopeddeclarations
+  // 15.2.1.12 Static Semantics: LexicallyScopedDeclarations
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-module-semantics-static-semantics-varscopeddeclarations
+  // 15.2.1.14 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
@@ -442,6 +450,7 @@ export class $SourceFile implements I$Node, IModule {
     }
 
     // http://www.ecma-international.org/ecma-262/#sec-parsemodule
+    // 15.2.1.17.1 ParseModule ( sourceText , realm , hostDefined )
 
     // 1. Assert: sourceText is an ECMAScript source text (see clause 10).
     // 2. Parse sourceText using Module as the goal symbol and analyse the parse result for any Early Error conditions. If the parse was successful and no early errors were found, let body be the resulting parse tree. Otherwise, let body be a List of one or more SyntaxError or ReferenceError objects representing the parsing errors and/or early errors. Parsing and early error detection may be interweaved in an implementation-dependent manner. If more than one parsing error or early error is present, the number and ordering of error objects in the list is implementation-dependent, but at least one must be present.
@@ -536,6 +545,7 @@ export class $SourceFile implements I$Node, IModule {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-moduledeclarationinstantiation
+  // 15.2.1.16.1 Instantiate ( ) Concrete Method
   public Instantiate(): $Undefined | $Error {
     const realm = this.realm;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -591,6 +601,7 @@ export class $SourceFile implements I$Node, IModule {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-innermoduleinstantiation
+  // 15.2.1.16.1.1 InnerModuleInstantiation ( module , stack , index )
   /** @internal */
   public _InnerModuleInstantiation(
     ctx: ExecutionContext,
@@ -683,6 +694,7 @@ export class $SourceFile implements I$Node, IModule {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-source-text-module-record-initialize-environment
+  // 15.2.1.17.4 InitializeEnvironment ( ) Concrete Method
   public InitializeEnvironment(
     ctx: ExecutionContext,
   ): $Any {
@@ -728,6 +740,7 @@ export class $SourceFile implements I$Node, IModule {
         // 9. c. i. Let namespace be ? GetModuleNamespace(importedModule).
         const namespace = (function (mod) {
           // http://www.ecma-international.org/ecma-262/#sec-getmodulenamespace
+          // 15.2.1.19 Runtime Semantics: GetModuleNamespace ( module )
 
           // 1. Assert: module is an instance of a concrete subclass of Module Record.
           // 2. Assert: module.[[Status]] is not "uninstantiated".
@@ -845,6 +858,7 @@ export class $SourceFile implements I$Node, IModule {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-getexportednames
+  // 15.2.1.17.2 GetExportedNames ( exportStarSet ) Concrete Method
   public GetExportedNames(
     ctx: ExecutionContext,
     exportStarSet: Set<IModule>,
@@ -911,6 +925,7 @@ export class $SourceFile implements I$Node, IModule {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-resolveexport
+  // 15.2.1.17.3 ResolveExport ( exportName , resolveSet ) Concrete Method
   public ResolveExport(
     ctx: ExecutionContext,
     exportName: $String,
@@ -1020,6 +1035,7 @@ export class $SourceFile implements I$Node, IModule {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-moduleevaluation
+  // 15.2.1.16.2 Evaluate ( ) Concrete Method
   public EvaluateModule(): $Any {
     this.logger.debug(`EvaluateModule()`);
 
@@ -1059,6 +1075,7 @@ export class $SourceFile implements I$Node, IModule {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-innermoduleevaluation
+  // 15.2.1.16.2.1 InnerModuleEvaluation ( module , stack , index )
   public EvaluateModuleInner(
     ctx: ExecutionContext,
     stack: $SourceFile[],
@@ -1150,6 +1167,7 @@ export class $SourceFile implements I$Node, IModule {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-source-text-module-record-execute-module
+  // 15.2.1.17.5 ExecuteModule ( ) Concrete Method
   public ExecuteModule(
     ctx: ExecutionContext,
   ): $Any {
@@ -1201,6 +1219,7 @@ export class $SourceFile implements I$Node, IModule {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-semantics-runtime-semantics-evaluation
+  // 15.2.1.21 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
@@ -1544,10 +1563,13 @@ export class $ImportDeclaration implements I$Node {
   public readonly moduleSpecifier: $String;
 
   // http://www.ecma-international.org/ecma-262/#sec-imports-static-semantics-boundnames
+  // 15.2.2.2 Static Semantics: BoundNames
   public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-imports-static-semantics-importentries
+  // 15.2.2.3 Static Semantics: ImportEntries
   public readonly ImportEntries: readonly ImportEntryRecord[];
   // http://www.ecma-international.org/ecma-262/#sec-imports-static-semantics-modulerequests
+  // 15.2.2.5 Static Semantics: ModuleRequests
   public readonly ModuleRequests: readonly $String[];
 
   public constructor(
@@ -1599,8 +1621,10 @@ export class $ImportClause implements I$Node {
   public readonly moduleSpecifier: $String;
 
   // http://www.ecma-international.org/ecma-262/#sec-imports-static-semantics-boundnames
+  // 15.2.2.2 Static Semantics: BoundNames
   public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-importentriesformodule
+  // 15.2.2.4 Static Semantics: ImportEntriesForModule
   public readonly ImportEntriesForModule: readonly ImportEntryRecord[];
 
   public constructor(
@@ -1662,8 +1686,10 @@ export class $NamedImports implements I$Node {
   public readonly moduleSpecifier: $String;
 
   // http://www.ecma-international.org/ecma-262/#sec-imports-static-semantics-boundnames
+  // 15.2.2.2 Static Semantics: BoundNames
   public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-importentriesformodule
+  // 15.2.2.4 Static Semantics: ImportEntriesForModule
   public readonly ImportEntriesForModule: readonly ImportEntryRecord[];
 
   public constructor(
@@ -1694,8 +1720,10 @@ export class $ImportSpecifier implements I$Node {
   public readonly $name: $Identifier;
 
   // http://www.ecma-international.org/ecma-262/#sec-imports-static-semantics-boundnames
+  // 15.2.2.2 Static Semantics: BoundNames
   public readonly BoundNames: readonly [$String];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-importentriesformodule
+  // 15.2.2.4 Static Semantics: ImportEntriesForModule
   public readonly ImportEntriesForModule: readonly [ImportEntryRecord];
 
   public constructor(
@@ -1753,8 +1781,10 @@ export class $NamespaceImport implements I$Node {
   public readonly $name: $Identifier;
 
   // http://www.ecma-international.org/ecma-262/#sec-imports-static-semantics-boundnames
+  // 15.2.2.2 Static Semantics: BoundNames
   public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-importentriesformodule
+  // 15.2.2.4 Static Semantics: ImportEntriesForModule
   public readonly ImportEntriesForModule: readonly [ImportEntryRecord];
 
   public constructor(
@@ -1852,18 +1882,25 @@ export class $ExportDeclaration implements I$Node {
   public readonly moduleSpecifier: $String | $Null;
 
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-boundnames
+  // 15.2.3.2 Static Semantics: BoundNames
   public readonly BoundNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportedbindings
+  // 15.2.3.3 Static Semantics: ExportedBindings
   public readonly ExportedBindings: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportednames
+  // 15.2.3.4 Static Semantics: ExportedNames
   public readonly ExportedNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportentries
+  // 15.2.3.5 Static Semantics: ExportEntries
   public readonly ExportEntries: readonly ExportEntryRecord[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-isconstantdeclaration
+  // 15.2.3.7 Static Semantics: IsConstantDeclaration
   public readonly IsConstantDeclaration: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-lexicallyscopeddeclarations
+  // 15.2.3.8 Static Semantics: LexicallyScopedDeclarations
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-modulerequests
+  // 15.2.3.9 Static Semantics: ModuleRequests
   public readonly ModuleRequests: readonly $String[];
 
   public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
@@ -1927,10 +1964,13 @@ export class $NamedExports implements I$Node {
   public readonly moduleSpecifier: $String | $Null;
 
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportednames
+  // 15.2.3.4 Static Semantics: ExportedNames
   public readonly ExportedNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-exportentriesformodule
+  // 15.2.3.6 Static Semantics: ExportEntriesForModule
   public readonly ExportEntriesForModule: readonly ExportEntryRecord[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-referencedbindings
+  // 15.2.3.10 Static Semantics: ReferencedBindings
   public readonly ReferencedBindings: readonly $String[];
 
   public constructor(
@@ -1962,10 +2002,13 @@ export class $ExportSpecifier implements I$Node {
   public readonly $name: $Identifier;
 
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportednames
+  // 15.2.3.4 Static Semantics: ExportedNames
   public readonly ExportedNames: readonly [$String];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-exportentriesformodule
+  // 15.2.3.6 Static Semantics: ExportEntriesForModule
   public readonly ExportEntriesForModule: readonly [ExportEntryRecord];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-referencedbindings
+  // 15.2.3.10 Static Semantics: ReferencedBindings
   public readonly ReferencedBindings: readonly [$String];
 
   public constructor(

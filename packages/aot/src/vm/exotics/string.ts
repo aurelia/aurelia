@@ -38,6 +38,7 @@ export class $StringExoticObject extends $Object<'StringExoticObject'> {
   public readonly '[[StringData]]': $String;
 
   // http://www.ecma-international.org/ecma-262/#sec-stringcreate
+  // 9.4.3.4 StringCreate ( value , prototype )
   public constructor(
     realm: Realm,
     value: $String,
@@ -80,6 +81,7 @@ export class $StringExoticObject extends $Object<'StringExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-string-exotic-objects-getownproperty-p
+  // 9.4.3.1 [[GetOwnProperty]] ( P )
   public '[[GetOwnProperty]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
@@ -98,6 +100,7 @@ export class $StringExoticObject extends $Object<'StringExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-string-exotic-objects-defineownproperty-p-desc
+  // 9.4.3.2 [[DefineOwnProperty]] ( P , Desc )
   public '[[DefineOwnProperty]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
@@ -131,6 +134,7 @@ export class $StringExoticObject extends $Object<'StringExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-string-exotic-objects-ownpropertykeys
+  // 9.4.3.3 [[OwnPropertyKeys]] ( )
   public '[[OwnPropertyKeys]]'(
     ctx: ExecutionContext,
   ): $List<$PropertyKey> {

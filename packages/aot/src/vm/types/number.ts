@@ -98,6 +98,7 @@ export class $Number<T extends number = number> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-updateempty
+  // 6.2.3.4 UpdateEmpty ( completionRecord , value )
   public UpdateEmpty(value: $Any): this {
     // 1. Assert: If completionRecord.[[Type]] is either return or throw, then completionRecord.[[Value]] is not empty.
     // 2. If completionRecord.[[Value]] is not empty, return Completion(completionRecord).
@@ -110,6 +111,7 @@ export class $Number<T extends number = number> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-isinteger
+  // 7.2.6 IsInteger ( argument )
   public get IsInteger(): boolean {
     if (isNaN(this['[[Value]]']) || Object.is(this['[[Value]]'], Infinity) || Object.is(this['[[Value]]'], -Infinity)) {
       return false;
@@ -164,6 +166,7 @@ export class $Number<T extends number = number> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-tointeger
+  // 7.1.4 ToInteger ( argument )
   public ToInteger(
     ctx: ExecutionContext,
   ): $Number {
@@ -200,6 +203,7 @@ export class $Number<T extends number = number> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-tolength
+  // 7.1.15 ToLength ( argument )
   public ToLength(
     ctx: ExecutionContext,
   ): $Number {

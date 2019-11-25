@@ -268,6 +268,7 @@ export function $AsyncIteratorClose(
   if (innerResult['[[Type]]'] === CompletionType.normal) {
     // TODO: implement await
     // http://www.ecma-international.org/ecma-262/#await
+    // 6.2.3.1 Await
   }
 
   // 8. If completion.[[Type]] is throw, return Completion(completion).

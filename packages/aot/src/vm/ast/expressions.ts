@@ -185,14 +185,19 @@ export class $ThisExpression implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
+  // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
   public readonly CoveredParenthesizedExpression: $ThisExpression = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
+  // 12.2.1.2 Static Semantics: HasName
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
+  // 12.2.1.3 Static Semantics: IsFunctionDefinition
   public readonly IsFunctionDefinition: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isidentifierref
+  // 12.2.1.4 Static Semantics: IsIdentifierRef
   public readonly IsIdentifierRef: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-assignmenttargettype
+  // 12.2.1.5 Static Semantics: AssignmentTargetType
   public readonly AssignmentTargetType: 'invalid' = 'invalid';
 
   public constructor(
@@ -208,6 +213,7 @@ export class $ThisExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-this-keyword-runtime-semantics-evaluation
+  // 12.2.2.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
@@ -238,6 +244,7 @@ export class $SuperExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-super-keyword-runtime-semantics-evaluation
+  // 12.3.5.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
@@ -329,14 +336,19 @@ export class $ArrayLiteralExpression implements I$Node {
   public readonly $elements: readonly $$ArgumentOrArrayLiteralElement[];
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
+  // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
   public readonly CoveredParenthesizedExpression: $ArrayLiteralExpression = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
+  // 12.2.1.2 Static Semantics: HasName
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
+  // 12.2.1.3 Static Semantics: IsFunctionDefinition
   public readonly IsFunctionDefinition: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isidentifierref
+  // 12.2.1.4 Static Semantics: IsIdentifierRef
   public readonly IsIdentifierRef: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-assignmenttargettype
+  // 12.2.1.5 Static Semantics: AssignmentTargetType
   public readonly AssignmentTargetType: 'invalid' = 'invalid';
 
   public constructor(
@@ -356,6 +368,7 @@ export class $ArrayLiteralExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-arrayaccumulation
+  // 12.2.5.2 Runtime Semantics: ArrayAccumulation
   public AccumulateArray(
     ctx: ExecutionContext,
     array: $ArrayExoticObject,
@@ -436,6 +449,7 @@ export class $ArrayLiteralExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-array-initializer-runtime-semantics-evaluation
+  // 12.2.5.3 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $ArrayExoticObject | $Error {
@@ -535,14 +549,19 @@ export class $ObjectLiteralExpression implements I$Node {
   public readonly $properties: readonly $$ObjectLiteralElementLike[];
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
+  // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
   public readonly CoveredParenthesizedExpression: $ObjectLiteralExpression = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
+  // 12.2.1.2 Static Semantics: HasName
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
+  // 12.2.1.3 Static Semantics: IsFunctionDefinition
   public readonly IsFunctionDefinition: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isidentifierref
+  // 12.2.1.4 Static Semantics: IsIdentifierRef
   public readonly IsIdentifierRef: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-assignmenttargettype
+  // 12.2.1.5 Static Semantics: AssignmentTargetType
   public readonly AssignmentTargetType: 'invalid' = 'invalid';
 
   public constructor(
@@ -562,6 +581,7 @@ export class $ObjectLiteralExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-evaluation
+  // 12.2.6.7 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $Object {
@@ -610,6 +630,7 @@ export class $PropertyAssignment implements I$Node {
   public readonly $initializer: $$AssignmentExpressionOrHigher;
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
+  // 12.2.6.5 Static Semantics: PropName
   public readonly PropName: $String | $Empty;
 
   public constructor(
@@ -642,6 +663,7 @@ export class $ShorthandPropertyAssignment implements I$Node {
   public readonly $objectAssignmentInitializer: $$AssignmentExpressionOrHigher | undefined;
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
+  // 12.2.6.5 Static Semantics: PropName
   public readonly PropName: $String;
 
   public constructor(
@@ -671,6 +693,7 @@ export class $SpreadAssignment implements I$Node {
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
+  // 12.2.6.5 Static Semantics: PropName
   public readonly PropName: empty = empty;
 
   public constructor(
@@ -713,6 +736,7 @@ export class $PropertyAccessExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-property-accessors-runtime-semantics-evaluation
+  // 12.3.2.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $Reference | $Error {
@@ -770,6 +794,7 @@ export class $ElementAccessExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-property-accessors-runtime-semantics-evaluation
+  // 12.3.2.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $Reference | $Error {
@@ -835,6 +860,7 @@ export class $CallExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-calls-runtime-semantics-evaluation
+  // 12.3.4.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
@@ -1044,6 +1070,7 @@ export class $NewExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-new-operator-runtime-semantics-evaluation
+  // 12.3.3.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
@@ -1060,6 +1087,7 @@ export class $NewExpression implements I$Node {
     // 1. Return ? EvaluateNew(MemberExpression, Arguments).
 
     // http://www.ecma-international.org/ecma-262/#sec-evaluatenew
+    // 12.3.3.1.1 Runtime Semantics: EvaluateNew ( constructExpr , arguments )
 
     // 1. Assert: constructExpr is either a NewExpression or a MemberExpression.
     // 2. Assert: arguments is either empty or an Arguments.
@@ -1128,6 +1156,7 @@ export class $TaggedTemplateExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-tagged-templates-runtime-semantics-evaluation
+  // 12.3.7.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
@@ -1180,14 +1209,19 @@ export class $TemplateExpression implements I$Node {
   public readonly $templateSpans: readonly $TemplateSpan[];
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
+  // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
   public readonly CoveredParenthesizedExpression: $TemplateExpression = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
+  // 12.2.1.2 Static Semantics: HasName
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
+  // 12.2.1.3 Static Semantics: IsFunctionDefinition
   public readonly IsFunctionDefinition: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isidentifierref
+  // 12.2.1.4 Static Semantics: IsIdentifierRef
   public readonly IsIdentifierRef: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-assignmenttargettype
+  // 12.2.1.5 Static Semantics: AssignmentTargetType
   public readonly AssignmentTargetType: 'invalid' = 'invalid';
 
   public constructor(
@@ -1208,6 +1242,7 @@ export class $TemplateExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
+  // 12.2.9.6 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $String {
@@ -1264,6 +1299,7 @@ export class $ParenthesizedExpression implements I$Node {
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
+  // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
   public readonly CoveredParenthesizedExpression: $$AssignmentExpressionOrHigher;
 
   public constructor(
@@ -1285,6 +1321,7 @@ export class $ParenthesizedExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-grouping-operator-runtime-semantics-evaluation
+  // 12.2.10.5 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Reference | $Error {
@@ -1356,6 +1393,7 @@ export class $MetaProperty implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-meta-properties-runtime-semantics-evaluation
+  // 12.3.8.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
@@ -1398,6 +1436,7 @@ export class $DeleteExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-delete-operator-runtime-semantics-evaluation
+  // 12.5.3.2 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $Boolean {
@@ -1448,6 +1487,7 @@ export class $TypeOfExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-typeof-operator-runtime-semantics-evaluation
+  // 12.5.5.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $String | $Undefined | $Error {
@@ -1532,6 +1572,7 @@ export class $VoidExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-void-operator
+  // 12.5.4 The void Operator
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
@@ -1576,6 +1617,7 @@ export class $AwaitExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-runtime-semantics-evaluation
+  // 14.7.14 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
@@ -1616,9 +1658,13 @@ export class $PrefixUnaryExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-prefix-increment-operator-runtime-semantics-evaluation
+  // 12.4.6.1 Runtime Semantics: Evaluation
   // http://www.ecma-international.org/ecma-262/#sec-prefix-decrement-operator-runtime-semantics-evaluation
+  // 12.4.7.1 Runtime Semantics: Evaluation
   // http://www.ecma-international.org/ecma-262/#sec-unary-plus-operator-runtime-semantics-evaluation
+  // 12.5.6.1 Runtime Semantics: Evaluation
   // http://www.ecma-international.org/ecma-262/#sec-unary-minus-operator-runtime-semantics-evaluation
+  // 12.5.7.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
@@ -1630,6 +1676,7 @@ export class $PrefixUnaryExpression implements I$Node {
     switch (this.node.operator) {
       case SyntaxKind.PlusPlusToken: {
         // http://www.ecma-international.org/ecma-262/#sec-prefix-increment-operator-runtime-semantics-evaluation
+        // 12.4.6.1 Runtime Semantics: Evaluation
 
         // UpdateExpression : ++ UnaryExpression
 
@@ -1658,6 +1705,7 @@ export class $PrefixUnaryExpression implements I$Node {
       }
       case SyntaxKind.MinusMinusToken: {
         // http://www.ecma-international.org/ecma-262/#sec-prefix-decrement-operator-runtime-semantics-evaluation
+        // 12.4.7.1 Runtime Semantics: Evaluation
 
         // UpdateExpression : -- UnaryExpression
 
@@ -1686,6 +1734,7 @@ export class $PrefixUnaryExpression implements I$Node {
       }
       case SyntaxKind.PlusToken: {
         // http://www.ecma-international.org/ecma-262/#sec-unary-plus-operator-runtime-semantics-evaluation
+        // 12.5.6.1 Runtime Semantics: Evaluation
 
         // UnaryExpression : + UnaryExpression
 
@@ -1701,6 +1750,7 @@ export class $PrefixUnaryExpression implements I$Node {
       }
       case SyntaxKind.MinusToken: {
         // http://www.ecma-international.org/ecma-262/#sec-unary-minus-operator-runtime-semantics-evaluation
+        // 12.5.7.1 Runtime Semantics: Evaluation
 
         // UnaryExpression : - UnaryExpression
 
@@ -1724,6 +1774,7 @@ export class $PrefixUnaryExpression implements I$Node {
       }
       case SyntaxKind.TildeToken: {
         // http://www.ecma-international.org/ecma-262/#sec-bitwise-not-operator-runtime-semantics-evaluation
+        // 12.5.8.1 Runtime Semantics: Evaluation
 
         // UnaryExpression : ~ UnaryExpression
 
@@ -1742,6 +1793,7 @@ export class $PrefixUnaryExpression implements I$Node {
       }
       case SyntaxKind.ExclamationToken: {
         // http://www.ecma-international.org/ecma-262/#sec-logical-not-operator-runtime-semantics-evaluation
+        // 12.5.9.1 Runtime Semantics: Evaluation
 
         // UnaryExpression : ! UnaryExpression
 
@@ -1790,7 +1842,9 @@ export class $PostfixUnaryExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-postfix-increment-operator-runtime-semantics-evaluation
+  // 12.4.4.1 Runtime Semantics: Evaluation
   // http://www.ecma-international.org/ecma-262/#sec-postfix-decrement-operator-runtime-semantics-evaluation
+  // 12.4.5.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
@@ -1802,6 +1856,7 @@ export class $PostfixUnaryExpression implements I$Node {
     switch (this.node.operator) {
       case SyntaxKind.PlusPlusToken: {
         // http://www.ecma-international.org/ecma-262/#sec-postfix-increment-operator-runtime-semantics-evaluation
+        // 12.4.4.1 Runtime Semantics: Evaluation
 
         // UpdateExpression : LeftHandSideExpression ++
 
@@ -1829,6 +1884,7 @@ export class $PostfixUnaryExpression implements I$Node {
       }
       case SyntaxKind.MinusMinusToken: {
         // http://www.ecma-international.org/ecma-262/#sec-postfix-decrement-operator-runtime-semantics-evaluation
+        // 12.4.5.1 Runtime Semantics: Evaluation
 
         // UpdateExpression : LeftHandSideExpression --
 
@@ -1917,16 +1973,27 @@ export class $BinaryExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-exp-operator-runtime-semantics-evaluation
+  // 12.6.3 Runtime Semantics: Evaluation
   // http://www.ecma-international.org/ecma-262/#sec-multiplicative-operators-runtime-semantics-evaluation
+  // 12.7.3 Runtime Semantics: Evaluation
   // http://www.ecma-international.org/ecma-262/#sec-addition-operator-plus-runtime-semantics-evaluation
+  // 12.8.3.1 Runtime Semantics: Evaluation
   // http://www.ecma-international.org/ecma-262/#sec-subtraction-operator-minus-runtime-semantics-evaluation
+  // 12.8.4.1 Runtime Semantics: Evaluation
   // http://www.ecma-international.org/ecma-262/#sec-signed-right-shift-operator-runtime-semantics-evaluation
+  // 12.9.4.1 Runtime Semantics: Evaluation
   // http://www.ecma-international.org/ecma-262/#sec-unsigned-right-shift-operator-runtime-semantics-evaluation
+  // 12.9.5.1 Runtime Semantics: Evaluation
   // http://www.ecma-international.org/ecma-262/#sec-relational-operators-runtime-semantics-evaluation
+  // 12.10.3 Runtime Semantics: Evaluation
   // http://www.ecma-international.org/ecma-262/#sec-equality-operators-runtime-semantics-evaluation
+  // 12.11.3 Runtime Semantics: Evaluation
   // http://www.ecma-international.org/ecma-262/#sec-binary-bitwise-operators-runtime-semantics-evaluation
+  // 12.12.3 Runtime Semantics: Evaluation
   // http://www.ecma-international.org/ecma-262/#sec-binary-logical-operators-runtime-semantics-evaluation
+  // 12.13.3 Runtime Semantics: Evaluation
   // http://www.ecma-international.org/ecma-262/#sec-assignment-operators-runtime-semantics-evaluation
+  // 12.15.4 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
@@ -1938,6 +2005,7 @@ export class $BinaryExpression implements I$Node {
     switch (this.node.operatorToken.kind) {
       case SyntaxKind.AsteriskAsteriskToken: {
         // http://www.ecma-international.org/ecma-262/#sec-exp-operator-runtime-semantics-evaluation
+        // 12.6.3 Runtime Semantics: Evaluation
 
         // ExponentiationExpression : UpdateExpression ** ExponentiationExpression
 
@@ -1968,6 +2036,7 @@ export class $BinaryExpression implements I$Node {
       }
       case SyntaxKind.AsteriskToken: {
         // http://www.ecma-international.org/ecma-262/#sec-multiplicative-operators-runtime-semantics-evaluation
+        // 12.7.3 Runtime Semantics: Evaluation
 
         // MultiplicativeExpression : MultiplicativeExpression MultiplicativeOperator ExponentiationExpression
 
@@ -1998,6 +2067,7 @@ export class $BinaryExpression implements I$Node {
       }
       case SyntaxKind.SlashToken: {
         // http://www.ecma-international.org/ecma-262/#sec-multiplicative-operators-runtime-semantics-evaluation
+        // 12.7.3 Runtime Semantics: Evaluation
 
         // MultiplicativeExpression : MultiplicativeExpression MultiplicativeOperator ExponentiationExpression
 
@@ -2028,6 +2098,7 @@ export class $BinaryExpression implements I$Node {
       }
       case SyntaxKind.PercentToken: {
         // http://www.ecma-international.org/ecma-262/#sec-multiplicative-operators-runtime-semantics-evaluation
+        // 12.7.3 Runtime Semantics: Evaluation
 
         // MultiplicativeExpression : MultiplicativeExpression MultiplicativeOperator ExponentiationExpression
 
@@ -2058,6 +2129,7 @@ export class $BinaryExpression implements I$Node {
       }
       case SyntaxKind.PlusToken: {
         // http://www.ecma-international.org/ecma-262/#sec-addition-operator-plus-runtime-semantics-evaluation
+        // 12.8.3.1 Runtime Semantics: Evaluation
 
         // AdditiveExpression : AdditiveExpression + MultiplicativeExpression
 
@@ -2110,6 +2182,7 @@ export class $BinaryExpression implements I$Node {
       }
       case SyntaxKind.MinusToken: {
         // http://www.ecma-international.org/ecma-262/#sec-subtraction-operator-minus-runtime-semantics-evaluation
+        // 12.8.4.1 Runtime Semantics: Evaluation
 
         // AdditiveExpression : AdditiveExpression - MultiplicativeExpression
 
@@ -2140,6 +2213,7 @@ export class $BinaryExpression implements I$Node {
       }
       case SyntaxKind.LessThanLessThanToken: {
         // http://www.ecma-international.org/ecma-262/#sec-left-shift-operator-runtime-semantics-evaluation
+        // 12.9.3.1 Runtime Semantics: Evaluation
 
         // ShiftExpression : ShiftExpression << AdditiveExpression
 
@@ -2173,6 +2247,7 @@ export class $BinaryExpression implements I$Node {
       }
       case SyntaxKind.GreaterThanGreaterThanToken: {
         // http://www.ecma-international.org/ecma-262/#sec-signed-right-shift-operator-runtime-semantics-evaluation
+        // 12.9.4.1 Runtime Semantics: Evaluation
 
         // ShiftExpression : ShiftExpression >> AdditiveExpression
 
@@ -2206,6 +2281,7 @@ export class $BinaryExpression implements I$Node {
       }
       case SyntaxKind.GreaterThanGreaterThanGreaterThanToken: {
         // http://www.ecma-international.org/ecma-262/#sec-unsigned-right-shift-operator-runtime-semantics-evaluation
+        // 12.9.5.1 Runtime Semantics: Evaluation
 
         // ShiftExpression : ShiftExpression >>> AdditiveExpression
 
@@ -2238,6 +2314,7 @@ export class $BinaryExpression implements I$Node {
         return new $Number(realm, lnum['[[Value]]'] >>> shiftCount); // TODO: add temporal state snapshot for tracing
       }
       // http://www.ecma-international.org/ecma-262/#sec-relational-operators-runtime-semantics-evaluation
+      // 12.10.3 Runtime Semantics: Evaluation
       case SyntaxKind.LessThanToken: {
         // RelationalExpression : RelationalExpression < ShiftExpression
 
@@ -2388,6 +2465,7 @@ export class $BinaryExpression implements I$Node {
         return rval['[[HasProperty]]'](ctx, lval.ToPropertyKey(ctx) as $String); // TODO: is this cast safe?
       }
       // http://www.ecma-international.org/ecma-262/#sec-equality-operators-runtime-semantics-evaluation
+      // 12.11.3 Runtime Semantics: Evaluation
       case SyntaxKind.EqualsEqualsToken: {
         // EqualityExpression : EqualityExpression == RelationalExpression
 
@@ -2478,6 +2556,7 @@ export class $BinaryExpression implements I$Node {
       }
       case SyntaxKind.AmpersandToken: {
         // http://www.ecma-international.org/ecma-262/#sec-binary-bitwise-operators-runtime-semantics-evaluation
+        // 12.12.3 Runtime Semantics: Evaluation
 
         // 1. Let lref be the result of evaluating A.
         const lref = this.$left.Evaluate(ctx);
@@ -2506,6 +2585,7 @@ export class $BinaryExpression implements I$Node {
       }
       case SyntaxKind.CaretToken: {
         // http://www.ecma-international.org/ecma-262/#sec-binary-bitwise-operators-runtime-semantics-evaluation
+        // 12.12.3 Runtime Semantics: Evaluation
 
         // 1. Let lref be the result of evaluating A.
         const lref = this.$left.Evaluate(ctx);
@@ -2534,6 +2614,7 @@ export class $BinaryExpression implements I$Node {
       }
       case SyntaxKind.BarToken: {
         // http://www.ecma-international.org/ecma-262/#sec-binary-bitwise-operators-runtime-semantics-evaluation
+        // 12.12.3 Runtime Semantics: Evaluation
 
         // 1. Let lref be the result of evaluating A.
         const lref = this.$left.Evaluate(ctx);
@@ -2561,6 +2642,7 @@ export class $BinaryExpression implements I$Node {
         return new $Number(realm, lnum['[[Value]]'] | rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
       }
       // http://www.ecma-international.org/ecma-262/#sec-binary-logical-operators-runtime-semantics-evaluation
+      // 12.13.3 Runtime Semantics: Evaluation
       case SyntaxKind.AmpersandAmpersandToken: {
 
         // LogicalANDExpression : LogicalANDExpression && BitwiseORExpression
@@ -2614,6 +2696,7 @@ export class $BinaryExpression implements I$Node {
       }
       case SyntaxKind.EqualsToken: {
         // http://www.ecma-international.org/ecma-262/#sec-assignment-operators-runtime-semantics-evaluation
+        // 12.15.4 Runtime Semantics: Evaluation
 
         // AssignmentExpression : LeftHandSideExpression = AssignmentExpression
 
@@ -2967,6 +3050,7 @@ export class $ConditionalExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-conditional-operator-runtime-semantics-evaluation
+  // 12.14.3 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
@@ -3011,6 +3095,7 @@ export class $YieldExpression implements I$Node {
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx)
   }
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
+  // 14.4.14 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
@@ -3126,29 +3211,40 @@ export class $Identifier implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-identifiers-static-semantics-stringvalue
+  // 12.1.4 Static Semantics: StringValue
   public readonly StringValue: $String;
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
+  // 12.2.6.5 Static Semantics: PropName
   public readonly PropName: $String;
 
   // http://www.ecma-international.org/ecma-262/#sec-identifiers-static-semantics-boundnames
+  // 12.1.2 Static Semantics: BoundNames
   public readonly BoundNames: readonly [$String];
   // http://www.ecma-international.org/ecma-262/#sec-identifiers-static-semantics-assignmenttargettype
+  // 12.1.3 Static Semantics: AssignmentTargetType
   public readonly AssignmentTargetType: 'strict' | 'simple';
 
-  // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpressionf
+  // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
+  // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
   public readonly CoveredParenthesizedExpression: $Identifier = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
+  // 12.2.1.2 Static Semantics: HasName
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
+  // 12.2.1.3 Static Semantics: IsFunctionDefinition
   public readonly IsFunctionDefinition: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isidentifierref
+  // 12.2.1.4 Static Semantics: IsIdentifierRef
   public readonly IsIdentifierRef: true = true;
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-containsexpression
+  // 13.3.3.2 Static Semantics: ContainsExpression
   public readonly ContainsExpression: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-hasinitializer
+  // 13.3.3.3 Static Semantics: HasInitializer
   public readonly HasInitializer: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-issimpleparameterlist
+  // 13.3.3.4 Static Semantics: IsSimpleParameterList
   public readonly IsSimpleParameterList: true = true;
 
   public get isUndefined(): false { return false; }
@@ -3177,6 +3273,7 @@ export class $Identifier implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-identifiers-runtime-semantics-evaluation
+  // 12.1.6 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $Reference | $Error {
@@ -3206,6 +3303,7 @@ export class $Identifier implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-propertybindinginitialization
+  // 13.3.3.6 Runtime Semantics: PropertyBindingInitialization
   public InitializePropertyBinding(
     ctx: ExecutionContext,
     value: $AnyNonEmpty,
@@ -3226,6 +3324,7 @@ export class $Identifier implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-iteratorbindinginitialization
+  // 13.3.3.8 Runtime Semantics: IteratorBindingInitialization
   public InitializeIteratorBinding(
     ctx: ExecutionContext,
     iteratorRecord: $IteratorRecord,
@@ -3310,6 +3409,7 @@ export class $Identifier implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-keyedbindinginitialization
+  // 13.3.3.9 Runtime Semantics: KeyedBindingInitialization
   public InitializeKeyedBinding(
     ctx: ExecutionContext,
     value: $AnyNonEmpty,

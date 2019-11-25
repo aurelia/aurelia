@@ -87,17 +87,23 @@ export class $MethodDeclaration implements I$Node {
   public readonly $body: $Block;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-isstatic
+  // 14.6.9 Static Semantics: IsStatic
   public readonly IsStatic: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
+  // 14.3.5 Static Semantics: PropName
   public readonly PropName: $String | $Empty;
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallydeclarednames
+  // 14.1.14 Static Semantics: LexicallyDeclaredNames
   public readonly LexicallyDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallyscopeddeclarations
+  // 14.1.15 Static Semantics: LexicallyScopedDeclarations
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-vardeclarednames
+  // 14.1.16 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
+  // 14.1.17 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public constructor(
@@ -128,6 +134,7 @@ export class $MethodDeclaration implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-definemethod
+  // 14.3.7 Runtime Semantics: DefineMethod
   public DefineMethod(
     ctx: ExecutionContext,
     object: $Object,
@@ -173,6 +180,7 @@ export class $MethodDeclaration implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-runtime-semantics-propertydefinitionevaluation
+  // 14.3.8 Runtime Semantics: PropertyDefinitionEvaluation
   public EvaluatePropertyDefinition(
     ctx: ExecutionContext,
     object: $Object,
@@ -209,6 +217,7 @@ export class $MethodDeclaration implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
+  // 14.1.18 Runtime Semantics: EvaluateBody
   public EvaluateBody(
     ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
     functionObject: $Function,
@@ -230,17 +239,23 @@ export class $GetAccessorDeclaration implements I$Node {
   public readonly $body: $Block;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-isstatic
+  // 14.6.9 Static Semantics: IsStatic
   public readonly IsStatic: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
+  // 14.3.5 Static Semantics: PropName
   public readonly PropName: $String | $Empty;
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallydeclarednames
+  // 14.1.14 Static Semantics: LexicallyDeclaredNames
   public readonly LexicallyDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallyscopeddeclarations
+  // 14.1.15 Static Semantics: LexicallyScopedDeclarations
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-vardeclarednames
+  // 14.1.16 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
+  // 14.1.17 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public constructor(
@@ -271,6 +286,7 @@ export class $GetAccessorDeclaration implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-runtime-semantics-propertydefinitionevaluation
+  // 14.3.8 Runtime Semantics: PropertyDefinitionEvaluation
   public EvaluatePropertyDefinition(
     ctx: ExecutionContext,
     object: $Object,
@@ -322,6 +338,7 @@ export class $GetAccessorDeclaration implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
+  // 14.1.18 Runtime Semantics: EvaluateBody
   public EvaluateBody(
     ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
     functionObject: $Function,
@@ -343,17 +360,23 @@ export class $SetAccessorDeclaration implements I$Node {
   public readonly $body: $Block;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-isstatic
+  // 14.6.9 Static Semantics: IsStatic
   public readonly IsStatic: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
+  // 14.3.5 Static Semantics: PropName
   public readonly PropName: $String | $Empty;
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallydeclarednames
+  // 14.1.14 Static Semantics: LexicallyDeclaredNames
   public readonly LexicallyDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallyscopeddeclarations
+  // 14.1.15 Static Semantics: LexicallyScopedDeclarations
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-vardeclarednames
+  // 14.1.16 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
+  // 14.1.17 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public constructor(
@@ -384,6 +407,7 @@ export class $SetAccessorDeclaration implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-runtime-semantics-propertydefinitionevaluation
+  // 14.3.8 Runtime Semantics: PropertyDefinitionEvaluation
   public EvaluatePropertyDefinition(
     ctx: ExecutionContext,
     object: $Object,
@@ -434,6 +458,7 @@ export class $SetAccessorDeclaration implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
+  // 14.1.18 Runtime Semantics: EvaluateBody
   public EvaluateBody(
     ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
     functionObject: $Function,

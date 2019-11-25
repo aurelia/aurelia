@@ -45,6 +45,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   public readonly '[[Exports]]': $List<$String>;
 
   // http://www.ecma-international.org/ecma-262/#sec-modulenamespacecreate
+  // 9.4.6.11 ModuleNamespaceCreate ( module , exports )
   public constructor(
     realm: Realm,
     mod: IModule,
@@ -72,6 +73,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
 
 
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-setprototypeof-v
+  // 9.4.6.1 [[SetPrototypeOf]] ( V )
   public '[[SetPrototypeOf]]'(
     ctx: ExecutionContext,
     V: $AnyObject,
@@ -81,6 +83,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-isextensible
+  // 9.4.6.2 [[IsExtensible]] ( )
   public '[[IsExtensible]]'(
     ctx: ExecutionContext,
   ): $Boolean<false> {
@@ -89,6 +92,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-preventextensions
+  // 9.4.6.3 [[PreventExtensions]] ( )
   public '[[PreventExtensions]]'(
     ctx: ExecutionContext,
   ): $Boolean<true> {
@@ -97,6 +101,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-getownproperty-p
+  // 9.4.6.4 [[GetOwnProperty]] ( P )
   public '[[GetOwnProperty]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
@@ -133,6 +138,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-defineownproperty-p-desc
+  // 9.4.6.5 [[DefineOwnProperty]] ( P , Desc )
   public '[[DefineOwnProperty]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
@@ -189,6 +195,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-hasproperty-p
+  // 9.4.6.6 [[HasProperty]] ( P )
   public '[[HasProperty]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
@@ -215,6 +222,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-get-p-receiver
+  // 9.4.6.7 [[Get]] ( P , Receiver )
   public '[[Get]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
@@ -264,6 +272,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-set-p-v-receiver
+  // 9.4.6.8 [[Set]] ( P , V , Receiver )
   public '[[Set]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
@@ -275,6 +284,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-delete-p
+  // 9.4.6.9 [[Delete]] ( P )
   public '[[Delete]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
@@ -303,6 +313,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-ownpropertykeys
+  // 9.4.6.10 [[OwnPropertyKeys]] ( )
   public '[[OwnPropertyKeys]]'(
     ctx: ExecutionContext,
   ): $List<$PropertyKey> {

@@ -401,6 +401,7 @@ export class Intrinsics {
   public readonly '%Promise_resolve%': $Object<'%Promise_resolve%'>;
 
   // http://www.ecma-international.org/ecma-262/#sec-createintrinsics
+  // 8.2.2 CreateIntrinsics ( realmRec )
   public constructor(realm: Realm) {
     realm['[[Intrinsics]]'] = this;
 

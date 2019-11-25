@@ -42,6 +42,7 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
   public get isArray(): true { return true; }
 
   // http://www.ecma-international.org/ecma-262/#sec-arraycreate
+  // 9.4.2.2 ArrayCreate ( length [ , proto ] )
   public constructor(
     realm: Realm,
     length: $Number,
@@ -93,6 +94,7 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-array-exotic-objects-defineownproperty-p-desc
+  // 9.4.2.1 [[DefineOwnProperty]] ( P , Desc )
   public '[[DefineOwnProperty]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
@@ -152,6 +154,7 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-arraysetlength
+  // 9.4.2.4 ArraySetLength ( A , Desc )
   public ArraySetLength(
     ctx: ExecutionContext,
     Desc: $PropertyDescriptor,

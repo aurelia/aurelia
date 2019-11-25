@@ -40,6 +40,7 @@ export class Agent {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runjobs
+  // 8.6 RunJobs ( )
   public async RunJobs(container: IContainer): Promise<$Any> {
     // 1. Perform ? InitializeHostDefinedRealm().
     const realm = Realm.Create(container);
@@ -120,6 +121,7 @@ export class Agent {
 
 export class TopLevelModuleEvaluationJob extends Job {
   // http://www.ecma-international.org/ecma-262/#sec-toplevelmoduleevaluationjob
+  // 15.2.1.20 Runtime Semantics: TopLevelModuleEvaluationJob ( sourceText , hostDefined )
   public Run(ctx: ExecutionContext): $Any {
     this.logger.debug(`Run(#${ctx.id})`);
 

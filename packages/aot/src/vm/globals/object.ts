@@ -48,6 +48,7 @@ export class $ObjectConstructor extends $BuiltinFunction<'%Object%'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-value
+  // 19.1.1.1 Object ( [ value ] )
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmpty,

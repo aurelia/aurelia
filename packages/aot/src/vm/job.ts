@@ -49,6 +49,7 @@ export class JobQueue<T extends Job = Job> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-enqueuejob
+  // 8.4.1 EnqueueJob ( queueName , job , arguments )
   public EnqueueJob(
     ctx: ExecutionContext,
     job: T,

@@ -47,6 +47,7 @@ export class $FunctionConstructor extends $BuiltinFunction<'%Function%'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-p1-p2-pn-body
+  // 19.2.1.1 Function ( p1 , p2 , … , pn , body )
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmpty,
@@ -87,6 +88,7 @@ export class $FunctionPrototype extends $Object<'%FunctionPrototype%'> {
 
 export class $FunctionPrototype_call extends $BuiltinFunction<'Function.prototype.call'> {
   // http://www.ecma-international.org/ecma-262/#sec-function.prototype.call
+  // 19.2.3.3 Function.prototype.call ( thisArg , ... args )
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmpty,

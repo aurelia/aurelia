@@ -118,6 +118,7 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-objectcreate
+  // 9.1.12 ObjectCreate ( proto [ , internalSlotsList ] )
   public static ObjectCreate<T extends string = string, TSlots extends {} = {}>(
     ctx: ExecutionContext,
     IntrinsicName: T,
@@ -152,6 +153,7 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-updateempty
+  // 6.2.3.4 UpdateEmpty ( completionRecord , value )
   public UpdateEmpty(value: $Any): this {
     // 1. Assert: If completionRecord.[[Type]] is either return or throw, then completionRecord.[[Value]] is not empty.
     // 2. If completionRecord.[[Value]] is not empty, return Completion(completionRecord).
@@ -238,6 +240,7 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-toprimitive
+  // 7.1.1 ToPrimitive ( input [ , PreferredType ] )
   public ToPrimitive(
     ctx: ExecutionContext,
     PreferredType: 'default' | 'string' | 'number' = 'default',
@@ -285,6 +288,7 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinarytoprimitive
+  // 7.1.1.1 OrdinaryToPrimitive ( O , hint )
   public OrdinaryToPrimitive(
     ctx: ExecutionContext,
     hint: 'string' | 'number',
@@ -380,6 +384,7 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-getmethod
+  // 7.3.9 GetMethod ( V , P )
   public GetMethod(
     ctx: ExecutionContext,
     P: $PropertyKey,
@@ -484,6 +489,7 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
+  // 9.1.1 [[GetPrototypeOf]] ( )
   public '[[GetPrototypeOf]]'(
     this: $AnyObject,
     ctx: ExecutionContext,
@@ -491,6 +497,7 @@ export class $Object<
     // 1. Return ! OrdinaryGetPrototypeOf(O)
 
     // http://www.ecma-international.org/ecma-262/#sec-ordinarygetprototypeof
+    // 9.1.1.1 OrdinaryGetPrototypeOf ( O )
     const O = this;
 
     // 1. Return O.[[Prototype]].
@@ -498,6 +505,7 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-setprototypeof-v
+  // 9.1.2 [[SetPrototypeOf]] ( V )
   public '[[SetPrototypeOf]]'(
     this: $AnyObject,
     ctx: ExecutionContext,
@@ -508,6 +516,7 @@ export class $Object<
     // 1. Return ! OrdinarySetPrototypeOf(O, V).
 
     // http://www.ecma-international.org/ecma-262/#sec-ordinarysetprototypeof
+    // 9.1.2.1 OrdinarySetPrototypeOf ( O , V )
     const O = this;
 
     // 1. Assert: Either Type(V) is Object or Type(V) is Null.
@@ -564,6 +573,7 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-isextensible
+  // 9.1.3 [[IsExtensible]] ( )
   public '[[IsExtensible]]'(
     this: $AnyObject,
     ctx: ExecutionContext,
@@ -571,6 +581,7 @@ export class $Object<
     // 1. Return ! OrdinaryIsExtensible(O).
 
     // http://www.ecma-international.org/ecma-262/#sec-ordinaryisextensible
+    // 9.1.3.1 OrdinaryIsExtensible ( O )
     const O = this;
 
     // 1. Return O.[[Extensible]].
@@ -578,6 +589,7 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions
+  // 9.1.4 [[PreventExtensions]] ( )
   public '[[PreventExtensions]]'(
     this: $AnyObject,
     ctx: ExecutionContext,
@@ -587,6 +599,7 @@ export class $Object<
     // 1. Return ! OrdinaryPreventExtensions(O).
 
     // http://www.ecma-international.org/ecma-262/#sec-ordinarypreventextensions
+    // 9.1.4.1 OrdinaryPreventExtensions ( O )
     const O = this;
 
     // 1. Set O.[[Extensible]] to false.
@@ -597,6 +610,7 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p
+  // 9.1.5 [[GetOwnProperty]] ( P )
   public '[[GetOwnProperty]]'(
     this: $AnyObject,
     ctx: ExecutionContext,
@@ -608,6 +622,7 @@ export class $Object<
     // 1. Return ! OrdinaryGetOwnProperty(O, P).
 
     // http://www.ecma-international.org/ecma-262/#sec-ordinarygetownproperty
+    // 9.1.5.1 OrdinaryGetOwnProperty ( O , P )
     const O = this;
 
     // 1. Assert: IsPropertyKey(P) is true.
@@ -650,6 +665,7 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-defineownproperty-p-desc
+  // 9.1.6 [[DefineOwnProperty]] ( P , Desc )
   public '[[DefineOwnProperty]]'(
     this: $AnyObject,
     ctx: ExecutionContext,
@@ -660,6 +676,7 @@ export class $Object<
     const O = this;
 
     // http://www.ecma-international.org/ecma-262/#sec-ordinarydefineownproperty
+    // 9.1.6.1 OrdinaryDefineOwnProperty ( O , P , Desc )
 
     // 1. Let current be ? O.[[GetOwnProperty]](P).
     const current = O['[[GetOwnProperty]]'](ctx, P);
@@ -674,6 +691,7 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p
+  // 9.1.7 [[HasProperty]] ( P )
   public '[[HasProperty]]'(
     this: $AnyObject,
     ctx: ExecutionContext,
@@ -685,6 +703,7 @@ export class $Object<
     // 1. Return ? OrdinaryHasProperty(O, P).
 
     // http://www.ecma-international.org/ecma-262/#sec-ordinaryhasproperty
+    // 9.1.7.1 OrdinaryHasProperty ( O , P )
     const O = this;
 
     // 1. Assert: IsPropertyKey(P) is true.
@@ -713,6 +732,7 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver
+  // 9.1.8 [[Get]] ( P , Receiver )
   public '[[Get]]'(
     this: $AnyObject,
     ctx: ExecutionContext,
@@ -724,6 +744,7 @@ export class $Object<
     // 1. Return ? OrdinaryGet(O, P, Receiver).
 
     // http://www.ecma-international.org/ecma-262/#sec-ordinaryget
+    // 9.1.8.1 OrdinaryGet ( O , P , Receiver )
     const O = this;
 
     // 1. Assert: IsPropertyKey(P) is true.
@@ -765,6 +786,7 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-set-p-v-receiver
+  // 9.1.9 [[Set]] ( P , V , Receiver )
   public '[[Set]]'(
     this: $AnyObject,
     ctx: ExecutionContext,
@@ -775,6 +797,7 @@ export class $Object<
     // 1. Return ? OrdinarySet(O, P, V, Receiver).
 
     // http://www.ecma-international.org/ecma-262/#sec-ordinaryset
+    // 9.1.9.1 OrdinarySet ( O , P , V , Receiver )
     const O = this;
 
     // 1. Assert: IsPropertyKey(P) is true.
@@ -787,6 +810,7 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-delete-p
+  // 9.1.10 [[Delete]] ( P )
   public '[[Delete]]'(
     this: $AnyObject,
     ctx: ExecutionContext,
@@ -798,6 +822,7 @@ export class $Object<
     // 1. Return ? OrdinaryDelete(O, P).
 
     // http://www.ecma-international.org/ecma-262/#sec-ordinarydelete
+    // 9.1.10.1 OrdinaryDelete ( O , P )
     const O = this;
 
     // 1. Assert: IsPropertyKey(P) is true.
@@ -824,6 +849,7 @@ export class $Object<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-ownpropertykeys
+  // 9.1.11 [[OwnPropertyKeys]] ( )
   public '[[OwnPropertyKeys]]'(
     this: $AnyObject,
     ctx: ExecutionContext,
@@ -831,6 +857,7 @@ export class $Object<
     // 1. Return ! OrdinaryOwnPropertyKeys(O).
 
     // http://www.ecma-international.org/ecma-262/#sec-ordinaryownpropertykeys
+    // 9.1.11.1 OrdinaryOwnPropertyKeys ( O )
 
     // 1. Let keys be a new empty List.
     const keys = new $List<$PropertyKey>();

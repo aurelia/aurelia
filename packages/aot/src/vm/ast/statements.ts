@@ -118,24 +118,33 @@ export class $VariableStatement implements I$Node {
   public readonly isLexical: boolean;
 
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-boundnames
+  // 13.3.2.1 Static Semantics: BoundNames
   public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-vardeclarednames
+  // 13.3.2.2 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-varscopeddeclarations
+  // 13.3.2.3 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportedbindings
+  // 15.2.3.3 Static Semantics: ExportedBindings
   public readonly ExportedBindings: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportednames
+  // 15.2.3.4 Static Semantics: ExportedNames
   public readonly ExportedNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportentries
+  // 15.2.3.5 Static Semantics: ExportEntries
   public readonly ExportEntries: readonly ExportEntryRecord[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-isconstantdeclaration
+  // 15.2.3.7 Static Semantics: IsConstantDeclaration
   public readonly IsConstantDeclaration: boolean;
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-lexicallyscopeddeclarations
+  // 15.2.3.8 Static Semantics: LexicallyScopedDeclarations
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-modulerequests
+  // 15.2.3.9 Static Semantics: ModuleRequests
   public readonly ModuleRequests: readonly $String[];
 
   public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
@@ -205,7 +214,9 @@ export class $VariableStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-runtime-semantics-evaluation
+  // 13.3.1.4 Runtime Semantics: Evaluation
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-runtime-semantics-evaluation
+  // 13.3.2.4 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
@@ -214,6 +225,7 @@ export class $VariableStatement implements I$Node {
 
     this.logger.debug(`Evaluate(#${ctx.id})`);
     // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-runtime-semantics-evaluation
+    // 13.3.1.4 Runtime Semantics: Evaluation
 
     // LexicalDeclaration : LetOrConst BindingList ;
 
@@ -252,6 +264,7 @@ export class $VariableStatement implements I$Node {
 
 
     // http://www.ecma-international.org/ecma-262/#sec-variable-statement-runtime-semantics-evaluation
+    // 13.3.2.4 Runtime Semantics: Evaluation
 
     // VariableStatement : var VariableDeclarationList ;
 
@@ -305,14 +318,19 @@ export class $VariableDeclaration implements I$Node {
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-boundnames
+  // 13.3.2.1 Static Semantics: BoundNames
   // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-static-semantics-boundnames
+  // 13.3.1.2 Static Semantics: BoundNames
   public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-vardeclarednames
+  // 13.3.2.2 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-varscopeddeclarations
+  // 13.3.2.3 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-static-semantics-isconstantdeclaration
+  // 13.3.1.3 Static Semantics: IsConstantDeclaration
   public readonly IsConstantDeclaration: boolean;
 
   public constructor(
@@ -366,7 +384,9 @@ export class $VariableDeclaration implements I$Node {
     if ((boundNames?.length ?? 0) > 0) {
       switch (kind) {
         // http://www.ecma-international.org/ecma-262/#sec-identifiers-runtime-semantics-bindinginitialization
+        // 12.1.5 Runtime Semantics: BindingInitialization
         // http://www.ecma-international.org/ecma-262/#sec-initializeboundname
+        // 12.1.5.1 Runtime Semantics: InitializeBoundName ( name , value , environment )
         case SyntaxKind.Identifier:
           const name = boundNames![0]?.GetValue(ctx);
           // 1. Assert: Type(name) is String.
@@ -434,13 +454,17 @@ export class $VariableDeclarationList implements I$Node {
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-boundnames
+  // 13.3.2.1 Static Semantics: BoundNames
   public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-vardeclarednames
+  // 13.3.2.2 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-variable-statement-static-semantics-varscopeddeclarations
+  // 13.3.2.3 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-static-semantics-isconstantdeclaration
+  // 13.3.1.3 Static Semantics: IsConstantDeclaration
   public readonly IsConstantDeclaration: boolean;
 
   public constructor(
@@ -492,20 +516,28 @@ export class $Block implements I$Node {
   public readonly $statements: readonly $$TSStatementListItem[];
 
   // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-lexicallydeclarednames
+  // 13.2.5 Static Semantics: LexicallyDeclaredNames
   public readonly LexicallyDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-lexicallyscopeddeclarations
+  // 13.2.6 Static Semantics: LexicallyScopedDeclarations
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-toplevellexicallydeclarednames
+  // 13.2.7 Static Semantics: TopLevelLexicallyDeclaredNames
   public readonly TopLevelLexicallyDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-toplevellexicallyscopeddeclarations
+  // 13.2.8 Static Semantics: TopLevelLexicallyScopedDeclarations
   public readonly TopLevelLexicallyScopedDeclarations: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-toplevelvardeclarednames
+  // 13.2.9 Static Semantics: TopLevelVarDeclaredNames
   public readonly TopLevelVarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-toplevelvarscopeddeclarations
+  // 13.2.10 Static Semantics: TopLevelVarScopedDeclarations
   public readonly TopLevelVarScopedDeclarations: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-vardeclarednames
+  // 13.2.11 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-block-static-semantics-varscopeddeclarations
+  // 13.2.12 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
@@ -597,6 +629,7 @@ export class $Block implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-block-runtime-semantics-evaluation
+  // 13.2.13 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
@@ -643,8 +676,10 @@ export class $EmptyStatement implements I$Node {
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
+  // 13.1.5 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
+  // 13.1.6 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
   public constructor(
@@ -660,6 +695,7 @@ export class $EmptyStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-empty-statement-runtime-semantics-evaluation
+  // 13.4.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
@@ -691,8 +727,10 @@ export class $ExpressionStatement implements I$Node {
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
+  // 13.1.5 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
+  // 13.1.6 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
   public constructor(
@@ -710,6 +748,7 @@ export class $ExpressionStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-expression-statement-runtime-semantics-evaluation
+  // 13.5.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
@@ -734,8 +773,10 @@ export class $IfStatement implements I$Node {
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-if-statement-static-semantics-vardeclarednames
+  // 13.6.5 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[];
-  // http://www.ecma-international.org/ecma-262/#sec-if-statement-static-semantics-varscopeddeclaration
+  // http://www.ecma-international.org/ecma-262/#sec-if-statement-static-semantics-varscopeddeclarations
+  // 13.6.6 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public constructor(
@@ -772,6 +813,7 @@ export class $IfStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-if-statement-runtime-semantics-evaluation
+  // 13.6.7 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
@@ -836,8 +878,10 @@ export class $DoStatement implements I$Node {
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-do-while-statement-static-semantics-vardeclarednames
+  // 13.7.2.4 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-do-while-statement-static-semantics-varscopeddeclarations
+  // 13.7.2.5 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public constructor(
@@ -859,6 +903,7 @@ export class $DoStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-do-while-statement-runtime-semantics-labelledevaluation
+  // 13.7.2.6 Runtime Semantics: LabelledEvaluation
   public EvaluateLabelled(
     ctx: ExecutionContext,
   ): $Any {
@@ -891,8 +936,10 @@ export class $WhileStatement implements I$Node {
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-while-statement-static-semantics-vardeclarednames
+  // 13.7.3.4 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-while-statement-static-semantics-varscopeddeclarations
+  // 13.7.3.5 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public constructor(
@@ -914,6 +961,7 @@ export class $WhileStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-while-statement-runtime-semantics-labelledevaluation
+  // 13.7.3.6 Runtime Semantics: LabelledEvaluation
   public EvaluateLabelled(
     ctx: ExecutionContext,
   ): $Any {
@@ -953,8 +1001,10 @@ export class $ForStatement implements I$Node {
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-for-statement-static-semantics-vardeclarednames
+  // 13.7.4.5 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-for-statement-static-semantics-varscopeddeclarations
+  // 13.7.4.6 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public constructor(
@@ -1003,6 +1053,7 @@ export class $ForStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-for-statement-runtime-semantics-labelledevaluation
+  // 13.7.4.7 Runtime Semantics: LabelledEvaluation
   public EvaluateLabelled(
     ctx: ExecutionContext,
   ): $Any {
@@ -1061,8 +1112,10 @@ export class $ForInStatement implements I$Node {
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-static-semantics-vardeclarednames
+  // 13.7.5.7 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-static-semantics-varscopeddeclarations
+  // 13.7.5.8 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public constructor(
@@ -1106,6 +1159,7 @@ export class $ForInStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-labelledevaluation
+  // 13.7.5.11 Runtime Semantics: LabelledEvaluation
   public EvaluateLabelled(
     ctx: ExecutionContext,
   ): $Any {
@@ -1162,6 +1216,7 @@ export class $ForInStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-evaluation
+  // 13.7.5.14 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
@@ -1190,8 +1245,10 @@ export class $ForOfStatement implements I$Node {
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-static-semantics-vardeclarednames
+  // 13.7.5.7 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-static-semantics-varscopeddeclarations
+  // 13.7.5.8 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public constructor(
@@ -1235,6 +1292,7 @@ export class $ForOfStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-labelledevaluation
+  // 13.7.5.11 Runtime Semantics: LabelledEvaluation
   public EvaluateLabelled(
     ctx: ExecutionContext,
   ): $Any {
@@ -1291,6 +1349,7 @@ export class $ForOfStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-for-in-and-for-of-statements-runtime-semantics-evaluation
+  // 13.7.5.14 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
@@ -1312,8 +1371,10 @@ export class $ContinueStatement implements I$Node {
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
+  // 13.1.5 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
+  // 13.1.6 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
   public constructor(
@@ -1331,6 +1392,7 @@ export class $ContinueStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-continue-statement-runtime-semantics-evaluation
+  // 13.8.3 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $Empty {
@@ -1362,8 +1424,10 @@ export class $BreakStatement implements I$Node {
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
+  // 13.1.5 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
+  // 13.1.6 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
   public constructor(
@@ -1381,6 +1445,7 @@ export class $BreakStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-break-statement-runtime-semantics-evaluation
+  // 13.9.3 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
@@ -1412,8 +1477,10 @@ export class $ReturnStatement implements I$Node {
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
+  // 13.1.5 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
+  // 13.1.6 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
   public constructor(
@@ -1435,6 +1502,7 @@ export class $ReturnStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-return-statement
+  // 13.10 The return Statement
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
@@ -1475,8 +1543,10 @@ export class $WithStatement implements I$Node {
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-with-statement-static-semantics-vardeclarednames
+  // 13.11.5 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-with-statement-static-semantics-varscopeddeclarations
+  // 13.11.6 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public constructor(
@@ -1498,6 +1568,7 @@ export class $WithStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-with-statement-runtime-semantics-evaluation
+  // 13.11.7 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
@@ -1529,12 +1600,16 @@ export class $SwitchStatement implements I$Node {
   public readonly $caseBlock: $CaseBlock;
 
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallydeclarednames
+  // 13.12.5 Static Semantics: LexicallyDeclaredNames
   public readonly LexicallyDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallyscopeddeclarations
+  // 13.12.6 Static Semantics: LexicallyScopedDeclarations
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-vardeclarednames
+  // 13.12.7 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-varscopeddeclarations
+  // 13.12.8 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public constructor(
@@ -1558,6 +1633,7 @@ export class $SwitchStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-runtime-semantics-evaluation
+  // 13.12.11 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
@@ -1594,6 +1670,7 @@ export class $SwitchStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-caseblockevaluation
+  // 13.12.9 Runtime Semantics: CaseBlockEvaluation
   private EvaluateCaseBlock(
     ctx: ExecutionContext,
     switchValue: $Any,
@@ -1708,6 +1785,7 @@ export class $SwitchStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-caseclauseisselected
+  // 13.12.10 Runtime Semantics: CaseClauseIsSelected ( C , input )
   private IsCaseClauseSelected(
     ctx: ExecutionContext,
     clause: $CaseClause,
@@ -1729,20 +1807,28 @@ export class $LabeledStatement implements I$Node {
   public readonly $statement: $$ESLabelledItem;
 
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-lexicallydeclarednames
+  // 13.13.6 Static Semantics: LexicallyDeclaredNames
   public readonly LexicallyDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-lexicallyscopeddeclarations
+  // 13.13.7 Static Semantics: LexicallyScopedDeclarations
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-toplevellexicallydeclarednames
+  // 13.13.8 Static Semantics: TopLevelLexicallyDeclaredNames
   public readonly TopLevelLexicallyDeclaredNames: readonly $String[] = emptyArray;;
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-toplevellexicallyscopeddeclarations
+  // 13.13.9 Static Semantics: TopLevelLexicallyScopedDeclarations
   public readonly TopLevelLexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-toplevelvardeclarednames
+  // 13.13.10 Static Semantics: TopLevelVarDeclaredNames
   public readonly TopLevelVarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-toplevelvarscopeddeclarations
+  // 13.13.11 Static Semantics: TopLevelVarScopedDeclarations
   public readonly TopLevelVarScopedDeclarations: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-vardeclarednames
+  // 13.13.12 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-varscopeddeclarations
+  // 13.13.13 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
@@ -1785,6 +1871,7 @@ export class $LabeledStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-runtime-semantics-labelledevaluation
+  // 13.13.14 Runtime Semantics: LabelledEvaluation
   public EvaluateLabelled(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
@@ -1816,6 +1903,7 @@ export class $LabeledStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-runtime-semantics-evaluation
+  // 13.13.15 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
@@ -1841,8 +1929,10 @@ export class $ThrowStatement implements I$Node {
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
+  // 13.1.5 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
+  // 13.1.6 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
   public constructor(
@@ -1860,6 +1950,7 @@ export class $ThrowStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-throw-statement-runtime-semantics-evaluation
+  // 13.14.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
@@ -1892,8 +1983,10 @@ export class $TryStatement implements I$Node {
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-try-statement-static-semantics-vardeclarednames
+  // 13.15.5 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-try-statement-static-semantics-varscopeddeclarations
+  // 13.15.6 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public constructor(
@@ -1952,6 +2045,7 @@ export class $TryStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-try-statement-runtime-semantics-evaluation
+  // 13.15.8 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
@@ -1996,6 +2090,7 @@ export class $TryStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-catchclauseevaluation
+  // 13.15.7 Runtime Semantics: CatchClauseEvaluation
   private EvaluateCatchClause(ctx: ExecutionContext, thrownValue: $AnyNonEmpty): $AnyNonEmpty | $Error {
 
     const realm = this.realm;
@@ -2058,8 +2153,10 @@ export class $DebuggerStatement implements I$Node {
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-vardeclarednames
+  // 13.1.5 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
+  // 13.1.6 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
   public constructor(
@@ -2075,6 +2172,7 @@ export class $DebuggerStatement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-debugger-statement-runtime-semantics-evaluation
+  // 13.16.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
@@ -2104,12 +2202,16 @@ export class $CaseBlock implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallydeclarednames
+  // 13.12.5 Static Semantics: LexicallyDeclaredNames
   public readonly LexicallyDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallyscopeddeclarations
+  // 13.12.6 Static Semantics: LexicallyScopedDeclarations
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-vardeclarednames
+  // 13.12.7 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-varscopeddeclarations
+  // 13.12.8 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public readonly $clauses: readonly ($CaseClause | $DefaultClause)[];
@@ -2143,12 +2245,16 @@ export class $CaseClause implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallydeclarednames
+  // 13.12.5 Static Semantics: LexicallyDeclaredNames
   public readonly LexicallyDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallyscopeddeclarations
+  // 13.12.6 Static Semantics: LexicallyScopedDeclarations
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-vardeclarednames
+  // 13.12.7 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-varscopeddeclarations
+  // 13.12.8 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
@@ -2180,12 +2286,16 @@ export class $DefaultClause implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallydeclarednames
+  // 13.12.5 Static Semantics: LexicallyDeclaredNames
   public readonly LexicallyDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallyscopeddeclarations
+  // 13.12.6 Static Semantics: LexicallyScopedDeclarations
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-vardeclarednames
+  // 13.12.7 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-varscopeddeclarations
+  // 13.12.8 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public readonly $statements: readonly $$TSStatementListItem[];
@@ -2215,8 +2325,10 @@ export class $CatchClause implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-try-statement-static-semantics-vardeclarednames
+  // 13.15.5 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-try-statement-static-semantics-varscopeddeclarations
+  // 13.15.6 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public readonly $variableDeclaration: $VariableDeclaration | undefined;

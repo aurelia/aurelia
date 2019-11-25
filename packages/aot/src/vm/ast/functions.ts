@@ -115,15 +115,21 @@ export type $$Function = (
 
 export class $FormalParameterList extends Array<$ParameterDeclaration> {
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-boundnames
+  // 13.3.3.1 Static Semantics: BoundNames
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-boundnames
+  // 14.1.3 Static Semantics: BoundNames
   public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-containsexpression
+  // 14.1.5 Static Semantics: ContainsExpression
   public readonly ContainsExpression: boolean = false;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-expectedargumentcount
+  // 14.1.7 Static Semantics: ExpectedArgumentCount
   public readonly ExpectedArgumentCount: number = 0;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-hasinitializer
+  // 14.1.8 Static Semantics: HasInitializer
   public readonly HasInitializer: boolean = false;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-issimpleparameterlist
+  // 14.1.13 Static Semantics: IsSimpleParameterList
   public readonly IsSimpleParameterList: boolean = true;
   public readonly hasDuplicates: boolean = false;
 
@@ -194,23 +200,32 @@ export class $FunctionExpression implements I$Node {
   public readonly $body: $Block;
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-boundnames
+  // 14.1.3 Static Semantics: BoundNames
   public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-containsusestrict
+  // 14.1.6 Static Semantics: ContainsUseStrict
   public readonly ContainsUseStrict: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-hasname
+  // 14.1.9 Static Semantics: HasName
   public readonly HasName: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-isconstantdeclaration
+  // 14.1.11 Static Semantics: IsConstantDeclaration
   public readonly IsConstantDeclaration: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-isfunctiondefinition
+  // 14.1.12 Static Semantics: IsFunctionDefinition
   public readonly IsFunctionDefinition: true = true;
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallydeclarednames
+  // 14.1.14 Static Semantics: LexicallyDeclaredNames
   public readonly LexicallyDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallyscopeddeclarations
+  // 14.1.15 Static Semantics: LexicallyScopedDeclarations
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-vardeclarednames
+  // 14.1.16 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
+  // 14.1.17 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public readonly DirectivePrologue: DirectivePrologue;
@@ -257,6 +272,7 @@ export class $FunctionExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
+  // 14.1.18 Runtime Semantics: EvaluateBody
   public EvaluateBody(
     ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
     functionObject: $Function,
@@ -266,9 +282,13 @@ export class $FunctionExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluation
+  // 14.1.22 Runtime Semantics: Evaluation
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
+  // 14.4.14 Runtime Semantics: Evaluation
   // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions
+  // 14.5 Async Generator Function Definitions
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-runtime-semantics-evaluation
+  // 14.7.14 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $Function {
@@ -280,6 +300,7 @@ export class $FunctionExpression implements I$Node {
     const BindingIdentifier = this.$name;
 
     // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluation
+    // 14.1.22 Runtime Semantics: Evaluation
 
     if (BindingIdentifier === void 0) {
       // FunctionExpression : function ( FormalParameters ) { FunctionBody }
@@ -342,6 +363,7 @@ export class $FunctionExpression implements I$Node {
     // TODO: impl generator and async
 
     // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
+    // 14.4.14 Runtime Semantics: Evaluation
 
     // GeneratorExpression : function * ( FormalParameters ) { GeneratorBody }
 
@@ -372,6 +394,7 @@ export class $FunctionExpression implements I$Node {
 
 
     // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions
+    // 14.5 Async Generator Function Definitions
 
     // AsyncGeneratorExpression : async function * ( FormalParameters ) { AsyncGeneratorBody }
 
@@ -401,6 +424,7 @@ export class $FunctionExpression implements I$Node {
 
 
     // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-runtime-semantics-evaluation
+    // 14.7.14 Runtime Semantics: Evaluation
 
     // AsyncFunctionExpression : async function ( FormalParameters ) { AsyncFunctionBody }
 
@@ -428,6 +452,7 @@ export class $FunctionExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-namedevaluation
+  // 14.1.21 Runtime Semantics: NamedEvaluation
   public EvaluateNamed(
     ctx: ExecutionContext,
     name: $String,
@@ -457,51 +482,79 @@ export class $FunctionDeclaration implements I$Node {
   public readonly $body: $Block;
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-boundnames
+  // 14.1.3 Static Semantics: BoundNames
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-static-semantics-boundnames
+  // 14.4.2 Static Semantics: BoundNames
   // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions-static-semantics-boundnames
+  // 14.5.2 Static Semantics: BoundNames
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-static-semantics-BoundNames
+  // 14.7.2 Static Semantics: BoundNames
   public readonly BoundNames: readonly [$String | $String<'*default*'>] | readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-containsusestrict
+  // 14.1.6 Static Semantics: ContainsUseStrict
   public readonly ContainsUseStrict: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-hasname
+  // 14.1.9 Static Semantics: HasName
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-static-semantics-hasname
+  // 14.4.6 Static Semantics: HasName
   // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions-static-semantics-hasname
+  // 14.5.6 Static Semantics: HasName
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-static-semantics-HasName
+  // 14.7.6 Static Semantics: HasName
   public readonly HasName: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-isconstantdeclaration
+  // 14.1.11 Static Semantics: IsConstantDeclaration
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-static-semantics-isconstantdeclaration
+  // 14.4.7 Static Semantics: IsConstantDeclaration
   // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions-static-semantics-isconstantdeclaration
+  // 14.5.7 Static Semantics: IsConstantDeclaration
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-static-semantics-IsConstantDeclaration
+  // 14.7.7 Static Semantics: IsConstantDeclaration
   public readonly IsConstantDeclaration: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-isfunctiondefinition
+  // 14.1.12 Static Semantics: IsFunctionDefinition
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-static-semantics-isfunctiondefinition
+  // 14.4.8 Static Semantics: IsFunctionDefinition
   // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions-static-semantics-isfunctiondefinition
+  // 14.5.8 Static Semantics: IsFunctionDefinition
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-static-semantics-IsFunctionDefinition
+  // 14.7.8 Static Semantics: IsFunctionDefinition
   public readonly IsFunctionDefinition: true = true;
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallydeclarednames
+  // 14.1.14 Static Semantics: LexicallyDeclaredNames
   public readonly LexicallyDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallyscopeddeclarations
+  // 14.1.15 Static Semantics: LexicallyScopedDeclarations
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-vardeclarednames
+  // 14.1.16 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
+  // 14.1.17 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-static-semantics-propname
+  // 14.4.9 Static Semantics: PropName
   // http://www.ecma-international.org/ecma-262/#sec-async-generator-function-definitions-static-semantics-propname
+  // 14.5.9 Static Semantics: PropName
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-static-semantics-PropName
+  // 14.7.9 Static Semantics: PropName
   public readonly PropName: $String | $Undefined;
 
   public readonly DirectivePrologue: DirectivePrologue;
 
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportedbindings
+  // 15.2.3.3 Static Semantics: ExportedBindings
   public readonly ExportedBindings: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportednames
+  // 15.2.3.4 Static Semantics: ExportedNames
   public readonly ExportedNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportentries
+  // 15.2.3.5 Static Semantics: ExportEntries
   public readonly ExportEntries: readonly ExportEntryRecord[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-modulerequests
+  // 15.2.3.9 Static Semantics: ModuleRequests
   public readonly ModuleRequests: readonly $String[] = emptyArray;
 
   public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
@@ -611,6 +664,7 @@ export class $FunctionDeclaration implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-instantiatefunctionobject
+  // 14.1.20 Runtime Semantics: InstantiateFunctionObject
   public InstantiateFunctionObject(
     ctx: ExecutionContext,
     Scope: $EnvRec,
@@ -663,6 +717,7 @@ export class $FunctionDeclaration implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
+  // 14.1.18 Runtime Semantics: EvaluateBody
   public EvaluateBody(
     this: $$Function,
     ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
@@ -687,6 +742,7 @@ export class $FunctionDeclaration implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluation
+  // 14.1.22 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $Empty {
@@ -1024,27 +1080,41 @@ export class $ArrowFunction implements I$Node {
   public readonly $body: $Block | $$AssignmentExpressionOrHigher;
 
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-boundnames
+  // 14.2.2 Static Semantics: BoundNames
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-BoundNames
+  // 14.8.3 Static Semantics: BoundNames
   public readonly BoundNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-containsusestrict
+  // 14.2.5 Static Semantics: ContainsUseStrict
   public readonly ContainsUseStrict: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-hasname
+  // 14.2.7 Static Semantics: HasName
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-HasName
+  // 14.8.7 Static Semantics: HasName
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredformalslist
+  // 14.2.9 Static Semantics: CoveredFormalsList
   public readonly CoveredFormalsList: $FormalParameterList;
 
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-lexicallydeclarednames
+  // 14.2.10 Static Semantics: LexicallyDeclaredNames
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-LexicallyDeclaredNames
+  // 14.8.9 Static Semantics: LexicallyDeclaredNames
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-lexicallyscopeddeclarations
+  // 14.2.11 Static Semantics: LexicallyScopedDeclarations
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-LexicallyScopedDeclarations
+  // 14.8.10 Static Semantics: LexicallyScopedDeclarations
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-vardeclarednames
+  // 14.2.12 Static Semantics: VarDeclaredNames
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-VarDeclaredNames
+  // 14.8.11 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-varscopeddeclarations
+  // 14.2.13 Static Semantics: VarScopedDeclarations
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-VarScopedDeclarations
+  // 14.8.12 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
   public readonly DirectivePrologue: DirectivePrologue;
@@ -1092,6 +1162,7 @@ export class $ArrowFunction implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-runtime-semantics-evaluation
+  // 14.2.17 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
@@ -1112,6 +1183,7 @@ export class $ArrowFunction implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-runtime-semantics-evaluatebody
+  // 14.2.15 Runtime Semantics: EvaluateBody
   public EvaluateBody(
     ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
     functionObject: $Function,
@@ -1162,12 +1234,16 @@ export class $ConstructorDeclaration implements I$Node {
   public readonly $body: $Block;
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallydeclarednames
+  // 14.1.14 Static Semantics: LexicallyDeclaredNames
   public readonly LexicallyDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallyscopeddeclarations
+  // 14.1.15 Static Semantics: LexicallyScopedDeclarations
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-vardeclarednames
+  // 14.1.16 Static Semantics: VarDeclaredNames
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
+  // 14.1.17 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
   public constructor(
@@ -1195,6 +1271,7 @@ export class $ConstructorDeclaration implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-definemethod
+  // 14.3.7 Runtime Semantics: DefineMethod
   public DefineMethod(
     ctx: ExecutionContext,
     object: $Object,
@@ -1238,6 +1315,7 @@ export class $ConstructorDeclaration implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
+  // 14.1.18 Runtime Semantics: EvaluateBody
   public EvaluateBody(
     ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
     functionObject: $Function,
@@ -1261,12 +1339,16 @@ export class $ParameterDeclaration implements I$Node {
   public readonly $initializer: $$AssignmentExpressionOrHigher | undefined;
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-boundnames
+  // 13.3.3.1 Static Semantics: BoundNames
   public readonly BoundNames: readonly $String[] | readonly [$String];
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-containsexpression
+  // 13.3.3.2 Static Semantics: ContainsExpression
   public readonly ContainsExpression: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-hasinitializer
+  // 13.3.3.3 Static Semantics: HasInitializer
   public readonly HasInitializer: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-issimpleparameterlist
+  // 13.3.3.4 Static Semantics: IsSimpleParameterList
   public readonly IsSimpleParameterList: boolean;
 
   public constructor(
@@ -1303,6 +1385,7 @@ export class $ParameterDeclaration implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-iteratorbindinginitialization
+  // 14.1.19 Runtime Semantics: IteratorBindingInitialization
   public InitializeIteratorBinding(
     ctx: ExecutionContext,
     iteratorRecord: $IteratorRecord,
@@ -1324,6 +1407,7 @@ export class $ParameterDeclaration implements I$Node {
       // 1. If ContainsExpression of BindingElement is false, return the result of performing IteratorBindingInitialization for BindingElement using iteratorRecord and environment as the arguments.
 
       // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-iteratorbindinginitialization
+      // 13.3.3.8 Runtime Semantics: IteratorBindingInitialization
       // NOTE: this section is duplicated in BindingElement
       // BindingElement : BindingPattern Initializer opt
       let v: $Any = intrinsics.undefined; // TODO: sure about this?

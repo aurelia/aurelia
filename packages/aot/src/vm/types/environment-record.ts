@@ -96,6 +96,7 @@ export class $DeclarativeEnvRec {
   public get isFunction(): false { return false; }
 
   // http://www.ecma-international.org/ecma-262/#sec-newdeclarativeenvironment
+  // 8.1.2.2 NewDeclarativeEnvironment ( E )
   public constructor(
     public readonly logger: ILogger,
     public readonly realm: Realm,
@@ -111,6 +112,7 @@ export class $DeclarativeEnvRec {
 
   // Overrides
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-hasbinding-n
+  // 8.1.1.1.1 HasBinding ( N )
   public HasBinding(
     ctx: ExecutionContext,
     N: $String,
@@ -130,6 +132,7 @@ export class $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-createmutablebinding-n-d
+  // 8.1.1.1.2 CreateMutableBinding ( N , D )
   public CreateMutableBinding(
     ctx: ExecutionContext,
     N: $String,
@@ -160,6 +163,7 @@ export class $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-createimmutablebinding-n-s
+  // 8.1.1.1.3 CreateImmutableBinding ( N , S )
   public CreateImmutableBinding(
     ctx: ExecutionContext,
     N: $String,
@@ -190,6 +194,7 @@ export class $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-initializebinding-n-v
+  // 8.1.1.1.4 InitializeBinding ( N , V )
   public InitializeBinding(
     ctx: ExecutionContext,
     N: $String,
@@ -216,6 +221,7 @@ export class $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-setmutablebinding-n-v-s
+  // 8.1.1.1.5 SetMutableBinding ( N , V , S )
   public SetMutableBinding(
     ctx: ExecutionContext,
     N: $String,
@@ -275,6 +281,7 @@ export class $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-getbindingvalue-n-s
+  // 8.1.1.1.6 GetBindingValue ( N , S )
   public GetBindingValue(
     ctx: ExecutionContext,
     N: $String,
@@ -298,6 +305,7 @@ export class $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-deletebinding-n
+  // 8.1.1.1.7 DeleteBinding ( N )
   public DeleteBinding(
     ctx: ExecutionContext,
     N: $String,
@@ -326,6 +334,7 @@ export class $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-hasthisbinding
+  // 8.1.1.1.8 HasThisBinding ( )
   public HasThisBinding(
     ctx: ExecutionContext,
   ): $Boolean {
@@ -336,6 +345,7 @@ export class $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-hassuperbinding
+  // 8.1.1.1.9 HasSuperBinding ( )
   public HasSuperBinding(
     ctx: ExecutionContext,
   ): $Boolean {
@@ -346,6 +356,7 @@ export class $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-withbaseobject
+  // 8.1.1.1.10 WithBaseObject ( )
   public WithBaseObject(
     ctx: ExecutionContext,
   ): $Undefined {
@@ -375,6 +386,7 @@ export class $ObjectEnvRec {
   public get isFunction(): false { return false; }
 
   // http://www.ecma-international.org/ecma-262/#sec-newobjectenvironment
+  // 8.1.2.3 NewObjectEnvironment ( O , E )
   public constructor(
     public readonly logger: ILogger,
     public readonly realm: Realm,
@@ -391,6 +403,7 @@ export class $ObjectEnvRec {
 
   // Overrides
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-hasbinding-n
+  // 8.1.1.2.1 HasBinding ( N )
   public HasBinding(
     ctx: ExecutionContext,
     N: $String,
@@ -441,6 +454,7 @@ export class $ObjectEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-createmutablebinding-n-d
+  // 8.1.1.2.2 CreateMutableBinding ( N , D )
   public CreateMutableBinding(
     ctx: ExecutionContext,
     N: $String,
@@ -467,6 +481,7 @@ export class $ObjectEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-createimmutablebinding-n-s
+  // 8.1.1.2.3 CreateImmutableBinding ( N , S )
   public CreateImmutableBinding(
     ctx: ExecutionContext,
     N: $String,
@@ -477,6 +492,7 @@ export class $ObjectEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-initializebinding-n-v
+  // 8.1.1.2.4 InitializeBinding ( N , V )
   public InitializeBinding(
     ctx: ExecutionContext,
     N: $String,
@@ -498,6 +514,7 @@ export class $ObjectEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-setmutablebinding-n-v-s
+  // 8.1.1.2.5 SetMutableBinding ( N , V , S )
   public SetMutableBinding(
     ctx: ExecutionContext,
     N: $String,
@@ -517,6 +534,7 @@ export class $ObjectEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-getbindingvalue-n-s
+  // 8.1.1.2.6 GetBindingValue ( N , S )
   public GetBindingValue(
     ctx: ExecutionContext,
     N: $String,
@@ -549,6 +567,7 @@ export class $ObjectEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-deletebinding-n
+  // 8.1.1.2.7 DeleteBinding ( N )
   public DeleteBinding(
     ctx: ExecutionContext,
     N: $String,
@@ -566,6 +585,7 @@ export class $ObjectEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-hasthisbinding
+  // 8.1.1.2.8 HasThisBinding ( )
   public HasThisBinding(
     ctx: ExecutionContext,
   ): $Boolean<false> {
@@ -576,6 +596,7 @@ export class $ObjectEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-hassuperbinding
+  // 8.1.1.2.9 HasSuperBinding ( )
   public HasSuperBinding(
     ctx: ExecutionContext,
   ): $Boolean<false> {
@@ -586,6 +607,7 @@ export class $ObjectEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-environment-records-withbaseobject
+  // 8.1.1.2.10 WithBaseObject ( )
   public WithBaseObject(
     ctx: ExecutionContext,
   ): $AnyObject | $Undefined {
@@ -629,6 +651,7 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
   public get isFunction(): false { return false; }
 
   // http://www.ecma-international.org/ecma-262/#sec-newfunctionenvironment
+  // 8.1.2.4 NewFunctionEnvironment ( F , newTarget )
   public constructor(
     public readonly logger: ILogger,
     realm: Realm,
@@ -674,6 +697,7 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
 
   // Overrides
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-hasthisbinding
+  // 8.1.1.1.8 HasThisBinding ( )
   public HasThisBinding(
     ctx: ExecutionContext,
   ): $Boolean {
@@ -691,6 +715,7 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records-hassuperbinding
+  // 8.1.1.1.9 HasSuperBinding ( )
   public HasSuperBinding(
     ctx: ExecutionContext,
   ): $Boolean {
@@ -714,6 +739,7 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
 
   // Additions
   // http://www.ecma-international.org/ecma-262/#sec-bindthisvalue
+  // 8.1.1.3.1 BindThisValue ( V )
   public BindThisValue<T extends $AnyNonEmpty>(
     ctx: ExecutionContext,
     V: T,
@@ -738,6 +764,7 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-environment-records-getthisbinding
+  // 8.1.1.3.4 GetThisBinding ( )
   public GetThisBinding(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
@@ -755,6 +782,7 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-getsuperbase
+  // 8.1.1.3.5 GetSuperBase ( )
   public GetSuperBase(
     ctx: ExecutionContext,
   ): $AnyObject | $Null | $Undefined | $Error {
@@ -801,6 +829,7 @@ export class $GlobalEnvRec {
   public get isFunction(): false { return false; }
 
   // http://www.ecma-international.org/ecma-262/#sec-newglobalenvironment
+  // 8.1.2.5 NewGlobalEnvironment ( G , thisValue )
   public constructor(
     public readonly logger: ILogger,
     public readonly realm: Realm,
@@ -839,6 +868,7 @@ export class $GlobalEnvRec {
 
   // Overrides
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-hasbinding-n
+  // 8.1.1.4.1 HasBinding ( N )
   public HasBinding(
     ctx: ExecutionContext,
     N: $String,
@@ -864,6 +894,7 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-createmutablebinding-n-d
+  // 8.1.1.4.2 CreateMutableBinding ( N , D )
   public CreateMutableBinding(
     ctx: ExecutionContext,
     N: $String,
@@ -887,6 +918,7 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-createimmutablebinding-n-s
+  // 8.1.1.4.3 CreateImmutableBinding ( N , S )
   public CreateImmutableBinding(
     ctx: ExecutionContext,
     N: $String,
@@ -910,6 +942,7 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-initializebinding-n-v
+  // 8.1.1.4.4 InitializeBinding ( N , V )
   public InitializeBinding(
     ctx: ExecutionContext,
     N: $String,
@@ -938,6 +971,7 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-setmutablebinding-n-v-s
+  // 8.1.1.4.5 SetMutableBinding ( N , V , S )
   public SetMutableBinding(
     ctx: ExecutionContext,
     N: $String,
@@ -966,6 +1000,7 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-getbindingvalue-n-s
+  // 8.1.1.4.6 GetBindingValue ( N , S )
   public GetBindingValue(
     ctx: ExecutionContext,
     N: $String,
@@ -991,6 +1026,7 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-deletebinding-n
+  // 8.1.1.4.7 DeleteBinding ( N )
   public DeleteBinding(
     ctx: ExecutionContext,
     N: $String,
@@ -1048,6 +1084,7 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-hasthisbinding
+  // 8.1.1.4.8 HasThisBinding ( )
   public HasThisBinding(
     ctx: ExecutionContext,
   ): $Boolean<true> {
@@ -1058,6 +1095,7 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-hassuperbinding
+  // 8.1.1.4.9 HasSuperBinding ( )
   public HasSuperBinding(
     ctx: ExecutionContext,
   ): $Boolean<false> {
@@ -1068,6 +1106,7 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-withbaseobject
+  // 8.1.1.4.10 WithBaseObject ( )
   public WithBaseObject(
     ctx: ExecutionContext,
   ): $Undefined {
@@ -1079,6 +1118,7 @@ export class $GlobalEnvRec {
 
   // Additions
   // http://www.ecma-international.org/ecma-262/#sec-global-environment-records-getthisbinding
+  // 8.1.1.4.11 GetThisBinding ( )
   public GetThisBinding(
     ctx: ExecutionContext,
   ): $AnyObject {
@@ -1090,6 +1130,7 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-hasvardeclaration
+  // 8.1.1.4.12 HasVarDeclaration ( N )
   public HasVarDeclaration(
     ctx: ExecutionContext,
     N: $String,
@@ -1112,6 +1153,7 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-haslexicaldeclaration
+  // 8.1.1.4.13 HasLexicalDeclaration ( N )
   public HasLexicalDeclaration(
     ctx: ExecutionContext,
     N: $String,
@@ -1127,6 +1169,7 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-hasrestrictedglobalproperty
+  // 8.1.1.4.14 HasRestrictedGlobalProperty ( N )
   public HasRestrictedGlobalProperty(
     ctx: ExecutionContext,
     N: $String,
@@ -1161,6 +1204,7 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-candeclareglobalvar
+  // 8.1.1.4.15 CanDeclareGlobalVar ( N )
   public CanDeclareGlobalVar(
     ctx: ExecutionContext,
     N: $String,
@@ -1190,6 +1234,7 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-candeclareglobalfunction
+  // 8.1.1.4.16 CanDeclareGlobalFunction ( N )
   public CanDeclareGlobalFunction(
     ctx: ExecutionContext,
     N: $String,
@@ -1229,6 +1274,7 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-createglobalvarbinding
+  // 8.1.1.4.17 CreateGlobalVarBinding ( N , D )
   public CreateGlobalVarBinding(
     ctx: ExecutionContext,
     N: $String,
@@ -1280,6 +1326,7 @@ export class $GlobalEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-createglobalfunctionbinding
+  // 8.1.1.4.18 CreateGlobalFunctionBinding ( N , V , D )
   public CreateGlobalFunctionBinding(
     ctx: ExecutionContext,
     N: $String,
@@ -1365,6 +1412,7 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec {
   public get isFunction(): false { return false; }
 
   // http://www.ecma-international.org/ecma-262/#sec-newmoduleenvironment
+  // 8.1.2.6 NewModuleEnvironment ( E )
   public constructor(
     public readonly logger: ILogger,
     realm: Realm,
@@ -1381,6 +1429,7 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec {
 
   // Overrides
   // http://www.ecma-international.org/ecma-262/#sec-module-environment-records-getbindingvalue-n-s
+  // 8.1.1.5.1 GetBindingValue ( N , S )
   public GetBindingValue(
     ctx: ExecutionContext,
     N: $String,
@@ -1424,6 +1473,7 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-environment-records-deletebinding-n
+  // 8.1.1.5.2 DeleteBinding ( N )
   public DeleteBinding(
     ctx: ExecutionContext,
     N: never,
@@ -1433,6 +1483,7 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-module-environment-records-hasthisbinding
+  // 8.1.1.5.3 HasThisBinding ( )
   public HasThisBinding(
     ctx: ExecutionContext,
   ): $Boolean<true> {
@@ -1444,6 +1495,7 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec {
 
   // Additions
   // http://www.ecma-international.org/ecma-262/#sec-module-environment-records-getthisbinding
+  // 8.1.1.5.4 GetThisBinding ( )
   public GetThisBinding(
     ctx: ExecutionContext,
   ): $Undefined {
@@ -1454,6 +1506,7 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-createimportbinding
+  // 8.1.1.5.5 CreateImportBinding ( N , M , N2 )
   public CreateImportBinding(
     ctx: ExecutionContext,
     N: $String,

@@ -47,6 +47,7 @@ export class $BooleanConstructor extends $BuiltinFunction<'%Boolean%'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-boolean-constructor-boolean-value
+  // 19.3.1.1 Boolean ( value )
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmpty,

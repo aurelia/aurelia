@@ -57,6 +57,7 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
   public readonly '[[ParameterMap]]': $AnyObject;
 
   // http://www.ecma-international.org/ecma-262/#sec-createmappedargumentsobject
+  // 9.4.4.7 CreateMappedArgumentsObject ( func , formals , argumentsList , env )
   public constructor(
     realm: Realm,
     func: $Function,
@@ -186,6 +187,7 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-arguments-exotic-objects-getownproperty-p
+  // 9.4.4.1 [[GetOwnProperty]] ( P )
   public '[[GetOwnProperty]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
@@ -216,6 +218,7 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-arguments-exotic-objects-defineownproperty-p-desc
+  // 9.4.4.2 [[DefineOwnProperty]] ( P , Desc )
   public '[[DefineOwnProperty]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
@@ -291,6 +294,7 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-arguments-exotic-objects-get-p-receiver
+  // 9.4.4.3 [[Get]] ( P , Receiver )
   public '[[Get]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
@@ -316,6 +320,7 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-arguments-exotic-objects-set-p-v-receiver
+  // 9.4.4.4 [[Set]] ( P , V , Receiver )
   public '[[Set]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
@@ -348,6 +353,7 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-arguments-exotic-objects-delete-p
+  // 9.4.4.5 [[Delete]] ( P )
   public '[[Delete]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,

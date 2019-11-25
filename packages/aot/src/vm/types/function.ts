@@ -82,6 +82,7 @@ export class $Function<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects-call-thisargument-argumentslist
+  // 9.2.1 [[Call]] ( thisArgument , argumentsList )
   public '[[Call]]'(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmpty,
@@ -127,6 +128,7 @@ export class $Function<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget
+  // 9.2.2 [[Construct]] ( argumentsList , newTarget )
   public '[[Construct]]'(
     ctx: ExecutionContext,
     argumentsList: readonly $AnyNonEmpty[],
@@ -202,6 +204,7 @@ export class $Function<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-functionallocate
+  // 9.2.3 FunctionAllocate ( functionPrototype , strict , functionKind )
   public static FunctionAllocate(
     ctx: ExecutionContext,
     functionPrototype: $AnyObject,
@@ -254,6 +257,7 @@ export class $Function<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-functioninitialize
+  // 9.2.4 FunctionInitialize ( F , kind , ParameterList , Body , Scope )
   public static FunctionInitialize(
     ctx: ExecutionContext,
     F: $Function,
@@ -307,6 +311,7 @@ export class $Function<
 
 
   // http://www.ecma-international.org/ecma-262/#sec-functioncreate
+  // 9.2.5 FunctionCreate ( kind , ParameterList , Body , Scope , Strict [ , prototype ] )
   public static FunctionCreate(
     ctx: ExecutionContext,
     kind: 'normal' | 'method' | 'arrow',
@@ -344,6 +349,7 @@ export class $Function<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-makeconstructor
+  // 9.2.10 MakeConstructor ( F [ , writablePrototype [ , prototype ] ] )
   public MakeConstructor(
     ctx: ExecutionContext,
     writablePrototype?: $Boolean,
@@ -390,6 +396,7 @@ export class $Function<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-setfunctionname
+  // 9.2.13 SetFunctionName ( F , name [ , prefix ] )
   public SetFunctionName(
     ctx: ExecutionContext,
     name: $String | $Symbol,
@@ -588,6 +595,7 @@ export abstract class $BuiltinFunction<
   public readonly '<$BuiltinFunction>': unknown;
 
   // http://www.ecma-international.org/ecma-262/#sec-createbuiltinfunction
+  // 9.3.3 CreateBuiltinFunction ( steps , internalSlotsList [ , realm [ , prototype ] ] )
   public constructor(
     realm: Realm,
     IntrinsicName: T,
@@ -612,6 +620,7 @@ export abstract class $BuiltinFunction<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-built-in-function-objects-call-thisargument-argumentslist
+  // 9.3.1 [[Call]] ( thisArgument , argumentsList )
   public '[[Call]]'(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmpty,
@@ -653,6 +662,7 @@ export abstract class $BuiltinFunction<
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-built-in-function-objects-construct-argumentslist-newtarget
+  // 9.3.2 [[Construct]] ( argumentsList , newTarget )
   public '[[Construct]]'(
     ctx: ExecutionContext,
     argumentsList: readonly $AnyNonEmpty[],

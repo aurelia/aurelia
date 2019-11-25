@@ -44,6 +44,7 @@ export class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticOb
   public '[[TypedArrayName]]': $String;
 
   // http://www.ecma-international.org/ecma-262/#sec-integerindexedobjectcreate
+  // 9.4.5.7 IntegerIndexedObjectCreate ( prototype , internalSlotsList )
   public constructor(
     realm: Realm,
     proto: $AnyObject | $Null,
@@ -65,6 +66,7 @@ export class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticOb
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-integer-indexed-exotic-objects-getownproperty-p
+  // 9.4.5.1 [[GetOwnProperty]] ( P )
   public '[[GetOwnProperty]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
@@ -85,6 +87,7 @@ export class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticOb
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-integer-indexed-exotic-objects-hasproperty-p
+  // 9.4.5.2 [[HasProperty]] ( P )
   public '[[HasProperty]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
@@ -108,6 +111,7 @@ export class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticOb
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-integer-indexed-exotic-objects-defineownproperty-p-desc
+  // 9.4.5.3 [[DefineOwnProperty]] ( P , Desc )
   public '[[DefineOwnProperty]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
@@ -136,6 +140,7 @@ export class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticOb
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-integer-indexed-exotic-objects-get-p-receiver
+  // 9.4.5.4 [[Get]] ( P , Receiver )
   public '[[Get]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
@@ -153,6 +158,7 @@ export class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticOb
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-integer-indexed-exotic-objects-set-p-v-receiver
+  // 9.4.5.5 [[Set]] ( P , V , Receiver )
   public '[[Set]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
@@ -169,6 +175,7 @@ export class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticOb
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-integer-indexed-exotic-objects-ownpropertykeys
+  // 9.4.5.6 [[OwnPropertyKeys]] ( )
   public '[[OwnPropertyKeys]]'(
     ctx: ExecutionContext,
   ): $List<$PropertyKey> {
@@ -186,6 +193,7 @@ export class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticOb
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-integerindexedelementget
+  // 9.4.5.8 IntegerIndexedElementGet ( O , index )
   public ElementGet(index: $Number): $AnyNonEmpty {
     return null as any; // TODO
     // 1. Assert: Type(index) is Number.
@@ -205,6 +213,7 @@ export class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticOb
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-integerindexedelementset
+  // 9.4.5.9 IntegerIndexedElementSet ( O , index , value )
   public ElementSet(index: $Number, value: $Number): $AnyNonEmpty {
     return null as any; // TODO
     // 1. Assert: Type(index) is Number.

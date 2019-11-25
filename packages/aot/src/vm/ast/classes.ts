@@ -192,18 +192,25 @@ export class $ClassExpression implements I$Node {
   public readonly ClassHeritage: $HeritageClause | undefined;
 
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-boundnames
+  // 14.6.2 Static Semantics: BoundNames
   public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-constructormethod
+  // 14.6.3 Static Semantics: ConstructorMethod
   public readonly ConstructorMethod: $ConstructorDeclaration | undefined = void 0;
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-hasname
+  // 14.6.6 Static Semantics: HasName
   public readonly HasName: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-isconstantdeclaration
+  // 14.6.7 Static Semantics: IsConstantDeclaration
   public readonly IsConstantDeclaration: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-isfunctiondefinition
+  // 14.6.8 Static Semantics: IsFunctionDefinition
   public readonly IsFunctionDefinition: true = true;
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-nonconstructormethoddefinitions
+  // 14.6.10 Static Semantics: NonConstructorMethodDefinitions
   public readonly NonConstructorMethodDefinitions: $$MethodDefinition[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-prototypepropertynamelist
+  // 14.6.11 Static Semantics: PrototypePropertyNameList
   public readonly PrototypePropertyNameList: readonly $String[];
 
 
@@ -267,6 +274,7 @@ export class $ClassExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-runtime-semantics-namedevaluation
+  // 14.6.15 Runtime Semantics: NamedEvaluation
   public EvaluateNamed(
     ctx: ExecutionContext,
     name: $String,
@@ -281,6 +289,7 @@ export class $ClassExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-runtime-semantics-evaluation
+  // 14.6.16 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $Function | $Error {
@@ -322,33 +331,46 @@ export class $ClassDeclaration implements I$Node {
   public readonly ClassHeritage: $HeritageClause | undefined;
 
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-boundnames
+  // 14.6.2 Static Semantics: BoundNames
   public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-constructormethod
+  // 14.6.3 Static Semantics: ConstructorMethod
   public readonly ConstructorMethod: $ConstructorDeclaration | undefined;
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-hasname
+  // 14.6.6 Static Semantics: HasName
   public readonly HasName: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-isconstantdeclaration
+  // 14.6.7 Static Semantics: IsConstantDeclaration
   public readonly IsConstantDeclaration: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-isfunctiondefinition
+  // 14.6.8 Static Semantics: IsFunctionDefinition
   public readonly IsFunctionDefinition: true = true;
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-nonconstructormethoddefinitions
+  // 14.6.10 Static Semantics: NonConstructorMethodDefinitions
   public readonly NonConstructorMethodDefinitions: readonly $$MethodDefinition[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-prototypepropertynamelist
+  // 14.6.11 Static Semantics: PrototypePropertyNameList
   public readonly PrototypePropertyNameList: readonly $String[];
   public readonly VarDeclaredNames: readonly $String[] = emptyArray; // TODO: this is actually not explicitly specced. Need to double check
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
+  // 13.1.6 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportedbindings
+  // 15.2.3.3 Static Semantics: ExportedBindings
   public readonly ExportedBindings: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportednames
+  // 15.2.3.4 Static Semantics: ExportedNames
   public readonly ExportedNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportentries
+  // 15.2.3.5 Static Semantics: ExportEntries
   public readonly ExportEntries: readonly ExportEntryRecord[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-lexicallyscopeddeclarations
+  // 15.2.3.8 Static Semantics: LexicallyScopedDeclarations
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray; // TODO: this is actually not explicitly specced. Need to double check
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-modulerequests
+  // 15.2.3.9 Static Semantics: ModuleRequests
   public readonly ModuleRequests: readonly $String[];
 
   public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
@@ -480,6 +502,7 @@ export class $ClassDeclaration implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-classdefinitionevaluation
+  // 14.6.13 Runtime Semantics: ClassDefinitionEvaluation
   public EvaluateClassDefinition(
     this: $ClassDeclaration | $ClassExpression,
     ctx: ExecutionContext,
@@ -713,6 +736,7 @@ export class $ClassDeclaration implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-bindingclassdeclarationevaluation
+  // 14.6.14 Runtime Semantics: BindingClassDeclarationEvaluation
   public EvaluateBindingClassDeclaration(
     ctx: ExecutionContext,
   ): $Function | $Error {
@@ -760,6 +784,7 @@ export class $ClassDeclaration implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-runtime-semantics-evaluation
+  // 14.6.16 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $Empty | $Error {
@@ -777,6 +802,7 @@ export class $ClassDeclaration implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
+  // 14.1.18 Runtime Semantics: EvaluateBody
   public EvaluateBody(
     ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
     functionObject: $Function,
@@ -797,6 +823,7 @@ export class $PropertyDeclaration implements I$Node {
   public readonly $initializer: $$AssignmentExpressionOrHigher | undefined;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-isstatic
+  // 14.6.9 Static Semantics: IsStatic
   public readonly IsStatic: boolean;
 
   public constructor(
@@ -825,8 +852,10 @@ export class $SemicolonClassElement implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-isstatic
+  // 14.6.9 Static Semantics: IsStatic
   public readonly IsStatic: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
+  // 14.3.5 Static Semantics: PropName
   public readonly PropName: empty = empty;
 
   public constructor(

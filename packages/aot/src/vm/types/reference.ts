@@ -58,6 +58,7 @@ export class $Reference {
   ) {}
 
   // http://www.ecma-international.org/ecma-262/#sec-getbase
+  // 6.2.4.1 GetBase ( V )
   public GetBase(): $AnyObject | $Boolean | $String | $Symbol | $Number | $EnvRec | $Undefined {
     // 1. Assert: Type(V) is Reference.
     // 2. Return the base value component of V.
@@ -65,6 +66,7 @@ export class $Reference {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-getreferencedname
+  // 6.2.4.2 GetReferencedName ( V )
   public GetReferencedName(): $String {
     // 1. Assert: Type(V) is Reference.
     // 2. Return the referenced name component of V.
@@ -72,6 +74,7 @@ export class $Reference {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-isstrictreference
+  // 6.2.4.3 IsStrictReference ( V )
   public IsStrictReference(): $Boolean {
     // 1. Assert: Type(V) is Reference.
     // 2. Return the strict reference flag of V.
@@ -79,6 +82,7 @@ export class $Reference {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-hasprimitivebase
+  // 6.2.4.4 HasPrimitiveBase ( V )
   public HasPrimitiveBase(): $Boolean {
     // 1. Assert: Type(V) is Reference.
     // 2. If Type(V's base value component) is Boolean, String, Symbol, or Number, return true; otherwise return false.
@@ -90,6 +94,7 @@ export class $Reference {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ispropertyreference
+  // 6.2.4.5 IsPropertyReference ( V )
   public IsPropertyReference(): $Boolean {
     // 1. Assert: Type(V) is Reference.
     // 2. If either the base value component of V is an Object or HasPrimitiveBase(V) is true, return true; otherwise return false.
@@ -101,6 +106,7 @@ export class $Reference {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-isunresolvablereference
+  // 6.2.4.6 IsUnresolvableReference ( V )
   public IsUnresolvableReference(): $Boolean {
     // 1. Assert: Type(V) is Reference.
     // 2. If the base value component of V is undefined, return true; otherwise return false.
@@ -112,6 +118,7 @@ export class $Reference {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-issuperreference
+  // 6.2.4.7 IsSuperReference ( V )
   public IsSuperReference(): $Boolean {
     // 1. Assert: Type(V) is Reference.
     // 2. If V has a thisValue component, return true; otherwise return false.
@@ -123,6 +130,7 @@ export class $Reference {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-getvalue
+  // 6.2.4.8 GetValue ( V )
   public GetValue(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
@@ -156,6 +164,7 @@ export class $Reference {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-putvalue
+  // 6.2.4.9 PutValue ( V , W )
   public PutValue(
     ctx: ExecutionContext,
     W: $AnyNonEmpty,
@@ -212,6 +221,7 @@ export class $Reference {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-getthisvalue
+  // 6.2.4.10 GetThisValue ( V )
   public GetThisValue(): $AnyObject | $Boolean | $String | $Symbol | $Number {
     // 1. Assert: IsPropertyReference(V) is true.
     // 2. If IsSuperReference(V) is true, then
@@ -225,6 +235,7 @@ export class $Reference {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-initializereferencedbinding
+  // 6.2.4.11 InitializeReferencedBinding ( V , W )
   public InitializeReferencedBinding(
     ctx: ExecutionContext,
     W: $AnyNonEmpty,

@@ -82,6 +82,7 @@ export class $String<T extends string = string> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-canonicalnumericindexstring
+  // 7.1.16 CanonicalNumericIndexString ( argument )
   public CanonicalNumericIndexString(
     ctx: ExecutionContext,
   ): $Number | $Undefined {
@@ -97,7 +98,6 @@ export class $String<T extends string = string> {
     return this.realm['[[Intrinsics]]'].undefined;
   }
 
-  // http://www.ecma-international.org/ecma-262/#array-index
   public get IsArrayIndex(): boolean {
     if (this['[[Value]]'] === '-0') {
       return false;
@@ -136,6 +136,7 @@ export class $String<T extends string = string> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-updateempty
+  // 6.2.3.4 UpdateEmpty ( completionRecord , value )
   public UpdateEmpty(value: $Any): this {
     // 1. Assert: If completionRecord.[[Type]] is either return or throw, then completionRecord.[[Value]] is not empty.
     // 2. If completionRecord.[[Value]] is not empty, return Completion(completionRecord).

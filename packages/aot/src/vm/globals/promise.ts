@@ -303,6 +303,7 @@ export class $PromiseConstructor extends $BuiltinFunction<'%Promise%'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-promise-executor
+  // 25.6.3.1 Promise ( executor )
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmpty,
@@ -452,6 +453,7 @@ export class $Promise_resolve extends $BuiltinFunction<'%Promise_resolve%'> {
     NewTarget: $AnyNonEmpty,
   ): $AnyNonEmpty | $Error {
     // http://www.ecma-international.org/ecma-262/#sec-promise.resolve
+    // 25.6.4.5 Promise.resolve ( x )
 
     // 1. Let C be the this value.
     // 2. If Type(C) is not Object, throw a TypeError exception.
@@ -459,6 +461,7 @@ export class $Promise_resolve extends $BuiltinFunction<'%Promise_resolve%'> {
 
 
     // http://www.ecma-international.org/ecma-262/#sec-promise-resolve
+    // 25.6.4.5.1 PromiseResolve ( C , x )
 
     // 1. Assert: Type(C) is Object.
     // 2. If IsPromise(x) is true, then

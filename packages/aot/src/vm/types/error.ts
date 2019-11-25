@@ -48,12 +48,14 @@ export abstract class $Error<T extends Error = Error, N extends string = string>
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-getvalue
+  // 6.2.4.8 GetValue ( V )
   public GetValue(ctx: ExecutionContext): this {
     // 1. ReturnIfAbrupt(V)
     return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-updateempty
+  // 6.2.3.4 UpdateEmpty ( completionRecord , value )
   public UpdateEmpty(value: $Any): this {
     // 1. Assert: If completionRecord.[[Type]] is either return or throw, then completionRecord.[[Value]] is not empty.
     // 2. If completionRecord.[[Value]] is not empty, return Completion(completionRecord).

@@ -50,6 +50,7 @@ export class $StringConstructor extends $BuiltinFunction<'%String%'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-string-constructor-string-value
+  // 21.1.1.1 String ( value )
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmpty,

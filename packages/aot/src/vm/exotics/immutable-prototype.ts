@@ -29,6 +29,7 @@ export class $ImmutablePrototypeExoticObject extends $Object<'ImmutablePrototype
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-immutable-prototype-exotic-objects-setprototypeof-v
+  // 9.4.7.1 [[SetPrototypeOf]] ( V )
   public '[[SetPrototypeOf]]'(
     ctx: ExecutionContext,
     V: $AnyObject | $Null,
@@ -36,6 +37,7 @@ export class $ImmutablePrototypeExoticObject extends $Object<'ImmutablePrototype
     // 1. Return ? SetImmutablePrototype(O, V).
 
     // http://www.ecma-international.org/ecma-262/#sec-set-immutable-prototype
+    // 9.4.7.2 SetImmutablePrototype ( O , V )
 
     // 1. Assert: Either Type(V) is Object or Type(V) is Null.
     // 2. Let current be ? O.[[GetPrototypeOf]]().

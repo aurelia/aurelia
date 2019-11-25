@@ -75,6 +75,7 @@ export class $TemplateHead implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
+  // 12.2.9.6 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
@@ -104,6 +105,7 @@ export class $TemplateMiddle implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
+  // 12.2.9.6 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
@@ -133,6 +135,7 @@ export class $TemplateTail implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
+  // 12.2.9.6 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
@@ -177,6 +180,7 @@ export class $TemplateSpan implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
+  // 12.2.9.6 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
@@ -222,17 +226,23 @@ export class $NumericLiteral implements I$Node {
   public readonly Value: $Number;
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
+  // 12.2.6.5 Static Semantics: PropName
   public readonly PropName: $String;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
+  // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
   public readonly CoveredParenthesizedExpression: $NumericLiteral = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
+  // 12.2.1.2 Static Semantics: HasName
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
+  // 12.2.1.3 Static Semantics: IsFunctionDefinition
   public readonly IsFunctionDefinition: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isidentifierref
+  // 12.2.1.4 Static Semantics: IsIdentifierRef
   public readonly IsIdentifierRef: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-assignmenttargettype
+  // 12.2.1.5 Static Semantics: AssignmentTargetType
   public readonly AssignmentTargetType: 'invalid' = 'invalid';
 
   public constructor(
@@ -252,6 +262,7 @@ export class $NumericLiteral implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-literals-runtime-semantics-evaluation
+  // 12.2.4.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $Number {
@@ -272,14 +283,19 @@ export class $BigIntLiteral implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
+  // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
   public readonly CoveredParenthesizedExpression: $BigIntLiteral = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
+  // 12.2.1.2 Static Semantics: HasName
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
+  // 12.2.1.3 Static Semantics: IsFunctionDefinition
   public readonly IsFunctionDefinition: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isidentifierref
+  // 12.2.1.4 Static Semantics: IsIdentifierRef
   public readonly IsIdentifierRef: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-assignmenttargettype
+  // 12.2.1.5 Static Semantics: AssignmentTargetType
   public readonly AssignmentTargetType: 'invalid' = 'invalid';
 
   public constructor(
@@ -313,19 +329,26 @@ export class $StringLiteral implements I$Node {
   public readonly Value: $String;
 
   // http://www.ecma-international.org/ecma-262/#sec-string-literals-static-semantics-stringvalue
+  // 11.8.4.1 Static Semantics: StringValue
   public readonly StringValue: $String;
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
+  // 12.2.6.5 Static Semantics: PropName
   public readonly PropName: $String;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
+  // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
   public readonly CoveredParenthesizedExpression: $StringLiteral = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
+  // 12.2.1.2 Static Semantics: HasName
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
+  // 12.2.1.3 Static Semantics: IsFunctionDefinition
   public readonly IsFunctionDefinition: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isidentifierref
+  // 12.2.1.4 Static Semantics: IsIdentifierRef
   public readonly IsIdentifierRef: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-assignmenttargettype
+  // 12.2.1.5 Static Semantics: AssignmentTargetType
   public readonly AssignmentTargetType: 'invalid' = 'invalid';
 
   public constructor(
@@ -345,6 +368,7 @@ export class $StringLiteral implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-literals-runtime-semantics-evaluation
+  // 12.2.4.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $String {
@@ -367,17 +391,23 @@ export class $RegularExpressionLiteral implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-regexp-identifier-names-static-semantics-stringvalue
+  // 21.2.1.6 Static Semantics: StringValue
   public readonly StringValue: string;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
+  // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
   public readonly CoveredParenthesizedExpression: $RegularExpressionLiteral = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
+  // 12.2.1.2 Static Semantics: HasName
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
+  // 12.2.1.3 Static Semantics: IsFunctionDefinition
   public readonly IsFunctionDefinition: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isidentifierref
+  // 12.2.1.4 Static Semantics: IsIdentifierRef
   public readonly IsIdentifierRef: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-assignmenttargettype
+  // 12.2.1.5 Static Semantics: AssignmentTargetType
   public readonly AssignmentTargetType: 'invalid' = 'invalid';
 
   public constructor(
@@ -395,6 +425,7 @@ export class $RegularExpressionLiteral implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-regular-expression-literals-runtime-semantics-evaluation
+  // 12.2.8.2 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $Object {
@@ -415,14 +446,19 @@ export class $NoSubstitutionTemplateLiteral implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
+  // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
   public readonly CoveredParenthesizedExpression: $NoSubstitutionTemplateLiteral = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
+  // 12.2.1.2 Static Semantics: HasName
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
+  // 12.2.1.3 Static Semantics: IsFunctionDefinition
   public readonly IsFunctionDefinition: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isidentifierref
+  // 12.2.1.4 Static Semantics: IsIdentifierRef
   public readonly IsIdentifierRef: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-assignmenttargettype
+  // 12.2.1.5 Static Semantics: AssignmentTargetType
   public readonly AssignmentTargetType: 'invalid' = 'invalid';
 
   public constructor(
@@ -438,6 +474,7 @@ export class $NoSubstitutionTemplateLiteral implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
+  // 12.2.9.6 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $String {
@@ -458,14 +495,19 @@ export class $NullLiteral implements I$Node {
   public readonly Value: $Null;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
+  // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
   public readonly CoveredParenthesizedExpression: $NullLiteral = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
+  // 12.2.1.2 Static Semantics: HasName
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
+  // 12.2.1.3 Static Semantics: IsFunctionDefinition
   public readonly IsFunctionDefinition: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isidentifierref
+  // 12.2.1.4 Static Semantics: IsIdentifierRef
   public readonly IsIdentifierRef: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-assignmenttargettype
+  // 12.2.1.5 Static Semantics: AssignmentTargetType
   public readonly AssignmentTargetType: 'invalid' = 'invalid';
 
   public constructor(
@@ -483,6 +525,7 @@ export class $NullLiteral implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-literals-runtime-semantics-evaluation
+  // 12.2.4.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $Null {
@@ -500,14 +543,19 @@ export class $BooleanLiteral implements I$Node {
   public readonly Value: $Boolean;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
+  // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
   public readonly CoveredParenthesizedExpression: $BooleanLiteral = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
+  // 12.2.1.2 Static Semantics: HasName
   public readonly HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
+  // 12.2.1.3 Static Semantics: IsFunctionDefinition
   public readonly IsFunctionDefinition: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isidentifierref
+  // 12.2.1.4 Static Semantics: IsIdentifierRef
   public readonly IsIdentifierRef: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-assignmenttargettype
+  // 12.2.1.5 Static Semantics: AssignmentTargetType
   public readonly AssignmentTargetType: 'invalid' = 'invalid';
 
   public constructor(
@@ -526,6 +574,7 @@ export class $BooleanLiteral implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-literals-runtime-semantics-evaluation
+  // 12.2.4.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $Boolean {

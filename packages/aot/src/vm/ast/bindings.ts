@@ -125,6 +125,7 @@ export class $ComputedPropertyName implements I$Node {
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
+  // 12.2.6.5 Static Semantics: PropName
   public readonly PropName: $String | $Empty;
 
   public constructor(
@@ -144,6 +145,7 @@ export class $ComputedPropertyName implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-evaluation
+  // 12.2.6.7 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
   ): $String | $Error {
@@ -180,12 +182,16 @@ export class $ObjectBindingPattern implements I$Node {
   public readonly $elements: readonly $BindingElement[];
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-boundnames
+  // 13.3.3.1 Static Semantics: BoundNames
   public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-containsexpression
+  // 13.3.3.2 Static Semantics: ContainsExpression
   public readonly ContainsExpression: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-hasinitializer
+  // 13.3.3.3 Static Semantics: HasInitializer
   public readonly HasInitializer: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-issimpleparameterlist
+  // 13.3.3.4 Static Semantics: IsSimpleParameterList
   public readonly IsSimpleParameterList: boolean;
 
   public constructor(
@@ -214,6 +220,7 @@ export class $ObjectBindingPattern implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-bindinginitialization
+  // 13.3.3.5 Runtime Semantics: BindingInitialization
   public InitializeBinding(
     ctx: ExecutionContext,
     value: $AnyNonEmpty,
@@ -311,12 +318,16 @@ export class $ArrayBindingPattern implements I$Node {
   public readonly $elements: readonly $$ArrayBindingElement[];
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-boundnames
+  // 13.3.3.1 Static Semantics: BoundNames
   public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-containsexpression
+  // 13.3.3.2 Static Semantics: ContainsExpression
   public readonly ContainsExpression: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-hasinitializer
+  // 13.3.3.3 Static Semantics: HasInitializer
   public readonly HasInitializer: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-issimpleparameterlist
+  // 13.3.3.4 Static Semantics: IsSimpleParameterList
   public readonly IsSimpleParameterList: boolean;
 
   public constructor(
@@ -345,6 +356,7 @@ export class $ArrayBindingPattern implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-bindinginitialization
+  // 13.3.3.5 Runtime Semantics: BindingInitialization
   public InitializeBinding(
     ctx: ExecutionContext,
     value: $AnyObject,
@@ -372,6 +384,7 @@ export class $ArrayBindingPattern implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-iteratorbindinginitialization
+  // 13.3.3.8 Runtime Semantics: IteratorBindingInitialization
   public InitializeIteratorBinding(
     ctx: ExecutionContext,
     iteratorRecord: $IteratorRecord,
@@ -458,12 +471,16 @@ export class $BindingElement implements I$Node {
   public readonly $initializer: $$AssignmentExpressionOrHigher | undefined;
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-boundnames
+  // 13.3.3.1 Static Semantics: BoundNames
   public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-containsexpression
+  // 13.3.3.2 Static Semantics: ContainsExpression
   public readonly ContainsExpression: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-hasinitializer
+  // 13.3.3.3 Static Semantics: HasInitializer
   public readonly HasInitializer: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-issimpleparameterlist
+  // 13.3.3.4 Static Semantics: IsSimpleParameterList
   public readonly IsSimpleParameterList: boolean;
 
   public constructor(
@@ -527,6 +544,7 @@ export class $BindingElement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-propertybindinginitialization
+  // 13.3.3.6 Runtime Semantics: PropertyBindingInitialization
   public InitializePropertyBinding(
     ctx: ExecutionContext,
     value: $AnyNonEmpty,
@@ -565,6 +583,7 @@ export class $BindingElement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-keyedbindinginitialization
+  // 13.3.3.9 Runtime Semantics: KeyedBindingInitialization
   public InitializeKeyedBinding(
     ctx: ExecutionContext,
     value: $AnyNonEmpty,
@@ -618,6 +637,7 @@ export class $BindingElement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-iteratorbindinginitialization
+  // 13.3.3.8 Runtime Semantics: IteratorBindingInitialization
   public InitializeIteratorBinding(
     ctx: ExecutionContext,
     iteratorRecord: $IteratorRecord,
@@ -750,6 +770,7 @@ export class $SpreadElement implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-arrayaccumulation
+  // 12.2.5.2 Runtime Semantics: ArrayAccumulation
   public AccumulateArray(
     ctx: ExecutionContext,
     array: $ArrayExoticObject,
@@ -800,12 +821,16 @@ export class $OmittedExpression implements I$Node {
   public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-boundnames
+  // 13.3.3.1 Static Semantics: BoundNames
   public readonly BoundNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-containsexpression
+  // 13.3.3.2 Static Semantics: ContainsExpression
   public readonly ContainsExpression: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-hasinitializer
+  // 13.3.3.3 Static Semantics: HasInitializer
   public readonly HasInitializer: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-issimpleparameterlist
+  // 13.3.3.4 Static Semantics: IsSimpleParameterList
   public readonly IsSimpleParameterList: false = false;
 
   public constructor(
@@ -821,6 +846,7 @@ export class $OmittedExpression implements I$Node {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-iteratordestructuringassignmentevaluation
+  // 12.15.5.5 Runtime Semantics: IteratorDestructuringAssignmentEvaluation
   public EvaluateDestructuringAssignmentIterator(
     ctx: ExecutionContext,
     iteratorRecord: $IteratorRecord,

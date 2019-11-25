@@ -53,6 +53,7 @@ export class $ErrorConstructor extends $BuiltinFunction<'%Error%'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-error-message
+  // 19.5.1.1 Error ( message )
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmpty,
@@ -212,6 +213,7 @@ export class $EvalErrorConstructor extends $BuiltinFunction<'%EvalError%'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-nativeerror
+  // 19.5.6.1.1 NativeError ( message )
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmpty,
@@ -306,6 +308,7 @@ export class $RangeErrorConstructor extends $BuiltinFunction<'%RangeError%'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-nativeerror
+  // 19.5.6.1.1 NativeError ( message )
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmpty,
@@ -400,6 +403,7 @@ export class $ReferenceErrorConstructor extends $BuiltinFunction<'%ReferenceErro
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-nativeerror
+  // 19.5.6.1.1 NativeError ( message )
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmpty,
@@ -495,6 +499,7 @@ export class $SyntaxErrorConstructor extends $BuiltinFunction<'%SyntaxError%'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-nativeerror
+  // 19.5.6.1.1 NativeError ( message )
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmpty,
@@ -590,6 +595,7 @@ export class $TypeErrorConstructor extends $BuiltinFunction<'%TypeError%'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-nativeerror
+  // 19.5.6.1.1 NativeError ( message )
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmpty,
@@ -685,6 +691,7 @@ export class $URIErrorConstructor extends $BuiltinFunction<'%URIError%'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-nativeerror
+  // 19.5.6.1.1 NativeError ( message )
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmpty,

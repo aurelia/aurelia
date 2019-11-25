@@ -59,6 +59,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   public get isProxy(): true { return true; }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxycreate
+  // 9.5.14 ProxyCreate ( target , handler )
   public constructor(
     realm: Realm,
     target: $AnyNonEmpty,
@@ -103,6 +104,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
 
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-getprototypeof
+  // 9.5.1 [[GetPrototypeOf]] ( )
   public '[[GetPrototypeOf]]'(
     ctx: ExecutionContext,
   ): $AnyObject | $Null | $Error {
@@ -163,6 +165,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-setprototypeof-v
+  // 9.5.2 [[SetPrototypeOf]] ( V )
   public '[[SetPrototypeOf]]'(
     ctx: ExecutionContext,
     V: $AnyObject | $Null,
@@ -225,6 +228,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-isextensible
+  // 9.5.3 [[IsExtensible]] ( )
   public '[[IsExtensible]]'(
     ctx: ExecutionContext,
   ): $Boolean | $Error {
@@ -270,6 +274,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-preventextensions
+  // 9.5.4 [[PreventExtensions]] ( )
   public '[[PreventExtensions]]'(
     ctx: ExecutionContext,
   ): $Boolean | $Error {
@@ -319,6 +324,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-getownproperty-p
+  // 9.5.5 [[GetOwnProperty]] ( P )
   public '[[GetOwnProperty]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
@@ -428,6 +434,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-defineownproperty-p-desc
+  // 9.5.6 [[DefineOwnProperty]] ( P , Desc )
   public '[[DefineOwnProperty]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
@@ -529,6 +536,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-hasproperty-p
+  // 9.5.7 [[HasProperty]] ( P )
   public '[[HasProperty]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
@@ -593,6 +601,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-get-p-receiver
+  // 9.5.8 [[Get]] ( P , Receiver )
   public '[[Get]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
@@ -657,6 +666,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-set-p-v-receiver
+  // 9.5.9 [[Set]] ( P , V , Receiver )
   public '[[Set]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
@@ -729,6 +739,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-delete-p
+  // 9.5.10 [[Delete]] ( P )
   public '[[Delete]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
@@ -788,6 +799,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-ownpropertykeys
+  // 9.5.11 [[OwnPropertyKeys]] ( )
   public '[[OwnPropertyKeys]]'(
     ctx: ExecutionContext,
   ): $List<$PropertyKey> | $Error {
@@ -912,6 +924,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-call-thisargument-argumentslist
+  // 9.5.12 [[Call]] ( thisArgument , argumentsList )
   public '[[Call]]'(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmpty,
@@ -950,6 +963,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-construct-argumentslist-newtarget
+  // 9.5.13 [[Construct]] ( argumentsList , newTarget )
   public '[[Construct]]'(
     ctx: ExecutionContext,
     argumentsList: readonly $AnyNonEmpty[],

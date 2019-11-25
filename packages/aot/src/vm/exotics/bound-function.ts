@@ -30,6 +30,7 @@ export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObje
   public get isBoundFunction(): true { return true; }
 
   // http://www.ecma-international.org/ecma-262/#sec-boundfunctioncreate
+  // 9.4.1.3 BoundFunctionCreate ( targetFunction , boundThis , boundArgs )
   public constructor(
     realm: Realm,
     targetFunction: $Function,
@@ -63,6 +64,7 @@ export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObje
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-bound-function-exotic-objects-call-thisargument-argumentslist
+  // 9.4.1.1 [[Call]] ( thisArgument , argumentsList )
   public '[[Call]]'(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmpty,
@@ -91,6 +93,7 @@ export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObje
 
 
   // http://www.ecma-international.org/ecma-262/#sec-bound-function-exotic-objects-construct-argumentslist-newtarget
+  // 9.4.1.2 [[Construct]] ( argumentsList , newTarget )
   public '[[Construct]]'(
     ctx: ExecutionContext,
     argumentsList: readonly $AnyNonEmpty[],

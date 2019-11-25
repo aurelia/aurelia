@@ -47,6 +47,7 @@ export class $SymbolConstructor extends $BuiltinFunction<'%Symbol%'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-symbol-description
+  // 19.4.1.1 Symbol ( [ description ] )
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmpty,

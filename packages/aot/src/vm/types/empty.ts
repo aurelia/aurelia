@@ -89,6 +89,7 @@ export class $Empty {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-updateempty
+  // 6.2.3.4 UpdateEmpty ( completionRecord , value )
   public UpdateEmpty(value: $Any): typeof value { // Can't use generics here due to "expression produces a type union that is too complex to represent" :(
     // 1. Assert: If completionRecord.[[Type]] is either return or throw, then completionRecord.[[Value]] is not empty.
     // 2. If completionRecord.[[Value]] is not empty, return Completion(completionRecord).

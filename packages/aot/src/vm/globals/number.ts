@@ -47,6 +47,7 @@ export class $NumberConstructor extends $BuiltinFunction<'%Number%'> {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-number-constructor-number-value
+  // 20.1.1.1 Number ( value )
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmpty,

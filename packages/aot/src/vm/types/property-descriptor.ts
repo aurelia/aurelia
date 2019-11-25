@@ -51,18 +51,21 @@ export class $PropertyDescriptor {
   public '[[Writable]]': $Boolean | $Undefined | $Empty;
 
   // http://www.ecma-international.org/ecma-262/#sec-isaccessordescriptor
+  // 6.2.5.1 IsAccessorDescriptor ( Desc )
   public get isAccessorDescriptor(): boolean {
     // 2. If both Desc.[[Get]] and Desc.[[Set]] are absent, return false.
     return !this['[[Get]]'].isEmpty || !this['[[Set]]'].isEmpty;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-isdatadescriptor
+  // 6.2.5.2 IsDataDescriptor ( Desc )
   public get isDataDescriptor(): boolean {
     // 2. If both Desc.[[Value]] and Desc.[[Writable]] are absent, return false.
     return !this['[[Value]]'].isEmpty || !this['[[Writable]]'].isEmpty;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-isgenericdescriptor
+  // 6.2.5.3 IsGenericDescriptor ( Desc )
   public get isGenericDescriptor(): boolean {
     // 2. If IsAccessorDescriptor(Desc) and IsDataDescriptor(Desc) are both false, return true.
     return (
@@ -102,6 +105,7 @@ export class $PropertyDescriptor {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-completepropertydescriptor
+  // 6.2.5.6 CompletePropertyDescriptor ( Desc )
   public Complete(
     ctx: ExecutionContext,
   ): this {

@@ -83,8 +83,6 @@ import {
   $StatementNode,
   blockDeclarationInstantiation,
   evaluateStatementList,
-  $$ESStatement,
-  $$esStatement,
   evaluateStatement,
   $$ESLabelledItem,
   $$esLabelledItem,
@@ -789,8 +787,8 @@ export class $IfStatement implements I$Node {
   public readonly id: number;
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
-  public readonly $thenStatement: $$ESStatement;
-  public readonly $elseStatement: $$ESStatement | undefined;
+  public readonly $thenStatement: $$ESLabelledItem;
+  public readonly $elseStatement: $$ESLabelledItem | undefined;
 
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
@@ -814,7 +812,7 @@ export class $IfStatement implements I$Node {
     this.id = realm.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
-    const $thenStatement = this.$thenStatement = $$esStatement(node.thenStatement as $StatementNode, this, ctx);
+    const $thenStatement = this.$thenStatement = $$esLabelledItem(node.thenStatement as $StatementNode, this, ctx);
 
     if (node.elseStatement === void 0) {
       this.$elseStatement = void 0;
@@ -822,7 +820,7 @@ export class $IfStatement implements I$Node {
       this.VarDeclaredNames = $thenStatement.VarDeclaredNames;
       this.VarScopedDeclarations = $thenStatement.VarScopedDeclarations;
     } else {
-      const $elseStatement = this.$elseStatement = $$esStatement(node.elseStatement as $StatementNode, this, ctx);
+      const $elseStatement = this.$elseStatement = $$esLabelledItem(node.elseStatement as $StatementNode, this, ctx);
 
       this.VarDeclaredNames = [
         ...$thenStatement.VarDeclaredNames,
@@ -897,7 +895,7 @@ export class $DoStatement implements I$Node {
   public readonly $kind = SyntaxKind.DoStatement;
   public readonly id: number;
 
-  public readonly $statement: $$ESStatement;
+  public readonly $statement: $$ESLabelledItem;
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
@@ -921,7 +919,7 @@ export class $DoStatement implements I$Node {
   ) {
     this.id = realm.registerNode(this);
 
-    const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
+    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx);
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
 
     this.VarDeclaredNames = $statement.VarDeclaredNames;
@@ -984,7 +982,7 @@ export class $WhileStatement implements I$Node {
   public readonly $kind = SyntaxKind.WhileStatement;
   public readonly id: number;
 
-  public readonly $statement: $$ESStatement;
+  public readonly $statement: $$ESLabelledItem;
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
@@ -1008,7 +1006,7 @@ export class $WhileStatement implements I$Node {
   ) {
     this.id = realm.registerNode(this);
 
-    const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
+    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx);
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
 
     this.VarDeclaredNames = $statement.VarDeclaredNames;
@@ -1079,7 +1077,7 @@ export class $ForStatement implements I$Node {
   public readonly $initializer: $$Initializer | undefined;
   public readonly $condition: $$AssignmentExpressionOrHigher | undefined;
   public readonly $incrementor: $$AssignmentExpressionOrHigher | undefined;
-  public readonly $statement: $$ESStatement;
+  public readonly $statement: $$ESLabelledItem;
 
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
@@ -1104,7 +1102,7 @@ export class $ForStatement implements I$Node {
 
     this.$condition = $assignmentExpression(node.condition as $AssignmentExpressionNode, this, ctx);
     this.$incrementor = $assignmentExpression(node.incrementor as $AssignmentExpressionNode, this, ctx);
-    const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
+    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx);
 
     if (node.initializer === void 0) {
       this.$initializer = void 0;
@@ -1192,7 +1190,7 @@ export class $ForInStatement implements I$Node {
 
   public readonly $initializer: $$Initializer;
   public readonly $expression: $$AssignmentExpressionOrHigher;
-  public readonly $statement: $$ESStatement;
+  public readonly $statement: $$ESLabelledItem;
 
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
@@ -1217,7 +1215,7 @@ export class $ForInStatement implements I$Node {
     this.id = realm.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
-    const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
+    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx);
 
     if (node.initializer.kind === SyntaxKind.VariableDeclarationList) {
       const $initializer = this.$initializer = new $VariableDeclarationList(node.initializer as VariableDeclarationList, this, ctx);
@@ -1330,7 +1328,7 @@ export class $ForOfStatement implements I$Node {
 
   public readonly $initializer: $$Initializer;
   public readonly $expression: $$AssignmentExpressionOrHigher;
-  public readonly $statement: $$ESStatement;
+  public readonly $statement: $$ESLabelledItem;
 
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
@@ -1355,7 +1353,7 @@ export class $ForOfStatement implements I$Node {
     this.id = realm.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
-    const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
+    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx);
 
     if (node.initializer.kind === SyntaxKind.VariableDeclarationList) {
       const $initializer = this.$initializer = new $VariableDeclarationList(node.initializer as VariableDeclarationList, this, ctx);
@@ -1643,7 +1641,7 @@ export class $WithStatement implements I$Node {
   public readonly id: number;
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
-  public readonly $statement: $$ESStatement;
+  public readonly $statement: $$ESLabelledItem;
 
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
@@ -1667,7 +1665,7 @@ export class $WithStatement implements I$Node {
     this.id = realm.registerNode(this);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
-    const $statement = this.$statement = $$esStatement(node.statement as $StatementNode, this, ctx);
+    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx);
 
     this.VarDeclaredNames = $statement.VarDeclaredNames;
     this.VarScopedDeclarations = $statement.VarScopedDeclarations;

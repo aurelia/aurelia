@@ -1036,7 +1036,7 @@ export function isIIFE(expr: $FunctionExpression | $ArrowFunction): boolean {
 
 export function evaluateStatement(
   ctx: ExecutionContext,
-  statement: $$ESStatement,
+  statement: $$ESLabelledItem,
 ): $Any {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
@@ -1057,6 +1057,7 @@ export function evaluateStatement(
     case SyntaxKind.ThrowStatement:
     case SyntaxKind.TryStatement:
     case SyntaxKind.DebuggerStatement:
+    case SyntaxKind.FunctionDeclaration:
       stmtCompletion = statement.Evaluate(ctx);
       break;
     case SyntaxKind.DoStatement:

@@ -2,6 +2,8 @@
 import {
   ILogger,
   IContainer,
+  Writable,
+  IDisposable,
 } from '@aurelia/kernel';
 import {
   IFileSystem,
@@ -119,7 +121,7 @@ export class ResolvedBindingRecord {
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-abstract-module-records
-export interface IModule {
+export interface IModule extends IDisposable {
   /** This field is never used. Its only purpose is to help TS distinguish this interface from others. */
   readonly '<IModule>': unknown;
 
@@ -167,10 +169,14 @@ export class DeferredModule implements IModule {
   public _InnerModuleInstantiation(ctx: ExecutionContext, stack: IModule[], index: $Number): $Number | $Error {
     throw new Error('Method not implemented.');
   }
+
+  public dispose(): void {
+    throw new Error('Method not implemented.');
+  }
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-code-realms
-export class Realm {
+export class Realm implements IDisposable {
   public readonly nodes: I$Node[] = [];
   public nodeCount: number = 0;
   public contextId: number = 0;
@@ -186,8 +192,7 @@ export class Realm {
 
   private constructor(
     public readonly container: IContainer,
-    private readonly logger: ILogger,
-    private readonly fs: IFileSystem,
+    public readonly logger: ILogger,
   ) {
 
     this.stack = new ExecutionContextStack(logger);
@@ -197,11 +202,10 @@ export class Realm {
   // 8.2.1 CreateRealm ( )
   public static Create(container: IContainer): Realm {
     const logger = container.get(ILogger).root.scopeTo('Realm');
-    const fs = container.get(IFileSystem);
     logger.debug('Creating new realm');
 
     // 1. Let realmRec be a new Realm Record.
-    const realm = new Realm(container, logger, fs);
+    const realm = new Realm(container, logger);
 
     // 2. Perform CreateIntrinsics(realmRec).
     new Intrinsics(realm);
@@ -278,7 +282,7 @@ export class Realm {
     // 2. c. Perform ? DefinePropertyOrThrow(global, name, desc).
     // 3. Return global.
 
-    function def(propertyName: string, intrinsicName: keyof Intrinsics): void {
+    function def(propertyName: string, intrinsicName: Exclude<keyof Intrinsics, 'dispose'>): void {
       const name = new $String(realm, propertyName);
       const desc = new $PropertyDescriptor(realm, name);
       desc['[[Writable]]'] = intrinsics.false;
@@ -449,6 +453,21 @@ export class Realm {
     return id;
   }
 
+  public dispose(this: Writable<Partial<Realm>>): void {
+    this.stack!.dispose();
+    this.stack = void 0;
+
+    this['[[Intrinsics]]']!.dispose();
+    this['[[Intrinsics]]'] = void 0;
+    this['[[GlobalObject]]']!.dispose();
+    this['[[GlobalObject]]'] = void 0;
+    this['[[GlobalEnv]]']!.dispose();
+    this['[[GlobalEnv]]'] = void 0;
+
+    this.container = void 0;
+    this.logger = void 0;
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-getidentifierreference
   // 8.1.2.1 GetIdentifierReference ( lex , name , strict )
   private GetIdentifierReference(
@@ -487,9 +506,9 @@ export class Realm {
   }
 }
 
-export class ExecutionContextStack extends Array<ExecutionContext> {
+export class ExecutionContextStack extends Array<ExecutionContext> implements IDisposable {
   public constructor(
-    private readonly logger: ILogger,
+    public readonly logger: ILogger,
   ) {
     super();
     this.logger = logger.root.scopeTo('ExecutionContextStack');
@@ -510,9 +529,15 @@ export class ExecutionContextStack extends Array<ExecutionContext> {
 
     return super.pop()!;
   }
+
+  public dispose(this: Writable<Partial<ExecutionContextStack>>): void {
+    this.forEach!(x => { x.dispose(); });
+    this.length = 0;
+    this.logger = void 0;
+  }
 }
 
-export class ExecutionContext<TLex extends $EnvRec = $EnvRec, TVar extends ($ModuleEnvRec | $FunctionEnvRec | $DeclarativeEnvRec) = ($ModuleEnvRec | $FunctionEnvRec | $DeclarativeEnvRec)> {
+export class ExecutionContext<TLex extends $EnvRec = $EnvRec, TVar extends ($ModuleEnvRec | $FunctionEnvRec | $DeclarativeEnvRec) = ($ModuleEnvRec | $FunctionEnvRec | $DeclarativeEnvRec)> implements IDisposable {
   public readonly id: number;
 
   public Function!: $Function | $Null;
@@ -522,7 +547,7 @@ export class ExecutionContext<TLex extends $EnvRec = $EnvRec, TVar extends ($Mod
 
   public suspended: boolean = false;
 
-  private readonly logger: ILogger;
+  public readonly logger: ILogger;
 
   public constructor(
     public readonly Realm: Realm,
@@ -552,5 +577,19 @@ export class ExecutionContext<TLex extends $EnvRec = $EnvRec, TVar extends ($Mod
       throw new Error('ExecutionContext is not at the top of the stack');
     }
     this.suspended = true;
+  }
+
+  public dispose(this: Writable<Partial<ExecutionContext>>): void {
+    this.Function = void 0;
+
+    (this.ScriptOrModule as IDisposable).dispose();
+    this.ScriptOrModule = void 0;
+    (this.LexicalEnvironment as IDisposable).dispose();
+    this.LexicalEnvironment = void 0;
+    (this.VariableEnvironment as IDisposable).dispose();
+    this.VariableEnvironment = void 0;
+
+    this.Realm = void 0;
+    this.logger = void 0;
   }
 }

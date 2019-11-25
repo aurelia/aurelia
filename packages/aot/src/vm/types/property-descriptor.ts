@@ -18,11 +18,15 @@ import {
   $AnyNonError,
   $PropertyKey,
 } from './_shared';
+import {
+  IDisposable,
+  Writable,
+} from '@aurelia/kernel';
 
 let descriptorId = 0;
 
 // http://www.ecma-international.org/ecma-262/#sec-property-descriptor-specification-type
-export class $PropertyDescriptor {
+export class $PropertyDescriptor implements IDisposable {
   public readonly '<$PropertyDescriptor>': unknown;
 
   public readonly id: number = ++descriptorId;
@@ -151,6 +155,17 @@ export class $PropertyDescriptor {
 
     // 7. Return Desc.
     return this;
+  }
+
+  public dispose(this: Writable<Partial<$PropertyDescriptor>>): void {
+    this['[[Enumerable]]'] = void 0;
+    this['[[Configurable]]'] = void 0;
+
+    this['[[Get]]'] = void 0;
+    this['[[Set]]'] = void 0;
+
+    this['[[Writable]]'] = void 0;
+    this['[[Value]]'] = void 0;
   }
 }
 

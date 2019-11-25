@@ -24,6 +24,7 @@ import {
 import {
   PLATFORM,
   ILogger,
+  Writable,
 } from '@aurelia/kernel';
 import {
   IFile,
@@ -167,6 +168,8 @@ export type ModuleStatus = 'uninstantiated' | 'instantiating' | 'instantiated' |
 // http://www.ecma-international.org/ecma-262/#sec-source-text-module-records
 export class $SourceFile implements I$Node, IModule {
   public readonly '<IModule>': unknown;
+
+  public disposed: boolean = false;
 
   public '[[Environment]]': $ModuleEnvRec | $Undefined;
   public '[[Namespace]]': $NamespaceExoticObject | $Undefined;
@@ -1360,6 +1363,46 @@ export class $SourceFile implements I$Node, IModule {
 
     return sl;
   }
+
+  public dispose(this: Writable<Partial<$SourceFile>>): void {
+    if (this.disposed) {
+      return;
+    }
+
+    this.disposed = true;
+
+    this['[[Environment]]'] = void 0;
+    this['[[Namespace]]'] = void 0;
+
+    this.sourceFile = void 0;
+    this.parent = void 0;
+
+    this.$statements = void 0;
+    this.DirectivePrologue = void 0;
+    this.ExecutionResult = void 0;
+
+    this.ExportedBindings = void 0;
+    this.ExportedNames = void 0;
+    this.ExportEntries = void 0;
+    this.ImportEntries = void 0;
+    this.ImportedLocalNames = void 0;
+    this.ModuleRequests = void 0;
+    this.LexicallyScopedDeclarations = void 0;
+    this.VarScopedDeclarations = void 0;
+    this.TypeDeclarations = void 0;
+    this.RequestedModules = void 0;
+    this.LocalExportEntries = void 0;
+    this.IndirectExportEntries = void 0;
+    this.StarExportEntries = void 0;
+
+    this.logger = void 0;
+    this.$file = void 0;
+    this.node = void 0;
+    this.realm = void 0;
+    this.pkg = void 0;
+    this.moduleResolver = void 0;
+    this.compilerOptions = void 0;
+  }
 }
 
 export class $DocumentFragment implements I$Node, IModule {
@@ -1428,6 +1471,10 @@ export class $DocumentFragment implements I$Node, IModule {
     index: $Number,
   ): $Number | $Error {
     return index;
+  }
+
+  public dispose(): void {
+    throw new Error('Method not implemented.');
   }
 }
 

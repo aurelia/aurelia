@@ -3,6 +3,7 @@ import {
   ILogger,
   Writable,
   Registration,
+  IDisposable,
 } from '@aurelia/kernel';
 
 import {
@@ -75,7 +76,7 @@ export interface IModuleResolver {
   ): IModule | $Error;
 }
 
-export interface IServiceHost extends IModuleResolver {
+export interface IServiceHost extends IModuleResolver, IDisposable {
   executeEntryFile(dir: string): Promise<$Any>;
   executeSpecificFile(file: IFile): Promise<$Any>;
   executeProvider(provider: ISourceFileProvider): Promise<$Any>;
@@ -110,18 +111,24 @@ export class EntrySourceFileProvider implements ISourceFileProvider {
 }
 
 export class ServiceHost implements IServiceHost {
-  public readonly jsdom: JSDOM;
+  private _jsdom: JSDOM | null = null;
+  public get jsdom(): JSDOM {
+    let jsdom = this._jsdom;
+    if (jsdom === null) {
+      jsdom = this._jsdom = new JSDOM('');
+    }
+    return jsdom;
+  }
   public readonly agent: Agent;
 
-  private readonly compilerOptionsCache: Map<string, $CompilerOptions> = new Map();
-  private readonly moduleCache: Map<string, IModule> = new Map();
+  public readonly compilerOptionsCache: Map<string, $CompilerOptions> = new Map();
+  public readonly moduleCache: Map<string, IModule> = new Map();
 
   public constructor(
     public readonly container: IContainer,
-    private readonly logger: ILogger = container.get(ILogger),
-    private readonly fs: IFileSystem = container.get(IFileSystem),
+    public readonly logger: ILogger = container.get(ILogger),
+    public readonly fs: IFileSystem = container.get(IFileSystem),
   ) {
-    this.jsdom = new JSDOM('');
     this.agent = new Agent(logger);
   }
 
@@ -253,6 +260,19 @@ export class ServiceHost implements IServiceHost {
         }
       }
     }
+  }
+
+  public dispose(this: Writable<Partial<ServiceHost>>): void {
+    this.agent!.dispose();
+    this.agent = void 0;
+    this.compilerOptionsCache!.clear();
+    this.compilerOptionsCache = void 0;
+    for (const mod of this.moduleCache!.values()) {
+      mod.dispose();
+    }
+    this.moduleCache!.clear();
+    this.moduleCache = void 0;
+    this.container = void 0;
   }
 
   private loadEntryPackage(dir: string): Promise<NPMPackage> {

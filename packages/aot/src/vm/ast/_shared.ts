@@ -90,6 +90,7 @@ import {
 import {
   PLATFORM,
   Writable,
+  IDisposable,
 } from '@aurelia/kernel';
 import {
   Realm,

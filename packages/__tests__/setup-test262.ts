@@ -8,6 +8,8 @@ import {
   ILogger,
   PLATFORM,
   format,
+  IDisposable,
+  Writable,
 } from '@aurelia/kernel';
 import {
   IFileSystem,
@@ -16,31 +18,13 @@ import {
   IFile,
   ExecutionContext,
   $SourceFile,
-  Realm,
   IServiceHost,
   $Any,
 } from '@aurelia/aot';
-import { resolve, join } from 'path';
-import { createSourceFile } from 'typescript';
-
-class TestPhaseResult<T extends 'early' | 'resolution' | 'runtime' = 'early' | 'resolution' | 'runtime'> {
-  public constructor(
-    public readonly phase: T,
-    public readonly file: IFile,
-    public readonly result: unknown,
-    public readonly err: Error | null = null,
-  ) {}
-}
-
-class TestResult {
-  public phase: 'early' | 'resolution' | 'runtime' = 'early';
-  public early: TestPhaseResult<'early'> | null = null;
-  public resolution: TestPhaseResult<'resolution'> | null = null;
-  public runtime: TestPhaseResult<'runtime'> | null = null;
-  public get last(): TestPhaseResult {
-    return this[this.phase];
-  }
-}
+import {
+  resolve,
+  join,
+} from 'path';
 
 class TestMetadataNegative {
   public constructor(
@@ -96,7 +80,7 @@ const excludedFeatures = [
   'dynamic-import',
 ];
 
-class TestCase {
+class TestCase implements IDisposable {
   public readonly meta: TestMetadata | null;
   public readonly files: readonly IFile[];
 
@@ -104,7 +88,7 @@ class TestCase {
   public get host(): IServiceHost {
     let host = this._host;
     if (host === null) {
-      host = new ServiceHost(this.container);
+      host = this._host = new ServiceHost(this.container);
     }
     return host;
   }
@@ -127,6 +111,19 @@ class TestCase {
 
   public run(): Promise<$Any> {
     return this.host.executeProvider(this);
+  }
+
+  public dispose(
+    this: Writable<Partial<TestCase>>
+  ): void {
+    this.meta = void 0;
+    this.files = void 0;
+    this['_host']!.dispose();
+    this['_host'] = void 0;
+    this.container = void 0;
+    this.logger = void 0;
+    this.file = void 0;
+    this.prerequisites = void 0;
   }
 }
 
@@ -230,6 +227,8 @@ class TestRunner {
         }
       } catch (err) {
         logger.fatal(`AOT threw an error: ${err.message}\n${err.stack}`)
+      } finally {
+        tc.dispose();
       }
     }
   }

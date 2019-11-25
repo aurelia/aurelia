@@ -51,12 +51,18 @@ import {
 import {
   $List,
 } from './list';
+import {
+  Writable,
+  IDisposable,
+} from '@aurelia/kernel';
 
 // http://www.ecma-international.org/ecma-262/#sec-object-type
 export class $Object<
   T extends string = string,
-> {
+> implements IDisposable {
   public readonly '<$Object>': unknown;
+
+  public disposed: boolean = false;
 
   public readonly id: number = nextValueId();
 
@@ -909,5 +915,24 @@ export class $Object<
 
     // 5. Return keys.
     return keys;
+  }
+
+  public dispose(this: Writable<Partial<$Object>>): void {
+    if (this.disposed) {
+      return;
+    }
+
+    this.disposed = true;
+
+    this.propertyDescriptors!.forEach(x => { x.dispose(); });
+    this.propertyDescriptors = void 0;
+    this.propertyKeys = void 0;
+    this.propertyMap = void 0;
+
+    this['[[Target]]'] = void 0;
+    this['[[Prototype]]'] = void 0;
+    this['[[Extensible]]'] = void 0;
+
+    this.realm = void 0;
   }
 }

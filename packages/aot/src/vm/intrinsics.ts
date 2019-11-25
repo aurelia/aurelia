@@ -81,6 +81,10 @@ import {
 import {
   $ThrowTypeError,
 } from './globals/throw-type-error';
+import {
+  IDisposable,
+  Writable,
+} from '@aurelia/kernel';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
@@ -201,7 +205,7 @@ export type $False = $Boolean<false>;
  * %WeakSet%                         WeakSet                      The WeakSet constructor (23.4.1)
  * %WeakSetPrototype%                WeakSet.prototype            The initial value of the prototype data property of %WeakSet%
  */
-export class Intrinsics {
+export class Intrinsics implements IDisposable {
   public readonly 'empty': $Empty;
   public readonly 'undefined': $Undefined;
   public readonly 'null': $Null;
@@ -649,5 +653,317 @@ export class Intrinsics {
     this['%Promise_all%'] = new $Object(realm, '%Promise_all%', functionPrototype, CompletionType.normal, empty);
     this['%Promise_reject%'] = new $Object(realm, '%Promise_reject%', functionPrototype, CompletionType.normal, empty);
     this['%Promise_resolve%'] = new $Object(realm, '%Promise_resolve%', functionPrototype, CompletionType.normal, empty);
+  }
+
+  public dispose(this: Writable<Partial<Intrinsics>>): void {
+    this['true'] = void 0;
+    this['false'] = void 0;
+    this['NaN'] = void 0;
+    this['Infinity'] = void 0;
+    this['-Infinity'] = void 0;
+    this['0'] = void 0;
+    this['-0'] = void 0;
+    this[''] = void 0;
+    this['*'] = void 0;
+    this['*default*'] = void 0;
+    this['default'] = void 0;
+    this['string'] = void 0;
+    this['number'] = void 0;
+    this['length'] = void 0;
+    this['next'] = void 0;
+    this['call'] = void 0;
+    this['message'] = void 0;
+    this['$arguments'] = void 0;
+    this['$callee'] = void 0;
+    this['$constructor'] = void 0;
+    this['$prototype'] = void 0;
+    this['$name'] = void 0;
+    this['$toString'] = void 0;
+    this['$valueOf'] = void 0;
+
+    this['$enumerable'] = void 0;
+    this['$configurable'] = void 0;
+    this['$writable'] = void 0;
+    this['$value'] = void 0;
+    this['$return'] = void 0;
+    this['$done'] = void 0;
+
+    this['$getPrototypeOf'] = void 0;
+    this['$setPrototypeOf'] = void 0;
+    this['$isExtensible'] = void 0;
+    this['$preventExtensions'] = void 0;
+    this['$getOwnPropertyDescriptor'] = void 0;
+    this['$defineProperty'] = void 0;
+    this['$has'] = void 0;
+    this['$get'] = void 0;
+    this['$set'] = void 0;
+    this['$deleteProperty'] = void 0;
+    this['$ownKeys'] = void 0;
+    this['$apply'] = void 0;
+    this['$construct'] = void 0;
+
+    this['@@asyncIterator'] = void 0;
+    this['@@hasInstance'] = void 0;
+    this['@@isConcatSpreadable'] = void 0;
+    this['@@iterator'] = void 0;
+    this['@@match'] = void 0;
+    this['@@replace'] = void 0;
+    this['@@search'] = void 0;
+    this['@@species'] = void 0;
+    this['@@split'] = void 0;
+    this['@@toPrimitive'] = void 0;
+    this['@@toStringTag'] = void 0;
+    this['@@unscopables'] = void 0;
+
+
+    this['%ObjectPrototype%']!.dispose();
+    this['%ObjectPrototype%'] = void 0;
+    this['%FunctionPrototype%']!.dispose();
+    this['%FunctionPrototype%'] = void 0;
+
+    this['%Object%']!.dispose();
+    this['%Object%'] = void 0;
+    this['%Function%']!.dispose();
+    this['%Function%'] = void 0;
+
+    this['%ThrowTypeError%']!.dispose();
+    this['%ThrowTypeError%'] = void 0;
+
+    this['%ObjProto_toString%']!.dispose();
+    this['%ObjProto_toString%'] = void 0;
+
+    this['%String%']!.dispose();
+    this['%String%'] = void 0;
+    this['%StringPrototype%']!.dispose();
+    this['%StringPrototype%'] = void 0;
+
+    this['%Number%']!.dispose();
+    this['%Number%'] = void 0;
+    this['%NumberPrototype%']!.dispose();
+    this['%NumberPrototype%'] = void 0;
+
+    this['%Boolean%']!.dispose();
+    this['%Boolean%'] = void 0;
+    this['%BooleanPrototype%']!.dispose();
+    this['%BooleanPrototype%'] = void 0;
+
+    this['%Symbol%']!.dispose();
+    this['%Symbol%'] = void 0;
+    this['%SymbolPrototype%']!.dispose();
+    this['%SymbolPrototype%'] = void 0;
+
+    this['%Error%']!.dispose();
+    this['%Error%'] = void 0;
+    this['%ErrorPrototype%']!.dispose();
+    this['%ErrorPrototype%'] = void 0;
+
+    this['%EvalError%']!.dispose();
+    this['%EvalError%'] = void 0;
+    this['%EvalErrorPrototype%']!.dispose();
+    this['%EvalErrorPrototype%'] = void 0;
+
+    this['%RangeError%']!.dispose();
+    this['%RangeError%'] = void 0;
+    this['%RangeErrorPrototype%']!.dispose();
+    this['%RangeErrorPrototype%'] = void 0;
+
+    this['%ReferenceError%']!.dispose();
+    this['%ReferenceError%'] = void 0;
+    this['%ReferenceErrorPrototype%']!.dispose();
+    this['%ReferenceErrorPrototype%'] = void 0;
+
+    this['%SyntaxError%']!.dispose();
+    this['%SyntaxError%'] = void 0;
+    this['%SyntaxErrorPrototype%']!.dispose();
+    this['%SyntaxErrorPrototype%'] = void 0;
+
+    this['%TypeError%']!.dispose();
+    this['%TypeError%'] = void 0;
+    this['%TypeErrorPrototype%']!.dispose();
+    this['%TypeErrorPrototype%'] = void 0;
+
+    this['%URIError%']!.dispose();
+    this['%URIError%'] = void 0;
+    this['%URIErrorPrototype%']!.dispose();
+    this['%URIErrorPrototype%'] = void 0;
+
+    this['%PromisePrototype%']!.dispose();
+    this['%PromisePrototype%'] = void 0;
+    this['%RegExpPrototype%']!.dispose();
+    this['%RegExpPrototype%'] = void 0;
+    this['%DatePrototype%']!.dispose();
+    this['%DatePrototype%'] = void 0;
+
+    this['%AsyncFunctionPrototype%']!.dispose();
+    this['%AsyncFunctionPrototype%'] = void 0;
+
+    this['%Generator%']!.dispose();
+    this['%Generator%'] = void 0;
+    this['%AsyncGenerator%']!.dispose();
+    this['%AsyncGenerator%'] = void 0;
+
+    this['%IteratorPrototype%']!.dispose();
+    this['%IteratorPrototype%'] = void 0;
+    this['%ArrayIteratorPrototype%']!.dispose();
+    this['%ArrayIteratorPrototype%'] = void 0;
+    this['%MapIteratorPrototype%']!.dispose();
+    this['%MapIteratorPrototype%'] = void 0;
+    this['%SetIteratorPrototype%']!.dispose();
+    this['%SetIteratorPrototype%'] = void 0;
+    this['%StringIteratorPrototype%']!.dispose();
+    this['%StringIteratorPrototype%'] = void 0;
+    this['%GeneratorPrototype%']!.dispose();
+    this['%GeneratorPrototype%'] = void 0;
+
+    this['%AsyncIteratorPrototype%']!.dispose();
+    this['%AsyncIteratorPrototype%'] = void 0;
+    this['%AsyncFromSyncIteratorPrototype%']!.dispose();
+    this['%AsyncFromSyncIteratorPrototype%'] = void 0;
+    this['%AsyncGeneratorPrototype%']!.dispose();
+    this['%AsyncGeneratorPrototype%'] = void 0;
+
+    this['%ArrayPrototype%']!.dispose();
+    this['%ArrayPrototype%'] = void 0;
+    this['%MapPrototype%']!.dispose();
+    this['%MapPrototype%'] = void 0;
+    this['%WeakMapPrototype%']!.dispose();
+    this['%WeakMapPrototype%'] = void 0;
+    this['%SetPrototype%']!.dispose();
+    this['%SetPrototype%'] = void 0;
+    this['%WeakSetPrototype%']!.dispose();
+    this['%WeakSetPrototype%'] = void 0;
+    this['%DataViewPrototype%']!.dispose();
+    this['%DataViewPrototype%'] = void 0;
+    this['%ArrayBufferPrototype%']!.dispose();
+    this['%ArrayBufferPrototype%'] = void 0;
+    this['%SharedArrayBufferPrototype%']!.dispose();
+    this['%SharedArrayBufferPrototype%'] = void 0;
+
+    this['%TypedArrayPrototype%']!.dispose();
+    this['%TypedArrayPrototype%'] = void 0;
+    this['%Float32ArrayPrototype%']!.dispose();
+    this['%Float32ArrayPrototype%'] = void 0;
+    this['%Float64ArrayPrototype%']!.dispose();
+    this['%Float64ArrayPrototype%'] = void 0;
+    this['%Int8ArrayPrototype%']!.dispose();
+    this['%Int8ArrayPrototype%'] = void 0;
+    this['%Int16ArrayPrototype%']!.dispose();
+    this['%Int16ArrayPrototype%'] = void 0;
+    this['%Int32ArrayPrototype%']!.dispose();
+    this['%Int32ArrayPrototype%'] = void 0;
+    this['%Uint8ArrayPrototype%']!.dispose();
+    this['%Uint8ArrayPrototype%'] = void 0;
+    this['%Uint8ClampedArrayPrototype%']!.dispose();
+    this['%Uint8ClampedArrayPrototype%'] = void 0;
+    this['%Uint16ArrayPrototype%']!.dispose();
+    this['%Uint16ArrayPrototype%'] = void 0;
+    this['%Uint32ArrayPrototype%']!.dispose();
+    this['%Uint32ArrayPrototype%'] = void 0;
+
+    this['%Promise%']!.dispose();
+    this['%Promise%'] = void 0;
+    this['%RegExp%']!.dispose();
+    this['%RegExp%'] = void 0;
+    this['%Date%']!.dispose();
+    this['%Date%'] = void 0;
+
+    this['%AsyncFunction%']!.dispose();
+    this['%AsyncFunction%'] = void 0;
+
+    this['%GeneratorFunction%']!.dispose();
+    this['%GeneratorFunction%'] = void 0;
+    this['%AsyncGeneratorFunction%']!.dispose();
+    this['%AsyncGeneratorFunction%'] = void 0;
+
+    this['%Array%']!.dispose();
+    this['%Array%'] = void 0;
+    this['%Map%']!.dispose();
+    this['%Map%'] = void 0;
+    this['%WeakMap%']!.dispose();
+    this['%WeakMap%'] = void 0;
+    this['%Set%']!.dispose();
+    this['%Set%'] = void 0;
+    this['%WeakSet%']!.dispose();
+    this['%WeakSet%'] = void 0;
+    this['%DataView%']!.dispose();
+    this['%DataView%'] = void 0;
+    this['%ArrayBuffer%']!.dispose();
+    this['%ArrayBuffer%'] = void 0;
+    this['%SharedArrayBuffer%']!.dispose();
+    this['%SharedArrayBuffer%'] = void 0;
+
+    this['%TypedArray%']!.dispose();
+    this['%TypedArray%'] = void 0;
+    this['%Float32Array%']!.dispose();
+    this['%Float32Array%'] = void 0;
+    this['%Float64Array%']!.dispose();
+    this['%Float64Array%'] = void 0;
+    this['%Int8Array%']!.dispose();
+    this['%Int8Array%'] = void 0;
+    this['%Int16Array%']!.dispose();
+    this['%Int16Array%'] = void 0;
+    this['%Int32Array%']!.dispose();
+    this['%Int32Array%'] = void 0;
+    this['%Uint8Array%']!.dispose();
+    this['%Uint8Array%'] = void 0;
+    this['%Uint8ClampedArray%']!.dispose();
+    this['%Uint8ClampedArray%'] = void 0;
+    this['%Uint16Array%']!.dispose();
+    this['%Uint16Array%'] = void 0;
+    this['%Uint32Array%']!.dispose();
+    this['%Uint32Array%'] = void 0;
+
+    this['%Atomics%']!.dispose();
+    this['%Atomics%'] = void 0;
+    this['%JSON%']!.dispose();
+    this['%JSON%'] = void 0;
+    this['%Math%']!.dispose();
+    this['%Math%'] = void 0;
+    this['%Reflect%']!.dispose();
+    this['%Reflect%'] = void 0;
+    this['%Proxy%']!.dispose();
+    this['%Proxy%'] = void 0;
+
+    this['%decodeURI%']!.dispose();
+    this['%decodeURI%'] = void 0;
+    this['%decodeURIComponent%']!.dispose();
+    this['%decodeURIComponent%'] = void 0;
+    this['%encodeURI%']!.dispose();
+    this['%encodeURI%'] = void 0;
+    this['%encodeURIComponent%']!.dispose();
+    this['%encodeURIComponent%'] = void 0;
+    this['%eval%']!.dispose();
+    this['%eval%'] = void 0;
+    this['%isFinite%']!.dispose();
+    this['%isFinite%'] = void 0;
+    this['%isNaN%']!.dispose();
+    this['%isNaN%'] = void 0;
+    this['%parseFloat%']!.dispose();
+    this['%parseFloat%'] = void 0;
+    this['%parseInt%']!.dispose();
+    this['%parseInt%'] = void 0;
+    this['%JSONParse%']!.dispose();
+    this['%JSONParse%'] = void 0;
+    this['%JSONStringify%']!.dispose();
+    this['%JSONStringify%'] = void 0;
+
+    this['%ArrayProto_entries%']!.dispose();
+    this['%ArrayProto_entries%'] = void 0;
+    this['%ArrayProto_forEach%']!.dispose();
+    this['%ArrayProto_forEach%'] = void 0;
+    this['%ArrayProto_keys%']!.dispose();
+    this['%ArrayProto_keys%'] = void 0;
+    this['%ArrayProto_values%']!.dispose();
+    this['%ArrayProto_values%'] = void 0;
+    this['%ObjProto_valueOf%']!.dispose();
+    this['%ObjProto_valueOf%'] = void 0;
+    this['%PromiseProto_then%']!.dispose();
+    this['%PromiseProto_then%'] = void 0;
+    this['%Promise_all%']!.dispose();
+    this['%Promise_all%'] = void 0;
+    this['%Promise_reject%']!.dispose();
+    this['%Promise_reject%'] = void 0;
+    this['%Promise_resolve%']!.dispose();
+    this['%Promise_resolve%'] = void 0;
   }
 }

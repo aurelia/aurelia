@@ -37,6 +37,8 @@ import {
 } from './function';
 import {
   ILogger,
+  IDisposable,
+  Writable,
 } from '@aurelia/kernel';
 import {
   $Error,
@@ -54,7 +56,7 @@ export type $EnvRec = (
 
 let bindingId = 0;
 
-export class $Binding {
+export class $Binding implements IDisposable {
   public readonly '<$Binding>': unknown;
 
   public readonly id: number = ++bindingId;
@@ -74,10 +76,17 @@ export class $Binding {
     public M: IModule | null = null,
     public N2: $String | null = null,
   ) {}
+
+  public dispose(this: Writable<Partial<$Binding>>): void {
+    this.value = void 0;
+    this.origin = void 0;
+    this.M = void 0;
+    this.N2 = void 0;
+  }
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-declarative-environment-records
-export class $DeclarativeEnvRec {
+export class $DeclarativeEnvRec implements IDisposable {
   public readonly '<$DeclarativeEnvRec>': unknown;
 
   public readonly bindings: Map<string, $Binding> = new Map();
@@ -365,9 +374,20 @@ export class $DeclarativeEnvRec {
     // 1. Return undefined.
     return intrinsics.undefined;
   }
+
+  public dispose(this: Writable<Partial<$DeclarativeEnvRec>>): void {
+    for (const binding of this.bindings!.values()) {
+      binding.dispose();
+    }
+    this.bindings!.clear();
+    this.bindings = void 0;
+    this.logger = void 0;
+    this.realm = void 0;
+    this.outer = void 0;
+  }
 }
 
-export class $ObjectEnvRec {
+export class $ObjectEnvRec implements IDisposable {
   public readonly '<$ObjectEnvRec>': unknown;
 
   public withEnvironment: boolean = false;
@@ -624,11 +644,19 @@ export class $ObjectEnvRec {
     // 3. Otherwise, return undefined.
     return intrinsics.undefined;
   }
+
+  public dispose(this: Writable<Partial<$ObjectEnvRec>>): void {
+    this.bindingObject!.dispose();
+    this.bindingObject = void 0;
+    this.logger = void 0;
+    this.realm = void 0;
+    this.outer = void 0;
+  }
 }
 
 export type BindingStatus = 'lexical' | 'initialized' | 'uninitialized';
 
-export class $FunctionEnvRec extends $DeclarativeEnvRec {
+export class $FunctionEnvRec extends $DeclarativeEnvRec implements IDisposable {
   public readonly '<$FunctionEnvRec>': unknown;
 
   public '[[ThisValue]]': $AnyNonEmpty;
@@ -803,9 +831,17 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec {
     // 5. Return ? home.[[GetPrototypeOf]]().
     return home['[[GetPrototypeOf]]'](ctx);
   }
+
+  public dispose(this: Writable<Partial<$FunctionEnvRec>>): void {
+    super.dispose();
+    this['[[ThisValue]]'] = void 0;
+    this['[[FunctionObject]]'] = void 0;
+    this['[[HomeObject]]'] = void 0;
+    this['[[NewTarget]]'] = void 0;
+  }
 }
 
-export class $GlobalEnvRec {
+export class $GlobalEnvRec implements IDisposable {
   public readonly '<$GlobalEnvRec>': unknown;
 
   public '[[ObjectRecord]]': $ObjectEnvRec;
@@ -1393,9 +1429,19 @@ export class $GlobalEnvRec {
     // 12. Return NormalCompletion(empty).
     return intrinsics.empty;
   }
+
+  public dispose(this: Writable<Partial<$GlobalEnvRec>>): void {
+    this['[[ObjectRecord]]'] = void 0;
+    this['[[GlobalThisValue]]'] = void 0;
+    this['[[DeclarativeRecord]]'] = void 0;
+    this['[[VarNames]]'] = void 0;
+    this.logger = void 0;
+    this.outer = void 0;
+    this.realm = void 0;
+  }
 }
 
-export class $ModuleEnvRec extends $DeclarativeEnvRec {
+export class $ModuleEnvRec extends $DeclarativeEnvRec implements IDisposable {
   public readonly '<$ModuleEnvRec>': unknown;
 
   // Everything is false because an environment record should not appear like any kind of normal ES value.

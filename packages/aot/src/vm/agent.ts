@@ -6,6 +6,8 @@ import {
   DI,
   IContainer,
   ILogger,
+  IDisposable,
+  Writable,
 } from '@aurelia/kernel';
 import {
   Realm,
@@ -28,7 +30,7 @@ export interface ISourceFileProvider {
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-agents
-export class Agent {
+export class Agent implements IDisposable {
   public readonly ScriptJobs: JobQueue;
   public readonly PromiseJobs: JobQueue;
 
@@ -116,6 +118,14 @@ export class Agent {
         return result;
       }
     }
+  }
+
+  public dispose(this: Writable<Partial<Agent>>): void {
+    this.PromiseJobs!.dispose();
+    this.ScriptJobs!.dispose();
+    this.PromiseJobs = void 0;
+    this.ScriptJobs = void 0;
+    this.logger = void 0;
   }
 }
 

@@ -1,5 +1,7 @@
 import {
   ILogger,
+  IDisposable,
+  Writable,
 } from '@aurelia/kernel';
 import {
   $Any,
@@ -16,7 +18,7 @@ import {
 } from './ast/modules';
 
 // http://www.ecma-international.org/ecma-262/#table-25
-export abstract class Job {
+export abstract class Job implements IDisposable {
   public '[[Realm]]': Realm;
   public '[[ScriptOrModule]]': $SourceFile;
 
@@ -32,9 +34,15 @@ export abstract class Job {
   }
 
   public abstract Run(ctx: ExecutionContext): $Any;
+
+  public dispose(this: Writable<Partial<Job>>): void {
+    this['[[Realm]]'] = void 0;
+    this['[[ScriptOrModule]]'] = void 0;
+    this.logger = void 0;
+  }
 }
 
-export class JobQueue<T extends Job = Job> {
+export class JobQueue<T extends Job = Job> implements IDisposable {
   public readonly queue: T[] = [];
 
   public get isEmpty(): boolean {
@@ -71,5 +79,11 @@ export class JobQueue<T extends Job = Job> {
 
     // 10. Return NormalCompletion(empty).
     return new $Empty(realm);
+  }
+
+  public dispose(this: Writable<Partial<JobQueue>>): void {
+    this.queue!.forEach(x => { x.dispose(); });
+    this.queue = void 0;
+    this.logger = void 0;
   }
 }

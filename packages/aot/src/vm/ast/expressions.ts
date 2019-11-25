@@ -725,6 +725,32 @@ export class $ShorthandPropertyAssignment implements I$Node {
 
     this.PropName = $name.PropName;
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-propertydefinitionevaluation
+  // 12.2.6.8 Runtime Semantics: PropertyDefinitionEvaluation
+  public EvaluatePropertyDefinition(
+    ctx: ExecutionContext,
+    object: $Object,
+    enumerable: $Boolean,
+  ): $Boolean | $Error {
+    // PropertyDefinition :
+    //     IdentifierReference
+
+    // 1. Let propName be StringValue of IdentifierReference.
+    const propName = this.$name.StringValue;
+
+    // 2. Let exprValue be the result of evaluating IdentifierReference.
+    const exprValue = this.$name.Evaluate(ctx);
+
+    // 3. Let propValue be ? GetValue(exprValue).
+    const propValue = exprValue.GetValue(ctx);
+    if (propValue.isAbrupt) { return propValue; }
+
+    // 4. Assert: enumerable is true.
+    // 5. Assert: object is an ordinary, extensible object with no non-configurable properties.
+    // 6. Return ! CreateDataPropertyOrThrow(object, propName, propValue).
+    return $CreateDataProperty(ctx, object, propName, propValue);
+  }
 }
 
 export class $SpreadAssignment implements I$Node {

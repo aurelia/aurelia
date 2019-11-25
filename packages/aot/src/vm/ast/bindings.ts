@@ -807,7 +807,7 @@ export class $SpreadElement implements I$Node {
     if (spreadObj.isAbrupt) { return spreadObj; }
 
     // 4. Let iteratorRecord be ? GetIterator(spreadObj).
-    const iteratorRecord = $GetIterator(ctx, spreadObj as $AnyObject);
+    const iteratorRecord = $GetIterator(ctx, spreadObj);
     if (iteratorRecord.isAbrupt) { return iteratorRecord; }
 
     // 5. Repeat,

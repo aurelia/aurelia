@@ -74,6 +74,48 @@ export function $Set(
   return success;
 }
 
+// http://www.ecma-international.org/ecma-262/#sec-getv
+// 7.3.2 GetV ( V , P )
+export function $GetV(
+  ctx: ExecutionContext,
+  V: $AnyNonEmpty,
+  P: $PropertyKey,
+): $AnyNonEmpty | $Error {
+  // 1. Assert: IsPropertyKey(P) is true.
+  // 2. Let O be ? ToObject(V).
+  const O = V.ToObject(ctx);
+  if (O.isAbrupt) { return O; }
+
+  // 3. Return ? O.[[Get]](P, V).
+  return O['[[Get]]'](ctx, P, V);
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-getmethod
+// 7.3.9 GetMethod ( V , P )
+export function $GetMethod(
+  ctx: ExecutionContext,
+  V: $AnyNonEmpty,
+  P: $PropertyKey,
+): $Function | $Undefined | $Error {
+  // 1. Assert: IsPropertyKey(P) is true.
+  // 2. Let func be ? GetV(V, P).
+  const func = $GetV(ctx, V, P);
+  if (func.isAbrupt) { return func; }
+
+  // 3. If func is either undefined or null, return undefined.
+  if (func.isNil) {
+    return ctx.Realm['[[Intrinsics]]'].undefined;
+  }
+
+  // 4. If IsCallable(func) is false, throw a TypeError exception.
+  if (!func.isFunction) {
+    return new $TypeError(ctx.Realm);
+  }
+
+  // 5. Return func.
+  return func as $Function;
+}
+
 // http://www.ecma-international.org/ecma-262/#sec-createdataproperty
 export function $CreateDataProperty(
   ctx: ExecutionContext,

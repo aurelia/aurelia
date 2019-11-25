@@ -22,6 +22,7 @@ import {
   $CreateDataProperty,
   $Call,
   $DefinePropertyOrThrow,
+  $GetMethod,
 } from '../operations';
 import {
   $Number,
@@ -43,7 +44,7 @@ import {
 // http://www.ecma-international.org/ecma-262/#sec-getiterator
 export function $GetIterator(
   ctx: ExecutionContext,
-  obj: $AnyObject,
+  obj: $AnyNonEmpty,
   hint?: 'sync' | 'async',
   method?: $Function | $Undefined,
 ): $IteratorRecord | $Error {
@@ -61,14 +62,14 @@ export function $GetIterator(
     // 3. a. If hint is async, then
     if (hint === 'async') {
       // 3. a. i. Set method to ? GetMethod(obj, @@asyncIterator).
-      const $method = obj.GetMethod(ctx, intrinsics['@@asyncIterator']);
+      const $method = $GetMethod(ctx, obj, intrinsics['@@asyncIterator']);
       if ($method.isAbrupt) { return $method; }
       method = $method;
 
       // 3. a. ii. If method is undefined, then
       if (method.isUndefined) {
         // 3. a. ii. 1. Let syncMethod be ? GetMethod(obj, @@iterator).
-        const syncMethod = obj.GetMethod(ctx, intrinsics['@@iterator']);
+        const syncMethod = $GetMethod(ctx, obj, intrinsics['@@iterator']);
         if (syncMethod.isAbrupt) { return syncMethod; }
 
         // 3. a. ii. 2. Let syncIteratorRecord be ? GetIterator(obj, sync, syncMethod).
@@ -80,7 +81,7 @@ export function $GetIterator(
       }
     } else {
       // 3. b. Otherwise, set method to ? GetMethod(obj, @@iterator).
-      const $method = obj.GetMethod(ctx, intrinsics['@@iterator']);
+      const $method = $GetMethod(ctx, obj, intrinsics['@@iterator']);
       if ($method.isAbrupt) { return $method; }
       method = $method;
     }

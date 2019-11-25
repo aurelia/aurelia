@@ -78,6 +78,9 @@ import {
   $URIErrorConstructor,
   $URIErrorPrototype,
 } from './globals/error';
+import {
+  $ThrowTypeError,
+} from './globals/throw-type-error';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
@@ -267,6 +270,8 @@ export class Intrinsics {
   public readonly '%Object%': $ObjectConstructor;
   public readonly '%Function%': $FunctionConstructor;
 
+  public readonly '%ThrowTypeError%': $ThrowTypeError;
+
   public readonly '%ObjProto_toString%': $ObjProto_toString;
 
   public readonly '%String%': $StringConstructor;
@@ -388,7 +393,6 @@ export class Intrinsics {
   public readonly '%parseInt%': $Object<'%parseInt%'>;
   public readonly '%JSONParse%': $Object<'%JSONParse%'>;
   public readonly '%JSONStringify%': $Object<'%JSONStringify%'>;
-  public readonly '%ThrowTypeError%': $Function<'%ThrowTypeError%'>;
 
   public readonly '%ArrayProto_entries%': $Object<'%ArrayProto_entries%'>;
   public readonly '%ArrayProto_forEach%': $Object<'%ArrayProto_forEach%'>;
@@ -483,6 +487,8 @@ export class Intrinsics {
 
     const functionConstructor = this['%Function%'] = new $FunctionConstructor(realm, functionPrototype);
     (functionConstructor.$prototype = functionPrototype).$constructor = functionConstructor;
+
+    this['%ThrowTypeError%'] = new $ThrowTypeError(realm, '%ThrowTypeError%', functionPrototype);
 
     objectPrototype.$toString = this['%ObjProto_toString%'] = new $ObjProto_toString(realm, 'Object.prototype.toString', functionPrototype);
 
@@ -633,7 +639,6 @@ export class Intrinsics {
     this['%parseInt%'] = new $Object(realm, '%parseInt%', functionPrototype, CompletionType.normal, empty);
     this['%JSONParse%'] = new $Object(realm, '%JSONParse%', functionPrototype, CompletionType.normal, empty);
     this['%JSONStringify%'] = new $Object(realm, '%JSONStringify%', functionPrototype, CompletionType.normal, empty);
-    this['%ThrowTypeError%'] = new $Function(realm, '%ThrowTypeError%', functionPrototype);
 
     this['%ArrayProto_entries%'] = new $Object(realm, '%ArrayProto_entries%', functionPrototype, CompletionType.normal, empty);
     this['%ArrayProto_forEach%'] = new $Object(realm, '%ArrayProto_forEach%', functionPrototype, CompletionType.normal, empty);

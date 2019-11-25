@@ -140,6 +140,8 @@ export class $MethodDeclaration implements I$Node {
     ctx: ExecutionContext,
     object: $Object,
   ): MethodDefinitionRecord | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
     // NOTE: this logic and signature is adapted to the fact that this is never a constructor method (that's what $ConstructorDeclaration is for)
@@ -187,6 +189,8 @@ export class $MethodDeclaration implements I$Node {
     object: $Object,
     enumerable: $Boolean,
   ): $Boolean | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -224,6 +228,8 @@ export class $MethodDeclaration implements I$Node {
     functionObject: $Function,
     argumentsList: readonly $AnyNonEmpty[],
   ): $Any {
+    ctx.checkTimeout();
+
     return $FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
   }
 }
@@ -294,6 +300,8 @@ export class $GetAccessorDeclaration implements I$Node {
     object: $Object,
     enumerable: $Boolean,
   ): $Boolean | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -346,6 +354,8 @@ export class $GetAccessorDeclaration implements I$Node {
     functionObject: $Function,
     argumentsList: readonly $AnyNonEmpty[],
   ): $Any {
+    ctx.checkTimeout();
+
     return $FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
   }
 }
@@ -416,6 +426,8 @@ export class $SetAccessorDeclaration implements I$Node {
     object: $Object,
     enumerable: $Boolean,
   ): $Boolean | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -467,6 +479,8 @@ export class $SetAccessorDeclaration implements I$Node {
     functionObject: $Function,
     argumentsList: readonly $AnyNonEmpty[],
   ): $Any {
+    ctx.checkTimeout();
+
     return $FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
   }
 }

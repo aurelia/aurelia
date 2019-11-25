@@ -227,6 +227,8 @@ export class $VariableStatement implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -385,6 +387,8 @@ export class $VariableDeclaration implements I$Node {
 
 
   public InitializeBinding(ctx: ExecutionContext, value: $AnyNonEmpty): $Any {
+    ctx.checkTimeout();
+
     const bindingName = this.$name;
     const kind = bindingName.$kind;
     const boundNames = bindingName.BoundNames;
@@ -643,6 +647,8 @@ export class $Block implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -710,6 +716,8 @@ export class $EmptyStatement implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -764,6 +772,8 @@ export class $ExpressionStatement implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
+    ctx.checkTimeout();
+
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // ExpressionStatement : Expression ;
 
@@ -830,6 +840,8 @@ export class $IfStatement implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -922,6 +934,8 @@ export class $DoStatement implements I$Node {
     ctx: ExecutionContext,
     labelSet: $StringSet,
   ): $Any {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1007,6 +1021,8 @@ export class $WhileStatement implements I$Node {
     ctx: ExecutionContext,
     labelSet: $StringSet,
   ): $Any {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1125,6 +1141,8 @@ export class $ForStatement implements I$Node {
   public EvaluateLabelled(
     ctx: ExecutionContext,
   ): $Any {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1232,6 +1250,8 @@ export class $ForInStatement implements I$Node {
   public EvaluateLabelled(
     ctx: ExecutionContext,
   ): $Any {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1289,6 +1309,8 @@ export class $ForInStatement implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1366,6 +1388,8 @@ export class $ForOfStatement implements I$Node {
   public EvaluateLabelled(
     ctx: ExecutionContext,
   ): $Any {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1423,6 +1447,8 @@ export class $ForOfStatement implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1467,6 +1493,8 @@ export class $ContinueStatement implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Empty {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1521,6 +1549,8 @@ export class $BreakStatement implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1579,6 +1609,8 @@ export class $ReturnStatement implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1646,6 +1678,8 @@ export class $WithStatement implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1712,6 +1746,8 @@ export class $SwitchStatement implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
+    ctx.checkTimeout();
+
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     const realm = ctx.Realm;
     // SwitchStatement : switch ( Expression ) CaseBlock
@@ -1750,6 +1786,8 @@ export class $SwitchStatement implements I$Node {
     ctx: ExecutionContext,
     switchValue: $Any,
   ) {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1866,6 +1904,8 @@ export class $SwitchStatement implements I$Node {
     clause: $CaseClause,
     switchValue: $Any,
   ): boolean {
+    ctx.checkTimeout();
+
     // 1. Assert: C is an instance of the production CaseClause:caseExpression:StatementListopt .
     // 2. Let exprRef be the result of evaluating the Expression of C.
     // 3. Let clauseSelector be ? GetValue(exprRef).
@@ -1951,6 +1991,8 @@ export class $LabeledStatement implements I$Node {
   public EvaluateLabelled(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1983,6 +2025,8 @@ export class $LabeledStatement implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -2031,6 +2075,8 @@ export class $ThrowStatement implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -2127,6 +2173,8 @@ export class $TryStatement implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     const realm = ctx.Realm;
     // TryStatement : try Block Catch
@@ -2169,7 +2217,11 @@ export class $TryStatement implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-catchclauseevaluation
   // 13.15.7 Runtime Semantics: CatchClauseEvaluation
-  private EvaluateCatchClause(ctx: ExecutionContext, thrownValue: $AnyNonEmpty): $AnyNonEmpty | $Error {
+  private EvaluateCatchClause(
+    ctx: ExecutionContext,
+    thrownValue: $AnyNonEmpty,
+  ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
 
     const realm = this.realm;
     const catchClause = this.$catchClause;
@@ -2255,6 +2307,8 @@ export class $DebuggerStatement implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -2441,6 +2495,8 @@ export class $CatchClause implements I$Node {
     this.VarScopedDeclarations = $block.VarScopedDeclarations;
   }
   public CreateBinding(ctx: ExecutionContext, realm: Realm) {
+    ctx.checkTimeout();
+
     for (const argName of this.$variableDeclaration?.BoundNames ?? []) {
       ctx.LexicalEnvironment.CreateMutableBinding(ctx, argName, realm['[[Intrinsics]]'].false);
     }

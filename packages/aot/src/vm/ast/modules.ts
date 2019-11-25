@@ -617,6 +617,8 @@ export class $SourceFile implements I$Node, IModule {
     stack: $SourceFile[],
     index: $Number,
   ): $Number | $Error {
+    ctx.checkTimeout();
+
     this.logger.debug(`${this.path}._InnerModuleInstantiation(#${ctx.id})`);
 
     const realm = ctx.Realm;
@@ -707,6 +709,8 @@ export class $SourceFile implements I$Node, IModule {
   public InitializeEnvironment(
     ctx: ExecutionContext,
   ): $Any {
+    ctx.checkTimeout();
+
     this.logger.debug(`${this.path}.InitializeEnvironment(#${ctx.id})`);
 
     const realm = ctx.Realm;
@@ -872,6 +876,8 @@ export class $SourceFile implements I$Node, IModule {
     ctx: ExecutionContext,
     exportStarSet: Set<IModule>,
   ): $List<$String> | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -940,6 +946,8 @@ export class $SourceFile implements I$Node, IModule {
     exportName: $String,
     resolveSet: ResolveSet,
   ): ResolvedBindingRecord | $Null | $String<'ambiguous'> | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1090,6 +1098,8 @@ export class $SourceFile implements I$Node, IModule {
     stack: $SourceFile[],
     index: number,
   ): $Number {
+    ctx.checkTimeout();
+
     this.logger.debug(`${this.path}.EvaluateModuleInner(#${ctx.id})`);
 
     const realm = ctx.Realm;
@@ -1180,6 +1190,8 @@ export class $SourceFile implements I$Node, IModule {
   public ExecuteModule(
     ctx: ExecutionContext,
   ): $Any {
+    ctx.checkTimeout();
+
     this.logger.debug(`${this.path}.ExecuteModule(#${ctx.id})`);
 
     const realm = ctx.Realm;
@@ -1232,6 +1244,8 @@ export class $SourceFile implements I$Node, IModule {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1446,6 +1460,8 @@ export class $DocumentFragment implements I$Node, IModule {
     exportName: $String,
     resolveSet: ResolveSet,
   ): ResolvedBindingRecord | $Null | $String<'ambiguous'> {
+    ctx.checkTimeout();
+
     this.logger.debug(`${this.path}.[ResolveExport] returning content as '${exportName['[[Value]]']}'`);
 
     return new ResolvedBindingRecord(this, exportName);
@@ -1455,12 +1471,16 @@ export class $DocumentFragment implements I$Node, IModule {
     ctx: ExecutionContext,
     exportStarSet: Set<IModule>,
   ): $List<$String> | $Error {
+    ctx.checkTimeout();
+
     return new $List<$String>();
   }
 
   public Instantiate(
     ctx: ExecutionContext,
   ): $Undefined | $Error {
+    ctx.checkTimeout();
+
     return ctx.Realm['[[Intrinsics]]'].undefined;
   }
 
@@ -1470,6 +1490,8 @@ export class $DocumentFragment implements I$Node, IModule {
     stack: IModule[],
     index: $Number,
   ): $Number | $Error {
+    ctx.checkTimeout();
+
     return index;
   }
 

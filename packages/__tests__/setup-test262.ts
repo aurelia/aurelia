@@ -118,8 +118,10 @@ class TestCase implements IDisposable {
   ): void {
     this.meta = void 0;
     this.files = void 0;
-    this['_host']!.dispose();
-    this['_host'] = void 0;
+    if (this['_host'] !== null) {
+      this['_host']!.dispose();
+      this['_host'] = void 0;
+    }
     this.container = void 0;
     this.logger = void 0;
     this.file = void 0;
@@ -184,7 +186,7 @@ class TestRunner {
     const now = PLATFORM.now();
     logger.info(`Loading test files from ${languageDir}`);
 
-    const files = (await fs.getFiles(languageDir)).filter(x => !x.shortName.endsWith('FIXTURE'));
+    const files = (await fs.getFiles(languageDir, true)).filter(x => !x.shortName.endsWith('FIXTURE'));
 
     logger.info(`Discovered ${files.length} test files in ${Math.round(PLATFORM.now() - now)}ms`);
 
@@ -197,10 +199,12 @@ class TestRunner {
       if (tc.meta != null && tc.meta.negative != null) {
         // These error types should be caught by typescript
         if (tc.meta.negative.phase === 'early' || tc.meta.negative.phase === 'parse') {
+          tc.dispose();
           continue;
         }
 
         if (excludedFeatures.some(x => tc.meta.features.includes(x))) {
+          tc.dispose();
           continue;
         }
       }
@@ -226,7 +230,7 @@ class TestRunner {
           }
         }
       } catch (err) {
-        logger.fatal(`AOT threw an error: ${err.message}\n${err.stack}`)
+        logger.fatal(`AOT threw an error: ${err.message}`)
       } finally {
         tc.dispose();
       }

@@ -134,6 +134,8 @@ export class $JsxElement implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -204,6 +206,8 @@ export class $JsxSelfClosingElement implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -243,6 +247,8 @@ export class $JsxFragment implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -272,6 +278,8 @@ export class $JsxText implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -307,6 +315,8 @@ export class $JsxOpeningElement implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -340,6 +350,8 @@ export class $JsxClosingElement implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -369,6 +381,8 @@ export class $JsxOpeningFragment implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -398,6 +412,8 @@ export class $JsxClosingFragment implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -472,6 +488,8 @@ export class $JsxAttributes implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -505,6 +523,8 @@ export class $JsxSpreadAttribute implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -538,6 +558,8 @@ export class $JsxExpression implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 

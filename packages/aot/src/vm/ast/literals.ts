@@ -80,6 +80,8 @@ export class $TemplateHead implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -111,6 +113,8 @@ export class $TemplateMiddle implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -142,6 +146,8 @@ export class $TemplateTail implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -188,6 +194,8 @@ export class $TemplateSpan implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -271,6 +279,8 @@ export class $NumericLiteral implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Number {
+    ctx.checkTimeout();
+
     // 1. Return the number whose value is MV of NumericLiteral as defined in 11.8.3.
     return this.Value;
   }
@@ -279,6 +289,8 @@ export class $NumericLiteral implements I$Node {
   public EvaluatePropName(
     ctx: ExecutionContext,
   ): $String {
+    ctx.checkTimeout();
+
     return this.PropName;
   }
 }
@@ -319,6 +331,8 @@ export class $BigIntLiteral implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Number {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -379,6 +393,8 @@ export class $StringLiteral implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $String {
+    ctx.checkTimeout();
+
     // Literal : StringLiteral
 
     // 1. Return the StringValue of StringLiteral as defined in 11.8.4.1.
@@ -389,6 +405,8 @@ export class $StringLiteral implements I$Node {
   public EvaluatePropName(
     ctx: ExecutionContext,
   ): $String {
+    ctx.checkTimeout();
+
     return this.PropName;
   }
 }
@@ -437,6 +455,8 @@ export class $RegularExpressionLiteral implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Object {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -487,6 +507,8 @@ export class $NoSubstitutionTemplateLiteral implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $String {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -539,6 +561,8 @@ export class $NullLiteral implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Null {
+    ctx.checkTimeout();
+
     // Literal : NullLiteral
 
     // 1. Return null.
@@ -589,6 +613,8 @@ export class $BooleanLiteral implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Boolean {
+    ctx.checkTimeout();
+
     // Literal : BooleanLiteral
 
     // 1. If BooleanLiteral is the token false, return false.

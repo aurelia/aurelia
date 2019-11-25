@@ -221,6 +221,8 @@ export class $ThisExpression implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
 
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
@@ -253,6 +255,8 @@ export class $SuperExpression implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -380,6 +384,8 @@ export class $ArrayLiteralExpression implements I$Node {
     array: $ArrayExoticObject,
     nextIndex: $Number,
   ): $Number | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -459,6 +465,8 @@ export class $ArrayLiteralExpression implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $ArrayExoticObject | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -592,6 +600,8 @@ export class $ObjectLiteralExpression implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Object | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -655,6 +665,8 @@ export class $PropertyAssignment implements I$Node {
     object: $Object,
     enumerable: $Boolean,
   ): $Boolean | $Error {
+    ctx.checkTimeout();
+
     // PropertyDefinition :
     //     PropertyName : AssignmentExpression
 
@@ -730,6 +742,8 @@ export class $ShorthandPropertyAssignment implements I$Node {
     object: $Object,
     enumerable: $Boolean,
   ): $Boolean | $Error {
+    ctx.checkTimeout();
+
     // PropertyDefinition :
     //     IdentifierReference
 
@@ -782,6 +796,8 @@ export class $SpreadAssignment implements I$Node {
     object: T,
     enumerable: $Boolean,
   ): T | $Error {
+    ctx.checkTimeout();
+
     // PropertyDefinition :
     //     ... AssignmentExpression
 
@@ -830,6 +846,8 @@ export class $PropertyAccessExpression implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Reference | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -889,6 +907,8 @@ export class $ElementAccessExpression implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Reference | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -956,6 +976,8 @@ export class $CallExpression implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1022,6 +1044,8 @@ export function $EvaluateCall(
   $arguments: readonly $$ArgumentOrArrayLiteralElement[],
   tailPosition: $Boolean,
 ): $AnyNonEmpty | $Error {
+  ctx.checkTimeout();
+
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1078,6 +1102,8 @@ export function $ArgumentListEvaluation(
   ctx: ExecutionContext,
   args: readonly $$ArgumentOrArrayLiteralElement[],
 ): $List<$AnyNonEmpty> | $Error {
+  ctx.checkTimeout();
+
   // Arguments : ( )
 
   // 1. Return a new empty List.
@@ -1167,6 +1193,8 @@ export class $NewExpression implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1254,6 +1282,8 @@ export class $TaggedTemplateExpression implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1341,6 +1371,8 @@ export class $TemplateExpression implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $String {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1421,6 +1453,8 @@ export class $ParenthesizedExpression implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Reference | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1463,6 +1497,8 @@ export class $NonNullExpression implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Reference | $Error {
+    ctx.checkTimeout();
+
     return this.$expression.Evaluate(ctx);
   }
 }
@@ -1495,6 +1531,8 @@ export class $MetaProperty implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1539,6 +1577,8 @@ export class $DeleteExpression implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Boolean {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1591,6 +1631,8 @@ export class $TypeOfExpression implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $String | $Undefined | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1677,6 +1719,8 @@ export class $VoidExpression implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1723,6 +1767,8 @@ export class $AwaitExpression implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1771,6 +1817,8 @@ export class $PrefixUnaryExpression implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1952,6 +2000,8 @@ export class $PostfixUnaryExpression implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -2045,6 +2095,8 @@ export class $TypeAssertion implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Reference | $Error {
+    ctx.checkTimeout();
+
     return this.$expression.Evaluate(ctx);
   }
 }
@@ -2103,6 +2155,8 @@ export class $BinaryExpression implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -3161,6 +3215,8 @@ export class $ConditionalExpression implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -3207,6 +3263,8 @@ export class $YieldExpression implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -3309,6 +3367,8 @@ export class $AsExpression implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Reference | $Error {
+    ctx.checkTimeout();
+
     return this.$expression.Evaluate(ctx);
   }
 }
@@ -3387,6 +3447,8 @@ export class $Identifier implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Reference | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -3409,6 +3471,8 @@ export class $Identifier implements I$Node {
   public EvaluatePropName(
     ctx: ExecutionContext,
   ): $String {
+    ctx.checkTimeout();
+
     return this.PropName;
   }
 
@@ -3419,6 +3483,8 @@ export class $Identifier implements I$Node {
     value: $AnyNonEmpty,
     environment: $EnvRec | undefined,
   ): readonly [$String] {
+    ctx.checkTimeout();
+
     this.logger.debug(`${this.path}.InitializePropertyBinding(#${ctx.id})`);
 
     // BindingProperty : SingleNameBinding
@@ -3441,6 +3507,8 @@ export class $Identifier implements I$Node {
     environment: $EnvRec | undefined,
     initializer?: $$AssignmentExpressionOrHigher,
   ): $Any {
+    ctx.checkTimeout();
+
     this.logger.debug(`${this.path}.InitializeIteratorBinding(#${ctx.id})`);
 
     const realm = ctx.Realm;
@@ -3527,6 +3595,8 @@ export class $Identifier implements I$Node {
     propertyName: $String,
     initializer?: $$AssignmentExpressionOrHigher,
   ): $Any {
+    ctx.checkTimeout();
+
     this.logger.debug(`${this.path}.InitializeKeyedBinding(#${ctx.id})`);
 
     const realm = ctx.Realm;

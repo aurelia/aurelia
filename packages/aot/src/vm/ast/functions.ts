@@ -279,6 +279,8 @@ export class $FunctionExpression implements I$Node {
     functionObject: $Function,
     argumentsList: readonly $AnyNonEmpty[],
   ): $Any {
+    ctx.checkTimeout();
+
     return $FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
   }
 
@@ -293,6 +295,8 @@ export class $FunctionExpression implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Function {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -458,6 +462,8 @@ export class $FunctionExpression implements I$Node {
     ctx: ExecutionContext,
     name: $String,
   ): $Function {
+    ctx.checkTimeout();
+
     // FunctionExpression : function ( FormalParameters ) { FunctionBody }
 
     // 1. Let closure be the result of evaluating this FunctionExpression.
@@ -671,6 +677,8 @@ export class $FunctionDeclaration implements I$Node {
     ctx: ExecutionContext,
     Scope: $EnvRec,
   ): $Function {
+    ctx.checkTimeout();
+
     this.logger.debug(`${this.path}.InstantiateFunctionObject(#${ctx.id})`);
 
     const realm = ctx.Realm;
@@ -726,6 +734,8 @@ export class $FunctionDeclaration implements I$Node {
     functionObject: $Function,
     argumentsList: readonly $AnyNonEmpty[],
   ): $Any {
+    ctx.checkTimeout();
+
     this.logger.debug(`${this.path}.EvaluateBody(#${ctx.id})`);
 
     const realm = ctx.Realm;
@@ -748,6 +758,8 @@ export class $FunctionDeclaration implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Empty {
+    ctx.checkTimeout();
+
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     const realm = ctx.Realm;
@@ -771,6 +783,8 @@ export function $FunctionDeclarationInstantiation(
   func: $Function,
   argumentsList: readonly $AnyNonEmpty[],
 ) {
+  ctx.checkTimeout();
+
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1169,6 +1183,8 @@ export class $ArrowFunction implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1192,6 +1208,8 @@ export class $ArrowFunction implements I$Node {
     functionObject: $Function,
     argumentsList: readonly $AnyNonEmpty[],
   ): $Any {
+    ctx.checkTimeout();
+
     if (this.$body.$kind === SyntaxKind.Block) {
       return $FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
     }
@@ -1281,6 +1299,8 @@ export class $ConstructorDeclaration implements I$Node {
     object: $Object,
     functionPrototype: $Object,
   ): MethodDefinitionRecord {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
     // NOTE: this logic and signature is adapted to the fact that this is always a constructor method
@@ -1325,6 +1345,8 @@ export class $ConstructorDeclaration implements I$Node {
     functionObject: $Function,
     argumentsList: readonly $AnyNonEmpty[],
   ): $Any {
+    ctx.checkTimeout();
+
     return $FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
   }
 }
@@ -1396,6 +1418,8 @@ export class $ParameterDeclaration implements I$Node {
     iteratorRecord: $IteratorRecord,
     environment: $EnvRec | undefined,
   ) {
+    ctx.checkTimeout();
+
     this.logger.debug(`${this.path}.InitializeIteratorBinding(#${ctx.id})`);
 
     const realm = ctx.Realm;

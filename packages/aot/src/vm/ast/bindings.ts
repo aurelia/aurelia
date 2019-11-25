@@ -150,6 +150,8 @@ export class $ComputedPropertyName implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $String | $Error {
+    ctx.checkTimeout();
+
     // ComputedPropertyName : [ AssignmentExpression ]
 
     // 1. Let exprValue be the result of evaluating AssignmentExpression.
@@ -167,6 +169,8 @@ export class $ComputedPropertyName implements I$Node {
   public EvaluatePropName(
     ctx: ExecutionContext,
   ): $String | $Error {
+    ctx.checkTimeout();
+
     return this.Evaluate(ctx);
   }
 }
@@ -228,6 +232,8 @@ export class $ObjectBindingPattern implements I$Node {
     value: $AnyNonEmpty,
     environment: $EnvRec | undefined,
   ): $Any {
+    ctx.checkTimeout();
+
     this.logger.debug(`${this.path}.InitializeBinding(#${ctx.id})`);
 
     const realm = ctx.Realm;
@@ -365,6 +371,8 @@ export class $ArrayBindingPattern implements I$Node {
     value: $AnyObject,
     environment: $EnvRec | undefined,
   ): $Any {
+    ctx.checkTimeout();
+
     this.logger.debug(`${this.path}.InitializeBinding(#${ctx.id})`);
 
     // BindingPattern : ArrayBindingPattern
@@ -393,6 +401,8 @@ export class $ArrayBindingPattern implements I$Node {
     iteratorRecord: $IteratorRecord,
     environment: $EnvRec | undefined,
   ): $Any {
+    ctx.checkTimeout();
+
     this.logger.debug(`${this.path}.InitializeIteratorBinding(#${ctx.id})`);
 
     const realm = ctx.Realm;
@@ -554,6 +564,8 @@ export class $BindingElement implements I$Node {
     value: $AnyNonEmpty,
     environment: $EnvRec | undefined,
   ): readonly $String[] | $Any {
+    ctx.checkTimeout();
+
     this.logger.debug(`${this.path}.InitializePropertyBinding(#${ctx.id})`);
 
     const PropertyName = this.$propertyName;
@@ -595,6 +607,8 @@ export class $BindingElement implements I$Node {
     propertyName: $String,
     initializer?: $$AssignmentExpressionOrHigher,
   ): $Any {
+    ctx.checkTimeout();
+
     this.logger.debug(`${this.path}.InitializeKeyedBinding(#${ctx.id})`);
 
     const realm = ctx.Realm;
@@ -647,6 +661,8 @@ export class $BindingElement implements I$Node {
     iteratorRecord: $IteratorRecord,
     environment: $EnvRec | undefined,
   ): $Any {
+    ctx.checkTimeout();
+
     this.logger.debug(`${this.path}.InitializeIteratorBinding(#${ctx.id})`);
 
     const realm = ctx.Realm;
@@ -771,6 +787,8 @@ export class $SpreadElement implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     return null as any; // TODO: implement this;
   }
 
@@ -781,6 +799,8 @@ export class $SpreadElement implements I$Node {
     array: $ArrayExoticObject,
     nextIndex: $Number,
   ): $Number | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
 
     // SpreadElement : ... AssignmentExpression
@@ -857,6 +877,8 @@ export class $OmittedExpression implements I$Node {
     ctx: ExecutionContext,
     iteratorRecord: $IteratorRecord,
   ): $Any {
+    ctx.checkTimeout();
+
     this.logger.debug(`${this.path}.EvaluateDestructuringAssignmentIterator(#${ctx.id})`);
 
     const realm = ctx.Realm;
@@ -890,6 +912,8 @@ export class $OmittedExpression implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
+    ctx.checkTimeout();
+
     return null as any; // TODO: implement this;
   }
 }

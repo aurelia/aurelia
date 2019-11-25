@@ -178,6 +178,7 @@ export class DeferredModule implements IModule {
 // http://www.ecma-international.org/ecma-262/#sec-code-realms
 export class Realm implements IDisposable {
   public readonly nodes: I$Node[] = [];
+  public timeout: number = 100;
   public nodeCount: number = 0;
   public contextId: number = 0;
 
@@ -549,12 +550,30 @@ export class ExecutionContext<TLex extends $EnvRec = $EnvRec, TVar extends ($Mod
 
   public readonly logger: ILogger;
 
+  private activityTimestamp: number = Date.now();
+  private activeTime: number = 0;
+  private timeoutCheck: number = 0;
+
   public constructor(
     public readonly Realm: Realm,
   ) {
     this.id = ++Realm.contextId;
     this.logger = Realm['logger'].root.scopeTo(`ExecutionContext #${this.id}`);
     this.logger.debug(`constructor()`);
+  }
+
+  public checkTimeout(): void {
+    if (!this.suspended) {
+      // Reduce the number of calls to the relative expensive Date.now()
+      if (++this.timeoutCheck === 100) {
+        this.timeoutCheck = 0;
+        this.activeTime += (Date.now() - this.activityTimestamp);
+        this.activityTimestamp = Date.now();
+        if (this.activeTime >= this.Realm.timeout) {
+          throw new Error(`Operation timed out`);
+        }
+      }
+    }
   }
 
   public resume(): void {
@@ -566,6 +585,7 @@ export class ExecutionContext<TLex extends $EnvRec = $EnvRec, TVar extends ($Mod
       throw new Error('ExecutionContext is not at the top of the stack');
     }
     this.suspended = false;
+    this.activityTimestamp = Date.now();
   }
 
   public suspend(): void {
@@ -577,6 +597,10 @@ export class ExecutionContext<TLex extends $EnvRec = $EnvRec, TVar extends ($Mod
       throw new Error('ExecutionContext is not at the top of the stack');
     }
     this.suspended = true;
+
+    // Timeout on a per-execution context basis, and only count the time that this context was active.
+    // This reduces false positives while still keeping potential infinite loops in deeply nested stacks (with constant popping/pushing) in check.
+    this.activeTime += (Date.now() - this.activityTimestamp);
   }
 
   public dispose(this: Writable<Partial<ExecutionContext>>): void {

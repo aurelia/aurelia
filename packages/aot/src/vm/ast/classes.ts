@@ -282,6 +282,8 @@ export class $ClassExpression implements I$Node {
     ctx: ExecutionContext,
     name: $String,
   ): $Function | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -296,6 +298,8 @@ export class $ClassExpression implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Function | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -513,6 +517,8 @@ export class $ClassDeclaration implements I$Node {
     classBinding: $String | $Undefined,
     className: $String | $Undefined,
   ): $Function | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -744,6 +750,8 @@ export class $ClassDeclaration implements I$Node {
   public EvaluateBindingClassDeclaration(
     ctx: ExecutionContext,
   ): $Function | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -792,6 +800,8 @@ export class $ClassDeclaration implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Empty | $Error {
+    ctx.checkTimeout();
+
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -812,6 +822,8 @@ export class $ClassDeclaration implements I$Node {
     functionObject: $Function,
     argumentsList: readonly $AnyNonEmpty[],
   ): $Any {
+    ctx.checkTimeout();
+
     return this.ConstructorMethod!.EvaluateBody(ctx, functionObject, argumentsList);
   }
 }

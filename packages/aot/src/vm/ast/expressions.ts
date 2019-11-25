@@ -172,7 +172,8 @@ export class $Decorator implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('Decorator'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.Decorator`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -209,7 +210,8 @@ export class $ThisExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ThisExpression'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ThisExpression`,
   ) {
     this.id = realm.registerNode(this);
   }
@@ -221,7 +223,7 @@ export class $ThisExpression implements I$Node {
   ): $AnyNonEmpty | $Error {
     const realm = ctx.Realm;
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // PrimaryExpression : this
 
     // 1. Return ? ResolveThisBinding().
@@ -240,7 +242,8 @@ export class $SuperExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('SuperExpression'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.SuperExpression`,
   ) {
     this.id = realm.registerNode(this);
   }
@@ -253,7 +256,7 @@ export class $SuperExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // SuperProperty : super [ Expression ]
 
     // 1. Let env be GetThisEnvironment().
@@ -360,7 +363,8 @@ export class $ArrayLiteralExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ArrayLiteralExpression'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ArrayLiteralExpression`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -573,7 +577,8 @@ export class $ObjectLiteralExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ObjectLiteralExpression'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ObjectLiteralExpression`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -630,7 +635,8 @@ export class $PropertyAssignment implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('PropertyAssignment'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.PropertyAssignment`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -704,7 +710,8 @@ export class $ShorthandPropertyAssignment implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ShorthandPropertyAssignment'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ShorthandPropertyAssignment`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -760,7 +767,8 @@ export class $SpreadAssignment implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('SpreadAssignment'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.SpreadAssignment`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -806,7 +814,8 @@ export class $PropertyAccessExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('PropertyAccessExpression'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.PropertyAccessExpression`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -824,7 +833,7 @@ export class $PropertyAccessExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // MemberExpression : MemberExpression . IdentifierName
 
     // 1. Let baseReference be the result of evaluating MemberExpression.
@@ -864,7 +873,8 @@ export class $ElementAccessExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ElementAccessExpression'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ElementAccessExpression`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -882,7 +892,7 @@ export class $ElementAccessExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // MemberExpression : MemberExpression [ Expression ]
 
     // 1. Let baseReference be the result of evaluating MemberExpression.
@@ -930,7 +940,8 @@ export class $CallExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('CallExpression'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.CallExpression`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -948,7 +959,7 @@ export class $CallExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // CallExpression : CoverCallExpressionAndAsyncArrowHead
 
     // 1. Let expr be CoveredCallExpression of CoverCallExpressionAndAsyncArrowHead.
@@ -1140,7 +1151,8 @@ export class $NewExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('NewExpression'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.NewExpression`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1158,7 +1170,7 @@ export class $NewExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // NewExpression : new NewExpression
 
     // 1. Return ? EvaluateNew(NewExpression, empty).
@@ -1221,7 +1233,8 @@ export class $TaggedTemplateExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('TaggedTemplateExpression'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.TaggedTemplateExpression`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1244,7 +1257,7 @@ export class $TaggedTemplateExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // MemberExpression : MemberExpression TemplateLiteral
 
     // 1. Let tagRef be the result of evaluating MemberExpression.
@@ -1312,7 +1325,8 @@ export class $TemplateExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('TemplateExpression'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.TemplateExpression`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1390,7 +1404,8 @@ export class $ParenthesizedExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ParenthesizedExpression'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ParenthesizedExpression`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1434,7 +1449,8 @@ export class $NonNullExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('NonNullExpression'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.NonNullExpression`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1464,7 +1480,8 @@ export class $MetaProperty implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('MetaProperty'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.MetaProperty`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1481,7 +1498,7 @@ export class $MetaProperty implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // NewTarget : new . target
 
     // 1. Return GetNewTarget().
@@ -1507,7 +1524,8 @@ export class $DeleteExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('DeleteExpression'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.DeleteExpression`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1524,7 +1542,7 @@ export class $DeleteExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // 1. Let ref be the result of evaluating UnaryExpression.
     // 2. ReturnIfAbrupt(ref).
     // 3. If Type(ref) is not Reference, return true.
@@ -1558,7 +1576,8 @@ export class $TypeOfExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('TypeOfExpression'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.TypeOfExpression`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1575,7 +1594,7 @@ export class $TypeOfExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // UnaryExpression : typeof UnaryExpression
 
     // 1. Let val be the result of evaluating UnaryExpression.
@@ -1643,7 +1662,8 @@ export class $VoidExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('VoidExpression'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.VoidExpression`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1660,7 +1680,7 @@ export class $VoidExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // UnaryExpression : void UnaryExpression
 
     // 1. Let expr be the result of evaluating UnaryExpression.
@@ -1688,7 +1708,8 @@ export class $AwaitExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('AwaitExpression'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.AwaitExpression`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1705,7 +1726,7 @@ export class $AwaitExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // AwaitExpression : await UnaryExpression
 
     // 1. Let exprRef be the result of evaluating UnaryExpression.
@@ -1729,7 +1750,8 @@ export class $PrefixUnaryExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('PrefixUnaryExpression'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.PrefixUnaryExpression`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1752,7 +1774,7 @@ export class $PrefixUnaryExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     switch (this.node.operator) {
       case SyntaxKind.PlusPlusToken: {
@@ -1913,7 +1935,8 @@ export class $PostfixUnaryExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('PostfixUnaryExpression'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.PostfixUnaryExpression`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1932,7 +1955,7 @@ export class $PostfixUnaryExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     switch (this.node.operator) {
       case SyntaxKind.PlusPlusToken: {
@@ -2008,7 +2031,8 @@ export class $TypeAssertion implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('TypeAssertion'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.TypeAssertion`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -2043,7 +2067,8 @@ export class $BinaryExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('BinaryExpression'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.BinaryExpression`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -2081,7 +2106,7 @@ export class $BinaryExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     switch (this.node.operatorToken.kind) {
       case SyntaxKind.AsteriskAsteriskToken: {
@@ -3114,7 +3139,8 @@ export class $ConditionalExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ConditionalExpression'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ConditionalExpression`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -3138,7 +3164,7 @@ export class $ConditionalExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // ConditionalExpression : LogicalORExpression ? AssignmentExpression : AssignmentExpression
 
     // 1. Let lref be the result of evaluating LogicalORExpression.
@@ -3167,7 +3193,8 @@ export class $YieldExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('YieldExpression'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.YieldExpression`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -3183,7 +3210,7 @@ export class $YieldExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // YieldExpression : yield
 
     // 1. Let generatorKind be ! GetGeneratorKind().
@@ -3268,7 +3295,8 @@ export class $AsExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('AsExpression'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.AsExpression`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -3338,7 +3366,8 @@ export class $Identifier implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo(`Identifier(${node.text})`),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.Identifier(${node.text})`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -3390,7 +3419,7 @@ export class $Identifier implements I$Node {
     value: $AnyNonEmpty,
     environment: $EnvRec | undefined,
   ): readonly [$String] {
-    this.logger.debug(`InitializePropertyBinding(#${ctx.id})`);
+    this.logger.debug(`${this.path}.InitializePropertyBinding(#${ctx.id})`);
 
     // BindingProperty : SingleNameBinding
 
@@ -3412,7 +3441,7 @@ export class $Identifier implements I$Node {
     environment: $EnvRec | undefined,
     initializer?: $$AssignmentExpressionOrHigher,
   ): $Any {
-    this.logger.debug(`InitializeIteratorBinding(#${ctx.id})`);
+    this.logger.debug(`${this.path}.InitializeIteratorBinding(#${ctx.id})`);
 
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -3498,7 +3527,7 @@ export class $Identifier implements I$Node {
     propertyName: $String,
     initializer?: $$AssignmentExpressionOrHigher,
   ): $Any {
-    this.logger.debug(`InitializeKeyedBinding(#${ctx.id})`);
+    this.logger.debug(`${this.path}.InitializeKeyedBinding(#${ctx.id})`);
 
     const realm = ctx.Realm;
 

@@ -240,7 +240,8 @@ export class $FunctionExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('FunctionExpression'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.FunctionExpression`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -295,7 +296,7 @@ export class $FunctionExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     const BindingIdentifier = this.$name;
 
@@ -567,7 +568,8 @@ export class $FunctionDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('FunctionDeclaration'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.FunctionDeclaration`,
   ) {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
@@ -669,7 +671,7 @@ export class $FunctionDeclaration implements I$Node {
     ctx: ExecutionContext,
     Scope: $EnvRec,
   ): $Function {
-    this.logger.debug(`InstantiateFunctionObject(#${ctx.id})`);
+    this.logger.debug(`${this.path}.InstantiateFunctionObject(#${ctx.id})`);
 
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -724,7 +726,7 @@ export class $FunctionDeclaration implements I$Node {
     functionObject: $Function,
     argumentsList: readonly $AnyNonEmpty[],
   ): $Any {
-    this.logger.debug(`EvaluateBody(#${ctx.id})`);
+    this.logger.debug(`${this.path}.EvaluateBody(#${ctx.id})`);
 
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -746,7 +748,7 @@ export class $FunctionDeclaration implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Empty {
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -1129,7 +1131,8 @@ export class $ArrowFunction implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ArrowFunction'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ArrowFunction`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1169,7 +1172,7 @@ export class $ArrowFunction implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // ArrowFunction : ArrowParameters => ConciseBody
 
     // 1. If the function code for this ArrowFunction is strict mode code, let strict be true. Otherwise let strict be false.
@@ -1193,7 +1196,7 @@ export class $ArrowFunction implements I$Node {
       return $FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
     }
 
-    this.logger.debug(`EvaluateBody(#${ctx.id})`);
+    this.logger.debug(`${this.path}.EvaluateBody(#${ctx.id})`);
 
     // ConciseBody : AssignmentExpression
 
@@ -1253,7 +1256,8 @@ export class $ConstructorDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ConstructorDeclaration'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ConstructorDeclaration`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1358,7 +1362,8 @@ export class $ParameterDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ParameterDeclaration'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ParameterDeclaration`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1391,7 +1396,7 @@ export class $ParameterDeclaration implements I$Node {
     iteratorRecord: $IteratorRecord,
     environment: $EnvRec | undefined,
   ) {
-    this.logger.debug(`InitializeIteratorBinding(#${ctx.id})`);
+    this.logger.debug(`${this.path}.InitializeIteratorBinding(#${ctx.id})`);
 
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];

@@ -113,7 +113,8 @@ export class $MethodDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('MethodDeclaration'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.MethodDeclaration`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -265,7 +266,8 @@ export class $GetAccessorDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('GetAccessorDeclaration'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.GetAccessorDeclaration`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -386,7 +388,8 @@ export class $SetAccessorDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('SetAccessorDeclaration'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.SetAccessorDeclaration`,
   ) {
     this.id = realm.registerNode(this);
 

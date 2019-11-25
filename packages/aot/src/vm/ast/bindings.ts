@@ -135,7 +135,8 @@ export class $ComputedPropertyName implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ComputedPropertyName'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ComputedPropertyName`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -201,7 +202,8 @@ export class $ObjectBindingPattern implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ObjectBindingPattern'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ObjectBindingPattern`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -226,7 +228,7 @@ export class $ObjectBindingPattern implements I$Node {
     value: $AnyNonEmpty,
     environment: $EnvRec | undefined,
   ): $Any {
-    this.logger.debug(`InitializeBinding(#${ctx.id})`);
+    this.logger.debug(`${this.path}.InitializeBinding(#${ctx.id})`);
 
     const realm = ctx.Realm;
 
@@ -337,7 +339,8 @@ export class $ArrayBindingPattern implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ArrayBindingPattern'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ArrayBindingPattern`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -362,7 +365,7 @@ export class $ArrayBindingPattern implements I$Node {
     value: $AnyObject,
     environment: $EnvRec | undefined,
   ): $Any {
-    this.logger.debug(`InitializeBinding(#${ctx.id})`);
+    this.logger.debug(`${this.path}.InitializeBinding(#${ctx.id})`);
 
     // BindingPattern : ArrayBindingPattern
 
@@ -390,7 +393,7 @@ export class $ArrayBindingPattern implements I$Node {
     iteratorRecord: $IteratorRecord,
     environment: $EnvRec | undefined,
   ): $Any {
-    this.logger.debug(`InitializeIteratorBinding(#${ctx.id})`);
+    this.logger.debug(`${this.path}.InitializeIteratorBinding(#${ctx.id})`);
 
     const realm = ctx.Realm;
 
@@ -490,7 +493,8 @@ export class $BindingElement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('BindingElement'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.BindingElement`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -550,7 +554,7 @@ export class $BindingElement implements I$Node {
     value: $AnyNonEmpty,
     environment: $EnvRec | undefined,
   ): readonly $String[] | $Any {
-    this.logger.debug(`InitializePropertyBinding(#${ctx.id})`);
+    this.logger.debug(`${this.path}.InitializePropertyBinding(#${ctx.id})`);
 
     const PropertyName = this.$propertyName;
 
@@ -591,7 +595,7 @@ export class $BindingElement implements I$Node {
     propertyName: $String,
     initializer?: $$AssignmentExpressionOrHigher,
   ): $Any {
-    this.logger.debug(`InitializeKeyedBinding(#${ctx.id})`);
+    this.logger.debug(`${this.path}.InitializeKeyedBinding(#${ctx.id})`);
 
     const realm = ctx.Realm;
 
@@ -643,7 +647,7 @@ export class $BindingElement implements I$Node {
     iteratorRecord: $IteratorRecord,
     environment: $EnvRec | undefined,
   ): $Any {
-    this.logger.debug(`InitializeIteratorBinding(#${ctx.id})`);
+    this.logger.debug(`${this.path}.InitializeIteratorBinding(#${ctx.id})`);
 
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -756,7 +760,8 @@ export class $SpreadElement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('SpreadElement'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.SpreadElement`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -840,7 +845,8 @@ export class $OmittedExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('OmittedExpression'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.OmittedExpression`,
   ) {
     this.id = realm.registerNode(this);
   }
@@ -851,7 +857,7 @@ export class $OmittedExpression implements I$Node {
     ctx: ExecutionContext,
     iteratorRecord: $IteratorRecord,
   ): $Any {
-    this.logger.debug(`EvaluateDestructuringAssignmentIterator(#${ctx.id})`);
+    this.logger.debug(`${this.path}.EvaluateDestructuringAssignmentIterator(#${ctx.id})`);
 
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];

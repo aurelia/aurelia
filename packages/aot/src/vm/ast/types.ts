@@ -77,7 +77,8 @@ export class $InterfaceDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('InterfaceDeclaration'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.InterfaceDeclaration`,
   ) {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
@@ -146,7 +147,8 @@ export class $TypeAliasDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('TypeAliasDeclaration'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.TypeAliasDeclaration`,
   ) {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
@@ -232,7 +234,8 @@ export class $EnumDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('EnumDeclaration'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.EnumDeclaration`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -287,7 +290,8 @@ export class $EnumMember implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('EnumMember'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.EnumMember`,
   ) {
     this.id = realm.registerNode(this);
 

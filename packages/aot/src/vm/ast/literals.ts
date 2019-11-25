@@ -69,7 +69,8 @@ export class $TemplateHead implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('TemplateHead'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.TemplateHead`,
   ) {
     this.id = realm.registerNode(this);
   }
@@ -82,7 +83,7 @@ export class $TemplateHead implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.undefined; // TODO: implement this
   }
@@ -99,7 +100,8 @@ export class $TemplateMiddle implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('TemplateMiddle'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.TemplateMiddle`,
   ) {
     this.id = realm.registerNode(this);
   }
@@ -112,7 +114,7 @@ export class $TemplateMiddle implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.undefined; // TODO: implement this
   }
@@ -129,7 +131,8 @@ export class $TemplateTail implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('TemplateTail'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.TemplateTail`,
   ) {
     this.id = realm.registerNode(this);
   }
@@ -142,7 +145,7 @@ export class $TemplateTail implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     // TemplateSpans : TemplateTail
 
@@ -167,7 +170,8 @@ export class $TemplateSpan implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('TemplateSpan'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.TemplateSpan`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -187,7 +191,7 @@ export class $TemplateSpan implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // TemplateSpans : TemplateMiddleList TemplateTail
 
     // 1. Let head be the result of evaluating TemplateMiddleList.
@@ -252,7 +256,8 @@ export class $NumericLiteral implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('NumericLiteral'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.NumericLiteral`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -305,7 +310,8 @@ export class $BigIntLiteral implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('BigIntLiteral'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.BigIntLiteral`,
   ) {
     this.id = realm.registerNode(this);
   }
@@ -316,7 +322,7 @@ export class $BigIntLiteral implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics['0']; // TODO: implement this
   }
@@ -358,7 +364,8 @@ export class $StringLiteral implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('StringLiteral'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.StringLiteral`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -417,7 +424,8 @@ export class $RegularExpressionLiteral implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('RegularExpressionLiteral'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.RegularExpressionLiteral`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -468,7 +476,8 @@ export class $NoSubstitutionTemplateLiteral implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('NoSubstitutionTemplateLiteral'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.NoSubstitutionTemplateLiteral`,
   ) {
     this.id = realm.registerNode(this);
   }
@@ -517,7 +526,8 @@ export class $NullLiteral implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('NullLiteral'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.NullLiteral`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -565,7 +575,8 @@ export class $BooleanLiteral implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('BooleanLiteral'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.BooleanLiteral`,
   ) {
     this.id = realm.registerNode(this);
     this.$kind = node.kind;

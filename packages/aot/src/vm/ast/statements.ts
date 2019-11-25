@@ -163,7 +163,8 @@ export class $VariableStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('VariableStatement'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.VariableStatement`,
   ) {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
@@ -229,7 +230,7 @@ export class $VariableStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // http://www.ecma-international.org/ecma-262/#sec-let-and-const-declarations-runtime-semantics-evaluation
     // 13.3.1.4 Runtime Semantics: Evaluation
 
@@ -346,7 +347,8 @@ export class $VariableDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('VariableDeclaration'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.VariableDeclaration`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -480,7 +482,8 @@ export class $VariableDeclarationList implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('VariableDeclarationList'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.VariableDeclarationList`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -556,7 +559,8 @@ export class $Block implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('Block'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.Block`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -642,7 +646,7 @@ export class $Block implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     const $statements = this.$statements;
 
     // Block : { }
@@ -695,7 +699,8 @@ export class $EmptyStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('EmptyStatement'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.EmptyStatement`,
   ) {
     this.id = realm.registerNode(this);
   }
@@ -708,7 +713,7 @@ export class $EmptyStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // EmptyStatement : ;
 
     // 1. Return NormalCompletion(empty).
@@ -746,7 +751,8 @@ export class $ExpressionStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ExpressionStatement'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ExpressionStatement`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -758,7 +764,7 @@ export class $ExpressionStatement implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // ExpressionStatement : Expression ;
 
     // 1. Let exprRef be the result of evaluating Expression.
@@ -792,7 +798,8 @@ export class $IfStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('IfStatement'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.IfStatement`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -826,7 +833,7 @@ export class $IfStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     const { $expression, $thenStatement, $elseStatement } = this;
 
@@ -897,7 +904,8 @@ export class $DoStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('DoStatement'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.DoStatement`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -917,7 +925,7 @@ export class $DoStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`EvaluateLabelled(#${ctx.id})`);
+    this.logger.debug(`${this.path}.EvaluateLabelled(#${ctx.id})`);
     // IterationStatement : do Statement while ( Expression ) ;
 
     const expr = this.$expression;
@@ -981,7 +989,8 @@ export class $WhileStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('WhileStatement'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.WhileStatement`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1001,7 +1010,7 @@ export class $WhileStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`EvaluateLabelled(#${ctx.id})`);
+    this.logger.debug(`${this.path}.EvaluateLabelled(#${ctx.id})`);
     // IterationStatement : while ( Expression ) Statement
 
     const expr = this.$expression;
@@ -1072,7 +1081,8 @@ export class $ForStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ForStatement'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ForStatement`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1118,7 +1128,7 @@ export class $ForStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`EvaluateLabelled(#${ctx.id})`);
+    this.logger.debug(`${this.path}.EvaluateLabelled(#${ctx.id})`);
     // IterationStatement : for ( Expression opt ; Expression opt ; Expression opt ) Statement
 
     // 1. If the first Expression is present, then
@@ -1183,7 +1193,8 @@ export class $ForInStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ForInStatement'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ForInStatement`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1224,7 +1235,7 @@ export class $ForInStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`EvaluateLabelled(#${ctx.id})`);
+    this.logger.debug(`${this.path}.EvaluateLabelled(#${ctx.id})`);
     // IterationStatement : for ( LeftHandSideExpression in Expression ) Statement
 
     // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », Expression, enumerate).
@@ -1281,7 +1292,7 @@ export class $ForInStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // ForBinding : BindingIdentifier
 
     // 1. Let bindingId be StringValue of BindingIdentifier.
@@ -1316,7 +1327,8 @@ export class $ForOfStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ForOfStatement'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ForOfStatement`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1357,7 +1369,7 @@ export class $ForOfStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`EvaluateLabelled(#${ctx.id})`);
+    this.logger.debug(`${this.path}.EvaluateLabelled(#${ctx.id})`);
     // IterationStatement : for ( LeftHandSideExpression in Expression ) Statement
 
     // 1. Let keyResult be ? ForIn/OfHeadEvaluation(« », Expression, enumerate).
@@ -1414,7 +1426,7 @@ export class $ForOfStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
   }
@@ -1442,7 +1454,8 @@ export class $ContinueStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ContinueStatement'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ContinueStatement`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1457,7 +1470,7 @@ export class $ContinueStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // ContinueStatement : continue ;
 
     // 1. Return Completion { [[Type]]: continue, [[Value]]: empty, [[Target]]: empty }.
@@ -1495,7 +1508,8 @@ export class $BreakStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('BreakStatement'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.BreakStatement`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1510,7 +1524,7 @@ export class $BreakStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // BreakStatement : break ;
 
     // 1. Return Completion { [[Type]]: break, [[Value]]: empty, [[Target]]: empty }.
@@ -1548,7 +1562,8 @@ export class $ReturnStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ReturnStatement'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ReturnStatement`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1567,7 +1582,7 @@ export class $ReturnStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // ReturnStatement : return ;
 
     // 1. Return Completion { [[Type]]: return, [[Value]]: undefined, [[Target]]: empty }.
@@ -1614,7 +1629,8 @@ export class $WithStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('WithStatement'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.WithStatement`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1633,7 +1649,7 @@ export class $WithStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // WithStatement : with ( Expression ) Statement
 
     // 1. Let val be the result of evaluating Expression.
@@ -1677,7 +1693,8 @@ export class $SwitchStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('SwitchStatement'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.SwitchStatement`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1695,7 +1712,7 @@ export class $SwitchStatement implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     const realm = ctx.Realm;
     // SwitchStatement : switch ( Expression ) CaseBlock
 
@@ -1899,7 +1916,8 @@ export class $LabeledStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('LabeledStatement'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.LabeledStatement`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1936,7 +1954,7 @@ export class $LabeledStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`EvaluateLabelled(#${ctx.id})`);
+    this.logger.debug(`${this.path}.EvaluateLabelled(#${ctx.id})`);
     // LabelledStatement : LabelIdentifier : LabelledItem
 
     // 1. Let label be the StringValue of LabelIdentifier.
@@ -1968,7 +1986,7 @@ export class $LabeledStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // LabelledStatement : LabelIdentifier : LabelledItem
 
     // 1. Let newLabelSet be a new empty List.
@@ -2000,7 +2018,8 @@ export class $ThrowStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ThrowStatement'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ThrowStatement`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -2015,7 +2034,7 @@ export class $ThrowStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // ThrowStatement : throw Expression ;
 
     // 1. Let exprRef be the result of evaluating Expression.
@@ -2054,7 +2073,8 @@ export class $TryStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('TryStatement'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.TryStatement`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -2107,7 +2127,7 @@ export class $TryStatement implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty | $Error {
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     const realm = ctx.Realm;
     // TryStatement : try Block Catch
 
@@ -2224,7 +2244,8 @@ export class $DebuggerStatement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('DebuggerStatement'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.DebuggerStatement`,
   ) {
     this.id = realm.registerNode(this);
   }
@@ -2237,7 +2258,7 @@ export class $DebuggerStatement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // DebuggerStatement : debugger ;
 
     // 1. If an implementation-defined debugging facility is available and enabled, then
@@ -2281,7 +2302,8 @@ export class $CaseBlock implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('CaseBlock'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.CaseBlock`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -2325,7 +2347,8 @@ export class $CaseClause implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('CaseClause'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.CaseClause`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -2365,7 +2388,8 @@ export class $DefaultClause implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('DefaultClause'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.DefaultClause`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -2399,7 +2423,8 @@ export class $CatchClause implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('CatchClause'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.CatchClause`,
   ) {
     this.id = realm.registerNode(this);
 

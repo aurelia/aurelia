@@ -119,7 +119,8 @@ export class $JsxElement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('JsxElement'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.JsxElement`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -136,7 +137,7 @@ export class $JsxElement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.undefined; // TODO: implement this
   }
@@ -189,7 +190,8 @@ export class $JsxSelfClosingElement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('JsxSelfClosingElement'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.JsxSelfClosingElement`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -205,7 +207,7 @@ export class $JsxSelfClosingElement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.undefined; // TODO: implement this
   }
@@ -226,7 +228,8 @@ export class $JsxFragment implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('JsxFragment'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.JsxFragment`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -243,7 +246,7 @@ export class $JsxFragment implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.undefined; // TODO: implement this
   }
@@ -260,7 +263,8 @@ export class $JsxText implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('JsxText'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.JsxText`,
   ) {
     this.id = realm.registerNode(this);
   }
@@ -271,7 +275,7 @@ export class $JsxText implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
   }
@@ -291,7 +295,8 @@ export class $JsxOpeningElement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('JsxOpeningElement'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.JsxOpeningElement`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -305,7 +310,7 @@ export class $JsxOpeningElement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
   }
@@ -324,7 +329,8 @@ export class $JsxClosingElement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('JsxClosingElement'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.JsxClosingElement`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -337,7 +343,7 @@ export class $JsxClosingElement implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
   }
@@ -354,7 +360,8 @@ export class $JsxOpeningFragment implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('JsxOpeningFragment'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.JsxOpeningFragment`,
   ) {
     this.id = realm.registerNode(this);
   }
@@ -365,7 +372,7 @@ export class $JsxOpeningFragment implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
   }
@@ -382,7 +389,8 @@ export class $JsxClosingFragment implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('JsxClosingFragment'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.JsxClosingFragment`,
   ) {
     this.id = realm.registerNode(this);
   }
@@ -393,7 +401,7 @@ export class $JsxClosingFragment implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
   }
@@ -413,7 +421,8 @@ export class $JsxAttribute implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('JsxAttribute'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.JsxAttribute`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -448,7 +457,8 @@ export class $JsxAttributes implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('JsxAttributes'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.JsxAttributes`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -465,7 +475,7 @@ export class $JsxAttributes implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
   }
@@ -484,7 +494,8 @@ export class $JsxSpreadAttribute implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('JsxSpreadAttribute'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.JsxSpreadAttribute`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -497,7 +508,7 @@ export class $JsxSpreadAttribute implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
   }
@@ -516,7 +527,8 @@ export class $JsxExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('JsxExpression'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.JsxExpression`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -529,7 +541,7 @@ export class $JsxExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
   }

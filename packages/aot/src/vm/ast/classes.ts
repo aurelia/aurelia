@@ -148,7 +148,8 @@ export class $HeritageClause implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('HeritageClause'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.HeritageClause`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -169,7 +170,8 @@ export class $ExpressionWithTypeArguments implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ExpressionWithTypeArguments'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ExpressionWithTypeArguments`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -221,7 +223,8 @@ export class $ClassExpression implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ClassExpression'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ClassExpression`,
   ) {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
@@ -296,7 +299,7 @@ export class $ClassExpression implements I$Node {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     // ClassExpression : class BindingIdentifier opt ClassTail
 
     // 1. If BindingIdentifieropt is not present, let className be undefined.
@@ -383,7 +386,8 @@ export class $ClassDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ClassDeclaration'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ClassDeclaration`,
   ) {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
@@ -833,7 +837,8 @@ export class $PropertyDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('PropertyDeclaration'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.PropertyDeclaration`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -865,7 +870,8 @@ export class $SemicolonClassElement implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('SemicolonClassElement'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.SemicolonClassElement`,
   ) {
     this.id = realm.registerNode(this);
   }

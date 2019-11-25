@@ -177,6 +177,8 @@ export class $SourceFile implements I$Node, IModule {
   public readonly $kind = SyntaxKind.SourceFile;
   public readonly id: number;
 
+  public readonly path: string;
+
   public readonly sourceFile: $SourceFile = this;
   public readonly parent: $SourceFile = this;
   public readonly ctx: Context = Context.None;
@@ -245,7 +247,8 @@ export class $SourceFile implements I$Node, IModule {
     this['[[Environment]]'] = intrinsics.undefined;
     this['[[Namespace]]'] = intrinsics.undefined;
 
-    this.logger = logger.root.scopeTo(`SourceFile<(...)${$file.rootlessPath}>`);
+    this.path = `SourceFile<(...)${$file.rootlessPath}>`;
+    this.logger = logger.root;
 
     let ctx = Context.InTopLevel;
     this.DirectivePrologue = GetDirectivePrologue(node.statements);
@@ -555,7 +558,7 @@ export class $SourceFile implements I$Node, IModule {
     const ctx = realm.stack.top;
 
     const start = PLATFORM.now();
-    this.logger.debug(`[Instantiate] starting`);
+    this.logger.debug(`${this.path}.[Instantiate] starting`);
 
     // TODO: this is temporary. Should be done by RunJobs
     if (realm.stack.top.ScriptOrModule.isNull) {
@@ -598,7 +601,7 @@ export class $SourceFile implements I$Node, IModule {
     // 8. Return undefined.
 
     const end = PLATFORM.now();
-    this.logger.debug(`[Instantiate] done in ${Math.round(end - start)}ms`);
+    this.logger.debug(`${this.path}.[Instantiate] done in ${Math.round(end - start)}ms`);
 
     return new $Undefined(realm);
   }
@@ -611,7 +614,7 @@ export class $SourceFile implements I$Node, IModule {
     stack: $SourceFile[],
     index: $Number,
   ): $Number | $Error {
-    this.logger.debug(`_InnerModuleInstantiation(#${ctx.id})`);
+    this.logger.debug(`${this.path}._InnerModuleInstantiation(#${ctx.id})`);
 
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -701,7 +704,7 @@ export class $SourceFile implements I$Node, IModule {
   public InitializeEnvironment(
     ctx: ExecutionContext,
   ): $Any {
-    this.logger.debug(`InitializeEnvironment(#${ctx.id})`);
+    this.logger.debug(`${this.path}.InitializeEnvironment(#${ctx.id})`);
 
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -955,7 +958,7 @@ export class $SourceFile implements I$Node, IModule {
       // 4. a. If SameValue(exportName, e.[[ExportName]]) is true, then
       if (exportName.is(e.ExportName)) {
         // 4. a. i. Assert: module provides the direct binding for this export.
-        this.logger.debug(`[ResolveExport] found direct binding for ${exportName['[[Value]]']}`);
+        this.logger.debug(`${this.path}.[ResolveExport] found direct binding for ${exportName['[[Value]]']}`);
 
         // 4. a. ii. Return ResolvedBinding Record { [[Module]]: module, [[BindingName]]: e.[[LocalName]] }.
         return new ResolvedBindingRecord(this, e.LocalName as $String);
@@ -968,7 +971,7 @@ export class $SourceFile implements I$Node, IModule {
       // 5. a. If SameValue(exportName, e.[[ExportName]]) is true, then
       if (exportName.is(e.ExportName)) {
         // 5. a. i. Assert: module imports a specific binding for this export.
-        this.logger.debug(`[ResolveExport] found specific imported binding for ${exportName['[[Value]]']}`);
+        this.logger.debug(`${this.path}.[ResolveExport] found specific imported binding for ${exportName['[[Value]]']}`);
 
         // 5. a. ii. Let importedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
         const importedModule = this.moduleResolver.ResolveImportedModule(ctx, this, e.ModuleRequest as $String);
@@ -1040,7 +1043,7 @@ export class $SourceFile implements I$Node, IModule {
   // http://www.ecma-international.org/ecma-262/#sec-moduleevaluation
   // 15.2.1.16.2 Evaluate ( ) Concrete Method
   public EvaluateModule(): $Any {
-    this.logger.debug(`EvaluateModule()`);
+    this.logger.debug(`${this.path}.EvaluateModule()`);
 
     const realm = this.realm;
     const ctx = realm.stack.top;
@@ -1084,7 +1087,7 @@ export class $SourceFile implements I$Node, IModule {
     stack: $SourceFile[],
     index: number,
   ): $Number {
-    this.logger.debug(`EvaluateModuleInner(#${ctx.id})`);
+    this.logger.debug(`${this.path}.EvaluateModuleInner(#${ctx.id})`);
 
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -1174,7 +1177,7 @@ export class $SourceFile implements I$Node, IModule {
   public ExecuteModule(
     ctx: ExecutionContext,
   ): $Any {
-    this.logger.debug(`ExecuteModule(#${ctx.id})`);
+    this.logger.debug(`${this.path}.ExecuteModule(#${ctx.id})`);
 
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -1229,7 +1232,7 @@ export class $SourceFile implements I$Node, IModule {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    this.logger.debug(`Evaluate(#${ctx.id})`);
+    this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
     const $statements = this.$statements;
 
     // Module : [empty]
@@ -1369,6 +1372,8 @@ export class $DocumentFragment implements I$Node, IModule {
   public readonly ctx: Context = Context.None;
   public readonly depth: number = 0;
 
+  public readonly path: string;
+
   public '[[Environment]]': $ModuleEnvRec | $Undefined;
   public '[[Namespace]]': $NamespaceExoticObject | $Undefined;
   public '[[HostDefined]]': any;
@@ -1388,7 +1393,9 @@ export class $DocumentFragment implements I$Node, IModule {
     this['[[Environment]]'] = intrinsics.undefined;
     this['[[Namespace]]'] = intrinsics.undefined;
 
-    this.logger = logger.root.scopeTo(`DocumentFragment<(...)${$file.rootlessPath}>`);
+    this.logger = logger.root;
+
+    this.path = `DocumentFragment<(...)${$file.rootlessPath}>`;
   }
 
   public ResolveExport(
@@ -1396,7 +1403,7 @@ export class $DocumentFragment implements I$Node, IModule {
     exportName: $String,
     resolveSet: ResolveSet,
   ): ResolvedBindingRecord | $Null | $String<'ambiguous'> {
-    this.logger.debug(`[ResolveExport] returning content as '${exportName['[[Value]]']}'`);
+    this.logger.debug(`${this.path}.[ResolveExport] returning content as '${exportName['[[Value]]']}'`);
 
     return new ResolvedBindingRecord(this, exportName);
   }
@@ -1450,7 +1457,8 @@ export class $ModuleDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ModuleDeclaration'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ModuleDeclaration`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1527,7 +1535,8 @@ export class $ImportEqualsDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ImportEqualsDeclaration'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ImportEqualsDeclaration`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1582,7 +1591,8 @@ export class $ImportDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ImportDeclaration'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ImportDeclaration`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1637,7 +1647,8 @@ export class $ImportClause implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ImportClause'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ImportClause`,
   ) {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
@@ -1702,7 +1713,8 @@ export class $NamedImports implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('NamedImports'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.NamedImports`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1736,7 +1748,8 @@ export class $ImportSpecifier implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ImportSpecifier'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ImportSpecifier`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -1797,7 +1810,8 @@ export class $NamespaceImport implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('NamespaceImport'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.NamespaceImport`,
   ) {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
@@ -1860,7 +1874,8 @@ export class $ExportAssignment implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ExportAssignment'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ExportAssignment`,
   ) {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
@@ -1916,7 +1931,8 @@ export class $ExportDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ExportDeclaration'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ExportDeclaration`,
   ) {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
@@ -1983,7 +1999,8 @@ export class $NamedExports implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('NamedExports'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.NamedExports`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -2021,7 +2038,8 @@ export class $ExportSpecifier implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ExportSpecifier'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ExportSpecifier`,
   ) {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
@@ -2110,7 +2128,8 @@ export class $NamespaceExportDeclaration implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('NamespaceExportDeclaration'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.NamespaceExportDeclaration`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -2134,7 +2153,8 @@ export class $ModuleBlock implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ModuleBlock'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ModuleBlock`,
   ) {
     this.id = realm.registerNode(this);
   }
@@ -2153,7 +2173,8 @@ export class $ExternalModuleReference implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('ExternalModuleReference'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.ExternalModuleReference`,
   ) {
     this.id = realm.registerNode(this);
 
@@ -2185,7 +2206,8 @@ export class $QualifiedName implements I$Node {
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger.scopeTo('QualifiedName'),
+    public readonly logger: ILogger = parent.logger,
+    public readonly path: string = `${parent.path}.QualifiedName`,
   ) {
     this.id = realm.registerNode(this);
 

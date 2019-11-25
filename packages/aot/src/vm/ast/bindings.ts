@@ -101,6 +101,9 @@ import {
 import {
   $Boolean,
 } from '../types/boolean';
+import {
+  $List,
+} from '../types/list';
 
 const {
   emptyArray,
@@ -784,12 +787,47 @@ export class $SpreadElement implements I$Node {
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
   }
 
+  // http://www.ecma-international.org/ecma-262/#sec-argument-lists-runtime-semantics-argumentlistevaluation
+  // 12.3.6.1 Runtime Semantics: ArgumentListEvaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $List<$AnyNonEmpty> | $Error {
     ctx.checkTimeout();
+    // ArgumentList :
+    //     ... AssignmentExpression
 
-    return null as any; // TODO: implement this;
+    // 1. Let list be a new empty List.
+    const list = new $List<$AnyNonEmpty>();
+
+    // 2. Let spreadRef be the result of evaluating AssignmentExpression.
+    const spreadRef = this.$expression.Evaluate(ctx);
+
+    // 3. Let spreadObj be ? GetValue(spreadRef).
+    const spreadObj = spreadRef.GetValue(ctx);
+    if (spreadObj.isAbrupt) { return spreadObj; }
+
+    // 4. Let iteratorRecord be ? GetIterator(spreadObj).
+    const iteratorRecord = $GetIterator(ctx, spreadObj as $AnyObject);
+    if (iteratorRecord.isAbrupt) { return iteratorRecord; }
+
+    // 5. Repeat,
+    while (true) {
+      // 5. a. Let next be ? IteratorStep(iteratorRecord).
+      const next = $IteratorStep(ctx, iteratorRecord);
+      if (next.isAbrupt) { return next; }
+
+      // 5. b. If next is false, return list.
+      if (next.isFalsey) {
+        return list;
+      }
+
+      // 5. c. Let nextArg be ? IteratorValue(next).
+      const nextArg = $IteratorValue(ctx, next);
+      if (nextArg.isAbrupt) { return nextArg; }
+
+      // 5. d. Append nextArg as the last element of list.
+      list.push(nextArg);
+    }
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-arrayaccumulation

@@ -62,6 +62,7 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
   public get isFalsey(): false { return false; }
   public get isSpeculative(): false { return false; }
   public get hasValue(): true { return true; }
+  public get isList(): false { return false; }
 
   public get IsArrayIndex(): false { return false; }
 

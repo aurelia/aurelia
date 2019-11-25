@@ -80,6 +80,7 @@ export class $String<T extends string = string> {
     }
     return true;
   }
+  public get isList(): false { return false; }
 
   // http://www.ecma-international.org/ecma-262/#sec-canonicalnumericindexstring
   // 7.1.16 CanonicalNumericIndexString ( argument )

@@ -66,6 +66,7 @@ export class $Boolean<T extends boolean = boolean> {
   public get isFalsey(): T extends true ? false : true { return !this['[[Value]]'] as T extends true ? false : true; }
   public get isSpeculative(): false { return false; }
   public get hasValue(): true { return true; }
+  public get isList(): false { return false; }
 
   public constructor(
     public readonly realm: Realm,

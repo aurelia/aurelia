@@ -1144,7 +1144,11 @@ export function $ArgumentListEvaluation(
     if (value.isAbrupt) {
       return value;
     }
-    list.push(value);
+    if (value.isList) {
+      list.push(...value);
+    } else {
+      list.push(value);
+    }
   }
   return list;
 

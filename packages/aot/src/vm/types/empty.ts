@@ -64,6 +64,7 @@ export class $Empty {
   public get isFalsey(): true { return true; }
   public get isSpeculative(): false { return false; }
   public get hasValue(): false { return false; }
+  public get isList(): false { return false; }
 
   public constructor(
     public readonly realm: Realm,

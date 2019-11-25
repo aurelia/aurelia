@@ -70,6 +70,7 @@ export class $Number<T extends number = number> {
   public get isFalsey(): boolean { return this['[[Value]]'] === 0 || isNaN(this['[[Value]]']); }
   public get isSpeculative(): false { return false; }
   public get hasValue(): true { return true; }
+  public get isList(): false { return false; }
 
   public constructor(
     public readonly realm: Realm,

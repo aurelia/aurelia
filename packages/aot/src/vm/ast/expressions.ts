@@ -651,6 +651,47 @@ export class $PropertyAssignment implements I$Node {
 
     this.PropName = $name.PropName;
   }
+
+  // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-propertydefinitionevaluation
+  // 12.2.6.8 Runtime Semantics: PropertyDefinitionEvaluation
+  public EvaluatePropertyDefinition(
+    ctx: ExecutionContext,
+    object: $Object,
+    enumerable: $Boolean,
+  ): $Boolean | $Error {
+    // PropertyDefinition :
+    //     PropertyName : AssignmentExpression
+
+    // 1. Let propKey be the result of evaluating PropertyName.
+    const propKey = this.$name.EvaluatePropName(ctx);
+
+    // 2. ReturnIfAbrupt(propKey).
+    if (propKey.isAbrupt) { return propKey; }
+
+    let propValue: $AnyNonEmpty;
+
+    // 3. If IsAnonymousFunctionDefinition(AssignmentExpression) is true, then
+    if (this.$initializer instanceof $FunctionExpression && !this.$initializer.HasName) {
+      // 3. a. Let propValue be the result of performing NamedEvaluation for AssignmentExpression with argument propKey.
+      propValue = this.$initializer.EvaluateNamed(ctx, propKey);
+    }
+    // 4. Else,
+    else {
+      // 4. a. Let exprValueRef be the result of evaluating AssignmentExpression.
+      const exprValueRef = this.$initializer.Evaluate(ctx);
+
+      // 4. b. Let propValue be ? GetValue(exprValueRef).
+      const $propValue = exprValueRef.GetValue(ctx);
+      if ($propValue.isAbrupt) { return $propValue; }
+
+      propValue = $propValue;
+    }
+
+    // 5. Assert: enumerable is true.
+    // 6. Assert: object is an ordinary, extensible object with no non-configurable properties.
+    // 7. Return ! CreateDataPropertyOrThrow(object, propKey, propValue).
+    return $CreateDataProperty(ctx, object, propKey, propValue);
+  }
 }
 
 export class $ShorthandPropertyAssignment implements I$Node {

@@ -5,6 +5,7 @@ import { IRouter } from './router';
 import { ComponentAppellationResolver } from './type-resolvers';
 import { Viewport } from './viewport';
 import { IComponentParameter, InstructionResolver } from './instruction-resolver';
+import { ViewportScope } from './viewport-scope';
 
 export const enum ParametersType {
   none = 'none',
@@ -24,7 +25,7 @@ export class ViewportInstruction {
   public parametersList: unknown[] | null = null;
   public parametersType: ParametersType = ParametersType.none;
 
-  public scope: Viewport | null = null;
+  public scope: ViewportScope | null = null;
   public needsViewportDescribed: boolean = false;
   public route: string | null = null;
 

@@ -105,7 +105,7 @@ export class ViewportCustomElement {
     if (this.element.hasAttribute('stateful')) {
       options.stateful = true;
     }
-    this.viewport = this.router.connectViewport(this.name, this.element, this.$controller.context as IRenderContext, this.parent ? this.parent.viewport : null, options);
+    this.viewport = this.router.connectViewport(this.name, this.element, this.$controller.context as IRenderContext, this.parent !== null && this.parent.viewport !== null ? this.parent.viewport.viewportScope : null, options);
   }
   public disconnect(): void {
     if (this.viewport) {

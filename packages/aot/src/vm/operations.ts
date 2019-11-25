@@ -1107,3 +1107,54 @@ export function $GetFunctionRealm(
   // 5. Return the current Realm Record.
   return realm
 }
+
+
+// http://www.ecma-international.org/ecma-262/#sec-copydataproperties
+// 7.3.23 CopyDataProperties ( target , source , excludedItems )
+export function $CopyDataProperties<T extends $AnyObject>(
+  ctx: ExecutionContext,
+  target: T,
+  source: $AnyNonEmpty,
+  excludedItems: readonly $PropertyKey[],
+): T | $Error {
+  // 1. Assert: Type(target) is Object.
+  // 2. Assert: excludedItems is a List of property keys.
+  // 3. If source is undefined or null, return target.
+  if (source.isNil) {
+    return target;
+  }
+
+  // 4. Let from be ! ToObject(source).
+  const from = source.ToObject(ctx);
+
+  // 5. Let keys be ? from.[[OwnPropertyKeys]]().
+  const keys = from['[[OwnPropertyKeys]]'](ctx);
+  if (keys.isAbrupt) { return keys; }
+
+  // 6. For each element nextKey of keys in List order, do
+  for (const nextKey of keys) {
+    // 6. a. Let excluded be false.
+    // 6. b. For each element e of excludedItems in List order, do
+      // 6. b. i. If SameValue(e, nextKey) is true, then
+        // 6. b. i. 1. Set excluded to true.
+    // 6. c. If excluded is false, then
+    if (!excludedItems.some(x => x.is(nextKey))) {
+      // 6. c. i. Let desc be ? from.[[GetOwnProperty]](nextKey).
+      const desc = from['[[GetOwnProperty]]'](ctx, nextKey);
+      if (desc.isAbrupt) { return desc; }
+
+      // 6. c. ii. If desc is not undefined and desc.[[Enumerable]] is true, then
+      if (!desc.isUndefined && desc['[[Enumerable]]'].isTruthy) {
+        // 6. c. ii. 1. Let propValue be ? Get(from, nextKey).
+        const propValue = from['[[Get]]'](ctx, nextKey, from);
+        if (propValue.isAbrupt) { return propValue; }
+
+        // 6. c. ii. 2. Perform ! CreateDataProperty(target, nextKey, propValue).
+        $CreateDataProperty(ctx, target, nextKey, propValue);
+      }
+    }
+  }
+
+  // 7. Return target.
+  return target;
+}

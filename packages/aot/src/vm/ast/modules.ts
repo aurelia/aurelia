@@ -137,6 +137,9 @@ import {
 import {
   $StringLiteral,
 } from './literals';
+import {
+  $StringSet,
+} from '../globals/string';
 
 const {
   emptyArray,
@@ -1306,7 +1309,7 @@ export class $SourceFile implements I$Node, IModule {
           sl = $statement.Evaluate(ctx);
           break;
         case SyntaxKind.DoStatement:
-          sl = $statement.EvaluateLabelled(ctx);
+          sl = $statement.EvaluateLabelled(ctx, new $StringSet());
           break;
         case SyntaxKind.WhileStatement:
           sl = $statement.EvaluateLabelled(ctx);

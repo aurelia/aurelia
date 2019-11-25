@@ -241,6 +241,7 @@ import {
   $RegularExpressionLiteral,
   $StringLiteral,
 } from './literals';
+import { $StringSet } from '../globals/string';
 
 const {
   emptyArray,
@@ -1062,7 +1063,7 @@ export function evaluateStatement(
     case SyntaxKind.ForStatement:
     case SyntaxKind.ForInStatement:
     case SyntaxKind.ForOfStatement:
-      stmtCompletion = statement.EvaluateLabelled(ctx);
+      stmtCompletion = statement.EvaluateLabelled(ctx, new $StringSet());
       break;
     // Note that no default case is needed here as the cases above are exhausetive $$ESStatement (http://www.ecma-international.org/ecma-262/#prod-Statement)
   }

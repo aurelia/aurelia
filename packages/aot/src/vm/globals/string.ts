@@ -116,3 +116,26 @@ export class $StringPrototype extends $Object<'%StringPrototype%'> {
     this['[[StringData]]'] = new $String(realm, '');
   }
 }
+
+export class $StringSet {
+  private readonly arr: $String[] = [];
+  private readonly map: Map<string, number> = new Map();
+
+  public has(item: $String): boolean {
+    return this.map.has(item['[[Value]]']);
+  }
+
+  public add(item: $String): void {
+    const arr = this.arr;
+    const map = this.map;
+    const value = item['[[Value]]'];
+
+    let idx = map.get(value);
+    if (idx === void 0) {
+      arr[idx = arr.length] = item;
+      map.set(value, idx);
+    } else {
+      arr[idx] = item;
+    }
+  }
+}

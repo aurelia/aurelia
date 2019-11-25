@@ -101,6 +101,12 @@ import {
 import {
   $ObjectBindingPattern,
 } from './bindings';
+import {
+  $StringSet,
+} from '../globals/string';
+import {
+  $LoopContinues,
+} from '../operations';
 
 const {
   emptyArray,
@@ -906,6 +912,7 @@ export class $DoStatement implements I$Node {
   // 13.7.2.6 Runtime Semantics: LabelledEvaluation
   public EvaluateLabelled(
     ctx: ExecutionContext,
+    labelSet: $StringSet,
   ): $Any {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -913,16 +920,41 @@ export class $DoStatement implements I$Node {
     this.logger.debug(`EvaluateLabelled(#${ctx.id})`);
     // IterationStatement : do Statement while ( Expression ) ;
 
-    // 1. Let V be undefined.
-    // 2. Repeat,
-    // 2. a. Let stmtResult be the result of evaluating Statement.
-    // 2. b. If LoopContinues(stmtResult, labelSet) is false, return Completion(UpdateEmpty(stmtResult, V)).
-    // 2. c. If stmtResult.[[Value]] is not empty, set V to stmtResult.[[Value]].
-    // 2. d. Let exprRef be the result of evaluating Expression.
-    // 2. e. Let exprValue be ? GetValue(exprRef).
-    // 2. f. If ToBoolean(exprValue) is false, return NormalCompletion(V).
+    const expr = this.$expression;
+    const stmt = this.$statement;
 
-    return intrinsics.empty; // TODO: implement this
+    // 1. Let V be undefined.
+    let V: $Any = intrinsics.undefined;
+
+    // 2. Repeat,
+    while (true) {
+      // 2. a. Let stmtResult be the result of evaluating Statement.
+      const stmtResult = evaluateStatement(ctx, stmt);
+
+      // 2. b. If LoopContinues(stmtResult, labelSet) is false, return Completion(UpdateEmpty(stmtResult, V)).
+      if ($LoopContinues(ctx, stmtResult, labelSet).isFalsey) {
+        return stmtResult.UpdateEmpty(V);
+      }
+
+      // 2. c. If stmtResult.[[Value]] is not empty, set V to stmtResult.[[Value]].
+      if (!stmtResult.isEmpty) {
+        V = stmtResult;
+      }
+
+      // 2. d. Let exprRef be the result of evaluating Expression.
+      const exprRef = expr.Evaluate(ctx);
+
+      // 2. e. Let exprValue be ? GetValue(exprRef).
+      const exprValue = exprRef.GetValue(ctx);
+      if (exprValue.isAbrupt) { return exprValue; }
+
+      // 2. f. If ToBoolean(exprValue) is false, return NormalCompletion(V).
+      const bool = exprValue.ToBoolean(ctx);
+      if (bool.isAbrupt) { return bool; }
+      if (bool.isFalsey) {
+        return V.ToCompletion(CompletionType.normal, intrinsics.empty);
+      }
+    }
   }
 }
 

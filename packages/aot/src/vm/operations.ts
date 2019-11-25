@@ -18,6 +18,8 @@ import {
   ESType,
   $AnyNonEmpty,
   $AnyObject,
+  $Any,
+  CompletionType,
 } from './types/_shared';
 import {
   $Function,
@@ -44,6 +46,9 @@ import {
 import {
   $List,
 } from './types/list';
+import {
+  $StringSet,
+} from './globals/string';
 
 // http://www.ecma-international.org/ecma-262/#sec-set-o-p-v-throw
 export function $Set(
@@ -1157,4 +1162,38 @@ export function $CopyDataProperties<T extends $AnyObject>(
 
   // 7. Return target.
   return target;
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-loopcontinues
+// 13.7.1.2 Runtime Semantics: LoopContinues ( completion , labelSet )
+export function $LoopContinues(
+  ctx: ExecutionContext,
+  completion: $Any,
+  labelSet: $StringSet,
+): $Boolean {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
+  // 1. If completion.[[Type]] is normal, return true.
+  if (completion['[[Type]]'] === CompletionType.normal) {
+    return intrinsics.true;
+  }
+
+  // 2. If completion.[[Type]] is not continue, return false.
+  if (completion['[[Type]]'] !== CompletionType.continue) {
+    return intrinsics.false;
+  }
+
+  // 3. If completion.[[Target]] is empty, return true.
+  if (completion['[[Target]]'].isEmpty) {
+    return intrinsics.true;
+  }
+
+  // 4. If completion.[[Target]] is an element of labelSet, return true.
+  if (labelSet.has(completion['[[Target]]'])) {
+    return intrinsics.true;
+  }
+
+  // 5. Return false.
+  return intrinsics.false;
 }

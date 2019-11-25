@@ -207,24 +207,30 @@ class TestRunner {
           continue;
         }
       }
-      const result = await tc.run();
 
-      // TODO: fix this again
-      // if (tc.meta.negative === null) {
-      //   if (result.last.err === null) {
-      //     logger.info(`${format.green('PASS')} - ${tc.file.rootlessPath}`);
-      //   } else {
-      //     logger.info(`${format.red('FAIL')} - ${tc.file.rootlessPath} (expected no error, but got: ${result.last.err.message} ${result.last.err.stack})`);
-      //   }
-      // } else {
-      //   if (result.last.err === null) {
-      //     logger.info(`${format.red('FAIL')} - ${tc.file.rootlessPath} (expected error ${tc.meta.negative.type}, but got none)`);
-      //   } else if (result.last.err.name !== tc.meta.negative.type) {
-      //     logger.info(`${format.red('FAIL')} - ${tc.file.rootlessPath} (expected error ${tc.meta.negative.type}, but got: ${result.last.err.name})`);
-      //   } else {
-      //     logger.info(`${format.green('PASS')} - ${tc.file.rootlessPath}`);
-      //   }
-      // }
+      try {
+        const result = await tc.run();
+
+        if (tc.meta.negative === null) {
+          if (result.isAbrupt) {
+            logger.info(`${format.red('FAIL')} - ${tc.file.rootlessPath} (expected no error, but got: ${result['[[Value]]'].message} ${result['[[Value]]'].stack})`);
+          } else {
+            logger.info(`${format.green('PASS')} - ${tc.file.rootlessPath}`);
+          }
+        } else {
+          if (result.isAbrupt) {
+            if (result['[[Value]]'].name === tc.meta.negative.type) {
+              logger.info(`${format.green('PASS')} - ${tc.file.rootlessPath}`);
+            } else {
+              logger.info(`${format.red('FAIL')} - ${tc.file.rootlessPath} (expected error ${tc.meta.negative.type}, but got: ${result['[[Value]]'].name})`);
+            }
+          } else {
+            logger.info(`${format.red('FAIL')} - ${tc.file.rootlessPath} (expected error ${tc.meta.negative.type}, but got none)`);
+          }
+        }
+      } catch (err) {
+        logger.fatal(`AOT threw an error: ${err.message}\n${err.stack}`)
+      }
     }
   }
 }

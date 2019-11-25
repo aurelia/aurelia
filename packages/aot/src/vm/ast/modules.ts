@@ -1312,7 +1312,7 @@ export class $SourceFile implements I$Node, IModule {
           sl = $statement.EvaluateLabelled(ctx, new $StringSet());
           break;
         case SyntaxKind.WhileStatement:
-          sl = $statement.EvaluateLabelled(ctx);
+          sl = $statement.EvaluateLabelled(ctx, new $StringSet());
           break;
         case SyntaxKind.ForStatement:
           sl = $statement.EvaluateLabelled(ctx);

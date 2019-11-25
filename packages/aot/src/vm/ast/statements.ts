@@ -996,6 +996,7 @@ export class $WhileStatement implements I$Node {
   // 13.7.3.6 Runtime Semantics: LabelledEvaluation
   public EvaluateLabelled(
     ctx: ExecutionContext,
+    labelSet: $StringSet,
   ): $Any {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -1003,16 +1004,41 @@ export class $WhileStatement implements I$Node {
     this.logger.debug(`EvaluateLabelled(#${ctx.id})`);
     // IterationStatement : while ( Expression ) Statement
 
-    // 1. Let V be undefined.
-    // 2. Repeat,
-    // 2. a. Let exprRef be the result of evaluating Expression.
-    // 2. b. Let exprValue be ? GetValue(exprRef).
-    // 2. c. If ToBoolean(exprValue) is false, return NormalCompletion(V).
-    // 2. d. Let stmtResult be the result of evaluating Statement.
-    // 2. e. If LoopContinues(stmtResult, labelSet) is false, return Completion(UpdateEmpty(stmtResult, V)).
-    // 2. f. If stmtResult.[[Value]] is not empty, set V to stmtResult.[[Value]].
+    const expr = this.$expression;
+    const stmt = this.$statement;
 
-    return intrinsics.empty; // TODO: implement this
+    // 1. Let V be undefined.
+    let V: $Any = intrinsics.undefined;
+
+    // 2. Repeat,
+    while (true) {
+      // 2. a. Let exprRef be the result of evaluating Expression.
+      const exprRef = expr.Evaluate(ctx);
+
+      // 2. b. Let exprValue be ? GetValue(exprRef).
+      const exprValue = exprRef.GetValue(ctx);
+      if (exprValue.isAbrupt) { return exprValue; }
+
+      // 2. c. If ToBoolean(exprValue) is false, return NormalCompletion(V).
+      const bool = exprValue.ToBoolean(ctx);
+      if (bool.isAbrupt) { return bool; }
+      if (bool.isFalsey) {
+        return V.ToCompletion(CompletionType.normal, intrinsics.empty);
+      }
+
+      // 2. d. Let stmtResult be the result of evaluating Statement.
+      const stmtResult = evaluateStatement(ctx, stmt);
+
+      // 2. e. If LoopContinues(stmtResult, labelSet) is false, return Completion(UpdateEmpty(stmtResult, V)).
+      if ($LoopContinues(ctx, stmtResult, labelSet).isFalsey) {
+        return stmtResult.UpdateEmpty(V);
+      }
+
+      // 2. f. If stmtResult.[[Value]] is not empty, set V to stmtResult.[[Value]].
+      if (!stmtResult.isEmpty) {
+        V = stmtResult;
+      }
+    }
   }
 }
 

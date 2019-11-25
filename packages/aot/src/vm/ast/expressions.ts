@@ -586,7 +586,7 @@ export class $ObjectLiteralExpression implements I$Node {
   // 12.2.6.7 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $Object {
+  ): $Object | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -597,28 +597,16 @@ export class $ObjectLiteralExpression implements I$Node {
     // ObjectLiteral : { PropertyDefinitionList } { PropertyDefinitionList , }
 
     // 1. Let obj be ObjectCreate(%ObjectPrototype%).
+    const obj = $Object.ObjectCreate(ctx, 'Object', intrinsics['%ObjectPrototype%']);
+
     // 2. Perform ? PropertyDefinitionEvaluation of PropertyDefinitionList with arguments obj and true.
+    for (const prop of this.$properties) {
+      const $PropertyDefinitionEvaluationResult = prop.EvaluatePropertyDefinition(ctx, obj, intrinsics.true);
+      if ($PropertyDefinitionEvaluationResult.isAbrupt) { return $PropertyDefinitionEvaluationResult; }
+    }
+
     // 3. Return obj.
-
-    // LiteralPropertyName : IdentifierName
-
-    // 1. Return StringValue of IdentifierName.
-
-    // LiteralPropertyName : StringLiteral
-
-    // 1. Return the String value whose code units are the SV of the StringLiteral.
-
-    // LiteralPropertyName : NumericLiteral
-
-    // 1. Let nbr be the result of forming the value of the NumericLiteral.
-    // 2. Return ! ToString(nbr).
-
-    // ComputedPropertyName : [ AssignmentExpression ]
-
-    // 1. Let exprValue be the result of evaluating AssignmentExpression.
-    // 2. Let propName be ? GetValue(exprValue).
-    // 3. Return ? ToPropertyKey(propName).
-    return intrinsics['%ObjectPrototype%']; // TODO: implement this
+    return obj;
   }
 }
 

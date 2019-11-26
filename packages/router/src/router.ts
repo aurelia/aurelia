@@ -172,6 +172,10 @@ export class Router implements IRouter {
       callback: this.browserNavigatorCallback,
       useUrlFragmentHash: this.options.useUrlFragmentHash
     });
+
+    const root = this.container.get(Aurelia).root;
+    // root.config.component shouldn't be used in the end. Metadata will probably eliminate it
+    this.rootScope = new ViewportScope(this, true, null, null, null, root.config.component as CustomElementType);
   }
 
   public loadUrl(): Promise<void> {
@@ -464,7 +468,7 @@ export class Router implements IRouter {
   };
 
   public findScope(origin: Element | IViewModel | Viewport | ViewportScope | null): ViewportScope {
-    this.ensureRootScope();
+    // this.ensureRootScope();
     if (origin === void 0 || origin === null) {
       return this.rootScope!;
     }
@@ -538,7 +542,7 @@ export class Router implements IRouter {
     }
   }
   public allViewports(includeDisabled: boolean = false, includeReplaced: boolean = false): Viewport[] {
-    this.ensureRootScope();
+    // this.ensureRootScope();
     return (this.rootScope as ViewportScope).allViewports(includeDisabled, includeReplaced);
   }
 
@@ -879,13 +883,13 @@ export class Router implements IRouter {
     (qInstruction.resolve as ((value: void | PromiseLike<void>) => void))();
   }
 
-  private ensureRootScope(): void {
-    if (!this.rootScope) {
-      const root = this.container.get(Aurelia).root;
-      // root.config.component shouldn't be used in the end. Metadata will probably eliminate it
-      this.rootScope = new ViewportScope(this, true, null, null, null, root.config.component as CustomElementType);
-    }
-  }
+  // private ensureRootScope(): void {
+  //   if (!this.rootScope) {
+  //     const root = this.container.get(Aurelia).root;
+  //     // root.config.component shouldn't be used in the end. Metadata will probably eliminate it
+  //     this.rootScope = new ViewportScope(this, true, null, null, null, root.config.component as CustomElementType);
+  //   }
+  // }
 
   private async replacePaths(instruction: INavigatorInstruction): Promise<void> {
     (this.rootScope as ViewportScope).reparentViewportInstructions();

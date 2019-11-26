@@ -294,7 +294,7 @@ export function $CreateDynamicFunction(
     sourceText,
     ScriptTarget.Latest,
   ).statements[0] as FunctionDeclaration;
-  const ScriptOrModule = ctx.ScriptOrModule as $SourceFile;
+  const ScriptOrModule = callerContext.ScriptOrModule as $SourceFile;
 
   const $functionDeclaration = new $FunctionDeclaration(
     node,
@@ -303,8 +303,8 @@ export function $CreateDynamicFunction(
     -1,
     ScriptOrModule,
     calleeRealm,
-    void 0,
-    void 0,
+    1,
+    ScriptOrModule.logger,
     `${ScriptOrModule.path}[Dynamic].FunctionDeclaration`,
   );
 

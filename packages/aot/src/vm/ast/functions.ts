@@ -188,7 +188,6 @@ export class $FormalParameterList extends Array<$ParameterDeclaration> {
 
 export class $FunctionExpression implements I$Node {
   public readonly $kind = SyntaxKind.FunctionExpression;
-  public readonly id: number;
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -240,8 +239,6 @@ export class $FunctionExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.FunctionExpression`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     const DirectivePrologue = this.DirectivePrologue = GetDirectivePrologue(node.body!.statements);
@@ -470,7 +467,6 @@ export class $FunctionExpression implements I$Node {
 
 export class $FunctionDeclaration implements I$Node {
   public readonly $kind = SyntaxKind.FunctionDeclaration;
-  public readonly id: number;
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -568,7 +564,6 @@ export class $FunctionDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.FunctionDeclaration`,
   ) {
-    this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
 
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
@@ -1075,7 +1070,6 @@ export function $FunctionDeclarationInstantiation(
 
 export class $ArrowFunction implements I$Node {
   public readonly $kind = SyntaxKind.ArrowFunction;
-  public readonly id: number;
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -1135,8 +1129,6 @@ export class $ArrowFunction implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ArrowFunction`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     if (node.body.kind === SyntaxKind.Block) {
@@ -1227,7 +1219,6 @@ export class MethodDefinitionRecord {
 
 export class $ConstructorDeclaration implements I$Node {
   public readonly $kind = SyntaxKind.Constructor;
-  public readonly id: number;
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -1258,8 +1249,6 @@ export class $ConstructorDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ConstructorDeclaration`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     this.$decorators = $decoratorList(node.decorators, this, ctx);
@@ -1334,7 +1323,6 @@ export class $ConstructorDeclaration implements I$Node {
 
 export class $ParameterDeclaration implements I$Node {
   public readonly $kind = SyntaxKind.Parameter;
-  public readonly id: number;
 
   public readonly modifierFlags: ModifierFlags;
   public readonly combinedModifierFlags: ModifierFlags;
@@ -1368,8 +1356,6 @@ export class $ParameterDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ParameterDeclaration`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.modifierFlags = this.combinedModifierFlags = modifiersToModifierFlags(node.modifiers);
     this.nodeFlags = this.combinedNodeFlags = node.flags;
 

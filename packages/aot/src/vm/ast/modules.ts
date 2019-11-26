@@ -178,7 +178,6 @@ export class $SourceFile implements I$Node, IModule {
   public get isAbrupt(): false { return false; }
 
   public readonly $kind = SyntaxKind.SourceFile;
-  public readonly id: number;
 
   public readonly path: string;
 
@@ -241,8 +240,6 @@ export class $SourceFile implements I$Node, IModule {
     public readonly moduleResolver: IModuleResolver,
     public readonly compilerOptions: $CompilerOptions,
   ) {
-    this.id = realm.registerNode(this);
-
     const intrinsics = realm['[[Intrinsics]]'];
 
     this.ExecutionResult = intrinsics.empty;
@@ -1424,7 +1421,6 @@ export class $SourceFile implements I$Node, IModule {
 export class $DocumentFragment implements I$Node, IModule {
   public readonly '<IModule>': unknown;
 
-  public readonly id: number;
 
   public readonly documentFragment: $DocumentFragment = this;
   public readonly parent: $DocumentFragment = this;
@@ -1447,7 +1443,6 @@ export class $DocumentFragment implements I$Node, IModule {
     public readonly realm: Realm,
     public readonly pkg: NPMPackage | null,
   ) {
-    this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
     this['[[Environment]]'] = intrinsics.undefined;
     this['[[Namespace]]'] = intrinsics.undefined;
@@ -1514,7 +1509,6 @@ export type $$ModuleName = (
 
 export class $ModuleDeclaration implements I$Node {
   public readonly $kind = SyntaxKind.ModuleDeclaration;
-  public readonly id: number;
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -1531,8 +1525,6 @@ export class $ModuleDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ModuleDeclaration`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     if (node.name.kind === SyntaxKind.Identifier) {
@@ -1592,7 +1584,6 @@ export type $$ModuleReference = (
  */
 export class $ImportEqualsDeclaration implements I$Node {
   public readonly $kind = SyntaxKind.ImportEqualsDeclaration;
-  public readonly id: number;
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -1609,8 +1600,6 @@ export class $ImportEqualsDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ImportEqualsDeclaration`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     this.$name = $identifier(node.name, this, ctx);
@@ -1636,7 +1625,6 @@ export class $ImportEqualsDeclaration implements I$Node {
 // ImportClause information is shown at its declaration below.
 export class $ImportDeclaration implements I$Node {
   public readonly $kind = SyntaxKind.ImportDeclaration;
-  public readonly id: number;
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -1665,8 +1653,6 @@ export class $ImportDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ImportDeclaration`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     const $moduleSpecifier = this.$moduleSpecifier = new $StringLiteral(node.moduleSpecifier as StringLiteral, this, ctx);
@@ -1697,7 +1683,6 @@ export class $ImportDeclaration implements I$Node {
 // import d, { a, b as x } from "mod" => name = d, namedBinding: NamedImports = { elements: [{ name: a }, { name: x, propertyName: b}]}
 export class $ImportClause implements I$Node {
   public readonly $kind = SyntaxKind.ImportClause;
-  public readonly id: number;
 
   public readonly $name: $Identifier | $Undefined;
   public readonly $namedBindings: $NamespaceImport | $NamedImports | undefined;
@@ -1721,7 +1706,6 @@ export class $ImportClause implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ImportClause`,
   ) {
-    this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
 
     const moduleSpecifier = this.moduleSpecifier = parent.moduleSpecifier;
@@ -1764,7 +1748,6 @@ export class $ImportClause implements I$Node {
 
 export class $NamedImports implements I$Node {
   public readonly $kind = SyntaxKind.NamedImports;
-  public readonly id: number;
 
   public readonly $elements: readonly $ImportSpecifier[];
 
@@ -1787,8 +1770,6 @@ export class $NamedImports implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.NamedImports`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.moduleSpecifier = parent.moduleSpecifier;
 
     const $elements = this.$elements = node.elements.map(x => new $ImportSpecifier(x, this, ctx));
@@ -1800,7 +1781,6 @@ export class $NamedImports implements I$Node {
 
 export class $ImportSpecifier implements I$Node {
   public readonly $kind = SyntaxKind.ImportSpecifier;
-  public readonly id: number;
 
   public readonly $propertyName: $Identifier | $Undefined;
   public readonly $name: $Identifier;
@@ -1822,8 +1802,6 @@ export class $ImportSpecifier implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ImportSpecifier`,
   ) {
-    this.id = realm.registerNode(this);
-
     let $propertyName: $Identifier | $Undefined;
     if (node.propertyName === void 0) {
       $propertyName = this.$propertyName = new $Undefined(realm, void 0, void 0, this);
@@ -1863,7 +1841,6 @@ export class $ImportSpecifier implements I$Node {
 
 export class $NamespaceImport implements I$Node {
   public readonly $kind = SyntaxKind.NamespaceImport;
-  public readonly id: number;
 
   public readonly $name: $Identifier;
 
@@ -1884,7 +1861,6 @@ export class $NamespaceImport implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.NamespaceImport`,
   ) {
-    this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
 
     const $name = this.$name = new $Identifier(node.name, this, ctx);
@@ -1930,7 +1906,6 @@ export class ExportEntryRecord {
 
 export class $ExportAssignment implements I$Node {
   public readonly $kind = SyntaxKind.ExportAssignment;
-  public readonly id: number;
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -1948,7 +1923,6 @@ export class $ExportAssignment implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ExportAssignment`,
   ) {
-    this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
@@ -1961,7 +1935,6 @@ export class $ExportAssignment implements I$Node {
 
 export class $ExportDeclaration implements I$Node {
   public readonly $kind = SyntaxKind.ExportDeclaration;
-  public readonly id: number;
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -2005,7 +1978,6 @@ export class $ExportDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ExportDeclaration`,
   ) {
-    this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
@@ -2047,7 +2019,6 @@ export class $ExportDeclaration implements I$Node {
 
 export class $NamedExports implements I$Node {
   public readonly $kind = SyntaxKind.NamedExports;
-  public readonly id: number;
 
   public readonly $elements: readonly $ExportSpecifier[];
 
@@ -2073,8 +2044,6 @@ export class $NamedExports implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.NamedExports`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.moduleSpecifier = parent.moduleSpecifier;
 
     const $elements = this.$elements = node.elements.map(x => new $ExportSpecifier(x, this, ctx));
@@ -2087,7 +2056,6 @@ export class $NamedExports implements I$Node {
 
 export class $ExportSpecifier implements I$Node {
   public readonly $kind = SyntaxKind.ExportSpecifier;
-  public readonly id: number;
 
   public readonly $propertyName: $Identifier | $Undefined;
   public readonly $name: $Identifier;
@@ -2112,7 +2080,6 @@ export class $ExportSpecifier implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ExportSpecifier`,
   ) {
-    this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
 
     let $propertyName: $Identifier | $Undefined;
@@ -2186,7 +2153,6 @@ export class $ExportSpecifier implements I$Node {
 
 export class $NamespaceExportDeclaration implements I$Node {
   public readonly $kind = SyntaxKind.NamespaceExportDeclaration;
-  public readonly id: number;
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -2202,8 +2168,6 @@ export class $NamespaceExportDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.NamespaceExportDeclaration`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     this.$name = $identifier(node.name, this, ctx);
@@ -2212,7 +2176,6 @@ export class $NamespaceExportDeclaration implements I$Node {
 
 export class $ModuleBlock implements I$Node {
   public readonly $kind = SyntaxKind.ModuleBlock;
-  public readonly id: number;
 
   // TODO: ModuleBlock shares a lot in common with SourceFile, so we implement this last to try to maximize code reuse / reduce refactoring overhead and/or see if the two can be consolidated.
   public readonly $statements: readonly $$TSModuleItem[] = emptyArray;
@@ -2226,14 +2189,11 @@ export class $ModuleBlock implements I$Node {
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ModuleBlock`,
-  ) {
-    this.id = realm.registerNode(this);
-  }
+  ) {}
 }
 
 export class $ExternalModuleReference implements I$Node {
   public readonly $kind = SyntaxKind.ExternalModuleReference;
-  public readonly id: number;
 
   public readonly $expression: $StringLiteral;
 
@@ -2247,8 +2207,6 @@ export class $ExternalModuleReference implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ExternalModuleReference`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = new $StringLiteral(node.expression as StringLiteral, this, ctx);
   }
 }
@@ -2265,7 +2223,6 @@ export type $$EntityName = (
 
 export class $QualifiedName implements I$Node {
   public readonly $kind = SyntaxKind.QualifiedName;
-  public readonly id: number;
 
   public readonly $left: $$EntityName;
   public readonly $right: $Identifier;
@@ -2280,8 +2237,6 @@ export class $QualifiedName implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.QualifiedName`,
   ) {
-    this.id = realm.registerNode(this);
-
     if (node.left.kind === SyntaxKind.Identifier) {
       this.$left = new $Identifier(node.left, this, ctx);
     } else {

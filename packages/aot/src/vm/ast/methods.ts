@@ -77,7 +77,6 @@ import {
 
 export class $MethodDeclaration implements I$Node {
   public readonly $kind = SyntaxKind.MethodDeclaration;
-  public readonly id: number;
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -116,8 +115,6 @@ export class $MethodDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.MethodDeclaration`,
   ) {
-    this.id = realm.registerNode(this);
-
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     this.$decorators = $decoratorList(node.decorators, this, ctx);
@@ -236,7 +233,6 @@ export class $MethodDeclaration implements I$Node {
 
 export class $GetAccessorDeclaration implements I$Node {
   public readonly $kind = SyntaxKind.GetAccessor;
-  public readonly id: number;
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -275,8 +271,6 @@ export class $GetAccessorDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.GetAccessorDeclaration`,
   ) {
-    this.id = realm.registerNode(this);
-
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     this.$decorators = $decoratorList(node.decorators, this, ctx);
@@ -362,7 +356,6 @@ export class $GetAccessorDeclaration implements I$Node {
 
 export class $SetAccessorDeclaration implements I$Node {
   public readonly $kind = SyntaxKind.SetAccessor;
-  public readonly id: number;
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -401,8 +394,6 @@ export class $SetAccessorDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.SetAccessorDeclaration`,
   ) {
-    this.id = realm.registerNode(this);
-
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     this.$decorators = $decoratorList(node.decorators, this, ctx);

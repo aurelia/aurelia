@@ -106,7 +106,6 @@ export function $$jsxChildList(
 
 export class $JsxElement implements I$Node {
   public readonly $kind = SyntaxKind.JsxElement;
-  public readonly id: number;
 
   public readonly $openingElement: $JsxOpeningElement;
   public readonly $children: readonly $$JsxChild[];
@@ -122,8 +121,6 @@ export class $JsxElement implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.JsxElement`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$openingElement = new $JsxOpeningElement(node.openingElement, this, ctx);
     this.$children = $$jsxChildList(node.children, this, ctx);
     this.$closingElement = new $JsxClosingElement(node.closingElement, this, ctx);
@@ -178,7 +175,6 @@ export function $$jsxTagNameExpression(
 
 export class $JsxSelfClosingElement implements I$Node {
   public readonly $kind = SyntaxKind.JsxSelfClosingElement;
-  public readonly id: number;
 
   public readonly $tagName: $$JsxTagNameExpression;
   public readonly $attributes: $JsxAttributes;
@@ -193,8 +189,6 @@ export class $JsxSelfClosingElement implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.JsxSelfClosingElement`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$tagName = $$jsxTagNameExpression(node.tagName, this, ctx);
     this.$attributes = new $JsxAttributes(node.attributes, this, ctx);
   }
@@ -215,7 +209,6 @@ export class $JsxSelfClosingElement implements I$Node {
 
 export class $JsxFragment implements I$Node {
   public readonly $kind = SyntaxKind.JsxFragment;
-  public readonly id: number;
 
   public readonly $openingFragment: $JsxOpeningFragment;
   public readonly $children: readonly $$JsxChild[];
@@ -231,8 +224,6 @@ export class $JsxFragment implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.JsxFragment`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$openingFragment = new $JsxOpeningFragment(node.openingFragment, this, ctx);
     this.$children = $$jsxChildList(node.children, this, ctx);
     this.$closingFragment = new $JsxClosingFragment(node.closingFragment, this, ctx);
@@ -254,7 +245,6 @@ export class $JsxFragment implements I$Node {
 
 export class $JsxText implements I$Node {
   public readonly $kind = SyntaxKind.JsxText;
-  public readonly id: number;
 
   public constructor(
     public readonly node: JsxText,
@@ -265,9 +255,7 @@ export class $JsxText implements I$Node {
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.JsxText`,
-  ) {
-    this.id = realm.registerNode(this);
-  }
+  ) {}
 
   public Evaluate(
     ctx: ExecutionContext,
@@ -285,7 +273,6 @@ export class $JsxText implements I$Node {
 
 export class $JsxOpeningElement implements I$Node {
   public readonly $kind = SyntaxKind.JsxOpeningElement;
-  public readonly id: number;
 
   public readonly $tagName: $$JsxTagNameExpression;
   public readonly $attributes: $JsxAttributes;
@@ -300,8 +287,6 @@ export class $JsxOpeningElement implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.JsxOpeningElement`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$tagName = $$jsxTagNameExpression(node.tagName, this, ctx);
     this.$attributes = new $JsxAttributes(node.attributes, this, ctx);
   }
@@ -322,7 +307,6 @@ export class $JsxOpeningElement implements I$Node {
 
 export class $JsxClosingElement implements I$Node {
   public readonly $kind = SyntaxKind.JsxClosingElement;
-  public readonly id: number;
 
   public readonly $tagName: $$JsxTagNameExpression;
 
@@ -336,8 +320,6 @@ export class $JsxClosingElement implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.JsxClosingElement`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$tagName = $$jsxTagNameExpression(node.tagName, this, ctx);
   }
 
@@ -357,7 +339,6 @@ export class $JsxClosingElement implements I$Node {
 
 export class $JsxOpeningFragment implements I$Node {
   public readonly $kind = SyntaxKind.JsxOpeningFragment;
-  public readonly id: number;
 
   public constructor(
     public readonly node: JsxOpeningFragment,
@@ -368,9 +349,7 @@ export class $JsxOpeningFragment implements I$Node {
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.JsxOpeningFragment`,
-  ) {
-    this.id = realm.registerNode(this);
-  }
+  ) {}
 
   public Evaluate(
     ctx: ExecutionContext,
@@ -388,7 +367,6 @@ export class $JsxOpeningFragment implements I$Node {
 
 export class $JsxClosingFragment implements I$Node {
   public readonly $kind = SyntaxKind.JsxClosingFragment;
-  public readonly id: number;
 
   public constructor(
     public readonly node: JsxClosingFragment,
@@ -399,9 +377,7 @@ export class $JsxClosingFragment implements I$Node {
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.JsxClosingFragment`,
-  ) {
-    this.id = realm.registerNode(this);
-  }
+  ) {}
 
   public Evaluate(
     ctx: ExecutionContext,
@@ -419,7 +395,6 @@ export class $JsxClosingFragment implements I$Node {
 
 export class $JsxAttribute implements I$Node {
   public readonly $kind = SyntaxKind.JsxAttribute;
-  public readonly id: number;
 
   public readonly $name: $Identifier;
   public readonly $initializer: $StringLiteral | $JsxExpression | undefined;
@@ -434,8 +409,6 @@ export class $JsxAttribute implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.JsxAttribute`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$name = $identifier(node.name, this, ctx);
     if (node.initializer === void 0) {
       this.$initializer = void 0;
@@ -456,7 +429,6 @@ export type $$JsxAttributeLike = (
 
 export class $JsxAttributes implements I$Node {
   public readonly $kind = SyntaxKind.JsxAttributes;
-  public readonly id: number;
 
   public readonly $properties: readonly $$JsxAttributeLike[];
 
@@ -470,8 +442,6 @@ export class $JsxAttributes implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.JsxAttributes`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$properties = node.properties.map(
       x => x.kind === SyntaxKind.JsxAttribute
         ? new $JsxAttribute(x, this, ctx)
@@ -495,7 +465,6 @@ export class $JsxAttributes implements I$Node {
 
 export class $JsxSpreadAttribute implements I$Node {
   public readonly $kind = SyntaxKind.JsxSpreadAttribute;
-  public readonly id: number;
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -509,8 +478,6 @@ export class $JsxSpreadAttribute implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.JsxSpreadAttribute`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
   }
 
@@ -530,7 +497,6 @@ export class $JsxSpreadAttribute implements I$Node {
 
 export class $JsxExpression implements I$Node {
   public readonly $kind = SyntaxKind.JsxExpression;
-  public readonly id: number;
 
   public readonly $expression: $$AssignmentExpressionOrHigher | undefined;
 
@@ -544,8 +510,6 @@ export class $JsxExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.JsxExpression`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
   }
 

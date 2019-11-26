@@ -123,7 +123,6 @@ export type $$NamedDeclaration = (
 
 export class $ComputedPropertyName implements I$Node {
   public readonly $kind = SyntaxKind.ComputedPropertyName;
-  public readonly id: number;
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -141,8 +140,6 @@ export class $ComputedPropertyName implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ComputedPropertyName`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
 
     this.PropName = new $Empty(realm, void 0, void 0, this);
@@ -181,7 +178,6 @@ export class $ComputedPropertyName implements I$Node {
 
 export class $ObjectBindingPattern implements I$Node {
   public readonly $kind = SyntaxKind.ObjectBindingPattern;
-  public readonly id: number;
 
   public readonly combinedModifierFlags: ModifierFlags;
   public readonly nodeFlags: NodeFlags;
@@ -212,8 +208,6 @@ export class $ObjectBindingPattern implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ObjectBindingPattern`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.combinedModifierFlags = parent.combinedModifierFlags;
     this.nodeFlags = node.flags;
     this.combinedNodeFlags = node.flags | parent.combinedModifierFlags;
@@ -320,7 +314,6 @@ export function $$arrayBindingElementList(
 
 export class $ArrayBindingPattern implements I$Node {
   public readonly $kind = SyntaxKind.ArrayBindingPattern;
-  public readonly id: number;
 
   public readonly combinedModifierFlags: ModifierFlags;
   public readonly nodeFlags: NodeFlags;
@@ -351,8 +344,6 @@ export class $ArrayBindingPattern implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ArrayBindingPattern`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.combinedModifierFlags = parent.combinedModifierFlags;
     this.nodeFlags = node.flags;
     this.combinedNodeFlags = node.flags | parent.combinedModifierFlags;
@@ -475,7 +466,6 @@ export type $$BindingPattern = (
 
 export class $BindingElement implements I$Node {
   public readonly $kind = SyntaxKind.BindingElement;
-  public readonly id: number;
 
   public readonly modifierFlags: ModifierFlags;
   public readonly combinedModifierFlags: ModifierFlags;
@@ -509,8 +499,6 @@ export class $BindingElement implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.BindingElement`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
     this.combinedModifierFlags = this.modifierFlags | parent.combinedModifierFlags;
     this.nodeFlags = node.flags;
@@ -768,7 +756,6 @@ export class $BindingElement implements I$Node {
 
 export class $SpreadElement implements I$Node {
   public readonly $kind = SyntaxKind.SpreadElement;
-  public readonly id: number;
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -782,8 +769,6 @@ export class $SpreadElement implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.SpreadElement`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
   }
 
@@ -881,7 +866,6 @@ export class $SpreadElement implements I$Node {
 
 export class $OmittedExpression implements I$Node {
   public readonly $kind = SyntaxKind.OmittedExpression;
-  public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-boundnames
   // 13.3.3.1 Static Semantics: BoundNames
@@ -905,9 +889,7 @@ export class $OmittedExpression implements I$Node {
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.OmittedExpression`,
-  ) {
-    this.id = realm.registerNode(this);
-  }
+  ) {}
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-iteratordestructuringassignmentevaluation
   // 12.15.5.5 Runtime Semantics: IteratorDestructuringAssignmentEvaluation

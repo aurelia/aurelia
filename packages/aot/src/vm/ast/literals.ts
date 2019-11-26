@@ -60,7 +60,6 @@ import {
 
 export class $TemplateHead implements I$Node {
   public readonly $kind = SyntaxKind.TemplateHead;
-  public readonly id: number;
 
   public constructor(
     public readonly node: TemplateHead,
@@ -71,9 +70,7 @@ export class $TemplateHead implements I$Node {
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.TemplateHead`,
-  ) {
-    this.id = realm.registerNode(this);
-  }
+  ) {}
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
   // 12.2.9.6 Runtime Semantics: Evaluation
@@ -93,7 +90,6 @@ export class $TemplateHead implements I$Node {
 
 export class $TemplateMiddle implements I$Node {
   public readonly $kind = SyntaxKind.TemplateMiddle;
-  public readonly id: number;
 
   public constructor(
     public readonly node: TemplateMiddle,
@@ -104,9 +100,7 @@ export class $TemplateMiddle implements I$Node {
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.TemplateMiddle`,
-  ) {
-    this.id = realm.registerNode(this);
-  }
+  ) {}
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
   // 12.2.9.6 Runtime Semantics: Evaluation
@@ -126,7 +120,6 @@ export class $TemplateMiddle implements I$Node {
 
 export class $TemplateTail implements I$Node {
   public readonly $kind = SyntaxKind.TemplateTail;
-  public readonly id: number;
 
   public constructor(
     public readonly node: TemplateTail,
@@ -137,9 +130,7 @@ export class $TemplateTail implements I$Node {
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.TemplateTail`,
-  ) {
-    this.id = realm.registerNode(this);
-  }
+  ) {}
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
   // 12.2.9.6 Runtime Semantics: Evaluation
@@ -164,7 +155,6 @@ export class $TemplateTail implements I$Node {
 
 export class $TemplateSpan implements I$Node {
   public readonly $kind = SyntaxKind.TemplateSpan;
-  public readonly id: number;
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
   public readonly $literal: $TemplateMiddle | $TemplateTail;
@@ -179,8 +169,6 @@ export class $TemplateSpan implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.TemplateSpan`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
     if (node.literal.kind === SyntaxKind.TemplateMiddle) {
       this.$literal = new $TemplateMiddle(node.literal, this, ctx);
@@ -233,7 +221,6 @@ export class $TemplateSpan implements I$Node {
 
 export class $NumericLiteral implements I$Node {
   public readonly $kind = SyntaxKind.NumericLiteral;
-  public readonly id: number;
 
   public readonly Value: $Number;
 
@@ -267,8 +254,6 @@ export class $NumericLiteral implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.NumericLiteral`,
   ) {
-    this.id = realm.registerNode(this);
-
     const num = Number(node.text);
     this.PropName = new $String(realm, num.toString(), void 0, void 0, this);
     this.Value = new $Number(realm, num, void 0, void 0, this);
@@ -297,7 +282,6 @@ export class $NumericLiteral implements I$Node {
 
 export class $BigIntLiteral implements I$Node {
   public readonly $kind = SyntaxKind.BigIntLiteral;
-  public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
   // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
@@ -324,9 +308,7 @@ export class $BigIntLiteral implements I$Node {
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.BigIntLiteral`,
-  ) {
-    this.id = realm.registerNode(this);
-  }
+  ) {}
 
   public Evaluate(
     ctx: ExecutionContext,
@@ -344,7 +326,6 @@ export class $BigIntLiteral implements I$Node {
 
 export class $StringLiteral implements I$Node {
   public readonly $kind = SyntaxKind.StringLiteral;
-  public readonly id: number;
 
   public readonly Value: $String;
 
@@ -381,8 +362,6 @@ export class $StringLiteral implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.StringLiteral`,
   ) {
-    this.id = realm.registerNode(this);
-
     const StringValue = this.StringValue = new $String(realm, node.text, void 0, void 0, this);
     this.PropName = StringValue;
     this.Value = StringValue;
@@ -413,7 +392,6 @@ export class $StringLiteral implements I$Node {
 
 export class $RegularExpressionLiteral implements I$Node {
   public readonly $kind = SyntaxKind.RegularExpressionLiteral;
-  public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-regexp-identifier-names-static-semantics-stringvalue
   // 21.2.1.6 Static Semantics: StringValue
@@ -445,8 +423,6 @@ export class $RegularExpressionLiteral implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.RegularExpressionLiteral`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.StringValue = node.text;
   }
 
@@ -471,7 +447,6 @@ export class $RegularExpressionLiteral implements I$Node {
 
 export class $NoSubstitutionTemplateLiteral implements I$Node {
   public readonly $kind = SyntaxKind.NoSubstitutionTemplateLiteral;
-  public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
   // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
@@ -498,9 +473,7 @@ export class $NoSubstitutionTemplateLiteral implements I$Node {
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.NoSubstitutionTemplateLiteral`,
-  ) {
-    this.id = realm.registerNode(this);
-  }
+  ) {}
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
   // 12.2.9.6 Runtime Semantics: Evaluation
@@ -521,7 +494,6 @@ export class $NoSubstitutionTemplateLiteral implements I$Node {
 
 export class $NullLiteral implements I$Node {
   public readonly $kind = SyntaxKind.NullKeyword;
-  public readonly id: number;
 
   public readonly Value: $Null;
 
@@ -551,8 +523,6 @@ export class $NullLiteral implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.NullLiteral`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.Value = new $Null(realm, void 0, void 0, this);
   }
 
@@ -572,7 +542,6 @@ export class $NullLiteral implements I$Node {
 
 export class $BooleanLiteral implements I$Node {
   public readonly $kind: SyntaxKind.TrueKeyword | SyntaxKind.FalseKeyword;
-  public readonly id: number;
 
   public readonly Value: $Boolean;
 
@@ -602,7 +571,6 @@ export class $BooleanLiteral implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.BooleanLiteral`,
   ) {
-    this.id = realm.registerNode(this);
     this.$kind = node.kind;
 
     this.Value = new $Boolean(realm, node.kind === SyntaxKind.TrueKeyword, void 0, void 0, this);

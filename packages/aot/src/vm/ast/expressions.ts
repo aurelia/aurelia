@@ -161,7 +161,6 @@ const {
 
 export class $Decorator implements I$Node {
   public readonly $kind = SyntaxKind.Decorator;
-  public readonly id: number;
 
   public readonly $expression: $$LHSExpressionOrHigher;
 
@@ -175,8 +174,6 @@ export class $Decorator implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.Decorator`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx);
   }
 }
@@ -185,7 +182,6 @@ export class $Decorator implements I$Node {
 
 export class $ThisExpression implements I$Node {
   public readonly $kind = SyntaxKind.ThisKeyword;
-  public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
   // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
@@ -212,9 +208,7 @@ export class $ThisExpression implements I$Node {
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ThisExpression`,
-  ) {
-    this.id = realm.registerNode(this);
-  }
+  ) {}
 
   // http://www.ecma-international.org/ecma-262/#sec-this-keyword-runtime-semantics-evaluation
   // 12.2.2.1 Runtime Semantics: Evaluation
@@ -235,7 +229,6 @@ export class $ThisExpression implements I$Node {
 
 export class $SuperExpression implements I$Node {
   public readonly $kind = SyntaxKind.SuperKeyword;
-  public readonly id: number;
 
   public constructor(
     public readonly node: SuperExpression,
@@ -246,9 +239,7 @@ export class $SuperExpression implements I$Node {
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.SuperExpression`,
-  ) {
-    this.id = realm.registerNode(this);
-  }
+  ) {}
 
   // http://www.ecma-international.org/ecma-262/#sec-super-keyword-runtime-semantics-evaluation
   // 12.3.5.1 Runtime Semantics: Evaluation
@@ -340,7 +331,6 @@ export function $argumentOrArrayLiteralElementList(
 
 export class $ArrayLiteralExpression implements I$Node {
   public readonly $kind = SyntaxKind.ArrayLiteralExpression;
-  public readonly id: number;
 
   public readonly $elements: readonly $$ArgumentOrArrayLiteralElement[];
 
@@ -370,8 +360,6 @@ export class $ArrayLiteralExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ArrayLiteralExpression`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$elements = $argumentOrArrayLiteralElementList(node.elements as NodeArray<$ArgumentOrArrayLiteralElementNode>, this, ctx);
   }
 
@@ -556,7 +544,6 @@ export function $$objectLiteralElementLikeList(
 
 export class $ObjectLiteralExpression implements I$Node {
   public readonly $kind = SyntaxKind.ObjectLiteralExpression;
-  public readonly id: number;
 
   public readonly $properties: readonly $$ObjectLiteralElementLike[];
 
@@ -586,8 +573,6 @@ export class $ObjectLiteralExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ObjectLiteralExpression`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$properties = $$objectLiteralElementLikeList(node.properties, this, ctx);
   }
 
@@ -623,7 +608,6 @@ export class $ObjectLiteralExpression implements I$Node {
 
 export class $PropertyAssignment implements I$Node {
   public readonly $kind = SyntaxKind.PropertyAssignment;
-  public readonly id: number;
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -644,8 +628,6 @@ export class $PropertyAssignment implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.PropertyAssignment`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     const $name = this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName);
@@ -700,7 +682,6 @@ export class $PropertyAssignment implements I$Node {
 
 export class $ShorthandPropertyAssignment implements I$Node {
   public readonly $kind = SyntaxKind.ShorthandPropertyAssignment;
-  public readonly id: number;
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -721,8 +702,6 @@ export class $ShorthandPropertyAssignment implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ShorthandPropertyAssignment`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     const $name = this.$name = $identifier(node.name, this, ctx);
@@ -762,7 +741,6 @@ export class $ShorthandPropertyAssignment implements I$Node {
 
 export class $SpreadAssignment implements I$Node {
   public readonly $kind = SyntaxKind.SpreadAssignment;
-  public readonly id: number;
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -780,8 +758,6 @@ export class $SpreadAssignment implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.SpreadAssignment`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
   }
 
@@ -814,7 +790,6 @@ export class $SpreadAssignment implements I$Node {
 
 export class $PropertyAccessExpression implements I$Node {
   public readonly $kind = SyntaxKind.PropertyAccessExpression;
-  public readonly id: number;
 
   public readonly $expression: $$LHSExpressionOrHigher;
   public readonly $name: $Identifier;
@@ -829,8 +804,6 @@ export class $PropertyAccessExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.PropertyAccessExpression`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx);
     this.$name = $identifier(node.name, this, ctx | Context.IsPropertyAccessName);
   }
@@ -873,7 +846,6 @@ export class $PropertyAccessExpression implements I$Node {
 
 export class $ElementAccessExpression implements I$Node {
   public readonly $kind = SyntaxKind.ElementAccessExpression;
-  public readonly id: number;
 
   public readonly $expression: $$LHSExpressionOrHigher;
   public readonly $argumentExpression: $$AssignmentExpressionOrHigher;
@@ -888,8 +860,6 @@ export class $ElementAccessExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ElementAccessExpression`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx);
     this.$argumentExpression = $assignmentExpression(node.argumentExpression as $AssignmentExpressionNode, this, ctx);
   }
@@ -940,7 +910,6 @@ export class $ElementAccessExpression implements I$Node {
 
 export class $CallExpression implements I$Node {
   public readonly $kind = SyntaxKind.CallExpression;
-  public readonly id: number;
 
   public readonly $expression: $$LHSExpressionOrHigher;
   public readonly $arguments: readonly $$ArgumentOrArrayLiteralElement[];
@@ -955,8 +924,6 @@ export class $CallExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.CallExpression`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx);
     this.$arguments = $argumentOrArrayLiteralElementList(node.arguments as NodeArray<$ArgumentOrArrayLiteralElementNode>, this, ctx);
   }
@@ -1159,7 +1126,6 @@ export function $ArgumentListEvaluation(
 
 export class $NewExpression implements I$Node {
   public readonly $kind = SyntaxKind.NewExpression;
-  public readonly id: number;
 
   public readonly $expression: $$LHSExpressionOrHigher;
   public readonly $arguments: readonly $$ArgumentOrArrayLiteralElement[];
@@ -1174,8 +1140,6 @@ export class $NewExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.NewExpression`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx);
     this.$arguments = $argumentOrArrayLiteralElementList(node.arguments as NodeArray<$ArgumentOrArrayLiteralElementNode>, this, ctx);
   }
@@ -1241,7 +1205,6 @@ export type $$TemplateLiteral = (
 
 export class $TaggedTemplateExpression implements I$Node {
   public readonly $kind = SyntaxKind.TaggedTemplateExpression;
-  public readonly id: number;
 
   public readonly $tag: $$LHSExpressionOrHigher;
   public readonly $template: $$TemplateLiteral;
@@ -1256,8 +1219,6 @@ export class $TaggedTemplateExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.TaggedTemplateExpression`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$tag = $LHSExpression(node.tag as $LHSExpressionNode, this, ctx);
 
     if (node.template.kind === SyntaxKind.NoSubstitutionTemplateLiteral) {
@@ -1317,7 +1278,6 @@ export function $$templateSpanList(
 
 export class $TemplateExpression implements I$Node {
   public readonly $kind = SyntaxKind.TemplateExpression;
-  public readonly id: number;
 
   public readonly $head: $TemplateHead;
   public readonly $templateSpans: readonly $TemplateSpan[];
@@ -1348,8 +1308,6 @@ export class $TemplateExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.TemplateExpression`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$head = new $TemplateHead(node.head, this, ctx)
     this.$templateSpans = $$templateSpanList(node.templateSpans, this, ctx);
   }
@@ -1409,7 +1367,6 @@ export class $TemplateExpression implements I$Node {
 
 export class $ParenthesizedExpression implements I$Node {
   public readonly $kind = SyntaxKind.ParenthesizedExpression;
-  public readonly id: number;
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -1427,8 +1384,6 @@ export class $ParenthesizedExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ParenthesizedExpression`,
   ) {
-    this.id = realm.registerNode(this);
-
     const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
 
     this.CoveredParenthesizedExpression = $expression;
@@ -1458,7 +1413,6 @@ export class $ParenthesizedExpression implements I$Node {
 
 export class $NonNullExpression implements I$Node {
   public readonly $kind = SyntaxKind.NonNullExpression;
-  public readonly id: number;
 
   public readonly $expression: $$LHSExpressionOrHigher;
 
@@ -1472,8 +1426,6 @@ export class $NonNullExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.NonNullExpression`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx);
   }
 
@@ -1489,7 +1441,6 @@ export class $NonNullExpression implements I$Node {
 
 export class $MetaProperty implements I$Node {
   public readonly $kind = SyntaxKind.MetaProperty;
-  public readonly id: number;
 
   public readonly $name: $Identifier;
 
@@ -1503,8 +1454,6 @@ export class $MetaProperty implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.MetaProperty`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$name = $identifier(node.name, this, ctx);
   }
 
@@ -1533,7 +1482,6 @@ export class $MetaProperty implements I$Node {
 
 export class $DeleteExpression implements I$Node {
   public readonly $kind = SyntaxKind.DeleteExpression;
-  public readonly id: number;
 
   public readonly $expression: $$UnaryExpressionOrHigher;
 
@@ -1547,8 +1495,6 @@ export class $DeleteExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.DeleteExpression`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, this, ctx);
   }
 
@@ -1585,7 +1531,6 @@ export class $DeleteExpression implements I$Node {
 
 export class $TypeOfExpression implements I$Node {
   public readonly $kind = SyntaxKind.TypeOfExpression;
-  public readonly id: number;
 
   public readonly $expression: $$UnaryExpressionOrHigher;
 
@@ -1599,8 +1544,6 @@ export class $TypeOfExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.TypeOfExpression`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, this, ctx);
   }
 
@@ -1671,7 +1614,6 @@ export class $TypeOfExpression implements I$Node {
 
 export class $VoidExpression implements I$Node {
   public readonly $kind = SyntaxKind.VoidExpression;
-  public readonly id: number;
 
   public readonly $expression: $$UnaryExpressionOrHigher;
 
@@ -1685,8 +1627,6 @@ export class $VoidExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.VoidExpression`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, this, ctx);
   }
 
@@ -1717,7 +1657,6 @@ export class $VoidExpression implements I$Node {
 
 export class $AwaitExpression implements I$Node {
   public readonly $kind = SyntaxKind.AwaitExpression;
-  public readonly id: number;
 
   public readonly $expression: $$UnaryExpressionOrHigher;
 
@@ -1731,8 +1670,6 @@ export class $AwaitExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.AwaitExpression`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, this, ctx);
   }
 
@@ -1759,7 +1696,6 @@ export class $AwaitExpression implements I$Node {
 
 export class $PrefixUnaryExpression implements I$Node {
   public readonly $kind = SyntaxKind.PrefixUnaryExpression;
-  public readonly id: number;
 
   public readonly $operand: $$UnaryExpressionOrHigher;
 
@@ -1773,8 +1709,6 @@ export class $PrefixUnaryExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.PrefixUnaryExpression`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$operand = $unaryExpression(node.operand as $UnaryExpressionNode, this, ctx);
   }
 
@@ -1944,7 +1878,6 @@ export class $PrefixUnaryExpression implements I$Node {
 
 export class $PostfixUnaryExpression implements I$Node {
   public readonly $kind = SyntaxKind.PostfixUnaryExpression;
-  public readonly id: number;
 
   public readonly $operand: $$LHSExpressionOrHigher;
 
@@ -1958,8 +1891,6 @@ export class $PostfixUnaryExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.PostfixUnaryExpression`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$operand = $LHSExpression(node.operand as $LHSExpressionNode, this, ctx);
   }
 
@@ -2040,7 +1971,6 @@ export class $PostfixUnaryExpression implements I$Node {
 
 export class $TypeAssertion implements I$Node {
   public readonly $kind = SyntaxKind.TypeAssertionExpression;
-  public readonly id: number;
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -2054,8 +1984,6 @@ export class $TypeAssertion implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.TypeAssertion`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx)
   }
 
@@ -2075,7 +2003,6 @@ export class $TypeAssertion implements I$Node {
 
 export class $BinaryExpression implements I$Node {
   public readonly $kind = SyntaxKind.BinaryExpression;
-  public readonly id: number;
 
   public readonly $left: $$BinaryExpressionOrHigher;
   public readonly $right: $$BinaryExpressionOrHigher;
@@ -2090,8 +2017,6 @@ export class $BinaryExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.BinaryExpression`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$left = $assignmentExpression(node.left as $BinaryExpressionNode, this, ctx) as $$BinaryExpressionOrHigher
     this.$right = $assignmentExpression(node.right as $BinaryExpressionNode, this, ctx) as $$BinaryExpressionOrHigher
   }
@@ -3146,7 +3071,6 @@ export class $BinaryExpression implements I$Node {
 
 export class $ConditionalExpression implements I$Node {
   public readonly $kind = SyntaxKind.ConditionalExpression;
-  public readonly id: number;
 
   public readonly $condition: $$BinaryExpressionOrHigher;
   public readonly $whenTrue: $$AssignmentExpressionOrHigher;
@@ -3162,8 +3086,6 @@ export class $ConditionalExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ConditionalExpression`,
   ) {
-    this.id = realm.registerNode(this);
-
     if (node.condition.kind === SyntaxKind.BinaryExpression) {
       this.$condition = new $BinaryExpression(node.condition as BinaryExpression, this, ctx);
     } else {
@@ -3202,7 +3124,6 @@ export class $ConditionalExpression implements I$Node {
 
 export class $YieldExpression implements I$Node {
   public readonly $kind = SyntaxKind.YieldExpression;
-  public readonly id: number;
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -3216,8 +3137,6 @@ export class $YieldExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.YieldExpression`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx)
   }
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
@@ -3304,7 +3223,6 @@ export class $YieldExpression implements I$Node {
 
 export class $AsExpression implements I$Node {
   public readonly $kind = SyntaxKind.AsExpression;
-  public readonly id: number;
 
   public readonly $expression: $$UpdateExpressionOrHigher;
 
@@ -3318,8 +3236,6 @@ export class $AsExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.AsExpression`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $assignmentExpression(node.expression as $UpdateExpressionNode, this, ctx) as $$UpdateExpressionOrHigher
   }
 
@@ -3337,7 +3253,6 @@ export class $AsExpression implements I$Node {
 
 export class $Identifier implements I$Node {
   public readonly $kind = SyntaxKind.Identifier;
-  public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-identifiers-static-semantics-stringvalue
   // 12.1.4 Static Semantics: StringValue
@@ -3389,8 +3304,6 @@ export class $Identifier implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.Identifier(${node.text})`,
   ) {
-    this.id = realm.registerNode(this);
-
     const StringValue = this.StringValue = new $String(realm, node.text, void 0, void 0, this);
     this.PropName = StringValue;
     this.BoundNames = [StringValue] as const;

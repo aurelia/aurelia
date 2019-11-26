@@ -112,7 +112,6 @@ const {
 
 export class $VariableStatement implements I$Node {
   public readonly $kind = SyntaxKind.VariableStatement;
-  public readonly id: number;
 
   public readonly modifierFlags: ModifierFlags;
   public readonly nodeFlags: NodeFlags;
@@ -164,7 +163,6 @@ export class $VariableStatement implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.VariableStatement`,
   ) {
-    this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
@@ -312,7 +310,6 @@ export class $VariableStatement implements I$Node {
 
 export class $VariableDeclaration implements I$Node {
   public readonly $kind = SyntaxKind.VariableDeclaration;
-  public readonly id: number;
 
   public readonly modifierFlags: ModifierFlags;
   public readonly combinedModifierFlags: ModifierFlags;
@@ -350,8 +347,6 @@ export class $VariableDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.VariableDeclaration`,
   ) {
-    this.id = realm.registerNode(this);
-
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
     this.nodeFlags = node.flags;
 
@@ -456,7 +451,6 @@ export function $variableDeclarationList(
 
 export class $VariableDeclarationList implements I$Node {
   public readonly $kind = SyntaxKind.VariableDeclarationList;
-  public readonly id: number;
 
   public readonly combinedModifierFlags: ModifierFlags;
   public readonly nodeFlags: NodeFlags;
@@ -492,8 +486,6 @@ export class $VariableDeclarationList implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.VariableDeclarationList`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.nodeFlags = node.flags;
 
     this.isLexical = (node.flags & (NodeFlags.Const | NodeFlags.Let)) > 0;
@@ -527,7 +519,6 @@ export class $VariableDeclarationList implements I$Node {
 
 export class $Block implements I$Node {
   public readonly $kind = SyntaxKind.Block;
-  public readonly id: number;
 
   public readonly $statements: readonly $$TSStatementListItem[];
 
@@ -569,8 +560,6 @@ export class $Block implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.Block`,
   ) {
-    this.id = realm.registerNode(this);
-
     const $statements = this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
 
     const LexicallyDeclaredNames = this.LexicallyDeclaredNames = [] as $String[];
@@ -690,7 +679,6 @@ export class $Block implements I$Node {
 
 export class $EmptyStatement implements I$Node {
   public readonly $kind = SyntaxKind.EmptyStatement;
-  public readonly id: number;
 
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
@@ -710,9 +698,7 @@ export class $EmptyStatement implements I$Node {
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.EmptyStatement`,
-  ) {
-    this.id = realm.registerNode(this);
-  }
+  ) {}
 
   // http://www.ecma-international.org/ecma-262/#sec-empty-statement-runtime-semantics-evaluation
   // 13.4.1 Runtime Semantics: Evaluation
@@ -742,7 +728,6 @@ export type DirectivePrologue = readonly ExpressionStatement_T<StringLiteral>[] 
 
 export class $ExpressionStatement implements I$Node {
   public readonly $kind = SyntaxKind.ExpressionStatement;
-  public readonly id: number;
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -765,8 +750,6 @@ export class $ExpressionStatement implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ExpressionStatement`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
   }
 
@@ -789,7 +772,6 @@ export class $ExpressionStatement implements I$Node {
 
 export class $IfStatement implements I$Node {
   public readonly $kind = SyntaxKind.IfStatement;
-  public readonly id: number;
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
   public readonly $thenStatement: $$ESLabelledItem;
@@ -814,8 +796,6 @@ export class $IfStatement implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.IfStatement`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
     const $thenStatement = this.$thenStatement = $$esLabelledItem(node.thenStatement as $StatementNode, this, ctx);
 
@@ -898,7 +878,6 @@ export class $IfStatement implements I$Node {
 
 export class $DoStatement implements I$Node {
   public readonly $kind = SyntaxKind.DoStatement;
-  public readonly id: number;
 
   public readonly $statement: $$ESLabelledItem;
   public readonly $expression: $$AssignmentExpressionOrHigher;
@@ -922,8 +901,6 @@ export class $DoStatement implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.DoStatement`,
   ) {
-    this.id = realm.registerNode(this);
-
     const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx);
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
 
@@ -985,7 +962,6 @@ export class $DoStatement implements I$Node {
 
 export class $WhileStatement implements I$Node {
   public readonly $kind = SyntaxKind.WhileStatement;
-  public readonly id: number;
 
   public readonly $statement: $$ESLabelledItem;
   public readonly $expression: $$AssignmentExpressionOrHigher;
@@ -1009,8 +985,6 @@ export class $WhileStatement implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.WhileStatement`,
   ) {
-    this.id = realm.registerNode(this);
-
     const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx);
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
 
@@ -1077,7 +1051,6 @@ export type $$Initializer = (
 
 export class $ForStatement implements I$Node {
   public readonly $kind = SyntaxKind.ForStatement;
-  public readonly id: number;
 
   public readonly $initializer: $$Initializer | undefined;
   public readonly $condition: $$AssignmentExpressionOrHigher | undefined;
@@ -1103,8 +1076,6 @@ export class $ForStatement implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ForStatement`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$condition = $assignmentExpression(node.condition as $AssignmentExpressionNode, this, ctx);
     this.$incrementor = $assignmentExpression(node.incrementor as $AssignmentExpressionNode, this, ctx);
     const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx);
@@ -1191,7 +1162,6 @@ export class $ForStatement implements I$Node {
 
 export class $ForInStatement implements I$Node {
   public readonly $kind = SyntaxKind.ForInStatement;
-  public readonly id: number;
 
   public readonly $initializer: $$Initializer;
   public readonly $expression: $$AssignmentExpressionOrHigher;
@@ -1217,8 +1187,6 @@ export class $ForInStatement implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ForInStatement`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
     const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx);
 
@@ -1329,7 +1297,6 @@ export class $ForInStatement implements I$Node {
 
 export class $ForOfStatement implements I$Node {
   public readonly $kind = SyntaxKind.ForOfStatement;
-  public readonly id: number;
 
   public readonly $initializer: $$Initializer;
   public readonly $expression: $$AssignmentExpressionOrHigher;
@@ -1355,8 +1322,6 @@ export class $ForOfStatement implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ForOfStatement`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
     const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx);
 
@@ -1463,7 +1428,6 @@ export class $ForOfStatement implements I$Node {
 
 export class $ContinueStatement implements I$Node {
   public readonly $kind = SyntaxKind.ContinueStatement;
-  public readonly id: number;
 
   public readonly $label: $Identifier | undefined;
 
@@ -1486,8 +1450,6 @@ export class $ContinueStatement implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ContinueStatement`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$label = $identifier(node.label, this, ctx | Context.IsLabelReference);
   }
 
@@ -1519,7 +1481,6 @@ export class $ContinueStatement implements I$Node {
 
 export class $BreakStatement implements I$Node {
   public readonly $kind = SyntaxKind.BreakStatement;
-  public readonly id: number;
 
   public readonly $label: $Identifier | undefined;
 
@@ -1542,8 +1503,6 @@ export class $BreakStatement implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.BreakStatement`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$label = $identifier(node.label, this, ctx | Context.IsLabelReference);
   }
 
@@ -1575,7 +1534,6 @@ export class $BreakStatement implements I$Node {
 
 export class $ReturnStatement implements I$Node {
   public readonly $kind = SyntaxKind.ReturnStatement;
-  public readonly id: number;
 
   public readonly $expression: $$AssignmentExpressionOrHigher | undefined;
 
@@ -1598,8 +1556,6 @@ export class $ReturnStatement implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ReturnStatement`,
   ) {
-    this.id = realm.registerNode(this);
-
     if (node.expression === void 0) {
       this.$expression = void 0;
     } else {
@@ -1643,7 +1599,6 @@ export class $ReturnStatement implements I$Node {
 
 export class $WithStatement implements I$Node {
   public readonly $kind = SyntaxKind.WithStatement;
-  public readonly id: number;
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
   public readonly $statement: $$ESLabelledItem;
@@ -1667,8 +1622,6 @@ export class $WithStatement implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.WithStatement`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
     const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx);
 
@@ -1705,7 +1658,6 @@ export class $WithStatement implements I$Node {
 
 export class $SwitchStatement implements I$Node {
   public readonly $kind = SyntaxKind.SwitchStatement;
-  public readonly id: number;
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
   public readonly $caseBlock: $CaseBlock;
@@ -1733,8 +1685,6 @@ export class $SwitchStatement implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.SwitchStatement`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
     const $caseBlock = this.$caseBlock = new $CaseBlock(node.caseBlock, this, ctx);
 
@@ -1919,7 +1869,6 @@ export class $SwitchStatement implements I$Node {
 
 export class $LabeledStatement implements I$Node {
   public readonly $kind = SyntaxKind.LabeledStatement;
-  public readonly id: number;
 
   public readonly $label: $Identifier;
   public readonly $statement: $$ESLabelledItem;
@@ -1962,8 +1911,6 @@ export class $LabeledStatement implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.LabeledStatement`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$label = $identifier(node.label, this, ctx | Context.IsLabel);
     const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx);
 
@@ -2045,7 +1992,6 @@ export class $LabeledStatement implements I$Node {
 
 export class $ThrowStatement implements I$Node {
   public readonly $kind = SyntaxKind.ThrowStatement;
-  public readonly id: number;
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -2068,8 +2014,6 @@ export class $ThrowStatement implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ThrowStatement`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
   }
 
@@ -2100,7 +2044,6 @@ export class $ThrowStatement implements I$Node {
 
 export class $TryStatement implements I$Node {
   public readonly $kind = SyntaxKind.TryStatement;
-  public readonly id: number;
 
   public readonly $tryBlock: $Block;
   public readonly $catchClause: $CatchClause | undefined;
@@ -2125,8 +2068,6 @@ export class $TryStatement implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.TryStatement`,
   ) {
-    this.id = realm.registerNode(this);
-
     const $tryBlock = this.$tryBlock = new $Block(node.tryBlock, this, ctx);
     if (node.catchClause === void 0) {
       // finallyBlock must be defined
@@ -2281,7 +2222,6 @@ export class $TryStatement implements I$Node {
 
 export class $DebuggerStatement implements I$Node {
   public readonly $kind = SyntaxKind.DebuggerStatement;
-  public readonly id: number;
 
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
@@ -2301,9 +2241,7 @@ export class $DebuggerStatement implements I$Node {
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.DebuggerStatement`,
-  ) {
-    this.id = realm.registerNode(this);
-  }
+  ) {}
 
   // http://www.ecma-international.org/ecma-262/#sec-debugger-statement-runtime-semantics-evaluation
   // 13.16.1 Runtime Semantics: Evaluation
@@ -2335,7 +2273,6 @@ export class $DebuggerStatement implements I$Node {
 
 export class $CaseBlock implements I$Node {
   public readonly $kind = SyntaxKind.CaseBlock;
-  public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallydeclarednames
   // 13.12.5 Static Semantics: LexicallyDeclaredNames
@@ -2362,8 +2299,6 @@ export class $CaseBlock implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.CaseBlock`,
   ) {
-    this.id = realm.registerNode(this);
-
     const $clauses = this.$clauses = node.clauses.map(
       x => x.kind === SyntaxKind.CaseClause
         ? new $CaseClause(x, this, ctx)
@@ -2379,7 +2314,6 @@ export class $CaseBlock implements I$Node {
 
 export class $CaseClause implements I$Node {
   public readonly $kind = SyntaxKind.CaseClause;
-  public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallydeclarednames
   // 13.12.5 Static Semantics: LexicallyDeclaredNames
@@ -2407,8 +2341,6 @@ export class $CaseClause implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.CaseClause`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
     const $statements = this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
 
@@ -2421,7 +2353,6 @@ export class $CaseClause implements I$Node {
 
 export class $DefaultClause implements I$Node {
   public readonly $kind = SyntaxKind.DefaultClause;
-  public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallydeclarednames
   // 13.12.5 Static Semantics: LexicallyDeclaredNames
@@ -2448,8 +2379,6 @@ export class $DefaultClause implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.DefaultClause`,
   ) {
-    this.id = realm.registerNode(this);
-
     const $statements = this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
 
     this.LexicallyDeclaredNames = $statements.flatMap(getLexicallyDeclaredNames);
@@ -2461,7 +2390,6 @@ export class $DefaultClause implements I$Node {
 
 export class $CatchClause implements I$Node {
   public readonly $kind = SyntaxKind.CatchClause;
-  public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-try-statement-static-semantics-vardeclarednames
   // 13.15.5 Static Semantics: VarDeclaredNames
@@ -2483,8 +2411,6 @@ export class $CatchClause implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.CatchClause`,
   ) {
-    this.id = realm.registerNode(this);
-
     ctx |= Context.InCatchClause;
 
     if (node.variableDeclaration === void 0) {

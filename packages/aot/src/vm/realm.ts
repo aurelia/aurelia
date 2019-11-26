@@ -177,9 +177,7 @@ export class DeferredModule implements IModule {
 
 // http://www.ecma-international.org/ecma-262/#sec-code-realms
 export class Realm implements IDisposable {
-  public readonly nodes: I$Node[] = [];
   public timeout: number = 100;
-  public nodeCount: number = 0;
   public contextId: number = 0;
 
   public readonly stack: ExecutionContextStack;
@@ -446,13 +444,6 @@ export class Realm implements IDisposable {
     this.stack.top.LexicalEnvironment = envRec;
   }
   // #endregion
-
-  public registerNode(node: I$Node): number {
-    const id = this.nodeCount;
-    this.nodes[id] = node;
-    ++this.nodeCount;
-    return id;
-  }
 
   public dispose(this: Writable<Partial<Realm>>): void {
     this.stack!.dispose();

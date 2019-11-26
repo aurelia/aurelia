@@ -137,7 +137,6 @@ export function $expressionWithTypeArgumentsList(
 
 export class $HeritageClause implements I$Node {
   public readonly $kind = SyntaxKind.HeritageClause;
-  public readonly id: number;
 
   public readonly $types: readonly $ExpressionWithTypeArguments[];
 
@@ -151,15 +150,12 @@ export class $HeritageClause implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.HeritageClause`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$types = $expressionWithTypeArgumentsList(node.types, this, ctx);
   }
 }
 
 export class $ExpressionWithTypeArguments implements I$Node {
   public readonly $kind = SyntaxKind.ExpressionWithTypeArguments;
-  public readonly id: number;
 
   public readonly $expression: $$LHSExpressionOrHigher;
 
@@ -173,8 +169,6 @@ export class $ExpressionWithTypeArguments implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ExpressionWithTypeArguments`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx);
   }
 }
@@ -183,7 +177,6 @@ export class $ExpressionWithTypeArguments implements I$Node {
 
 export class $ClassExpression implements I$Node {
   public readonly $kind = SyntaxKind.ClassExpression;
-  public readonly id: number;
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -226,7 +219,6 @@ export class $ClassExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ClassExpression`,
   ) {
-    this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
 
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
@@ -324,7 +316,6 @@ export class $ClassExpression implements I$Node {
 
 export class $ClassDeclaration implements I$Node {
   public readonly $kind = SyntaxKind.ClassDeclaration;
-  public readonly id: number;
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -391,7 +382,6 @@ export class $ClassDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ClassDeclaration`,
   ) {
-    this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
 
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
@@ -826,7 +816,6 @@ export class $ClassDeclaration implements I$Node {
 
 export class $PropertyDeclaration implements I$Node {
   public readonly $kind = SyntaxKind.PropertyDeclaration;
-  public readonly id: number;
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -848,8 +837,6 @@ export class $PropertyDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.PropertyDeclaration`,
   ) {
-    this.id = realm.registerNode(this);
-
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     this.$decorators = $decoratorList(node.decorators, this, ctx);
@@ -862,7 +849,6 @@ export class $PropertyDeclaration implements I$Node {
 
 export class $SemicolonClassElement implements I$Node {
   public readonly $kind = SyntaxKind.SemicolonClassElement;
-  public readonly id: number;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-isstatic
   // 14.6.9 Static Semantics: IsStatic
@@ -880,8 +866,6 @@ export class $SemicolonClassElement implements I$Node {
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.SemicolonClassElement`,
-  ) {
-    this.id = realm.registerNode(this);
-  }
+  ) {}
 }
 

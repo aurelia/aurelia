@@ -50,7 +50,6 @@ const {
 
 export class $InterfaceDeclaration implements I$Node {
   public readonly $kind = SyntaxKind.InterfaceDeclaration;
-  public readonly id: number;
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -80,7 +79,6 @@ export class $InterfaceDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.InterfaceDeclaration`,
   ) {
-    this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
 
     ctx |= Context.InTypeElement;
@@ -121,7 +119,6 @@ export class $InterfaceDeclaration implements I$Node {
 
 export class $TypeAliasDeclaration implements I$Node {
   public readonly $kind = SyntaxKind.TypeAliasDeclaration;
-  public readonly id: number;
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -150,7 +147,6 @@ export class $TypeAliasDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.TypeAliasDeclaration`,
   ) {
-    this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
 
     ctx |= Context.InTypeElement;
@@ -207,7 +203,6 @@ export function $enumMemberList(
 
 export class $EnumDeclaration implements I$Node {
   public readonly $kind = SyntaxKind.EnumDeclaration;
-  public readonly id: number;
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -237,7 +232,6 @@ export class $EnumDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.EnumDeclaration`,
   ) {
-    this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
 
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
@@ -276,7 +270,6 @@ export class $EnumDeclaration implements I$Node {
 
 export class $EnumMember implements I$Node {
   public readonly $kind = SyntaxKind.EnumMember;
-  public readonly id: number;
 
   public readonly $name: $$PropertyName;
   public readonly $initializer: $$AssignmentExpressionOrHigher | undefined;
@@ -291,8 +284,6 @@ export class $EnumMember implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.EnumMember`,
   ) {
-    this.id = realm.registerNode(this);
-
     this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName);
     this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
   }

@@ -180,8 +180,6 @@ export class $ObjectBindingPattern implements I$Node {
   public readonly $kind = SyntaxKind.ObjectBindingPattern;
 
   public readonly combinedModifierFlags: ModifierFlags;
-  public readonly nodeFlags: NodeFlags;
-  public readonly combinedNodeFlags: NodeFlags;
 
   public readonly $elements: readonly $BindingElement[];
 
@@ -209,8 +207,6 @@ export class $ObjectBindingPattern implements I$Node {
     public readonly path: string = `${parent.path}.ObjectBindingPattern`,
   ) {
     this.combinedModifierFlags = parent.combinedModifierFlags;
-    this.nodeFlags = node.flags;
-    this.combinedNodeFlags = node.flags | parent.combinedModifierFlags;
 
     ctx |= Context.InBindingPattern;
 
@@ -316,8 +312,6 @@ export class $ArrayBindingPattern implements I$Node {
   public readonly $kind = SyntaxKind.ArrayBindingPattern;
 
   public readonly combinedModifierFlags: ModifierFlags;
-  public readonly nodeFlags: NodeFlags;
-  public readonly combinedNodeFlags: NodeFlags;
 
   public readonly $elements: readonly $$ArrayBindingElement[];
 
@@ -345,8 +339,6 @@ export class $ArrayBindingPattern implements I$Node {
     public readonly path: string = `${parent.path}.ArrayBindingPattern`,
   ) {
     this.combinedModifierFlags = parent.combinedModifierFlags;
-    this.nodeFlags = node.flags;
-    this.combinedNodeFlags = node.flags | parent.combinedModifierFlags;
 
     ctx |= Context.InBindingPattern;
 
@@ -469,8 +461,6 @@ export class $BindingElement implements I$Node {
 
   public readonly modifierFlags: ModifierFlags;
   public readonly combinedModifierFlags: ModifierFlags;
-  public readonly nodeFlags: NodeFlags;
-  public readonly combinedNodeFlags: NodeFlags;
 
   public readonly $propertyName: $$PropertyName | undefined;
   public readonly $name: $$BindingName;
@@ -501,8 +491,6 @@ export class $BindingElement implements I$Node {
   ) {
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
     this.combinedModifierFlags = this.modifierFlags | parent.combinedModifierFlags;
-    this.nodeFlags = node.flags;
-    this.combinedNodeFlags = node.flags | parent.combinedModifierFlags;
 
     ctx = clearBit(ctx, Context.IsBindingName);
 

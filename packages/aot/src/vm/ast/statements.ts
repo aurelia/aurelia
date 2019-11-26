@@ -114,7 +114,6 @@ export class $VariableStatement implements I$Node {
   public readonly $kind = SyntaxKind.VariableStatement;
 
   public readonly modifierFlags: ModifierFlags;
-  public readonly nodeFlags: NodeFlags;
 
   public readonly $declarationList: $VariableDeclarationList;
 
@@ -166,7 +165,6 @@ export class $VariableStatement implements I$Node {
     const intrinsics = realm['[[Intrinsics]]'];
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
-    this.nodeFlags = node.flags;
 
     ctx |= Context.InVariableStatement;
 
@@ -313,8 +311,6 @@ export class $VariableDeclaration implements I$Node {
 
   public readonly modifierFlags: ModifierFlags;
   public readonly combinedModifierFlags: ModifierFlags;
-  public readonly nodeFlags: NodeFlags;
-  public readonly combinedNodeFlags: NodeFlags;
 
   public readonly $name: $$BindingName;
   public readonly $initializer: $$AssignmentExpressionOrHigher | undefined;
@@ -348,13 +344,10 @@ export class $VariableDeclaration implements I$Node {
     public readonly path: string = `${parent.path}.VariableDeclaration`,
   ) {
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
-    this.nodeFlags = node.flags;
 
     if (hasBit(ctx, Context.InVariableStatement)) {
-      this.combinedNodeFlags = node.flags | (parent as $VariableDeclarationList).combinedNodeFlags;
       this.combinedModifierFlags = modifierFlags | (parent as $VariableDeclarationList).combinedModifierFlags;
     } else {
-      this.combinedNodeFlags = node.flags;
       this.combinedModifierFlags = modifierFlags;
     }
 
@@ -453,8 +446,6 @@ export class $VariableDeclarationList implements I$Node {
   public readonly $kind = SyntaxKind.VariableDeclarationList;
 
   public readonly combinedModifierFlags: ModifierFlags;
-  public readonly nodeFlags: NodeFlags;
-  public readonly combinedNodeFlags: NodeFlags;
 
   public readonly $declarations: readonly $VariableDeclaration[];
 
@@ -486,16 +477,12 @@ export class $VariableDeclarationList implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.VariableDeclarationList`,
   ) {
-    this.nodeFlags = node.flags;
-
     this.isLexical = (node.flags & (NodeFlags.Const | NodeFlags.Let)) > 0;
     this.IsConstantDeclaration = (node.flags & NodeFlags.Const) > 0;
 
     if (hasBit(ctx, Context.InVariableStatement)) {
-      this.combinedNodeFlags = node.flags | (parent as $VariableStatement).nodeFlags;
       this.combinedModifierFlags = (parent as $VariableStatement).modifierFlags;
     } else {
-      this.combinedNodeFlags = node.flags;
       this.combinedModifierFlags = ModifierFlags.None;
     }
 

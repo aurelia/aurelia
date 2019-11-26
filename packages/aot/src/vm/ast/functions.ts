@@ -1326,8 +1326,6 @@ export class $ParameterDeclaration implements I$Node {
 
   public readonly modifierFlags: ModifierFlags;
   public readonly combinedModifierFlags: ModifierFlags;
-  public readonly nodeFlags: NodeFlags;
-  public readonly combinedNodeFlags: NodeFlags;
 
   public readonly $decorators: readonly $Decorator[];
   public readonly $name: $$BindingName;
@@ -1357,7 +1355,6 @@ export class $ParameterDeclaration implements I$Node {
     public readonly path: string = `${parent.path}.ParameterDeclaration`,
   ) {
     this.modifierFlags = this.combinedModifierFlags = modifiersToModifierFlags(node.modifiers);
-    this.nodeFlags = this.combinedNodeFlags = node.flags;
 
     ctx |= Context.InParameterDeclaration;
 

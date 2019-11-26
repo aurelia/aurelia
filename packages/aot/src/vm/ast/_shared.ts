@@ -1317,6 +1317,7 @@ export function clearBit(flag: number, bit: number): number {
 
 export const enum Context {
   None                      = 0b00000000000000000,
+  Dynamic                   = 0b00000000000000010,
   InVariableStatement       = 0b00000000000000100,
   IsBindingName             = 0b00000000000001000,
   InParameterDeclaration    = 0b00000000000010000,

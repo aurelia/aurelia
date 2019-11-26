@@ -49,6 +49,9 @@ import {
 import {
   $StringSet,
 } from './globals/string';
+import {
+  $Empty,
+} from './types/empty';
 
 // http://www.ecma-international.org/ecma-262/#sec-set-o-p-v-throw
 export function $Set(
@@ -1238,4 +1241,20 @@ export function $LoopContinues(
 
   // 5. Return false.
   return intrinsics.false;
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-hostensurecancompilestrings
+// 18.2.1.2 HostEnsureCanCompileStrings ( callerRealm , calleeRealm )
+export function $HostEnsureCanCompileStrings(
+  ctx: ExecutionContext,
+  callerRealm: Realm,
+  calleeRealm: Realm,
+): $Empty | $Error {
+  // HostEnsureCanCompileStrings is an implementation-defined abstract operation that allows host environments
+  // to block certain ECMAScript functions which allow developers to compile strings into ECMAScript code.
+
+  // An implementation of HostEnsureCanCompileStrings may complete normally or abruptly.
+  // Any abrupt completions will be propagated to its callers.
+  // The default implementation of HostEnsureCanCompileStrings is to unconditionally return an empty normal completion.
+  return new $Empty(calleeRealm);
 }

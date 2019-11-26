@@ -491,6 +491,7 @@ function $PrepareForOrdinaryCall(
 ): ExecutionContext<$FunctionEnvRec, $FunctionEnvRec> {
   // 1. Assert: Type(newTarget) is Undefined or Object.
   // 2. Let callerContext be the running execution context.
+  const callerContext = ctx;
 
   // 3. Let calleeContext be a new ECMAScript code execution context.
   const calleeRealm = F['[[Realm]]'];
@@ -516,7 +517,9 @@ function $PrepareForOrdinaryCall(
   calleeContext.VariableEnvironment = localEnv;
 
   // 11. If callerContext is not already suspended, suspend callerContext.
-  ctx.suspend();
+  if (!callerContext.suspended) {
+    callerContext.suspend();
+  }
 
   // 12. Push calleeContext onto the execution context stack; calleeContext is now the running execution context.
   calleeRealm.stack.push(calleeContext);
@@ -630,8 +633,12 @@ export abstract class $BuiltinFunction<
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Let callerContext be the running execution context.
+    const callerContext = ctx;
+
     // 2. If callerContext is not already suspended, suspend callerContext.
-    ctx.suspend();
+    if (!callerContext.suspended) {
+      callerContext.suspend();
+    }
 
     // 3. Let calleeContext be a new ECMAScript code execution context.
     const calleeRealm = this['[[Realm]]'];
@@ -655,7 +662,7 @@ export abstract class $BuiltinFunction<
 
     // 11. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
     realm.stack.pop();
-    ctx.resume();
+    callerContext.resume();
 
     // 12. Return result.
     return result;
@@ -672,8 +679,12 @@ export abstract class $BuiltinFunction<
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Let callerContext be the running execution context.
+    const callerContext = ctx;
+
     // 2. If callerContext is not already suspended, suspend callerContext.
-    ctx.suspend();
+    if (!callerContext.suspended) {
+      callerContext.suspend();
+    }
 
     // 3. Let calleeContext be a new ECMAScript code execution context.
     const calleeRealm = this['[[Realm]]'];
@@ -697,7 +708,7 @@ export abstract class $BuiltinFunction<
 
     // 11. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
     realm.stack.pop();
-    ctx.resume();
+    callerContext.resume();
 
     // 12. Return result.
     return result;

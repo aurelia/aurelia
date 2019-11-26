@@ -1,6 +1,6 @@
 import { IContainer, PLATFORM, Registration } from '@aurelia/kernel';
 import { IValidator, StandardValidator } from './validator';
-import { ValidationRules } from './implementation/validation-rules';
+import { ValidationRules } from './implementation/rule';
 import {
   ValidateBindingBehavior,
   ValidateManuallyBindingBehavior,

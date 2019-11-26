@@ -2,6 +2,7 @@ import { Class, IContainer } from '@aurelia/kernel';
 import { IInterpolationExpression } from '@aurelia/runtime';
 import { IValidationMessageProvider } from './validation-messages';
 import { PropertyAccessor, PropertyAccessorParser } from '../property-accessor-parser';
+import { ValidateResult } from '../validate-result';
 
 export type IValidateable<T = any> = (Class<T> | object) & { [key in PropertyKey]: any };
 export type ValidationDisplayNameAccessor = () => string;
@@ -73,7 +74,7 @@ export class Rules {
   /**
    * Applies the rules to a target.
    */
-  public static set(target: IValidateable, rules: Rule[][]): void {
+  public static set(target: IValidateable, rules: PropertyRule[]): void {
     if (target instanceof Function) {
       target = target.prototype;
     }
@@ -96,12 +97,12 @@ export class Rules {
   /**
    * Retrieves the target's rules.
    */
-  public static get(target: IValidateable): Rule[][] {
+  public static get(target: IValidateable): PropertyRule[] {
     return target[Rules.key];
   }
 }
 
-export type ValidationRuleExecutionPredicate = (object: IValidateable) => boolean;
+export type ValidationRuleExecutionPredicate = (object?: IValidateable) => boolean;
 
 export abstract class ValidationRule<TValue = any, TObject extends IValidateable = IValidateable> {
   public tag?: string = (void 0)!;
@@ -253,6 +254,43 @@ export class PropertyRule {
   private getLeafRules(): ValidationRule[] {
     const depth = this.$rules.length - 1;
     return this.$rules[depth];
+  }
+
+  public async validate(value: unknown, object?: IValidateable): Promise<[ValidateResult[], boolean]> {
+
+    let isValid = true;
+    const validateRuleset = async (rules: ValidationRule[]) => {
+      const validateRule = async (rule: ValidationRule) => {
+        let isValidOrPromise = rule.execute(value, object);
+        if (isValidOrPromise instanceof Promise) {
+          isValidOrPromise = await isValidOrPromise;
+        }
+        isValid = isValid && isValidOrPromise;
+        const message = "TODO";
+        return new ValidateResult(rule, object, this.property.name, isValidOrPromise, message);
+      };
+
+      const promises: Promise<ValidateResult>[] = [];
+      for (const rule of rules) {
+        if (rule.canExecute(object)) {
+          promises.push(validateRule(rule));
+        }
+      }
+      return Promise.all(promises);
+    };
+    const accumulateResult = async (results: ValidateResult[], rules: ValidationRule[]) => {
+      const result = await validateRuleset(rules);
+      results.push(...result);
+      return results;
+    };
+    const promise = this.$rules.reduce(async (acc, ruleset) => {
+      if (isValid) {
+        acc = acc.then(async (accValidateResult) => accumulateResult(accValidateResult, ruleset));
+      }
+      return acc;
+    }, Promise.resolve([] as ValidateResult[]));
+
+    return [await promise, isValid];
   }
 
   // #region customization API

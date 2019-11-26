@@ -1,4 +1,4 @@
-import { IValidateable, Rule } from './implementation/rule';
+import { IValidateable, PropertyRule } from './implementation/rule';
 
 /**
  * Instructions for the validation controller's validate method.
@@ -17,5 +17,5 @@ export interface ValidateInstruction {
   /**
    * The rules to validate. Optional.
    */
-  rules?: Rule[][];
+  rules?: PropertyRule[];
 }

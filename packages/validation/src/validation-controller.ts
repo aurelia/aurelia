@@ -8,7 +8,7 @@ import { ControllerValidateResult } from './controller-validate-result';
 import { PropertyAccessorParser, PropertyAccessor } from './property-accessor-parser';
 import { ValidateEvent } from './validate-event';
 import { IBinding, BindingBehaviorExpression } from '@aurelia/runtime';
-import { IValidateable, Rule } from './implementation/rule';
+import { IValidateable, PropertyRule } from './implementation/rule';
 
 export type BindingWithBehavior = IBinding & {
   sourceExpression: BindingBehaviorExpression;
@@ -45,7 +45,7 @@ export class ValidationController {
   private readonly elements: Map<ValidateResult, Element[]> = new Map<ValidateResult, Element[]>();
 
   // Objects that have been added to the controller instance (entity-style validation).
-  private readonly objects: Map<IValidateable, Rule[][] | undefined> = new Map<IValidateable, Rule[][] | undefined>();
+  private readonly objects: Map<IValidateable, PropertyRule[] | undefined> = new Map<IValidateable, PropertyRule[] | undefined>();
 
   /**
    * The trigger that will invoke automatic validation of a property used in a binding.
@@ -85,9 +85,9 @@ export class ValidationController {
    * Adds an object to the set of objects that should be validated when validate is called.
    *
    * @param {IValidateable} object - The object.
-   * @param {Rule[][]} [rules] - The rules. If rules aren't supplied the Validator implementation will lookup the rules.
+   * @param {PropertyRule[][]} [rules] - The rules. If rules aren't supplied the Validator implementation will lookup the rules.
    */
-  public addObject(object: IValidateable, rules?: Rule[][]): void {
+  public addObject(object: IValidateable, rules?: PropertyRule[]): void {
     this.objects.set(object, rules);
   }
 
@@ -191,7 +191,7 @@ export class ValidationController {
         predicate = x => x.object === object;
       }
       if (rules !== void 0) {
-        return x => predicate(x) && rules.find((ruleSubset: Rule[]) => ruleSubset.includes(x.rule)) !== undefined;
+        return x => predicate(x) && rules.find((rule: PropertyRule) => rule.$rules.includes(x.rule)) !== undefined;
       }
       return predicate;
     } else {
@@ -207,7 +207,7 @@ export class ValidationController {
    */
   public async validate(instruction?: ValidateInstruction): Promise<ControllerValidateResult> {
     // Get a function that will process the validation instruction.
-    let execute: () => Promise<ValidateResult[]>;
+    let execute: () => Promise<[ValidateResult[], boolean]>;
     if (instruction !== void 0) {
       // eslint-disable-next-line prefer-const
       let { object, propertyName, rules } = instruction;
@@ -224,7 +224,7 @@ export class ValidationController {
     } else {
       // validate all objects and bindings.
       execute = async () => {
-        const promises: Promise<ValidateResult[]>[] = [];
+        const promises: Promise<[ValidateResult[], boolean]>[] = [];
         for (const [object, rules] of this.objects.entries()) {
           promises.push(this.validator.validateObject(object, rules));
         }
@@ -235,7 +235,14 @@ export class ValidationController {
           }
           promises.push(this.validator.validateProperty(propertyInfo.object, propertyInfo.propertyName, rules));
         }
-        return Promise.all(promises).then(resultSets => resultSets.reduce((a, b) => a.concat(b), []));
+        const results = await Promise.all(promises);
+        return results.reduce(
+          (acc, [reslutSet, isValid]) => {
+            acc[0].push(...reslutSet);
+            acc[1] = acc[1] && isValid;
+            return acc;
+          },
+          [[], true]);
       };
     }
 
@@ -243,7 +250,7 @@ export class ValidationController {
     this.validating = true;
     const returnPromise: Promise<ControllerValidateResult> = this.finishValidating
       .then(execute)
-      .then((newResults: ValidateResult[]) => {
+      .then(([newResults, valid]) => {
         const predicate = this.getInstructionPredicate(instruction);
         const oldResults = this.results.filter(predicate);
         this.processResultDelta('validate', oldResults, newResults);
@@ -252,7 +259,7 @@ export class ValidationController {
         }
         const result: ControllerValidateResult = {
           instruction,
-          valid: newResults.find(x => !x.valid) === undefined,
+          valid,
           results: newResults
         };
         this.invokeCallbacks(instruction, result);
@@ -438,7 +445,7 @@ export class ValidationController {
         ({ object, propertyName, rule }) =>
           rule.__manuallyAdded__ !== void 0
             ? Promise.resolve(void 0)
-            : this.validate({ object, propertyName: propertyName as string, rules: [[rule]] }))
+            : this.validate({ object, propertyName: propertyName as string, rules: [rule] }))
     );
   }
 
@@ -470,7 +477,7 @@ interface BindingInfo {
   /**
    * The rules associated with the binding via the validate binding behavior's rules parameter.
    */
-  rules?: Rule[][];
+  rules?: PropertyRule[];
 
   /**
    * The object and property associated with the binding.

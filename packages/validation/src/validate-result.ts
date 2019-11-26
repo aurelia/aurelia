@@ -18,7 +18,7 @@ export class ValidateResult {
   public constructor(
     public rule: any,
     public object: any,
-    public propertyName: string | number | null,
+    public propertyName: string | number | null, // TODO recheck if we need propertyName at this level
     public valid: boolean,
     public message: string | null = null
   ) {

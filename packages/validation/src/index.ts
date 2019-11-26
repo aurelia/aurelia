@@ -15,6 +15,6 @@ export * from './validation-controller-factory';
 
 // export * from './implementation/rule';
 // export * from './implementation/validation-messages';
-export * from './implementation/validation-rules';
+// export * from './implementation/validation-rules';
 
 export * from './configuration'

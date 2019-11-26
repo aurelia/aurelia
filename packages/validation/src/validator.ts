@@ -1,5 +1,5 @@
 import { DI } from '@aurelia/kernel';
-import { IValidateable, Rule, Rules } from './implementation/rule';
+import { IValidateable, PropertyRule, Rules } from './implementation/rule';
 import { IValidationMessageProvider } from './implementation/validation-messages';
 import { ValidateResult } from './validate-result';
 import { LifecycleFlags } from '@aurelia/runtime';
@@ -18,7 +18,7 @@ export interface IValidator {
    * @param rules - Optional. If unspecified, the implementation should lookup the rules for the
    * specified object. This may not be possible for all implementations of this interface.
    */
-  validateProperty(object: any, propertyName: string, rules?: any): Promise<ValidateResult[]>;
+  validateProperty(object: any, propertyName: string, rules?: any): Promise<[ValidateResult[], boolean]>;
 
   /**
    * Validates all rules for specified object and it's properties.
@@ -27,7 +27,7 @@ export interface IValidator {
    * @param rules - Optional. If unspecified, the implementation should lookup the rules for the
    * specified object. This may not be possible for all implementations of this interface.
    */
-  validateObject(object: any, rules?: any): Promise<ValidateResult[]>;
+  validateObject(object: any, rules?: any): Promise<[ValidateResult[], boolean]>;
 }
 
 /**
@@ -52,7 +52,8 @@ export class StandardValidator implements IValidator {
    * @param {*} [rules] - If unspecified, the rules will be looked up using the metadata
    * for the object created by ValidationRules....on(class/object)
    */
-  public async validateProperty(object: IValidateable, propertyName: string | number, rules?: Rule[][]): Promise<ValidateResult[]> {
+  public async validateProperty(object: IValidateable, propertyName: string | number, rules?: PropertyRule[]): Promise<[ValidateResult[], boolean]> {
+    // TODO support filter by tags
     return this.validate(object, propertyName, rules);
   }
 
@@ -63,96 +64,56 @@ export class StandardValidator implements IValidator {
    * @param {*} [rules] - Optional. If unspecified, the rules will be looked up using the metadata
    * for the object created by ValidationRules....on(class/object)
    */
-  public async validateObject(object: IValidateable, rules?: Rule[][]): Promise<ValidateResult[]> {
+  public async validateObject(object: IValidateable, rules?: PropertyRule[]): Promise<[ValidateResult[], boolean]> {
+    // TODO support filter by tags
     return this.validate(object, void 0, rules);
   }
 
-  private getMessage(rule: Rule, object: any, value: any): string {
-    const expression = rule.getMessage();
-    // eslint-disable-next-line prefer-const
-    let { name: propertyName, displayName } = rule.property;
-    if (propertyName !== null) {
-      displayName = this.messageProvider.getDisplayName(propertyName, displayName);
-    }
-    const overrideContext: any = {
-      $displayName: displayName,
-      $propertyName: propertyName,
-      $value: value,
-      $object: object,
-      $config: rule.config,
-      // returns the name of a given property, given just the property name (irrespective of the property's displayName)
-      // split on capital letters, first letter ensured to be capitalized
-      $getDisplayName: this.getDisplayName
-    };
-    return expression.evaluate(
-      LifecycleFlags.none,
-      // { bindingContext: object, overrideContext },
-      (void 0)!,
-      null) as string;
-  }
-
-  private async validateRuleSequence(
-    object: IValidateable,
-    propertyName: string | number | undefined,
-    ruleSequence: Rule[][],
-    sequence: number = 0,
-    results: ValidateResult[] = [],
-  ): Promise<ValidateResult[]> {
-    // are we validating all properties or a single property?
-    const validateAllProperties = propertyName === void 0;
-
-    const rules = ruleSequence[sequence];
-    let allValid = true;
-
-    // validate each rule.
-    const promises: Promise<boolean>[] = [];
-    for (let i = 0, ii = rules.length; i < ii; i++) {
-      const rule = rules[i];
-
-      // is the rule related to the property we're validating.
-      // eslint-disable-next-line eqeqeq
-      if (!validateAllProperties && rule.property.name != propertyName) {
-        continue;
-      }
-
-      // is this a conditional rule? is the condition met?
-      if (rule.when?.(object) ?? false) {
-        continue;
-      }
-
-      // validate.
-      const value = rule.property.name === null ? object : object[rule.property.name];
-      let promiseOrBoolean = rule.condition(value, object);
-      if (!(promiseOrBoolean instanceof Promise)) {
-        promiseOrBoolean = Promise.resolve(promiseOrBoolean);
-      }
-      promises.push(promiseOrBoolean.then(valid => {
-        const message = valid ? null : this.getMessage(rule, object, value);
-        results.push(new ValidateResult(rule, object, rule.property.name, valid, message));
-        allValid = allValid && valid;
-        return valid;
-      }));
-    }
-
-    return Promise.all(promises)
-      .then(() => {
-        sequence++;
-        if (allValid && sequence < ruleSequence.length) {
-          return this.validateRuleSequence(object, propertyName, ruleSequence, sequence, results);
-        }
-        return results;
-      });
-  }
+  // private getMessage(rule: PropertyRule, object: any, value: any): string {
+  //   const expression = rule.getMessage();
+  //   // eslint-disable-next-line prefer-const
+  //   let { name: propertyName, displayName } = rule.property;
+  //   if (propertyName !== null) {
+  //     displayName = this.messageProvider.getDisplayName(propertyName, displayName);
+  //   }
+  //   const overrideContext: any = {
+  //     $displayName: displayName,
+  //     $propertyName: propertyName,
+  //     $value: value,
+  //     $object: object,
+  //     $config: rule.config,
+  //     // returns the name of a given property, given just the property name (irrespective of the property's displayName)
+  //     // split on capital letters, first letter ensured to be capitalized
+  //     $getDisplayName: this.getDisplayName
+  //   };
+  //   return expression.evaluate(
+  //     LifecycleFlags.none,
+  //     // { bindingContext: object, overrideContext },
+  //     (void 0)!,
+  //     null) as string;
+  // }
 
   private async validate(
     object: IValidateable,
     propertyName?: string | number,
-    rules?: Rule[][],
-  ): Promise<ValidateResult[]> {
+    rules?: PropertyRule[],
+  ): Promise<[ValidateResult[], boolean]> {
     rules = rules ?? Rules.get(object);
+    const validateAllProperties = propertyName === void 0;
 
-    return !Array.isArray(rules) || rules.length === 0
-      ? Promise.resolve([] as ValidateResult[])
-      : this.validateRuleSequence(object, propertyName, rules);
+    const result = await Promise.all(rules.reduce((acc: Promise<[ValidateResult[], boolean]>[], rule) => {
+      // eslint-disable-next-line eqeqeq
+      if (validateAllProperties || rule.property.name != propertyName) {
+        const value = rule.property.name === null ? object : object[rule.property.name];
+        acc.push(rule.validate(value, object));
+      }
+      return acc;
+    }, []));
+
+    return result.reduce((acc, [propertyResult, isValid]) => {
+      acc[0].push(...propertyResult);
+      acc[1] = acc[1] && isValid;
+      return acc;
+    }, [[], true]);
   }
 }

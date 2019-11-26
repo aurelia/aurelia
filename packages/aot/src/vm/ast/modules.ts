@@ -253,7 +253,7 @@ export class $SourceFile implements I$Node, IModule {
     this.path = `SourceFile<(...)${$file.rootlessPath}>`;
     this.logger = logger.root;
 
-    let ctx = Context.InTopLevel;
+    let ctx = Context.None;
     this.DirectivePrologue = GetDirectivePrologue(node.statements);
     if (this.DirectivePrologue.ContainsUseStrict) {
       ctx |= Context.InStrictMode;

@@ -229,8 +229,6 @@ export class $ClassExpression implements I$Node {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
 
-    ctx = clearBit(ctx, Context.InExpressionStatement | Context.InTopLevel);
-
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     const $name = this.$name = $identifier(node.name, this, ctx);
@@ -395,8 +393,6 @@ export class $ClassDeclaration implements I$Node {
   ) {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
-
-    ctx = clearBit(ctx, Context.InTopLevel);
 
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
@@ -641,7 +637,7 @@ export class $ClassDeclaration implements I$Node {
             ),
           ),
           this,
-          clearBit(this.ctx, Context.InExpressionStatement | Context.InTopLevel),
+          this.ctx,
         );
       }
       // 10. b. Else,
@@ -655,7 +651,7 @@ export class $ClassDeclaration implements I$Node {
             createBlock([]),
           ),
           this,
-          clearBit(this.ctx, Context.InExpressionStatement | Context.InTopLevel),
+          this.ctx,
         );
       }
     }

@@ -1022,18 +1022,6 @@ export function GetExpectedArgumentCount(params: readonly $ParameterDeclaration[
   return params.length;
 }
 
-export function isIIFE(expr: $FunctionExpression | $ArrowFunction): boolean {
-  let prev = expr as I$Node;
-  let parent = expr.parent as I$Node;
-  while ((parent.node as Node).kind === SyntaxKind.ParenthesizedExpression) {
-    prev = parent;
-    parent = parent.parent;
-  }
-
-  // Compare node.expression instead of expression because expression is not set yet (that's what we're initializing right now)
-  return (parent.node as Node).kind === SyntaxKind.CallExpression && (parent as $CallExpression).node.expression === prev.node;
-}
-
 export function evaluateStatement(
   ctx: ExecutionContext,
   statement: $$ESLabelledItem,
@@ -1312,8 +1300,6 @@ export function clearBit(flag: number, bit: number): number {
 
 export const enum Context {
   None                      = 0b00000000000000000,
-  InTopLevel                = 0b00000000000000001,
-  InExpressionStatement     = 0b00000000000000010,
   InVariableStatement       = 0b00000000000000100,
   IsBindingName             = 0b00000000000001000,
   InParameterDeclaration    = 0b00000000000010000,

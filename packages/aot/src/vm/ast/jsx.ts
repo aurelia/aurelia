@@ -124,8 +124,6 @@ export class $JsxElement implements I$Node {
   ) {
     this.id = realm.registerNode(this);
 
-    ctx = clearBit(ctx, Context.InExpressionStatement);
-
     this.$openingElement = new $JsxOpeningElement(node.openingElement, this, ctx);
     this.$children = $$jsxChildList(node.children, this, ctx);
     this.$closingElement = new $JsxClosingElement(node.closingElement, this, ctx);
@@ -197,8 +195,6 @@ export class $JsxSelfClosingElement implements I$Node {
   ) {
     this.id = realm.registerNode(this);
 
-    ctx = clearBit(ctx, Context.InExpressionStatement);
-
     this.$tagName = $$jsxTagNameExpression(node.tagName, this, ctx);
     this.$attributes = new $JsxAttributes(node.attributes, this, ctx);
   }
@@ -236,8 +232,6 @@ export class $JsxFragment implements I$Node {
     public readonly path: string = `${parent.path}.JsxFragment`,
   ) {
     this.id = realm.registerNode(this);
-
-    ctx = clearBit(ctx, Context.InExpressionStatement);
 
     this.$openingFragment = new $JsxOpeningFragment(node.openingFragment, this, ctx);
     this.$children = $$jsxChildList(node.children, this, ctx);

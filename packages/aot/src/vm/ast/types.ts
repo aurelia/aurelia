@@ -83,7 +83,7 @@ export class $InterfaceDeclaration implements I$Node {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
 
-    ctx = clearBit(ctx, Context.InTopLevel) | Context.InTypeElement;
+    ctx |= Context.InTypeElement;
 
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
@@ -153,7 +153,7 @@ export class $TypeAliasDeclaration implements I$Node {
     this.id = realm.registerNode(this);
     const intrinsics = realm['[[Intrinsics]]'];
 
-    ctx = clearBit(ctx, Context.InTopLevel) | Context.InTypeElement;
+    ctx |= Context.InTypeElement;
 
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
@@ -238,8 +238,6 @@ export class $EnumDeclaration implements I$Node {
     public readonly path: string = `${parent.path}.EnumDeclaration`,
   ) {
     this.id = realm.registerNode(this);
-
-    ctx = clearBit(ctx, Context.InTopLevel);
     const intrinsics = realm['[[Intrinsics]]'];
 
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);

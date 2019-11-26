@@ -372,8 +372,6 @@ export class $ArrayLiteralExpression implements I$Node {
   ) {
     this.id = realm.registerNode(this);
 
-    ctx = clearBit(ctx, Context.InExpressionStatement);
-
     this.$elements = $argumentOrArrayLiteralElementList(node.elements as NodeArray<$ArgumentOrArrayLiteralElementNode>, this, ctx);
   }
 
@@ -589,8 +587,6 @@ export class $ObjectLiteralExpression implements I$Node {
     public readonly path: string = `${parent.path}.ObjectLiteralExpression`,
   ) {
     this.id = realm.registerNode(this);
-
-    ctx = clearBit(ctx, Context.InExpressionStatement);
 
     this.$properties = $$objectLiteralElementLikeList(node.properties, this, ctx);
   }
@@ -835,8 +831,6 @@ export class $PropertyAccessExpression implements I$Node {
   ) {
     this.id = realm.registerNode(this);
 
-    ctx = clearBit(ctx, Context.InExpressionStatement);
-
     this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx);
     this.$name = $identifier(node.name, this, ctx | Context.IsPropertyAccessName);
   }
@@ -895,8 +889,6 @@ export class $ElementAccessExpression implements I$Node {
     public readonly path: string = `${parent.path}.ElementAccessExpression`,
   ) {
     this.id = realm.registerNode(this);
-
-    ctx = clearBit(ctx, Context.InExpressionStatement);
 
     this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx);
     this.$argumentExpression = $assignmentExpression(node.argumentExpression as $AssignmentExpressionNode, this, ctx);
@@ -964,8 +956,6 @@ export class $CallExpression implements I$Node {
     public readonly path: string = `${parent.path}.CallExpression`,
   ) {
     this.id = realm.registerNode(this);
-
-    ctx = clearBit(ctx, Context.InExpressionStatement);
 
     this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx);
     this.$arguments = $argumentOrArrayLiteralElementList(node.arguments as NodeArray<$ArgumentOrArrayLiteralElementNode>, this, ctx);
@@ -1186,8 +1176,6 @@ export class $NewExpression implements I$Node {
   ) {
     this.id = realm.registerNode(this);
 
-    ctx = clearBit(ctx, Context.InExpressionStatement);
-
     this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx);
     this.$arguments = $argumentOrArrayLiteralElementList(node.arguments as NodeArray<$ArgumentOrArrayLiteralElementNode>, this, ctx);
   }
@@ -1269,8 +1257,6 @@ export class $TaggedTemplateExpression implements I$Node {
     public readonly path: string = `${parent.path}.TaggedTemplateExpression`,
   ) {
     this.id = realm.registerNode(this);
-
-    ctx = clearBit(ctx, Context.InExpressionStatement);
 
     this.$tag = $LHSExpression(node.tag as $LHSExpressionNode, this, ctx);
 
@@ -1364,8 +1350,6 @@ export class $TemplateExpression implements I$Node {
   ) {
     this.id = realm.registerNode(this);
 
-    ctx = clearBit(ctx, Context.InExpressionStatement);
-
     this.$head = new $TemplateHead(node.head, this, ctx)
     this.$templateSpans = $$templateSpanList(node.templateSpans, this, ctx);
   }
@@ -1445,8 +1429,6 @@ export class $ParenthesizedExpression implements I$Node {
   ) {
     this.id = realm.registerNode(this);
 
-    ctx = clearBit(ctx, Context.InExpressionStatement);
-
     const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
 
     this.CoveredParenthesizedExpression = $expression;
@@ -1492,8 +1474,6 @@ export class $NonNullExpression implements I$Node {
   ) {
     this.id = realm.registerNode(this);
 
-    ctx = clearBit(ctx, Context.InExpressionStatement);
-
     this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx);
   }
 
@@ -1524,8 +1504,6 @@ export class $MetaProperty implements I$Node {
     public readonly path: string = `${parent.path}.MetaProperty`,
   ) {
     this.id = realm.registerNode(this);
-
-    ctx = clearBit(ctx, Context.InExpressionStatement);
 
     this.$name = $identifier(node.name, this, ctx);
   }
@@ -1570,8 +1548,6 @@ export class $DeleteExpression implements I$Node {
     public readonly path: string = `${parent.path}.DeleteExpression`,
   ) {
     this.id = realm.registerNode(this);
-
-    ctx = clearBit(ctx, Context.InExpressionStatement);
 
     this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, this, ctx);
   }
@@ -1624,8 +1600,6 @@ export class $TypeOfExpression implements I$Node {
     public readonly path: string = `${parent.path}.TypeOfExpression`,
   ) {
     this.id = realm.registerNode(this);
-
-    ctx = clearBit(ctx, Context.InExpressionStatement);
 
     this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, this, ctx);
   }
@@ -1713,8 +1687,6 @@ export class $VoidExpression implements I$Node {
   ) {
     this.id = realm.registerNode(this);
 
-    ctx = clearBit(ctx, Context.InExpressionStatement);
-
     this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, this, ctx);
   }
 
@@ -1761,8 +1733,6 @@ export class $AwaitExpression implements I$Node {
   ) {
     this.id = realm.registerNode(this);
 
-    ctx = clearBit(ctx, Context.InExpressionStatement);
-
     this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, this, ctx);
   }
 
@@ -1804,8 +1774,6 @@ export class $PrefixUnaryExpression implements I$Node {
     public readonly path: string = `${parent.path}.PrefixUnaryExpression`,
   ) {
     this.id = realm.registerNode(this);
-
-    ctx = clearBit(ctx, Context.InExpressionStatement);
 
     this.$operand = $unaryExpression(node.operand as $UnaryExpressionNode, this, ctx);
   }
@@ -1992,8 +1960,6 @@ export class $PostfixUnaryExpression implements I$Node {
   ) {
     this.id = realm.registerNode(this);
 
-    ctx = clearBit(ctx, Context.InExpressionStatement);
-
     this.$operand = $LHSExpression(node.operand as $LHSExpressionNode, this, ctx);
   }
 
@@ -2090,8 +2056,6 @@ export class $TypeAssertion implements I$Node {
   ) {
     this.id = realm.registerNode(this);
 
-    ctx = clearBit(ctx, Context.InExpressionStatement);
-
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx)
   }
 
@@ -2127,8 +2091,6 @@ export class $BinaryExpression implements I$Node {
     public readonly path: string = `${parent.path}.BinaryExpression`,
   ) {
     this.id = realm.registerNode(this);
-
-    ctx = clearBit(ctx, Context.InExpressionStatement);
 
     this.$left = $assignmentExpression(node.left as $BinaryExpressionNode, this, ctx) as $$BinaryExpressionOrHigher
     this.$right = $assignmentExpression(node.right as $BinaryExpressionNode, this, ctx) as $$BinaryExpressionOrHigher
@@ -3202,8 +3164,6 @@ export class $ConditionalExpression implements I$Node {
   ) {
     this.id = realm.registerNode(this);
 
-    ctx = clearBit(ctx, Context.InExpressionStatement);
-
     if (node.condition.kind === SyntaxKind.BinaryExpression) {
       this.$condition = new $BinaryExpression(node.condition as BinaryExpression, this, ctx);
     } else {
@@ -3257,8 +3217,6 @@ export class $YieldExpression implements I$Node {
     public readonly path: string = `${parent.path}.YieldExpression`,
   ) {
     this.id = realm.registerNode(this);
-
-    ctx = clearBit(ctx, Context.InExpressionStatement);
 
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx)
   }
@@ -3361,8 +3319,6 @@ export class $AsExpression implements I$Node {
     public readonly path: string = `${parent.path}.AsExpression`,
   ) {
     this.id = realm.registerNode(this);
-
-    ctx = clearBit(ctx, Context.InExpressionStatement);
 
     this.$expression = $assignmentExpression(node.expression as $UpdateExpressionNode, this, ctx) as $$UpdateExpressionOrHigher
   }

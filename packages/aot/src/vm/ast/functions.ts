@@ -73,7 +73,6 @@ import {
   $$BindingName,
   $$bindingName,
   $AnyParentNode,
-  isIIFE,
   GetDirectivePrologue,
   $decoratorList,
 } from './_shared';
@@ -193,8 +192,6 @@ export class $FunctionExpression implements I$Node {
 
   public readonly modifierFlags: ModifierFlags;
 
-  public readonly isIIFE: boolean;
-
   public readonly $name: $Identifier | undefined;
   public readonly $parameters: $FormalParameterList;
   public readonly $body: $Block;
@@ -244,12 +241,6 @@ export class $FunctionExpression implements I$Node {
     public readonly path: string = `${parent.path}.FunctionExpression`,
   ) {
     this.id = realm.registerNode(this);
-
-    if (this.isIIFE = isIIFE(this)) {
-      ctx = clearBit(ctx, Context.InExpressionStatement);
-    } else {
-      ctx = clearBit(ctx, Context.InExpressionStatement | Context.InTopLevel);
-    }
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
@@ -585,8 +576,6 @@ export class $FunctionDeclaration implements I$Node {
     if (hasBit(modifierFlags, ModifierFlags.Export)) {
       ctx |= Context.InExport;
     }
-
-    ctx = clearBit(ctx, Context.InTopLevel);
 
     const DirectivePrologue = this.DirectivePrologue = GetDirectivePrologue(node.body!.statements);
     if (this.DirectivePrologue.ContainsUseStrict) {
@@ -1090,8 +1079,6 @@ export class $ArrowFunction implements I$Node {
 
   public readonly modifierFlags: ModifierFlags;
 
-  public readonly isIIFE: boolean;
-
   public readonly $parameters: $FormalParameterList;
   public readonly $body: $Block | $$AssignmentExpressionOrHigher;
 
@@ -1149,12 +1136,6 @@ export class $ArrowFunction implements I$Node {
     public readonly path: string = `${parent.path}.ArrowFunction`,
   ) {
     this.id = realm.registerNode(this);
-
-    if (this.isIIFE = isIIFE(this)) {
-      ctx = clearBit(ctx, Context.InExpressionStatement);
-    } else {
-      ctx = clearBit(ctx, Context.InExpressionStatement | Context.InTopLevel);
-    }
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 

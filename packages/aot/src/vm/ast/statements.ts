@@ -767,7 +767,7 @@ export class $ExpressionStatement implements I$Node {
   ) {
     this.id = realm.registerNode(this);
 
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx | Context.InExpressionStatement);
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-expression-statement-runtime-semantics-evaluation

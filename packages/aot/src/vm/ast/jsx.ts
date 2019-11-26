@@ -16,6 +16,7 @@ import {
   JsxText,
   Node,
   SyntaxKind,
+  JsxAttributeLike,
 } from 'typescript';
 import {
   PLATFORM,
@@ -41,6 +42,7 @@ import {
   $assignmentExpression,
   $AssignmentExpressionNode,
   $$JsxOpeningLikeElement,
+  $i,
 } from './_shared';
 import {
   $SourceFile,
@@ -85,19 +87,19 @@ export function $$jsxChildList(
   for (let i = 0; i < len; ++i) {
     switch (nodes[i].kind) {
       case SyntaxKind.JsxText:
-        $nodes[i] = new $JsxText(nodes[i] as JsxText, parent, ctx);
+        $nodes[i] = new $JsxText(nodes[i] as JsxText, parent, ctx, i);
         break;
       case SyntaxKind.JsxExpression:
-        $nodes[i] = new $JsxExpression(nodes[i] as JsxExpression, parent, ctx);
+        $nodes[i] = new $JsxExpression(nodes[i] as JsxExpression, parent, ctx, i);
         break;
       case SyntaxKind.JsxElement:
-        $nodes[i] = new $JsxElement(nodes[i] as JsxElement, parent, ctx);
+        $nodes[i] = new $JsxElement(nodes[i] as JsxElement, parent, ctx, i);
         break;
       case SyntaxKind.JsxSelfClosingElement:
-        $nodes[i] = new $JsxSelfClosingElement(nodes[i] as JsxSelfClosingElement, parent, ctx);
+        $nodes[i] = new $JsxSelfClosingElement(nodes[i] as JsxSelfClosingElement, parent, ctx, i);
         break;
       case SyntaxKind.JsxFragment:
-        $nodes[i] = new $JsxFragment(nodes[i] as JsxFragment, parent, ctx);
+        $nodes[i] = new $JsxFragment(nodes[i] as JsxFragment, parent, ctx, i);
         break;
     }
   }
@@ -115,11 +117,12 @@ export class $JsxElement implements I$Node {
     public readonly node: JsxElement,
     public readonly parent: $$JsxParent,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.JsxElement`,
+    public readonly path: string = `${parent.path}${$i(idx)}.JsxElement`,
   ) {
     this.$openingElement = new $JsxOpeningElement(node.openingElement, this, ctx);
     this.$children = $$jsxChildList(node.children, this, ctx);
@@ -160,14 +163,15 @@ export function $$jsxTagNameExpression(
   node: JsxTagNameExpression,
   parent: $$JsxNamed,
   ctx: Context,
+  idx: number,
 ): $$JsxTagNameExpression {
   switch (node.kind) {
     case SyntaxKind.Identifier:
-      return new $Identifier(node, parent, ctx);
+      return new $Identifier(node, parent, ctx, idx);
     case SyntaxKind.ThisKeyword:
-      return new $ThisExpression(node, parent, ctx);
+      return new $ThisExpression(node, parent, ctx, idx);
     case SyntaxKind.PropertyAccessExpression:
-      return new $PropertyAccessExpression(node, parent, ctx) as $$JsxTagNamePropertyAccess;
+      return new $PropertyAccessExpression(node, parent, ctx, idx) as $$JsxTagNamePropertyAccess;
     default:
       throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as Node).kind]}.`);
   }
@@ -183,13 +187,14 @@ export class $JsxSelfClosingElement implements I$Node {
     public readonly node: JsxSelfClosingElement,
     public readonly parent: $$JsxParent,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.JsxSelfClosingElement`,
+    public readonly path: string = `${parent.path}${$i(idx)}.JsxSelfClosingElement`,
   ) {
-    this.$tagName = $$jsxTagNameExpression(node.tagName, this, ctx);
+    this.$tagName = $$jsxTagNameExpression(node.tagName, this, ctx, -1);
     this.$attributes = new $JsxAttributes(node.attributes, this, ctx);
   }
 
@@ -218,11 +223,12 @@ export class $JsxFragment implements I$Node {
     public readonly node: JsxFragment,
     public readonly parent: $$JsxParent,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.JsxFragment`,
+    public readonly path: string = `${parent.path}${$i(idx)}.JsxFragment`,
   ) {
     this.$openingFragment = new $JsxOpeningFragment(node.openingFragment, this, ctx);
     this.$children = $$jsxChildList(node.children, this, ctx);
@@ -250,11 +256,12 @@ export class $JsxText implements I$Node {
     public readonly node: JsxText,
     public readonly parent: $$JsxParent,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.JsxText`,
+    public readonly path: string = `${parent.path}${$i(idx)}.JsxText`,
   ) {}
 
   public Evaluate(
@@ -287,7 +294,7 @@ export class $JsxOpeningElement implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.JsxOpeningElement`,
   ) {
-    this.$tagName = $$jsxTagNameExpression(node.tagName, this, ctx);
+    this.$tagName = $$jsxTagNameExpression(node.tagName, this, ctx, -1);
     this.$attributes = new $JsxAttributes(node.attributes, this, ctx);
   }
 
@@ -320,7 +327,7 @@ export class $JsxClosingElement implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.JsxClosingElement`,
   ) {
-    this.$tagName = $$jsxTagNameExpression(node.tagName, this, ctx);
+    this.$tagName = $$jsxTagNameExpression(node.tagName, this, ctx, -1);
   }
 
   public Evaluate(
@@ -403,20 +410,21 @@ export class $JsxAttribute implements I$Node {
     public readonly node: JsxAttribute,
     public readonly parent: $JsxAttributes,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.JsxAttribute`,
+    public readonly path: string = `${parent.path}${$i(idx)}.JsxAttribute`,
   ) {
-    this.$name = $identifier(node.name, this, ctx);
+    this.$name = $identifier(node.name, this, ctx, -1);
     if (node.initializer === void 0) {
       this.$initializer = void 0;
     } else {
       if (node.initializer.kind === SyntaxKind.StringLiteral) {
-        this.$initializer = new $StringLiteral(node.initializer, this, ctx);
+        this.$initializer = new $StringLiteral(node.initializer, this, ctx, -1);
       } else {
-        this.$initializer = new $JsxExpression(node.initializer, this, ctx);
+        this.$initializer = new $JsxExpression(node.initializer, this, ctx, -1);
       }
     }
   }
@@ -426,6 +434,30 @@ export type $$JsxAttributeLike = (
   $JsxAttribute |
   $JsxSpreadAttribute
 );
+
+export function $$jsxAttributeLikeList(
+  nodes: readonly JsxAttributeLike[],
+  parent: $JsxAttributes,
+  ctx: Context,
+): readonly $$JsxAttributeLike[] {
+  if (nodes === void 0 || nodes.length === 0) {
+    return emptyArray;
+  }
+
+  const len = nodes.length;
+  const $nodes: $$JsxAttributeLike[] = Array(len);
+  for (let i = 0; i < len; ++i) {
+    switch (nodes[i].kind) {
+      case SyntaxKind.JsxAttribute:
+        $nodes[i] = new $JsxAttribute(nodes[i] as JsxAttribute, parent, ctx, i);
+        break;
+      case SyntaxKind.JsxSpreadAttribute:
+        $nodes[i] = new $JsxSpreadAttribute(nodes[i] as JsxSpreadAttribute, parent, ctx, i);
+        break;
+    }
+  }
+  return $nodes;
+}
 
 export class $JsxAttributes implements I$Node {
   public readonly $kind = SyntaxKind.JsxAttributes;
@@ -442,11 +474,7 @@ export class $JsxAttributes implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.JsxAttributes`,
   ) {
-    this.$properties = node.properties.map(
-      x => x.kind === SyntaxKind.JsxAttribute
-        ? new $JsxAttribute(x, this, ctx)
-        : new $JsxSpreadAttribute(x, this, ctx)
-    );
+    this.$properties = $$jsxAttributeLikeList(node.properties, this, ctx);
   }
 
   public Evaluate(
@@ -472,13 +500,14 @@ export class $JsxSpreadAttribute implements I$Node {
     public readonly node: JsxSpreadAttribute,
     public readonly parent: $JsxAttributes,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.JsxSpreadAttribute`,
+    public readonly path: string = `${parent.path}${$i(idx)}.JsxSpreadAttribute`,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
   }
 
   public Evaluate(
@@ -504,13 +533,14 @@ export class $JsxExpression implements I$Node {
     public readonly node: JsxExpression,
     public readonly parent: $$JsxParent | $$JsxAttributeLike,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.JsxExpression`,
+    public readonly path: string = `${parent.path}${$i(idx)}.JsxExpression`,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
   }
 
   public Evaluate(

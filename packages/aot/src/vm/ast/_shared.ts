@@ -507,21 +507,25 @@ export function $assignmentExpression(
   node: undefined,
   parent: $AnyParentNode,
   ctx: Context,
+  idx: number,
 ): undefined;
 export function $assignmentExpression(
   node: $AssignmentExpressionNode,
   parent: $AnyParentNode,
   ctx: Context,
+  idx: number,
 ): $$AssignmentExpressionOrHigher;
 export function $assignmentExpression(
   node: $AssignmentExpressionNode | undefined,
   parent: $AnyParentNode,
   ctx: Context,
+  idx: number,
 ): $$AssignmentExpressionOrHigher | undefined;
 export function $assignmentExpression(
   node: $AssignmentExpressionNode | undefined,
   parent: $AnyParentNode,
   ctx: Context,
+  idx: number,
 ): $$AssignmentExpressionOrHigher | undefined {
   if (node === void 0) {
     return void 0;
@@ -529,17 +533,17 @@ export function $assignmentExpression(
 
   switch (node.kind) {
     case SyntaxKind.AsExpression:
-      return new $AsExpression(node, parent, ctx);
+      return new $AsExpression(node, parent, ctx, idx);
     case SyntaxKind.BinaryExpression:
-      return new $BinaryExpression(node, parent, ctx);
+      return new $BinaryExpression(node, parent, ctx, idx);
     case SyntaxKind.ArrowFunction:
-      return new $ArrowFunction(node, parent, ctx);
+      return new $ArrowFunction(node, parent, ctx, idx);
     case SyntaxKind.ConditionalExpression:
-      return new $ConditionalExpression(node, parent, ctx);
+      return new $ConditionalExpression(node, parent, ctx, idx);
     case SyntaxKind.YieldExpression:
-      return new $YieldExpression(node, parent, ctx);
+      return new $YieldExpression(node, parent, ctx, idx);
     default:
-      return $unaryExpression(node, parent, ctx);
+      return $unaryExpression(node, parent, ctx, idx);
   }
 }
 
@@ -574,30 +578,31 @@ export function $unaryExpression(
   node: $UnaryExpressionNode,
   parent: $AnyParentNode,
   ctx: Context,
+  idx: number,
 ): $$UnaryExpressionOrHigher {
   switch (node.kind) {
     case SyntaxKind.JsxElement:
-      return new $JsxElement(node, parent as $$JsxParent, ctx);
+      return new $JsxElement(node, parent as $$JsxParent, ctx, idx);
     case SyntaxKind.JsxFragment:
-      return new $JsxFragment(node, parent as $$JsxParent, ctx);
+      return new $JsxFragment(node, parent as $$JsxParent, ctx, idx);
     case SyntaxKind.JsxSelfClosingElement:
-      return new $JsxSelfClosingElement(node, parent as $$JsxParent, ctx);
+      return new $JsxSelfClosingElement(node, parent as $$JsxParent, ctx, idx);
     case SyntaxKind.PostfixUnaryExpression:
-      return new $PostfixUnaryExpression(node, parent, ctx);
+      return new $PostfixUnaryExpression(node, parent, ctx, idx);
     case SyntaxKind.PrefixUnaryExpression:
-      return new $PrefixUnaryExpression(node, parent, ctx);
+      return new $PrefixUnaryExpression(node, parent, ctx, idx);
     case SyntaxKind.AwaitExpression:
-      return new $AwaitExpression(node, parent, ctx);
+      return new $AwaitExpression(node, parent, ctx, idx);
     case SyntaxKind.DeleteExpression:
-      return new $DeleteExpression(node, parent, ctx);
+      return new $DeleteExpression(node, parent, ctx, idx);
     case SyntaxKind.TypeAssertionExpression:
-      return new $TypeAssertion(node, parent, ctx);
+      return new $TypeAssertion(node, parent, ctx, idx);
     case SyntaxKind.TypeOfExpression:
-      return new $TypeOfExpression(node, parent, ctx);
+      return new $TypeOfExpression(node, parent, ctx, idx);
     case SyntaxKind.VoidExpression:
-      return new $VoidExpression(node, parent, ctx);
+      return new $VoidExpression(node, parent, ctx, idx);
     default:
-      return $LHSExpression(node, parent, ctx);
+      return $LHSExpression(node, parent, ctx, idx);
   }
 }
 
@@ -659,55 +664,56 @@ export function $LHSExpression(
   node: $LHSExpressionNode,
   parent: $AnyParentNode,
   ctx: Context,
+  idx: number,
 ): $$LHSExpressionOrHigher {
   switch (node.kind) {
     case SyntaxKind.ArrayLiteralExpression:
-      return new $ArrayLiteralExpression(node, parent, ctx);
+      return new $ArrayLiteralExpression(node, parent, ctx, idx);
     case SyntaxKind.ClassExpression:
-      return new $ClassExpression(node, parent, ctx);
+      return new $ClassExpression(node, parent, ctx, idx);
     case SyntaxKind.FunctionExpression:
-      return new $FunctionExpression(node, parent, ctx);
+      return new $FunctionExpression(node, parent, ctx, idx);
     case SyntaxKind.Identifier:
-      return new $Identifier(node, parent, ctx);
+      return new $Identifier(node, parent, ctx, idx);
     case SyntaxKind.NewExpression:
-      return new $NewExpression(node, parent, ctx);
+      return new $NewExpression(node, parent, ctx, idx);
     case SyntaxKind.ObjectLiteralExpression:
-      return new $ObjectLiteralExpression(node, parent, ctx);
+      return new $ObjectLiteralExpression(node, parent, ctx, idx);
     case SyntaxKind.ParenthesizedExpression:
-      return new $ParenthesizedExpression(node, parent, ctx);
+      return new $ParenthesizedExpression(node, parent, ctx, idx);
     case SyntaxKind.TemplateExpression:
-      return new $TemplateExpression(node, parent, ctx);
+      return new $TemplateExpression(node, parent, ctx, idx);
     case SyntaxKind.ElementAccessExpression:
-      return new $ElementAccessExpression(node, parent, ctx);
+      return new $ElementAccessExpression(node, parent, ctx, idx);
     case SyntaxKind.NonNullExpression:
-      return new $NonNullExpression(node, parent, ctx);
+      return new $NonNullExpression(node, parent, ctx, idx);
     case SyntaxKind.PropertyAccessExpression:
-      return new $PropertyAccessExpression(node, parent, ctx);
+      return new $PropertyAccessExpression(node, parent, ctx, idx);
     case SyntaxKind.TaggedTemplateExpression:
-      return new $TaggedTemplateExpression(node, parent, ctx);
+      return new $TaggedTemplateExpression(node, parent, ctx, idx);
     case SyntaxKind.CallExpression:
-      return new $CallExpression(node, parent, ctx);
+      return new $CallExpression(node, parent, ctx, idx);
     case SyntaxKind.MetaProperty:
-      return new $MetaProperty(node, parent, ctx);
+      return new $MetaProperty(node, parent, ctx, idx);
     case SyntaxKind.ThisKeyword:
-      return new $ThisExpression(node, parent, ctx);
+      return new $ThisExpression(node, parent, ctx, idx);
     case SyntaxKind.SuperKeyword:
-      return new $SuperExpression(node, parent, ctx);
+      return new $SuperExpression(node, parent, ctx, idx);
     case SyntaxKind.NumericLiteral:
-      return new $NumericLiteral(node, parent, ctx);
+      return new $NumericLiteral(node, parent, ctx, idx);
     case SyntaxKind.BigIntLiteral:
-      return new $BigIntLiteral(node, parent, ctx);
+      return new $BigIntLiteral(node, parent, ctx, idx);
     case SyntaxKind.StringLiteral:
-      return new $StringLiteral(node, parent, ctx);
+      return new $StringLiteral(node, parent, ctx, idx);
     case SyntaxKind.RegularExpressionLiteral:
-      return new $RegularExpressionLiteral(node, parent, ctx);
+      return new $RegularExpressionLiteral(node, parent, ctx, idx);
     case SyntaxKind.NoSubstitutionTemplateLiteral:
-      return new $NoSubstitutionTemplateLiteral(node, parent, ctx);
+      return new $NoSubstitutionTemplateLiteral(node, parent, ctx, idx);
     case SyntaxKind.NullKeyword:
-      return new $NullLiteral(node, parent, ctx);
+      return new $NullLiteral(node, parent, ctx, idx);
     case SyntaxKind.TrueKeyword:
     case SyntaxKind.FalseKeyword:
-      return new $BooleanLiteral(node, parent, ctx);
+      return new $BooleanLiteral(node, parent, ctx, idx);
     default:
       throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as any).kind]}.`);
   }
@@ -717,26 +723,30 @@ export function $identifier(
   node: undefined,
   parent: $AnyParentNode,
   ctx: Context,
+  idx: number,
 ): undefined;
 export function $identifier(
   node: Identifier,
   parent: $AnyParentNode,
   ctx: Context,
+  idx: number,
 ): $Identifier;
 export function $identifier(
   node: Identifier | undefined,
   parent: $AnyParentNode,
   ctx: Context,
+  idx: number,
 ): $Identifier | undefined;
 export function $identifier(
   node: Identifier | undefined,
   parent: $AnyParentNode,
   ctx: Context,
+  idx: number,
 ): $Identifier | undefined {
   if (node === void 0) {
     return void 0;
   }
-  return new $Identifier(node, parent, ctx);
+  return new $Identifier(node, parent, ctx, idx);
 }
 
 export type $$PropertyName = (
@@ -750,16 +760,17 @@ export function $$propertyName(
   node: PropertyName,
   parent: $AnyParentNode,
   ctx: Context,
+  idx: number,
 ): $$PropertyName {
   switch (node.kind) {
     case SyntaxKind.Identifier:
-      return new $Identifier(node, parent, ctx);
+      return new $Identifier(node, parent, ctx, idx);
     case SyntaxKind.StringLiteral:
-      return new $StringLiteral(node, parent, ctx);
+      return new $StringLiteral(node, parent, ctx, idx);
     case SyntaxKind.NumericLiteral:
-      return new $NumericLiteral(node, parent, ctx);
+      return new $NumericLiteral(node, parent, ctx, idx);
     case SyntaxKind.ComputedPropertyName:
-      return new $ComputedPropertyName(node, parent as $$NamedDeclaration, ctx);
+      return new $ComputedPropertyName(node, parent as $$NamedDeclaration, ctx, idx);
   }
 }
 
@@ -779,14 +790,15 @@ export function $$bindingName(
   node: BindingName,
   parent: $$DestructurableBinding,
   ctx: Context,
+  idx: number,
 ): $$BindingName {
   switch (node.kind) {
     case SyntaxKind.Identifier:
-      return new $Identifier(node, parent, ctx | Context.IsBindingName);
+      return new $Identifier(node, parent, ctx | Context.IsBindingName, idx);
     case SyntaxKind.ObjectBindingPattern:
-      return new $ObjectBindingPattern(node, parent, ctx);
+      return new $ObjectBindingPattern(node, parent, ctx, idx);
     case SyntaxKind.ArrayBindingPattern:
-      return new $ArrayBindingPattern(node, parent, ctx);
+      return new $ArrayBindingPattern(node, parent, ctx, idx);
   }
 }
 
@@ -852,44 +864,45 @@ export function $$esStatement(
   node: $StatementNode,
   parent: $NodeWithStatements,
   ctx: Context,
+  idx: number,
 ): $$ESStatement {
   switch (node.kind) {
     case SyntaxKind.Block:
-      return new $Block(node, parent, ctx);
+      return new $Block(node, parent, ctx, idx);
     case SyntaxKind.EmptyStatement:
-      return new $EmptyStatement(node, parent, ctx);
+      return new $EmptyStatement(node, parent, ctx, idx);
     case SyntaxKind.ExpressionStatement:
-      return new $ExpressionStatement(node, parent, ctx);
+      return new $ExpressionStatement(node, parent, ctx, idx);
     case SyntaxKind.IfStatement:
-      return new $IfStatement(node, parent, ctx);
+      return new $IfStatement(node, parent, ctx, idx);
     case SyntaxKind.DoStatement:
-      return new $DoStatement(node, parent, ctx);
+      return new $DoStatement(node, parent, ctx, idx);
     case SyntaxKind.WhileStatement:
-      return new $WhileStatement(node, parent, ctx);
+      return new $WhileStatement(node, parent, ctx, idx);
     case SyntaxKind.ForStatement:
-      return new $ForStatement(node, parent, ctx);
+      return new $ForStatement(node, parent, ctx, idx);
     case SyntaxKind.ForInStatement:
-      return new $ForInStatement(node, parent, ctx);
+      return new $ForInStatement(node, parent, ctx, idx);
     case SyntaxKind.ForOfStatement:
-      return new $ForOfStatement(node, parent, ctx);
+      return new $ForOfStatement(node, parent, ctx, idx);
     case SyntaxKind.ContinueStatement:
-      return new $ContinueStatement(node, parent, ctx);
+      return new $ContinueStatement(node, parent, ctx, idx);
     case SyntaxKind.BreakStatement:
-      return new $BreakStatement(node, parent, ctx);
+      return new $BreakStatement(node, parent, ctx, idx);
     case SyntaxKind.ReturnStatement:
-      return new $ReturnStatement(node, parent, ctx);
+      return new $ReturnStatement(node, parent, ctx, idx);
     case SyntaxKind.WithStatement:
-      return new $WithStatement(node, parent, ctx);
+      return new $WithStatement(node, parent, ctx, idx);
     case SyntaxKind.SwitchStatement:
-      return new $SwitchStatement(node, parent, ctx);
+      return new $SwitchStatement(node, parent, ctx, idx);
     case SyntaxKind.LabeledStatement:
-      return new $LabeledStatement(node, parent, ctx);
+      return new $LabeledStatement(node, parent, ctx, idx);
     case SyntaxKind.ThrowStatement:
-      return new $ThrowStatement(node, parent, ctx);
+      return new $ThrowStatement(node, parent, ctx, idx);
     case SyntaxKind.TryStatement:
-      return new $TryStatement(node, parent, ctx);
+      return new $TryStatement(node, parent, ctx, idx);
     case SyntaxKind.DebuggerStatement:
-      return new $DebuggerStatement(node, parent, ctx);
+      return new $DebuggerStatement(node, parent, ctx, idx);
     default:
       throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as Node).kind]}.`);
   }
@@ -922,22 +935,23 @@ export function $$tsStatementListItem(
   node: $StatementNode,
   parent: $NodeWithStatements,
   ctx: Context,
+  idx: number,
 ): $$TSStatementListItem {
   switch (node.kind) {
     case SyntaxKind.VariableStatement:
-      return new $VariableStatement(node, parent, ctx);
+      return new $VariableStatement(node, parent, ctx, idx);
     case SyntaxKind.FunctionDeclaration:
-      return new $FunctionDeclaration(node, parent, ctx);
+      return new $FunctionDeclaration(node, parent, ctx, idx);
     case SyntaxKind.ClassDeclaration:
-      return new $ClassDeclaration(node, parent, ctx);
+      return new $ClassDeclaration(node, parent, ctx, idx);
     case SyntaxKind.InterfaceDeclaration:
-      return new $InterfaceDeclaration(node, parent, ctx);
+      return new $InterfaceDeclaration(node, parent, ctx, idx);
     case SyntaxKind.TypeAliasDeclaration:
-      return new $TypeAliasDeclaration(node, parent, ctx);
+      return new $TypeAliasDeclaration(node, parent, ctx, idx);
     case SyntaxKind.EnumDeclaration:
-      return new $EnumDeclaration(node, parent, ctx);
+      return new $EnumDeclaration(node, parent, ctx, idx);
     default:
-      return $$esStatement(node, parent, ctx);
+      return $$esStatement(node, parent, ctx, idx);
   }
 }
 
@@ -956,7 +970,8 @@ export function $$tsStatementList(
     if (node.kind === SyntaxKind.FunctionDeclaration && node.body === void 0) {
       continue;
     }
-    $nodes[x++] = $$tsStatementListItem(node, parent, ctx);
+    $nodes[x] = $$tsStatementListItem(node, parent, ctx, x);
+    ++x;
   }
   return $nodes;
 }
@@ -970,14 +985,15 @@ export function $$esLabelledItem(
   node: $StatementNode,
   parent: $NodeWithStatements,
   ctx: Context,
+  idx: number,
 ): $$ESLabelledItem {
   switch (node.kind) {
     case SyntaxKind.VariableStatement:
-      return new $VariableStatement(node, parent, ctx);
+      return new $VariableStatement(node, parent, ctx, idx);
     case SyntaxKind.FunctionDeclaration:
-      return new $FunctionDeclaration(node, parent, ctx);
+      return new $FunctionDeclaration(node, parent, ctx, idx);
     default:
-      return $$esStatement(node, parent, ctx);
+      return $$esStatement(node, parent, ctx, idx);
   }
 }
 
@@ -1176,13 +1192,13 @@ export function $decoratorList(
   }
 
   if (nodes.length === 1) {
-    return [new $Decorator(nodes[0], parent, ctx)];
+    return [new $Decorator(nodes[0], parent, ctx, 0)];
   }
 
   const len = nodes.length;
   const $nodes: $Decorator[] = Array(len);
   for (let i = 0; i < len; ++i) {
-    $nodes[i] = new $Decorator(nodes[i], parent, ctx);
+    $nodes[i] = new $Decorator(nodes[i], parent, ctx, i);
   }
   return $nodes;
 }
@@ -1216,7 +1232,7 @@ export function $heritageClauseList(
   const len = nodes.length;
   const $nodes: $HeritageClause[] = Array(len);
   for (let i = 0; i < len; ++i) {
-    $nodes[i] = new $HeritageClause(nodes[i], parent, ctx);
+    $nodes[i] = new $HeritageClause(nodes[i], parent, ctx, i);
   }
   return $nodes;
 }
@@ -1237,7 +1253,7 @@ export function $$classElementList(
   for (let i = 0; i < len; ++i) {
     node = nodes[i];
     if ((node as { body?: Block }).body !== void 0) {
-      $node = $$classElement(nodes[i], parent, ctx);
+      $node = $$classElement(nodes[i], parent, ctx, i);
       if ($node !== void 0) {
         $nodes.push($node);
       }
@@ -1259,20 +1275,21 @@ export function $$classElement(
   node: $ClassElementNode,
   parent: $ClassDeclaration | $ClassExpression,
   ctx: Context,
+  idx: number,
 ): $$ClassElement | undefined {
   switch (node.kind) {
     case SyntaxKind.PropertyDeclaration:
-      return new $PropertyDeclaration(node, parent, ctx);
+      return new $PropertyDeclaration(node, parent, ctx, idx);
     case SyntaxKind.SemicolonClassElement:
-      return new $SemicolonClassElement(node, parent, ctx);
+      return new $SemicolonClassElement(node, parent, ctx, idx);
     case SyntaxKind.MethodDeclaration:
-      return new $MethodDeclaration(node, parent, ctx);
+      return new $MethodDeclaration(node, parent, ctx, idx);
     case SyntaxKind.Constructor:
-      return new $ConstructorDeclaration(node, parent, ctx);
+      return new $ConstructorDeclaration(node, parent, ctx, idx);
     case SyntaxKind.GetAccessor:
-      return new $GetAccessorDeclaration(node, parent, ctx);
+      return new $GetAccessorDeclaration(node, parent, ctx, idx);
     case SyntaxKind.SetAccessor:
-      return new $SetAccessorDeclaration(node, parent, ctx);
+      return new $SetAccessorDeclaration(node, parent, ctx, idx);
     default:
       return void 0;
   }
@@ -1351,6 +1368,13 @@ export const modifiersToModifierFlags = (function () {
     }
   }
 })();
+
+/**
+ * Returns the indexed string representation, or an empty string if the number is -1.
+ */
+export function $i(idx: number): string {
+  return idx === -1 ? '' : `[${idx}]`;
+}
 
 export interface I$Node<
   TNode extends object = object,

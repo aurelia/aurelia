@@ -98,6 +98,7 @@ import {
   getExportEntriesForModule,
   getReferencedBindings,
   $$ModuleDeclarationParent,
+  $i,
 } from './_shared';
 import {
   $Identifier,
@@ -275,16 +276,20 @@ export class $SourceFile implements I$Node, IModule {
 
       switch (stmt.kind) {
         case SyntaxKind.ModuleDeclaration:
-          $stmt = $statements[s++] = new $ModuleDeclaration(stmt, this, ctx);
+          $stmt = $statements[s] = new $ModuleDeclaration(stmt, this, ctx, s);
+          ++s;
           break;
         case SyntaxKind.NamespaceExportDeclaration:
-          $stmt = $statements[s++] = new $NamespaceExportDeclaration(stmt, this, ctx);
+          $stmt = $statements[s] = new $NamespaceExportDeclaration(stmt, this, ctx, s);
+          ++s;
           break;
         case SyntaxKind.ImportEqualsDeclaration:
-          $stmt = $statements[s++] = new $ImportEqualsDeclaration(stmt, this, ctx);
+          $stmt = $statements[s] = new $ImportEqualsDeclaration(stmt, this, ctx, s);
+          ++s;
           break;
         case SyntaxKind.ImportDeclaration:
-          $stmt = $statements[s++] = new $ImportDeclaration(stmt, this, ctx);
+          $stmt = $statements[s] = new $ImportDeclaration(stmt, this, ctx, s);
+          ++s;
 
           ImportEntries.push(...$stmt.ImportEntries);
           ImportedLocalNames.push(...$stmt.ImportEntries.map(getLocalName));
@@ -292,10 +297,12 @@ export class $SourceFile implements I$Node, IModule {
           ModuleRequests.push(...$stmt.ModuleRequests);
           break;
         case SyntaxKind.ExportAssignment:
-          $stmt = $statements[s++] = new $ExportAssignment(stmt, this, ctx);
+          $stmt = $statements[s] = new $ExportAssignment(stmt, this, ctx, s);
+          ++s;
           break;
         case SyntaxKind.ExportDeclaration:
-          $stmt = $statements[s++] = new $ExportDeclaration(stmt, this, ctx);
+          $stmt = $statements[s] = new $ExportDeclaration(stmt, this, ctx, s);
+          ++s;
 
           ExportedBindings.push(...$stmt.ExportedBindings);
           ExportedNames.push(...$stmt.ExportedNames);
@@ -306,7 +313,8 @@ export class $SourceFile implements I$Node, IModule {
           LexicallyScopedDeclarations.push(...$stmt.LexicallyScopedDeclarations);
           break;
         case SyntaxKind.VariableStatement:
-          $stmt = $statements[s++] = new $VariableStatement(stmt, this, ctx);
+          $stmt = $statements[s] = new $VariableStatement(stmt, this, ctx, s);
+          ++s;
 
           if ($stmt.isLexical) {
             LexicallyScopedDeclarations.push($stmt);
@@ -326,7 +334,8 @@ export class $SourceFile implements I$Node, IModule {
           if (stmt.body === void 0) {
             continue;
           }
-          $stmt = $statements[s++] = new $FunctionDeclaration(stmt, this, ctx);
+          $stmt = $statements[s] = new $FunctionDeclaration(stmt, this, ctx, s);
+          ++s;
 
           if (hasBit($stmt.modifierFlags, ModifierFlags.Export)) {
             ExportedBindings.push(...$stmt.ExportedBindings);
@@ -337,7 +346,8 @@ export class $SourceFile implements I$Node, IModule {
           LexicallyScopedDeclarations.push($stmt);
           break;
         case SyntaxKind.ClassDeclaration:
-          $stmt = $statements[s++] = new $ClassDeclaration(stmt, this, ctx);
+          $stmt = $statements[s] = new $ClassDeclaration(stmt, this, ctx, s);
+          ++s;
 
           if (hasBit($stmt.modifierFlags, ModifierFlags.Export)) {
             ExportedBindings.push(...$stmt.ExportedBindings);
@@ -348,7 +358,8 @@ export class $SourceFile implements I$Node, IModule {
           LexicallyScopedDeclarations.push($stmt);
           break;
         case SyntaxKind.InterfaceDeclaration:
-          $stmt = $statements[s++] = new $InterfaceDeclaration(stmt, this, ctx);
+          $stmt = $statements[s] = new $InterfaceDeclaration(stmt, this, ctx, s);
+          ++s;
 
           if (hasBit($stmt.modifierFlags, ModifierFlags.Export)) {
             ExportedBindings.push(...$stmt.ExportedBindings);
@@ -357,7 +368,8 @@ export class $SourceFile implements I$Node, IModule {
           }
           break;
         case SyntaxKind.TypeAliasDeclaration:
-          $stmt = $statements[s++] = new $TypeAliasDeclaration(stmt, this, ctx);
+          $stmt = $statements[s] = new $TypeAliasDeclaration(stmt, this, ctx, s);
+          ++s;
 
           if (hasBit($stmt.modifierFlags, ModifierFlags.Export)) {
             ExportedBindings.push(...$stmt.ExportedBindings);
@@ -366,7 +378,8 @@ export class $SourceFile implements I$Node, IModule {
           }
           break;
         case SyntaxKind.EnumDeclaration:
-          $stmt = $statements[s++] = new $EnumDeclaration(stmt, this, ctx);
+          $stmt = $statements[s] = new $EnumDeclaration(stmt, this, ctx, s);
+          ++s;
 
           if (hasBit($stmt.modifierFlags, ModifierFlags.Export)) {
             ExportedBindings.push(...$stmt.ExportedBindings);
@@ -375,80 +388,98 @@ export class $SourceFile implements I$Node, IModule {
           }
           break;
         case SyntaxKind.Block:
-          $stmt = $statements[s++] = new $Block(stmt, this, ctx);
+          $stmt = $statements[s] = new $Block(stmt, this, ctx, s);
+          ++s;
 
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
         case SyntaxKind.EmptyStatement:
-          $stmt = $statements[s++] = new $EmptyStatement(stmt, this, ctx);
+          $stmt = $statements[s] = new $EmptyStatement(stmt, this, ctx, s);
+          ++s;
           break;
         case SyntaxKind.ExpressionStatement:
-          $stmt = $statements[s++] = new $ExpressionStatement(stmt, this, ctx);
+          $stmt = $statements[s] = new $ExpressionStatement(stmt, this, ctx, s);
+          ++s;
           break;
         case SyntaxKind.IfStatement:
-          $stmt = $statements[s++] = new $IfStatement(stmt, this, ctx);
+          $stmt = $statements[s] = new $IfStatement(stmt, this, ctx, s);
+          ++s;
 
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
         case SyntaxKind.DoStatement:
-          $stmt = $statements[s++] = new $DoStatement(stmt, this, ctx);
+          $stmt = $statements[s] = new $DoStatement(stmt, this, ctx, s);
+          ++s;
 
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
         case SyntaxKind.WhileStatement:
-          $stmt = $statements[s++] = new $WhileStatement(stmt, this, ctx);
+          $stmt = $statements[s] = new $WhileStatement(stmt, this, ctx, s);
+          ++s;
 
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
         case SyntaxKind.ForStatement:
-          $stmt = $statements[s++] = new $ForStatement(stmt, this, ctx);
+          $stmt = $statements[s] = new $ForStatement(stmt, this, ctx, s);
+          ++s;
 
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
         case SyntaxKind.ForInStatement:
-          $stmt = $statements[s++] = new $ForInStatement(stmt, this, ctx);
+          $stmt = $statements[s] = new $ForInStatement(stmt, this, ctx, s);
+          ++s;
 
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
         case SyntaxKind.ForOfStatement:
-          $stmt = $statements[s++] = new $ForOfStatement(stmt, this, ctx);
+          $stmt = $statements[s] = new $ForOfStatement(stmt, this, ctx, s);
+          ++s;
 
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
         case SyntaxKind.ContinueStatement:
-          $stmt = $statements[s++] = new $ContinueStatement(stmt, this, ctx);
+          $stmt = $statements[s] = new $ContinueStatement(stmt, this, ctx, s);
+          ++s;
           break;
         case SyntaxKind.BreakStatement:
-          $stmt = $statements[s++] = new $BreakStatement(stmt, this, ctx);
+          $stmt = $statements[s] = new $BreakStatement(stmt, this, ctx, s);
+          ++s;
           break;
         case SyntaxKind.ReturnStatement:
-          $stmt = $statements[s++] = new $ReturnStatement(stmt, this, ctx);
+          $stmt = $statements[s] = new $ReturnStatement(stmt, this, ctx, s);
+          ++s;
           break;
         case SyntaxKind.WithStatement:
-          $stmt = $statements[s++] = new $WithStatement(stmt, this, ctx);
+          $stmt = $statements[s] = new $WithStatement(stmt, this, ctx, s);
+          ++s;
 
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
         case SyntaxKind.SwitchStatement:
-          $stmt = $statements[s++] = new $SwitchStatement(stmt, this, ctx);
+          $stmt = $statements[s] = new $SwitchStatement(stmt, this, ctx, s);
+          ++s;
 
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
         case SyntaxKind.LabeledStatement:
-          $stmt = $statements[s++] = new $LabeledStatement(stmt, this, ctx);
+          $stmt = $statements[s] = new $LabeledStatement(stmt, this, ctx, s);
+          ++s;
 
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
         case SyntaxKind.ThrowStatement:
-          $stmt = $statements[s++] = new $ThrowStatement(stmt, this, ctx);
+          $stmt = $statements[s] = new $ThrowStatement(stmt, this, ctx, s);
+          ++s;
           break;
         case SyntaxKind.TryStatement:
-          $stmt = $statements[s++] = new $TryStatement(stmt, this, ctx);
+          $stmt = $statements[s] = new $TryStatement(stmt, this, ctx, s);
+          ++s;
 
           VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
           break;
         case SyntaxKind.DebuggerStatement:
-          $stmt = $statements[s++] = new $DebuggerStatement(stmt, this, ctx);
+          $stmt = $statements[s] = new $DebuggerStatement(stmt, this, ctx, s);
+          ++s;
           break;
         default:
           throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as Node).kind]}.`);
@@ -608,12 +639,12 @@ export class $SourceFile implements I$Node, IModule {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-innermoduleinstantiation
-  // 15.2.1.16.1.1 InnerModuleInstantiation ( module , stack , index )
+  // 15.2.1.16.1.1 InnerModuleInstantiation ( module , stack , idx )
   /** @internal */
   public _InnerModuleInstantiation(
     ctx: ExecutionContext,
     stack: $SourceFile[],
-    index: $Number,
+    idx: $Number,
   ): $Number | $Error {
     ctx.checkTimeout();
 
@@ -624,28 +655,28 @@ export class $SourceFile implements I$Node, IModule {
 
     // 1. If module is not a Cyclic Module Record, then
       // 1. a. Perform ? module.Evaluate(ctx).
-      // 1. b. Return index.
+      // 1. b. Return idx.
 
     // We only deal with cyclic module records for now
 
     // 2. If module.[[Status]] is "instantiating", "instantiated", or "evaluated", then
     if (this.Status === 'instantiating' || this.Status === 'instantiated' || this.Status === 'evaluated') {
-      // 2. Return index.
-      return index;
+      // 2. Return idx.
+      return idx;
     }
 
     // 3. Assert: module.[[Status]] is "uninstantiated".
     // 4. Set module.[[Status]] to "instantiating".
     this.Status = 'instantiating';
 
-    // 5. Set module.[[DFSIndex]] to index.
-    this.DFSIndex = index['[[Value]]'];
+    // 5. Set module.[[DFSIndex]] to idx.
+    this.DFSIndex = idx['[[Value]]'];
 
-    // 6. Set module.[[DFSAncestorIndex]] to index.
-    this.DFSAncestorIndex = index['[[Value]]'];
+    // 6. Set module.[[DFSAncestorIndex]] to idx.
+    this.DFSAncestorIndex = idx['[[Value]]'];
 
-    // 7. Increase index by 1.
-    index = new $Number(realm, index['[[Value]]'] + 1);
+    // 7. Increase idx by 1.
+    idx = new $Number(realm, idx['[[Value]]'] + 1);
 
     // 8. Append module to stack.
     stack.push(this);
@@ -656,10 +687,10 @@ export class $SourceFile implements I$Node, IModule {
       const requiredModule = this.moduleResolver.ResolveImportedModule(ctx, this, required);
       if (requiredModule.isAbrupt) { return requiredModule; }
 
-      // 9. b. Set index to ? InnerModuleInstantiation(requiredModule, stack, index).
-      const $index = requiredModule._InnerModuleInstantiation(ctx, stack, index);
-      if ($index.isAbrupt) { return $index; }
-      index = $index;
+      // 9. b. Set idx to ? InnerModuleInstantiation(requiredModule, stack, idx).
+      const $idx = requiredModule._InnerModuleInstantiation(ctx, stack, idx);
+      if ($idx.isAbrupt) { return $idx; }
+      idx = $idx;
 
       // 9. c. Assert: requiredModule.[[Status]] is either "instantiating", "instantiated", or "evaluated".
       // 9. d. Assert: requiredModule.[[Status]] is "instantiating" if and only if requiredModule is in stack.
@@ -698,8 +729,8 @@ export class $SourceFile implements I$Node, IModule {
       }
     }
 
-    // 14. Return index.
-    return index;
+    // 14. Return idx.
+    return idx;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-source-text-module-record-initialize-environment
@@ -1091,11 +1122,11 @@ export class $SourceFile implements I$Node, IModule {
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-innermoduleevaluation
-  // 15.2.1.16.2.1 InnerModuleEvaluation ( module , stack , index )
+  // 15.2.1.16.2.1 InnerModuleEvaluation ( module , stack , idx )
   public EvaluateModuleInner(
     ctx: ExecutionContext,
     stack: $SourceFile[],
-    index: number,
+    idx: number,
   ): $Number {
     ctx.checkTimeout();
 
@@ -1106,32 +1137,32 @@ export class $SourceFile implements I$Node, IModule {
 
     // 1. If module is not a Cyclic Module Record, then
     // 1. a. Perform ? module.Evaluate(ctx).
-    // 1. b. Return index.
+    // 1. b. Return idx.
     // 2. If module.[[Status]] is "evaluated", then
     if (this.Status === 'evaluated') {
-      // 2. a. If module.[[EvaluationError]] is undefined, return index.
-      return new $Number(realm, index); // TODO
+      // 2. a. If module.[[EvaluationError]] is undefined, return idx.
+      return new $Number(realm, idx); // TODO
 
       // 2. b. Otherwise return module.[[EvaluationError]].
     }
 
-    // 3. If module.[[Status]] is "evaluating", return index.
+    // 3. If module.[[Status]] is "evaluating", return idx.
     if (this.Status === 'evaluating') {
-      return new $Number(realm, index);
+      return new $Number(realm, idx);
     }
 
     // 4. Assert: module.[[Status]] is "instantiated".
     // 5. Set module.[[Status]] to "evaluating".
     this.Status = 'evaluating';
 
-    // 6. Set module.[[DFSIndex]] to index.
-    this.DFSIndex = index;
+    // 6. Set module.[[DFSIndex]] to idx.
+    this.DFSIndex = idx;
 
-    // 7. Set module.[[DFSAncestorIndex]] to index.
-    this.DFSAncestorIndex = index;
+    // 7. Set module.[[DFSAncestorIndex]] to idx.
+    this.DFSAncestorIndex = idx;
 
-    // 8. Increase index by 1.
-    ++index;
+    // 8. Increase idx by 1.
+    ++idx;
 
     // 9. Append module to stack.
     stack.push(this);
@@ -1142,8 +1173,8 @@ export class $SourceFile implements I$Node, IModule {
       const requiredModule = this.moduleResolver.ResolveImportedModule(ctx, this, required) as $SourceFile; // TODO
 
       // 10. b. NOTE: Instantiate must be completed successfully prior to invoking this method, so every requested module is guaranteed to resolve successfully.
-      // 10. c. Set index to ? InnerModuleEvaluation(requiredModule, stack, index).
-      index = requiredModule.EvaluateModuleInner(ctx, stack, index)['[[Value]]'];
+      // 10. c. Set idx to ? InnerModuleEvaluation(requiredModule, stack, idx).
+      idx = requiredModule.EvaluateModuleInner(ctx, stack, idx)['[[Value]]'];
 
       // 10. d. Assert: requiredModule.[[Status]] is either "evaluating" or "evaluated".
       // 10. e. Assert: requiredModule.[[Status]] is "evaluating" if and only if requiredModule is in stack.
@@ -1180,8 +1211,8 @@ export class $SourceFile implements I$Node, IModule {
       }
     }
 
-    // 15. Return index.
-    return new $Number(realm, index);
+    // 15. Return idx.
+    return new $Number(realm, idx);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-source-text-module-record-execute-module
@@ -1485,11 +1516,11 @@ export class $DocumentFragment implements I$Node, IModule {
   public _InnerModuleInstantiation(
     ctx: ExecutionContext,
     stack: IModule[],
-    index: $Number,
+    idx: $Number,
   ): $Number | $Error {
     ctx.checkTimeout();
 
-    return index;
+    return idx;
   }
 
   public dispose(): void {
@@ -1519,18 +1550,19 @@ export class $ModuleDeclaration implements I$Node {
     public readonly node: ModuleDeclaration,
     public readonly parent: $SourceFile | $$ModuleBody,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.ModuleDeclaration`,
+    public readonly path: string = `${parent.path}${$i(idx)}.ModuleDeclaration`,
   ) {
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     if (node.name.kind === SyntaxKind.Identifier) {
-      this.$name = new $Identifier(node.name, this, ctx);
+      this.$name = new $Identifier(node.name, this, ctx, -1);
     } else {
-      this.$name = new $StringLiteral(node.name, this, ctx);
+      this.$name = new $StringLiteral(node.name, this, ctx, -1);
     }
 
     if (node.body === void 0) {
@@ -1538,13 +1570,13 @@ export class $ModuleDeclaration implements I$Node {
     } else {
       switch (node.body.kind) {
         case SyntaxKind.Identifier:
-          this.$body = new $Identifier(node.body, this, ctx)
+          this.$body = new $Identifier(node.body, this, ctx, -1);
           break;
         case SyntaxKind.ModuleBlock:
-          this.$body = new $ModuleBlock(node.body, this, ctx)
+          this.$body = new $ModuleBlock(node.body, this, ctx);
           break;
         case SyntaxKind.ModuleDeclaration:
-          this.$body = new $ModuleDeclaration(node.body, this, ctx)
+          this.$body = new $ModuleDeclaration(node.body, this, ctx, -1);
           break;
         default:
           throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as Node).kind]}.`);
@@ -1594,24 +1626,25 @@ export class $ImportEqualsDeclaration implements I$Node {
     public readonly node: ImportEqualsDeclaration,
     public readonly parent: $SourceFile | $ModuleBlock,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.ImportEqualsDeclaration`,
+    public readonly path: string = `${parent.path}${$i(idx)}.ImportEqualsDeclaration`,
   ) {
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    this.$name = $identifier(node.name, this, ctx);
+    this.$name = $identifier(node.name, this, ctx, -1);
     switch (node.moduleReference.kind) {
       case SyntaxKind.Identifier:
-        this.$moduleReference = new $Identifier(node.moduleReference, this, ctx)
+        this.$moduleReference = new $Identifier(node.moduleReference, this, ctx, -1);
         break;
       case SyntaxKind.QualifiedName:
-        this.$moduleReference = new $QualifiedName(node.moduleReference, this, ctx)
+        this.$moduleReference = new $QualifiedName(node.moduleReference, this, ctx);
         break;
       case SyntaxKind.ExternalModuleReference:
-        this.$moduleReference = new $ExternalModuleReference(node.moduleReference, this, ctx)
+        this.$moduleReference = new $ExternalModuleReference(node.moduleReference, this, ctx);
         break;
       default:
         throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as Node).kind]}.`);
@@ -1647,15 +1680,16 @@ export class $ImportDeclaration implements I$Node {
     public readonly node: ImportDeclaration,
     public readonly parent: $SourceFile | $ModuleBlock,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.ImportDeclaration`,
+    public readonly path: string = `${parent.path}${$i(idx)}.ImportDeclaration`,
   ) {
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    const $moduleSpecifier = this.$moduleSpecifier = new $StringLiteral(node.moduleSpecifier as StringLiteral, this, ctx);
+    const $moduleSpecifier = this.$moduleSpecifier = new $StringLiteral(node.moduleSpecifier as StringLiteral, this, ctx, -1);
 
     const moduleSpecifier = this.moduleSpecifier = $moduleSpecifier.StringValue;
 
@@ -1716,7 +1750,7 @@ export class $ImportClause implements I$Node {
     if (node.name === void 0) {
       this.$name = new $Undefined(realm, void 0, void 0, this);
     } else {
-      const $name = this.$name = new $Identifier(node.name, this, ctx);
+      const $name = this.$name = new $Identifier(node.name, this, ctx, -1);
 
       const [localName] = $name.BoundNames;
       BoundNames.push(localName);
@@ -1806,9 +1840,9 @@ export class $ImportSpecifier implements I$Node {
     if (node.propertyName === void 0) {
       $propertyName = this.$propertyName = new $Undefined(realm, void 0, void 0, this);
     } else {
-      $propertyName = this.$propertyName = new $Identifier(node.propertyName, this, ctx);
+      $propertyName = this.$propertyName = new $Identifier(node.propertyName, this, ctx, -1);
     }
-    const $name = this.$name = $identifier(node.name, this, ctx);
+    const $name = this.$name = $identifier(node.name, this, ctx, -1);
 
     const BoundNames = this.BoundNames = this.$name.BoundNames;
 
@@ -1863,7 +1897,7 @@ export class $NamespaceImport implements I$Node {
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
 
-    const $name = this.$name = new $Identifier(node.name, this, ctx);
+    const $name = this.$name = new $Identifier(node.name, this, ctx, -1);
 
     this.BoundNames = $name.BoundNames;
 
@@ -1917,17 +1951,18 @@ export class $ExportAssignment implements I$Node {
     public readonly node: ExportAssignment,
     public readonly parent: $SourceFile,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.ExportAssignment`,
+    public readonly path: string = `${parent.path}${$i(idx)}.ExportAssignment`,
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
 
     this.BoundNames = [intrinsics['*default*']];
   }
@@ -1972,11 +2007,12 @@ export class $ExportDeclaration implements I$Node {
     public readonly node: ExportDeclaration,
     public readonly parent: $SourceFile | $ModuleBlock,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.ExportDeclaration`,
+    public readonly path: string = `${parent.path}${$i(idx)}.ExportDeclaration`,
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1989,7 +2025,7 @@ export class $ExportDeclaration implements I$Node {
 
       this.ModuleRequests = emptyArray;
     } else {
-      const $moduleSpecifier = this.$moduleSpecifier = new $StringLiteral(node.moduleSpecifier as StringLiteral, this, ctx);
+      const $moduleSpecifier = this.$moduleSpecifier = new $StringLiteral(node.moduleSpecifier as StringLiteral, this, ctx, -1);
       moduleSpecifier = this.moduleSpecifier = $moduleSpecifier!.StringValue;
 
       this.ModuleRequests = [moduleSpecifier];
@@ -2086,9 +2122,9 @@ export class $ExportSpecifier implements I$Node {
     if (node.propertyName === void 0) {
       $propertyName = this.$propertyName = new $Undefined(realm, void 0, void 0, this);
     } else {
-      $propertyName = this.$propertyName = new $Identifier(node.propertyName, this, ctx);
+      $propertyName = this.$propertyName = new $Identifier(node.propertyName, this, ctx, -1);
     }
-    const $name = this.$name = new $Identifier(node.name, this, ctx);
+    const $name = this.$name = new $Identifier(node.name, this, ctx, -1);
 
     const moduleSpecifier = parent.moduleSpecifier;
 
@@ -2162,15 +2198,16 @@ export class $NamespaceExportDeclaration implements I$Node {
     public readonly node: NamespaceExportDeclaration,
     public readonly parent: $$ModuleDeclarationParent,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.NamespaceExportDeclaration`,
+    public readonly path: string = `${parent.path}${$i(idx)}.NamespaceExportDeclaration`,
   ) {
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    this.$name = $identifier(node.name, this, ctx);
+    this.$name = $identifier(node.name, this, ctx, -1);
   }
 }
 
@@ -2207,7 +2244,7 @@ export class $ExternalModuleReference implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ExternalModuleReference`,
   ) {
-    this.$expression = new $StringLiteral(node.expression as StringLiteral, this, ctx);
+    this.$expression = new $StringLiteral(node.expression as StringLiteral, this, ctx, -1);
   }
 }
 
@@ -2238,11 +2275,11 @@ export class $QualifiedName implements I$Node {
     public readonly path: string = `${parent.path}.QualifiedName`,
   ) {
     if (node.left.kind === SyntaxKind.Identifier) {
-      this.$left = new $Identifier(node.left, this, ctx);
+      this.$left = new $Identifier(node.left, this, ctx, -1);
     } else {
       this.$left = new $QualifiedName(node.left, this, ctx);
     }
 
-    this.$right = new $Identifier(node.right, this, ctx);
+    this.$right = new $Identifier(node.right, this, ctx, -1);
   }
 }

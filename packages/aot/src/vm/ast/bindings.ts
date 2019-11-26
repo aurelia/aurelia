@@ -64,6 +64,7 @@ import {
   getContainsExpression,
   getHasInitializer,
   getIsSimpleParameterList,
+  $i,
 } from './_shared';
 import {
   $SourceFile,
@@ -134,13 +135,14 @@ export class $ComputedPropertyName implements I$Node {
     public readonly node: ComputedPropertyName,
     public readonly parent: $$NamedDeclaration,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.ComputedPropertyName`,
+    public readonly path: string = `${parent.path}${$i(idx)}.ComputedPropertyName`,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
 
     this.PropName = new $Empty(realm, void 0, void 0, this);
   }
@@ -200,17 +202,18 @@ export class $ObjectBindingPattern implements I$Node {
     public readonly node: ObjectBindingPattern,
     public readonly parent: $$DestructurableBinding,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.ObjectBindingPattern`,
+    public readonly path: string = `${parent.path}${$i(idx)}.ObjectBindingPattern`,
   ) {
     this.combinedModifierFlags = parent.combinedModifierFlags;
 
     ctx |= Context.InBindingPattern;
 
-    const $elements = this.$elements = node.elements.map(x => new $BindingElement(x, this, ctx));
+    const $elements = this.$elements = $bindingElementList(node.elements, this, ctx);
 
     this.BoundNames = $elements.flatMap(getBoundNames);
     this.ContainsExpression = $elements.some(getContainsExpression);
@@ -284,12 +287,13 @@ export function $$arrayBindingElement(
   node: ArrayBindingElement,
   parent: $ArrayBindingPattern,
   ctx: Context,
+  idx: number,
 ): $$ArrayBindingElement {
   switch (node.kind) {
     case SyntaxKind.BindingElement:
-      return new $BindingElement(node, parent, ctx);
+      return new $BindingElement(node, parent, ctx, idx);
     case SyntaxKind.OmittedExpression:
-      return new $OmittedExpression(node, parent, ctx);
+      return new $OmittedExpression(node, parent, ctx, idx);
   }
 }
 
@@ -302,7 +306,22 @@ export function $$arrayBindingElementList(
   const $nodes: $$ArrayBindingElement[] = Array(len);
 
   for (let i = 0; i < len; ++i) {
-    $nodes[i] = $$arrayBindingElement(nodes[i], parent, ctx);
+    $nodes[i] = $$arrayBindingElement(nodes[i], parent, ctx, i);
+  }
+
+  return $nodes;
+}
+
+export function $bindingElementList(
+  nodes: readonly BindingElement[],
+  parent: $$BindingPattern,
+  ctx: Context,
+): readonly $BindingElement[] {
+  const len = nodes.length;
+  const $nodes: $BindingElement[] = Array(len);
+
+  for (let i = 0; i < len; ++i) {
+    $nodes[i] = new $BindingElement(nodes[i], parent, ctx, i);
   }
 
   return $nodes;
@@ -332,11 +351,12 @@ export class $ArrayBindingPattern implements I$Node {
     public readonly node: ArrayBindingPattern,
     public readonly parent: $$DestructurableBinding,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.ArrayBindingPattern`,
+    public readonly path: string = `${parent.path}${$i(idx)}.ArrayBindingPattern`,
   ) {
     this.combinedModifierFlags = parent.combinedModifierFlags;
 
@@ -483,11 +503,12 @@ export class $BindingElement implements I$Node {
     public readonly node: BindingElement,
     public readonly parent: $$BindingPattern,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.BindingElement`,
+    public readonly path: string = `${parent.path}${$i(idx)}.BindingElement`,
   ) {
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
     this.combinedModifierFlags = this.modifierFlags | parent.combinedModifierFlags;
@@ -496,7 +517,7 @@ export class $BindingElement implements I$Node {
 
     if (node.propertyName === void 0) {
       this.$propertyName = void 0;
-      const $name = this.$name = $$bindingName(node.name, this, ctx | Context.IsBindingName);
+      const $name = this.$name = $$bindingName(node.name, this, ctx | Context.IsBindingName, -1);
 
       this.BoundNames = $name.BoundNames;
 
@@ -507,7 +528,7 @@ export class $BindingElement implements I$Node {
         this.HasInitializer = false;
         this.IsSimpleParameterList = $name.$kind === SyntaxKind.Identifier;
       } else {
-        this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
+        this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx, -1);
 
         this.ContainsExpression = true;
         this.HasInitializer = true;
@@ -515,8 +536,8 @@ export class $BindingElement implements I$Node {
       }
 
     } else {
-      const $propertyName = this.$propertyName = $$propertyName(node.propertyName, this, ctx);
-      const $name = this.$name = $$bindingName(node.name, this, ctx | Context.IsBindingName);
+      const $propertyName = this.$propertyName = $$propertyName(node.propertyName, this, ctx, -1);
+      const $name = this.$name = $$bindingName(node.name, this, ctx | Context.IsBindingName, -1);
 
       this.BoundNames = $name.BoundNames;
 
@@ -527,7 +548,7 @@ export class $BindingElement implements I$Node {
         this.HasInitializer = false;
         this.IsSimpleParameterList = $name.$kind === SyntaxKind.Identifier;
       } else {
-        this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
+        this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx, -1);
 
         this.ContainsExpression = true;
         this.HasInitializer = true;
@@ -751,13 +772,14 @@ export class $SpreadElement implements I$Node {
     public readonly node: SpreadElement,
     public readonly parent: $NodeWithSpreadElements,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.SpreadElement`,
+    public readonly path: string = `${parent.path}${$i(idx)}.SpreadElement`,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-argument-lists-runtime-semantics-argumentlistevaluation
@@ -872,11 +894,12 @@ export class $OmittedExpression implements I$Node {
     public readonly node: OmittedExpression,
     public readonly parent: $ArrayBindingPattern | $ArrayLiteralExpression | $NewExpression | $CallExpression,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.OmittedExpression`,
+    public readonly path: string = `${parent.path}${$i(idx)}.OmittedExpression`,
   ) {}
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-iteratordestructuringassignmentevaluation

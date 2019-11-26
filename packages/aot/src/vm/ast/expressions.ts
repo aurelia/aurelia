@@ -133,6 +133,7 @@ import {
   $BinaryExpressionNode,
   $$UpdateExpressionOrHigher,
   $UpdateExpressionNode,
+  $i,
 } from './_shared';
 import {
   $SourceFile,
@@ -168,13 +169,14 @@ export class $Decorator implements I$Node {
     public readonly node: Decorator,
     public readonly parent: $NodeWithDecorators,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.Decorator`,
+    public readonly path: string = `${parent.path}${$i(idx)}.Decorator`,
   ) {
-    this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx);
+    this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx, -1);
   }
 }
 
@@ -203,11 +205,12 @@ export class $ThisExpression implements I$Node {
     public readonly node: ThisExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.ThisExpression`,
+    public readonly path: string = `${parent.path}${$i(idx)}.ThisExpression`,
   ) {}
 
   // http://www.ecma-international.org/ecma-262/#sec-this-keyword-runtime-semantics-evaluation
@@ -234,11 +237,12 @@ export class $SuperExpression implements I$Node {
     public readonly node: SuperExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.SuperExpression`,
+    public readonly path: string = `${parent.path}${$i(idx)}.SuperExpression`,
   ) {}
 
   // http://www.ecma-international.org/ecma-262/#sec-super-keyword-runtime-semantics-evaluation
@@ -301,14 +305,15 @@ export function $argumentOrArrayLiteralElement(
   node: $ArgumentOrArrayLiteralElementNode,
   parent: $NodeWithSpreadElements,
   ctx: Context,
+  idx: number,
 ): $$ArgumentOrArrayLiteralElement {
   switch (node.kind) {
     case SyntaxKind.SpreadElement:
-      return new $SpreadElement(node, parent, ctx);
+      return new $SpreadElement(node, parent, ctx, idx);
     case SyntaxKind.OmittedExpression:
-      return new $OmittedExpression(node, parent, ctx);
+      return new $OmittedExpression(node, parent, ctx, idx);
     default:
-      return $assignmentExpression(node, parent, ctx);
+      return $assignmentExpression(node, parent, ctx, idx);
   }
 }
 
@@ -324,7 +329,7 @@ export function $argumentOrArrayLiteralElementList(
   const len = nodes.length;
   const $nodes: $$ArgumentOrArrayLiteralElement[] = Array(len);
   for (let i = 0; i < len; ++i) {
-    $nodes[i] = $argumentOrArrayLiteralElement(nodes[i], parent, ctx);
+    $nodes[i] = $argumentOrArrayLiteralElement(nodes[i], parent, ctx, i);
   }
   return $nodes;
 }
@@ -354,11 +359,12 @@ export class $ArrayLiteralExpression implements I$Node {
     public readonly node: ArrayLiteralExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.ArrayLiteralExpression`,
+    public readonly path: string = `${parent.path}${$i(idx)}.ArrayLiteralExpression`,
   ) {
     this.$elements = $argumentOrArrayLiteralElementList(node.elements as NodeArray<$ArgumentOrArrayLiteralElementNode>, this, ctx);
   }
@@ -520,22 +526,22 @@ export function $$objectLiteralElementLikeList(
     el = nodes[i];
     switch (el.kind) {
       case SyntaxKind.PropertyAssignment:
-        $nodes[i] = new $PropertyAssignment(el, parent, ctx);
+        $nodes[i] = new $PropertyAssignment(el, parent, ctx, i);
         break;
       case SyntaxKind.ShorthandPropertyAssignment:
-        $nodes[i] = new $ShorthandPropertyAssignment(el, parent, ctx);
+        $nodes[i] = new $ShorthandPropertyAssignment(el, parent, ctx, i);
         break;
       case SyntaxKind.SpreadAssignment:
-        $nodes[i] = new $SpreadAssignment(el, parent, ctx);
+        $nodes[i] = new $SpreadAssignment(el, parent, ctx, i);
         break;
       case SyntaxKind.MethodDeclaration:
-        $nodes[i] = new $MethodDeclaration(el, parent, ctx);
+        $nodes[i] = new $MethodDeclaration(el, parent, ctx, i);
         break;
       case SyntaxKind.GetAccessor:
-        $nodes[i] = new $GetAccessorDeclaration(el, parent, ctx);
+        $nodes[i] = new $GetAccessorDeclaration(el, parent, ctx, i);
         break;
       case SyntaxKind.SetAccessor:
-        $nodes[i] = new $SetAccessorDeclaration(el, parent, ctx);
+        $nodes[i] = new $SetAccessorDeclaration(el, parent, ctx, i);
         break;
     }
   }
@@ -567,11 +573,12 @@ export class $ObjectLiteralExpression implements I$Node {
     public readonly node: ObjectLiteralExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.ObjectLiteralExpression`,
+    public readonly path: string = `${parent.path}${$i(idx)}.ObjectLiteralExpression`,
   ) {
     this.$properties = $$objectLiteralElementLikeList(node.properties, this, ctx);
   }
@@ -622,16 +629,17 @@ export class $PropertyAssignment implements I$Node {
     public readonly node: PropertyAssignment,
     public readonly parent: $ObjectLiteralExpression,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.PropertyAssignment`,
+    public readonly path: string = `${parent.path}${$i(idx)}.PropertyAssignment`,
   ) {
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    const $name = this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName);
-    this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
+    const $name = this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName, -1);
+    this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx, -1);
 
     this.PropName = $name.PropName;
   }
@@ -696,16 +704,17 @@ export class $ShorthandPropertyAssignment implements I$Node {
     public readonly node: ShorthandPropertyAssignment,
     public readonly parent: $ObjectLiteralExpression,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.ShorthandPropertyAssignment`,
+    public readonly path: string = `${parent.path}${$i(idx)}.ShorthandPropertyAssignment`,
   ) {
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    const $name = this.$name = $identifier(node.name, this, ctx);
-    this.$objectAssignmentInitializer = $assignmentExpression(node.objectAssignmentInitializer as $AssignmentExpressionNode, this, ctx);
+    const $name = this.$name = $identifier(node.name, this, ctx, -1);
+    this.$objectAssignmentInitializer = $assignmentExpression(node.objectAssignmentInitializer as $AssignmentExpressionNode, this, ctx, -1);
 
     this.PropName = $name.PropName;
   }
@@ -752,13 +761,14 @@ export class $SpreadAssignment implements I$Node {
     public readonly node: SpreadAssignment,
     public readonly parent: $ObjectLiteralExpression,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.SpreadAssignment`,
+    public readonly path: string = `${parent.path}${$i(idx)}.SpreadAssignment`,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-propertydefinitionevaluation
@@ -798,14 +808,15 @@ export class $PropertyAccessExpression implements I$Node {
     public readonly node: PropertyAccessExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.PropertyAccessExpression`,
+    public readonly path: string = `${parent.path}${$i(idx)}.PropertyAccessExpression`,
   ) {
-    this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx);
-    this.$name = $identifier(node.name, this, ctx | Context.IsPropertyAccessName);
+    this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx, -1);
+    this.$name = $identifier(node.name, this, ctx | Context.IsPropertyAccessName, -1);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-property-accessors-runtime-semantics-evaluation
@@ -854,14 +865,15 @@ export class $ElementAccessExpression implements I$Node {
     public readonly node: ElementAccessExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.ElementAccessExpression`,
+    public readonly path: string = `${parent.path}${$i(idx)}.ElementAccessExpression`,
   ) {
-    this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx);
-    this.$argumentExpression = $assignmentExpression(node.argumentExpression as $AssignmentExpressionNode, this, ctx);
+    this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx, -1);
+    this.$argumentExpression = $assignmentExpression(node.argumentExpression as $AssignmentExpressionNode, this, ctx, -1);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-property-accessors-runtime-semantics-evaluation
@@ -918,13 +930,14 @@ export class $CallExpression implements I$Node {
     public readonly node: CallExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.CallExpression`,
+    public readonly path: string = `${parent.path}${$i(idx)}.CallExpression`,
   ) {
-    this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx);
+    this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx, -1);
     this.$arguments = $argumentOrArrayLiteralElementList(node.arguments as NodeArray<$ArgumentOrArrayLiteralElementNode>, this, ctx);
   }
 
@@ -1134,13 +1147,14 @@ export class $NewExpression implements I$Node {
     public readonly node: NewExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.NewExpression`,
+    public readonly path: string = `${parent.path}${$i(idx)}.NewExpression`,
   ) {
-    this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx);
+    this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx, -1);
     this.$arguments = $argumentOrArrayLiteralElementList(node.arguments as NodeArray<$ArgumentOrArrayLiteralElementNode>, this, ctx);
   }
 
@@ -1213,18 +1227,19 @@ export class $TaggedTemplateExpression implements I$Node {
     public readonly node: TaggedTemplateExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.TaggedTemplateExpression`,
+    public readonly path: string = `${parent.path}${$i(idx)}.TaggedTemplateExpression`,
   ) {
-    this.$tag = $LHSExpression(node.tag as $LHSExpressionNode, this, ctx);
+    this.$tag = $LHSExpression(node.tag as $LHSExpressionNode, this, ctx, -1);
 
     if (node.template.kind === SyntaxKind.NoSubstitutionTemplateLiteral) {
-      this.$template = new $NoSubstitutionTemplateLiteral(node.template, this, ctx);
+      this.$template = new $NoSubstitutionTemplateLiteral(node.template, this, ctx, -1);
     } else {
-      this.$template = new $TemplateExpression(node.template, this, ctx);
+      this.$template = new $TemplateExpression(node.template, this, ctx, -1);
     }
   }
 
@@ -1271,7 +1286,7 @@ export function $$templateSpanList(
   const len = nodes.length;
   const $nodes: $TemplateSpan[] = Array(len);
   for (let i = 0; i < len; ++i) {
-    $nodes[i] = new $TemplateSpan(nodes[i], parent, ctx);
+    $nodes[i] = new $TemplateSpan(nodes[i], parent, ctx, i);
   }
   return $nodes;
 }
@@ -1302,11 +1317,12 @@ export class $TemplateExpression implements I$Node {
     public readonly node: TemplateExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.TemplateExpression`,
+    public readonly path: string = `${parent.path}${$i(idx)}.TemplateExpression`,
   ) {
     this.$head = new $TemplateHead(node.head, this, ctx)
     this.$templateSpans = $$templateSpanList(node.templateSpans, this, ctx);
@@ -1378,13 +1394,14 @@ export class $ParenthesizedExpression implements I$Node {
     public readonly node: ParenthesizedExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.ParenthesizedExpression`,
+    public readonly path: string = `${parent.path}${$i(idx)}.ParenthesizedExpression`,
   ) {
-    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
 
     this.CoveredParenthesizedExpression = $expression;
   }
@@ -1420,13 +1437,14 @@ export class $NonNullExpression implements I$Node {
     public readonly node: NonNullExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.NonNullExpression`,
+    public readonly path: string = `${parent.path}${$i(idx)}.NonNullExpression`,
   ) {
-    this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx);
+    this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx, -1);
   }
 
   // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
@@ -1448,13 +1466,14 @@ export class $MetaProperty implements I$Node {
     public readonly node: MetaProperty,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.MetaProperty`,
+    public readonly path: string = `${parent.path}${$i(idx)}.MetaProperty`,
   ) {
-    this.$name = $identifier(node.name, this, ctx);
+    this.$name = $identifier(node.name, this, ctx, -1);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-meta-properties-runtime-semantics-evaluation
@@ -1489,13 +1508,14 @@ export class $DeleteExpression implements I$Node {
     public readonly node: DeleteExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.DeleteExpression`,
+    public readonly path: string = `${parent.path}${$i(idx)}.DeleteExpression`,
   ) {
-    this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, this, ctx);
+    this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, this, ctx, -1);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-delete-operator-runtime-semantics-evaluation
@@ -1538,13 +1558,14 @@ export class $TypeOfExpression implements I$Node {
     public readonly node: TypeOfExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.TypeOfExpression`,
+    public readonly path: string = `${parent.path}${$i(idx)}.TypeOfExpression`,
   ) {
-    this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, this, ctx);
+    this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, this, ctx, -1);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-typeof-operator-runtime-semantics-evaluation
@@ -1621,13 +1642,14 @@ export class $VoidExpression implements I$Node {
     public readonly node: VoidExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.VoidExpression`,
+    public readonly path: string = `${parent.path}${$i(idx)}.VoidExpression`,
   ) {
-    this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, this, ctx);
+    this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, this, ctx, -1);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-void-operator
@@ -1664,13 +1686,14 @@ export class $AwaitExpression implements I$Node {
     public readonly node: AwaitExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.AwaitExpression`,
+    public readonly path: string = `${parent.path}${$i(idx)}.AwaitExpression`,
   ) {
-    this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, this, ctx);
+    this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, this, ctx, -1);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-runtime-semantics-evaluation
@@ -1703,13 +1726,14 @@ export class $PrefixUnaryExpression implements I$Node {
     public readonly node: PrefixUnaryExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.PrefixUnaryExpression`,
+    public readonly path: string = `${parent.path}${$i(idx)}.PrefixUnaryExpression`,
   ) {
-    this.$operand = $unaryExpression(node.operand as $UnaryExpressionNode, this, ctx);
+    this.$operand = $unaryExpression(node.operand as $UnaryExpressionNode, this, ctx, -1);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-prefix-increment-operator-runtime-semantics-evaluation
@@ -1885,13 +1909,14 @@ export class $PostfixUnaryExpression implements I$Node {
     public readonly node: PostfixUnaryExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.PostfixUnaryExpression`,
+    public readonly path: string = `${parent.path}${$i(idx)}.PostfixUnaryExpression`,
   ) {
-    this.$operand = $LHSExpression(node.operand as $LHSExpressionNode, this, ctx);
+    this.$operand = $LHSExpression(node.operand as $LHSExpressionNode, this, ctx, -1);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-postfix-increment-operator-runtime-semantics-evaluation
@@ -1978,13 +2003,14 @@ export class $TypeAssertion implements I$Node {
     public readonly node: TypeAssertion,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.TypeAssertion`,
+    public readonly path: string = `${parent.path}${$i(idx)}.TypeAssertion`,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx)
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1)
   }
 
   // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
@@ -2011,14 +2037,15 @@ export class $BinaryExpression implements I$Node {
     public readonly node: BinaryExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.BinaryExpression`,
+    public readonly path: string = `${parent.path}${$i(idx)}.BinaryExpression`,
   ) {
-    this.$left = $assignmentExpression(node.left as $BinaryExpressionNode, this, ctx) as $$BinaryExpressionOrHigher
-    this.$right = $assignmentExpression(node.right as $BinaryExpressionNode, this, ctx) as $$BinaryExpressionOrHigher
+    this.$left = $assignmentExpression(node.left as $BinaryExpressionNode, this, ctx, -1) as $$BinaryExpressionOrHigher
+    this.$right = $assignmentExpression(node.right as $BinaryExpressionNode, this, ctx, -1) as $$BinaryExpressionOrHigher
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-exp-operator-runtime-semantics-evaluation
@@ -3080,20 +3107,21 @@ export class $ConditionalExpression implements I$Node {
     public readonly node: ConditionalExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.ConditionalExpression`,
+    public readonly path: string = `${parent.path}${$i(idx)}.ConditionalExpression`,
   ) {
     if (node.condition.kind === SyntaxKind.BinaryExpression) {
-      this.$condition = new $BinaryExpression(node.condition as BinaryExpression, this, ctx);
+      this.$condition = new $BinaryExpression(node.condition as BinaryExpression, this, ctx, -1);
     } else {
-      this.$condition = $unaryExpression(node.condition as $UnaryExpressionNode, this, ctx);
+      this.$condition = $unaryExpression(node.condition as $UnaryExpressionNode, this, ctx, -1);
     }
 
-    this.$whenTrue = $assignmentExpression(node.whenTrue as $AssignmentExpressionNode, this, ctx)
-    this.$whenFalse = $assignmentExpression(node.whenFalse as $AssignmentExpressionNode, this, ctx)
+    this.$whenTrue = $assignmentExpression(node.whenTrue as $AssignmentExpressionNode, this, ctx, -1)
+    this.$whenFalse = $assignmentExpression(node.whenFalse as $AssignmentExpressionNode, this, ctx, -1)
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-conditional-operator-runtime-semantics-evaluation
@@ -3131,13 +3159,14 @@ export class $YieldExpression implements I$Node {
     public readonly node: YieldExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.YieldExpression`,
+    public readonly path: string = `${parent.path}${$i(idx)}.YieldExpression`,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx)
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1)
   }
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
   // 14.4.14 Runtime Semantics: Evaluation
@@ -3230,13 +3259,14 @@ export class $AsExpression implements I$Node {
     public readonly node: AsExpression,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.AsExpression`,
+    public readonly path: string = `${parent.path}${$i(idx)}.AsExpression`,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $UpdateExpressionNode, this, ctx) as $$UpdateExpressionOrHigher
+    this.$expression = $assignmentExpression(node.expression as $UpdateExpressionNode, this, ctx, -1) as $$UpdateExpressionOrHigher
   }
 
   // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
@@ -3298,11 +3328,12 @@ export class $Identifier implements I$Node {
     public readonly node: Identifier,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.Identifier(${node.text})`,
+    public readonly path: string = `${parent.path}${$i(idx)}.Identifier(${node.text})`,
   ) {
     const StringValue = this.StringValue = new $String(realm, node.text, void 0, void 0, this);
     this.PropName = StringValue;

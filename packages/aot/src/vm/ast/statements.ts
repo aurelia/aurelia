@@ -31,6 +31,7 @@ import {
   WhileStatement,
   WithStatement,
   Expression,
+  CaseOrDefaultClause,
 } from 'typescript';
 import {
   PLATFORM,
@@ -88,6 +89,7 @@ import {
   $$esLabelledItem,
   getLexicallyDeclaredNames,
   getLexicallyScopedDeclarations,
+  $i,
 } from './_shared';
 import {
   ExportEntryRecord,
@@ -156,11 +158,12 @@ export class $VariableStatement implements I$Node {
     public readonly node: VariableStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.VariableStatement`,
+    public readonly path: string = `${parent.path}${$i(idx)}.VariableStatement`,
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -337,11 +340,12 @@ export class $VariableDeclaration implements I$Node {
     public readonly node: VariableDeclaration,
     public readonly parent: $VariableDeclarationList | $CatchClause,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.VariableDeclaration`,
+    public readonly path: string = `${parent.path}${$i(idx)}.VariableDeclaration`,
   ) {
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
@@ -351,13 +355,13 @@ export class $VariableDeclaration implements I$Node {
       this.combinedModifierFlags = modifierFlags;
     }
 
-    const $name = this.$name = $$bindingName(node.name, this, ctx);
+    const $name = this.$name = $$bindingName(node.name, this, ctx, -1);
 
     // Clear this flag because it's used inside $Identifier to declare locals/exports
     // and we don't want to do that on the identifiers in types/initializers.
     ctx = clearBit(ctx, Context.InVariableStatement);
 
-    this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
+    this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx, -1);
 
     this.BoundNames = $name.BoundNames;
     if (hasBit(ctx, Context.IsVar)) { // TODO: what about parameter and for declarations?
@@ -437,7 +441,7 @@ export function $variableDeclarationList(
   const len = nodes.length;
   const $nodes: $VariableDeclaration[] = Array(len);
   for (let i = 0; i < len; ++i) {
-    $nodes[i] = new $VariableDeclaration(nodes[i], parent, ctx);
+    $nodes[i] = new $VariableDeclaration(nodes[i], parent, ctx, i);
   }
   return $nodes;
 }
@@ -541,11 +545,12 @@ export class $Block implements I$Node {
     public readonly node: Block,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.Block`,
+    public readonly path: string = `${parent.path}${$i(idx)}.Block`,
   ) {
     const $statements = this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
 
@@ -680,11 +685,12 @@ export class $EmptyStatement implements I$Node {
     public readonly node: EmptyStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.EmptyStatement`,
+    public readonly path: string = `${parent.path}${$i(idx)}.EmptyStatement`,
   ) {}
 
   // http://www.ecma-international.org/ecma-262/#sec-empty-statement-runtime-semantics-evaluation
@@ -731,13 +737,14 @@ export class $ExpressionStatement implements I$Node {
     public readonly node: ExpressionStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.ExpressionStatement`,
+    public readonly path: string = `${parent.path}${$i(idx)}.ExpressionStatement`,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-expression-statement-runtime-semantics-evaluation
@@ -777,14 +784,15 @@ export class $IfStatement implements I$Node {
     public readonly node: IfStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.IfStatement`,
+    public readonly path: string = `${parent.path}${$i(idx)}.IfStatement`,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
-    const $thenStatement = this.$thenStatement = $$esLabelledItem(node.thenStatement as $StatementNode, this, ctx);
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
+    const $thenStatement = this.$thenStatement = $$esLabelledItem(node.thenStatement as $StatementNode, this, ctx, -1);
 
     if (node.elseStatement === void 0) {
       this.$elseStatement = void 0;
@@ -792,7 +800,7 @@ export class $IfStatement implements I$Node {
       this.VarDeclaredNames = $thenStatement.VarDeclaredNames;
       this.VarScopedDeclarations = $thenStatement.VarScopedDeclarations;
     } else {
-      const $elseStatement = this.$elseStatement = $$esLabelledItem(node.elseStatement as $StatementNode, this, ctx);
+      const $elseStatement = this.$elseStatement = $$esLabelledItem(node.elseStatement as $StatementNode, this, ctx, -1);
 
       this.VarDeclaredNames = [
         ...$thenStatement.VarDeclaredNames,
@@ -882,14 +890,15 @@ export class $DoStatement implements I$Node {
     public readonly node: DoStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.DoStatement`,
+    public readonly path: string = `${parent.path}${$i(idx)}.DoStatement`,
   ) {
-    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx);
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx, -1);
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
 
     this.VarDeclaredNames = $statement.VarDeclaredNames;
     this.VarScopedDeclarations = $statement.VarScopedDeclarations;
@@ -966,14 +975,15 @@ export class $WhileStatement implements I$Node {
     public readonly node: WhileStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.WhileStatement`,
+    public readonly path: string = `${parent.path}${$i(idx)}.WhileStatement`,
   ) {
-    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx);
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx, -1);
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
 
     this.VarDeclaredNames = $statement.VarDeclaredNames;
     this.VarScopedDeclarations = $statement.VarScopedDeclarations;
@@ -1057,15 +1067,16 @@ export class $ForStatement implements I$Node {
     public readonly node: ForStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.ForStatement`,
+    public readonly path: string = `${parent.path}${$i(idx)}.ForStatement`,
   ) {
-    this.$condition = $assignmentExpression(node.condition as $AssignmentExpressionNode, this, ctx);
-    this.$incrementor = $assignmentExpression(node.incrementor as $AssignmentExpressionNode, this, ctx);
-    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx);
+    this.$condition = $assignmentExpression(node.condition as $AssignmentExpressionNode, this, ctx, -1);
+    this.$incrementor = $assignmentExpression(node.incrementor as $AssignmentExpressionNode, this, ctx, -1);
+    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx, -1);
 
     if (node.initializer === void 0) {
       this.$initializer = void 0;
@@ -1089,7 +1100,7 @@ export class $ForStatement implements I$Node {
           ];
         }
       } else {
-        this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
+        this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx, -1);
 
         this.VarDeclaredNames = $statement.VarDeclaredNames;
         this.VarScopedDeclarations = $statement.VarScopedDeclarations;
@@ -1168,14 +1179,15 @@ export class $ForInStatement implements I$Node {
     public readonly node: ForInStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.ForInStatement`,
+    public readonly path: string = `${parent.path}${$i(idx)}.ForInStatement`,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
-    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx);
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
+    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx, -1);
 
     if (node.initializer.kind === SyntaxKind.VariableDeclarationList) {
       const $initializer = this.$initializer = new $VariableDeclarationList(node.initializer as VariableDeclarationList, this, ctx);
@@ -1195,7 +1207,7 @@ export class $ForInStatement implements I$Node {
         ];
       }
     } else {
-      this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
+      this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx, -1);
 
       this.BoundNames = emptyArray;
       this.VarDeclaredNames = $statement.VarDeclaredNames;
@@ -1303,14 +1315,15 @@ export class $ForOfStatement implements I$Node {
     public readonly node: ForOfStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.ForOfStatement`,
+    public readonly path: string = `${parent.path}${$i(idx)}.ForOfStatement`,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
-    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx);
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
+    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx, -1);
 
     if (node.initializer.kind === SyntaxKind.VariableDeclarationList) {
       const $initializer = this.$initializer = new $VariableDeclarationList(node.initializer as VariableDeclarationList, this, ctx);
@@ -1330,7 +1343,7 @@ export class $ForOfStatement implements I$Node {
         ];
       }
     } else {
-      this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
+      this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx, -1);
 
       this.BoundNames = emptyArray;
       this.VarDeclaredNames = $statement.VarDeclaredNames;
@@ -1431,13 +1444,14 @@ export class $ContinueStatement implements I$Node {
     public readonly node: ContinueStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.ContinueStatement`,
+    public readonly path: string = `${parent.path}${$i(idx)}.ContinueStatement`,
   ) {
-    this.$label = $identifier(node.label, this, ctx | Context.IsLabelReference);
+    this.$label = $identifier(node.label, this, ctx | Context.IsLabelReference, -1);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-continue-statement-runtime-semantics-evaluation
@@ -1484,13 +1498,14 @@ export class $BreakStatement implements I$Node {
     public readonly node: BreakStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.BreakStatement`,
+    public readonly path: string = `${parent.path}${$i(idx)}.BreakStatement`,
   ) {
-    this.$label = $identifier(node.label, this, ctx | Context.IsLabelReference);
+    this.$label = $identifier(node.label, this, ctx | Context.IsLabelReference, -1);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-break-statement-runtime-semantics-evaluation
@@ -1537,16 +1552,17 @@ export class $ReturnStatement implements I$Node {
     public readonly node: ReturnStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.ReturnStatement`,
+    public readonly path: string = `${parent.path}${$i(idx)}.ReturnStatement`,
   ) {
     if (node.expression === void 0) {
       this.$expression = void 0;
     } else {
-      this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+      this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
     }
   }
 
@@ -1603,14 +1619,15 @@ export class $WithStatement implements I$Node {
     public readonly node: WithStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.WithStatement`,
+    public readonly path: string = `${parent.path}${$i(idx)}.WithStatement`,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
-    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx);
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
+    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx, -1);
 
     this.VarDeclaredNames = $statement.VarDeclaredNames;
     this.VarScopedDeclarations = $statement.VarScopedDeclarations;
@@ -1666,13 +1683,14 @@ export class $SwitchStatement implements I$Node {
     public readonly node: SwitchStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.SwitchStatement`,
+    public readonly path: string = `${parent.path}${$i(idx)}.SwitchStatement`,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
     const $caseBlock = this.$caseBlock = new $CaseBlock(node.caseBlock, this, ctx);
 
     this.LexicallyDeclaredNames = $caseBlock.LexicallyDeclaredNames;
@@ -1892,14 +1910,15 @@ export class $LabeledStatement implements I$Node {
     public readonly node: LabeledStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.LabeledStatement`,
+    public readonly path: string = `${parent.path}${$i(idx)}.LabeledStatement`,
   ) {
-    this.$label = $identifier(node.label, this, ctx | Context.IsLabel);
-    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx);
+    this.$label = $identifier(node.label, this, ctx | Context.IsLabel, -1);
+    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx, -1);
 
     if ($statement.$kind === SyntaxKind.FunctionDeclaration) {
       this.LexicallyDeclaredNames = $statement.BoundNames;
@@ -1995,13 +2014,14 @@ export class $ThrowStatement implements I$Node {
     public readonly node: ThrowStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.ThrowStatement`,
+    public readonly path: string = `${parent.path}${$i(idx)}.ThrowStatement`,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-throw-statement-runtime-semantics-evaluation
@@ -2049,17 +2069,18 @@ export class $TryStatement implements I$Node {
     public readonly node: TryStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.TryStatement`,
+    public readonly path: string = `${parent.path}${$i(idx)}.TryStatement`,
   ) {
-    const $tryBlock = this.$tryBlock = new $Block(node.tryBlock, this, ctx);
+    const $tryBlock = this.$tryBlock = new $Block(node.tryBlock, this, ctx, -1);
     if (node.catchClause === void 0) {
       // finallyBlock must be defined
       this.$catchClause = void 0;
-      const $finallyBlock = this.$finallyBlock = new $Block(node.finallyBlock!, this, ctx);
+      const $finallyBlock = this.$finallyBlock = new $Block(node.finallyBlock!, this, ctx, -1);
 
       this.VarDeclaredNames = [
         ...$tryBlock.VarDeclaredNames,
@@ -2084,7 +2105,7 @@ export class $TryStatement implements I$Node {
       ];
     } else {
       const $catchClause = this.$catchClause = new $CatchClause(node.catchClause!, this, ctx);
-      const $finallyBlock = this.$finallyBlock = new $Block(node.finallyBlock!, this, ctx);
+      const $finallyBlock = this.$finallyBlock = new $Block(node.finallyBlock!, this, ctx, -1);
 
       this.VarDeclaredNames = [
         ...$tryBlock.VarDeclaredNames,
@@ -2223,11 +2244,12 @@ export class $DebuggerStatement implements I$Node {
     public readonly node: DebuggerStatement,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.DebuggerStatement`,
+    public readonly path: string = `${parent.path}${$i(idx)}.DebuggerStatement`,
   ) {}
 
   // http://www.ecma-international.org/ecma-262/#sec-debugger-statement-runtime-semantics-evaluation
@@ -2258,6 +2280,31 @@ export class $DebuggerStatement implements I$Node {
 
 // #region Statement members
 
+export type $$CaseOrDefaultClause = $CaseClause | $DefaultClause;
+
+export function $$clauseList(
+  nodes: readonly CaseOrDefaultClause[],
+  parent: $CaseBlock,
+  ctx: Context,
+): readonly $$CaseOrDefaultClause[] {
+  const len = nodes.length;
+  let node: CaseOrDefaultClause;
+  const $nodes: $$CaseOrDefaultClause[] = [];
+
+  for (let i = 0; i < len; ++i) {
+    node = nodes[i];
+    switch (node.kind) {
+      case SyntaxKind.CaseClause:
+        $nodes[i] = new $CaseClause(node, parent, ctx, i);
+        break;
+      case SyntaxKind.DefaultClause:
+        $nodes[i] = new $DefaultClause(node, parent, ctx, i);
+        break;
+    }
+  }
+  return $nodes;
+}
+
 export class $CaseBlock implements I$Node {
   public readonly $kind = SyntaxKind.CaseBlock;
 
@@ -2274,7 +2321,7 @@ export class $CaseBlock implements I$Node {
   // 13.12.8 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
 
-  public readonly $clauses: readonly ($CaseClause | $DefaultClause)[];
+  public readonly $clauses: readonly $$CaseOrDefaultClause[];
 
   public constructor(
     public readonly node: CaseBlock,
@@ -2286,11 +2333,7 @@ export class $CaseBlock implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.CaseBlock`,
   ) {
-    const $clauses = this.$clauses = node.clauses.map(
-      x => x.kind === SyntaxKind.CaseClause
-        ? new $CaseClause(x, this, ctx)
-        : new $DefaultClause(x, this, ctx)
-    );
+    const $clauses = this.$clauses = $$clauseList(node.clauses, this, ctx);
 
     this.LexicallyDeclaredNames = $clauses.flatMap(getLexicallyDeclaredNames);
     this.LexicallyScopedDeclarations = $clauses.flatMap(getLexicallyScopedDeclarations);
@@ -2322,13 +2365,14 @@ export class $CaseClause implements I$Node {
     public readonly node: CaseClause,
     public readonly parent: $CaseBlock,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.CaseClause`,
+    public readonly path: string = `${parent.path}${$i(idx)}.CaseClause`,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
     const $statements = this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
 
     this.LexicallyDeclaredNames = $statements.flatMap(getLexicallyDeclaredNames);
@@ -2360,11 +2404,12 @@ export class $DefaultClause implements I$Node {
     public readonly node: DefaultClause,
     public readonly parent: $CaseBlock,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.DefaultClause`,
+    public readonly path: string = `${parent.path}${$i(idx)}.DefaultClause`,
   ) {
     const $statements = this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
 
@@ -2403,9 +2448,9 @@ export class $CatchClause implements I$Node {
     if (node.variableDeclaration === void 0) {
       this.$variableDeclaration = void 0;
     } else {
-      this.$variableDeclaration = new $VariableDeclaration(node.variableDeclaration, this, ctx);
+      this.$variableDeclaration = new $VariableDeclaration(node.variableDeclaration, this, ctx, -1);
     }
-    const $block = this.$block = new $Block(node.block, this, ctx);
+    const $block = this.$block = new $Block(node.block, this, ctx, -1);
 
     this.VarDeclaredNames = $block.VarDeclaredNames;
     this.VarScopedDeclarations = $block.VarScopedDeclarations;

@@ -46,6 +46,7 @@ import {
   $$propertyName,
   $decoratorList,
   $$ESDeclaration,
+  $i,
 } from './_shared';
 import {
   $SourceFile,
@@ -109,18 +110,19 @@ export class $MethodDeclaration implements I$Node {
     public readonly node: MethodDeclaration,
     public readonly parent: $ClassDeclaration | $ClassExpression | $ObjectLiteralExpression,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.MethodDeclaration`,
+    public readonly path: string = `${parent.path}${$i(idx)}.MethodDeclaration`,
   ) {
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     this.$decorators = $decoratorList(node.decorators, this, ctx);
-    const $name = this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName);
+    const $name = this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName, -1);
     this.$parameters = new $FormalParameterList(node.parameters, this, ctx);
-    const $body = this.$body = new $Block(node.body!, this, ctx);
+    const $body = this.$body = new $Block(node.body!, this, ctx, -1);
 
     this.PropName = $name.PropName;
     this.IsStatic = hasBit(modifierFlags, ModifierFlags.Static);
@@ -265,18 +267,19 @@ export class $GetAccessorDeclaration implements I$Node {
     public readonly node: GetAccessorDeclaration,
     public readonly parent: $ClassDeclaration | $ClassExpression | $ObjectLiteralExpression,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.GetAccessorDeclaration`,
+    public readonly path: string = `${parent.path}${$i(idx)}.GetAccessorDeclaration`,
   ) {
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     this.$decorators = $decoratorList(node.decorators, this, ctx);
-    const $name = this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName);
+    const $name = this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName, -1);
     this.$parameters = new $FormalParameterList(node.parameters, this, ctx);
-    const $body = this.$body = new $Block(node.body!, this, ctx);
+    const $body = this.$body = new $Block(node.body!, this, ctx, -1);
 
     this.PropName = $name.PropName;
     this.IsStatic = hasBit(modifierFlags, ModifierFlags.Static);
@@ -388,18 +391,19 @@ export class $SetAccessorDeclaration implements I$Node {
     public readonly node: SetAccessorDeclaration,
     public readonly parent: $ClassDeclaration | $ClassExpression | $ObjectLiteralExpression,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.SetAccessorDeclaration`,
+    public readonly path: string = `${parent.path}${$i(idx)}.SetAccessorDeclaration`,
   ) {
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     this.$decorators = $decoratorList(node.decorators, this, ctx);
-    const $name = this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName);
+    const $name = this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName, -1);
     this.$parameters = new $FormalParameterList(node.parameters, this, ctx);
-    const $body = this.$body = new $Block(node.body!, this, ctx);
+    const $body = this.$body = new $Block(node.body!, this, ctx, -1);
 
     this.PropName = $name.PropName;
     this.IsStatic = hasBit(modifierFlags, ModifierFlags.Static);

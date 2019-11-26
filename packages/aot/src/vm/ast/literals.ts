@@ -48,6 +48,7 @@ import {
   $assignmentExpression,
   $AssignmentExpressionNode,
   $AnyParentNode,
+  $i,
 } from './_shared';
 import {
   $SourceFile,
@@ -163,13 +164,14 @@ export class $TemplateSpan implements I$Node {
     public readonly node: TemplateSpan,
     public readonly parent: $TemplateExpression,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.TemplateSpan`,
+    public readonly path: string = `${parent.path}${$i(idx)}.TemplateSpan`,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx);
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
     if (node.literal.kind === SyntaxKind.TemplateMiddle) {
       this.$literal = new $TemplateMiddle(node.literal, this, ctx);
     } else {
@@ -248,11 +250,12 @@ export class $NumericLiteral implements I$Node {
     public readonly node: NumericLiteral,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.NumericLiteral`,
+    public readonly path: string = `${parent.path}${$i(idx)}.NumericLiteral`,
   ) {
     const num = Number(node.text);
     this.PropName = new $String(realm, num.toString(), void 0, void 0, this);
@@ -303,11 +306,12 @@ export class $BigIntLiteral implements I$Node {
     public readonly node: BigIntLiteral,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.BigIntLiteral`,
+    public readonly path: string = `${parent.path}${$i(idx)}.BigIntLiteral`,
   ) {}
 
   public Evaluate(
@@ -356,11 +360,12 @@ export class $StringLiteral implements I$Node {
     public readonly node: StringLiteral,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.StringLiteral`,
+    public readonly path: string = `${parent.path}${$i(idx)}.StringLiteral`,
   ) {
     const StringValue = this.StringValue = new $String(realm, node.text, void 0, void 0, this);
     this.PropName = StringValue;
@@ -417,11 +422,12 @@ export class $RegularExpressionLiteral implements I$Node {
     public readonly node: RegularExpressionLiteral,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.RegularExpressionLiteral`,
+    public readonly path: string = `${parent.path}${$i(idx)}.RegularExpressionLiteral`,
   ) {
     this.StringValue = node.text;
   }
@@ -468,11 +474,12 @@ export class $NoSubstitutionTemplateLiteral implements I$Node {
     public readonly node: NoSubstitutionTemplateLiteral,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.NoSubstitutionTemplateLiteral`,
+    public readonly path: string = `${parent.path}${$i(idx)}.NoSubstitutionTemplateLiteral`,
   ) {}
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
@@ -517,11 +524,12 @@ export class $NullLiteral implements I$Node {
     public readonly node: NullLiteral,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.NullLiteral`,
+    public readonly path: string = `${parent.path}${$i(idx)}.NullLiteral`,
   ) {
     this.Value = new $Null(realm, void 0, void 0, this);
   }
@@ -565,11 +573,12 @@ export class $BooleanLiteral implements I$Node {
     public readonly node: BooleanLiteral,
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.BooleanLiteral`,
+    public readonly path: string = `${parent.path}${$i(idx)}.BooleanLiteral`,
   ) {
     this.$kind = node.kind;
 

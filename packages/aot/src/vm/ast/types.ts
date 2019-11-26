@@ -32,6 +32,7 @@ import {
   $$propertyName,
   $assignmentExpression,
   $AssignmentExpressionNode,
+  $i,
 } from './_shared';
 import {
   ExportEntryRecord,
@@ -73,11 +74,12 @@ export class $InterfaceDeclaration implements I$Node {
     public readonly node: InterfaceDeclaration,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.InterfaceDeclaration`,
+    public readonly path: string = `${parent.path}${$i(idx)}.InterfaceDeclaration`,
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -89,7 +91,7 @@ export class $InterfaceDeclaration implements I$Node {
       ctx |= Context.InExport;
     }
 
-    const $name = this.$name = $identifier(node.name, this, ctx);
+    const $name = this.$name = $identifier(node.name, this, ctx, -1);
     this.$heritageClauses = $heritageClauseList(node.heritageClauses, this, ctx);
 
     const BoundNames = this.BoundNames = $name.BoundNames;
@@ -141,11 +143,12 @@ export class $TypeAliasDeclaration implements I$Node {
     public readonly node: TypeAliasDeclaration,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.TypeAliasDeclaration`,
+    public readonly path: string = `${parent.path}${$i(idx)}.TypeAliasDeclaration`,
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -157,7 +160,7 @@ export class $TypeAliasDeclaration implements I$Node {
       ctx |= Context.InExport;
     }
 
-    const $name = this.$name = $identifier(node.name, this, ctx);
+    const $name = this.$name = $identifier(node.name, this, ctx, -1);
 
     const BoundNames = this.BoundNames = $name.BoundNames;
     this.TypeDeclarations = [this];
@@ -196,7 +199,7 @@ export function $enumMemberList(
   const len = nodes.length;
   const $nodes: $EnumMember[] = Array(len);
   for (let i = 0; i < len; ++i) {
-    $nodes[i] = new $EnumMember(nodes[i], parent, ctx);
+    $nodes[i] = new $EnumMember(nodes[i], parent, ctx, i);
   }
   return $nodes;
 }
@@ -226,11 +229,12 @@ export class $EnumDeclaration implements I$Node {
     public readonly node: EnumDeclaration,
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.EnumDeclaration`,
+    public readonly path: string = `${parent.path}${$i(idx)}.EnumDeclaration`,
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -240,7 +244,7 @@ export class $EnumDeclaration implements I$Node {
       ctx |= Context.InExport;
     }
 
-    const $name = this.$name = $identifier(node.name, this, ctx);
+    const $name = this.$name = $identifier(node.name, this, ctx, -1);
     this.$members = $enumMemberList(node.members, this, ctx);
 
     const BoundNames = this.BoundNames = $name.BoundNames;
@@ -278,13 +282,14 @@ export class $EnumMember implements I$Node {
     public readonly node: EnumMember,
     public readonly parent: $EnumDeclaration,
     public readonly ctx: Context,
+    public readonly idx: number,
     public readonly sourceFile: $SourceFile = parent.sourceFile,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.EnumMember`,
+    public readonly path: string = `${parent.path}${$i(idx)}.EnumMember`,
   ) {
-    this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName);
-    this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx);
+    this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName, -1);
+    this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx, -1);
   }
 }

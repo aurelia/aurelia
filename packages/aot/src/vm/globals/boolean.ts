@@ -58,7 +58,7 @@ export class $BooleanConstructor extends $BuiltinFunction<'%Boolean%'> {
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Let b be ToBoolean(value).
-    const b = value.ToBoolean(ctx);
+    const b = value?.ToBoolean(ctx) ?? intrinsics.undefined;
     if (b.isAbrupt) { return b; }
 
     // 2. If NewTarget is undefined, return b.

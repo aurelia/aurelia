@@ -96,6 +96,11 @@ export class $FunctionPrototype_call extends $BuiltinFunction<'Function.prototyp
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty | $Error {
     const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    if (thisArg === void 0) {
+      thisArg = intrinsics.undefined;
+    }
 
     // 1. Let func be the this value.
     const func = thisArgument;

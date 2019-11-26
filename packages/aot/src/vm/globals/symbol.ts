@@ -63,7 +63,7 @@ export class $SymbolConstructor extends $BuiltinFunction<'%Symbol%'> {
     }
 
     // 2. If description is undefined, let descString be undefined.
-    if (description.isUndefined) {
+    if (description === void 0 || description.isUndefined) {
       // 4. Return a new unique Symbol value whose [[Description]] value is descString.
       return new $Symbol(realm, new $Undefined(realm));
     }

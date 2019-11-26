@@ -555,10 +555,11 @@ export class $SourceFile implements I$Node, IModule {
 
   // http://www.ecma-international.org/ecma-262/#sec-moduledeclarationinstantiation
   // 15.2.1.16.1 Instantiate ( ) Concrete Method
-  public Instantiate(): $Undefined | $Error {
-    const realm = this.realm;
+  public Instantiate(
+    ctx: ExecutionContext,
+  ): $Undefined | $Error {
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
-    const ctx = realm.stack.top;
 
     const start = PLATFORM.now();
     this.logger.debug(`${this.path}.[Instantiate] starting`);
@@ -1053,11 +1054,12 @@ export class $SourceFile implements I$Node, IModule {
 
   // http://www.ecma-international.org/ecma-262/#sec-moduleevaluation
   // 15.2.1.16.2 Evaluate ( ) Concrete Method
-  public EvaluateModule(): $Any {
+  public EvaluateModule(
+    ctx: ExecutionContext,
+  ): $Any {
     this.logger.debug(`${this.path}.EvaluateModule()`);
 
-    const realm = this.realm;
-    const ctx = realm.stack.top;
+    const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 1. Let module be this Cyclic Module Record.

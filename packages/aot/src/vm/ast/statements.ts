@@ -384,8 +384,13 @@ export class $VariableDeclaration implements I$Node {
   }
 
 
-  public InitializeBinding(ctx: ExecutionContext, value: $AnyNonEmpty): $Any {
+  public InitializeBinding(
+    ctx: ExecutionContext,
+    value: $AnyNonEmpty,
+  ): $Any {
     ctx.checkTimeout();
+
+    const realm = ctx.Realm;
 
     const bindingName = this.$name;
     const kind = bindingName.$kind;
@@ -406,11 +411,11 @@ export class $VariableDeclaration implements I$Node {
             // 2. b. Perform env.InitializeBinding(name, value).
             envRec.InitializeBinding(ctx, name, value);
             // 2. c. Return NormalCompletion(undefined).
-            return this.realm['[[Intrinsics]]'].undefined;
+            return realm['[[Intrinsics]]'].undefined;
           } else {
             // 3. Else,
             // 3. a. Let lhs be ResolveBinding(name).
-            const lhs = this.realm.ResolveBinding(name);
+            const lhs = realm.ResolveBinding(name);
             if (lhs.isAbrupt) { return lhs; } // TODO: is this correct? spec doesn't say it
 
             // 3. b. Return ? PutValue(lhs, value).
@@ -2221,7 +2226,7 @@ export class $TryStatement implements I$Node {
   ): $AnyNonEmpty | $Error {
     ctx.checkTimeout();
 
-    const realm = this.realm;
+    const realm = ctx.Realm;
     const catchClause = this.$catchClause;
     const varDeclarations = catchClause?.$variableDeclaration;
     const hasCatchParamteres = varDeclarations !== void 0;

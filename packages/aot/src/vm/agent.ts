@@ -145,13 +145,13 @@ export class TopLevelModuleEvaluationJob extends Job {
       // 4. b. Return NormalCompletion(undefined).
 
     // 5. Perform ? m.Instantiate().
-    let result = m.Instantiate();
+    let result = m.Instantiate(ctx);
     if (result.isAbrupt) {
       return result;
     }
 
     // 6. Assert: All dependencies of m have been transitively resolved and m is ready for evaluation.
     // 7. Return ? m.Evaluate().
-    return m.EvaluateModule();
+    return m.EvaluateModule(ctx);
   }
 }

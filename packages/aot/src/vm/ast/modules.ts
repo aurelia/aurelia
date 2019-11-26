@@ -705,7 +705,8 @@ export class $SourceFile implements I$Node, IModule {
     }
 
     // 10. Perform ? module.InitializeEnvironment().
-    this.InitializeEnvironment(ctx);
+    const $InitializeEnvironmentResult = this.InitializeEnvironment(ctx);
+    if ($InitializeEnvironmentResult.isAbrupt) { return $InitializeEnvironmentResult; }
 
     // 11. Assert: module occurs exactly once in stack.
     // 12. Assert: module.[[DFSAncestorIndex]] is less than or equal to module.[[DFSIndex]].
@@ -1127,7 +1128,7 @@ export class $SourceFile implements I$Node, IModule {
     ctx: ExecutionContext,
     stack: $SourceFile[],
     idx: number,
-  ): $Number {
+  ): $Number | $Error {
     ctx.checkTimeout();
 
     this.logger.debug(`${this.path}.EvaluateModuleInner(#${ctx.id})`);
@@ -1174,7 +1175,10 @@ export class $SourceFile implements I$Node, IModule {
 
       // 10. b. NOTE: Instantiate must be completed successfully prior to invoking this method, so every requested module is guaranteed to resolve successfully.
       // 10. c. Set idx to ? InnerModuleEvaluation(requiredModule, stack, idx).
-      idx = requiredModule.EvaluateModuleInner(ctx, stack, idx)['[[Value]]'];
+      const $EvaluateModuleInnerResult = requiredModule.EvaluateModuleInner(ctx, stack, idx);
+      if ($EvaluateModuleInnerResult.isAbrupt) { return $EvaluateModuleInnerResult; }
+
+      idx = $EvaluateModuleInnerResult['[[Value]]'];
 
       // 10. d. Assert: requiredModule.[[Status]] is either "evaluating" or "evaluated".
       // 10. e. Assert: requiredModule.[[Status]] is "evaluating" if and only if requiredModule is in stack.
@@ -1187,7 +1191,8 @@ export class $SourceFile implements I$Node, IModule {
     }
 
     // 11. Perform ? module.ExecuteModule().
-    this.ExecutionResult = this.ExecuteModule(ctx);
+    const $ExecuteModuleResult = this.ExecutionResult = this.ExecuteModule(ctx);
+    if ($ExecuteModuleResult.isAbrupt) { return $ExecuteModuleResult; }
 
     // 12. Assert: module occurs exactly once in stack.
     // 13. Assert: module.[[DFSAncestorIndex]] is less than or equal to module.[[DFSIndex]].
@@ -1229,7 +1234,7 @@ export class $SourceFile implements I$Node, IModule {
 
     // 1. Let module be this Source Text Module Record.
     // 2. Let moduleCxt be a new ECMAScript code execution context.
-    const moduleCxt = new ExecutionContext(realm);
+    const moduleCxt = new ExecutionContext(this.realm);
 
     // 3. Set the Function of moduleCxt to null.
     moduleCxt.Function = intrinsics.null;

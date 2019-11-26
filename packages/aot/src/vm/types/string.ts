@@ -36,6 +36,9 @@ import {
   $StringLiteral,
   $NumericLiteral,
 } from '../ast/literals';
+import {
+  I$Node,
+} from '../ast/_shared';
 
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-string-type
 export class $String<T extends string = string> {
@@ -125,6 +128,10 @@ export class $String<T extends string = string> {
 
   public is(other: $AnyNonError): other is $String<T> {
     return other instanceof $String && this['[[Value]]'] === other['[[Value]]'];
+  }
+
+  public enrichWith(node: I$Node): this {
+    return this;
   }
 
   public ToCompletion(

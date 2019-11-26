@@ -10,6 +10,9 @@ import {
   Realm,
   ExecutionContext,
 } from '../realm';
+import {
+  I$Node,
+} from '../ast/_shared';
 
 export abstract class $Error<T extends Error = Error, N extends string = string> {
   public readonly '<$Error>': unknown;
@@ -25,6 +28,8 @@ export abstract class $Error<T extends Error = Error, N extends string = string>
   public get isEmpty(): false { return false; }
   public get hasValue(): true { return true; }
 
+  public readonly nodeStack: I$Node[] = [];
+
   public constructor(
     public readonly realm: Realm,
     err: T,
@@ -38,6 +43,11 @@ export abstract class $Error<T extends Error = Error, N extends string = string>
 
   public is(other: $AnyNonError): boolean {
     return other instanceof $Error && other.id === this.id;
+  }
+
+  public enrichWith(node: I$Node): this {
+    this.nodeStack.push(node);
+    return this;
   }
 
   public ToCompletion(

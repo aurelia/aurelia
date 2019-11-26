@@ -29,6 +29,9 @@ import {
 import {
   $NumericLiteral,
 } from '../ast/literals';
+import {
+  I$Node,
+} from '../ast/_shared';
 
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-number-type
 export class $Number<T extends number = number> {
@@ -87,6 +90,10 @@ export class $Number<T extends number = number> {
 
   public is(other: $AnyNonError): other is $Number<T> {
     return other instanceof $Number && Object.is(this['[[Value]]'], other['[[Value]]']);
+  }
+
+  public enrichWith(node: I$Node): this {
+    return this;
   }
 
   public ToCompletion(

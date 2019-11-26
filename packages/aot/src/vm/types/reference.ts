@@ -38,6 +38,9 @@ import {
   $ReferenceError,
   $Error,
 } from './error';
+import {
+  I$Node,
+} from '../ast/_shared';
 
 
 // http://www.ecma-international.org/ecma-262/#sec-reference-specification-type
@@ -56,6 +59,10 @@ export class $Reference {
     public readonly strict: $Boolean,
     public readonly thisValue: $AnyObject | $Boolean | $String | $Symbol | $Number | $Undefined,
   ) {}
+
+  public enrichWith(node: I$Node): this {
+    return this;
+  }
 
   // http://www.ecma-international.org/ecma-262/#sec-getbase
   // 6.2.4.1 GetBase ( V )

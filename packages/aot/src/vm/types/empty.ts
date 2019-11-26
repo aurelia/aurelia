@@ -27,6 +27,9 @@ import {
 import {
   $FunctionDeclaration,
 } from '../ast/functions';
+import {
+  I$Node,
+} from '../ast/_shared';
 
 export interface empty { '<empty>': unknown }
 export const empty = Symbol('empty') as unknown as empty;
@@ -78,6 +81,10 @@ export class $Empty {
 
   public is(other: $AnyNonError): other is $Empty {
     return other instanceof $Empty;
+  }
+
+  public enrichWith(node: I$Node): this {
+    return this;
   }
 
   public ToCompletion(

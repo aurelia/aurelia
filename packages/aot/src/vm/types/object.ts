@@ -55,6 +55,9 @@ import {
   Writable,
   IDisposable,
 } from '@aurelia/kernel';
+import {
+  I$Node,
+} from '../ast/_shared';
 
 // http://www.ecma-international.org/ecma-262/#sec-object-type
 export class $Object<
@@ -148,6 +151,10 @@ export class $Object<
 
   public is(other: $AnyNonError): other is $Object<T> {
     return this.id === other.id;
+  }
+
+  public enrichWith(node: I$Node): this {
+    return this;
   }
 
   public ToCompletion(

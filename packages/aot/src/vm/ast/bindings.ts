@@ -161,10 +161,10 @@ export class $ComputedPropertyName implements I$Node {
 
     // 2. Let propName be ? GetValue(exprValue).
     const propName = exprValue.GetValue(ctx);
-    if (propName.isAbrupt) { return propName; }
+    if (propName.isAbrupt) { return propName.enrichWith(this); }
 
     // 3. Return ? ToPropertyKey(propName).
-    return propName.ToPropertyKey(ctx);
+    return propName.ToPropertyKey(ctx).enrichWith(this);
   }
 
   // based on http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-evaluation
@@ -238,7 +238,7 @@ export class $ObjectBindingPattern implements I$Node {
 
     // 1. Perform ? RequireObjectCoercible(value).
     if (value.isNil) {
-      return new $TypeError(realm);
+      return new $TypeError(realm).enrichWith(this);
     }
 
     // 2. Return the result of performing BindingInitialization for ObjectBindingPattern using value and environment as arguments.
@@ -269,6 +269,7 @@ export class $ObjectBindingPattern implements I$Node {
     for (let i = 0, ii = elements.length; i < ii; ++i) {
       const el = elements[i];
       const result = el.InitializePropertyBinding(ctx, value, environment);
+      if (result.isAbrupt) { return result.enrichWith(this); }
       if (i + 1 === ii) {
         // return result;
       }
@@ -385,15 +386,15 @@ export class $ArrayBindingPattern implements I$Node {
 
     // 1. Let iteratorRecord be ? GetIterator(value).
     const iteratorRecord = $GetIterator(ctx, value);
-    if (iteratorRecord.isAbrupt) { return iteratorRecord; }
+    if (iteratorRecord.isAbrupt) { return iteratorRecord.enrichWith(this); }
 
     // 2. Let result be IteratorBindingInitialization for ArrayBindingPattern using iteratorRecord and environment as arguments.
     const result = this.InitializeIteratorBinding(ctx, iteratorRecord, environment);
-    if (result.isAbrupt) { return result; } // TODO: we sure about this? Spec doesn't say it
+    if (result.isAbrupt) { return result.enrichWith(this); } // TODO: we sure about this? Spec doesn't say it
 
     // 3. If iteratorRecord.[[Done]] is false, return ? IteratorClose(iteratorRecord, result).
     if (iteratorRecord['[[Done]]'].isFalsey) {
-      return $IteratorClose(ctx, iteratorRecord, result);
+      return $IteratorClose(ctx, iteratorRecord, result).enrichWith(this);
     }
 
     // 4. Return result.
@@ -430,7 +431,8 @@ export class $ArrayBindingPattern implements I$Node {
             // 1. Return the result of performing IteratorDestructuringAssignmentEvaluation of Elision with iteratorRecord as the argument.
             break;
           }
-          el.EvaluateDestructuringAssignmentIterator(ctx, iteratorRecord);
+          const result = el.EvaluateDestructuringAssignmentIterator(ctx, iteratorRecord);
+          if (result.isAbrupt) { return result.enrichWith(this); }
           break;
         case SyntaxKind.BindingElement: {
           // ArrayBindingPattern : [ Elision opt BindingRestElement ]
@@ -457,6 +459,7 @@ export class $ArrayBindingPattern implements I$Node {
           // 3. Return the result of performing IteratorBindingInitialization for BindingRestElement with iteratorRecord and environment as arguments.
 
           const result = el.InitializeIteratorBinding(ctx, iteratorRecord, environment);
+          if (result.isAbrupt) { return result.enrichWith(this); }
           if (i + 1 === ii) {
             return result;
           }
@@ -563,7 +566,7 @@ export class $BindingElement implements I$Node {
     ctx: ExecutionContext,
     value: $AnyNonEmpty,
     environment: $EnvRec | undefined,
-  ): readonly $String[] | $Any {
+  ): $List<$String> | $Any {
     ctx.checkTimeout();
 
     this.logger.debug(`${this.path}.InitializePropertyBinding(#${ctx.id})`);
@@ -578,7 +581,7 @@ export class $BindingElement implements I$Node {
       // 3. Return a new List containing name.
 
       // Cast is safe because when propertyName is undefined, destructuring is syntactically not possible
-      return (this.$name as $Identifier).InitializePropertyBinding(ctx, value, environment);
+      return (this.$name as $Identifier).InitializePropertyBinding(ctx, value, environment).enrichWith(this);
     }
 
     // BindingProperty : PropertyName : BindingElement
@@ -587,15 +590,14 @@ export class $BindingElement implements I$Node {
     const P = PropertyName.Evaluate(ctx);
 
     // 2. ReturnIfAbrupt(P).
-    if (P.isAbrupt) {
-      return P;
-    }
+    if (P.isAbrupt) { return P.enrichWith(this); }
 
     // 3. Perform ? KeyedBindingInitialization of BindingElement with value, environment, and P as the arguments.
-    this.InitializeKeyedBinding(ctx, value, environment, P as $String); // TODO: this cast is very wrong. Need to revisit later
+    const result = this.InitializeKeyedBinding(ctx, value, environment, P as $String); // TODO: this cast is very wrong. Need to revisit later
+    if (result.isAbrupt) { return result.enrichWith(this); }
 
     // 4. Return a new List containing P.
-    return [P as $String]; // TODO: this cast is very wrong. Need to revisit later
+    return new $List(P as $String); // TODO: this cast is very wrong. Need to revisit later
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-keyedbindinginitialization
@@ -629,7 +631,7 @@ export class $BindingElement implements I$Node {
     // 5. If environment is undefined, return ? PutValue(lhs, v).
     // 6. Return InitializeReferencedBinding(lhs, v).
     if (BindingElement.$kind === SyntaxKind.Identifier) {
-      return BindingElement.InitializeKeyedBinding(ctx, value, environment, propertyName, initializer);
+      return BindingElement.InitializeKeyedBinding(ctx, value, environment, propertyName, initializer).enrichWith(this);
     }
 
 
@@ -637,9 +639,9 @@ export class $BindingElement implements I$Node {
 
     // 1. Let v be ? GetV(value, propertyName).
     const obj = value.ToObject(ctx);
-    if (obj.isAbrupt) { return obj; }
+    if (obj.isAbrupt) { return obj.enrichWith(this); }
     let v = obj['[[Get]]'](ctx, propertyName, obj);
-    if (v.isAbrupt) { return v; }
+    if (v.isAbrupt) { return v.enrichWith(this); }
 
     // 2. If Initializer is present and v is undefined, then
     if (initializer !== void 0 && v.isUndefined) {
@@ -648,10 +650,11 @@ export class $BindingElement implements I$Node {
 
       // 2. b. Set v to ? GetValue(defaultValue).
       v = defaultValue.GetValue(ctx);
+      if (v.isAbrupt) { return v.enrichWith(this); }
     }
 
     // 3. Return the result of performing BindingInitialization for BindingPattern passing v and environment as arguments.
-    return BindingElement.InitializeBinding(ctx, v as $Object, environment);
+    return BindingElement.InitializeBinding(ctx, v as $Object, environment).enrichWith(this);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-iteratorbindinginitialization
@@ -698,7 +701,7 @@ export class $BindingElement implements I$Node {
     // 7. Return InitializeReferencedBinding(lhs, v).
 
     if (BindingElement.$kind === SyntaxKind.Identifier) {
-      return BindingElement.InitializeIteratorBinding(ctx, iteratorRecord, environment, this.$initializer);
+      return BindingElement.InitializeIteratorBinding(ctx, iteratorRecord, environment, this.$initializer).enrichWith(this);
     }
 
     // NOTE: this section is duplicated in ParameterDeclaration
@@ -716,9 +719,7 @@ export class $BindingElement implements I$Node {
         iteratorRecord['[[Done]]'] = intrinsics.true;
 
         // 1. c. ReturnIfAbrupt(next).
-        if (next.isAbrupt) {
-          return next;
-        }
+        if (next.isAbrupt) { return next.enrichWith(this); }
       }
 
       // 1. d. If next is false, set iteratorRecord.[[Done]] to true.
@@ -735,9 +736,7 @@ export class $BindingElement implements I$Node {
           iteratorRecord['[[Done]]'] = intrinsics.true;
 
           // 1. e. iii. ReturnIfAbrupt(v).
-          if (v.isAbrupt) {
-            return v;
-          }
+          if (v.isAbrupt) { return v.enrichWith(this); }
         }
       }
     }
@@ -756,10 +755,11 @@ export class $BindingElement implements I$Node {
 
       // 3. b. Set v to ? GetValue(defaultValue).
       v = defaultValue.GetValue(ctx);
+      if (v.isAbrupt) { return v.enrichWith(this); }
     }
 
     // 4. Return the result of performing BindingInitialization of BindingPattern with v and environment as the arguments.
-    return BindingElement.InitializeBinding(ctx, v as $Object, environment);
+    return BindingElement.InitializeBinding(ctx, v as $Object, environment).enrichWith(this);
   }
 }
 
@@ -799,17 +799,17 @@ export class $SpreadElement implements I$Node {
 
     // 3. Let spreadObj be ? GetValue(spreadRef).
     const spreadObj = spreadRef.GetValue(ctx);
-    if (spreadObj.isAbrupt) { return spreadObj; }
+    if (spreadObj.isAbrupt) { return spreadObj.enrichWith(this); }
 
     // 4. Let iteratorRecord be ? GetIterator(spreadObj).
     const iteratorRecord = $GetIterator(ctx, spreadObj);
-    if (iteratorRecord.isAbrupt) { return iteratorRecord; }
+    if (iteratorRecord.isAbrupt) { return iteratorRecord.enrichWith(this); }
 
     // 5. Repeat,
     while (true) {
       // 5. a. Let next be ? IteratorStep(iteratorRecord).
       const next = $IteratorStep(ctx, iteratorRecord);
-      if (next.isAbrupt) { return next; }
+      if (next.isAbrupt) { return next.enrichWith(this); }
 
       // 5. b. If next is false, return list.
       if (next.isFalsey) {
@@ -818,7 +818,7 @@ export class $SpreadElement implements I$Node {
 
       // 5. c. Let nextArg be ? IteratorValue(next).
       const nextArg = $IteratorValue(ctx, next);
-      if (nextArg.isAbrupt) { return nextArg; }
+      if (nextArg.isAbrupt) { return nextArg.enrichWith(this); }
 
       // 5. d. Append nextArg as the last element of list.
       list.push(nextArg);
@@ -843,17 +843,17 @@ export class $SpreadElement implements I$Node {
 
     // 2. Let spreadObj be ? GetValue(spreadRef).
     const spreadObj = spreadRef.GetValue(ctx);
-    if (spreadObj.isAbrupt) { return spreadObj; }
+    if (spreadObj.isAbrupt) { return spreadObj.enrichWith(this); }
 
     // 3. Let iteratorRecord be ? GetIterator(spreadObj).
     const iteratorRecord = $GetIterator(ctx, spreadObj as $Object);
-    if (iteratorRecord.isAbrupt) { return iteratorRecord; }
+    if (iteratorRecord.isAbrupt) { return iteratorRecord.enrichWith(this); }
 
     // 4. Repeat,
     while (true) {
       // 4. a. Let next be ? IteratorStep(iteratorRecord).
       const next = $IteratorStep(ctx, iteratorRecord);
-      if (next.isAbrupt) { return next; }
+      if (next.isAbrupt) { return next.enrichWith(this); }
 
       // 4. b. If next is false, return nextIndex.
       if (next.isFalsey) {
@@ -862,7 +862,7 @@ export class $SpreadElement implements I$Node {
 
       // 4. c. Let nextValue be ? IteratorValue(next).
       const nextValue = $IteratorValue(ctx, next);
-      if (nextValue.isAbrupt) { return nextValue; }
+      if (nextValue.isAbrupt) { return nextValue.enrichWith(this); }
 
       // 4. d. Let status be CreateDataProperty(array, ToString(ToUint32(nextIndex)), nextValue).
       const status = $CreateDataProperty(ctx, array, nextIndex.ToUint32(ctx).ToString(ctx), nextValue) as $Boolean;

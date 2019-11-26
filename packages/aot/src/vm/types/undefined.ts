@@ -43,6 +43,9 @@ import {
 import {
   $ClassDeclaration,
 } from '../ast/classes';
+import {
+  I$Node,
+} from '../ast/_shared';
 
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-undefined-type
 export class $Undefined {
@@ -95,6 +98,10 @@ export class $Undefined {
 
   public is(other: $AnyNonError): other is $Undefined {
     return other instanceof $Undefined;
+  }
+
+  public enrichWith(node: I$Node): this {
+    return this;
   }
 
   public ToCompletion(

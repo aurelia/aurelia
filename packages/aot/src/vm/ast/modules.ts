@@ -685,11 +685,11 @@ export class $SourceFile implements I$Node, IModule {
     for (const required of this.RequestedModules) {
       // 9. a. Let requiredModule be ? HostResolveImportedModule(module, required).
       const requiredModule = this.moduleResolver.ResolveImportedModule(ctx, this, required);
-      if (requiredModule.isAbrupt) { return requiredModule; }
+      if (requiredModule.isAbrupt) { return requiredModule.enrichWith(this); }
 
       // 9. b. Set idx to ? InnerModuleInstantiation(requiredModule, stack, idx).
       const $idx = requiredModule._InnerModuleInstantiation(ctx, stack, idx);
-      if ($idx.isAbrupt) { return $idx; }
+      if ($idx.isAbrupt) { return $idx.enrichWith(this); }
       idx = $idx;
 
       // 9. c. Assert: requiredModule.[[Status]] is either "instantiating", "instantiated", or "evaluated".
@@ -706,7 +706,7 @@ export class $SourceFile implements I$Node, IModule {
 
     // 10. Perform ? module.InitializeEnvironment().
     const $InitializeEnvironmentResult = this.InitializeEnvironment(ctx);
-    if ($InitializeEnvironmentResult.isAbrupt) { return $InitializeEnvironmentResult; }
+    if ($InitializeEnvironmentResult.isAbrupt) { return $InitializeEnvironmentResult.enrichWith(this); }
 
     // 11. Assert: module occurs exactly once in stack.
     // 12. Assert: module.[[DFSAncestorIndex]] is less than or equal to module.[[DFSIndex]].
@@ -751,7 +751,7 @@ export class $SourceFile implements I$Node, IModule {
     for (const e of this.IndirectExportEntries) {
       // 2. a. Let resolution be ? module.ResolveExport(e.[[ExportName]], « »).
       const resolution = this.ResolveExport(ctx, e.ExportName as $String, new ResolveSet());
-      if (resolution.isAbrupt) { return resolution; }
+      if (resolution.isAbrupt) { return resolution.enrichWith(this); }
 
       // 2. b. If resolution is null or "ambiguous", throw a SyntaxError exception.
       if (resolution.isNull || resolution.isAmbiguous) {
@@ -794,7 +794,7 @@ export class $SourceFile implements I$Node, IModule {
           if (namespace.isUndefined) {
             // 4. a. Let exportedNames be ? module.GetExportedNames(« »).
             const exportedNames = mod.GetExportedNames(ctx, new Set());
-            if (exportedNames.isAbrupt) { return exportedNames; }
+            if (exportedNames.isAbrupt) { return exportedNames.enrichWith(mod as unknown as I$Node); }
 
             // 4. b. Let unambiguousNames be a new empty List.
             const unambiguousNames = new $List<$String>();
@@ -803,7 +803,7 @@ export class $SourceFile implements I$Node, IModule {
             for (const name of exportedNames) {
               // 4. c. i. Let resolution be ? module.ResolveExport(name, « »).
               const resolution = mod.ResolveExport(ctx, name, new ResolveSet());
-              if (resolution.isAbrupt) { return resolution; }
+              if (resolution.isAbrupt) { return resolution.enrichWith(mod as unknown as I$Node); }
 
               // 4. c. ii. If resolution is a ResolvedBinding Record, append name to unambiguousNames.
               if (resolution instanceof ResolvedBindingRecord) {
@@ -823,14 +823,14 @@ export class $SourceFile implements I$Node, IModule {
         envRec.CreateImmutableBinding(ctx, ie.LocalName, intrinsics.true);
 
         // 9. c. iii. Call envRec.InitializeBinding(in.[[LocalName]], namespace).
-        if (namespace.isAbrupt) { return namespace; } // TODO: sure about this? Spec doesn't say it
+        if (namespace.isAbrupt) { return namespace.enrichWith(this); } // TODO: sure about this? Spec doesn't say it
         envRec.InitializeBinding(ctx, ie.LocalName, namespace);
       }
       // 9. d. Else,
       else {
         // 9. d. i. Let resolution be ? importedModule.ResolveExport(in.[[ImportName]], « »).
         const resolution = importedModule.ResolveExport(ctx, ie.ImportName, new ResolveSet());
-        if (resolution.isAbrupt) { return resolution; }
+        if (resolution.isAbrupt) { return resolution.enrichWith(this); }
 
         // 9. d. ii. If resolution is null or "ambiguous", throw a SyntaxError exception.
         if (resolution.isNull || resolution.isAmbiguous) {
@@ -946,11 +946,11 @@ export class $SourceFile implements I$Node, IModule {
     for (const e of mod.StarExportEntries) {
       // 7. a. Let requestedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
       const requestedModule = this.moduleResolver.ResolveImportedModule(ctx, mod, e.ModuleRequest as $String);
-      if (requestedModule.isAbrupt) { return requestedModule; }
+      if (requestedModule.isAbrupt) { return requestedModule.enrichWith(this); }
 
       // 7. b. Let starNames be ? requestedModule.GetExportedNames(exportStarSet).
       const starNames = requestedModule.GetExportedNames(ctx, exportStarSet);
-      if (starNames.isAbrupt) { return starNames; }
+      if (starNames.isAbrupt) { return starNames.enrichWith(this); }
 
       // 7. c. For each element n of starNames, do
       for (const n of starNames) {
@@ -1016,7 +1016,7 @@ export class $SourceFile implements I$Node, IModule {
 
         // 5. a. ii. Let importedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
         const importedModule = this.moduleResolver.ResolveImportedModule(ctx, this, e.ModuleRequest as $String);
-        if (importedModule.isAbrupt) { return importedModule; }
+        if (importedModule.isAbrupt) { return importedModule.enrichWith(this); }
 
         // 5. a. iii. Return importedModule.ResolveExport(e.[[ImportName]], resolveSet).
         return importedModule.ResolveExport(ctx, e.ImportName as $String, resolveSet);
@@ -1040,11 +1040,11 @@ export class $SourceFile implements I$Node, IModule {
     for (const e of this.StarExportEntries) {
       // 8. a. Let importedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
       const importedModule = this.moduleResolver.ResolveImportedModule(ctx, this, e.ModuleRequest as $String);
-      if (importedModule.isAbrupt) { return importedModule; }
+      if (importedModule.isAbrupt) { return importedModule.enrichWith(this); }
 
       // 8. b. Let resolution be ? importedModule.ResolveExport(exportName, resolveSet).
       const resolution = importedModule.ResolveExport(ctx, exportName, resolveSet);
-      if (resolution.isAbrupt) { return resolution; }
+      if (resolution.isAbrupt) { return resolution.enrichWith(this); }
 
       // 8. c. If resolution is "ambiguous", return "ambiguous".
       if (resolution.isAmbiguous) {
@@ -1176,7 +1176,7 @@ export class $SourceFile implements I$Node, IModule {
       // 10. b. NOTE: Instantiate must be completed successfully prior to invoking this method, so every requested module is guaranteed to resolve successfully.
       // 10. c. Set idx to ? InnerModuleEvaluation(requiredModule, stack, idx).
       const $EvaluateModuleInnerResult = requiredModule.EvaluateModuleInner(ctx, stack, idx);
-      if ($EvaluateModuleInnerResult.isAbrupt) { return $EvaluateModuleInnerResult; }
+      if ($EvaluateModuleInnerResult.isAbrupt) { return $EvaluateModuleInnerResult.enrichWith(this); }
 
       idx = $EvaluateModuleInnerResult['[[Value]]'];
 
@@ -1192,7 +1192,7 @@ export class $SourceFile implements I$Node, IModule {
 
     // 11. Perform ? module.ExecuteModule().
     const $ExecuteModuleResult = this.ExecutionResult = this.ExecuteModule(ctx);
-    if ($ExecuteModuleResult.isAbrupt) { return $ExecuteModuleResult; }
+    if ($ExecuteModuleResult.isAbrupt) { return $ExecuteModuleResult.enrichWith(this); }
 
     // 12. Assert: module occurs exactly once in stack.
     // 13. Assert: module.[[DFSAncestorIndex]] is less than or equal to module.[[DFSIndex]].

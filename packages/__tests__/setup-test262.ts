@@ -311,9 +311,11 @@ class TestRunner {
     const assertFile = harnessFiles.find(x => x.name === 'assert.js');
     const prerequisites = [staFile, assertFile];
 
-    const files: IFile[] = [];
     const now = PLATFORM.now();
 
+    const files: IFile[] = [
+      //...(await fs.getFiles(join(languageDir, 'eval-code', 'indirect'), true)).filter(x => x.shortName.endsWith('realm'))
+    ];
     for (const dir of [
       //annexBDir,
       //builtInsDir,
@@ -363,7 +365,7 @@ class TestRunner {
           if (result.isAbrupt) {
             reporter.fail(tc);
 
-            logger.debug(`${format.red('FAIL')} - ${tc.file.rootlessPath} (expected no error, but got: ${result['[[Value]]'].message} ${result['[[Value]]'].stack})`);
+            logger.error(`${format.red('FAIL')} - ${tc.file.rootlessPath}\n  Expected no error, but got: ${result['[[Value]]'].message}\n${result['[[Value]]'].stack}\n${result.nodeStack.map(x => `    ${x.path}`).join('\n')}\n`);
           } else {
             reporter.pass(tc);
 
@@ -378,12 +380,12 @@ class TestRunner {
             } else {
               reporter.fail(tc);
 
-              logger.debug(`${format.red('FAIL')} - ${tc.file.rootlessPath} (expected error ${tc.meta.negative.type}, but got: ${result['[[Value]]'].name})`);
+              logger.error(`${format.red('FAIL')} - ${tc.file.rootlessPath} (expected error ${tc.meta.negative.type}, but got: ${result['[[Value]]'].name})`);
             }
           } else {
             reporter.fail(tc);
 
-            logger.debug(`${format.red('FAIL')} - ${tc.file.rootlessPath} (expected error ${tc.meta.negative.type}, but got none)`);
+            logger.error(`${format.red('FAIL')} - ${tc.file.rootlessPath} (expected error ${tc.meta.negative.type}, but got none)`);
           }
         }
       } catch (err) {

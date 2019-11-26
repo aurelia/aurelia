@@ -732,9 +732,7 @@ export class $FunctionDeclaration implements I$Node {
 
     // 1. Perform ? FunctionDeclarationInstantiation(functionObject, argumentsList).
     const fdiResult = $FunctionDeclarationInstantiation(ctx, functionObject, argumentsList);
-    if (fdiResult.isAbrupt) {
-      return fdiResult;
-    }
+    if (fdiResult.isAbrupt) { return fdiResult.enrichWith(this); }
 
     // 2. Return the result of evaluating FunctionStatementList.
     return (this.$body as $Block).Evaluate(ctx); // $Block is guaranteed by $ArrowFunction.EvaluateBody
@@ -930,14 +928,16 @@ export function $FunctionDeclarationInstantiation(
   if (hasDuplicates) {
     // 25. a. Perform ? IteratorBindingInitialization for formals with iteratorRecord and undefined as arguments.
     for (const formal of formals) {
-      formal.InitializeIteratorBinding(ctx, iteratorRecord, void 0);
+      const result = formal.InitializeIteratorBinding(ctx, iteratorRecord, void 0);
+      if (result?.isAbrupt) { return result; }
     }
   }
   // 26. Else,
   else {
     // 26. a. Perform ? IteratorBindingInitialization for formals with iteratorRecord and env as arguments.
     for (const formal of formals) {
-      formal.InitializeIteratorBinding(ctx, iteratorRecord, envRec);
+      const result = formal.InitializeIteratorBinding(ctx, iteratorRecord, envRec);
+      if (result?.isAbrupt) { return result; }
     }
   }
 
@@ -1460,7 +1460,8 @@ export class $ParameterDeclaration implements I$Node {
         const defaultValue = initializer.Evaluate(ctx);
 
         // 3. b. Set v to ? GetValue(defaultValue).
-        v = defaultValue.GetValue(ctx);
+        const $v = defaultValue.GetValue(ctx);
+        if ($v.isAbrupt) { return $v.enrichWith(this); }
       }
 
       // 4. Return the result of performing BindingInitialization of BindingPattern with v and environment as the arguments.

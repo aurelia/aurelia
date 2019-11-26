@@ -1385,4 +1385,5 @@ export interface I$Node<
   readonly parent: I$Node;
   readonly node: TNode;
   readonly ctx: Context;
+  readonly path: string;
 }

@@ -226,7 +226,7 @@ export class $ThisExpression implements I$Node {
     // PrimaryExpression : this
 
     // 1. Return ? ResolveThisBinding().
-    return realm.ResolveThisBinding();
+    return realm.ResolveThisBinding().enrichWith(this);
   }
 }
 
@@ -408,7 +408,7 @@ export class $ArrayLiteralExpression implements I$Node {
           // 4. Return the result of performing ArrayAccumulation for SpreadElement with arguments array and postIndex + padding.
 
           const $postIndex = el.AccumulateArray(ctx, array, new $Number(realm, postIndex['[[Value]]'] + padding));
-          if ($postIndex.isAbrupt) { return $postIndex; }
+          if ($postIndex.isAbrupt) { return $postIndex.enrichWith(this); }
           postIndex = $postIndex;
 
           padding = 0;
@@ -434,7 +434,7 @@ export class $ArrayLiteralExpression implements I$Node {
 
           // 5. Let initValue be ? GetValue(initResult).
           const initValue = initResult.GetValue(ctx);
-          if (initValue.isAbrupt) { return initValue; }
+          if (initValue.isAbrupt) { return initValue.enrichWith(this); }
 
           // 6. Let created be CreateDataProperty(array, ToString(ToUint32(postIndex + padding)), initValue).
           const created = $CreateDataProperty(ctx, array, new $Number(realm, postIndex['[[Value]]'] + padding).ToUint32(ctx).ToString(ctx), initValue) as $Boolean;
@@ -479,7 +479,7 @@ export class $ArrayLiteralExpression implements I$Node {
     const len = this.AccumulateArray(ctx, array, intrinsics['0']);
 
     // 3. ReturnIfAbrupt(len).
-    if (len.isAbrupt) { return len; }
+    if (len.isAbrupt) { return len.enrichWith(this); }
 
     // 4. Perform Set(array, "length", ToUint32(len), false).
     $Set(ctx, array, intrinsics.length, len.ToUint32(ctx), intrinsics.false);
@@ -605,7 +605,7 @@ export class $ObjectLiteralExpression implements I$Node {
     // 2. Perform ? PropertyDefinitionEvaluation of PropertyDefinitionList with arguments obj and true.
     for (const prop of this.$properties) {
       const $PropertyDefinitionEvaluationResult = prop.EvaluatePropertyDefinition(ctx, obj, intrinsics.true);
-      if ($PropertyDefinitionEvaluationResult.isAbrupt) { return $PropertyDefinitionEvaluationResult; }
+      if ($PropertyDefinitionEvaluationResult.isAbrupt) { return $PropertyDefinitionEvaluationResult.enrichWith(this); }
     }
 
     // 3. Return obj.
@@ -660,7 +660,7 @@ export class $PropertyAssignment implements I$Node {
     const propKey = this.$name.EvaluatePropName(ctx);
 
     // 2. ReturnIfAbrupt(propKey).
-    if (propKey.isAbrupt) { return propKey; }
+    if (propKey.isAbrupt) { return propKey.enrichWith(this); }
 
     let propValue: $AnyNonEmpty;
 
@@ -676,7 +676,7 @@ export class $PropertyAssignment implements I$Node {
 
       // 4. b. Let propValue be ? GetValue(exprValueRef).
       const $propValue = exprValueRef.GetValue(ctx);
-      if ($propValue.isAbrupt) { return $propValue; }
+      if ($propValue.isAbrupt) { return $propValue.enrichWith(this); }
 
       propValue = $propValue;
     }
@@ -739,7 +739,7 @@ export class $ShorthandPropertyAssignment implements I$Node {
 
     // 3. Let propValue be ? GetValue(exprValue).
     const propValue = exprValue.GetValue(ctx);
-    if (propValue.isAbrupt) { return propValue; }
+    if (propValue.isAbrupt) { return propValue.enrichWith(this); }
 
     // 4. Assert: enumerable is true.
     // 5. Assert: object is an ordinary, extensible object with no non-configurable properties.
@@ -788,7 +788,7 @@ export class $SpreadAssignment implements I$Node {
 
     // 2. Let fromValue be ? GetValue(exprValue).
     const fromValue = exprValue.GetValue(ctx);
-    if (fromValue.isAbrupt) { return fromValue; }
+    if (fromValue.isAbrupt) { return fromValue.enrichWith(this); }
 
     // 3. Let excludedNames be a new empty List.
     const excludedNames: $String[] = [];
@@ -837,12 +837,10 @@ export class $PropertyAccessExpression implements I$Node {
 
     // 2. Let baseValue be ? GetValue(baseReference).
     const baseValue = baseReference.GetValue(ctx);
-    if (baseValue.isAbrupt) { return baseValue; }
+    if (baseValue.isAbrupt) { return baseValue.enrichWith(this); }
 
     // 3. baseValue bv be ? RequireObjectCoercible(baseValue).
-    if (baseValue.isNil) {
-      return new $TypeError(realm);
-    }
+    if (baseValue.isNil) { return new $TypeError(realm).enrichWith(this); }
 
     // 4. Let propertyNameString be StringValue of IdentifierName.
     const propertyNameString = this.$name.StringValue;
@@ -894,23 +892,21 @@ export class $ElementAccessExpression implements I$Node {
 
     // 2. Let baseValue be ? GetValue(baseReference).
     const baseValue = baseReference.GetValue(ctx);
-    if (baseValue.isAbrupt) { return baseValue; }
+    if (baseValue.isAbrupt) { return baseValue.enrichWith(this); }
 
     // 3. Let propertyNameReference be the result of evaluating Expression.
     const propertyNameReference = this.$argumentExpression.Evaluate(ctx);
 
     // 4. Let propertyNameValue be ? GetValue(propertyNameReference).
     const propertyNameValue = propertyNameReference.GetValue(ctx);
-    if (propertyNameValue.isAbrupt) { return propertyNameValue; }
+    if (propertyNameValue.isAbrupt) { return propertyNameValue.enrichWith(this); }
 
     // 5. Let bv be ? RequireObjectCoercible(baseValue).
-    if (baseValue.isNil) {
-      return new $TypeError(realm);
-    }
+    if (baseValue.isNil) { return new $TypeError(realm).enrichWith(this); }
 
     // 6. Let propertyKey be ? ToPropertyKey(propertyNameValue).
     const propertyKey = propertyNameValue.ToPropertyKey(ctx);
-    if (propertyKey.isAbrupt) { return propertyKey; }
+    if (propertyKey.isAbrupt) { return propertyKey.enrichWith(this); }
 
     // 7. If the code matched by this MemberExpression is strict mode code, let strict be true, else let strict be false.
     const strict = intrinsics.true; // TODO: use static semantics
@@ -966,9 +962,7 @@ export class $CallExpression implements I$Node {
 
     // 5. Let func be ? GetValue(ref).
     const func = ref.GetValue(ctx);
-    if (func.isAbrupt) {
-      return func;
-    }
+    if (func.isAbrupt) { return func.enrichWith(this); }
 
     // 6. If Type(ref) is Reference and IsPropertyReference(ref) is false and GetReferencedName(ref) is "eval", then
     if (ref instanceof $Reference && ref.IsPropertyReference().isFalsey && ref.GetReferencedName()['[[Value]]'] === 'eval') {
@@ -992,7 +986,7 @@ export class $CallExpression implements I$Node {
     // TODO
 
     // 9. Return ? EvaluateCall(func, ref, arguments, tailCall).
-    return $EvaluateCall(ctx, func, ref as $Any, $arguments, intrinsics.false);
+    return $EvaluateCall(ctx, func, ref as $Any, $arguments, intrinsics.false).enrichWith(this);
 
     // CallExpression : CallExpression Arguments
 
@@ -1187,7 +1181,7 @@ export class $NewExpression implements I$Node {
 
     // 4. Let constructor be ? GetValue(ref).
     let constructor = ref.GetValue(ctx);
-    if (constructor.isAbrupt) { return constructor; }
+    if (constructor.isAbrupt) { return constructor.enrichWith(this); }
 
     const $arguments = this.$arguments;
     let argList: $List<$AnyNonEmpty>;
@@ -1200,7 +1194,7 @@ export class $NewExpression implements I$Node {
       // 6. a. Let argList be ArgumentListEvaluation of arguments.
       const $argList = $ArgumentListEvaluation(ctx, $arguments);
       // 6. b. ReturnIfAbrupt(argList).
-      if ($argList.isAbrupt) { return $argList; }
+      if ($argList.isAbrupt) { return $argList.enrichWith(this); }
       argList = $argList;
     }
     // 7. If IsConstructor(constructor) is false, throw a TypeError exception.
@@ -1208,7 +1202,7 @@ export class $NewExpression implements I$Node {
       return new $TypeError(realm, "If IsConstructor(constructor) is false, throw a TypeError exception.");
     }
     // 8. Return ? Construct(constructor, argList).
-    return $Construct(ctx, constructor, argList);
+    return $Construct(ctx, constructor, argList).enrichWith(this);
   }
 }
 
@@ -1424,7 +1418,7 @@ export class $ParenthesizedExpression implements I$Node {
     // ParenthesizedExpression : ( Expression )
 
     // 1. Return the result of evaluating Expression. This may be of type Reference.
-    return this.$expression.Evaluate(ctx);
+    return this.$expression.Evaluate(ctx).enrichWith(this);
   }
 }
 
@@ -1453,7 +1447,7 @@ export class $NonNullExpression implements I$Node {
   ): $AnyNonEmpty | $Reference | $Error {
     ctx.checkTimeout();
 
-    return this.$expression.Evaluate(ctx);
+    return this.$expression.Evaluate(ctx).enrichWith(this);
   }
 }
 
@@ -1591,7 +1585,7 @@ export class $TypeOfExpression implements I$Node {
     }
     // 3. Set val to ? GetValue(val).
     val = val.GetValue(ctx);
-    if (val.isAbrupt) { return val; }
+    if (val.isAbrupt) { return val.enrichWith(this); }
 
     // 4. Return a String according to Table 35.
     // Table 35: typeof Operator Results
@@ -1670,7 +1664,7 @@ export class $VoidExpression implements I$Node {
 
     // 2. Perform ? GetValue(expr).
     const value = expr.GetValue(ctx);
-    if (value.isAbrupt) { return value; }
+    if (value.isAbrupt) { return value.enrichWith(this); }
 
     // 3. Return undefined.
     return intrinsics.undefined;
@@ -1763,23 +1757,23 @@ export class $PrefixUnaryExpression implements I$Node {
 
         // 1. Let expr be the result of evaluating UnaryExpression.
         const expr = this.$operand.Evaluate(ctx);
-        if (expr.isAbrupt) { return expr; }
+        if (expr.isAbrupt) { return expr.enrichWith(this); }
 
         // 2. Let oldValue be ? ToNumber(? GetValue(expr)).
         const $oldValue = expr.GetValue(ctx);
-        if ($oldValue.isAbrupt) { return $oldValue; }
+        if ($oldValue.isAbrupt) { return $oldValue.enrichWith(this); }
         const oldValue = $oldValue.ToNumber(ctx);
-        if (oldValue.isAbrupt) { return oldValue; }
+        if (oldValue.isAbrupt) { return oldValue.enrichWith(this); }
 
         // 3. Let newValue be the result of adding the value 1 to oldValue, using the same rules as for the + operator (see 12.8.5).
         const newValue = new $Number(realm, oldValue['[[Value]]'] + 1);
 
         // 4. Perform ? PutValue(expr, newValue).
         if (!(expr instanceof $Reference)) {
-          return new $ReferenceError(realm);
+          return new $ReferenceError(realm).enrichWith(this);
         }
         const $PutValueResult = expr.PutValue(ctx, newValue);
-        if ($PutValueResult.isAbrupt) { return $PutValueResult; }
+        if ($PutValueResult.isAbrupt) { return $PutValueResult.enrichWith(this); }
 
         // 5. Return newValue.
         return newValue;
@@ -1792,23 +1786,23 @@ export class $PrefixUnaryExpression implements I$Node {
 
         // 1. Let expr be the result of evaluating UnaryExpression.
         const expr = this.$operand.Evaluate(ctx);
-        if (expr.isAbrupt) { return expr; }
+        if (expr.isAbrupt) { return expr.enrichWith(this); }
 
         // 2. Let oldValue be ? ToNumber(? GetValue(expr)).
         const $oldValue = expr.GetValue(ctx);
-        if ($oldValue.isAbrupt) { return $oldValue; }
+        if ($oldValue.isAbrupt) { return $oldValue.enrichWith(this); }
         const oldValue = $oldValue.ToNumber(ctx);
-        if (oldValue.isAbrupt) { return oldValue; }
+        if (oldValue.isAbrupt) { return oldValue.enrichWith(this); }
 
         // 3. Let newValue be the result of subtracting the value 1 from oldValue, using the same rules as for the - operator (see 12.8.5).
         const newValue = new $Number(realm, oldValue['[[Value]]'] - 1);
 
         // 4. Perform ? PutValue(expr, newValue).
         if (!(expr instanceof $Reference)) {
-          return new $ReferenceError(realm);
+          return new $ReferenceError(realm).enrichWith(this);
         }
         const $PutValueResult = expr.PutValue(ctx, newValue);
-        if ($PutValueResult.isAbrupt) { return $PutValueResult; }
+        if ($PutValueResult.isAbrupt) { return $PutValueResult.enrichWith(this); }
 
         // 5. Return newValue.
         return newValue;
@@ -1821,13 +1815,13 @@ export class $PrefixUnaryExpression implements I$Node {
 
         // 1. Let expr be the result of evaluating UnaryExpression.
         const expr = this.$operand.Evaluate(ctx);
-        if (expr.isAbrupt) { return expr; }
+        if (expr.isAbrupt) { return expr.enrichWith(this); }
 
         // 2. Return ? ToNumber(? GetValue(expr)).
         const $value = expr.GetValue(ctx);
-        if ($value.isAbrupt) { return $value; }
+        if ($value.isAbrupt) { return $value.enrichWith(this); }
         const value = $value.ToNumber(ctx);
-        if (value.isAbrupt) { return value; }
+        if (value.isAbrupt) { return value.enrichWith(this); }
       }
       case SyntaxKind.MinusToken: {
         // http://www.ecma-international.org/ecma-262/#sec-unary-minus-operator-runtime-semantics-evaluation
@@ -1837,13 +1831,13 @@ export class $PrefixUnaryExpression implements I$Node {
 
         // 1. Let expr be the result of evaluating UnaryExpression.
         const expr = this.$operand.Evaluate(ctx);
-        if (expr.isAbrupt) { return expr; }
+        if (expr.isAbrupt) { return expr.enrichWith(this); }
 
         // 2. Let oldValue be ? ToNumber(? GetValue(expr)).
         const $oldValue = expr.GetValue(ctx);
-        if ($oldValue.isAbrupt) { return $oldValue; }
+        if ($oldValue.isAbrupt) { return $oldValue.enrichWith(this); }
         const oldValue = $oldValue.ToNumber(ctx);
-        if (oldValue.isAbrupt) { return oldValue; }
+        if (oldValue.isAbrupt) { return oldValue.enrichWith(this); }
 
         // 3. If oldValue is NaN, return NaN.
         if (oldValue.isNaN) {
@@ -1861,13 +1855,13 @@ export class $PrefixUnaryExpression implements I$Node {
 
         // 1. Let expr be the result of evaluating UnaryExpression.
         const expr = this.$operand.Evaluate(ctx);
-        if (expr.isAbrupt) { return expr; }
+        if (expr.isAbrupt) { return expr.enrichWith(this); }
 
         // 2. Let oldValue be ? ToInt32(? GetValue(expr)).
         const $oldValue = expr.GetValue(ctx);
-        if ($oldValue.isAbrupt) { return $oldValue; }
+        if ($oldValue.isAbrupt) { return $oldValue.enrichWith(this); }
         const oldValue = $oldValue.ToInt32(ctx);
-        if (oldValue.isAbrupt) { return oldValue; }
+        if (oldValue.isAbrupt) { return oldValue.enrichWith(this); }
 
         // 3. Return the result of applying bitwise complement to oldValue. The result is a signed 32-bit integer.
         return new $Number(realm, ~oldValue['[[Value]]']);
@@ -1880,13 +1874,13 @@ export class $PrefixUnaryExpression implements I$Node {
 
         // 1. Let expr be the result of evaluating UnaryExpression.
         const expr = this.$operand.Evaluate(ctx);
-        if (expr.isAbrupt) { return expr; }
+        if (expr.isAbrupt) { return expr.enrichWith(this); }
 
         // 2. Let oldValue be ToBoolean(? GetValue(expr)).
         const $oldValue = expr.GetValue(ctx);
-        if ($oldValue.isAbrupt) { return $oldValue; }
+        if ($oldValue.isAbrupt) { return $oldValue.enrichWith(this); }
         const oldValue = $oldValue.ToBoolean(ctx);
-        if (oldValue.isAbrupt) { return oldValue; }
+        if (oldValue.isAbrupt) { return oldValue.enrichWith(this); }
 
         // 3. If oldValue is true, return false.
         if (oldValue.isTruthy) {
@@ -1945,19 +1939,19 @@ export class $PostfixUnaryExpression implements I$Node {
 
         // 2. Let oldValue be ? ToNumber(? GetValue(lhs)).
         const $oldValue = lhs.GetValue(ctx);
-        if ($oldValue.isAbrupt) { return $oldValue; }
+        if ($oldValue.isAbrupt) { return $oldValue.enrichWith(this); }
         const oldValue = $oldValue.ToNumber(ctx);
-        if (oldValue.isAbrupt) { return oldValue; }
+        if (oldValue.isAbrupt) { return oldValue.enrichWith(this); }
 
         // 3. Let newValue be the result of adding the value 1 to oldValue, using the same rules as for the + operator (see 12.8.5).
         const newValue = new $Number(realm, oldValue['[[Value]]'] + 1);
 
         // 4. Perform ? PutValue(lhs, newValue).
         if (!(lhs instanceof $Reference)) {
-          return new $ReferenceError(realm);
+          return new $ReferenceError(realm).enrichWith(this);
         }
         const $PutValueResult = lhs.PutValue(ctx, newValue);
-        if ($PutValueResult.isAbrupt) { return $PutValueResult; }
+        if ($PutValueResult.isAbrupt) { return $PutValueResult.enrichWith(this); }
 
         // 5. Return oldValue.
         return oldValue;
@@ -1973,19 +1967,19 @@ export class $PostfixUnaryExpression implements I$Node {
 
         // 2. Let oldValue be ? ToNumber(? GetValue(lhs)).
         const $oldValue = lhs.GetValue(ctx);
-        if ($oldValue.isAbrupt) { return $oldValue; }
+        if ($oldValue.isAbrupt) { return $oldValue.enrichWith(this); }
         const oldValue = $oldValue.ToNumber(ctx);
-        if (oldValue.isAbrupt) { return oldValue; }
+        if (oldValue.isAbrupt) { return oldValue.enrichWith(this); }
 
         // 3. Let newValue be the result of subtracting the value 1 from oldValue, using the same rules as for the - operator (see 12.8.5).
         const newValue = new $Number(realm, oldValue['[[Value]]'] - 1);
 
         // 4. Perform ? PutValue(lhs, newValue).
         if (!(lhs instanceof $Reference)) {
-          return new $ReferenceError(realm);
+          return new $ReferenceError(realm).enrichWith(this);
         }
         const $PutValueResult = lhs.PutValue(ctx, newValue);
-        if ($PutValueResult.isAbrupt) { return $PutValueResult; }
+        if ($PutValueResult.isAbrupt) { return $PutValueResult.enrichWith(this); }
 
         // 5. Return oldValue.
         return oldValue;
@@ -2092,22 +2086,22 @@ export class $BinaryExpression implements I$Node {
 
         // 2. Let leftValue be ? GetValue(left).
         const leftValue = left.GetValue(ctx);
-        if (leftValue.isAbrupt) { return leftValue; }
+        if (leftValue.isAbrupt) { return leftValue.enrichWith(this); }
 
         // 3. Let right be the result of evaluating ExponentiationExpression.
         const right = this.$right.Evaluate(ctx);
 
         // 4. Let rightValue be ? GetValue(right).
         const rightValue = right.GetValue(ctx);
-        if (rightValue.isAbrupt) { return rightValue; }
+        if (rightValue.isAbrupt) { return rightValue.enrichWith(this); }
 
         // 5. Let base be ? ToNumber(leftValue).
         const base = leftValue.ToNumber(ctx);
-        if (base.isAbrupt) { return base; }
+        if (base.isAbrupt) { return base.enrichWith(this); }
 
         // 6. Let exponent be ? ToNumber(rightValue).
         const exponent = rightValue.ToNumber(ctx);
-        if (exponent.isAbrupt) { return exponent; }
+        if (exponent.isAbrupt) { return exponent.enrichWith(this); }
 
         // 7. Return the result of Applying the ** operator with base and exponent as specified in 12.6.4.
         return new $Number(realm, base['[[Value]]'] ** exponent['[[Value]]']); // TODO: add temporal state snapshot for tracing
@@ -2123,22 +2117,22 @@ export class $BinaryExpression implements I$Node {
 
         // 2. Let leftValue be ? GetValue(left).
         const leftValue = left.GetValue(ctx);
-        if (leftValue.isAbrupt) { return leftValue; }
+        if (leftValue.isAbrupt) { return leftValue.enrichWith(this); }
 
         // 3. Let right be the result of evaluating ExponentiationExpression.
         const right = this.$right.Evaluate(ctx);
 
         // 4. Let rightValue be ? GetValue(right).
         const rightValue = right.GetValue(ctx);
-        if (rightValue.isAbrupt) { return rightValue; }
+        if (rightValue.isAbrupt) { return rightValue.enrichWith(this); }
 
         // 5. Let lnum be ? ToNumber(leftValue).
         const lnum = leftValue.ToNumber(ctx);
-        if (lnum.isAbrupt) { return lnum; }
+        if (lnum.isAbrupt) { return lnum.enrichWith(this); }
 
         // 6. Let rnum be ? ToNumber(rightValue).
         const rnum = rightValue.ToNumber(ctx);
-        if (rnum.isAbrupt) { return rnum; }
+        if (rnum.isAbrupt) { return rnum.enrichWith(this); }
 
         // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
         return new $Number(realm, lnum['[[Value]]'] * rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
@@ -2154,22 +2148,22 @@ export class $BinaryExpression implements I$Node {
 
         // 2. Let leftValue be ? GetValue(left).
         const leftValue = left.GetValue(ctx);
-        if (leftValue.isAbrupt) { return leftValue; }
+        if (leftValue.isAbrupt) { return leftValue.enrichWith(this); }
 
         // 3. Let right be the result of evaluating ExponentiationExpression.
         const right = this.$right.Evaluate(ctx);
 
         // 4. Let rightValue be ? GetValue(right).
         const rightValue = right.GetValue(ctx);
-        if (rightValue.isAbrupt) { return rightValue; }
+        if (rightValue.isAbrupt) { return rightValue.enrichWith(this); }
 
         // 5. Let lnum be ? ToNumber(leftValue).
         const lnum = leftValue.ToNumber(ctx);
-        if (lnum.isAbrupt) { return lnum; }
+        if (lnum.isAbrupt) { return lnum.enrichWith(this); }
 
         // 6. Let rnum be ? ToNumber(rightValue).
         const rnum = rightValue.ToNumber(ctx);
-        if (rnum.isAbrupt) { return rnum; }
+        if (rnum.isAbrupt) { return rnum.enrichWith(this); }
 
         // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
         return new $Number(realm, lnum['[[Value]]'] / rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
@@ -2185,22 +2179,22 @@ export class $BinaryExpression implements I$Node {
 
         // 2. Let leftValue be ? GetValue(left).
         const leftValue = left.GetValue(ctx);
-        if (leftValue.isAbrupt) { return leftValue; }
+        if (leftValue.isAbrupt) { return leftValue.enrichWith(this); }
 
         // 3. Let right be the result of evaluating ExponentiationExpression.
         const right = this.$right.Evaluate(ctx);
 
         // 4. Let rightValue be ? GetValue(right).
         const rightValue = right.GetValue(ctx);
-        if (rightValue.isAbrupt) { return rightValue; }
+        if (rightValue.isAbrupt) { return rightValue.enrichWith(this); }
 
         // 5. Let lnum be ? ToNumber(leftValue).
         const lnum = leftValue.ToNumber(ctx);
-        if (lnum.isAbrupt) { return lnum; }
+        if (lnum.isAbrupt) { return lnum.enrichWith(this); }
 
         // 6. Let rnum be ? ToNumber(rightValue).
         const rnum = rightValue.ToNumber(ctx);
-        if (rnum.isAbrupt) { return rnum; }
+        if (rnum.isAbrupt) { return rnum.enrichWith(this); }
 
         // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
         return new $Number(realm, lnum['[[Value]]'] % rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
@@ -2216,32 +2210,32 @@ export class $BinaryExpression implements I$Node {
 
         // 2. Let lval be ? GetValue(lref).
         const lval = lref.GetValue(ctx);
-        if (lval.isAbrupt) { return lval; }
+        if (lval.isAbrupt) { return lval.enrichWith(this); }
 
         // 3. Let rref be the result of evaluating MultiplicativeExpression.
         const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
         const rval = rref.GetValue(ctx);
-        if (rval.isAbrupt) { return rval; }
+        if (rval.isAbrupt) { return rval.enrichWith(this); }
 
         // 5. Let lprim be ? ToPrimitive(lval).
         const lprim = lval.ToPrimitive(ctx);
-        if (lprim.isAbrupt) { return lprim; }
+        if (lprim.isAbrupt) { return lprim.enrichWith(this); }
 
         // 6. Let rprim be ? ToPrimitive(rval).
         const rprim = rval.ToPrimitive(ctx);
-        if (rprim.isAbrupt) { return rprim; }
+        if (rprim.isAbrupt) { return rprim.enrichWith(this); }
 
         // 7. If Type(lprim) is String or Type(rprim) is String, then
         if (lprim.isString || rprim.isString) {
           // 7. a. Let lstr be ? ToString(lprim).
           const lstr = lprim.ToString(ctx);
-          if (lstr.isAbrupt) { return lstr; }
+          if (lstr.isAbrupt) { return lstr.enrichWith(this); }
 
           // 7. b. Let rstr be ? ToString(rprim).
           const rstr = rprim.ToString(ctx);
-          if (rstr.isAbrupt) { return rstr; }
+          if (rstr.isAbrupt) { return rstr.enrichWith(this); }
 
           // 7. c. Return the string-concatenation of lstr and rstr.
           return new $String(realm, lstr['[[Value]]'] + rstr['[[Value]]']); // TODO: add temporal state snapshot for tracing
@@ -2249,11 +2243,11 @@ export class $BinaryExpression implements I$Node {
 
         // 8. Let lnum be ? ToNumber(lprim).
         const lnum = lprim.ToNumber(ctx);
-        if (lnum.isAbrupt) { return lnum; }
+        if (lnum.isAbrupt) { return lnum.enrichWith(this); }
 
         // 9. Let rnum be ? ToNumber(rprim).
         const rnum = rprim.ToNumber(ctx);
-        if (rnum.isAbrupt) { return rnum; }
+        if (rnum.isAbrupt) { return rnum.enrichWith(this); }
 
         // 10. Return the result of applying the addition operation to lnum and rnum. See the Note below 12.8.5.
         return new $Number(realm, lnum['[[Value]]'] + rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
@@ -2269,22 +2263,22 @@ export class $BinaryExpression implements I$Node {
 
         // 2. Let lval be ? GetValue(lref).
         const lval = lref.GetValue(ctx);
-        if (lval.isAbrupt) { return lval; }
+        if (lval.isAbrupt) { return lval.enrichWith(this); }
 
         // 3. Let rref be the result of evaluating MultiplicativeExpression.
         const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
         const rval = rref.GetValue(ctx);
-        if (rval.isAbrupt) { return rval; }
+        if (rval.isAbrupt) { return rval.enrichWith(this); }
 
         // 5. Let lnum be ? ToNumber(lval).
         const lnum = lval.ToNumber(ctx);
-        if (lnum.isAbrupt) { return lnum; }
+        if (lnum.isAbrupt) { return lnum.enrichWith(this); }
 
         // 6. Let rnum be ? ToNumber(rval).
         const rnum = rval.ToNumber(ctx);
-        if (rnum.isAbrupt) { return rnum; }
+        if (rnum.isAbrupt) { return rnum.enrichWith(this); }
 
         // 7. Return the result of applying the subtraction operation to lnum and rnum. See the note below 12.8.5.
         return new $Number(realm, lnum['[[Value]]'] - rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
@@ -2300,22 +2294,22 @@ export class $BinaryExpression implements I$Node {
 
         // 2. Let lval be ? GetValue(lref).
         const lval = lref.GetValue(ctx);
-        if (lval.isAbrupt) { return lval; }
+        if (lval.isAbrupt) { return lval.enrichWith(this); }
 
         // 3. Let rref be the result of evaluating AdditiveExpression.
         const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
         const rval = rref.GetValue(ctx);
-        if (rval.isAbrupt) { return rval; }
+        if (rval.isAbrupt) { return rval.enrichWith(this); }
 
         // 5. Let lnum be ? ToInt32(lval).
         const lnum = lval.ToInt32(ctx);
-        if (lnum.isAbrupt) { return lnum; }
+        if (lnum.isAbrupt) { return lnum.enrichWith(this); }
 
         // 6. Let rnum be ? ToUint32(rval).
         const rnum = rval.ToUint32(ctx);
-        if (rnum.isAbrupt) { return rnum; }
+        if (rnum.isAbrupt) { return rnum.enrichWith(this); }
 
         // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
         const shiftCount = rnum['[[Value]]'] & 0b11111;
@@ -2334,22 +2328,22 @@ export class $BinaryExpression implements I$Node {
 
         // 2. Let lval be ? GetValue(lref).
         const lval = lref.GetValue(ctx);
-        if (lval.isAbrupt) { return lval; }
+        if (lval.isAbrupt) { return lval.enrichWith(this); }
 
         // 3. Let rref be the result of evaluating AdditiveExpression.
         const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
         const rval = rref.GetValue(ctx);
-        if (rval.isAbrupt) { return rval; }
+        if (rval.isAbrupt) { return rval.enrichWith(this); }
 
         // 5. Let lnum be ? ToInt32(lval).
         const lnum = lval.ToInt32(ctx);
-        if (lnum.isAbrupt) { return lnum; }
+        if (lnum.isAbrupt) { return lnum.enrichWith(this); }
 
         // 6. Let rnum be ? ToUint32(rval).
         const rnum = rval.ToUint32(ctx);
-        if (rnum.isAbrupt) { return rnum; }
+        if (rnum.isAbrupt) { return rnum.enrichWith(this); }
 
         // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
         const shiftCount = rnum['[[Value]]'] & 0b11111;
@@ -2368,22 +2362,22 @@ export class $BinaryExpression implements I$Node {
 
         // 2. Let lval be ? GetValue(lref).
         const lval = lref.GetValue(ctx);
-        if (lval.isAbrupt) { return lval; }
+        if (lval.isAbrupt) { return lval.enrichWith(this); }
 
         // 3. Let rref be the result of evaluating AdditiveExpression.
         const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
         const rval = rref.GetValue(ctx);
-        if (rval.isAbrupt) { return rval; }
+        if (rval.isAbrupt) { return rval.enrichWith(this); }
 
         // 5. Let lnum be ? ToUint32(lval).
         const lnum = lval.ToUint32(ctx);
-        if (lnum.isAbrupt) { return lnum; }
+        if (lnum.isAbrupt) { return lnum.enrichWith(this); }
 
         // 6. Let rnum be ? ToUint32(rval).
         const rnum = rval.ToUint32(ctx);
-        if (rnum.isAbrupt) { return rnum; }
+        if (rnum.isAbrupt) { return rnum.enrichWith(this); }
 
         // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
         const shiftCount = rnum['[[Value]]'] & 0b11111;
@@ -2401,20 +2395,20 @@ export class $BinaryExpression implements I$Node {
 
         // 2. Let lval be ? GetValue(lref).
         const lval = lref.GetValue(ctx);
-        if (lval.isAbrupt) { return lval; }
+        if (lval.isAbrupt) { return lval.enrichWith(this); }
 
         // 3. Let rref be the result of evaluating ShiftExpression.
         const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
         const rval = rref.GetValue(ctx);
-        if (rval.isAbrupt) { return rval; }
+        if (rval.isAbrupt) { return rval.enrichWith(this); }
 
         // 5. Let r be the result of performing Abstract Relational Comparison lval < rval.
         const r = $AbstractRelationalComparison(ctx, true, lval, rval);
 
         // 6. ReturnIfAbrupt(r).
-        if (r.isAbrupt) { return r; }
+        if (r.isAbrupt) { return r.enrichWith(this); }
 
         // 7. If r is undefined, return false. Otherwise, return r.
         return r.isUndefined ? intrinsics.false : r;
@@ -2427,20 +2421,20 @@ export class $BinaryExpression implements I$Node {
 
         // 2. Let lval be ? GetValue(lref).
         const lval = lref.GetValue(ctx);
-        if (lval.isAbrupt) { return lval; }
+        if (lval.isAbrupt) { return lval.enrichWith(this); }
 
         // 3. Let rref be the result of evaluating ShiftExpression.
         const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
         const rval = rref.GetValue(ctx);
-        if (rval.isAbrupt) { return rval; }
+        if (rval.isAbrupt) { return rval.enrichWith(this); }
 
         // 5. Let r be the result of performing Abstract Relational Comparison rval < lval with LeftFirst equal to false.
         const r = $AbstractRelationalComparison(ctx, false, rval, lval);
 
         // 6. ReturnIfAbrupt(r).
-        if (r.isAbrupt) { return r; }
+        if (r.isAbrupt) { return r.enrichWith(this); }
 
         // 7. If r is undefined, return false. Otherwise, return r.
         return r.isUndefined ? intrinsics.false : r;
@@ -2453,20 +2447,20 @@ export class $BinaryExpression implements I$Node {
 
         // 2. Let lval be ? GetValue(lref).
         const lval = lref.GetValue(ctx);
-        if (lval.isAbrupt) { return lval; }
+        if (lval.isAbrupt) { return lval.enrichWith(this); }
 
         // 3. Let rref be the result of evaluating ShiftExpression.
         const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
         const rval = rref.GetValue(ctx);
-        if (rval.isAbrupt) { return rval; }
+        if (rval.isAbrupt) { return rval.enrichWith(this); }
 
         // 5. Let r be the result of performing Abstract Relational Comparison rval < lval with LeftFirst equal to false.
         const r = $AbstractRelationalComparison(ctx, false, rval, lval);
 
         // 6. ReturnIfAbrupt(r).
-        if (r.isAbrupt) { return r; }
+        if (r.isAbrupt) { return r.enrichWith(this); }
 
         // 7. If r is true or undefined, return false. Otherwise, return true.
         return r.isTruthy || r.isUndefined ? intrinsics.false : intrinsics.true;
@@ -2479,20 +2473,20 @@ export class $BinaryExpression implements I$Node {
 
         // 2. Let lval be ? GetValue(lref).
         const lval = lref.GetValue(ctx);
-        if (lval.isAbrupt) { return lval; }
+        if (lval.isAbrupt) { return lval.enrichWith(this); }
 
         // 3. Let rref be the result of evaluating ShiftExpression.
         const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
         const rval = rref.GetValue(ctx);
-        if (rval.isAbrupt) { return rval; }
+        if (rval.isAbrupt) { return rval.enrichWith(this); }
 
         // 5. Let r be the result of performing Abstract Relational Comparison lval < rval.
         const r = $AbstractRelationalComparison(ctx, true, lval, rval);
 
         // 6. ReturnIfAbrupt(r).
-        if (r.isAbrupt) { return r; }
+        if (r.isAbrupt) { return r.enrichWith(this); }
 
         // 7. If r is true or undefined, return false. Otherwise, return true.
         return r.isTruthy || r.isUndefined ? intrinsics.false : intrinsics.true;
@@ -2505,17 +2499,17 @@ export class $BinaryExpression implements I$Node {
 
         // 2. Let lval be ? GetValue(lref).
         const lval = lref.GetValue(ctx);
-        if (lval.isAbrupt) { return lval; }
+        if (lval.isAbrupt) { return lval.enrichWith(this); }
 
         // 3. Let rref be the result of evaluating ShiftExpression.
         const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
         const rval = rref.GetValue(ctx);
-        if (rval.isAbrupt) { return rval; }
+        if (rval.isAbrupt) { return rval.enrichWith(this); }
 
         // 5. Return ? InstanceofOperator(lval, rval).
-        return $InstanceOfOperator(ctx, lval, rval);
+        return $InstanceOfOperator(ctx, lval, rval).enrichWith(this);
       }
       case SyntaxKind.InKeyword: {
         // RelationalExpression : RelationalExpression in ShiftExpression
@@ -2525,14 +2519,14 @@ export class $BinaryExpression implements I$Node {
 
         // 2. Let lval be ? GetValue(lref).
         const lval = lref.GetValue(ctx);
-        if (lval.isAbrupt) { return lval; }
+        if (lval.isAbrupt) { return lval.enrichWith(this); }
 
         // 3. Let rref be the result of evaluating ShiftExpression.
         const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
         const rval = rref.GetValue(ctx);
-        if (rval.isAbrupt) { return rval; }
+        if (rval.isAbrupt) { return rval.enrichWith(this); }
 
         // 5. If Type(rval) is not Object, throw a TypeError exception.
         if (!rval.isObject) {
@@ -2540,7 +2534,7 @@ export class $BinaryExpression implements I$Node {
         }
 
         // 6. Return ? HasProperty(rval, ToPropertyKey(lval)).
-        return rval['[[HasProperty]]'](ctx, lval.ToPropertyKey(ctx) as $String); // TODO: is this cast safe?
+        return rval['[[HasProperty]]'](ctx, lval.ToPropertyKey(ctx) as $String).enrichWith(this); // TODO: is this cast safe?
       }
       // http://www.ecma-international.org/ecma-262/#sec-equality-operators-runtime-semantics-evaluation
       // 12.11.3 Runtime Semantics: Evaluation
@@ -2552,17 +2546,17 @@ export class $BinaryExpression implements I$Node {
 
         // 2. Let lval be ? GetValue(lref).
         const lval = lref.GetValue(ctx);
-        if (lval.isAbrupt) { return lval; }
+        if (lval.isAbrupt) { return lval.enrichWith(this); }
 
         // 3. Let rref be the result of evaluating RelationalExpression.
         const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
         const rval = rref.GetValue(ctx);
-        if (rval.isAbrupt) { return rval; }
+        if (rval.isAbrupt) { return rval.enrichWith(this); }
 
         // 5. Return the result of performing Abstract Equality Comparison rval == lval.
-        return $AbstractEqualityComparison(ctx, rval, lval);
+        return $AbstractEqualityComparison(ctx, rval, lval).enrichWith(this);
       }
       case SyntaxKind.ExclamationEqualsToken: {
         // EqualityExpression : EqualityExpression != RelationalExpression
@@ -2572,18 +2566,18 @@ export class $BinaryExpression implements I$Node {
 
         // 2. Let lval be ? GetValue(lref).
         const lval = lref.GetValue(ctx);
-        if (lval.isAbrupt) { return lval; }
+        if (lval.isAbrupt) { return lval.enrichWith(this); }
 
         // 3. Let rref be the result of evaluating RelationalExpression.
         const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
         const rval = rref.GetValue(ctx);
-        if (rval.isAbrupt) { return rval; }
+        if (rval.isAbrupt) { return rval.enrichWith(this); }
 
         // 5. Let r be the result of performing Abstract Equality Comparison rval == lval.
         const r = $AbstractEqualityComparison(ctx, rval, lval);
-        if (r.isAbrupt) { return r; } // TODO: is this correct? spec doesn't say it
+        if (r.isAbrupt) { return r.enrichWith(this); } // TODO: is this correct? spec doesn't say it
 
         // 6. If r is true, return false. Otherwise, return true.
         return r.isTruthy ? intrinsics.false : intrinsics.true;
@@ -2596,17 +2590,17 @@ export class $BinaryExpression implements I$Node {
 
         // 2. Let lval be ? GetValue(lref).
         const lval = lref.GetValue(ctx);
-        if (lval.isAbrupt) { return lval; }
+        if (lval.isAbrupt) { return lval.enrichWith(this); }
 
         // 3. Let rref be the result of evaluating RelationalExpression.
         const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
         const rval = rref.GetValue(ctx);
-        if (rval.isAbrupt) { return rval; }
+        if (rval.isAbrupt) { return rval.enrichWith(this); }
 
         // 5. Return the result of performing Strict Equality Comparison rval === lval.
-        return $StrictEqualityComparison(ctx, rval, lval);
+        return $StrictEqualityComparison(ctx, rval, lval).enrichWith(this);
       }
       case SyntaxKind.ExclamationEqualsEqualsToken: {
         // EqualityExpression : EqualityExpression !== RelationalExpression
@@ -2616,18 +2610,18 @@ export class $BinaryExpression implements I$Node {
 
         // 2. Let lval be ? GetValue(lref).
         const lval = lref.GetValue(ctx);
-        if (lval.isAbrupt) { return lval; }
+        if (lval.isAbrupt) { return lval.enrichWith(this); }
 
         // 3. Let rref be the result of evaluating RelationalExpression.
         const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
         const rval = rref.GetValue(ctx);
-        if (rval.isAbrupt) { return rval; }
+        if (rval.isAbrupt) { return rval.enrichWith(this); }
 
         // 5. Let r be the result of performing Strict Equality Comparison rval === lval.
         const r = $StrictEqualityComparison(ctx, rval, lval);
-        if (r.isAbrupt) { return r; } // TODO: is this correct? spec doesn't say it
+        if (r.isAbrupt) { return r.enrichWith(this); } // TODO: is this correct? spec doesn't say it
 
         // 6. If r is true, return false. Otherwise, return true.
         return r.isTruthy ? intrinsics.false : intrinsics.true;
@@ -2641,22 +2635,22 @@ export class $BinaryExpression implements I$Node {
 
         // 2. Let lval be ? GetValue(lref).
         const lval = lref.GetValue(ctx);
-        if (lval.isAbrupt) { return lval; }
+        if (lval.isAbrupt) { return lval.enrichWith(this); }
 
         // 3. Let rref be the result of evaluating B.
         const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
         const rval = rref.GetValue(ctx);
-        if (rval.isAbrupt) { return rval; }
+        if (rval.isAbrupt) { return rval.enrichWith(this); }
 
         // 5. Let lnum be ? ToInt32(lval).
         const lnum = lval.ToInt32(ctx);
-        if (lnum.isAbrupt) { return lnum; }
+        if (lnum.isAbrupt) { return lnum.enrichWith(this); }
 
         // 6. Let rnum be ? ToInt32(rval).
         const rnum = rval.ToInt32(ctx);
-        if (rnum.isAbrupt) { return rnum; }
+        if (rnum.isAbrupt) { return rnum.enrichWith(this); }
 
         // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
         return new $Number(realm, lnum['[[Value]]'] & rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
@@ -2670,22 +2664,22 @@ export class $BinaryExpression implements I$Node {
 
         // 2. Let lval be ? GetValue(lref).
         const lval = lref.GetValue(ctx);
-        if (lval.isAbrupt) { return lval; }
+        if (lval.isAbrupt) { return lval.enrichWith(this); }
 
         // 3. Let rref be the result of evaluating B.
         const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
         const rval = rref.GetValue(ctx);
-        if (rval.isAbrupt) { return rval; }
+        if (rval.isAbrupt) { return rval.enrichWith(this); }
 
         // 5. Let lnum be ? ToInt32(lval).
         const lnum = lval.ToInt32(ctx);
-        if (lnum.isAbrupt) { return lnum; }
+        if (lnum.isAbrupt) { return lnum.enrichWith(this); }
 
         // 6. Let rnum be ? ToInt32(rval).
         const rnum = rval.ToInt32(ctx);
-        if (rnum.isAbrupt) { return rnum; }
+        if (rnum.isAbrupt) { return rnum.enrichWith(this); }
 
         // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
         return new $Number(realm, lnum['[[Value]]'] ^ rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
@@ -2699,22 +2693,22 @@ export class $BinaryExpression implements I$Node {
 
         // 2. Let lval be ? GetValue(lref).
         const lval = lref.GetValue(ctx);
-        if (lval.isAbrupt) { return lval; }
+        if (lval.isAbrupt) { return lval.enrichWith(this); }
 
         // 3. Let rref be the result of evaluating B.
         const rref = this.$right.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
         const rval = rref.GetValue(ctx);
-        if (rval.isAbrupt) { return rval; }
+        if (rval.isAbrupt) { return rval.enrichWith(this); }
 
         // 5. Let lnum be ? ToInt32(lval).
         const lnum = lval.ToInt32(ctx);
-        if (lnum.isAbrupt) { return lnum; }
+        if (lnum.isAbrupt) { return lnum.enrichWith(this); }
 
         // 6. Let rnum be ? ToInt32(rval).
         const rnum = rval.ToInt32(ctx);
-        if (rnum.isAbrupt) { return rnum; }
+        if (rnum.isAbrupt) { return rnum.enrichWith(this); }
 
         // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
         return new $Number(realm, lnum['[[Value]]'] | rnum['[[Value]]']); // TODO: add temporal state snapshot for tracing
@@ -2730,11 +2724,11 @@ export class $BinaryExpression implements I$Node {
 
         // 2. Let lval be ? GetValue(lref).
         const lval = lref.GetValue(ctx);
-        if (lval.isAbrupt) { return lval; }
+        if (lval.isAbrupt) { return lval.enrichWith(this); }
 
         // 3. Let lbool be ToBoolean(lval).
         const lbool = lval.ToBoolean(ctx);
-        if (lbool.isAbrupt) { return lbool; } // TODO: is this correct? spec doesn't say it
+        if (lbool.isAbrupt) { return lbool.enrichWith(this); } // TODO: is this correct? spec doesn't say it
 
         // 4. If lbool is false, return lval.
         if (lbool.isFalsey) {
@@ -2755,11 +2749,11 @@ export class $BinaryExpression implements I$Node {
 
         // 2. Let lval be ? GetValue(lref).
         const lval = lref.GetValue(ctx);
-        if (lval.isAbrupt) { return lval; }
+        if (lval.isAbrupt) { return lval.enrichWith(this); }
 
         // 3. Let lbool be ToBoolean(lval).
         const lbool = lval.ToBoolean(ctx);
-        if (lbool.isAbrupt) { return lbool; } // TODO: is this correct? spec doesn't say it
+        if (lbool.isAbrupt) { return lbool.enrichWith(this); } // TODO: is this correct? spec doesn't say it
 
         // 4. If lbool is true, return lval.
         if (lbool.isTruthy) {
@@ -2787,7 +2781,7 @@ export class $BinaryExpression implements I$Node {
           const lref = lhs.Evaluate(ctx);
 
           // 1. b. ReturnIfAbrupt(lref).
-          if (lref.isAbrupt) { return lref; }
+          if (lref.isAbrupt) { return lref.enrichWith(this); }
 
           let rval: $AnyNonEmpty;
           // 1. c. If IsAnonymousFunctionDefinition(AssignmentExpression) and IsIdentifierRef of LeftHandSideExpression are both true, then
@@ -2802,16 +2796,16 @@ export class $BinaryExpression implements I$Node {
 
             // 1. d. ii. Let rval be ? GetValue(rref).
             const $rval = rref.GetValue(ctx);
-            if ($rval.isAbrupt) { return $rval; }
+            if ($rval.isAbrupt) { return $rval.enrichWith(this); }
             rval = $rval;
           }
 
           // 1. e. Perform ? PutValue(lref, rval).
           if (!(lref instanceof $Reference)) {
-            return new $ReferenceError(realm);
+            return new $ReferenceError(realm).enrichWith(this);
           }
           const $PutValueResult = lref.PutValue(ctx, rval);
-          if ($PutValueResult.isAbrupt) { return $PutValueResult; }
+          if ($PutValueResult.isAbrupt) { return $PutValueResult.enrichWith(this); }
 
           // 1. f. Return rval.
           return rval;
@@ -2823,7 +2817,7 @@ export class $BinaryExpression implements I$Node {
 
         // 4. Let rval be ? GetValue(rref).
         const $rval = rref.GetValue(ctx);
-        if ($rval.isAbrupt) { return $rval; }
+        if ($rval.isAbrupt) { return $rval.enrichWith(this); }
         const rval = $rval;
 
         // 5. Perform ? DestructuringAssignmentEvaluation of assignmentPattern using rval as the argument.
@@ -2838,22 +2832,22 @@ export class $BinaryExpression implements I$Node {
 
         // 2. Let lval be ? GetValue(lref).
         const lval = lref.GetValue(ctx);
-        if (lval.isAbrupt) { return lval; }
+        if (lval.isAbrupt) { return lval.enrichWith(this); }
 
         // 3. Let rref be the result of evaluating AssignmentExpression.
         const rref = this.$left.Evaluate(ctx);
 
         // 4. Return ? GetValue(rref)
-        return rref.GetValue(ctx);
+        return rref.GetValue(ctx).enrichWith(this);
       }
       case SyntaxKind.QuestionQuestionToken: {
         const lref = this.$left.Evaluate(ctx);
         const lval = lref.GetValue(ctx);
-        if (lval.isAbrupt) { return lval; }
+        if (lval.isAbrupt) { return lval.enrichWith(this); }
 
         if (lval.isNil) {
           const rref = this.$right.Evaluate(ctx);
-          return rref.GetValue(ctx);
+          return rref.GetValue(ctx).enrichWith(this);
         }
 
         return lval;
@@ -2877,14 +2871,14 @@ export class $BinaryExpression implements I$Node {
 
         // 2. Let lval be ? GetValue(lref).
         const lval = lref.GetValue(ctx);
-        if (lval.isAbrupt) { return lval; }
+        if (lval.isAbrupt) { return lval.enrichWith(this); }
 
         // 3. Let rref be the result of evaluating AssignmentExpression.
         const rref = this.$left.Evaluate(ctx);
 
         // 4. Let rval be ? GetValue(rref).
         const rval = rref.GetValue(ctx);
-        if (rval.isAbrupt) { return rval; }
+        if (rval.isAbrupt) { return rval.enrichWith(this); }
 
         // 5. Let op be the @ where AssignmentOperator is @=.
 
@@ -2894,11 +2888,11 @@ export class $BinaryExpression implements I$Node {
           case SyntaxKind.AsteriskAsteriskEqualsToken: {
             // 5. Let base be ? ToNumber(leftValue).
             const base = lval.ToNumber(ctx);
-            if (base.isAbrupt) { return base; }
+            if (base.isAbrupt) { return base.enrichWith(this); }
 
             // 6. Let exponent be ? ToNumber(rightValue).
             const exponent = rval.ToNumber(ctx);
-            if (exponent.isAbrupt) { return exponent; }
+            if (exponent.isAbrupt) { return exponent.enrichWith(this); }
 
             // 7. Return the result of Applying the ** operator with base and exponent as specified in 12.6.4.
             r = new $Number(realm, base['[[Value]]'] ** exponent['[[Value]]']);
@@ -2907,11 +2901,11 @@ export class $BinaryExpression implements I$Node {
           case SyntaxKind.AsteriskEqualsToken: {
             // 5. Let lnum be ? ToNumber(leftValue).
             const lnum = lval.ToNumber(ctx);
-            if (lnum.isAbrupt) { return lnum; }
+            if (lnum.isAbrupt) { return lnum.enrichWith(this); }
 
             // 6. Let rnum be ? ToNumber(rightValue).
             const rnum = rval.ToNumber(ctx);
-            if (rnum.isAbrupt) { return rnum; }
+            if (rnum.isAbrupt) { return rnum.enrichWith(this); }
 
             // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
             r = new $Number(realm, lnum['[[Value]]'] * rnum['[[Value]]']);
@@ -2920,11 +2914,11 @@ export class $BinaryExpression implements I$Node {
           case SyntaxKind.SlashEqualsToken: {
             // 5. Let lnum be ? ToNumber(leftValue).
             const lnum = lval.ToNumber(ctx);
-            if (lnum.isAbrupt) { return lnum; }
+            if (lnum.isAbrupt) { return lnum.enrichWith(this); }
 
             // 6. Let rnum be ? ToNumber(rightValue).
             const rnum = rval.ToNumber(ctx);
-            if (rnum.isAbrupt) { return rnum; }
+            if (rnum.isAbrupt) { return rnum.enrichWith(this); }
 
             // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
             r = new $Number(realm, lnum['[[Value]]'] / rnum['[[Value]]']);
@@ -2933,11 +2927,11 @@ export class $BinaryExpression implements I$Node {
           case SyntaxKind.PercentEqualsToken: {
             // 5. Let lnum be ? ToNumber(leftValue).
             const lnum = lval.ToNumber(ctx);
-            if (lnum.isAbrupt) { return lnum; }
+            if (lnum.isAbrupt) { return lnum.enrichWith(this); }
 
             // 6. Let rnum be ? ToNumber(rightValue).
             const rnum = rval.ToNumber(ctx);
-            if (rnum.isAbrupt) { return rnum; }
+            if (rnum.isAbrupt) { return rnum.enrichWith(this); }
 
             // 7. Return the result of applying the MultiplicativeOperator (*, /, or %) to lnum and rnum as specified in 12.7.3.1, 12.7.3.2, or 12.7.3.3.
             r = new $Number(realm, lnum['[[Value]]'] % rnum['[[Value]]']);
@@ -2947,21 +2941,21 @@ export class $BinaryExpression implements I$Node {
 
             // 5. Let lprim be ? ToPrimitive(lval).
             const lprim = lval.ToPrimitive(ctx);
-            if (lprim.isAbrupt) { return lprim; }
+            if (lprim.isAbrupt) { return lprim.enrichWith(this); }
 
             // 6. Let rprim be ? ToPrimitive(rval).
             const rprim = rval.ToPrimitive(ctx);
-            if (rprim.isAbrupt) { return rprim; }
+            if (rprim.isAbrupt) { return rprim.enrichWith(this); }
 
             // 7. If Type(lprim) is String or Type(rprim) is String, then
             if (lprim.isString || rprim.isString) {
               // 7. a. Let lstr be ? ToString(lprim).
               const lstr = lprim.ToString(ctx);
-              if (lstr.isAbrupt) { return lstr; }
+              if (lstr.isAbrupt) { return lstr.enrichWith(this); }
 
               // 7. b. Let rstr be ? ToString(rprim).
               const rstr = rprim.ToString(ctx);
-              if (rstr.isAbrupt) { return rstr; }
+              if (rstr.isAbrupt) { return rstr.enrichWith(this); }
 
               // 7. c. Return the string-concatenation of lstr and rstr.
               r = new $String(realm, lstr['[[Value]]'] + rstr['[[Value]]']);
@@ -2970,11 +2964,11 @@ export class $BinaryExpression implements I$Node {
 
             // 8. Let lnum be ? ToNumber(lprim).
             const lnum = lprim.ToNumber(ctx);
-            if (lnum.isAbrupt) { return lnum; }
+            if (lnum.isAbrupt) { return lnum.enrichWith(this); }
 
             // 9. Let rnum be ? ToNumber(rprim).
             const rnum = rprim.ToNumber(ctx);
-            if (rnum.isAbrupt) { return rnum; }
+            if (rnum.isAbrupt) { return rnum.enrichWith(this); }
 
             // 10. Return the result of applying the addition operation to lnum and rnum. See the Note below 12.8.5.
             r = new $Number(realm, lnum['[[Value]]'] + rnum['[[Value]]']);
@@ -2983,11 +2977,11 @@ export class $BinaryExpression implements I$Node {
           case SyntaxKind.MinusEqualsToken: {
             // 5. Let lnum be ? ToNumber(lval).
             const lnum = lval.ToNumber(ctx);
-            if (lnum.isAbrupt) { return lnum; }
+            if (lnum.isAbrupt) { return lnum.enrichWith(this); }
 
             // 6. Let rnum be ? ToNumber(rval).
             const rnum = rval.ToNumber(ctx);
-            if (rnum.isAbrupt) { return rnum; }
+            if (rnum.isAbrupt) { return rnum.enrichWith(this); }
 
             // 7. Return the result of applying the subtraction operation to lnum and rnum. See the note below 12.8.5.
             r = new $Number(realm, lnum['[[Value]]'] - rnum['[[Value]]']);
@@ -2996,11 +2990,11 @@ export class $BinaryExpression implements I$Node {
           case SyntaxKind.LessThanLessThanEqualsToken: {
             // 5. Let lnum be ? ToInt32(lval).
             const lnum = lval.ToInt32(ctx);
-            if (lnum.isAbrupt) { return lnum; }
+            if (lnum.isAbrupt) { return lnum.enrichWith(this); }
 
             // 6. Let rnum be ? ToUint32(rval).
             const rnum = rval.ToUint32(ctx);
-            if (rnum.isAbrupt) { return rnum; }
+            if (rnum.isAbrupt) { return rnum.enrichWith(this); }
 
             // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
             const shiftCount = rnum['[[Value]]'] & 0b11111;
@@ -3012,11 +3006,11 @@ export class $BinaryExpression implements I$Node {
           case SyntaxKind.GreaterThanGreaterThanEqualsToken: {
             // 5. Let lnum be ? ToInt32(lval).
             const lnum = lval.ToInt32(ctx);
-            if (lnum.isAbrupt) { return lnum; }
+            if (lnum.isAbrupt) { return lnum.enrichWith(this); }
 
             // 6. Let rnum be ? ToUint32(rval).
             const rnum = rval.ToUint32(ctx);
-            if (rnum.isAbrupt) { return rnum; }
+            if (rnum.isAbrupt) { return rnum.enrichWith(this); }
 
             // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
             const shiftCount = rnum['[[Value]]'] & 0b11111;
@@ -3028,11 +3022,11 @@ export class $BinaryExpression implements I$Node {
           case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken: {
             // 5. Let lnum be ? ToUint32(lval).
             const lnum = lval.ToUint32(ctx);
-            if (lnum.isAbrupt) { return lnum; }
+            if (lnum.isAbrupt) { return lnum.enrichWith(this); }
 
             // 6. Let rnum be ? ToUint32(rval).
             const rnum = rval.ToUint32(ctx);
-            if (rnum.isAbrupt) { return rnum; }
+            if (rnum.isAbrupt) { return rnum.enrichWith(this); }
 
             // 7. Let shiftCount be the result of masking out all but the least significant 5 bits of rnum, that is, compute rnum & 0x1F.
             const shiftCount = rnum['[[Value]]'] & 0b11111;
@@ -3044,11 +3038,11 @@ export class $BinaryExpression implements I$Node {
           case SyntaxKind.AmpersandEqualsToken: {
             // 5. Let lnum be ? ToInt32(lval).
             const lnum = lval.ToInt32(ctx);
-            if (lnum.isAbrupt) { return lnum; }
+            if (lnum.isAbrupt) { return lnum.enrichWith(this); }
 
             // 6. Let rnum be ? ToInt32(rval).
             const rnum = rval.ToInt32(ctx);
-            if (rnum.isAbrupt) { return rnum; }
+            if (rnum.isAbrupt) { return rnum.enrichWith(this); }
 
             // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
             r = new $Number(realm, lnum['[[Value]]'] & rnum['[[Value]]']);
@@ -3057,11 +3051,11 @@ export class $BinaryExpression implements I$Node {
           case SyntaxKind.CaretEqualsToken: {
             // 5. Let lnum be ? ToInt32(lval).
             const lnum = lval.ToInt32(ctx);
-            if (lnum.isAbrupt) { return lnum; }
+            if (lnum.isAbrupt) { return lnum.enrichWith(this); }
 
             // 6. Let rnum be ? ToInt32(rval).
             const rnum = rval.ToInt32(ctx);
-            if (rnum.isAbrupt) { return rnum; }
+            if (rnum.isAbrupt) { return rnum.enrichWith(this); }
 
             // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
             r = new $Number(realm, lnum['[[Value]]'] ^ rnum['[[Value]]']);
@@ -3070,11 +3064,11 @@ export class $BinaryExpression implements I$Node {
           case SyntaxKind.BarEqualsToken: {
             // 5. Let lnum be ? ToInt32(lval).
             const lnum = lval.ToInt32(ctx);
-            if (lnum.isAbrupt) { return lnum; }
+            if (lnum.isAbrupt) { return lnum.enrichWith(this); }
 
             // 6. Let rnum be ? ToInt32(rval).
             const rnum = rval.ToInt32(ctx);
-            if (rnum.isAbrupt) { return rnum; }
+            if (rnum.isAbrupt) { return rnum.enrichWith(this); }
 
             // 7. Return the result of applying the bitwise operator @ to lnum and rnum. The result is a signed 32-bit integer.
             r = new $Number(realm, lnum['[[Value]]'] | rnum['[[Value]]']);
@@ -3084,10 +3078,10 @@ export class $BinaryExpression implements I$Node {
 
         // 7. Perform ? PutValue(lref, r).
         if (!(lref instanceof $Reference)) {
-          return new $ReferenceError(realm);
+          return new $ReferenceError(realm).enrichWith(this);
         }
         const $PutValueResult = lref.PutValue(ctx, r);
-        if ($PutValueResult.isAbrupt) { return $PutValueResult; }
+        if ($PutValueResult.isAbrupt) { return $PutValueResult.enrichWith(this); }
 
         // 8. Return r.
         return r;
@@ -3368,7 +3362,7 @@ export class $Identifier implements I$Node {
 
     // 1. Return ? ResolveBinding("await").
 
-    return realm.ResolveBinding(this.StringValue);
+    return realm.ResolveBinding(this.StringValue).enrichWith(this);
   }
 
   // based on http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-evaluation
@@ -3386,7 +3380,7 @@ export class $Identifier implements I$Node {
     ctx: ExecutionContext,
     value: $AnyNonEmpty,
     environment: $EnvRec | undefined,
-  ): readonly [$String] {
+  ): $List<$String> | $Error {
     ctx.checkTimeout();
 
     this.logger.debug(`${this.path}.InitializePropertyBinding(#${ctx.id})`);
@@ -3397,10 +3391,11 @@ export class $Identifier implements I$Node {
     const [name] = this.BoundNames;
 
     // 2. Perform ? KeyedBindingInitialization for SingleNameBinding using value, environment, and name as the arguments.
-    this.InitializeKeyedBinding(ctx, value, environment, name)
+    const $InitializeKeyedBindingResult = this.InitializeKeyedBinding(ctx, value, environment, name)
+    if ($InitializeKeyedBindingResult.isAbrupt) { return $InitializeKeyedBindingResult.enrichWith(this); }
 
     // 3. Return a new List containing name.
-    return this.BoundNames;
+    return new $List(...this.BoundNames);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-iteratorbindinginitialization
@@ -3425,7 +3420,7 @@ export class $Identifier implements I$Node {
 
     // 2. Let lhs be ? ResolveBinding(bindingId, environment).
     const lhs = realm.ResolveBinding(bindingId, environment);
-    if (lhs.isAbrupt) { return lhs; }
+    if (lhs.isAbrupt) { return lhs.enrichWith(this); }
 
     let v: $AnyNonEmpty | $Error = intrinsics.undefined; // TODO: sure about this?
 
@@ -3477,17 +3472,20 @@ export class $Identifier implements I$Node {
         const defaultValue = initializer.Evaluate(ctx);
 
         // 5. b. ii. Set v to ? GetValue(defaultValue).
-        v = defaultValue.GetValue(ctx);
+        const $v = defaultValue.GetValue(ctx);
+        if ($v.isAbrupt) { return $v.enrichWith(this); }
+
+        v = $v;
       }
     }
 
     // 6. If environment is undefined, return ? PutValue(lhs, v).
     if (environment === void 0) {
-      return lhs.PutValue(ctx, v as $AnyNonEmpty);
+      return lhs.PutValue(ctx, v as $AnyNonEmpty).enrichWith(this);
     }
 
     // 7. Return InitializeReferencedBinding(lhs, v).
-    return lhs.InitializeReferencedBinding(ctx, v as $AnyNonEmpty);
+    return lhs.InitializeReferencedBinding(ctx, v as $AnyNonEmpty).enrichWith(this);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-keyedbindinginitialization
@@ -3512,13 +3510,13 @@ export class $Identifier implements I$Node {
 
     // 2. Let lhs be ? ResolveBinding(bindingId, environment).
     const lhs = realm.ResolveBinding(bindingId, environment);
-    if (lhs.isAbrupt) { return lhs; }
+    if (lhs.isAbrupt) { return lhs.enrichWith(this); }
 
     // 3. Let v be ? GetV(value, propertyName).
     const obj = value.ToObject(ctx);
-    if (obj.isAbrupt) { return obj; }
+    if (obj.isAbrupt) { return obj.enrichWith(this); }
     let v = obj['[[Get]]'](ctx, propertyName, obj);
-    if (v.isAbrupt) { return v; }
+    if (v.isAbrupt) { return v.enrichWith(this); }
 
     // 4. If Initializer is present and v is undefined, then
     if (initializer !== void 0 && v.isUndefined) {
@@ -3533,16 +3531,17 @@ export class $Identifier implements I$Node {
         const defaultValue = initializer.Evaluate(ctx);
 
         // 4. b. ii. Set v to ? GetValue(defaultValue).
-        v = defaultValue.GetValue(ctx);
+        const $v = defaultValue.GetValue(ctx);
+        if ($v.isAbrupt) { return $v.enrichWith(this); }
       }
     }
 
     // 5. If environment is undefined, return ? PutValue(lhs, v).
     if (environment === void 0) {
-      return lhs.PutValue(ctx, v as $AnyNonEmpty);
+      return lhs.PutValue(ctx, v as $AnyNonEmpty).enrichWith(this);
     }
 
     // 6. Return InitializeReferencedBinding(lhs, v).
-    return lhs.InitializeReferencedBinding(ctx, v as $AnyNonEmpty);
+    return lhs.InitializeReferencedBinding(ctx, v as $AnyNonEmpty).enrichWith(this);
   }
 }

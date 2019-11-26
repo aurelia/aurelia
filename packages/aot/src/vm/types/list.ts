@@ -4,6 +4,9 @@ import {
 import {
   ExecutionContext,
 } from '../realm';
+import {
+  I$Node,
+} from '../ast/_shared';
 
 export class $List<T extends $AnyNonEmpty = $AnyNonEmpty> extends Array<T> {
   public get isAbrupt(): false { return false; }
@@ -18,6 +21,10 @@ export class $List<T extends $AnyNonEmpty = $AnyNonEmpty> extends Array<T> {
   }
 
   public GetValue(ctx: ExecutionContext): $List<T> {
+    return this;
+  }
+
+  public enrichWith(node: I$Node): this {
     return this;
   }
 }

@@ -26,6 +26,9 @@ import {
   $TypeError,
   $Error,
 } from './error';
+import {
+  I$Node,
+} from '../ast/_shared';
 
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-symbol-type
 export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
@@ -80,6 +83,10 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
 
   public is(other: $AnyNonError): other is $Symbol<T> {
     return other instanceof $Symbol && this['[[Value]]'] === other['[[Value]]'];
+  }
+
+  public enrichWith(node: I$Node): this {
+    return this;
   }
 
   public ToCompletion(

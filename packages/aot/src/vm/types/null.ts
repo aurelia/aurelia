@@ -47,6 +47,9 @@ import {
 import {
   $NullLiteral,
 } from '../ast/literals';
+import {
+  I$Node,
+} from '../ast/_shared';
 
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-null-type
 export class $Null {
@@ -98,6 +101,10 @@ export class $Null {
 
   public is(other: $AnyNonError): other is $Null {
     return other instanceof $Null;
+  }
+
+  public enrichWith(node: I$Node): this {
+    return this;
   }
 
   public ToCompletion(

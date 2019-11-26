@@ -30,6 +30,9 @@ import {
 import {
   $BooleanLiteral,
 } from '../ast/literals';
+import {
+  I$Node,
+} from '../ast/_shared';
 
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types-boolean-type
 export class $Boolean<T extends boolean = boolean> {
@@ -83,6 +86,10 @@ export class $Boolean<T extends boolean = boolean> {
 
   public is(other: $AnyNonError): other is $Boolean<T> {
     return other instanceof $Boolean && this['[[Value]]'] === other['[[Value]]'];
+  }
+
+  public enrichWith(node: I$Node): this {
+    return this;
   }
 
   public ToCompletion(

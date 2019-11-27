@@ -256,7 +256,7 @@ export class PropertyRule {
     return this.$rules[depth];
   }
 
-  public async validate(value: unknown, object?: IValidateable): Promise<[ValidateResult[], boolean]> {
+  public async validate(value: unknown, object?: IValidateable): Promise<ValidateResult[]> {
 
     let isValid = true;
     const validateRuleset = async (rules: ValidationRule[]) => {
@@ -283,14 +283,12 @@ export class PropertyRule {
       results.push(...result);
       return results;
     };
-    const promise = this.$rules.reduce(async (acc, ruleset) => {
+    return this.$rules.reduce(async (acc, ruleset) => {
       if (isValid) {
         acc = acc.then(async (accValidateResult) => accumulateResult(accValidateResult, ruleset));
       }
       return acc;
     }, Promise.resolve([] as ValidateResult[]));
-
-    return [await promise, isValid];
   }
 
   // #region customization API

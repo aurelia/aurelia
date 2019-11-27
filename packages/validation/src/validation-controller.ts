@@ -207,7 +207,7 @@ export class ValidationController {
    */
   public async validate(instruction?: ValidateInstruction): Promise<ControllerValidateResult> {
     // Get a function that will process the validation instruction.
-    let execute: () => Promise<[ValidateResult[], boolean]>;
+    let execute: () => Promise<ValidateResult[]>;
     if (instruction !== void 0) {
       // eslint-disable-next-line prefer-const
       let { object, propertyName, rules } = instruction;
@@ -224,7 +224,7 @@ export class ValidationController {
     } else {
       // validate all objects and bindings.
       execute = async () => {
-        const promises: Promise<[ValidateResult[], boolean]>[] = [];
+        const promises: Promise<ValidateResult[]>[] = [];
         for (const [object, rules] of this.objects.entries()) {
           promises.push(this.validator.validateObject(object, rules));
         }
@@ -237,12 +237,11 @@ export class ValidationController {
         }
         const results = await Promise.all(promises);
         return results.reduce(
-          (acc, [reslutSet, isValid]) => {
-            acc[0].push(...reslutSet);
-            acc[1] = acc[1] && isValid;
+          (acc, reslutSet) => {
+            acc.push(...reslutSet);
             return acc;
           },
-          [[], true]);
+          []);
       };
     }
 
@@ -250,7 +249,7 @@ export class ValidationController {
     this.validating = true;
     const returnPromise: Promise<ControllerValidateResult> = this.finishValidating
       .then(execute)
-      .then(([newResults, valid]) => {
+      .then((newResults) => {
         const predicate = this.getInstructionPredicate(instruction);
         const oldResults = this.results.filter(predicate);
         this.processResultDelta('validate', oldResults, newResults);
@@ -259,7 +258,7 @@ export class ValidationController {
         }
         const result: ControllerValidateResult = {
           instruction,
-          valid,
+          valid: newResults.find(r => !r.valid) === void 0,
           results: newResults
         };
         this.invokeCallbacks(instruction, result);

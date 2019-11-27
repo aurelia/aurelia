@@ -18,7 +18,7 @@ export interface IValidator {
    * @param rules - Optional. If unspecified, the implementation should lookup the rules for the
    * specified object. This may not be possible for all implementations of this interface.
    */
-  validateProperty(object: any, propertyName: string, rules?: any): Promise<[ValidateResult[], boolean]>;
+  validateProperty(object: any, propertyName: string, rules?: any): Promise<ValidateResult[]>;
 
   /**
    * Validates all rules for specified object and it's properties.
@@ -27,7 +27,7 @@ export interface IValidator {
    * @param rules - Optional. If unspecified, the implementation should lookup the rules for the
    * specified object. This may not be possible for all implementations of this interface.
    */
-  validateObject(object: any, rules?: any): Promise<[ValidateResult[], boolean]>;
+  validateObject(object: any, rules?: any): Promise<ValidateResult[]>;
 }
 
 /**
@@ -52,7 +52,7 @@ export class StandardValidator implements IValidator {
    * @param {*} [rules] - If unspecified, the rules will be looked up using the metadata
    * for the object created by ValidationRules....on(class/object)
    */
-  public async validateProperty(object: IValidateable, propertyName: string | number, rules?: PropertyRule[]): Promise<[ValidateResult[], boolean]> {
+  public async validateProperty(object: IValidateable, propertyName: string | number, rules?: PropertyRule[]): Promise<ValidateResult[]> {
     // TODO support filter by tags
     return this.validate(object, propertyName, rules);
   }
@@ -64,7 +64,7 @@ export class StandardValidator implements IValidator {
    * @param {*} [rules] - Optional. If unspecified, the rules will be looked up using the metadata
    * for the object created by ValidationRules....on(class/object)
    */
-  public async validateObject(object: IValidateable, rules?: PropertyRule[]): Promise<[ValidateResult[], boolean]> {
+  public async validateObject(object: IValidateable, rules?: PropertyRule[]): Promise<ValidateResult[]> {
     // TODO support filter by tags
     return this.validate(object, void 0, rules);
   }
@@ -97,11 +97,11 @@ export class StandardValidator implements IValidator {
     object: IValidateable,
     propertyName?: string | number,
     rules?: PropertyRule[],
-  ): Promise<[ValidateResult[], boolean]> {
+  ): Promise<ValidateResult[]> {
     rules = rules ?? Rules.get(object);
     const validateAllProperties = propertyName === void 0;
 
-    const result = await Promise.all(rules.reduce((acc: Promise<[ValidateResult[], boolean]>[], rule) => {
+    const result = await Promise.all(rules.reduce((acc: Promise<ValidateResult[]>[], rule) => {
       // eslint-disable-next-line eqeqeq
       if (validateAllProperties || rule.property.name != propertyName) {
         const value = rule.property.name === null ? object : object[rule.property.name];
@@ -110,10 +110,9 @@ export class StandardValidator implements IValidator {
       return acc;
     }, []));
 
-    return result.reduce((acc, [propertyResult, isValid]) => {
-      acc[0].push(...propertyResult);
-      acc[1] = acc[1] && isValid;
+    return result.reduce((acc, propertyResult) => {
+      acc.push(...propertyResult);
       return acc;
-    }, [[], true]);
+    }, []);
   }
 }

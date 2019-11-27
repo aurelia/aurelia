@@ -238,7 +238,7 @@ export class $ObjectBindingPattern implements I$Node {
 
     // 1. Perform ? RequireObjectCoercible(value).
     if (value.isNil) {
-      return new $TypeError(realm).enrichWith(this);
+      return new $TypeError(realm, `Cannot destructure ${value['[[Value]]']} into object`).enrichWith(this);
     }
 
     // 2. Return the result of performing BindingInitialization for ObjectBindingPattern using value and environment as arguments.

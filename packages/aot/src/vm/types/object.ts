@@ -294,7 +294,7 @@ export class $Object<
       }
 
       // 2. e. iii. Throw a TypeError exception.
-      return new $TypeError(realm);
+      return new $TypeError(realm, `Symbol.toPrimitive returned ${result}, but expected a primitive`);
     }
 
     // 2. f. If hint is "default", set hint to "number".
@@ -354,10 +354,13 @@ export class $Object<
         if (result.isPrimitive) {
           return result;
         }
+
+        // 6. Throw a TypeError exception.
+        return new $TypeError(realm, `valueOf returned ${result}, but expected a primitive`);
       }
 
       // 6. Throw a TypeError exception.
-      return new $TypeError(realm);
+      return new $TypeError(realm, `${this} has neither a toString nor a valueOf method that returns a primitive`);
     }
     // 4. Else,
     else {
@@ -392,10 +395,13 @@ export class $Object<
         if (result.isPrimitive) {
           return result;
         }
+
+        // 6. Throw a TypeError exception.
+        return new $TypeError(realm, `toString returned ${result}, but expected a primitive`);
       }
 
       // 6. Throw a TypeError exception.
-      return new $TypeError(realm);
+      return new $TypeError(realm, `${this} has neither a valueOf nor a toString method that returns a primitive`);
     }
   }
 
@@ -427,7 +433,7 @@ export class $Object<
 
     // 4. If IsCallable(func) is false, throw a TypeError exception.
     if (!func.isFunction) {
-      return new $TypeError(realm);
+      return new $TypeError(realm, `Return value from GetMethod is ${func}, but expected a callable function`);
     }
 
     // 5. Return func.

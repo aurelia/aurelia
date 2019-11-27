@@ -165,7 +165,7 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
   public ToNumber(
     ctx: ExecutionContext,
   ): $Error {
-    return new $TypeError(ctx.Realm);
+    return new $TypeError(ctx.Realm, `${this} cannot be converted to number`);
   }
 
   public ToInt32(

@@ -59,7 +59,7 @@ export class $SymbolConstructor extends $BuiltinFunction<'%Symbol%'> {
 
     // 1. If NewTarget is not undefined, throw a TypeError exception.
     if (!NewTarget.isUndefined) {
-      return new $TypeError(realm);
+      return new $TypeError(realm, `Symbol is not a constructor`);
     }
 
     // 2. If description is undefined, let descString be undefined.

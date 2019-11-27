@@ -152,7 +152,7 @@ export class $ErrorPrototype_toString extends $BuiltinFunction<'Error.prototype.
 
     // 2. If Type(O) is not Object, throw a TypeError exception.
     if (!O.isObject) {
-      return new $TypeError(realm);
+      return new $TypeError(realm, `Error.prototype.toString called on ${O}, but expected an object`);
     }
 
     // 3. Let name be ? Get(O, "name").

@@ -111,12 +111,12 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
+    // 1. Let handler be O.[[ProxyHandler]].
     const handler = this['[[ProxyHandler]]'];
 
-    // 1. Let handler be O.[[ProxyHandler]].
     if (handler.isNull) {
       // 2. If handler is null, throw a TypeError exception.
-      return new $TypeError(realm);
+      return new $TypeError(realm, `ProxyHandler is null`);
     }
 
     // 3. Assert: Type(handler) is Object.
@@ -139,7 +139,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
 
     // 8. If Type(handlerProto) is neither Object nor Null, throw a TypeError exception.
     if (!handlerProto.isNull && !handlerProto.isObject) {
-      return new $TypeError(realm);
+      return new $TypeError(realm, `Proxy handler prototype is ${handlerProto}, but expected Object or Null`);
     }
 
     // 9. Let extensibleTarget be ? IsExtensible(target).
@@ -157,7 +157,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
 
     // 12. If SameValue(handlerProto, targetProto) is false, throw a TypeError exception.
     if (!handlerProto.is(targetProto)) {
-      return new $TypeError(realm);
+      return new $TypeError(realm, `Expected handler prototype ${handlerProto} to be the same value as target prototype ${targetProto}`);
     }
 
     // 13. Return handlerProto.
@@ -173,14 +173,14 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    const handler = this['[[ProxyHandler]]'];
-
     // 1. Assert: Either Type(V) is Object or Type(V) is Null.
 
     // 2. Let handler be O.[[ProxyHandler]].
+    const handler = this['[[ProxyHandler]]'];
+
     if (handler.isNull) {
       // 3. If handler is null, throw a TypeError exception.
-      return new $TypeError(realm);
+      return new $TypeError(realm, `ProxyHandler is null`);
     }
 
     // 4. Assert: Type(handler) is Object.
@@ -219,8 +219,8 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     if (targetProto.isAbrupt) { return targetProto; }
 
     // 13. If SameValue(V, targetProto) is false, throw a TypeError exception.
-    if (V.is(targetProto)) {
-      return new $TypeError(realm);
+    if (!V.is(targetProto)) {
+      return new $TypeError(realm, `Expected value ${V} to be the same value as target prototype ${targetProto}`);
     }
 
     // 14. Return true.
@@ -235,12 +235,12 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
+    // 1. Let handler be O.[[ProxyHandler]].
     const handler = this['[[ProxyHandler]]'];
 
-    // 1. Let handler be O.[[ProxyHandler]].
     if (handler.isNull) {
       // 2. If handler is null, throw a TypeError exception.
-      return new $TypeError(realm);
+      return new $TypeError(realm, `ProxyHandler is null`);
     }
 
     // 3. Assert: Type(handler) is Object.
@@ -266,7 +266,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
 
     // 9. If SameValue(booleanTrapResult, targetResult) is false, throw a TypeError exception.
     if (!booleanTrapResult.is(targetResult)) {
-      return new $TypeError(realm);
+      return new $TypeError(realm, `Expected booleanTrapResult ${booleanTrapResult} to be the same value as targetResult ${targetResult}`);
     }
 
     // 10. Return booleanTrapResult.
@@ -281,12 +281,12 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
+    // 1. Let handler be O.[[ProxyHandler]].
     const handler = this['[[ProxyHandler]]'];
 
-    // 1. Let handler be O.[[ProxyHandler]].
     if (handler.isNull) {
       // 2. If handler is null, throw a TypeError exception.
-      return new $TypeError(realm);
+      return new $TypeError(realm, `ProxyHandler is null`);
     }
 
     // 3. Assert: Type(handler) is Object.
@@ -315,7 +315,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
 
       // 8. b. If targetIsExtensible is true, throw a TypeError exception.
       if (targetIsExtensible.isTruthy) {
-        return new $TypeError(realm);
+        return new $TypeError(realm, `Target is still extensible`);
       }
     }
 
@@ -334,12 +334,12 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
 
     // 1. Assert: IsPropertyKey(P) is true.
 
+    // 2. Let handler be O.[[ProxyHandler]].
     const handler = this['[[ProxyHandler]]'];
 
-    // 2. Let handler be O.[[ProxyHandler]].
     if (handler.isNull) {
       // 3. If handler is null, throw a TypeError exception.
-      return new $TypeError(realm);
+      return new $TypeError(realm, `ProxyHandler is null`);
     }
 
     // 4. Assert: Type(handler) is Object.
@@ -362,7 +362,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
 
     // 9. If Type(trapResultObj) is neither Object nor Undefined, throw a TypeError exception.
     if (!trapResultObj.isObject && !trapResultObj.isUndefined) {
-      return new $TypeError(realm);
+      return new $TypeError(realm, `trapResultObj from GetOwnProperty(${P}) is ${trapResultObj}, but expected Object or Undefined`);
     }
 
     // 10. Let targetDesc be ? target.[[GetOwnProperty]](P).
@@ -378,7 +378,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
 
       // 11. b. If targetDesc.[[Configurable]] is false, throw a TypeError exception.
       if (targetDesc['[[Configurable]]'].isFalsey) {
-        return new $TypeError(realm);
+        return new $TypeError(realm, `The proxy returned undefined for property descriptor ${P}, but there is a backing property descriptor which is not configurable`);
       }
 
       // 11. c. Let extensibleTarget be ? IsExtensible(target).
@@ -387,7 +387,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
 
       // 11. d. If extensibleTarget is false, throw a TypeError exception.
       if (extensibleTarget.isFalsey) {
-        return new $TypeError(realm);
+        return new $TypeError(realm, `The proxy returned undefined for property descriptor ${P}, but there is a backing property descriptor and the backing object is not extensible`);
       }
 
       // 11. e. Return undefined.
@@ -417,7 +417,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
 
     // 16. If valid is false, throw a TypeError exception.
     if (valid.isFalsey) {
-      return new $TypeError(realm);
+      return new $TypeError(realm, `Validation for property descriptor ${P} failed`);
     }
 
     // 17. If resultDesc.[[Configurable]] is false, then
@@ -425,7 +425,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
       // 17. a. If targetDesc is undefined or targetDesc.[[Configurable]] is true, then
       if (targetDesc.isUndefined || targetDesc['[[Configurable]]'].isTruthy) {
         // 17. a. i. Throw a TypeError exception.
-        return new $TypeError(realm);
+        return new $TypeError(realm, `The proxy returned a non-configurable property descriptor for ${P}, but the backing property descriptor is either undefined or configurable`);
       }
     }
 
@@ -445,12 +445,12 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
 
     // 1. Assert: IsPropertyKey(P) is true.
 
+    // 2. Let handler be O.[[ProxyHandler]].
     const handler = this['[[ProxyHandler]]'];
 
-    // 2. Let handler be O.[[ProxyHandler]].
     if (handler.isNull) {
       // 3. If handler is null, throw a TypeError exception.
-      return new $TypeError(realm);
+      return new $TypeError(realm, `ProxyHandler is null`);
     }
 
     // 4. Assert: Type(handler) is Object.
@@ -503,12 +503,12 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     if (targetDesc.isUndefined) {
       // 15. a. If extensibleTarget is false, throw a TypeError exception.
       if (extensibleTarget.isFalsey) {
-        return new $TypeError(realm);
+        return new $TypeError(realm, `Cannot define property ${P} on non-extensible target`);
       }
 
       // 15. b. If settingConfigFalse is true, throw a TypeError exception.
       if (!settingConfigFalse) {
-        return new $TypeError(realm);
+        return new $TypeError(realm, `Cannot define non-configurable property ${P} on proxy`);
       }
     }
     // 16. Else targetDesc is not undefined,
@@ -521,13 +521,13 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
         /* extensible */extensibleTarget,
         /* Desc */Desc,
         /* current */targetDesc,
-      )) {
-        return new $TypeError(realm);
+      ).isFalsey) {
+        return new $TypeError(realm, `The provided property descriptor for ${P} is not compatible with the proxy target's existing descriptor`);
       }
 
       // 16. b. If settingConfigFalse is true and targetDesc.[[Configurable]] is true, throw a TypeError exception.
       if (settingConfigFalse && targetDesc['[[Configurable]]'].isTruthy) {
-        return new $TypeError(realm);
+        return new $TypeError(realm, `The provided property descriptor for ${P} is not configurable but the proxy target's existing descriptor is`);
       }
     }
 
@@ -546,12 +546,12 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
 
     // 1. Assert: IsPropertyKey(P) is true.
 
+    // 2. Let handler be O.[[ProxyHandler]].
     const handler = this['[[ProxyHandler]]'];
 
-    // 2. Let handler be O.[[ProxyHandler]].
     if (handler.isNull) {
       // 3. If handler is null, throw a TypeError exception.
-      return new $TypeError(realm);
+      return new $TypeError(realm, `ProxyHandler is null`);
     }
 
     // 4. Assert: Type(handler) is Object.
@@ -582,7 +582,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
       if (!targetDesc.isUndefined) {
         // 9. b. i. If targetDesc.[[Configurable]] is false, throw a TypeError exception.
         if (targetDesc['[[Configurable]]'].isFalsey) {
-          return new $TypeError(realm);
+          return new $TypeError(realm, `The proxy returned false for HasProperty for ${P}, but the backing object has a property with that name which is not configurable`);
         }
 
         // 9. b. ii. Let extensibleTarget be ? IsExtensible(target).
@@ -591,7 +591,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
 
         if (extensibleTarget.isFalsey) {
           // 9. b. iii. If extensibleTarget is false, throw a TypeError exception.
-          return new $TypeError(realm);
+          return new $TypeError(realm, `The proxy returned false for HasProperty for ${P}, but the backing object has a property with that name and is not extensible`);
         }
       }
     }
@@ -612,12 +612,12 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
 
     // 1. Assert: IsPropertyKey(P) is true.
 
+    // 2. Let handler be O.[[ProxyHandler]].
     const handler = this['[[ProxyHandler]]'];
 
-    // 2. Let handler be O.[[ProxyHandler]].
     if (handler.isNull) {
       // 3. If handler is null, throw a TypeError exception.
-      return new $TypeError(realm);
+      return new $TypeError(realm, `ProxyHandler is null`);
     }
 
     // 4. Assert: Type(handler) is Object.
@@ -648,7 +648,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
       if (targetDesc.isDataDescriptor && targetDesc['[[Writable]]'].isFalsey) {
         // 10. a. i. If SameValue(trapResult, targetDesc.[[Value]]) is false, throw a TypeError exception.
         if (!trapResult.is(targetDesc['[[Value]]'])) {
-          return new $TypeError(realm);
+          return new $TypeError(realm, `The value returned by the proxy's getter for ${P} (${trapResult}) is different from the backing property's value (${targetDesc}), but the backing descriptor is neither configurable nor writable`);
         }
       }
 
@@ -656,7 +656,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
       if (targetDesc.isAccessorDescriptor && targetDesc['[[Get]]'].isUndefined) {
         // 10. b. i. If trapResult is not undefined, throw a TypeError exception.
         if (!trapResult.isUndefined) {
-          return new $TypeError(realm);
+          return new $TypeError(realm, `The proxy's getter for ${P} returned (${trapResult}), but expected undefined because the backing property's accessor descriptor has no getter and is not configurable`);
         }
       }
     }
@@ -678,12 +678,12 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
 
     // 1. Assert: IsPropertyKey(P) is true.
 
+    // 2. Let handler be O.[[ProxyHandler]].
     const handler = this['[[ProxyHandler]]'];
 
-    // 2. Let handler be O.[[ProxyHandler]].
     if (handler.isNull) {
       // 3. If handler is null, throw a TypeError exception.
-      return new $TypeError(realm);
+      return new $TypeError(realm, `ProxyHandler is null`);
     }
 
     // 4. Assert: Type(handler) is Object.
@@ -721,7 +721,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
 
         // 11. a. i. If SameValue(V, targetDesc.[[Value]]) is false, throw a TypeError exception.
         if (!V.is(targetDesc['[[Value]]'])) {
-          return new $TypeError(realm);
+          return new $TypeError(realm, `The value supplied to the proxy's setter for ${P} (${V}) is different from the backing property's value (${targetDesc}), but the backing descriptor is neither configurable nor writable`);
         }
       }
 
@@ -729,7 +729,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
       if (targetDesc.isAccessorDescriptor) {
         // 11. b. i. If targetDesc.[[Set]] is undefined, throw a TypeError exception.
         if (targetDesc['[[Set]]'].isUndefined) {
-          return new $TypeError(realm);
+          return new $TypeError(realm, `The proxy's setter for ${P} was invoked, but the backing property's accessor descriptor has no setter and is not configurable`);
         }
       }
     }
@@ -749,12 +749,12 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
 
     // 1. Assert: IsPropertyKey(P) is true.
 
+    // 2. Let handler be O.[[ProxyHandler]].
     const handler = this['[[ProxyHandler]]'];
 
-    // 2. Let handler be O.[[ProxyHandler]].
     if (handler.isNull) {
       // 3. If handler is null, throw a TypeError exception.
-      return new $TypeError(realm);
+      return new $TypeError(realm, `ProxyHandler is null`);
     }
 
     // 4. Assert: Type(handler) is Object.
@@ -791,7 +791,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
 
     // 12. If targetDesc.[[Configurable]] is false, throw a TypeError exception.
     if (targetDesc['[[Configurable]]'].isFalsey) {
-      return new $TypeError(realm);
+      return new $TypeError(realm, `The [[Delete]] trap returned true for ${P}, but the backing descriptor is not configurable`);
     }
 
     // 13. Return true.
@@ -806,12 +806,12 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
+    // 1. Let handler be O.[[ProxyHandler]].
     const handler = this['[[ProxyHandler]]'];
 
-    // 1. Let handler be O.[[ProxyHandler]].
     if (handler.isNull) {
       // 2. If handler is null, throw a TypeError exception.
-      return new $TypeError(realm);
+      return new $TypeError(realm, `ProxyHandler is null`);
     }
 
     // 3. Assert: Type(handler) is Object.
@@ -838,7 +838,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
 
     // 9. If trapResult contains any duplicate entries, throw a TypeError exception.
     if (trapResult.filter((x, i) => trapResult.findIndex(y => x.is(y)) === i).length !== trapResult.length) {
-      return new $TypeError(realm);
+      return new $TypeError(realm, `The [[OwnPropertyKeys]] trap returned more than one of the same property key: ${trapResult.map(x => x['[[Value]]'])}`);
     }
 
     // 10. Let extensibleTarget be ? IsExtensible(target).
@@ -890,7 +890,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
       // 19. a. If key is not an element of uncheckedResultKeys, throw a TypeError exception.
       const idx = uncheckedResultKeys.findIndex(x => x.is(key));
       if (idx === -1) {
-        return new $TypeError(realm);
+        return new $TypeError(realm, `The [[OwnPropertyKeys]] trap did not return all non-configurable keys of the backing object: ${key}`);
       }
 
       // 19. b. Remove key from uncheckedResultKeys.
@@ -905,9 +905,9 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     // 21. For each key that is an element of targetConfigurableKeys, do
     for (const key of targetConfigurableKeys) {
       // 21. a. If key is not an element of uncheckedResultKeys, throw a TypeError exception.
-      const idx = targetConfigurableKeys.findIndex(x => x.is(key));
+      const idx = uncheckedResultKeys.findIndex(x => x.is(key));
       if (idx === -1) {
-        return new $TypeError(realm);
+        return new $TypeError(realm, `The [[OwnPropertyKeys]] trap did not return all configurable keys of the backing object: ${key}`);
       }
 
       // 21. b. Remove key from uncheckedResultKeys.
@@ -916,7 +916,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
 
     // 22. If uncheckedResultKeys is not empty, throw a TypeError exception.
     if (uncheckedResultKeys.length > 0) {
-      return new $TypeError(realm);
+      return new $TypeError(realm, `The [[OwnPropertyKeys]] returned one or more keys that do not exist on the backing object: ${uncheckedResultKeys.map(x => x)}`);
     }
 
     // 23. Return trapResult.
@@ -936,9 +936,9 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     // 1. Let handler be O.[[ProxyHandler]].
     const handler = this['[[ProxyHandler]]'];
 
-    // 2. If handler is null, throw a TypeError exception.
     if (handler.isNull) {
-      return new $TypeError(realm);
+      // 2. If handler is null, throw a TypeError exception.
+      return new $TypeError(realm, `ProxyHandler is null`);
     }
 
     // 3. Assert: Type(handler) is Object.
@@ -975,9 +975,9 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     // 1. Let handler be O.[[ProxyHandler]].
     const handler = this['[[ProxyHandler]]'];
 
-    // 2. If handler is null, throw a TypeError exception.
     if (handler.isNull) {
-      return new $TypeError(realm);
+      // 2. If handler is null, throw a TypeError exception.
+      return new $TypeError(realm, `ProxyHandler is null`);
     }
 
     // 3. Assert: Type(handler) is Object.
@@ -1004,7 +1004,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
 
     // 10. If Type(newObj) is not Object, throw a TypeError exception.
     if (!newObj.isObject) {
-      return new $TypeError(realm);
+      return new $TypeError(realm, `The [[Construct]] trap returned ${newObj}, but expected an object`);
     }
 
     // 11. Return newObj.

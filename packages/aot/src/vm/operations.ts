@@ -70,7 +70,7 @@ export function $Set(
 
   // 5. If success is false and Throw is true, throw a TypeError exception.
   if (success.isFalsey && Throw.isTruthy) {
-    return new $TypeError(ctx.Realm);
+    return new $TypeError(ctx.Realm, `Cannot set property ${P}`);
   }
 
   // 6. Return success.
@@ -112,7 +112,7 @@ export function $GetMethod(
 
   // 4. If IsCallable(func) is false, throw a TypeError exception.
   if (!func.isFunction) {
-    return new $TypeError(ctx.Realm);
+    return new $TypeError(ctx.Realm, `Property ${P} of ${V} is ${func}, but expected a callable function`);
   }
 
   // 5. Return func.
@@ -273,7 +273,7 @@ export function $Call(
 
   // 2. If IsCallable(F) is false, throw a TypeError exception.
   if (!F.isFunction) {
-    return new $TypeError(ctx.Realm);
+    return new $TypeError(ctx.Realm, `${F} is not callable`);
   }
 
   // 3. Return ? F.[[Call]](V, argumentsList).
@@ -318,7 +318,7 @@ export function $DefinePropertyOrThrow(
 
   // 4. If success is false, throw a TypeError exception.
   if (success.isFalsey) {
-    return new $TypeError(ctx.Realm);
+    return new $TypeError(ctx.Realm, `Failed to define property ${P} on ${O}`);
   }
 
   // 5. Return success.
@@ -792,7 +792,7 @@ export function $InstanceOfOperator(
 
   // 1. If Type(target) is not Object, throw a TypeError exception.
   if (!target.isObject) {
-    return new $TypeError(realm);
+    return new $TypeError(realm, `Right-hand side of 'instanceof' operator is ${target}, but expected an object`);
   }
 
   // 2. Let instOfHandler be ? GetMethod(target, @@hasInstance).
@@ -807,7 +807,7 @@ export function $InstanceOfOperator(
 
   // 4. If IsCallable(target) is false, throw a TypeError exception.
   if (!target.isFunction) {
-    return new $TypeError(realm);
+    return new $TypeError(realm, `Right-hand side of 'instanceof' operator is ${target}, but expected a callable function`);
   }
 
   // 5. Return ? OrdinaryHasInstance(target, V).
@@ -848,7 +848,7 @@ export function $OrdinaryHasInstance(
 
   // 5. If Type(P) is not Object, throw a TypeError exception.
   if (!P.isObject) {
-    return new $TypeError(realm);
+    return new $TypeError(realm, `Prototype of right-hand side of 'instanceof' operator ${O} is ${P}, but expected an object`);
   }
 
   // 6. Repeat,
@@ -881,7 +881,7 @@ export function $ToPropertyDescriptor(
 
   // 1. If Type(Obj) is not Object, throw a TypeError exception.
   if (!Obj.isObject) {
-    return new $TypeError(realm);
+    return new $TypeError(realm, `Cannot convert ${Obj} to property descriptor for property ${key}: expected an object`);
   }
 
   // 2. Let desc be a new Property Descriptor that initially has no fields.
@@ -955,7 +955,7 @@ export function $ToPropertyDescriptor(
 
     // 12. b. If IsCallable(getter) is false and getter is not undefined, throw a TypeError exception.
     if (!getter.isFunction && !getter.isUndefined) {
-      return new $TypeError(realm);
+      return new $TypeError(realm, `Cannot convert ${Obj} to property descriptor for property ${key}: the getter is neither a callable function nor undefined`);
     }
 
     // 12. c. Set desc.[[Get]] to getter.
@@ -974,7 +974,7 @@ export function $ToPropertyDescriptor(
 
     // 14. b. If IsCallable(setter) is false and setter is not undefined, throw a TypeError exception.
     if (!setter.isFunction && !setter.isUndefined) {
-      return new $TypeError(realm);
+      return new $TypeError(realm, `Cannot convert ${Obj} to property descriptor for property ${key}: the setter is neither a callable function nor undefined`);
     }
 
     // 14. c. Set desc.[[Set]] to setter.
@@ -985,7 +985,7 @@ export function $ToPropertyDescriptor(
   if (desc['[[Get]]'].hasValue || desc['[[Set]]'].hasValue) {
     // 15. a. If desc.[[Value]] is present or desc.[[Writable]] is present, throw a TypeError exception.
     if (desc['[[Value]]'].hasValue || desc['[[Writable]]'].hasValue) {
-      return new $TypeError(realm);
+      return new $TypeError(realm, `Cannot convert ${Obj} to property descriptor for property ${key}: there is a getter and/or setter, as well as a writable and/or value property`);
     }
   }
 
@@ -1081,7 +1081,7 @@ export function $CreateListFromArrayLike(
   // 1. If elementTypes is not present, set elementTypes to « Undefined, Null, Boolean, String, Symbol, Number, Object ».
   // 2. If Type(obj) is not Object, throw a TypeError exception.
   if (!obj.isObject) {
-    return new $TypeError(realm);
+    return new $TypeError(realm, `Cannot convert ${obj} to list: expected an object`);
   }
 
   // 3. Let len be ? ToLength(? Get(obj, "length")).
@@ -1105,7 +1105,7 @@ export function $CreateListFromArrayLike(
 
     // 6. c. If Type(next) is not an element of elementTypes, throw a TypeError exception.
     if (!elementTypes.includes(next.Type)) {
-      return new $TypeError(realm);
+      return new $TypeError(realm, `Cannot convert ${obj} to list: one of the elements (${next}) is of type ${next.Type}, but expected one of: ${elementTypes}`);
     }
 
     // 6. d. Append next as the last element of list.
@@ -1144,7 +1144,7 @@ export function $GetFunctionRealm(
   if (obj.isProxy) {
     // 4. a. If obj.[[ProxyHandler]] is null, throw a TypeError exception.
     if ((obj as $ProxyExoticObject)['[[ProxyHandler]]'].isNull) {
-      return new $TypeError(realm);
+      return new $TypeError(realm, `Cannot retrieve function realm of proxy object with a null handler`);
     }
 
     // 4. b. Let proxyTarget be obj.[[ProxyTarget]].

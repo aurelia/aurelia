@@ -95,7 +95,7 @@ export class $Function<
 
     // 2. If F.[[FunctionKind]] is "classConstructor", throw a TypeError exception.
     if (F['[[FunctionKind]]'] === 'classConstructor') {
-      return new $TypeError(realm);
+      return new $TypeError(realm, `Cannot call classConstructor (${F.propertyMap.has('name') ? F.propertyDescriptors[F.propertyMap.get('name')!]['[[Value]]'] : 'anonymous'}) as a function`);
     }
 
     // 3. Let callerContext be the running execution context.
@@ -189,7 +189,7 @@ export class $Function<
 
       // 13. c. If result.[[Value]] is not undefined, throw a TypeError exception.
       if (!result.isUndefined) {
-        return new $TypeError(realm);
+        return new $TypeError(realm, `base constructor for ${F.propertyMap.has('name') ? F.propertyDescriptors[F.propertyMap.get('name')!]['[[Value]]'] : 'anonymous'} returned ${result}, but expected undefined`);
       }
     }
     // 14. Else, ReturnIfAbrupt(result).

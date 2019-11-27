@@ -48,7 +48,7 @@ export class $Empty {
   // It could be done correctly, but that would require complex conditional types which is not worth the effort right now.
   public get isAbrupt(): false { return (this['[[Type]]'] !== CompletionType.normal) as false; }
 
-  public get Type(): $TypeError { return new $TypeError(this.realm); }
+  public get Type(): $TypeError { return new $TypeError(this.realm, `[[empty]] has no Type`); }
   public get isEmpty(): true { return true; }
   public get isUndefined(): false { return false; }
   public get isNull(): false { return false; }
@@ -116,90 +116,90 @@ export class $Empty {
   public ToObject(
     ctx: ExecutionContext,
   ): $TypeError {
-    return new $TypeError(ctx.Realm);
+    return new $TypeError(ctx.Realm, `[[empty]] cannot be converted to object`);
   }
 
   public ToPropertyKey(
     ctx: ExecutionContext,
   ): $TypeError {
-    return new $TypeError(ctx.Realm);
+    return new $TypeError(ctx.Realm, `[[empty]] cannot be converted to property key`);
   }
 
   public ToLength(
     ctx: ExecutionContext,
   ): $TypeError {
-    return new $TypeError(ctx.Realm);
+    return new $TypeError(ctx.Realm, `[[empty]] cannot be converted to length`);
   }
 
   public ToPrimitive(
     ctx: ExecutionContext,
   ): $TypeError {
-    return new $TypeError(ctx.Realm);
+    return new $TypeError(ctx.Realm, `[[empty]] cannot be converted to primitive`);
   }
 
   public ToBoolean(
     ctx: ExecutionContext,
   ): $TypeError {
-    return new $TypeError(ctx.Realm);
+    return new $TypeError(ctx.Realm, `[[empty]] cannot be converted to boolean`);
   }
 
   public ToNumber(
     ctx: ExecutionContext,
   ): $TypeError {
-    return new $TypeError(ctx.Realm);
+    return new $TypeError(ctx.Realm, `[[empty]] cannot be converted to number`);
   }
 
   public ToInt32(
     ctx: ExecutionContext,
   ): $TypeError {
-    return new $TypeError(ctx.Realm);
+    return new $TypeError(ctx.Realm, `[[empty]] cannot be converted to Int32`);
   }
 
   public ToUint32(
     ctx: ExecutionContext,
   ): $TypeError {
-    return new $TypeError(ctx.Realm);
+    return new $TypeError(ctx.Realm, `[[empty]] cannot be converted to Uint32`);
   }
 
   public ToInt16(
     ctx: ExecutionContext,
   ): $TypeError {
-    return new $TypeError(ctx.Realm);
+    return new $TypeError(ctx.Realm, `[[empty]] cannot be converted to Int16`);
   }
 
   public ToUint16(
     ctx: ExecutionContext,
   ): $TypeError {
-    return new $TypeError(ctx.Realm);
+    return new $TypeError(ctx.Realm, `[[empty]] cannot be converted to Uint16`);
   }
 
   public ToInt8(
     ctx: ExecutionContext,
   ): $TypeError {
-    return new $TypeError(ctx.Realm);
+    return new $TypeError(ctx.Realm, `[[empty]] cannot be converted to Int8`);
   }
 
   public ToUint8(
     ctx: ExecutionContext,
   ): $TypeError {
-    return new $TypeError(ctx.Realm);
+    return new $TypeError(ctx.Realm, `[[empty]] cannot be converted to Uint8`);
   }
 
   public ToUint8Clamp(
     ctx: ExecutionContext,
   ): $TypeError {
-    return new $TypeError(ctx.Realm);
+    return new $TypeError(ctx.Realm, `[[empty]] cannot be converted to Uint8Clamp`);
   }
 
   public ToString(
     ctx: ExecutionContext,
   ): $TypeError {
-    return new $TypeError(ctx.Realm);
+    return new $TypeError(ctx.Realm, `[[empty]] cannot be converted to string`);
   }
 
   public GetValue(
     ctx: ExecutionContext,
   ): $TypeError {
-    return new $TypeError(ctx.Realm);
+    return new $TypeError(ctx.Realm, `[[empty]] has no value`);
   }
 }

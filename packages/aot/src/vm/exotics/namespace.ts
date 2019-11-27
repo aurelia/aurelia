@@ -263,7 +263,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
 
     // 11. If targetEnv is undefined, throw a ReferenceError exception.
     if (targetEnv.isUndefined) {
-      return new $ReferenceError(realm);
+      return new $ReferenceError(realm, `${P['[[Value]]']} cannot be resolved from namespace.`);
     }
 
     // 12. Let targetEnvRec be targetEnv's EnvironmentRecord.

@@ -131,7 +131,7 @@ export class $FunctionPrototype_call extends $BuiltinFunction<'Function.prototyp
 
     // 2. If IsCallable(func) is false, throw a TypeError exception.
     if (!func.isFunction) {
-      return new $TypeError(realm);
+      return new $TypeError(realm, `Function.prototype.call called on ${func}, but expected a callable function`);
     }
 
     // 3. Let argList be a new empty List.

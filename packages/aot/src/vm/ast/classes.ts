@@ -564,7 +564,7 @@ export class $ClassDeclaration implements I$Node {
       }
       // 6. f. Else if IsConstructor(superclass) is false, throw a TypeError exception.
       else if (!superClass.isFunction) {
-        return new $TypeError(realm);
+        return new $TypeError(realm, `Superclass is ${superClass}, but expected a function`);
       }
       // 6. g. Else,
       else {
@@ -574,7 +574,7 @@ export class $ClassDeclaration implements I$Node {
 
         // 6. g. ii. If Type(protoParent) is neither Object nor Null, throw a TypeError exception.
         if (!$protoParent.isObject && !$protoParent.isNull) {
-          return new $TypeError(realm);
+          return new $TypeError(realm, `Superclass prototype is ${superClass}, but expected null or an object`);
         }
 
         protoParent = $protoParent;

@@ -348,7 +348,7 @@ export function $ArraySpeciesCreate(
 
   // 9. If IsConstructor(C) is false, throw a TypeError exception.
   if (!C.isFunction) {
-    return new $TypeError(realm);
+    return new $TypeError(realm, `${C} is not a constructor`);
   }
 
   // 10. Return ? Construct(C, « length »).

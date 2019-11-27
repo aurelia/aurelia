@@ -148,7 +148,7 @@ export class $Reference {
 
     // 4. If IsUnresolvableReference(V) is true, throw a ReferenceError exception.
     if (this.IsUnresolvableReference().isTruthy) {
-      return new $ReferenceError(ctx.Realm);
+      return new $ReferenceError(ctx.Realm, `${this.referencedName['[[Value]]']} is not defined.`);
     }
 
     // 5. If IsPropertyReference(V) is true, then
@@ -190,7 +190,7 @@ export class $Reference {
       // 5. a. If IsStrictReference(V) is true, then
       if (this.IsStrictReference().isTruthy) {
         // 5. a. i. Throw a ReferenceError exception.
-        return new $ReferenceError(realm);
+        return new $ReferenceError(realm, `${this.referencedName['[[Value]]']} is not defined.`);
       }
 
       // 5. b. Let globalObj be GetGlobalObject().
@@ -214,7 +214,7 @@ export class $Reference {
 
       // 6. c. If succeeded is false and IsStrictReference(V) is true, throw a TypeError exception.
       if (succeeded.isFalsey && this.IsStrictReference().isTruthy) {
-        return new $TypeError(realm);
+        return new $TypeError(realm, `${this.referencedName['[[Value]]']} is not writable.`);
       }
 
       // 6. d. Return.

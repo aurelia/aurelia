@@ -250,7 +250,7 @@ export class $DeclarativeEnvRec implements IDisposable {
     if (binding === void 0) {
       // 2. a. If S is true, throw a ReferenceError exception.
       if (S.isTruthy) {
-        return new $ReferenceError(ctx.Realm);
+        return new $ReferenceError(ctx.Realm, `Cannot assign to non-existing binding ${N['[[Value]]']} in strict mode code.`);
       }
 
       // 2. b. Perform envRec.CreateMutableBinding(N, true).
@@ -270,7 +270,7 @@ export class $DeclarativeEnvRec implements IDisposable {
 
     // 4. If the binding for N in envRec has not yet been initialized, throw a ReferenceError exception.
     if (!binding.isInitialized) {
-      return new $ReferenceError(ctx.Realm);
+      return new $ReferenceError(ctx.Realm, `Binding ${N['[[Value]]']} is not yet initialized.`);
     }
     // 5. Else if the binding for N in envRec is a mutable binding, change its bound value to V.
     else if (binding.isMutable) {
@@ -281,7 +281,7 @@ export class $DeclarativeEnvRec implements IDisposable {
       // 6. a. Assert: This is an attempt to change the value of an immutable binding.
       // 6. b. If S is true, throw a TypeError exception.
       if (S.isTruthy) {
-        return new $TypeError(ctx.Realm);
+        return new $TypeError(ctx.Realm, `Cannot change the value of immutable binding ${N}`);
       }
     }
 
@@ -306,7 +306,7 @@ export class $DeclarativeEnvRec implements IDisposable {
 
     // 3. If the binding for N in envRec is an uninitialized binding, throw a ReferenceError exception.
     if (!binding.isInitialized) {
-      return new $ReferenceError(ctx.Realm);
+      return new $ReferenceError(ctx.Realm, `No binding exists for: ${N['[[Value]]']}.`);
     }
 
     // 4. Return the value currently bound to N in envRec.
@@ -579,7 +579,7 @@ export class $ObjectEnvRec implements IDisposable {
         return intrinsics.undefined;
       }
 
-      return new $ReferenceError(ctx.Realm);
+      return new $ReferenceError(ctx.Realm, `Cannot read from non-existing binding ${N['[[Value]]']} in strict mode code.`);
     }
 
     // 5. Return ? Get(bindings, N).
@@ -778,7 +778,7 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec implements IDisposable {
     // 2. Assert: envRec.[[ThisBindingStatus]] is not "lexical".
     // 3. If envRec.[[ThisBindingStatus]] is "initialized", throw a ReferenceError exception.
     if (envRec['[[ThisBindingStatus]]'] === 'initialized') {
-      return new $ReferenceError(ctx.Realm);
+      return new $ReferenceError(ctx.Realm, `The 'this' binding is already initialized.`);
     }
 
     // 4. Set envRec.[[ThisValue]] to V.
@@ -802,7 +802,7 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec implements IDisposable {
     // 2. Assert: envRec.[[ThisBindingStatus]] is not "lexical".
     // 3. If envRec.[[ThisBindingStatus]] is "uninitialized", throw a ReferenceError exception.
     if (envRec['[[ThisBindingStatus]]'] === 'uninitialized') {
-      return new $ReferenceError(ctx.Realm);
+      return new $ReferenceError(ctx.Realm, `The 'this' binding is not yet initialized.`);
     }
 
     // 4. Return envRec.[[ThisValue]].
@@ -946,7 +946,7 @@ export class $GlobalEnvRec implements IDisposable {
 
     // 3. If DclRec.HasBinding(N) is true, throw a TypeError exception.
     if (dclRec.HasBinding(ctx, N).isTruthy) {
-      return new $TypeError(ctx.Realm);
+      return new $TypeError(ctx.Realm, `A global binding for ${N} already exists`);
     }
 
     // 4. Return DclRec.CreateMutableBinding(N, D).
@@ -970,7 +970,7 @@ export class $GlobalEnvRec implements IDisposable {
 
     // 3. If DclRec.HasBinding(N) is true, throw a TypeError exception.
     if (dclRec.HasBinding(ctx, N).isTruthy) {
-      return new $TypeError(ctx.Realm);
+      return new $TypeError(ctx.Realm, `A global binding for ${N} already exists`);
     }
 
     // 4. Return DclRec.CreateImmutableBinding(N, S).
@@ -1501,7 +1501,7 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec implements IDisposable {
 
       // 4. c. If targetEnv is undefined, throw a ReferenceError exception.
       if (targetER.isUndefined) {
-        return new $ReferenceError(ctx.Realm);
+        return new $ReferenceError(ctx.Realm, `Cannot resolve export: ${N['[[Value]]']}`);
       }
 
       // 4. d. Let targetER be targetEnv's EnvironmentRecord.
@@ -1511,7 +1511,7 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec implements IDisposable {
 
     // 5. If the binding for N in envRec is an uninitialized binding, throw a ReferenceError exception.
     if (!binding.isInitialized) {
-      return new $ReferenceError(ctx.Realm);
+      return new $ReferenceError(ctx.Realm, `Binding for ${N['[[Value]]']} is not yet initialized`);
     }
 
     // 6. Return the value currently bound to N in envRec.

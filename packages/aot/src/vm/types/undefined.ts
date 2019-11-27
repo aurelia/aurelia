@@ -133,7 +133,7 @@ export class $Undefined {
   public ToObject(
     ctx: ExecutionContext,
   ): $Error {
-    return new $TypeError(ctx.Realm);
+    return new $TypeError(ctx.Realm, `${this} cannot be converted to object`);
   }
 
   public ToPropertyKey(

@@ -840,7 +840,7 @@ export class $PropertyAccessExpression implements I$Node {
     if (baseValue.isAbrupt) { return baseValue.enrichWith(this); }
 
     // 3. baseValue bv be ? RequireObjectCoercible(baseValue).
-    if (baseValue.isNil) { return new $TypeError(realm).enrichWith(this); }
+    if (baseValue.isNil) { return new $TypeError(realm, `Cannot access property ${this.$name.StringValue['[[Value]]']} on value: ${baseValue['[[Value]]']}`).enrichWith(this); }
 
     // 4. Let propertyNameString be StringValue of IdentifierName.
     const propertyNameString = this.$name.StringValue;
@@ -902,7 +902,7 @@ export class $ElementAccessExpression implements I$Node {
     if (propertyNameValue.isAbrupt) { return propertyNameValue.enrichWith(this); }
 
     // 5. Let bv be ? RequireObjectCoercible(baseValue).
-    if (baseValue.isNil) { return new $TypeError(realm).enrichWith(this); }
+    if (baseValue.isNil) { return new $TypeError(realm, `Cannot access computed / indexed property on value: ${baseValue['[[Value]]']}`).enrichWith(this); }
 
     // 6. Let propertyKey be ? ToPropertyKey(propertyNameValue).
     const propertyKey = propertyNameValue.ToPropertyKey(ctx);
@@ -1046,7 +1046,7 @@ export function $EvaluateCall(
   // 5. If Type(func) is not Object, throw a TypeError exception.
   // 6. If IsCallable(func) is false, throw a TypeError exception.
   if (!func.isFunction) {
-    return new $TypeError(realm);
+    return new $TypeError(realm, `${func} is not callable`);
   }
 
   // 7. If tailPosition is true, perform PrepareForTailCall().
@@ -1199,7 +1199,7 @@ export class $NewExpression implements I$Node {
     }
     // 7. If IsConstructor(constructor) is false, throw a TypeError exception.
     if (!IsConstructor(ctx, constructor)) {
-      return new $TypeError(realm, "If IsConstructor(constructor) is false, throw a TypeError exception.");
+      return new $TypeError(realm, `${constructor} is not a constructor`);
     }
     // 8. Return ? Construct(constructor, argList).
     return $Construct(ctx, constructor, argList).enrichWith(this);
@@ -1770,7 +1770,7 @@ export class $PrefixUnaryExpression implements I$Node {
 
         // 4. Perform ? PutValue(expr, newValue).
         if (!(expr instanceof $Reference)) {
-          return new $ReferenceError(realm).enrichWith(this);
+          return new $ReferenceError(realm, `Value is not assignable: ${expr}`).enrichWith(this);
         }
         const $PutValueResult = expr.PutValue(ctx, newValue);
         if ($PutValueResult.isAbrupt) { return $PutValueResult.enrichWith(this); }
@@ -1799,7 +1799,7 @@ export class $PrefixUnaryExpression implements I$Node {
 
         // 4. Perform ? PutValue(expr, newValue).
         if (!(expr instanceof $Reference)) {
-          return new $ReferenceError(realm).enrichWith(this);
+          return new $ReferenceError(realm, `Value is not assignable: ${expr}`).enrichWith(this);
         }
         const $PutValueResult = expr.PutValue(ctx, newValue);
         if ($PutValueResult.isAbrupt) { return $PutValueResult.enrichWith(this); }
@@ -1948,7 +1948,7 @@ export class $PostfixUnaryExpression implements I$Node {
 
         // 4. Perform ? PutValue(lhs, newValue).
         if (!(lhs instanceof $Reference)) {
-          return new $ReferenceError(realm).enrichWith(this);
+          return new $ReferenceError(realm, `Value is not assignable: ${lhs}`).enrichWith(this);
         }
         const $PutValueResult = lhs.PutValue(ctx, newValue);
         if ($PutValueResult.isAbrupt) { return $PutValueResult.enrichWith(this); }
@@ -1976,7 +1976,7 @@ export class $PostfixUnaryExpression implements I$Node {
 
         // 4. Perform ? PutValue(lhs, newValue).
         if (!(lhs instanceof $Reference)) {
-          return new $ReferenceError(realm).enrichWith(this);
+          return new $ReferenceError(realm, `Value is not assignable: ${lhs}`).enrichWith(this);
         }
         const $PutValueResult = lhs.PutValue(ctx, newValue);
         if ($PutValueResult.isAbrupt) { return $PutValueResult.enrichWith(this); }
@@ -2530,7 +2530,7 @@ export class $BinaryExpression implements I$Node {
 
         // 5. If Type(rval) is not Object, throw a TypeError exception.
         if (!rval.isObject) {
-          return new $TypeError(realm);
+          return new $TypeError(realm, `Right-hand side of 'in' keyword is not an object: ${rval}`);
         }
 
         // 6. Return ? HasProperty(rval, ToPropertyKey(lval)).
@@ -2802,7 +2802,7 @@ export class $BinaryExpression implements I$Node {
 
           // 1. e. Perform ? PutValue(lref, rval).
           if (!(lref instanceof $Reference)) {
-            return new $ReferenceError(realm).enrichWith(this);
+            return new $ReferenceError(realm, `Value is not assignable: ${lref}`).enrichWith(this);
           }
           const $PutValueResult = lref.PutValue(ctx, rval);
           if ($PutValueResult.isAbrupt) { return $PutValueResult.enrichWith(this); }
@@ -3078,7 +3078,7 @@ export class $BinaryExpression implements I$Node {
 
         // 7. Perform ? PutValue(lref, r).
         if (!(lref instanceof $Reference)) {
-          return new $ReferenceError(realm).enrichWith(this);
+          return new $ReferenceError(realm, `Value is not assignable: ${lref}`).enrichWith(this);
         }
         const $PutValueResult = lref.PutValue(ctx, r);
         if ($PutValueResult.isAbrupt) { return $PutValueResult.enrichWith(this); }

@@ -93,7 +93,7 @@ export function $GetIterator(
 
   // 5. If Type(iterator) is not Object, throw a TypeError exception.
   if (!iterator.isObject) {
-    return new $TypeError(realm);
+    return new $TypeError(realm, `The iterator is ${iterator}, but expected an object`);
   }
 
   // 6. Let nextMethod be ? GetV(iterator, "next").
@@ -136,7 +136,7 @@ export function $IteratorNext(
 
   // 3. If Type(result) is not Object, throw a TypeError exception.
   if (!result.isObject) {
-    return new $TypeError(ctx.Realm);
+    return new $TypeError(ctx.Realm, `The iterator next result is ${result}, but expected an object`);
   }
 
   // 4. Return result.
@@ -232,7 +232,7 @@ export function $IteratorClose(
 
   // 9. If Type(innerResult.[[Value]]) is not Object, throw a TypeError exception.
   if (!innerResult.isObject) {
-    return new $TypeError(realm);
+    return new $TypeError(realm, `The iterator close innerResult is ${innerResult}, but expected an object`);
   }
 
   // 10. Return Completion(completion).
@@ -284,7 +284,7 @@ export function $AsyncIteratorClose(
 
   // 10. If Type(innerResult.[[Value]]) is not Object, throw a TypeError exception.
   if (!innerResult.isObject) {
-    return new $TypeError(realm);
+    return new $TypeError(realm, `The async iterator close innerResult is ${innerResult}, but expected an object`);
   }
 
   // 11. Return Completion(completion).

@@ -75,6 +75,7 @@ import {
   GetDirectivePrologue,
   $decoratorList,
   $i,
+  $$ESVarDeclaration,
 } from './_shared';
 import {
   ExportEntryRecord,
@@ -222,7 +223,7 @@ export class $FunctionExpression implements I$Node {
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
   // 14.1.17 Static Semantics: VarScopedDeclarations
-  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+  public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
 
   public readonly DirectivePrologue: DirectivePrologue;
 
@@ -527,7 +528,7 @@ export class $FunctionDeclaration implements I$Node {
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
   // 14.1.17 Static Semantics: VarScopedDeclarations
-  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+  public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
 
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-static-semantics-propname
   // 14.4.9 Static Semantics: PropName
@@ -1114,7 +1115,7 @@ export class $ArrowFunction implements I$Node {
   // 14.2.13 Static Semantics: VarScopedDeclarations
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-VarScopedDeclarations
   // 14.8.12 Static Semantics: VarScopedDeclarations
-  public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[] = emptyArray;
 
   public readonly DirectivePrologue: DirectivePrologue;
 
@@ -1240,7 +1241,7 @@ export class $ConstructorDeclaration implements I$Node {
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
   // 14.1.17 Static Semantics: VarScopedDeclarations
-  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+  public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
 
   public constructor(
     public readonly node: ConstructorDeclaration,

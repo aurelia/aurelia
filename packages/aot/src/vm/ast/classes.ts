@@ -89,6 +89,7 @@ import {
   hasAllBits,
   $decoratorList,
   $i,
+  $$ESVarDeclaration,
 } from './_shared';
 import {
   ExportEntryRecord,
@@ -353,7 +354,7 @@ export class $ClassDeclaration implements I$Node {
   public readonly VarDeclaredNames: readonly $String[] = emptyArray; // TODO: this is actually not explicitly specced. Need to double check
   // http://www.ecma-international.org/ecma-262/#sec-statement-semantics-static-semantics-varscopeddeclarations
   // 13.1.6 Static Semantics: VarScopedDeclarations
-  public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[] = emptyArray;
 
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportedbindings
   // 15.2.3.3 Static Semantics: ExportedBindings

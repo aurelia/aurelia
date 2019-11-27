@@ -47,6 +47,7 @@ import {
   $decoratorList,
   $$ESDeclaration,
   $i,
+  $$ESVarDeclaration,
 } from './_shared';
 import {
   $$ESModuleOrScript,
@@ -104,7 +105,7 @@ export class $MethodDeclaration implements I$Node {
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
   // 14.1.17 Static Semantics: VarScopedDeclarations
-  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+  public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
 
   public constructor(
     public readonly node: MethodDeclaration,
@@ -261,7 +262,7 @@ export class $GetAccessorDeclaration implements I$Node {
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
   // 14.1.17 Static Semantics: VarScopedDeclarations
-  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+  public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
 
   public constructor(
     public readonly node: GetAccessorDeclaration,
@@ -385,7 +386,7 @@ export class $SetAccessorDeclaration implements I$Node {
   public readonly VarDeclaredNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
   // 14.1.17 Static Semantics: VarScopedDeclarations
-  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+  public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
 
   public constructor(
     public readonly node: SetAccessorDeclaration,

@@ -32,6 +32,7 @@ import {
   $assignmentExpression,
   $AssignmentExpressionNode,
   $i,
+  $$ESVarDeclaration,
 } from './_shared';
 import {
   ExportEntryRecord,
@@ -55,7 +56,7 @@ export class $InterfaceDeclaration implements I$Node {
 
   public readonly BoundNames: readonly [$String];
   public readonly VarDeclaredNames: readonly $String[] = emptyArray;
-  public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[] = emptyArray;
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
@@ -125,7 +126,7 @@ export class $TypeAliasDeclaration implements I$Node {
 
   public readonly BoundNames: readonly [$String];
   public readonly VarDeclaredNames: readonly $String[] = emptyArray;
-  public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[] = emptyArray;
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
@@ -210,7 +211,7 @@ export class $EnumDeclaration implements I$Node {
 
   public readonly BoundNames: readonly [$String];
   public readonly VarDeclaredNames: readonly $String[] = emptyArray;
-  public readonly VarScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[] = emptyArray;
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 

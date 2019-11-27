@@ -914,11 +914,15 @@ export function $$esStatement(
   }
 }
 
-export type $$ESDeclaration = (
+export type $$ESVarDeclaration = (
   $FunctionDeclaration |
-  $ClassDeclaration |
   $VariableStatement |
   $VariableDeclaration
+);
+
+export type $$ESDeclaration = (
+  $$ESVarDeclaration |
+  $ClassDeclaration
 );
 
 export type $$TSDeclaration = (

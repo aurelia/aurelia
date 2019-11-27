@@ -26,6 +26,7 @@ export class ViewportInstruction {
   public parametersType: ParametersType = ParametersType.none;
 
   public scope: ViewportScope | null = null;
+  public context: string = '';
   public needsViewportDescribed: boolean = false;
   public route: string | null = null;
 

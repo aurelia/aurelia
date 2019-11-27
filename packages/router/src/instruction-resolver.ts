@@ -75,7 +75,17 @@ export class InstructionResolver {
   }
 
   public parseViewportInstructions(instructions: string): ViewportInstruction[] {
-    return this.parseViewportInstructionsWorker(instructions, true).instructions;
+    const match = instructions.match(/^[./]+/);
+    let context = '';
+    if (Array.isArray(match) && match.length > 0) {
+      context = match[0];
+      instructions = instructions.slice(context.length);
+    }
+    const parsedInstructions: ViewportInstruction[] = this.parseViewportInstructionsWorker(instructions, true).instructions;
+    for (const instruction of parsedInstructions) {
+      instruction.context = context;
+    }
+    return parsedInstructions;
   }
 
   public parseViewportInstruction(instruction: string): ViewportInstruction {
@@ -112,7 +122,7 @@ export class InstructionResolver {
       }
       const route: string | null = instruction.route;
       const nextInstructions: ViewportInstruction[] | null = instruction.nextScopeInstructions;
-      let stringified: string = '';
+      let stringified: string = instruction.context;
       // It's a configured route
       if (route !== null) {
         // Already added as part of a configuration, skip to next scope
@@ -192,7 +202,7 @@ export class InstructionResolver {
     return flat;
   }
 
-  public cloneViewportInstructions(instructions: ViewportInstruction[], viewportInstances: boolean = false): ViewportInstruction[] {
+  public cloneViewportInstructions(instructions: ViewportInstruction[], viewportInstances: boolean = false, context: boolean = false): ViewportInstruction[] {
     const clones: ViewportInstruction[] = [];
     for (const instruction of instructions) {
       const clone: ViewportInstruction = this.createViewportInstruction(
@@ -202,9 +212,12 @@ export class InstructionResolver {
       );
       clone.needsViewportDescribed = instruction.needsViewportDescribed;
       clone.route = instruction.route;
+      if (context) {
+        clone.context = instruction.context;
+      }
       clone.scope = viewportInstances ? instruction.scope : null;
       if (instruction.nextScopeInstructions) {
-        clone.nextScopeInstructions = this.cloneViewportInstructions(instruction.nextScopeInstructions, viewportInstances);
+        clone.nextScopeInstructions = this.cloneViewportInstructions(instruction.nextScopeInstructions, viewportInstances, context);
       }
       clones.push(clone);
     }

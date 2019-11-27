@@ -104,6 +104,14 @@ export class $Undefined {
     return this;
   }
 
+  public [Symbol.toPrimitive](): string {
+    return String(this['[[Value]]']);
+  }
+
+  public [Symbol.toStringTag](): string {
+    return Object.prototype.toString.call(this['[[Value]]']);
+  }
+
   public ToCompletion(
     type: PotentialNonEmptyCompletionType,
     target: CompletionTarget,

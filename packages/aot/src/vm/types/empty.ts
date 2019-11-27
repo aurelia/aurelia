@@ -87,6 +87,14 @@ export class $Empty {
     return this;
   }
 
+  public [Symbol.toPrimitive](): string {
+    return '[[empty]]';
+  }
+
+  public [Symbol.toStringTag](): string {
+    return '[object [[empty]]]';
+  }
+
   public ToCompletion(
     type: PotentialEmptyCompletionType,
     target: CompletionTarget,

@@ -15,7 +15,7 @@ import {
   $TypeError,
 } from './error';
 import {
-  $ESModule,
+  $ESModule, $ESScript,
 } from '../ast/modules';
 import {
   $ComputedPropertyName,
@@ -73,7 +73,7 @@ export class $Empty {
     public readonly realm: Realm,
     type: PotentialEmptyCompletionType = CompletionType.normal,
     target: CompletionTarget = realm['[[Intrinsics]]'].empty,
-    public readonly sourceNode: $ESModule | $ComputedPropertyName | $ContinueStatement | $BreakStatement | $FunctionDeclaration | null = null,
+    public readonly sourceNode: $ESModule | $ESScript | $ComputedPropertyName | $ContinueStatement | $BreakStatement | $FunctionDeclaration | null = null,
   ) {
     this['[[Type]]'] = type;
     this['[[Target]]'] = target;

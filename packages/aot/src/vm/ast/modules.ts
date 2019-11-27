@@ -1951,6 +1951,8 @@ export class $ESModule implements I$Node, IModule {
         default:
           throw new Error(`Unexpected syntax node: ${SyntaxKind[$statement.$kind]}.`);
       }
+
+      if (sl.isAbrupt) { return sl.enrichWith(this); }
     }
 
     return sl;

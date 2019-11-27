@@ -138,4 +138,8 @@ export class $StringSet {
       arr[idx] = item;
     }
   }
+
+  public [Symbol.iterator](): IterableIterator<$String> {
+    return this.arr[Symbol.iterator]();
+  }
 }

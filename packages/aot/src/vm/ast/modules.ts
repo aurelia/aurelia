@@ -44,6 +44,7 @@ import {
   $ModuleEnvRec,
   $EnvRec,
   $FunctionEnvRec,
+  $GlobalEnvRec,
 } from '../types/environment-record';
 import {
   $NamespaceExoticObject,
@@ -73,6 +74,7 @@ import {
 import {
   $Error,
   $SyntaxError,
+  $TypeError,
 } from '../types/error';
 import {
   $List,
@@ -100,6 +102,7 @@ import {
   $$ModuleDeclarationParent,
   $i,
   $ESStatementListItemNode,
+  $$ESVarDeclaration,
 } from './_shared';
 import {
   $Identifier,
@@ -204,7 +207,7 @@ export class $ESScript implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-scripts-static-semantics-varscopeddeclarations
   // 15.1.6 Static Semantics: VarScopedDeclarations
-  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+  public readonly VarScopedDeclarations: readonly Exclude<$$ESDeclaration, $ClassDeclaration>[];
 
   public get isScript(): true { return true; }
   public get isModule(): false { return false; }
@@ -233,7 +236,7 @@ export class $ESScript implements I$Node {
     const LexicallyDeclaredNames = this.LexicallyDeclaredNames = [] as $String[];
     const LexicallyScopedDeclarations = this.LexicallyScopedDeclarations = [] as $$ESDeclaration[];
     const VarDeclaredNames = this.VarDeclaredNames = [] as $String[];
-    const VarScopedDeclarations = this.VarScopedDeclarations = [] as $$ESDeclaration[];
+    const VarScopedDeclarations = this.VarScopedDeclarations = [] as Exclude<$$ESDeclaration, $ClassDeclaration>[];
 
     const $statements = this.$statements = [] as $$ESStatementListItem[];
     const statements = node.statements as readonly $ESStatementListItemNode[];
@@ -381,6 +384,177 @@ export class $ESScript implements I$Node {
       }
     }
   }
+
+
+  // http://www.ecma-international.org/ecma-262/#sec-globaldeclarationinstantiation
+  // 15.1.11 Runtime Semantics: GlobalDeclarationInstantiation ( script , env )
+  public InstantiateGlobalDeclaration(
+    ctx: ExecutionContext,
+    env: $GlobalEnvRec,
+  ): $Empty | $Error {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    const script = this;
+
+    // 1. Let envRec be env's EnvironmentRecord.
+    const envRec = env;
+
+    // 2. Assert: envRec is a global Environment Record.
+    // 3. Let lexNames be the LexicallyDeclaredNames of script.
+    const lexNames = script.LexicallyDeclaredNames;
+
+    // 4. Let varNames be the VarDeclaredNames of script.
+    const varNames = script.VarDeclaredNames;
+
+    // 5. For each name in lexNames, do
+    for (const name of lexNames) {
+      // 5. a. If envRec.HasVarDeclaration(name) is true, throw a SyntaxError exception.
+      if (envRec.HasVarDeclaration(ctx, name)) {
+        return new $SyntaxError(realm, `${name} is already var-declared in global scope`).enrichWith(this);
+      }
+
+      // 5. b. If envRec.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
+      if (envRec.HasLexicalDeclaration(ctx, name)) {
+        return new $SyntaxError(realm, `${name} is already lexically-declared in global scope`).enrichWith(this);
+      }
+
+      // 5. c. Let hasRestrictedGlobal be ? envRec.HasRestrictedGlobalProperty(name).
+      const hasRestrictedGlobal = envRec.HasRestrictedGlobalProperty(ctx, name);
+      if (hasRestrictedGlobal.isAbrupt) { return hasRestrictedGlobal.enrichWith(this); }
+
+      // 5. d. If hasRestrictedGlobal is true, throw a SyntaxError exception.
+      if (hasRestrictedGlobal.isTruthy) {
+        return new $SyntaxError(realm, `${name} is a restricted global property`).enrichWith(this);
+      }
+    }
+
+    // 6. For each name in varNames, do
+    for (const name of varNames) {
+      // 6. a. If envRec.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
+      if (envRec.HasLexicalDeclaration(ctx, name)) {
+        return new $SyntaxError(realm, `${name} is already lexically-declared in global scope`).enrichWith(this);
+      }
+    }
+
+    // 7. Let varDeclarations be the VarScopedDeclarations of script.
+    const varDeclarations = script.VarScopedDeclarations;
+
+    // 8. Let functionsToInitialize be a new empty List.
+    const functionsToInitialize: $FunctionDeclaration[] = [];
+
+    // 9. Let declaredFunctionNames be a new empty List.
+    const declaredFunctionNames = new $StringSet();
+
+    // 10. For each d in varDeclarations, in reverse list order, do
+    for (let i = varDeclarations.length - 1; i >= 0; --i) {
+      const d = varDeclarations[i];
+
+      // 10. a. If d is neither a VariableDeclaration nor a ForBinding nor a BindingIdentifier, then
+      if (d instanceof $FunctionDeclaration) {
+        // 10. a. i. Assert: d is either a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration.
+        // 10. a. ii. NOTE: If there are multiple function declarations for the same name, the last declaration is used.
+        // 10. a. iii. Let fn be the sole element of the BoundNames of d.
+        const [fn] = d.BoundNames;
+
+        // 10. a. iv. If fn is not an element of declaredFunctionNames, then
+        if (!declaredFunctionNames.has(fn)) {
+          // 10. a. iv. 1. Let fnDefinable be ? envRec.CanDeclareGlobalFunction(fn).
+          const fnDefinable = envRec.CanDeclareGlobalFunction(ctx, fn);
+          if (fnDefinable.isAbrupt) { return fnDefinable.enrichWith(this); }
+
+          // 10. a. iv. 2. If fnDefinable is false, throw a TypeError exception.
+          if (fnDefinable.isFalsey) {
+            return new $TypeError(realm, `function declaration ${fn} cannot be defined in global scope.`).enrichWith(this);
+          }
+
+          // 10. a. iv. 3. Append fn to declaredFunctionNames.
+          declaredFunctionNames.add(fn);
+
+          // 10. a. iv. 4. Insert d as the first element of functionsToInitialize.
+          functionsToInitialize.unshift(d);
+        }
+      }
+    }
+
+    // 11. Let declaredVarNames be a new empty List.
+    const declaredVarNames = new $StringSet();
+
+    // 12. For each d in varDeclarations, do
+    for (const d of varDeclarations) {
+      // 12. a. If d is a VariableDeclaration, a ForBinding, or a BindingIdentifier, then
+      if (!(d instanceof $FunctionDeclaration)) {
+        // 12. a. i. For each String vn in the BoundNames of d, do
+        for (const vn of d.BoundNames) {
+          // 12. a. i. 1. If vn is not an element of declaredFunctionNames, then
+          if (!declaredFunctionNames.has(vn)) {
+            // 12. a. i. 1. a. Let vnDefinable be ? envRec.CanDeclareGlobalVar(vn).
+            const vnDefinable = envRec.CanDeclareGlobalVar(ctx, vn);
+            if (vnDefinable.isAbrupt) { return vnDefinable.enrichWith(this); }
+
+            // 12. a. i. 1. b. If vnDefinable is false, throw a TypeError exception.
+            if (vnDefinable.isFalsey) {
+              return new $TypeError(realm, `var declaration ${vn} cannot be defined in global scope.`).enrichWith(this);
+            }
+
+            // 12. a. i. 1. c. If vn is not an element of declaredVarNames, then
+            if (!declaredVarNames.has(vn)) {
+              // 12. a. i. 1. c. i. Append vn to declaredVarNames.
+              declaredVarNames.add(vn);
+            }
+          }
+        }
+      }
+    }
+
+    // 13. NOTE: No abnormal terminations occur after this algorithm step if the global object is an ordinary object. However, if the global object is a Proxy exotic object it may exhibit behaviours that cause abnormal terminations in some of the following steps.
+    // 14. NOTE: Annex B.3.3.2 adds additional steps at this point.
+    // 15. Let lexDeclarations be the LexicallyScopedDeclarations of script.
+    const lexDeclarations = script.LexicallyScopedDeclarations;
+
+    // 16. For each element d in lexDeclarations, do
+    for (const d of lexDeclarations) {
+      // 16. a. NOTE: Lexically declared names are only instantiated here but not initialized.
+      // 16. b. For each element dn of the BoundNames of d, do
+      for (const dn of d.BoundNames) {
+        // 16. b. i. If IsConstantDeclaration of d is true, then
+        if (d.IsConstantDeclaration) {
+          // 16. b. i. 1. Perform ? envRec.CreateImmutableBinding(dn, true).
+          const $CreateImmutableBindingResult = envRec.CreateImmutableBinding(ctx, dn, intrinsics.true);
+          if ($CreateImmutableBindingResult.isAbrupt) { return $CreateImmutableBindingResult.enrichWith(this); }
+        }
+        // 16. b. ii. Else,
+        else {
+          // 16. b. ii. 1. Perform ? envRec.CreateMutableBinding(dn, false).
+          const $CreateImmutableBindingResult = envRec.CreateImmutableBinding(ctx, dn, intrinsics.false);
+          if ($CreateImmutableBindingResult.isAbrupt) { return $CreateImmutableBindingResult.enrichWith(this); }
+        }
+      }
+    }
+
+    // 17. For each Parse Node f in functionsToInitialize, do
+    for (const f of functionsToInitialize) {
+      // 17. a. Let fn be the sole element of the BoundNames of f.
+      const [fn] = f.BoundNames;
+
+      // 17. b. Let fo be the result of performing InstantiateFunctionObject for f with argument env.
+      const fo = f.InstantiateFunctionObject(ctx, env);
+
+      // 17. c. Perform ? envRec.CreateGlobalFunctionBinding(fn, fo, false).
+      const $CreateGlobalFunctionBindingResult = envRec.CreateGlobalFunctionBinding(ctx, fn, fo, intrinsics.false);
+      if ($CreateGlobalFunctionBindingResult.isAbrupt) { return $CreateGlobalFunctionBindingResult.enrichWith(this); }
+    }
+
+    // 18. For each String vn in declaredVarNames, in list order, do
+    for (const vn of declaredVarNames) {
+      // 18. a. Perform ? envRec.CreateGlobalVarBinding(vn, false).
+      const $CreateGlobalVarBindingResult = envRec.CreateGlobalVarBinding(ctx, vn, intrinsics.false);
+      if ($CreateGlobalVarBindingResult.isAbrupt) { return $CreateGlobalVarBindingResult.enrichWith(this); }
+    }
+
+    // 19. Return NormalCompletion(empty).
+    return new $Empty(realm);
+  }
 }
 
 
@@ -438,7 +612,7 @@ export class $ESModule implements I$Node, IModule {
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-module-semantics-static-semantics-varscopeddeclarations
   // 15.2.1.14 Static Semantics: VarScopedDeclarations
-  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+  public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
 
   public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
   public readonly IsType: false = false;
@@ -488,7 +662,7 @@ export class $ESModule implements I$Node, IModule {
     const ImportedLocalNames = this.ImportedLocalNames = [] as $String[];
     const ModuleRequests = this.ModuleRequests = [] as $String[];
     const LexicallyScopedDeclarations = this.LexicallyScopedDeclarations = [] as $$ESDeclaration[];
-    const VarScopedDeclarations = this.VarScopedDeclarations = [] as $$ESDeclaration[];
+    const VarScopedDeclarations = this.VarScopedDeclarations = [] as $$ESVarDeclaration[];
 
     const $statements = this.$statements = [] as $$TSModuleItem[];
     const statements = node.statements as readonly $StatementNode[];

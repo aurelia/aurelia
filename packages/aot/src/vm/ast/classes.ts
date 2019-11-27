@@ -93,7 +93,7 @@ import {
 } from './_shared';
 import {
   ExportEntryRecord,
-  $SourceFile,
+  $ESModule,
 } from './modules';
 import {
   $Identifier,
@@ -146,7 +146,7 @@ export class $HeritageClause implements I$Node {
     public readonly parent: $$NodeWithHeritageClauses,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly esm: $ESModule = parent.esm,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -166,7 +166,7 @@ export class $ExpressionWithTypeArguments implements I$Node {
     public readonly parent: $HeritageClause,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly esm: $ESModule = parent.esm,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -217,7 +217,7 @@ export class $ClassExpression implements I$Node {
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly esm: $ESModule = parent.esm,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -311,7 +311,7 @@ export class $ClassExpression implements I$Node {
     if (value.isAbrupt) { return value.enrichWith(this); }
 
     // 5. Set value.[[SourceText]] to the source text matched by ClassExpression.
-    value['[[SourceText]]'] = new $String(realm, this.node.getText(this.sourceFile.node));
+    value['[[SourceText]]'] = new $String(realm, this.node.getText(this.esm.node));
 
     // 6. Return value.
     return value;
@@ -381,7 +381,7 @@ export class $ClassDeclaration implements I$Node {
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly esm: $ESModule = parent.esm,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -759,7 +759,7 @@ export class $ClassDeclaration implements I$Node {
       if (value.isAbrupt) { return value.enrichWith(this); }
 
       // 3. Set value.[[SourceText]] to the source text matched by ClassDeclaration.
-      value['[[SourceText]]'] = new $String(realm, this.node.getText(this.sourceFile.node));
+      value['[[SourceText]]'] = new $String(realm, this.node.getText(this.esm.node));
 
       // 4. Return value.
       return value;
@@ -777,7 +777,7 @@ export class $ClassDeclaration implements I$Node {
     if (value.isAbrupt) { return value.enrichWith(this); }
 
     // 4. Set value.[[SourceText]] to the source text matched by ClassDeclaration.
-    value['[[SourceText]]'] = new $String(realm, this.node.getText(this.sourceFile.node));
+    value['[[SourceText]]'] = new $String(realm, this.node.getText(this.esm.node));
 
     // 5. Let env be the running execution context's LexicalEnvironment.
     // 6. Perform ? InitializeBoundName(className, value, env).
@@ -839,7 +839,7 @@ export class $PropertyDeclaration implements I$Node {
     public readonly parent: $ClassDeclaration | $ClassExpression,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly esm: $ESModule = parent.esm,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -870,7 +870,7 @@ export class $SemicolonClassElement implements I$Node {
     public readonly parent: $ClassDeclaration | $ClassExpression,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly esm: $ESModule = parent.esm,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,

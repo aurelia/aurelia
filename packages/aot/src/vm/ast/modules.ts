@@ -167,7 +167,7 @@ export type ModuleStatus = 'uninstantiated' | 'instantiating' | 'instantiated' |
 // http://www.ecma-international.org/ecma-262/#sec-abstract-module-records
 // http://www.ecma-international.org/ecma-262/#sec-cyclic-module-records
 // http://www.ecma-international.org/ecma-262/#sec-source-text-module-records
-export class $SourceFile implements I$Node, IModule {
+export class $ESModule implements I$Node, IModule {
   public readonly '<IModule>': unknown;
 
   public disposed: boolean = false;
@@ -182,8 +182,8 @@ export class $SourceFile implements I$Node, IModule {
 
   public readonly path: string;
 
-  public readonly sourceFile: $SourceFile = this;
-  public readonly parent: $SourceFile = this;
+  public readonly esm: $ESModule = this;
+  public readonly parent: $ESModule = this;
   public readonly ctx: Context = Context.None;
   public readonly depth: number = 0;
 
@@ -600,7 +600,7 @@ export class $SourceFile implements I$Node, IModule {
     // 1. Let module be this Cyclic Module Record.
     // 2. Assert: module.[[Status]] is not "instantiating" or "evaluating".
     // 3. Let stack be a new empty List.
-    const stack = [] as $SourceFile[];
+    const stack = [] as $ESModule[];
 
     // 4. Let result be InnerModuleInstantiation(module, stack, 0).
     const result = this._InnerModuleInstantiation(ctx, stack, new $Number(realm, 0));
@@ -643,7 +643,7 @@ export class $SourceFile implements I$Node, IModule {
   /** @internal */
   public _InnerModuleInstantiation(
     ctx: ExecutionContext,
-    stack: $SourceFile[],
+    stack: $ESModule[],
     idx: $Number,
   ): $Number | $Error {
     ctx.checkTimeout();
@@ -695,7 +695,7 @@ export class $SourceFile implements I$Node, IModule {
       // 9. c. Assert: requiredModule.[[Status]] is either "instantiating", "instantiated", or "evaluated".
       // 9. d. Assert: requiredModule.[[Status]] is "instantiating" if and only if requiredModule is in stack.
       // 9. e. If requiredModule.[[Status]] is "instantiating", then
-      if (requiredModule instanceof $SourceFile && requiredModule.Status === 'instantiating') {
+      if (requiredModule instanceof $ESModule && requiredModule.Status === 'instantiating') {
         // 9. e. i. Assert: requiredModule is a Cyclic Module Record.
         this.logger.warn(`[_InnerModuleInstantiation] ${requiredModule.$file.name} is a cyclic module record`);
 
@@ -1094,7 +1094,7 @@ export class $SourceFile implements I$Node, IModule {
     // 1. Let module be this Cyclic Module Record.
     // 2. Assert: module.[[Status]] is "instantiated" or "evaluated".
     // 3. Let stack be a new empty List.
-    const stack: $SourceFile[] = [];
+    const stack: $ESModule[] = [];
 
     // 4. Let result be InnerModuleEvaluation(module, stack, 0).
     const result = this.EvaluateModuleInner(ctx, stack, 0);
@@ -1126,7 +1126,7 @@ export class $SourceFile implements I$Node, IModule {
   // 15.2.1.16.2.1 InnerModuleEvaluation ( module , stack , idx )
   public EvaluateModuleInner(
     ctx: ExecutionContext,
-    stack: $SourceFile[],
+    stack: $ESModule[],
     idx: number,
   ): $Number | $Error {
     ctx.checkTimeout();
@@ -1171,7 +1171,7 @@ export class $SourceFile implements I$Node, IModule {
     // 10. For each String required that is an element of module.[[RequestedModules]], do
     for (const required of this.RequestedModules) {
       // 10. a. Let requiredModule be ! HostResolveImportedModule(module, required).
-      const requiredModule = this.moduleResolver.ResolveImportedModule(ctx, this, required) as $SourceFile; // TODO
+      const requiredModule = this.moduleResolver.ResolveImportedModule(ctx, this, required) as $ESModule; // TODO
 
       // 10. b. NOTE: Instantiate must be completed successfully prior to invoking this method, so every requested module is guaranteed to resolve successfully.
       // 10. c. Set idx to ? InnerModuleEvaluation(requiredModule, stack, idx).
@@ -1413,7 +1413,7 @@ export class $SourceFile implements I$Node, IModule {
     return sl;
   }
 
-  public dispose(this: Writable<Partial<$SourceFile>>): void {
+  public dispose(this: Writable<Partial<$ESModule>>): void {
     if (this.disposed) {
       return;
     }
@@ -1423,7 +1423,7 @@ export class $SourceFile implements I$Node, IModule {
     this['[[Environment]]'] = void 0;
     this['[[Namespace]]'] = void 0;
 
-    this.sourceFile = void 0;
+    this.esm = void 0;
     this.parent = void 0;
 
     this.$statements = void 0;
@@ -1553,10 +1553,10 @@ export class $ModuleDeclaration implements I$Node {
 
   public constructor(
     public readonly node: ModuleDeclaration,
-    public readonly parent: $SourceFile | $$ModuleBody,
+    public readonly parent: $ESModule | $$ModuleBody,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly esm: $ESModule = parent.esm,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -1629,10 +1629,10 @@ export class $ImportEqualsDeclaration implements I$Node {
 
   public constructor(
     public readonly node: ImportEqualsDeclaration,
-    public readonly parent: $SourceFile | $ModuleBlock,
+    public readonly parent: $ESModule | $ModuleBlock,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly esm: $ESModule = parent.esm,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -1683,10 +1683,10 @@ export class $ImportDeclaration implements I$Node {
 
   public constructor(
     public readonly node: ImportDeclaration,
-    public readonly parent: $SourceFile | $ModuleBlock,
+    public readonly parent: $ESModule | $ModuleBlock,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly esm: $ESModule = parent.esm,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -1739,7 +1739,7 @@ export class $ImportClause implements I$Node {
     public readonly node: ImportClause,
     public readonly parent: $ImportDeclaration,
     public readonly ctx: Context,
-    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly esm: $ESModule = parent.esm,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -1803,7 +1803,7 @@ export class $NamedImports implements I$Node {
     public readonly node: NamedImports,
     public readonly parent: $ImportClause,
     public readonly ctx: Context,
-    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly esm: $ESModule = parent.esm,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -1835,7 +1835,7 @@ export class $ImportSpecifier implements I$Node {
     public readonly node: ImportSpecifier,
     public readonly parent: $NamedImports,
     public readonly ctx: Context,
-    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly esm: $ESModule = parent.esm,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -1894,7 +1894,7 @@ export class $NamespaceImport implements I$Node {
     public readonly node: NamespaceImport,
     public readonly parent: $ImportClause,
     public readonly ctx: Context,
-    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly esm: $ESModule = parent.esm,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -1935,7 +1935,7 @@ export class $NamespaceImport implements I$Node {
  */
 export class ExportEntryRecord {
   public constructor(
-    public readonly source: $FunctionDeclaration | $ClassDeclaration | $VariableStatement | $ExportDeclaration | $ExportSpecifier | $SourceFile | $TypeAliasDeclaration | $InterfaceDeclaration | $EnumDeclaration,
+    public readonly source: $FunctionDeclaration | $ClassDeclaration | $VariableStatement | $ExportDeclaration | $ExportSpecifier | $ESModule | $TypeAliasDeclaration | $InterfaceDeclaration | $EnumDeclaration,
     public readonly ExportName: $String | $Null,
     public readonly ModuleRequest: $String | $Null,
     public readonly ImportName: $String | $Null,
@@ -1954,10 +1954,10 @@ export class $ExportAssignment implements I$Node {
 
   public constructor(
     public readonly node: ExportAssignment,
-    public readonly parent: $SourceFile,
+    public readonly parent: $ESModule,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly esm: $ESModule = parent.esm,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -2010,10 +2010,10 @@ export class $ExportDeclaration implements I$Node {
 
   public constructor(
     public readonly node: ExportDeclaration,
-    public readonly parent: $SourceFile | $ModuleBlock,
+    public readonly parent: $ESModule | $ModuleBlock,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly esm: $ESModule = parent.esm,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -2079,7 +2079,7 @@ export class $NamedExports implements I$Node {
     public readonly node: NamedExports,
     public readonly parent: $ExportDeclaration,
     public readonly ctx: Context,
-    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly esm: $ESModule = parent.esm,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -2115,7 +2115,7 @@ export class $ExportSpecifier implements I$Node {
     public readonly node: ExportSpecifier,
     public readonly parent: $NamedExports,
     public readonly ctx: Context,
-    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly esm: $ESModule = parent.esm,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -2204,7 +2204,7 @@ export class $NamespaceExportDeclaration implements I$Node {
     public readonly parent: $$ModuleDeclarationParent,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly esm: $ESModule = parent.esm,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -2226,7 +2226,7 @@ export class $ModuleBlock implements I$Node {
     public readonly node: ModuleBlock,
     public readonly parent: $ModuleDeclaration,
     public readonly ctx: Context,
-    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly esm: $ESModule = parent.esm,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -2243,7 +2243,7 @@ export class $ExternalModuleReference implements I$Node {
     public readonly node: ExternalModuleReference,
     public readonly parent: $ImportEqualsDeclaration,
     public readonly ctx: Context,
-    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly esm: $ESModule = parent.esm,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -2273,7 +2273,7 @@ export class $QualifiedName implements I$Node {
     public readonly node: QualifiedName,
     public readonly parent: $$NodeWithQualifiedName,
     public readonly ctx: Context,
-    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly esm: $ESModule = parent.esm,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,

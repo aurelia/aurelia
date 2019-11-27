@@ -67,7 +67,7 @@ export {
 } from './vm/agent';
 
 export {
-  $SourceFile,
+  $ESModule,
   $DocumentFragment,
 } from './vm/ast/modules';
 export {

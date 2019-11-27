@@ -23,7 +23,7 @@ import {
   ServiceHost,
   IFile,
   ExecutionContext,
-  $SourceFile,
+  $ESModule,
   IServiceHost,
   $Any,
 } from '@aurelia/aot';
@@ -114,10 +114,10 @@ class TestCase implements IDisposable {
     this.files = [...prerequisites, file];
   }
 
-  public async GetSourceFiles(ctx: ExecutionContext): Promise<readonly $SourceFile[]> {
+  public async GetSourceFiles(ctx: ExecutionContext): Promise<readonly $ESModule[]> {
     const host = this.host;
-    const sourceFiles = await Promise.all(this.files.map(x => host.loadSpecificFile(ctx, x)));
-    return sourceFiles;
+    const esModules = await Promise.all(this.files.map(x => host.loadSpecificFile(ctx, x)));
+    return esModules;
   }
 
   public run(): Promise<$Any> {

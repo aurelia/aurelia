@@ -14,18 +14,18 @@ import {
   $Empty,
 } from './types/empty';
 import {
-  $SourceFile,
+  $ESModule,
 } from './ast/modules';
 
 // http://www.ecma-international.org/ecma-262/#table-25
 export abstract class Job implements IDisposable {
   public '[[Realm]]': Realm;
-  public '[[ScriptOrModule]]': $SourceFile;
+  public '[[ScriptOrModule]]': $ESModule;
 
   public constructor(
     public readonly logger: ILogger,
     realm: Realm,
-    scriptOrModule: $SourceFile,
+    scriptOrModule: $ESModule,
   ) {
     this.logger = logger.scopeTo(`Job`);
 

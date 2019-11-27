@@ -43,7 +43,7 @@ import {
   $FunctionDeclaration,
 } from '../ast/functions';
 import {
-  $SourceFile,
+  $ESModule,
 } from '../ast/modules';
 import {
   Context,
@@ -294,7 +294,7 @@ export function $CreateDynamicFunction(
     sourceText,
     ScriptTarget.Latest,
   ).statements[0] as FunctionDeclaration;
-  const ScriptOrModule = callerContext.ScriptOrModule as $SourceFile;
+  const ScriptOrModule = callerContext.ScriptOrModule as $ESModule;
 
   const $functionDeclaration = new $FunctionDeclaration(
     node,

@@ -230,7 +230,7 @@ import {
   $$JsxParent,
 } from './jsx';
 import {
-  $SourceFile,
+  $ESModule,
 } from './modules';
 import {
   $TemplateSpan,
@@ -454,7 +454,7 @@ export type $AnyParentNode = (
   $ReturnStatement |
   $SetAccessorDeclaration |
   $ShorthandPropertyAssignment |
-  $SourceFile |
+  $ESModule |
   $SpreadAssignment |
   $SpreadElement |
   $SwitchStatement |
@@ -815,7 +815,7 @@ export type $NodeWithStatements = (
   $LabeledStatement |
   $MethodDeclaration |
   $ModuleBlock |
-  $SourceFile |
+  $ESModule |
   $TryStatement |
   $WithStatement |
   $FunctionExpression |
@@ -837,7 +837,7 @@ export type $$BreakableStatement = (
 );
 
 export type $$ModuleDeclarationParent = (
-  $SourceFile |
+  $ESModule |
   $ModuleBlock |
   $ModuleDeclaration
 );

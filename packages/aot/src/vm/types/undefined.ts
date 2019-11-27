@@ -31,7 +31,7 @@ import {
   $Error,
 } from './error';
 import {
-  $SourceFile,
+  $ESModule,
   $ExportSpecifier,
   $ImportSpecifier,
   $ImportClause,
@@ -90,7 +90,7 @@ export class $Undefined {
     public readonly realm: Realm,
     type: PotentialNonEmptyCompletionType = CompletionType.normal,
     target: CompletionTarget = realm['[[Intrinsics]]'].empty,
-    public readonly sourceNode: $SourceFile | $FunctionDeclaration | $ExportSpecifier | $ImportSpecifier | $ImportClause | $ImportDeclaration | $ClassDeclaration | null = null,
+    public readonly sourceNode: $ESModule | $FunctionDeclaration | $ExportSpecifier | $ImportSpecifier | $ImportClause | $ImportDeclaration | $ClassDeclaration | null = null,
   ) {
     this['[[Type]]'] = type;
     this['[[Target]]'] = target;

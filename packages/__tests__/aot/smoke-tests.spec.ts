@@ -1,5 +1,5 @@
 import { DI, LoggerConfiguration, LogLevel, ColorOptions, Registration } from '@aurelia/kernel';
-import { IFileSystem, FileKind, ServiceHost, $Undefined, $SourceFile } from '@aurelia/aot';
+import { IFileSystem, FileKind, ServiceHost, $Undefined, $ESModule } from '@aurelia/aot';
 import { VirtualFileSystem } from './virtual-file-system';
 import { assert } from '@aurelia/testing';
 
@@ -37,7 +37,7 @@ describe('AOT (smoke tests)', function () {
       assert.fail(`Evaluation error`);
     }
 
-    return ((result as $Undefined).sourceNode as $SourceFile).ExecutionResult;
+    return ((result as $Undefined).sourceNode as $ESModule).ExecutionResult;
   }
 
   it('simple return statement with binary expression', async function () {

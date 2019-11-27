@@ -44,7 +44,7 @@ import {
   ExecutionContext,
 } from './vm/realm';
 import {
-  $SourceFile,
+  $ESModule,
   $DocumentFragment,
 } from './vm/ast/modules';
 import {
@@ -71,7 +71,7 @@ function comparePathLength(a: { path: { length: number } }, b: { path: { length:
 export interface IModuleResolver {
   ResolveImportedModule(
     ctx: ExecutionContext,
-    referencingModule: $SourceFile,
+    referencingModule: $ESModule,
     $specifier: $String,
   ): IModule | $Error;
 }
@@ -80,8 +80,8 @@ export interface IServiceHost extends IModuleResolver, IDisposable {
   executeEntryFile(dir: string): Promise<$Any>;
   executeSpecificFile(file: IFile): Promise<$Any>;
   executeProvider(provider: ISourceFileProvider): Promise<$Any>;
-  loadEntryFile(ctx: ExecutionContext, dir: string): Promise<$SourceFile>;
-  loadSpecificFile(ctx: ExecutionContext, file: IFile): Promise<$SourceFile>;
+  loadEntryFile(ctx: ExecutionContext, dir: string): Promise<$ESModule>;
+  loadSpecificFile(ctx: ExecutionContext, file: IFile): Promise<$ESModule>;
 }
 
 export class SpecificSourceFileProvider implements ISourceFileProvider {
@@ -90,7 +90,7 @@ export class SpecificSourceFileProvider implements ISourceFileProvider {
     private readonly file: IFile,
   ) {}
 
-  public async GetSourceFiles(ctx: ExecutionContext): Promise<readonly $SourceFile[]> {
+  public async GetSourceFiles(ctx: ExecutionContext): Promise<readonly $ESModule[]> {
     return [
       await this.host.loadSpecificFile(ctx, this.file),
     ];
@@ -103,7 +103,7 @@ export class EntrySourceFileProvider implements ISourceFileProvider {
     private readonly dir: string,
   ) {}
 
-  public async GetSourceFiles(ctx: ExecutionContext): Promise<readonly $SourceFile[]> {
+  public async GetSourceFiles(ctx: ExecutionContext): Promise<readonly $ESModule[]> {
     return [
       await this.host.loadEntryFile(ctx, this.dir),
     ];
@@ -132,7 +132,7 @@ export class ServiceHost implements IServiceHost {
     this.agent = new Agent(logger);
   }
 
-  public async loadEntryFile(ctx: ExecutionContext, dir: string): Promise<$SourceFile> {
+  public async loadEntryFile(ctx: ExecutionContext, dir: string): Promise<$ESModule> {
     this.logger.info(`Loading entry file at: ${dir}`);
 
     const pkg = await this.loadEntryPackage(dir);
@@ -142,7 +142,7 @@ export class ServiceHost implements IServiceHost {
     return this.getESModule(ctx, pkg.entryFile, pkg);
   }
 
-  public async loadSpecificFile(ctx: ExecutionContext, file: IFile): Promise<$SourceFile> {
+  public async loadSpecificFile(ctx: ExecutionContext, file: IFile): Promise<$ESModule> {
     return this.getESModule(ctx, file, null)
   }
 
@@ -170,7 +170,7 @@ export class ServiceHost implements IServiceHost {
   // http://www.ecma-international.org/ecma-262/#sec-hostresolveimportedmodule
   public ResolveImportedModule(
     ctx: ExecutionContext,
-    referencingModule: $SourceFile,
+    referencingModule: $ESModule,
     $specifier: $String,
   ): IModule | $Error {
     const specifier = normalizePath($specifier['[[Value]]']);
@@ -297,18 +297,18 @@ export class ServiceHost implements IServiceHost {
     return hm as $DocumentFragment;
   }
 
-  private getESModule(ctx: ExecutionContext, file: IFile, pkg: NPMPackage | null): $SourceFile {
+  private getESModule(ctx: ExecutionContext, file: IFile, pkg: NPMPackage | null): $ESModule {
     let esm = this.moduleCache.get(file.path);
     if (esm === void 0) {
       const compilerOptions = this.getCompilerOptions(file.path, pkg);
       const sourceText = file.getContentSync();
-      const sourceFile = createSourceFile(file.path, sourceText, ScriptTarget.Latest, false);
-      esm = new $SourceFile(this.logger, file, sourceFile, ctx.Realm, pkg, this, compilerOptions);
+      const sf = createSourceFile(file.path, sourceText, ScriptTarget.Latest, false);
+      esm = new $ESModule(this.logger, file, sf, ctx.Realm, pkg, this, compilerOptions);
 
       this.moduleCache.set(file.path, esm);
     }
 
-    return esm as $SourceFile;
+    return esm as $ESModule;
   }
 
   private getCompilerOptions(path: string, pkg: NPMPackage | null): $CompilerOptions {

@@ -69,7 +69,7 @@ import {
   $TaggedTemplateExpression,
 } from './ast/expressions';
 import {
-  $SourceFile,
+  $ESModule,
 } from './ast/modules';
 
 export class ResolveSet {
@@ -362,7 +362,7 @@ export class Realm implements IDisposable {
 
   // http://www.ecma-international.org/ecma-262/#sec-getactivescriptormodule
   // 8.3.1 GetActiveScriptOrModule ( )
-  public GetActiveScriptOrModule(): $SourceFile {
+  public GetActiveScriptOrModule(): $ESModule {
     const stack = this.stack;
 
     // 1. If the execution context stack is empty, return null.
@@ -533,7 +533,7 @@ export class ExecutionContext<TLex extends $EnvRec = $EnvRec, TVar extends ($Mod
   public readonly id: number;
 
   public Function!: $Function | $Null;
-  public ScriptOrModule!: $SourceFile | $Null;
+  public ScriptOrModule!: $ESModule | $Null;
   public LexicalEnvironment!: TLex;
   public VariableEnvironment!: TVar;
 

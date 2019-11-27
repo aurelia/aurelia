@@ -36,7 +36,7 @@ import {
 } from './_shared';
 import {
   ExportEntryRecord,
-  $SourceFile,
+  $ESModule,
 } from './modules';
 import {
   $Identifier,
@@ -75,7 +75,7 @@ export class $InterfaceDeclaration implements I$Node {
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly esm: $ESModule = parent.esm,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -144,7 +144,7 @@ export class $TypeAliasDeclaration implements I$Node {
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly esm: $ESModule = parent.esm,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -230,7 +230,7 @@ export class $EnumDeclaration implements I$Node {
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly esm: $ESModule = parent.esm,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -283,7 +283,7 @@ export class $EnumMember implements I$Node {
     public readonly parent: $EnumDeclaration,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly sourceFile: $SourceFile = parent.sourceFile,
+    public readonly esm: $ESModule = parent.esm,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,

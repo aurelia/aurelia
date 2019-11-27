@@ -33,7 +33,7 @@ import {
 import {
   $ExportDeclaration,
   $ExportSpecifier,
-  $SourceFile,
+  $ESModule,
 } from '../ast/modules';
 import {
   $ClassDeclaration,
@@ -93,7 +93,7 @@ export class $Null {
     public readonly realm: Realm,
     type: PotentialNonEmptyCompletionType = CompletionType.normal,
     target: CompletionTarget = realm['[[Intrinsics]]'].empty,
-    public readonly sourceNode: $ExportDeclaration | $ExportSpecifier | $ClassDeclaration | $FunctionDeclaration | $VariableStatement | $SourceFile | $NullLiteral | null = null,
+    public readonly sourceNode: $ExportDeclaration | $ExportSpecifier | $ClassDeclaration | $FunctionDeclaration | $VariableStatement | $ESModule | $NullLiteral | null = null,
   ) {
     this['[[Type]]'] = type;
     this['[[Target]]'] = target;

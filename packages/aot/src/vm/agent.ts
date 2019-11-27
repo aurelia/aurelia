@@ -21,12 +21,12 @@ import {
   $Empty,
 } from './types/empty';
 import {
-  $SourceFile,
+  $ESModule,
 } from './ast/modules';
 
 export const ISourceFileProvider = DI.createInterface<ISourceFileProvider>('ISourceFileProvider').noDefault();
 export interface ISourceFileProvider {
-  GetSourceFiles(ctx: ExecutionContext): Promise<readonly $SourceFile[]>;
+  GetSourceFiles(ctx: ExecutionContext): Promise<readonly $ESModule[]>;
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-agents
@@ -54,8 +54,8 @@ export class Agent implements IDisposable {
 
     // 2. In an implementation-dependent manner, obtain the ECMAScript source texts (see clause 10) and any associated host-defined values for zero or more ECMAScript scripts and/or ECMAScript modules. For each such sourceText and hostDefined, do
     const sfProvider = container.get(ISourceFileProvider);
-    const sourceFiles = await sfProvider.GetSourceFiles(rootCtx);
-    for (const sourceFile of sourceFiles) {
+    const esModules = await sfProvider.GetSourceFiles(rootCtx);
+    for (const esm of esModules) {
       // 2. a. If sourceText is the source code of a script, then
       if (false) { // Leave this branch be, we need to implement it eventually
         // 2. a. i. Perform EnqueueJob("ScriptJobs", ScriptEvaluationJob, « sourceText, hostDefined »).
@@ -63,12 +63,12 @@ export class Agent implements IDisposable {
       // 2. b. Else sourceText is the source code of a module,
       else {
         // 2. b. i. Perform EnqueueJob("ScriptJobs", TopLevelModuleEvaluationJob, « sourceText, hostDefined »).
-        this.ScriptJobs.EnqueueJob(rootCtx, new TopLevelModuleEvaluationJob(this.logger, realm, sourceFile));
+        this.ScriptJobs.EnqueueJob(rootCtx, new TopLevelModuleEvaluationJob(this.logger, realm, esm));
       }
     }
 
     let ctx = rootCtx;
-    let lastFile: $SourceFile | null = null;
+    let lastFile: $ESModule | null = null;
 
     // 3. Repeat,
     while (true) {

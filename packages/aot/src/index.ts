@@ -69,6 +69,8 @@ export {
 export {
   $ESModule,
   $DocumentFragment,
+  $ESScript,
+  $$ESModuleOrScript,
 } from './vm/ast/modules';
 export {
   I$Node,

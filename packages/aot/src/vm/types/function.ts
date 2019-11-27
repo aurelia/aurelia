@@ -50,7 +50,7 @@ import {
   $$Function,
 } from '../ast/functions';
 import {
-  $ESModule,
+  $$ESModuleOrScript,
 } from '../ast/modules';
 
 // http://www.ecma-international.org/ecma-262/#table-6
@@ -67,7 +67,7 @@ export class $Function<
   public ['[[ECMAScriptCode]]']: $$Function;
   public ['[[ConstructorKind]]']: ConstructorKind;
   public ['[[Realm]]']: Realm;
-  public ['[[ScriptOrModule]]']: $ESModule | $Null;
+  public ['[[ScriptOrModule]]']: $$ESModuleOrScript | $Null;
   public ['[[ThisMode]]']: ThisMode;
   public ['[[Strict]]']: $Boolean;
   public ['[[HomeObject]]']: $AnyObject;

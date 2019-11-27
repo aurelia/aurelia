@@ -46,6 +46,8 @@ import {
 import {
   $ESModule,
   $DocumentFragment,
+  $ESScript,
+  $$ESModuleOrScript,
 } from './vm/ast/modules';
 import {
   $String,
@@ -78,21 +80,22 @@ export interface IModuleResolver {
 
 export interface IServiceHost extends IModuleResolver, IDisposable {
   executeEntryFile(dir: string): Promise<$Any>;
-  executeSpecificFile(file: IFile): Promise<$Any>;
+  executeSpecificFile(file: IFile, mode: 'script' | 'module'): Promise<$Any>;
   executeProvider(provider: ISourceFileProvider): Promise<$Any>;
   loadEntryFile(ctx: ExecutionContext, dir: string): Promise<$ESModule>;
-  loadSpecificFile(ctx: ExecutionContext, file: IFile): Promise<$ESModule>;
+  loadSpecificFile(ctx: ExecutionContext, file: IFile, mode: 'script' | 'module'): Promise<$$ESModuleOrScript>;
 }
 
 export class SpecificSourceFileProvider implements ISourceFileProvider {
   public constructor(
     private readonly host: ServiceHost,
     private readonly file: IFile,
+    private readonly mode: 'script' | 'module',
   ) {}
 
-  public async GetSourceFiles(ctx: ExecutionContext): Promise<readonly $ESModule[]> {
+  public async GetSourceFiles(ctx: ExecutionContext): Promise<readonly $$ESModuleOrScript[]> {
     return [
-      await this.host.loadSpecificFile(ctx, this.file),
+      await this.host.loadSpecificFile(ctx, this.file, this.mode),
     ];
   }
 }
@@ -123,6 +126,7 @@ export class ServiceHost implements IServiceHost {
 
   public readonly compilerOptionsCache: Map<string, $CompilerOptions> = new Map();
   public readonly moduleCache: Map<string, IModule> = new Map();
+  public readonly scriptCache: Map<string, $ESScript> = new Map();
 
   public constructor(
     public readonly container: IContainer,
@@ -142,8 +146,12 @@ export class ServiceHost implements IServiceHost {
     return this.getESModule(ctx, pkg.entryFile, pkg);
   }
 
-  public async loadSpecificFile(ctx: ExecutionContext, file: IFile): Promise<$ESModule> {
-    return this.getESModule(ctx, file, null)
+  public async loadSpecificFile(ctx: ExecutionContext, file: IFile, mode: 'script' | 'module'): Promise<$$ESModuleOrScript> {
+    if (mode === 'module') {
+      return this.getESModule(ctx, file, null);
+    } else {
+      return this.getESScript(ctx, file);
+    }
   }
 
   public executeEntryFile(dir: string): Promise<$Any> {
@@ -153,9 +161,9 @@ export class ServiceHost implements IServiceHost {
     return this.agent.RunJobs(container);
   }
 
-  public executeSpecificFile(file: IFile): Promise<$Any> {
+  public executeSpecificFile(file: IFile, mode: 'script' | 'module'): Promise<$Any> {
     const container = this.container.createChild();
-    container.register(Registration.instance(ISourceFileProvider, new SpecificSourceFileProvider(this, file)));
+    container.register(Registration.instance(ISourceFileProvider, new SpecificSourceFileProvider(this, file, mode)));
 
     return this.agent.RunJobs(container);
   }
@@ -295,6 +303,19 @@ export class ServiceHost implements IServiceHost {
     }
 
     return hm as $DocumentFragment;
+  }
+
+  private getESScript(ctx: ExecutionContext, file: IFile): $ESScript {
+    let script = this.scriptCache.get(file.path);
+    if (script === void 0) {
+      const sourceText = file.getContentSync();
+      const sf = createSourceFile(file.path, sourceText, ScriptTarget.Latest, false);
+      script = new $ESScript(this.logger, file, sf, ctx.Realm);
+
+      this.scriptCache.set(file.path, script);
+    }
+
+    return script as $ESScript;
   }
 
   private getESModule(ctx: ExecutionContext, file: IFile, pkg: NPMPackage | null): $ESModule {

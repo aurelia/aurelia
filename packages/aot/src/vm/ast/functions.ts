@@ -62,7 +62,6 @@ import {
   Context,
   $$ESDeclaration,
   $NodeWithStatements,
-  clearBit,
   modifiersToModifierFlags,
   hasBit,
   $identifier,
@@ -79,7 +78,7 @@ import {
 } from './_shared';
 import {
   ExportEntryRecord,
-  $ESModule,
+  $$ESModuleOrScript,
 } from './modules';
 import {
   $Identifier,
@@ -235,7 +234,7 @@ export class $FunctionExpression implements I$Node {
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly esm: $ESModule = parent.esm,
+    public readonly mos: $$ESModuleOrScript = parent.mos,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -313,7 +312,7 @@ export class $FunctionExpression implements I$Node {
       closure.MakeConstructor(ctx);
 
       // 5. Set closure.[[SourceText]] to the source text matched by FunctionExpression.
-      closure['[[SourceText]]'] = new $String(realm, this.node.getText(this.esm.node));
+      closure['[[SourceText]]'] = new $String(realm, this.node.getText(this.mos.node));
 
       // 6. Return closure.
       return closure;
@@ -347,7 +346,7 @@ export class $FunctionExpression implements I$Node {
     closure.SetFunctionName(ctx, name);
 
     // 10. Set closure.[[SourceText]] to the source text matched by FunctionExpression.
-    closure['[[SourceText]]'] = new $String(realm, this.node.getText(this.esm.node));
+    closure['[[SourceText]]'] = new $String(realm, this.node.getText(this.mos.node));
 
     // 11. Perform envRec.InitializeBinding(name, closure).
     funcEnv.InitializeBinding(ctx, name, closure);
@@ -561,7 +560,7 @@ export class $FunctionDeclaration implements I$Node {
     public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly esm: $ESModule = parent.esm,
+    public readonly mos: $$ESModuleOrScript = parent.mos,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -683,7 +682,7 @@ export class $FunctionDeclaration implements I$Node {
       F.SetFunctionName(ctx, intrinsics.default);
 
       // 4. Set F.[[SourceText]] to the source text matched by FunctionDeclaration.
-      F['[[SourceText]]'] = new $String(realm, ''); // TODO: get text (need esm for this)
+      F['[[SourceText]]'] = new $String(realm, ''); // TODO: get text (need mos for this)
 
       // 5. Return F.
       return F;
@@ -707,7 +706,7 @@ export class $FunctionDeclaration implements I$Node {
     F.SetFunctionName(ctx, name);
 
     // 6. Set F.[[SourceText]] to the source text matched by FunctionDeclaration.
-    F['[[SourceText]]'] = new $String(realm, ''); // TODO: get text (need esm for this)
+    F['[[SourceText]]'] = new $String(realm, ''); // TODO: get text (need mos for this)
 
     // 7. Return F.
     return F;
@@ -1127,7 +1126,7 @@ export class $ArrowFunction implements I$Node {
     public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly esm: $ESModule = parent.esm,
+    public readonly mos: $$ESModuleOrScript = parent.mos,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -1248,7 +1247,7 @@ export class $ConstructorDeclaration implements I$Node {
     public readonly parent: $ClassDeclaration | $ClassExpression,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly esm: $ESModule = parent.esm,
+    public readonly mos: $$ESModuleOrScript = parent.mos,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -1307,7 +1306,7 @@ export class $ConstructorDeclaration implements I$Node {
     closure['[[HomeObject]]'] = object;
 
     // 9. Set closure.[[SourceText]] to the source text matched by MethodDefinition.
-    closure['[[SourceText]]'] = new $String(realm, this.parent.node.getText(this.esm.node));
+    closure['[[SourceText]]'] = new $String(realm, this.parent.node.getText(this.mos.node));
 
     // 10. Return the Record { [[Key]]: propKey, [[Closure]]: closure }.
     return new MethodDefinitionRecord(propKey, closure);
@@ -1354,7 +1353,7 @@ export class $ParameterDeclaration implements I$Node {
     public readonly parent: $$Function,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly esm: $ESModule = parent.esm,
+    public readonly mos: $$ESModuleOrScript = parent.mos,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,

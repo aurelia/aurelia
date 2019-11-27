@@ -121,6 +121,7 @@ import {
   $ExportDeclaration,
   $ImportDeclaration,
   $ImportEqualsDeclaration,
+  $ESScript,
 } from './modules';
 import {
   $ArrayBindingPattern,
@@ -340,6 +341,19 @@ export type $ModuleStatementNode = (
 );
 
 export type $StatementNode = (
+  $ESStatementListItemNode |
+  InterfaceDeclaration |
+  TypeAliasDeclaration |
+  EnumDeclaration |
+  ModuleDeclaration |
+  NamespaceExportDeclaration |
+  ImportEqualsDeclaration |
+  ImportDeclaration |
+  ExportAssignment |
+  ExportDeclaration
+);
+
+export type $ESStatementListItemNode = (
   Block |
   VariableStatement |
   EmptyStatement |
@@ -360,16 +374,7 @@ export type $StatementNode = (
   TryStatement |
   DebuggerStatement |
   FunctionDeclaration |
-  ClassDeclaration |
-  InterfaceDeclaration |
-  TypeAliasDeclaration |
-  EnumDeclaration |
-  ModuleDeclaration |
-  NamespaceExportDeclaration |
-  ImportEqualsDeclaration |
-  ImportDeclaration |
-  ExportAssignment |
-  ExportDeclaration
+  ClassDeclaration
 );
 
 export type $ClassElementNode = (
@@ -816,6 +821,7 @@ export type $NodeWithStatements = (
   $MethodDeclaration |
   $ModuleBlock |
   $ESModule |
+  $ESScript |
   $TryStatement |
   $WithStatement |
   $FunctionExpression |

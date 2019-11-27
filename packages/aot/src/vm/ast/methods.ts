@@ -49,7 +49,7 @@ import {
   $i,
 } from './_shared';
 import {
-  $ESModule,
+  $$ESModuleOrScript,
 } from './modules';
 import {
   $Decorator,
@@ -111,7 +111,7 @@ export class $MethodDeclaration implements I$Node {
     public readonly parent: $ClassDeclaration | $ClassExpression | $ObjectLiteralExpression,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly esm: $ESModule = parent.esm,
+    public readonly mos: $$ESModuleOrScript = parent.mos,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -175,7 +175,7 @@ export class $MethodDeclaration implements I$Node {
     closure['[[HomeObject]]'] = object;
 
     // 9. Set closure.[[SourceText]] to the source text matched by MethodDefinition.
-    closure['[[SourceText]]'] = new $String(realm, this.node.getText(this.esm.node));
+    closure['[[SourceText]]'] = new $String(realm, this.node.getText(this.mos.node));
 
     // 10. Return the Record { [[Key]]: propKey, [[Closure]]: closure }.
     return new MethodDefinitionRecord(propKey, closure);
@@ -268,7 +268,7 @@ export class $GetAccessorDeclaration implements I$Node {
     public readonly parent: $ClassDeclaration | $ClassExpression | $ObjectLiteralExpression,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly esm: $ESModule = parent.esm,
+    public readonly mos: $$ESModuleOrScript = parent.mos,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -327,7 +327,7 @@ export class $GetAccessorDeclaration implements I$Node {
     closure.SetFunctionName(ctx, propKey, intrinsics.$get);
 
     // 9. Set closure.[[SourceText]] to the source text matched by MethodDefinition.
-    closure['[[SourceText]]'] = new $String(realm, this.node.getText(this.esm.node));
+    closure['[[SourceText]]'] = new $String(realm, this.node.getText(this.mos.node));
 
     // 10. Let desc be the PropertyDescriptor { [[Get]]: closure, [[Enumerable]]: enumerable, [[Configurable]]: true }.
     const desc = new $PropertyDescriptor(
@@ -392,7 +392,7 @@ export class $SetAccessorDeclaration implements I$Node {
     public readonly parent: $ClassDeclaration | $ClassExpression | $ObjectLiteralExpression,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly esm: $ESModule = parent.esm,
+    public readonly mos: $$ESModuleOrScript = parent.mos,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -450,7 +450,7 @@ export class $SetAccessorDeclaration implements I$Node {
     closure.SetFunctionName(ctx, propKey, intrinsics.$set);
 
     // 8. Set closure.[[SourceText]] to the source text matched by MethodDefinition.
-    closure['[[SourceText]]'] = new $String(realm, this.node.getText(this.esm.node));
+    closure['[[SourceText]]'] = new $String(realm, this.node.getText(this.mos.node));
 
     // 9. Let desc be the PropertyDescriptor { [[Set]]: closure, [[Enumerable]]: enumerable, [[Configurable]]: true }.
     const desc = new $PropertyDescriptor(

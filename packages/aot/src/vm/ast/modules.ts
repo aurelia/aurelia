@@ -99,6 +99,7 @@ import {
   getReferencedBindings,
   $$ModuleDeclarationParent,
   $i,
+  $ESStatementListItemNode,
 } from './_shared';
 import {
   $Identifier,
@@ -162,6 +163,227 @@ export type $$TSModuleItem = (
   $NamespaceExportDeclaration
 );
 
+export type $$ESModuleOrScript = (
+  $ESModule |
+  $ESScript
+);
+
+// http://www.ecma-international.org/ecma-262/#sec-scripts
+export class $ESScript implements I$Node {
+  public readonly '<$ESScript>': unknown;
+
+  public disposed: boolean = false;
+
+  public '[[Environment]]': $Undefined;
+  public '[[HostDefined]]': any;
+
+  public readonly path: string;
+
+  public readonly mos: $ESScript = this;
+  public readonly parent: $ESScript = this;
+  public readonly ctx: Context = Context.None;
+  public readonly depth: number = 0;
+
+  public readonly $statements: readonly $$ESStatementListItem[];
+
+  public readonly DirectivePrologue: DirectivePrologue;
+
+  public ExecutionResult: $Any; // Temporary property for testing purposes
+
+  // http://www.ecma-international.org/ecma-262/#sec-scripts-static-semantics-lexicallydeclarednames
+  // 15.1.3 Static Semantics: LexicallyDeclaredNames
+  public readonly LexicallyDeclaredNames: readonly $String[];
+
+  // http://www.ecma-international.org/ecma-262/#sec-scripts-static-semantics-lexicallyscopeddeclarations
+  // 15.1.4 Static Semantics: LexicallyScopedDeclarations
+  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+
+  // http://www.ecma-international.org/ecma-262/#sec-scripts-static-semantics-vardeclarednames
+  // 15.1.5 Static Semantics: VarDeclaredNames
+  public readonly VarDeclaredNames: readonly $String[];
+
+  // http://www.ecma-international.org/ecma-262/#sec-scripts-static-semantics-varscopeddeclarations
+  // 15.1.6 Static Semantics: VarScopedDeclarations
+  public readonly VarScopedDeclarations: readonly $$ESDeclaration[];
+
+  public get isScript(): true { return true; }
+  public get isModule(): false { return false; }
+
+  public constructor(
+    public readonly logger: ILogger,
+    public readonly $file: IFile,
+    public readonly node: SourceFile,
+    public readonly realm: Realm,
+  ) {
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    this.ExecutionResult = intrinsics.empty;
+
+    this['[[Environment]]'] = intrinsics.undefined;
+
+    this.path = `ESScript<(...)${$file.rootlessPath}>`;
+    this.logger = logger.root;
+
+    let ctx = Context.None;
+    this.DirectivePrologue = GetDirectivePrologue(node.statements);
+    if (this.DirectivePrologue.ContainsUseStrict) {
+      ctx |= Context.InStrictMode;
+    }
+
+    const LexicallyDeclaredNames = this.LexicallyDeclaredNames = [] as $String[];
+    const LexicallyScopedDeclarations = this.LexicallyScopedDeclarations = [] as $$ESDeclaration[];
+    const VarDeclaredNames = this.VarDeclaredNames = [] as $String[];
+    const VarScopedDeclarations = this.VarScopedDeclarations = [] as $$ESDeclaration[];
+
+    const $statements = this.$statements = [] as $$ESStatementListItem[];
+    const statements = node.statements as readonly $ESStatementListItemNode[];
+    let stmt: $ESStatementListItemNode;
+    let $stmt: $$ESStatementListItem;
+    let s = 0;
+    for (let i = 0, ii = statements.length; i < ii; ++i) {
+      stmt = statements[i];
+
+      switch (stmt.kind) {
+        case SyntaxKind.VariableStatement:
+          $stmt = $statements[s] = new $VariableStatement(stmt, this, ctx, s);
+          ++s;
+
+          if ($stmt.isLexical) {
+            LexicallyDeclaredNames.push(...$stmt.BoundNames);
+            LexicallyScopedDeclarations.push($stmt);
+          } else {
+            VarDeclaredNames.push(...$stmt.VarDeclaredNames);
+            VarScopedDeclarations.push($stmt);
+          }
+
+          break;
+        case SyntaxKind.FunctionDeclaration:
+          $stmt = $statements[s] = new $FunctionDeclaration(stmt, this, ctx, s);
+          ++s;
+
+          VarDeclaredNames.push(...$stmt.BoundNames);
+          VarScopedDeclarations.push($stmt);
+          break;
+        case SyntaxKind.ClassDeclaration:
+          $stmt = $statements[s] = new $ClassDeclaration(stmt, this, ctx, s);
+          ++s;
+
+          LexicallyDeclaredNames.push(...$stmt.BoundNames);
+          LexicallyScopedDeclarations.push($stmt);
+          break;
+        case SyntaxKind.Block:
+          $stmt = $statements[s] = new $Block(stmt, this, ctx, s);
+          ++s;
+
+          VarDeclaredNames.push(...$stmt.VarDeclaredNames);
+          VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
+          break;
+        case SyntaxKind.EmptyStatement:
+          $stmt = $statements[s] = new $EmptyStatement(stmt, this, ctx, s);
+          ++s;
+          break;
+        case SyntaxKind.ExpressionStatement:
+          $stmt = $statements[s] = new $ExpressionStatement(stmt, this, ctx, s);
+          ++s;
+          break;
+        case SyntaxKind.IfStatement:
+          $stmt = $statements[s] = new $IfStatement(stmt, this, ctx, s);
+          ++s;
+
+          VarDeclaredNames.push(...$stmt.VarDeclaredNames);
+          VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
+          break;
+        case SyntaxKind.DoStatement:
+          $stmt = $statements[s] = new $DoStatement(stmt, this, ctx, s);
+          ++s;
+
+          VarDeclaredNames.push(...$stmt.VarDeclaredNames);
+          VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
+          break;
+        case SyntaxKind.WhileStatement:
+          $stmt = $statements[s] = new $WhileStatement(stmt, this, ctx, s);
+          ++s;
+
+          VarDeclaredNames.push(...$stmt.VarDeclaredNames);
+          VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
+          break;
+        case SyntaxKind.ForStatement:
+          $stmt = $statements[s] = new $ForStatement(stmt, this, ctx, s);
+          ++s;
+
+          VarDeclaredNames.push(...$stmt.VarDeclaredNames);
+          VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
+          break;
+        case SyntaxKind.ForInStatement:
+          $stmt = $statements[s] = new $ForInStatement(stmt, this, ctx, s);
+          ++s;
+
+          VarDeclaredNames.push(...$stmt.VarDeclaredNames);
+          VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
+          break;
+        case SyntaxKind.ForOfStatement:
+          $stmt = $statements[s] = new $ForOfStatement(stmt, this, ctx, s);
+          ++s;
+
+          VarDeclaredNames.push(...$stmt.VarDeclaredNames);
+          VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
+          break;
+        case SyntaxKind.ContinueStatement:
+          $stmt = $statements[s] = new $ContinueStatement(stmt, this, ctx, s);
+          ++s;
+          break;
+        case SyntaxKind.BreakStatement:
+          $stmt = $statements[s] = new $BreakStatement(stmt, this, ctx, s);
+          ++s;
+          break;
+        case SyntaxKind.ReturnStatement:
+          $stmt = $statements[s] = new $ReturnStatement(stmt, this, ctx, s);
+          ++s;
+          break;
+        case SyntaxKind.WithStatement:
+          $stmt = $statements[s] = new $WithStatement(stmt, this, ctx, s);
+          ++s;
+
+          VarDeclaredNames.push(...$stmt.VarDeclaredNames);
+          VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
+          break;
+        case SyntaxKind.SwitchStatement:
+          $stmt = $statements[s] = new $SwitchStatement(stmt, this, ctx, s);
+          ++s;
+
+          VarDeclaredNames.push(...$stmt.VarDeclaredNames);
+          VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
+          break;
+        case SyntaxKind.LabeledStatement:
+          $stmt = $statements[s] = new $LabeledStatement(stmt, this, ctx, s);
+          ++s;
+
+          VarDeclaredNames.push(...$stmt.TopLevelVarDeclaredNames);
+          VarScopedDeclarations.push(...$stmt.TopLevelVarScopedDeclarations);
+          break;
+        case SyntaxKind.ThrowStatement:
+          $stmt = $statements[s] = new $ThrowStatement(stmt, this, ctx, s);
+          ++s;
+          break;
+        case SyntaxKind.TryStatement:
+          $stmt = $statements[s] = new $TryStatement(stmt, this, ctx, s);
+          ++s;
+
+          VarDeclaredNames.push(...$stmt.VarDeclaredNames);
+          VarScopedDeclarations.push(...$stmt.VarScopedDeclarations);
+          break;
+        case SyntaxKind.DebuggerStatement:
+          $stmt = $statements[s] = new $DebuggerStatement(stmt, this, ctx, s);
+          ++s;
+          break;
+        default:
+          throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as Node).kind]}.`);
+      }
+    }
+  }
+}
+
+
 export type ModuleStatus = 'uninstantiated' | 'instantiating' | 'instantiated' | 'evaluating' | 'evaluated';
 
 // http://www.ecma-international.org/ecma-262/#sec-abstract-module-records
@@ -182,7 +404,7 @@ export class $ESModule implements I$Node, IModule {
 
   public readonly path: string;
 
-  public readonly esm: $ESModule = this;
+  public readonly mos: $ESModule = this;
   public readonly parent: $ESModule = this;
   public readonly ctx: Context = Context.None;
   public readonly depth: number = 0;
@@ -231,6 +453,8 @@ export class $ESModule implements I$Node, IModule {
   public readonly StarExportEntries: readonly ExportEntryRecord[];
 
   public get isNull(): false { return false; }
+  public get isScript(): false { return false; }
+  public get isModule(): true { return true; }
 
   public constructor(
     public readonly logger: ILogger,
@@ -248,7 +472,7 @@ export class $ESModule implements I$Node, IModule {
     this['[[Environment]]'] = intrinsics.undefined;
     this['[[Namespace]]'] = intrinsics.undefined;
 
-    this.path = `SourceFile<(...)${$file.rootlessPath}>`;
+    this.path = `ESModule<(...)${$file.rootlessPath}>`;
     this.logger = logger.root;
 
     let ctx = Context.None;
@@ -1423,7 +1647,7 @@ export class $ESModule implements I$Node, IModule {
     this['[[Environment]]'] = void 0;
     this['[[Namespace]]'] = void 0;
 
-    this.esm = void 0;
+    this.mos = void 0;
     this.parent = void 0;
 
     this.$statements = void 0;
@@ -1556,7 +1780,7 @@ export class $ModuleDeclaration implements I$Node {
     public readonly parent: $ESModule | $$ModuleBody,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly esm: $ESModule = parent.esm,
+    public readonly mos: $ESModule = parent.mos,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -1632,7 +1856,7 @@ export class $ImportEqualsDeclaration implements I$Node {
     public readonly parent: $ESModule | $ModuleBlock,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly esm: $ESModule = parent.esm,
+    public readonly mos: $ESModule = parent.mos,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -1686,7 +1910,7 @@ export class $ImportDeclaration implements I$Node {
     public readonly parent: $ESModule | $ModuleBlock,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly esm: $ESModule = parent.esm,
+    public readonly mos: $ESModule = parent.mos,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -1739,7 +1963,7 @@ export class $ImportClause implements I$Node {
     public readonly node: ImportClause,
     public readonly parent: $ImportDeclaration,
     public readonly ctx: Context,
-    public readonly esm: $ESModule = parent.esm,
+    public readonly mos: $ESModule = parent.mos,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -1803,7 +2027,7 @@ export class $NamedImports implements I$Node {
     public readonly node: NamedImports,
     public readonly parent: $ImportClause,
     public readonly ctx: Context,
-    public readonly esm: $ESModule = parent.esm,
+    public readonly mos: $ESModule = parent.mos,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -1835,7 +2059,7 @@ export class $ImportSpecifier implements I$Node {
     public readonly node: ImportSpecifier,
     public readonly parent: $NamedImports,
     public readonly ctx: Context,
-    public readonly esm: $ESModule = parent.esm,
+    public readonly mos: $ESModule = parent.mos,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -1894,7 +2118,7 @@ export class $NamespaceImport implements I$Node {
     public readonly node: NamespaceImport,
     public readonly parent: $ImportClause,
     public readonly ctx: Context,
-    public readonly esm: $ESModule = parent.esm,
+    public readonly mos: $ESModule = parent.mos,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -1957,7 +2181,7 @@ export class $ExportAssignment implements I$Node {
     public readonly parent: $ESModule,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly esm: $ESModule = parent.esm,
+    public readonly mos: $ESModule = parent.mos,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -2013,7 +2237,7 @@ export class $ExportDeclaration implements I$Node {
     public readonly parent: $ESModule | $ModuleBlock,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly esm: $ESModule = parent.esm,
+    public readonly mos: $ESModule = parent.mos,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -2079,7 +2303,7 @@ export class $NamedExports implements I$Node {
     public readonly node: NamedExports,
     public readonly parent: $ExportDeclaration,
     public readonly ctx: Context,
-    public readonly esm: $ESModule = parent.esm,
+    public readonly mos: $ESModule = parent.mos,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -2115,7 +2339,7 @@ export class $ExportSpecifier implements I$Node {
     public readonly node: ExportSpecifier,
     public readonly parent: $NamedExports,
     public readonly ctx: Context,
-    public readonly esm: $ESModule = parent.esm,
+    public readonly mos: $ESModule = parent.mos,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -2204,7 +2428,7 @@ export class $NamespaceExportDeclaration implements I$Node {
     public readonly parent: $$ModuleDeclarationParent,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly esm: $ESModule = parent.esm,
+    public readonly mos: $ESModule = parent.mos,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -2226,7 +2450,7 @@ export class $ModuleBlock implements I$Node {
     public readonly node: ModuleBlock,
     public readonly parent: $ModuleDeclaration,
     public readonly ctx: Context,
-    public readonly esm: $ESModule = parent.esm,
+    public readonly mos: $ESModule = parent.mos,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -2243,7 +2467,7 @@ export class $ExternalModuleReference implements I$Node {
     public readonly node: ExternalModuleReference,
     public readonly parent: $ImportEqualsDeclaration,
     public readonly ctx: Context,
-    public readonly esm: $ESModule = parent.esm,
+    public readonly mos: $ESModule = parent.mos,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
@@ -2273,7 +2497,7 @@ export class $QualifiedName implements I$Node {
     public readonly node: QualifiedName,
     public readonly parent: $$NodeWithQualifiedName,
     public readonly ctx: Context,
-    public readonly esm: $ESModule = parent.esm,
+    public readonly mos: $ESModule = parent.mos,
     public readonly realm: Realm = parent.realm,
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,

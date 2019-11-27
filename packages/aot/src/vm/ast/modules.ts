@@ -209,6 +209,7 @@ export class $ESScript implements I$Node {
   // 15.1.6 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly Exclude<$$ESDeclaration, $ClassDeclaration>[];
 
+  public get isNull(): false { return false; }
   public get isScript(): true { return true; }
   public get isModule(): false { return false; }
 
@@ -554,6 +555,150 @@ export class $ESScript implements I$Node {
 
     // 19. Return NormalCompletion(empty).
     return new $Empty(realm);
+  }
+
+
+  // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-scriptevaluation
+  // 15.1.10 ScriptEvaluation ( scriptRecord )
+  public EvaluateScript(
+    ctx: ExecutionContext,
+  ): $Any {
+    const scriptRecord = this;
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+    const stack = realm.stack;
+
+    // 1. Let globalEnv be scriptRecord.[[Realm]].[[GlobalEnv]].
+    const globalEnv = scriptRecord.realm['[[GlobalEnv]]'];
+
+    // 2. Let scriptCxt be a new ECMAScript code execution context.
+    const scriptCxt = new ExecutionContext(realm);
+
+    // 3. Set the Function of scriptCxt to null.
+    // 4. Set the Realm of scriptCxt to scriptRecord.[[Realm]].
+    // 5. Set the ScriptOrModule of scriptCxt to scriptRecord.
+    scriptCxt.ScriptOrModule = scriptRecord;
+
+    // 6. Set the VariableEnvironment of scriptCxt to globalEnv.
+    scriptCxt.VariableEnvironment = globalEnv;
+
+    // 7. Set the LexicalEnvironment of scriptCxt to globalEnv.
+    scriptCxt.LexicalEnvironment = globalEnv;
+
+    // 8. Suspend the currently running execution context.
+    ctx.suspend();
+
+    // 9. Push scriptCxt on to the execution context stack; scriptCxt is now the running execution context.
+    stack.push(scriptCxt);
+
+    // 10. Let scriptBody be scriptRecord.[[ECMAScriptCode]].
+    const scriptBody = scriptRecord;
+
+    // 11. Let result be GlobalDeclarationInstantiation(scriptBody, globalEnv).
+    let result = scriptBody.InstantiateGlobalDeclaration(ctx, globalEnv) as $Any;
+
+    // 12. If result.[[Type]] is normal, then
+    if (result['[[Type]]'] === CompletionType.normal) {
+      // 12. a. Set result to the result of evaluating scriptBody.
+      const $statements = scriptBody.$statements;
+      let $statement: $$ESStatementListItem;
+      let sl: $Any = (void 0)!;
+      for (let i = 0, ii = $statements.length; i < ii; ++i) {
+        $statement = $statements[i];
+
+        switch ($statement.$kind) {
+          case SyntaxKind.VariableStatement:
+            sl = $statement.Evaluate(ctx);
+            break;
+          case SyntaxKind.FunctionDeclaration:
+            sl = $statement.Evaluate(ctx);
+            break;
+          case SyntaxKind.ClassDeclaration:
+            sl = $statement.Evaluate(ctx);
+            break;
+          case SyntaxKind.Block:
+            sl = $statement.Evaluate(ctx);
+            break;
+          case SyntaxKind.EmptyStatement:
+            sl = $statement.Evaluate(ctx);
+            break;
+          case SyntaxKind.ExpressionStatement:
+            sl = $statement.Evaluate(ctx);
+            break;
+          case SyntaxKind.IfStatement:
+            sl = $statement.Evaluate(ctx);
+            break;
+          case SyntaxKind.DoStatement:
+            sl = $statement.EvaluateLabelled(ctx, new $StringSet());
+            break;
+          case SyntaxKind.WhileStatement:
+            sl = $statement.EvaluateLabelled(ctx, new $StringSet());
+            break;
+          case SyntaxKind.ForStatement:
+            sl = $statement.EvaluateLabelled(ctx);
+            break;
+          case SyntaxKind.ForInStatement:
+            sl = $statement.EvaluateLabelled(ctx);
+            break;
+          case SyntaxKind.ForOfStatement:
+            sl = $statement.EvaluateLabelled(ctx);
+            break;
+          case SyntaxKind.ContinueStatement:
+            sl = $statement.Evaluate(ctx);
+            break;
+          case SyntaxKind.BreakStatement:
+            sl = $statement.Evaluate(ctx);
+            break;
+          case SyntaxKind.ReturnStatement:
+            sl = $statement.Evaluate(ctx);
+            break;
+          case SyntaxKind.WithStatement:
+            sl = $statement.Evaluate(ctx);
+            break;
+          case SyntaxKind.SwitchStatement:
+            sl = $statement.Evaluate(ctx);
+            break;
+          case SyntaxKind.LabeledStatement:
+            sl = $statement.EvaluateLabelled(ctx);
+            break;
+          case SyntaxKind.ThrowStatement:
+            sl = $statement.Evaluate(ctx);
+            break;
+          case SyntaxKind.TryStatement:
+            sl = $statement.Evaluate(ctx);
+            break;
+          case SyntaxKind.DebuggerStatement:
+            sl = $statement.Evaluate(ctx);
+            break;
+          default:
+            throw new Error(`Unexpected syntax node: ${SyntaxKind[$statement.$kind]}.`);
+        }
+
+        if (sl.isAbrupt) {
+          sl.enrichWith(this);
+          break;
+        }
+      }
+
+      result = sl;
+    }
+
+    // 13. If result.[[Type]] is normal and result.[[Value]] is empty, then
+    if (result['[[Type]]'] === CompletionType.normal && result.isEmpty) {
+      // 13. a. Set result to NormalCompletion(undefined).
+      result = new $Undefined(realm);
+    }
+
+    // 14. Suspend scriptCxt and remove it from the execution context stack.
+    scriptCxt.suspend();
+    stack.pop();
+
+    // 15. Assert: The execution context stack is not empty.
+    // 16. Resume the context that is now on the top of the execution context stack as the running execution context.
+    ctx.resume();
+
+    // 17. Return Completion(result).
+    return result;
   }
 }
 

@@ -6,7 +6,6 @@ import {
   IDisposable,
 } from '@aurelia/kernel';
 import {
-  IFileSystem,
   IFile,
 } from '../system/interfaces';
 import {
@@ -62,14 +61,11 @@ import {
   $Number,
 } from './types/number';
 import {
-  I$Node,
-} from './ast/_shared';
-import {
   $TemplateExpression,
   $TaggedTemplateExpression,
 } from './ast/expressions';
 import {
-  $ESModule,
+  $ESModule, $$ESModuleOrScript,
 } from './ast/modules';
 
 export class ResolveSet {
@@ -362,7 +358,7 @@ export class Realm implements IDisposable {
 
   // http://www.ecma-international.org/ecma-262/#sec-getactivescriptormodule
   // 8.3.1 GetActiveScriptOrModule ( )
-  public GetActiveScriptOrModule(): $ESModule {
+  public GetActiveScriptOrModule(): $$ESModuleOrScript {
     const stack = this.stack;
 
     // 1. If the execution context stack is empty, return null.
@@ -529,11 +525,11 @@ export class ExecutionContextStack extends Array<ExecutionContext> implements ID
   }
 }
 
-export class ExecutionContext<TLex extends $EnvRec = $EnvRec, TVar extends ($ModuleEnvRec | $FunctionEnvRec | $DeclarativeEnvRec) = ($ModuleEnvRec | $FunctionEnvRec | $DeclarativeEnvRec)> implements IDisposable {
+export class ExecutionContext<TLex extends $EnvRec = $EnvRec, TVar extends ($ModuleEnvRec | $FunctionEnvRec | $DeclarativeEnvRec | $GlobalEnvRec) = ($ModuleEnvRec | $FunctionEnvRec | $DeclarativeEnvRec | $GlobalEnvRec)> implements IDisposable {
   public readonly id: number;
 
   public Function!: $Function | $Null;
-  public ScriptOrModule!: $ESModule | $Null;
+  public ScriptOrModule!: $$ESModuleOrScript | $Null;
   public LexicalEnvironment!: TLex;
   public VariableEnvironment!: TVar;
 

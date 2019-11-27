@@ -15,6 +15,7 @@ import {
   LogConfig,
   ISink,
   ConsoleSink,
+  bound,
 } from '@aurelia/kernel';
 import {
   IFileSystem,
@@ -254,24 +255,40 @@ class TestReporter {
   }
 }
 
+function toString(x: { toString(): string; }): string {
+  return x.toString();
+}
+
+const utf8Encoding = { encoding: 'utf8' };
 
 export class BufferedFileSink {
   private readonly buffer: ILogEvent[] = [];
   private queued: boolean = false;
 
   public emit(event: ILogEvent): void {
-    this.buffer.push(event);
-    if (!this.queued) {
+    const buffer = this.buffer;
+
+    buffer.push(event);
+
+    if (buffer.length > 100) {
+      this.flush(false);
+    } else if (!this.queued) {
       this.queued = true;
-      setTimeout(() => this.flush(), 100);
+      process.nextTick(this.flush, true);
     }
   }
 
-  private flush(): void {
-    if (this.buffer.length > 0) {
+  @bound
+  private flush(fromTick: boolean): void {
+    const buffer = this.buffer;
+
+    if (fromTick) {
       this.queued = false;
-      const output = this.buffer.splice(0).map(x => x.toString()).join('\n');
-      appendFileSync('aot.log', output, { encoding: 'utf8' });
+    }
+    if (buffer.length > 0) {
+      const output = buffer.map(toString).join('\n');
+      buffer.length = 0;
+      appendFileSync('aot.log', output, utf8Encoding);
     }
   }
 }

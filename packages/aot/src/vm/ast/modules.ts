@@ -411,12 +411,12 @@ export class $ESScript implements I$Node {
     // 5. For each name in lexNames, do
     for (const name of lexNames) {
       // 5. a. If envRec.HasVarDeclaration(name) is true, throw a SyntaxError exception.
-      if (envRec.HasVarDeclaration(ctx, name)) {
+      if (envRec.HasVarDeclaration(ctx, name).isTruthy) {
         return new $SyntaxError(realm, `${name} is already var-declared in global scope`).enrichWith(this);
       }
 
       // 5. b. If envRec.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
-      if (envRec.HasLexicalDeclaration(ctx, name)) {
+      if (envRec.HasLexicalDeclaration(ctx, name).isTruthy) {
         return new $SyntaxError(realm, `${name} is already lexically-declared in global scope`).enrichWith(this);
       }
 
@@ -433,7 +433,7 @@ export class $ESScript implements I$Node {
     // 6. For each name in varNames, do
     for (const name of varNames) {
       // 6. a. If envRec.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
-      if (envRec.HasLexicalDeclaration(ctx, name)) {
+      if (envRec.HasLexicalDeclaration(ctx, name).isTruthy) {
         return new $SyntaxError(realm, `${name} is already lexically-declared in global scope`).enrichWith(this);
       }
     }

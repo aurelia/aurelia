@@ -31,7 +31,7 @@ describe('AOT (smoke tests)', function () {
       getContentSync() {
         return content;
       },
-    });
+    }, 'module');
 
     if (result.isAbrupt) {
       assert.fail(`Evaluation error`);

@@ -232,7 +232,8 @@ export class Viewport {
   }
 
   public async canLeave(): Promise<boolean> {
-    if (!await this.viewportScope.canLeave()) {
+    const canLeaveChildren: boolean = await this.viewportScope.canLeave();
+    if (!canLeaveChildren) {
       return false;
     }
     return this.content.canLeave(this.nextContent ? this.nextContent.instruction : null);

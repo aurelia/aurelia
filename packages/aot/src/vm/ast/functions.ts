@@ -6,7 +6,6 @@ import {
   FunctionDeclaration,
   FunctionExpression,
   ModifierFlags,
-  NodeFlags,
   ParameterDeclaration,
   SyntaxKind,
 } from 'typescript';
@@ -230,6 +229,9 @@ export class $FunctionExpression implements I$Node {
   public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
   public readonly IsType: false = false;
 
+  public readonly isGenerator: boolean;
+  public readonly isAsync: boolean;
+
   public constructor(
     public readonly node: FunctionExpression,
     public readonly parent: $AnyParentNode,
@@ -241,7 +243,7 @@ export class $FunctionExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.FunctionExpression`,
   ) {
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     const DirectivePrologue = this.DirectivePrologue = GetDirectivePrologue(node.body!.statements);
     if (DirectivePrologue.ContainsUseStrict) {
@@ -260,6 +262,9 @@ export class $FunctionExpression implements I$Node {
     this.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
     this.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
     this.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
+
+    this.isGenerator = node.asteriskToken !== void 0;
+    this.isAsync = hasBit(modifierFlags, ModifierFlags.Async);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
@@ -269,9 +274,7 @@ export class $FunctionExpression implements I$Node {
     functionObject: $Function,
     argumentsList: readonly $AnyNonEmpty[],
   ): $Any {
-    ctx.checkTimeout();
-
-    return $FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
+    return EvaluateBody(this, ctx, functionObject, argumentsList);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluation
@@ -556,6 +559,9 @@ export class $FunctionDeclaration implements I$Node {
   public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
   public readonly IsType: false = false;
 
+  public readonly isGenerator: boolean;
+  public readonly isAsync: boolean;
+
   public constructor(
     public readonly node: FunctionDeclaration,
     public readonly parent: $NodeWithStatements,
@@ -656,6 +662,9 @@ export class $FunctionDeclaration implements I$Node {
       this.ExportedNames = emptyArray;
       this.ExportEntries = emptyArray;
     }
+
+    this.isGenerator = node.asteriskToken !== void 0;
+    this.isAsync = hasBit(modifierFlags, ModifierFlags.Async);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-instantiatefunctionobject
@@ -716,26 +725,11 @@ export class $FunctionDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
   // 14.1.18 Runtime Semantics: EvaluateBody
   public EvaluateBody(
-    this: $$Function,
     ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
     functionObject: $Function,
     argumentsList: readonly $AnyNonEmpty[],
   ): $Any {
-    ctx.checkTimeout();
-
-    this.logger.debug(`${this.path}.EvaluateBody(#${ctx.id})`);
-
-    const realm = ctx.Realm;
-    const intrinsics = realm['[[Intrinsics]]'];
-
-    // FunctionBody : FunctionStatementList
-
-    // 1. Perform ? FunctionDeclarationInstantiation(functionObject, argumentsList).
-    const fdiResult = $FunctionDeclarationInstantiation(ctx, functionObject, argumentsList);
-    if (fdiResult.isAbrupt) { return fdiResult.enrichWith(ctx, this); }
-
-    // 2. Return the result of evaluating FunctionStatementList.
-    return (this.$body as $Block).Evaluate(ctx); // $Block is guaranteed by $ArrowFunction.EvaluateBody
+    return EvaluateBody(this, ctx, functionObject, argumentsList);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluation
@@ -760,6 +754,31 @@ export class $FunctionDeclaration implements I$Node {
     // 1. Return NormalCompletion(empty).
     return new $Empty(realm, CompletionType.normal, intrinsics.empty, this);
   }
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
+// 14.1.18 Runtime Semantics: EvaluateBody
+function EvaluateBody(
+  fn: $$Function,
+  ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
+  functionObject: $Function,
+  argumentsList: readonly $AnyNonEmpty[],
+): $Any {
+  ctx.checkTimeout();
+
+  fn.logger.debug(`${fn.path}.EvaluateBody(#${ctx.id})`);
+
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
+  // FunctionBody : FunctionStatementList
+
+  // 1. Perform ? FunctionDeclarationInstantiation(functionObject, argumentsList).
+  const fdiResult = $FunctionDeclarationInstantiation(ctx, functionObject, argumentsList);
+  if (fdiResult.isAbrupt) { return fdiResult.enrichWith(ctx, fn); }
+
+  // 2. Return the result of evaluating FunctionStatementList.
+  return (fn.$body as $Block).Evaluate(ctx); // $Block is guaranteed by $ArrowFunction.EvaluateBody
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-functiondeclarationinstantiation
@@ -1122,6 +1141,9 @@ export class $ArrowFunction implements I$Node {
   public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
   public readonly IsType: false = false;
 
+  public readonly isGenerator: false = false;
+  public readonly isAsync: boolean;
+
   public constructor(
     public readonly node: ArrowFunction,
     public readonly parent: $AnyParentNode,
@@ -1133,7 +1155,7 @@ export class $ArrowFunction implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.ArrowFunction`,
   ) {
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     if (node.body.kind === SyntaxKind.Block) {
       const DirectivePrologue = this.DirectivePrologue = GetDirectivePrologue((node.body as Block).statements);
@@ -1153,6 +1175,8 @@ export class $ArrowFunction implements I$Node {
       this.$parameters = this.CoveredFormalsList = new $FormalParameterList(node.parameters, this, ctx);
       this.$body = $assignmentExpression(node.body as $AssignmentExpressionNode, this, ctx, -1);
     }
+
+    this.isAsync = hasBit(modifierFlags, ModifierFlags.Async);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-runtime-semantics-evaluation
@@ -1243,6 +1267,9 @@ export class $ConstructorDeclaration implements I$Node {
   // 14.1.17 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
 
+  public readonly isGenerator: false = false;
+  public readonly isAsync: false = false;
+
   public constructor(
     public readonly node: ConstructorDeclaration,
     public readonly parent: $ClassDeclaration | $ClassExpression,
@@ -1320,9 +1347,7 @@ export class $ConstructorDeclaration implements I$Node {
     functionObject: $Function,
     argumentsList: readonly $AnyNonEmpty[],
   ): $Any {
-    ctx.checkTimeout();
-
-    return $FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
+    return EvaluateBody(this, ctx, functionObject, argumentsList);
   }
 }
 

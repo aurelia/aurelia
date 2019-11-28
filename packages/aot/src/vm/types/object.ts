@@ -114,6 +114,8 @@ export class $Object<
   public get hasValue(): false { return false; }
   public get isList(): false { return false; }
 
+  public readonly nodeStack: I$Node[] = [];
+
   public constructor(
     public readonly realm: Realm,
     public readonly IntrinsicName: T,
@@ -154,6 +156,9 @@ export class $Object<
   }
 
   public enrichWith(node: I$Node): this {
+    if (this['[[Type]]'] === CompletionType.throw) {
+      this.nodeStack.push(node);
+    }
     return this;
   }
 

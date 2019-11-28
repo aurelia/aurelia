@@ -85,6 +85,8 @@ export class $String<T extends string = string> {
   }
   public get isList(): false { return false; }
 
+  public readonly nodeStack: I$Node[] = [];
+
   // http://www.ecma-international.org/ecma-262/#sec-canonicalnumericindexstring
   // 7.1.16 CanonicalNumericIndexString ( argument )
   public CanonicalNumericIndexString(
@@ -131,6 +133,9 @@ export class $String<T extends string = string> {
   }
 
   public enrichWith(node: I$Node): this {
+    if (this['[[Type]]'] === CompletionType.throw) {
+      this.nodeStack.push(node);
+    }
     return this;
   }
 

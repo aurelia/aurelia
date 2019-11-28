@@ -75,6 +75,8 @@ export class $Number<T extends number = number> {
   public get hasValue(): true { return true; }
   public get isList(): false { return false; }
 
+  public readonly nodeStack: I$Node[] = [];
+
   public constructor(
     public readonly realm: Realm,
     value: T,
@@ -93,6 +95,9 @@ export class $Number<T extends number = number> {
   }
 
   public enrichWith(node: I$Node): this {
+    if (this['[[Type]]'] === CompletionType.throw) {
+      this.nodeStack.push(node);
+    }
     return this;
   }
 

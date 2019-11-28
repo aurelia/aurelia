@@ -71,6 +71,8 @@ export class $Boolean<T extends boolean = boolean> {
   public get hasValue(): true { return true; }
   public get isList(): false { return false; }
 
+  public readonly nodeStack: I$Node[] = [];
+
   public constructor(
     public readonly realm: Realm,
     value: T,
@@ -89,6 +91,9 @@ export class $Boolean<T extends boolean = boolean> {
   }
 
   public enrichWith(node: I$Node): this {
+    if (this['[[Type]]'] === CompletionType.throw) {
+      this.nodeStack.push(node);
+    }
     return this;
   }
 

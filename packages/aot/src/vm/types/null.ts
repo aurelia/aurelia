@@ -89,6 +89,8 @@ export class $Null {
   public get isAmbiguous(): false { return false; }
   public get isList(): false { return false; }
 
+  public readonly nodeStack: I$Node[] = [];
+
   public constructor(
     public readonly realm: Realm,
     type: PotentialNonEmptyCompletionType = CompletionType.normal,
@@ -104,6 +106,9 @@ export class $Null {
   }
 
   public enrichWith(node: I$Node): this {
+    if (this['[[Type]]'] === CompletionType.throw) {
+      this.nodeStack.push(node);
+    }
     return this;
   }
 

@@ -84,6 +84,8 @@ export class $Undefined {
   public get hasValue(): true { return true; }
   public get isList(): false { return false; }
 
+  public readonly nodeStack: I$Node[] = [];
+
   public get IsArrayIndex(): false { return false; }
 
   public constructor(
@@ -101,6 +103,9 @@ export class $Undefined {
   }
 
   public enrichWith(node: I$Node): this {
+    if (this['[[Type]]'] === CompletionType.throw) {
+      this.nodeStack.push(node);
+    }
     return this;
   }
 

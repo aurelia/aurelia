@@ -540,6 +540,7 @@ export class $ESScript implements I$Node {
 
       // 17. b. Let fo be the result of performing InstantiateFunctionObject for f with argument env.
       const fo = f.InstantiateFunctionObject(ctx, env);
+      if (fo.isAbrupt) { return fo.enrichWith(ctx, this); }
 
       // 17. c. Perform ? envRec.CreateGlobalFunctionBinding(fn, fo, false).
       const $CreateGlobalFunctionBindingResult = envRec.CreateGlobalFunctionBinding(ctx, fn, fo, intrinsics.false);
@@ -1431,6 +1432,7 @@ export class $ESModule implements I$Node, IModule {
           if (d.$kind === SyntaxKind.FunctionDeclaration) {
             // 15. a. iii. 1. Let fo be the result of performing InstantiateFunctionObject for d with argument env.
             const fo = d.InstantiateFunctionObject(ctx, envRec);
+            if (fo.isAbrupt) { return fo.enrichWith(ctx, this); }
 
             // 15. a. iii. 2. Call envRec.InitializeBinding(dn, fo).
             envRec.InitializeBinding(ctx, dn, fo);

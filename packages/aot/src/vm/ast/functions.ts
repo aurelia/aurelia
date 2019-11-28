@@ -97,6 +97,15 @@ import {
   $SetAccessorDeclaration,
   $GetAccessorDeclaration,
 } from './methods';
+import {
+  $DefinePropertyOrThrow,
+} from '../operations';
+import {
+  $PropertyDescriptor,
+} from '../types/property-descriptor';
+import {
+  $Boolean,
+} from '../types/boolean';
 
 const {
   emptyArray,
@@ -669,42 +678,58 @@ export class $FunctionDeclaration implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-instantiatefunctionobject
   // 14.1.20 Runtime Semantics: InstantiateFunctionObject
+  // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-instantiatefunctionobject
+  // 14.4.11 Runtime Semantics: InstantiateFunctionObject
+  // http://www.ecma-international.org/ecma-262/#sec-asyncgenerator-definitions-instantiatefunctionobject
+  // 14.5.11 Runtime Semantics: InstantiateFunctionObject
+  // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-InstantiateFunctionObject
+  // 14.7.10 Runtime Semantics: InstantiateFunctionObject
   public InstantiateFunctionObject(
     ctx: ExecutionContext,
     Scope: $EnvRec,
-  ): $Function {
+  ): $Function | $Error {
+    if (!this.isAsync) {
+      if (!this.isGenerator) {
+        return this.$InstantiateFunctionObject(ctx, Scope);
+      } else {
+        return this.$InstantiateGeneratorFunctionObject(ctx, Scope);
+      }
+    } else if (this.isGenerator) {
+      return this.$InstantiateAsyncGeneratorFunctionObject(ctx, Scope);
+    } else {
+      return this.$InstantiateAsyncFunctionObject(ctx, Scope);
+    }
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-instantiatefunctionobject
+  // 14.1.20 Runtime Semantics: InstantiateFunctionObject
+  private $InstantiateFunctionObject(
+    ctx: ExecutionContext,
+    Scope: $EnvRec,
+  ): $Function | $Error {
     ctx.checkTimeout();
 
-    this.logger.debug(`${this.path}.InstantiateFunctionObject(#${ctx.id})`);
+    this.logger.debug(`${this.path}.$InstantiateFunctionObject(#${ctx.id})`);
 
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
-    // FunctionDeclaration : function ( FormalParameters ) { FunctionBody }
-    if (this.$name === void 0) {
-      // 1. Let F be FunctionCreate(Normal, FormalParameters, FunctionBody, scope, true).
-      const F = $Function.FunctionCreate(ctx, 'normal', this, Scope, intrinsics.true);
+    // FunctionDeclaration :
+    //     function ( FormalParameters ) { FunctionBody }
+    // 1. Let F be FunctionCreate(Normal, FormalParameters, FunctionBody, scope, true).
+    // 2. Perform MakeConstructor(F).
+    // 3. Perform SetFunctionName(F, "default").
+    // 4. Set F.[[SourceText]] to the source text matched by FunctionDeclaration.
+    // 5. Return F.
 
-      // 2. Perform MakeConstructor(F).
-      F.MakeConstructor(ctx);
-
-      // 3. Perform SetFunctionName(F, "default").
-      F.SetFunctionName(ctx, intrinsics.default);
-
-      // 4. Set F.[[SourceText]] to the source text matched by FunctionDeclaration.
-      F['[[SourceText]]'] = new $String(realm, this.node.getText(this.mos.node));
-
-      // 5. Return F.
-      return F;
-    }
-
-    // FunctionDeclaration : function BindingIdentifier ( FormalParameters ) { FunctionBody }
+    // FunctionDeclaration :
+    //     function BindingIdentifier ( FormalParameters ) { FunctionBody }
 
     // 1. If the function code for FunctionDeclaration is strict mode code, let strict be true. Otherwise let strict be false.
-    const strict = intrinsics.true; // TODO: can we actually break stuff by always having this be true? Anyway, still need to double check the scope for this
+    const strict = new $Boolean(realm, this.DirectivePrologue.ContainsUseStrict === true);
 
     // 2. Let name be StringValue of BindingIdentifier.
-    const name = this.$name.StringValue;
+    const name = this.$name === void 0 ? intrinsics.default : this.$name.StringValue;
 
     // 3. Let F be FunctionCreate(Normal, FormalParameters, FunctionBody, scope, strict).
     const F = $Function.FunctionCreate(ctx, 'normal', this, Scope, strict);
@@ -719,6 +744,180 @@ export class $FunctionDeclaration implements I$Node {
     F['[[SourceText]]'] = new $String(realm, this.node.getText(this.mos.node));
 
     // 7. Return F.
+    return F;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-instantiatefunctionobject
+  // 14.4.11 Runtime Semantics: InstantiateFunctionObject
+  private $InstantiateGeneratorFunctionObject(
+    ctx: ExecutionContext,
+    Scope: $EnvRec,
+  ): $Function | $Error {
+    ctx.checkTimeout();
+
+    this.logger.debug(`${this.path}.$InstantiateFunctionObject(#${ctx.id})`);
+
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // GeneratorDeclaration :
+    //     function * ( FormalParameters ) { GeneratorBody }
+    // 1. Let F be GeneratorFunctionCreate(Normal, FormalParameters, GeneratorBody, scope, true).
+    // 2. Let prototype be ObjectCreate(%GeneratorPrototype%).
+    // 3. Perform DefinePropertyOrThrow(F, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
+    // 4. Perform SetFunctionName(F, "default").
+    // 5. Set F.[[SourceText]] to the source text matched by GeneratorDeclaration.
+    // 6. Return F.
+
+    // GeneratorDeclaration :
+    //     function * BindingIdentifier ( FormalParameters ) { GeneratorBody }
+
+    // 1. If the function code for GeneratorDeclaration is strict mode code, let strict be true. Otherwise let strict be false.
+    const strict = new $Boolean(realm, this.DirectivePrologue.ContainsUseStrict === true);
+
+    // 2. Let name be StringValue of BindingIdentifier.
+    const name = this.$name === void 0 ? intrinsics.default : this.$name.StringValue;
+
+    // 3. Let F be GeneratorFunctionCreate(Normal, FormalParameters, GeneratorBody, scope, strict).
+    const F = $Function.GeneratorFunctionCreate(ctx, 'normal', this, Scope, strict);
+
+    // 4. Let prototype be ObjectCreate(%GeneratorPrototype%).
+    const prototype = $Object.ObjectCreate(ctx, 'Generator', intrinsics['%GeneratorPrototype%']);
+
+    // 5. Perform DefinePropertyOrThrow(F, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
+    const $DefinePropertyOrThrowResult = $DefinePropertyOrThrow(
+      ctx,
+      F,
+      intrinsics.$prototype,
+      new $PropertyDescriptor(
+        realm,
+        intrinsics.$prototype,
+        {
+          '[[Value]]': prototype,
+          '[[Writable]]': intrinsics.true,
+          '[[Enumerable]]': intrinsics.false,
+          '[[Configurable]]': intrinsics.false,
+        },
+      ),
+    );
+    if ($DefinePropertyOrThrowResult.isAbrupt) { return $DefinePropertyOrThrowResult.enrichWith(ctx, this); }
+
+    // 6. Perform SetFunctionName(F, name).
+    F.SetFunctionName(ctx, name);
+
+    // 7. Set F.[[SourceText]] to the source text matched by GeneratorDeclaration.
+    F['[[SourceText]]'] = new $String(realm, this.node.getText(this.mos.node));
+
+    // 8. Return F.
+    return F;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-asyncgenerator-definitions-instantiatefunctionobject
+  // 14.5.11 Runtime Semantics: InstantiateFunctionObject
+  private $InstantiateAsyncGeneratorFunctionObject(
+    ctx: ExecutionContext,
+    Scope: $EnvRec,
+  ): $Function | $Error {
+    ctx.checkTimeout();
+
+    this.logger.debug(`${this.path}.$InstantiateFunctionObject(#${ctx.id})`);
+
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // AsyncGeneratorDeclaration :
+    //     async function * ( FormalParameters ) { AsyncGeneratorBody }
+    // 1. If the function code for AsyncGeneratorDeclaration is strict mode code, let strict be true. Otherwise let strict be false.
+    // 2. Let F be AsyncGeneratorFunctionCreate(Normal, FormalParameters, AsyncGeneratorBody, scope, strict).
+    // 3. Let prototype be ObjectCreate(%AsyncGeneratorPrototype%).
+    // 4. Perform DefinePropertyOrThrow(F, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
+    // 5. Perform SetFunctionName(F, "default").
+    // 6. Set F.[[SourceText]] to the source text matched by AsyncGeneratorDeclaration.
+    // 7. Return F.
+
+    // AsyncGeneratorDeclaration :
+    //     async function * BindingIdentifier ( FormalParameters ) { AsyncGeneratorBody }
+
+    // 1. If the function code for AsyncGeneratorDeclaration is strict mode code, let strict be true. Otherwise let strict be false.
+    const strict = new $Boolean(realm, this.DirectivePrologue.ContainsUseStrict === true);
+
+    // 2. Let name be StringValue of BindingIdentifier.
+    const name = this.$name === void 0 ? intrinsics.default : this.$name.StringValue;
+
+    // 3. Let F be ! AsyncGeneratorFunctionCreate(Normal, FormalParameters, AsyncGeneratorBody, scope, strict).
+    const F = $Function.GeneratorFunctionCreate(ctx, 'normal', this, Scope, strict);
+
+    // 4. Let prototype be ! ObjectCreate(%AsyncGeneratorPrototype%).
+    const prototype = $Object.ObjectCreate(ctx, 'AsyncGenerator', intrinsics['%AsyncGeneratorPrototype%']);
+
+    // 5. Perform ! DefinePropertyOrThrow(F, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
+    const $DefinePropertyOrThrowResult = $DefinePropertyOrThrow(
+      ctx,
+      F,
+      intrinsics.$prototype,
+      new $PropertyDescriptor(
+        realm,
+        intrinsics.$prototype,
+        {
+          '[[Value]]': prototype,
+          '[[Writable]]': intrinsics.true,
+          '[[Enumerable]]': intrinsics.false,
+          '[[Configurable]]': intrinsics.false,
+        },
+      ),
+    );
+    if ($DefinePropertyOrThrowResult.isAbrupt) { return $DefinePropertyOrThrowResult.enrichWith(ctx, this); }
+
+    // 6. Perform ! SetFunctionName(F, name).
+    F.SetFunctionName(ctx, name);
+
+    // 7. Set F.[[SourceText]] to the source text matched by AsyncGeneratorDeclaration.
+    F['[[SourceText]]'] = new $String(realm, this.node.getText(this.mos.node));
+
+    // 8. Return F.
+    return F;
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-InstantiateFunctionObject
+  // 14.7.10 Runtime Semantics: InstantiateFunctionObject
+  private $InstantiateAsyncFunctionObject(
+    ctx: ExecutionContext,
+    Scope: $EnvRec,
+  ): $Function | $Error {
+    ctx.checkTimeout();
+
+    this.logger.debug(`${this.path}.$InstantiateFunctionObject(#${ctx.id})`);
+
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // AsyncFunctionDeclaration :
+    //     async function ( FormalParameters ) { AsyncFunctionBody }
+    // 1. If the function code for AsyncFunctionDeclaration is strict mode code, let strict be true. Otherwise, let strict be false.
+    // 2. Let F be ! AsyncFunctionCreate(Normal, FormalParameters, AsyncFunctionBody, scope, strict).
+    // 3. Perform ! SetFunctionName(F, "default").
+    // 4. Set F.[[SourceText]] to the source text matched by AsyncFunctionDeclaration.
+    // 5. Return F.
+
+    // AsyncFunctionDeclaration :
+    //     async function BindingIdentifier ( FormalParameters ) { AsyncFunctionBody }
+
+    // 1. If the function code for AsyncFunctionDeclaration is strict mode code, let strict be true. Otherwise, let strict be false.
+    const strict = new $Boolean(realm, this.DirectivePrologue.ContainsUseStrict === true);
+
+    // 2. Let name be StringValue of BindingIdentifier.
+    const name = this.$name === void 0 ? intrinsics.default : this.$name.StringValue;
+
+    // 3. Let F be ! AsyncFunctionCreate(Normal, FormalParameters, AsyncFunctionBody, scope, strict).
+    const F = $Function.GeneratorFunctionCreate(ctx, 'normal', this, Scope, strict);
+
+    // 4. Perform ! SetFunctionName(F, name).
+    F.SetFunctionName(ctx, name);
+
+    // 5. Set F.[[SourceText]] to the source text matched by AsyncFunctionDeclaration.
+    F['[[SourceText]]'] = new $String(realm, this.node.getText(this.mos.node));
+
+    // 6. Return F.
     return F;
   }
 
@@ -786,7 +985,7 @@ export function $FunctionDeclarationInstantiation(
   ctx: ExecutionContext<$FunctionEnvRec | $DeclarativeEnvRec>,
   func: $Function,
   argumentsList: readonly $AnyNonEmpty[],
-) {
+): $Empty | $Error {
   ctx.checkTimeout();
 
   const realm = ctx.Realm;
@@ -1080,6 +1279,7 @@ export function $FunctionDeclarationInstantiation(
     if (f instanceof $FunctionDeclaration) {
       // 36. b. Let fo be the result of performing InstantiateFunctionObject for f with argument lexEnv.
       const fo = f.InstantiateFunctionObject(ctx, lexEnvRec);
+      if (fo.isAbrupt) { return fo; }
 
       // 36. c. Perform ! varEnvRec.SetMutableBinding(fn, fo, false).
       varEnvRec.SetMutableBinding(ctx, fn, fo, intrinsics.false);

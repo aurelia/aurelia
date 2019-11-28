@@ -9,7 +9,6 @@ import {
 } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { IViewportOptions, Viewport } from '../viewport';
-import { IContainer, Registration } from '@aurelia/kernel';
 
 export const ParentViewport = CustomElement.createInjectable();
 
@@ -36,13 +35,13 @@ export class ViewportCustomElement {
   public constructor(
     @IRouter private readonly router: IRouter,
     @INode element: INode,
-    @ParentViewport private readonly parent: ViewportCustomElement,
+    // @ParentViewport private readonly parentViewport: ViewportCustomElement,
   ) {
     this.element = element as HTMLElement;
   }
 
   public created() {
-    this.router.setClosestViewport(this);
+    // this.router.setClosestViewport(this);
   }
   // public created(...rest): void {
   //   console.log('Created', rest);
@@ -73,7 +72,7 @@ export class ViewportCustomElement {
   //   this.viewport = this.router.addViewport(name, this.element, (this as any).$context.get(IContainer), options);
   // }
   public bound(): void {
-    this.connect();
+    // this.connect();
   }
   public unbound(): void {
     this.disconnect();
@@ -105,7 +104,7 @@ export class ViewportCustomElement {
     if (this.element.hasAttribute('stateful')) {
       options.stateful = true;
     }
-    this.viewport = this.router.connectViewport(this.name, this.element, this.$controller.context as IRenderContext, this.parent !== null && this.parent.viewport !== null ? this.parent.viewport.viewportScope : null, options);
+    this.viewport = this.router.connectViewport(this, this.name, this.element, this.$controller.context as IRenderContext, /* this.parentViewport !== null && this.parentViewport.viewport !== null ? this.parentViewport.viewport.viewportScope : null, */ options);
   }
   public disconnect(): void {
     if (this.viewport) {
@@ -114,6 +113,8 @@ export class ViewportCustomElement {
   }
 
   public binding(flags: LifecycleFlags): void {
+    // this.router.setClosestViewport(this);
+    this.connect();
     if (this.viewport) {
       this.viewport.binding(flags);
     }

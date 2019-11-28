@@ -1,8 +1,7 @@
 import { Class, IContainer } from '@aurelia/kernel';
-import { IInterpolationExpression } from '@aurelia/runtime';
+import { IInterpolationExpression, IExpressionParser, BindingType, IsBindingBehavior, LifecycleFlags } from '@aurelia/runtime';
 import { IValidationMessageProvider } from './validation-messages';
-import { PropertyAccessor, PropertyAccessorParser } from '../property-accessor-parser';
-import { ValidateResult } from '../validate-result';
+import { ValidateResult } from './validate-result';
 
 export type IValidateable<T = any> = (Class<T> | object) & { [key in PropertyKey]: any };
 export type ValidationDisplayNameAccessor = () => string;
@@ -17,6 +16,7 @@ export class RuleProperty {
    * @memberof RuleProperty
    */
   public constructor(
+    public expression?: IsBindingBehavior,
     public name: string | number | null = null,
     public displayName: string | ValidationDisplayNameAccessor | null = null,
   ) { }
@@ -241,7 +241,7 @@ export class PropertyRule {
     private readonly validationRules: ValidationRules,
     private readonly messageProvider: IValidationMessageProvider,
     public property: RuleProperty,
-    public $rules: ValidationRule[][] = [],
+    public $rules: ValidationRule[][] = [[]],
   ) { }
 
   /** @internal */
@@ -266,7 +266,10 @@ export class PropertyRule {
           isValidOrPromise = await isValidOrPromise;
         }
         isValid = isValid && isValidOrPromise;
-        const message = "TODO";
+        const message = rule.message.evaluate(
+          LifecycleFlags.none,
+          { bindingContext: object!, parentScope: null, scopeParts: [], overrideContext: (void 0)! }
+          , null) as string;
         return new ValidateResult(rule, object, this.property.name, isValidOrPromise, message);
       };
 
@@ -500,7 +503,7 @@ export class PropertyRule {
    *
    * @param property - The property to target. Can be the property name or a property accessor function.
    */
-  public ensure<TValue>(subject: string | number | PropertyAccessor<IValidateable, TValue>) {
+  public ensure<TValue>(subject: string /* | number | PropertyAccessor<IValidateable, TValue> */) {
     this.latestRule = void 0;
     return this.validationRules.ensure<TValue>(subject);
   }
@@ -535,11 +538,11 @@ export class PropertyRule {
  * Part of the fluent rule API. Enables targeting properties and objects with rules.
  */
 export class ValidationRules {
-  private static propertyParser: PropertyAccessorParser;
+  private static parser: IExpressionParser;
   private static messageProvider: IValidationMessageProvider;
 
   public static register(container: IContainer) {
-    this.propertyParser = container.get(PropertyAccessorParser);
+    this.parser = container.get<IExpressionParser>(IExpressionParser);
     this.messageProvider = container.get(IValidationMessageProvider);
   }
 
@@ -579,13 +582,13 @@ export class ValidationRules {
    * @param property - The property to target. Can be the property name or a property accessor
    * function.
    */
-  public ensure<TValue>(property: string | number | PropertyAccessor<IValidateable, TValue>): PropertyRule {
+  public ensure<TValue>(property: string | PropertyAccessor): PropertyRule {
     this.assertInitialized();
-    const name = ValidationRules.propertyParser.parse(property);
+    const [name, expression] = parsePropertyName(property, ValidationRules.parser);
     // eslint-disable-next-line eqeqeq
     let rule = this.rules.find((r) => r.property.name == name);
     if (rule === void 0) {
-      rule = new PropertyRule(this, ValidationRules.messageProvider, new RuleProperty(name));
+      rule = new PropertyRule(this, ValidationRules.messageProvider, new RuleProperty(expression, name));
       this.rules.push(rule);
     }
     return rule;
@@ -612,9 +615,33 @@ export class ValidationRules {
   }
 
   private assertInitialized() {
-    if (ValidationRules.messageProvider === void 0 || ValidationRules.propertyParser === void 0) {
-      return;
+    if (ValidationRules.parser === void 0 || ValidationRules.messageProvider === void 0) {
+      throw new Error(`Did you forget to register 'ValidationConfiguration' from '@aurelia/validation'?`);
     }
-    throw new Error(`Did you forget to register 'ValidationConfiguration' from '@aurelia/validation'?`);
   }
+}
+
+export type PropertyAccessor<TObject extends IValidateable = IValidateable, TValue = unknown> = (object: TObject) => TValue;
+/** @internal */
+export function parsePropertyName(property: string | PropertyAccessor, parser: IExpressionParser): [string, IsBindingBehavior] {
+
+  switch (typeof property) {
+    case "string":
+      break;
+    case "function": {
+      const classic = /^function\s*\([$_\w\d]+\)\s*\{(?:\s*"use strict";)?\s*(?:[$_\w\d.['"\]+;]+)?\s*return\s+[$_\w\d]+((\.[$_\w\d]+)+)\s*;?\s*\}$/;
+      const arrow = /^\(?[$_\w\d]+\)?\s*=>\s*[$_\w\d]+((\.[$_\w\d]+)+)$/;
+      const fn = property.toString();
+      const match = classic.exec(fn) ?? arrow.exec(fn);
+      if (match === null) {
+        throw new Error(`Unable to parse accessor function:\n${fn}`); // TODO use reporter
+      }
+      property = match[1].substring(1);
+      break;
+    }
+    default:
+      throw new Error(`Unable to parse accessor function:\n${property}`); // TODO use reporter
+  }
+
+  return [property, parser.parse(property, BindingType.None)];
 }

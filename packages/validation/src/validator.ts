@@ -1,8 +1,6 @@
 import { DI } from '@aurelia/kernel';
-import { IValidateable, PropertyRule, Rules } from './implementation/rule';
-import { IValidationMessageProvider } from './implementation/validation-messages';
+import { IValidateable, PropertyRule, Rules } from './rule';
 import { ValidateResult } from './validate-result';
-import { LifecycleFlags } from '@aurelia/runtime';
 
 export const IValidator = DI.createInterface<IValidator>("IValidator").noDefault();
 /**
@@ -35,15 +33,6 @@ export interface IValidator {
  * Responsible for validating objects and properties.
  */
 export class StandardValidator implements IValidator {
-  private readonly getDisplayName: (propertyName: string) => string;
-
-  public constructor(
-    @IValidationMessageProvider private readonly messageProvider: IValidationMessageProvider,
-  ) {
-    this.messageProvider = messageProvider;
-    this.getDisplayName = messageProvider.getDisplayName.bind(messageProvider);
-  }
-
   /**
    * Validates the specified property.
    *

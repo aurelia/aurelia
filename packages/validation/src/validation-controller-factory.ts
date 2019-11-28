@@ -1,7 +1,7 @@
 import { ValidationController } from './validation-controller';
 import { IValidator } from './validator';
-import { PropertyAccessorParser } from './property-accessor-parser';
 import { IContainer, Registration } from '@aurelia/kernel';
+import { IExpressionParser } from '@aurelia/runtime';
 
 /**
  * Creates ValidationController instances.
@@ -20,8 +20,8 @@ export class ValidationControllerFactory {
    */
   public create(validator?: IValidator) {
     validator = validator ?? this.container.get<IValidator>(IValidator);
-    const propertyParser = this.container.get(PropertyAccessorParser);
-    return new ValidationController(validator, propertyParser);
+    const parser = this.container.get<IExpressionParser>(IExpressionParser);
+    return new ValidationController(validator, parser);
   }
 
   /**

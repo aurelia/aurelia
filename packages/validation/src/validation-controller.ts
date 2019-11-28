@@ -5,10 +5,9 @@ import { ValidationRenderer, RenderInstruction } from './validation-renderer';
 import { ValidateResult } from './validate-result';
 import { ValidateInstruction } from './validate-instruction';
 import { ControllerValidateResult } from './controller-validate-result';
-import { PropertyAccessorParser, PropertyAccessor } from './property-accessor-parser';
 import { ValidateEvent } from './validate-event';
-import { IBinding, BindingBehaviorExpression } from '@aurelia/runtime';
-import { IValidateable, PropertyRule } from './implementation/rule';
+import { IBinding, BindingBehaviorExpression, IExpressionParser } from '@aurelia/runtime';
+import { IValidateable, PropertyRule, parsePropertyName, PropertyAccessor } from './rule';
 
 export type BindingWithBehavior = IBinding & {
   sourceExpression: BindingBehaviorExpression;
@@ -59,7 +58,7 @@ export class ValidationController {
 
   public constructor(
     private readonly validator: IValidator,
-    private readonly propertyParser: PropertyAccessorParser
+    private readonly parser: IExpressionParser,
   ) { }
 
   /**
@@ -108,15 +107,15 @@ export class ValidationController {
   public addError<TObject>(
     message: string,
     object: TObject,
-    propertyName: string | PropertyAccessor<TObject, string> | null = null
+    propertyName: string | PropertyAccessor | null = null
   ): ValidateResult {
     let resolvedPropertyName: string | number | null;
     if (propertyName === null) {
       resolvedPropertyName = propertyName;
     } else {
-      resolvedPropertyName = this.propertyParser.parse(propertyName);
+      [resolvedPropertyName] = parsePropertyName(propertyName, this.parser);
     }
-    const result = new ValidateResult({ __manuallyAdded__: true }, object, resolvedPropertyName, false, message);
+    const result = new ValidateResult({ __manuallyAdded__: true }, object, resolvedPropertyName, false, message); // TODO revisit
     this.processResultDelta('validate', [], [result]);
     return result;
   }

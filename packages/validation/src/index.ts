@@ -11,10 +11,10 @@ export * from './validation-controller-factory';
 // export * from './validation-errors-custom-attribute';
 // export * from './validation-renderer-custom-attribute';
 // export * from './validation-renderer';
-// export * from './validator';
+export * from './validator';
 
-// export * from './implementation/rule';
+export * from './rule';
 // export * from './implementation/validation-messages';
 // export * from './implementation/validation-rules';
 
-export * from './configuration'
+export * from './configuration';

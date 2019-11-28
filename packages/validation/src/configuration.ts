@@ -1,6 +1,6 @@
 import { IContainer, PLATFORM, Registration } from '@aurelia/kernel';
 import { IValidator, StandardValidator } from './validator';
-import { ValidationRules } from './implementation/rule';
+import { ValidationRules } from './rule';
 import {
   ValidateBindingBehavior,
   ValidateManuallyBindingBehavior,
@@ -10,6 +10,7 @@ import {
 } from './validate-binding-behavior';
 import { ValidationErrorsCustomAttribute } from './validation-errors-custom-attribute';
 import { ValidationRendererCustomAttribute } from './validation-renderer-custom-attribute';
+import { IValidationMessageProvider, ValidationMessageProvider } from './validation-messages';
 
 export type ValidationConfigurationProvider = (options: ValidationCustomizationOpions) => void;
 export interface ValidationCustomizationOpions {
@@ -24,6 +25,8 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
       optionsProvider(options);
 
       return container.register(
+        Registration.singleton(IValidator, options.validator),
+        Registration.singleton(IValidationMessageProvider, ValidationMessageProvider),
         ValidationRules,
         ValidateBindingBehavior,
         ValidateManuallyBindingBehavior,
@@ -32,7 +35,6 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
         ValidateOnChangeOrBlurBindingBehavior,
         ValidationErrorsCustomAttribute,
         ValidationRendererCustomAttribute,
-        Registration.singleton(IValidator, options.validator)
       );
     },
     customize(cb?: ValidationConfigurationProvider) {

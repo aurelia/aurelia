@@ -80,7 +80,8 @@
       "cwd": "${workspaceFolder}",
       "program": "${workspaceFolder}\\packages\\__tests__\\dist\\esnext\\__tests__\\setup-test262.js",
       "runtimeArgs": [
-        "--es-module-specifier-resolution=node"
+        "-r",
+        "esm"
       ],
       "skipFiles": [
         "<node_internals>/**"

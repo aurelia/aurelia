@@ -338,7 +338,7 @@ export class $Function<
     Scope: $EnvRec,
     Strict: $Boolean,
     prototype?: $AnyObject,
-  ) {
+  ): $Function {
     code.logger.debug(`$Function.FunctionCreate(#${ctx.id}, ${JSON.stringify(kind)})`);
 
     const realm = ctx.Realm;
@@ -364,6 +364,78 @@ export class $Function<
     const F = this.FunctionAllocate(ctx, prototype!, Strict, allocKind);
 
     // 5. Return FunctionInitialize(F, kind, ParameterList, Body, Scope).
+    return this.FunctionInitialize(ctx, F, kind, code, Scope);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-generatorfunctioncreate
+  // 9.2.6 GeneratorFunctionCreate ( kind , ParameterList , Body , Scope , Strict )
+  public static GeneratorFunctionCreate(
+    ctx: ExecutionContext,
+    kind: 'normal' | 'method' | 'arrow',
+    code: $$Function,
+    Scope: $EnvRec,
+    Strict: $Boolean,
+  ): $Function {
+    code.logger.debug(`$Function.GeneratorFunctionCreate(#${ctx.id}, ${JSON.stringify(kind)})`);
+
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // 1. Let functionPrototype be the intrinsic object %Generator%.
+    const functionPrototype = intrinsics['%Generator%'];
+
+    // 2. Let F be FunctionAllocate(functionPrototype, Strict, "generator").
+    const F = this.FunctionAllocate(ctx, functionPrototype, Strict, 'generator');
+
+    // 3. Return FunctionInitialize(F, kind, ParameterList, Body, Scope).
+    return this.FunctionInitialize(ctx, F, kind, code, Scope);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-asyncgeneratorfunctioncreate
+  // 9.2.7 AsyncGeneratorFunctionCreate ( kind , ParameterList , Body , Scope , Strict )
+  public static AsyncGeneratorFunctionCreate(
+    ctx: ExecutionContext,
+    kind: 'normal' | 'method' | 'arrow',
+    code: $$Function,
+    Scope: $EnvRec,
+    Strict: $Boolean,
+  ): $Function {
+    code.logger.debug(`$Function.AsyncGeneratorFunctionCreate(#${ctx.id}, ${JSON.stringify(kind)})`);
+
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // 1. Let functionPrototype be the intrinsic object %AsyncGenerator%.
+    const functionPrototype = intrinsics['%AsyncGenerator%'];
+
+    // 2. Let F be ! FunctionAllocate(functionPrototype, Strict, "generator").
+    const F = this.FunctionAllocate(ctx, functionPrototype, Strict, 'generator');
+
+    // 3. Return ! FunctionInitialize(F, kind, ParameterList, Body, Scope).
+    return this.FunctionInitialize(ctx, F, kind, code, Scope);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-async-functions-abstract-operations-async-function-create
+  // 9.2.8 AsyncFunctionCreate ( kind , parameters , body , Scope , Strict )
+  public static AsyncFunctionCreate(
+    ctx: ExecutionContext,
+    kind: 'normal' | 'method' | 'arrow',
+    code: $$Function,
+    Scope: $EnvRec,
+    Strict: $Boolean,
+  ): $Function {
+    code.logger.debug(`$Function.AsyncFunctionCreate(#${ctx.id}, ${JSON.stringify(kind)})`);
+
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // 1. Let functionPrototype be the intrinsic object %AsyncFunctionPrototype%.
+    const functionPrototype = intrinsics['%AsyncFunctionPrototype%'];
+
+    // 2. Let F be ! FunctionAllocate(functionPrototype, Strict, "async").
+    const F = this.FunctionAllocate(ctx, functionPrototype, Strict, 'async');
+
+    // 3. Return ! FunctionInitialize(F, kind, parameters, body, Scope).
     return this.FunctionInitialize(ctx, F, kind, code, Scope);
   }
 

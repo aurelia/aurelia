@@ -82,7 +82,7 @@ import {
   $$TSStatementListItem,
   $$tsStatementList,
   $StatementNode,
-  blockDeclarationInstantiation,
+  BlockDeclarationInstantiation,
   evaluateStatementList,
   evaluateStatement,
   $$ESLabelledItem,
@@ -653,7 +653,8 @@ export class $Block implements I$Node {
     const blockEnv = ctx.LexicalEnvironment = new $DeclarativeEnvRec(this.logger, realm, oldEnv);
 
     // 3. Perform BlockDeclarationInstantiation(StatementList, blockEnv).
-    blockDeclarationInstantiation(ctx, this.LexicallyScopedDeclarations, blockEnv);
+    const $BlockDeclarationInstantiationResult = BlockDeclarationInstantiation(ctx, this.LexicallyScopedDeclarations, blockEnv);
+    if ($BlockDeclarationInstantiationResult.isAbrupt) { return $BlockDeclarationInstantiationResult; }
 
     // 4. Set the running execution context's LexicalEnvironment to blockEnv.
     realm.stack.push(ctx);
@@ -1723,7 +1724,8 @@ export class $SwitchStatement implements I$Node {
     const blockEnv = ctx.LexicalEnvironment = new $DeclarativeEnvRec(this.logger, realm, oldEnv);
 
     // 5. Perform BlockDeclarationInstantiation(CaseBlock, blockEnv).
-    blockDeclarationInstantiation(ctx, this.LexicallyScopedDeclarations, blockEnv);
+    const $BlockDeclarationInstantiationResult = BlockDeclarationInstantiation(ctx, this.LexicallyScopedDeclarations, blockEnv);
+    if ($BlockDeclarationInstantiationResult.isAbrupt) { return $BlockDeclarationInstantiationResult; }
 
     // 6. Set the running execution context's LexicalEnvironment to blockEnv.
     realm.stack.push(ctx);

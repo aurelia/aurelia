@@ -243,7 +243,15 @@ import {
   $RegularExpressionLiteral,
   $StringLiteral,
 } from './literals';
-import { $StringSet } from '../globals/string';
+import {
+  $StringSet,
+} from '../globals/string';
+import {
+  $Empty,
+} from '../types/empty';
+import {
+  $Error,
+} from '../types/error';
 
 const {
   emptyArray,
@@ -1112,11 +1120,11 @@ export function evaluateStatementList(
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-blockdeclarationinstantiation
-export function blockDeclarationInstantiation(
+export function BlockDeclarationInstantiation(
   ctx: ExecutionContext,
   lexicallyScopedDeclarations: readonly $$ESDeclaration[],
   envRec: $DeclarativeEnvRec,
-) {
+): $Empty | $Error {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1145,12 +1153,17 @@ export function blockDeclarationInstantiation(
     if (dkind === SyntaxKind.FunctionDeclaration /* || dkind === SyntaxKind.GeneratorDeclaration || dkind === SyntaxKind.AsyncFunctionDeclaration || dkind === SyntaxKind.AsyncGeneratorDeclaration */) {
       // 4. b. i. Let fn be the sole element of the BoundNames of d.
       const fn = d.BoundNames[0];
+
       // 4. b. ii. Let fo be the result of performing InstantiateFunctionObject for d with argument env.
       const fo = (d as $FunctionDeclaration).InstantiateFunctionObject(ctx, envRec);
+      if (fo.isAbrupt) { return fo; }
+
       // 4. b. iii. Perform envRec.InitializeBinding(fn, fo).
       envRec.InitializeBinding(ctx, fn, fo);
     }
   }
+
+  return ctx.Realm['[[Intrinsics]]'].empty;
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-isconstructor
@@ -1379,6 +1392,13 @@ export const modifiersToModifierFlags = (function () {
     }
   }
 })();
+
+export const enum FunctionKind {
+  normal         = 0b00,
+  generator      = 0b01,
+  async          = 0b10,
+  asyncGenerator = 0b11,
+}
 
 /**
  * Returns the indexed string representation, or an empty string if the number is -1.

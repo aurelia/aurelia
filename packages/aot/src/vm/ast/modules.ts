@@ -595,7 +595,7 @@ export class $ESScript implements I$Node {
     const scriptBody = scriptRecord;
 
     // 11. Let result be GlobalDeclarationInstantiation(scriptBody, globalEnv).
-    let result = scriptBody.InstantiateGlobalDeclaration(ctx, globalEnv) as $Any;
+    let result = scriptBody.InstantiateGlobalDeclaration(scriptCxt, globalEnv) as $Any;
 
     // 12. If result.[[Type]] is normal, then
     if (result['[[Type]]'] === CompletionType.normal) {
@@ -608,67 +608,67 @@ export class $ESScript implements I$Node {
 
         switch ($statement.$kind) {
           case SyntaxKind.VariableStatement:
-            sl = $statement.Evaluate(ctx);
+            sl = $statement.Evaluate(scriptCxt);
             break;
           case SyntaxKind.FunctionDeclaration:
-            sl = $statement.Evaluate(ctx);
+            sl = $statement.Evaluate(scriptCxt);
             break;
           case SyntaxKind.ClassDeclaration:
-            sl = $statement.Evaluate(ctx);
+            sl = $statement.Evaluate(scriptCxt);
             break;
           case SyntaxKind.Block:
-            sl = $statement.Evaluate(ctx);
+            sl = $statement.Evaluate(scriptCxt);
             break;
           case SyntaxKind.EmptyStatement:
-            sl = $statement.Evaluate(ctx);
+            sl = $statement.Evaluate(scriptCxt);
             break;
           case SyntaxKind.ExpressionStatement:
-            sl = $statement.Evaluate(ctx);
+            sl = $statement.Evaluate(scriptCxt);
             break;
           case SyntaxKind.IfStatement:
-            sl = $statement.Evaluate(ctx);
+            sl = $statement.Evaluate(scriptCxt);
             break;
           case SyntaxKind.DoStatement:
-            sl = $statement.EvaluateLabelled(ctx, new $StringSet());
+            sl = $statement.EvaluateLabelled(scriptCxt, new $StringSet());
             break;
           case SyntaxKind.WhileStatement:
-            sl = $statement.EvaluateLabelled(ctx, new $StringSet());
+            sl = $statement.EvaluateLabelled(scriptCxt, new $StringSet());
             break;
           case SyntaxKind.ForStatement:
-            sl = $statement.EvaluateLabelled(ctx);
+            sl = $statement.EvaluateLabelled(scriptCxt);
             break;
           case SyntaxKind.ForInStatement:
-            sl = $statement.EvaluateLabelled(ctx);
+            sl = $statement.EvaluateLabelled(scriptCxt);
             break;
           case SyntaxKind.ForOfStatement:
-            sl = $statement.EvaluateLabelled(ctx);
+            sl = $statement.EvaluateLabelled(scriptCxt);
             break;
           case SyntaxKind.ContinueStatement:
-            sl = $statement.Evaluate(ctx);
+            sl = $statement.Evaluate(scriptCxt);
             break;
           case SyntaxKind.BreakStatement:
-            sl = $statement.Evaluate(ctx);
+            sl = $statement.Evaluate(scriptCxt);
             break;
           case SyntaxKind.ReturnStatement:
-            sl = $statement.Evaluate(ctx);
+            sl = $statement.Evaluate(scriptCxt);
             break;
           case SyntaxKind.WithStatement:
-            sl = $statement.Evaluate(ctx);
+            sl = $statement.Evaluate(scriptCxt);
             break;
           case SyntaxKind.SwitchStatement:
-            sl = $statement.Evaluate(ctx);
+            sl = $statement.Evaluate(scriptCxt);
             break;
           case SyntaxKind.LabeledStatement:
-            sl = $statement.EvaluateLabelled(ctx);
+            sl = $statement.EvaluateLabelled(scriptCxt);
             break;
           case SyntaxKind.ThrowStatement:
-            sl = $statement.Evaluate(ctx);
+            sl = $statement.Evaluate(scriptCxt);
             break;
           case SyntaxKind.TryStatement:
-            sl = $statement.Evaluate(ctx);
+            sl = $statement.Evaluate(scriptCxt);
             break;
           case SyntaxKind.DebuggerStatement:
-            sl = $statement.Evaluate(ctx);
+            sl = $statement.Evaluate(scriptCxt);
             break;
           default:
             throw new Error(`Unexpected syntax node: ${SyntaxKind[$statement.$kind]}.`);

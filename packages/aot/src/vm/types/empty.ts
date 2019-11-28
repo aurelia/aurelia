@@ -83,7 +83,7 @@ export class $Empty {
     return other instanceof $Empty;
   }
 
-  public enrichWith(node: I$Node): this {
+  public enrichWith(ctx: ExecutionContext, node: I$Node): this {
     return this;
   }
 

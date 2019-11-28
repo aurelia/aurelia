@@ -152,7 +152,7 @@ export class $MethodDeclaration implements I$Node {
     const propKey = this.$name.EvaluatePropName(ctx);
 
     // 2. ReturnIfAbrupt(propKey).
-    if (propKey.isAbrupt) { return propKey.enrichWith(this); }
+    if (propKey.isAbrupt) { return propKey.enrichWith(ctx, this); }
 
     // 3. If the function code for this MethodDefinition is strict mode code, let strict be true. Otherwise let strict be false.
     const strict = intrinsics.true; // TODO: use static semantics
@@ -200,7 +200,7 @@ export class $MethodDeclaration implements I$Node {
     const methodDef = this.DefineMethod(ctx, object);
 
     // 2. ReturnIfAbrupt(methodDef).
-    if (methodDef.isAbrupt) { return methodDef.enrichWith(this); }
+    if (methodDef.isAbrupt) { return methodDef.enrichWith(ctx, this); }
 
     // 3. Perform SetFunctionName(methodDef.[[Closure]], methodDef.[[Key]]).
     methodDef['[[Closure]]'].SetFunctionName(ctx, methodDef['[[Key]]']);
@@ -218,7 +218,7 @@ export class $MethodDeclaration implements I$Node {
     );
 
     // 5. Return ? DefinePropertyOrThrow(object, methodDef.[[Key]], desc).
-    return $DefinePropertyOrThrow(ctx, object, methodDef['[[Key]]'], desc).enrichWith(this);
+    return $DefinePropertyOrThrow(ctx, object, methodDef['[[Key]]'], desc).enrichWith(ctx, this);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
@@ -309,7 +309,7 @@ export class $GetAccessorDeclaration implements I$Node {
     const propKey = this.$name.EvaluatePropName(ctx);
 
     // 2. ReturnIfAbrupt(propKey).
-    if (propKey.isAbrupt) { return propKey.enrichWith(this); }
+    if (propKey.isAbrupt) { return propKey.enrichWith(ctx, this); }
 
     // 3. If the function code for this MethodDefinition is strict mode code, let strict be true. Otherwise let strict be false.
     const strict = intrinsics.true; // TODO: use static semantics
@@ -342,7 +342,7 @@ export class $GetAccessorDeclaration implements I$Node {
     );
 
     // 11. Return ? DefinePropertyOrThrow(object, propKey, desc).
-    return $DefinePropertyOrThrow(ctx, object, propKey, desc).enrichWith(this);
+    return $DefinePropertyOrThrow(ctx, object, propKey, desc).enrichWith(ctx, this);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
@@ -433,7 +433,7 @@ export class $SetAccessorDeclaration implements I$Node {
     const propKey = this.$name.EvaluatePropName(ctx);
 
     // 2. ReturnIfAbrupt(propKey).
-    if (propKey.isAbrupt) { return propKey.enrichWith(this); }
+    if (propKey.isAbrupt) { return propKey.enrichWith(ctx, this); }
 
     // 3. If the function code for this MethodDefinition is strict mode code, let strict be true. Otherwise let strict be false.
     const strict = intrinsics.true; // TODO: use static semantics
@@ -465,7 +465,7 @@ export class $SetAccessorDeclaration implements I$Node {
     );
 
     // 10. Return ? DefinePropertyOrThrow(object, propKey, desc).
-    return $DefinePropertyOrThrow(ctx, object, propKey, desc).enrichWith(this);
+    return $DefinePropertyOrThrow(ctx, object, propKey, desc).enrichWith(ctx, this);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody

@@ -68,6 +68,8 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
   public get isList(): false { return false; }
 
   public readonly nodeStack: I$Node[] = [];
+  public ctx: ExecutionContext | null = null;
+  public stack: string = '';
 
   public get IsArrayIndex(): false { return false; }
 
@@ -87,9 +89,13 @@ export class $Symbol<T extends $Undefined | $String = $Undefined | $String> {
     return other instanceof $Symbol && this['[[Value]]'] === other['[[Value]]'];
   }
 
-  public enrichWith(node: I$Node): this {
+  public enrichWith(ctx: ExecutionContext, node: I$Node): this {
     if (this['[[Type]]'] === CompletionType.throw) {
       this.nodeStack.push(node);
+      if (this.ctx === null) {
+        this.ctx = ctx;
+        this.stack = ctx.Realm.stack.toString();
+      }
     }
     return this;
   }

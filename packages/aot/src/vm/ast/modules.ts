@@ -412,21 +412,21 @@ export class $ESScript implements I$Node {
     for (const name of lexNames) {
       // 5. a. If envRec.HasVarDeclaration(name) is true, throw a SyntaxError exception.
       if (envRec.HasVarDeclaration(ctx, name).isTruthy) {
-        return new $SyntaxError(realm, `${name} is already var-declared in global scope`).enrichWith(this);
+        return new $SyntaxError(realm, `${name} is already var-declared in global scope`).enrichWith(ctx, this);
       }
 
       // 5. b. If envRec.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
       if (envRec.HasLexicalDeclaration(ctx, name).isTruthy) {
-        return new $SyntaxError(realm, `${name} is already lexically-declared in global scope`).enrichWith(this);
+        return new $SyntaxError(realm, `${name} is already lexically-declared in global scope`).enrichWith(ctx, this);
       }
 
       // 5. c. Let hasRestrictedGlobal be ? envRec.HasRestrictedGlobalProperty(name).
       const hasRestrictedGlobal = envRec.HasRestrictedGlobalProperty(ctx, name);
-      if (hasRestrictedGlobal.isAbrupt) { return hasRestrictedGlobal.enrichWith(this); }
+      if (hasRestrictedGlobal.isAbrupt) { return hasRestrictedGlobal.enrichWith(ctx, this); }
 
       // 5. d. If hasRestrictedGlobal is true, throw a SyntaxError exception.
       if (hasRestrictedGlobal.isTruthy) {
-        return new $SyntaxError(realm, `${name} is a restricted global property`).enrichWith(this);
+        return new $SyntaxError(realm, `${name} is a restricted global property`).enrichWith(ctx, this);
       }
     }
 
@@ -434,7 +434,7 @@ export class $ESScript implements I$Node {
     for (const name of varNames) {
       // 6. a. If envRec.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
       if (envRec.HasLexicalDeclaration(ctx, name).isTruthy) {
-        return new $SyntaxError(realm, `${name} is already lexically-declared in global scope`).enrichWith(this);
+        return new $SyntaxError(realm, `${name} is already lexically-declared in global scope`).enrichWith(ctx, this);
       }
     }
 
@@ -462,11 +462,11 @@ export class $ESScript implements I$Node {
         if (!declaredFunctionNames.has(fn)) {
           // 10. a. iv. 1. Let fnDefinable be ? envRec.CanDeclareGlobalFunction(fn).
           const fnDefinable = envRec.CanDeclareGlobalFunction(ctx, fn);
-          if (fnDefinable.isAbrupt) { return fnDefinable.enrichWith(this); }
+          if (fnDefinable.isAbrupt) { return fnDefinable.enrichWith(ctx, this); }
 
           // 10. a. iv. 2. If fnDefinable is false, throw a TypeError exception.
           if (fnDefinable.isFalsey) {
-            return new $TypeError(realm, `function declaration ${fn} cannot be defined in global scope.`).enrichWith(this);
+            return new $TypeError(realm, `function declaration ${fn} cannot be defined in global scope.`).enrichWith(ctx, this);
           }
 
           // 10. a. iv. 3. Append fn to declaredFunctionNames.
@@ -491,11 +491,11 @@ export class $ESScript implements I$Node {
           if (!declaredFunctionNames.has(vn)) {
             // 12. a. i. 1. a. Let vnDefinable be ? envRec.CanDeclareGlobalVar(vn).
             const vnDefinable = envRec.CanDeclareGlobalVar(ctx, vn);
-            if (vnDefinable.isAbrupt) { return vnDefinable.enrichWith(this); }
+            if (vnDefinable.isAbrupt) { return vnDefinable.enrichWith(ctx, this); }
 
             // 12. a. i. 1. b. If vnDefinable is false, throw a TypeError exception.
             if (vnDefinable.isFalsey) {
-              return new $TypeError(realm, `var declaration ${vn} cannot be defined in global scope.`).enrichWith(this);
+              return new $TypeError(realm, `var declaration ${vn} cannot be defined in global scope.`).enrichWith(ctx, this);
             }
 
             // 12. a. i. 1. c. If vn is not an element of declaredVarNames, then
@@ -522,13 +522,13 @@ export class $ESScript implements I$Node {
         if (d.IsConstantDeclaration) {
           // 16. b. i. 1. Perform ? envRec.CreateImmutableBinding(dn, true).
           const $CreateImmutableBindingResult = envRec.CreateImmutableBinding(ctx, dn, intrinsics.true);
-          if ($CreateImmutableBindingResult.isAbrupt) { return $CreateImmutableBindingResult.enrichWith(this); }
+          if ($CreateImmutableBindingResult.isAbrupt) { return $CreateImmutableBindingResult.enrichWith(ctx, this); }
         }
         // 16. b. ii. Else,
         else {
           // 16. b. ii. 1. Perform ? envRec.CreateMutableBinding(dn, false).
           const $CreateImmutableBindingResult = envRec.CreateImmutableBinding(ctx, dn, intrinsics.false);
-          if ($CreateImmutableBindingResult.isAbrupt) { return $CreateImmutableBindingResult.enrichWith(this); }
+          if ($CreateImmutableBindingResult.isAbrupt) { return $CreateImmutableBindingResult.enrichWith(ctx, this); }
         }
       }
     }
@@ -543,14 +543,14 @@ export class $ESScript implements I$Node {
 
       // 17. c. Perform ? envRec.CreateGlobalFunctionBinding(fn, fo, false).
       const $CreateGlobalFunctionBindingResult = envRec.CreateGlobalFunctionBinding(ctx, fn, fo, intrinsics.false);
-      if ($CreateGlobalFunctionBindingResult.isAbrupt) { return $CreateGlobalFunctionBindingResult.enrichWith(this); }
+      if ($CreateGlobalFunctionBindingResult.isAbrupt) { return $CreateGlobalFunctionBindingResult.enrichWith(ctx, this); }
     }
 
     // 18. For each String vn in declaredVarNames, in list order, do
     for (const vn of declaredVarNames) {
       // 18. a. Perform ? envRec.CreateGlobalVarBinding(vn, false).
       const $CreateGlobalVarBindingResult = envRec.CreateGlobalVarBinding(ctx, vn, intrinsics.false);
-      if ($CreateGlobalVarBindingResult.isAbrupt) { return $CreateGlobalVarBindingResult.enrichWith(this); }
+      if ($CreateGlobalVarBindingResult.isAbrupt) { return $CreateGlobalVarBindingResult.enrichWith(ctx, this); }
     }
 
     // 19. Return NormalCompletion(empty).
@@ -675,7 +675,7 @@ export class $ESScript implements I$Node {
         }
 
         if (sl.isAbrupt) {
-          sl.enrichWith(this);
+          sl.enrichWith(ctx, this);
           break;
         }
       }
@@ -1228,11 +1228,11 @@ export class $ESModule implements I$Node, IModule {
     for (const required of this.RequestedModules) {
       // 9. a. Let requiredModule be ? HostResolveImportedModule(module, required).
       const requiredModule = this.moduleResolver.ResolveImportedModule(ctx, this, required);
-      if (requiredModule.isAbrupt) { return requiredModule.enrichWith(this); }
+      if (requiredModule.isAbrupt) { return requiredModule.enrichWith(ctx, this); }
 
       // 9. b. Set idx to ? InnerModuleInstantiation(requiredModule, stack, idx).
       const $idx = requiredModule._InnerModuleInstantiation(ctx, stack, idx);
-      if ($idx.isAbrupt) { return $idx.enrichWith(this); }
+      if ($idx.isAbrupt) { return $idx.enrichWith(ctx, this); }
       idx = $idx;
 
       // 9. c. Assert: requiredModule.[[Status]] is either "instantiating", "instantiated", or "evaluated".
@@ -1249,7 +1249,7 @@ export class $ESModule implements I$Node, IModule {
 
     // 10. Perform ? module.InitializeEnvironment().
     const $InitializeEnvironmentResult = this.InitializeEnvironment(ctx);
-    if ($InitializeEnvironmentResult.isAbrupt) { return $InitializeEnvironmentResult.enrichWith(this); }
+    if ($InitializeEnvironmentResult.isAbrupt) { return $InitializeEnvironmentResult.enrichWith(ctx, this); }
 
     // 11. Assert: module occurs exactly once in stack.
     // 12. Assert: module.[[DFSAncestorIndex]] is less than or equal to module.[[DFSIndex]].
@@ -1294,7 +1294,7 @@ export class $ESModule implements I$Node, IModule {
     for (const e of this.IndirectExportEntries) {
       // 2. a. Let resolution be ? module.ResolveExport(e.[[ExportName]], « »).
       const resolution = this.ResolveExport(ctx, e.ExportName as $String, new ResolveSet());
-      if (resolution.isAbrupt) { return resolution.enrichWith(this); }
+      if (resolution.isAbrupt) { return resolution.enrichWith(ctx, this); }
 
       // 2. b. If resolution is null or "ambiguous", throw a SyntaxError exception.
       if (resolution.isNull || resolution.isAmbiguous) {
@@ -1337,7 +1337,7 @@ export class $ESModule implements I$Node, IModule {
           if (namespace.isUndefined) {
             // 4. a. Let exportedNames be ? module.GetExportedNames(« »).
             const exportedNames = mod.GetExportedNames(ctx, new Set());
-            if (exportedNames.isAbrupt) { return exportedNames.enrichWith(mod as unknown as I$Node); }
+            if (exportedNames.isAbrupt) { return exportedNames.enrichWith(ctx, mod as unknown as I$Node); }
 
             // 4. b. Let unambiguousNames be a new empty List.
             const unambiguousNames = new $List<$String>();
@@ -1346,7 +1346,7 @@ export class $ESModule implements I$Node, IModule {
             for (const name of exportedNames) {
               // 4. c. i. Let resolution be ? module.ResolveExport(name, « »).
               const resolution = mod.ResolveExport(ctx, name, new ResolveSet());
-              if (resolution.isAbrupt) { return resolution.enrichWith(mod as unknown as I$Node); }
+              if (resolution.isAbrupt) { return resolution.enrichWith(ctx, mod as unknown as I$Node); }
 
               // 4. c. ii. If resolution is a ResolvedBinding Record, append name to unambiguousNames.
               if (resolution instanceof ResolvedBindingRecord) {
@@ -1366,14 +1366,14 @@ export class $ESModule implements I$Node, IModule {
         envRec.CreateImmutableBinding(ctx, ie.LocalName, intrinsics.true);
 
         // 9. c. iii. Call envRec.InitializeBinding(in.[[LocalName]], namespace).
-        if (namespace.isAbrupt) { return namespace.enrichWith(this); } // TODO: sure about this? Spec doesn't say it
+        if (namespace.isAbrupt) { return namespace.enrichWith(ctx, this); } // TODO: sure about this? Spec doesn't say it
         envRec.InitializeBinding(ctx, ie.LocalName, namespace);
       }
       // 9. d. Else,
       else {
         // 9. d. i. Let resolution be ? importedModule.ResolveExport(in.[[ImportName]], « »).
         const resolution = importedModule.ResolveExport(ctx, ie.ImportName, new ResolveSet());
-        if (resolution.isAbrupt) { return resolution.enrichWith(this); }
+        if (resolution.isAbrupt) { return resolution.enrichWith(ctx, this); }
 
         // 9. d. ii. If resolution is null or "ambiguous", throw a SyntaxError exception.
         if (resolution.isNull || resolution.isAmbiguous) {
@@ -1489,11 +1489,11 @@ export class $ESModule implements I$Node, IModule {
     for (const e of mod.StarExportEntries) {
       // 7. a. Let requestedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
       const requestedModule = this.moduleResolver.ResolveImportedModule(ctx, mod, e.ModuleRequest as $String);
-      if (requestedModule.isAbrupt) { return requestedModule.enrichWith(this); }
+      if (requestedModule.isAbrupt) { return requestedModule.enrichWith(ctx, this); }
 
       // 7. b. Let starNames be ? requestedModule.GetExportedNames(exportStarSet).
       const starNames = requestedModule.GetExportedNames(ctx, exportStarSet);
-      if (starNames.isAbrupt) { return starNames.enrichWith(this); }
+      if (starNames.isAbrupt) { return starNames.enrichWith(ctx, this); }
 
       // 7. c. For each element n of starNames, do
       for (const n of starNames) {
@@ -1559,7 +1559,7 @@ export class $ESModule implements I$Node, IModule {
 
         // 5. a. ii. Let importedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
         const importedModule = this.moduleResolver.ResolveImportedModule(ctx, this, e.ModuleRequest as $String);
-        if (importedModule.isAbrupt) { return importedModule.enrichWith(this); }
+        if (importedModule.isAbrupt) { return importedModule.enrichWith(ctx, this); }
 
         // 5. a. iii. Return importedModule.ResolveExport(e.[[ImportName]], resolveSet).
         return importedModule.ResolveExport(ctx, e.ImportName as $String, resolveSet);
@@ -1583,11 +1583,11 @@ export class $ESModule implements I$Node, IModule {
     for (const e of this.StarExportEntries) {
       // 8. a. Let importedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
       const importedModule = this.moduleResolver.ResolveImportedModule(ctx, this, e.ModuleRequest as $String);
-      if (importedModule.isAbrupt) { return importedModule.enrichWith(this); }
+      if (importedModule.isAbrupt) { return importedModule.enrichWith(ctx, this); }
 
       // 8. b. Let resolution be ? importedModule.ResolveExport(exportName, resolveSet).
       const resolution = importedModule.ResolveExport(ctx, exportName, resolveSet);
-      if (resolution.isAbrupt) { return resolution.enrichWith(this); }
+      if (resolution.isAbrupt) { return resolution.enrichWith(ctx, this); }
 
       // 8. c. If resolution is "ambiguous", return "ambiguous".
       if (resolution.isAmbiguous) {
@@ -1719,7 +1719,7 @@ export class $ESModule implements I$Node, IModule {
       // 10. b. NOTE: Instantiate must be completed successfully prior to invoking this method, so every requested module is guaranteed to resolve successfully.
       // 10. c. Set idx to ? InnerModuleEvaluation(requiredModule, stack, idx).
       const $EvaluateModuleInnerResult = requiredModule.EvaluateModuleInner(ctx, stack, idx);
-      if ($EvaluateModuleInnerResult.isAbrupt) { return $EvaluateModuleInnerResult.enrichWith(this); }
+      if ($EvaluateModuleInnerResult.isAbrupt) { return $EvaluateModuleInnerResult.enrichWith(ctx, this); }
 
       idx = $EvaluateModuleInnerResult['[[Value]]'];
 
@@ -1735,7 +1735,7 @@ export class $ESModule implements I$Node, IModule {
 
     // 11. Perform ? module.ExecuteModule().
     const $ExecuteModuleResult = this.ExecutionResult = this.ExecuteModule(ctx);
-    if ($ExecuteModuleResult.isAbrupt) { return $ExecuteModuleResult.enrichWith(this); }
+    if ($ExecuteModuleResult.isAbrupt) { return $ExecuteModuleResult.enrichWith(ctx, this); }
 
     // 12. Assert: module occurs exactly once in stack.
     // 13. Assert: module.[[DFSAncestorIndex]] is less than or equal to module.[[DFSIndex]].
@@ -1952,7 +1952,7 @@ export class $ESModule implements I$Node, IModule {
           throw new Error(`Unexpected syntax node: ${SyntaxKind[$statement.$kind]}.`);
       }
 
-      if (sl.isAbrupt) { return sl.enrichWith(this); }
+      if (sl.isAbrupt) { return sl.enrichWith(ctx, this); }
     }
 
     return sl;

@@ -382,7 +382,20 @@ class TestRunner {
           if (result.isAbrupt) {
             reporter.fail(tc);
 
-            logger.error(`${format.red('FAIL')} - ${tc.file.rootlessPath}\n  Expected no error, but got: ${result['[[Value]]'].message}\n${result['[[Value]]'].stack}\n${result.nodeStack.map(x => `    ${x.path}`).join('\n')}\n`);
+            let message: string;
+            let stack: string;
+            let type: string;
+            const value = result['[[Value]]'];
+            if (value instanceof Error) {
+              message = value.message;
+              stack = value.stack;
+              type = value.name;
+            } else {
+              message = (value as unknown as string);
+              stack = result.stack;
+              type = (result as unknown as { Type: string; }).Type;
+            }
+            logger.error(`${format.red('FAIL')} - ${tc.file.rootlessPath}\n  Expected no error, but got: ${type}: ${message}\n${stack}\n`);
           } else {
             reporter.pass(tc);
 

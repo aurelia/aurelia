@@ -518,6 +518,19 @@ export class ExecutionContextStack extends Array<ExecutionContext> implements ID
     return super.pop()!;
   }
 
+  public toString(): string {
+    let str = '';
+    for (let i = 0; i < this.length; ++i) {
+      const fn = this[i].Function;
+      if (fn === void 0 || fn.isNull) {
+        str = `${str}  at NULL\n`;
+      } else {
+        str = `${str}  at ${fn.toString()}\n`;
+      }
+    }
+    return str;
+  }
+
   public dispose(this: Writable<Partial<ExecutionContextStack>>): void {
     this.forEach!(x => { x.dispose(); });
     this.length = 0;

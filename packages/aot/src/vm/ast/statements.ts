@@ -409,10 +409,10 @@ export class $VariableDeclaration implements I$Node {
             // 3. Else,
             // 3. a. Let lhs be ResolveBinding(name).
             const lhs = realm.ResolveBinding(name);
-            if (lhs.isAbrupt) { return lhs.enrichWith(this); } // TODO: is this correct? spec doesn't say it
+            if (lhs.isAbrupt) { return lhs.enrichWith(ctx, this); } // TODO: is this correct? spec doesn't say it
 
             // 3. b. Return ? PutValue(lhs, value).
-            return lhs.PutValue(ctx, value).enrichWith(this);
+            return lhs.PutValue(ctx, value).enrichWith(ctx, this);
           }
           break;
 
@@ -761,7 +761,7 @@ export class $ExpressionStatement implements I$Node {
     // 1. Let exprRef be the result of evaluating Expression.
     // 2. Return ? GetValue(exprRef).
 
-    return this.$expression.Evaluate(ctx).GetValue(ctx).enrichWith(this);
+    return this.$expression.Evaluate(ctx).GetValue(ctx).enrichWith(ctx, this);
   }
 }
 
@@ -945,11 +945,11 @@ export class $DoStatement implements I$Node {
 
       // 2. e. Let exprValue be ? GetValue(exprRef).
       const exprValue = exprRef.GetValue(ctx);
-      if (exprValue.isAbrupt) { return exprValue.enrichWith(this); }
+      if (exprValue.isAbrupt) { return exprValue.enrichWith(ctx, this); }
 
       // 2. f. If ToBoolean(exprValue) is false, return NormalCompletion(V).
       const bool = exprValue.ToBoolean(ctx);
-      if (bool.isAbrupt) { return bool.enrichWith(this); }
+      if (bool.isAbrupt) { return bool.enrichWith(ctx, this); }
       if (bool.isFalsey) {
         return V.ToCompletion(CompletionType.normal, intrinsics.empty);
       }
@@ -1017,11 +1017,11 @@ export class $WhileStatement implements I$Node {
 
       // 2. b. Let exprValue be ? GetValue(exprRef).
       const exprValue = exprRef.GetValue(ctx);
-      if (exprValue.isAbrupt) { return exprValue.enrichWith(this); }
+      if (exprValue.isAbrupt) { return exprValue.enrichWith(ctx, this); }
 
       // 2. c. If ToBoolean(exprValue) is false, return NormalCompletion(V).
       const bool = exprValue.ToBoolean(ctx);
-      if (bool.isAbrupt) { return bool.enrichWith(this); }
+      if (bool.isAbrupt) { return bool.enrichWith(ctx, this); }
       if (bool.isFalsey) {
         return V.ToCompletion(CompletionType.normal, intrinsics.empty);
       }
@@ -1592,7 +1592,7 @@ export class $ReturnStatement implements I$Node {
 
     // 2. Let exprValue be ? GetValue(exprRef).
     const exprValue = exprRef.GetValue(ctx);
-    if (exprValue.isAbrupt) { return exprValue.enrichWith(this); }
+    if (exprValue.isAbrupt) { return exprValue.enrichWith(ctx, this); }
 
     // 3. If ! GetGeneratorKind() is async, set exprValue to ? Await(exprValue). // TODO
 
@@ -1714,7 +1714,7 @@ export class $SwitchStatement implements I$Node {
     // 1. Let exprRef be the result of evaluating Expression.
     // 2. Let switchValue be ? GetValue(exprRef).
     const switchValue = this.$expression.Evaluate(ctx).GetValue(ctx);
-    if (switchValue.isAbrupt) { return switchValue.enrichWith(this); }
+    if (switchValue.isAbrupt) { return switchValue.enrichWith(ctx, this); }
 
     // 3. Let oldEnv be the running execution context's LexicalEnvironment.
     const oldEnv = ctx.LexicalEnvironment;
@@ -1786,7 +1786,7 @@ export class $SwitchStatement implements I$Node {
           }
           // 4. b. iii. If R is an abrupt completion, return Completion(UpdateEmpty(R, V)).
           if (R.isAbrupt) {
-            return new CaseClausesEvaluationResult(R.enrichWith(this).UpdateEmpty(V), found, true);
+            return new CaseClausesEvaluationResult(R.enrichWith(ctx, this).UpdateEmpty(V), found, true);
           }
         }
       }
@@ -2043,7 +2043,7 @@ export class $ThrowStatement implements I$Node {
 
     // 2. Let exprValue be ? GetValue(exprRef).
     const exprValue = exprRef.GetValue(ctx);
-    if (exprValue.isAbrupt) { return exprValue.enrichWith(this); }
+    if (exprValue.isAbrupt) { return exprValue.enrichWith(ctx, this); }
 
     // 3. Return ThrowCompletion(exprValue).
     return exprValue.ToCompletion(CompletionType.throw, intrinsics.empty);

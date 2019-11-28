@@ -86,6 +86,8 @@ export class $String<T extends string = string> {
   public get isList(): false { return false; }
 
   public readonly nodeStack: I$Node[] = [];
+  public ctx: ExecutionContext | null = null;
+  public stack: string = '';
 
   // http://www.ecma-international.org/ecma-262/#sec-canonicalnumericindexstring
   // 7.1.16 CanonicalNumericIndexString ( argument )
@@ -132,9 +134,13 @@ export class $String<T extends string = string> {
     return other instanceof $String && this['[[Value]]'] === other['[[Value]]'];
   }
 
-  public enrichWith(node: I$Node): this {
+  public enrichWith(ctx: ExecutionContext, node: I$Node): this {
     if (this['[[Type]]'] === CompletionType.throw) {
       this.nodeStack.push(node);
+      if (this.ctx === null) {
+        this.ctx = ctx;
+        this.stack = ctx.Realm.stack.toString();
+      }
     }
     return this;
   }

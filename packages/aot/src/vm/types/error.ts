@@ -29,6 +29,8 @@ export abstract class $Error<T extends Error = Error, N extends string = string>
   public get hasValue(): true { return true; }
 
   public readonly nodeStack: I$Node[] = [];
+  public ctx: ExecutionContext | null = null;
+  public stack: string = '';
 
   public constructor(
     public readonly realm: Realm,
@@ -45,8 +47,12 @@ export abstract class $Error<T extends Error = Error, N extends string = string>
     return other instanceof $Error && other.id === this.id;
   }
 
-  public enrichWith(node: I$Node): this {
+  public enrichWith(ctx: ExecutionContext, node: I$Node): this {
     this.nodeStack.push(node);
+    if (this.ctx === null) {
+      this.ctx = ctx;
+      this.stack = ctx.Realm.stack.toString();
+    }
     return this;
   }
 

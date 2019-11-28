@@ -24,7 +24,7 @@ export class $List<T extends $AnyNonEmpty = $AnyNonEmpty> extends Array<T> {
     return this;
   }
 
-  public enrichWith(node: I$Node): this {
+  public enrichWith(ctx: ExecutionContext, node: I$Node): this {
     return this;
   }
 }

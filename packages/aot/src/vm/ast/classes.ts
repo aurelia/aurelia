@@ -308,7 +308,7 @@ export class $ClassExpression implements I$Node {
     const value = $ClassDeclaration.prototype.EvaluateClassDefinition.call(this, ctx, className, className);
 
     // 4. ReturnIfAbrupt(value).
-    if (value.isAbrupt) { return value.enrichWith(this); }
+    if (value.isAbrupt) { return value.enrichWith(ctx, this); }
 
     // 5. Set value.[[SourceText]] to the source text matched by ClassExpression.
     value['[[SourceText]]'] = new $String(realm, this.node.getText(this.mos.node));
@@ -552,7 +552,7 @@ export class $ClassDeclaration implements I$Node {
 
       // 6. d. Let superclass be ? GetValue(superclassRef).
       const superClass = superClassRef.GetValue(ctx);
-      if (superClass.isAbrupt) { return superClass.enrichWith(this); }
+      if (superClass.isAbrupt) { return superClass.enrichWith(ctx, this); }
 
       // 6. e. If superclass is null, then
       if (superClass.isNull) {
@@ -570,7 +570,7 @@ export class $ClassDeclaration implements I$Node {
       else {
         // 6. g. i. Let protoParent be ? Get(superclass, "prototype").
         const $protoParent = superClass['[[Get]]'](ctx, intrinsics.$prototype, superClass);
-        if ($protoParent.isAbrupt) { return $protoParent.enrichWith(this); }
+        if ($protoParent.isAbrupt) { return $protoParent.enrichWith(ctx, this); }
 
         // 6. g. ii. If Type(protoParent) is neither Object nor Null, throw a TypeError exception.
         if (!$protoParent.isObject && !$protoParent.isNull) {
@@ -756,7 +756,7 @@ export class $ClassDeclaration implements I$Node {
       const value = this.EvaluateClassDefinition(ctx, intrinsics.undefined, intrinsics.default);
 
       // 2. ReturnIfAbrupt(value).
-      if (value.isAbrupt) { return value.enrichWith(this); }
+      if (value.isAbrupt) { return value.enrichWith(ctx, this); }
 
       // 3. Set value.[[SourceText]] to the source text matched by ClassDeclaration.
       value['[[SourceText]]'] = new $String(realm, this.node.getText(this.mos.node));
@@ -774,7 +774,7 @@ export class $ClassDeclaration implements I$Node {
     const value = this.EvaluateClassDefinition(ctx, className, className);
 
     // 3. ReturnIfAbrupt(value).
-    if (value.isAbrupt) { return value.enrichWith(this); }
+    if (value.isAbrupt) { return value.enrichWith(ctx, this); }
 
     // 4. Set value.[[SourceText]] to the source text matched by ClassDeclaration.
     value['[[SourceText]]'] = new $String(realm, this.node.getText(this.mos.node));
@@ -782,7 +782,7 @@ export class $ClassDeclaration implements I$Node {
     // 5. Let env be the running execution context's LexicalEnvironment.
     // 6. Perform ? InitializeBoundName(className, value, env).
     const $InitializeBoundNameResult = ctx.LexicalEnvironment.InitializeBinding(ctx, className, value);
-    if ($InitializeBoundNameResult.isAbrupt) { return $InitializeBoundNameResult.enrichWith(this); }
+    if ($InitializeBoundNameResult.isAbrupt) { return $InitializeBoundNameResult.enrichWith(ctx, this); }
 
     // 7. Return value.
     return value;
@@ -802,7 +802,7 @@ export class $ClassDeclaration implements I$Node {
 
     // 1. Perform ? BindingClassDeclarationEvaluation of this ClassDeclaration.
     const $EvaluateBindingClassDeclarationResult = this.EvaluateBindingClassDeclaration(ctx);
-    if ($EvaluateBindingClassDeclarationResult.isAbrupt) { return $EvaluateBindingClassDeclarationResult.enrichWith(this); }
+    if ($EvaluateBindingClassDeclarationResult.isAbrupt) { return $EvaluateBindingClassDeclarationResult.enrichWith(ctx, this); }
 
     // 2. Return NormalCompletion(empty).
     return intrinsics.empty;

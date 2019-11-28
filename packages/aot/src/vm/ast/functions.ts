@@ -683,7 +683,7 @@ export class $FunctionDeclaration implements I$Node {
       F.SetFunctionName(ctx, intrinsics.default);
 
       // 4. Set F.[[SourceText]] to the source text matched by FunctionDeclaration.
-      F['[[SourceText]]'] = new $String(realm, ''); // TODO: get text (need mos for this)
+      F['[[SourceText]]'] = new $String(realm, this.node.getText(this.mos.node));
 
       // 5. Return F.
       return F;
@@ -707,7 +707,7 @@ export class $FunctionDeclaration implements I$Node {
     F.SetFunctionName(ctx, name);
 
     // 6. Set F.[[SourceText]] to the source text matched by FunctionDeclaration.
-    F['[[SourceText]]'] = new $String(realm, ''); // TODO: get text (need mos for this)
+    F['[[SourceText]]'] = new $String(realm, this.node.getText(this.mos.node));
 
     // 7. Return F.
     return F;
@@ -732,7 +732,7 @@ export class $FunctionDeclaration implements I$Node {
 
     // 1. Perform ? FunctionDeclarationInstantiation(functionObject, argumentsList).
     const fdiResult = $FunctionDeclarationInstantiation(ctx, functionObject, argumentsList);
-    if (fdiResult.isAbrupt) { return fdiResult.enrichWith(this); }
+    if (fdiResult.isAbrupt) { return fdiResult.enrichWith(ctx, this); }
 
     // 2. Return the result of evaluating FunctionStatementList.
     return (this.$body as $Block).Evaluate(ctx); // $Block is guaranteed by $ArrowFunction.EvaluateBody
@@ -1461,7 +1461,7 @@ export class $ParameterDeclaration implements I$Node {
 
         // 3. b. Set v to ? GetValue(defaultValue).
         const $v = defaultValue.GetValue(ctx);
-        if ($v.isAbrupt) { return $v.enrichWith(this); }
+        if ($v.isAbrupt) { return $v.enrichWith(ctx, this); }
       }
 
       // 4. Return the result of performing BindingInitialization of BindingPattern with v and environment as the arguments.

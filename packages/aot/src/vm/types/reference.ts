@@ -60,7 +60,7 @@ export class $Reference {
     public readonly thisValue: $AnyObject | $Boolean | $String | $Symbol | $Number | $Undefined,
   ) {}
 
-  public enrichWith(node: I$Node): this {
+  public enrichWith(ctx: ExecutionContext, node: I$Node): this {
     return this;
   }
 

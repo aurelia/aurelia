@@ -90,6 +90,8 @@ export class $Null {
   public get isList(): false { return false; }
 
   public readonly nodeStack: I$Node[] = [];
+  public ctx: ExecutionContext | null = null;
+  public stack: string = '';
 
   public constructor(
     public readonly realm: Realm,
@@ -105,9 +107,13 @@ export class $Null {
     return other instanceof $Null;
   }
 
-  public enrichWith(node: I$Node): this {
+  public enrichWith(ctx: ExecutionContext, node: I$Node): this {
     if (this['[[Type]]'] === CompletionType.throw) {
       this.nodeStack.push(node);
+      if (this.ctx === null) {
+        this.ctx = ctx;
+        this.stack = ctx.Realm.stack.toString();
+      }
     }
     return this;
   }

@@ -52,6 +52,7 @@ import {
 import {
   $$ESModuleOrScript,
 } from '../ast/modules';
+import { getLineAndCharacterOfPosition } from 'typescript';
 
 // http://www.ecma-international.org/ecma-262/#table-6
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects
@@ -79,6 +80,24 @@ export class $Function<
     proto: $AnyObject,
   ) {
     super(realm, IntrinsicName, proto, CompletionType.normal, realm['[[Intrinsics]]'].empty);
+  }
+
+  // For error stack trace
+  public toString(): string {
+    const code = this['[[ECMAScriptCode]]'];
+    const sourceFile = code.mos.node;
+    const node = code.node;
+    const path = code.path;
+
+    const text = this['[[SourceText]]']['[[Value]]'];
+    const firstLine = text.split(/\r?\n/)[0];
+    let line = -1;
+    let character = -1;
+    if (node.pos > -1) {
+      ({ line, character } = getLineAndCharacterOfPosition(sourceFile, node.getStart(sourceFile)));
+    }
+
+    return `${firstLine}:${line + 1}:${character} (${path})`;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects-call-thisargument-argumentslist
@@ -430,7 +449,7 @@ export class $Function<
     }
 
     // 6. Return ! DefinePropertyOrThrow(F, "name", PropertyDescriptor { [[Value]]: name, [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true }).
-    const Desc = new $PropertyDescriptor(realm, intrinsics.$prototype);
+    const Desc = new $PropertyDescriptor(realm, intrinsics.$name);
     Desc['[[Value]]'] = name;
     Desc['[[Writable]]'] = intrinsics.false;
     Desc['[[Enumerable]]'] = intrinsics.false;

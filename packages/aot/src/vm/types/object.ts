@@ -480,7 +480,7 @@ export class $Object<
   }
 
   public setDataProperty(
-    name: $String,
+    name: $PropertyKey,
     value: $AnyNonEmpty,
     writable: boolean = true,
     enumerable: boolean = false,

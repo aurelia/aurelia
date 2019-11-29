@@ -85,6 +85,14 @@ import {
   IDisposable,
   Writable,
 } from '@aurelia/kernel';
+import {
+  $GeneratorFunctionPrototype,
+  $GeneratorPrototype,
+  $GeneratorFunctionConstructor,
+  $GeneratorPrototype_next,
+  $GeneratorPrototype_return,
+  $GeneratorPrototype_throw,
+} from './globals/generator';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
@@ -224,6 +232,8 @@ export class Intrinsics implements IDisposable {
   public readonly 'number': $String<'number'>;
   public readonly 'length': $String<'length'>;
   public readonly 'next': $String<'next'>;
+  public readonly 'return': $String<'return'>;
+  public readonly 'throw': $String<'throw'>;
   public readonly 'call': $String<'call'>;
   public readonly 'message': $String<'message'>;
   public readonly '$arguments': $String<'arguments'>;
@@ -290,26 +300,32 @@ export class Intrinsics implements IDisposable {
   public readonly '%Symbol%': $SymbolConstructor;
   public readonly '%SymbolPrototype%': $SymbolPrototype;
 
-  public readonly '%Error%': $Object<'%Error%'>;
-  public readonly '%ErrorPrototype%': $Object<'%ErrorPrototype%'>;
+  public readonly '%Error%': $ErrorConstructor;
+  public readonly '%ErrorPrototype%': $ErrorPrototype;
 
-  public readonly '%EvalError%': $Object<'%EvalError%'>;
-  public readonly '%EvalErrorPrototype%': $Object<'%EvalErrorPrototype%'>;
+  public readonly '%EvalError%': $EvalErrorConstructor;
+  public readonly '%EvalErrorPrototype%': $EvalErrorPrototype;
 
-  public readonly '%RangeError%': $Object<'%RangeError%'>;
-  public readonly '%RangeErrorPrototype%': $Object<'%RangeErrorPrototype%'>;
+  public readonly '%RangeError%': $RangeErrorConstructor;
+  public readonly '%RangeErrorPrototype%': $RangeErrorPrototype;
 
-  public readonly '%ReferenceError%': $Object<'%ReferenceError%'>;
-  public readonly '%ReferenceErrorPrototype%': $Object<'%ReferenceErrorPrototype%'>;
+  public readonly '%ReferenceError%': $ReferenceErrorConstructor;
+  public readonly '%ReferenceErrorPrototype%': $ReferenceErrorPrototype;
 
-  public readonly '%SyntaxError%': $Object<'%SyntaxError%'>;
-  public readonly '%SyntaxErrorPrototype%': $Object<'%SyntaxErrorPrototype%'>;
+  public readonly '%SyntaxError%': $SyntaxErrorConstructor;
+  public readonly '%SyntaxErrorPrototype%': $SyntaxErrorPrototype;
 
-  public readonly '%TypeError%': $Object<'%TypeError%'>;
-  public readonly '%TypeErrorPrototype%': $Object<'%TypeErrorPrototype%'>;
+  public readonly '%TypeError%': $TypeErrorConstructor;
+  public readonly '%TypeErrorPrototype%': $TypeErrorPrototype;
 
-  public readonly '%URIError%': $Object<'%URIError%'>;
-  public readonly '%URIErrorPrototype%': $Object<'%URIErrorPrototype%'>;
+  public readonly '%URIError%': $URIErrorConstructor;
+  public readonly '%URIErrorPrototype%': $URIErrorPrototype;
+
+  public readonly '%IteratorPrototype%': $IteratorPrototype;
+
+  public readonly '%GeneratorFunction%': $GeneratorFunctionConstructor;
+  public readonly '%Generator%': $GeneratorFunctionPrototype;
+  public readonly '%GeneratorPrototype%': $GeneratorPrototype;
 
   public readonly '%PromisePrototype%': $Object<'%PromisePrototype%'>;
   public readonly '%RegExpPrototype%': $Object<'%RegExpPrototype%'>;
@@ -317,15 +333,12 @@ export class Intrinsics implements IDisposable {
 
   public readonly '%AsyncFunctionPrototype%': $Object<'%AsyncFunctionPrototype%'>;
 
-  public readonly '%Generator%': $Object<'%Generator%'>;
   public readonly '%AsyncGenerator%': $Object<'%AsyncGenerator%'>;
 
-  public readonly '%IteratorPrototype%': $IteratorPrototype;
   public readonly '%ArrayIteratorPrototype%': $Object<'%ArrayIteratorPrototype%'>;
   public readonly '%MapIteratorPrototype%': $Object<'%MapIteratorPrototype%'>;
   public readonly '%SetIteratorPrototype%': $Object<'%SetIteratorPrototype%'>;
   public readonly '%StringIteratorPrototype%': $Object<'%StringIteratorPrototype%'>;
-  public readonly '%GeneratorPrototype%': $Object<'%GeneratorPrototype%'>;
 
   public readonly '%AsyncIteratorPrototype%': $Object<'%AsyncIteratorPrototype%'>;
   public readonly '%AsyncFromSyncIteratorPrototype%': $Object<'%AsyncFromSyncIteratorPrototype%'>;
@@ -357,7 +370,6 @@ export class Intrinsics implements IDisposable {
 
   public readonly '%AsyncFunction%': $Object<'%AsyncFunction%'>;
 
-  public readonly '%GeneratorFunction%': $Object<'%GeneratorFunction%'>;
   public readonly '%AsyncGeneratorFunction%': $Object<'%AsyncGeneratorFunction%'>;
 
   public readonly '%Array%': $Object<'%Array%'>;
@@ -439,6 +451,8 @@ export class Intrinsics implements IDisposable {
     this['number'] = new $String(realm, 'number');
     this['length'] = new $String(realm, 'length');
     this['next'] = new $String(realm, 'next');
+    this['return'] = new $String(realm, 'return');
+    this['throw'] = new $String(realm, 'throw');
     this['call'] = new $String(realm, 'call');
     this['message'] = new $String(realm, 'message');
     this['$arguments'] = new $String(realm, 'arguments');
@@ -557,21 +571,36 @@ export class Intrinsics implements IDisposable {
     URIErrorPrototype.message = new $String(realm, '');
     URIErrorPrototype.$name = new $String(realm, 'URIError');
 
+    const iteratorPrototype = this['%IteratorPrototype%'] = new $IteratorPrototype(realm);
+
+    const generatorFunctionConstructor = this['%GeneratorFunction%'] = new $GeneratorFunctionConstructor(realm, functionConstructor)
+    const generatorFunctionPrototype = this['%Generator%'] = new $GeneratorFunctionPrototype(realm, functionPrototype);
+    (generatorFunctionConstructor.$prototype = generatorFunctionPrototype).$constructor = generatorFunctionConstructor;
+    generatorFunctionConstructor.length = new $Number(realm, 1);
+
+    const generatorPrototype = this['%GeneratorPrototype%'] = new $GeneratorPrototype(realm, iteratorPrototype);
+    (generatorFunctionPrototype.$prototype = generatorPrototype).$constructor = generatorFunctionPrototype;
+
+    generatorFunctionPrototype['@@toStringTag'] = new $String(realm, 'GeneratorFunction');
+
+    generatorPrototype.next = new $GeneratorPrototype_next(realm, 'Generator.prototype.next', functionPrototype);
+    generatorPrototype.return = new $GeneratorPrototype_return(realm, 'Generator.prototype.return', functionPrototype);
+    generatorPrototype.throw = new $GeneratorPrototype_throw(realm, 'Generator.prototype.throw', functionPrototype);
+
+    generatorPrototype['@@toStringTag'] = new $String(realm, 'Generator');
+
     this['%PromisePrototype%'] = new $Object(realm, '%PromisePrototype%', objectPrototype, CompletionType.normal, empty);
     this['%RegExpPrototype%'] = new $Object(realm, '%RegExpPrototype%', objectPrototype, CompletionType.normal, empty);
     this['%DatePrototype%'] = new $Object(realm, '%DatePrototype%', objectPrototype, CompletionType.normal, empty);
 
     this['%AsyncFunctionPrototype%'] = new $Object(realm, '%AsyncFunctionPrototype%', functionPrototype, CompletionType.normal, empty);
 
-    this['%Generator%'] = new $Object(realm, '%Generator%', functionPrototype, CompletionType.normal, empty);
     this['%AsyncGenerator%'] = new $Object(realm, '%AsyncGenerator%', functionPrototype, CompletionType.normal, empty);
 
-    this['%IteratorPrototype%'] = new $IteratorPrototype(realm);
     this['%ArrayIteratorPrototype%'] = new $Object(realm, '%ArrayIteratorPrototype%', this['%IteratorPrototype%'], CompletionType.normal, empty);
     this['%MapIteratorPrototype%'] = new $Object(realm, '%MapIteratorPrototype%', this['%IteratorPrototype%'], CompletionType.normal, empty);
     this['%SetIteratorPrototype%'] = new $Object(realm, '%SetIteratorPrototype%', this['%IteratorPrototype%'], CompletionType.normal, empty);
     this['%StringIteratorPrototype%'] = new $Object(realm, '%StringIteratorPrototype%', this['%IteratorPrototype%'], CompletionType.normal, empty);
-    this['%GeneratorPrototype%'] = new $Object(realm, '%GeneratorPrototype%', this['%IteratorPrototype%'], CompletionType.normal, empty);
 
     this['%AsyncIteratorPrototype%'] = new $Object(realm, '%AsyncIteratorPrototype%', objectPrototype, CompletionType.normal, empty);
     this['%AsyncFromSyncIteratorPrototype%'] = new $Object(realm, '%AsyncFromSyncIteratorPrototype%', this['%AsyncIteratorPrototype%'], CompletionType.normal, empty);
@@ -603,7 +632,6 @@ export class Intrinsics implements IDisposable {
 
     this['%AsyncFunction%'] = new $Object(realm, '%AsyncFunction%', functionConstructor, CompletionType.normal, empty);
 
-    this['%GeneratorFunction%'] = new $Object(realm, '%GeneratorFunction%', functionConstructor, CompletionType.normal, empty);
     this['%AsyncGeneratorFunction%'] = new $Object(realm, '%AsyncGeneratorFunction%', functionConstructor, CompletionType.normal, empty);
 
     this['%Array%'] = new $Object(realm, '%Array%', functionPrototype, CompletionType.normal, empty);
@@ -671,6 +699,8 @@ export class Intrinsics implements IDisposable {
     this['number'] = void 0;
     this['length'] = void 0;
     this['next'] = void 0;
+    this['return'] = void 0;
+    this['throw'] = void 0;
     this['call'] = void 0;
     this['message'] = void 0;
     this['$arguments'] = void 0;

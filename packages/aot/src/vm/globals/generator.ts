@@ -1,7 +1,6 @@
 import {
   $BuiltinFunction,
   $Function,
-  $GetPrototypeFromConstructor,
 } from '../types/function';
 import {
   Realm,
@@ -21,40 +20,11 @@ import {
   $Object,
 } from '../types/object';
 import {
-  $ObjectPrototype,
-} from './object';
-import {
-  $List,
-} from '../types/list';
-import {
-  $Call,
-  $HostEnsureCanCompileStrings,
-  $DefinePropertyOrThrow,
-} from '../operations';
-import {
   $String,
 } from '../types/string';
 import {
-  createSourceFile,
-  ScriptTarget,
-  FunctionDeclaration,
-} from 'typescript';
-import {
-  $FunctionDeclaration,
-} from '../ast/functions';
-import {
-  $ESModule,
-} from '../ast/modules';
-import {
-  Context,
   FunctionKind,
 } from '../ast/_shared';
-import {
-  $Boolean,
-} from '../types/boolean';
-import {
-  $PropertyDescriptor,
-} from '../types/property-descriptor';
 import {
   $CreateDynamicFunction,
   $FunctionPrototype,
@@ -62,10 +32,14 @@ import {
 } from './function';
 import {
   $IteratorPrototype,
+  $CreateIterResultObject,
 } from './iteration';
 import {
   $Number,
 } from '../types/number';
+import {
+  $Block,
+} from '../ast/statements';
 
 // http://www.ecma-international.org/ecma-262/#sec-generatorfunction-objects
 // 25.2 GeneratorFunction Objects
@@ -229,7 +203,6 @@ export class $GeneratorPrototype extends $Object<'%GeneratorPrototype%'> {
     const intrinsics = realm['[[Intrinsics]]'];
     super(realm, '%GeneratorPrototype%', iteratorPrototype, CompletionType.normal, intrinsics.empty);
   }
-
 }
 
 export class $GeneratorPrototype_next extends $BuiltinFunction<'Generator.prototype.next'> {
@@ -241,9 +214,18 @@ export class $GeneratorPrototype_next extends $BuiltinFunction<'Generator.protot
     [value]: readonly $AnyNonEmpty[],
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty | $Error {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    if (value === void 0) {
+      value = intrinsics.undefined;
+    }
+
     // 1. Let g be the this value.
+    const g = thisArgument;
+
     // 2. Return ? GeneratorResume(g, value).
-    return null as any;
+    return $GeneratorResume(ctx, g, value);
   }
 }
 
@@ -256,10 +238,21 @@ export class $GeneratorPrototype_return extends $BuiltinFunction<'Generator.prot
     [value]: readonly $AnyNonEmpty[],
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty | $Error {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    if (value === void 0) {
+      value = intrinsics.undefined;
+    }
+
     // 1. Let g be the this value.
+    const g = thisArgument;
+
     // 2. Let C be Completion { [[Type]]: return, [[Value]]: value, [[Target]]: empty }.
+    const C = value.ToCompletion(CompletionType.return, intrinsics.empty);
+
     // 3. Return ? GeneratorResumeAbrupt(g, C).
-    return null as any;
+    return $GeneratorResumeAbrupt(ctx, g, C);
   }
 }
 
@@ -272,138 +265,328 @@ export class $GeneratorPrototype_throw extends $BuiltinFunction<'Generator.proto
     [exception]: readonly $AnyNonEmpty[],
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty | $Error {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    if (exception === void 0) {
+      exception = intrinsics.undefined;
+    }
+
     // 1. Let g be the this value.
+    const g = thisArgument;
+
     // 2. Let C be ThrowCompletion(exception).
+    const C = exception.ToCompletion(CompletionType.throw, intrinsics.empty);
+
     // 3. Return ? GeneratorResumeAbrupt(g, C).
-    return null as any;
+    return $GeneratorResumeAbrupt(ctx, g, C);
   }
 }
 
 // #endregion
 
 // http://www.ecma-international.org/ecma-262/#sec-properties-of-generator-instances
-// 25.4.2 Properties of Generator Instances
+// #region 25.4.2 Properties of Generator Instances
+export const enum GeneratorState {
+  none           = 0,
+  suspendedStart = 1,
+  suspendedYield = 2,
+  executing      = 3,
+  completed      = 4,
+}
+
+export class $GeneratorInstance extends $Object<'GeneratorInstance'> {
+  public '[[GeneratorState]]': GeneratorState;
+  public '[[GeneratorContext]]': ExecutionContext | undefined;
+
+  public constructor(
+    realm: Realm,
+    proto: $GeneratorPrototype,
+  ) {
+    const intrinsics = realm['[[Intrinsics]]'];
+    super(realm, 'GeneratorInstance', proto, CompletionType.normal, intrinsics.empty);
+
+    this['[[GeneratorState]]'] = GeneratorState.none;
+    this['[[GeneratorContext]]'] = void 0;
+  }
+}
 
 // http://www.ecma-international.org/ecma-262/#sec-generator-abstract-operations
-// #region 25.4.3 Generator Abstract Operations
+// 25.4.3 Generator Abstract Operations
 
 // http://www.ecma-international.org/ecma-262/#sec-generatorstart
 // 25.4.3.1 GeneratorStart ( generator , generatorBody )
 export function $GeneratorStart(
   ctx: ExecutionContext,
-  generator: any,
-  generatorBody: any,
-): any {
+  generator: $GeneratorInstance,
+  generatorBody: $Block,
+): $Undefined {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+  const stack = realm.stack;
+
   // 1. Assert: The value of generator.[[GeneratorState]] is undefined.
   // 2. Let genContext be the running execution context.
+  const genContext = ctx;
+
   // 3. Set the Generator component of genContext to generator.
+  genContext.Generator = generator;
+
   // 4. Set the code evaluation state of genContext such that when evaluation is resumed for that execution context the following steps will be performed:
+  genContext.onResume = function (resumptionValue: $AnyNonEmpty | $Error): $AnyNonEmpty | $Error { // TODO: do we need to do something with resumptionValue?
     // 4. a. Let result be the result of evaluating generatorBody.
+    const result = generatorBody.Evaluate(genContext);
+
     // 4. b. Assert: If we return here, the generator either threw an exception or performed either an implicit or explicit return.
     // 4. c. Remove genContext from the execution context stack and restore the execution context that is at the top of the execution context stack as the running execution context.
+    stack.pop();
+
     // 4. d. Set generator.[[GeneratorState]] to "completed".
+    generator['[[GeneratorState]]'] = GeneratorState.completed;
+
     // 4. e. Once a generator enters the "completed" state it never leaves it and its associated execution context is never resumed. Any execution state associated with generator can be discarded at this point.
+
+    let resultValue: $AnyNonEmpty | $Error;
     // 4. f. If result.[[Type]] is normal, let resultValue be undefined.
+    if (result['[[Type]]'] === CompletionType.normal) {
+      resultValue = intrinsics.undefined;
+    }
     // 4. g. Else if result.[[Type]] is return, let resultValue be result.[[Value]].
+    else if (result['[[Type]]'] === CompletionType.return) {
+      resultValue = result;
+    }
     // 4. h. Else,
+    else {
       // 4. h. i. Assert: result.[[Type]] is throw.
       // 4. h. ii. Return Completion(result).
+      return result as $AnyNonEmpty | $Error;
+    }
+
     // 4. i. Return CreateIterResultObject(resultValue, true).
+    return $CreateIterResultObject(stack.top, resultValue, intrinsics.true);
+  };
+
   // 5. Set generator.[[GeneratorContext]] to genContext.
+  generator['[[GeneratorContext]]'] = genContext;
+
   // 6. Set generator.[[GeneratorState]] to "suspendedStart".
+  generator['[[GeneratorState]]'] = GeneratorState.suspendedStart;
+
   // 7. Return NormalCompletion(undefined).
+  return intrinsics.undefined;
+}
+
+export class $GeneratorState {
+  public get isAbrupt(): false { return false; }
+
+  public constructor(
+    public readonly value: GeneratorState,
+  ) {}
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-generatorvalidate
 // 25.4.3.2 GeneratorValidate ( generator )
 export function $GeneratorValidate(
   ctx: ExecutionContext,
-  generator: any,
-): any {
+  generator: $AnyNonEmpty,
+): $GeneratorState | $Error {
+  const realm = ctx.Realm;
+
   // 1. If Type(generator) is not Object, throw a TypeError exception.
   // 2. If generator does not have a [[GeneratorState]] internal slot, throw a TypeError exception.
   // 3. Assert: generator also has a [[GeneratorContext]] internal slot.
+  if (!(generator instanceof $GeneratorInstance)) {
+    return new $TypeError(realm, `Expected generator to be an GeneratorInstance, but got: ${generator}`);
+  }
+
   // 4. Let state be generator.[[GeneratorState]].
+  const state = generator['[[GeneratorState]]'] as GeneratorState.executing | GeneratorState.suspendedStart | GeneratorState.suspendedYield | GeneratorState.completed;
+
   // 5. If state is "executing", throw a TypeError exception.
+  if (state === GeneratorState.executing) {
+    return new $TypeError(realm, `Generator validation failed: already executing`);
+  }
+
   // 6. Return state.
+  return new $GeneratorState(state);
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-generatorresume
 // 25.4.3.3 GeneratorResume ( generator , value )
 export function $GeneratorResume(
   ctx: ExecutionContext,
-  generator: any,
-  value: any,
-): any {
+  _generator: $AnyNonEmpty,
+  value: $AnyNonEmpty | $Error,
+): $AnyNonEmpty | $Error {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+  const stack = realm.stack;
+
   // 1. Let state be ? GeneratorValidate(generator).
+  const $state = $GeneratorValidate(ctx, _generator);
+  if ($state.isAbrupt) { return $state; }
+  const state = $state.value;
+  const generator = _generator as $GeneratorInstance;
+
   // 2. If state is "completed", return CreateIterResultObject(undefined, true).
+  if (state === GeneratorState.completed) {
+    return $CreateIterResultObject(ctx, intrinsics.undefined, intrinsics.true);
+  }
+
   // 3. Assert: state is either "suspendedStart" or "suspendedYield".
   // 4. Let genContext be generator.[[GeneratorContext]].
+  const genContext = generator['[[GeneratorContext]]']!;
+
   // 5. Let methodContext be the running execution context.
+  const methodContext = ctx;
+
   // 6. Suspend methodContext.
+  methodContext.suspend();
+
   // 7. Set generator.[[GeneratorState]] to "executing".
+  generator['[[GeneratorState]]'] = GeneratorState.executing;
+
   // 8. Push genContext onto the execution context stack; genContext is now the running execution context.
+  stack.push(genContext);
+
   // 9. Resume the suspended evaluation of genContext using NormalCompletion(value) as the result of the operation that suspended it. Let result be the value returned by the resumed computation.
+  genContext.resume();
+  const result = genContext.onResume!(value);
+
   // 10. Assert: When we return here, genContext has already been removed from the execution context stack and methodContext is the currently running execution context.
   // 11. Return Completion(result).
+  return result;
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-generatorresumeabrupt
 // 25.4.3.4 GeneratorResumeAbrupt ( generator , abruptCompletion )
 export function $GeneratorResumeAbrupt(
   ctx: ExecutionContext,
-  generator: any,
-  abruptCompletion: any,
-): any {
+  _generator: $AnyNonEmpty,
+  abruptCompletion: $AnyNonEmpty | $Error,
+): $AnyNonEmpty | $Error {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+  const stack = realm.stack;
+
   // 1. Let state be ? GeneratorValidate(generator).
+  const $state = $GeneratorValidate(ctx, _generator);
+  if ($state.isAbrupt) { return $state; }
+  let state = $state.value;
+  const generator = _generator as $GeneratorInstance;
+
   // 2. If state is "suspendedStart", then
+  if (state === GeneratorState.suspendedStart) {
     // 2. a. Set generator.[[GeneratorState]] to "completed".
+    generator['[[GeneratorState]]'] = GeneratorState.completed;
+
     // 2. b. Once a generator enters the "completed" state it never leaves it and its associated execution context is never resumed. Any execution state associated with generator can be discarded at this point.
     // 2. c. Set state to "completed".
+    state = GeneratorState.completed;
+  }
+
   // 3. If state is "completed", then
+  if (state === GeneratorState.completed) {
     // 3. a. If abruptCompletion.[[Type]] is return, then
+    if (abruptCompletion['[[Type]]'] === CompletionType.return) {
       // 3. a. i. Return CreateIterResultObject(abruptCompletion.[[Value]], true).
+      return $CreateIterResultObject(ctx, abruptCompletion, intrinsics.true);
+    }
+
     // 3. b. Return Completion(abruptCompletion).
+    return abruptCompletion;
+  }
+
   // 4. Assert: state is "suspendedYield".
   // 5. Let genContext be generator.[[GeneratorContext]].
+  const genContext = generator['[[GeneratorContext]]']!;
+
   // 6. Let methodContext be the running execution context.
+  const methodContext = ctx;
+
   // 7. Suspend methodContext.
+  methodContext.suspend();
+
   // 8. Set generator.[[GeneratorState]] to "executing".
+  generator['[[GeneratorState]]'] = GeneratorState.executing;
+
   // 9. Push genContext onto the execution context stack; genContext is now the running execution context.
+  stack.push(genContext);
+
   // 10. Resume the suspended evaluation of genContext using abruptCompletion as the result of the operation that suspended it. Let result be the completion record returned by the resumed computation.
+  genContext.resume();
+  const result = genContext.onResume!(abruptCompletion);
+
   // 11. Assert: When we return here, genContext has already been removed from the execution context stack and methodContext is the currently running execution context.
   // 12. Return Completion(result).
+  return result;
+}
+
+export const enum GeneratorKind {
+  none  = 0,
+  async = 1,
+  sync  = 2,
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-getgeneratorkind
 // 25.4.3.5 GetGeneratorKind ( )
 export function $GetGeneratorKind(
   ctx: ExecutionContext,
-): any {
+): GeneratorKind {
   // 1. Let genContext be the running execution context.
+  const genContext = ctx;
+
   // 2. If genContext does not have a Generator component, return non-generator.
+  const generator = genContext.Generator;
+  if (generator === void 0) {
+    return GeneratorKind.none;
+  }
+
   // 3. Let generator be the Generator component of genContext.
   // 4. If generator has an [[AsyncGeneratorState]] internal slot, return async.
+  if ('[[AsyncGeneratorState]]' in generator) { // TODO: replace with instanceof when the async class is implemented?
+    return GeneratorKind.async;
+  }
+
   // 5. Else, return sync.
+  return GeneratorKind.sync;
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-generatoryield
 // 25.4.3.6 GeneratorYield ( iterNextObj )
 export function $GeneratorYield(
   ctx: ExecutionContext,
-  iterNextObj: any,
+  iterNextObj: $Object,
 ): any {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+  const stack = realm.stack;
+
   // 1. Assert: iterNextObj is an Object that implements the IteratorResult interface.
   // 2. Let genContext be the running execution context.
+  const genContext = ctx;
+
   // 3. Assert: genContext is the execution context of a generator.
   // 4. Let generator be the value of the Generator component of genContext.
+  const generator = genContext.Generator!;
+
   // 5. Assert: GetGeneratorKind() is sync.
   // 6. Set generator.[[GeneratorState]] to "suspendedYield".
+  generator['[[GeneratorState]]'] = GeneratorState.suspendedYield;
+
   // 7. Remove genContext from the execution context stack and restore the execution context that is at the top of the execution context stack as the running execution context.
+  stack.pop();
+
   // 8. Set the code evaluation state of genContext such that when evaluation is resumed with a Completion resumptionValue the following steps will be performed:
+  genContext.onResume = function (resumptionValue: $AnyNonEmpty | $Error): $AnyNonEmpty | $Error {
     // 8. a. Return resumptionValue.
+    return resumptionValue;
+
     // 8. b. NOTE: This returns to the evaluation of the YieldExpression that originally called this abstract operation.
+  }
+
   // 9. Return NormalCompletion(iterNextObj).
+  return iterNextObj;
   // 10. NOTE: This returns to the evaluation of the operation that had most previously resumed evaluation of genContext.
 }
 

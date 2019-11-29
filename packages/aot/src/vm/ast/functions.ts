@@ -75,6 +75,7 @@ import {
   $decoratorList,
   $i,
   $$ESVarDeclaration,
+  FunctionKind,
 } from './_shared';
 import {
   ExportEntryRecord,
@@ -238,8 +239,7 @@ export class $FunctionExpression implements I$Node {
   public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
   public readonly IsType: false = false;
 
-  public readonly isGenerator: boolean;
-  public readonly isAsync: boolean;
+  public readonly functionKind: FunctionKind.normal | FunctionKind.generator | FunctionKind.async | FunctionKind.asyncGenerator;
 
   public constructor(
     public readonly node: FunctionExpression,
@@ -272,8 +272,17 @@ export class $FunctionExpression implements I$Node {
     this.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
     this.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
 
-    this.isGenerator = node.asteriskToken !== void 0;
-    this.isAsync = hasBit(modifierFlags, ModifierFlags.Async);
+    if (!hasBit(modifierFlags, ModifierFlags.Async)) {
+      if (node.asteriskToken === void 0) {
+        this.functionKind = FunctionKind.normal;
+      } else {
+        this.functionKind = FunctionKind.generator;
+      }
+    } else if (node.asteriskToken === void 0) {
+      this.functionKind = FunctionKind.async;
+    } else {
+      this.functionKind = FunctionKind.asyncGenerator;
+    }
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
@@ -289,24 +298,15 @@ export class $FunctionExpression implements I$Node {
   public Evaluate(
     ctx: ExecutionContext,
   ): $Function | $Error {
-    if (!this.isAsync) {
-      if (!this.isGenerator) {
-        // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluation
-        // 14.1.22 Runtime Semantics: Evaluation
+    switch (this.functionKind) {
+      case FunctionKind.normal:
         return this.$Evaluate(ctx);
-      } else {
-        // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
-        // 14.4.14 Runtime Semantics: Evaluation
+      case FunctionKind.generator:
         return this.$EvaluateGenerator(ctx);
-      }
-    } else if (this.isGenerator) {
-      // http://www.ecma-international.org/ecma-262/#sec-asyncgenerator-definitions-evaluation
-      // 14.5.14 Runtime Semantics: Evaluation
-      return this.$EvaluateAsyncGenerator(ctx);
-    } else {
-      // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-runtime-semantics-evaluation
-      // 14.7.14 Runtime Semantics: Evaluation
-      return this.$EvaluateAsync(ctx);
+      case FunctionKind.asyncGenerator:
+        return this.$EvaluateAsyncGenerator(ctx);
+      case FunctionKind.async:
+        return this.$EvaluateAsync(ctx);
     }
   }
 
@@ -734,8 +734,7 @@ export class $FunctionDeclaration implements I$Node {
   public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
   public readonly IsType: false = false;
 
-  public readonly isGenerator: boolean;
-  public readonly isAsync: boolean;
+  public readonly functionKind: FunctionKind.normal | FunctionKind.generator | FunctionKind.async | FunctionKind.asyncGenerator;
 
   public constructor(
     public readonly node: FunctionDeclaration,
@@ -838,32 +837,32 @@ export class $FunctionDeclaration implements I$Node {
       this.ExportEntries = emptyArray;
     }
 
-    this.isGenerator = node.asteriskToken !== void 0;
-    this.isAsync = hasBit(modifierFlags, ModifierFlags.Async);
+    if (!hasBit(modifierFlags, ModifierFlags.Async)) {
+      if (node.asteriskToken === void 0) {
+        this.functionKind = FunctionKind.normal;
+      } else {
+        this.functionKind = FunctionKind.generator;
+      }
+    } else if (node.asteriskToken === void 0) {
+      this.functionKind = FunctionKind.async;
+    } else {
+      this.functionKind = FunctionKind.asyncGenerator;
+    }
   }
 
   public InstantiateFunctionObject(
     ctx: ExecutionContext,
     Scope: $EnvRec,
   ): $Function | $Error {
-    if (!this.isAsync) {
-      if (!this.isGenerator) {
-        // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-instantiatefunctionobject
-        // 14.1.20 Runtime Semantics: InstantiateFunctionObject
+    switch (this.functionKind) {
+      case FunctionKind.normal:
         return this.$InstantiateFunctionObject(ctx, Scope);
-      } else {
-        // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-instantiatefunctionobject
-        // 14.4.11 Runtime Semantics: InstantiateFunctionObject
+      case FunctionKind.generator:
         return this.$InstantiateGeneratorFunctionObject(ctx, Scope);
-      }
-    } else if (this.isGenerator) {
-      // http://www.ecma-international.org/ecma-262/#sec-asyncgenerator-definitions-instantiatefunctionobject
-      // 14.5.11 Runtime Semantics: InstantiateFunctionObject
-      return this.$InstantiateAsyncGeneratorFunctionObject(ctx, Scope);
-    } else {
-      // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-InstantiateFunctionObject
-      // 14.7.10 Runtime Semantics: InstantiateFunctionObject
-      return this.$InstantiateAsyncFunctionObject(ctx, Scope);
+      case FunctionKind.asyncGenerator:
+        return this.$InstantiateAsyncGeneratorFunctionObject(ctx, Scope);
+      case FunctionKind.async:
+        return this.$InstantiateAsyncFunctionObject(ctx, Scope);
     }
   }
 
@@ -1506,8 +1505,7 @@ export class $ArrowFunction implements I$Node {
   public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
   public readonly IsType: false = false;
 
-  public readonly isGenerator: false = false;
-  public readonly isAsync: boolean;
+  public readonly functionKind: FunctionKind.normal | FunctionKind.async;
 
   public constructor(
     public readonly node: ArrowFunction,
@@ -1541,7 +1539,7 @@ export class $ArrowFunction implements I$Node {
       this.$body = $assignmentExpression(node.body as $AssignmentExpressionNode, this, ctx, -1);
     }
 
-    this.isAsync = hasBit(modifierFlags, ModifierFlags.Async);
+    this.functionKind = hasBit(modifierFlags, ModifierFlags.Async) ? FunctionKind.async : FunctionKind.normal;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-runtime-semantics-evaluation
@@ -1632,8 +1630,7 @@ export class $ConstructorDeclaration implements I$Node {
   // 14.1.17 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
 
-  public readonly isGenerator: false = false;
-  public readonly isAsync: false = false;
+  public readonly functionKind: FunctionKind.normal = FunctionKind.normal;
 
   public constructor(
     public readonly node: ConstructorDeclaration,

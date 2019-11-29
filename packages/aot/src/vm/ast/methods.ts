@@ -48,6 +48,7 @@ import {
   $$ESDeclaration,
   $i,
   $$ESVarDeclaration,
+  FunctionKind,
 } from './_shared';
 import {
   $$ESModuleOrScript,
@@ -107,6 +108,8 @@ export class $MethodDeclaration implements I$Node {
   // 14.1.17 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
 
+  public readonly functionKind: FunctionKind;
+
   public constructor(
     public readonly node: MethodDeclaration,
     public readonly parent: $ClassDeclaration | $ClassExpression | $ObjectLiteralExpression,
@@ -132,6 +135,18 @@ export class $MethodDeclaration implements I$Node {
     this.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
     this.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
     this.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
+
+    if (!hasBit(modifierFlags, ModifierFlags.Async)) {
+      if (node.asteriskToken === void 0) {
+        this.functionKind = FunctionKind.normal;
+      } else {
+        this.functionKind = FunctionKind.generator;
+      }
+    } else if (node.asteriskToken === void 0) {
+      this.functionKind = FunctionKind.async;
+    } else {
+      this.functionKind = FunctionKind.asyncGenerator;
+    }
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-definemethod
@@ -264,6 +279,8 @@ export class $GetAccessorDeclaration implements I$Node {
   // 14.1.17 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
 
+  public readonly functionKind: FunctionKind.normal = FunctionKind.normal;
+
   public constructor(
     public readonly node: GetAccessorDeclaration,
     public readonly parent: $ClassDeclaration | $ClassExpression | $ObjectLiteralExpression,
@@ -387,6 +404,8 @@ export class $SetAccessorDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
   // 14.1.17 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
+
+  public readonly functionKind: FunctionKind.normal = FunctionKind.normal;
 
   public constructor(
     public readonly node: SetAccessorDeclaration,

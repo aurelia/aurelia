@@ -52,7 +52,12 @@ import {
 import {
   $$ESModuleOrScript,
 } from '../ast/modules';
-import { getLineAndCharacterOfPosition } from 'typescript';
+import {
+  getLineAndCharacterOfPosition
+} from 'typescript';
+import {
+  FunctionKind,
+} from '../ast/_shared';
 
 // http://www.ecma-international.org/ecma-262/#table-6
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects
@@ -113,7 +118,7 @@ export class $Function<
     const intrinsics = realm['[[Intrinsics]]'];
 
     // 2. If F.[[FunctionKind]] is "classConstructor", throw a TypeError exception.
-    if (F['[[FunctionKind]]'] === 'classConstructor') {
+    if (F['[[FunctionKind]]'] === FunctionKind.classConstructor) {
       return new $TypeError(realm, `Cannot call classConstructor (${F.propertyMap.has('name') ? F.propertyDescriptors[F.propertyMap.get('name')!]['[[Value]]'] : 'anonymous'}) as a function`);
     }
 
@@ -228,7 +233,7 @@ export class $Function<
     ctx: ExecutionContext,
     functionPrototype: $AnyObject,
     strict: $Boolean,
-    functionKind: 'normal' | 'non-constructor' | 'generator' | 'async' | 'async generator',
+    functionKind: FunctionKind.normal | FunctionKind.nonConstructor | FunctionKind.generator | FunctionKind.async | FunctionKind.asyncGenerator,
   ): $Function {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -237,11 +242,11 @@ export class $Function<
     // 2. Assert: functionKind is either "normal", "non-constructor", "generator", "async", or "async generator".
     // 3. If functionKind is "normal", let needsConstruct be true.
     // 4. Else, let needsConstruct be false.
-    const needsConstruct = functionKind === 'normal';
+    const needsConstruct = functionKind === FunctionKind.normal;
 
     // 5. If functionKind is "non-constructor", set functionKind to "normal".
-    if (functionKind === 'non-constructor') {
-      functionKind = 'normal';
+    if (functionKind === FunctionKind.nonConstructor) {
+      functionKind = FunctionKind.normal;
     }
 
     // 6. Let F be a newly created ECMAScript function object with the internal slots listed in Table 27. All of those internal slots are initialized to undefined.
@@ -350,14 +355,14 @@ export class $Function<
       prototype = intrinsics['%FunctionPrototype%'];
     }
 
-    let allocKind: 'normal' | 'non-constructor';
+    let allocKind: FunctionKind.normal | FunctionKind.nonConstructor;
     // 2. If kind is not Normal, let allocKind be "non-constructor".
     if (kind !== 'normal') {
-      allocKind = 'non-constructor';
+      allocKind = FunctionKind.nonConstructor;
     }
     // 3. Else, let allocKind be "normal".
     else {
-      allocKind = 'normal';
+      allocKind = FunctionKind.normal;
     }
 
     // 4. Let F be FunctionAllocate(prototype, Strict, allocKind).
@@ -385,7 +390,7 @@ export class $Function<
     const functionPrototype = intrinsics['%Generator%'];
 
     // 2. Let F be FunctionAllocate(functionPrototype, Strict, "generator").
-    const F = this.FunctionAllocate(ctx, functionPrototype, Strict, 'generator');
+    const F = this.FunctionAllocate(ctx, functionPrototype, Strict, FunctionKind.generator);
 
     // 3. Return FunctionInitialize(F, kind, ParameterList, Body, Scope).
     return this.FunctionInitialize(ctx, F, kind, code, Scope);
@@ -409,7 +414,7 @@ export class $Function<
     const functionPrototype = intrinsics['%AsyncGenerator%'];
 
     // 2. Let F be ! FunctionAllocate(functionPrototype, Strict, "generator").
-    const F = this.FunctionAllocate(ctx, functionPrototype, Strict, 'generator');
+    const F = this.FunctionAllocate(ctx, functionPrototype, Strict, FunctionKind.generator);
 
     // 3. Return ! FunctionInitialize(F, kind, ParameterList, Body, Scope).
     return this.FunctionInitialize(ctx, F, kind, code, Scope);
@@ -433,7 +438,7 @@ export class $Function<
     const functionPrototype = intrinsics['%AsyncFunctionPrototype%'];
 
     // 2. Let F be ! FunctionAllocate(functionPrototype, Strict, "async").
-    const F = this.FunctionAllocate(ctx, functionPrototype, Strict, 'async');
+    const F = this.FunctionAllocate(ctx, functionPrototype, Strict, FunctionKind.async);
 
     // 3. Return ! FunctionInitialize(F, kind, parameters, body, Scope).
     return this.FunctionInitialize(ctx, F, kind, code, Scope);
@@ -678,7 +683,6 @@ function $OrdinaryCallBindThis(
   return envRec.BindThisValue(ctx, thisValue);
 }
 
-export type FunctionKind = 'normal' | 'classConstructor' | 'generator' | 'async' | 'async generator';
 export type ConstructorKind = 'base' | 'derived';
 export type ThisMode = 'lexical' | 'strict' | 'global';
 

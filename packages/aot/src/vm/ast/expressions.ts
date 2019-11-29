@@ -667,7 +667,10 @@ export class $PropertyAssignment implements I$Node {
     // 3. If IsAnonymousFunctionDefinition(AssignmentExpression) is true, then
     if (this.$initializer instanceof $FunctionExpression && !this.$initializer.HasName) {
       // 3. a. Let propValue be the result of performing NamedEvaluation for AssignmentExpression with argument propKey.
-      propValue = this.$initializer.EvaluateNamed(ctx, propKey);
+      const $propValue = this.$initializer.EvaluateNamed(ctx, propKey);
+      if ($propValue.isAbrupt) { return $propValue.enrichWith(ctx, this); }
+
+      propValue = $propValue;
     }
     // 4. Else,
     else {

@@ -1394,10 +1394,12 @@ export const modifiersToModifierFlags = (function () {
 })();
 
 export const enum FunctionKind {
-  normal         = 0b00,
-  generator      = 0b01,
-  async          = 0b10,
-  asyncGenerator = 0b11,
+  normal           = 0b0000,
+  nonConstructor   = 0b0001,
+  classConstructor = 0b0010,
+  generator        = 0b0100,
+  async            = 0b1000,
+  asyncGenerator   = 0b1100,
 }
 
 /**

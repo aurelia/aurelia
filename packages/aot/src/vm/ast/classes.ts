@@ -90,6 +90,7 @@ import {
   $decoratorList,
   $i,
   $$ESVarDeclaration,
+  FunctionKind,
 } from './_shared';
 import {
   ExportEntryRecord,
@@ -672,7 +673,7 @@ export class $ClassDeclaration implements I$Node {
     F.MakeConstructor(ctx, intrinsics.false, proto);
 
     // 17. Perform MakeClassConstructor(F).
-    F['[[FunctionKind]]'] = 'classConstructor';
+    F['[[FunctionKind]]'] = FunctionKind.classConstructor;
 
     // 18. If className is not undefined, then
     if (!className.isUndefined) {

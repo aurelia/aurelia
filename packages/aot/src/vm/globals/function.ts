@@ -47,11 +47,14 @@ import {
 } from '../ast/modules';
 import {
   Context,
+  FunctionKind,
 } from '../ast/_shared';
 import {
   $Boolean,
 } from '../types/boolean';
-import { $PropertyDescriptor } from '../types/property-descriptor';
+import {
+  $PropertyDescriptor,
+} from '../types/property-descriptor';
 
 
 // http://www.ecma-international.org/ecma-262/#sec-function-constructor
@@ -81,7 +84,7 @@ export class $FunctionConstructor extends $BuiltinFunction<'%Function%'> {
     // 1. Let C be the active function object.
     // 2. Let args be the argumentsList that was passed to this function by [[Call]] or [[Construct]].
     // 3. Return ? CreateDynamicFunction(C, NewTarget, "normal", args).
-    return $CreateDynamicFunction(ctx, this, NewTarget, 'normal', argumentsList);
+    return $CreateDynamicFunction(ctx, this, NewTarget, FunctionKind.normal, argumentsList);
   }
 }
 
@@ -156,7 +159,7 @@ export function $CreateDynamicFunction(
   ctx: ExecutionContext,
   constructor: $Function,
   newTarget: $Function | $Undefined,
-  kind: 'normal' | 'generator' | 'async' | 'async generator',
+  kind: FunctionKind.normal | FunctionKind.generator | FunctionKind.async | FunctionKind.asyncGenerator,
   args: readonly $AnyNonEmpty[],
 ): $Function | $Error {
   const realm = ctx.Realm;
@@ -189,7 +192,7 @@ export function $CreateDynamicFunction(
 
   switch (kind) {
     // 7. If kind is "normal", then
-    case 'normal':
+    case FunctionKind.normal:
       // 7. a. Let goal be the grammar symbol FunctionBody[~Yield, ~Await].
       // 7. b. Let parameterGoal be the grammar symbol FormalParameters[~Yield, ~Await].
       prefix = 'function';
@@ -198,7 +201,7 @@ export function $CreateDynamicFunction(
       fallbackProto = '%FunctionPrototype%';
       break;
     // 8. Else if kind is "generator", then
-    case 'generator':
+    case FunctionKind.generator:
       // 8. a. Let goal be the grammar symbol GeneratorBody.
       // 8. b. Let parameterGoal be the grammar symbol FormalParameters[+Yield, ~Await].
       prefix = 'function*';
@@ -207,7 +210,7 @@ export function $CreateDynamicFunction(
       fallbackProto = '%Generator%';
       break;
     // 9. Else if kind is "async", then
-    case 'async':
+    case FunctionKind.async:
       // 9. a. Let goal be the grammar symbol AsyncFunctionBody.
       // 9. b. Let parameterGoal be the grammar symbol FormalParameters[~Yield, +Await].
       prefix = 'async function';
@@ -216,7 +219,7 @@ export function $CreateDynamicFunction(
       fallbackProto = '%AsyncFunctionPrototype%';
       break;
     // 10. Else,
-    case 'async generator':
+    case FunctionKind.asyncGenerator:
       // 10. a. Assert: kind is "async generator".
       // 10. b. Let goal be the grammar symbol AsyncGeneratorBody.
       // 10. c. Let parameterGoal be the grammar symbol FormalParameters[+Yield, +Await].
@@ -344,7 +347,7 @@ export function $CreateDynamicFunction(
   $Function.FunctionInitialize(ctx, F, 'normal', $functionDeclaration, scope);
 
   // 35. If kind is "generator", then
-  if (kind === 'generator') {
+  if (kind === FunctionKind.generator) {
     // 35. a. Let prototype be ObjectCreate(%GeneratorPrototype%).
     const prototype = new $Object(
       realm,
@@ -372,7 +375,7 @@ export function $CreateDynamicFunction(
     );
   }
   // 36. Else if kind is "async generator", then
-  else if (kind === 'async generator') {
+  else if (kind === FunctionKind.asyncGenerator) {
     // 36. a. Let prototype be ObjectCreate(%AsyncGeneratorPrototype%).
     const prototype = new $Object(
       realm,
@@ -400,7 +403,7 @@ export function $CreateDynamicFunction(
     );
   }
   // 37. Else if kind is "normal", perform MakeConstructor(F).
-  else if (kind === 'normal') {
+  else if (kind === FunctionKind.normal) {
     F.MakeConstructor(ctx);
   }
 

@@ -942,7 +942,7 @@ export class $OmittedExpression implements I$Node {
 
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     return null as any; // TODO: implement this;

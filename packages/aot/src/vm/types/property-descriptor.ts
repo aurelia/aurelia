@@ -17,6 +17,7 @@ import {
 import {
   $AnyNonError,
   $PropertyKey,
+  $Any,
 } from './_shared';
 import {
   IDisposable,
@@ -51,7 +52,7 @@ export class $PropertyDescriptor implements IDisposable {
   public '[[Get]]': $Function | $Undefined | $Empty;
   public '[[Set]]': $Function | $Undefined | $Empty;
 
-  public '[[Value]]': $AnyNonError;
+  public '[[Value]]': $Any;
   public '[[Writable]]': $Boolean | $Undefined | $Empty;
 
   // http://www.ecma-international.org/ecma-262/#sec-isaccessordescriptor

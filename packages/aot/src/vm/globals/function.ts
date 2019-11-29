@@ -9,6 +9,7 @@ import {
 } from '../realm';
 import {
   $AnyNonEmpty,
+  $AnyNonEmptyNonError,
   CompletionType,
 } from '../types/_shared';
 import {
@@ -77,10 +78,10 @@ export class $FunctionConstructor extends $BuiltinFunction<'%Function%'> {
   // 19.2.1.1 Function ( p1 , p2 , … , pn , body )
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $Function | $Undefined,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     // 1. Let C be the active function object.
     // 2. Let args be the argumentsList that was passed to this function by [[Call]] or [[Construct]].
     // 3. Return ? CreateDynamicFunction(C, NewTarget, "normal", args).
@@ -118,10 +119,10 @@ export class $FunctionPrototype_call extends $BuiltinFunction<'Function.prototyp
   // 19.2.3.3 Function.prototype.call ( thisArg , ... args )
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
-    [thisArg, ...args]: readonly $AnyNonEmpty[],
+    thisArgument: $AnyNonEmptyNonError,
+    [thisArg, ...args]: readonly [$AnyNonEmptyNonError, ...$AnyNonEmpty[]],
     NewTarget: $Function | $Undefined,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -236,7 +237,7 @@ export function $CreateDynamicFunction(
   // 12. Let P be the empty String.
   let P: $String = intrinsics[''];
 
-  let $bodyText: $AnyNonEmpty | $Error;
+  let $bodyText: $AnyNonEmpty ;
   let bodyText: $String;
 
   // 13. If argCount = 0, let bodyText be the empty String.

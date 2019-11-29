@@ -17,6 +17,7 @@ import {
   $Primitive,
   ESType,
   $AnyNonEmpty,
+  $AnyNonEmptyNonError,
   $AnyObject,
   $Any,
   CompletionType,
@@ -58,7 +59,7 @@ export function $Set(
   ctx: ExecutionContext,
   O: $AnyObject,
   P: $PropertyKey,
-  V: $AnyNonEmpty,
+  V: $AnyNonEmpty ,
   Throw: $Boolean,
 ): $Boolean | $Error {
   // 1. Assert: Type(O) is Object.
@@ -81,9 +82,9 @@ export function $Set(
 // 7.3.2 GetV ( V , P )
 export function $GetV(
   ctx: ExecutionContext,
-  V: $AnyNonEmpty,
+  V: $AnyNonEmptyNonError,
   P: $PropertyKey,
-): $AnyNonEmpty | $Error {
+): $AnyNonEmpty  {
   // 1. Assert: IsPropertyKey(P) is true.
   // 2. Let O be ? ToObject(V).
   const O = V.ToObject(ctx);
@@ -97,7 +98,7 @@ export function $GetV(
 // 7.3.9 GetMethod ( V , P )
 export function $GetMethod(
   ctx: ExecutionContext,
-  V: $AnyNonEmpty,
+  V: $AnyNonEmptyNonError,
   P: $PropertyKey,
 ): $Function | $Undefined | $Error {
   // 1. Assert: IsPropertyKey(P) is true.
@@ -124,7 +125,7 @@ export function $CreateDataProperty(
   ctx: ExecutionContext,
   O: $AnyObject,
   P: $PropertyKey,
-  V: $AnyNonEmpty,
+  V: $AnyNonEmpty ,
 ): $Boolean | $Error {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
@@ -147,7 +148,7 @@ export function $OrdinarySetWithOwnDescriptor(
   ctx: ExecutionContext,
   O: $AnyObject,
   P: $PropertyKey,
-  V: $AnyNonEmpty,
+  V: $AnyNonEmpty ,
   Receiver: $AnyObject,
   ownDesc: $PropertyDescriptor | $Undefined,
 ): $Boolean | $Error {
@@ -262,10 +263,10 @@ export function $HasOwnProperty(
 // http://www.ecma-international.org/ecma-262/#sec-call
 export function $Call(
   ctx: ExecutionContext,
-  F: $Function,
-  V: $AnyNonEmpty,
-  argumentsList?: readonly $AnyNonEmpty[],
-): $AnyNonEmpty | $Error {
+  F: $AnyNonEmpty,
+  V: $AnyNonEmptyNonError,
+  argumentsList?: readonly $AnyNonEmpty [],
+): $AnyNonEmpty  {
   // 1. If argumentsList is not present, set argumentsList to a new empty List.
   if (argumentsList === void 0) {
     argumentsList = [];
@@ -277,7 +278,7 @@ export function $Call(
   }
 
   // 3. Return ? F.[[Call]](V, argumentsList).
-  return F['[[Call]]'](ctx, V, argumentsList);
+  return (F as $Function)['[[Call]]'](ctx, V, argumentsList);
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-construct
@@ -854,7 +855,7 @@ export function $OrdinaryHasInstance(
   // 6. Repeat,
   while (true) {
     // 6. a. Set O to ? O.[[GetPrototypeOf]]().
-    const $O = (O as $AnyObject)['[[GetPrototypeOf]]'](ctx) as ($AnyNonEmpty | $Error);
+    const $O = (O as $AnyObject)['[[GetPrototypeOf]]'](ctx) as $AnyNonEmpty ;
     if ($O.isAbrupt) { return $O; }
     O = $O;
 
@@ -1164,7 +1165,7 @@ export function $GetFunctionRealm(
 export function $CopyDataProperties<T extends $AnyObject>(
   ctx: ExecutionContext,
   target: T,
-  source: $AnyNonEmpty,
+  source: $AnyNonEmptyNonError,
   excludedItems: readonly $PropertyKey[],
 ): T | $Error {
   // 1. Assert: Type(target) is Object.

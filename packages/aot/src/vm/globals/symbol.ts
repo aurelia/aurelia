@@ -9,6 +9,7 @@ import {
 import {
   $AnyNonEmpty,
   CompletionType,
+  $AnyNonEmptyNonError,
 } from '../types/_shared';
 import {
   $Error,
@@ -50,10 +51,10 @@ export class $SymbolConstructor extends $BuiltinFunction<'%Symbol%'> {
   // 19.4.1.1 Symbol ( [ description ] )
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     [description]: readonly $AnyNonEmpty[],
     NewTarget: $Function | $Undefined,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 

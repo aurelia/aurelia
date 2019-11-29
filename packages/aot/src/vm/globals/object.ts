@@ -9,6 +9,7 @@ import {
 } from '../realm';
 import {
   $AnyNonEmpty,
+  $AnyNonEmptyNonError,
   CompletionType,
 } from '../types/_shared';
 import {
@@ -51,10 +52,10 @@ export class $ObjectConstructor extends $BuiltinFunction<'%Object%'> {
   // 19.1.1.1 Object ( [ value ] )
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     [value]: readonly $AnyNonEmpty[],
     NewTarget: $Function | $Undefined,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -102,10 +103,10 @@ export class $ObjectPrototype extends $Object<'%ObjectPrototype%'> {
 export class $ObjProto_toString extends $BuiltinFunction<'Object.prototype.toString'> {
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $Function | $Undefined,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 

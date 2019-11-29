@@ -77,7 +77,7 @@ export class $TemplateHead implements I$Node {
   // 12.2.9.6 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;
@@ -107,7 +107,7 @@ export class $TemplateMiddle implements I$Node {
   // 12.2.9.6 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;
@@ -137,7 +137,7 @@ export class $TemplateTail implements I$Node {
   // 12.2.9.6 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;
@@ -183,7 +183,7 @@ export class $TemplateSpan implements I$Node {
   // 12.2.9.6 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;

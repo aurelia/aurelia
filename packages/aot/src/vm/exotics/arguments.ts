@@ -13,6 +13,7 @@ import {
 import {
   $PropertyKey,
   $AnyNonEmpty,
+  $AnyNonEmptyNonError,
   $AnyObject,
   CompletionType,
 } from '../types/_shared';
@@ -62,7 +63,7 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
     realm: Realm,
     func: $Function,
     formals: readonly $ParameterDeclaration[],
-    argumentsList: readonly $AnyNonEmpty[],
+    argumentsList: readonly $AnyNonEmpty [],
     env: $EnvRec,
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
@@ -299,7 +300,7 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
     ctx: ExecutionContext,
     P: $PropertyKey,
     Receiver: $AnyObject,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     // 1. Let args be the arguments object.
     // 2. Let map be args.[[ParameterMap]].
     const map = this['[[ParameterMap]]'];
@@ -324,7 +325,7 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
   public '[[Set]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
-    V: $AnyNonEmpty,
+    V: $AnyNonEmpty ,
     Receiver: $AnyObject,
   ): $Boolean | $Error {
     const realm = ctx.Realm;
@@ -402,10 +403,10 @@ export class $ArgGetter extends $BuiltinFunction {
 
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -441,10 +442,10 @@ export class $ArgSetter extends $BuiltinFunction {
 
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     [value]: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -463,7 +464,7 @@ export class $ArgSetter extends $BuiltinFunction {
 // http://www.ecma-international.org/ecma-262/#sec-createunmappedargumentsobject
 export function $CreateUnmappedArgumentsObject(
   ctx: ExecutionContext,
-  argumentsList: readonly $AnyNonEmpty[],
+  argumentsList: readonly $AnyNonEmpty [],
 ): $AnyObject {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];

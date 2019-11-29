@@ -26,7 +26,24 @@ export abstract class $Error<T extends Error = Error, N extends string = string>
 
   public get isAbrupt(): true { return true; }
   public get isEmpty(): false { return false; }
+  public get isUndefined(): false { return false; }
+  public get isNull(): false { return false; }
+  public get isNil(): false { return false; }
+  public get isBoolean(): true { return true; }
+  public get isNumber(): false { return false; }
+  public get isString(): false { return false; }
+  public get isSymbol(): false { return false; }
+  public get isPrimitive(): true { return true; }
+  public get isObject(): false { return false; }
+  public get isArray(): false { return false; }
+  public get isProxy(): false { return false; }
+  public get isFunction(): false { return false; }
+  public get isBoundFunction(): false { return false; }
+  public get isTruthy(): T { return this['[[Value]]']; }
+  public get isFalsey(): T extends true ? false : true { return !this['[[Value]]'] as T extends true ? false : true; }
+  public get isSpeculative(): false { return false; }
   public get hasValue(): true { return true; }
+  public get isList(): false { return false; }
 
   public readonly nodeStack: I$Node[] = [];
   public ctx: ExecutionContext | null = null;

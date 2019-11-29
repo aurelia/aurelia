@@ -35,6 +35,7 @@ import {
   $Any,
   CompletionType,
   $AnyNonEmpty,
+  $AnyNonEmptyNonError,
   $PropertyKey,
 } from '../types/_shared';
 import {
@@ -290,7 +291,7 @@ export class $FunctionExpression implements I$Node {
   public EvaluateBody(
     ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
     functionObject: $Function,
-    argumentsList: readonly $AnyNonEmpty[],
+    argumentsList: readonly $AnyNonEmpty [],
   ): $Any {
     return EvaluateBody(this, ctx, functionObject, argumentsList);
   }
@@ -1091,7 +1092,7 @@ export class $FunctionDeclaration implements I$Node {
   public EvaluateBody(
     ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
     functionObject: $Function,
-    argumentsList: readonly $AnyNonEmpty[],
+    argumentsList: readonly $AnyNonEmpty [],
   ): $Any {
     return EvaluateBody(this, ctx, functionObject, argumentsList);
   }
@@ -1125,7 +1126,7 @@ function EvaluateBody(
   fn: $$Function,
   ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
   functionObject: $Function,
-  argumentsList: readonly $AnyNonEmpty[],
+  argumentsList: readonly $AnyNonEmpty [],
 ): $Any {
   ctx.checkTimeout();
 
@@ -1148,7 +1149,7 @@ function EvaluateBody(
 export function $FunctionDeclarationInstantiation(
   ctx: ExecutionContext<$FunctionEnvRec | $DeclarativeEnvRec>,
   func: $Function,
-  argumentsList: readonly $AnyNonEmpty[],
+  argumentsList: readonly $AnyNonEmpty [],
 ): $Empty | $Error {
   ctx.checkTimeout();
 
@@ -1546,7 +1547,7 @@ export class $ArrowFunction implements I$Node {
   // 14.2.17 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;

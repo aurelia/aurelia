@@ -17,6 +17,7 @@ import {
 import {
   $PropertyKey,
   $AnyNonEmpty,
+  $AnyNonEmptyNonError,
   $AnyObject,
   CompletionType,
 } from '../types/_shared';
@@ -145,7 +146,7 @@ export class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticOb
     ctx: ExecutionContext,
     P: $PropertyKey,
     Receiver: $AnyNonEmpty,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     return null as any; // TODO
@@ -162,7 +163,7 @@ export class $IntegerIndexedExoticObject extends $Object<'IntegerIndexedExoticOb
   public '[[Set]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
-    V: $AnyNonEmpty,
+    V: $AnyNonEmpty ,
     Receiver: $AnyObject,
   ): $Boolean | $Error {
     return null as any; // TODO

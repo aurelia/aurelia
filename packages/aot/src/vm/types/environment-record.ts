@@ -295,7 +295,7 @@ export class $DeclarativeEnvRec implements IDisposable {
     ctx: ExecutionContext,
     N: $String,
     S: $Boolean,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     this.logger.debug(`GetBindingValue(${N['[[Value]]']})`);
 
     // 1. Let envRec be the declarative Environment Record for which the method was invoked.
@@ -559,7 +559,7 @@ export class $ObjectEnvRec implements IDisposable {
     ctx: ExecutionContext,
     N: $String,
     S: $Boolean,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Let envRec be the object Environment Record for which the method was invoked.
@@ -795,7 +795,7 @@ export class $FunctionEnvRec extends $DeclarativeEnvRec implements IDisposable {
   // 8.1.1.3.4 GetThisBinding ( )
   public GetThisBinding(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     // 1. Let envRec be the function Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -1041,7 +1041,7 @@ export class $GlobalEnvRec implements IDisposable {
     ctx: ExecutionContext,
     N: $String,
     S: $Boolean,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     // 1. Let envRec be the global Environment Record for which the method was invoked.
     const envRec = this;
 
@@ -1480,7 +1480,7 @@ export class $ModuleEnvRec extends $DeclarativeEnvRec implements IDisposable {
     ctx: ExecutionContext,
     N: $String,
     S: $Boolean,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     const intrinsics = this.realm['[[Intrinsics]]'];
 
     // 1. Assert: S is true.

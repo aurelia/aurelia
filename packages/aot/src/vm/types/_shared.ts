@@ -107,6 +107,12 @@ export type $Primitive = (
 
 export type $AnyNonEmpty = (
   $Primitive |
+  $AnyObject |
+  $Error
+);
+
+export type $AnyNonEmptyNonError = (
+  $Primitive |
   $AnyObject
 );
 

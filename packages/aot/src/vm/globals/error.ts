@@ -10,6 +10,7 @@ import {
 import {
   $AnyNonEmpty,
   CompletionType,
+  $AnyNonEmptyNonError,
 } from '../types/_shared';
 import {
   $Error, $TypeError,
@@ -56,10 +57,10 @@ export class $ErrorConstructor extends $BuiltinFunction<'%Error%'> {
   // 19.5.1.1 Error ( message )
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     [message]: readonly $AnyNonEmpty[],
     NewTarget: $Function | $Undefined,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -140,10 +141,10 @@ export class $ErrorPrototype extends $Object<'%ErrorPrototype%'> {
 export class $ErrorPrototype_toString extends $BuiltinFunction<'Error.prototype.toString'> {
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $Function | $Undefined,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -216,10 +217,10 @@ export class $EvalErrorConstructor extends $BuiltinFunction<'%EvalError%'> {
   // 19.5.6.1.1 NativeError ( message )
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     [message]: readonly $AnyNonEmpty[],
     NewTarget: $Function | $Undefined,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -311,10 +312,10 @@ export class $RangeErrorConstructor extends $BuiltinFunction<'%RangeError%'> {
   // 19.5.6.1.1 NativeError ( message )
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     [message]: readonly $AnyNonEmpty[],
     NewTarget: $Function | $Undefined,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -406,10 +407,10 @@ export class $ReferenceErrorConstructor extends $BuiltinFunction<'%ReferenceErro
   // 19.5.6.1.1 NativeError ( message )
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     [message]: readonly $AnyNonEmpty[],
     NewTarget: $Function | $Undefined,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -502,10 +503,10 @@ export class $SyntaxErrorConstructor extends $BuiltinFunction<'%SyntaxError%'> {
   // 19.5.6.1.1 NativeError ( message )
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     [message]: readonly $AnyNonEmpty[],
     NewTarget: $Function | $Undefined,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -598,10 +599,10 @@ export class $TypeErrorConstructor extends $BuiltinFunction<'%TypeError%'> {
   // 19.5.6.1.1 NativeError ( message )
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     [message]: readonly $AnyNonEmpty[],
     NewTarget: $Function | $Undefined,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -694,10 +695,10 @@ export class $URIErrorConstructor extends $BuiltinFunction<'%URIError%'> {
   // 19.5.6.1.1 NativeError ( message )
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     [message]: readonly $AnyNonEmpty[],
     NewTarget: $Function | $Undefined,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 

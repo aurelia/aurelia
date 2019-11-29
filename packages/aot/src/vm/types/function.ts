@@ -14,6 +14,7 @@ import {
 } from './string';
 import {
   $AnyNonEmpty,
+  $AnyNonEmptyNonError,
   CompletionType,
   $AnyObject,
 } from './_shared';
@@ -109,9 +110,9 @@ export class $Function<
   // 9.2.1 [[Call]] ( thisArgument , argumentsList )
   public '[[Call]]'(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
-    argumentsList: readonly $AnyNonEmpty[],
-  ): $AnyNonEmpty | $Error {
+    thisArgument: $AnyNonEmptyNonError,
+    argumentsList: readonly $AnyNonEmpty [],
+  ): $AnyNonEmpty  {
     // 1. Assert: F is an ECMAScript function object.
     const F = this;
     const realm = F['[[Realm]]'];
@@ -169,15 +170,16 @@ export class $Function<
     // 4. Let kind be F.[[ConstructorKind]].
     const kind = F['[[ConstructorKind]]'];
 
-    let thisArgument: $AnyNonEmpty | $Error;
+    let thisArgument: $AnyNonEmptyNonError;
     // 5. If kind is "base", then
     if (kind === 'base') {
       // 5. a. Let thisArgument be ? OrdinaryCreateFromConstructor(newTarget, "%ObjectPrototype%").
-      thisArgument = $OrdinaryCreateFromConstructor(ctx, newTarget, '%ObjectPrototype%');
+      const $thisArgument = $OrdinaryCreateFromConstructor(ctx, newTarget, '%ObjectPrototype%');
+      if ($thisArgument.isAbrupt) { return $thisArgument; }
+      thisArgument = $thisArgument;
     } else {
       thisArgument = intrinsics.undefined;
     }
-    if (thisArgument.isAbrupt) { return thisArgument; }
 
     // 6. Let calleeContext be PrepareForOrdinaryCall(F, newTarget).
     const calleeContext = $PrepareForOrdinaryCall(ctx, F, newTarget);
@@ -631,8 +633,8 @@ function $OrdinaryCallBindThis(
   ctx: ExecutionContext,
   F: $Function,
   calleeContext: ExecutionContext,
-  thisArgument: $AnyNonEmpty,
-): $AnyNonEmpty | $Error {
+  thisArgument: $AnyNonEmptyNonError,
+): $AnyNonEmpty  {
   // 1. Let thisMode be F.[[ThisMode]].
   const thisMode = F['[[ThisMode]]'];
 
@@ -721,9 +723,9 @@ export abstract class $BuiltinFunction<
   // 9.3.1 [[Call]] ( thisArgument , argumentsList )
   public '[[Call]]'(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     argumentsList: readonly $AnyNonEmpty[],
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -811,8 +813,8 @@ export abstract class $BuiltinFunction<
 
   public abstract performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty | $Error;
+  ): $AnyNonEmpty ;
 }

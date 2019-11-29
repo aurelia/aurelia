@@ -22,6 +22,7 @@ import {
 import {
   $PropertyKey,
   $AnyNonEmpty,
+  $AnyNonEmptyNonError,
   $AnyObject,
   CompletionType,
 } from '../types/_shared';
@@ -226,8 +227,8 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   public '[[Get]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
-    Receiver: $AnyNonEmpty,
-  ): $AnyNonEmpty | $Error {
+    Receiver: $AnyNonEmptyNonError,
+  ): $AnyNonEmpty  {
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. If Type(P) is Symbol, then
     // 2. a. Return ? OrdinaryGet(O, P, Receiver).
@@ -276,7 +277,7 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
   public '[[Set]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
-    V: $AnyNonEmpty,
+    V: $AnyNonEmpty ,
     Receiver: $AnyObject,
   ): $Boolean<false> {
     // 1. Return false.

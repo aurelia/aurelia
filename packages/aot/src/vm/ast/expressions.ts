@@ -69,6 +69,7 @@ import {
 import {
   $Any,
   $AnyNonEmpty,
+  $AnyNonEmptyNonError,
   $AnyObject,
 } from '../types/_shared';
 import {
@@ -217,7 +218,7 @@ export class $ThisExpression implements I$Node {
   // 12.2.2.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;
@@ -249,7 +250,7 @@ export class $SuperExpression implements I$Node {
   // 12.3.5.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;
@@ -944,7 +945,7 @@ export class $CallExpression implements I$Node {
   // 12.3.4.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;
@@ -1010,7 +1011,7 @@ export function $EvaluateCall(
   ref: $Any,
   $arguments: readonly $$ArgumentOrArrayLiteralElement[],
   tailPosition: $Boolean,
-): $AnyNonEmpty | $Error {
+): $AnyNonEmpty  {
   ctx.checkTimeout();
 
   const realm = ctx.Realm;
@@ -1159,7 +1160,7 @@ export class $NewExpression implements I$Node {
   // 12.3.3.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;
@@ -1244,7 +1245,7 @@ export class $TaggedTemplateExpression implements I$Node {
   // 12.3.7.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;
@@ -1477,7 +1478,7 @@ export class $MetaProperty implements I$Node {
   // 12.3.8.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;
@@ -1653,7 +1654,7 @@ export class $VoidExpression implements I$Node {
   // 12.5.4 The void Operator
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;
@@ -1697,7 +1698,7 @@ export class $AwaitExpression implements I$Node {
   // 14.7.14 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;
@@ -1743,7 +1744,7 @@ export class $PrefixUnaryExpression implements I$Node {
   // 12.5.7.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;
@@ -1922,7 +1923,7 @@ export class $PostfixUnaryExpression implements I$Node {
   // 12.4.5.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;
@@ -2069,7 +2070,7 @@ export class $BinaryExpression implements I$Node {
   // 12.15.4 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;
@@ -3125,7 +3126,7 @@ export class $ConditionalExpression implements I$Node {
   // 12.14.3 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;
@@ -3169,7 +3170,7 @@ export class $YieldExpression implements I$Node {
   // 14.4.14 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;
@@ -3425,7 +3426,7 @@ export class $Identifier implements I$Node {
     const lhs = realm.ResolveBinding(bindingId, environment);
     if (lhs.isAbrupt) { return lhs.enrichWith(ctx, this); }
 
-    let v: $AnyNonEmpty | $Error = intrinsics.undefined; // TODO: sure about this?
+    let v: $AnyNonEmpty  = intrinsics.undefined; // TODO: sure about this?
 
     // 3. If iteratorRecord.[[Done]] is false, then
     if (iteratorRecord['[[Done]]'].isFalsey) {

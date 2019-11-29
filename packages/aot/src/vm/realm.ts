@@ -38,6 +38,7 @@ import {
 } from './types/reference';
 import {
   $AnyNonEmpty,
+  $AnyNonEmptyNonError,
   $Any,
 } from './types/_shared';
 import {
@@ -428,7 +429,7 @@ export class Realm implements IDisposable {
 
   // http://www.ecma-international.org/ecma-262/#sec-resolvethisbinding
   // 8.3.4 ResolveThisBinding ( )
-  public ResolveThisBinding(): $AnyNonEmpty | $Error {
+  public ResolveThisBinding(): $AnyNonEmpty  {
     // 1. Let envRec be GetThisEnvironment().
     const envRec = this.GetThisEnvironment();
 
@@ -550,7 +551,7 @@ export class ExecutionContext<TLex extends $EnvRec = $EnvRec, TVar extends ($Mod
   public LexicalEnvironment!: TLex;
   public VariableEnvironment!: TVar;
   public Generator: $GeneratorInstance | undefined = void 0;
-  public onResume: ((value: $AnyNonEmpty | $Error) => $AnyNonEmpty | $Error) | undefined = void 0;
+  public onResume: ((value: $AnyNonEmpty ) => $AnyNonEmpty ) | undefined = void 0;
 
   public suspended: boolean = false;
 

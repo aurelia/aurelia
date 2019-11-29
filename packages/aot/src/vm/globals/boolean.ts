@@ -10,6 +10,7 @@ import {
 import {
   $AnyNonEmpty,
   CompletionType,
+  $AnyNonEmptyNonError,
 } from '../types/_shared';
 import {
   $Error,
@@ -50,10 +51,10 @@ export class $BooleanConstructor extends $BuiltinFunction<'%Boolean%'> {
   // 19.3.1.1 Boolean ( value )
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     [value]: readonly $AnyNonEmpty[],
     NewTarget: $Function | $Undefined,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 

@@ -15,6 +15,7 @@ import {
 import {
   $AnyNonError,
   $AnyNonEmpty,
+  $AnyNonEmptyNonError,
   CompletionType,
   $AnyObject,
 } from '../types/_shared';
@@ -44,7 +45,7 @@ import {
 // http://www.ecma-international.org/ecma-262/#sec-getiterator
 export function $GetIterator(
   ctx: ExecutionContext,
-  obj: $AnyNonEmpty,
+  obj: $AnyNonEmptyNonError,
   hint?: 'sync' | 'async',
   method?: $Function | $Undefined,
 ): $IteratorRecord | $Error {
@@ -160,7 +161,7 @@ export function $IteratorComplete(
 export function $IteratorValue(
   ctx: ExecutionContext,
   iterResult: $AnyObject,
-): $AnyNonEmpty | $Error {
+): $AnyNonEmpty  {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
@@ -317,7 +318,7 @@ export function $CreateIterResultObject(
 // http://www.ecma-international.org/ecma-262/#sec-createlistiteratorRecord
 export function $CreateListIteratorRecord(
   ctx: ExecutionContext,
-  list: readonly $AnyNonEmpty[],
+  list: readonly $AnyNonEmpty [],
 ) {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
@@ -343,10 +344,10 @@ export class $ListIterator_next extends $BuiltinFunction<'ListIterator_next'> {
 
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -457,10 +458,10 @@ export class $Symbol_Iterator extends $BuiltinFunction<'[Symbol.iterator]'> {
 
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     return thisArgument;
   }
 }

@@ -10,7 +10,7 @@
 
 //   public performSteps(
 //     ctx: ExecutionContext,
-//     thisArgument: $AnyNonEmpty,
+//     thisArgument: $AnyNonEmptyNonError,
 //     argumentsList: readonly $AnyNonEmpty[],
 //     NewTarget: $AnyNonEmpty,
 //   ): $AnyNonEmpty {

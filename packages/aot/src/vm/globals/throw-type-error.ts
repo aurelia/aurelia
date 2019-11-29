@@ -10,6 +10,7 @@ import {
 } from '../realm';
 import {
   $AnyNonEmpty,
+  $AnyNonEmptyNonError,
 } from '../types/_shared';
 import {
   $Undefined,
@@ -22,7 +23,7 @@ export class $ThrowTypeError extends $BuiltinFunction<'%ThrowTypeError%'> {
   // 19.2.3.3 Function.prototype.call ( thisArg , ... args )
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     [thisArg, ...args]: readonly $AnyNonEmpty[],
     NewTarget: $Function | $Undefined,
   ): $TypeError {

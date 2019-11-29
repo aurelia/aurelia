@@ -140,7 +140,7 @@ export class $Reference {
   // 6.2.4.8 GetValue ( V )
   public GetValue(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     // 1. ReturnIfAbrupt(V).
     // 2. If Type(V) is not Reference, return V.
     // 3. Let base be GetBase(V).

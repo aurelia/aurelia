@@ -130,7 +130,7 @@ export class $JsxElement implements I$Node {
 
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;
@@ -199,7 +199,7 @@ export class $JsxSelfClosingElement implements I$Node {
 
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;
@@ -236,7 +236,7 @@ export class $JsxFragment implements I$Node {
 
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;

@@ -6,6 +6,7 @@ import {
 } from '../types/function';
 import {
   $AnyNonEmpty,
+  $AnyNonEmptyNonError,
   $AnyObject,
   CompletionType,
 } from '../types/_shared';
@@ -24,7 +25,7 @@ import {
 // http://www.ecma-international.org/ecma-262/#sec-bound-function-exotic-objects
 export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObject'> {
   public '[[BoundTargetFunction]]': $Function;
-  public '[[BoundThis]]': $AnyNonEmpty;
+  public '[[BoundThis]]': $AnyNonEmptyNonError;
   public '[[BoundArguments]]': $AnyNonEmpty[];
 
   public get isBoundFunction(): true { return true; }
@@ -34,7 +35,7 @@ export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObje
   public constructor(
     realm: Realm,
     targetFunction: $Function,
-    boundThis: $AnyNonEmpty,
+    boundThis: $AnyNonEmptyNonError,
     boundArgs: $AnyNonEmpty[],
   ) {
     // 1. Assert: Type(targetFunction) is Object.
@@ -67,9 +68,9 @@ export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObje
   // 9.4.1.1 [[Call]] ( thisArgument , argumentsList )
   public '[[Call]]'(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     argumentsList: readonly $AnyNonEmpty[],
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     const F = this;
 
     // 1. Let target be F.[[BoundTargetFunction]].
@@ -98,7 +99,7 @@ export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObje
     ctx: ExecutionContext,
     argumentsList: readonly $AnyNonEmpty[],
     newTarget: $AnyObject,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     const F = this;
 
     // 1. Let target be F.[[BoundTargetFunction]].

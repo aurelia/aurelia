@@ -75,6 +75,7 @@ import {
 import {
   $Any,
   $AnyNonEmpty,
+  $AnyNonEmptyNonError,
 } from '../types/_shared';
 
 
@@ -241,7 +242,7 @@ export class $MethodDeclaration implements I$Node {
   public EvaluateBody(
     ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
     functionObject: $Function,
-    argumentsList: readonly $AnyNonEmpty[],
+    argumentsList: readonly $AnyNonEmpty [],
   ): $Any {
     ctx.checkTimeout();
 
@@ -367,7 +368,7 @@ export class $GetAccessorDeclaration implements I$Node {
   public EvaluateBody(
     ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
     functionObject: $Function,
-    argumentsList: readonly $AnyNonEmpty[],
+    argumentsList: readonly $AnyNonEmpty [],
   ): $Any {
     ctx.checkTimeout();
 
@@ -492,7 +493,7 @@ export class $SetAccessorDeclaration implements I$Node {
   public EvaluateBody(
     ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
     functionObject: $Function,
-    argumentsList: readonly $AnyNonEmpty[],
+    argumentsList: readonly $AnyNonEmpty [],
   ): $Any {
     ctx.checkTimeout();
 

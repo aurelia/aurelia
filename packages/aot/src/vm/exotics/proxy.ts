@@ -11,6 +11,7 @@ import {
 import {
   $PropertyKey,
   $AnyNonEmpty,
+  $AnyNonEmptyNonError,
   $AnyObject,
   CompletionType,
 } from '../types/_shared';
@@ -605,8 +606,8 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   public '[[Get]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
-    Receiver: $AnyNonEmpty,
-  ): $AnyNonEmpty | $Error {
+    Receiver: $AnyNonEmptyNonError,
+  ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -670,7 +671,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   public '[[Set]]'(
     ctx: ExecutionContext,
     P: $PropertyKey,
-    V: $AnyNonEmpty,
+    V: $AnyNonEmpty ,
     Receiver: $AnyObject,
   ): $Boolean | $Error {
     const realm = ctx.Realm;
@@ -927,9 +928,9 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   // 9.5.12 [[Call]] ( thisArgument , argumentsList )
   public '[[Call]]'(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     argumentsList: readonly $AnyNonEmpty[],
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 

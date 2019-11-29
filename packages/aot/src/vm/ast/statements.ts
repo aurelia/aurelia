@@ -54,6 +54,7 @@ import {
   $Any,
   CompletionType,
   $AnyNonEmpty,
+  $AnyNonEmptyNonError,
 } from '../types/_shared';
 import {
   $Empty,
@@ -1572,7 +1573,7 @@ export class $ReturnStatement implements I$Node {
   // 13.10 The return Statement
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;
@@ -1949,7 +1950,7 @@ export class $LabeledStatement implements I$Node {
   // 13.13.14 Runtime Semantics: LabelledEvaluation
   public EvaluateLabelled(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;
@@ -1983,7 +1984,7 @@ export class $LabeledStatement implements I$Node {
   // 13.13.15 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;
@@ -2031,7 +2032,7 @@ export class $ThrowStatement implements I$Node {
   // 13.14.1 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;
@@ -2127,7 +2128,7 @@ export class $TryStatement implements I$Node {
   // 13.15.8 Runtime Semantics: Evaluation
   public Evaluate(
     ctx: ExecutionContext,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
@@ -2175,7 +2176,7 @@ export class $TryStatement implements I$Node {
   private EvaluateCatchClause(
     ctx: ExecutionContext,
     thrownValue: $AnyNonEmpty,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;

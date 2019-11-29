@@ -8,6 +8,7 @@ import {
   CompletionTarget,
   CompletionType,
   $AnyNonEmpty,
+  $AnyNonEmptyNonError,
   $AnyObject,
   $Any,
 } from './_shared';
@@ -776,8 +777,8 @@ export class $Object<
     this: $AnyObject,
     ctx: ExecutionContext,
     P: $PropertyKey,
-    Receiver: $AnyNonEmpty,
-  ): $AnyNonEmpty | $Error {
+    Receiver: $AnyNonEmptyNonError,
+  ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
     // 1. Return ? OrdinaryGet(O, P, Receiver).
@@ -830,7 +831,7 @@ export class $Object<
     this: $AnyObject,
     ctx: ExecutionContext,
     P: $PropertyKey,
-    V: $AnyNonEmpty,
+    V: $AnyNonEmpty ,
     Receiver: $AnyObject,
   ): $Boolean | $Error {
     // 1. Return ? OrdinarySet(O, P, V, Receiver).

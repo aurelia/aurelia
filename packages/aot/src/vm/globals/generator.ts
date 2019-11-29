@@ -8,6 +8,7 @@ import {
 } from '../realm';
 import {
   $AnyNonEmpty,
+  $AnyNonEmptyNonError,
   CompletionType,
 } from '../types/_shared';
 import {
@@ -76,10 +77,10 @@ export class $GeneratorFunctionConstructor extends $BuiltinFunction<'%GeneratorF
   // 25.2.1.1 GeneratorFunction ( p1 , p2 , … , pn , body )
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $Function | $Undefined,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     // 1. Let C be the active function object.
     // 2. Let args be the argumentsList that was passed to this function by [[Call]] or [[Construct]].
     // 3. Return ? CreateDynamicFunction(C, NewTarget, "generator", args).
@@ -210,10 +211,10 @@ export class $GeneratorPrototype_next extends $BuiltinFunction<'Generator.protot
   // 25.4.1.2 Generator.prototype.next ( value )
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     [value]: readonly $AnyNonEmpty[],
     NewTarget: $Function | $Undefined,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -234,10 +235,10 @@ export class $GeneratorPrototype_return extends $BuiltinFunction<'Generator.prot
   // 25.4.1.3 Generator.prototype.return ( value )
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     [value]: readonly $AnyNonEmpty[],
     NewTarget: $Function | $Undefined,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -261,10 +262,10 @@ export class $GeneratorPrototype_throw extends $BuiltinFunction<'Generator.proto
   // 25.4.1.4 Generator.prototype.throw ( exception )
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     [exception]: readonly $AnyNonEmpty[],
     NewTarget: $Function | $Undefined,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -333,7 +334,7 @@ export function $GeneratorStart(
   genContext.Generator = generator;
 
   // 4. Set the code evaluation state of genContext such that when evaluation is resumed for that execution context the following steps will be performed:
-  genContext.onResume = function (resumptionValue: $AnyNonEmpty | $Error): $AnyNonEmpty | $Error { // TODO: do we need to do something with resumptionValue?
+  genContext.onResume = function (resumptionValue: $AnyNonEmpty ): $AnyNonEmpty  { // TODO: do we need to do something with resumptionValue?
     // 4. a. Let result be the result of evaluating generatorBody.
     const result = generatorBody.Evaluate(genContext);
 
@@ -346,7 +347,7 @@ export function $GeneratorStart(
 
     // 4. e. Once a generator enters the "completed" state it never leaves it and its associated execution context is never resumed. Any execution state associated with generator can be discarded at this point.
 
-    let resultValue: $AnyNonEmpty | $Error;
+    let resultValue: $AnyNonEmpty ;
     // 4. f. If result.[[Type]] is normal, let resultValue be undefined.
     if (result['[[Type]]'] === CompletionType.normal) {
       resultValue = intrinsics.undefined;
@@ -359,7 +360,7 @@ export function $GeneratorStart(
     else {
       // 4. h. i. Assert: result.[[Type]] is throw.
       // 4. h. ii. Return Completion(result).
-      return result as $AnyNonEmpty | $Error;
+      return result as $AnyNonEmpty ;
     }
 
     // 4. i. Return CreateIterResultObject(resultValue, true).
@@ -416,8 +417,8 @@ export function $GeneratorValidate(
 export function $GeneratorResume(
   ctx: ExecutionContext,
   _generator: $AnyNonEmpty,
-  value: $AnyNonEmpty | $Error,
-): $AnyNonEmpty | $Error {
+  value: $AnyNonEmpty ,
+): $AnyNonEmpty  {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
   const stack = realm.stack;
@@ -463,8 +464,8 @@ export function $GeneratorResume(
 export function $GeneratorResumeAbrupt(
   ctx: ExecutionContext,
   _generator: $AnyNonEmpty,
-  abruptCompletion: $AnyNonEmpty | $Error,
-): $AnyNonEmpty | $Error {
+  abruptCompletion: $AnyNonEmpty ,
+): $AnyNonEmpty  {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
   const stack = realm.stack;
@@ -578,7 +579,7 @@ export function $GeneratorYield(
   stack.pop();
 
   // 8. Set the code evaluation state of genContext such that when evaluation is resumed with a Completion resumptionValue the following steps will be performed:
-  genContext.onResume = function (resumptionValue: $AnyNonEmpty | $Error): $AnyNonEmpty | $Error {
+  genContext.onResume = function (resumptionValue: $AnyNonEmpty ): $AnyNonEmpty  {
     // 8. a. Return resumptionValue.
     return resumptionValue;
 

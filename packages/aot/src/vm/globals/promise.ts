@@ -11,6 +11,7 @@ import {
 } from '../realm';
 import {
   $AnyNonEmpty,
+  $AnyNonEmptyNonError,
   $AnyObject,
   CompletionType,
 } from '../types/_shared';
@@ -23,11 +24,13 @@ import {
 import {
   $Error,
 } from '../types/error';
+import { $Call } from '../operations';
 
 // http://www.ecma-international.org/ecma-262/#sec-promise-abstract-operations
 // #region 25.6.1 Promise Abstract Operation
 
 // http://www.ecma-international.org/ecma-262/#sec-promisecapability-records
+// 25.6.1.1 PromiseCapability Records
 export class $PromiseCapability {
   public readonly '[[Promise]]': $PromiseInstance | $Undefined;
   public readonly '[[Resolve]]': $Function | $Undefined;
@@ -44,12 +47,38 @@ export class $PromiseCapability {
   }
 }
 
+// http://www.ecma-international.org/ecma-262/#sec-ifabruptrejectpromise
+// 25.6.1.1.1 IfAbruptRejectPromise ( value , capability )
+export function $IfAbruptRejectPromise(
+  ctx: ExecutionContext,
+  value: $AnyNonEmpty ,
+  capability: $PromiseCapability,
+): $AnyNonEmpty  {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
+  // 1. If value is an abrupt completion, then
+  if (value.isAbrupt) {
+    // 1. a. Perform ? Call(capability.[[Reject]], undefined, « value.[[Value]] »).
+    const $CallResult = $Call(ctx, capability['[[Reject]]'], intrinsics.undefined, [value]);
+    if ($CallResult.isAbrupt) { return $CallResult; }
+
+    // 1. b. Return capability.[[Promise]].
+    return capability['[[Promise]]'];
+
+  }
+
+  // 2. Else if value is a Completion Record, set value to value.[[Value]].
+  return value;
+}
+
 export const enum PromiseReactionType {
   Fulfill = 1,
   Reject = 2,
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-promisereaction-records
+// 25.6.1.2 PromiseReaction Records
 export class $PromiseReaction {
   public readonly '[[Capability]]': $PromiseCapability | $Undefined;
   public readonly '[[Type]]': PromiseReactionType;
@@ -71,6 +100,7 @@ export class $AlreadyResolved {
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-createresolvingfunctions
+// 25.6.1.3 CreateResolvingFunctions ( promise )
 export class $PromiseResolvingFunctions {
   public readonly '[[Resolve]]': $PromiseResolveFunction;
   public readonly '[[Reject]]': $PromiseRejectFunction;
@@ -99,6 +129,7 @@ export class $PromiseResolvingFunctions {
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-promise-reject-functions
+// 25.6.1.3.1 Promise Reject Functions
 export class $PromiseRejectFunction extends $BuiltinFunction<'PromiseRejectFunction'> {
   public '[[Promise]]': $PromiseInstance;
   public '[[AlreadyResolved]]': $AlreadyResolved;
@@ -117,10 +148,10 @@ export class $PromiseRejectFunction extends $BuiltinFunction<'PromiseRejectFunct
 
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     // 1. Let F be the active function object.
     // 2. Assert: F has a [[Promise]] internal slot whose value is an Object.
     // 3. Let promise be F.[[Promise]].
@@ -133,6 +164,7 @@ export class $PromiseRejectFunction extends $BuiltinFunction<'PromiseRejectFunct
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-promise-resolve-functions
+// 25.6.1.3.2 Promise Resolve Functions
 export class $PromiseResolveFunction extends $BuiltinFunction<'PromiseResolveFunction'> {
   public '[[Promise]]': $PromiseInstance;
   public '[[AlreadyResolved]]': $AlreadyResolved;
@@ -151,10 +183,10 @@ export class $PromiseResolveFunction extends $BuiltinFunction<'PromiseResolveFun
 
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     // 1. Let F be the active function object.
     // 2. Assert: F has a [[Promise]] internal slot whose value is an Object.
     // 3. Let promise be F.[[Promise]].
@@ -179,6 +211,7 @@ export class $PromiseResolveFunction extends $BuiltinFunction<'PromiseResolveFun
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-fulfillpromise
+// 25.6.1.4 FulfillPromise ( promise , value )
 export function $FulfillPromise(
   ctx: ExecutionContext,
   promise: $PromiseInstance,
@@ -195,6 +228,7 @@ export function $FulfillPromise(
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-newpromisecapability
+// 25.6.1.5 NewPromiseCapability ( C )
 export function $NewPromiseCapability(
   ctx: ExecutionContext,
   C: $Function,
@@ -214,6 +248,7 @@ export function $NewPromiseCapability(
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-getcapabilitiesexecutor-functions
+// 25.6.1.5.1 GetCapabilitiesExecutor Functions
 export class $GetCapabilitiesExecutor extends $BuiltinFunction<'GetCapabilitiesExecutor'> {
   public '[[Capability]]': $PromiseCapability;
 
@@ -229,10 +264,10 @@ export class $GetCapabilitiesExecutor extends $BuiltinFunction<'GetCapabilitiesE
 
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     // 1. Let F be the active function object.
     // 2. Assert: F has a [[Capability]] internal slot whose value is a PromiseCapability Record.
     // 3. Let promiseCapability be F.[[Capability]].
@@ -246,6 +281,7 @@ export class $GetCapabilitiesExecutor extends $BuiltinFunction<'GetCapabilitiesE
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-rejectpromise
+// 25.6.1.7 RejectPromise ( promise , reason )
 export function $RejectPromise(
   ctx: ExecutionContext,
   promise: $PromiseInstance,
@@ -263,6 +299,7 @@ export function $RejectPromise(
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-triggerpromisereactions
+// 25.6.1.8 TriggerPromiseReactions ( reactions , argument )
 export function $TriggerPromiseReactions(
   ctx: ExecutionContext,
   reactions: readonly $PromiseReaction[],
@@ -280,6 +317,7 @@ export const enum PromiseRejectionOperation {
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-host-promise-rejection-tracker
+// 25.6.1.9 HostPromiseRejectionTracker ( promise , operation )
 export function $HostPromiseRejectionTracker(
   ctx: ExecutionContext,
   promise: $PromiseInstance,
@@ -290,10 +328,43 @@ export function $HostPromiseRejectionTracker(
 
 // #endregion
 
-// http://www.ecma-international.org/ecma-262/#sec-promise-constructor
-// #region 25.6.3 The Promise Constructor
+// http://www.ecma-international.org/ecma-262/#sec-promise-jobs
+// 25.6.2 Promise Jobs
+
+  // http://www.ecma-international.org/ecma-262/#sec-promisereactionjob
+  // 25.6.2.1 PromiseReactionJob ( reaction , argument )
+
+    // 1. Assert: reaction is a PromiseReaction Record.
+    // 2. Let promiseCapability be reaction.[[Capability]].
+    // 3. Let type be reaction.[[Type]].
+    // 4. Let handler be reaction.[[Handler]].
+    // 5. If handler is undefined, then
+      // 5. a. If type is "Fulfill", let handlerResult be NormalCompletion(argument).
+      // 5. b. Else,
+        // 5. b. i. Assert: type is "Reject".
+        // 5. b. ii. Let handlerResult be ThrowCompletion(argument).
+    // 6. Else, let handlerResult be Call(handler, undefined, « argument »).
+    // 7. If promiseCapability is undefined, then
+      // 7. a. Assert: handlerResult is not an abrupt completion.
+      // 7. b. Return NormalCompletion(empty).
+    // 8. If handlerResult is an abrupt completion, then
+      // 8. a. Let status be Call(promiseCapability.[[Reject]], undefined, « handlerResult.[[Value]] »).
+    // 9. Else,
+      // 9. a. Let status be Call(promiseCapability.[[Resolve]], undefined, « handlerResult.[[Value]] »).
+    // 10. Return Completion(status).
+
+  // http://www.ecma-international.org/ecma-262/#sec-promiseresolvethenablejob
+  // 25.6.2.2 PromiseResolveThenableJob ( promiseToResolve , thenable , then )
+
+    // 1. Let resolvingFunctions be CreateResolvingFunctions(promiseToResolve).
+    // 2. Let thenCallResult be Call(then, thenable, « resolvingFunctions.[[Resolve]], resolvingFunctions.[[Reject]] »).
+    // 3. If thenCallResult is an abrupt completion, then
+      // 3. a. Let status be Call(resolvingFunctions.[[Reject]], undefined, « thenCallResult.[[Value]] »).
+      // 3. b. Return Completion(status).
+    // 4. Return Completion(thenCallResult).
 
 // http://www.ecma-international.org/ecma-262/#sec-promise-constructor
+// #region 25.6.3 The Promise Constructor
 export class $PromiseConstructor extends $BuiltinFunction<'%Promise%'> {
   public constructor(
     realm: Realm,
@@ -306,10 +377,10 @@ export class $PromiseConstructor extends $BuiltinFunction<'%Promise%'> {
   // 25.6.3.1 Promise ( executor )
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty | $Error{
+  ): $AnyNonEmpty {
     // 1. If NewTarget is undefined, throw a TypeError exception.
     // 2. If IsCallable(executor) is false, throw a TypeError exception.
     // 3. Let promise be ? OrdinaryCreateFromConstructor(NewTarget, "%PromisePrototype%", « [[PromiseState]], [[PromiseResult]], [[PromiseFulfillReactions]], [[PromiseRejectReactions]], [[PromiseIsHandled]] »).
@@ -331,7 +402,94 @@ export class $PromiseConstructor extends $BuiltinFunction<'%Promise%'> {
 // http://www.ecma-international.org/ecma-262/#sec-properties-of-the-promise-constructor
 // #region 25.6.4 Properties of the Promise Constructor
 
+// http://www.ecma-international.org/ecma-262/#sec-promise.all
+// 25.6.4.1 Promise.all ( iterable )
+export class $Promise_all extends $BuiltinFunction<'%Promise_all%'> {
+  public constructor(
+    realm: Realm,
+  ) {
+    const intrinsics = realm['[[Intrinsics]]'];
+    super(realm, '%Promise_all%', intrinsics['%FunctionPrototype%']);
+  }
+
+  public performSteps(
+    ctx: ExecutionContext,
+    thisArgument: $AnyNonEmptyNonError,
+    argumentsList: readonly $AnyNonEmpty[],
+    NewTarget: $AnyNonEmpty,
+  ): $AnyNonEmpty  {
+    // 1. Let C be the this value.
+    // 2. If Type(C) is not Object, throw a TypeError exception.
+    // 3. Let promiseCapability be ? NewPromiseCapability(C).
+    // 4. Let iteratorRecord be GetIterator(iterable).
+    // 5. IfAbruptRejectPromise(iteratorRecord, promiseCapability).
+    // 6. Let result be PerformPromiseAll(iteratorRecord, C, promiseCapability).
+    // 7. If result is an abrupt completion, then
+      // 7. a. If iteratorRecord.[[Done]] is false, set result to IteratorClose(iteratorRecord, result).
+      // 7. b. IfAbruptRejectPromise(result, promiseCapability).
+    // 8. Return Completion(result).
+    throw new Error('Method not implemented.');
+  }
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-performpromiseall
+// 25.6.4.1.1 Runtime Semantics: PerformPromiseAll ( iteratorRecord , constructor , resultCapability )
+
+  // 1. Assert: IsConstructor(constructor) is true.
+  // 2. Assert: resultCapability is a PromiseCapability Record.
+  // 3. Let values be a new empty List.
+  // 4. Let remainingElementsCount be a new Record { [[Value]]: 1 }.
+  // 5. Let index be 0.
+  // 6. Repeat,
+    // 6. a. Let next be IteratorStep(iteratorRecord).
+    // 6. b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
+    // 6. c. ReturnIfAbrupt(next).
+    // 6. d. If next is false, then
+      // 6. d. i. Set iteratorRecord.[[Done]] to true.
+      // 6. d. ii. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] - 1.
+      // 6. d. iii. If remainingElementsCount.[[Value]] is 0, then
+        // 6. d. iii. 1. Let valuesArray be CreateArrayFromList(values).
+        // 6. d. iii. 2. Perform ? Call(resultCapability.[[Resolve]], undefined, « valuesArray »).
+      // 6. d. iv. Return resultCapability.[[Promise]].
+    // 6. e. Let nextValue be IteratorValue(next).
+    // 6. f. If nextValue is an abrupt completion, set iteratorRecord.[[Done]] to true.
+    // 6. g. ReturnIfAbrupt(nextValue).
+    // 6. h. Append undefined to values.
+    // 6. i. Let nextPromise be ? Invoke(constructor, "resolve", « nextValue »).
+    // 6. j. Let steps be the algorithm steps defined in Promise.all Resolve Element Functions.
+    // 6. k. Let resolveElement be CreateBuiltinFunction(steps, « [[AlreadyCalled]], [[Index]], [[Values]], [[Capability]], [[RemainingElements]] »).
+    // 6. l. Set resolveElement.[[AlreadyCalled]] to a new Record { [[Value]]: false }.
+    // 6. m. Set resolveElement.[[Index]] to index.
+    // 6. n. Set resolveElement.[[Values]] to values.
+    // 6. o. Set resolveElement.[[Capability]] to resultCapability.
+    // 6. p. Set resolveElement.[[RemainingElements]] to remainingElementsCount.
+    // 6. q. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] + 1.
+    // 6. r. Perform ? Invoke(nextPromise, "then", « resolveElement, resultCapability.[[Reject]] »).
+    // 6. s. Increase index by 1.
+
+// http://www.ecma-international.org/ecma-262/#sec-promise.all-resolve-element-functions
+// 25.6.4.1.2 Promise.all Resolve Element Functions
+
+  // 1. Let F be the active function object.
+  // 2. Let alreadyCalled be F.[[AlreadyCalled]].
+  // 3. If alreadyCalled.[[Value]] is true, return undefined.
+  // 4. Set alreadyCalled.[[Value]] to true.
+  // 5. Let index be F.[[Index]].
+  // 6. Let values be F.[[Values]].
+  // 7. Let promiseCapability be F.[[Capability]].
+  // 8. Let remainingElementsCount be F.[[RemainingElements]].
+  // 9. Set values[index] to x.
+  // 10. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] - 1.
+  // 11. If remainingElementsCount.[[Value]] is 0, then
+    // 11. a. Let valuesArray be CreateArrayFromList(values).
+    // 11. b. Return ? Call(promiseCapability.[[Resolve]], undefined, « valuesArray »).
+  // 12. Return undefined.
+
+// http://www.ecma-international.org/ecma-262/#sec-promise.prototype
+// 25.6.4.2 Promise.prototype
+
 // http://www.ecma-international.org/ecma-262/#sec-promise.race
+// 25.6.4.3 Promise.race ( iterable )
 export class $Promise_race extends $BuiltinFunction<'%Promise_race%'> {
   public constructor(
     realm: Realm,
@@ -342,10 +500,10 @@ export class $Promise_race extends $BuiltinFunction<'%Promise_race%'> {
 
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     // 1. Let C be the this value.
     // 2. If Type(C) is not Object, throw a TypeError exception.
     // 3. Let promiseCapability be ? NewPromiseCapability(C).
@@ -361,6 +519,7 @@ export class $Promise_race extends $BuiltinFunction<'%Promise_race%'> {
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-performpromiserace
+// 25.6.4.3.1 Runtime Semantics: PerformPromiseRace ( iteratorRecord , constructor , resultCapability )
 export function $PerformPromiseRace(
   ctx: ExecutionContext,
   iteratorRecord: $IteratorRecord,
@@ -384,36 +543,8 @@ export function $PerformPromiseRace(
   throw new Error('Method not implemented.');
 }
 
-// http://www.ecma-international.org/ecma-262/#sec-promise.all
-export class $Promise_all extends $BuiltinFunction<'%Promise_all%'> {
-  public constructor(
-    realm: Realm,
-  ) {
-    const intrinsics = realm['[[Intrinsics]]'];
-    super(realm, '%Promise_all%', intrinsics['%FunctionPrototype%']);
-  }
-
-  public performSteps(
-    ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
-    argumentsList: readonly $AnyNonEmpty[],
-    NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty | $Error {
-    // 1. Let C be the this value.
-    // 2. If Type(C) is not Object, throw a TypeError exception.
-    // 3. Let promiseCapability be ? NewPromiseCapability(C).
-    // 4. Let iteratorRecord be GetIterator(iterable).
-    // 5. IfAbruptRejectPromise(iteratorRecord, promiseCapability).
-    // 6. Let result be PerformPromiseAll(iteratorRecord, C, promiseCapability).
-    // 7. If result is an abrupt completion, then
-      // 7. a. If iteratorRecord.[[Done]] is false, set result to IteratorClose(iteratorRecord, result).
-      // 7. b. IfAbruptRejectPromise(result, promiseCapability).
-    // 8. Return Completion(result).
-    throw new Error('Method not implemented.');
-  }
-}
-
 // http://www.ecma-international.org/ecma-262/#sec-promise.reject
+// 25.6.4.4 Promise.reject ( r )
 export class $Promise_reject extends $BuiltinFunction<'%Promise_reject%'> {
   public constructor(
     realm: Realm,
@@ -424,10 +555,10 @@ export class $Promise_reject extends $BuiltinFunction<'%Promise_reject%'> {
 
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     // 1. Let C be the this value.
     // 2. If Type(C) is not Object, throw a TypeError exception.
     // 3. Let promiseCapability be ? NewPromiseCapability(C).
@@ -438,6 +569,7 @@ export class $Promise_reject extends $BuiltinFunction<'%Promise_reject%'> {
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-promise.resolve
+// 25.6.4.5 Promise.resolve ( x )
 export class $Promise_resolve extends $BuiltinFunction<'%Promise_resolve%'> {
   public constructor(
     realm: Realm,
@@ -448,33 +580,21 @@ export class $Promise_resolve extends $BuiltinFunction<'%Promise_resolve%'> {
 
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty | $Error {
-    // http://www.ecma-international.org/ecma-262/#sec-promise.resolve
-    // 25.6.4.5 Promise.resolve ( x )
-
+  ): $AnyNonEmpty  {
     // 1. Let C be the this value.
     // 2. If Type(C) is not Object, throw a TypeError exception.
     // 3. Return ? PromiseResolve(C, x).
 
 
-    // http://www.ecma-international.org/ecma-262/#sec-promise-resolve
-    // 25.6.4.5.1 PromiseResolve ( C , x )
-
-    // 1. Assert: Type(C) is Object.
-    // 2. If IsPromise(x) is true, then
-      // 2. a. Let xConstructor be ? Get(x, "constructor").
-      // 2. b. If SameValue(xConstructor, C) is true, return x.
-    // 3. Let promiseCapability be ? NewPromiseCapability(C).
-    // 4. Perform ? Call(promiseCapability.[[Resolve]], undefined, « x »).
-    // 5. Return promiseCapability.[[Promise]].
     throw new Error('Method not implemented.');
   }
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-promise-resolve
+// 25.6.4.5.1 PromiseResolve ( C , x )
 export function $PromiseResolve(
   ctx: ExecutionContext,
   C: $AnyObject,
@@ -490,17 +610,28 @@ export function $PromiseResolve(
   throw new Error('Method not implemented.');
 }
 
+// http://www.ecma-international.org/ecma-262/#sec-get-promise-@@species
+// 25.6.4.6 get Promise [ @@species ]
+
+  // 1. Return the this value.
+
 // #endregion
 
 // http://www.ecma-international.org/ecma-262/#sec-properties-of-the-promise-prototype-object
 // #region 25.6.5 Properties of the Promise Prototype Object
 
-// http://www.ecma-international.org/ecma-262/#sec-properties-of-the-promise-prototype-object
+// http://www.ecma-international.org/ecma-262/#sec-promise.prototype.constructor
+// 25.6.5.2 Promise.prototype.constructor
+
+// http://www.ecma-international.org/ecma-262/#sec-promise.prototype-@@tostringtag
+// 25.6.5.5 Promise.prototype [ @@toStringTag ]
+
 export class $PromisePrototype extends $Object<'%PromisePrototype%'> {
 
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-promise.prototype.catch
+// 25.6.5.1 Promise.prototype.catch ( onRejected )
 export class $PromiseProto_catch extends $BuiltinFunction<'%PromiseProto_catch%'> {
   public constructor(
     realm: Realm,
@@ -511,10 +642,10 @@ export class $PromiseProto_catch extends $BuiltinFunction<'%PromiseProto_catch%'
 
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     // 1. Let promise be the this value.
     // 2. Return ? Invoke(promise, "then", « undefined, onRejected »).
     throw new Error('Method not implemented.');
@@ -522,6 +653,7 @@ export class $PromiseProto_catch extends $BuiltinFunction<'%PromiseProto_catch%'
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-promise.prototype.finally
+// 25.6.5.3 Promise.prototype.finally ( onFinally )
 export class $PromiseProto_finally extends $BuiltinFunction<'%PromiseProto_finally%'> {
   public constructor(
     realm: Realm,
@@ -532,10 +664,10 @@ export class $PromiseProto_finally extends $BuiltinFunction<'%PromiseProto_final
 
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     // 1. Let promise be the this value.
     // 2. If Type(promise) is not Object, throw a TypeError exception.
     // 3. Let C be ? SpeciesConstructor(promise, %Promise%).
@@ -557,7 +689,34 @@ export class $PromiseProto_finally extends $BuiltinFunction<'%PromiseProto_final
   }
 }
 
+// http://www.ecma-international.org/ecma-262/#sec-thenfinallyfunctions
+// 25.6.5.3.1 Then Finally Functions
+
+  // 1. Let F be the active function object.
+  // 2. Let onFinally be F.[[OnFinally]].
+  // 3. Assert: IsCallable(onFinally) is true.
+  // 4. Let result be ? Call(onFinally, undefined).
+  // 5. Let C be F.[[Constructor]].
+  // 6. Assert: IsConstructor(C) is true.
+  // 7. Let promise be ? PromiseResolve(C, result).
+  // 8. Let valueThunk be equivalent to a function that returns value.
+  // 9. Return ? Invoke(promise, "then", « valueThunk »).
+
+// http://www.ecma-international.org/ecma-262/#sec-catchfinallyfunctions
+// 25.6.5.3.2 Catch Finally Functions
+
+  // 1. Let F be the active function object.
+  // 2. Let onFinally be F.[[OnFinally]].
+  // 3. Assert: IsCallable(onFinally) is true.
+  // 4. Let result be ? Call(onFinally, undefined).
+  // 5. Let C be F.[[Constructor]].
+  // 6. Assert: IsConstructor(C) is true.
+  // 7. Let promise be ? PromiseResolve(C, result).
+  // 8. Let thrower be equivalent to a function that throws reason.
+  // 9. Return ? Invoke(promise, "then", « thrower »).
+
 // http://www.ecma-international.org/ecma-262/#sec-promise.prototype.then
+// 25.6.5.4 Promise.prototype.then ( onFulfilled , onRejected )
 export class $PromiseProto_then extends $BuiltinFunction<'%PromiseProto_then%'> {
   public constructor(
     realm: Realm,
@@ -568,10 +727,10 @@ export class $PromiseProto_then extends $BuiltinFunction<'%PromiseProto_then%'> 
 
   public performSteps(
     ctx: ExecutionContext,
-    thisArgument: $AnyNonEmpty,
+    thisArgument: $AnyNonEmptyNonError,
     argumentsList: readonly $AnyNonEmpty[],
     NewTarget: $AnyNonEmpty,
-  ): $AnyNonEmpty | $Error {
+  ): $AnyNonEmpty  {
     // 1. Let promise be the this value.
     // 2. If IsPromise(promise) is false, throw a TypeError exception.
     // 3. Let C be ? SpeciesConstructor(promise, %Promise%).
@@ -582,6 +741,7 @@ export class $PromiseProto_then extends $BuiltinFunction<'%PromiseProto_then%'> 
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-performpromisethen
+// 25.6.5.4.1 PerformPromiseThen ( promise , onFulfilled , onRejected [ , resultCapability ] )
 export function $PerformPromiseThen(
   ctx: ExecutionContext,
   promise: $PromiseInstance,
@@ -631,6 +791,7 @@ export const enum PromiseState {
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-properties-of-promise-instances
+// 25.6.6 Properties of Promise Instances
 export class $PromiseInstance extends $Object<'PromiseInstance'> {
   public '[[PromiseState]]': PromiseState;
   public '[[PromiseResult]]': $AnyNonEmpty | null;

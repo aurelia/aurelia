@@ -1172,18 +1172,26 @@ export class $Promise_resolve extends $BuiltinFunction<'%Promise_resolve%'> {
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: $List<$AnyNonEmpty>,
+    [x]: $List<$AnyNonEmpty>,
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
+    if (x === void 0) {
+      x = intrinsics.undefined;
+    }
+
     // 1. Let C be the this value.
+    const C = thisArgument;
+
     // 2. If Type(C) is not Object, throw a TypeError exception.
+    if (!C.isObject) {
+      return new $TypeError(realm, `Expected 'this' to be an object, but got: ${C}`);
+    }
+
     // 3. Return ? PromiseResolve(C, x).
-
-
-    throw new Error('Method not implemented.');
+    return $PromiseResolve(ctx, C, x);
   }
 }
 
@@ -1193,18 +1201,32 @@ export function $PromiseResolve(
   ctx: ExecutionContext,
   C: $AnyObject,
   x: $AnyNonEmpty,
-): $PromiseInstance {
+): $PromiseInstance | $Error {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
   // 1. Assert: Type(C) is Object.
   // 2. If IsPromise(x) is true, then
+  if (x instanceof $PromiseInstance) {
     // 2. a. Let xConstructor be ? Get(x, "constructor").
+    const xConstructor = x['[[Get]]'](ctx, intrinsics.$constructor, x);
+
     // 2. b. If SameValue(xConstructor, C) is true, return x.
+    if (xConstructor.is(C)) {
+      return x;
+    }
+  }
+
   // 3. Let promiseCapability be ? NewPromiseCapability(C).
+  const promiseCapability = $NewPromiseCapability(ctx, C);
+  if (promiseCapability.isAbrupt) { return promiseCapability; }
+
   // 4. Perform ? Call(promiseCapability.[[Resolve]], undefined, « x »).
+  const $CallResult = $Call(ctx, promiseCapability['[[Resolve]]'], intrinsics.undefined, new $List(x));
+  if ($CallResult.isAbrupt) { return $CallResult; }
+
   // 5. Return promiseCapability.[[Promise]].
-  throw new Error('Method not implemented.');
+  return promiseCapability['[[Promise]]'] as $PromiseInstance;
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-get-promise-@@species

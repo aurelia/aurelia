@@ -1,4 +1,4 @@
-import { ValidateResult } from './validate-result';
+import { ValidationResult } from './rule';
 
 /**
  * A result to render (or unrender) and the associated elements (if any)
@@ -7,7 +7,7 @@ export interface ResultInstruction {
   /**
    * The validation result.
    */
-  result: ValidateResult;
+  result: ValidationResult;
 
   /**
    * The associated elements (if any).

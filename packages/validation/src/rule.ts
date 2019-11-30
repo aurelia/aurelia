@@ -1,7 +1,6 @@
 import { Class, IContainer } from '@aurelia/kernel';
 import { IInterpolationExpression, IExpressionParser, BindingType, IsBindingBehavior, LifecycleFlags } from '@aurelia/runtime';
 import { IValidationMessageProvider } from './validation-messages';
-import { ValidateResult } from './validate-result';
 
 export type IValidateable<T = any> = (Class<T> | object) & { [key in PropertyKey]: any };
 export type ValidationDisplayNameAccessor = () => string;
@@ -256,7 +255,7 @@ export class PropertyRule {
     return this.$rules[depth];
   }
 
-  public async validate(value: unknown, object?: IValidateable): Promise<ValidateResult[]> {
+  public async validate(value: unknown, object?: IValidateable): Promise<ValidationResult[]> {
 
     let isValid = true;
     const validateRuleset = async (rules: ValidationRule[]) => {
@@ -270,10 +269,10 @@ export class PropertyRule {
           LifecycleFlags.none,
           { bindingContext: object!, parentScope: null, scopeParts: [], overrideContext: (void 0)! }
           , null) as string;
-        return new ValidateResult(rule, object, this.property.name, isValidOrPromise, message);
+        return new ValidationResult(rule, object, this.property.name, isValidOrPromise, message);
       };
 
-      const promises: Promise<ValidateResult>[] = [];
+      const promises: Promise<ValidationResult>[] = [];
       for (const rule of rules) {
         if (rule.canExecute(object)) {
           promises.push(validateRule(rule));
@@ -281,7 +280,7 @@ export class PropertyRule {
       }
       return Promise.all(promises);
     };
-    const accumulateResult = async (results: ValidateResult[], rules: ValidationRule[]) => {
+    const accumulateResult = async (results: ValidationResult[], rules: ValidationRule[]) => {
       const result = await validateRuleset(rules);
       results.push(...result);
       return results;
@@ -291,7 +290,7 @@ export class PropertyRule {
         acc = acc.then(async (accValidateResult) => accumulateResult(accValidateResult, ruleset));
       }
       return acc;
-    }, Promise.resolve([] as ValidateResult[]));
+    }, Promise.resolve([] as ValidationResult[]));
   }
 
   // #region customization API
@@ -644,4 +643,36 @@ export function parsePropertyName(property: string | PropertyAccessor, parser: I
   }
 
   return [property, parser.parse(property, BindingType.None)];
+}
+
+/**
+ * The result of validating an individual validation rule.
+ */
+export class ValidationResult {
+  private static nextId = 0;
+
+  /**
+   * A number that uniquely identifies the result instance.
+   */
+  public id: number;
+
+  /**
+   * @param rule - The rule associated with the result. Validator implementation specific.
+   * @param object - The object that was validated.
+   * @param propertyName - The name of the property that was validated.
+   * @param error - The error, if the result is a validation error.
+   */
+  public constructor(
+    public rule: any,
+    public object: any,
+    public propertyName: string | number | null, // TODO recheck if we need propertyName at this level
+    public valid: boolean,
+    public message: string | null = null
+  ) {
+    this.id = ValidationResult.nextId++;
+  }
+
+  public toString() {
+    return this.valid ? 'Valid.' : this.message;
+  }
 }

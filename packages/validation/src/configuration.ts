@@ -1,16 +1,11 @@
 import { IContainer, PLATFORM, Registration } from '@aurelia/kernel';
-import { IValidator, StandardValidator } from './validator';
 import { ValidationRules } from './rule';
-import {
-  ValidateBindingBehavior,
-  ValidateManuallyBindingBehavior,
-  ValidateOnBlurBindingBehavior,
-  ValidateOnChangeBindingBehavior,
-  ValidateOnChangeOrBlurBindingBehavior
-} from './validate-binding-behavior';
+import { ValidateBindingBehavior } from './validate-binding-behavior';
+import { IValidationController, ValidationController } from './validation-controller';
 import { ValidationErrorsCustomAttribute } from './validation-errors-custom-attribute';
-import { ValidationRendererCustomAttribute } from './validation-renderer-custom-attribute';
 import { IValidationMessageProvider, ValidationMessageProvider } from './validation-messages';
+import { ValidationRendererCustomAttribute } from './validation-renderer-custom-attribute';
+import { IValidator, StandardValidator } from './validator';
 
 export type ValidationConfigurationProvider = (options: ValidationCustomizationOpions) => void;
 export interface ValidationCustomizationOpions {
@@ -29,12 +24,9 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
         Registration.singleton(IValidationMessageProvider, ValidationMessageProvider),
         ValidationRules,
         ValidateBindingBehavior,
-        ValidateManuallyBindingBehavior,
-        ValidateOnBlurBindingBehavior,
-        ValidateOnChangeBindingBehavior,
-        ValidateOnChangeOrBlurBindingBehavior,
         ValidationErrorsCustomAttribute,
         ValidationRendererCustomAttribute,
+        Registration.singleton(IValidationController, ValidationController)
       );
     },
     customize(cb?: ValidationConfigurationProvider) {

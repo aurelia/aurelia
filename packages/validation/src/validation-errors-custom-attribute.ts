@@ -1,11 +1,11 @@
 import { lazy } from '@aurelia/kernel';
 import { bindable, BindingMode, customAttribute, INode } from '@aurelia/runtime';
-import { ValidateResult } from './validate-result';
 import { ValidationController } from './validation-controller';
 import { RenderInstruction, ValidationRenderer } from './validation-renderer';
+import { ValidationResult } from './rule';
 
 export interface RenderedError {
-  error: ValidateResult;
+  error: ValidationResult;
   targets: Element[];
 }
 

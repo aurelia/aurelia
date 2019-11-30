@@ -93,6 +93,10 @@ import {
   $GeneratorPrototype_return,
   $GeneratorPrototype_throw,
 } from './globals/generator';
+import {
+  $PromiseConstructor,
+  $PromisePrototype,
+} from './globals/promise';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
@@ -235,6 +239,13 @@ export class Intrinsics implements IDisposable {
   public readonly 'return': $String<'return'>;
   public readonly 'throw': $String<'throw'>;
   public readonly 'call': $String<'call'>;
+  public readonly 'all': $String<'all'>;
+  public readonly 'race': $String<'race'>;
+  public readonly 'reject': $String<'reject'>;
+  public readonly 'resolve': $String<'resolve'>;
+  public readonly 'finally': $String<'finally'>;
+  public readonly 'then': $String<'then'>;
+  public readonly 'catch': $String<'catch'>;
   public readonly 'message': $String<'message'>;
   public readonly '$arguments': $String<'arguments'>;
   public readonly '$callee': $String<'callee'>;
@@ -327,7 +338,9 @@ export class Intrinsics implements IDisposable {
   public readonly '%Generator%': $GeneratorFunctionPrototype;
   public readonly '%GeneratorPrototype%': $GeneratorPrototype;
 
-  public readonly '%PromisePrototype%': $Object<'%PromisePrototype%'>;
+  public readonly '%Promise%': $PromiseConstructor;
+  public readonly '%PromisePrototype%': $PromisePrototype;
+
   public readonly '%RegExpPrototype%': $Object<'%RegExpPrototype%'>;
   public readonly '%DatePrototype%': $Object<'%DatePrototype%'>;
 
@@ -364,7 +377,6 @@ export class Intrinsics implements IDisposable {
   public readonly '%Uint16ArrayPrototype%': $Object<'%Uint16ArrayPrototype%'>;
   public readonly '%Uint32ArrayPrototype%': $Object<'%Uint32ArrayPrototype%'>;
 
-  public readonly '%Promise%': $Object<'%Promise%'>;
   public readonly '%RegExp%': $Object<'%RegExp%'>;
   public readonly '%Date%': $Object<'%Date%'>;
 
@@ -454,6 +466,13 @@ export class Intrinsics implements IDisposable {
     this['return'] = new $String(realm, 'return');
     this['throw'] = new $String(realm, 'throw');
     this['call'] = new $String(realm, 'call');
+    this['all'] = new $String(realm, 'all');
+    this['race'] = new $String(realm, 'race');
+    this['reject'] = new $String(realm, 'reject');
+    this['resolve'] = new $String(realm, 'resolve');
+    this['finally'] = new $String(realm, 'finally');
+    this['then'] = new $String(realm, 'then');
+    this['catch'] = new $String(realm, 'catch');
     this['message'] = new $String(realm, 'message');
     this['$arguments'] = new $String(realm, 'arguments');
     this['$callee'] = new $String(realm, 'callee');
@@ -589,7 +608,10 @@ export class Intrinsics implements IDisposable {
 
     generatorPrototype['@@toStringTag'] = new $String(realm, 'Generator');
 
-    this['%PromisePrototype%'] = new $Object(realm, '%PromisePrototype%', objectPrototype, CompletionType.normal, empty);
+    const promiseConstructor = this['%Promise%'] = new $PromiseConstructor(realm, functionPrototype);
+    const promisePrototype = this['%PromisePrototype%'] = new $PromisePrototype(realm, functionPrototype);
+    (promiseConstructor.$prototype = promisePrototype).$constructor = promiseConstructor;
+
     this['%RegExpPrototype%'] = new $Object(realm, '%RegExpPrototype%', objectPrototype, CompletionType.normal, empty);
     this['%DatePrototype%'] = new $Object(realm, '%DatePrototype%', objectPrototype, CompletionType.normal, empty);
 
@@ -626,7 +648,6 @@ export class Intrinsics implements IDisposable {
     this['%Uint16ArrayPrototype%'] = new $Object(realm, '%Uint16ArrayPrototype%', this['%TypedArrayPrototype%'], CompletionType.normal, empty);
     this['%Uint32ArrayPrototype%'] = new $Object(realm, '%Uint32ArrayPrototype%', this['%TypedArrayPrototype%'], CompletionType.normal, empty);
 
-    this['%Promise%'] = new $Object(realm, '%Promise%', functionPrototype, CompletionType.normal, empty);
     this['%RegExp%'] = new $Object(realm, '%RegExp%', functionPrototype, CompletionType.normal, empty);
     this['%Date%'] = new $Object(realm, '%Date%', functionPrototype, CompletionType.normal, empty);
 

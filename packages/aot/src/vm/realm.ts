@@ -70,8 +70,11 @@ import {
   $$ESModuleOrScript,
 } from './ast/modules';
 import {
-  $GeneratorInstance
+  $GeneratorInstance,
 } from './globals/generator';
+import {
+  JobQueue,
+} from './job';
 
 export class ResolveSet {
   private readonly modules: IModule[] = [];
@@ -193,6 +196,7 @@ export class Realm implements IDisposable {
   private constructor(
     public readonly container: IContainer,
     public readonly logger: ILogger,
+    public readonly PromiseJobs: JobQueue,
   ) {
 
     this.stack = new ExecutionContextStack(logger);
@@ -200,12 +204,15 @@ export class Realm implements IDisposable {
 
   // http://www.ecma-international.org/ecma-262/#sec-createrealm
   // 8.2.1 CreateRealm ( )
-  public static Create(container: IContainer): Realm {
+  public static Create(
+    container: IContainer,
+    promiseJobs: JobQueue,
+  ): Realm {
     const logger = container.get(ILogger).root.scopeTo('Realm');
     logger.debug('Creating new realm');
 
     // 1. Let realmRec be a new Realm Record.
-    const realm = new Realm(container, logger);
+    const realm = new Realm(container, logger, promiseJobs);
 
     // 2. Perform CreateIntrinsics(realmRec).
     new Intrinsics(realm);

@@ -4,6 +4,7 @@ import {
 import {
   $Function,
   $BuiltinFunction,
+  $GetPrototypeFromConstructor,
 } from '../types/function';
 import {
   ExecutionContext,
@@ -14,6 +15,7 @@ import {
   $AnyNonEmptyNonError,
   $AnyObject,
   CompletionType,
+  $Any,
 } from '../types/_shared';
 import {
   $Undefined,
@@ -23,8 +25,27 @@ import {
 } from './iteration';
 import {
   $Error,
+  $TypeError,
 } from '../types/error';
-import { $Call } from '../operations';
+import {
+  $Call, $Construct,
+} from '../operations';
+import {
+  $List,
+} from '../types/list';
+import {
+  Job,
+} from '../job';
+import {
+  $ESModule,
+  $$ESModuleOrScript,
+} from '../ast/modules';
+import {
+  $Empty,
+} from '../types/empty';
+import {
+  $FunctionPrototype,
+} from './function';
 
 // http://www.ecma-international.org/ecma-262/#sec-promise-abstract-operations
 // #region 25.6.1 Promise Abstract Operation
@@ -32,9 +53,11 @@ import { $Call } from '../operations';
 // http://www.ecma-international.org/ecma-262/#sec-promisecapability-records
 // 25.6.1.1 PromiseCapability Records
 export class $PromiseCapability {
-  public readonly '[[Promise]]': $PromiseInstance | $Undefined;
-  public readonly '[[Resolve]]': $Function | $Undefined;
-  public readonly '[[Reject]]': $Function | $Undefined;
+  public '[[Promise]]': $PromiseInstance | $Undefined;
+  public '[[Resolve]]': $Function | $Undefined;
+  public '[[Reject]]': $Function | $Undefined;
+
+  public get isUndefined(): false { return false; }
 
   public constructor(
     promise: $PromiseInstance | $Undefined,
@@ -60,7 +83,7 @@ export function $IfAbruptRejectPromise(
   // 1. If value is an abrupt completion, then
   if (value.isAbrupt) {
     // 1. a. Perform ? Call(capability.[[Reject]], undefined, « value.[[Value]] »).
-    const $CallResult = $Call(ctx, capability['[[Reject]]'], intrinsics.undefined, [value]);
+    const $CallResult = $Call(ctx, capability['[[Reject]]'], intrinsics.undefined, new $List(value));
     if ($CallResult.isAbrupt) { return $CallResult; }
 
     // 1. b. Return capability.[[Promise]].
@@ -92,6 +115,10 @@ export class $PromiseReaction {
     this['[[Capability]]'] = capability;
     this['[[Type]]'] = type;
     this['[[Handler]]'] = handler;
+  }
+
+  public is(other: $PromiseReaction): boolean {
+    return this === other;
   }
 }
 
@@ -149,17 +176,36 @@ export class $PromiseRejectFunction extends $BuiltinFunction<'PromiseRejectFunct
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: readonly $AnyNonEmpty[],
-    NewTarget: $AnyNonEmpty,
+    [reason]: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    if (reason === void 0) {
+      reason = intrinsics.undefined;
+    }
+
     // 1. Let F be the active function object.
+    const F = this;
+
     // 2. Assert: F has a [[Promise]] internal slot whose value is an Object.
     // 3. Let promise be F.[[Promise]].
+    const promise = F['[[Promise]]'];
+
     // 4. Let alreadyResolved be F.[[AlreadyResolved]].
+    const alreadyResolved = F['[[AlreadyResolved]]'];
+
     // 5. If alreadyResolved.[[Value]] is true, return undefined.
+    if (alreadyResolved['[[Value]]']) {
+      return intrinsics.undefined;
+    }
+
     // 6. Set alreadyResolved.[[Value]] to true.
+    alreadyResolved['[[Value]]'] = true;
+
     // 7. Return RejectPromise(promise, reason).
-    throw new Error('Method not implemented.');
+    return $RejectPromise(ctx, promise, reason) as any;
   }
 }
 
@@ -184,29 +230,74 @@ export class $PromiseResolveFunction extends $BuiltinFunction<'PromiseResolveFun
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: readonly $AnyNonEmpty[],
-    NewTarget: $AnyNonEmpty,
+    [resolution]: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    if (resolution === void 0) {
+      resolution = intrinsics.undefined;
+    }
+
     // 1. Let F be the active function object.
+    const F = this;
+
     // 2. Assert: F has a [[Promise]] internal slot whose value is an Object.
     // 3. Let promise be F.[[Promise]].
+    const promise = F['[[Promise]]'];
+
     // 4. Let alreadyResolved be F.[[AlreadyResolved]].
+    const alreadyResolved = F['[[AlreadyResolved]]'];
+
     // 5. If alreadyResolved.[[Value]] is true, return undefined.
+    if (alreadyResolved['[[Value]]']) {
+      return intrinsics.undefined;
+    }
+
     // 6. Set alreadyResolved.[[Value]] to true.
+    alreadyResolved['[[Value]]'] = true;
+
     // 7. If SameValue(resolution, promise) is true, then
+    if (resolution.is(promise)) {
       // 7. a. Let selfResolutionError be a newly created TypeError object.
+      const selfResolutionError = new $TypeError(realm, `Failed to resolve self`); // ?
+
       // 7. b. Return RejectPromise(promise, selfResolutionError).
+      return $RejectPromise(ctx, promise, selfResolutionError);
+    }
+
     // 8. If Type(resolution) is not Object, then
+    if (!resolution.isObject) {
       // 8. a. Return FulfillPromise(promise, resolution).
+      return $FulfillPromise(ctx, promise, resolution);
+    }
+
     // 9. Let then be Get(resolution, "then").
+    const then = resolution['[[Get]]'](ctx, intrinsics.then, resolution);
+
     // 10. If then is an abrupt completion, then
+    if (then.isAbrupt) {
       // 10. a. Return RejectPromise(promise, then.[[Value]]).
+      return $RejectPromise(ctx, promise, then);
+    }
+
     // 11. Let thenAction be then.[[Value]].
     // 12. If IsCallable(thenAction) is false, then
+    if (!then.isFunction) {
       // 12. a. Return FulfillPromise(promise, resolution).
+      return $FulfillPromise(ctx, promise, resolution);
+    }
+
     // 13. Perform EnqueueJob("PromiseJobs", PromiseResolveThenableJob, « promise, resolution, thenAction »).
+    const mos = ctx.ScriptOrModule;
+    if (mos.isNull) {
+      throw new Error(`No ScriptOrModule found in this realm`);
+    }
+    realm.PromiseJobs.EnqueueJob(ctx, new PromiseResolveThenableJob(realm, mos, promise, resolution, then));
+
     // 14. Return undefined.
-    throw new Error('Method not implemented.');
+    return new $Undefined(realm);
   }
 }
 
@@ -217,34 +308,70 @@ export function $FulfillPromise(
   promise: $PromiseInstance,
   value: $AnyNonEmpty,
 ) {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
   // 1. Assert: The value of promise.[[PromiseState]] is "pending".
   // 2. Let reactions be promise.[[PromiseFulfillReactions]].
+  const reactions = promise['[[PromiseFulfillReactions]]']!;
+
   // 3. Set promise.[[PromiseResult]] to value.
+  promise['[[PromiseResult]]'] = value;
+
   // 4. Set promise.[[PromiseFulfillReactions]] to undefined.
+  promise['[[PromiseFulfillReactions]]'] = void 0;
+
   // 5. Set promise.[[PromiseRejectReactions]] to undefined.
+  promise['[[PromiseRejectReactions]]'] = void 0;
+
   // 6. Set promise.[[PromiseState]] to "fulfilled".
+  promise['[[PromiseState]]'] = PromiseState.fulfilled;
+
   // 7. Return TriggerPromiseReactions(reactions, value).
-  throw new Error('Method not implemented.');
+  return $TriggerPromiseReactions(ctx, reactions, value);
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-newpromisecapability
 // 25.6.1.5 NewPromiseCapability ( C )
 export function $NewPromiseCapability(
   ctx: ExecutionContext,
-  C: $Function,
+  C: $AnyObject,
 ) {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
   // 1. If IsConstructor(C) is false, throw a TypeError exception.
+  if (!C.isFunction) {
+    return new $TypeError(realm, `Expected constructor, but got: ${C}`);
+  }
+
   // 2. NOTE: C is assumed to be a constructor function that supports the parameter conventions of the Promise constructor (see 25.6.3.1).
   // 3. Let promiseCapability be a new PromiseCapability { [[Promise]]: undefined, [[Resolve]]: undefined, [[Reject]]: undefined }.
+  const promiseCapability = new $PromiseCapability(intrinsics.undefined, intrinsics.undefined, intrinsics.undefined);
+
   // 4. Let steps be the algorithm steps defined in GetCapabilitiesExecutor Functions.
   // 5. Let executor be CreateBuiltinFunction(steps, « [[Capability]] »).
   // 6. Set executor.[[Capability]] to promiseCapability.
+  const executor = new $GetCapabilitiesExecutor(realm, promiseCapability);
+
   // 7. Let promise be ? Construct(C, « executor »).
+  const promise = $Construct(ctx, C as $Function, new $List(executor), intrinsics.undefined) as $PromiseInstance;
+
   // 8. If IsCallable(promiseCapability.[[Resolve]]) is false, throw a TypeError exception.
+  if (!promiseCapability['[[Resolve]]'].isFunction) {
+    return new $TypeError(realm, `Expected [[Resolve]] to be callable, but got: ${promiseCapability['[[Resolve]]']}`);
+  }
+
   // 9. If IsCallable(promiseCapability.[[Reject]]) is false, throw a TypeError exception.
+  if (!promiseCapability['[[Reject]]'].isFunction) {
+    return new $TypeError(realm, `Expected [[Reject]] to be callable, but got: ${promiseCapability['[[Reject]]']}`);
+  }
+
   // 10. Set promiseCapability.[[Promise]] to promise.
+  promiseCapability['[[Promise]]'] = promise;
+
   // 11. Return promiseCapability.
-  throw new Error('Method not implemented.');
+  return promiseCapability;
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-getcapabilitiesexecutor-functions
@@ -265,18 +392,44 @@ export class $GetCapabilitiesExecutor extends $BuiltinFunction<'GetCapabilitiesE
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: readonly $AnyNonEmpty[],
-    NewTarget: $AnyNonEmpty,
+    [resolve, reject]: $List<$Function | $Undefined>,
+    NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    if (resolve === void 0) {
+      resolve = intrinsics.undefined;
+    }
+    if (reject === void 0) {
+      reject = intrinsics.undefined;
+    }
+
     // 1. Let F be the active function object.
+    const F = this;
+
     // 2. Assert: F has a [[Capability]] internal slot whose value is a PromiseCapability Record.
     // 3. Let promiseCapability be F.[[Capability]].
+    const promiseCapability = F['[[Capability]]'];
+
     // 4. If promiseCapability.[[Resolve]] is not undefined, throw a TypeError exception.
+    if (!promiseCapability['[[Resolve]]'].isUndefined) {
+      return new $TypeError(realm, `[[Resolve]] is already defined`);
+    }
+
     // 5. If promiseCapability.[[Reject]] is not undefined, throw a TypeError exception.
+    if (!promiseCapability['[[Reject]]'].isUndefined) {
+      return new $TypeError(realm, `[[Reject]] is already defined`);
+    }
+
     // 6. Set promiseCapability.[[Resolve]] to resolve.
+    promiseCapability['[[Resolve]]'] = resolve;
+
     // 7. Set promiseCapability.[[Reject]] to reject.
+    promiseCapability['[[Reject]]'] = reject;
+
     // 8. Return undefined.
-    throw new Error('Method not implemented.');
+    return intrinsics.undefined;
   }
 }
 
@@ -286,29 +439,59 @@ export function $RejectPromise(
   ctx: ExecutionContext,
   promise: $PromiseInstance,
   reason: $AnyNonEmpty,
-) {
+): $Undefined {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
   // 1. Assert: The value of promise.[[PromiseState]] is "pending".
   // 2. Let reactions be promise.[[PromiseRejectReactions]].
+  const reactions = promise['[[PromiseRejectReactions]]']!;
+
   // 3. Set promise.[[PromiseResult]] to reason.
+  promise['[[PromiseResult]]'] = reason;
+
   // 4. Set promise.[[PromiseFulfillReactions]] to undefined.
+  promise['[[PromiseFulfillReactions]]'] = void 0;
+
   // 5. Set promise.[[PromiseRejectReactions]] to undefined.
+  promise['[[PromiseRejectReactions]]'] = void 0;
+
   // 6. Set promise.[[PromiseState]] to "rejected".
+  promise['[[PromiseState]]'] = PromiseState.rejected;
+
   // 7. If promise.[[PromiseIsHandled]] is false, perform HostPromiseRejectionTracker(promise, "reject").
+  if (!promise['[[PromiseIsHandled]]']) {
+    $HostPromiseRejectionTracker(ctx, promise, PromiseRejectionOperation.reject);
+  }
+
   // 8. Return TriggerPromiseReactions(reactions, reason).
-  throw new Error('Method not implemented.');
+  return $TriggerPromiseReactions(ctx, reactions, reason);
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-triggerpromisereactions
 // 25.6.1.8 TriggerPromiseReactions ( reactions , argument )
 export function $TriggerPromiseReactions(
   ctx: ExecutionContext,
-  reactions: readonly $PromiseReaction[],
+  reactions: $List<$PromiseReaction>,
   argument: $AnyNonEmpty,
-) {
+): $Undefined {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+  const promiseJobs = realm.PromiseJobs;
+
+  const mos = ctx.ScriptOrModule;
+  if (mos.isNull) {
+    throw new Error(`No ScriptOrModule found in this realm`);
+  }
+
   // 1. For each reaction in reactions, in original insertion order, do
+  for (const reaction of reactions) {
     // 1. a. Perform EnqueueJob("PromiseJobs", PromiseReactionJob, « reaction, argument »).
+    promiseJobs.EnqueueJob(ctx, new PromiseReactionJob(realm, mos, reaction, argument));
+  }
+
   // 2. Return undefined.
-  throw new Error('Method not implemented.');
+  return new $Undefined(realm);
 }
 
 export const enum PromiseRejectionOperation {
@@ -323,54 +506,188 @@ export function $HostPromiseRejectionTracker(
   promise: $PromiseInstance,
   operation: PromiseRejectionOperation,
 ) {
-  throw new Error('Method not implemented.');
+  ctx.logger.error(`Promise rejected: ${promise}`);
 }
 
 // #endregion
 
 // http://www.ecma-international.org/ecma-262/#sec-promise-jobs
-// 25.6.2 Promise Jobs
+// #region 25.6.2 Promise Jobs
+
+export class PromiseReactionJob extends Job {
+  public constructor(
+    realm: Realm,
+    scriptOrModule: $$ESModuleOrScript,
+    public readonly reaction: $PromiseReaction,
+    public readonly argument: $AnyNonEmpty,
+  ) {
+    super(realm.logger.root, realm, scriptOrModule);
+  }
 
   // http://www.ecma-international.org/ecma-262/#sec-promisereactionjob
   // 25.6.2.1 PromiseReactionJob ( reaction , argument )
+  public Run(ctx: ExecutionContext): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    this.logger.debug(`Run(#${ctx.id})`);
+
+    const reaction = this.reaction;
+    const argument = this.argument;
 
     // 1. Assert: reaction is a PromiseReaction Record.
     // 2. Let promiseCapability be reaction.[[Capability]].
+    const promiseCapability = reaction['[[Capability]]'];
+
     // 3. Let type be reaction.[[Type]].
+    const type = reaction['[[Type]]'];
+
     // 4. Let handler be reaction.[[Handler]].
+    const handler = reaction['[[Handler]]'];
+
+    let handlerResult: $AnyNonEmpty;
+
     // 5. If handler is undefined, then
+    if (handler.isUndefined) {
       // 5. a. If type is "Fulfill", let handlerResult be NormalCompletion(argument).
+      if (type === PromiseReactionType.Fulfill) {
+        handlerResult = argument;
+      }
       // 5. b. Else,
+      else {
         // 5. b. i. Assert: type is "Reject".
         // 5. b. ii. Let handlerResult be ThrowCompletion(argument).
+        handlerResult = argument.ToCompletion(CompletionType.throw, intrinsics.empty);
+      }
+    }
     // 6. Else, let handlerResult be Call(handler, undefined, « argument »).
+    else {
+      handlerResult = $Call(ctx, handler, intrinsics.undefined, new $List(argument));
+    }
+
     // 7. If promiseCapability is undefined, then
+    if (promiseCapability.isUndefined) {
       // 7. a. Assert: handlerResult is not an abrupt completion.
       // 7. b. Return NormalCompletion(empty).
+      return new $Empty(realm);
+    }
+
+    let status: $AnyNonEmpty;
+
     // 8. If handlerResult is an abrupt completion, then
+    if (handlerResult.isAbrupt) {
       // 8. a. Let status be Call(promiseCapability.[[Reject]], undefined, « handlerResult.[[Value]] »).
+      status = $Call(ctx, promiseCapability['[[Reject]]'], intrinsics.undefined, new $List(handlerResult));
+    }
     // 9. Else,
+    else {
       // 9. a. Let status be Call(promiseCapability.[[Resolve]], undefined, « handlerResult.[[Value]] »).
+      status = $Call(ctx, promiseCapability['[[Resolve]]'], intrinsics.undefined, new $List(handlerResult));
+    }
+
     // 10. Return Completion(status).
+    return status;
+  }
+}
+
+export class PromiseResolveThenableJob extends Job {
+  public constructor(
+    realm: Realm,
+    scriptOrModule: $$ESModuleOrScript,
+    public readonly promiseToResolve: $PromiseInstance,
+    public readonly thenable: $AnyNonEmptyNonError,
+    public readonly then: $AnyNonEmptyNonError,
+  ) {
+    super(realm.logger.root, realm, scriptOrModule);
+  }
 
   // http://www.ecma-international.org/ecma-262/#sec-promiseresolvethenablejob
   // 25.6.2.2 PromiseResolveThenableJob ( promiseToResolve , thenable , then )
+  public Run(ctx: ExecutionContext): $Any {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    this.logger.debug(`Run(#${ctx.id})`);
+
+    const promiseToResolve = this.promiseToResolve;
+    const thenable = this.thenable;
+    const then = this.then;
 
     // 1. Let resolvingFunctions be CreateResolvingFunctions(promiseToResolve).
+    const resolvingFunctions = new $PromiseResolvingFunctions(realm, promiseToResolve);
+
     // 2. Let thenCallResult be Call(then, thenable, « resolvingFunctions.[[Resolve]], resolvingFunctions.[[Reject]] »).
+    const thenCallResult = $Call(ctx, then, thenable, new $List<$Object>(resolvingFunctions['[[Resolve]]'], resolvingFunctions['[[Reject]]']));
+
     // 3. If thenCallResult is an abrupt completion, then
+    if (thenCallResult.isAbrupt) {
       // 3. a. Let status be Call(resolvingFunctions.[[Reject]], undefined, « thenCallResult.[[Value]] »).
+      const status = $Call(ctx, resolvingFunctions['[[Reject]]'], intrinsics.undefined, new $List(thenCallResult));
+
       // 3. b. Return Completion(status).
+      return status;
+    }
+
     // 4. Return Completion(thenCallResult).
+    return thenCallResult;
+  }
+}
+
+// #endregion
 
 // http://www.ecma-international.org/ecma-262/#sec-promise-constructor
 // #region 25.6.3 The Promise Constructor
 export class $PromiseConstructor extends $BuiltinFunction<'%Promise%'> {
+  // http://www.ecma-international.org/ecma-262/#sec-promise.prototype
+  // 25.6.4.2 Promise.prototype
+  public get $prototype(): $PromisePrototype {
+    return this.getProperty(this.realm['[[Intrinsics]]'].$prototype)['[[Value]]'] as $PromisePrototype;
+  }
+  public set $prototype(value: $PromisePrototype) {
+    this.setDataProperty(this.realm['[[Intrinsics]]'].$prototype, value, false, false, false);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-promise.all
+  // 25.6.4.1 Promise.all ( iterable )
+  public get all(): $Promise_all {
+    return this.getProperty(this.realm['[[Intrinsics]]'].all)['[[Value]]'] as $Promise_all;
+  }
+  public set all(value: $Promise_all) {
+    this.setDataProperty(this.realm['[[Intrinsics]]'].all, value);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-promise.race
+  // 25.6.4.3 Promise.race ( iterable )
+  public get race(): $Promise_race {
+    return this.getProperty(this.realm['[[Intrinsics]]'].race)['[[Value]]'] as $Promise_race;
+  }
+  public set race(value: $Promise_race) {
+    this.setDataProperty(this.realm['[[Intrinsics]]'].race, value);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-promise.reject
+  // 25.6.4.4 Promise.reject ( r )
+  public get reject(): $Promise_reject {
+    return this.getProperty(this.realm['[[Intrinsics]]'].reject)['[[Value]]'] as $Promise_reject;
+  }
+  public set reject(value: $Promise_reject) {
+    this.setDataProperty(this.realm['[[Intrinsics]]'].reject, value);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-promise.resolve
+  // 25.6.4.5 Promise.resolve ( x )
+  public get resolve(): $Promise_resolve {
+    return this.getProperty(this.realm['[[Intrinsics]]'].resolve)['[[Value]]'] as $Promise_resolve;
+  }
+  public set resolve(value: $Promise_resolve) {
+    this.setDataProperty(this.realm['[[Intrinsics]]'].resolve, value, false, false, false);
+  }
+
   public constructor(
     realm: Realm,
+    functionPrototype: $FunctionPrototype,
   ) {
-    const intrinsics = realm['[[Intrinsics]]'];
-    super(realm, '%Promise%', intrinsics['%FunctionPrototype%']);
+    super(realm, '%Promise%', functionPrototype);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-promise-executor
@@ -378,46 +695,89 @@ export class $PromiseConstructor extends $BuiltinFunction<'%Promise%'> {
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: readonly $AnyNonEmpty[],
-    NewTarget: $AnyNonEmpty,
+    [executor]: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     // 1. If NewTarget is undefined, throw a TypeError exception.
+    if (NewTarget.isUndefined) {
+      return new $TypeError(realm, `Promise cannot be called as a function.`)
+    }
+
     // 2. If IsCallable(executor) is false, throw a TypeError exception.
+    if (executor === void 0 || !executor.isFunction) {
+      return new $TypeError(realm, `The promise constructor requires an executor function`);
+    }
+
     // 3. Let promise be ? OrdinaryCreateFromConstructor(NewTarget, "%PromisePrototype%", « [[PromiseState]], [[PromiseResult]], [[PromiseFulfillReactions]], [[PromiseRejectReactions]], [[PromiseIsHandled]] »).
+    const promise = $PromiseInstance.Create(ctx, NewTarget);
+    if (promise.isAbrupt) { return promise; }
+
     // 4. Set promise.[[PromiseState]] to "pending".
+    promise['[[PromiseState]]'] = PromiseState.pending;
+
     // 5. Set promise.[[PromiseFulfillReactions]] to a new empty List.
+    promise['[[PromiseFulfillReactions]]'] = new $List();
+
     // 6. Set promise.[[PromiseRejectReactions]] to a new empty List.
+    promise['[[PromiseRejectReactions]]'] = new $List();
+
     // 7. Set promise.[[PromiseIsHandled]] to false.
+    promise['[[PromiseIsHandled]]'] = false;
+
     // 8. Let resolvingFunctions be CreateResolvingFunctions(promise).
+    const resolvingFunctions = new $PromiseResolvingFunctions(realm, promise);
+
     // 9. Let completion be Call(executor, undefined, « resolvingFunctions.[[Resolve]], resolvingFunctions.[[Reject]] »).
+    const completion = $Call(
+      ctx,
+      executor,
+      intrinsics.undefined,
+      new $List<$AnyNonEmpty>(resolvingFunctions['[[Resolve]]'], resolvingFunctions['[[Reject]]']),
+    );
+
     // 10. If completion is an abrupt completion, then
+    if (completion.isAbrupt) {
       // 10. a. Perform ? Call(resolvingFunctions.[[Reject]], undefined, « completion.[[Value]] »).
+      const $CallResult = $Call(
+        ctx,
+        resolvingFunctions['[[Reject]]'],
+        intrinsics.undefined,
+        new $List(completion),
+      );
+
+      if ($CallResult.isAbrupt) { return $CallResult; }
+    }
+
     // 11. Return promise.
-    throw new Error('Method not implemented.');
+    return promise;
   }
 }
 
-// #endregion
-
 // http://www.ecma-international.org/ecma-262/#sec-properties-of-the-promise-constructor
-// #region 25.6.4 Properties of the Promise Constructor
+// 25.6.4 Properties of the Promise Constructor
 
 // http://www.ecma-international.org/ecma-262/#sec-promise.all
 // 25.6.4.1 Promise.all ( iterable )
 export class $Promise_all extends $BuiltinFunction<'%Promise_all%'> {
   public constructor(
     realm: Realm,
+    functionPrototype: $FunctionPrototype,
   ) {
-    const intrinsics = realm['[[Intrinsics]]'];
-    super(realm, '%Promise_all%', intrinsics['%FunctionPrototype%']);
+    super(realm, '%Promise_all%', functionPrototype);
   }
 
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: readonly $AnyNonEmpty[],
-    NewTarget: $AnyNonEmpty,
+    argumentsList: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     // 1. Let C be the this value.
     // 2. If Type(C) is not Object, throw a TypeError exception.
     // 3. Let promiseCapability be ? NewPromiseCapability(C).
@@ -485,25 +845,25 @@ export class $Promise_all extends $BuiltinFunction<'%Promise_all%'> {
     // 11. b. Return ? Call(promiseCapability.[[Resolve]], undefined, « valuesArray »).
   // 12. Return undefined.
 
-// http://www.ecma-international.org/ecma-262/#sec-promise.prototype
-// 25.6.4.2 Promise.prototype
-
 // http://www.ecma-international.org/ecma-262/#sec-promise.race
 // 25.6.4.3 Promise.race ( iterable )
 export class $Promise_race extends $BuiltinFunction<'%Promise_race%'> {
   public constructor(
     realm: Realm,
+    functionPrototype: $FunctionPrototype,
   ) {
-    const intrinsics = realm['[[Intrinsics]]'];
-    super(realm, '%Promise_race%', intrinsics['%FunctionPrototype%']);
+    super(realm, '%Promise_race%', functionPrototype);
   }
 
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: readonly $AnyNonEmpty[],
-    NewTarget: $AnyNonEmpty,
+    argumentsList: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     // 1. Let C be the this value.
     // 2. If Type(C) is not Object, throw a TypeError exception.
     // 3. Let promiseCapability be ? NewPromiseCapability(C).
@@ -526,6 +886,9 @@ export function $PerformPromiseRace(
   constructor: $Function,
   resultCapability: $PromiseCapability,
 ): $AnyNonEmpty {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
   // 1. Assert: IsConstructor(constructor) is true.
   // 2. Assert: resultCapability is a PromiseCapability Record.
   // 3. Repeat,
@@ -548,17 +911,20 @@ export function $PerformPromiseRace(
 export class $Promise_reject extends $BuiltinFunction<'%Promise_reject%'> {
   public constructor(
     realm: Realm,
+    functionPrototype: $FunctionPrototype,
   ) {
-    const intrinsics = realm['[[Intrinsics]]'];
-    super(realm, '%Promise_reject%', intrinsics['%FunctionPrototype%']);
+    super(realm, '%Promise_reject%', functionPrototype);
   }
 
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: readonly $AnyNonEmpty[],
-    NewTarget: $AnyNonEmpty,
+    argumentsList: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     // 1. Let C be the this value.
     // 2. If Type(C) is not Object, throw a TypeError exception.
     // 3. Let promiseCapability be ? NewPromiseCapability(C).
@@ -573,17 +939,20 @@ export class $Promise_reject extends $BuiltinFunction<'%Promise_reject%'> {
 export class $Promise_resolve extends $BuiltinFunction<'%Promise_resolve%'> {
   public constructor(
     realm: Realm,
+    functionPrototype: $FunctionPrototype,
   ) {
-    const intrinsics = realm['[[Intrinsics]]'];
-    super(realm, '%Promise_resolve%', intrinsics['%FunctionPrototype%']);
+    super(realm, '%Promise_resolve%', functionPrototype);
   }
 
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: readonly $AnyNonEmpty[],
-    NewTarget: $AnyNonEmpty,
+    argumentsList: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     // 1. Let C be the this value.
     // 2. If Type(C) is not Object, throw a TypeError exception.
     // 3. Return ? PromiseResolve(C, x).
@@ -600,6 +969,9 @@ export function $PromiseResolve(
   C: $AnyObject,
   x: $AnyNonEmpty,
 ): $PromiseInstance {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
   // 1. Assert: Type(C) is Object.
   // 2. If IsPromise(x) is true, then
     // 2. a. Let xConstructor be ? Get(x, "constructor").
@@ -620,14 +992,54 @@ export function $PromiseResolve(
 // http://www.ecma-international.org/ecma-262/#sec-properties-of-the-promise-prototype-object
 // #region 25.6.5 Properties of the Promise Prototype Object
 
-// http://www.ecma-international.org/ecma-262/#sec-promise.prototype.constructor
-// 25.6.5.2 Promise.prototype.constructor
 
 // http://www.ecma-international.org/ecma-262/#sec-promise.prototype-@@tostringtag
 // 25.6.5.5 Promise.prototype [ @@toStringTag ]
 
 export class $PromisePrototype extends $Object<'%PromisePrototype%'> {
+  // http://www.ecma-international.org/ecma-262/#sec-promise.prototype.catch
+  // 25.6.5.1 Promise.prototype.catch ( onRejected )
+  public get catch(): $PromiseProto_catch {
+    return this.getProperty(this.realm['[[Intrinsics]]'].catch)['[[Value]]'] as $PromiseProto_catch;
+  }
+  public set catch(value: $PromiseProto_catch) {
+    this.setDataProperty(this.realm['[[Intrinsics]]'].catch, value);
+  }
 
+  // http://www.ecma-international.org/ecma-262/#sec-promise.prototype.constructor
+  // 25.6.5.2 Promise.prototype.constructor
+  public get $constructor(): $PromiseConstructor {
+    return this.getProperty(this.realm['[[Intrinsics]]'].$constructor)['[[Value]]'] as $PromiseConstructor;
+  }
+  public set $constructor(value: $PromiseConstructor) {
+    this.setDataProperty(this.realm['[[Intrinsics]]'].$constructor, value);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-promise.prototype.finally
+  // 25.6.5.3 Promise.prototype.finally ( onFinally )
+  public get finally(): $PromiseProto_finally {
+    return this.getProperty(this.realm['[[Intrinsics]]'].finally)['[[Value]]'] as $PromiseProto_finally;
+  }
+  public set finally(value: $PromiseProto_finally) {
+    this.setDataProperty(this.realm['[[Intrinsics]]'].finally, value);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-promise.prototype.then
+  // 25.6.5.4 Promise.prototype.then ( onFulfilled , onRejected )
+  public get then(): $PromiseProto_then {
+    return this.getProperty(this.realm['[[Intrinsics]]'].then)['[[Value]]'] as $PromiseProto_then;
+  }
+  public set then(value: $PromiseProto_then) {
+    this.setDataProperty(this.realm['[[Intrinsics]]'].then, value);
+  }
+
+  public constructor(
+    realm: Realm,
+    proto: $FunctionPrototype,
+  ) {
+    const intrinsics = realm['[[Intrinsics]]'];
+    super(realm, '%PromisePrototype%', proto, CompletionType.normal, intrinsics.empty);
+  }
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-promise.prototype.catch
@@ -643,9 +1055,12 @@ export class $PromiseProto_catch extends $BuiltinFunction<'%PromiseProto_catch%'
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: readonly $AnyNonEmpty[],
-    NewTarget: $AnyNonEmpty,
+    argumentsList: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     // 1. Let promise be the this value.
     // 2. Return ? Invoke(promise, "then", « undefined, onRejected »).
     throw new Error('Method not implemented.');
@@ -665,9 +1080,12 @@ export class $PromiseProto_finally extends $BuiltinFunction<'%PromiseProto_final
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: readonly $AnyNonEmpty[],
-    NewTarget: $AnyNonEmpty,
+    argumentsList: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     // 1. Let promise be the this value.
     // 2. If Type(promise) is not Object, throw a TypeError exception.
     // 3. Let C be ? SpeciesConstructor(promise, %Promise%).
@@ -728,9 +1146,12 @@ export class $PromiseProto_then extends $BuiltinFunction<'%PromiseProto_then%'> 
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: readonly $AnyNonEmpty[],
-    NewTarget: $AnyNonEmpty,
+    argumentsList: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
     // 1. Let promise be the this value.
     // 2. If IsPromise(promise) is false, throw a TypeError exception.
     // 3. Let C be ? SpeciesConstructor(promise, %Promise%).
@@ -749,6 +1170,9 @@ export function $PerformPromiseThen(
   onRejected: $AnyNonEmpty,
   resultCapability?: $PromiseCapability,
 ): $PromiseInstance | $Undefined {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
   // 1. Assert: IsPromise(promise) is true.
   // 2. If resultCapability is present, then
     // 2. a. Assert: resultCapability is a PromiseCapability Record.
@@ -794,16 +1218,37 @@ export const enum PromiseState {
 // 25.6.6 Properties of Promise Instances
 export class $PromiseInstance extends $Object<'PromiseInstance'> {
   public '[[PromiseState]]': PromiseState;
-  public '[[PromiseResult]]': $AnyNonEmpty | null;
-  public '[[PromiseFulfillReactions]]': $PromiseReaction[];
-  public '[[PromiseRejectReactions]]': $PromiseReaction[];
+  public '[[PromiseResult]]': $AnyNonEmpty | undefined;
+  public '[[PromiseFulfillReactions]]': $List<$PromiseReaction> | undefined;
+  public '[[PromiseRejectReactions]]': $List<$PromiseReaction> | undefined;
   public '[[PromiseIsHandled]]': boolean;
 
-  public constructor(
+  private constructor(
     realm: Realm,
+    proto: $PromisePrototype,
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
-    super(realm, 'PromiseInstance', intrinsics['%PromisePrototype%'], CompletionType.normal, intrinsics.empty);
+    super(realm, 'PromiseInstance', proto, CompletionType.normal, intrinsics.empty);
+
+    // 4. Set promise.[[PromiseState]] to "pending".
+    this['[[PromiseState]]'] = PromiseState.pending;
+    this['[[PromiseResult]]'] = void 0;
+    // 5. Set promise.[[PromiseFulfillReactions]] to a new empty List.
+    this['[[PromiseFulfillReactions]]'] = new $List();
+    // 6. Set promise.[[PromiseRejectReactions]] to a new empty List.
+    this['[[PromiseRejectReactions]]'] = new $List();
+    // 7. Set promise.[[PromiseIsHandled]] to false.
+    this['[[PromiseIsHandled]]'] = false;
+  }
+
+  public static Create(
+    ctx: ExecutionContext,
+    NewTarget: $Function,
+  ): $PromiseInstance | $Error {
+    const proto = $GetPrototypeFromConstructor(ctx, NewTarget, '%PromisePrototype%');
+    if (proto.isAbrupt) { return proto; }
+
+    return new $PromiseInstance(ctx.Realm, proto);
   }
 }
 

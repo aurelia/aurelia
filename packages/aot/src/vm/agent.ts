@@ -47,7 +47,7 @@ export class Agent implements IDisposable {
   // 8.6 RunJobs ( )
   public async RunJobs(container: IContainer): Promise<$Any> {
     // 1. Perform ? InitializeHostDefinedRealm().
-    const realm = Realm.Create(container);
+    const realm = Realm.Create(container, this.PromiseJobs);
     const intrinsics = realm['[[Intrinsics]]'];
     const stack = realm.stack;
     // We always have 1 synthetic root context which should not be considered to be a part of the stack.
@@ -61,12 +61,12 @@ export class Agent implements IDisposable {
       // 2. a. If sourceText is the source code of a script, then
       if (file.isScript) {
         // 2. a. i. Perform EnqueueJob("ScriptJobs", ScriptEvaluationJob, « sourceText, hostDefined »).
-        this.ScriptJobs.EnqueueJob(rootCtx, new ScriptEvaluationJob(this.logger, realm, file));
+        this.ScriptJobs.EnqueueJob(rootCtx, new ScriptEvaluationJob(realm, file));
       }
       // 2. b. Else sourceText is the source code of a module,
       else {
         // 2. b. i. Perform EnqueueJob("ScriptJobs", TopLevelModuleEvaluationJob, « sourceText, hostDefined »).
-        this.ScriptJobs.EnqueueJob(rootCtx, new TopLevelModuleEvaluationJob(this.logger, realm, file));
+        this.ScriptJobs.EnqueueJob(rootCtx, new TopLevelModuleEvaluationJob(realm, file));
       }
     }
 
@@ -133,6 +133,13 @@ export class Agent implements IDisposable {
 }
 
 export class TopLevelModuleEvaluationJob extends Job<$ESModule> {
+  public constructor(
+    realm: Realm,
+    mos: $ESModule,
+  ) {
+    super(realm.logger.scopeTo('TopLevelModuleEvaluationJob'), realm, mos);
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-toplevelmoduleevaluationjob
   // 15.2.1.20 Runtime Semantics: TopLevelModuleEvaluationJob ( sourceText , hostDefined )
   public Run(ctx: ExecutionContext): $Any {
@@ -160,6 +167,13 @@ export class TopLevelModuleEvaluationJob extends Job<$ESModule> {
 }
 
 export class ScriptEvaluationJob extends Job<$ESScript> {
+  public constructor(
+    realm: Realm,
+    mos: $ESScript,
+  ) {
+    super(realm.logger.scopeTo('ScriptEvaluationJob'), realm, mos);
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-scriptevaluationjob
   // 15.1.12 Runtime Semantics: ScriptEvaluationJob ( sourceText , hostDefined )
   public Run(ctx: ExecutionContext): $Any {

@@ -1580,18 +1580,44 @@ export class $PromiseProto_then extends $BuiltinFunction<'%PromiseProto_then%'> 
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: $List<$AnyNonEmpty>,
+    [onFulfilled, onRejected]: $List<$AnyNonEmpty>,
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
+    if (onFulfilled === void 0) {
+      onFulfilled = intrinsics.undefined;
+    }
+    if (onRejected === void 0) {
+      onRejected = intrinsics.undefined;
+    }
+
     // 1. Let promise be the this value.
+    const promise = thisArgument;
+
     // 2. If IsPromise(promise) is false, throw a TypeError exception.
+    if (!promise.isObject) {
+      return new $TypeError(realm, `Expected 'this' to be an object, but got: ${promise}`);
+    }
+
     // 3. Let C be ? SpeciesConstructor(promise, %Promise%).
+    const C = $SpeciesConstructor(ctx, promise, intrinsics['%Promise%']);
+    if (C.isAbrupt) { return C; }
+
     // 4. Let resultCapability be ? NewPromiseCapability(C).
+    const resultCapability = $NewPromiseCapability(ctx, C);
+    if (resultCapability.isAbrupt) { return resultCapability; }
+
     // 5. Return PerformPromiseThen(promise, onFulfilled, onRejected, resultCapability).
-    throw new Error('Method not implemented.');
+    return $PerformPromiseThen(
+      ctx,
+      // TODO: verify if this cast is safe
+      promise as $PromiseInstance,
+      onFulfilled,
+      onRejected,
+      resultCapability,
+    );
   }
 }
 
@@ -1602,39 +1628,92 @@ export function $PerformPromiseThen(
   promise: $PromiseInstance,
   onFulfilled: $AnyNonEmpty,
   onRejected: $AnyNonEmpty,
-  resultCapability?: $PromiseCapability,
+  resultCapability?: $PromiseCapability | $Undefined,
 ): $PromiseInstance | $Undefined {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
   // 1. Assert: IsPromise(promise) is true.
   // 2. If resultCapability is present, then
+  if (resultCapability !== void 0) {
     // 2. a. Assert: resultCapability is a PromiseCapability Record.
+  }
   // 3. Else,
+  else {
     // 3. a. Set resultCapability to undefined.
+    resultCapability = intrinsics.undefined;
+  }
+
   // 4. If IsCallable(onFulfilled) is false, then
+  if (!onFulfilled.isFunction) {
     // 4. a. Set onFulfilled to undefined.
+    onFulfilled = intrinsics.undefined;
+  }
+
   // 5. If IsCallable(onRejected) is false, then
+  if (!onRejected.isFunction) {
     // 5. a. Set onRejected to undefined.
+    onRejected = intrinsics.undefined;
+  }
+
   // 6. Let fulfillReaction be the PromiseReaction { [[Capability]]: resultCapability, [[Type]]: "Fulfill", [[Handler]]: onFulfilled }.
+  const fulfillReaction = new $PromiseReaction(
+    resultCapability,
+    PromiseReactionType.Fulfill,
+    onFulfilled as $Function | $Undefined,
+  );
+
   // 7. Let rejectReaction be the PromiseReaction { [[Capability]]: resultCapability, [[Type]]: "Reject", [[Handler]]: onRejected }.
+  const rejectReaction = new $PromiseReaction(
+    resultCapability,
+    PromiseReactionType.Reject,
+    onRejected as $Function | $Undefined,
+  );
+
   // 8. If promise.[[PromiseState]] is "pending", then
+  if (promise['[[PromiseState]]'] === PromiseState.pending) {
     // 8. a. Append fulfillReaction as the last element of the List that is promise.[[PromiseFulfillReactions]].
+    promise['[[PromiseFulfillReactions]]']!.push(fulfillReaction);
+
     // 8. b. Append rejectReaction as the last element of the List that is promise.[[PromiseRejectReactions]].
+    promise['[[PromiseRejectReactions]]']!.push(rejectReaction);
+  }
   // 9. Else if promise.[[PromiseState]] is "fulfilled", then
+  else if (promise['[[PromiseState]]'] === PromiseState.fulfilled) {
     // 9. a. Let value be promise.[[PromiseResult]].
+    const value = promise['[[PromiseResult]]']!;
+
     // 9. b. Perform EnqueueJob("PromiseJobs", PromiseReactionJob, « fulfillReaction, value »).
+    realm.PromiseJobs.EnqueueJob(ctx, new PromiseReactionJob(realm, ctx.ScriptOrModule as $$ESModuleOrScript, fulfillReaction, value));
+  }
   // 10. Else,
+  else {
     // 10. a. Assert: The value of promise.[[PromiseState]] is "rejected".
     // 10. b. Let reason be promise.[[PromiseResult]].
+    const reason = promise['[[PromiseResult]]']!;
+
     // 10. c. If promise.[[PromiseIsHandled]] is false, perform HostPromiseRejectionTracker(promise, "handle").
+    if (!promise['[[PromiseIsHandled]]']) {
+      $HostPromiseRejectionTracker(ctx, promise, PromiseRejectionOperation.handle);
+    }
+
     // 10. d. Perform EnqueueJob("PromiseJobs", PromiseReactionJob, « rejectReaction, reason »).
+    realm.PromiseJobs.EnqueueJob(ctx, new PromiseReactionJob(realm, ctx.ScriptOrModule as $$ESModuleOrScript, rejectReaction, reason));
+  }
+
   // 11. Set promise.[[PromiseIsHandled]] to true.
+  promise['[[PromiseIsHandled]]'] = true;
+
   // 12. If resultCapability is undefined, then
+  if (resultCapability === void 0 || resultCapability.isUndefined) {
     // 12. a. Return undefined.
+    return intrinsics.undefined;
+  }
   // 13. Else,
+  else {
     // 13. a. Return resultCapability.[[Promise]].
-  throw new Error('Method not implemented.');
+    return resultCapability['[[Promise]]'];
+  }
 }
 
 // #endregion

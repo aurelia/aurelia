@@ -35,6 +35,7 @@ import {
   $Call,
   $Construct,
   $Invoke,
+  $SpeciesConstructor,
 } from '../operations';
 import {
   $List,
@@ -213,7 +214,7 @@ export class $PromiseRejectFunction extends $BuiltinFunction<'PromiseRejectFunct
     alreadyResolved['[[Value]]'] = true;
 
     // 7. Return RejectPromise(promise, reason).
-    return $RejectPromise(ctx, promise, reason) as any;
+    return $RejectPromise(ctx, promise, reason);
   }
 }
 
@@ -1349,58 +1350,222 @@ export class $PromiseProto_finally extends $BuiltinFunction<'%PromiseProto_final
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: $List<$AnyNonEmpty>,
+    [onFinally]: $List<$AnyNonEmpty>,
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
+    if (onFinally === void 0) {
+      onFinally = intrinsics.undefined;
+    }
+
     // 1. Let promise be the this value.
+    const promise = thisArgument;
+
     // 2. If Type(promise) is not Object, throw a TypeError exception.
+    if (!promise.isObject) {
+      return new $TypeError(realm, `Expected 'this' to be an object, but got: ${promise}`);
+    }
+
     // 3. Let C be ? SpeciesConstructor(promise, %Promise%).
+    const C = $SpeciesConstructor(ctx, promise, intrinsics['%Promise%']);
+    if (C.isAbrupt) { return C; }
+
+    let thenFinally: $AnyNonEmpty;
+    let catchFinally: $AnyNonEmpty;
+
     // 4. Assert: IsConstructor(C) is true.
     // 5. If IsCallable(onFinally) is false, then
+    if (!onFinally.isFunction) {
       // 5. a. Let thenFinally be onFinally.
+      thenFinally = onFinally;
+
       // 5. b. Let catchFinally be onFinally.
+      catchFinally = onFinally;
+    }
     // 6. Else,
+    else {
       // 6. a. Let stepsThenFinally be the algorithm steps defined in Then Finally Functions.
       // 6. b. Let thenFinally be CreateBuiltinFunction(stepsThenFinally, « [[Constructor]], [[OnFinally]] »).
       // 6. c. Set thenFinally.[[Constructor]] to C.
       // 6. d. Set thenFinally.[[OnFinally]] to onFinally.
+      thenFinally = new $ThenFinally(realm, C, onFinally);
+
       // 6. e. Let stepsCatchFinally be the algorithm steps defined in Catch Finally Functions.
       // 6. f. Let catchFinally be CreateBuiltinFunction(stepsCatchFinally, « [[Constructor]], [[OnFinally]] »).
       // 6. g. Set catchFinally.[[Constructor]] to C.
       // 6. h. Set catchFinally.[[OnFinally]] to onFinally.
+      catchFinally = new $CatchFinally(realm, C, onFinally);
+    }
+
     // 7. Return ? Invoke(promise, "then", « thenFinally, catchFinally »).
-    throw new Error('Method not implemented.');
+    return $Invoke(ctx, promise, intrinsics.then, new $List(thenFinally, catchFinally)) as $AnyNonEmpty; // TODO: fix typings $Empty shenanigans
   }
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-thenfinallyfunctions
 // 25.6.5.3.1 Then Finally Functions
+export class $ThenFinally extends $BuiltinFunction<'Then Finally'> {
+  public '[[Constructor]]': $Function;
+  public '[[OnFinally]]': $AnyNonEmpty;
 
-  // 1. Let F be the active function object.
-  // 2. Let onFinally be F.[[OnFinally]].
-  // 3. Assert: IsCallable(onFinally) is true.
-  // 4. Let result be ? Call(onFinally, undefined).
-  // 5. Let C be F.[[Constructor]].
-  // 6. Assert: IsConstructor(C) is true.
-  // 7. Let promise be ? PromiseResolve(C, result).
-  // 8. Let valueThunk be equivalent to a function that returns value.
-  // 9. Return ? Invoke(promise, "then", « valueThunk »).
+  public constructor(
+    realm: Realm,
+    constructor: $Function,
+    onFinally: $AnyNonEmpty,
+  ) {
+    const intrinsics = realm['[[Intrinsics]]'];
+    super(realm, 'Then Finally', intrinsics['%FunctionPrototype%']);
+
+    this['[[Constructor]]'] = constructor;
+    this['[[OnFinally]]'] = onFinally;
+  }
+
+  public performSteps(
+    ctx: ExecutionContext,
+    thisArgument: $AnyNonEmptyNonError,
+    [value]: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
+  ): $AnyNonEmpty  {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    if (value === void 0) {
+      value = intrinsics.undefined;
+    }
+
+    // 1. Let F be the active function object.
+    const F = this;
+
+    // 2. Let onFinally be F.[[OnFinally]].
+    const onFinally = F['[[OnFinally]]'];
+
+    // 3. Assert: IsCallable(onFinally) is true.
+    // 4. Let result be ? Call(onFinally, undefined).
+    const result = $Call(ctx, onFinally, intrinsics.undefined, intrinsics.undefined);
+    if (result.isAbrupt) { return result; }
+
+    // 5. Let C be F.[[Constructor]].
+    const C = F['[[Constructor]]'];
+
+    // 6. Assert: IsConstructor(C) is true.
+    // 7. Let promise be ? PromiseResolve(C, result).
+    const promise = $PromiseResolve(ctx, C, result);
+    if (promise.isAbrupt) { return promise; }
+
+    // 8. Let valueThunk be equivalent to a function that returns value.
+    const valueThunk = new $ValueThunk(realm, value);
+
+    // 9. Return ? Invoke(promise, "then", « valueThunk »).
+    return $Invoke(ctx, promise, intrinsics.then, new $List(valueThunk)) as $AnyNonEmpty; // TODO: fix typings $Empty shenanigans
+  }
+}
+
+export class $ValueThunk extends $BuiltinFunction<'ValueThunk'> {
+  public readonly value: $AnyNonEmpty;
+
+  public constructor(
+    realm: Realm,
+    value: $AnyNonEmpty,
+  ) {
+    const intrinsics = realm['[[Intrinsics]]'];
+    super(realm, 'ValueThunk', intrinsics['%FunctionPrototype%']);
+
+    this.value = value;
+  }
+
+  public performSteps(
+    ctx: ExecutionContext,
+    thisArgument: $AnyNonEmptyNonError,
+    argumentsList: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
+  ): $AnyNonEmpty  {
+    return this.value;
+  }
+}
 
 // http://www.ecma-international.org/ecma-262/#sec-catchfinallyfunctions
 // 25.6.5.3.2 Catch Finally Functions
+export class $CatchFinally extends $BuiltinFunction<'Catch Finally'> {
+  public '[[Constructor]]': $Function;
+  public '[[OnFinally]]': $AnyNonEmpty;
 
-  // 1. Let F be the active function object.
-  // 2. Let onFinally be F.[[OnFinally]].
-  // 3. Assert: IsCallable(onFinally) is true.
-  // 4. Let result be ? Call(onFinally, undefined).
-  // 5. Let C be F.[[Constructor]].
-  // 6. Assert: IsConstructor(C) is true.
-  // 7. Let promise be ? PromiseResolve(C, result).
-  // 8. Let thrower be equivalent to a function that throws reason.
-  // 9. Return ? Invoke(promise, "then", « thrower »).
+  public constructor(
+    realm: Realm,
+    constructor: $Function,
+    onFinally: $AnyNonEmpty,
+  ) {
+    const intrinsics = realm['[[Intrinsics]]'];
+    super(realm, 'Catch Finally', intrinsics['%FunctionPrototype%']);
+
+    this['[[Constructor]]'] = constructor;
+    this['[[OnFinally]]'] = onFinally;
+  }
+
+  public performSteps(
+    ctx: ExecutionContext,
+    thisArgument: $AnyNonEmptyNonError,
+    [value]: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
+  ): $AnyNonEmpty  {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    if (value === void 0) {
+      value = intrinsics.undefined;
+    }
+
+    // 1. Let F be the active function object.
+    const F = this;
+
+    // 2. Let onFinally be F.[[OnFinally]].
+    const onFinally = F['[[OnFinally]]'];
+
+    // 3. Assert: IsCallable(onFinally) is true.
+    // 4. Let result be ? Call(onFinally, undefined).
+    const result = $Call(ctx, onFinally, intrinsics.undefined, intrinsics.undefined);
+    if (result.isAbrupt) { return result; }
+
+    // 5. Let C be F.[[Constructor]].
+    const C = F['[[Constructor]]'];
+
+    // 6. Assert: IsConstructor(C) is true.
+    // 7. Let promise be ? PromiseResolve(C, result).
+    const promise = $PromiseResolve(ctx, C, result);
+    if (promise.isAbrupt) { return promise; }
+
+    // 8. Let thrower be equivalent to a function that throws reason.
+    const thrower = new $Thrower(realm, value);
+
+    // 9. Return ? Invoke(promise, "then", « thrower »).
+    return $Invoke(ctx, promise, intrinsics.then, new $List(thrower)) as $AnyNonEmpty; // TODO: fix typings $Empty shenanigans
+  }
+}
+
+export class $Thrower extends $BuiltinFunction<'Thrower'> {
+  public readonly reason: $AnyNonEmpty;
+
+  public constructor(
+    realm: Realm,
+    reason: $AnyNonEmpty,
+  ) {
+    const intrinsics = realm['[[Intrinsics]]'];
+    super(realm, 'Thrower', intrinsics['%FunctionPrototype%']);
+
+    this.reason = reason;
+  }
+
+  public performSteps(
+    ctx: ExecutionContext,
+    thisArgument: $AnyNonEmptyNonError,
+    argumentsList: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
+  ): $AnyNonEmpty  {
+    // TODO: double check if this is the correct way to throw
+    return this.reason.ToCompletion(CompletionType.throw, ctx.Realm['[[Intrinsics]]'].empty);
+  }
+}
 
 // http://www.ecma-international.org/ecma-262/#sec-promise.prototype.then
 // 25.6.5.4 Promise.prototype.then ( onFulfilled , onRejected )

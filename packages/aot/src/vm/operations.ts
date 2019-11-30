@@ -1281,3 +1281,44 @@ export function $Invoke(
   // 4. Return ? Call(func, V, argumentsList).
   return $Call(ctx, func, V, argumentsList);
 }
+
+// http://www.ecma-international.org/ecma-262/#sec-speciesconstructor
+// 7.3.20 SpeciesConstructor ( O , defaultConstructor )
+export function $SpeciesConstructor(
+  ctx: ExecutionContext,
+  O: $AnyObject,
+  defaultConstructor: $Function,
+): $Function | $Error {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
+  // 1. Assert: Type(O) is Object.
+  // 2. Let C be ? Get(O, "constructor").
+  const C = O['[[Get]]'](ctx, intrinsics.$constructor, O);
+  if (C.isAbrupt) { return C; }
+
+  // 3. If C is undefined, return defaultConstructor.
+  if (C.isUndefined) { return defaultConstructor; }
+
+  // 4. If Type(C) is not Object, throw a TypeError exception.
+  if (!C.isObject) {
+    return new $TypeError(realm, `Expected 'this' to be an object, but got: ${C}`);
+  }
+
+  // 5. Let S be ? Get(C, @@species).
+  const S = C['[[Get]]'](ctx, intrinsics['@@species'], C);
+  if (S.isAbrupt) { return S; }
+
+  // 6. If S is either undefined or null, return defaultConstructor.
+  if (S.isNil) {
+    return defaultConstructor;
+  }
+
+  // 7. If IsConstructor(S) is true, return S.
+  if (S.isFunction) {
+    return S as $Function;
+  }
+
+  // 8. Throw a TypeError exception.
+  return new $TypeError(realm, `Expected return value of @@species to be null, undefined or a function, but got: ${S}`);
+}

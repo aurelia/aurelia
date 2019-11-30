@@ -1318,15 +1318,21 @@ export class $PromiseProto_catch extends $BuiltinFunction<'%PromiseProto_catch%'
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: $List<$AnyNonEmpty>,
+    [onRejected]: $List<$AnyNonEmpty>,
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
+    if (onRejected === void 0) {
+      onRejected = intrinsics.undefined;
+    }
+
     // 1. Let promise be the this value.
+    const promise = thisArgument;
+
     // 2. Return ? Invoke(promise, "then", « undefined, onRejected »).
-    throw new Error('Method not implemented.');
+    return $Invoke(ctx, promise, intrinsics.then, new $List(intrinsics.undefined, onRejected)) as $AnyNonEmpty; // TODO: fix $Empty typings
   }
 }
 

@@ -30,6 +30,9 @@ import {
 import {
   $ObjectPrototype,
 } from './object';
+import {
+  $List
+} from '../types/list';
 
 // http://www.ecma-international.org/ecma-262/#sec-symbol-constructor
 export class $SymbolConstructor extends $BuiltinFunction<'%Symbol%'> {
@@ -52,7 +55,7 @@ export class $SymbolConstructor extends $BuiltinFunction<'%Symbol%'> {
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    [description]: readonly $AnyNonEmpty[],
+    [description]: $List<$AnyNonEmpty>,
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;

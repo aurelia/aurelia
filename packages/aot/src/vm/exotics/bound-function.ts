@@ -21,6 +21,12 @@ import {
 import {
   $Error,
 } from '../types/error';
+import {
+  $Undefined,
+} from '../types/undefined';
+import {
+  $List,
+} from '../types/list';
 
 // http://www.ecma-international.org/ecma-262/#sec-bound-function-exotic-objects
 export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObject'> {
@@ -69,7 +75,7 @@ export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObje
   public '[[Call]]'(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: readonly $AnyNonEmpty[],
+    argumentsList: $List<$AnyNonEmpty>,
   ): $AnyNonEmpty  {
     const F = this;
 
@@ -83,10 +89,10 @@ export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObje
     const boundArgs = F['[[BoundArguments]]'];
 
     // 4. Let args be a new list containing the same values as the list boundArgs in the same order followed by the same values as the list argumentsList in the same order.
-    const args = [
+    const args = new $List(
       ...boundArgs,
       ...argumentsList,
-    ];
+    );
 
     // 5. Return ? Call(target, boundThis, args).
     return $Call(ctx, target, boundThis, args);
@@ -97,8 +103,8 @@ export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObje
   // 9.4.1.2 [[Construct]] ( argumentsList , newTarget )
   public '[[Construct]]'(
     ctx: ExecutionContext,
-    argumentsList: readonly $AnyNonEmpty[],
-    newTarget: $AnyObject,
+    argumentsList: $List<$AnyNonEmpty>,
+    newTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     const F = this;
 
@@ -110,10 +116,10 @@ export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObje
     const boundArgs = F['[[BoundArguments]]'];
 
     // 4. Let args be a new list containing the same values as the list boundArgs in the same order followed by the same values as the list argumentsList in the same order.
-    const args = [
+    const args = new $List(
       ...boundArgs,
       ...argumentsList,
-    ];
+    );
 
     // 5. If SameValue(F, newTarget) is true, set newTarget to target.
     if (F.is(newTarget)) {

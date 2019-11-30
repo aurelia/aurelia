@@ -8,11 +8,19 @@ import {
   I$Node,
 } from '../ast/_shared';
 
-export class $List<T extends $AnyNonEmpty = $AnyNonEmpty> extends Array<T> {
+export type $ListItem = {
+  is(other: unknown): boolean;
+}
+
+export class $List<T extends $ListItem> extends Array<T> {
   public get isAbrupt(): false { return false; }
   public get isList(): true { return true; }
 
-  public $copy<N extends $AnyNonEmpty = T>(): $List<N> {
+  public constructor(...items: T[]) {
+    super(...items);
+  }
+
+  public $copy<N extends $ListItem = T>(): $List<N> {
     return new $List<N>(...(this as unknown as $List<N>));
   }
 

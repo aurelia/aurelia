@@ -41,6 +41,9 @@ import {
 import {
   $PropertyDescriptor,
 } from '../types/property-descriptor';
+import {
+  $List
+} from '../types/list';
 
 // http://www.ecma-international.org/ecma-262/#sec-getiterator
 export function $GetIterator(
@@ -89,7 +92,7 @@ export function $GetIterator(
   }
 
   // 4. Let iterator be ? Call(method, obj).
-  const iterator = $Call(ctx, method as $Function, obj);
+  const iterator = $Call(ctx, method as $Function, obj, intrinsics.undefined);
   if (iterator.isAbrupt) { return iterator; }
 
   // 5. If Type(iterator) is not Object, throw a TypeError exception.
@@ -118,19 +121,22 @@ export function $IteratorNext(
   iteratorRecord: $IteratorRecord,
   value?: $AnyNonEmpty,
 ): $AnyObject | $Error {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
   let result: $AnyNonEmpty;
 
   // 1. If value is not present, then
   if (value === void 0) {
     // 1. a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]], « »).
-    const $result = $Call(ctx, iteratorRecord['[[NextMethod]]'], iteratorRecord['[[Iterator]]']);
+    const $result = $Call(ctx, iteratorRecord['[[NextMethod]]'], iteratorRecord['[[Iterator]]'], intrinsics.undefined);
     if ($result.isAbrupt) { return $result; }
     result = $result;
   }
   // 2. Else,
   else {
     // 2. a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]], « value »).
-    const $result = $Call(ctx, iteratorRecord['[[NextMethod]]'], iteratorRecord['[[Iterator]]'], [value]);
+    const $result = $Call(ctx, iteratorRecord['[[NextMethod]]'], iteratorRecord['[[Iterator]]'], new $List(value));
     if ($result.isAbrupt) { return $result; }
     result = $result;
   }
@@ -219,7 +225,7 @@ export function $IteratorClose(
   }
 
   // 6. Let innerResult be Call(return, iterator, « »).
-  const innerResult = $Call(ctx, $return, iterator);
+  const innerResult = $Call(ctx, $return, iterator, intrinsics.undefined);
 
   // 7. If completion.[[Type]] is throw, return Completion(completion).
   if (completion['[[Type]]'] === CompletionType.throw) {
@@ -264,7 +270,7 @@ export function $AsyncIteratorClose(
   }
 
   // 6. Let innerResult be Call(return, iterator, « »).
-  let innerResult = $Call(ctx, $return, iterator);
+  let innerResult = $Call(ctx, $return, iterator, intrinsics.undefined);
 
   // 7. If innerResult.[[Type]] is normal, set innerResult to Await(innerResult.[[Value]]).
   if (innerResult['[[Type]]'] === CompletionType.normal) {
@@ -318,7 +324,7 @@ export function $CreateIterResultObject(
 // http://www.ecma-international.org/ecma-262/#sec-createlistiteratorRecord
 export function $CreateListIteratorRecord(
   ctx: ExecutionContext,
-  list: readonly $AnyNonEmpty [],
+  list: $List<$AnyNonEmpty>,
 ) {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
@@ -345,8 +351,8 @@ export class $ListIterator_next extends $BuiltinFunction<'ListIterator_next'> {
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: readonly $AnyNonEmpty[],
-    NewTarget: $AnyNonEmpty,
+    argumentsList: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -380,14 +386,14 @@ export class $ListIterator_next extends $BuiltinFunction<'ListIterator_next'> {
 }
 
 export class $ListIterator extends $Object<'ListIterator'> {
-  public readonly '[[IteratedList]]': readonly $AnyNonEmpty[];
+  public readonly '[[IteratedList]]': $List<$AnyNonEmpty>;
   public '[[ListIteratorNextIndex]]': $Number;
 
   public get isAbrupt(): false { return false; }
 
   public constructor(
     realm: Realm,
-    list: readonly $AnyNonEmpty[],
+    list: $List<$AnyNonEmpty>,
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -459,8 +465,8 @@ export class $Symbol_Iterator extends $BuiltinFunction<'[Symbol.iterator]'> {
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: readonly $AnyNonEmpty[],
-    NewTarget: $AnyNonEmpty,
+    argumentsList: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     return thisArgument;
   }

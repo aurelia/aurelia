@@ -51,6 +51,9 @@ import {
 import {
   getBoundNames,
 } from '../ast/_shared';
+import {
+  $List,
+} from '../types/list';
 
 
 // http://www.ecma-international.org/ecma-262/#sec-arguments-exotic-objects
@@ -404,8 +407,8 @@ export class $ArgGetter extends $BuiltinFunction {
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: readonly $AnyNonEmpty[],
-    NewTarget: $AnyNonEmpty,
+    argumentsList: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -443,8 +446,8 @@ export class $ArgSetter extends $BuiltinFunction {
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    [value]: readonly $AnyNonEmpty[],
-    NewTarget: $AnyNonEmpty,
+    [value]: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];

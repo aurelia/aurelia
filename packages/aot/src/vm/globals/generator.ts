@@ -41,6 +41,9 @@ import {
 import {
   $Block,
 } from '../ast/statements';
+import {
+  $List
+} from '../types/list';
 
 // http://www.ecma-international.org/ecma-262/#sec-generatorfunction-objects
 // 25.2 GeneratorFunction Objects
@@ -78,7 +81,7 @@ export class $GeneratorFunctionConstructor extends $BuiltinFunction<'%GeneratorF
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: readonly $AnyNonEmpty[],
+    argumentsList: $List<$AnyNonEmpty>,
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     // 1. Let C be the active function object.
@@ -212,7 +215,7 @@ export class $GeneratorPrototype_next extends $BuiltinFunction<'Generator.protot
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    [value]: readonly $AnyNonEmpty[],
+    [value]: $List<$AnyNonEmpty>,
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;
@@ -236,7 +239,7 @@ export class $GeneratorPrototype_return extends $BuiltinFunction<'Generator.prot
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    [value]: readonly $AnyNonEmpty[],
+    [value]: $List<$AnyNonEmpty>,
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;
@@ -263,7 +266,7 @@ export class $GeneratorPrototype_throw extends $BuiltinFunction<'Generator.proto
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    [exception]: readonly $AnyNonEmpty[],
+    [exception]: $List<$AnyNonEmpty>,
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;

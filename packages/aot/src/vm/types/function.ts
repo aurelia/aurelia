@@ -32,6 +32,7 @@ import {
 } from './symbol';
 import {
   Intrinsics,
+  IntrinsicObjectKey,
 } from '../intrinsics';
 import {
   $Undefined,
@@ -59,6 +60,9 @@ import {
 import {
   FunctionKind,
 } from '../ast/_shared';
+import {
+  $List,
+} from './list';
 
 // http://www.ecma-international.org/ecma-262/#table-6
 // http://www.ecma-international.org/ecma-262/#sec-ecmascript-function-objects
@@ -111,7 +115,7 @@ export class $Function<
   public '[[Call]]'(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: readonly $AnyNonEmpty [],
+    argumentsList: $List<$AnyNonEmpty>,
   ): $AnyNonEmpty  {
     // 1. Assert: F is an ECMAScript function object.
     const F = this;
@@ -156,8 +160,8 @@ export class $Function<
   // 9.2.2 [[Construct]] ( argumentsList , newTarget )
   public '[[Construct]]'(
     ctx: ExecutionContext,
-    argumentsList: readonly $AnyNonEmpty[],
-    newTarget: $AnyObject,
+    argumentsList: $List<$AnyNonEmpty>,
+    newTarget: $Function,
   ): $AnyObject | $Error {
     // 1. Assert: F is an ECMAScript function object.
     const F = this;
@@ -539,9 +543,9 @@ export class $Function<
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-ordinarycreatefromconstructor
-export function $OrdinaryCreateFromConstructor<T extends keyof Intrinsics = keyof Intrinsics, TSlots extends {} = {}>(
+export function $OrdinaryCreateFromConstructor<T extends IntrinsicObjectKey = IntrinsicObjectKey, TSlots extends {} = {}>(
   ctx: ExecutionContext,
-  constructor: $AnyObject,
+  constructor: $Function,
   intrinsicDefaultProto: T,
   internalSlotsList?: TSlots,
 ): ($Object<T> & TSlots) | $Error {
@@ -554,13 +558,12 @@ export function $OrdinaryCreateFromConstructor<T extends keyof Intrinsics = keyo
   return $Object.ObjectCreate(ctx, intrinsicDefaultProto, proto, internalSlotsList);
 }
 
-
 // http://www.ecma-international.org/ecma-262/#sec-getprototypefromconstructor
-export function $GetPrototypeFromConstructor<T extends keyof Intrinsics = keyof Intrinsics>(
+export function $GetPrototypeFromConstructor<T extends IntrinsicObjectKey = IntrinsicObjectKey>(
   ctx: ExecutionContext,
-  constructor: $AnyObject,
+  constructor: $Function,
   intrinsicDefaultProto: T,
-): $AnyObject | $Error {
+): Intrinsics[T] | $Error {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
@@ -578,7 +581,7 @@ export function $GetPrototypeFromConstructor<T extends keyof Intrinsics = keyof 
   }
 
   // 5. Return proto.
-  return proto as $Object;
+  return proto as Intrinsics[T];
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-prepareforordinarycall
@@ -724,7 +727,7 @@ export abstract class $BuiltinFunction<
   public '[[Call]]'(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: readonly $AnyNonEmpty[],
+    argumentsList: $List<$AnyNonEmpty>,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -769,8 +772,8 @@ export abstract class $BuiltinFunction<
   // 9.3.2 [[Construct]] ( argumentsList , newTarget )
   public '[[Construct]]'(
     ctx: ExecutionContext,
-    argumentsList: readonly $AnyNonEmpty[],
-    newTarget: $AnyObject,
+    argumentsList: $List<$AnyNonEmpty>,
+    newTarget: $Function | $Undefined,
   ): $AnyObject | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -814,7 +817,7 @@ export abstract class $BuiltinFunction<
   public abstract performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: readonly $AnyNonEmpty[],
-    NewTarget: $AnyNonEmpty,
+    argumentsList: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty ;
 }

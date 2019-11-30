@@ -997,3 +997,9 @@ export class Intrinsics implements IDisposable {
     this['%Promise_resolve%'] = void 0;
   }
 }
+
+export type IntrinsicObjectKey = {
+  [K in keyof Intrinsics]: Intrinsics[K] extends $Object ? K : never;
+} extends {
+  [K in keyof Intrinsics]: infer U;
+} ? ({} extends U ? never : U) : never;

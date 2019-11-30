@@ -79,7 +79,7 @@ export class $FunctionConstructor extends $BuiltinFunction<'%Function%'> {
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: readonly $AnyNonEmpty[],
+    argumentsList: $List<$AnyNonEmpty>,
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     // 1. Let C be the active function object.
@@ -120,7 +120,7 @@ export class $FunctionPrototype_call extends $BuiltinFunction<'Function.prototyp
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    [thisArg, ...args]: readonly [$AnyNonEmptyNonError, ...$AnyNonEmpty[]],
+    [thisArg, ...args]: $List<$AnyNonEmpty>,
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;
@@ -151,7 +151,7 @@ export class $FunctionPrototype_call extends $BuiltinFunction<'Function.prototyp
     realm.stack.pop();
 
     // 6. Return ? Call(func, thisArg, argList).
-    return $Call(realm.stack.top, func as $Function, thisArg, argList);
+    return $Call(realm.stack.top, func as $Function, thisArg as $AnyNonEmptyNonError, argList);
   }
 }
 
@@ -161,7 +161,7 @@ export function $CreateDynamicFunction(
   constructor: $Function,
   newTarget: $Function | $Undefined,
   kind: FunctionKind.normal | FunctionKind.generator | FunctionKind.async | FunctionKind.asyncGenerator,
-  args: readonly $AnyNonEmpty[],
+  args: $List<$AnyNonEmpty>,
 ): $Function | $Error {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];

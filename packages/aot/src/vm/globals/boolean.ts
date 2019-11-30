@@ -30,6 +30,9 @@ import {
 import {
   $ObjectPrototype,
 } from './object';
+import {
+  $List
+} from '../types/list';
 
 // http://www.ecma-international.org/ecma-262/#sec-boolean-constructor
 export class $BooleanConstructor extends $BuiltinFunction<'%Boolean%'> {
@@ -52,7 +55,7 @@ export class $BooleanConstructor extends $BuiltinFunction<'%Boolean%'> {
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    [value]: readonly $AnyNonEmpty[],
+    [value]: $List<$AnyNonEmpty>,
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;

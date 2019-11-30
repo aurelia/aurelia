@@ -36,6 +36,9 @@ import {
 import {
   $String,
 } from '../types/string';
+import {
+  $List
+} from '../types/list';
 
 // http://www.ecma-international.org/ecma-262/#sec-error-constructor
 export class $ErrorConstructor extends $BuiltinFunction<'%Error%'> {
@@ -58,7 +61,7 @@ export class $ErrorConstructor extends $BuiltinFunction<'%Error%'> {
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    [message]: readonly $AnyNonEmpty[],
+    [message]: $List<$AnyNonEmpty>,
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;
@@ -142,7 +145,7 @@ export class $ErrorPrototype_toString extends $BuiltinFunction<'Error.prototype.
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: readonly $AnyNonEmpty[],
+    argumentsList: $List<$AnyNonEmpty>,
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;
@@ -218,7 +221,7 @@ export class $EvalErrorConstructor extends $BuiltinFunction<'%EvalError%'> {
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    [message]: readonly $AnyNonEmpty[],
+    [message]: $List<$AnyNonEmpty>,
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;
@@ -313,7 +316,7 @@ export class $RangeErrorConstructor extends $BuiltinFunction<'%RangeError%'> {
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    [message]: readonly $AnyNonEmpty[],
+    [message]: $List<$AnyNonEmpty>,
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;
@@ -408,7 +411,7 @@ export class $ReferenceErrorConstructor extends $BuiltinFunction<'%ReferenceErro
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    [message]: readonly $AnyNonEmpty[],
+    [message]: $List<$AnyNonEmpty>,
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;
@@ -504,7 +507,7 @@ export class $SyntaxErrorConstructor extends $BuiltinFunction<'%SyntaxError%'> {
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    [message]: readonly $AnyNonEmpty[],
+    [message]: $List<$AnyNonEmpty>,
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;
@@ -600,7 +603,7 @@ export class $TypeErrorConstructor extends $BuiltinFunction<'%TypeError%'> {
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    [message]: readonly $AnyNonEmpty[],
+    [message]: $List<$AnyNonEmpty>,
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;
@@ -696,7 +699,7 @@ export class $URIErrorConstructor extends $BuiltinFunction<'%URIError%'> {
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    [message]: readonly $AnyNonEmpty[],
+    [message]: $List<$AnyNonEmpty>,
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;

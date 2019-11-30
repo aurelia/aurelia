@@ -15,6 +15,9 @@ import {
 import {
   $Undefined,
 } from '../types/undefined';
+import {
+  $List
+} from '../types/list';
 
 // http://www.ecma-international.org/ecma-262/#sec-%throwtypeerror%
 // 9.2.9.1 %ThrowTypeError% ( )
@@ -24,7 +27,7 @@ export class $ThrowTypeError extends $BuiltinFunction<'%ThrowTypeError%'> {
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    [thisArg, ...args]: readonly $AnyNonEmpty[],
+    [thisArg, ...args]: $List<$AnyNonEmpty>,
     NewTarget: $Function | $Undefined,
   ): $TypeError {
     // 1. Throw a TypeError exception.

@@ -30,6 +30,9 @@ import {
 import {
   $FunctionPrototype,
 } from './function';
+import {
+  $List
+} from '../types/list';
 
 
 // http://www.ecma-international.org/ecma-262/#sec-object-constructor
@@ -53,7 +56,7 @@ export class $ObjectConstructor extends $BuiltinFunction<'%Object%'> {
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    [value]: readonly $AnyNonEmpty[],
+    [value]: $List<$AnyNonEmpty>,
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;
@@ -104,7 +107,7 @@ export class $ObjProto_toString extends $BuiltinFunction<'Object.prototype.toStr
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: readonly $AnyNonEmpty[],
+    argumentsList: $List<$AnyNonEmpty>,
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;

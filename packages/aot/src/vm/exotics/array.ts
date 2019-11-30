@@ -36,6 +36,9 @@ import {
   $RangeError,
   $TypeError,
 } from '../types/error';
+import {
+  $List,
+} from '../types/list';
 
 // http://www.ecma-international.org/ecma-262/#sec-array-exotic-objects
 export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
@@ -352,13 +355,13 @@ export function $ArraySpeciesCreate(
   }
 
   // 10. Return ? Construct(C, « length »).
-  return $Construct(ctx, C as $Function, [length]);
+  return $Construct(ctx, C as $Function, new $List(length), intrinsics.undefined);
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-createarrayfromlist
 export function $CreateArrayFromList(
   ctx: ExecutionContext,
-  elements: readonly $AnyNonEmpty[],
+  elements: $List<$AnyNonEmpty>,
 ): $ArrayExoticObject {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];

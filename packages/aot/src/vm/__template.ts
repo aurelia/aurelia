@@ -11,8 +11,8 @@
 //   public performSteps(
 //     ctx: ExecutionContext,
 //     thisArgument: $AnyNonEmptyNonError,
-//     argumentsList: readonly $AnyNonEmpty[],
-//     NewTarget: $AnyNonEmpty,
+//     argumentsList: $List<$AnyNonEmpty>,
+//     NewTarget: $Function | $Undefined,
 //   ): $AnyNonEmpty {
 //     throw new Error('Method not implemented.');
 //   }

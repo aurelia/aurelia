@@ -1206,7 +1206,7 @@ export class $NewExpression implements I$Node {
       return new $TypeError(realm, `${constructor} is not a constructor`);
     }
     // 8. Return ? Construct(constructor, argList).
-    return $Construct(ctx, constructor, argList).enrichWith(ctx, this);
+    return $Construct(ctx, constructor, argList, intrinsics.undefined).enrichWith(ctx, this);
   }
 }
 

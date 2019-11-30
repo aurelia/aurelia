@@ -135,7 +135,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     }
 
     // 7. Let handlerProto be ? Call(trap, handler, « target »).
-    const handlerProto = $Call(ctx, trap, handler, [target]);
+    const handlerProto = $Call(ctx, trap, handler, new $List<$AnyNonEmpty>(target));
     if (handlerProto.isAbrupt) { return handlerProto; }
 
     // 8. If Type(handlerProto) is neither Object nor Null, throw a TypeError exception.
@@ -199,7 +199,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     }
 
     // 8. Let booleanTrapResult be ToBoolean(? Call(trap, handler, « target, V »)).
-    const booleanTrapResult = $Call(ctx, trap, handler, [target, V]).ToBoolean(ctx);
+    const booleanTrapResult = $Call(ctx, trap, handler, new $List<$AnyNonEmpty>(target, V)).ToBoolean(ctx);
     if (booleanTrapResult.isAbrupt) { return booleanTrapResult; }
 
     // 9. If booleanTrapResult is false, return false.
@@ -259,7 +259,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     }
 
     // 7. Let booleanTrapResult be ToBoolean(? Call(trap, handler, « target »)).
-    const booleanTrapResult = $Call(ctx, trap, handler, [target]).ToBoolean(ctx);
+    const booleanTrapResult = $Call(ctx, trap, handler, new $List<$AnyNonEmpty>(target)).ToBoolean(ctx);
 
     // 8. Let targetResult be ? target.[[IsExtensible]]().
     const targetResult = target['[[IsExtensible]]'](ctx);
@@ -305,7 +305,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     }
 
     // 7. Let booleanTrapResult be ToBoolean(? Call(trap, handler, « target »)).
-    const booleanTrapResult = $Call(ctx, trap, handler, [target]).ToBoolean(ctx);
+    const booleanTrapResult = $Call(ctx, trap, handler, new $List<$AnyNonEmpty>(target)).ToBoolean(ctx);
     if (booleanTrapResult.isAbrupt) { return booleanTrapResult; }
 
     // 8. If booleanTrapResult is true, then
@@ -358,7 +358,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     }
 
     // 8. Let trapResultObj be ? Call(trap, handler, « target, P »).
-    const trapResultObj = $Call(ctx, trap, handler, [target, P]);
+    const trapResultObj = $Call(ctx, trap, handler, new $List<$AnyNonEmpty>(target, P));
     if (trapResultObj.isAbrupt) { return trapResultObj; }
 
     // 9. If Type(trapResultObj) is neither Object nor Undefined, throw a TypeError exception.
@@ -473,7 +473,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     if (descObj.isAbrupt) { return descObj; } // TODO: spec doesn't say this. maybe we need to fix the types somehow?
 
     // 9. Let booleanTrapResult be ToBoolean(? Call(trap, handler, « target, P, descObj »)).
-    const booleanTrapResult = $Call(ctx, trap, handler, [target, P, descObj]).ToBoolean(ctx);
+    const booleanTrapResult = $Call(ctx, trap, handler, new $List<$AnyNonEmpty>(target, P, descObj)).ToBoolean(ctx);
     if (booleanTrapResult.isAbrupt) { return booleanTrapResult; }
 
     // 10. If booleanTrapResult is false, return false.
@@ -570,7 +570,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     }
 
     // 8. Let booleanTrapResult be ToBoolean(? Call(trap, handler, « target, P »)).
-    const booleanTrapResult = $Call(ctx, trap, handler, [target, P]).ToBoolean(ctx);
+    const booleanTrapResult = $Call(ctx, trap, handler, new $List<$AnyNonEmpty>(target, P)).ToBoolean(ctx);
     if (booleanTrapResult.isAbrupt) { return booleanTrapResult; }
 
     // 9. If booleanTrapResult is false, then
@@ -636,7 +636,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     }
 
     // 8. Let trapResult be ? Call(trap, handler, « target, P, Receiver »).
-    const trapResult = $Call(ctx, trap, handler, [target, P, Receiver]);
+    const trapResult = $Call(ctx, trap, handler, new $List<$AnyNonEmpty>(target, P, Receiver));
     if (trapResult.isAbrupt) { return trapResult; }
 
     // 9. Let targetDesc be ? target.[[GetOwnProperty]](P).
@@ -702,7 +702,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     }
 
     // 8. Let booleanTrapResult be ToBoolean(? Call(trap, handler, « target, P, V, Receiver »)).
-    const booleanTrapResult = $Call(ctx, trap, handler, [target, P, V, Receiver]).ToBoolean(ctx);
+    const booleanTrapResult = $Call(ctx, trap, handler, new $List<$AnyNonEmpty>(target, P, V, Receiver)).ToBoolean(ctx);
     if (booleanTrapResult.isAbrupt) { return booleanTrapResult; }
 
     // 9. If booleanTrapResult is false, return false.
@@ -773,7 +773,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     }
 
     // 8. Let booleanTrapResult be ToBoolean(? Call(trap, handler, « target, P »)).
-    const booleanTrapResult = $Call(ctx, trap, handler, [target, P]).ToBoolean(ctx);
+    const booleanTrapResult = $Call(ctx, trap, handler, new $List<$AnyNonEmpty>(target, P)).ToBoolean(ctx);
     if (booleanTrapResult.isAbrupt) { return booleanTrapResult; }
 
     // 9. If booleanTrapResult is false, return false.
@@ -830,7 +830,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     }
 
     // 7. Let trapResultArray be ? Call(trap, handler, « target »).
-    const trapResultArray = $Call(ctx, trap, handler, [target]);
+    const trapResultArray = $Call(ctx, trap, handler, new $List<$AnyNonEmpty>(target));
     if (trapResultArray.isAbrupt) { return trapResultArray; }
 
     // 8. Let trapResult be ? CreateListFromArrayLike(trapResultArray, « String, Symbol »).
@@ -929,7 +929,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
   public '[[Call]]'(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: readonly $AnyNonEmpty[],
+    argumentsList: $List<$AnyNonEmpty>,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -960,15 +960,15 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     const argArray = $CreateArrayFromList(ctx, argumentsList);
 
     // 8. Return ? Call(trap, handler, « target, thisArgument, argArray »).
-    return $Call(ctx, trap, handler, [target, thisArgument, argArray]);
+    return $Call(ctx, trap, handler, new $List<$AnyNonEmpty>(target, thisArgument, argArray));
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-construct-argumentslist-newtarget
   // 9.5.13 [[Construct]] ( argumentsList , newTarget )
   public '[[Construct]]'(
     ctx: ExecutionContext,
-    argumentsList: readonly $AnyNonEmpty[],
-    newTarget: $AnyObject,
+    argumentsList: $List<$AnyNonEmpty>,
+    newTarget: $Function | $Undefined,
   ): $AnyObject | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -1000,7 +1000,7 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     const argArray = $CreateArrayFromList(ctx, argumentsList);
 
     // 9. Let newObj be ? Call(trap, handler, « target, argArray, newTarget »).
-    const newObj = $Call(ctx, trap, handler, [target, argArray, newTarget]);
+    const newObj = $Call(ctx, trap, handler, new $List<$AnyNonEmpty>(target, argArray, newTarget));
     if (newObj.isAbrupt) { return newObj; }
 
     // 10. If Type(newObj) is not Object, throw a TypeError exception.

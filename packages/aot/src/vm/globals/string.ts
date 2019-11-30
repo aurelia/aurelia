@@ -33,6 +33,9 @@ import {
 import {
   $ObjectPrototype,
 } from './object';
+import {
+  $List
+} from '../types/list';
 
 // http://www.ecma-international.org/ecma-262/#sec-string-constructor
 export class $StringConstructor extends $BuiltinFunction<'%String%'> {
@@ -55,7 +58,7 @@ export class $StringConstructor extends $BuiltinFunction<'%String%'> {
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: readonly $AnyNonEmpty[],
+    argumentsList: $List<$AnyNonEmpty>,
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;

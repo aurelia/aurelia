@@ -297,7 +297,7 @@ export class $Object<
     // 2. e. If exoticToPrim is not undefined, then
     if (!exoticToPrim.isUndefined) {
       // 2. e. i. Let result be ? Call(exoticToPrim, input, « hint »).
-      const result = $Call(ctx, exoticToPrim, input, [hint]);
+      const result = $Call(ctx, exoticToPrim, input, new $List(hint));
       if (result.isAbrupt) { return result; }
 
       // 2. e. ii. If Type(result) is not Object, return result.
@@ -344,7 +344,7 @@ export class $Object<
       // 5. b. If IsCallable(method) is true, then
       if (method.isFunction) {
         // 5. b. i. Let result be ? Call(method, O).
-        const result = $Call(ctx, method as $Function, O);
+        const result = $Call(ctx, method as $Function, O, intrinsics.undefined);
         if (result.isAbrupt) { return result; }
 
         // 5. b. ii. If Type(result) is not Object, return result.
@@ -359,7 +359,7 @@ export class $Object<
       // 5. b. If IsCallable(method) is true, then
       if (method.isFunction) {
         // 5. b. i. Let result be ? Call(method, O).
-        const result = $Call(ctx, method as $Function, O);
+        const result = $Call(ctx, method as $Function, O, intrinsics.undefined);
         if (result.isAbrupt) { return result; }
 
         // 5. b. ii. If Type(result) is not Object, return result.
@@ -385,7 +385,7 @@ export class $Object<
       // 5. b. If IsCallable(method) is true, then
       if (method.isFunction) {
         // 5. b. i. Let result be ? Call(method, O).
-        const result = $Call(ctx, method as $Function, O);
+        const result = $Call(ctx, method as $Function, O, intrinsics.undefined);
         if (result.isAbrupt) { return result; }
 
         // 5. b. ii. If Type(result) is not Object, return result.
@@ -400,7 +400,7 @@ export class $Object<
       // 5. b. If IsCallable(method) is true, then
       if (method.isFunction) {
         // 5. b. i. Let result be ? Call(method, O).
-        const result = $Call(ctx, method as $Function, O);
+        const result = $Call(ctx, method as $Function, O, intrinsics.undefined);
         if (result.isAbrupt) { return result; }
 
         // 5. b. ii. If Type(result) is not Object, return result.
@@ -822,7 +822,7 @@ export class $Object<
     }
 
     // 8. Return ? Call(getter, Receiver).
-    return $Call(ctx, getter, Receiver);
+    return $Call(ctx, getter, Receiver, intrinsics.undefined);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-ordinary-object-internal-methods-and-internal-slots-set-p-v-receiver

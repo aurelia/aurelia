@@ -108,6 +108,9 @@ import {
 import {
   $Boolean,
 } from '../types/boolean';
+import {
+  $List,
+} from '../types/list';
 
 const {
   emptyArray,
@@ -291,7 +294,7 @@ export class $FunctionExpression implements I$Node {
   public EvaluateBody(
     ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
     functionObject: $Function,
-    argumentsList: readonly $AnyNonEmpty [],
+    argumentsList: $List<$AnyNonEmpty>,
   ): $Any {
     return EvaluateBody(this, ctx, functionObject, argumentsList);
   }
@@ -1092,7 +1095,7 @@ export class $FunctionDeclaration implements I$Node {
   public EvaluateBody(
     ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
     functionObject: $Function,
-    argumentsList: readonly $AnyNonEmpty [],
+    argumentsList: $List<$AnyNonEmpty>,
   ): $Any {
     return EvaluateBody(this, ctx, functionObject, argumentsList);
   }
@@ -1126,7 +1129,7 @@ function EvaluateBody(
   fn: $$Function,
   ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
   functionObject: $Function,
-  argumentsList: readonly $AnyNonEmpty [],
+  argumentsList: $List<$AnyNonEmpty>,
 ): $Any {
   ctx.checkTimeout();
 
@@ -1149,7 +1152,7 @@ function EvaluateBody(
 export function $FunctionDeclarationInstantiation(
   ctx: ExecutionContext<$FunctionEnvRec | $DeclarativeEnvRec>,
   func: $Function,
-  argumentsList: readonly $AnyNonEmpty [],
+  argumentsList: $List<$AnyNonEmpty>,
 ): $Empty | $Error {
   ctx.checkTimeout();
 
@@ -1571,7 +1574,7 @@ export class $ArrowFunction implements I$Node {
   public EvaluateBody(
     ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
     functionObject: $Function,
-    argumentsList: readonly $AnyNonEmpty[],
+    argumentsList: $List<$AnyNonEmpty>,
   ): $Any {
     ctx.checkTimeout();
 
@@ -1708,7 +1711,7 @@ export class $ConstructorDeclaration implements I$Node {
   public EvaluateBody(
     ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
     functionObject: $Function,
-    argumentsList: readonly $AnyNonEmpty[],
+    argumentsList: $List<$AnyNonEmpty>,
   ): $Any {
     return EvaluateBody(this, ctx, functionObject, argumentsList);
   }

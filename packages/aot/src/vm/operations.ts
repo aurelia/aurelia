@@ -230,7 +230,7 @@ export function $OrdinarySetWithOwnDescriptor(
   }
 
   // 7. Perform ? Call(setter, Receiver, « V »).
-  $Call(ctx, setter, Receiver, [V]);
+  $Call(ctx, setter, Receiver, new $List(V));
 
   // 8. Return true.
   return intrinsics.true;
@@ -265,11 +265,11 @@ export function $Call(
   ctx: ExecutionContext,
   F: $AnyNonEmpty,
   V: $AnyNonEmptyNonError,
-  argumentsList?: readonly $AnyNonEmpty [],
+  argumentsList: $List<$AnyNonEmpty> | $Undefined,
 ): $AnyNonEmpty  {
   // 1. If argumentsList is not present, set argumentsList to a new empty List.
-  if (argumentsList === void 0) {
-    argumentsList = [];
+  if (!argumentsList.isList) {
+    argumentsList = new $List();
   }
 
   // 2. If IsCallable(F) is false, throw a TypeError exception.
@@ -285,17 +285,17 @@ export function $Call(
 export function $Construct(
   ctx: ExecutionContext,
   F: $Function,
-  argumentsList?: readonly $AnyNonEmpty[],
-  newTarget?: $AnyObject,
+  argumentsList: $List<$AnyNonEmpty> | $Undefined,
+  newTarget: $Function | $Undefined,
 ): $AnyObject | $Error {
   // 1. If newTarget is not present, set newTarget to F.
-  if (newTarget === void 0) {
+  if (newTarget.isUndefined) {
     newTarget = F;
   }
 
   // 2. If argumentsList is not present, set argumentsList to a new empty List.
-  if (argumentsList === void 0) {
-    argumentsList = [];
+  if (!argumentsList.isList) {
+    argumentsList = new $List();
   }
 
   // 3. Assert: IsConstructor(F) is true.
@@ -803,7 +803,7 @@ export function $InstanceOfOperator(
   // 3. If instOfHandler is not undefined, then
   if (!instOfhandler.isUndefined) {
     // 3. a. Return ToBoolean(? Call(instOfHandler, target, « V »)).
-    return $Call(ctx, instOfhandler, target, [V]).ToBoolean(ctx);
+    return $Call(ctx, instOfhandler, target, new $List(V)).ToBoolean(ctx);
   }
 
   // 4. If IsCallable(target) is false, throw a TypeError exception.

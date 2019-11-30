@@ -106,6 +106,9 @@ import {
 import {
   $ConstructorDeclaration,
 } from './functions';
+import {
+  $List,
+} from '../types/list';
 
 const {
   emptyArray,
@@ -814,7 +817,7 @@ export class $ClassDeclaration implements I$Node {
   public EvaluateBody(
     ctx: ExecutionContext<$FunctionEnvRec, $FunctionEnvRec>,
     functionObject: $Function,
-    argumentsList: readonly $AnyNonEmpty[],
+    argumentsList: $List<$AnyNonEmpty>,
   ): $Any {
     ctx.checkTimeout();
 

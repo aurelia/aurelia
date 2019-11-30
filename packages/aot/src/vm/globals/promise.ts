@@ -22,13 +22,19 @@ import {
 } from '../types/undefined';
 import {
   $IteratorRecord,
+  $GetIterator,
+  $IteratorStep,
+  $IteratorValue,
+  $IteratorClose,
 } from './iteration';
 import {
   $Error,
   $TypeError,
 } from '../types/error';
 import {
-  $Call, $Construct,
+  $Call,
+  $Construct,
+  $Invoke,
 } from '../operations';
 import {
   $List,
@@ -46,6 +52,12 @@ import {
 import {
   $FunctionPrototype,
 } from './function';
+import {
+  $ValueRecord,
+} from './_shared';
+import {
+  $CreateArrayFromList,
+} from '../exotics/array';
 
 // http://www.ecma-international.org/ecma-262/#sec-promise-abstract-operations
 // #region 25.6.1 Promise Abstract Operation
@@ -58,6 +70,7 @@ export class $PromiseCapability {
   public '[[Reject]]': $Function | $Undefined;
 
   public get isUndefined(): false { return false; }
+  public get isAbrupt(): false { return false; }
 
   public constructor(
     promise: $PromiseInstance | $Undefined,
@@ -74,9 +87,9 @@ export class $PromiseCapability {
 // 25.6.1.1.1 IfAbruptRejectPromise ( value , capability )
 export function $IfAbruptRejectPromise(
   ctx: ExecutionContext,
-  value: $AnyNonEmpty ,
+  value: $Any | $IteratorRecord,
   capability: $PromiseCapability,
-): $AnyNonEmpty  {
+): $Any | $IteratorRecord {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
@@ -88,7 +101,6 @@ export function $IfAbruptRejectPromise(
 
     // 1. b. Return capability.[[Promise]].
     return capability['[[Promise]]'];
-
   }
 
   // 2. Else if value is a Completion Record, set value to value.[[Value]].
@@ -122,10 +134,6 @@ export class $PromiseReaction {
   }
 }
 
-export class $AlreadyResolved {
-  public '[[Value]]': boolean = false;
-}
-
 // http://www.ecma-international.org/ecma-262/#sec-createresolvingfunctions
 // 25.6.1.3 CreateResolvingFunctions ( promise )
 export class $PromiseResolvingFunctions {
@@ -137,7 +145,7 @@ export class $PromiseResolvingFunctions {
     promise: $PromiseInstance,
   ) {
     // 1. Let alreadyResolved be a new Record { [[Value]]: false }.
-    const alreadyResolved = new $AlreadyResolved();
+    const alreadyResolved = new $ValueRecord<boolean>(false);
 
     // 2. Let stepsResolve be the algorithm steps defined in Promise Resolve Functions (25.6.1.3.2).
     // 3. Let resolve be CreateBuiltinFunction(stepsResolve, « [[Promise]], [[AlreadyResolved]] »).
@@ -159,12 +167,12 @@ export class $PromiseResolvingFunctions {
 // 25.6.1.3.1 Promise Reject Functions
 export class $PromiseRejectFunction extends $BuiltinFunction<'PromiseRejectFunction'> {
   public '[[Promise]]': $PromiseInstance;
-  public '[[AlreadyResolved]]': $AlreadyResolved;
+  public '[[AlreadyResolved]]': $ValueRecord<boolean>;
 
   public constructor(
     realm: Realm,
     promise: $PromiseInstance,
-    alreadyResolved: $AlreadyResolved,
+    alreadyResolved: $ValueRecord<boolean>,
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
     super(realm, 'PromiseRejectFunction', intrinsics['%FunctionPrototype%']);
@@ -213,12 +221,12 @@ export class $PromiseRejectFunction extends $BuiltinFunction<'PromiseRejectFunct
 // 25.6.1.3.2 Promise Resolve Functions
 export class $PromiseResolveFunction extends $BuiltinFunction<'PromiseResolveFunction'> {
   public '[[Promise]]': $PromiseInstance;
-  public '[[AlreadyResolved]]': $AlreadyResolved;
+  public '[[AlreadyResolved]]': $ValueRecord<boolean>;
 
   public constructor(
     realm: Realm,
     promise: $PromiseInstance,
-    alreadyResolved: $AlreadyResolved,
+    alreadyResolved: $ValueRecord<boolean>,
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
     super(realm, 'PromiseResolveFunction', intrinsics['%FunctionPrototype%']);
@@ -336,7 +344,7 @@ export function $FulfillPromise(
 export function $NewPromiseCapability(
   ctx: ExecutionContext,
   C: $AnyObject,
-) {
+): $PromiseCapability | $Error {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 
@@ -772,78 +780,238 @@ export class $Promise_all extends $BuiltinFunction<'%Promise_all%'> {
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: $List<$AnyNonEmpty>,
+    [iterable]: $List<$AnyNonEmptyNonError>,
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
+    if (iterable === void 0) {
+      iterable = intrinsics.undefined;
+    }
+
     // 1. Let C be the this value.
+    const C = thisArgument;
+
     // 2. If Type(C) is not Object, throw a TypeError exception.
+    if (!C.isObject) {
+      return new $TypeError(realm, `Expected 'this' to be an object, but got: ${C}`);
+    }
+
     // 3. Let promiseCapability be ? NewPromiseCapability(C).
+    const promiseCapability = $NewPromiseCapability(ctx, C);
+    if (promiseCapability.isAbrupt) { return promiseCapability; }
+
     // 4. Let iteratorRecord be GetIterator(iterable).
+    const iteratorRecord = $GetIterator(ctx, iterable);
+    if (iteratorRecord.isAbrupt) { return iteratorRecord; } // TODO: we sure about this? spec doesn't say
+
     // 5. IfAbruptRejectPromise(iteratorRecord, promiseCapability).
+    const maybeAbrupt = $IfAbruptRejectPromise(ctx, iteratorRecord, promiseCapability);
+    if (maybeAbrupt.isAbrupt) { return maybeAbrupt; }
+
     // 6. Let result be PerformPromiseAll(iteratorRecord, C, promiseCapability).
+    let result = this.PerformPromiseAll(ctx, iteratorRecord, C as $Function, promiseCapability) as $Any;
+
     // 7. If result is an abrupt completion, then
+    if (result.isAbrupt) {
       // 7. a. If iteratorRecord.[[Done]] is false, set result to IteratorClose(iteratorRecord, result).
+      if (iteratorRecord['[[Done]]'].isFalsey) {
+        result = $IteratorClose(ctx, iteratorRecord, result);
+      }
+
       // 7. b. IfAbruptRejectPromise(result, promiseCapability).
+      const maybeAbrupt = $IfAbruptRejectPromise(ctx, result, promiseCapability);
+      if (maybeAbrupt.isAbrupt) { return maybeAbrupt; }
+    }
+
     // 8. Return Completion(result).
-    throw new Error('Method not implemented.');
+    return result as $AnyNonEmpty; // TODO: fix typings $Empty shenanigans
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-performpromiseall
+  // 25.6.4.1.1 Runtime Semantics: PerformPromiseAll ( iteratorRecord , constructor , resultCapability )
+  public PerformPromiseAll(
+    ctx: ExecutionContext,
+    iteratorRecord: $IteratorRecord,
+    constructor: $Function,
+    resultCapability: $PromiseCapability,
+  ): $AnyNonEmpty {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // 1. Assert: IsConstructor(constructor) is true.
+    // 2. Assert: resultCapability is a PromiseCapability Record.
+    // 3. Let values be a new empty List.
+    const values = new $List<$AnyNonEmptyNonError>();
+
+    // 4. Let remainingElementsCount be a new Record { [[Value]]: 1 }.
+    const remainingElementsCount = new $ValueRecord<number>(1);
+
+    // 5. Let index be 0.
+    let index = 0;
+
+    // 6. Repeat,
+    while (true) {
+      // 6. a. Let next be IteratorStep(iteratorRecord).
+      const next = $IteratorStep(ctx, iteratorRecord);
+
+      // 6. b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
+      // 6. c. ReturnIfAbrupt(next).
+      if (next.isAbrupt) {
+        iteratorRecord['[[Done]]'] = intrinsics.true;
+        return next;
+      }
+
+      // 6. d. If next is false, then
+      if (next.isFalsey) {
+        // 6. d. i. Set iteratorRecord.[[Done]] to true.
+        iteratorRecord['[[Done]]'] = intrinsics.true;
+
+        // 6. d. ii. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] - 1.
+        // 6. d. iii. If remainingElementsCount.[[Value]] is 0, then
+        if (--remainingElementsCount['[[Value]]'] === 0) {
+          // 6. d. iii. 1. Let valuesArray be CreateArrayFromList(values).
+          const valuesArray = $CreateArrayFromList(ctx, values);
+
+          // 6. d. iii. 2. Perform ? Call(resultCapability.[[Resolve]], undefined, « valuesArray »).
+          const $CallResult = $Call(ctx, resultCapability['[[Resolve]]'], intrinsics.undefined, new $List(valuesArray));
+          if ($CallResult.isAbrupt) { return $CallResult; }
+        }
+
+        // 6. d. iv. Return resultCapability.[[Promise]].
+        return resultCapability['[[Promise]]'];
+      }
+
+      // 6. e. Let nextValue be IteratorValue(next).
+      const nextValue = $IteratorValue(ctx, next);
+
+      // 6. f. If nextValue is an abrupt completion, set iteratorRecord.[[Done]] to true.
+      // 6. g. ReturnIfAbrupt(nextValue).
+      if (nextValue.isAbrupt) {
+        iteratorRecord['[[Done]]'] = intrinsics.true;
+        return nextValue;
+      }
+
+      // 6. h. Append undefined to values.
+      values.push(new $Undefined(realm));
+
+      // 6. i. Let nextPromise be ? Invoke(constructor, "resolve", « nextValue »).
+      const nextPromise = $Invoke(ctx, constructor, intrinsics.resolve, new $List(nextValue)) as $AnyNonEmpty; // TODO: fix $Empty typing shenanigans
+      if (nextPromise.isAbrupt) { return nextPromise; }
+
+      // 6. j. Let steps be the algorithm steps defined in Promise.all Resolve Element Functions.
+      // 6. k. Let resolveElement be CreateBuiltinFunction(steps, « [[AlreadyCalled]], [[Index]], [[Values]], [[Capability]], [[RemainingElements]] »).
+      // 6. l. Set resolveElement.[[AlreadyCalled]] to a new Record { [[Value]]: false }.
+      // 6. m. Set resolveElement.[[Index]] to index.
+      // 6. n. Set resolveElement.[[Values]] to values.
+      // 6. o. Set resolveElement.[[Capability]] to resultCapability.
+      // 6. p. Set resolveElement.[[RemainingElements]] to remainingElementsCount.
+      const resolveElement = new $Promise_all_ResolveElement(
+        realm,
+        new $ValueRecord<boolean>(false),
+        index,
+        values,
+        resultCapability,
+        remainingElementsCount,
+      );
+
+      // 6. q. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] + 1.
+      ++remainingElementsCount['[[Value]]'];
+
+      // 6. r. Perform ? Invoke(nextPromise, "then", « resolveElement, resultCapability.[[Reject]] »).
+      const $InvokeResult = $Invoke(ctx, nextPromise, intrinsics.then, new $List(resolveElement, resultCapability['[[Reject]]']));
+      if ($InvokeResult.isAbrupt) { return $InvokeResult; }
+
+      // 6. s. Increase index by 1.
+      ++index;
+    }
   }
 }
 
-// http://www.ecma-international.org/ecma-262/#sec-performpromiseall
-// 25.6.4.1.1 Runtime Semantics: PerformPromiseAll ( iteratorRecord , constructor , resultCapability )
-
-  // 1. Assert: IsConstructor(constructor) is true.
-  // 2. Assert: resultCapability is a PromiseCapability Record.
-  // 3. Let values be a new empty List.
-  // 4. Let remainingElementsCount be a new Record { [[Value]]: 1 }.
-  // 5. Let index be 0.
-  // 6. Repeat,
-    // 6. a. Let next be IteratorStep(iteratorRecord).
-    // 6. b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
-    // 6. c. ReturnIfAbrupt(next).
-    // 6. d. If next is false, then
-      // 6. d. i. Set iteratorRecord.[[Done]] to true.
-      // 6. d. ii. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] - 1.
-      // 6. d. iii. If remainingElementsCount.[[Value]] is 0, then
-        // 6. d. iii. 1. Let valuesArray be CreateArrayFromList(values).
-        // 6. d. iii. 2. Perform ? Call(resultCapability.[[Resolve]], undefined, « valuesArray »).
-      // 6. d. iv. Return resultCapability.[[Promise]].
-    // 6. e. Let nextValue be IteratorValue(next).
-    // 6. f. If nextValue is an abrupt completion, set iteratorRecord.[[Done]] to true.
-    // 6. g. ReturnIfAbrupt(nextValue).
-    // 6. h. Append undefined to values.
-    // 6. i. Let nextPromise be ? Invoke(constructor, "resolve", « nextValue »).
-    // 6. j. Let steps be the algorithm steps defined in Promise.all Resolve Element Functions.
-    // 6. k. Let resolveElement be CreateBuiltinFunction(steps, « [[AlreadyCalled]], [[Index]], [[Values]], [[Capability]], [[RemainingElements]] »).
-    // 6. l. Set resolveElement.[[AlreadyCalled]] to a new Record { [[Value]]: false }.
-    // 6. m. Set resolveElement.[[Index]] to index.
-    // 6. n. Set resolveElement.[[Values]] to values.
-    // 6. o. Set resolveElement.[[Capability]] to resultCapability.
-    // 6. p. Set resolveElement.[[RemainingElements]] to remainingElementsCount.
-    // 6. q. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] + 1.
-    // 6. r. Perform ? Invoke(nextPromise, "then", « resolveElement, resultCapability.[[Reject]] »).
-    // 6. s. Increase index by 1.
-
 // http://www.ecma-international.org/ecma-262/#sec-promise.all-resolve-element-functions
 // 25.6.4.1.2 Promise.all Resolve Element Functions
+export class $Promise_all_ResolveElement extends $BuiltinFunction<'Promise.all Resolve Element'> {
+  public '[[AlreadyCalled]]': $ValueRecord<boolean>;
+  public '[[Index]]': number;
+  public '[[Values]]': $List<$AnyNonEmpty>;
+  public '[[Capability]]': $PromiseCapability;
+  public '[[RemainingElements]]': $ValueRecord<number>;
 
-  // 1. Let F be the active function object.
-  // 2. Let alreadyCalled be F.[[AlreadyCalled]].
-  // 3. If alreadyCalled.[[Value]] is true, return undefined.
-  // 4. Set alreadyCalled.[[Value]] to true.
-  // 5. Let index be F.[[Index]].
-  // 6. Let values be F.[[Values]].
-  // 7. Let promiseCapability be F.[[Capability]].
-  // 8. Let remainingElementsCount be F.[[RemainingElements]].
-  // 9. Set values[index] to x.
-  // 10. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] - 1.
-  // 11. If remainingElementsCount.[[Value]] is 0, then
-    // 11. a. Let valuesArray be CreateArrayFromList(values).
-    // 11. b. Return ? Call(promiseCapability.[[Resolve]], undefined, « valuesArray »).
-  // 12. Return undefined.
+  public constructor(
+    realm: Realm,
+    alreadyCalled: $ValueRecord<boolean>,
+    index: number,
+    values: $List<$AnyNonEmpty>,
+    capability: $PromiseCapability,
+    remainingElements: $ValueRecord<number>,
+  ) {
+    const intrinsics = realm['[[Intrinsics]]'];
+    super(realm, 'Promise.all Resolve Element', intrinsics['%FunctionPrototype%']);
+
+    this['[[AlreadyCalled]]'] = alreadyCalled;
+    this['[[Index]]'] = index;
+    this['[[Values]]'] = values;
+    this['[[Capability]]'] = capability;
+    this['[[RemainingElements]]'] = remainingElements;
+  }
+
+  public performSteps(
+    ctx: ExecutionContext,
+    thisArgument: $AnyNonEmptyNonError,
+    [x]: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
+  ): $AnyNonEmpty  {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    if (x === void 0) {
+      x = intrinsics.undefined;
+    }
+
+    // 1. Let F be the active function object.
+    const F = this;
+
+    // 2. Let alreadyCalled be F.[[AlreadyCalled]].
+    const alreadyCalled = F['[[AlreadyCalled]]'];
+
+    // 3. If alreadyCalled.[[Value]] is true, return undefined.
+    if (alreadyCalled['[[Value]]']) {
+      return intrinsics.undefined;
+    }
+
+    // 4. Set alreadyCalled.[[Value]] to true.
+    alreadyCalled['[[Value]]'] = true;
+
+    // 5. Let index be F.[[Index]].
+    const index = F['[[Index]]'];
+
+    // 6. Let values be F.[[Values]].
+    const values = F['[[Values]]'];
+
+    // 7. Let promiseCapability be F.[[Capability]].
+    const promiseCapability = F['[[Capability]]'];
+
+    // 8. Let remainingElementsCount be F.[[RemainingElements]].
+    const remainingElementsCount = F['[[RemainingElements]]'];
+
+    // 9. Set values[index] to x.
+    values[index] = x;
+
+    // 10. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] - 1.
+    // 11. If remainingElementsCount.[[Value]] is 0, then
+    if (--remainingElementsCount['[[Value]]'] === 0) {
+      // 11. a. Let valuesArray be CreateArrayFromList(values).
+      const valuesArray = $CreateArrayFromList(ctx, values);
+
+      // 11. b. Return ? Call(promiseCapability.[[Resolve]], undefined, « valuesArray »).
+      return $Call(ctx, promiseCapability['[[Resolve]]'], intrinsics.undefined, new $List(valuesArray));
+    }
+
+    // 12. Return undefined.
+    return intrinsics.undefined;
+  }
+}
 
 // http://www.ecma-international.org/ecma-262/#sec-promise.race
 // 25.6.4.3 Promise.race ( iterable )

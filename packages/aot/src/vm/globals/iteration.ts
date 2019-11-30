@@ -18,6 +18,7 @@ import {
   $AnyNonEmptyNonError,
   CompletionType,
   $AnyObject,
+  $Any,
 } from '../types/_shared';
 import {
   $CreateDataProperty,
@@ -205,8 +206,8 @@ export function $IteratorStep(
 export function $IteratorClose(
   ctx: ExecutionContext,
   iteratorRecord: $IteratorRecord,
-  completion: $AnyNonError,
-): $AnyNonError | $Error {
+  completion: $Any,
+): $Any {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];
 

@@ -1259,3 +1259,25 @@ export function $HostEnsureCanCompileStrings(
   // The default implementation of HostEnsureCanCompileStrings is to unconditionally return an empty normal completion.
   return new $Empty(calleeRealm);
 }
+
+// http://www.ecma-international.org/ecma-262/#sec-invoke
+// 7.3.18 Invoke ( V , P [ , argumentsList ] )
+export function $Invoke(
+  ctx: ExecutionContext,
+  V: $AnyNonEmptyNonError,
+  P: $PropertyKey,
+  argumentsList: $List<$AnyNonEmpty> | $Undefined,
+): $Any {
+  // 1. Assert: IsPropertyKey(P) is true.
+  // 2. If argumentsList is not present, set argumentsList to a new empty List.
+  if (!argumentsList.isList) {
+    argumentsList = new $List<$AnyNonEmpty>();
+  }
+
+  // 3. Let func be ? GetV(V, P).
+  const func = $GetV(ctx, V, P);
+  if (func.isAbrupt) { return func; }
+
+  // 4. Return ? Call(func, V, argumentsList).
+  return $Call(ctx, func, V, argumentsList);
+}

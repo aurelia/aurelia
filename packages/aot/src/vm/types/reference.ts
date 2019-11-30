@@ -175,7 +175,7 @@ export class $Reference {
   public PutValue(
     ctx: ExecutionContext,
     W: $AnyNonEmpty,
-  ): $Boolean | $Empty | $Error {
+  ): $Boolean | $Undefined | $Empty | $Error {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -218,7 +218,7 @@ export class $Reference {
       }
 
       // 6. d. Return.
-      return intrinsics.empty;
+      return intrinsics.undefined;
     }
     // 7. Else base must be an Environment Record,
     else {

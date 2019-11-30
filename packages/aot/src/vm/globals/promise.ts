@@ -1144,18 +1144,34 @@ export class $Promise_reject extends $BuiltinFunction<'%Promise_reject%'> {
   public performSteps(
     ctx: ExecutionContext,
     thisArgument: $AnyNonEmptyNonError,
-    argumentsList: $List<$AnyNonEmpty>,
+    [r]: $List<$AnyNonEmpty>,
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
+    if (r === void 0) {
+      r = intrinsics.undefined;
+    }
+
     // 1. Let C be the this value.
+    const C = thisArgument;
+
     // 2. If Type(C) is not Object, throw a TypeError exception.
+    if (!C.isObject) {
+      return new $TypeError(realm, `Expected 'this' to be an object, but got: ${C}`);
+    }
+
     // 3. Let promiseCapability be ? NewPromiseCapability(C).
+    const promiseCapability = $NewPromiseCapability(ctx, C);
+    if (promiseCapability.isAbrupt) { return promiseCapability; }
+
     // 4. Perform ? Call(promiseCapability.[[Reject]], undefined, « r »).
+    const $CallResult = $Call(ctx, promiseCapability['[[Resolve]]'], intrinsics.undefined, new $List(r));
+    if ($CallResult.isAbrupt) { return $CallResult; }
+
     // 5. Return promiseCapability.[[Promise]].
-    throw new Error('Method not implemented.');
+    return promiseCapability['[[Promise]]'] as $PromiseInstance; // TODO: verify if cast is safe
   }
 }
 
@@ -1226,7 +1242,7 @@ export function $PromiseResolve(
   if ($CallResult.isAbrupt) { return $CallResult; }
 
   // 5. Return promiseCapability.[[Promise]].
-  return promiseCapability['[[Promise]]'] as $PromiseInstance;
+  return promiseCapability['[[Promise]]'] as $PromiseInstance; // TODO: verify if cast is safe
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-get-promise-@@species

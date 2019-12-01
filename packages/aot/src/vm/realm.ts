@@ -75,6 +75,9 @@ import {
 import {
   JobQueue,
 } from './job';
+import {
+  $AsyncGeneratorInstance,
+} from './globals/async-generator';
 
 export class ResolveSet {
   private readonly modules: IModule[] = [];
@@ -557,7 +560,7 @@ export class ExecutionContext<TLex extends $EnvRec = $EnvRec, TVar extends ($Mod
   public ScriptOrModule!: $$ESModuleOrScript | $Null;
   public LexicalEnvironment!: TLex;
   public VariableEnvironment!: TVar;
-  public Generator: $GeneratorInstance | undefined = void 0;
+  public Generator: $GeneratorInstance | $AsyncGeneratorInstance | undefined = void 0;
   public onResume: ((value: $AnyNonEmpty ) => $AnyNonEmpty ) | undefined = void 0;
 
   public suspended: boolean = false;

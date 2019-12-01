@@ -350,7 +350,7 @@ export function $GeneratorStart(
 
     // 4. e. Once a generator enters the "completed" state it never leaves it and its associated execution context is never resumed. Any execution state associated with generator can be discarded at this point.
 
-    let resultValue: $AnyNonEmpty ;
+    let resultValue: $AnyNonEmpty;
     // 4. f. If result.[[Type]] is normal, let resultValue be undefined.
     if (result['[[Type]]'] === CompletionType.normal) {
       resultValue = intrinsics.undefined;
@@ -572,7 +572,7 @@ export function $GeneratorYield(
 
   // 3. Assert: genContext is the execution context of a generator.
   // 4. Let generator be the value of the Generator component of genContext.
-  const generator = genContext.Generator!;
+  const generator = genContext.Generator as $GeneratorInstance;
 
   // 5. Assert: GetGeneratorKind() is sync.
   // 6. Set generator.[[GeneratorState]] to "suspendedYield".

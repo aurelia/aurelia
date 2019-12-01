@@ -35,4 +35,8 @@ export class $List<T extends $ListItem> extends Array<T> {
   public enrichWith(ctx: ExecutionContext, node: I$Node): this {
     return this;
   }
+
+  public is(other: unknown): boolean {
+    return this === other;
+  }
 }

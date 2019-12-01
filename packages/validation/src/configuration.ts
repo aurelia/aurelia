@@ -1,7 +1,7 @@
 import { IContainer, PLATFORM, Registration } from '@aurelia/kernel';
 import { ValidationRules } from './rule';
 import { ValidateBindingBehavior } from './validate-binding-behavior';
-import { IValidationController, ValidationController } from './validation-controller';
+import { IValidationController, ValidationController, ValidationControllerFactory, IValidationControllerFactory } from './validation-controller';
 import { ValidationErrorsCustomAttribute } from './validation-errors-custom-attribute';
 import { IValidationMessageProvider, ValidationMessageProvider } from './validation-messages';
 import { ValidationRendererCustomAttribute } from './validation-renderer-custom-attribute';
@@ -26,7 +26,8 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
         ValidateBindingBehavior,
         ValidationErrorsCustomAttribute,
         ValidationRendererCustomAttribute,
-        Registration.singleton(IValidationController, ValidationController)
+        Registration.singleton(IValidationController, ValidationController),
+        Registration.singleton(IValidationControllerFactory, ValidationControllerFactory)
       );
     },
     customize(cb?: ValidationConfigurationProvider) {

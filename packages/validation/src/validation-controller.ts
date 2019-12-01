@@ -1,10 +1,8 @@
 import { DI, IContainer, Registration } from '@aurelia/kernel';
-import { BindingBehaviorExpression, IBinding, IExpressionParser, LifecycleFlags, IScope, IConnectableBinding, IPartialConnectableBinding, connectable } from '@aurelia/runtime';
-import { getPropertyInfo } from './property-info';
+import { AccessKeyedExpression, AccessMemberExpression, AccessScopeExpression, BindingBehaviorExpression, IBinding, IExpressionParser, IHookableValueBinding, IScope, LifecycleFlags, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IValidateable, parsePropertyName, PropertyAccessor, PropertyRule, ValidationResult } from './rule';
 import { RenderInstruction, ValidationRenderer } from './validation-renderer';
 import { IValidator } from './validator';
-import { IConnectable } from '@aurelia/runtime/dist/ast';
 
 /**
  * Validation triggers.
@@ -33,10 +31,11 @@ export const enum ValidationTrigger {
   changeOrBlur = "changeOrBlur"
 }
 
-export type BindingWithBehavior = IBinding & {
+export type BindingWithBehavior = IBinding & IHookableValueBinding & {
   sourceExpression: BindingBehaviorExpression;
   target: Element | object;
 };
+type ValidatableExpression = AccessScopeExpression | AccessMemberExpression | AccessKeyedExpression;
 
 export interface IValidationController {
   errors: ValidationResult[];
@@ -47,8 +46,8 @@ export interface IValidationController {
   addError<TObject>(message: string, object: TObject, propertyName?: string | PropertyAccessor | null): ValidationResult;
   removeError(result: ValidationResult): void;
   addRenderer(renderer: ValidationRenderer): void;
-  registerBinding(binding: BindingWithBehavior, target: Element, rules?: any): void;
-  unregisterBinding(binding: BindingWithBehavior): void;
+  registerBinding(binding: BindingWithBehavior, target: Element, scope: IScope, rules?: any): void;
+  deregisterBinding(binding: BindingWithBehavior): void;
   validate(instruction?: ValidateInstruction): Promise<ControllerValidateResult>;
   reset(instruction?: ValidateInstruction): void;
   validateBinding(binding: BindingWithBehavior): Promise<void>;
@@ -103,8 +102,8 @@ export class ValidationController implements IValidationController {
   private readonly eventCallbacks: ((event: ValidateEvent) => void)[] = [];
 
   public constructor(
-    private readonly validator: IValidator,
-    private readonly parser: IExpressionParser,
+    @IValidator private readonly validator: IValidator,
+    @IExpressionParser private readonly parser: IExpressionParser,
   ) { }
 
   /**
@@ -207,19 +206,23 @@ export class ValidationController implements IValidationController {
    * @param binding - The binding instance.
    * @param target - The DOM element.
    * @param rules - (optional) rules associated with the binding. Validator implementation specific.
+   * @internal
    */
-  public registerBinding(binding: BindingWithBehavior, target: Element, rules?: any) {
-    this.bindings.set(binding, { target, rules, propertyInfo: null });
+  public registerBinding(binding: BindingWithBehavior, target: Element, scope: IScope, rules?: any) {
+    this.bindings.set(binding, { target, scope, rules, propertyInfo: void 0 });
+    console.log(`registered binding ${this.bindings.size}`);
   }
 
   /**
    * Unregisters a binding with the controller.
    *
    * @param binding - The binding instance.
+   * @internal
    */
-  public unregisterBinding(binding: BindingWithBehavior) {
+  public deregisterBinding(binding: BindingWithBehavior) {
     this.resetBinding(binding);
     this.bindings.delete(binding);
+    console.log(`deregistered binding ${this.bindings.size}`);
   }
 
   /**
@@ -244,6 +247,60 @@ export class ValidationController implements IValidationController {
     }
   }
 
+  private getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo): PropertyInfo | undefined {
+    let propertyInfo = info.propertyInfo;
+    if (propertyInfo !== void 0) {
+      return propertyInfo;
+    }
+    // const originalExpression = expression;
+    // while (expression instanceof BindingBehavior || expression instanceof ValueConverter) {
+    //   expression = expression.expression;
+    // }
+
+    const scope = info.scope;
+    let expression = binding.sourceExpression.expression as ValidatableExpression;
+    const locator = binding.locator;
+    let toCachePropertyName = true;
+    let propertyName: string = "";
+    while (expression !== void 0 && !(expression instanceof AccessScopeExpression)) {
+      let memberName: string;
+      switch (true) {
+        case expression instanceof AccessMemberExpression: {
+          memberName = (expression as AccessMemberExpression).name;
+          break;
+        }
+        case expression instanceof AccessKeyedExpression: {
+          const keyExpr = (expression as AccessKeyedExpression).key;
+          if (toCachePropertyName) {
+            toCachePropertyName = keyExpr instanceof PrimitiveLiteralExpression;
+          }
+          memberName = `[${(keyExpr.evaluate(LifecycleFlags.none, scope, locator) as any).toString()}]`;
+          break;
+        }
+        default:
+          throw new Error(`Unknown expression of type ${Object.getPrototypeOf(expression)}`); // TODO use reporter/logger
+      }
+      propertyName = propertyName.length === 0 ? memberName : `${memberName}.${propertyName}`;
+      expression = expression.object as ValidatableExpression;
+    }
+    if (expression === void 0) {
+      throw new Error('Unable to parse binding expression'); // TODO use reporter/logger
+    }
+    if (propertyName.length === 0) {
+      propertyName = expression.name;
+    }
+    const object = expression.evaluate(LifecycleFlags.none, scope, locator);
+    if (object === null || object === void 0) {
+      return (void 0);
+    }
+    propertyInfo = { object, propertyName };
+    console.log(propertyInfo);
+    if (toCachePropertyName) {
+      info.propertyInfo = propertyInfo;
+    }
+    return propertyInfo;
+  }
+
   /**
    * Validates and renders results.
    *
@@ -251,6 +308,7 @@ export class ValidationController implements IValidationController {
    * objects and bindings will be validated.
    */
   public async validate(instruction?: ValidateInstruction): Promise<ControllerValidateResult> {
+    console.log(`validating ${this.bindings.size} bindings`);
     // Get a function that will process the validation instruction.
     let execute: () => Promise<ValidationResult[]>;
     if (instruction !== void 0) {
@@ -273,12 +331,12 @@ export class ValidationController implements IValidationController {
         for (const [object, rules] of this.objects.entries()) {
           promises.push(this.validator.validateObject(object, rules));
         }
-        for (const [binding, { rules }] of this.bindings.entries()) {
-          const propertyInfo = getPropertyInfo(binding.sourceExpression, (binding as any).source); // TODO fix this
+        for (const [binding, info] of this.bindings.entries()) {
+          const propertyInfo = this.getPropertyInfo(binding, info);
           if (!propertyInfo || this.objects.has(propertyInfo.object)) {
             continue;
           }
-          promises.push(this.validator.validateProperty(propertyInfo.object, propertyInfo.propertyName, rules));
+          promises.push(this.validator.validateProperty(propertyInfo.object, propertyInfo.propertyName, info.rules));
         }
         const results = await Promise.all(promises);
         return results.reduce(
@@ -340,10 +398,10 @@ export class ValidationController implements IValidationController {
    */
   private getAssociatedElements({ object, propertyName }: ValidationResult): Element[] {
     const elements: Element[] = [];
-    for (const [binding, { target }] of this.bindings.entries()) {
-      const propertyInfo = getPropertyInfo(binding.sourceExpression, (binding as any).source); // TODO fix this
+    for (const [binding, info] of this.bindings.entries()) {
+      const propertyInfo = this.getPropertyInfo(binding, info); // TODO fix this
       if (propertyInfo && propertyInfo.object === object && propertyInfo.propertyName === propertyName) {
-        elements.push(target);
+        elements.push(info.target);
       }
     }
     return elements;
@@ -426,19 +484,20 @@ export class ValidationController implements IValidationController {
 
   /**
    * Validates the property associated with a binding.
+   *
+   * @internal
    */
   public async validateBinding(binding: BindingWithBehavior) {
     // if (!binding.isBound) {
     //   return;
     // }
-    const propertyInfo = getPropertyInfo(binding.sourceExpression, (binding as any).source); // TODO fix this
-    let rules;
-    const registeredBinding = this.bindings.get(binding);
-    if (registeredBinding) {
-      rules = registeredBinding.rules;
-      registeredBinding.propertyInfo = propertyInfo;
+    const bindingInfo = this.bindings.get(binding);
+    if (bindingInfo === void 0) {
+      return;
     }
-    if (!propertyInfo) {
+    const propertyInfo = this.getPropertyInfo(binding, bindingInfo);
+    const rules = bindingInfo.rules;
+    if (propertyInfo === void 0) {
       return;
     }
     const { object, propertyName } = propertyInfo;
@@ -449,17 +508,13 @@ export class ValidationController implements IValidationController {
    * Resets the results for a property associated with a binding.
    */
   public resetBinding(binding: BindingWithBehavior) {
-    const registeredBinding = this.bindings.get(binding);
-    let propertyInfo = getPropertyInfo(binding.sourceExpression, (binding as any).source); // TODO fix this
-    if (!propertyInfo && registeredBinding) {
-      propertyInfo = registeredBinding.propertyInfo;
-    }
-    if (registeredBinding) {
-      registeredBinding.propertyInfo = null;
-    }
-    if (!propertyInfo) {
-      return;
-    }
+    const bindingInfo = this.bindings.get(binding);
+    if (bindingInfo === void 0) { return; }
+
+    const propertyInfo = this.getPropertyInfo(binding, bindingInfo);
+    if (propertyInfo === void 0) { return; }
+
+    bindingInfo.propertyInfo = void 0;
     const { object, propertyName } = propertyInfo;
     this.reset({ object, propertyName });
   }
@@ -517,6 +572,7 @@ interface BindingInfo {
    * The DOM element associated with the binding.
    */
   target: Element;
+  scope: IScope;
 
   /**
    * The rules associated with the binding via the validate binding behavior's rules parameter.
@@ -526,13 +582,23 @@ interface BindingInfo {
   /**
    * The object and property associated with the binding.
    */
-  propertyInfo: { object: any; propertyName: string } | null;
+  propertyInfo?: PropertyInfo;
 }
+interface PropertyInfo {
+  object: any;
+  propertyName: string;
+}
+
+export interface IValidationControllerFactory {
+  create(validator?: IValidator): IValidationController;
+  createForCurrentScope(validator?: IValidator): IValidationController;
+}
+export const IValidationControllerFactory = DI.createInterface<IValidationControllerFactory>("IValidationControllerFactory").noDefault();
 
 /**
  * Creates ValidationController instances.
  */
-export class ValidationControllerFactory {
+export class ValidationControllerFactory implements IValidationControllerFactory {
   public static get(container: IContainer) {
     return new ValidationControllerFactory(container);
   }
@@ -544,7 +610,7 @@ export class ValidationControllerFactory {
   /**
    * Creates a new controller instance.
    */
-  public create(validator?: IValidator) {
+  public create(validator?: IValidator): IValidationController {
     validator = validator ?? this.container.get<IValidator>(IValidator);
     const parser = this.container.get<IExpressionParser>(IExpressionParser);
     return new ValidationController(validator, parser);
@@ -554,7 +620,7 @@ export class ValidationControllerFactory {
    * Creates a new controller and registers it in the current element's container so that it's
    * available to the validate binding behavior and renderers.
    */
-  public createForCurrentScope(validator?: IValidator) {
+  public createForCurrentScope(validator?: IValidator): IValidationController {
     const controller = this.create(validator);
     this.container.register(Registration.instance(ValidationController, controller));
     return controller;

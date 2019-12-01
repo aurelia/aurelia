@@ -1,80 +1,71 @@
-import { bindingBehavior, IScheduler, IScope, LifecycleFlags } from '@aurelia/runtime';
+import {
+  bindingBehavior,
+  IScheduler,
+  IScope,
+  LifecycleFlags,
+  MiddlewareType,
+  IBindingMiddleware,
+  IUpdateMiddlewareContext
+} from '@aurelia/runtime';
 import { PropertyRule } from './rule';
-import { BindingWithBehavior, IValidationController, ValidationController, ValidationTrigger } from './validation-controller';
+import {
+  BindingWithBehavior,
+  IValidationController,
+  ValidationController,
+  ValidationTrigger
+} from './validation-controller';
+import { IContainer } from '@aurelia/kernel';
 
 /**
  * Binding behavior. Indicates the bound property should be validated.
  */
 @bindingBehavior('validate')
-export class ValidateBindingBehavior {
+export class ValidateBindingBehavior implements IBindingMiddleware {
+  private rules: PropertyRule[] = [];
+  private binding: BindingWithBehavior = (void 0)!;
+  private target: HTMLElement = (void 0)!;
+  private controller!: IValidationController;
   public constructor(
-    @IValidationController private readonly controller: IValidationController,
+    @IContainer private readonly container: IContainer,
     @IScheduler private readonly scheduler: IScheduler
   ) { }
 
   public bind(flags: LifecycleFlags, scope: IScope, binding: BindingWithBehavior) {
-    // binding.
-    const locator = binding.locator;
+    this.binding = binding;
     // identify the target element.
-    const target: Element = binding.target as Element; // TODO need additional processing for CE, and CA.
-    const [trigger, controller, rules] = this.processBindingExpressionArgs(flags, scope, binding);
+    const target = this.target = binding.target as HTMLElement; // TODO need additional processing for CE, and CA.
+    const trigger = this.processBindingExpressionArgs(flags, scope);
 
-    controller.registerBinding(binding, target, rules);
-    // TODO intercept binding
-
-    // binding.validationController = controller;
-    // tslint:disable-next-line:no-bitwise
-    // if (trigger & validateTrigger.change) {
-    //   binding.vbbUpdateSource = binding.updateSource;
-    //   // tslint:disable-next-line:only-arrow-functions
-    //   // tslint:disable-next-line:space-before-function-paren
-    //   binding.updateSource = function (value: any) {
-    //     this.vbbUpdateSource(value);
-    //     this.validationController.validateBinding(this);
-    //   };
-    // }
-
-    // // tslint:disable-next-line:no-bitwise
-    // if (trigger & validateTrigger.blur) {
-    //   binding.validateBlurHandler = () => {
-    //     this.scheduler.queueMicroTask(() => controller.validateBinding(binding));
-    //   };
-    //   binding.validateTarget = target;
-    //   target.addEventListener('blur', binding.validateBlurHandler);
-    // }
-
-    // if (trigger !== validateTrigger.manual) {
-    //   binding.standardUpdateTarget = binding.updateTarget;
-    //   // tslint:disable-next-line:only-arrow-functions
-    //   // tslint:disable-next-line:space-before-function-paren
-    //   binding.updateTarget = function (value: any) {
-    //     this.standardUpdateTarget(value);
-    //     this.validationController.resetBinding(this);
-    //   };
-    // }
+    this.controller.registerBinding(binding, target, scope, this.rules);
+    if (trigger === ValidationTrigger.change || trigger === ValidationTrigger.changeOrBlur) {
+      binding.registerMiddleware(MiddlewareType.updateSource, this, true);
+    }
+    if (trigger === ValidationTrigger.blur || trigger === ValidationTrigger.changeOrBlur) {
+      target.addEventListener('blur', this);
+    }
   }
 
-  public unbind(binding: any) {
-    // TODO
-    // // reset the binding to it's original state.
-    // if (binding.vbbUpdateSource) {
-    //   binding.updateSource = binding.vbbUpdateSource;
-    //   binding.vbbUpdateSource = null;
-    // }
-    // if (binding.standardUpdateTarget) {
-    //   binding.updateTarget = binding.standardUpdateTarget;
-    //   binding.standardUpdateTarget = null;
-    // }
-    // if (binding.validateBlurHandler) {
-    //   binding.validateTarget.removeEventListener('blur', binding.validateBlurHandler);
-    //   binding.validateBlurHandler = null;
-    //   binding.validateTarget = null;
-    // }
-    // binding.validationController.unregisterBinding(binding);
-    // binding.validationController = null;
+  public unbind(binding: BindingWithBehavior) {
+    console.log("BB unbind");
+    this.target.removeEventListener('blur', this);
+    this.binding.deregisterMiddleware(MiddlewareType.updateSource, this);
+    this.controller.deregisterBinding(binding);
   }
 
-  private processBindingExpressionArgs(flags: LifecycleFlags, scope: IScope, binding: BindingWithBehavior): [ValidationTrigger, IValidationController, PropertyRule[]] {
+  public async runUpdateSource(ctx: IUpdateMiddlewareContext): Promise<IUpdateMiddlewareContext> {
+    // no need to put this in queue as it will be queued in binding (middleware processor)
+    await this.controller.validateBinding(this.binding);
+    return ctx;
+  }
+
+  public handleEvent(_event: Event) {
+    this.scheduler.getPostRenderTaskQueue().queueTask(async () => {
+      await this.controller.validateBinding(this.binding);
+    });
+  }
+
+  private processBindingExpressionArgs(flags: LifecycleFlags, scope: IScope): ValidationTrigger {
+    const binding = this.binding;
     const locator = binding.locator;
     let trigger: ValidationTrigger = (void 0)!;
     let controller: IValidationController = (void 0)!;
@@ -93,12 +84,15 @@ export class ValidateBindingBehavior {
         throw new Error(`Unsupported argument type for binding behavior: ${temp}`);
       }
     }
-    if (controller === void 0) {
-      controller = this.controller;
+    if (controller !== void 0) {
+      this.controller = controller;
+    } else {
+      controller = this.controller = this.container.get<IValidationController>(IValidationController);
     }
     if (trigger === void 0) {
       trigger = controller.trigger;
     }
-    return [trigger, controller, rules];
+    this.rules = rules;
+    return trigger;
   }
 }

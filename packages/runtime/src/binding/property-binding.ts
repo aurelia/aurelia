@@ -28,6 +28,16 @@ import {
   IConnectableBinding,
   IPartialConnectableBinding,
 } from './connectable';
+import {
+  IHookableValueBinding,
+  IBindingMiddleware,
+  registerMiddleware,
+  runTargetMiddlewares,
+  runSourceMiddlewares,
+  IUpdateMiddlewareContext,
+  deregisterMiddleware
+} from './binding-middleware';
+import { ITaskQueue, IScheduler } from '../scheduler';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
@@ -35,10 +45,10 @@ const { oneTime, toView, fromView } = BindingMode;
 // pre-combining flags for bitwise checks is a minor perf tweak
 const toViewOrOneTime = toView | oneTime;
 
-export interface PropertyBinding extends IConnectableBinding {}
+export interface PropertyBinding extends IConnectableBinding { }
 
 @connectable()
-export class PropertyBinding implements IPartialConnectableBinding {
+export class PropertyBinding implements IPartialConnectableBinding, IHookableValueBinding {
   public id!: number;
   public $state: State = State.none;
   public $lifecycle: ILifecycle;
@@ -48,6 +58,14 @@ export class PropertyBinding implements IPartialConnectableBinding {
   public targetObserver?: AccessorOrObserver = void 0;;
 
   public persistentFlags: LifecycleFlags = LifecycleFlags.none;
+  // TODO need better way to avoid repetition
+  public readonly sourceMiddlewares: IBindingMiddleware[] = [];
+  public readonly targetMiddlewares: IBindingMiddleware[] = [];
+  public readonly registerMiddleware: typeof registerMiddleware = registerMiddleware;
+  public readonly deregisterMiddleware: typeof deregisterMiddleware = deregisterMiddleware;
+  private readonly runTargetMiddlewares: typeof runTargetMiddlewares = runTargetMiddlewares;
+  private readonly runSourceMiddlewares: typeof runSourceMiddlewares = runSourceMiddlewares;
+  public readonly postRenderTaskQueue: ITaskQueue;
 
   public constructor(
     public sourceExpression: IsBindingBehavior | IForOfStatement,
@@ -59,6 +77,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
   ) {
     connectable.assignIdTo(this);
     this.$lifecycle = locator.get(ILifecycle);
+    this.postRenderTaskQueue = locator.get(IScheduler).getPostRenderTaskQueue();
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
@@ -71,7 +90,17 @@ export class PropertyBinding implements IPartialConnectableBinding {
     this.sourceExpression.assign!(flags, this.$scope!, this.locator, value, this.part);
   }
 
-  public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
+  public async runupdateTarget(context: IUpdateMiddlewareContext): Promise<IUpdateMiddlewareContext> {
+    this.updateTarget(context.newValue, context.flags);
+    return Promise.resolve(context);
+  }
+
+  public async runUpdateSource(context: IUpdateMiddlewareContext): Promise<IUpdateMiddlewareContext> {
+    this.updateSource(context.newValue, context.flags);
+    return Promise.resolve(context);
+  }
+
+  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
     if ((this.$state & State.isBound) === 0) {
       return;
     }
@@ -79,13 +108,17 @@ export class PropertyBinding implements IPartialConnectableBinding {
     flags |= this.persistentFlags;
 
     if ((flags & LifecycleFlags.updateTargetInstance) > 0) {
-      const previousValue = this.targetObserver!.getValue();
+      previousValue = this.targetObserver!.getValue();
       // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
       if (this.sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
         newValue = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.part);
       }
       if (newValue !== previousValue) {
-        this.updateTarget(newValue, flags);
+        if (this.targetMiddlewares.length > 0) {
+          this.runTargetMiddlewares(newValue, previousValue, flags);
+        } else {
+          this.updateTarget(newValue, flags);
+        }
       }
       if ((this.mode & oneTime) === 0) {
         this.version++;
@@ -97,7 +130,11 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
     if ((flags & LifecycleFlags.updateSourceExpression) > 0) {
       if (newValue !== this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.part)) {
-        this.updateSource(newValue, flags);
+        if (this.sourceMiddlewares.length > 0) {
+          this.runSourceMiddlewares(newValue, previousValue, flags);
+        } else {
+          this.updateSource(newValue, flags);
+        }
       }
       return;
     }

@@ -9,20 +9,33 @@ import {
   IsBindingBehavior,
   IScope,
   LifecycleFlags,
-  State
+  State,
+  IHookableCallBinding,
+  IBindingMiddleware,
+  registerMiddleware,
+  deregisterMiddleware,
+  ICallSourceMiddlewareContext,
+  IScheduler,
+  ITaskQueue
 } from '@aurelia/runtime';
 import { IEventManager } from '../observation/event-manager';
 
-export interface Listener extends IConnectableBinding {}
+export interface Listener extends IConnectableBinding { }
 /**
  * Listener binding. Handle event binding between view and view model
  */
-export class Listener implements IBinding {
+export class Listener implements IBinding, IHookableCallBinding {
   public $state: State = State.none;
   public $scope!: IScope;
   public part?: string;
 
   private handler!: IDisposable;
+
+  // TODO need better way to avoid repetition
+  public readonly middlewares: IBindingMiddleware[] = [];
+  public readonly registerMiddleware: typeof registerMiddleware = registerMiddleware;
+  public readonly deregisterMiddleware: typeof deregisterMiddleware = deregisterMiddleware;
+  public readonly postRenderTaskQueue: ITaskQueue;
 
   public constructor(
     public dom: IDOM,
@@ -33,7 +46,9 @@ export class Listener implements IBinding {
     public preventDefault: boolean,
     public eventManager: IEventManager,
     public locator: IServiceLocator
-  ) {}
+  ) {
+    this.postRenderTaskQueue = locator.get(IScheduler).getPostRenderTaskQueue();
+  }
 
   public callSource(event: Event): ReturnType<IsBindingBehavior['evaluate']> {
     const overrideContext = this.$scope.overrideContext;
@@ -51,7 +66,11 @@ export class Listener implements IBinding {
   }
 
   public handleEvent(event: Event): void {
-    this.callSource(event);
+    if (this.middlewares.length > 0) {
+      this.runMiddlewares(event);
+    } else {
+      this.callSource(event!);
+    }
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
@@ -112,5 +131,13 @@ export class Listener implements IBinding {
 
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
     return;
+  }
+
+  private runMiddlewares(event: Event) {
+    this.postRenderTaskQueue.queueTask(async () =>
+      this.middlewares.reduce(async (acc, middleware) => {
+        const ctx = await acc;
+        return !ctx.done ? middleware.runCallSource!(ctx) : acc;
+      }, Promise.resolve<ICallSourceMiddlewareContext>({ done: false, event })));
   }
 }

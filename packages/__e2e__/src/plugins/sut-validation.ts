@@ -1,5 +1,5 @@
-import { ValidationRules, IValidator } from '@aurelia/validation';
 import { customElement } from '@aurelia/runtime';
+import { IValidationControllerFactory, IValidator, ValidationRules, ValidationController } from '@aurelia/validation';
 import template from './sut-validation.html';
 
 @customElement({ name: 'sut-validation', template })
@@ -11,10 +11,14 @@ export class SutValidation {
     },
     d: 1
   };
+  private readonly controller: ValidationController;
 
   public constructor(
+    @IValidationControllerFactory validationControllerFactory: IValidationControllerFactory,
     @IValidator private readonly validator: IValidator
-  ) { }
+  ) {
+    this.controller = validationControllerFactory.createForCurrentScope();
+  }
 
   public async binding() {
     const rules = new ValidationRules()
@@ -48,6 +52,11 @@ export class SutValidation {
       .required()
       .rules;
     const result = await this.validator.validateObject(this.a, rules1);
+    console.log(result);
+  }
+
+  private async validate() {
+    const result = await this.controller.validate();
     console.log(result);
   }
 }

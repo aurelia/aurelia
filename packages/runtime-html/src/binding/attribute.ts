@@ -20,6 +20,14 @@ import {
   State,
   IScheduler,
   INode,
+  IHookableValueBinding,
+  IBindingMiddleware,
+  runTargetMiddlewares,
+  deregisterMiddleware,
+  registerMiddleware,
+  runSourceMiddlewares,
+  IUpdateMiddlewareContext,
+  ITaskQueue
 } from '@aurelia/runtime';
 import {
   AttributeObserver,
@@ -32,13 +40,13 @@ const { oneTime, toView, fromView } = BindingMode;
 // pre-combining flags for bitwise checks is a minor perf tweak
 const toViewOrOneTime = toView | oneTime;
 
-export interface AttributeBinding extends IConnectableBinding {}
+export interface AttributeBinding extends IConnectableBinding { }
 
 /**
  * Attribute binding. Handle attribute binding betwen view/view model. Understand Html special attributes
  */
 @connectable()
-export class AttributeBinding implements IPartialConnectableBinding {
+export class AttributeBinding implements IPartialConnectableBinding, IHookableValueBinding {
   public id!: number;
   public $state: State = State.none;
   public $scheduler: IScheduler;
@@ -54,6 +62,14 @@ export class AttributeBinding implements IPartialConnectableBinding {
   public persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
   public target: Element;
+
+  public readonly sourceMiddlewares: IBindingMiddleware[] = [];
+  public readonly targetMiddlewares: IBindingMiddleware[] = [];
+  public readonly registerMiddleware: typeof registerMiddleware = registerMiddleware;
+  public readonly deregisterMiddleware: typeof deregisterMiddleware = deregisterMiddleware;
+  private readonly runTargetMiddlewares: typeof runTargetMiddlewares = runTargetMiddlewares;
+  private readonly runSourceMiddlewares: typeof runSourceMiddlewares = runSourceMiddlewares;
+  public readonly postRenderTaskQueue: ITaskQueue;
 
   public constructor(
     public sourceExpression: IsBindingBehavior | IForOfStatement,
@@ -72,6 +88,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     this.target = target as Element;
     connectable.assignIdTo(this);
     this.$scheduler = locator.get(IScheduler);
+    this.postRenderTaskQueue = this.$scheduler.getPostRenderTaskQueue();
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
@@ -84,7 +101,17 @@ export class AttributeBinding implements IPartialConnectableBinding {
     this.sourceExpression.assign!(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.locator, value);
   }
 
-  public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
+  public async runupdateTarget(context: IUpdateMiddlewareContext): Promise<IUpdateMiddlewareContext> {
+    this.updateTarget(context.newValue, context.flags);
+    return Promise.resolve(context);
+  }
+
+  public async runUpdateSource(context: IUpdateMiddlewareContext): Promise<IUpdateMiddlewareContext> {
+    this.updateSource(context.newValue, context.flags);
+    return Promise.resolve(context);
+  }
+
+  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
     if (!(this.$state & State.isBound)) {
       return;
     }
@@ -97,13 +124,17 @@ export class AttributeBinding implements IPartialConnectableBinding {
     }
 
     if (flags & LifecycleFlags.updateTargetInstance) {
-      const previousValue = this.targetObserver.getValue();
+      previousValue = this.targetObserver.getValue();
       // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
       if (this.sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
         newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);
       }
       if (newValue !== previousValue) {
-        this.updateTarget(newValue, flags);
+        if (this.targetMiddlewares.length > 0) {
+          this.runTargetMiddlewares(newValue, previousValue, flags);
+        } else {
+          this.updateTarget(newValue, flags);
+        }
       }
       if ((this.mode & oneTime) === 0) {
         this.version++;
@@ -115,7 +146,11 @@ export class AttributeBinding implements IPartialConnectableBinding {
 
     if (flags & LifecycleFlags.updateSourceExpression) {
       if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part)) {
-        this.updateSource(newValue, flags);
+        if (this.sourceMiddlewares.length > 0) {
+          this.runSourceMiddlewares(newValue, previousValue, flags);
+        } else {
+          this.updateSource(newValue, flags);
+        }
       }
       return;
     }

@@ -55,10 +55,14 @@ import {
 } from './function';
 import {
   $ValueRecord,
+  $GetSpecies,
 } from './_shared';
 import {
   $CreateArrayFromList,
 } from '../exotics/array';
+import {
+  $String,
+} from '../types/string';
 
 // http://www.ecma-international.org/ecma-262/#sec-promise-abstract-operations
 // #region 25.6.1 Promise Abstract Operation
@@ -692,6 +696,15 @@ export class $PromiseConstructor extends $BuiltinFunction<'%Promise%'> {
     this.setDataProperty(this.realm['[[Intrinsics]]'].resolve, value, false, false, false);
   }
 
+  // http://www.ecma-international.org/ecma-262/#sec-get-promise-@@species
+  // 25.6.4.6 get Promise [ @@species ]
+  public get ['@@species'](): $GetSpecies {
+    return this.getProperty(this.realm['[[Intrinsics]]']['@@species'])['[[Value]]'] as $GetSpecies;
+  }
+  public set ['@@species'](value: $GetSpecies) {
+    this.setDataProperty(this.realm['[[Intrinsics]]']['@@species'], value, false, false, false);
+  }
+
   public constructor(
     realm: Realm,
     functionPrototype: $FunctionPrototype,
@@ -1246,19 +1259,10 @@ export function $PromiseResolve(
   return promiseCapability['[[Promise]]'] as $PromiseInstance; // TODO: verify if cast is safe
 }
 
-// http://www.ecma-international.org/ecma-262/#sec-get-promise-@@species
-// 25.6.4.6 get Promise [ @@species ]
-
-  // 1. Return the this value.
-
 // #endregion
 
 // http://www.ecma-international.org/ecma-262/#sec-properties-of-the-promise-prototype-object
 // #region 25.6.5 Properties of the Promise Prototype Object
-
-
-// http://www.ecma-international.org/ecma-262/#sec-promise.prototype-@@tostringtag
-// 25.6.5.5 Promise.prototype [ @@toStringTag ]
 
 export class $PromisePrototype extends $Object<'%PromisePrototype%'> {
   // http://www.ecma-international.org/ecma-262/#sec-promise.prototype.catch
@@ -1295,6 +1299,15 @@ export class $PromisePrototype extends $Object<'%PromisePrototype%'> {
   }
   public set then(value: $PromiseProto_then) {
     this.setDataProperty(this.realm['[[Intrinsics]]'].then, value);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-promise.prototype-@@tostringtag
+  // 25.6.5.5 Promise.prototype [ @@toStringTag ]
+  public get '@@toStringTag'(): $String<'Promise'> {
+    return this.getProperty(this.realm['[[Intrinsics]]']['@@toStringTag'])['[[Value]]'] as $String<'Promise'>;
+  }
+  public set '@@toStringTag'(value: $String<'Promise'>) {
+    this.setDataProperty(this.realm['[[Intrinsics]]']['@@toStringTag'], value, false, false, true);
   }
 
   public constructor(

@@ -620,6 +620,18 @@ export class ExecutionContext<TLex extends $EnvRec = $EnvRec, TVar extends ($Mod
     this.activeTime += (Date.now() - this.activityTimestamp);
   }
 
+  public makeCopy(): this {
+    const ctx = new ExecutionContext(this.Realm);
+    ctx.Function = this.Function;
+    ctx.ScriptOrModule = this.ScriptOrModule;
+    ctx.LexicalEnvironment = this.LexicalEnvironment;
+    ctx.VariableEnvironment = this.VariableEnvironment;
+    ctx.Generator = this.Generator;
+    ctx.onResume = this.onResume;
+    ctx.suspended = this.suspended;
+    return ctx as this;
+  }
+
   public dispose(this: Writable<Partial<ExecutionContext>>): void {
     this.Function = void 0;
 

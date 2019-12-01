@@ -1,7 +1,8 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { I18nConfiguration } from '@aurelia/i18n';
+import { I18nConfiguration, I18nInitOptions } from '@aurelia/i18n';
 import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia } from '@aurelia/runtime';
+import { ValidationConfiguration } from '@aurelia/validation';
 import Fetch from 'i18next-fetch-backend';
 import * as intervalPlural from 'i18next-intervalplural-postprocessor';
 import { App as component } from './app';
@@ -13,6 +14,7 @@ import { resources } from './plugins/translation-resources';
 import RelativeTimeFormat from 'relative-time-format';
 import * as deRt from 'relative-time-format/locale/de.json';
 import * as enRt from 'relative-time-format/locale/en.json';
+import { SutValidation } from './plugins/sut-validation';
 RelativeTimeFormat.addLocale(enRt['default']);
 RelativeTimeFormat.addLocale(deRt['default']);
 Intl['RelativeTimeFormat'] = Intl['RelativeTimeFormat'] || RelativeTimeFormat;
@@ -36,15 +38,17 @@ Intl['RelativeTimeFormat'] = Intl['RelativeTimeFormat'] || RelativeTimeFormat;
           plugins,
           resources: !fetchResource ? resources : undefined,
           backend: fetchResource
-            ? {
-              loadPath: '/locales/{{lng}}/{{ns}}.json',
-            }
+            ? { loadPath: '/locales/{{lng}}/{{ns}}.json', }
             : undefined,
           skipTranslationOnMissingKey: !!searchParams.get('skipkey')
-        };
-      })
+        } as I18nInitOptions;
+      }),
+      ValidationConfiguration,
+      SutI18N,
+      CustomMessage,
+      SutValidation
     );
-  au.container.register(SutI18N, CustomMessage);
+  // au.container.register(SutI18N, CustomMessage, SutValidation);
   au.app({ host, component });
 
   await au.start().wait();

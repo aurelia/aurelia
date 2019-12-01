@@ -92,7 +92,7 @@ import {
   $GeneratorPrototype_next,
   $GeneratorPrototype_return,
   $GeneratorPrototype_throw,
-} from './globals/generator';
+} from './globals/generator-function';
 import {
   $PromiseConstructor,
   $PromisePrototype,

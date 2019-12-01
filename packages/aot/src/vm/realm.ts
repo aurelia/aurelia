@@ -71,13 +71,13 @@ import {
 } from './ast/modules';
 import {
   $GeneratorInstance,
-} from './globals/generator';
+} from './globals/generator-function';
 import {
   JobQueue,
 } from './job';
 import {
   $AsyncGeneratorInstance,
-} from './globals/async-generator';
+} from './globals/async-generator-function';
 
 export class ResolveSet {
   private readonly modules: IModule[] = [];

@@ -1324,9 +1324,9 @@ export class $PromisePrototype extends $Object<'%PromisePrototype%'> {
 export class $PromiseProto_catch extends $BuiltinFunction<'%PromiseProto_catch%'> {
   public constructor(
     realm: Realm,
+    proto: $FunctionPrototype,
   ) {
-    const intrinsics = realm['[[Intrinsics]]'];
-    super(realm, '%PromiseProto_catch%', intrinsics['%FunctionPrototype%']);
+    super(realm, '%PromiseProto_catch%', proto);
   }
 
   public performSteps(
@@ -1355,9 +1355,9 @@ export class $PromiseProto_catch extends $BuiltinFunction<'%PromiseProto_catch%'
 export class $PromiseProto_finally extends $BuiltinFunction<'%PromiseProto_finally%'> {
   public constructor(
     realm: Realm,
+    proto: $FunctionPrototype,
   ) {
-    const intrinsics = realm['[[Intrinsics]]'];
-    super(realm, '%PromiseProto_finally%', intrinsics['%FunctionPrototype%']);
+    super(realm, '%PromiseProto_finally%', proto);
   }
 
   public performSteps(
@@ -1585,9 +1585,9 @@ export class $Thrower extends $BuiltinFunction<'Thrower'> {
 export class $PromiseProto_then extends $BuiltinFunction<'%PromiseProto_then%'> {
   public constructor(
     realm: Realm,
+    proto: $FunctionPrototype,
   ) {
-    const intrinsics = realm['[[Intrinsics]]'];
-    super(realm, '%PromiseProto_then%', intrinsics['%FunctionPrototype%']);
+    super(realm, '%PromiseProto_then%', proto);
   }
 
   public performSteps(

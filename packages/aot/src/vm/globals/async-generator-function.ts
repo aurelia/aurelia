@@ -227,6 +227,13 @@ export class $AsyncGeneratorPrototype extends $Object<'%AsyncGeneratorPrototype%
 }
 
 export class $AsyncGeneratorPrototype_next extends $BuiltinFunction<'AsyncGenerator.prototype.next'> {
+  public constructor(
+    realm: Realm,
+    proto: $FunctionPrototype,
+  ) {
+    super(realm, 'AsyncGenerator.prototype.next', proto);
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-asyncgenerator-prototype-next
   // 25.5.1.2 AsyncGenerator.prototype.next ( value )
   public performSteps(
@@ -254,6 +261,13 @@ export class $AsyncGeneratorPrototype_next extends $BuiltinFunction<'AsyncGenera
 }
 
 export class $AsyncGeneratorPrototype_return extends $BuiltinFunction<'AsyncGenerator.prototype.return'> {
+  public constructor(
+    realm: Realm,
+    proto: $FunctionPrototype,
+  ) {
+    super(realm, 'AsyncGenerator.prototype.return', proto);
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-asyncgenerator-prototype-return
   // 25.5.1.3 AsyncGenerator.prototype.return ( value )
   public performSteps(
@@ -281,6 +295,13 @@ export class $AsyncGeneratorPrototype_return extends $BuiltinFunction<'AsyncGene
 }
 
 export class $AsyncGeneratorPrototype_throw extends $BuiltinFunction<'AsyncGenerator.prototype.throw'> {
+  public constructor(
+    realm: Realm,
+    proto: $FunctionPrototype,
+  ) {
+    super(realm, 'AsyncGenerator.prototype.throw', proto);
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-asyncgenerator-prototype-throw
   // 25.5.1.4 AsyncGenerator.prototype.throw ( exception )
   public performSteps(

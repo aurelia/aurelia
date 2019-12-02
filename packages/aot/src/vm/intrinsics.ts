@@ -30,7 +30,7 @@ import {
   $Function,
 } from './types/function';
 import {
-  $IteratorPrototype, $AsyncIteratorPrototype, $AsyncFromSyncIteratorPrototype,
+  $IteratorPrototype, $AsyncIteratorPrototype, $AsyncFromSyncIteratorPrototype, $AsyncFromSyncIteratorPrototype_next, $AsyncFromSyncIteratorPrototype_return, $AsyncFromSyncIteratorPrototype_throw,
 } from './globals/iteration';
 import {
   $StringConstructor,
@@ -100,10 +100,13 @@ import {
   $Promise_race,
   $Promise_resolve,
   $Promise_reject,
+  $PromiseProto_then,
+  $PromiseProto_catch,
+  $PromiseProto_finally,
 } from './globals/promise';
 import { $GetSpecies } from './globals/_shared';
 import { $AsyncFunctionPrototype, $AsyncFunctionConstructor } from './globals/async-function';
-import { $AsyncGeneratorFunctionPrototype, $AsyncGeneratorFunctionConstructor, $AsyncGeneratorPrototype } from './globals/async-generator-function';
+import { $AsyncGeneratorFunctionPrototype, $AsyncGeneratorFunctionConstructor, $AsyncGeneratorPrototype, $AsyncGeneratorPrototype_next, $AsyncGeneratorPrototype_return, $AsyncGeneratorPrototype_throw } from './globals/async-generator-function';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
@@ -348,21 +351,29 @@ export class Intrinsics implements IDisposable {
   public readonly '%Promise%': $PromiseConstructor;
   public readonly '%PromisePrototype%': $PromisePrototype;
 
+  public readonly '%PromiseProto_then%': $PromiseProto_then;
+  public readonly '%Promise_all%': $Promise_all;
+  public readonly '%Promise_resolve%': $Promise_resolve;
+  public readonly '%Promise_reject%': $Promise_reject;
+
+  public readonly '%AsyncFunction%': $AsyncFunctionConstructor;
+  public readonly '%AsyncFunctionPrototype%': $AsyncFunctionPrototype;
+
+  public readonly '%AsyncIteratorPrototype%': $AsyncIteratorPrototype;
+  public readonly '%AsyncFromSyncIteratorPrototype%': $AsyncFromSyncIteratorPrototype;
+
+  public readonly '%AsyncGeneratorFunction%': $AsyncGeneratorFunctionConstructor;
+  public readonly '%AsyncGenerator%': $AsyncGeneratorFunctionPrototype;
+
+  public readonly '%AsyncGeneratorPrototype%': $AsyncGeneratorPrototype;
+
   public readonly '%RegExpPrototype%': $Object<'%RegExpPrototype%'>;
   public readonly '%DatePrototype%': $Object<'%DatePrototype%'>;
-
-  public readonly '%AsyncFunctionPrototype%': $Object<'%AsyncFunctionPrototype%'>;
-
-  public readonly '%AsyncGenerator%': $Object<'%AsyncGenerator%'>;
 
   public readonly '%ArrayIteratorPrototype%': $Object<'%ArrayIteratorPrototype%'>;
   public readonly '%MapIteratorPrototype%': $Object<'%MapIteratorPrototype%'>;
   public readonly '%SetIteratorPrototype%': $Object<'%SetIteratorPrototype%'>;
   public readonly '%StringIteratorPrototype%': $Object<'%StringIteratorPrototype%'>;
-
-  public readonly '%AsyncIteratorPrototype%': $Object<'%AsyncIteratorPrototype%'>;
-  public readonly '%AsyncFromSyncIteratorPrototype%': $Object<'%AsyncFromSyncIteratorPrototype%'>;
-  public readonly '%AsyncGeneratorPrototype%': $Object<'%AsyncGeneratorPrototype%'>;
 
   public readonly '%ArrayPrototype%': $Object<'%ArrayPrototype%'>;
   public readonly '%MapPrototype%': $Object<'%MapPrototype%'>;
@@ -386,10 +397,6 @@ export class Intrinsics implements IDisposable {
 
   public readonly '%RegExp%': $Object<'%RegExp%'>;
   public readonly '%Date%': $Object<'%Date%'>;
-
-  public readonly '%AsyncFunction%': $Object<'%AsyncFunction%'>;
-
-  public readonly '%AsyncGeneratorFunction%': $Object<'%AsyncGeneratorFunction%'>;
 
   public readonly '%Array%': $Object<'%Array%'>;
   public readonly '%Map%': $Object<'%Map%'>;
@@ -434,10 +441,6 @@ export class Intrinsics implements IDisposable {
   public readonly '%ArrayProto_keys%': $Object<'%ArrayProto_keys%'>;
   public readonly '%ArrayProto_values%': $Object<'%ArrayProto_values%'>;
   public readonly '%ObjProto_valueOf%': $Object<'%ObjProto_valueOf%'>;
-  public readonly '%PromiseProto_then%': $Object<'%PromiseProto_then%'>;
-  public readonly '%Promise_all%': $Object<'%Promise_all%'>;
-  public readonly '%Promise_reject%': $Object<'%Promise_reject%'>;
-  public readonly '%Promise_resolve%': $Object<'%Promise_resolve%'>;
 
   // http://www.ecma-international.org/ecma-262/#sec-createintrinsics
   // 8.2.2 CreateIntrinsics ( realmRec )
@@ -619,6 +622,12 @@ export class Intrinsics implements IDisposable {
     const promisePrototype = this['%PromisePrototype%'] = new $PromisePrototype(realm, functionPrototype);
     (promiseConstructor.$prototype = promisePrototype).$constructor = promiseConstructor;
 
+    promisePrototype.then = this['%PromiseProto_then%'] = new $PromiseProto_then(realm, functionPrototype);
+    promisePrototype.catch = new $PromiseProto_catch(realm, functionPrototype);
+    promisePrototype.finally = new $PromiseProto_finally(realm, functionPrototype);
+
+    promisePrototype['@@toStringTag'] = new $String(realm, 'Promise');
+
     promiseConstructor.all = this['%Promise_all%'] = new $Promise_all(realm, functionPrototype);
     promiseConstructor.race = new $Promise_race(realm, functionPrototype);
     promiseConstructor.resolve = this['%Promise_resolve%'] = new $Promise_resolve(realm, functionPrototype);
@@ -626,20 +635,35 @@ export class Intrinsics implements IDisposable {
 
     promiseConstructor['@@species'] = new $GetSpecies(realm);
 
-    this['%AsyncFunctionPrototype%'] = new $AsyncFunctionPrototype(realm, functionPrototype);
+    const asyncFunctionConstructor = this['%AsyncFunction%'] = new $AsyncFunctionConstructor(realm, functionConstructor);
+    const asyncFunctionPrototype = this['%AsyncFunctionPrototype%'] = new $AsyncFunctionPrototype(realm, functionPrototype);
+    (asyncFunctionConstructor.$prototype = asyncFunctionPrototype).$constructor = asyncFunctionConstructor;
 
-    this['%AsyncGenerator%'] = new $AsyncGeneratorFunctionPrototype(realm, functionPrototype);
-    this['%AsyncGeneratorFunction%'] = new $AsyncGeneratorFunctionConstructor(realm, functionConstructor);
+    asyncFunctionConstructor.length = new $Number(realm, 1);
+
+    asyncFunctionPrototype['@@toStringTag'] = new $String(realm, 'AsyncFunction');
 
     const asyncIteratorPrototype = this['%AsyncIteratorPrototype%'] = new $AsyncIteratorPrototype(realm, objectPrototype);
-    this['%AsyncFromSyncIteratorPrototype%'] = new $AsyncFromSyncIteratorPrototype(realm, asyncIteratorPrototype);
-    this['%AsyncGeneratorPrototype%'] = new $AsyncGeneratorPrototype(realm, iteratorPrototype);
+    const asyncFromSyncIteratorPrototype = this['%AsyncFromSyncIteratorPrototype%'] = new $AsyncFromSyncIteratorPrototype(realm, asyncIteratorPrototype);
+    asyncFromSyncIteratorPrototype.next = new $AsyncFromSyncIteratorPrototype_next(realm, functionPrototype);
+    asyncFromSyncIteratorPrototype.return = new $AsyncFromSyncIteratorPrototype_return(realm, functionPrototype);
+    asyncFromSyncIteratorPrototype.throw = new $AsyncFromSyncIteratorPrototype_throw(realm, functionPrototype);
 
-    this['%AsyncFunction%'] = new $AsyncFunctionConstructor(realm, functionConstructor);
-    // TODO: add proto properties etc
+    asyncFromSyncIteratorPrototype['@@toStringTag'] = new $String(realm, 'Async-from-Sync Iterator');
 
+    const asyncGeneratorFunctionConstructor = this['%AsyncGeneratorFunction%'] = new $AsyncGeneratorFunctionConstructor(realm, functionConstructor);
+    const asyncGeneratorFunctionPrototype = this['%AsyncGenerator%'] = new $AsyncGeneratorFunctionPrototype(realm, functionPrototype);
+    (asyncGeneratorFunctionConstructor.$prototype = asyncGeneratorFunctionPrototype).$constructor = asyncGeneratorFunctionConstructor;
 
-    this['%PromiseProto_then%'] = new $Object(realm, '%PromiseProto_then%', functionPrototype, CompletionType.normal, empty);
+    asyncGeneratorFunctionConstructor.length = new $Number(realm, 1);
+
+    asyncGeneratorFunctionPrototype['@@toStringTag'] = new $String(realm, 'AsyncGeneratorFunction');
+
+    const asyncGeneratorPrototype = this['%AsyncGeneratorPrototype%'] = new $AsyncGeneratorPrototype(realm, iteratorPrototype);
+    (asyncGeneratorFunctionPrototype.$prototype = asyncGeneratorPrototype).$constructor = asyncGeneratorFunctionPrototype;
+    asyncGeneratorPrototype.next = new $AsyncGeneratorPrototype_next(realm, functionPrototype);
+    asyncGeneratorPrototype.return = new $AsyncGeneratorPrototype_return(realm, functionPrototype);
+    asyncGeneratorPrototype.throw = new $AsyncGeneratorPrototype_throw(realm, functionPrototype);
 
     this['%RegExpPrototype%'] = new $Object(realm, '%RegExpPrototype%', objectPrototype, CompletionType.normal, empty);
     this['%DatePrototype%'] = new $Object(realm, '%DatePrototype%', objectPrototype, CompletionType.normal, empty);

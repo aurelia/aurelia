@@ -30,7 +30,7 @@ import {
   $Function,
 } from './types/function';
 import {
-  $IteratorPrototype,
+  $IteratorPrototype, $AsyncIteratorPrototype, $AsyncFromSyncIteratorPrototype,
 } from './globals/iteration';
 import {
   $StringConstructor,
@@ -96,7 +96,14 @@ import {
 import {
   $PromiseConstructor,
   $PromisePrototype,
+  $Promise_all,
+  $Promise_race,
+  $Promise_resolve,
+  $Promise_reject,
 } from './globals/promise';
+import { $GetSpecies } from './globals/_shared';
+import { $AsyncFunctionPrototype, $AsyncFunctionConstructor } from './globals/async-function';
+import { $AsyncGeneratorFunctionPrototype, $AsyncGeneratorFunctionConstructor, $AsyncGeneratorPrototype } from './globals/async-generator-function';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
@@ -590,7 +597,7 @@ export class Intrinsics implements IDisposable {
     URIErrorPrototype.message = new $String(realm, '');
     URIErrorPrototype.$name = new $String(realm, 'URIError');
 
-    const iteratorPrototype = this['%IteratorPrototype%'] = new $IteratorPrototype(realm);
+    const iteratorPrototype = this['%IteratorPrototype%'] = new $IteratorPrototype(realm, objectPrototype);
 
     const generatorFunctionConstructor = this['%GeneratorFunction%'] = new $GeneratorFunctionConstructor(realm, functionConstructor)
     const generatorFunctionPrototype = this['%Generator%'] = new $GeneratorFunctionPrototype(realm, functionPrototype);
@@ -612,21 +619,35 @@ export class Intrinsics implements IDisposable {
     const promisePrototype = this['%PromisePrototype%'] = new $PromisePrototype(realm, functionPrototype);
     (promiseConstructor.$prototype = promisePrototype).$constructor = promiseConstructor;
 
+    promiseConstructor.all = this['%Promise_all%'] = new $Promise_all(realm, functionPrototype);
+    promiseConstructor.race = new $Promise_race(realm, functionPrototype);
+    promiseConstructor.resolve = this['%Promise_resolve%'] = new $Promise_resolve(realm, functionPrototype);
+    promiseConstructor.reject = this['%Promise_reject%'] = new $Promise_reject(realm, functionPrototype);
+
+    promiseConstructor['@@species'] = new $GetSpecies(realm);
+
+    this['%AsyncFunctionPrototype%'] = new $AsyncFunctionPrototype(realm, functionPrototype);
+
+    this['%AsyncGenerator%'] = new $AsyncGeneratorFunctionPrototype(realm, functionPrototype);
+    this['%AsyncGeneratorFunction%'] = new $AsyncGeneratorFunctionConstructor(realm, functionConstructor);
+
+    const asyncIteratorPrototype = this['%AsyncIteratorPrototype%'] = new $AsyncIteratorPrototype(realm, objectPrototype);
+    this['%AsyncFromSyncIteratorPrototype%'] = new $AsyncFromSyncIteratorPrototype(realm, asyncIteratorPrototype);
+    this['%AsyncGeneratorPrototype%'] = new $AsyncGeneratorPrototype(realm, iteratorPrototype);
+
+    this['%AsyncFunction%'] = new $AsyncFunctionConstructor(realm, functionConstructor);
+    // TODO: add proto properties etc
+
+
+    this['%PromiseProto_then%'] = new $Object(realm, '%PromiseProto_then%', functionPrototype, CompletionType.normal, empty);
+
     this['%RegExpPrototype%'] = new $Object(realm, '%RegExpPrototype%', objectPrototype, CompletionType.normal, empty);
     this['%DatePrototype%'] = new $Object(realm, '%DatePrototype%', objectPrototype, CompletionType.normal, empty);
-
-    this['%AsyncFunctionPrototype%'] = new $Object(realm, '%AsyncFunctionPrototype%', functionPrototype, CompletionType.normal, empty);
-
-    this['%AsyncGenerator%'] = new $Object(realm, '%AsyncGenerator%', functionPrototype, CompletionType.normal, empty);
 
     this['%ArrayIteratorPrototype%'] = new $Object(realm, '%ArrayIteratorPrototype%', this['%IteratorPrototype%'], CompletionType.normal, empty);
     this['%MapIteratorPrototype%'] = new $Object(realm, '%MapIteratorPrototype%', this['%IteratorPrototype%'], CompletionType.normal, empty);
     this['%SetIteratorPrototype%'] = new $Object(realm, '%SetIteratorPrototype%', this['%IteratorPrototype%'], CompletionType.normal, empty);
     this['%StringIteratorPrototype%'] = new $Object(realm, '%StringIteratorPrototype%', this['%IteratorPrototype%'], CompletionType.normal, empty);
-
-    this['%AsyncIteratorPrototype%'] = new $Object(realm, '%AsyncIteratorPrototype%', objectPrototype, CompletionType.normal, empty);
-    this['%AsyncFromSyncIteratorPrototype%'] = new $Object(realm, '%AsyncFromSyncIteratorPrototype%', this['%AsyncIteratorPrototype%'], CompletionType.normal, empty);
-    this['%AsyncGeneratorPrototype%'] = new $Object(realm, '%AsyncGeneratorPrototype%', this['%AsyncIteratorPrototype%'], CompletionType.normal, empty);
 
     this['%ArrayPrototype%'] = new $Object(realm, '%ArrayPrototype%', objectPrototype, CompletionType.normal, empty);
     this['%MapPrototype%'] = new $Object(realm, '%MapPrototype%', objectPrototype, CompletionType.normal, empty);
@@ -650,10 +671,6 @@ export class Intrinsics implements IDisposable {
 
     this['%RegExp%'] = new $Object(realm, '%RegExp%', functionPrototype, CompletionType.normal, empty);
     this['%Date%'] = new $Object(realm, '%Date%', functionPrototype, CompletionType.normal, empty);
-
-    this['%AsyncFunction%'] = new $Object(realm, '%AsyncFunction%', functionConstructor, CompletionType.normal, empty);
-
-    this['%AsyncGeneratorFunction%'] = new $Object(realm, '%AsyncGeneratorFunction%', functionConstructor, CompletionType.normal, empty);
 
     this['%Array%'] = new $Object(realm, '%Array%', functionPrototype, CompletionType.normal, empty);
     this['%Map%'] = new $Object(realm, '%Map%', functionPrototype, CompletionType.normal, empty);
@@ -698,10 +715,6 @@ export class Intrinsics implements IDisposable {
     this['%ArrayProto_keys%'] = new $Object(realm, '%ArrayProto_keys%', functionPrototype, CompletionType.normal, empty);
     this['%ArrayProto_values%'] = new $Object(realm, '%ArrayProto_values%', functionPrototype, CompletionType.normal, empty);
     this['%ObjProto_valueOf%'] = new $Object(realm, '%ObjProto_valueOf%', functionPrototype, CompletionType.normal, empty);
-    this['%PromiseProto_then%'] = new $Object(realm, '%PromiseProto_then%', functionPrototype, CompletionType.normal, empty);
-    this['%Promise_all%'] = new $Object(realm, '%Promise_all%', functionPrototype, CompletionType.normal, empty);
-    this['%Promise_reject%'] = new $Object(realm, '%Promise_reject%', functionPrototype, CompletionType.normal, empty);
-    this['%Promise_resolve%'] = new $Object(realm, '%Promise_resolve%', functionPrototype, CompletionType.normal, empty);
   }
 
   public dispose(this: Writable<Partial<Intrinsics>>): void {

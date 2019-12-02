@@ -1,9 +1,10 @@
 import { Constructable } from '@aurelia/kernel';
-import { CustomElement } from '@aurelia/runtime';
+import { CustomElement, IViewModel } from '@aurelia/runtime';
 import { ComponentAppellation, IRouteableComponent, RouteableComponentType, IViewportInstruction, NavigationInstruction, ViewportHandle } from './interfaces';
 import { IRouter } from './router';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
+import { Scope } from './scope';
 
 export const ComponentAppellationResolver = {
   isName: function (component: ComponentAppellation): component is string {
@@ -66,7 +67,58 @@ export const ViewportHandleResolver = {
   },
 };
 
+export interface IViewportInstructionsOptions {
+  context?: IViewModel | Element;
+}
+
 export const NavigationInstructionResolver = {
+  createViewportInstructions: function (router: IRouter, navigationInstructions: NavigationInstruction | NavigationInstruction[], options?: IViewportInstructionsOptions): { instructions: string | ViewportInstruction[], scope: Scope | null } {
+    options = options || {};
+    let scope: Scope | null = null;
+    if (navigationInstructions !== router.instructionResolver.clearViewportInstruction) {
+      if (options.context) {
+        scope = router.findScope(options.context);
+        if (typeof navigationInstructions === 'string') {
+          // If it's not from scope root, figure out which scope
+          if (!navigationInstructions.startsWith('/')) {
+            // Scope modifications
+            if (navigationInstructions.startsWith('.')) {
+              // The same as no scope modification
+              if (navigationInstructions.startsWith('./')) {
+                navigationInstructions = navigationInstructions.slice(2);
+              }
+              // Find out how many scopes upwards we should move
+              while (navigationInstructions.startsWith('../')) {
+                scope = scope.parent || scope;
+                navigationInstructions = navigationInstructions.slice(3);
+              }
+            }
+            if (scope.path !== null) {
+              navigationInstructions = `${scope.path}/${navigationInstructions}`;
+              scope = router.rootScope!.scope;
+            }
+          } else { // Specified root scope with /
+            scope = router.rootScope!.scope;
+          }
+        } else {
+          navigationInstructions = NavigationInstructionResolver.toViewportInstructions(router, navigationInstructions);
+          for (const instruction of navigationInstructions as ViewportInstruction[]) {
+            if (instruction.scope === null) {
+              instruction.scope = scope;
+            }
+          }
+        }
+      }
+    } else {
+      navigationInstructions = NavigationInstructionResolver.toViewportInstructions(router, navigationInstructions);
+    }
+
+    return {
+      instructions: navigationInstructions as string | ViewportInstruction[],
+      scope,
+    };
+  },
+
   toViewportInstructions: function (router: IRouter, navigationInstructions: NavigationInstruction | NavigationInstruction[]): ViewportInstruction[] {
     if (!Array.isArray(navigationInstructions)) {
       return NavigationInstructionResolver.toViewportInstructions(router, [navigationInstructions]);

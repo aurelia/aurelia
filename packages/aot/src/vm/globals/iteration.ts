@@ -43,8 +43,22 @@ import {
   $PropertyDescriptor,
 } from '../types/property-descriptor';
 import {
-  $List
+  $List,
 } from '../types/list';
+import {
+  $ObjectPrototype,
+} from './object';
+import {
+  $FunctionPrototype,
+} from './function';
+import {
+  $NewPromiseCapability,
+  $PromiseCapability,
+  $IfAbruptRejectPromise,
+  $PromiseInstance,
+  $PromiseResolve,
+  $PerformPromiseThen,
+} from './promise';
 
 // http://www.ecma-international.org/ecma-262/#sec-getiterator
 export function $GetIterator(
@@ -423,21 +437,6 @@ export class $IteratorRecord {
   }
 }
 
-// http://www.ecma-international.org/ecma-262/#sec-createasyncfromsynciterator
-export function $CreateAsyncFromSyncIterator(
-  ctx: ExecutionContext,
-  syncIteratorRecord: $IteratorRecord,
-): $IteratorRecord | $Error {
-  const realm = ctx.Realm;
-
-  // 1. Let asyncIterator be ! ObjectCreate(%AsyncFromSyncIteratorPrototype%, « [[SyncIteratorRecord]] »).
-  // 2. Set asyncIterator.[[SyncIteratorRecord]] to syncIteratorRecord.
-  const asyncIterator = new $AsyncFromSyncIterator(realm, syncIteratorRecord);
-
-  // 3. Return ? GetIterator(asyncIterator, async).
-  return $GetIterator(ctx, asyncIterator, 'async');
-}
-
 export class $AsyncFromSyncIterator extends $Object<'AsyncFromSyncIterator'> {
   public readonly '[[SyncIteratorRecord]]': $IteratorRecord;
 
@@ -455,6 +454,7 @@ export class $AsyncFromSyncIterator extends $Object<'AsyncFromSyncIterator'> {
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-%iteratorprototype%-@@iterator
+// 25.1.2.1 %IteratorPrototype% [ @@iterator ] ( )
 export class $Symbol_Iterator extends $BuiltinFunction<'[Symbol.iterator]'> {
   public constructor(
     realm: Realm,
@@ -469,24 +469,49 @@ export class $Symbol_Iterator extends $BuiltinFunction<'[Symbol.iterator]'> {
     argumentsList: $List<$AnyNonEmpty>,
     NewTarget: $Function | $Undefined,
   ): $AnyNonEmpty  {
+    // 1. Return the this value.
+    return thisArgument;
+  }
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-asynciteratorprototype-asynciterator
+// 25.1.3.1 %AsyncIteratorPrototype% [ @@asyncIterator ] ( )
+export class $Symbol_AsyncIterator extends $BuiltinFunction<'[Symbol.asyncIterator]'> {
+  public constructor(
+    realm: Realm,
+  ) {
+    super(realm, '[Symbol.asyncIterator]', realm['[[Intrinsics]]']['%FunctionPrototype%']);
+    this.SetFunctionName(realm.stack.top, new $String(realm, '[Symbol.asyncIterator]'));
+  }
+
+  public performSteps(
+    ctx: ExecutionContext,
+    thisArgument: $AnyNonEmptyNonError,
+    argumentsList: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
+  ): $AnyNonEmpty  {
+    // 1. Return the this value.
     return thisArgument;
   }
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-%iteratorprototype%-object
+// 25.1.2 The %IteratorPrototype% Object
 export class $IteratorPrototype extends $Object<'%IteratorPrototype%'> {
   public constructor(
     realm: Realm,
+    proto: $ObjectPrototype,
   ) {
-    super(realm, '%IteratorPrototype%', realm['[[Intrinsics]]']['%ObjectPrototype%'], CompletionType.normal, realm['[[Intrinsics]]'].empty);
+    const intrinsics = realm['[[Intrinsics]]'];
+    super(realm, '%IteratorPrototype%', proto, CompletionType.normal, intrinsics.empty);
 
     $DefinePropertyOrThrow(
       realm.stack.top,
       this,
-      realm['[[Intrinsics]]']['@@iterator'],
+      intrinsics['@@iterator'],
       new $PropertyDescriptor(
         realm,
-        realm['[[Intrinsics]]']['@@iterator'],
+        intrinsics['@@iterator'],
         {
           '[[Value]]': new $Symbol_Iterator(realm),
         },
@@ -494,3 +519,400 @@ export class $IteratorPrototype extends $Object<'%IteratorPrototype%'> {
     );
   }
 }
+
+
+// http://www.ecma-international.org/ecma-262/#sec-asynciteratorprototype
+// 25.1.3 The %AsyncIteratorPrototype% Object
+export class $AsyncIteratorPrototype extends $Object<'%AsyncIteratorPrototype%'> {
+  public constructor(
+    realm: Realm,
+    proto: $ObjectPrototype,
+  ) {
+    const intrinsics = realm['[[Intrinsics]]'];
+    super(realm, '%AsyncIteratorPrototype%', proto, CompletionType.normal, intrinsics.empty);
+
+    $DefinePropertyOrThrow(
+      realm.stack.top,
+      this,
+      intrinsics['@@asyncIterator'],
+      new $PropertyDescriptor(
+        realm,
+        intrinsics['@@asyncIterator'],
+        {
+          '[[Value]]': new $Symbol_AsyncIterator(realm),
+        },
+      ),
+    );
+  }
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-async-from-sync-iterator-objects
+// #region 25.1.4 Async-from-Sync Iterator Objects
+
+// http://www.ecma-international.org/ecma-262/#sec-createasyncfromsynciterator
+// 25.1.4.1 CreateAsyncFromSyncIterator ( syncIteratorRecord )
+export function $CreateAsyncFromSyncIterator(
+  ctx: ExecutionContext,
+  syncIteratorRecord: $IteratorRecord,
+): $IteratorRecord | $Error {
+  const realm = ctx.Realm;
+
+  // 1. Let asyncIterator be ! ObjectCreate(%AsyncFromSyncIteratorPrototype%, « [[SyncIteratorRecord]] »).
+  // 2. Set asyncIterator.[[SyncIteratorRecord]] to syncIteratorRecord.
+  const asyncIterator = new $AsyncFromSyncIterator(realm, syncIteratorRecord);
+
+  // 3. Return ? GetIterator(asyncIterator, async).
+  return $GetIterator(ctx, asyncIterator, 'async');
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-%asyncfromsynciteratorprototype%-object
+// 25.1.4.2 The %AsyncFromSyncIteratorPrototype% Object
+export class $AsyncFromSyncIteratorPrototype extends $Object<'%AsyncFromSyncIteratorPrototype%'> {
+  // http://www.ecma-international.org/ecma-262/#sec-%asyncfromsynciteratorprototype%.next
+  // 25.1.4.2.1 %AsyncFromSyncIteratorPrototype%.next ( value )
+  public get next(): $AsyncFromSyncIteratorPrototype_next {
+    return this.getProperty(this.realm['[[Intrinsics]]'].next)['[[Value]]'] as $AsyncFromSyncIteratorPrototype_next;
+  }
+  public set next(value: $AsyncFromSyncIteratorPrototype_next) {
+    this.setDataProperty(this.realm['[[Intrinsics]]'].next, value);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-%asyncfromsynciteratorprototype%.return
+  // 25.1.4.2.2 %AsyncFromSyncIteratorPrototype%.return ( value )
+  public get return(): $AsyncFromSyncIteratorPrototype_return {
+    return this.getProperty(this.realm['[[Intrinsics]]'].return)['[[Value]]'] as $AsyncFromSyncIteratorPrototype_return;
+  }
+  public set return(value: $AsyncFromSyncIteratorPrototype_return) {
+    this.setDataProperty(this.realm['[[Intrinsics]]'].return, value);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-%asyncfromsynciteratorprototype%.throw
+  // 25.1.4.2.3 %AsyncFromSyncIteratorPrototype%.throw ( value )
+  public get throw(): $AsyncFromSyncIteratorPrototype_throw {
+    return this.getProperty(this.realm['[[Intrinsics]]'].throw)['[[Value]]'] as $AsyncFromSyncIteratorPrototype_throw;
+  }
+  public set throw(value: $AsyncFromSyncIteratorPrototype_throw) {
+    this.setDataProperty(this.realm['[[Intrinsics]]'].throw, value);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-%asyncfromsynciteratorprototype%-@@tostringtag
+  // 25.1.4.2.4 %AsyncFromSyncIteratorPrototype% [ @@toStringTag ]
+  public get '@@toStringTag'(): $String<'Async-from-Sync Iterator'> {
+    return this.getProperty(this.realm['[[Intrinsics]]']['@@toStringTag'])['[[Value]]'] as $String<'Async-from-Sync Iterator'>;
+  }
+  public set '@@toStringTag'(value: $String<'Async-from-Sync Iterator'>) {
+    this.setDataProperty(this.realm['[[Intrinsics]]']['@@toStringTag'], value, false, false, true);
+  }
+
+  public constructor(
+    realm: Realm,
+    proto: $AsyncIteratorPrototype,
+  ) {
+    const intrinsics = realm['[[Intrinsics]]'];
+    super(realm, '%AsyncFromSyncIteratorPrototype%', proto, CompletionType.normal, intrinsics.empty);
+  }
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-%asyncfromsynciteratorprototype%.next
+// 25.1.4.2.1 %AsyncFromSyncIteratorPrototype%.next ( value )
+export class $AsyncFromSyncIteratorPrototype_next extends $BuiltinFunction<'%AsyncFromSyncIteratorPrototype%.next'> {
+  public constructor(
+    realm: Realm,
+    proto: $FunctionPrototype,
+  ) {
+    super(realm, '%AsyncFromSyncIteratorPrototype%.next', proto);
+  }
+
+  public performSteps(
+    ctx: ExecutionContext,
+    thisArgument: $AnyNonEmptyNonError,
+    [value]: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
+  ): $AnyNonEmpty  {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    if (value === void 0) {
+      value = intrinsics.undefined;
+    }
+
+    // 1. Let O be the this value.
+    const O = thisArgument;
+
+    // 2. Let promiseCapability be ! NewPromiseCapability(%Promise%).
+    const promiseCapability = $NewPromiseCapability(ctx, intrinsics['%Promise%']) as $PromiseCapability;
+
+    // 3. If Type(O) is not Object, or if O does not have a [[SyncIteratorRecord]] internal slot, then
+    if (!(O instanceof $AsyncFromSyncIterator)) {
+      // 3. a. Let invalidIteratorError be a newly created TypeError object.
+      const invalidIteratorError = new $TypeError(realm, `Expected AsyncFromSyncIterator, but got: ${O}`);
+
+      // 3. b. Perform ! Call(promiseCapability.[[Reject]], undefined, « invalidIteratorError »).
+      $Call(ctx, promiseCapability['[[Reject]]'], intrinsics.undefined, new $List(invalidIteratorError));
+
+      // 3. c. Return promiseCapability.[[Promise]].
+      return promiseCapability['[[Promise]]'];
+    }
+
+    // 4. Let syncIteratorRecord be O.[[SyncIteratorRecord]].
+    const syncIteratorRecord = O['[[SyncIteratorRecord]]'];
+
+    // 5. Let result be IteratorNext(syncIteratorRecord, value).
+    const result = $IteratorNext(ctx, syncIteratorRecord, value);
+
+    // 6. IfAbruptRejectPromise(result, promiseCapability).
+    const $IfAbruptRejectPromiseResult = $IfAbruptRejectPromise(ctx, result, promiseCapability);
+    if ($IfAbruptRejectPromiseResult.isAbrupt) { return $IfAbruptRejectPromiseResult; }
+
+    // 7. Return ! AsyncFromSyncIteratorContinuation(result, promiseCapability).
+    return $AsyncFromSyncIteratorContinuation(ctx, result as $AnyObject, promiseCapability);
+  }
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-%asyncfromsynciteratorprototype%.return
+// 25.1.4.2.2 %AsyncFromSyncIteratorPrototype%.return ( value )
+export class $AsyncFromSyncIteratorPrototype_return extends $BuiltinFunction<'%AsyncFromSyncIteratorPrototype%.return'> {
+  public constructor(
+    realm: Realm,
+    proto: $FunctionPrototype,
+  ) {
+    super(realm, '%AsyncFromSyncIteratorPrototype%.return', proto);
+  }
+
+  public performSteps(
+    ctx: ExecutionContext,
+    thisArgument: $AnyNonEmptyNonError,
+    [value]: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
+  ): $AnyNonEmpty  {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    if (value === void 0) {
+      value = intrinsics.undefined;
+    }
+
+    // 1. Let O be the this value.
+    const O = thisArgument;
+
+    // 2. Let promiseCapability be ! NewPromiseCapability(%Promise%).
+    const promiseCapability = $NewPromiseCapability(ctx, intrinsics['%Promise%']) as $PromiseCapability;
+
+    // 3. If Type(O) is not Object, or if O does not have a [[SyncIteratorRecord]] internal slot, then
+    if (!(O instanceof $AsyncFromSyncIterator)) {
+      // 3. a. Let invalidIteratorError be a newly created TypeError object.
+      const invalidIteratorError = new $TypeError(realm, `Expected AsyncFromSyncIterator, but got: ${O}`);
+
+      // 3. b. Perform ! Call(promiseCapability.[[Reject]], undefined, « invalidIteratorError »).
+      $Call(ctx, promiseCapability['[[Reject]]'], intrinsics.undefined, new $List(invalidIteratorError));
+
+      // 3. c. Return promiseCapability.[[Promise]].
+      return promiseCapability['[[Promise]]'];
+    }
+
+    // 4. Let syncIterator be O.[[SyncIteratorRecord]].[[Iterator]].
+    const syncIterator = O['[[SyncIteratorRecord]]']['[[Iterator]]'];
+
+    // 5. Let return be GetMethod(syncIterator, "return").
+    const $return = $GetMethod(ctx, syncIterator, intrinsics.return);
+
+    // 6. IfAbruptRejectPromise(return, promiseCapability).
+    let $IfAbruptRejectPromiseResult = $IfAbruptRejectPromise(ctx, $return, promiseCapability);
+    if ($IfAbruptRejectPromiseResult.isAbrupt) { return $IfAbruptRejectPromiseResult; }
+
+    // 7. If return is undefined, then
+    if ($return.isUndefined) {
+      // 7. a. Let iterResult be ! CreateIterResultObject(value, true).
+      const iterResult = $CreateIterResultObject(ctx, value, intrinsics.true);
+
+      // 7. b. Perform ! Call(promiseCapability.[[Resolve]], undefined, « iterResult »).
+      $Call(ctx, promiseCapability['[[Resolve]]'], intrinsics.undefined, new $List(iterResult));
+
+      // 7. c. Return promiseCapability.[[Promise]].
+      return promiseCapability['[[Promise]]'];
+    }
+
+    // 8. Let result be Call(return, syncIterator, « value »).
+    const result = $Call(ctx, $return, syncIterator, new $List(value));
+
+    // 9. IfAbruptRejectPromise(result, promiseCapability).
+    $IfAbruptRejectPromiseResult = $IfAbruptRejectPromise(ctx, result, promiseCapability);
+    if ($IfAbruptRejectPromiseResult.isAbrupt) { return $IfAbruptRejectPromiseResult; }
+
+    // 10. If Type(result) is not Object, then
+    if (!result.isObject) {
+      // 10. a. Perform ! Call(promiseCapability.[[Reject]], undefined, « a newly created TypeError object »).
+      const err = new $TypeError(realm, `Expected syncIterator return result to be an object, but got: ${result}`);
+      $Call(ctx, promiseCapability['[[Reject]]'], intrinsics.undefined, new $List(err))
+
+      // 10. b. Return promiseCapability.[[Promise]].
+      return promiseCapability['[[Promise]]'];
+    }
+
+    // 11. Return ! AsyncFromSyncIteratorContinuation(result, promiseCapability).
+    return $AsyncFromSyncIteratorContinuation(ctx, result, promiseCapability);
+  }
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-%asyncfromsynciteratorprototype%.throw
+// 25.1.4.2.3 %AsyncFromSyncIteratorPrototype%.throw ( value )
+export class $AsyncFromSyncIteratorPrototype_throw extends $BuiltinFunction<'%AsyncFromSyncIteratorPrototype%.throw'> {
+  public constructor(
+    realm: Realm,
+    proto: $FunctionPrototype,
+  ) {
+    super(realm, '%AsyncFromSyncIteratorPrototype%.throw', proto);
+  }
+
+  public performSteps(
+    ctx: ExecutionContext,
+    thisArgument: $AnyNonEmptyNonError,
+    [value]: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
+  ): $AnyNonEmpty  {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    if (value === void 0) {
+      value = intrinsics.undefined;
+    }
+
+    // 1. Let O be the this value.
+    const O = thisArgument;
+
+    // 2. Let promiseCapability be ! NewPromiseCapability(%Promise%).
+    const promiseCapability = $NewPromiseCapability(ctx, intrinsics['%Promise%']) as $PromiseCapability;
+
+    // 3. If Type(O) is not Object, or if O does not have a [[SyncIteratorRecord]] internal slot, then
+    if (!(O instanceof $AsyncFromSyncIterator)) {
+      // 3. a. Let invalidIteratorError be a newly created TypeError object.
+      const invalidIteratorError = new $TypeError(realm, `Expected AsyncFromSyncIterator, but got: ${O}`);
+
+      // 3. b. Perform ! Call(promiseCapability.[[Reject]], undefined, « invalidIteratorError »).
+      $Call(ctx, promiseCapability['[[Reject]]'], intrinsics.undefined, new $List(invalidIteratorError));
+
+      // 3. c. Return promiseCapability.[[Promise]].
+      return promiseCapability['[[Promise]]'];
+    }
+
+    // 4. Let syncIterator be O.[[SyncIteratorRecord]].[[Iterator]].
+    const syncIterator = O['[[SyncIteratorRecord]]']['[[Iterator]]'];
+
+    // 5. Let throw be GetMethod(syncIterator, "throw").
+    const $throw = $GetMethod(ctx, syncIterator, intrinsics.throw);
+
+    // 6. IfAbruptRejectPromise(throw, promiseCapability).
+    let $IfAbruptRejectPromiseResult = $IfAbruptRejectPromise(ctx, $throw, promiseCapability);
+    if ($IfAbruptRejectPromiseResult.isAbrupt) { return $IfAbruptRejectPromiseResult; }
+
+    // 7. If throw is undefined, then
+    if ($throw.isUndefined) {
+      // 7. a. Perform ! Call(promiseCapability.[[Reject]], undefined, « value »).
+      $Call(ctx, promiseCapability['[[Resolve]]'], intrinsics.undefined, new $List(value));
+
+      // 7. b. Return promiseCapability.[[Promise]].
+      return promiseCapability['[[Promise]]'];
+    }
+
+    // 8. Let result be Call(throw, syncIterator, « value »).
+    const result = $Call(ctx, $throw, syncIterator, new $List(value));
+
+    // 9. IfAbruptRejectPromise(result, promiseCapability).
+    $IfAbruptRejectPromiseResult = $IfAbruptRejectPromise(ctx, result, promiseCapability);
+    if ($IfAbruptRejectPromiseResult.isAbrupt) { return $IfAbruptRejectPromiseResult; }
+
+    // 10. If Type(result) is not Object, then
+    if (!result.isObject) {
+      // 10. a. Perform ! Call(promiseCapability.[[Reject]], undefined, « a newly created TypeError object »).
+      const err = new $TypeError(realm, `Expected syncIterator return result to be an object, but got: ${result}`);
+      $Call(ctx, promiseCapability['[[Reject]]'], intrinsics.undefined, new $List(err))
+
+      // 10. b. Return promiseCapability.[[Promise]].
+      return promiseCapability['[[Promise]]'];
+    }
+
+    // 11. Return ! AsyncFromSyncIteratorContinuation(result, promiseCapability).
+    return $AsyncFromSyncIteratorContinuation(ctx, result, promiseCapability);
+  }
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-async-from-sync-iterator-value-unwrap-functions
+// 25.1.4.2.5 Async-from-Sync Iterator Value Unwrap Functions
+export class $AsyncFromSyncIterator_Value_Unwrap extends $BuiltinFunction<'Async-from-Sync Iterator Value Unwrap'> {
+  public '[[Done]]': $Boolean;
+
+  public constructor(
+    realm: Realm,
+    done: $Boolean,
+  ) {
+    const intrinsics = realm['[[Intrinsics]]'];
+    super(realm, 'Async-from-Sync Iterator Value Unwrap', intrinsics['%FunctionPrototype%']);
+
+    this['[[Done]]'] = done;
+  }
+
+  public performSteps(
+    ctx: ExecutionContext,
+    thisArgument: $AnyNonEmptyNonError,
+    [value]: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
+  ): $AnyNonEmpty  {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    if (value === void 0) {
+      value = intrinsics.undefined;
+    }
+
+    // 1. Let F be the active function object.
+    const F = this;
+
+    // 2. Return ! CreateIterResultObject(value, F.[[Done]]).
+    return $CreateIterResultObject(ctx, value, F['[[Done]]']);
+  }
+}
+
+// http://www.ecma-international.org/ecma-262/#sec-properties-of-async-from-sync-iterator-instances
+// 25.1.4.3 Properties of Async-from-Sync Iterator Instances
+
+// http://www.ecma-international.org/ecma-262/#sec-asyncfromsynciteratorcontinuation
+// 25.1.4.4 AsyncFromSyncIteratorContinuation ( result , promiseCapability )
+export function $AsyncFromSyncIteratorContinuation(
+  ctx: ExecutionContext,
+  result: $AnyObject,
+  promiseCapability: $PromiseCapability,
+): $PromiseInstance | $Error {
+  const realm = ctx.Realm;
+  const intrinsics = realm['[[Intrinsics]]'];
+
+  // 1. Let done be IteratorComplete(result).
+  const done = $IteratorComplete(ctx, result);
+
+  // 2. IfAbruptRejectPromise(done, promiseCapability).
+  let $IfAbruptRejectPromiseResult = $IfAbruptRejectPromise(ctx, done, promiseCapability);
+  if ($IfAbruptRejectPromiseResult.isAbrupt) { return $IfAbruptRejectPromiseResult; }
+
+  // 3. Let value be IteratorValue(result).
+  const value = $IteratorValue(ctx, result);
+
+  // 4. IfAbruptRejectPromise(value, promiseCapability).
+  $IfAbruptRejectPromiseResult = $IfAbruptRejectPromise(ctx, value, promiseCapability);
+  if ($IfAbruptRejectPromiseResult.isAbrupt) { return $IfAbruptRejectPromiseResult; }
+
+  // 5. Let valueWrapper be ? PromiseResolve(%Promise%, « value »).
+  const valueWrapper = $PromiseResolve(ctx, intrinsics['%Promise%'], new $List(value) as unknown as $AnyNonEmpty); // TODO: fix types
+  if (valueWrapper.isAbrupt) { return valueWrapper; }
+
+  // 6. Let steps be the algorithm steps defined in Async-from-Sync Iterator Value Unwrap Functions.
+  // 7. Let onFulfilled be CreateBuiltinFunction(steps, « [[Done]] »).
+  // 8. Set onFulfilled.[[Done]] to done.
+  const onFulfilled = new $AsyncFromSyncIterator_Value_Unwrap(realm, done as $Boolean);
+
+  // 9. Perform ! PerformPromiseThen(valueWrapper, onFulfilled, undefined, promiseCapability).
+  $PerformPromiseThen(ctx, valueWrapper, onFulfilled, intrinsics.undefined, promiseCapability);
+
+  // 10. Return promiseCapability.[[Promise]].
+  return promiseCapability['[[Promise]]'] as $PromiseInstance;
+}
+
+// #endregion

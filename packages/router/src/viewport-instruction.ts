@@ -5,6 +5,7 @@ import { IRouter } from './router';
 import { ComponentAppellationResolver } from './type-resolvers';
 import { Viewport } from './viewport';
 import { IComponentParameter, InstructionResolver } from './instruction-resolver';
+import { Scope, IScopeOwner } from './scope';
 import { ViewportScope } from './viewport-scope';
 
 export const enum ParametersType {
@@ -25,8 +26,9 @@ export class ViewportInstruction {
   public parametersList: unknown[] | null = null;
   public parametersType: ParametersType = ParametersType.none;
 
-  public scope: ViewportScope | null = null;
+  public scope: Scope | null = null;
   public context: string = '';
+  public viewportScope: ViewportScope | null = null;
   public needsViewportDescribed: boolean = false;
   public route: string | null = null;
 
@@ -44,6 +46,10 @@ export class ViewportInstruction {
     this.setComponent(component);
     this.setViewport(viewport);
     this.setParameters(parameters);
+  }
+
+  public get owner(): IScopeOwner | null {
+    return this.viewport || this.viewportScope || null;
   }
 
   public get typedParameters(): ComponentParameters | null {

@@ -3,7 +3,7 @@ import { INavigatorInstruction, IRoute } from './interfaces';
 import { Queue, QueueItem } from './queue';
 import { IRouter } from './router';
 import { ViewportInstruction } from './viewport-instruction';
-import { ViewportScope } from './viewport-scope';
+import { Scope } from './scope';
 
 export interface INavigatorStore {
   length: number;
@@ -37,7 +37,7 @@ export interface INavigatorViewerEvent extends INavigatorViewerState {
 export interface IStoredNavigatorEntry {
   instruction: string | ViewportInstruction[];
   fullStateInstruction: string | ViewportInstruction[];
-  scope?: ViewportScope | null;
+  scope?: Scope | null;
   index?: number;
   firstEntry?: boolean; // Index might change to not require first === 0, firstEntry should be reliable
   route?: IRoute;

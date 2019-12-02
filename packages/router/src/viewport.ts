@@ -6,12 +6,7 @@ import { IRouter } from './router';
 import { arrayRemove } from './utils';
 import { ViewportContent } from './viewport-content';
 import { ViewportInstruction } from './viewport-instruction';
-import { ViewportScope } from './viewport-scope';
-
-export interface IFindViewportsResult {
-  foundViewports: ViewportInstruction[];
-  remainingInstructions: ViewportInstruction[];
-}
+import { IScopeOwner, Scope } from './scope';
 
 export interface IViewportOptions {
   scope?: boolean;
@@ -24,8 +19,8 @@ export interface IViewportOptions {
   forceDescription?: boolean;
 }
 
-export class Viewport {
-  public viewportScope: ViewportScope;
+export class Viewport implements IScopeOwner {
+  public connectedScope: Scope;
   public content: ViewportContent;
   public nextContent: ViewportContent | null = null;
 
@@ -46,30 +41,37 @@ export class Viewport {
     public name: string,
     public element: Element | null,
     public context: IRenderContext | IContainer | null,
-    owningScope: ViewportScope,
+    owningScope: Scope,
     scope: boolean,
     public options: IViewportOptions = {}
   ) {
     this.content = new ViewportContent();
-    this.viewportScope = new ViewportScope(router, scope, owningScope, this);
+    this.connectedScope = new Scope(router, scope, owningScope, this);
   }
 
-  public get scope(): ViewportScope {
-    return this.viewportScope.scope!;
+  public get scope(): Scope {
+    return this.connectedScope.scope!;
   }
-  public get owningScope(): ViewportScope {
-    return this.viewportScope.owningScope!;
+  public get owningScope(): Scope {
+    return this.connectedScope.owningScope!;
   }
 
   public get enabled(): boolean {
-    return this.viewportScope.enabled;
+    return this.connectedScope.enabled;
   }
   public set enabled(enabled: boolean) {
-    this.viewportScope.enabled = enabled;
+    this.connectedScope.enabled = enabled;
+  }
+
+  public get isViewport(): boolean {
+    return true;
+  }
+  public get isViewportScope(): boolean {
+    return false;
   }
 
   public get doForceRemove(): boolean {
-    let scope: ViewportScope | null = this.viewportScope;
+    let scope: Scope | null = this.connectedScope;
     while (scope !== null) {
       if (scope.viewport !== null && scope.viewport.forceRemove) {
         return true;
@@ -113,7 +115,7 @@ export class Viewport {
 
     // Children that will be replaced (unless added again) by next content. Will
     // be re-enabled on cancel
-    this.viewportScope.clearReplacedChildren();
+    this.connectedScope.clearReplacedChildren();
 
     // If we get the same _instance_, don't do anything (happens with cached and history)
     if (this.nextContent.componentInstance !== null && this.content.componentInstance === this.nextContent.componentInstance) {
@@ -126,7 +128,7 @@ export class Viewport {
       (instruction.navigation as INavigatorFlags).refresh ||
       this.content.reentryBehavior() === ReentryBehavior.refresh
     ) {
-      this.viewportScope.disableReplacedChildren();
+      this.connectedScope.disableReplacedChildren();
       return true;
     }
 
@@ -156,7 +158,7 @@ export class Viewport {
     }
 
     // Default is to trigger a refresh (without a check of parameters)
-    this.viewportScope.disableReplacedChildren();
+    this.connectedScope.disableReplacedChildren();
     return true;
   }
 
@@ -232,7 +234,7 @@ export class Viewport {
   }
 
   public async canLeave(): Promise<boolean> {
-    const canLeaveChildren: boolean = await this.viewportScope.canLeave();
+    const canLeaveChildren: boolean = await this.connectedScope.canLeave();
     if (!canLeaveChildren) {
       return false;
     }
@@ -286,7 +288,7 @@ export class Viewport {
       if (this.content.componentInstance !== (this.nextContent as ViewportContent).componentInstance) {
         (this.nextContent as ViewportContent).addComponent(this.element as Element);
       } else {
-        this.viewportScope.reenableReplacedChildren();
+        this.connectedScope.reenableReplacedChildren();
       }
       // Only when next component activation is done
       if (this.content.componentInstance) {
@@ -311,10 +313,10 @@ export class Viewport {
 
   public finalizeContentChange(): void {
     this.previousViewportState = null;
-    this.viewportScope.clearReplacedChildren();
+    this.connectedScope.clearReplacedChildren();
   }
   public async abortContentChange(): Promise<void> {
-    this.viewportScope.reenableReplacedChildren();
+    this.connectedScope.reenableReplacedChildren();
     await (this.nextContent as ViewportContent).freeContent(
       this.element as Element,
       (this.nextContent as ViewportContent).instruction,

@@ -122,8 +122,25 @@ import {
   $AsyncGeneratorPrototype_throw,
 } from './globals/async-generator-function';
 import {
-  $ProxyConstructor, $Proxy_revocable,
+  $ProxyConstructor,
+  $Proxy_revocable,
 } from './globals/proxy';
+import {
+  $Reflect,
+  $Reflect_apply,
+  $Reflect_construct,
+  $Reflect_defineProperty,
+  $Reflect_deleteProperty,
+  $Reflect_get,
+  $Reflect_getOwnPropertyDescriptor,
+  $Reflect_getPrototypeOf,
+  $Reflect_has,
+  $Reflect_isExtensible,
+  $Reflect_ownKeys,
+  $Reflect_preventExtensions,
+  $Reflect_set,
+  $Reflect_setPrototypeOf,
+} from './globals/reflect';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
@@ -742,7 +759,22 @@ export class Intrinsics implements IDisposable {
     this['%Atomics%'] = new $Object(realm, '%Atomics%', objectPrototype, CompletionType.normal, empty);
     this['%JSON%'] = new $Object(realm, '%JSON%', objectPrototype, CompletionType.normal, empty);
     this['%Math%'] = new $Object(realm, '%Math%', objectPrototype, CompletionType.normal, empty);
-    this['%Reflect%'] = new $Object(realm, '%Reflect%', objectPrototype, CompletionType.normal, empty);
+
+    const reflect = this['%Reflect%'] = new $Reflect(realm, objectPrototype);
+    reflect.$apply = new $Reflect_apply(realm, functionPrototype);
+    reflect.$construct = new $Reflect_construct(realm, functionPrototype);
+    reflect.$defineProperty = new $Reflect_defineProperty(realm, functionPrototype);
+    reflect.$deleteProperty = new $Reflect_deleteProperty(realm, functionPrototype);
+    reflect.$get = new $Reflect_get(realm, functionPrototype);
+    reflect.$getOwnPropertyDescriptor = new $Reflect_getOwnPropertyDescriptor(realm, functionPrototype);
+    reflect.$getPrototypeOf = new $Reflect_getPrototypeOf(realm, functionPrototype);
+    reflect.$has = new $Reflect_has(realm, functionPrototype);
+    reflect.$isExtensible = new $Reflect_isExtensible(realm, functionPrototype);
+    reflect.$ownKeys = new $Reflect_ownKeys(realm, functionPrototype);
+    reflect.$preventExtensions = new $Reflect_preventExtensions(realm, functionPrototype);
+    reflect.$set = new $Reflect_set(realm, functionPrototype);
+    reflect.$setPrototypeOf = new $Reflect_setPrototypeOf(realm, functionPrototype);
+
     const proxyConstructor = this['%Proxy%'] = new $ProxyConstructor(realm, functionPrototype);
     proxyConstructor.revocable = new $Proxy_revocable(realm, functionPrototype);
 

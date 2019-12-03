@@ -1006,6 +1006,10 @@ export function $FromPropertyDescriptor(
 export function $FromPropertyDescriptor(
   ctx: ExecutionContext,
   Desc: $PropertyDescriptor | $Undefined,
+): $AnyObject | $Undefined | $Error;
+export function $FromPropertyDescriptor(
+  ctx: ExecutionContext,
+  Desc: $PropertyDescriptor | $Undefined,
 ): $AnyObject | $Undefined | $Error {
   const realm = ctx.Realm;
   const intrinsics = realm['[[Intrinsics]]'];

@@ -464,15 +464,15 @@ export class Intrinsics implements IDisposable {
   public readonly '%Atomics%': $Object<'%Atomics%'>;
   public readonly '%JSON%': $Object<'%JSON%'>;
   public readonly '%Math%': $Object<'%Math%'>;
-  public readonly '%Reflect%': $Object<'%Reflect%'>;
+  public readonly '%Reflect%': $Reflect;
   public readonly '%Proxy%': $ProxyConstructor;
 
   public readonly '%decodeURI%': $Object<'%decodeURI%'>;
   public readonly '%decodeURIComponent%': $Object<'%decodeURIComponent%'>;
   public readonly '%encodeURI%': $Object<'%encodeURI%'>;
   public readonly '%encodeURIComponent%': $Object<'%encodeURIComponent%'>;
-  public readonly '%eval%': $Object<'%eval%'>;
-  public readonly '%isFinite%': $Object<'%isFinite%'>;
+  public readonly '%eval%': $Eval;
+  public readonly '%isFinite%': $IsFinite;
   public readonly '%isNaN%': $Object<'%isNaN%'>;
   public readonly '%parseFloat%': $Object<'%parseFloat%'>;
   public readonly '%parseInt%': $Object<'%parseInt%'>;

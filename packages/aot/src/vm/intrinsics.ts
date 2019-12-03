@@ -156,6 +156,12 @@ import {
 import {
   $ParseInt,
 } from './globals/parse-int';
+import {
+  $DecodeURI,
+  $DecodeURIComponent,
+  $EncodeURI,
+  $EncodeURIComponent,
+} from './globals/uri-handling';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
@@ -476,10 +482,10 @@ export class Intrinsics implements IDisposable {
   public readonly '%Reflect%': $Reflect;
   public readonly '%Proxy%': $ProxyConstructor;
 
-  public readonly '%decodeURI%': $Object<'%decodeURI%'>;
-  public readonly '%decodeURIComponent%': $Object<'%decodeURIComponent%'>;
-  public readonly '%encodeURI%': $Object<'%encodeURI%'>;
-  public readonly '%encodeURIComponent%': $Object<'%encodeURIComponent%'>;
+  public readonly '%decodeURI%': $DecodeURI;
+  public readonly '%decodeURIComponent%': $DecodeURIComponent;
+  public readonly '%encodeURI%': $EncodeURI;
+  public readonly '%encodeURIComponent%': $EncodeURIComponent;
   public readonly '%eval%': $Eval;
   public readonly '%isFinite%': $IsFinite;
   public readonly '%isNaN%': $IsNaN;
@@ -794,10 +800,11 @@ export class Intrinsics implements IDisposable {
     proxyConstructor.revocable = new $Proxy_revocable(realm, functionPrototype);
 
 
-    this['%decodeURI%'] = new $Object(realm, '%decodeURI%', functionPrototype, CompletionType.normal, empty);
-    this['%decodeURIComponent%'] = new $Object(realm, '%decodeURIComponent%', functionPrototype, CompletionType.normal, empty);
-    this['%encodeURI%'] = new $Object(realm, '%encodeURI%', functionPrototype, CompletionType.normal, empty);
-    this['%encodeURIComponent%'] = new $Object(realm, '%encodeURIComponent%', functionPrototype, CompletionType.normal, empty);
+    this['%decodeURI%'] = new $DecodeURI(realm, functionPrototype);
+    this['%decodeURIComponent%'] = new $DecodeURIComponent(realm, functionPrototype);
+    this['%encodeURI%'] = new $EncodeURI(realm, functionPrototype);
+    this['%encodeURIComponent%'] = new $EncodeURIComponent(realm, functionPrototype);
+
     this['%eval%'] = new $Eval(realm, functionPrototype);
     this['%isFinite%'] = new $IsFinite(realm, functionPrototype);
     this['%isNaN%'] = new $IsNaN(realm, functionPrototype);

@@ -512,7 +512,7 @@ export class Router implements IRouter {
 
     await Promise.all(updatedViewports.map((value) => value.loadContent()));
     await this.replacePaths(instruction);
-    this.updateNav();
+    // this.updateNav();
 
     // Remove history entry if no history viewports updated
     if (instructionNavigation.new && !instructionNavigation.first && !instruction.repeating && updatedViewports.every(viewport => viewport.options.noHistory)) {

@@ -1,5 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import { CustomElement, IViewModel } from '@aurelia/runtime';
+import { CustomElement, IViewModel, IController } from '@aurelia/runtime';
 import { ComponentAppellation, IRouteableComponent, RouteableComponentType, IViewportInstruction, NavigationInstruction, ViewportHandle } from './interfaces';
 import { IRouter } from './router';
 import { Viewport } from './viewport';
@@ -68,7 +68,7 @@ export const ViewportHandleResolver = {
 };
 
 export interface IViewportInstructionsOptions {
-  context?: IViewModel | Element;
+  context?: IViewModel | Element | IController;
 }
 
 export const NavigationInstructionResolver = {

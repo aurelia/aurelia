@@ -1,5 +1,5 @@
 import { NavigationInstructionResolver } from './../type-resolvers';
-import { customAttribute, INode, bindable, BindingMode, IDOM, DelegationStrategy, IObserverLocator, LifecycleFlags } from '@aurelia/runtime';
+import { customAttribute, INode, bindable, BindingMode, IDOM, DelegationStrategy, IObserverLocator, LifecycleFlags, CustomAttribute } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { IEventManager } from '@aurelia/runtime-html';
 import { IDisposable } from '@aurelia/kernel';
@@ -59,7 +59,8 @@ export class GotoCustomAttribute {
 
   public handleChange(): void {
     setTimeout(() => {
-      const created = NavigationInstructionResolver.createViewportInstructions(this.router, this.value as any, { context: this.element });
+      const controller = CustomAttribute.for(this.element, 'goto')!.parent;
+      const created = NavigationInstructionResolver.createViewportInstructions(this.router, this.value as any, { context: controller });
       // console.log('activeComponents', created, this.router.activeComponents);
       const instructions = NavigationInstructionResolver.toViewportInstructions(this.router, created.instructions);
       for (const instruction of instructions) {

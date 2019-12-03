@@ -56,10 +56,27 @@ import {
 import {
   $PropertyDescriptor,
 } from '../types/property-descriptor';
+import {
+  $Number,
+} from '../types/number';
 
+// http://www.ecma-international.org/ecma-262/#sec-function-objects
+// 19.2 Function Objects
 
 // http://www.ecma-international.org/ecma-262/#sec-function-constructor
+// 19.2.1 The Function Constructor
 export class $FunctionConstructor extends $BuiltinFunction<'%Function%'> {
+  // http://www.ecma-international.org/ecma-262/#sec-function.length
+  // 19.2.2.1 Function.length
+  public get length(): $Number<1> {
+    return this.getProperty(this.realm['[[Intrinsics]]'].length)['[[Value]]'] as $Number<1>;
+  }
+  public set length(value: $Number<1>) {
+    this.setDataProperty(this.realm['[[Intrinsics]]'].length, value);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-function.prototype
+  // 19.2.2.2 Function.prototype
   public get $prototype(): $FunctionPrototype {
     return this.getProperty(this.realm['[[Intrinsics]]'].$prototype)['[[Value]]'] as $FunctionPrototype;
   }
@@ -90,7 +107,37 @@ export class $FunctionConstructor extends $BuiltinFunction<'%Function%'> {
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-properties-of-the-function-prototype-object
+// 19.2.3 Properties of the Function Prototype Object
 export class $FunctionPrototype extends $Object<'%FunctionPrototype%'> {
+  // http://www.ecma-international.org/ecma-262/#sec-function.prototype.apply
+  // 19.2.3.1 Function.prototype.apply ( thisArg , argArray )
+  public get $apply(): $FunctionPrototype_apply {
+    return this.getProperty(this.realm['[[Intrinsics]]'].$apply)['[[Value]]'] as $FunctionPrototype_apply;
+  }
+  public set $apply(value: $FunctionPrototype_apply) {
+    this.setDataProperty(this.realm['[[Intrinsics]]'].$apply, value);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-function.prototype.bind
+  // 19.2.3.2 Function.prototype.bind ( thisArg , ... args )
+  public get $bind(): $FunctionPrototype_bind {
+    return this.getProperty(this.realm['[[Intrinsics]]'].$bind)['[[Value]]'] as $FunctionPrototype_bind;
+  }
+  public set $bind(value: $FunctionPrototype_bind) {
+    this.setDataProperty(this.realm['[[Intrinsics]]'].$bind, value);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-function.prototype.call
+  // 19.2.3.3 Function.prototype.call ( thisArg , ... args )
+  public get $call(): $FunctionPrototype_call {
+    return this.getProperty(this.realm['[[Intrinsics]]'].$call)['[[Value]]'] as $FunctionPrototype_call;
+  }
+  public set $call(value: $FunctionPrototype_call) {
+    this.setDataProperty(this.realm['[[Intrinsics]]'].$call, value);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-function.prototype.constructor
+  // 19.2.3.4 Function.prototype.constructor
   public get $constructor(): $FunctionConstructor {
     return this.getProperty(this.realm['[[Intrinsics]]'].$constructor)['[[Value]]'] as $FunctionConstructor;
   }
@@ -98,11 +145,22 @@ export class $FunctionPrototype extends $Object<'%FunctionPrototype%'> {
     this.setDataProperty(this.realm['[[Intrinsics]]'].$constructor, value);
   }
 
-  public get $call(): $FunctionPrototype_call {
-    return this.getProperty(this.realm['[[Intrinsics]]'].call)['[[Value]]'] as $FunctionPrototype_call;
+  // http://www.ecma-international.org/ecma-262/#sec-function.prototype.tostring
+  // 19.2.3.5 Function.prototype.toString ( )
+  public get $toString(): $FunctionPrototype_toString {
+    return this.getProperty(this.realm['[[Intrinsics]]'].$toString)['[[Value]]'] as $FunctionPrototype_toString;
   }
-  public set $call(value: $FunctionPrototype_call) {
-    this.setDataProperty(this.realm['[[Intrinsics]]'].call, value);
+  public set $toString(value: $FunctionPrototype_toString) {
+    this.setDataProperty(this.realm['[[Intrinsics]]'].$toString, value);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-function.prototype-@@hasinstance
+  // 19.2.3.6 Function.prototype [ @@hasInstance ] ( V )
+  public get '@@hasInstance'(): $FunctionPrototype_hasInstance {
+    return this.getProperty(this.realm['[[Intrinsics]]']['@@hasInstance'])['[[Value]]'] as $FunctionPrototype_hasInstance;
+  }
+  public set '@@hasInstance'(value: $FunctionPrototype_hasInstance) {
+    this.setDataProperty(this.realm['[[Intrinsics]]']['@@hasInstance'], value);
   }
 
   public constructor(
@@ -114,7 +172,93 @@ export class $FunctionPrototype extends $Object<'%FunctionPrototype%'> {
   }
 }
 
+export class $FunctionPrototype_apply extends $BuiltinFunction<'Function.prototype.apply'> {
+  public constructor(
+    realm: Realm,
+    proto: $FunctionPrototype,
+  ) {
+    super(realm, 'Function.prototype.apply', proto);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-function.prototype.apply
+  // 19.2.3.1 Function.prototype.apply ( thisArg , argArray )
+  public performSteps(
+    ctx: ExecutionContext,
+    thisArgument: $AnyNonEmptyNonError,
+    [thisArg, argArray]: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
+  ): $AnyNonEmpty  {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    if (thisArg === void 0) {
+      thisArg = intrinsics.undefined;
+    }
+
+    // 1. Let func be the this value.
+    // 2. If IsCallable(func) is false, throw a TypeError exception.
+    // 3. If argArray is undefined or null, then
+      // 3. a. Perform PrepareForTailCall().
+      // 3. b. Return ? Call(func, thisArg).
+    // 4. Let argList be ? CreateListFromArrayLike(argArray).
+    // 5. Perform PrepareForTailCall().
+    // 6. Return ? Call(func, thisArg, argList).
+    throw new Error('Method not implemented.');
+  }
+}
+
+export class $FunctionPrototype_bind extends $BuiltinFunction<'Function.prototype.bind'> {
+  public constructor(
+    realm: Realm,
+    proto: $FunctionPrototype,
+  ) {
+    super(realm, 'Function.prototype.bind', proto);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-function.prototype.bind
+  // 19.2.3.2 Function.prototype.bind ( thisArg , ... args )
+  public performSteps(
+    ctx: ExecutionContext,
+    thisArgument: $AnyNonEmptyNonError,
+    [thisArg, ...args]: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
+  ): $AnyNonEmpty  {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    if (thisArg === void 0) {
+      thisArg = intrinsics.undefined;
+    }
+
+    // 1. Let Target be the this value.
+    // 2. If IsCallable(Target) is false, throw a TypeError exception.
+    // 3. Let args be a new (possibly empty) List consisting of all of the argument values provided after thisArg in order.
+    // 4. Let F be ? BoundFunctionCreate(Target, thisArg, args).
+    // 5. Let targetHasLength be ? HasOwnProperty(Target, "length").
+    // 6. If targetHasLength is true, then
+      // 6. a. Let targetLen be ? Get(Target, "length").
+      // 6. b. If Type(targetLen) is not Number, let L be 0.
+      // 6. c. Else,
+        // 6. c. i. Set targetLen to ! ToInteger(targetLen).
+        // 6. c. ii. Let L be the larger of 0 and the result of targetLen minus the number of elements of args.
+    // 7. Else, let L be 0.
+    // 8. Perform ! SetFunctionLength(F, L).
+    // 9. Let targetName be ? Get(Target, "name").
+    // 10. If Type(targetName) is not String, set targetName to the empty string.
+    // 11. Perform SetFunctionName(F, targetName, "bound").
+    // 12. Return F.
+    throw new Error('Method not implemented.');
+  }
+}
+
 export class $FunctionPrototype_call extends $BuiltinFunction<'Function.prototype.call'> {
+  public constructor(
+    realm: Realm,
+    proto: $FunctionPrototype,
+  ) {
+    super(realm, 'Function.prototype.call', proto);
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-function.prototype.call
   // 19.2.3.3 Function.prototype.call ( thisArg , ... args )
   public performSteps(
@@ -155,7 +299,65 @@ export class $FunctionPrototype_call extends $BuiltinFunction<'Function.prototyp
   }
 }
 
+export class $FunctionPrototype_toString extends $BuiltinFunction<'Function.prototype.toString'> {
+  public constructor(
+    realm: Realm,
+    proto: $FunctionPrototype,
+  ) {
+    super(realm, 'Function.prototype.toString', proto);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-function.prototype.tostring
+  // 19.2.3.5 Function.prototype.toString ( )
+  public performSteps(
+    ctx: ExecutionContext,
+    thisArgument: $AnyNonEmptyNonError,
+    [thisArg, ...args]: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
+  ): $AnyNonEmpty  {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    if (thisArg === void 0) {
+      thisArg = intrinsics.undefined;
+    }
+
+    // 1. Let func be the this value.
+    // 2. If func is a Bound Function exotic object or a built-in function object, then return an implementation-dependent String source code representation of func. The representation must have the syntax of a NativeFunction. Additionally, if func is a Well-known Intrinsic Object and is not identified as an anonymous function, the portion of the returned String that would be matched by PropertyName must be the initial value of the name property of func.
+    // 3. If Type(func) is Object and func has a [[SourceText]] internal slot and Type(func.[[SourceText]]) is String and ! HostHasSourceTextAvailable(func) is true, then return func.[[SourceText]].
+    // 4. If Type(func) is Object and IsCallable(func) is true, then return an implementation-dependent String source code representation of func. The representation must have the syntax of a NativeFunction.
+    // 5. Throw a TypeError exception.
+    throw new Error('Method not implemented.');
+  }
+}
+
+export class $FunctionPrototype_hasInstance extends $BuiltinFunction<'Function.prototype.hasInstance'> {
+  public constructor(
+    realm: Realm,
+    proto: $FunctionPrototype,
+  ) {
+    super(realm, 'Function.prototype.hasInstance', proto);
+  }
+
+  // http://www.ecma-international.org/ecma-262/#sec-function.prototype-@@hasinstance
+  // 19.2.3.6 Function.prototype [ @@hasInstance ] ( V )
+  public performSteps(
+    ctx: ExecutionContext,
+    thisArgument: $AnyNonEmptyNonError,
+    [V]: $List<$AnyNonEmpty>,
+    NewTarget: $Function | $Undefined,
+  ): $AnyNonEmpty  {
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+
+    // 1. Let F be the this value.
+    // 2. Return ? OrdinaryHasInstance(F, V).
+    throw new Error('Method not implemented.');
+  }
+}
+
 // http://www.ecma-international.org/ecma-262/#sec-createdynamicfunction
+// 19.2.1.1.1 Runtime Semantics: CreateDynamicFunction ( constructor , newTarget , kind , args )
 export function $CreateDynamicFunction(
   ctx: ExecutionContext,
   constructor: $Function,

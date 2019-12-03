@@ -73,6 +73,10 @@ import {
   $FunctionPrototype,
   $FunctionConstructor,
   $FunctionPrototype_call,
+  $FunctionPrototype_apply,
+  $FunctionPrototype_bind,
+  $FunctionPrototype_toString,
+  $FunctionPrototype_hasInstance,
 } from './globals/function';
 import {
   CompletionType,
@@ -375,6 +379,10 @@ export class Intrinsics implements IDisposable {
   public readonly '$apply': $String<'apply'>;
   public readonly '$construct': $String<'construct'>;
 
+  // Function.prototype
+  public readonly '$bind': $String<'bind'>;
+  public readonly '$call': $String<'call'>;
+
   // Object
   public readonly '$assign': $String<'assign'>;
   public readonly '$create': $String<'create'>;
@@ -632,6 +640,9 @@ export class Intrinsics implements IDisposable {
     this['$apply'] = new $String(realm, 'apply');
     this['$construct'] = new $String(realm, 'construct');
 
+    this['$bind'] = new $String(realm, 'bind');
+    this['$call'] = new $String(realm, 'call');
+
     this['$assign'] = new $String(realm, 'assign');
     this['$create'] = new $String(realm, 'create');
     this['$defineProperties'] = new $String(realm, 'defineProperties');
@@ -701,7 +712,11 @@ export class Intrinsics implements IDisposable {
     objectPrototype.$toString = this['%ObjProto_toString%'] = new $ObjProto_toString(realm, functionPrototype);
     objectPrototype.$valueOf = this['%ObjProto_valueOf%'] = new $ObjProto_valueOf(realm, functionPrototype);
 
-    functionPrototype.$call = new $FunctionPrototype_call(realm, 'Function.prototype.call', functionPrototype);
+    functionPrototype.$apply = new $FunctionPrototype_apply(realm, functionPrototype);
+    functionPrototype.$bind = new $FunctionPrototype_bind(realm, functionPrototype);
+    functionPrototype.$call = new $FunctionPrototype_call(realm, functionPrototype);
+    functionPrototype.$toString = new $FunctionPrototype_toString(realm, functionPrototype);
+    functionPrototype['@@hasInstance'] = new $FunctionPrototype_hasInstance(realm, functionPrototype);
 
     const stringConstructor = this['%String%'] = new $StringConstructor(realm, functionPrototype);
     const stringPrototype = this['%StringPrototype%'] = new $StringPrototype(realm, objectPrototype);

@@ -141,6 +141,9 @@ import {
   $Reflect_set,
   $Reflect_setPrototypeOf,
 } from './globals/reflect';
+import {
+  $Eval,
+} from './globals/eval';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
@@ -783,7 +786,7 @@ export class Intrinsics implements IDisposable {
     this['%decodeURIComponent%'] = new $Object(realm, '%decodeURIComponent%', functionPrototype, CompletionType.normal, empty);
     this['%encodeURI%'] = new $Object(realm, '%encodeURI%', functionPrototype, CompletionType.normal, empty);
     this['%encodeURIComponent%'] = new $Object(realm, '%encodeURIComponent%', functionPrototype, CompletionType.normal, empty);
-    this['%eval%'] = new $Object(realm, '%eval%', functionPrototype, CompletionType.normal, empty);
+    this['%eval%'] = new $Eval(realm, functionPrototype);
     this['%isFinite%'] = new $Object(realm, '%isFinite%', functionPrototype, CompletionType.normal, empty);
     this['%isNaN%'] = new $Object(realm, '%isNaN%', functionPrototype, CompletionType.normal, empty);
     this['%parseFloat%'] = new $Object(realm, '%parseFloat%', functionPrototype, CompletionType.normal, empty);

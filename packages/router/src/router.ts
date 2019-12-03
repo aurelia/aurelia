@@ -19,6 +19,7 @@ import { HookManager, IHookDefinition, HookIdentity, HookFunction, IHookOptions,
 import { Scope, IScopeOwner } from './scope';
 import { CustomElementType } from '@aurelia/runtime';
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
+import { ViewportInstructionCollection } from './viewport-instruction-collection';
 
 export interface IGotoOptions {
   title?: string;
@@ -142,6 +143,7 @@ export class Router implements IRouter {
 
   private processingNavigation: INavigatorInstruction | null = null;
   private lastNavigation: INavigatorInstruction | null = null;
+  private staleChecks: Record<string, ViewportInstruction[]> = {};
 
   public constructor(
     public readonly container: IContainer,
@@ -326,23 +328,23 @@ export class Router implements IRouter {
     // TODO: Fetch title (probably when done)
 
     let clearViewports = (clearUsedViewports ? this.allViewports().filter((value) => value.content.componentInstance !== null) : []);
-    const doneDefaultViewports: Viewport[] = [];
-    let defaultViewports = this.allViewports().filter(viewport =>
-      viewport.options.default
-      && viewport.content.componentInstance === null
-      && doneDefaultViewports.every(done => done !== viewport)
-    );
+    // const doneDefaultViewports: Viewport[] = [];
+    // let defaultViewports = this.allViewports().filter(viewport =>
+    //   viewport.options.default
+    //   && viewport.content.componentInstance === null
+    //   && doneDefaultViewports.every(done => done !== viewport)
+    // );
     const updatedViewports: Viewport[] = [];
     const alreadyFoundInstructions: ViewportInstruction[] = [];
     // TODO: Take care of cancellations down in subsets/iterations
     let { found: viewportInstructions, remaining: remainingInstructions } = this.findViewports(instructions, alreadyFoundInstructions);
     let guard = 100;
-    while (viewportInstructions.length || remainingInstructions.length || defaultViewports.length || clearUsedViewports) {
+    while (viewportInstructions.length || remainingInstructions.length /*|| defaultViewports.length*/ || clearUsedViewports) {
       // Guard against endless loop
       if (!guard--) {
         throw Reporter.error(2002);
       }
-      defaultViewports = [];
+      // defaultViewports = [];
       const changedViewports: Viewport[] = [];
 
       const hooked = await this.hookManager.invokeBeforeNavigation(viewportInstructions, instruction);
@@ -400,9 +402,10 @@ export class Router implements IRouter {
 
       // TODO: Fix multi level recursiveness!
       alreadyFoundInstructions.push(...viewportInstructions);
-      const remaining = this.findViewports(remainingInstructions, alreadyFoundInstructions);
-      viewportInstructions = remaining.found.slice();
-      remainingInstructions = remaining.remaining;
+      ({ found: viewportInstructions, remaining: remainingInstructions } = this.findViewports(remainingInstructions, alreadyFoundInstructions));
+      // const remaining = this.findViewports(remainingInstructions, alreadyFoundInstructions);
+      // viewportInstructions = remaining.found.slice();
+      // remainingInstructions = remaining.remaining;
 
       // Look for configured child routes (once we've loaded everything so far?)
       if (configuredRoute.hasRemaining &&
@@ -422,6 +425,7 @@ export class Router implements IRouter {
         //     break;
         //   }
         // }
+        // const routeScopeOwners: IScopeOwner[] = alreadyFoundInstructions.getScopeOwners(configuredRoutePath);
         const routeScopeOwners: IScopeOwner[] = alreadyFoundInstructions
           .filter(instr => instr.owner !== null && instr.owner.path === configuredRoutePath)
           .map(instr => instr.owner)
@@ -430,7 +434,7 @@ export class Router implements IRouter {
           configured = await this.findInstructions(
             owner.scope,
             configuredRoute.remaining,
-            owner.scope || owner.owningScope!);
+            owner.scope);
           if (configured.foundConfiguration) {
             break;
           }
@@ -458,11 +462,20 @@ export class Router implements IRouter {
         this.appendInstructions(configured.instructions);
       }
 
-      while (this.appendedInstructions.length > 0) {
-        const appendedInstruction = this.appendedInstructions.shift() as ViewportInstruction;
-        const existingAlreadyFound = alreadyFoundInstructions.some(instruction => instruction.sameViewport(appendedInstruction));
-        const existingFound = viewportInstructions.find(value => value.sameViewport(appendedInstruction));
-        const existingRemaining = remainingInstructions.find(value => value.sameViewport(appendedInstruction));
+      // Process non-defaults first
+      let appendedInstructions: ViewportInstruction[] = this.appendedInstructions.filter(instruction => !instruction.default);
+      this.appendedInstructions = this.appendedInstructions.filter(instruction => instruction.default);
+      if (appendedInstructions.length === 0) {
+        const index: number = this.appendedInstructions.findIndex(instruction => instruction.default);
+        if (index >= 0) {
+          appendedInstructions = this.appendedInstructions.splice(index, 1);
+        }
+      }
+      while (appendedInstructions.length > 0) {
+        const appendedInstruction: ViewportInstruction = appendedInstructions.shift() as ViewportInstruction;
+        const existingAlreadyFound: boolean = alreadyFoundInstructions.some(instruction => instruction.sameViewport(appendedInstruction));
+        const existingFound: ViewportInstruction | undefined = viewportInstructions.find(value => value.sameViewport(appendedInstruction));
+        const existingRemaining: ViewportInstruction | undefined = remainingInstructions.find(value => value.sameViewport(appendedInstruction));
         if (appendedInstruction.default &&
           (existingAlreadyFound ||
             (existingFound !== void 0 && !existingFound.default) ||
@@ -483,8 +496,8 @@ export class Router implements IRouter {
       }
       // clearViewports is empty if we're not clearing viewports
       if (viewportInstructions.length === 0 &&
-        remainingInstructions.length === 0 &&
-        defaultViewports.length === 0) {
+        remainingInstructions.length === 0 /* &&
+        defaultViewports.length === 0*/) {
         viewportInstructions = [
           ...viewportInstructions,
           ...clearViewports.map(viewport => this.createViewportInstruction(this.instructionResolver.clearViewportInstruction, viewport))
@@ -955,6 +968,25 @@ export class Router implements IRouter {
     this.appendedInstructions.push(...(instructions as ViewportInstruction[]));
   }
 
+  private checkStale(name: string, instructions: ViewportInstruction[]): boolean {
+    const staleCheck: ViewportInstruction[] | undefined = this.staleChecks[name];
+    if (staleCheck === void 0) {
+      this.staleChecks[name] = instructions.slice();
+      return false;
+    }
+    if (staleCheck.length !== instructions.length) {
+      this.staleChecks[name] = instructions.slice();
+      return false;
+    }
+    for (let i = 0, ii = instructions.length; i < ii; i++) {
+      if (staleCheck[i] !== instructions[i]) {
+        this.staleChecks[name] = instructions.slice();
+        return false;
+      }
+    }
+    return true;
+  }
+
   private unknownRoute(route: string) {
     if (typeof route !== 'string' || route.length === 0) {
       return;
@@ -980,12 +1012,17 @@ export class Router implements IRouter {
         instructions[0].scope = this.rootScope!.scope;
       }
       const scope: Scope = instructions[0].scope!;
-      const { foundViewports, remainingInstructions } = scope.findViewports(instructions.filter(instruction => instruction.scope === scope), alreadyFound, withoutViewports);
+      // Start with non-defaults
+      let { foundViewports, remainingInstructions } = scope.findViewports(instructions.filter(instruction => instruction.scope === scope /* && instruction.default */), alreadyFound, withoutViewports);
       found.push(...foundViewports);
       remaining.push(...remainingInstructions);
+      // And then defaults
+      // ({ foundViewports, remainingInstructions } = scope.findViewports(instructions.filter(instruction => instruction.scope === scope && !instruction.default), alreadyFound, withoutViewports));
+      // found.push(...foundViewports);
+      // remaining.push(...remainingInstructions);
       instructions = instructions.filter(instruction => instruction.scope !== scope);
     }
-    return { found, remaining };
+    return { found: found.slice(), remaining };
   }
 
   private async cancelNavigation(updatedViewports: Viewport[], qInstruction: QueueItem<INavigatorInstruction>): Promise<void> {

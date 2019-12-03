@@ -42,6 +42,32 @@ import {
   $ObjectConstructor,
   $ObjectPrototype,
   $ObjProto_toString,
+  $ObjProto_valueOf,
+  $ObjectPrototype_hasOwnProperty,
+  $ObjectPrototype_isPrototypeOf,
+  $ObjectPrototype_propertyIsEnumerable,
+  $ObjectPrototype_toLocaleString,
+  $Object_assign,
+  $Object_create,
+  $Object_defineProperties,
+  $Object_defineProperty,
+  $Object_entries,
+  $Object_freeze,
+  $Object_fromEntries,
+  $Object_getOwnPropertyDescriptor,
+  $Object_getOwnPropertyDescriptors,
+  $Object_getOwnPropertyNames,
+  $Object_getOwnPropertySymbols,
+  $Object_getPrototypeOf,
+  $Object_is,
+  $Object_isExtensible,
+  $Object_isFrozen,
+  $Object_isSealed,
+  $Object_keys,
+  $Object_preventExtensions,
+  $Object_seal,
+  $Object_setPrototypeOf,
+  $Object_values,
 } from './globals/object';
 import {
   $FunctionPrototype,
@@ -318,6 +344,10 @@ export class Intrinsics implements IDisposable {
   public readonly '$arguments': $String<'arguments'>;
   public readonly '$callee': $String<'callee'>;
   public readonly '$constructor': $String<'constructor'>;
+  public readonly '$hasOwnProperty': $String<'hasOwnProperty'>;
+  public readonly '$isPrototypeOf': $String<'isPrototypeOf'>;
+  public readonly '$propertyIsEnumerable': $String<'propertyIsEnumerable'>;
+  public readonly '$toLocaleString': $String<'toLocaleString'>;
   public readonly '$prototype': $String<'prototype'>;
   public readonly '$name': $String<'name'>;
   public readonly '$toString': $String<'toString'>;
@@ -330,6 +360,7 @@ export class Intrinsics implements IDisposable {
   public readonly '$return': $String<'return'>;
   public readonly '$done': $String<'done'>;
 
+  // Reflect
   public readonly '$getPrototypeOf': $String<'getPrototypeOf'>;
   public readonly '$setPrototypeOf': $String<'setPrototypeOf'>;
   public readonly '$isExtensible': $String<'isExtensible'>;
@@ -343,6 +374,29 @@ export class Intrinsics implements IDisposable {
   public readonly '$ownKeys': $String<'ownKeys'>;
   public readonly '$apply': $String<'apply'>;
   public readonly '$construct': $String<'construct'>;
+
+  // Object
+  public readonly '$assign': $String<'assign'>;
+  public readonly '$create': $String<'create'>;
+  public readonly '$defineProperties': $String<'defineProperties'>;
+  //public readonly '$defineProperty': $String<'defineProperty'>;
+  public readonly '$entries': $String<'entries'>;
+  public readonly '$freeze': $String<'freeze'>;
+  public readonly '$fromEntries': $String<'fromEntries'>;
+  //public readonly '$getOwnPropertyDescriptor': $String<'getOwnPropertyDescriptor'>;
+  public readonly '$getOwnPropertyDescriptors': $String<'getOwnPropertyDescriptors'>;
+  public readonly '$getOwnPropertyNames': $String<'getOwnPropertyNames'>;
+  public readonly '$getOwnPropertySymbols': $String<'getOwnPropertySymbols'>;
+  //public readonly '$getPrototypeOf': $String<'getPrototypeOf'>;
+  public readonly '$is': $String<'is'>;
+  //public readonly '$isExtensible': $String<'isExtensible'>;
+  public readonly '$isFrozen': $String<'isFrozen'>;
+  public readonly '$isSealed': $String<'isSealed'>;
+  public readonly '$keys': $String<'keys'>;
+  //public readonly '$preventExtensions': $String<'preventExtensions'>;
+  public readonly '$seal': $String<'seal'>;
+  //public readonly '$setPrototypeOf': $String<'setPrototypeOf'>;
+  public readonly '$values': $String<'values'>;
 
   public readonly '@@asyncIterator': $Symbol<$String<'Symbol.asyncIterator'>>;
   public readonly '@@hasInstance': $Symbol<$String<'Symbol.hasInstance'>>;
@@ -548,6 +602,10 @@ export class Intrinsics implements IDisposable {
     this['$arguments'] = new $String(realm, 'arguments');
     this['$callee'] = new $String(realm, 'callee');
     this['$constructor'] = new $String(realm, 'constructor');
+    this['$hasOwnProperty'] = new $String(realm, 'hasOwnProperty');
+    this['$isPrototypeOf'] = new $String(realm, 'isPrototypeOf');
+    this['$propertyIsEnumerable'] = new $String(realm, 'propertyIsEnumerable');
+    this['$toLocaleString'] = new $String(realm, 'toLocaleString');
     this['$prototype'] = new $String(realm, 'prototype');
     this['$name'] = new $String(realm, 'name');
     this['$toString'] = new $String(realm, 'toString');
@@ -574,6 +632,22 @@ export class Intrinsics implements IDisposable {
     this['$apply'] = new $String(realm, 'apply');
     this['$construct'] = new $String(realm, 'construct');
 
+    this['$assign'] = new $String(realm, 'assign');
+    this['$create'] = new $String(realm, 'create');
+    this['$defineProperties'] = new $String(realm, 'defineProperties');
+    this['$entries'] = new $String(realm, 'entries');
+    this['$freeze'] = new $String(realm, 'freeze');
+    this['$fromEntries'] = new $String(realm, 'fromEntries');
+    this['$getOwnPropertyDescriptors'] = new $String(realm, 'getOwnPropertyDescriptors');
+    this['$getOwnPropertyNames'] = new $String(realm, 'getOwnPropertyNames');
+    this['$getOwnPropertySymbols'] = new $String(realm, 'getOwnPropertySymbols');
+    this['$is'] = new $String(realm, 'is');
+    this['$isFrozen'] = new $String(realm, 'isFrozen');
+    this['$isSealed'] = new $String(realm, 'isSealed');
+    this['$keys'] = new $String(realm, 'keys');
+    this['$seal'] = new $String(realm, 'seal');
+    this['$values'] = new $String(realm, 'values');
+
     this['@@asyncIterator'] = new $Symbol(realm, new $String(realm, 'Symbol.asyncIterator'));
     this['@@hasInstance'] = new $Symbol(realm, new $String(realm, 'Symbol.hasInstance'));
     this['@@isConcatSpreadable'] = new $Symbol(realm, new $String(realm, 'Symbol.isConcatSpreadable'));
@@ -598,7 +672,34 @@ export class Intrinsics implements IDisposable {
 
     this['%ThrowTypeError%'] = new $ThrowTypeError(realm, '%ThrowTypeError%', functionPrototype);
 
-    objectPrototype.$toString = this['%ObjProto_toString%'] = new $ObjProto_toString(realm, 'Object.prototype.toString', functionPrototype);
+    objectConstructor.$assign = new $Object_assign(realm, functionPrototype);
+    objectConstructor.$create = new $Object_create(realm, functionPrototype);
+    objectConstructor.$defineProperties = new $Object_defineProperties(realm, functionPrototype);
+    objectConstructor.$defineProperty = new $Object_defineProperty(realm, functionPrototype);
+    objectConstructor.$entries = new $Object_entries(realm, functionPrototype);
+    objectConstructor.$freeze = new $Object_freeze(realm, functionPrototype);
+    objectConstructor.$fromEntries = new $Object_fromEntries(realm, functionPrototype);
+    objectConstructor.$getOwnPropertyDescriptor = new $Object_getOwnPropertyDescriptor(realm, functionPrototype);
+    objectConstructor.$getOwnPropertyDescriptors = new $Object_getOwnPropertyDescriptors(realm, functionPrototype);
+    objectConstructor.$getOwnPropertyNames = new $Object_getOwnPropertyNames(realm, functionPrototype);
+    objectConstructor.$getOwnPropertySymbols = new $Object_getOwnPropertySymbols(realm, functionPrototype);
+    objectConstructor.$getPrototypeOf = new $Object_getPrototypeOf(realm, functionPrototype);
+    objectConstructor.$is = new $Object_is(realm, functionPrototype);
+    objectConstructor.$isExtensible = new $Object_isExtensible(realm, functionPrototype);
+    objectConstructor.$isFrozen = new $Object_isFrozen(realm, functionPrototype);
+    objectConstructor.$isSealed = new $Object_isSealed(realm, functionPrototype);
+    objectConstructor.$keys = new $Object_keys(realm, functionPrototype);
+    objectConstructor.$preventExtensions = new $Object_preventExtensions(realm, functionPrototype);
+    objectConstructor.$seal = new $Object_seal(realm, functionPrototype);
+    objectConstructor.$setPrototypeOf = new $Object_setPrototypeOf(realm, functionPrototype);
+    objectConstructor.$values = new $Object_values(realm, functionPrototype);
+
+    objectPrototype.$hasOwnProperty = new $ObjectPrototype_hasOwnProperty(realm, functionPrototype);
+    objectPrototype.$isPrototypeOf = new $ObjectPrototype_isPrototypeOf(realm, functionPrototype);
+    objectPrototype.$propertyIsEnumerable = new $ObjectPrototype_propertyIsEnumerable(realm, functionPrototype);
+    objectPrototype.$toLocaleString = new $ObjectPrototype_toLocaleString(realm, functionPrototype);
+    objectPrototype.$toString = this['%ObjProto_toString%'] = new $ObjProto_toString(realm, functionPrototype);
+    objectPrototype.$valueOf = this['%ObjProto_valueOf%'] = new $ObjProto_valueOf(realm, functionPrototype);
 
     functionPrototype.$call = new $FunctionPrototype_call(realm, 'Function.prototype.call', functionPrototype);
 

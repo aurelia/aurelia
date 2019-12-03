@@ -150,6 +150,9 @@ import {
 import {
   $IsNaN,
 } from './globals/is-nan';
+import {
+  $ParseFloat,
+} from './globals/parse-float';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
@@ -795,7 +798,7 @@ export class Intrinsics implements IDisposable {
     this['%eval%'] = new $Eval(realm, functionPrototype);
     this['%isFinite%'] = new $IsFinite(realm, functionPrototype);
     this['%isNaN%'] = new $IsNaN(realm, functionPrototype);
-    this['%parseFloat%'] = new $Object(realm, '%parseFloat%', functionPrototype, CompletionType.normal, empty);
+    this['%parseFloat%'] = new $ParseFloat(realm, functionPrototype);
     this['%parseInt%'] = new $Object(realm, '%parseInt%', functionPrototype, CompletionType.normal, empty);
     this['%JSONParse%'] = new $Object(realm, '%JSONParse%', functionPrototype, CompletionType.normal, empty);
     this['%JSONStringify%'] = new $Object(realm, '%JSONStringify%', functionPrototype, CompletionType.normal, empty);

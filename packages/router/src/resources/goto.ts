@@ -58,71 +58,19 @@ export class GotoCustomAttribute {
   }
 
   public handleChange(): void {
-    setTimeout(() => {
       const controller = CustomAttribute.for(this.element, 'goto')!.parent;
       const created = NavigationInstructionResolver.createViewportInstructions(this.router, this.value as any, { context: controller });
-      // console.log('activeComponents', created, this.router.activeComponents);
       const instructions = NavigationInstructionResolver.toViewportInstructions(this.router, created.instructions);
       for (const instruction of instructions) {
         if (instruction.scope === null) {
           instruction.scope = created.scope;
         }
       }
-      // console.log('active', created, this.checkActive(instructions, this.router.activeComponents));
+      // TODO: Use router configuration for class name and update target
       if (this.router.checkActive(instructions)) {
         this.element.classList.add(this.activeClass);
       } else {
         this.element.classList.remove(this.activeClass);
       }
-    }, 100);
   }
-
-  // public checkActive(instructions: ViewportInstruction[], active: ViewportInstruction[]) {
-  //   for (const instruction of instructions) {
-  //     const scopeInstructions = this.matchScope(active, instruction.scope!);
-  //     const matching = scopeInstructions.filter(instr => instr.sameComponent(instruction));
-  //     if (matching.length === 0) {
-  //       return false;
-  //     }
-  //     if (Array.isArray(instruction.nextScopeInstructions)
-  //       && instruction.nextScopeInstructions.length > 0
-  //       && this.matchChildren(
-  //         instruction.nextScopeInstructions,
-  //         matching.map(instr => Array.isArray(instr.nextScopeInstructions) ? instr.nextScopeInstructions : []).flat()
-  //       ) === false) {
-  //       return false;
-  //     }
-  //   }
-  //   return true;
-  // }
-
-  // public matchChildren(instructions: ViewportInstruction[], active: ViewportInstruction[]): boolean {
-  //   for (const instruction of instructions) {
-  //     const matching = active.filter(instr => instr.sameComponent(instruction));
-  //     if (matching.length === 0) {
-  //       return false;
-  //     }
-  //     if (Array.isArray(instruction.nextScopeInstructions)
-  //       && instruction.nextScopeInstructions.length > 0
-  //       && this.matchChildren(
-  //         instruction.nextScopeInstructions,
-  //         matching.map(instr => Array.isArray(instr.nextScopeInstructions) ? instr.nextScopeInstructions : []).flat()
-  //       ) === false) {
-  //       return false;
-  //     }
-  //   }
-  //   return true;
-  // }
-
-  // public matchScope(instructions: ViewportInstruction[], scope: Scope): ViewportInstruction[] {
-  //   const matching: ViewportInstruction[] = [];
-
-  //   matching.push(...instructions.filter(instruction => instruction.scope === scope));
-  //   matching.push(...instructions
-  //     .filter(instr => instr.scope !== scope)
-  //     .map(instr => Array.isArray(instr.nextScopeInstructions) ? this.matchScope(instr.nextScopeInstructions!, scope) : [])
-  //     .flat()
-  //   );
-  //   return matching;
-  // }
 }

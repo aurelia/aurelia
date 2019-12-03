@@ -54,8 +54,8 @@ import {
 
 // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots
 export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
-  public readonly '[[ProxyHandler]]': $AnyObject | $Null;
-  public readonly '[[ProxyTarget]]': $AnyObject | $Null;
+  public '[[ProxyHandler]]': $AnyObject | $Null;
+  public '[[ProxyTarget]]': $AnyObject | $Null;
 
   public get isProxy(): true { return true; }
 

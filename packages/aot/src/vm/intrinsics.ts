@@ -27,10 +27,12 @@ import {
   $Object,
 } from './types/object';
 import {
-  $Function,
-} from './types/function';
-import {
-  $IteratorPrototype, $AsyncIteratorPrototype, $AsyncFromSyncIteratorPrototype, $AsyncFromSyncIteratorPrototype_next, $AsyncFromSyncIteratorPrototype_return, $AsyncFromSyncIteratorPrototype_throw,
+  $IteratorPrototype,
+  $AsyncIteratorPrototype,
+  $AsyncFromSyncIteratorPrototype,
+  $AsyncFromSyncIteratorPrototype_next,
+  $AsyncFromSyncIteratorPrototype_return,
+  $AsyncFromSyncIteratorPrototype_throw,
 } from './globals/iteration';
 import {
   $StringConstructor,
@@ -104,9 +106,24 @@ import {
   $PromiseProto_catch,
   $PromiseProto_finally,
 } from './globals/promise';
-import { $GetSpecies } from './globals/_shared';
-import { $AsyncFunctionPrototype, $AsyncFunctionConstructor } from './globals/async-function';
-import { $AsyncGeneratorFunctionPrototype, $AsyncGeneratorFunctionConstructor, $AsyncGeneratorPrototype, $AsyncGeneratorPrototype_next, $AsyncGeneratorPrototype_return, $AsyncGeneratorPrototype_throw } from './globals/async-generator-function';
+import {
+  $GetSpecies,
+} from './globals/_shared';
+import {
+  $AsyncFunctionPrototype,
+  $AsyncFunctionConstructor,
+} from './globals/async-function';
+import {
+  $AsyncGeneratorFunctionPrototype,
+  $AsyncGeneratorFunctionConstructor,
+  $AsyncGeneratorPrototype,
+  $AsyncGeneratorPrototype_next,
+  $AsyncGeneratorPrototype_return,
+  $AsyncGeneratorPrototype_throw,
+} from './globals/async-generator-function';
+import {
+  $ProxyConstructor, $Proxy_revocable,
+} from './globals/proxy';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
@@ -257,6 +274,9 @@ export class Intrinsics implements IDisposable {
   public readonly 'then': $String<'then'>;
   public readonly 'catch': $String<'catch'>;
   public readonly 'message': $String<'message'>;
+  public readonly 'proxy': $String<'proxy'>;
+  public readonly 'revoke': $String<'revoke'>;
+  public readonly 'revocable': $String<'revocable'>;
   public readonly '$arguments': $String<'arguments'>;
   public readonly '$callee': $String<'callee'>;
   public readonly '$constructor': $String<'constructor'>;
@@ -422,7 +442,7 @@ export class Intrinsics implements IDisposable {
   public readonly '%JSON%': $Object<'%JSON%'>;
   public readonly '%Math%': $Object<'%Math%'>;
   public readonly '%Reflect%': $Object<'%Reflect%'>;
-  public readonly '%Proxy%': $Object<'%Proxy%'>;
+  public readonly '%Proxy%': $ProxyConstructor;
 
   public readonly '%decodeURI%': $Object<'%decodeURI%'>;
   public readonly '%decodeURIComponent%': $Object<'%decodeURIComponent%'>;
@@ -484,6 +504,9 @@ export class Intrinsics implements IDisposable {
     this['then'] = new $String(realm, 'then');
     this['catch'] = new $String(realm, 'catch');
     this['message'] = new $String(realm, 'message');
+    this['proxy'] = new $String(realm, 'proxy');
+    this['revoke'] = new $String(realm, 'revoke');
+    this['revocable'] = new $String(realm, 'revocable');
     this['$arguments'] = new $String(realm, 'arguments');
     this['$callee'] = new $String(realm, 'callee');
     this['$constructor'] = new $String(realm, 'constructor');
@@ -720,7 +743,9 @@ export class Intrinsics implements IDisposable {
     this['%JSON%'] = new $Object(realm, '%JSON%', objectPrototype, CompletionType.normal, empty);
     this['%Math%'] = new $Object(realm, '%Math%', objectPrototype, CompletionType.normal, empty);
     this['%Reflect%'] = new $Object(realm, '%Reflect%', objectPrototype, CompletionType.normal, empty);
-    this['%Proxy%'] = new $Object(realm, '%Proxy%', functionPrototype, CompletionType.normal, empty);
+    const proxyConstructor = this['%Proxy%'] = new $ProxyConstructor(realm, functionPrototype);
+    proxyConstructor.revocable = new $Proxy_revocable(realm, functionPrototype);
+
 
     this['%decodeURI%'] = new $Object(realm, '%decodeURI%', functionPrototype, CompletionType.normal, empty);
     this['%decodeURIComponent%'] = new $Object(realm, '%decodeURIComponent%', functionPrototype, CompletionType.normal, empty);

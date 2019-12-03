@@ -147,6 +147,9 @@ import {
 import {
   $IsFinite,
 } from './globals/is-finite';
+import {
+  $IsNaN,
+} from './globals/is-nan';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
@@ -473,7 +476,7 @@ export class Intrinsics implements IDisposable {
   public readonly '%encodeURIComponent%': $Object<'%encodeURIComponent%'>;
   public readonly '%eval%': $Eval;
   public readonly '%isFinite%': $IsFinite;
-  public readonly '%isNaN%': $Object<'%isNaN%'>;
+  public readonly '%isNaN%': $IsNaN;
   public readonly '%parseFloat%': $Object<'%parseFloat%'>;
   public readonly '%parseInt%': $Object<'%parseInt%'>;
   public readonly '%JSONParse%': $Object<'%JSONParse%'>;
@@ -791,7 +794,7 @@ export class Intrinsics implements IDisposable {
     this['%encodeURIComponent%'] = new $Object(realm, '%encodeURIComponent%', functionPrototype, CompletionType.normal, empty);
     this['%eval%'] = new $Eval(realm, functionPrototype);
     this['%isFinite%'] = new $IsFinite(realm, functionPrototype);
-    this['%isNaN%'] = new $Object(realm, '%isNaN%', functionPrototype, CompletionType.normal, empty);
+    this['%isNaN%'] = new $IsNaN(realm, functionPrototype);
     this['%parseFloat%'] = new $Object(realm, '%parseFloat%', functionPrototype, CompletionType.normal, empty);
     this['%parseInt%'] = new $Object(realm, '%parseInt%', functionPrototype, CompletionType.normal, empty);
     this['%JSONParse%'] = new $Object(realm, '%JSONParse%', functionPrototype, CompletionType.normal, empty);

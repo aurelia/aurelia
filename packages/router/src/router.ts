@@ -19,7 +19,6 @@ import { HookManager, IHookDefinition, HookIdentity, HookFunction, IHookOptions,
 import { Scope, IScopeOwner } from './scope';
 import { CustomElementType } from '@aurelia/runtime';
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
-import { ViewportInstructionCollection } from './viewport-instruction-collection';
 
 export interface IGotoOptions {
   title?: string;

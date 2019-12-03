@@ -202,7 +202,9 @@ export class Viewport implements IScopeOwner {
     if (!this.content.componentInstance && (!this.nextContent || !this.nextContent.componentInstance) && this.options.default) {
       const instructions = this.router.instructionResolver.parseViewportInstructions(this.options.default);
       for (const instruction of instructions) {
-        instruction.setViewport(this);
+        // Set to name to be delayed one turn
+        instruction.setViewport(this.name);
+        instruction.scope = this.owningScope;
         instruction.default = true;
       }
       this.router.goto(instructions, { append: true }).catch(error => { throw error; });

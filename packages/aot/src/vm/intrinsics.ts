@@ -144,6 +144,9 @@ import {
 import {
   $Eval,
 } from './globals/eval';
+import {
+  $IsFinite,
+} from './globals/is-finite';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
@@ -787,7 +790,7 @@ export class Intrinsics implements IDisposable {
     this['%encodeURI%'] = new $Object(realm, '%encodeURI%', functionPrototype, CompletionType.normal, empty);
     this['%encodeURIComponent%'] = new $Object(realm, '%encodeURIComponent%', functionPrototype, CompletionType.normal, empty);
     this['%eval%'] = new $Eval(realm, functionPrototype);
-    this['%isFinite%'] = new $Object(realm, '%isFinite%', functionPrototype, CompletionType.normal, empty);
+    this['%isFinite%'] = new $IsFinite(realm, functionPrototype);
     this['%isNaN%'] = new $Object(realm, '%isNaN%', functionPrototype, CompletionType.normal, empty);
     this['%parseFloat%'] = new $Object(realm, '%parseFloat%', functionPrototype, CompletionType.normal, empty);
     this['%parseInt%'] = new $Object(realm, '%parseInt%', functionPrototype, CompletionType.normal, empty);

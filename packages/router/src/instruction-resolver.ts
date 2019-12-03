@@ -1,5 +1,6 @@
 import { ComponentParameters, ComponentAppellation, ViewportHandle } from './interfaces';
 import { ViewportInstruction } from './viewport-instruction';
+import { Scope } from './scope';
 
 export interface IInstructionResolverOptions {
   separators?: IRouteSeparators;
@@ -268,6 +269,36 @@ export class InstructionResolver {
         return key !== void 0 && key !== value ? key + seps.parameterKeySeparator + value : value;
       })
       .join(seps.parameterSeparator);
+  }
+
+  public matchScope(instructions: ViewportInstruction[], scope: Scope): ViewportInstruction[] {
+    const matching: ViewportInstruction[] = [];
+
+    matching.push(...instructions.filter(instruction => instruction.scope === scope));
+    matching.push(...instructions
+      .filter(instr => instr.scope !== scope)
+      .map(instr => Array.isArray(instr.nextScopeInstructions) ? this.matchScope(instr.nextScopeInstructions!, scope) : [])
+      .flat()
+    );
+    return matching;
+  }
+
+  public matchChildren(instructions: ViewportInstruction[], active: ViewportInstruction[]): boolean {
+    for (const instruction of instructions) {
+      const matching: ViewportInstruction[] = active.filter(instr => instr.sameComponent(instruction));
+      if (matching.length === 0) {
+        return false;
+      }
+      if (Array.isArray(instruction.nextScopeInstructions)
+        && instruction.nextScopeInstructions.length > 0
+        && this.matchChildren(
+          instruction.nextScopeInstructions,
+          matching.map(instr => Array.isArray(instr.nextScopeInstructions) ? instr.nextScopeInstructions : []).flat()
+        ) === false) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private parseViewportInstructionsWorker(instructions: string, grouped: boolean = false): { instructions: ViewportInstruction[]; remaining: string } {

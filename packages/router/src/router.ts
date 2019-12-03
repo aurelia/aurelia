@@ -94,6 +94,8 @@ export interface IRouter {
   back(): Promise<void>;
   forward(): Promise<void>;
 
+  checkActive(instructions: ViewportInstruction[]): boolean;
+
   setNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
   addNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
   updateNav(name?: string): void;
@@ -751,6 +753,25 @@ export class Router implements IRouter {
 
   public forward(): Promise<void> {
     return this.navigator.go(1);
+  }
+
+  public checkActive(instructions: ViewportInstruction[]): boolean {
+    for (const instruction of instructions) {
+      const scopeInstructions: ViewportInstruction[] = this.instructionResolver.matchScope(this.activeComponents, instruction.scope!);
+      const matching: ViewportInstruction[] = scopeInstructions.filter(instr => instr.sameComponent(instruction));
+      if (matching.length === 0) {
+        return false;
+      }
+      if (Array.isArray(instruction.nextScopeInstructions)
+        && instruction.nextScopeInstructions.length > 0
+        && this.instructionResolver.matchChildren(
+          instruction.nextScopeInstructions,
+          matching.map(instr => Array.isArray(instr.nextScopeInstructions) ? instr.nextScopeInstructions : []).flat()
+        ) === false) {
+        return false;
+      }
+    }
+    return true;
   }
 
   public setNav(name: string, routes: INavRoute[], classes?: INavClasses): void {

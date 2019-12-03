@@ -1,16 +1,10 @@
 import {
   bindable,
-  CustomElementType,
   IController,
   INode,
-  IRenderContext,
-  IRenderingEngine,
   LifecycleFlags,
   customElement,
   CustomElement,
-  CustomElementDefinition,
-  IDOM,
-  ITemplate,
 } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { IViewportScopeOptions, ViewportScope } from '../viewport-scope';

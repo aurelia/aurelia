@@ -153,6 +153,9 @@ import {
 import {
   $ParseFloat,
 } from './globals/parse-float';
+import {
+  $ParseInt,
+} from './globals/parse-int';
 
 export type $True = $Boolean<true>;
 export type $False = $Boolean<false>;
@@ -480,8 +483,8 @@ export class Intrinsics implements IDisposable {
   public readonly '%eval%': $Eval;
   public readonly '%isFinite%': $IsFinite;
   public readonly '%isNaN%': $IsNaN;
-  public readonly '%parseFloat%': $Object<'%parseFloat%'>;
-  public readonly '%parseInt%': $Object<'%parseInt%'>;
+  public readonly '%parseFloat%': $ParseFloat;
+  public readonly '%parseInt%': $ParseInt;
   public readonly '%JSONParse%': $Object<'%JSONParse%'>;
   public readonly '%JSONStringify%': $Object<'%JSONStringify%'>;
 
@@ -799,7 +802,7 @@ export class Intrinsics implements IDisposable {
     this['%isFinite%'] = new $IsFinite(realm, functionPrototype);
     this['%isNaN%'] = new $IsNaN(realm, functionPrototype);
     this['%parseFloat%'] = new $ParseFloat(realm, functionPrototype);
-    this['%parseInt%'] = new $Object(realm, '%parseInt%', functionPrototype, CompletionType.normal, empty);
+    this['%parseInt%'] = new $ParseInt(realm, functionPrototype);
     this['%JSONParse%'] = new $Object(realm, '%JSONParse%', functionPrototype, CompletionType.normal, empty);
     this['%JSONStringify%'] = new $Object(realm, '%JSONStringify%', functionPrototype, CompletionType.normal, empty);
 

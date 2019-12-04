@@ -48,9 +48,9 @@ describe(`If/Else`, function () {
     lifecycle.afterAttach.end(flags);
   }
   function runDetachLifecycle(lifecycle: ILifecycle, sut: If<AuNode>, flags: LifecycleFlags): void {
-    lifecycle.detached.begin();
+    lifecycle.afterDetach.begin();
     sut.$controller.detach(flags);
-    lifecycle.detached.end(flags);
+    lifecycle.afterDetach.end(flags);
   }
 
   interface Spec {

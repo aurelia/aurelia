@@ -23,7 +23,7 @@ export class Editor {
   public beforeAttach() { return; }
   public afterAttach() { return; }
   public beforeDetach() { return; }
-  public detached() { return; }
+  public afterDetach() { return; }
   public beforeUnbind() { return; }
   public afterUnbind() { return; }
 

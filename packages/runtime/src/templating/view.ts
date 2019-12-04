@@ -167,7 +167,7 @@ const lifecycleCallbacks = [
   'afterAttach',
   'beforeDetach',
   'caching',
-  'detached',
+  'afterDetach',
   'beforeUnbind',
   'afterUnbind'
 ] as const;

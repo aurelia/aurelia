@@ -160,9 +160,9 @@ describe.skip(`ViewFactory`, function () {
 //     lifecycle.afterAttach.end(flags);
 //   }
 //   function runDetachLifecycle(lifecycle: ILifecycle, view: IController<AuNode>, flags: LF): void {
-//     lifecycle.detached.begin();
+//     lifecycle.afterDetach.begin();
 //     view.detach(flags);
-//     lifecycle.detached.end(flags);
+//     lifecycle.afterDetach.end(flags);
 //   }
 
 //   interface Spec {
@@ -476,7 +476,7 @@ describe.skip(`ViewFactory`, function () {
 
 //       // - Round 1 - detach
 
-//       lifecycle.detached.begin();
+//       lifecycle.afterDetach.begin();
 //       if (relBeforeDetach1) {
 //         sut.release(detachFlags1);
 //         assert.strictEqual(host.textContent, firstBindFinalValue.repeat(1 + childCount), 'host.textContent #2');
@@ -486,7 +486,7 @@ describe.skip(`ViewFactory`, function () {
 //         sut.release(detachFlags1);
 //         assert.strictEqual(host.textContent, '', 'host.textContent #3');
 //       }
-//       lifecycle.detached.end(detachFlags1);
+//       lifecycle.afterDetach.end(detachFlags1);
 //       if (relAfterDetach1) {
 //         sut.release(detachFlags1);
 //       }
@@ -499,7 +499,7 @@ describe.skip(`ViewFactory`, function () {
 //         }
 //       }
 //       if (detachTwice) {
-//         lifecycle.detached.begin();
+//         lifecycle.afterDetach.begin();
 //         if (relBeforeDetach1) {
 //           sut.release(detachFlags1);
 //         }
@@ -507,7 +507,7 @@ describe.skip(`ViewFactory`, function () {
 //         if (relBeforeEndDetach1) {
 //           sut.release(detachFlags1);
 //         }
-//         lifecycle.detached.end(detachFlags1);
+//         lifecycle.afterDetach.end(detachFlags1);
 //         if (relAfterDetach1) {
 //           sut.release(detachFlags1);
 //         }
@@ -564,7 +564,7 @@ describe.skip(`ViewFactory`, function () {
 
 //       // Round 2 - detach
 
-//       lifecycle.detached.begin();
+//       lifecycle.afterDetach.begin();
 //       if (relBeforeDetach2) {
 //         sut.release(detachFlags2);
 //         assert.strictEqual(host.textContent, secondBindFinalValue.repeat(1 + childCount), 'host.textContent #6');
@@ -574,7 +574,7 @@ describe.skip(`ViewFactory`, function () {
 //         sut.release(detachFlags2);
 //         assert.strictEqual(host.textContent, '', 'host.textContent #7');
 //       }
-//       lifecycle.detached.end(detachFlags2);
+//       lifecycle.afterDetach.end(detachFlags2);
 //       if (relAfterDetach2) {
 //         sut.release(detachFlags2);
 //       }
@@ -587,7 +587,7 @@ describe.skip(`ViewFactory`, function () {
 //         }
 //       }
 //       if (detachTwice) {
-//         lifecycle.detached.begin();
+//         lifecycle.afterDetach.begin();
 //         if (relBeforeDetach2) {
 //           sut.release(detachFlags2);
 //         }
@@ -595,7 +595,7 @@ describe.skip(`ViewFactory`, function () {
 //         if (relBeforeEndDetach2) {
 //           sut.release(detachFlags2);
 //         }
-//         lifecycle.detached.end(detachFlags2);
+//         lifecycle.afterDetach.end(detachFlags2);
 //         if (relAfterDetach2) {
 //           sut.release(detachFlags2);
 //         }

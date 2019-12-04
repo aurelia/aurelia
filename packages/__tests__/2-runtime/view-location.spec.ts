@@ -229,7 +229,7 @@ describe('the view locator', function () {
     'afterAttach',
     'beforeDetach',
     'caching',
-    'detached',
+    'afterDetach',
     'beforeUnbind',
     'afterUnbind'
   ].forEach(lifecycleHook => {

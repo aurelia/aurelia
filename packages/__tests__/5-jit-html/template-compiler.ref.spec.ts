@@ -214,10 +214,10 @@ describe('templating-compiler.ref.spec.ts', function () {
           assert.contains(this.el, this.div, '[beforeDetach] this.el.contains(this.div)');
         }
 
-        public detached(): void {
+        public afterDetach(): void {
           this.detachedCalls++;
           assert.notStrictEqual(this.div, undefined);
-          assert.notContains(this.el, this.div, '[detached] this.el.contains(this.div)');
+          assert.notContains(this.el, this.div, '[afterDetach] this.el.contains(this.div)');
         }
 
         public beforeUnbind(): void {
@@ -250,7 +250,7 @@ describe('templating-compiler.ref.spec.ts', function () {
         assert.equal(comp.attachingCalls, 1, '[beforeAttach]');
         assert.equal(comp.attachedCalls, 1, '[afterAttach]');
         assert.equal(comp.detachingCalls, 0, '[beforeDetach]');
-        assert.equal(comp.detachedCalls, 0, '[detached]');
+        assert.equal(comp.detachedCalls, 0, '[afterDetach]');
         assert.equal(comp.unbindingCalls, 0, '[beforeUnbind]');
         assert.equal(comp.unboundCalls, 0, '[unbound]');
       },
@@ -273,7 +273,7 @@ describe('templating-compiler.ref.spec.ts', function () {
         assert.equal(comp.attachingCalls, 1, '[beforeAttach]');
         assert.equal(comp.attachedCalls, 1, '[afterAttach]');
         assert.equal(comp.detachingCalls, 1, '[beforeDetach]');
-        assert.equal(comp.detachedCalls, 1, '[detached]');
+        assert.equal(comp.detachedCalls, 1, '[afterDetach]');
         assert.equal(comp.unbindingCalls, 1, '[beforeUnbind]');
         assert.equal(comp.unboundCalls, 1, '[unbound]');
       }

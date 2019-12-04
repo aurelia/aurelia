@@ -113,7 +113,7 @@ export interface IController<
   attach(flags: LifecycleFlags): void;
   detach(flags: LifecycleFlags): void;
   afterAttach(flags: LifecycleFlags): void;
-  detached(flags: LifecycleFlags): void;
+  afterDetach(flags: LifecycleFlags): void;
   mount(flags: LifecycleFlags): void;
   unmount(flags: LifecycleFlags): void;
   cache(flags: LifecycleFlags): void;
@@ -181,7 +181,7 @@ export interface IViewModel<T extends INode = INode> {
   beforeAttach?(flags: LifecycleFlags): void;
   afterAttach?(flags: LifecycleFlags): void;
   beforeDetach?(flags: LifecycleFlags): void;
-  detached?(flags: LifecycleFlags): void;
+  afterDetach?(flags: LifecycleFlags): void;
   caching?(flags: LifecycleFlags): void;
 }
 
@@ -199,7 +199,7 @@ export interface ILifecycle {
   readonly afterUnbind: IAutoProcessingQueue<IController>;
 
   readonly afterAttach: IAutoProcessingQueue<IController>;
-  readonly detached: IAutoProcessingQueue<IController>;
+  readonly afterDetach: IAutoProcessingQueue<IController>;
 }
 
 export const ILifecycle = DI.createInterface<ILifecycle>('ILifecycle').withDefault(x => x.singleton(Lifecycle));
@@ -518,7 +518,7 @@ export class DetachedQueue implements IAutoProcessingQueue<IController> {
       let next: IController | undefined;
       do {
         cur.state = (cur.state | State.inDetachedQueue) ^ State.inDetachedQueue;
-        cur.detached(flags);
+        cur.afterDetach(flags);
         next = cur.nextDetached;
         cur.nextDetached = void 0;
         cur.prevDetached = void 0;
@@ -717,7 +717,7 @@ export class Lifecycle implements ILifecycle {
   public readonly afterUnbind: IAutoProcessingQueue<IController> = new UnboundQueue(this);
 
   public readonly afterAttach: IAutoProcessingQueue<IController> = new AttachedQueue(this);
-  public readonly detached: IAutoProcessingQueue<IController> = new DetachedQueue(this);
+  public readonly afterDetach: IAutoProcessingQueue<IController> = new DetachedQueue(this);
 
   public static register(container: IContainer): IResolver<ILifecycle> {
     return Registration.singleton(ILifecycle, this).register(container);

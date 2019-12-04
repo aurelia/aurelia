@@ -1324,7 +1324,7 @@ const methodNamesWithFlags: PropertyKey[] = [
   'detachControllers',
 
   'beforeDetach',
-  'detached',
+  'afterDetach',
 
   'unmount',
   'unmountCustomElement',
@@ -1404,7 +1404,7 @@ export function formatProperty(
           case 'detachControllers':
 
           case 'beforeDetach':
-          case 'detached':
+          case 'afterDetach':
 
           case 'unmount':
           case 'unmountCustomElement':

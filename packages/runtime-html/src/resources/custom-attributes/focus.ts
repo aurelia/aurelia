@@ -74,9 +74,9 @@ export class Focus {
   }
 
   /**
-   * Invoked when the attribute is detached from the DOM.
+   * Invoked when the attribute is afterDetach from the DOM.
    */
-  public detached(): void {
+  public afterDetach(): void {
     const el = this.element;
     el.removeEventListener('focus', this);
     el.removeEventListener('blur', this);

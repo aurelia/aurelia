@@ -80,8 +80,8 @@ export class App {
     console.log('app beforeDetach');
   }
 
-  public detached(): void {
-    console.log('app detached');
+  public afterDetach(): void {
+    console.log('app afterDetach');
   }
 
   public afterUnbind(): void {

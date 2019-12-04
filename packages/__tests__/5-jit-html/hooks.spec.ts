@@ -101,7 +101,7 @@
 //       public beforeDetach() {
 //         return;
 //       }
-//       public detached() {
+//       public afterDetach() {
 //         return;
 //       }
 //       public beforeUnbind() {
@@ -137,7 +137,7 @@
 //       public beforeDetach() {
 //         return;
 //       }
-//       public detached() {
+//       public afterDetach() {
 //         return;
 //       }
 //       public beforeUnbind() {
@@ -173,7 +173,7 @@
 //       public beforeDetach() {
 //         return;
 //       }
-//       public detached() {
+//       public afterDetach() {
 //         return;
 //       }
 //       public beforeUnbind() {
@@ -208,7 +208,7 @@
 //       public beforeDetach() {
 //         return;
 //       }
-//       public detached() {
+//       public afterDetach() {
 //         return;
 //       }
 //       public beforeUnbind() {
@@ -521,7 +521,7 @@
 //     assert.strictEqual(host.textContent, '', `host.textContent`);
 //   });
 
-//   it('detached task awaited indirectly', async function () {
+//   it('afterDetach task awaited indirectly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',
@@ -582,7 +582,7 @@
 
 //   });
 
-//   it('detached task awaited directly', async function () {
+//   it('afterDetach task awaited directly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',
@@ -643,7 +643,7 @@
 
 //   });
 
-//   it('detached task (triple then) awaited indirectly', async function () {
+//   it('afterDetach task (triple then) awaited indirectly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',
@@ -707,7 +707,7 @@
 //     assert.strictEqual(host.textContent, '', `host.textContent`);
 //   });
 
-//   it('detached task (triple then) awaited directly', async function () {
+//   it('afterDetach task (triple then) awaited directly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',

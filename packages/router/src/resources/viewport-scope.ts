@@ -59,7 +59,7 @@ export class ViewportScopeCustomElement {
     this.container = controller.context.container;
     // console.log('ViewportScope creating', this.getAttribute('name', this.name), this.container, this.parent, controller, this);
     // if (this.router.rootScope !== null && this.viewportScope === null) {
-    //   this.connect();
+    this.connect();
     // }
   }
   public created() {
@@ -76,7 +76,10 @@ export class ViewportScopeCustomElement {
   }
 
   public connect(): void {
-    const name = this.getAttribute('name', this.name) as string;
+    if (this.router.rootScope === null) {
+      return;
+    }
+    const name: string = this.getAttribute('name', this.name) as string;
     const options: IViewportScopeOptions = {};
     let value: string | boolean | undefined = this.getAttribute('catches', this.catches);
     if (value !== void 0) {
@@ -86,19 +89,19 @@ export class ViewportScopeCustomElement {
     // TODO: Needs to be bound? How to solve?
     options.source = this.source || null;
 
-    this.viewportScope = this.router.connectViewportScope(name, this, this.container, this.element, options);
+    this.viewportScope = this.router.connectViewportScope(this.viewportScope, name, this.container, this.element, options);
   }
   public disconnect(): void {
     if (this.viewportScope) {
-      this.router.disconnectViewportScope(this, this.container, this.viewportScope);
+      this.router.disconnectViewportScope(this.viewportScope, this.container);
     }
   }
 
   public binding(flags: LifecycleFlags): void {
     this.isBound = true;
-    if (this.router.rootScope !== null/* && this.viewportScope === null*/) {
-      this.connect();
-    }
+    // if (this.router.rootScope !== null/* && this.viewportScope === null*/) {
+    this.connect();
+    // }
   }
   public async unbinding(flags: LifecycleFlags): Promise<void> {
     if (this.viewportScope) {

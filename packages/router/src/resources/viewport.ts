@@ -65,7 +65,7 @@ export class ViewportCustomElement {
     this.container = controller.context.container;
     // console.log('Viewport creating', this.getAttribute('name', this.name), this.container, this.parentViewport, controller, this);
     // if (this.router.rootScope !== null && this.viewport === null) {
-    //   this.connect();
+      this.connect();
     // }
   }
   public created() {
@@ -118,7 +118,10 @@ export class ViewportCustomElement {
   // }
 
   public connect(): void {
-    const name = this.getAttribute('name', this.name) as string;
+    if (this.router.rootScope === null) {
+      return;
+    }
+    const name: string = this.getAttribute('name', this.name) as string;
     let value: string | boolean | undefined = this.getAttribute('no-scope', this.noScope);
     const options: IViewportOptions = { scope: value === void 0 || !value ? true : false };
     value = this.getAttribute('used-by', this.usedBy);
@@ -163,11 +166,11 @@ export class ViewportCustomElement {
     // if (this.element.hasAttribute('stateful')) {
     //   options.stateful = true;
     // }
-    this.viewport = this.router.connectViewport(this, this.container, name, this.element, options);
+    this.viewport = this.router.connectViewport(this.viewport, this.container, name, this.element, options);
   }
   public disconnect(): void {
     if (this.viewport) {
-      this.router.disconnectViewport(this, this.container, this.viewport, this.element);
+      this.router.disconnectViewport(this.viewport, this.container, this.element);
     }
   }
 
@@ -175,9 +178,9 @@ export class ViewportCustomElement {
     this.isBound = true;
     // this.router.setClosestViewport(this);
     // this.connect();
-    if (this.router.rootScope !== null/* && this.viewport === null*/) {
+    // if (this.router.rootScope !== null/* && this.viewport === null*/) {
       this.connect();
-    }
+    // }
     if (this.viewport) {
       this.viewport.binding(flags);
     }

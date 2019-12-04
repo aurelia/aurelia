@@ -77,13 +77,13 @@ export interface IRouter {
   unsetClosestScope(viewModelOrContainer: IViewModel | IContainer): void;
 
   // Called from the viewport custom element in attached()
-  connectViewport(viewModel: IViewModel, container: IContainer, name: string, element: Element, options?: IViewportOptions): Viewport;
+  connectViewport(viewport: Viewport | null, container: IContainer, name: string, element: Element, options?: IViewportOptions): Viewport;
   // Called from the viewport custom element
-  disconnectViewport(viewModel: IViewModel, container: IContainer, viewport: Viewport, element: Element | null): void;
+  disconnectViewport(viewport: Viewport, container: IContainer, element: Element | null): void;
   // // Called from the viewport scope custom element in attached()
-  connectViewportScope(name: string, viewModel: IViewModel, container: IContainer, element: Element, options?: IViewportScopeOptions): ViewportScope;
+  connectViewportScope(viewportScope: ViewportScope | null, name: string, container: IContainer, element: Element, options?: IViewportScopeOptions): ViewportScope;
   // // Called from the viewport scope custom element
-  disconnectViewportScope(viewModel: IViewModel, container: IContainer, viewportScope: ViewportScope): void;
+  disconnectViewportScope(viewportScope: ViewportScope, container: IContainer): void;
 
 
   allViewports(includeDisabled?: boolean): Viewport[];
@@ -627,19 +627,21 @@ export class Router implements IRouter {
   }
 
   // Called from the viewport custom element in attached()
-  public connectViewport(viewModel: IViewModel, container: IContainer, name: string, element: Element, options?: IViewportOptions): Viewport {
+  public connectViewport(viewport: Viewport | null, container: IContainer, name: string, element: Element, options?: IViewportOptions): Viewport {
     // console.log('Viewport container', this.getClosestContainer(viewModel));
     // const parentScope: Scope = this.ensureRootScope().scope; // this.findParentScope(viewModel);
     const parentScope: Scope = this.findParentScope(container);
     // console.log('>>> connectViewport', name, container, parentScope);
-    const viewport: Viewport = parentScope.addViewport(name, element, container, options);
-    this.setClosestScope(container, viewport.connectedScope);
+    if (viewport === null) {
+      viewport = parentScope.addViewport(name, element, container, options);
+      this.setClosestScope(container, viewport.connectedScope);
+    }
     // this.setClosestScope(viewModel, viewport.connectedScope);
     // viewport.connectedScope.reparent(viewModel);
-    return viewport;
+    return viewport as Viewport;
   }
   // Called from the viewport custom element
-  public disconnectViewport(viewModel: IViewModel, container: IContainer, viewport: Viewport, element: Element | null): void {
+  public disconnectViewport(viewport: Viewport, container: IContainer, element: Element | null): void {
     if (!viewport.owningScope!.removeViewport(viewport, element, container)) {
       throw new Error(`Failed to remove viewport: ${viewport.name}`);
     }
@@ -647,19 +649,21 @@ export class Router implements IRouter {
     this.unsetClosestScope(container);
   }
   // Called from the viewport scope custom element in attached()
-  public connectViewportScope(name: string, viewModel: IViewModel, container: IContainer, element: Element, options?: IViewportScopeOptions): ViewportScope {
+  public connectViewportScope(viewportScope: ViewportScope | null, name: string, container: IContainer, element: Element, options?: IViewportScopeOptions): ViewportScope {
     // console.log('ViewportScope container', this.getClosestContainer(viewModel));
     // const parentScope: Scope = this.ensureRootScope().scope; // this.findParentScope(viewModel);
     const parentScope: Scope = this.findParentScope(container);
     // console.log('>>> connectViewportScope container', container, parentScope);
-    const viewportScope: ViewportScope = parentScope.addViewportScope(name, element, options);
-    this.setClosestScope(container, viewportScope.connectedScope);
+    if (viewportScope === null) {
+      const viewportScope: ViewportScope = parentScope.addViewportScope(name, element, options);
+      this.setClosestScope(container, viewportScope.connectedScope);
+    }
     // this.setClosestScope(viewModel, viewportScope.connectedScope);
     // viewportScope.connectedScope.reparent(viewModel);
-    return viewportScope;
+    return viewportScope as ViewportScope;
   }
   // Called from the viewport scope custom element
-  public disconnectViewportScope(viewModel: IViewModel, container: IContainer, viewportScope: ViewportScope): void {
+  public disconnectViewportScope(viewportScope: ViewportScope, container: IContainer): void {
     if (!viewportScope.owningScope!.removeViewportScope(viewportScope)) {
       throw new Error(`Failed to remove viewport scope: ${viewportScope.path}`);
     }

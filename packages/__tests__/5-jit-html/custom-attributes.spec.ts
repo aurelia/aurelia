@@ -195,19 +195,19 @@ describe('custom-attributes', function () {
 
     it('binds to multiple properties correctly', async function () {
       const options = setup('<template> <div multi="a.bind: true; b.bind: value">Initial</div> </template>', app, [Multi]);
-      assert.strictEqual(options.appHost.firstElementChild.textContent, 'a: true, b: bound');
+      assert.strictEqual(options.appHost.firstElementChild.textContent, 'a: true, b: afterBind');
       await options.tearDown();
     });
 
     it('binds to multiple properties correctly when there’s a default property', async function () {
       const options = setup('<template> <div multi2="a.bind: true; b.bind: value">Initial</div> </template>', app, [Multi2]);
-      assert.strictEqual(options.appHost.firstElementChild.textContent, 'a: true, b: bound');
+      assert.strictEqual(options.appHost.firstElementChild.textContent, 'a: true, b: afterBind');
       await options.tearDown();
     });
 
     it('binds to the default property correctly', async function () {
       const options = setup('<template> <div multi2.bind="value">Initial</div> </template>', app, [Multi2]);
-      assert.strictEqual(options.appHost.firstElementChild.textContent, 'a: undefined, b: bound');
+      assert.strictEqual(options.appHost.firstElementChild.textContent, 'a: undefined, b: afterBind');
       await options.tearDown();
     });
   });

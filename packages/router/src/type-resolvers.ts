@@ -75,43 +75,43 @@ export const NavigationInstructionResolver = {
   createViewportInstructions: function (router: IRouter, navigationInstructions: NavigationInstruction | NavigationInstruction[], options?: IViewportInstructionsOptions): { instructions: string | ViewportInstruction[], scope: Scope | null } {
     options = options || {};
     let scope: Scope | null = null;
-    if (navigationInstructions !== router.instructionResolver.clearViewportInstruction) {
-      if (options.context) {
-        scope = router.findScope(options.context);
-        if (typeof navigationInstructions === 'string') {
-          // If it's not from scope root, figure out which scope
-          if (!navigationInstructions.startsWith('/')) {
-            // Scope modifications
-            if (navigationInstructions.startsWith('.')) {
-              // The same as no scope modification
-              if (navigationInstructions.startsWith('./')) {
-                navigationInstructions = navigationInstructions.slice(2);
-              }
-              // Find out how many scopes upwards we should move
-              while (navigationInstructions.startsWith('../')) {
-                scope = scope.parent || scope;
-                navigationInstructions = navigationInstructions.slice(3);
-              }
+    // if (navigationInstructions !== router.instructionResolver.clearViewportInstruction) {
+    if (options.context) {
+      scope = router.findScope(options.context);
+      if (typeof navigationInstructions === 'string') {
+        // If it's not from scope root, figure out which scope
+        if (!navigationInstructions.startsWith('/')) {
+          // Scope modifications
+          if (navigationInstructions.startsWith('.')) {
+            // The same as no scope modification
+            if (navigationInstructions.startsWith('./')) {
+              navigationInstructions = navigationInstructions.slice(2);
             }
-            if (scope.path !== null) {
-              navigationInstructions = `${scope.path}/${navigationInstructions}`;
-              scope = router.rootScope!.scope;
+            // Find out how many scopes upwards we should move
+            while (navigationInstructions.startsWith('../')) {
+              scope = scope.parent || scope;
+              navigationInstructions = navigationInstructions.slice(3);
             }
-          } else { // Specified root scope with /
+          }
+          if (scope.path !== null) {
+            navigationInstructions = `${scope.path}/${navigationInstructions}`;
             scope = router.rootScope!.scope;
           }
-        } else {
-          navigationInstructions = NavigationInstructionResolver.toViewportInstructions(router, navigationInstructions);
-          for (const instruction of navigationInstructions as ViewportInstruction[]) {
-            if (instruction.scope === null) {
-              instruction.scope = scope;
-            }
+        } else { // Specified root scope with /
+          scope = router.rootScope!.scope;
+        }
+      } else {
+        navigationInstructions = NavigationInstructionResolver.toViewportInstructions(router, navigationInstructions);
+        for (const instruction of navigationInstructions as ViewportInstruction[]) {
+          if (instruction.scope === null) {
+            instruction.scope = scope;
           }
         }
       }
-    } else {
-      navigationInstructions = NavigationInstructionResolver.toViewportInstructions(router, navigationInstructions);
     }
+    // } else {
+    //   navigationInstructions = NavigationInstructionResolver.toViewportInstructions(router, navigationInstructions);
+    // }
 
     return {
       instructions: navigationInstructions as string | ViewportInstruction[],

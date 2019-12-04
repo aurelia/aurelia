@@ -58,9 +58,7 @@ export class ViewportScopeCustomElement {
   public creating(controller: any) {
     this.container = controller.context.container;
     // console.log('ViewportScope creating', this.getAttribute('name', this.name), this.container, this.parent, controller, this);
-    // if (this.router.rootScope !== null && this.viewportScope === null) {
-    this.connect();
-    // }
+    // this.connect();
   }
   public created() {
     // console.log('ViewportScope created', this);
@@ -95,13 +93,12 @@ export class ViewportScopeCustomElement {
     if (this.viewportScope) {
       this.router.disconnectViewportScope(this.viewportScope, this.container);
     }
+    this.viewportScope = null;
   }
 
   public binding(flags: LifecycleFlags): void {
     this.isBound = true;
-    // if (this.router.rootScope !== null/* && this.viewportScope === null*/) {
     this.connect();
-    // }
   }
   public async unbinding(flags: LifecycleFlags): Promise<void> {
     if (this.viewportScope) {

@@ -297,7 +297,7 @@ export class Router implements IRouter {
       // if (!confirm('Perform history navigation?')) { this.navigator.cancel(instruction); this.processingNavigation = null;
       //   return Promise.resolve(); }
     }
-    let clearUsedViewports: boolean = fullStateInstruction;
+    // let clearUsedViewports: boolean = fullStateInstruction;
     let configuredRoute = await this.findInstructions(
       this.rootScope!.scope,
       instruction.instruction,
@@ -321,14 +321,21 @@ export class Router implements IRouter {
     }
     // TODO: Used to have an early exit if no instructions. Restore it?
 
-    if (instructions.some(instr => this.instructionResolver.isClearAllViewportsInstruction(instr))) {
-      clearUsedViewports = true;
-      instructions = instructions.filter(instr => !this.instructionResolver.isClearAllViewportsInstruction(instr));
-    }
-
     // TODO: Fetch title (probably when done)
 
-    let clearViewports = (clearUsedViewports ? this.allViewports().filter((value) => value.content.componentInstance !== null) : []);
+    let clearViewports: Viewport[] = [];
+    for (const instruction of instructions.filter(instr => this.instructionResolver.isClearAllViewportsInstruction(instr))) {
+      const scope: Scope = instruction.scope || this.rootScope!.scope;
+      clearViewports.push(...scope.allViewports().filter((viewport) => viewport.content.componentInstance !== null));
+    }
+    instructions = instructions.filter(instr => !this.instructionResolver.isClearAllViewportsInstruction(instr));
+
+    // if (instructions.some(instr => this.instructionResolver.isClearAllViewportsInstruction(instr))) {
+    //   clearUsedViewports = true;
+    //   instructions = instructions.filter(instr => !this.instructionResolver.isClearAllViewportsInstruction(instr));
+    // }
+    // let clearViewports = (clearUsedViewports ? this.allViewports().filter((value) => value.content.componentInstance !== null) : []);
+
     // const doneDefaultViewports: Viewport[] = [];
     // let defaultViewports = this.allViewports().filter(viewport =>
     //   viewport.options.default
@@ -340,7 +347,7 @@ export class Router implements IRouter {
     // TODO: Take care of cancellations down in subsets/iterations
     let { found: viewportInstructions, remaining: remainingInstructions } = this.findViewports(instructions, alreadyFoundInstructions);
     let guard = 100;
-    while (viewportInstructions.length || remainingInstructions.length /*|| defaultViewports.length*/ || clearUsedViewports) {
+    do {
       // Guard against endless loop
       if (!guard--) {
         console.log('remainingInstructions', remainingInstructions);
@@ -504,16 +511,17 @@ export class Router implements IRouter {
       if (viewportInstructions.length === 0 &&
         remainingInstructions.length === 0 /* &&
         defaultViewports.length === 0*/) {
-        viewportInstructions = [
-          ...viewportInstructions,
-          ...clearViewports.map(viewport => this.createViewportInstruction(this.instructionResolver.clearViewportInstruction, viewport))
-        ];
-        clearViewports = [];
+        // viewportInstructions = [
+        //   ...viewportInstructions,
+        //   ...clearViewports.map(viewport => this.createViewportInstruction(this.instructionResolver.clearViewportInstruction, viewport))
+        // ];
+        viewportInstructions = clearViewports.map(viewport => this.createViewportInstruction(this.instructionResolver.clearViewportInstruction, viewport));
+        // clearViewports = [];
       }
       // TODO: Do we still need this? What if no viewport at all?
       // if (!this.allViewports().length) { viewportsRemaining = false; }
-      clearUsedViewports = false;
-    }
+      // clearUsedViewports = false;
+    } while (viewportInstructions.length || remainingInstructions.length /*|| defaultViewports.length || clearUsedViewports */);
 
     await Promise.all(updatedViewports.map((value) => value.loadContent()));
     await this.replacePaths(instruction);
@@ -628,6 +636,7 @@ export class Router implements IRouter {
 
   // Called from the viewport custom element in attached()
   public connectViewport(viewport: Viewport | null, container: IContainer, name: string, element: Element, options?: IViewportOptions): Viewport {
+    // console.log('Viewport connect', name, viewport);
     // console.log('Viewport container', this.getClosestContainer(viewModel));
     // const parentScope: Scope = this.ensureRootScope().scope; // this.findParentScope(viewModel);
     const parentScope: Scope = this.findParentScope(container);
@@ -642,6 +651,7 @@ export class Router implements IRouter {
   }
   // Called from the viewport custom element
   public disconnectViewport(viewport: Viewport, container: IContainer, element: Element | null): void {
+    // console.log('Viewport disconnect', viewport.name, viewport);
     if (!viewport.owningScope!.removeViewport(viewport, element, container)) {
       throw new Error(`Failed to remove viewport: ${viewport.name}`);
     }

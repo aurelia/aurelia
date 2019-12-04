@@ -189,7 +189,7 @@ export class Scope {
           // const available: boolean = true;
           if (Array.isArray(viewportScope.options.source)) {
             const source: unknown[] = viewportScope.options.source;
-            console.log('available', viewportScope.available, source);
+            // console.log('available', viewportScope.available, source);
             const availableIndex: number = viewportScopes
               .map(scope => scope.viewportScope!)
               .findIndex(find => find.name === viewportScope.name && find.available);

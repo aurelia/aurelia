@@ -40,7 +40,7 @@ export class Viewport implements IScopeOwner {
     public readonly router: IRouter,
     public name: string,
     public element: Element | null,
-    public context: IRenderContext | IContainer | null,
+    public container: IContainer | null,
     owningScope: Scope,
     scope: boolean,
     public options: IViewportOptions = {}
@@ -96,7 +96,7 @@ export class Viewport implements IScopeOwner {
     this.clear = this.router.instructionResolver.isClearViewportInstruction(viewportInstruction);
 
     // Can have a (resolved) type or a string (to be resolved later)
-    this.nextContent = new ViewportContent(!this.clear ? viewportInstruction : void 0, instruction, this.context);
+    this.nextContent = new ViewportContent(!this.clear ? viewportInstruction : void 0, instruction, this.container);
 
     this.nextContent.fromHistory = this.nextContent.componentInstance && instruction.navigation
       ? !!instruction.navigation.back || !!instruction.navigation.forward
@@ -162,7 +162,7 @@ export class Viewport implements IScopeOwner {
     return true;
   }
 
-  public setElement(element: Element, context: IRenderContext | IContainer, options: IViewportOptions): void {
+  public setElement(element: Element, container: IContainer, options: IViewportOptions): void {
     options = options || {};
     if (this.element !== element) {
       // TODO: Restore this state on navigation cancel
@@ -192,11 +192,11 @@ export class Viewport implements IScopeOwner {
       }
     }
     // TODO: Might not need this? Figure it out
-    // if (context) {
-    //   context['viewportName'] = this.name;
+    // if (container) {
+    //   container['viewportName'] = this.name;
     // }
-    if (this.context !== context) {
-      this.context = context;
+    if (this.container !== container) {
+      this.container = container;
     }
 
     if (!this.content.componentInstance && (!this.nextContent || !this.nextContent.componentInstance) && this.options.default) {
@@ -211,8 +211,8 @@ export class Viewport implements IScopeOwner {
     }
   }
 
-  public async remove(element: Element | null, context: IRenderContext | IContainer | null): Promise<boolean> {
-    if (this.element === element && this.context === context) {
+  public async remove(element: Element | null, container: IContainer | null): Promise<boolean> {
+    if (this.element === element && this.container === container) {
       if (this.content.componentInstance) {
         await this.content.freeContent(
           this.element as Element,
@@ -254,8 +254,8 @@ export class Viewport implements IScopeOwner {
 
     await this.waitForElement();
 
-    (this.nextContent as ViewportContent).createComponent(this.context as IRenderContext, this.options.fallback);
-    await (this.nextContent as ViewportContent).loadComponent(this.context as IRenderContext, this.element as Element, this);
+    (this.nextContent as ViewportContent).createComponent(this.container as IContainer, this.options.fallback);
+    await (this.nextContent as ViewportContent).loadComponent(this.container as IContainer, this.element as Element, this);
 
     return (this.nextContent as ViewportContent).canEnter(this, this.content.instruction);
   }
@@ -272,7 +272,7 @@ export class Viewport implements IScopeOwner {
     }
 
     await this.nextContent.enter(this.content.instruction);
-    // await this.nextContent.loadComponent(this.context as IRenderContext, this.element as Element, this);
+    // await this.nextContent.loadComponent(this.container as IContainer, this.element as Element, this);
     this.nextContent.initializeComponent(CustomElement.for(this.element as INode) as IController);
     return true;
   }
@@ -412,8 +412,10 @@ export class Viewport implements IScopeOwner {
         && this.nextContent.content !== null
         ? this.nextContent.content.componentType
         : this.content.content.componentType;
+    // TODO: This is going away once Metadata is in!
     if (componentType === null) {
-      componentType = (this.context! as any).componentType;
+      const controller = CustomElement.for(this.element!);
+      componentType = (controller as any)!.context!.componentType;
     }
     const routes: IRoute[] = (componentType as RouteableComponentType & { routes: IRoute[] }).routes;
     return Array.isArray(routes) ? routes : null;

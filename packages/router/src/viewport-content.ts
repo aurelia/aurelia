@@ -1,5 +1,5 @@
 import { IContainer, Reporter } from '@aurelia/kernel';
-import { Controller, IController, INode, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
+import { Controller, IController, INode, LifecycleFlags } from '@aurelia/runtime';
 import { INavigatorInstruction, IRouteableComponent, RouteableComponentType, ReentryBehavior } from './interfaces';
 import { parseQuery } from './parser';
 import { Viewport } from './viewport';
@@ -29,11 +29,11 @@ export class ViewportContent {
       instruction: '',
       fullStateInstruction: '',
     },
-    context: IRenderContext | IContainer | null = null
+    container: IContainer | null = null
   ) {
     // If we've got a container, we're good to resolve type
-    if (!this.content.isComponentType() && context !== null) {
-      this.content.componentType = this.toComponentType(context);
+    if (!this.content.isComponentType() && container !== null) {
+      this.content.componentType = this.toComponentType(container);
     }
   }
 
@@ -66,20 +66,20 @@ export class ViewportContent {
     return this.content.sameComponent(other.content, true);
   }
 
-  public createComponent(context: IRenderContext | IContainer, fallback?: string): void {
+  public createComponent(container: IContainer, fallback?: string): void {
     if (this.contentStatus !== ContentStatus.none) {
       return;
     }
     // Don't load cached content or instantiated history content
     if (!this.fromCache && !this.fromHistory) {
       try {
-        this.content.componentInstance = this.toComponentInstance(context);
+        this.content.componentInstance = this.toComponentInstance(container);
       } catch (e) {
         if (fallback !== void 0) {
           this.content.setParameters({ id: this.content.componentName });
           this.content.setComponent(fallback);
           try {
-            this.content.componentInstance = this.toComponentInstance(context);
+            this.content.componentInstance = this.toComponentInstance(container);
           } catch (ee) {
             throw e;
           }
@@ -158,7 +158,7 @@ export class ViewportContent {
     this.entered = false;
   }
 
-  public loadComponent(context: IRenderContext | IContainer, element: Element, viewport: Viewport): Promise<void> {
+  public loadComponent(container: IContainer, element: Element, viewport: Viewport): Promise<void> {
     // if (this.contentStatus !== ContentStatus.created || !this.entered || !this.content.componentInstance) {
     if (this.contentStatus !== ContentStatus.created || this.entered || !this.content.componentInstance) {
       return Promise.resolve();
@@ -166,7 +166,6 @@ export class ViewportContent {
     // Don't load cached content or instantiated history content
     if (!this.fromCache || !this.fromHistory) {
       const host: INode = element as INode;
-      const container = context;
       Controller.forCustomElement(this.content.componentInstance, container, host);
       ((this.content.componentInstance as IRouteableComponent & { $controller: Controller }).$controller as IController).parent =
         (element as Element & { $controller: Controller }).$controller;
@@ -279,16 +278,16 @@ export class ViewportContent {
   public toComponentName(): string | null {
     return this.content.componentName;
   }
-  public toComponentType(context: IRenderContext | IContainer): RouteableComponentType | null {
+  public toComponentType(container: IContainer): RouteableComponentType | null {
     if (this.content.isEmpty()) {
       return null;
     }
-    return this.content.toComponentType(context);
+    return this.content.toComponentType(container);
   }
-  public toComponentInstance(context: IRenderContext | IContainer): IRouteableComponent | null {
+  public toComponentInstance(container: IContainer): IRouteableComponent | null {
     if (this.content.isEmpty()) {
       return null;
     }
-    return this.content.toComponentInstance(context);
+    return this.content.toComponentInstance(container);
   }
 }

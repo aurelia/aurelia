@@ -1,8 +1,8 @@
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
 import { RouteRecognizer, RouteHandler, ConfigurableRoute, RecognizeResult } from './route-recognizer';
 import { IContainer } from '@aurelia/kernel';
-import { IRenderContext, CustomElement, CustomElementType, IViewModel } from '@aurelia/runtime';
-import { IRoute, RouteableComponentType, ComponentAppellation, INavigatorInstruction } from './interfaces';
+import { CustomElementType } from '@aurelia/runtime';
+import { IRoute, ComponentAppellation, INavigatorInstruction } from './interfaces';
 import { FoundRoute } from './found-route';
 import { IRouter } from './router';
 import { ViewportInstruction } from './viewport-instruction';
@@ -340,7 +340,7 @@ export class Scope {
     return remaining;
   }
 
-  public addViewport(name: string, element: Element | null, context: IRenderContext | IContainer | null, options: IViewportOptions = {}): Viewport {
+  public addViewport(name: string, element: Element | null, container: IContainer | null, options: IViewportOptions = {}): Viewport {
     let viewport: Viewport | null = this.getEnabledViewports(this.getOwnedScopes())[name];
     // Each au-viewport element has its own Viewport
     if (element && viewport && viewport.element !== null && viewport.element !== element) {
@@ -355,13 +355,13 @@ export class Scope {
       this.addChild(viewport.connectedScope);
     }
     // TODO: Either explain why || instead of && here (might only need one) or change it to && if that should turn out to not be relevant
-    if (element || context) {
-      viewport.setElement(element as Element, context as IRenderContext, options);
+    if (element || container) {
+      viewport.setElement(element as Element, container as IContainer, options);
     }
     return viewport;
   }
-  public removeViewport(viewport: Viewport, element: Element | null, context: IRenderContext | IContainer | null): boolean {
-    if ((!element && !context) || viewport.remove(element, context)) {
+  public removeViewport(viewport: Viewport, element: Element | null, container: IContainer | null): boolean {
+    if ((!element && !container) || viewport.remove(element, container)) {
       this.removeChild(viewport.connectedScope);
       return true;
     }
@@ -394,37 +394,37 @@ export class Scope {
       scope.parent = null;
     }
   }
-  public reparent(viewModel: IViewModel): void {
-    const container = this.getContainer(viewModel);
-    const id = container!.path.split('.').map(i => '00000'.slice(0, 5 - ('' + i).length) + i).join('.');
-    this.id = `${id}.`;
+  // public reparent(viewModel: IViewModel): void {
+  //   const container = this.getContainer(viewModel);
+  //   const id = container!.path.split('.').map(i => '00000'.slice(0, 5 - ('' + i).length) + i).join('.');
+  //   this.id = `${id}.`;
 
-    const scope: Scope = this.router.rootScope!.connectedScope;
+  //   const scope: Scope = this.router.rootScope!.connectedScope;
 
-    let parent = this.parent as Scope;
-    let parentIds = parent.children.filter(child => child !== this && child.id.indexOf(this.id));
-    while (Array.isArray(parentIds) && parentIds.length > 0) {
-      parent = parentIds[0];
-      parentIds = parent.children.filter(child => child !== this && child.id.indexOf(this.id));
-    }
-    parent.addChild(this);
-    const children: Scope[] = parent.children.filter(child => child !== this);
-    for (const child of children) {
-      if (child.id.indexOf(this.id) >= 0) {
-        this.addChild(child);
-      }
-    }
-    scope.reparentScope();
-  }
-  public reparentScope(): void {
-    if (this.parent !== null) {
-      this.owningScope = this.parent.scope;
-      this.scope = this.hasScope ? this : this.owningScope;
-    }
-    for (const child of this.children) {
-      child.reparentScope();
-    }
-  }
+  //   let parent = this.parent as Scope;
+  //   let parentIds = parent.children.filter(child => child !== this && child.id.indexOf(this.id));
+  //   while (Array.isArray(parentIds) && parentIds.length > 0) {
+  //     parent = parentIds[0];
+  //     parentIds = parent.children.filter(child => child !== this && child.id.indexOf(this.id));
+  //   }
+  //   parent.addChild(this);
+  //   const children: Scope[] = parent.children.filter(child => child !== this);
+  //   for (const child of children) {
+  //     if (child.id.indexOf(this.id) >= 0) {
+  //       this.addChild(child);
+  //     }
+  //   }
+  //   scope.reparentScope();
+  // }
+  // public reparentScope(): void {
+  //   if (this.parent !== null) {
+  //     this.owningScope = this.parent.scope;
+  //     this.scope = this.hasScope ? this : this.owningScope;
+  //   }
+  //   for (const child of this.children) {
+  //     child.reparentScope();
+  //   }
+  // }
 
   public clearReplacedChildren(): void {
     this.replacedChildren = [];
@@ -569,20 +569,20 @@ export class Scope {
     return route;
   }
 
-  private getContainer(viewModel: IViewModel): IContainer | null {
-    let context;
-    if ('context' in viewModel) {
-      context = (viewModel as IViewModel & { context: IRenderContext }).context;
-    } else {
-      context = (viewModel as IViewModel & { context: IRenderContext }).context !== void 0
-        ? (viewModel as IViewModel & { context: IRenderContext }).context
-        : viewModel.$controller!.context;
-    }
+  // private getContainer(viewModel: IViewModel): IContainer | null {
+  //   let context;
+  //   if ('context' in viewModel) {
+  //     context = (viewModel as IViewModel & { context: IRenderContext }).context;
+  //   } else {
+  //     context = (viewModel as IViewModel & { context: IRenderContext }).context !== void 0
+  //       ? (viewModel as IViewModel & { context: IRenderContext }).context
+  //       : viewModel.$controller!.context;
+  //   }
 
-    const container = context!.get(IContainer);
-    if (container === void 0) {
-      return null;
-    }
-    return container;
-  }
+  //   const container = context!.get(IContainer);
+  //   if (container === void 0) {
+  //     return null;
+  //   }
+  //   return container;
+  // }
 }

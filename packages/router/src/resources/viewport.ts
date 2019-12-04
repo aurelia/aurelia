@@ -2,7 +2,6 @@ import {
   bindable,
   IController,
   INode,
-  IRenderContext,
   LifecycleFlags,
   customElement,
   CustomElement,
@@ -64,10 +63,10 @@ export class ViewportCustomElement {
 
   public creating(controller: any) {
     this.container = controller.context.container;
-    console.log('Viewport creating', this.getAttribute('name', this.name), this.container, this.parentViewport, controller, this);
-    if (this.router.rootScope !== null && this.viewport === null) {
-      this.connect();
-    }
+    // console.log('Viewport creating', this.getAttribute('name', this.name), this.container, this.parentViewport, controller, this);
+    // if (this.router.rootScope !== null && this.viewport === null) {
+    //   this.connect();
+    // }
   }
   public created() {
     // console.log('Viewport created', this.getAttribute('name', this.name), this.container, this.parentViewport, CustomElement.for(this.element), this);
@@ -164,11 +163,11 @@ export class ViewportCustomElement {
     // if (this.element.hasAttribute('stateful')) {
     //   options.stateful = true;
     // }
-    this.viewport = this.router.connectViewport(this, this.container, name, this.element, this.$controller !== void 0 ? this.$controller.context as IRenderContext : null, /* this.parentViewport !== null && this.parentViewport.viewport !== null ? this.parentViewport.viewport.viewportScope : null, */ options);
+    this.viewport = this.router.connectViewport(this, this.container, name, this.element, options);
   }
   public disconnect(): void {
     if (this.viewport) {
-      this.router.disconnectViewport(this, this.container, this.viewport, this.element, this.$controller.context as IRenderContext);
+      this.router.disconnectViewport(this, this.container, this.viewport, this.element);
     }
   }
 
@@ -176,7 +175,7 @@ export class ViewportCustomElement {
     this.isBound = true;
     // this.router.setClosestViewport(this);
     // this.connect();
-    if (this.router.rootScope !== null && this.viewport === null) {
+    if (this.router.rootScope !== null/* && this.viewport === null*/) {
       this.connect();
     }
     if (this.viewport) {

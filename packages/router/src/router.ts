@@ -77,9 +77,9 @@ export interface IRouter {
   unsetClosestScope(viewModelOrContainer: IViewModel | IContainer): void;
 
   // Called from the viewport custom element in attached()
-  connectViewport(viewModel: IViewModel, container: IContainer, name: string, element: Element, context: IRenderContext | null, /* parent: ViewportScope | null, */ options?: IViewportOptions): Viewport;
+  connectViewport(viewModel: IViewModel, container: IContainer, name: string, element: Element, options?: IViewportOptions): Viewport;
   // Called from the viewport custom element
-  disconnectViewport(viewModel: IViewModel, container: IContainer, viewport: Viewport, element: Element | null, context: IRenderContext | null): void;
+  disconnectViewport(viewModel: IViewModel, container: IContainer, viewport: Viewport, element: Element | null): void;
   // // Called from the viewport scope custom element in attached()
   connectViewportScope(name: string, viewModel: IViewModel, container: IContainer, element: Element, options?: IViewportScopeOptions): ViewportScope;
   // // Called from the viewport scope custom element
@@ -599,9 +599,10 @@ export class Router implements IRouter {
   // }
   // Called from the viewport scope custom element in created()
   public setClosestScope(viewModelOrContainer: IViewModel | IContainer, scope: Scope): void {
-    const container: IContainer | null = '$controller' in viewModelOrContainer
-      ? (viewModelOrContainer as IViewModel).$controller!.context!.get(IContainer)
-      : viewModelOrContainer as IContainer;
+    // const container: IContainer | null = '$controller' in viewModelOrContainer
+    //   ? (viewModelOrContainer as IViewModel).$controller!.context!.get(IContainer)
+    //   : viewModelOrContainer as IContainer;
+    const container: IContainer | null = this.getContainer(viewModelOrContainer);
     Registration.instance(ClosestScope, scope).register(container!);
   }
   public getClosestScope(viewModelOrElement: IViewModel | Element | IController | IContainer): Scope | null {
@@ -617,27 +618,29 @@ export class Router implements IRouter {
     return container.get<Scope>(ClosestScope) || null;
   }
   public unsetClosestScope(viewModelOrContainer: IViewModel | IContainer): void {
-    const container: IContainer | null = '$controller' in viewModelOrContainer
-      ? (viewModelOrContainer as IViewModel).$controller!.context!.get(IContainer)
-      : viewModelOrContainer as IContainer;
+    // const container: IContainer | null = '$controller' in viewModelOrContainer
+    //   ? (viewModelOrContainer as IViewModel).$controller!.context!.get(IContainer)
+    //   : viewModelOrContainer as IContainer;
+    const container: IContainer | null = this.getContainer(viewModelOrContainer);
+    // TODO: Get an 'unregister' on container
     (container as any).resolvers.delete(ClosestScope);
   }
 
   // Called from the viewport custom element in attached()
-  public connectViewport(viewModel: IViewModel, container: IContainer, name: string, element: Element, context: IRenderContext | null = null, /* parent: ViewportScope | null, */ options?: IViewportOptions): Viewport {
+  public connectViewport(viewModel: IViewModel, container: IContainer, name: string, element: Element, options?: IViewportOptions): Viewport {
     // console.log('Viewport container', this.getClosestContainer(viewModel));
     // const parentScope: Scope = this.ensureRootScope().scope; // this.findParentScope(viewModel);
     const parentScope: Scope = this.findParentScope(container);
     // console.log('>>> connectViewport', name, container, parentScope);
-    const viewport: Viewport = parentScope.addViewport(name, element, context, options);
+    const viewport: Viewport = parentScope.addViewport(name, element, container, options);
     this.setClosestScope(container, viewport.connectedScope);
     // this.setClosestScope(viewModel, viewport.connectedScope);
     // viewport.connectedScope.reparent(viewModel);
     return viewport;
   }
   // Called from the viewport custom element
-  public disconnectViewport(viewModel: IViewModel, container: IContainer, viewport: Viewport, element: Element | null, context: IRenderContext | null): void {
-    if (!viewport.owningScope!.removeViewport(viewport, element, context)) {
+  public disconnectViewport(viewModel: IViewModel, container: IContainer, viewport: Viewport, element: Element | null): void {
+    if (!viewport.owningScope!.removeViewport(viewport, element, container)) {
       throw new Error(`Failed to remove viewport: ${viewport.name}`);
     }
     // this.unsetClosestScope(viewModel);
@@ -1155,7 +1158,27 @@ export class Router implements IRouter {
     }
     return container;
   }
-  // TODO: This is probably wrong since it caused test fails when in CustomElemnt.for
+  private getContainer(viewModelOrContainer: IViewModel | IContainer): IContainer | null {
+    if ('resourceResolvers' in viewModelOrContainer) {
+      return viewModelOrContainer;
+    }
+
+    const viewModel: IViewModel & { context?: IRenderContext } = viewModelOrContainer as IViewModel;
+    let context: IRenderContext;
+    if ('context' in viewModel) {
+      context = viewModel.context!;
+    } else {
+      context = viewModel.context !== void 0 ? viewModel.context : viewModel.$controller!.context as IRenderContext;
+    }
+
+    const container: IContainer = context!.get(IContainer);
+    if (container === void 0) {
+      return null;
+    }
+    return container;
+  }
+
+  // TODO: This is probably wrong since it caused test fails when in CustomElement.for
   // Fred probably knows and will need to look at it
   // This can most likely also be changed so that the node traversal isn't necessary
   private CustomElementFor(node: INode): IController<INode> | undefined {

@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { CustomElement, IRenderContext } from '@aurelia/runtime';
+import { CustomElement } from '@aurelia/runtime';
 import { ComponentAppellation, ComponentParameters, IRouteableComponent, RouteableComponentType, ViewportHandle } from './interfaces';
 import { IRouter } from './router';
 import { ComponentAppellationResolver } from './type-resolvers';
@@ -152,12 +152,11 @@ export class ViewportInstruction {
     return this.componentInstance !== null;
   }
 
-  public toComponentType(context: IRenderContext | IContainer): RouteableComponentType | null {
+  public toComponentType(container: IContainer): RouteableComponentType | null {
     if (this.componentType !== null) {
       return this.componentType;
     }
     if (this.componentName !== null && typeof this.componentName === 'string') {
-      const container = context.get(IContainer);
       if (container !== null && container.has<RouteableComponentType>(CustomElement.keyFrom(this.componentName), true)) {
         const resolver = container.getResolver<RouteableComponentType>(CustomElement.keyFrom(this.componentName));
         if (resolver !== null && resolver.getFactory !== void 0) {
@@ -170,11 +169,10 @@ export class ViewportInstruction {
     }
     return null;
   }
-  public toComponentInstance(context: IRenderContext | IContainer): IRouteableComponent | null {
+  public toComponentInstance(container: IContainer): IRouteableComponent | null {
     if (this.componentInstance !== null) {
       return this.componentInstance;
     }
-    const container = context.get(IContainer);
     if (container !== void 0 && container !== null) {
       if (this.isComponentType()) {
         return container.get<IRouteableComponent>(this.componentType!);

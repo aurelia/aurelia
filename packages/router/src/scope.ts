@@ -155,6 +155,9 @@ export class Scope {
     const ownedScopes: Scope[] = this.getOwnedScopes();
     // Get a shallow copy of all available manual viewport scopes
     const viewportScopes: Scope[] = ownedScopes.filter(scope => scope.isViewportScope);
+    for (const scope of viewportScopes) {
+      scope.viewportScope!.available = alreadyFound.every(found => found.viewportScope !== scope.viewportScope);
+    }
     // Get a shallow copy of all available viewports
     const availableViewports: Record<string, Viewport | null> = { ...this.getEnabledViewports(ownedScopes) };
     for (const instruction of alreadyFound.filter(found => found.scope === this)) {
@@ -178,12 +181,29 @@ export class Scope {
     }
 
     // Manual viewport scopes have priority
-    for (const scope of viewportScopes) {
-      for (let i = 0; i < viewportInstructions.length; i++) {
-        const instruction: ViewportInstruction = viewportInstructions[i];
+    for (let i = 0; i < viewportInstructions.length; i++) {
+      const instruction: ViewportInstruction = viewportInstructions[i];
+      for (let scope of viewportScopes) {
         if (scope.viewportScope!.acceptSegment(instruction.componentName as string)) {
-          // TODO: This is where we scale the array
-          // scope.viewportScope!.content = instruction;
+          const viewportScope: ViewportScope = scope.viewportScope as ViewportScope;
+          // const available: boolean = true;
+          if (Array.isArray(viewportScope.options.source)) {
+            const source: unknown[] = viewportScope.options.source;
+            console.log('available', viewportScope.available, source);
+            const availableIndex: number = viewportScopes
+              .map(scope => scope.viewportScope!)
+              .findIndex(find => find.name === viewportScope.name && find.available);
+            if (availableIndex >= 0) {
+              scope = viewportScopes[availableIndex];
+            } else {
+              source.push((source[0] as any).create());
+              instruction.viewportScope = null;
+              // available = false;
+              break;
+            }
+          }
+          // TODO: Move to setNextContent?
+          scope.viewportScope!.available = false;
           instruction.needsViewportDescribed = false;
           instruction.viewportScope = scope.viewportScope;
           const remaining: ViewportInstruction[] = (instruction.nextScopeInstructions || []).slice();
@@ -347,8 +367,8 @@ export class Scope {
     }
     return false;
   }
-  public addViewportScope(element: Element | null, options: IViewportScopeOptions = {}): ViewportScope {
-    const viewportScope: ViewportScope = new ViewportScope(this.router, element, this.scope, true, null, options);
+  public addViewportScope(name: string, element: Element | null, options: IViewportScopeOptions = {}): ViewportScope {
+    const viewportScope: ViewportScope = new ViewportScope(name, this.router, element, this.scope, true, null, options);
     this.addChild(viewportScope.connectedScope);
     return viewportScope;
   }

@@ -64,10 +64,10 @@ export class ViewportCustomElement {
 
   public creating(controller: any) {
     this.container = controller.context.container;
-    // console.log('Viewport creating', this.getAttribute('name', this.name), this.container, this.parentViewport, controller, this);
-    // if (this.router.rootScope !== null && this.viewport === null) {
-    //   this.connect();
-    // }
+    console.log('Viewport creating', this.getAttribute('name', this.name), this.container, this.parentViewport, controller, this);
+    if (this.router.rootScope !== null && this.viewport === null) {
+      this.connect();
+    }
   }
   public created() {
     // console.log('Viewport created', this.getAttribute('name', this.name), this.container, this.parentViewport, CustomElement.for(this.element), this);
@@ -176,7 +176,7 @@ export class ViewportCustomElement {
     this.isBound = true;
     // this.router.setClosestViewport(this);
     // this.connect();
-    if (this.router.rootScope !== null) {
+    if (this.router.rootScope !== null && this.viewport === null) {
       this.connect();
     }
     if (this.viewport) {

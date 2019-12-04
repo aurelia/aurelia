@@ -81,7 +81,7 @@ export interface IRouter {
   // Called from the viewport custom element
   disconnectViewport(viewModel: IViewModel, container: IContainer, viewport: Viewport, element: Element | null, context: IRenderContext | null): void;
   // // Called from the viewport scope custom element in attached()
-  connectViewportScope(viewModel: IViewModel, container: IContainer, element: Element, options?: IViewportScopeOptions): ViewportScope;
+  connectViewportScope(name: string, viewModel: IViewModel, container: IContainer, element: Element, options?: IViewportScopeOptions): ViewportScope;
   // // Called from the viewport scope custom element
   disconnectViewportScope(viewModel: IViewModel, container: IContainer, viewportScope: ViewportScope): void;
 
@@ -343,6 +343,7 @@ export class Router implements IRouter {
     while (viewportInstructions.length || remainingInstructions.length /*|| defaultViewports.length*/ || clearUsedViewports) {
       // Guard against endless loop
       if (!guard--) {
+        console.log('remainingInstructions', remainingInstructions);
         throw Reporter.error(2002);
       }
       // defaultViewports = [];
@@ -463,6 +464,10 @@ export class Router implements IRouter {
         this.appendInstructions(configured.instructions);
       }
 
+      // Don't use defaults when it's a full state navigation
+      if (fullStateInstruction) {
+        this.appendedInstructions = this.appendedInstructions.filter(instruction => !instruction.default);
+      }
       // Process non-defaults first
       let appendedInstructions: ViewportInstruction[] = this.appendedInstructions.filter(instruction => !instruction.default);
       this.appendedInstructions = this.appendedInstructions.filter(instruction => instruction.default);
@@ -639,12 +644,12 @@ export class Router implements IRouter {
     this.unsetClosestScope(container);
   }
   // Called from the viewport scope custom element in attached()
-  public connectViewportScope(viewModel: IViewModel, container: IContainer, element: Element, options?: IViewportScopeOptions): ViewportScope {
+  public connectViewportScope(name: string, viewModel: IViewModel, container: IContainer, element: Element, options?: IViewportScopeOptions): ViewportScope {
     // console.log('ViewportScope container', this.getClosestContainer(viewModel));
     // const parentScope: Scope = this.ensureRootScope().scope; // this.findParentScope(viewModel);
     const parentScope: Scope = this.findParentScope(container);
     // console.log('>>> connectViewportScope container', container, parentScope);
-    const viewportScope: ViewportScope = parentScope.addViewportScope(element, options);
+    const viewportScope: ViewportScope = parentScope.addViewportScope(name, element, options);
     this.setClosestScope(container, viewportScope.connectedScope);
     // this.setClosestScope(viewModel, viewportScope.connectedScope);
     // viewportScope.connectedScope.reparent(viewModel);
@@ -1059,7 +1064,7 @@ export class Router implements IRouter {
     if (!this.rootScope) {
       const root = this.container.get(Aurelia).root;
       // root.config.component shouldn't be used in the end. Metadata will probably eliminate it
-      this.rootScope = new ViewportScope(this, root.config.host as Element, null, true, root.config.component as CustomElementType);
+      this.rootScope = new ViewportScope('rootScope', this, root.config.host as Element, null, true, root.config.component as CustomElementType);
     }
     return this.rootScope;
   }

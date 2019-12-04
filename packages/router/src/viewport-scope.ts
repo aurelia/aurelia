@@ -9,6 +9,7 @@ import { IScopeOwner, Scope } from './scope';
 
 export interface IViewportScopeOptions {
   catches?: string | string[];
+  source?: unknown[] | null;
 }
 
 export class ViewportScope implements IScopeOwner {
@@ -18,13 +19,19 @@ export class ViewportScope implements IScopeOwner {
 
   public content: ViewportInstruction | null = null;
 
+  public available: boolean = true;
+
   public constructor(
+    public name: string,
     public readonly router: IRouter,
     public element: Element | null,
     owningScope: Scope | null,
     scope: boolean,
     public rootComponentType: CustomElementType | null = null, // temporary. Metadata will probably eliminate it
-    public options: IViewportScopeOptions = { catches: [] },
+    public options: IViewportScopeOptions = {
+      catches: [],
+      source: null,
+    },
   ) {
     this.connectedScope = new Scope(router, scope, owningScope, null, this);
     let catches: string | string[] = this.options.catches || [];

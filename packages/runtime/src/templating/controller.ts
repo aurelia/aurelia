@@ -85,7 +85,7 @@ type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
   created(flags: LifecycleFlags): void;
 
   beforeBind(flags: LifecycleFlags): MaybePromiseOrTask;
-  bound(flags: LifecycleFlags): void;
+  afterBind(flags: LifecycleFlags): void;
 
   unbinding(flags: LifecycleFlags): MaybePromiseOrTask;
   unbound(flags: LifecycleFlags): void;
@@ -435,9 +435,9 @@ export class Controller<
     }
   }
 
-  public bound(flags: LifecycleFlags): void {
+  public afterBind(flags: LifecycleFlags): void {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this.bindingContext!.bound(flags); // non-null is implied by the hook
+    this.bindingContext!.afterBind(flags); // non-null is implied by the hook
   }
 
   public unbound(flags: LifecycleFlags): void {
@@ -550,7 +550,7 @@ export class Controller<
 
     this.state |= State.isBinding;
 
-    this.lifecycle.bound.begin();
+    this.lifecycle.afterBind.begin();
     this.bindBindings(flags, $scope);
 
     if (this.hooks.hasBeforeBind) {
@@ -582,7 +582,7 @@ export class Controller<
     this.state |= State.isBinding;
 
     this.scope = scope;
-    this.lifecycle.bound.begin();
+    this.lifecycle.afterBind.begin();
 
     if (this.hooks.hasBeforeBind) {
       const ret = (this.bindingContext as BindingContext<T, C>).beforeBind(flags);
@@ -623,7 +623,7 @@ export class Controller<
 
     this.state |= State.isBinding;
 
-    this.lifecycle.bound.begin();
+    this.lifecycle.afterBind.begin();
     this.bindBindings(flags, scope);
 
     return this.bindControllers(flags, scope);
@@ -669,11 +669,11 @@ export class Controller<
   }
 
   private endBind(flags: LifecycleFlags): void {
-    if (this.hooks.hasBound) {
-      this.lifecycle.bound.add(this);
+    if (this.hooks.hasAfterBind) {
+      this.lifecycle.afterBind.add(this);
     }
     this.state = this.state ^ State.isBinding | State.isBound;
-    this.lifecycle.bound.end(flags);
+    this.lifecycle.afterBind.end(flags);
   }
 
   private unbindCustomElement(flags: LifecycleFlags): ILifecycleTask {

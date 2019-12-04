@@ -21,7 +21,7 @@ describe('custom-attributes', function () {
         this.element = element as Element;
       }
 
-      public bound() {
+      public afterBind() {
         this.element.setAttribute('test', this.value);
       }
     }
@@ -36,7 +36,7 @@ describe('custom-attributes', function () {
         this.element = element as Element;
       }
 
-      public bound() {
+      public afterBind() {
         this.element.setAttribute('test', this.value);
       }
     }
@@ -52,7 +52,7 @@ describe('custom-attributes', function () {
         this.element = element as Element;
       }
 
-      public bound() {
+      public afterBind() {
         this.element.setAttribute('test', this.value);
       }
     }
@@ -147,7 +147,7 @@ describe('custom-attributes', function () {
           this.element = element as Element;
           this.element.innerHTML = 'Created';
         }
-        public bound() {
+        public afterBind() {
           this.aChanged();
           this.bChanged();
         }
@@ -174,7 +174,7 @@ describe('custom-attributes', function () {
           this.element = element as Element;
           this.element.innerHTML = 'Created';
         }
-        public bound() {
+        public afterBind() {
           this.aChanged();
           this.bChanged();
         }
@@ -191,7 +191,7 @@ describe('custom-attributes', function () {
         }
     }
 
-    const app = class { public value: string = 'bound'; };
+    const app = class { public value: string = 'afterBind'; };
 
     it('binds to multiple properties correctly', async function () {
       const options = setup('<template> <div multi="a.bind: true; b.bind: value">Initial</div> </template>', app, [Multi]);

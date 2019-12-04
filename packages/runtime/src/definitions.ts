@@ -158,7 +158,7 @@ export class HooksDefinition {
   public readonly hasCreated: boolean;
 
   public readonly hasBeforeBind: boolean;
-  public readonly hasBound: boolean;
+  public readonly hasAfterBind: boolean;
 
   public readonly hasUnbinding: boolean;
   public readonly hasUnbound: boolean;
@@ -174,7 +174,7 @@ export class HooksDefinition {
     this.hasRender = 'render' in target;
     this.hasCreated = 'created' in target;
     this.hasBeforeBind = 'beforeBind' in target;
-    this.hasBound = 'bound' in target;
+    this.hasAfterBind = 'afterBind' in target;
     this.hasUnbinding = 'unbinding' in target;
     this.hasUnbound = 'unbound' in target;
     this.hasAttaching = 'attaching' in target;

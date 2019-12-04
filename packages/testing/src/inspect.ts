@@ -1299,7 +1299,7 @@ const methodNamesWithFlags: PropertyKey[] = [
   'endBind',
 
   'beforeBind',
-  'bound',
+  'afterBind',
 
   'attach',
   'attachCustomElement',
@@ -1379,7 +1379,7 @@ export function formatProperty(
           case 'endBind':
 
           case 'beforeBind':
-          case 'bound':
+          case 'afterBind':
 
           case 'attach':
           case 'attachCustomElement':

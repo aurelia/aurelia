@@ -55,7 +55,7 @@ describe('binding-behaviors', function () {
         this.element = element as Element;
       }
 
-      public bound() {
+      public afterBind() {
         this.element.setAttribute('test', this.value);
       }
     }
@@ -70,7 +70,7 @@ describe('binding-behaviors', function () {
         this.element = element as Element;
       }
 
-      public bound() {
+      public afterBind() {
         this.element.setAttribute('test', this.value);
       }
     }

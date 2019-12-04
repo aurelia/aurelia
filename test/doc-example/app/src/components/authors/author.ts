@@ -66,7 +66,7 @@ export class Author {
   public beforeBind() {
     console.log('### binding', this);
   }
-  public bound() {
+  public afterBind() {
     console.log('### bound', this);
   }
   public attaching() {

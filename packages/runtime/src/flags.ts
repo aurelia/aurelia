@@ -80,7 +80,7 @@ export const enum Hooks {
   none                   = 0b000000000001,
   hasCreated             = 0b000000000010,
   hasBeforeBind          = 0b000000000100,
-  hasBound               = 0b000000001000,
+  hasAfterBind           = 0b000000001000,
   hasAttaching           = 0b000000010000,
   hasAttached            = 0b000000100000,
   hasDetaching           = 0b000001000000,

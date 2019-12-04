@@ -34,9 +34,9 @@ import {
 
 describe(`Repeat`, function () {
   function runBindLifecycle(lifecycle: ILifecycle, sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags, scope: IScope): void {
-    lifecycle.bound.begin();
+    lifecycle.afterBind.begin();
     sut.$controller.bind(flags, scope);
-    lifecycle.bound.end(flags);
+    lifecycle.afterBind.end(flags);
   }
   function runUnbindLifecycle(lifecycle: ILifecycle, sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags): void {
     lifecycle.unbound.begin();

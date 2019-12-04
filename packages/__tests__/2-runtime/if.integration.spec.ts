@@ -33,9 +33,9 @@ import {
 
 describe(`If/Else`, function () {
   function runBindLifecycle(lifecycle: ILifecycle, sut: If<AuNode>, flags: LifecycleFlags, scope: IScope): void {
-    lifecycle.bound.begin();
+    lifecycle.afterBind.begin();
     sut.$controller.bind(flags, scope);
-    lifecycle.bound.end(flags);
+    lifecycle.afterBind.end(flags);
   }
   function runUnbindLifecycle(lifecycle: ILifecycle, sut: If<AuNode>, flags: LifecycleFlags): void {
     lifecycle.unbound.begin();

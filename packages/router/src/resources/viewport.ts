@@ -69,7 +69,7 @@ export class ViewportCustomElement {
   //   }
   //   this.viewport = this.router.addViewport(name, this.element, (this as any).$context.get(IContainer), options);
   // }
-  public bound(): void {
+  public afterBind(): void {
     this.connect();
   }
   public unbound(): void {

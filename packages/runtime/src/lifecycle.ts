@@ -108,7 +108,7 @@ export interface IController<
   release(flags: LifecycleFlags): boolean;
   bind(flags: LifecycleFlags, scope?: IScope, partName?: string): ILifecycleTask;
   unbind(flags: LifecycleFlags): ILifecycleTask;
-  bound(flags: LifecycleFlags): void;
+  afterBind(flags: LifecycleFlags): void;
   unbound(flags: LifecycleFlags): void;
   attach(flags: LifecycleFlags): void;
   detach(flags: LifecycleFlags): void;
@@ -175,7 +175,7 @@ export interface IViewModel<T extends INode = INode> {
   readonly $controller?: IController<T, this>;
   created?(flags: LifecycleFlags): void;
   beforeBind?(flags: LifecycleFlags): MaybePromiseOrTask;
-  bound?(flags: LifecycleFlags): void;
+  afterBind?(flags: LifecycleFlags): void;
   unbinding?(flags: LifecycleFlags): MaybePromiseOrTask;
   unbound?(flags: LifecycleFlags): void;
   attaching?(flags: LifecycleFlags): void;
@@ -195,7 +195,7 @@ export interface ILifecycle {
   readonly mount: IProcessingQueue<IController>;
   readonly unmount: IProcessingQueue<IController>;
 
-  readonly bound: IAutoProcessingQueue<IController>;
+  readonly afterBind: IAutoProcessingQueue<IController>;
   readonly unbound: IAutoProcessingQueue<IController>;
 
   readonly attached: IAutoProcessingQueue<IController>;
@@ -283,7 +283,7 @@ export class BoundQueue implements IAutoProcessingQueue<IController> {
       let next: IController | undefined;
       do {
         cur.state = (cur.state | State.inBoundQueue) ^ State.inBoundQueue;
-        cur.bound(flags);
+        cur.afterBind(flags);
         next = cur.nextBound;
         cur.nextBound = void 0;
         cur.prevBound = void 0;
@@ -713,7 +713,7 @@ export class Lifecycle implements ILifecycle {
   public readonly mount: IProcessingQueue<IController> = new MountQueue(this);
   public readonly unmount: IProcessingQueue<IController> = new UnmountQueue(this);
 
-  public readonly bound: IAutoProcessingQueue<IController> = new BoundQueue(this);
+  public readonly afterBind: IAutoProcessingQueue<IController> = new BoundQueue(this);
   public readonly unbound: IAutoProcessingQueue<IController> = new UnboundQueue(this);
 
   public readonly attached: IAutoProcessingQueue<IController> = new AttachedQueue(this);

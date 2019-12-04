@@ -89,7 +89,7 @@
 //       public beforeBind() {
 //         return;
 //       }
-//       public bound() {
+//       public afterBind() {
 //         return;
 //       }
 //       public attaching() {
@@ -125,7 +125,7 @@
 //       public beforeBind() {
 //         return;
 //       }
-//       public bound() {
+//       public afterBind() {
 //         return;
 //       }
 //       public attaching() {
@@ -161,7 +161,7 @@
 //       public beforeBind() {
 //         return;
 //       }
-//       public bound() {
+//       public afterBind() {
 //         return;
 //       }
 //       public attaching() {
@@ -196,7 +196,7 @@
 //       public beforeBind() {
 //         return;
 //       }
-//       public bound() {
+//       public afterBind() {
 //         return;
 //       }
 //       public attaching() {

@@ -26,9 +26,9 @@
 //             beforeBind() {
 //                 this.items.push(1);
 //             }
-//             bound() {
+//             afterBind() {
 //                 this.items.push(2);
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during bound() before mutation", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during afterBind() before mutation", `this.el.textContent`);
 //             }
 //             attaching() {
 //                 this.items.push(3);
@@ -94,9 +94,9 @@
 //             beforeBind() {
 //                 this.items.push(1);
 //             }
-//             bound() {
+//             afterBind() {
 //                 this.items.push(2);
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during bound() before mutation", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during afterBind() before mutation", `this.el.textContent`);
 //             }
 //             attaching() {
 //                 this.items.push(3);
@@ -158,9 +158,9 @@
 //             beforeBind() {
 //                 this.items.push(1);
 //             }
-//             bound() {
+//             afterBind() {
 //                 this.items.push(2);
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during bound() before mutation", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during afterBind() before mutation", `this.el.textContent`);
 //             }
 //             attaching() {
 //                 this.items.push(3);
@@ -228,9 +228,9 @@
 //             beforeBind() {
 //                 this.items.push(1);
 //             }
-//             bound() {
+//             afterBind() {
 //                 this.items.push(2);
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during bound() before mutation", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during afterBind() before mutation", `this.el.textContent`);
 //             }
 //             attaching() {
 //                 this.items.push(3);

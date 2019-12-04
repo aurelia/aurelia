@@ -13,8 +13,8 @@ export class AbcComponent {
 
   public constructor(private readonly appState: AppState) { }
 
-  public bound(...rest) {
-    console.log(this.name, 'bound', this.appState, rest);
+  public afterBind(...rest) {
+    console.log(this.name, 'afterBind', this.appState, rest);
   }
   public attached(...rest) {
     console.log(this.name, 'attached', rest);

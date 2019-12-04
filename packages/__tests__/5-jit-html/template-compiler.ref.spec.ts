@@ -190,7 +190,7 @@ describe('templating-compiler.ref.spec.ts', function () {
           assert.notContains(this.el, this.div, '[binding] this.el.contains(this.div) === false');
         }
 
-        public bound(): void {
+        public afterBind(): void {
           this.boundCalls++;
           assert.notStrictEqual(this.div, undefined, '[bound] div !== undefined');
           assert.notContains(this.el, this.div, '[bound] this.el.contains(this.div) === false');

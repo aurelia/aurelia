@@ -162,7 +162,7 @@ export type ComposableObjectComponentType<T extends ComposableObject>
 
 const lifecycleCallbacks = [
   'beforeBind',
-  'bound',
+  'afterBind',
   'attaching',
   'attached',
   'detaching',

@@ -98,7 +98,7 @@
 //       public attached() {
 //         return;
 //       }
-//       public detaching() {
+//       public beforeDetach() {
 //         return;
 //       }
 //       public detached() {
@@ -134,7 +134,7 @@
 //       public attached() {
 //         return;
 //       }
-//       public detaching() {
+//       public beforeDetach() {
 //         return;
 //       }
 //       public detached() {
@@ -170,7 +170,7 @@
 //       public attached() {
 //         return;
 //       }
-//       public detaching() {
+//       public beforeDetach() {
 //         return;
 //       }
 //       public detached() {
@@ -205,7 +205,7 @@
 //       public attached() {
 //         return;
 //       }
-//       public detaching() {
+//       public beforeDetach() {
 //         return;
 //       }
 //       public detached() {
@@ -528,7 +528,7 @@
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
 //       public $lifecycle: ILifecycle;
-//       public detaching() {
+//       public beforeDetach() {
 //         this.$lifecycle.registerTask({
 //           done: false,
 //           canCancel() { return false; },
@@ -589,7 +589,7 @@
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
 //       public $lifecycle: ILifecycle;
-//       public detaching() {
+//       public beforeDetach() {
 //         this.$lifecycle.registerTask({
 //           done: false,
 //           canCancel() { return false; },
@@ -650,7 +650,7 @@
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
 //       public $lifecycle: ILifecycle;
-//       public detaching() {
+//       public beforeDetach() {
 //         this.$lifecycle.registerTask({
 //           done: false,
 //           canCancel() { return false; },
@@ -714,7 +714,7 @@
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
 //       public $lifecycle: ILifecycle;
-//       public detaching() {
+//       public beforeDetach() {
 //         this.$lifecycle.registerTask({
 //           done: false,
 //           canCancel() { return false; },

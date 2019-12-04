@@ -161,7 +161,7 @@ export class Blur {
     this.manager.register(this);
   }
 
-  public detaching(): void {
+  public beforeDetach(): void {
     this.manager.unregister(this);
   }
 

@@ -180,7 +180,7 @@ export interface IViewModel<T extends INode = INode> {
   unbound?(flags: LifecycleFlags): void;
   beforeAttach?(flags: LifecycleFlags): void;
   attached?(flags: LifecycleFlags): void;
-  detaching?(flags: LifecycleFlags): void;
+  beforeDetach?(flags: LifecycleFlags): void;
   detached?(flags: LifecycleFlags): void;
   caching?(flags: LifecycleFlags): void;
 }

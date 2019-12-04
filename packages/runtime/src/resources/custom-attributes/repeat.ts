@@ -78,7 +78,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
   }
 
-  public detaching(flags: LF): void {
+  public beforeDetach(flags: LF): void {
     if (this.task.done) {
       this.detachViewsByRange(0, this.views.length, flags);
     } else {

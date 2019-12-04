@@ -101,7 +101,7 @@ export class Portal<T extends ParentNode = ParentNode> {
     this.targetChanged();
   }
 
-  public detaching(flags: LifecycleFlags): void {
+  public beforeDetach(flags: LifecycleFlags): void {
     this.task = this.deactivate(flags);
   }
 

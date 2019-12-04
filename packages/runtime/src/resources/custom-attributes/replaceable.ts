@@ -31,7 +31,7 @@ export class Replaceable<T extends INode = INode> {
     this.view.attach(flags);
   }
 
-  public detaching(flags: LifecycleFlags): void {
+  public beforeDetach(flags: LifecycleFlags): void {
     this.view.detach(flags);
   }
 

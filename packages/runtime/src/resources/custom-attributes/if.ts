@@ -48,7 +48,7 @@ export class If<T extends INode = INode> {
     }
   }
 
-  public detaching(flags: LifecycleFlags): ILifecycleTask {
+  public beforeDetach(flags: LifecycleFlags): ILifecycleTask {
     if (this.view !== void 0) {
       if (this.task.done) {
         this.view.detach(flags);

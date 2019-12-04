@@ -342,7 +342,7 @@ export class Viewport {
     }
   }
 
-  public async detaching(flags: LifecycleFlags): Promise<void> {
+  public async beforeDetach(flags: LifecycleFlags): Promise<void> {
     Reporter.write(10000, 'DETACHING viewport', this.name);
     if (this.content.componentInstance) {
       // Only acts if not already left

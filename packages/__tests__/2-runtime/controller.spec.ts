@@ -46,7 +46,7 @@ describe.skip('controller', function () {
     afterBind: true,
     beforeAttach: true,
     attached: true,
-    detaching: true,
+    beforeDetach: true,
     caching: true,
     detached: true,
     beforeUnbind: true,
@@ -60,7 +60,7 @@ describe.skip('controller', function () {
     afterBind(...args: any[]): void;
     beforeAttach(...args: any[]): void;
     attached(...args: any[]): void;
-    detaching(...args: any[]): void;
+    beforeDetach(...args: any[]): void;
     caching(...args: any[]): void;
     detached(...args: any[]): void;
     beforeUnbind(...args: any[]): void;
@@ -83,8 +83,8 @@ describe.skip('controller', function () {
     proto.attached = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'attached', ...args);
     };
-    proto.detaching = function (...args: any[]): void {
-      this.$$calls.addCall(this.id, 'detaching', ...args);
+    proto.beforeDetach = function (...args: any[]): void {
+      this.$$calls.addCall(this.id, 'beforeDetach', ...args);
     };
     proto.caching = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'caching', ...args);
@@ -295,7 +295,7 @@ describe.skip('controller', function () {
         expectedCalls
           .addCall(2, 'detach', LF.none)
           .addCall(2, 'detachCustomElement', LF.fromDetach)
-          .addCall(1, 'detaching', LF.fromDetach)
+          .addCall(1, 'beforeDetach', LF.fromDetach)
           .addCall(2, 'detachControllers', LF.fromDetach),
         '7',
       );
@@ -579,7 +579,7 @@ describe.skip('controller', function () {
           .addCall(2, 'detachCustomElement', LF.fromDetach)
 
           // ce #1
-          .addCall(1, 'detaching', LF.fromDetach)
+          .addCall(1, 'beforeDetach', LF.fromDetach)
 
           // ce #1 controller
           .addCall(2, 'detachControllers', LF.fromDetach)
@@ -589,7 +589,7 @@ describe.skip('controller', function () {
           .addCall(4, 'detachCustomAttribute', LF.fromDetach)
 
           // if #1
-          .addCall(3, 'detaching', LF.fromDetach)
+          .addCall(3, 'beforeDetach', LF.fromDetach)
 
           // if #1 ifView
           .addCall(5, 'detach', LF.fromDetach)
@@ -601,7 +601,7 @@ describe.skip('controller', function () {
           .addCall(7, 'detachCustomElement', LF.fromDetach)
 
           // ce #2
-          .addCall(6, 'detaching', LF.fromDetach)
+          .addCall(6, 'beforeDetach', LF.fromDetach)
 
           // ce #2 controller
           .addCall(7, 'detachControllers', LF.fromDetach)
@@ -611,7 +611,7 @@ describe.skip('controller', function () {
           .addCall(9, 'detachCustomAttribute', LF.fromDetach)
 
           // if #2
-          .addCall(8, 'detaching', LF.fromDetach),
+          .addCall(8, 'beforeDetach', LF.fromDetach),
         '7',
       );
       assert.strictEqual(host.textContent, '16', '8');
@@ -981,7 +981,7 @@ describe.skip('controller', function () {
           .addCall(2, 'detachCustomElement', LF.fromDetach)
 
           // ce #1
-          .addCall(1, 'detaching', LF.fromDetach)
+          .addCall(1, 'beforeDetach', LF.fromDetach)
 
           // ce #1 controller
           .addCall(2, 'detachControllers', LF.fromDetach)
@@ -991,7 +991,7 @@ describe.skip('controller', function () {
           .addCall(4, 'detachCustomAttribute', LF.fromDetach)
 
           // if #1
-          .addCall(3, 'detaching', LF.fromDetach)
+          .addCall(3, 'beforeDetach', LF.fromDetach)
 
           // if #1 ifView
           .addCall(5, 'detach', LF.fromDetach)
@@ -1003,7 +1003,7 @@ describe.skip('controller', function () {
           .addCall(7, 'detachCustomElement', LF.fromDetach)
 
           // ce #2
-          .addCall(6, 'detaching', LF.fromDetach)
+          .addCall(6, 'beforeDetach', LF.fromDetach)
 
           // ce #2 controller
           .addCall(7, 'detachControllers', LF.fromDetach)
@@ -1013,7 +1013,7 @@ describe.skip('controller', function () {
           .addCall(9, 'detachCustomAttribute', LF.fromDetach)
 
           // if #2
-          .addCall(8, 'detaching', LF.fromDetach),
+          .addCall(8, 'beforeDetach', LF.fromDetach),
         '7',
       );
       assert.strictEqual(host.textContent, 'hihi', '8');

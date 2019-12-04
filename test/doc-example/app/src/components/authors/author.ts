@@ -84,8 +84,8 @@ export class Author {
     console.log('### leave', this, parameters);
     return true;
   }
-  public detaching() {
-    console.log('### detaching', this);
+  public beforeDetach() {
+    console.log('### beforeDetach', this);
   }
   public detached() {
     console.log('### detached', this);

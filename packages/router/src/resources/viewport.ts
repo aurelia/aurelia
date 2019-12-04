@@ -120,9 +120,9 @@ export class ViewportCustomElement {
     return Promise.resolve();
   }
 
-  public detaching(flags: LifecycleFlags): Promise<void> {
+  public beforeDetach(flags: LifecycleFlags): Promise<void> {
     if (this.viewport) {
-      return this.viewport.detaching(flags);
+      return this.viewport.beforeDetach(flags);
     }
     return Promise.resolve();
   }

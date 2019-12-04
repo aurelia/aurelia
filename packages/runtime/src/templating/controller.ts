@@ -93,7 +93,7 @@ type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
   beforeAttach(flags: LifecycleFlags): void;
   attached(flags: LifecycleFlags): void;
 
-  detaching(flags: LifecycleFlags): void;
+  beforeDetach(flags: LifecycleFlags): void;
   detached(flags: LifecycleFlags): void;
 
   caching(flags: LifecycleFlags): void;
@@ -850,8 +850,8 @@ export class Controller<
     this.lifecycle.detached.begin();
     this.lifecycle.unmount.add(this);
 
-    if (this.hooks.hasDetaching) {
-      (this.bindingContext as BindingContext<T, C>).detaching(flags);
+    if (this.hooks.hasBeforeDetach) {
+      (this.bindingContext as BindingContext<T, C>).beforeDetach(flags);
     }
 
     this.detachControllers(flags);
@@ -870,8 +870,8 @@ export class Controller<
 
     this.lifecycle.detached.begin();
 
-    if (this.hooks.hasDetaching) {
-      (this.bindingContext as BindingContext<T, C>).detaching(flags);
+    if (this.hooks.hasBeforeDetach) {
+      (this.bindingContext as BindingContext<T, C>).beforeDetach(flags);
     }
 
     if (this.hooks.hasDetached) {

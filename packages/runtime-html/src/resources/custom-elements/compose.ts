@@ -94,7 +94,7 @@ export class Compose<T extends INode = Node> {
     }
   }
 
-  public detaching(flags: LifecycleFlags): void {
+  public beforeDetach(flags: LifecycleFlags): void {
     if (this.view != void 0) {
       if (this.task.done) {
         this.view.detach(flags);

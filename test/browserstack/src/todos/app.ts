@@ -76,8 +76,8 @@ export class App {
     console.log('app attached');
   }
 
-  public detaching(): void {
-    console.log('app detaching');
+  public beforeDetach(): void {
+    console.log('app beforeDetach');
   }
 
   public detached(): void {

@@ -1323,7 +1323,7 @@ const methodNamesWithFlags: PropertyKey[] = [
 
   'detachControllers',
 
-  'detaching',
+  'beforeDetach',
   'detached',
 
   'unmount',
@@ -1403,7 +1403,7 @@ export function formatProperty(
 
           case 'detachControllers':
 
-          case 'detaching':
+          case 'beforeDetach':
           case 'detached':
 
           case 'unmount':

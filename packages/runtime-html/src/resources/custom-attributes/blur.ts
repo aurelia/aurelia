@@ -157,7 +157,7 @@ export class Blur {
     this.manager = BlurManager.createFor(dom, scheduler);
   }
 
-  public attached(): void {
+  public afterAttach(): void {
     this.manager.register(this);
   }
 

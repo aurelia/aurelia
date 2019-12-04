@@ -63,7 +63,7 @@ export interface IRouter {
   // External API to get viewport by name
   getViewport(name: string): Viewport | null;
 
-  // Called from the viewport custom element in attached()
+  // Called from the viewport custom element in afterAttach()
   connectViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;
   // Called from the viewport custom element
   disconnectViewport(viewport: Viewport, element: Element | null, context: IRenderContext | null): void;
@@ -448,7 +448,7 @@ export class Router implements IRouter {
     return this.allViewports().find(viewport => viewport.name === name) || null;
   }
 
-  // Called from the viewport custom element in attached()
+  // Called from the viewport custom element in afterAttach()
   public connectViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport {
     Reporter.write(10000, 'Viewport added', name, element);
     const parentScope = this.findScope(element);

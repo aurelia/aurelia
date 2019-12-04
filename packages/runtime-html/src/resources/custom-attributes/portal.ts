@@ -97,7 +97,7 @@ export class Portal<T extends ParentNode = ParentNode> {
     return this.view.bind(flags, this.$controller.scope);
   }
 
-  public attached(flags: LifecycleFlags): void {
+  public afterAttach(flags: LifecycleFlags): void {
     this.targetChanged();
   }
 

@@ -43,9 +43,9 @@ describe(`If/Else`, function () {
     lifecycle.afterUnbind.end(flags);
   }
   function runAttachLifecycle(lifecycle: ILifecycle, sut: If<AuNode>, flags: LifecycleFlags): void {
-    lifecycle.attached.begin();
+    lifecycle.afterAttach.begin();
     sut.$controller.attach(flags);
-    lifecycle.attached.end(flags);
+    lifecycle.afterAttach.end(flags);
   }
   function runDetachLifecycle(lifecycle: ILifecycle, sut: If<AuNode>, flags: LifecycleFlags): void {
     lifecycle.detached.begin();

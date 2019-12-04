@@ -19,7 +19,7 @@ export class Focus {
   public value: unknown;
 
   /**
-   * Indicates whether `apply` should be called when `attached` callback is invoked
+   * Indicates whether `apply` should be called when `afterAttach` callback is invoked
    */
   private needsApply: boolean = false;
 
@@ -55,15 +55,15 @@ export class Focus {
     } else {
       // If the element is not currently connect
       // toggle the flag to add pending work for later
-      // in attached lifecycle
+      // in afterAttach lifecycle
       this.needsApply = true;
     }
   }
 
   /**
-   * Invoked when the attribute is attached to the DOM.
+   * Invoked when the attribute is afterAttach to the DOM.
    */
-  public attached(): void {
+  public afterAttach(): void {
     if (this.needsApply) {
       this.needsApply = false;
       this.apply();

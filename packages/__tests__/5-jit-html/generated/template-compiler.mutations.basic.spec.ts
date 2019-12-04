@@ -35,11 +35,11 @@
 //                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during beforeAttach() before mutation before flushChanges()", `this.el.textContent`);
 //                 this.$lifecycle.processFlushQueue();
 //             }
-//             attached() {
+//             afterAttach() {
 //                 this.items.push(4);
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "12345678123" : "123", "this.el.textContent during attached() before mutation before flushChanges()", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "12345678123" : "123", "this.el.textContent during afterAttach() before mutation before flushChanges()", `this.el.textContent`);
 //                 this.$lifecycle.processFlushQueue();
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "123456781234" : "1234", "this.el.textContent during attached() after mutation after flushChanges()", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "123456781234" : "1234", "this.el.textContent during afterAttach() after mutation after flushChanges()", `this.el.textContent`);
 //             }
 //             beforeDetach() {
 //                 this.items.push(5);
@@ -102,9 +102,9 @@
 //                 this.items.push(3);
 //                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during beforeAttach() before mutation", `this.el.textContent`);
 //             }
-//             attached() {
+//             afterAttach() {
 //                 this.items.push(4);
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "12345678123" : "123", "this.el.textContent during attached() before mutation", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "12345678123" : "123", "this.el.textContent during afterAttach() before mutation", `this.el.textContent`);
 //             }
 //             beforeDetach() {
 //                 this.items.push(5);
@@ -167,11 +167,11 @@
 //                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during beforeAttach() before mutation before flushChanges()", `this.el.textContent`);
 //                 this.$lifecycle.processFlushQueue();
 //             }
-//             attached() {
+//             afterAttach() {
 //                 this.items.push(4);
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "2", "this.el.textContent during attached() before mutation before flushChanges()", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "2", "this.el.textContent during afterAttach() before mutation before flushChanges()", `this.el.textContent`);
 //                 this.$lifecycle.processFlushQueue();
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "24", "this.el.textContent during attached() after mutation after flushChanges()", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "24", "this.el.textContent during afterAttach() after mutation after flushChanges()", `this.el.textContent`);
 //             }
 //             beforeDetach() {
 //                 this.items.push(5);
@@ -236,9 +236,9 @@
 //                 this.items.push(3);
 //                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during beforeAttach() before mutation", `this.el.textContent`);
 //             }
-//             attached() {
+//             afterAttach() {
 //                 this.items.push(4);
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "2", "this.el.textContent during attached() before mutation", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "2", "this.el.textContent during afterAttach() before mutation", `this.el.textContent`);
 //             }
 //             beforeDetach() {
 //                 this.items.push(5);

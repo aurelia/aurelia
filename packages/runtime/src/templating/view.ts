@@ -164,7 +164,7 @@ const lifecycleCallbacks = [
   'beforeBind',
   'afterBind',
   'beforeAttach',
-  'attached',
+  'afterAttach',
   'beforeDetach',
   'caching',
   'detached',

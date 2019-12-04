@@ -17,7 +17,7 @@ export class Settings {
   public beforeBind() { return; }
   public afterBind() { return; }
   public beforeAttach() { return; }
-  public attached() { return; }
+  public afterAttach() { return; }
   public beforeDetach() { return; }
   public detached() { return; }
   public beforeUnbind() { return; }

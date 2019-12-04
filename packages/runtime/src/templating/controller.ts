@@ -91,7 +91,7 @@ type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
   afterUnbind(flags: LifecycleFlags): void;
 
   beforeAttach(flags: LifecycleFlags): void;
-  attached(flags: LifecycleFlags): void;
+  afterAttach(flags: LifecycleFlags): void;
 
   beforeDetach(flags: LifecycleFlags): void;
   detached(flags: LifecycleFlags): void;
@@ -481,9 +481,9 @@ export class Controller<
     }
   }
 
-  public attached(flags: LifecycleFlags): void {
+  public afterAttach(flags: LifecycleFlags): void {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this.bindingContext!.attached(flags); // non-null is implied by the hook
+    this.bindingContext!.afterAttach(flags); // non-null is implied by the hook
   }
 
   public detached(flags: LifecycleFlags): void {
@@ -792,7 +792,7 @@ export class Controller<
     this.state |= State.isAttaching;
 
     this.lifecycle.mount.add(this);
-    this.lifecycle.attached.begin();
+    this.lifecycle.afterAttach.begin();
 
     if (this.hooks.hasBeforeAttach) {
       (this.bindingContext as BindingContext<T, C>).beforeAttach(flags);
@@ -800,30 +800,30 @@ export class Controller<
 
     this.attachControllers(flags);
 
-    if (this.hooks.hasAttached) {
-      this.lifecycle.attached.add(this);
+    if (this.hooks.hasAfterAttach) {
+      this.lifecycle.afterAttach.add(this);
     }
 
     this.state = this.state ^ State.isAttaching | State.isAttached;
-    this.lifecycle.attached.end(flags);
+    this.lifecycle.afterAttach.end(flags);
   }
 
   private attachCustomAttribute(flags: LifecycleFlags): void {
     flags |= LifecycleFlags.fromAttach;
     this.state |= State.isAttaching;
 
-    this.lifecycle.attached.begin();
+    this.lifecycle.afterAttach.begin();
 
     if (this.hooks.hasBeforeAttach) {
       (this.bindingContext as BindingContext<T, C>).beforeAttach(flags);
     }
 
-    if (this.hooks.hasAttached) {
-      this.lifecycle.attached.add(this);
+    if (this.hooks.hasAfterAttach) {
+      this.lifecycle.afterAttach.add(this);
     }
 
     this.state = this.state ^ State.isAttaching | State.isAttached;
-    this.lifecycle.attached.end(flags);
+    this.lifecycle.afterAttach.end(flags);
   }
 
   private attachSynthetic(flags: LifecycleFlags): void {
@@ -834,12 +834,12 @@ export class Controller<
       this.state |= State.isAttaching;
 
       this.lifecycle.mount.add(this);
-      this.lifecycle.attached.begin();
+      this.lifecycle.afterAttach.begin();
 
       this.attachControllers(flags);
 
       this.state = this.state ^ State.isAttaching | State.isAttached;
-      this.lifecycle.attached.end(flags);
+      this.lifecycle.afterAttach.end(flags);
     }
   }
 

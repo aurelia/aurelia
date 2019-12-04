@@ -326,7 +326,7 @@ describe('binding-commands', function () {
 //             class {
 //               public b: string;
 
-//               public attached(this: this & IViewModel<Node>): void {
+//               public afterAttach(this: this & IViewModel<Node>): void {
 //                 assert.strictEqual(this.b, 'x', `this.b`);
 //                 assert.strictEqual(this.$host.textContent, 'x', `this.$host.textContent`);
 //                 this.b = 'y';
@@ -342,7 +342,7 @@ describe('binding-commands', function () {
 //           assert.strictEqual(this.a, 'x', `this.a`);
 //         }
 
-//         public attached(this: this & IViewModel<Node>): void {
+//         public afterAttach(this: this & IViewModel<Node>): void {
 //           assert.strictEqual(this.a, 'y', `this.a`);
 //           assert.strictEqual(this.$host.textContent, 'xx', `this.$host.textContent`);
 //         }

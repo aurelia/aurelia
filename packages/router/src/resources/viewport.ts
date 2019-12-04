@@ -76,7 +76,7 @@ export class ViewportCustomElement {
     this.disconnect();
   }
 
-  public attached(): void {
+  public afterAttach(): void {
     if (this.viewport) {
       this.viewport.clearTaggedNodes();
     }

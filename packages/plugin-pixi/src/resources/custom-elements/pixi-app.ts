@@ -81,7 +81,7 @@ export class PixiApp {
     this.stage = this._app.stage;
   }
 
-  public attached(): void {
+  public afterAttach(): void {
     if (this._app !== null) {
       this.element.appendChild(this._app.view);
       this._app.ticker.add(this.callTick);

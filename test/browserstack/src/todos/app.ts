@@ -72,8 +72,8 @@ export class App {
     console.log('app beforeAttach');
   }
 
-  public attached(): void {
-    console.log('app attached');
+  public afterAttach(): void {
+    console.log('app afterAttach');
   }
 
   public beforeDetach(): void {

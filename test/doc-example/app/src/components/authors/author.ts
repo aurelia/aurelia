@@ -72,8 +72,8 @@ export class Author {
   public beforeAttach() {
     console.log('### beforeAttach', this);
   }
-  public attached() {
-    console.log('### attached', this);
+  public afterAttach() {
+    console.log('### afterAttach', this);
   }
 
   public canLeave(parameters) {

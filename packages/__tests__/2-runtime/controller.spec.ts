@@ -45,7 +45,7 @@ describe.skip('controller', function () {
     binding: true,
     afterBind: true,
     beforeAttach: true,
-    attached: true,
+    afterAttach: true,
     beforeDetach: true,
     caching: true,
     detached: true,
@@ -59,7 +59,7 @@ describe.skip('controller', function () {
     beforeBind(...args: any[]): void;
     afterBind(...args: any[]): void;
     beforeAttach(...args: any[]): void;
-    attached(...args: any[]): void;
+    afterAttach(...args: any[]): void;
     beforeDetach(...args: any[]): void;
     caching(...args: any[]): void;
     detached(...args: any[]): void;
@@ -80,8 +80,8 @@ describe.skip('controller', function () {
     proto.beforeAttach = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'beforeAttach', ...args);
     };
-    proto.attached = function (...args: any[]): void {
-      this.$$calls.addCall(this.id, 'attached', ...args);
+    proto.afterAttach = function (...args: any[]): void {
+      this.$$calls.addCall(this.id, 'afterAttach', ...args);
     };
     proto.beforeDetach = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'beforeDetach', ...args);
@@ -282,8 +282,8 @@ describe.skip('controller', function () {
         expectedCalls
           .addCall(2, 'mount', LF.fromTick)
           .addCall(2, 'mountCustomElement', LF.fromTick)
-          .addCall(2, 'attached', LF.fromTick)
-          .addCall(1, 'attached', LF.fromTick),
+          .addCall(2, 'afterAttach', LF.fromTick)
+          .addCall(1, 'afterAttach', LF.fromTick),
         '5',
       );
       assert.strictEqual(host.textContent, '1', '6');
@@ -555,16 +555,16 @@ describe.skip('controller', function () {
           .addCall(7, 'mount', LF.fromTick)
           .addCall(7, 'mountCustomElement', LF.fromTick)
 
-          .addCall(7, 'attached', LF.fromTick)
+          .addCall(7, 'afterAttach', LF.fromTick)
 
           // ce #2
-          .addCall(6, 'attached', LF.fromTick)
+          .addCall(6, 'afterAttach', LF.fromTick)
 
           // ce #1 controller
-          .addCall(2, 'attached', LF.fromTick)
+          .addCall(2, 'afterAttach', LF.fromTick)
 
           // ce #1
-          .addCall(1, 'attached', LF.fromTick),
+          .addCall(1, 'afterAttach', LF.fromTick),
         '5',
       );
       assert.strictEqual(host.textContent, '16', '6');
@@ -957,16 +957,16 @@ describe.skip('controller', function () {
           .addCall(7, 'mount', LF.fromTick)
           .addCall(7, 'mountCustomElement', LF.fromTick)
 
-          .addCall(7, 'attached', LF.fromTick)
+          .addCall(7, 'afterAttach', LF.fromTick)
 
           // ce #2
-          .addCall(6, 'attached', LF.fromTick)
+          .addCall(6, 'afterAttach', LF.fromTick)
 
           // ce #1 controller
-          .addCall(2, 'attached', LF.fromTick)
+          .addCall(2, 'afterAttach', LF.fromTick)
 
           // ce #1
-          .addCall(1, 'attached', LF.fromTick),
+          .addCall(1, 'afterAttach', LF.fromTick),
         '5',
       );
       assert.strictEqual(host.textContent, 'hihi', '6');

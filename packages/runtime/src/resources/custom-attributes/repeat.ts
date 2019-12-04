@@ -444,7 +444,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     const location = this.location;
     const lifecycle = this.$controller.lifecycle;
 
-    lifecycle.attached.begin();
+    lifecycle.afterAttach.begin();
 
     if (indexMap === void 0) {
       for (let i = 0, ii = views.length; i < ii; ++i) {
@@ -464,20 +464,20 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       }
     }
 
-    lifecycle.attached.end(flags);
+    lifecycle.afterAttach.end(flags);
   }
 
   private attachViewsKeyed(flags: LF): void {
     let view: IController<T>;
     const { views, location } = this;
-    this.$controller.lifecycle.attached.begin();
+    this.$controller.lifecycle.afterAttach.begin();
     for (let i = 0, ii = views.length; i < ii; ++i) {
       view = views[i];
       view.hold(location, MountStrategy.insertBefore);
       view.nodes!.unlink();
       view.attach(flags);
     }
-    this.$controller.lifecycle.attached.end(flags);
+    this.$controller.lifecycle.afterAttach.end(flags);
   }
 
   private sortViewsByKey(oldLength: number, indexMap: IndexMap, flags: LF): void {
@@ -491,7 +491,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     // the items on those indices are not moved; this minimizes the number of DOM operations that need to be performed
     const seq = longestIncreasingSubsequence(indexMap);
     const seqLen = seq.length;
-    this.$controller.lifecycle.attached.begin();
+    this.$controller.lifecycle.afterAttach.begin();
 
     flags |= LF.reorderNodes;
 
@@ -523,7 +523,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       }
     }
 
-    this.$controller.lifecycle.attached.end(flags);
+    this.$controller.lifecycle.afterAttach.end(flags);
   }
 }
 

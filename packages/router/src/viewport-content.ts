@@ -152,7 +152,7 @@ export class ViewportContent {
       const container = context;
       Controller.forCustomElement(this.content.componentInstance, container, host);
     }
-    // Temporarily tag content so that it can find parent scope before viewport is attached
+    // Temporarily tag content so that it can find parent scope before viewport is afterAttach
     const childNodes = this.content.componentInstance.$controller!.nodes!.childNodes;
     for (let i = 0; i < childNodes.length; i++) {
       const child = childNodes[i] as Element;

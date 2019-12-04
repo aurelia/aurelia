@@ -18,8 +18,9 @@ export const ParentViewportScope = CustomElement.createInjectable();
   injectable: ParentViewportScope
 })
 export class ViewportScopeCustomElement {
+  @bindable public name: string = 'default';
   @bindable public catches: string = '';
-
+  @bindable public source: unknown[] | null = null;
   public viewportScope: ViewportScope | null = null;
 
   public $controller!: IController; // This is set by the controller after this instance is constructed
@@ -56,10 +57,10 @@ export class ViewportScopeCustomElement {
   // }
   public creating(controller: any) {
     this.container = controller.context.container;
-    // console.log('ViewportScope creating', this.container, this.parent, controller, this);
-    // if (this.router.rootScope !== null && this.viewportScope === null) {
-    //   this.connect();
-    // }
+    console.log('ViewportScope creating', this.getAttribute('name', this.name), this.container, this.parent, controller, this);
+    if (this.router.rootScope !== null && this.viewportScope === null) {
+      this.connect();
+    }
   }
   public created() {
     // console.log('ViewportScope created', this);
@@ -75,12 +76,17 @@ export class ViewportScopeCustomElement {
   }
 
   public connect(): void {
+    const name = this.getAttribute('name', this.name) as string;
     const options: IViewportScopeOptions = {};
     let value: string | boolean | undefined = this.getAttribute('catches', this.catches);
     if (value !== void 0) {
       options.catches = value as string;
     }
-    this.viewportScope = this.router.connectViewportScope(this, this.container, this.element, options);
+
+    // TODO: Needs to be bound? How to solve?
+    options.source = this.source || null;
+
+    this.viewportScope = this.router.connectViewportScope(name, this, this.container, this.element, options);
   }
   public disconnect(): void {
     if (this.viewportScope) {
@@ -90,7 +96,7 @@ export class ViewportScopeCustomElement {
 
   public binding(flags: LifecycleFlags): void {
     this.isBound = true;
-    if (this.router.rootScope !== null) {
+    if (this.router.rootScope !== null && this.viewportScope === null) {
       this.connect();
     }
   }

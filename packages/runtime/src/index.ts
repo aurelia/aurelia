@@ -399,7 +399,6 @@ export {
   BindingMode,
   BindingStrategy,
   ExpressionKind,
-  Hooks,
   LifecycleFlags,
   State
 } from './flags';

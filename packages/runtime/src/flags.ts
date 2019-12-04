@@ -76,21 +76,6 @@ export const enum State {
 
 }
 
-export const enum Hooks {
-  none                   = 0b000000000001,
-  hasCreated             = 0b000000000010,
-  hasBeforeBind          = 0b000000000100,
-  hasAfterBind           = 0b000000001000,
-  hasBeforeAttach        = 0b000000010000,
-  hasAfterAttach         = 0b000000100000,
-  hasBeforeDetach        = 0b000001000000,
-  hasAfterDetach         = 0b000010000000,
-  hasBeforeUnbind        = 0b000100000000,
-  hasAfterUnbind         = 0b001000000000,
-  hasRender              = 0b010000000000,
-  hasCaching             = 0b100000000000
-}
-
 export const enum LifecycleFlags {
   none                          = 0b00000_0000000_0000000000000_00_0000,
   // Bitmask for flags that need to be stored on a binding during $bind for mutation

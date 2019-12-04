@@ -20,7 +20,7 @@ export class Editor {
   public created() { return; }
   public beforeBind() { return; }
   public afterBind() { return; }
-  public attaching() { return; }
+  public beforeAttach() { return; }
   public attached() { return; }
   public detaching() { return; }
   public detached() { return; }

@@ -1308,7 +1308,7 @@ const methodNamesWithFlags: PropertyKey[] = [
 
   'attachControllers',
 
-  'attaching',
+  'beforeAttach',
   'attached',
 
   'mount',
@@ -1388,7 +1388,7 @@ export function formatProperty(
 
           case 'attachControllers':
 
-          case 'attaching':
+          case 'beforeAttach':
           case 'attached':
 
           case 'mount':

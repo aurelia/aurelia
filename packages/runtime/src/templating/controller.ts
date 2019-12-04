@@ -90,7 +90,7 @@ type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
   unbinding(flags: LifecycleFlags): MaybePromiseOrTask;
   unbound(flags: LifecycleFlags): void;
 
-  attaching(flags: LifecycleFlags): void;
+  beforeAttach(flags: LifecycleFlags): void;
   attached(flags: LifecycleFlags): void;
 
   detaching(flags: LifecycleFlags): void;
@@ -794,8 +794,8 @@ export class Controller<
     this.lifecycle.mount.add(this);
     this.lifecycle.attached.begin();
 
-    if (this.hooks.hasAttaching) {
-      (this.bindingContext as BindingContext<T, C>).attaching(flags);
+    if (this.hooks.hasBeforeAttach) {
+      (this.bindingContext as BindingContext<T, C>).beforeAttach(flags);
     }
 
     this.attachControllers(flags);
@@ -814,8 +814,8 @@ export class Controller<
 
     this.lifecycle.attached.begin();
 
-    if (this.hooks.hasAttaching) {
-      (this.bindingContext as BindingContext<T, C>).attaching(flags);
+    if (this.hooks.hasBeforeAttach) {
+      (this.bindingContext as BindingContext<T, C>).beforeAttach(flags);
     }
 
     if (this.hooks.hasAttached) {

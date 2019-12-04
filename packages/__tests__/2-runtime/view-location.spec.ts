@@ -225,7 +225,7 @@ describe('the view locator', function () {
     'created',
     'beforeBind',
     'afterBind',
-    'attaching',
+    'beforeAttach',
     'attached',
     'detaching',
     'caching',

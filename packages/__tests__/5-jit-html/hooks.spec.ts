@@ -92,7 +92,7 @@
 //       public afterBind() {
 //         return;
 //       }
-//       public attaching() {
+//       public beforeAttach() {
 //         return;
 //       }
 //       public attached() {
@@ -128,7 +128,7 @@
 //       public afterBind() {
 //         return;
 //       }
-//       public attaching() {
+//       public beforeAttach() {
 //         return;
 //       }
 //       public attached() {
@@ -164,7 +164,7 @@
 //       public afterBind() {
 //         return;
 //       }
-//       public attaching() {
+//       public beforeAttach() {
 //         return;
 //       }
 //       public attached() {
@@ -199,7 +199,7 @@
 //       public afterBind() {
 //         return;
 //       }
-//       public attaching() {
+//       public beforeAttach() {
 //         return;
 //       }
 //       public attached() {
@@ -274,7 +274,7 @@
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
 //       public $lifecycle: ILifecycle;
-//       public attaching() {
+//       public beforeAttach() {
 //         this.$lifecycle.registerTask({
 //           done: false,
 //           canCancel() { return false; },
@@ -333,7 +333,7 @@
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
 //       public $lifecycle: ILifecycle;
-//       public attaching() {
+//       public beforeAttach() {
 //         this.$lifecycle.registerTask({
 //           done: false,
 //           canCancel() { return false; },
@@ -397,7 +397,7 @@
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
 //       public $lifecycle: ILifecycle;
-//       public attaching() {
+//       public beforeAttach() {
 //         this.$lifecycle.registerTask({
 //           done: false,
 //           canCancel() { return false; },
@@ -464,7 +464,7 @@
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
 //       public $lifecycle: ILifecycle;
-//       public attaching() {
+//       public beforeAttach() {
 //         this.$lifecycle.registerTask({
 //           done: false,
 //           canCancel() { return false; },

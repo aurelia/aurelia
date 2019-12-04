@@ -68,8 +68,8 @@ export class App {
     console.log('app bound');
   }
 
-  public attaching(): void {
-    console.log('app attaching');
+  public beforeAttach(): void {
+    console.log('app beforeAttach');
   }
 
   public attached(): void {

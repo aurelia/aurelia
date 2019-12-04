@@ -30,9 +30,9 @@
 //                 this.items.push(2);
 //                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during afterBind() before mutation", `this.el.textContent`);
 //             }
-//             attaching() {
+//             beforeAttach() {
 //                 this.items.push(3);
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during attaching() before mutation before flushChanges()", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during beforeAttach() before mutation before flushChanges()", `this.el.textContent`);
 //                 this.$lifecycle.processFlushQueue();
 //             }
 //             attached() {
@@ -98,9 +98,9 @@
 //                 this.items.push(2);
 //                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during afterBind() before mutation", `this.el.textContent`);
 //             }
-//             attaching() {
+//             beforeAttach() {
 //                 this.items.push(3);
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during attaching() before mutation", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during beforeAttach() before mutation", `this.el.textContent`);
 //             }
 //             attached() {
 //                 this.items.push(4);
@@ -162,9 +162,9 @@
 //                 this.items.push(2);
 //                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during afterBind() before mutation", `this.el.textContent`);
 //             }
-//             attaching() {
+//             beforeAttach() {
 //                 this.items.push(3);
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during attaching() before mutation before flushChanges()", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during beforeAttach() before mutation before flushChanges()", `this.el.textContent`);
 //                 this.$lifecycle.processFlushQueue();
 //             }
 //             attached() {
@@ -232,9 +232,9 @@
 //                 this.items.push(2);
 //                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during afterBind() before mutation", `this.el.textContent`);
 //             }
-//             attaching() {
+//             beforeAttach() {
 //                 this.items.push(3);
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during attaching() before mutation", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during beforeAttach() before mutation", `this.el.textContent`);
 //             }
 //             attached() {
 //                 this.items.push(4);

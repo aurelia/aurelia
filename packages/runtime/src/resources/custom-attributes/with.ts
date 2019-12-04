@@ -37,7 +37,7 @@ export class With<T extends INode = INode> {
     this.bindChild(flags);
   }
 
-  public attaching(flags: LifecycleFlags): void {
+  public beforeAttach(flags: LifecycleFlags): void {
     this.view.attach(flags);
   }
 

@@ -27,7 +27,7 @@ export class Replaceable<T extends INode = INode> {
     return this.view.bind(flags | LifecycleFlags.allowParentScopeTraversal, this.$controller.scope, this.factory.name);
   }
 
-  public attaching(flags: LifecycleFlags): void {
+  public beforeAttach(flags: LifecycleFlags): void {
     this.view.attach(flags);
   }
 

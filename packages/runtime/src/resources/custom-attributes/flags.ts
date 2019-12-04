@@ -29,7 +29,7 @@ abstract class FlagsTemplateController<T extends INode = INode> {
     return this.view.bind(flags | this.flags, this.$controller.scope);
   }
 
-  public attaching(flags: LifecycleFlags): void {
+  public beforeAttach(flags: LifecycleFlags): void {
     this.view.attach(flags);
   }
 

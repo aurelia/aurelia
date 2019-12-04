@@ -332,7 +332,7 @@ export class Viewport {
     }
   }
 
-  public async attaching(flags: LifecycleFlags): Promise<void> {
+  public async beforeAttach(flags: LifecycleFlags): Promise<void> {
     Reporter.write(10000, 'ATTACHING viewport', this.name, this.content, this.nextContent);
     this.enabled = true;
     if (this.content.componentInstance) {

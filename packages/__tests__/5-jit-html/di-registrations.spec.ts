@@ -206,7 +206,7 @@
 //             this.child.$bind(LF.none, Scope.create(LF.none, BindingContext.create(LF.none)));
 //           }
 
-//           public attaching(): void {
+//           public beforeAttach(): void {
 //             this.child.$attach(LF.none);
 //           }
 //         }
@@ -249,7 +249,7 @@
 //             this.child.$bind(LF.none, Scope.create(LF.none, BindingContext.create(LF.none)));
 //           }
 
-//           public attaching(): void {
+//           public beforeAttach(): void {
 //             this.child.$attach(LF.none);
 //           }
 //         }
@@ -301,7 +301,7 @@
 //             this.child.$bind(LF.none, Scope.create(LF.none, BindingContext.create(LF.none)));
 //           }
 
-//           public attaching(): void {
+//           public beforeAttach(): void {
 //             this.child.$attach(LF.none);
 //           }
 //         }

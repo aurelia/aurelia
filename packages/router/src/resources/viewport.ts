@@ -113,9 +113,9 @@ export class ViewportCustomElement {
     }
   }
 
-  public attaching(flags: LifecycleFlags): Promise<void> {
+  public beforeAttach(flags: LifecycleFlags): Promise<void> {
     if (this.viewport) {
-      return this.viewport.attaching(flags);
+      return this.viewport.beforeAttach(flags);
     }
     return Promise.resolve();
   }

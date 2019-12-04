@@ -40,7 +40,7 @@ export class If<T extends INode = INode> {
     return this.task;
   }
 
-  public attaching(flags: LifecycleFlags): void {
+  public beforeAttach(flags: LifecycleFlags): void {
     if (this.task.done) {
       this.attachView(flags);
     } else {

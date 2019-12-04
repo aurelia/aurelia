@@ -44,7 +44,7 @@ describe.skip('controller', function () {
     created: true,
     binding: true,
     afterBind: true,
-    attaching: true,
+    beforeAttach: true,
     attached: true,
     detaching: true,
     caching: true,
@@ -58,7 +58,7 @@ describe.skip('controller', function () {
     created(...args: any[]): void;
     beforeBind(...args: any[]): void;
     afterBind(...args: any[]): void;
-    attaching(...args: any[]): void;
+    beforeAttach(...args: any[]): void;
     attached(...args: any[]): void;
     detaching(...args: any[]): void;
     caching(...args: any[]): void;
@@ -77,8 +77,8 @@ describe.skip('controller', function () {
     proto.afterBind = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'afterBind', ...args);
     };
-    proto.attaching = function (...args: any[]): void {
-      this.$$calls.addCall(this.id, 'attaching', ...args);
+    proto.beforeAttach = function (...args: any[]): void {
+      this.$$calls.addCall(this.id, 'beforeAttach', ...args);
     };
     proto.attached = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'attached', ...args);
@@ -269,7 +269,7 @@ describe.skip('controller', function () {
         expectedCalls
           .addCall(2, 'attach', LF.none)
           .addCall(2, 'attachCustomElement', LF.fromAttach)
-          .addCall(1, 'attaching', LF.fromAttach)
+          .addCall(1, 'beforeAttach', LF.fromAttach)
           .addCall(2, 'attachControllers', LF.fromAttach),
         '3',
       );
@@ -499,7 +499,7 @@ describe.skip('controller', function () {
           .addCall(2, 'attachCustomElement', LF.fromAttach)
 
           // ce #1
-          .addCall(1, 'attaching', LF.fromAttach)
+          .addCall(1, 'beforeAttach', LF.fromAttach)
 
           // ce #1 controller
           .addCall(2, 'attachControllers', LF.fromAttach)
@@ -509,7 +509,7 @@ describe.skip('controller', function () {
           .addCall(4, 'attachCustomAttribute', LF.fromAttach)
 
           // if #1
-          .addCall(3, 'attaching', LF.fromAttach)
+          .addCall(3, 'beforeAttach', LF.fromAttach)
           .addCall(3, 'attachView', LF.fromAttach)
 
           // if #1 ifView
@@ -522,7 +522,7 @@ describe.skip('controller', function () {
           .addCall(7, 'attachCustomElement', LF.fromAttach)
 
           // ce #2
-          .addCall(6, 'attaching', LF.fromAttach)
+          .addCall(6, 'beforeAttach', LF.fromAttach)
 
           // ce #2 controller
           .addCall(7, 'attachControllers', LF.fromAttach)
@@ -532,7 +532,7 @@ describe.skip('controller', function () {
           .addCall(9, 'attachCustomAttribute', LF.fromAttach)
 
           // if #2
-          .addCall(8, 'attaching', LF.fromAttach)
+          .addCall(8, 'beforeAttach', LF.fromAttach)
           .addCall(8, 'attachView', LF.fromAttach),
         '3',
       );
@@ -901,7 +901,7 @@ describe.skip('controller', function () {
           .addCall(2, 'attachCustomElement', LF.fromAttach)
 
           // ce #1
-          .addCall(1, 'attaching', LF.fromAttach)
+          .addCall(1, 'beforeAttach', LF.fromAttach)
 
           // ce #1 controller
           .addCall(2, 'attachControllers', LF.fromAttach)
@@ -911,7 +911,7 @@ describe.skip('controller', function () {
           .addCall(4, 'attachCustomAttribute', LF.fromAttach)
 
           // if #1
-          .addCall(3, 'attaching', LF.fromAttach)
+          .addCall(3, 'beforeAttach', LF.fromAttach)
           .addCall(3, 'attachView', LF.fromAttach)
 
           // if #1 ifView
@@ -924,7 +924,7 @@ describe.skip('controller', function () {
           .addCall(7, 'attachCustomElement', LF.fromAttach)
 
           // ce #2
-          .addCall(6, 'attaching', LF.fromAttach)
+          .addCall(6, 'beforeAttach', LF.fromAttach)
 
           // ce #2 controller
           .addCall(7, 'attachControllers', LF.fromAttach)
@@ -934,7 +934,7 @@ describe.skip('controller', function () {
           .addCall(9, 'attachCustomAttribute', LF.fromAttach)
 
           // if #2
-          .addCall(8, 'attaching', LF.fromAttach)
+          .addCall(8, 'beforeAttach', LF.fromAttach)
           .addCall(8, 'attachView', LF.fromAttach),
         '3',
       );

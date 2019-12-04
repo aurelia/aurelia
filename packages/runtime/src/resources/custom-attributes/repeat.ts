@@ -70,7 +70,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     return this.task;
   }
 
-  public attaching(flags: LF): void {
+  public beforeAttach(flags: LF): void {
     if (this.task.done) {
       this.attachViews(void 0, flags);
     } else {

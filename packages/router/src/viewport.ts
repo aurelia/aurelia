@@ -326,7 +326,7 @@ export class Viewport {
     return false;
   }
 
-  public binding(flags: LifecycleFlags): void {
+  public beforeBind(flags: LifecycleFlags): void {
     if (this.content.componentInstance) {
       this.content.initializeComponent();
     }

@@ -23,7 +23,7 @@
 //             constructor(el) {
 //                 this.el = el;
 //             }
-//             binding() {
+//             beforeBind() {
 //                 this.items.push(1);
 //             }
 //             bound() {
@@ -91,7 +91,7 @@
 //             constructor(el) {
 //                 this.el = el;
 //             }
-//             binding() {
+//             beforeBind() {
 //                 this.items.push(1);
 //             }
 //             bound() {
@@ -155,7 +155,7 @@
 //             constructor(el) {
 //                 this.el = el;
 //             }
-//             binding() {
+//             beforeBind() {
 //                 this.items.push(1);
 //             }
 //             bound() {
@@ -225,7 +225,7 @@
 //             constructor(el) {
 //                 this.el = el;
 //             }
-//             binding() {
+//             beforeBind() {
 //                 this.items.push(1);
 //             }
 //             bound() {

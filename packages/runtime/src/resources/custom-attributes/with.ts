@@ -32,7 +32,7 @@ export class With<T extends INode = INode> {
     }
   }
 
-  public binding(flags: LifecycleFlags): void {
+  public beforeBind(flags: LifecycleFlags): void {
     this.view.parent = this.$controller;
     this.bindChild(flags);
   }

@@ -174,7 +174,7 @@ export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory').noD
 export interface IViewModel<T extends INode = INode> {
   readonly $controller?: IController<T, this>;
   created?(flags: LifecycleFlags): void;
-  binding?(flags: LifecycleFlags): MaybePromiseOrTask;
+  beforeBind?(flags: LifecycleFlags): MaybePromiseOrTask;
   bound?(flags: LifecycleFlags): void;
   unbinding?(flags: LifecycleFlags): MaybePromiseOrTask;
   unbound?(flags: LifecycleFlags): void;

@@ -184,7 +184,7 @@ describe('templating-compiler.ref.spec.ts', function () {
           this.el = el as Element;
         }
 
-        public binding(): void {
+        public beforeBind(): void {
           this.bindingCalls++;
           assert.notStrictEqual(this.div, undefined, '[binding] div !== undefined');
           assert.notContains(this.el, this.div, '[binding] this.el.contains(this.div) === false');

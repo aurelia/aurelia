@@ -18,7 +18,7 @@ export class CSSModulesProcessorRegistry implements IRegistry {
         this.element = element as HTMLElement;
       }
 
-      public binding() {
+      public beforeBind() {
         this.valueChanged();
       }
 

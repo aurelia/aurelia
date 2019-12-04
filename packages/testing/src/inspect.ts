@@ -1298,7 +1298,7 @@ const methodNamesWithFlags: PropertyKey[] = [
   'bindControllers',
   'endBind',
 
-  'binding',
+  'beforeBind',
   'bound',
 
   'attach',
@@ -1378,7 +1378,7 @@ export function formatProperty(
           case 'bindControllers':
           case 'endBind':
 
-          case 'binding':
+          case 'beforeBind':
           case 'bound':
 
           case 'attach':

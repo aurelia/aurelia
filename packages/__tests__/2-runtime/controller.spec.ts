@@ -56,7 +56,7 @@ describe.skip('controller', function () {
 
   function addTracingHooks<TProto>(ctor: Class<TProto>): Class<TProto & {
     created(...args: any[]): void;
-    binding(...args: any[]): void;
+    beforeBind(...args: any[]): void;
     bound(...args: any[]): void;
     attaching(...args: any[]): void;
     attached(...args: any[]): void;
@@ -71,8 +71,8 @@ describe.skip('controller', function () {
     proto.created = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'created', ...args);
     };
-    proto.binding = function (...args: any[]): void {
-      this.$$calls.addCall(this.id, 'binding', ...args);
+    proto.beforeBind = function (...args: any[]): void {
+      this.$$calls.addCall(this.id, 'beforeBind', ...args);
     };
     proto.bound = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'bound', ...args);
@@ -254,7 +254,7 @@ describe.skip('controller', function () {
           .addCall(2, 'bind', LF.none)
           .addCall(2, 'bindCustomElement', LF.fromBind, sut.scope)
           .addCall(2, 'bindBindings', LF.fromBind, sut.scope)
-          .addCall(1, 'binding', LF.fromBind)
+          .addCall(1, 'beforeBind', LF.fromBind)
           .addCall(2, 'bindControllers', LF.fromBind, sut.scope)
           .addCall(2, 'endBind', LF.fromBind)
           .addCall(2, 'bound', LF.fromBind)
@@ -407,7 +407,7 @@ describe.skip('controller', function () {
           .addCall(3, 'valueChanged', true, false, LF.none)
 
           // ce #1
-          .addCall(1, 'binding', LF.fromBind)
+          .addCall(1, 'beforeBind', LF.fromBind)
 
           // ce #1 controller
           .addCall(2, 'bindControllers', LF.fromBind, sut.scope)
@@ -417,7 +417,7 @@ describe.skip('controller', function () {
           .addCall(4, 'bindCustomAttribute', LF.fromBind, sut.scope)
 
           // if #1
-          .addCall(3, 'binding', LF.fromBind)
+          .addCall(3, 'beforeBind', LF.fromBind)
           .addCall(3, 'swap', true, LF.fromBind)
           .addCall(3, 'updateView', true, LF.fromBind)
           .addCall(3, 'ensureView', void 0, ifInstance['ifFactory'], LF.fromBind)
@@ -444,7 +444,7 @@ describe.skip('controller', function () {
           .addCall(7, 'bindBindings', LF.fromBind, secondCustomElementController.scope)
 
           // ce #2
-          .addCall(6, 'binding', LF.fromBind)
+          .addCall(6, 'beforeBind', LF.fromBind)
 
           // ce #2 controller
           .addCall(7, 'bindControllers', LF.fromBind, secondCustomElementController.scope)
@@ -454,7 +454,7 @@ describe.skip('controller', function () {
           .addCall(9, 'bindCustomAttribute', LF.fromBind, secondCustomElementController.scope)
 
           // if #2
-          .addCall(8, 'binding', LF.fromBind)
+          .addCall(8, 'beforeBind', LF.fromBind)
           .addCall(8, 'swap', false, LF.fromBind)
           .addCall(8, 'deactivate', LF.fromBind)
           .addCall(8, 'updateView', false, LF.fromBind)
@@ -809,7 +809,7 @@ describe.skip('controller', function () {
           .addCall(3, 'valueChanged', true, false, LF.none)
 
           // ce #1
-          .addCall(1, 'binding', LF.fromBind)
+          .addCall(1, 'beforeBind', LF.fromBind)
 
           // ce #1 controller
           .addCall(2, 'bindControllers', LF.fromBind, sut.scope)
@@ -819,7 +819,7 @@ describe.skip('controller', function () {
           .addCall(4, 'bindCustomAttribute', LF.fromBind, sut.scope)
 
           // if #1
-          .addCall(3, 'binding', LF.fromBind)
+          .addCall(3, 'beforeBind', LF.fromBind)
           .addCall(3, 'swap', true, LF.fromBind)
           .addCall(3, 'updateView', true, LF.fromBind)
           .addCall(3, 'ensureView', void 0, ifInstance['ifFactory'], LF.fromBind)
@@ -846,7 +846,7 @@ describe.skip('controller', function () {
           .addCall(7, 'bindBindings', LF.fromBind, secondCustomElementController.scope)
 
           // ce #2
-          .addCall(6, 'binding', LF.fromBind)
+          .addCall(6, 'beforeBind', LF.fromBind)
 
           // ce #2 controller
           .addCall(7, 'bindControllers', LF.fromBind, secondCustomElementController.scope)
@@ -856,7 +856,7 @@ describe.skip('controller', function () {
           .addCall(9, 'bindCustomAttribute', LF.fromBind, secondCustomElementController.scope)
 
           // if #2
-          .addCall(8, 'binding', LF.fromBind)
+          .addCall(8, 'beforeBind', LF.fromBind)
           .addCall(8, 'swap', false, LF.fromBind)
           .addCall(8, 'deactivate', LF.fromBind)
           .addCall(8, 'updateView', false, LF.fromBind)

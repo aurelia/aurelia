@@ -84,7 +84,7 @@ type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
   render(flags: LifecycleFlags, host: T, parts: PartialCustomElementDefinitionParts, parentContext: IServiceLocator): IElementTemplateProvider | void;
   created(flags: LifecycleFlags): void;
 
-  binding(flags: LifecycleFlags): MaybePromiseOrTask;
+  beforeBind(flags: LifecycleFlags): MaybePromiseOrTask;
   bound(flags: LifecycleFlags): void;
 
   unbinding(flags: LifecycleFlags): MaybePromiseOrTask;
@@ -553,8 +553,8 @@ export class Controller<
     this.lifecycle.bound.begin();
     this.bindBindings(flags, $scope);
 
-    if (this.hooks.hasBinding) {
-      const ret = (this.bindingContext as BindingContext<T, C>).binding(flags);
+    if (this.hooks.hasBeforeBind) {
+      const ret = (this.bindingContext as BindingContext<T, C>).beforeBind(flags);
       if (hasAsyncWork(ret)) {
         return new ContinuationTask(ret, this.bindControllers, this, flags, $scope);
       }
@@ -584,8 +584,8 @@ export class Controller<
     this.scope = scope;
     this.lifecycle.bound.begin();
 
-    if (this.hooks.hasBinding) {
-      const ret = (this.bindingContext as BindingContext<T, C>).binding(flags);
+    if (this.hooks.hasBeforeBind) {
+      const ret = (this.bindingContext as BindingContext<T, C>).beforeBind(flags);
       if (hasAsyncWork(ret)) {
         return new ContinuationTask(ret, this.endBind, this, flags);
       }

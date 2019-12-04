@@ -30,7 +30,7 @@ export class If<T extends INode = INode> {
     @IRenderLocation private readonly location: IRenderLocation<T>,
   ) {}
 
-  public binding(flags: LifecycleFlags): ILifecycleTask {
+  public beforeBind(flags: LifecycleFlags): ILifecycleTask {
     if (this.task.done) {
       this.task = this.swap(this.value, flags);
     } else {

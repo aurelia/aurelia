@@ -18,7 +18,7 @@ export class Editor {
   ) {}
 
   public created() { return; }
-  public binding() { return; }
+  public beforeBind() { return; }
   public bound() { return; }
   public attaching() { return; }
   public attached() { return; }

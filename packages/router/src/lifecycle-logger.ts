@@ -3,7 +3,7 @@ export function lifecycleLogger(name: string) {
     'canLeave', 'leave',
     'canEnter', 'enter',
     'created',
-    'binding', 'bound',
+    'beforeBind', 'bound',
     'attaching', 'attached',
     'detaching', 'detached',
     'unbinding', 'unbound',
@@ -33,7 +33,7 @@ export class LifecycleClass {
   public canEnter() { console.log(`name canEnter`); return true; }
   public enter(params: any) { console.log(`name enter`); }
   public created() { console.log(`name created`); }
-  public binding() { console.log(`name binding`); }
+  public beforeBind() { console.log(`name binding`); }
   public bound() { console.log(`name bound`); }
   public attaching() { console.log(`name attaching`); }
   public attached() { console.log(`name attached`); }

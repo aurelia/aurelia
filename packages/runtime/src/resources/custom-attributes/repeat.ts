@@ -52,7 +52,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     @IViewFactory public factory: IViewFactory<T>
   ) {}
 
-  public binding(flags: LF): ILifecycleTask {
+  public beforeBind(flags: LF): ILifecycleTask {
     this.checkCollectionObserver(flags);
     const bindings = this.renderable.bindings as PropertyBinding[];
     const { length } = bindings;

@@ -107,9 +107,9 @@ export class ViewportCustomElement {
     }
   }
 
-  public binding(flags: LifecycleFlags): void {
+  public beforeBind(flags: LifecycleFlags): void {
     if (this.viewport) {
-      this.viewport.binding(flags);
+      this.viewport.beforeBind(flags);
     }
   }
 

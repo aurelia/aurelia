@@ -86,7 +86,7 @@
 //       public created() {
 //         return;
 //       }
-//       public binding() {
+//       public beforeBind() {
 //         return;
 //       }
 //       public bound() {
@@ -122,7 +122,7 @@
 //       public created() {
 //         return;
 //       }
-//       public binding() {
+//       public beforeBind() {
 //         return;
 //       }
 //       public bound() {
@@ -158,7 +158,7 @@
 //       public created() {
 //         return;
 //       }
-//       public binding() {
+//       public beforeBind() {
 //         return;
 //       }
 //       public bound() {
@@ -193,7 +193,7 @@
 //       public created() {
 //         return;
 //       }
-//       public binding() {
+//       public beforeBind() {
 //         return;
 //       }
 //       public bound() {

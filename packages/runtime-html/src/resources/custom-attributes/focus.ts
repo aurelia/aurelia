@@ -35,7 +35,7 @@ export class Focus {
     this.element = element as HTMLElement;
   }
 
-  public binding(): void {
+  public beforeBind(): void {
     this.valueChanged();
   }
 

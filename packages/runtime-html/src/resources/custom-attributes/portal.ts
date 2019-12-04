@@ -89,7 +89,7 @@ export class Portal<T extends ParentNode = ParentNode> {
     this.view.hold(originalLoc, MountStrategy.insertBefore);
   }
 
-  public binding(flags: LifecycleFlags): ILifecycleTask {
+  public beforeBind(flags: LifecycleFlags): ILifecycleTask {
     if (this.callbackContext == null) {
       this.callbackContext = this.$controller.scope!.bindingContext;
     }

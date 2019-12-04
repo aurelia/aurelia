@@ -15,7 +15,7 @@ export class GotoCustomAttribute {
     this.element = element as HTMLElement;
   }
 
-  public binding(): void {
+  public beforeBind(): void {
     this.updateValue();
   }
 

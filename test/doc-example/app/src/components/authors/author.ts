@@ -63,7 +63,7 @@ export class Author {
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
   }
-  public binding() {
+  public beforeBind() {
     console.log('### binding', this);
   }
   public bound() {

@@ -70,7 +70,7 @@ export class Compose<T extends INode = Node> {
     );
   }
 
-  public binding(flags: LifecycleFlags): ILifecycleTask {
+  public beforeBind(flags: LifecycleFlags): ILifecycleTask {
     if (this.task.done) {
       this.task = this.compose(this.subject, flags);
     } else {

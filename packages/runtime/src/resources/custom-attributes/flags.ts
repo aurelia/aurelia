@@ -24,7 +24,7 @@ abstract class FlagsTemplateController<T extends INode = INode> {
     this.view.hold(location, MountStrategy.insertBefore);
   }
 
-  public binding(flags: LifecycleFlags): ILifecycleTask {
+  public beforeBind(flags: LifecycleFlags): ILifecycleTask {
     this.view.parent = this.$controller;
     return this.view.bind(flags | this.flags, this.$controller.scope);
   }

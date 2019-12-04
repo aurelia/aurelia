@@ -161,7 +161,7 @@ export type ComposableObjectComponentType<T extends ComposableObject>
   = ConstructableClass<{ viewModel: T } & ComposableObject>;
 
 const lifecycleCallbacks = [
-  'binding',
+  'beforeBind',
   'bound',
   'attaching',
   'attached',

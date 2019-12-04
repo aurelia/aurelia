@@ -157,7 +157,7 @@ export class HooksDefinition {
   public readonly hasRender: boolean;
   public readonly hasCreated: boolean;
 
-  public readonly hasBinding: boolean;
+  public readonly hasBeforeBind: boolean;
   public readonly hasBound: boolean;
 
   public readonly hasUnbinding: boolean;
@@ -173,7 +173,7 @@ export class HooksDefinition {
   public constructor(target: object) {
     this.hasRender = 'render' in target;
     this.hasCreated = 'created' in target;
-    this.hasBinding = 'binding' in target;
+    this.hasBeforeBind = 'beforeBind' in target;
     this.hasBound = 'bound' in target;
     this.hasUnbinding = 'unbinding' in target;
     this.hasUnbound = 'unbound' in target;

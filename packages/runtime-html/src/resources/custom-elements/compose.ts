@@ -104,7 +104,7 @@ export class Compose<T extends INode = Node> {
     }
   }
 
-  public unbinding(flags: LifecycleFlags): ILifecycleTask {
+  public beforeUnbind(flags: LifecycleFlags): ILifecycleTask {
     this.lastSubject = void 0;
     if (this.view != void 0) {
       if (this.task.done) {

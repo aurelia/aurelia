@@ -37,7 +37,7 @@ abstract class FlagsTemplateController<T extends INode = INode> {
     this.view.detach(flags);
   }
 
-  public unbinding(flags: LifecycleFlags): ILifecycleTask {
+  public beforeUnbind(flags: LifecycleFlags): ILifecycleTask {
     const task = this.view.unbind(flags);
     this.view.parent = void 0;
     return task;

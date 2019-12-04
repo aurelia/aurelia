@@ -6,7 +6,7 @@ export function lifecycleLogger(name: string) {
     'beforeBind', 'afterBind',
     'beforeAttach', 'attached',
     'detaching', 'detached',
-    'unbinding', 'unbound',
+    'beforeUnbind', 'unbound',
   ];
 
   return function (target: any) {
@@ -41,6 +41,6 @@ export class LifecycleClass {
   public leave() { console.log(`name leave`); }
   public detaching() { console.log(`name detaching`); }
   public detached() { console.log(`name detached`); }
-  public unbinding() { console.log(`name unbinding`); }
+  public beforeUnbind() { console.log(`name beforeUnbind`); }
   public unbound() { console.log(`name unbound`); }
 }

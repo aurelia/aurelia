@@ -176,7 +176,7 @@ export interface IViewModel<T extends INode = INode> {
   created?(flags: LifecycleFlags): void;
   beforeBind?(flags: LifecycleFlags): MaybePromiseOrTask;
   afterBind?(flags: LifecycleFlags): void;
-  unbinding?(flags: LifecycleFlags): MaybePromiseOrTask;
+  beforeUnbind?(flags: LifecycleFlags): MaybePromiseOrTask;
   unbound?(flags: LifecycleFlags): void;
   beforeAttach?(flags: LifecycleFlags): void;
   attached?(flags: LifecycleFlags): void;

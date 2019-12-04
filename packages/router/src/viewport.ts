@@ -355,7 +355,7 @@ export class Viewport {
     this.enabled = false;
   }
 
-  public async unbinding(flags: LifecycleFlags): Promise<void> {
+  public async beforeUnbind(flags: LifecycleFlags): Promise<void> {
     if (this.content.componentInstance) {
       await this.content.terminateComponent(this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful);
     }

@@ -127,9 +127,9 @@ export class ViewportCustomElement {
     return Promise.resolve();
   }
 
-  public async unbinding(flags: LifecycleFlags): Promise<void> {
+  public async beforeUnbind(flags: LifecycleFlags): Promise<void> {
     if (this.viewport) {
-      await this.viewport.unbinding(flags);
+      await this.viewport.beforeUnbind(flags);
     }
   }
 }

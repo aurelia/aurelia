@@ -90,8 +90,8 @@ export class Author {
   public detached() {
     console.log('### detached', this);
   }
-  public unbinding() {
-    console.log('### unbinding', this);
+  public beforeUnbind() {
+    console.log('### beforeUnbind', this);
   }
   public unbound() {
     console.log('### unbound', this);

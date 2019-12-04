@@ -104,7 +104,7 @@
 //       public detached() {
 //         return;
 //       }
-//       public unbinding() {
+//       public beforeUnbind() {
 //         return;
 //       }
 //       public unbound() {
@@ -140,7 +140,7 @@
 //       public detached() {
 //         return;
 //       }
-//       public unbinding() {
+//       public beforeUnbind() {
 //         return;
 //       }
 //       public unbound() {
@@ -176,7 +176,7 @@
 //       public detached() {
 //         return;
 //       }
-//       public unbinding() {
+//       public beforeUnbind() {
 //         return;
 //       }
 //       public unbound() {
@@ -211,7 +211,7 @@
 //       public detached() {
 //         return;
 //       }
-//       public unbinding() {
+//       public beforeUnbind() {
 //         return;
 //       }
 //       public unbound() {

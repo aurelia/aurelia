@@ -45,7 +45,7 @@ export class With<T extends INode = INode> {
     this.view.detach(flags);
   }
 
-  public unbinding(flags: LifecycleFlags): void {
+  public beforeUnbind(flags: LifecycleFlags): void {
     this.view.unbind(flags);
     this.view.parent = void 0;
   }

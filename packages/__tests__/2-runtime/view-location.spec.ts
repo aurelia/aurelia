@@ -230,7 +230,7 @@ describe('the view locator', function () {
     'detaching',
     'caching',
     'detached',
-    'unbinding',
+    'beforeUnbind',
     'unbound'
   ].forEach(lifecycleHook => {
     it(`returns a component that implements lifecycle '${lifecycleHook}' if present on the model`, function () {

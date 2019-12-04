@@ -105,7 +105,7 @@ export class Portal<T extends ParentNode = ParentNode> {
     this.task = this.deactivate(flags);
   }
 
-  public unbinding(flags: LifecycleFlags): ILifecycleTask {
+  public beforeUnbind(flags: LifecycleFlags): ILifecycleTask {
     this.callbackContext = null;
     return this.view.unbind(flags);
   }

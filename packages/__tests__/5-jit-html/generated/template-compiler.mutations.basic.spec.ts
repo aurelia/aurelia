@@ -50,7 +50,7 @@
 //             detached() {
 //                 this.items.push(6);
 //             }
-//             unbinding() {
+//             beforeUnbind() {
 //                 this.items.push(7);
 //             }
 //             unbound() {
@@ -113,7 +113,7 @@
 //             detached() {
 //                 this.items.push(6);
 //             }
-//             unbinding() {
+//             beforeUnbind() {
 //                 this.items.push(7);
 //             }
 //             unbound() {
@@ -182,7 +182,7 @@
 //             detached() {
 //                 this.items.push(6);
 //             }
-//             unbinding() {
+//             beforeUnbind() {
 //                 this.items.push(7);
 //             }
 //             unbound() {
@@ -247,7 +247,7 @@
 //             detached() {
 //                 this.items.push(6);
 //             }
-//             unbinding() {
+//             beforeUnbind() {
 //                 this.items.push(7);
 //             }
 //             unbound() {

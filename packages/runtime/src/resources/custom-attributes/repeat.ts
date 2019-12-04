@@ -86,7 +86,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
   }
 
-  public unbinding(flags: LF): ILifecycleTask {
+  public beforeUnbind(flags: LF): ILifecycleTask {
     this.checkCollectionObserver(flags);
 
     if (this.task.done) {

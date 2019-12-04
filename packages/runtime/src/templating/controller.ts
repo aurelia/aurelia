@@ -87,7 +87,7 @@ type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
   beforeBind(flags: LifecycleFlags): MaybePromiseOrTask;
   afterBind(flags: LifecycleFlags): void;
 
-  unbinding(flags: LifecycleFlags): MaybePromiseOrTask;
+  beforeUnbind(flags: LifecycleFlags): MaybePromiseOrTask;
   unbound(flags: LifecycleFlags): void;
 
   beforeAttach(flags: LifecycleFlags): void;
@@ -688,8 +688,8 @@ export class Controller<
     flags |= LifecycleFlags.fromUnbind;
     this.lifecycle.unbound.begin();
 
-    if (this.hooks.hasUnbinding) {
-      const ret = (this.bindingContext as BindingContext<T, C>).unbinding(flags);
+    if (this.hooks.hasBeforeUnbind) {
+      const ret = (this.bindingContext as BindingContext<T, C>).beforeUnbind(flags);
       if (hasAsyncWork(ret)) {
         return new ContinuationTask(ret, this.unbindControllers, this, flags);
       }
@@ -708,8 +708,8 @@ export class Controller<
     flags |= LifecycleFlags.fromUnbind;
     this.lifecycle.unbound.begin();
 
-    if (this.hooks.hasUnbinding) {
-      const ret = (this.bindingContext as BindingContext<T, C>).unbinding(flags);
+    if (this.hooks.hasBeforeUnbind) {
+      const ret = (this.bindingContext as BindingContext<T, C>).beforeUnbind(flags);
       if (hasAsyncWork(ret)) {
         return new ContinuationTask(ret, this.endUnbind, this, flags);
       }

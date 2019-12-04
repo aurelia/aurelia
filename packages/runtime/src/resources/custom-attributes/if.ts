@@ -60,7 +60,7 @@ export class If<T extends INode = INode> {
     return this.task;
   }
 
-  public unbinding(flags: LifecycleFlags): ILifecycleTask {
+  public beforeUnbind(flags: LifecycleFlags): ILifecycleTask {
     if (this.view !== void 0) {
       if (this.task.done) {
         this.task = this.view.unbind(flags);

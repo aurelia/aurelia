@@ -20,7 +20,7 @@ export class Settings {
   public attached() { return; }
   public detaching() { return; }
   public detached() { return; }
-  public unbinding() { return; }
+  public beforeUnbind() { return; }
   public unbound() { return; }
 
   public update() {

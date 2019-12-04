@@ -85,7 +85,7 @@ export const enum Hooks {
   hasAttached            = 0b000000100000,
   hasDetaching           = 0b000001000000,
   hasDetached            = 0b000010000000,
-  hasUnbinding           = 0b000100000000,
+  hasBeforeUnbind        = 0b000100000000,
   hasUnbound             = 0b001000000000,
   hasRender              = 0b010000000000,
   hasCaching             = 0b100000000000

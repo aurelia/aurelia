@@ -168,7 +168,7 @@ const lifecycleCallbacks = [
   'detaching',
   'caching',
   'detached',
-  'unbinding',
+  'beforeUnbind',
   'unbound'
 ] as const;
 

@@ -25,7 +25,7 @@ export class Editor {
   public beforeDetach() { return; }
   public detached() { return; }
   public beforeUnbind() { return; }
-  public unbound() { return; }
+  public afterUnbind() { return; }
 
   public enter(params: { slug: any }) {
     this.slug = params.slug;

@@ -231,7 +231,7 @@ describe('the view locator', function () {
     'caching',
     'detached',
     'beforeUnbind',
-    'unbound'
+    'afterUnbind'
   ].forEach(lifecycleHook => {
     it(`returns a component that implements lifecycle '${lifecycleHook}' if present on the model`, function () {
       const template = { name: 'name' };

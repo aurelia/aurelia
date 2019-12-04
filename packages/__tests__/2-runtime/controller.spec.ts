@@ -50,7 +50,7 @@ describe.skip('controller', function () {
     caching: true,
     detached: true,
     beforeUnbind: true,
-    unbound: true,
+    afterUnbind: true,
   }));
   const noHooks = Object.freeze(new HooksDefinition({}));
 
@@ -64,7 +64,7 @@ describe.skip('controller', function () {
     caching(...args: any[]): void;
     detached(...args: any[]): void;
     beforeUnbind(...args: any[]): void;
-    unbound(...args: any[]): void;
+    afterUnbind(...args: any[]): void;
   }> {
     const proto = ctor.prototype as any;
 
@@ -95,8 +95,8 @@ describe.skip('controller', function () {
     proto.beforeUnbind = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'beforeUnbind', ...args);
     };
-    proto.unbound = function (...args: any[]): void {
-      this.$$calls.addCall(this.id, 'unbound', ...args);
+    proto.afterUnbind = function (...args: any[]): void {
+      this.$$calls.addCall(this.id, 'afterUnbind', ...args);
     };
 
     return ctor as any;
@@ -325,8 +325,8 @@ describe.skip('controller', function () {
           .addCall(2, 'unbindControllers', LF.fromUnbind)
           .addCall(2, 'unbindBindings', LF.fromUnbind)
           .addCall(2, 'endUnbind', LF.fromUnbind)
-          .addCall(2, 'unbound', LF.fromUnbind)
-          .addCall(1, 'unbound', LF.fromUnbind),
+          .addCall(2, 'afterUnbind', LF.fromUnbind)
+          .addCall(1, 'afterUnbind', LF.fromUnbind),
         '11',
       );
 
@@ -711,16 +711,16 @@ describe.skip('controller', function () {
           .addCall(2, 'endUnbind', LF.fromUnbind)
 
           // ce #2 controller
-          .addCall(7, 'unbound', LF.fromUnbind)
+          .addCall(7, 'afterUnbind', LF.fromUnbind)
 
           // ce #2
-          .addCall(6, 'unbound', LF.fromUnbind)
+          .addCall(6, 'afterUnbind', LF.fromUnbind)
 
           // ce #1 controller
-          .addCall(2, 'unbound', LF.fromUnbind)
+          .addCall(2, 'afterUnbind', LF.fromUnbind)
 
           // ce #1
-          .addCall(1, 'unbound', LF.fromUnbind),
+          .addCall(1, 'afterUnbind', LF.fromUnbind),
         '11',
       );
 
@@ -1113,16 +1113,16 @@ describe.skip('controller', function () {
           .addCall(2, 'endUnbind', LF.fromUnbind)
 
           // ce #2 controller
-          .addCall(7, 'unbound', LF.fromUnbind)
+          .addCall(7, 'afterUnbind', LF.fromUnbind)
 
           // ce #2
-          .addCall(6, 'unbound', LF.fromUnbind)
+          .addCall(6, 'afterUnbind', LF.fromUnbind)
 
           // ce #1 controller
-          .addCall(2, 'unbound', LF.fromUnbind)
+          .addCall(2, 'afterUnbind', LF.fromUnbind)
 
           // ce #1
-          .addCall(1, 'unbound', LF.fromUnbind),
+          .addCall(1, 'afterUnbind', LF.fromUnbind),
         '11',
       );
 

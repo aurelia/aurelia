@@ -93,7 +93,7 @@ export class Author {
   public beforeUnbind() {
     console.log('### beforeUnbind', this);
   }
-  public unbound() {
+  public afterUnbind() {
     console.log('### unbound', this);
   }
 }

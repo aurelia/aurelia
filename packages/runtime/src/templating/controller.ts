@@ -88,7 +88,7 @@ type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
   afterBind(flags: LifecycleFlags): void;
 
   beforeUnbind(flags: LifecycleFlags): MaybePromiseOrTask;
-  unbound(flags: LifecycleFlags): void;
+  afterUnbind(flags: LifecycleFlags): void;
 
   beforeAttach(flags: LifecycleFlags): void;
   attached(flags: LifecycleFlags): void;
@@ -440,9 +440,9 @@ export class Controller<
     this.bindingContext!.afterBind(flags); // non-null is implied by the hook
   }
 
-  public unbound(flags: LifecycleFlags): void {
+  public afterUnbind(flags: LifecycleFlags): void {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this.bindingContext!.unbound(flags); // non-null is implied by the hook
+    this.bindingContext!.afterUnbind(flags); // non-null is implied by the hook
   }
 
   public attach(flags: LifecycleFlags): void {
@@ -686,7 +686,7 @@ export class Controller<
     this.state |= State.isUnbinding;
 
     flags |= LifecycleFlags.fromUnbind;
-    this.lifecycle.unbound.begin();
+    this.lifecycle.afterUnbind.begin();
 
     if (this.hooks.hasBeforeUnbind) {
       const ret = (this.bindingContext as BindingContext<T, C>).beforeUnbind(flags);
@@ -706,7 +706,7 @@ export class Controller<
     this.state |= State.isUnbinding;
 
     flags |= LifecycleFlags.fromUnbind;
-    this.lifecycle.unbound.begin();
+    this.lifecycle.afterUnbind.begin();
 
     if (this.hooks.hasBeforeUnbind) {
       const ret = (this.bindingContext as BindingContext<T, C>).beforeUnbind(flags);
@@ -727,7 +727,7 @@ export class Controller<
     this.state |= State.isUnbinding;
 
     flags |= LifecycleFlags.fromUnbind;
-    this.lifecycle.unbound.begin();
+    this.lifecycle.afterUnbind.begin();
 
     return this.unbindControllers(flags);
   }
@@ -777,12 +777,12 @@ export class Controller<
           this.scope = void 0;
         }
     }
-    if (this.hooks.hasUnbound) {
-      this.lifecycle.unbound.add(this);
+    if (this.hooks.hasAfterUnbind) {
+      this.lifecycle.afterUnbind.add(this);
     }
 
     this.state = (this.state | State.isBoundOrUnbinding) ^ State.isBoundOrUnbinding;
-    this.lifecycle.unbound.end(flags);
+    this.lifecycle.afterUnbind.end(flags);
   }
   // #endregion
 

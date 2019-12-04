@@ -39,9 +39,9 @@ describe(`Repeat`, function () {
     lifecycle.afterBind.end(flags);
   }
   function runUnbindLifecycle(lifecycle: ILifecycle, sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags): void {
-    lifecycle.unbound.begin();
+    lifecycle.afterUnbind.begin();
     sut.$controller.unbind(flags);
-    lifecycle.unbound.end(flags);
+    lifecycle.afterUnbind.end(flags);
   }
   function runAttachLifecycle(lifecycle: ILifecycle, sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags): void {
     lifecycle.attached.begin();

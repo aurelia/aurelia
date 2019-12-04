@@ -72,7 +72,7 @@ export class ViewportCustomElement {
   public afterBind(): void {
     this.connect();
   }
-  public unbound(): void {
+  public afterUnbind(): void {
     this.disconnect();
   }
 

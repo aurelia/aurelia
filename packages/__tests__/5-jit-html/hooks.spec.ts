@@ -107,7 +107,7 @@
 //       public beforeUnbind() {
 //         return;
 //       }
-//       public unbound() {
+//       public afterUnbind() {
 //         return;
 //       }
 //     });
@@ -143,7 +143,7 @@
 //       public beforeUnbind() {
 //         return;
 //       }
-//       public unbound() {
+//       public afterUnbind() {
 //         return;
 //       }
 //     });
@@ -179,7 +179,7 @@
 //       public beforeUnbind() {
 //         return;
 //       }
-//       public unbound() {
+//       public afterUnbind() {
 //         return;
 //       }
 //     });
@@ -214,7 +214,7 @@
 //       public beforeUnbind() {
 //         return;
 //       }
-//       public unbound() {
+//       public afterUnbind() {
 //         return;
 //       }
 //     });

@@ -169,7 +169,7 @@ const lifecycleCallbacks = [
   'caching',
   'detached',
   'beforeUnbind',
-  'unbound'
+  'afterUnbind'
 ] as const;
 
 export class ViewLocator implements IViewLocator {

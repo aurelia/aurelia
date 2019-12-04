@@ -226,7 +226,7 @@ describe('templating-compiler.ref.spec.ts', function () {
           assert.notContains(this.el, this.div, '[beforeUnbind] this.el.contains(this.div)');
         }
 
-        public unbound(): void {
+        public afterUnbind(): void {
           this.unboundCalls++;
           assert.strictEqual(this.div, null, '[unbound] this.div === null');
         }

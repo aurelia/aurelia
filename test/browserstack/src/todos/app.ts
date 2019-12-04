@@ -84,7 +84,7 @@ export class App {
     console.log('app detached');
   }
 
-  public unbound(): void {
+  public afterUnbind(): void {
     console.log('app unbound');
   }
 }

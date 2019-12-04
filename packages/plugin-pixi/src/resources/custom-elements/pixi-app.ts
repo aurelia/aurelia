@@ -95,7 +95,7 @@ export class PixiApp {
     }
   }
 
-  public unbound(): void {
+  public afterUnbind(): void {
     if (this.app !== null) {
       this.app.destroy();
     }

@@ -10,14 +10,24 @@ import {
   Resolved,
   RuntimeCompilationResources,
   Transformer,
-  Registration,
 } from '@aurelia/kernel';
 import { ITargetedInstruction, PartialCustomElementDefinitionParts } from './definitions';
 import { IDOM, INode, IRenderLocation } from './dom';
 import { LifecycleFlags } from './flags';
-import { IController, IRenderContext, IViewFactory, IViewModel } from './lifecycle';
+import { IController, IRenderContext, IViewFactory } from './lifecycle';
 import { ExposedContext, IRenderer, IRenderingEngine } from './rendering-engine';
-import { CustomElementDefinition, CustomElementType, CustomElement } from './resources/custom-element';
+import { CustomElementDefinition } from './resources/custom-element';
+
+const contextMapLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer | IRenderContext, RenderContext>>();
+function getContextMap(definition: CustomElementDefinition): WeakMap<IContainer | IRenderContext, RenderContext> {
+  if (contextMapLookup.has(definition)) {
+    return contextMapLookup.get(definition)!;
+  }
+
+  const contextMap = new WeakMap();
+  contextMapLookup.set(definition, contextMap);
+  return contextMap;
+}
 
 export class RenderContext implements IRenderContext {
   public get id(): number {
@@ -43,8 +53,6 @@ export class RenderContext implements IRenderContext {
     private readonly dom: IDOM,
     private readonly parentContainer: IContainer,
     dependencies: readonly Key[],
-    componentType?: CustomElementType,
-    componentInstance?: IViewModel,
   ) {
     const container = (
       this.container = parentContainer.createChild()
@@ -76,20 +84,24 @@ export class RenderContext implements IRenderContext {
     if (dependencies != void 0) {
       container.register(...dependencies);
     }
+  }
 
-    // If the element has a view, support Recursive Components by adding self to own view template container.
-    if (componentType) {
-      const def = CustomElement.getDefinition(componentType);
-      def.register(container);
-      if (componentInstance !== void 0) {
-        const injectable = def.injectable;
-        if (injectable !== null) {
-          // If the element is registered as injectable, support injecting the instance into children
-          // Note: this provider is never disposed at the moment. Perhaps we need to at some point, but not disposing it here doesn't necessarily need to cause memory leaks. Keep an eye on it though.
-          Registration.instance(injectable, componentInstance).register(container);
-        }
-      }
+  public static getOrCreate(
+    dom: IDOM,
+    definition: CustomElementDefinition,
+    parentContext: IContainer | IRenderContext,
+  ): RenderContext {
+    const contextMap = getContextMap(definition);
+
+    if (contextMap.has(parentContext)) {
+      return contextMap.get(parentContext)!;
     }
+
+    const context = new RenderContext(dom, parentContext, definition.dependencies);
+
+    contextMap.set(parentContext, context);
+
+    return context;
   }
 
   // #region IServiceLocator api

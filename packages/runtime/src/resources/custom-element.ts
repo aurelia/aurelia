@@ -185,6 +185,8 @@ export function strict(target?: Constructable): void | ((target: Constructable) 
   CustomElement.annotate(target, 'isStrictBinding', true);
 }
 
+const definitionLookup = new WeakMap<PartialCustomElementDefinition, CustomElementDefinition>();
+
 export class CustomElementDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, IViewModel, PartialCustomElementDefinition> {
   private constructor(
     public readonly Type: CustomElementType<T>,
@@ -344,6 +346,22 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
       fromAnnotationOrTypeOrDefault('hooks', Type, () => new HooksDefinition(Type!.prototype)),
       mergeArrays(CustomElement.getAnnotation(Type, 'scopeParts'), nameOrDef.scopeParts, Type.scopeParts),
     );
+  }
+
+  public static getOrCreate(partialDefinition: PartialCustomElementDefinition): CustomElementDefinition {
+    if (partialDefinition instanceof CustomElementDefinition) {
+      return partialDefinition;
+    }
+
+    if (definitionLookup.has(partialDefinition)) {
+      return definitionLookup.get(partialDefinition)!;
+    }
+
+    const definition = CustomElementDefinition.create(partialDefinition);
+    definitionLookup.set(partialDefinition, definition);
+    // Make sure the full definition can be retrieved from dynamically created classes as well
+    Metadata.define(CustomElement.name, definition, definition.Type);
+    return definition;
   }
 
   public register(container: IContainer): void {

@@ -4,18 +4,15 @@ import {
   IServiceLocator,
   mergeDistinct,
   nextId,
-  PLATFORM,
   Writable,
   Constructable,
-  isObject,
+  Registration,
 } from '@aurelia/kernel';
 import {
   PropertyBinding,
 } from '../binding/property-binding';
 import {
   HooksDefinition,
-  IHydrateElementInstruction,
-  IHydrateTemplateController,
   PartialCustomElementDefinitionParts
 } from '../definitions';
 import {
@@ -61,23 +58,40 @@ import {
 } from '../observation/bindable-observer';
 import {
   ChildrenObserver,
-  IRenderingEngine,
   ITemplate,
+  IRenderer,
+  ITemplateCompiler,
+  ViewCompileFlags,
 } from '../rendering-engine';
 import {
   IElementProjector,
   IProjectorLocator,
   CustomElementDefinition,
-  CustomElement
+  CustomElement,
 } from '../resources/custom-element';
 import { CustomAttributeDefinition, CustomAttribute } from '../resources/custom-attribute';
 import { BindableDefinition } from './bindable';
+import { RenderContext } from '../render-context';
 
 type Definition = CustomAttributeDefinition | CustomElementDefinition;
-type Kind = { name: string };
 
 interface IElementTemplateProvider {
   getElementTemplate(renderingEngine: unknown, customElementType: unknown, parentContext: IServiceLocator): ITemplate;
+}
+
+const fragmentLookup = new WeakMap<CustomElementDefinition, INode | null>();
+// Just a wrapper around dom.createDocumentFragment with a weakmap cache in-between
+function getFragment(dom: IDOM, definition: CustomElementDefinition): INode | null {
+  let node = fragmentLookup.get(definition);
+  if (node === void 0) {
+    const template = definition.template;
+    if (template === null || template === void 0) {
+      fragmentLookup.set(definition, node = null);
+    } else {
+      fragmentLookup.set(definition, node = dom.createDocumentFragment(template as string | INode));
+    }
+  }
+  return node;
 }
 
 type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
@@ -99,270 +113,254 @@ type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
   caching(flags: LifecycleFlags): void;
 }>;
 
+const definitionMapLookup = new WeakMap<CustomElementDefinition, WeakMap<RenderContext, CustomElementDefinition>>();
+function getDefinitionMap(definition: CustomElementDefinition): WeakMap<RenderContext, CustomElementDefinition> {
+  if (definitionMapLookup.has(definition)) {
+    return definitionMapLookup.get(definition)!;
+  }
+
+  const definitionMap = new WeakMap();
+  definitionMapLookup.set(definition, definitionMap);
+  return definitionMap;
+}
+
+const controllerLookup: WeakMap<object, Controller> = new WeakMap();
 export class Controller<
   T extends INode = INode,
   C extends IViewModel<T> = IViewModel<T>
 > implements IController<T, C> {
-  private static readonly lookup: WeakMap<object, Controller> = new WeakMap();
-
   public readonly id: number = nextId('au$component');
 
-  public nextBound?: Controller<T, C> = void 0;
-  public nextUnbound?: Controller<T, C> = void 0;
-  public prevBound?: Controller<T, C> = void 0;
-  public prevUnbound?: Controller<T, C> = void 0;
+  public nextBound: Controller<T, C> | undefined = void 0;
+  public nextUnbound: Controller<T, C> | undefined = void 0;
+  public prevBound: Controller<T, C> | undefined = void 0;
+  public prevUnbound: Controller<T, C> | undefined = void 0;
 
-  public nextAttached?: Controller<T, C> = void 0;
-  public nextDetached?: Controller<T, C> = void 0;
-  public prevAttached?: Controller<T, C> = void 0;
-  public prevDetached?: Controller<T, C> = void 0;
+  public nextAttached: Controller<T, C> | undefined = void 0;
+  public nextDetached: Controller<T, C> | undefined = void 0;
+  public prevAttached: Controller<T, C> | undefined = void 0;
+  public prevDetached: Controller<T, C> | undefined = void 0;
 
-  public nextMount?: Controller<T, C> = void 0;
-  public nextUnmount?: Controller<T, C> = void 0;
-  public prevMount?: Controller<T, C> = void 0;
-  public prevUnmount?: Controller<T, C> = void 0;
+  public nextMount: Controller<T, C> | undefined = void 0;
+  public nextUnmount: Controller<T, C> | undefined = void 0;
+  public prevMount: Controller<T, C> | undefined = void 0;
+  public prevUnmount: Controller<T, C> | undefined = void 0;
 
-  public parent?: IController<T> = void 0;
-  public bindings?: IBinding[] = void 0;
-  public controllers?: Controller<T, C>[] = void 0;
+  public parent: IController<T> | undefined = void 0;
+  public bindings: IBinding[] | undefined = void 0;
+  public controllers: Controller<T, C>[] | undefined = void 0;
 
   public state: State = State.none;
 
-  public readonly hooks: HooksDefinition;
-  public readonly bindingContext?: BindingContext<T, C>;
+  public scopeParts: string[] | undefined = void 0;
+  public isStrictBinding: boolean = false;
 
-  public scopeParts?: string[];
-  public isStrictBinding?: boolean;
+  public scope: IScope | undefined = void 0;
+  public part: string | undefined = void 0;
+  public projector: IElementProjector | undefined = void 0;
 
-  public scope?: IScope;
-  public part?: string;
-  public projector?: IElementProjector;
-
-  public nodes?: INodeSequence<T>;
-  public context?: IContainer | IRenderContext<T>;
-  public location?: IRenderLocation<T>;
+  public nodes: INodeSequence<T> | undefined = void 0;
+  public context: IContainer | IRenderContext<T> | undefined = void 0;
+  public location: IRenderLocation<T> | undefined = void 0;
   public mountStrategy: MountStrategy = MountStrategy.insertBefore;
 
-  // todo: refactor
+  private isHydrated: boolean = false;
+
   public constructor(
     public readonly vmKind: ViewModelKind,
-    public readonly flags: LifecycleFlags,
-    public readonly viewFactory: IViewFactory<T> | undefined,
+    public flags: LifecycleFlags,
     public readonly lifecycle: ILifecycle,
+    public hooks: HooksDefinition,
+    /**
+     * The viewFactory. Only present for synthetic views.
+     */
+    public readonly viewFactory: IViewFactory<T> | undefined,
+    /**
+     * The backing viewModel. This is never a proxy. Only present for custom attributes and elements.
+     */
     public readonly viewModel: C | undefined,
-    public readonly parentContext: IContainer | IRenderContext<T> | undefined,
+    /**
+     * The binding context. This may be a proxy. If it is not, then it is the same instance as the viewModel. Only present for custom attributes and elements.
+     */
+    public readonly bindingContext: BindingContext<T, C> | undefined,
+    /**
+     * The physical host dom node. Only present for custom elements.
+     */
     public readonly host: T | undefined,
-    options: { parts?: PartialCustomElementDefinitionParts },
-  ) {
-    switch (vmKind) {
-      case ViewModelKind.synthetic: {
-        if (viewFactory == void 0) {
-          // TODO: create error code
-          throw new Error(`No IViewFactory was provided when rendering a synthetic view.`);
-        }
+  ) {}
 
-        this.hooks = HooksDefinition.none;
-        this.bindingContext = void 0; // stays undefined
-
-        this.host = void 0; // stays undefined
-
-        this.vmKind = ViewModelKind.synthetic;
-
-        this.scopeParts = void 0; // will be populated during ITemplate.render() immediately after the constructor is done
-        this.isStrictBinding = false; // will be populated during ITemplate.render() immediately after the constructor is done
-
-        this.scope = void 0; // will be populated during bindSynthetic()
-        this.projector = void 0; // stays undefined
-
-        this.nodes = void 0; // will be populated during ITemplate.render() immediately after the constructor is done
-        this.context = void 0; // will be populated during ITemplate.render() immediately after the constructor is done
-        this.location = void 0; // should be set with `hold(location)` by the consumer
-        break;
-      }
-      case ViewModelKind.customElement: {
-        if (parentContext == void 0) {
-          // TODO: create error code
-          throw new Error(`No parentContext was provided when rendering a custom element.`);
-        }
-        if (viewModel == void 0) {
-          // TODO: create error code
-          throw new Error(`No viewModel was provided when rendering a custom elemen.`);
-        }
-        if (host == void 0) {
-          // TODO: create error code
-          throw new Error(`No host element was provided when rendering a custom element.`);
-        }
-
-        const Type = viewModel.constructor as Constructable;
-        const definition = CustomElement.getDefinition(Type);
-        flags |= definition.strategy;
-        createObservers(this, definition, flags, viewModel);
-        this.hooks = definition.hooks;
-        this.bindingContext = getBindingContext<T, C>(flags, viewModel);
-
-        const renderingEngine = parentContext.get(IRenderingEngine);
-
-        let instruction: IHydrateElementInstruction | IHydrateTemplateController;
-        let parts: PartialCustomElementDefinitionParts;
-        let template: ITemplate|undefined = void 0;
-
-        if (this.hooks.hasRender) {
-          const result = this.bindingContext.render(
-            flags,
-            host,
-            options.parts == void 0
-              ? PLATFORM.emptyObject
-              : options.parts,
-            parentContext,
-          );
-
-          if (result != void 0 && 'getElementTemplate' in result) {
-            template = result.getElementTemplate(renderingEngine, Type, parentContext);
-          }
-        } else {
-          template = renderingEngine.getElementTemplate(parentContext.get(IDOM), definition, parentContext, Type, viewModel);
-        }
-
-        if (template !== void 0) {
-          if (
-            template.definition == null ||
-            template.definition.instructions.length === 0 ||
-            template.definition.instructions[0].length === 0 ||
-            (
-              (template.definition.instructions[0][0] as IHydrateElementInstruction | IHydrateTemplateController).parts == void 0
-            )
-          ) {
-            if (options.parts == void 0) {
-              parts = PLATFORM.emptyObject;
-            } else {
-              parts = options.parts;
-            }
-          } else {
-            instruction = template.definition.instructions[0][0] as IHydrateElementInstruction | IHydrateTemplateController;
-            if (options.parts == void 0) {
-              parts = instruction.parts as typeof parts;
-            } else {
-              parts = { ...options.parts, ...(instruction.parts as typeof parts) };
-            }
-          }
-          template.render(this, host, parts);
-        }
-
-        this.scope = Scope.create(flags, this.bindingContext, null);
-
-        this.projector = parentContext.get(IProjectorLocator).getElementProjector(
-          parentContext.get(IDOM),
-          this,
-          host,
-          template !== void 0 ? template.definition : definition,
-        );
-
-        this.location = void 0;
-
-        (viewModel as Writable<IViewModel>).$controller = this;
-
-        if (this.hooks.hasCreated) {
-          this.bindingContext.created(flags);
-        }
-        break;
-      }
-      case ViewModelKind.customAttribute: {
-        if (parentContext == void 0) {
-          // TODO: create error code
-          throw new Error(`No parentContext was provided when rendering a custom element or attribute.`);
-        }
-        if (viewModel == void 0) {
-          // TODO: create error code
-          throw new Error(`No viewModel was provided when rendering a custom elemen.`);
-        }
-
-        const Type = viewModel.constructor as Constructable;
-        const definition = CustomAttribute.getDefinition(Type);
-        flags |= definition.strategy;
-        createObservers(this, definition, flags, viewModel);
-        this.hooks = definition.hooks;
-        this.bindingContext = getBindingContext<T, C>(flags, viewModel);
-
-        this.scope = void 0;
-        this.projector = void 0;
-
-        this.nodes = void 0;
-        this.context = void 0;
-        this.location = void 0;
-
-        (viewModel as Writable<IViewModel>).$controller = this;
-
-        if (this.hooks.hasCreated) {
-          this.bindingContext.created(flags);
-        }
-        break;
-      }
-      default:
-        throw new Error(`Invalid ViewModelKind: ${vmKind}`);
-    }
-  }
-
-  public static forCustomElement<T extends INode = INode>(
-    viewModel: object,
-    parentContext: IContainer | IRenderContext<T>,
+  public static forCustomElement<
+    T extends INode = INode,
+    C extends IViewModel<T> = IViewModel<T>,
+  >(
+    viewModel: C,
+    lifecycle: ILifecycle,
     host: T,
     flags: LifecycleFlags = LifecycleFlags.none,
-    options: { parts?: PartialCustomElementDefinitionParts } = PLATFORM.emptyObject,
-  ): Controller<T> {
-    let controller = Controller.lookup.get(viewModel) as Controller<T> | undefined;
-    if (controller === void 0) {
-      controller = new Controller<T>(
-        ViewModelKind.customElement,
-        flags,
-        void 0,
-        parentContext.get(ILifecycle),
-        viewModel,
-        parentContext,
-        host,
-        options,
-      );
-      this.lookup.set(viewModel, controller);
+  ): Controller<T, C> {
+    if (controllerLookup.has(viewModel)) {
+      return controllerLookup.get(viewModel) as Controller<T, C>;
     }
+
+    const definition = CustomElement.getDefinition(viewModel.constructor as Constructable);
+    flags |= definition.strategy;
+
+    const controller = new Controller<T, C>(
+      /* vmKind         */ViewModelKind.customElement,
+      /* flags          */flags,
+      /* lifecycle      */lifecycle,
+      /* hooks          */definition.hooks,
+      /* viewFactory    */void 0,
+      /* viewModel      */viewModel,
+      /* bindingContext */getBindingContext<T, C>(flags, viewModel),
+      /* host           */host,
+    );
+
+    controllerLookup.set(viewModel, controller);
     return controller;
   }
 
-  public static forCustomAttribute<T extends INode = INode>(
-    viewModel: object,
-    parentContext: IContainer | IRenderContext<T>,
+  public static forCustomAttribute<
+    T extends INode = INode,
+    C extends IViewModel<T> = IViewModel<T>,
+  >(
+    viewModel: C,
+    lifecycle: ILifecycle,
     flags: LifecycleFlags = LifecycleFlags.none,
-  ): Controller<T> {
-    let controller = Controller.lookup.get(viewModel) as Controller<T> | undefined;
-    if (controller === void 0) {
-      controller = new Controller<T>(
-        ViewModelKind.customAttribute,
-        flags | LifecycleFlags.isStrictBindingStrategy,
-        void 0,
-        parentContext.get(ILifecycle),
-        viewModel,
-        parentContext,
-        void 0,
-        PLATFORM.emptyObject,
-      );
-      this.lookup.set(viewModel, controller);
+  ): Controller<T, C> {
+    if (controllerLookup.has(viewModel)) {
+      return controllerLookup.get(viewModel) as Controller<T, C>;
     }
+
+    const definition = CustomAttribute.getDefinition(viewModel.constructor as Constructable);
+    flags |= definition.strategy;
+
+    const controller = new Controller<T, C>(
+      /* vmKind         */ViewModelKind.customAttribute,
+      /* flags          */flags,
+      /* lifecycle      */lifecycle,
+      /* hooks          */definition.hooks,
+      /* viewFactory    */void 0,
+      /* viewModel      */viewModel,
+      /* bindingContext */getBindingContext<T, C>(flags, viewModel),
+      /* host           */void 0,
+    );
+
+    controllerLookup.set(viewModel, controller);
     return controller;
   }
 
-  public static forSyntheticView<T extends INode = INode>(
+  public static forSyntheticView<
+    T extends INode = INode,
+    C extends IViewModel<T> = IViewModel<T>,
+  >(
     viewFactory: IViewFactory<T>,
     lifecycle: ILifecycle,
     flags: LifecycleFlags = LifecycleFlags.none,
-  ): Controller<T> {
-    return new Controller<T>(
-      ViewModelKind.synthetic,
-      flags,
-      viewFactory,
-      lifecycle,
-      void 0,
-      void 0,
-      void 0,
-      PLATFORM.emptyObject,
+  ): Controller<T, C> {
+    return new Controller<T, C>(
+      /* vmKind         */ViewModelKind.synthetic,
+      /* flags          */flags,
+      /* lifecycle      */lifecycle,
+      /* hooks          */HooksDefinition.none,
+      /* viewFactory    */viewFactory,
+      /* viewModel      */void 0,
+      /* bindingContext */void 0,
+      /* host           */void 0,
     );
+  }
+
+  public hydrate(
+    definition: Definition,
+    parentContext: IContainer | IRenderContext,
+    parts?: PartialCustomElementDefinitionParts,
+  ): this {
+    if (this.isHydrated) {
+      return this;
+    }
+
+    this.isHydrated = true;
+
+    const vmKind = this.vmKind;
+    if (vmKind === ViewModelKind.customAttribute || vmKind === ViewModelKind.customElement) {
+      createObservers(this, definition, this.flags | definition.strategy, this.viewModel!);
+    }
+
+    if (vmKind === ViewModelKind.synthetic || vmKind === ViewModelKind.customElement) {
+      let $definition = definition as CustomElementDefinition;
+      const dom = parentContext.get(IDOM);
+
+      const renderContext = RenderContext.getOrCreate(
+        /* dom               */dom,
+        /* partialDefinition */$definition,
+        /* parentContext     */parentContext,
+      );
+
+      if (vmKind === ViewModelKind.customElement) {
+        // Support Recursive Components by adding self to own view template container.
+        $definition.register(renderContext);
+        if ($definition.injectable !== null) {
+          // If the element is registered as injectable, support injecting the instance into children
+          // Note: this provider is never disposed at the moment. Perhaps we need to at some point, but not disposing it here doesn't necessarily need to cause memory leaks. Keep an eye on it though.
+          Registration.instance($definition.injectable, this.viewModel!).register(renderContext);
+        }
+      }
+
+      if ($definition.needsCompile) {
+        const definitionMap = getDefinitionMap($definition);
+        if (definitionMap.has(renderContext)) {
+          $definition = definitionMap.get(renderContext)!;
+        } else {
+          const compiler = parentContext.get(ITemplateCompiler);
+          $definition = compiler.compile(
+            dom,
+            $definition,
+            renderContext.createRuntimeCompilationResources(),
+            ViewCompileFlags.surrogate,
+          );
+          definitionMap.set(renderContext, $definition);
+        }
+      }
+
+      const fragment = getFragment(dom, $definition)!;
+      const nodes = dom.createNodeSequence(fragment);
+
+      this.nodes = nodes as INodeSequence<T>;
+      this.context = renderContext;
+      this.scopeParts = $definition.scopeParts;
+      this.isStrictBinding = $definition.isStrictBinding;
+      this.flags |= $definition.strategy;
+
+      const targets = nodes.findTargets();
+      const renderer = parentContext.get(IRenderer);
+
+      renderer.render(
+        /* flags      */this.flags,
+        /* dom        */dom,
+        /* context    */renderContext,
+        /* renderable */this,
+        /* targets    */targets,
+        /* definition */$definition,
+        /* host       */this.host,
+        /* parts      */parts,
+      );
+
+      if (vmKind === ViewModelKind.customElement) {
+        this.scope = Scope.create(this.flags, this.bindingContext!, null);
+        const projectorLocator = parentContext.get(IProjectorLocator);
+
+        this.projector = projectorLocator.getElementProjector(
+          parentContext.get(IDOM),
+          this,
+          this.host!,
+          $definition,
+        );
+
+        (this.viewModel as Writable<C>).$controller = this;
+      }
+    }
+
+    return this;
   }
 
   public is(name: string): boolean {
@@ -378,7 +376,6 @@ export class Controller<
       case ViewModelKind.synthetic:
         return this.viewFactory!.name === name;
     }
-    return false;
   }
 
   public lockScope(scope: IScope): void {

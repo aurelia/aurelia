@@ -5,10 +5,11 @@ import {
   IServiceLocator,
   Registration,
   Key,
+  Constructable,
 } from '@aurelia/kernel';
 import { INode } from './dom';
 import { LifecycleFlags } from './flags';
-import { IController, IViewModel } from './lifecycle';
+import { IController, IViewModel, ILifecycle } from './lifecycle';
 import {
   ContinuationTask,
   ILifecycleTask,
@@ -17,6 +18,7 @@ import {
 import { IScope } from './observation';
 import { ExposedContext } from './rendering-engine';
 import { Controller } from './templating/controller';
+import { CustomElement } from './resources/custom-element';
 
 export interface IActivator {
   activate(host: INode, component: IViewModel, locator: IServiceLocator, flags?: LifecycleFlags, parentScope?: IScope): ILifecycleTask;
@@ -94,12 +96,20 @@ export class Activator implements IActivator {
     locator: IServiceLocator,
     flags: LifecycleFlags,
   ): void {
-    Controller.forCustomElement(
-      component,
-      locator as ExposedContext,
-      host,
-      flags,
-    );
+    const Type = component.constructor as Constructable;
+    const definition = CustomElement.getDefinition(Type);
+
+    Controller
+      .forCustomElement(
+        component,
+        locator.get(ILifecycle),
+        host,
+        flags,
+      )
+      .hydrate(
+        definition,
+        locator as ExposedContext,
+      );
   }
 
   private bind(
@@ -118,6 +128,10 @@ export class Activator implements IActivator {
   }
 
   private getController(component: IViewModel): IController {
-    return Controller.forCustomElement(component, (void 0)!, (void 0)!);
+    return Controller.forCustomElement(
+      component,
+      (void 0)!,
+      void 0 as unknown as INode,
+    );
   }
 }

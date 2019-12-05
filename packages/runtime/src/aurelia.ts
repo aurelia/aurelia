@@ -157,12 +157,20 @@ export class CompositionRoot<T extends INode = INode> {
       ? this.container.get(config.component as Constructable | {}) as IHydratedViewModel<T>
       : config.component as IHydratedViewModel<T>;
 
-    this.controller = Controller.forCustomElement(
-      this.viewModel,
-      this.container as ExposedContext,
-      this.host,
-      this.strategy as number,
-    );
+    const Type = this.viewModel.constructor as Constructable;
+    const definition = CustomElement.getDefinition(Type);
+
+    this.controller = Controller
+      .forCustomElement(
+        this.viewModel,
+        this.container.get(ILifecycle),
+        this.host,
+        this.strategy as number,
+      )
+      .hydrate(
+        definition,
+        this.container,
+      );
   }
 }
 

@@ -8,6 +8,7 @@ import {
   Reporter,
   Metadata,
   IIndexable,
+  Constructable,
 } from '@aurelia/kernel';
 import { AnyBindingExpression } from './ast';
 import { CallBinding } from './binding/call-binding';
@@ -39,6 +40,7 @@ import {
   IBinding,
   IController,
   IRenderContext,
+  ILifecycle,
 } from './lifecycle';
 import { IObserverLocator } from './observation/observer-locator';
 import {
@@ -249,13 +251,21 @@ export class CustomElementRenderer implements IInstructionRenderer {
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
 
-    const controller = Controller.forCustomElement(
-      component,
-      context,
-      target,
-      flags,
-      instruction,
-    );
+    const Type = component.constructor as Constructable;
+    const definition = CustomElement.getDefinition(Type);
+
+    const controller = Controller
+      .forCustomElement(
+        component,
+        context.get(ILifecycle),
+        target,
+        flags,
+      )
+      .hydrate(
+        definition,
+        context,
+        instruction.parts,
+      );
 
     Metadata.define(key, controller, target);
 
@@ -288,7 +298,20 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
 
-    const controller = Controller.forCustomAttribute(component, context, flags);
+    const Type = component.constructor as Constructable;
+    const definition = CustomAttribute.getDefinition(Type);
+
+    const controller = Controller
+      .forCustomAttribute(
+        component,
+        context.get(ILifecycle),
+        flags,
+      )
+      .hydrate(
+        definition,
+        context,
+      );
+
     Metadata.define(key, controller, target);
 
     let current: ITargetedInstruction;
@@ -341,7 +364,20 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
       }
     }
 
-    const controller = Controller.forCustomAttribute(component, context, flags);
+    const Type = component.constructor as Constructable;
+    const definition = CustomAttribute.getDefinition(Type);
+
+    const controller = Controller
+      .forCustomAttribute(
+        component,
+        context.get(ILifecycle),
+        flags,
+      )
+      .hydrate(
+        definition,
+        context,
+      );
+
     Metadata.define(key, controller, renderLocation);
 
     if (instruction.link) {

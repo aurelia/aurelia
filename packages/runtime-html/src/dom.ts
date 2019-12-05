@@ -130,6 +130,10 @@ export class HTMLDOM implements IDOM {
     return this.createTemplate(markupOrNode).content;
   }
 
+  public createNodeSequence(fragment: DocumentFragment): FragmentNodeSequence {
+    return new FragmentNodeSequence(this, fragment);
+  }
+
   public createElement(name: string): HTMLElement {
     return this.document.createElement(name);
   }

@@ -1,10 +1,12 @@
-import { DI, IContainer } from '@aurelia/kernel';
-import { PropertyBinding } from '@aurelia/runtime';
+import { DI, IContainer, Registration } from '@aurelia/kernel';
+import { PropertyBinding, IScheduler } from '@aurelia/runtime';
 import { SelfBindingBehavior } from '@aurelia/runtime-html';
-import { assert } from '@aurelia/testing';
+import { assert, TestContext } from '@aurelia/testing';
 
 describe('SelfBindingBehavior', function () {
   const container: IContainer = DI.createContainer();
+  const scheduler = TestContext.createHTMLTestContext().scheduler;
+  Registration.instance(IScheduler, scheduler).register(container);
   let sut: SelfBindingBehavior;
   let binding: PropertyBinding;
   let originalCallSource: () => void;

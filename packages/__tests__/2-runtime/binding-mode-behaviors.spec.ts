@@ -1,6 +1,7 @@
 import {
   DI,
-  IContainer
+  IContainer,
+  Registration
 } from '@aurelia/kernel';
 import {
   PropertyBinding,
@@ -8,9 +9,10 @@ import {
   FromViewBindingBehavior,
   OneTimeBindingBehavior,
   ToViewBindingBehavior,
-  TwoWayBindingBehavior
+  TwoWayBindingBehavior,
+  IScheduler
 } from '@aurelia/runtime';
-import { assert } from '@aurelia/testing';
+import { assert, TestContext } from '@aurelia/testing';
 
 const tests = [
   { Behavior: OneTimeBindingBehavior, mode: BindingMode.oneTime },
@@ -21,6 +23,8 @@ const tests = [
 
 describe('BindingModeBehavior', function () {
   const container: IContainer = DI.createContainer();
+  const scheduler = TestContext.createHTMLTestContext().scheduler;
+  Registration.instance(IScheduler, scheduler).register(container);
   let sut: OneTimeBindingBehavior;
   let binding: PropertyBinding;
 

@@ -17,7 +17,8 @@ import {
   RuntimeConfiguration,
   Scope,
   SetterObserver,
-  State
+  State,
+  IScheduler
 } from '@aurelia/runtime';
 import {
   createObserverLocator,
@@ -26,7 +27,9 @@ import {
   verifyEqual,
   assert,
   createSpy,
+  TestContext,
 } from '@aurelia/testing';
+import { Registration } from '@aurelia/kernel';
 
 /**
  * pad a string with spaces on the right-hand side until it's the specified length
@@ -51,6 +54,8 @@ describe('PropertyBinding', function () {
 
   function setup(sourceExpression: any = dummySourceExpression, target: any = dummyTarget, targetProperty: string = dummyTargetProperty, mode: BindingMode = dummyMode) {
     const container = RuntimeConfiguration.createContainer();
+    const scheduler = TestContext.createHTMLTestContext().scheduler;
+    Registration.instance(IScheduler, scheduler).register(container);
     const observerLocator = createObserverLocator(container);
     const lifecycle = container.get(ILifecycle);
     const sut = new PropertyBinding(sourceExpression, target, targetProperty, mode, observerLocator, container);
@@ -105,6 +110,8 @@ describe('PropertyBinding', function () {
       }
     }
     const container = RuntimeConfiguration.createContainer();
+    const scheduler = TestContext.createHTMLTestContext().scheduler;
+    Registration.instance(IScheduler, scheduler).register(container);
     const observerLocator = createObserverLocator(container);
     const target = {val: 0};
     const sut = new PropertyBinding(expr as any, target, 'val', BindingMode.toView, observerLocator, container);

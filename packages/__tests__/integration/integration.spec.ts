@@ -1,52 +1,14 @@
 /* eslint-disable mocha/no-skipped-tests, mocha/no-exclusive-tests, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/strict-boolean-expressions */
 import { toArray } from '@aurelia/kernel';
-import { CustomElement, DirtyCheckProperty, DirtyCheckSettings, IDirtyChecker } from '@aurelia/runtime';
-import { assert, Call, createSpy, fail, getVisibleText } from '@aurelia/testing';
+import { DirtyCheckProperty, DirtyCheckSettings, IDirtyChecker } from '@aurelia/runtime';
+import { assert, createSpy, getVisibleText } from '@aurelia/testing';
 import { App, Product } from './app/app';
-import { LetDemo } from './app/molecules/let-demo/let-demo';
-import { startup, StartupConfiguration, TestExecutionContext } from './app/startup';
 import { Cards } from './app/molecules/cards/cards';
+import { LetDemo } from './app/molecules/let-demo/let-demo';
 import { RandomGenerator } from './app/molecules/random-generator/random-generator';
+import { $it, getViewModel, assertCalls } from './util';
 
 describe('app', function () {
-  function createTestFunction(
-    testFunction: (ctx: TestExecutionContext) => Promise<void> | void,
-    startupConfiguration?: StartupConfiguration,
-  ) {
-    return async function () {
-      const ctx = await startup(startupConfiguration);
-      try {
-        await testFunction(ctx);
-      } catch (e) {
-        fail(e);
-      } finally {
-        await ctx.tearDown();
-      }
-    };
-  }
-  function $it(title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void, startupConfiguration?: StartupConfiguration) {
-    it(title, createTestFunction(testFunction, startupConfiguration));
-  }
-  $it.skip = function (title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void, startupConfiguration?: StartupConfiguration) {
-    it.skip(title, createTestFunction(testFunction, startupConfiguration));
-  };
-  $it.only = function (title: string, testFunction: (ctx: TestExecutionContext) => Promise<void> | void, startupConfiguration?: StartupConfiguration) {
-    it.only(title, createTestFunction(testFunction, startupConfiguration));
-  };
-
-  function getViewModel<T>(element: Element) {
-    const { viewModel } = (CustomElement.for(element) as unknown) as { viewModel: T };
-    return viewModel;
-  }
-  function assertCalls(calls: Call[], fromIndex: number, instance: any, expectedCalls: string[], unexpectedCalls?: string[], message?: string) {
-    const recentCalls = new Set(calls.slice(fromIndex).map(c => Object.is(c.instance, instance) && c.method));
-    for (const expectedCall of expectedCalls) {
-      assert.equal(recentCalls.has(expectedCall), true, `${message || ''} expected ${expectedCall}`);
-    }
-    for (const expectedCall of unexpectedCalls) {
-      assert.equal(recentCalls.has(expectedCall), false, `${message || ''} not expected ${expectedCall}`);
-    }
-  }
 
   $it('has some readonly texts with different binding modes', function ({ host }) {
     for (let i = 0; i < 4; i++) {

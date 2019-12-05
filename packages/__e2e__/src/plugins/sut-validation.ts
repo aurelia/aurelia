@@ -1,5 +1,5 @@
 import { customElement } from '@aurelia/runtime';
-import { IValidationControllerFactory, IValidator, ValidationRules, ValidationController } from '@aurelia/validation';
+import { IValidationControllerFactory, IValidator, ValidationRules, ValidationController, IValidationController } from '@aurelia/validation';
 import template from './sut-validation.html';
 
 @customElement({ name: 'sut-validation', template })
@@ -11,37 +11,41 @@ export class SutValidation {
     },
     d: 1
   };
-  private readonly controller: ValidationController;
+  // private readonly controller: ValidationController;
+  private readonly dstr = 'd';
 
   public constructor(
-    @IValidationControllerFactory validationControllerFactory: IValidationControllerFactory,
+    // @IValidationControllerFactory validationControllerFactory: IValidationControllerFactory,
+    @IValidationController private readonly controller: IValidationController,
     @IValidator private readonly validator: IValidator
   ) {
-    this.controller = validationControllerFactory.createForCurrentScope();
+    console.log('in SutValidation', controller['validator']);
+    // this.controller = validationControllerFactory.createForCurrentScope();
   }
 
-  public async binding() {
-    const rules = new ValidationRules()
-      .ensure("firstName")
-      .required()
-      .withMessage('hdhkjdah')
-      .matches(/www/)
-      .withMessageKey('re')
+  public async binding(...arg: any[]) {
+    console.log(arg)
+    // const rules = new ValidationRules()
+    //   .ensure("firstName")
+    //   .required()
+    //   .withMessage('hdhkjdah')
+    //   .matches(/www/)
+    //   .withMessageKey('re')
 
-      .ensure("name.first.prop")
-      .required()
-      .withMessage('hdhkjdah')
-      .matches(/www/)
-      .withMessageKey('re')
+    //   .ensure("name.first.prop")
+    //   .required()
+    //   .withMessage('hdhkjdah')
+    //   .matches(/www/)
+    //   .withMessageKey('re')
 
-      .ensure("items[0].prop")
-      .required()
-      .withMessage('hdhkjdah')
-      .matches(/www/)
-      .withMessageKey('re')
+    //   .ensure("items[0].prop")
+    //   .required()
+    //   .withMessage('hdhkjdah')
+    //   .matches(/www/)
+    //   .withMessageKey('re')
 
-      .rules
-      ;
+    //   .rules
+    //   ;
 
     // console.log(rules);
 
@@ -50,9 +54,13 @@ export class SutValidation {
       .required()
       .ensure("d")
       .required()
+      .on(this.a)
       .rules;
     const result = await this.validator.validateObject(this.a, rules1);
     console.log(result);
+  }
+  public bound(...args: any[]) {
+    console.log(args);
   }
 
   private async validate() {

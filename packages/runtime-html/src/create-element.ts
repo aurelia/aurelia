@@ -7,18 +7,14 @@ import {
 import {
   CustomElement,
   HydrateElementInstruction,
-  BindableDefinition,
   IController,
   CustomElementType,
   IDOM,
   INode,
-  IRenderContext,
-  IRenderingEngine,
-  ITemplate,
   IViewFactory,
-  LifecycleFlags,
   TargetedInstructionType,
-  CustomElementDefinition
+  CustomElementDefinition,
+  CustomElementBoilerplate
 } from '@aurelia/runtime';
 import {
   HTMLTargetedInstruction,
@@ -67,16 +63,16 @@ export class RenderPlan<T extends INode = Node> {
     return this.lazyDefinition;
   }
 
-  public getElementTemplate(engine: IRenderingEngine, Type?: CustomElementType): ITemplate<T>|undefined {
-    return engine.getElementTemplate(this.dom, this.definition, void 0, Type);
+  public getBoilerplate(parentContainer: IContainer): CustomElementBoilerplate {
+    return CustomElementBoilerplate.getOrCreate(this.definition, parentContainer);
   }
 
-  public createView(flags: LifecycleFlags, engine: IRenderingEngine, parentContext?: IRenderContext<T> | IContainer): IController {
-    return this.getViewFactory(engine, parentContext).create();
+  public createView(parentContainer: IContainer): IController {
+    return this.getViewFactory(parentContainer).create();
   }
 
-  public getViewFactory(engine: IRenderingEngine, parentContext?: IRenderContext<T> | IContainer): IViewFactory {
-    return engine.getViewFactory(this.dom, this.definition, parentContext);
+  public getViewFactory(parentContainer: IContainer): IViewFactory {
+    return this.getBoilerplate(parentContainer).getViewFactory();
   }
 
   /** @internal */

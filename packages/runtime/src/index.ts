@@ -307,6 +307,7 @@ export {
   ChildrenDefinition,
   Children,
   children,
+  ChildrenObserver,
 } from './templating/children';
 
 // These exports are temporary until we have a proper way to unit test them
@@ -424,11 +425,13 @@ export {
   ILifecycle,
   IViewModel,
   IController,
-  IRenderContext,
   IViewCache,
   IViewFactory,
   MountStrategy,
 } from './lifecycle';
+export {
+  CustomElementBoilerplate,
+} from './templating/boilerplate';
 export {
   PromiseOrTask,
   MaybePromiseOrTask,
@@ -486,23 +489,13 @@ export {
   createIndexMap,
 } from './observation';
 export {
+  IInstructionRenderer,
+  IInstructionTypeClassifier,
+  IRenderer,
+  ITemplateCompiler,
+  ViewCompileFlags,
   instructionRenderer,
   ensureExpression,
   addComponent,
   addBinding
 } from './renderer';
-export {
-  CompiledTemplate,
-  ChildrenObserver,
-  IInstructionRenderer,
-  IInstructionTypeClassifier,
-  IRenderer,
-  IRenderingEngine,
-  ITemplate,
-  ITemplateCompiler,
-  ITemplateFactory,
-  ViewCompileFlags,
-} from './rendering-engine';
-export {
-  RenderContext,
-} from './render-context';

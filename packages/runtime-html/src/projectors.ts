@@ -86,10 +86,10 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
   }
 
   public project(nodes: INodeSequence<Node>): void {
-    const context = this.$controller.context!;
-    const styles = context.has(IShadowDOMStyles, false)
-      ? context.get(IShadowDOMStyles)
-      : context.get(IShadowDOMGlobalStyles);
+    const boilerplate = this.$controller.boilerplate!;
+    const styles = boilerplate.has(IShadowDOMStyles, false)
+      ? boilerplate.get(IShadowDOMStyles)
+      : boilerplate.get(IShadowDOMGlobalStyles);
 
     styles.applyTo(this.shadowRoot);
     nodes.appendTo(this.shadowRoot);

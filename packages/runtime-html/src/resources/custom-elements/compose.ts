@@ -11,7 +11,6 @@ import {
   IHydrateElementInstruction,
   ILifecycleTask,
   INode,
-  IRenderingEngine,
   ITargetedInstruction,
   IViewFactory,
   LifecycleFlags,
@@ -23,6 +22,7 @@ import {
   bindable,
   customElement,
   MountStrategy,
+  CustomElementBoilerplate,
 } from '@aurelia/runtime';
 import {
   createElement,
@@ -52,9 +52,8 @@ export class Compose<T extends INode = Node> {
 
   public constructor(
     @IDOM private readonly dom: IDOM<T>,
-    @IController private readonly renderable: IController<T>,
+    @IController private readonly controller: IController<T>,
     @ITargetedInstruction private readonly instruction: IHydrateElementInstruction,
-    @IRenderingEngine private readonly renderingEngine: IRenderingEngine,
   ) {
     this.properties = instruction.instructions
       .filter((x: ITargetedInstruction & { to?: string }) => !bindables.includes(x.to!))
@@ -191,7 +190,7 @@ export class Compose<T extends INode = Node> {
 
   private bindView(flags: LifecycleFlags): ILifecycleTask {
     if (this.view != void 0 && (this.$controller.state & (State.isBoundOrBinding)) > 0) {
-      return this.view.bind(flags, this.renderable.scope, this.$controller.part);
+      return this.view.bind(flags, this.controller.scope, this.$controller.part);
     }
     return LifecycleTask.done;
   }
@@ -211,7 +210,7 @@ export class Compose<T extends INode = Node> {
 
     if (view) {
       view.hold(this.$controller.projector!.host, MountStrategy.insertBefore);
-      view.lockScope(this.renderable.scope!);
+      view.lockScope(this.controller.scope!);
       return view;
     }
 
@@ -228,23 +227,16 @@ export class Compose<T extends INode = Node> {
     }
 
     if ('createView' in subject) { // RenderPlan
-      return subject.createView(
-        flags,
-        this.renderingEngine,
-        this.renderable.context
-      ) as IController<T>;
+      return subject.createView(this.controller.boilerplate!) as IController<T>;
     }
 
     if ('create' in subject) { // IViewFactory
-      return subject.create();
+      return subject.create(flags);
     }
 
     if ('template' in subject) { // Raw Template Definition
-      return this.renderingEngine.getViewFactory(
-        this.dom,
-        subject,
-        this.renderable.context
-      ).create() as IController<T>;
+      const definition = CustomElementDefinition.getOrCreate(subject);
+      return CustomElementBoilerplate.getOrCreate(definition, this.controller.boilerplate!).getViewFactory().create(flags) as IController<T>;
     }
 
     // Constructable (Custom Element Constructor)
@@ -255,10 +247,6 @@ export class Compose<T extends INode = Node> {
       this.$controller.projector === void 0
         ? PLATFORM.emptyArray
         : this.$controller.projector.children
-    ).createView(
-      flags,
-      this.renderingEngine,
-      this.renderable.context
-    ) as IController<T>;
+    ).createView(this.controller.boilerplate!) as IController<T>;
   }
 }

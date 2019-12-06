@@ -1,24 +1,20 @@
-import { Constructable, ConstructableClass, DI, IContainer, IResolver, PLATFORM, Registration, Reporter, Metadata, Protocol } from '@aurelia/kernel';
+import { Constructable, ConstructableClass, DI, IContainer, IResolver, PLATFORM, Registration, Metadata, Protocol } from '@aurelia/kernel';
 import { INode } from '../dom';
 import { LifecycleFlags, State } from '../flags';
 import {
   IController,
   ILifecycle,
   IViewFactory,
-  IViewModel
+  IViewModel,
 } from '../lifecycle';
 import { Scope } from '../observation/binding-context';
-import { ITemplate } from '../rendering-engine';
 import { CustomElement, PartialCustomElementDefinition, CustomElementDefinition } from '../resources/custom-element';
 import { Controller } from './controller';
 import { PartialCustomElementDefinitionParts } from '../definitions';
+import { CustomElementBoilerplate } from './boilerplate';
 
 export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
   public static maxCacheSize: number = 0xFFFF;
-
-  public get parentContextId(): number {
-    return this.template.renderContext.parentId;
-  }
 
   public isCaching: boolean = false;
   public parts: PartialCustomElementDefinitionParts = PLATFORM.emptyObject;
@@ -28,7 +24,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
 
   public constructor(
     public name: string,
-    private readonly template: ITemplate<T>,
+    private readonly boilerplate: CustomElementBoilerplate,
     private readonly lifecycle: ILifecycle,
   ) {}
 
@@ -78,11 +74,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
       return controller;
     }
 
-    controller = Controller.forSyntheticView(this, this.lifecycle, flags);
-    this.template.render(controller, null!, this.parts, flags);
-    if (!controller.nodes) {
-      throw Reporter.error(90);
-    }
+    controller = Controller.forSyntheticView(this, this.lifecycle, this.boilerplate, flags);
     return controller;
   }
 

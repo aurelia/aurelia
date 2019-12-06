@@ -1,12 +1,10 @@
 import {
   IContainer,
   IIndexable,
-  IServiceLocator,
   mergeDistinct,
   nextId,
   Writable,
   Constructable,
-  Registration,
 } from '@aurelia/kernel';
 import {
   PropertyBinding,
@@ -16,7 +14,6 @@ import {
   PartialCustomElementDefinitionParts
 } from '../definitions';
 import {
-  IDOM,
   INode,
   INodeSequence,
   IRenderLocation
@@ -29,7 +26,6 @@ import {
   IBinding,
   IController,
   ILifecycle,
-  IRenderContext,
   IViewModel,
   ViewModelKind,
   MountStrategy,
@@ -57,45 +53,22 @@ import {
   BindableObserver,
 } from '../observation/bindable-observer';
 import {
-  ChildrenObserver,
-  ITemplate,
-  IRenderer,
-  ITemplateCompiler,
-  ViewCompileFlags,
-} from '../rendering-engine';
-import {
   IElementProjector,
   IProjectorLocator,
   CustomElementDefinition,
   CustomElement,
 } from '../resources/custom-element';
-import { CustomAttributeDefinition, CustomAttribute } from '../resources/custom-attribute';
-import { BindableDefinition } from './bindable';
-import { RenderContext } from '../render-context';
-
-type Definition = CustomAttributeDefinition | CustomElementDefinition;
-
-interface IElementTemplateProvider {
-  getElementTemplate(renderingEngine: unknown, customElementType: unknown, parentContext: IServiceLocator): ITemplate;
-}
-
-const fragmentLookup = new WeakMap<CustomElementDefinition, INode | null>();
-// Just a wrapper around dom.createDocumentFragment with a weakmap cache in-between
-function getFragment(dom: IDOM, definition: CustomElementDefinition): INode | null {
-  let node = fragmentLookup.get(definition);
-  if (node === void 0) {
-    const template = definition.template;
-    if (template === null || template === void 0) {
-      fragmentLookup.set(definition, node = null);
-    } else {
-      fragmentLookup.set(definition, node = dom.createDocumentFragment(template as string | INode));
-    }
-  }
-  return node;
-}
+import {
+  CustomAttributeDefinition,
+  CustomAttribute,
+} from '../resources/custom-attribute';
+import {
+  BindableDefinition,
+} from './bindable';
+import { CustomElementBoilerplate } from './boilerplate';
+import { ChildrenObserver } from './children';
 
 type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
-  render(flags: LifecycleFlags, host: T, parts: PartialCustomElementDefinitionParts, parentContext: IServiceLocator): IElementTemplateProvider | void;
   created(flags: LifecycleFlags): void;
 
   beforeBind(flags: LifecycleFlags): MaybePromiseOrTask;
@@ -112,17 +85,6 @@ type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
 
   caching(flags: LifecycleFlags): void;
 }>;
-
-const definitionMapLookup = new WeakMap<CustomElementDefinition, WeakMap<RenderContext, CustomElementDefinition>>();
-function getDefinitionMap(definition: CustomElementDefinition): WeakMap<RenderContext, CustomElementDefinition> {
-  if (definitionMapLookup.has(definition)) {
-    return definitionMapLookup.get(definition)!;
-  }
-
-  const definitionMap = new WeakMap();
-  definitionMapLookup.set(definition, definitionMap);
-  return definitionMap;
-}
 
 const controllerLookup: WeakMap<object, Controller> = new WeakMap();
 export class Controller<
@@ -160,7 +122,7 @@ export class Controller<
   public projector: IElementProjector | undefined = void 0;
 
   public nodes: INodeSequence<T> | undefined = void 0;
-  public context: IContainer | IRenderContext<T> | undefined = void 0;
+  public boilerplate: CustomElementBoilerplate | undefined = void 0;
   public location: IRenderLocation<T> | undefined = void 0;
   public mountStrategy: MountStrategy = MountStrategy.insertBefore;
 
@@ -196,6 +158,8 @@ export class Controller<
     viewModel: C,
     lifecycle: ILifecycle,
     host: T,
+    parentContainer: IContainer,
+    parts?: PartialCustomElementDefinitionParts,
     flags: LifecycleFlags = LifecycleFlags.none,
   ): Controller<T, C> {
     if (controllerLookup.has(viewModel)) {
@@ -217,6 +181,9 @@ export class Controller<
     );
 
     controllerLookup.set(viewModel, controller);
+
+    controller.hydrateCustomElement(definition, parentContainer, parts);
+
     return controller;
   }
 
@@ -247,6 +214,9 @@ export class Controller<
     );
 
     controllerLookup.set(viewModel, controller);
+
+    controller.hydrateCustomAttribute(definition);
+
     return controller;
   }
 
@@ -256,9 +226,10 @@ export class Controller<
   >(
     viewFactory: IViewFactory<T>,
     lifecycle: ILifecycle,
+    boilerplate: CustomElementBoilerplate,
     flags: LifecycleFlags = LifecycleFlags.none,
   ): Controller<T, C> {
-    return new Controller<T, C>(
+    const controller = new Controller<T, C>(
       /* vmKind         */ViewModelKind.synthetic,
       /* flags          */flags,
       /* lifecycle      */lifecycle,
@@ -268,99 +239,105 @@ export class Controller<
       /* bindingContext */void 0,
       /* host           */void 0,
     );
+
+    controller.hydrateSynthetic(boilerplate);
+
+    return controller;
   }
 
-  public hydrate(
-    definition: Definition,
-    parentContext: IContainer | IRenderContext,
+  private hydrateCustomElement(
+    definition: CustomElementDefinition,
+    parentContainer: IContainer,
     parts?: PartialCustomElementDefinitionParts,
-  ): this {
-    if (this.isHydrated) {
-      return this;
-    }
-
+  ): void {
+    if (this.vmKind !== ViewModelKind.customElement) { throw new Error(`Controller cannot be hydrated as a custom element`); }
+    if (this.isHydrated) { return; }
     this.isHydrated = true;
 
-    const vmKind = this.vmKind;
-    if (vmKind === ViewModelKind.customAttribute || vmKind === ViewModelKind.customElement) {
-      createObservers(this, definition, this.flags | definition.strategy, this.viewModel!);
+    const flags = this.flags |= definition.strategy;
+    const instance = this.viewModel!;
+    createObservers(this.lifecycle, definition, flags, instance);
+    createChildrenObservers(this, definition, flags, instance);
+
+    const boilerplate = this.boilerplate = CustomElementBoilerplate.getOrCreate(definition, parentContainer);
+    // Support Recursive Components by adding self to own boilerplate
+    definition.register(boilerplate);
+    if (definition.injectable !== null) {
+      // If the element is registered as injectable, support injecting the instance into children
+      boilerplate.beginChildComponentOperation(instance);
     }
 
-    if (vmKind === ViewModelKind.synthetic || vmKind === ViewModelKind.customElement) {
-      let $definition = definition as CustomElementDefinition;
-      const dom = parentContext.get(IDOM);
+    const compiledDefinition = boilerplate.compile();
 
-      const renderContext = RenderContext.getOrCreate(
-        /* dom               */dom,
-        /* partialDefinition */$definition,
-        /* parentContext     */parentContext,
-      );
+    this.scopeParts = compiledDefinition.scopeParts;
+    this.isStrictBinding = compiledDefinition.isStrictBinding;
 
-      if (vmKind === ViewModelKind.customElement) {
-        // Support Recursive Components by adding self to own view template container.
-        $definition.register(renderContext);
-        if ($definition.injectable !== null) {
-          // If the element is registered as injectable, support injecting the instance into children
-          // Note: this provider is never disposed at the moment. Perhaps we need to at some point, but not disposing it here doesn't necessarily need to cause memory leaks. Keep an eye on it though.
-          Registration.instance($definition.injectable, this.viewModel!).register(renderContext);
-        }
-      }
-
-      if ($definition.needsCompile) {
-        const definitionMap = getDefinitionMap($definition);
-        if (definitionMap.has(renderContext)) {
-          $definition = definitionMap.get(renderContext)!;
-        } else {
-          const compiler = parentContext.get(ITemplateCompiler);
-          $definition = compiler.compile(
-            dom,
-            $definition,
-            renderContext.createRuntimeCompilationResources(),
-            ViewCompileFlags.surrogate,
-          );
-          definitionMap.set(renderContext, $definition);
-        }
-      }
-
-      const fragment = getFragment(dom, $definition)!;
-      const nodes = dom.createNodeSequence(fragment);
-
+    const nodes = boilerplate.createNodes();
+    if (nodes !== null) {
       this.nodes = nodes as INodeSequence<T>;
-      this.context = renderContext;
-      this.scopeParts = $definition.scopeParts;
-      this.isStrictBinding = $definition.isStrictBinding;
-      this.flags |= $definition.strategy;
 
       const targets = nodes.findTargets();
-      const renderer = parentContext.get(IRenderer);
-
-      renderer.render(
+      boilerplate.renderer.render(
         /* flags      */this.flags,
-        /* dom        */dom,
-        /* context    */renderContext,
+        /* dom        */boilerplate.dom,
+        /* context    */boilerplate,
         /* renderable */this,
         /* targets    */targets,
-        /* definition */$definition,
+        /* definition */compiledDefinition,
         /* host       */this.host,
         /* parts      */parts,
       );
-
-      if (vmKind === ViewModelKind.customElement) {
-        this.scope = Scope.create(this.flags, this.bindingContext!, null);
-        const projectorLocator = parentContext.get(IProjectorLocator);
-
-        this.projector = projectorLocator.getElementProjector(
-          parentContext.get(IDOM),
-          this,
-          this.host!,
-          $definition,
-        );
-
-        (this.viewModel as Writable<C>).$controller = this;
-      }
     }
 
-    return this;
+    this.scope = Scope.create(this.flags, this.bindingContext!, null);
+    const projectorLocator = parentContainer.get(IProjectorLocator);
+
+    this.projector = projectorLocator.getElementProjector(
+      boilerplate.dom,
+      this,
+      this.host!,
+      compiledDefinition,
+    );
+
+    (instance as Writable<C>).$controller = this;
+  }
+
+  public hydrateCustomAttribute(definition: CustomAttributeDefinition): void {
+    if (this.vmKind !== ViewModelKind.customAttribute) { throw new Error(`Controller cannot be hydrated as a custom attribute`); }
+    if (this.isHydrated) { return; }
+    this.isHydrated = true;
+
+    const flags = this.flags | definition.strategy;
+    const instance = this.viewModel!;
+    createObservers(this.lifecycle, definition, flags, instance);
+  }
+
+  public hydrateSynthetic(boilerplate: CustomElementBoilerplate): void {
+    if (this.vmKind !== ViewModelKind.synthetic) { throw new Error(`Controller cannot be hydrated as a synthetic view`); }
+    if (this.isHydrated) { return; }
+    this.isHydrated = true;
+
+    const compiledDefinition = boilerplate.compile();
+
+    this.scopeParts = compiledDefinition.scopeParts;
+    this.isStrictBinding = compiledDefinition.isStrictBinding;
+
+    const nodes = boilerplate.createNodes();
+    if (nodes !== null) {
+      this.nodes = nodes as INodeSequence<T>;
+
+      const targets = nodes.findTargets();
+      boilerplate.renderer.render(
+        /* flags      */this.flags,
+        /* dom        */boilerplate.dom,
+        /* context    */boilerplate,
+        /* renderable */this,
+        /* targets    */targets,
+        /* definition */compiledDefinition,
+        /* host       */void 0,
+        /* parts      */void 0,
+      );
+    }
   }
 
   public is(name: string): boolean {
@@ -1004,82 +981,109 @@ export class Controller<
   // #endregion
 }
 
-function createObservers(
-  controller: IController,
-  description: Definition,
-  flags: LifecycleFlags,
-  instance: object,
-): void {
-  const hasLookup = (instance as IIndexable).$observers != void 0;
-  const observers: Record<string, BindableObserver | ChildrenObserver> = hasLookup ? (instance as IIndexable).$observers as Record<string, BindableObserver> : {};
-  const bindables = description.bindables;
-  const observableNames = Object.getOwnPropertyNames(bindables);
-  const useProxy = (flags & LifecycleFlags.proxyStrategy) > 0 ;
-  const lifecycle = controller.lifecycle;
-  const hasChildrenObservers = 'childrenObservers' in description;
-
-  const length = observableNames.length;
-  let name: string;
-  let bindable: BindableDefinition;
-
-  for (let i = 0; i < length; ++i) {
-    name = observableNames[i];
-
-    if (observers[name] == void 0) {
-      bindable = bindables[name];
-
-      observers[name] = new BindableObserver(
-        lifecycle,
-        flags,
-        useProxy ? ProxyObserver.getOrCreate(instance).proxy : instance as IIndexable,
-        name,
-        bindable.callback,
-        bindable.set,
-      );
-    }
-  }
-
-  if (hasChildrenObservers) {
-    const childrenObservers = (description as CustomElementDefinition).childrenObservers;
-
-    if (childrenObservers) {
-      const childObserverNames = Object.getOwnPropertyNames(childrenObservers);
-      const { length } = childObserverNames;
-
-      let name: string;
-      for (let i = 0; i < length; ++i) {
-        name = childObserverNames[i];
-
-        if (observers[name] == void 0) {
-          const childrenDescription = childrenObservers[name];
-          observers[name] = new ChildrenObserver(
-            controller,
-            instance as IIndexable,
-            flags,
-            name,
-            childrenDescription.callback,
-            childrenDescription.query,
-            childrenDescription.filter,
-            childrenDescription.map,
-            childrenDescription.options
-          );
-        }
-      }
-    }
-  }
-
-  if (!useProxy || hasChildrenObservers) {
-    Reflect.defineProperty(instance, '$observers', {
-      enumerable: false,
-      value: observers
-    });
-  }
-}
-
 function getBindingContext<T extends INode, C extends IViewModel<T>>(flags: LifecycleFlags, instance: object): BindingContext<T, C> {
   if ((instance as IIndexable).noProxy === true || (flags & LifecycleFlags.proxyStrategy) === 0) {
     return instance as BindingContext<T, C>;
   }
 
   return ProxyObserver.getOrCreate(instance).proxy as unknown as BindingContext<T, C>;
+}
+
+function getLookup(instance: IIndexable): Record<string, BindableObserver | ChildrenObserver> {
+  let lookup = instance.$observers;
+  if (lookup === void 0) {
+    Reflect.defineProperty(
+      instance,
+      '$observers',
+      {
+        enumerable: false,
+        value: lookup = {},
+      },
+    );
+  }
+  return lookup as Record<string, BindableObserver | ChildrenObserver>;
+}
+
+function createObservers(
+  lifecycle: ILifecycle,
+  definition: CustomElementDefinition | CustomAttributeDefinition,
+  flags: LifecycleFlags,
+  instance: object,
+): void {
+  const bindables = definition.bindables;
+  const observableNames = Object.getOwnPropertyNames(bindables);
+  const length = observableNames.length;
+  if (length > 0) {
+    let name: string;
+    let bindable: BindableDefinition;
+
+    if ((flags & LifecycleFlags.proxyStrategy) > 0) {
+      for (let i = 0; i < length; ++i) {
+        name = observableNames[i];
+        bindable = bindables[name];
+
+        new BindableObserver(
+          lifecycle,
+          flags,
+          ProxyObserver.getOrCreate(instance).proxy,
+          name,
+          bindable.callback,
+          bindable.set,
+        );
+      }
+    } else {
+      const observers = getLookup(instance as IIndexable);
+
+      for (let i = 0; i < length; ++i) {
+        name = observableNames[i];
+
+        if (observers[name] === void 0) {
+          bindable = bindables[name];
+
+          observers[name] = new BindableObserver(
+            lifecycle,
+            flags,
+            instance as IIndexable,
+            name,
+            bindable.callback,
+            bindable.set,
+          );
+        }
+      }
+    }
+  }
+}
+
+function createChildrenObservers(
+  controller: IController,
+  definition: CustomElementDefinition,
+  flags: LifecycleFlags,
+  instance: object,
+): void {
+  const childrenObservers = definition.childrenObservers;
+  const childObserverNames = Object.getOwnPropertyNames(childrenObservers);
+  const length = childObserverNames.length;
+  if (length > 0) {
+    const observers = getLookup(instance as IIndexable);
+
+    let name: string;
+    for (let i = 0; i < length; ++i) {
+      name = childObserverNames[i];
+
+      if (observers[name] == void 0) {
+        const childrenDescription = childrenObservers[name];
+        observers[name] = new ChildrenObserver(
+          controller,
+          instance as IIndexable,
+          flags,
+          name,
+          childrenDescription.callback,
+          childrenDescription.query,
+          childrenDescription.filter,
+          childrenDescription.map,
+          childrenDescription.options,
+        );
+      }
+    }
+  }
 }

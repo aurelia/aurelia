@@ -1,7 +1,6 @@
 import {
   DI,
   IContainer,
-  IDisposable,
   IIndexable,
   IResolver,
   IServiceLocator,
@@ -9,7 +8,6 @@ import {
 } from '@aurelia/kernel';
 import {
   HooksDefinition,
-  ITargetedInstruction,
   PartialCustomElementDefinitionParts,
 } from './definitions';
 import {
@@ -31,9 +29,10 @@ import {
   IScope,
 } from './observation';
 import {
-  IElementProjector,
-  CustomElementDefinition,
+  IElementProjector, CustomElementDefinition,
 } from './resources/custom-element';
+import { CustomElementBoilerplate } from './templating/boilerplate';
+import { CustomAttributeDefinition } from './resources/custom-attribute';
 
 export interface IBinding {
   readonly locator: IServiceLocator;
@@ -100,7 +99,7 @@ export interface IController<
   projector?: IElementProjector;
 
   nodes?: INodeSequence<T>;
-  context?: IContainer | IRenderContext<T>;
+  boilerplate?: CustomElementBoilerplate;
   location?: IRenderLocation<T>;
 
   lockScope(scope: IScope): void;
@@ -130,27 +129,6 @@ export const enum MountStrategy {
   append = 2,
 }
 
-export interface IRenderContext<T extends INode = INode> extends IContainer {
-  readonly parentId: number;
-  render(
-    flags: LifecycleFlags,
-    renderable: IController<T>,
-    targets: ArrayLike<object>,
-    templateDefinition: CustomElementDefinition,
-    host?: T,
-    parts?: PartialCustomElementDefinitionParts,
-  ): void;
-  beginComponentOperation(
-    renderable: IController<T>,
-    target: object,
-    instruction: ITargetedInstruction,
-    factory?: IViewFactory<T> | null,
-    parts?: PartialCustomElementDefinitionParts,
-    location?: IRenderLocation<T>,
-    locationIsContainer?: boolean,
-  ): IDisposable;
-}
-
 export interface IViewCache<T extends INode = INode> {
   readonly isCaching: boolean;
   setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void;
@@ -159,7 +137,6 @@ export interface IViewCache<T extends INode = INode> {
 }
 
 export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
-  readonly parentContextId: number;
   readonly name: string;
   readonly parts: PartialCustomElementDefinitionParts;
   create(flags?: LifecycleFlags): IController<T>;

@@ -1,24 +1,17 @@
 import {
   IContainer,
   IResolver,
-  Key,
   PLATFORM,
   Registration,
   Reporter,
   Writable
 } from '@aurelia/kernel';
 import {
-  CompiledTemplate,
   DOM,
   IDOM,
   INode,
   INodeSequence,
-  IRenderContext,
   IRenderLocation,
-  ITemplate,
-  ITemplateFactory,
-  NodeSequence,
-  CustomElementDefinition,
   CustomElement
 } from '@aurelia/runtime';
 import { ShadowDOMProjector } from './projectors';
@@ -505,33 +498,6 @@ export class FragmentNodeSequence implements INodeSequence {
   }
 }
 
-export interface NodeSequenceFactory {
-  createNodeSequence(): INodeSequence;
-}
-
-export class NodeSequenceFactory implements NodeSequenceFactory {
-  private readonly node: DocumentFragment | null;
-
-  public constructor(
-    private readonly dom: IDOM,
-    markupOrNode: string | Node | null,
-  ) {
-    if (markupOrNode === null) {
-      this.node = null;
-    } else {
-      this.node = dom.createDocumentFragment(markupOrNode) as DocumentFragment;
-    }
-  }
-
-  public createNodeSequence(): INodeSequence {
-    if (this.node === null) {
-      return NodeSequence.empty;
-    }
-
-    return new FragmentNodeSequence(this.dom, this.node.cloneNode(true) as DocumentFragment);
-  }
-}
-
 export interface AuMarker extends INode { }
 
 /** @internal */
@@ -561,18 +527,3 @@ export class AuMarker implements INode {
   proto.nodeName = 'AU-M';
   proto.nodeType = NodeType.Element;
 })(AuMarker.prototype as Writable<AuMarker>);
-
-/** @internal */
-export class HTMLTemplateFactory implements ITemplateFactory {
-  public constructor(
-    @IDOM private readonly dom: IDOM,
-  ) {}
-
-  public static register(container: IContainer): IResolver<ITemplateFactory> {
-    return Registration.singleton(ITemplateFactory, this).register(container);
-  }
-
-  public create(parentRenderContext: IRenderContext, definition: CustomElementDefinition): ITemplate {
-    return new CompiledTemplate(this.dom, definition, new NodeSequenceFactory(this.dom, definition.template as string | Node | null), parentRenderContext);
-  }
-}

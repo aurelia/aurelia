@@ -25,10 +25,7 @@ import {
   IStartTaskManager,
   LifecycleTask,
 } from './lifecycle-task';
-import { ExposedContext } from './rendering-engine';
-import {
-  CustomElement,
-} from './resources/custom-element';
+import { CustomElement } from './resources/custom-element';
 import { Controller } from './templating/controller';
 
 export interface ISinglePageApp<THost extends INode = INode> {
@@ -153,24 +150,13 @@ export class CompositionRoot<T extends INode = INode> {
 
   private create(): void {
     const config = this.config;
-    this.viewModel = CustomElement.isType(config.component as Constructable)
+    const instance = this.viewModel = CustomElement.isType(config.component as Constructable)
       ? this.container.get(config.component as Constructable | {}) as IHydratedViewModel<T>
       : config.component as IHydratedViewModel<T>;
 
-    const Type = this.viewModel.constructor as Constructable;
-    const definition = CustomElement.getDefinition(Type);
-
-    this.controller = Controller
-      .forCustomElement(
-        this.viewModel,
-        this.container.get(ILifecycle),
-        this.host,
-        this.strategy as number,
-      )
-      .hydrate(
-        definition,
-        this.container,
-      );
+    const container = this.container;
+    const lifecycle = container.get(ILifecycle);
+    this.controller = Controller.forCustomElement(instance, lifecycle, this.host, container, void 0, this.strategy as number);
   }
 }
 

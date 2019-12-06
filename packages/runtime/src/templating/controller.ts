@@ -126,8 +126,6 @@ export class Controller<
   public location: IRenderLocation<T> | undefined = void 0;
   public mountStrategy: MountStrategy = MountStrategy.insertBefore;
 
-  private isHydrated: boolean = false;
-
   public constructor(
     public readonly vmKind: ViewModelKind,
     public flags: LifecycleFlags,
@@ -250,10 +248,6 @@ export class Controller<
     parentContainer: IContainer,
     parts?: PartialCustomElementDefinitionParts,
   ): void {
-    if (this.vmKind !== ViewModelKind.customElement) { throw new Error(`Controller cannot be hydrated as a custom element`); }
-    if (this.isHydrated) { return; }
-    this.isHydrated = true;
-
     const flags = this.flags |= definition.strategy;
     const instance = this.viewModel!;
     createObservers(this.lifecycle, definition, flags, instance);
@@ -302,21 +296,13 @@ export class Controller<
     (instance as Writable<C>).$controller = this;
   }
 
-  public hydrateCustomAttribute(definition: CustomAttributeDefinition): void {
-    if (this.vmKind !== ViewModelKind.customAttribute) { throw new Error(`Controller cannot be hydrated as a custom attribute`); }
-    if (this.isHydrated) { return; }
-    this.isHydrated = true;
-
+  private hydrateCustomAttribute(definition: CustomAttributeDefinition): void {
     const flags = this.flags | definition.strategy;
     const instance = this.viewModel!;
     createObservers(this.lifecycle, definition, flags, instance);
   }
 
-  public hydrateSynthetic(boilerplate: CustomElementBoilerplate): void {
-    if (this.vmKind !== ViewModelKind.synthetic) { throw new Error(`Controller cannot be hydrated as a synthetic view`); }
-    if (this.isHydrated) { return; }
-    this.isHydrated = true;
-
+  private hydrateSynthetic(boilerplate: CustomElementBoilerplate): void {
     const compiledDefinition = boilerplate.compile();
 
     this.scopeParts = compiledDefinition.scopeParts;

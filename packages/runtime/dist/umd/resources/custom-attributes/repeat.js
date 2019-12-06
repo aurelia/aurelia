@@ -441,9 +441,9 @@
         tslib_1.__metadata("design:paramtypes", [Object, Object, Object])
     ], Repeat);
     exports.Repeat = Repeat;
-    let prevIndices;
-    let tailIndices;
-    let maxLen = 0;
+    let maxLen = 16;
+    let prevIndices = new Int32Array(maxLen);
+    let tailIndices = new Int32Array(maxLen);
     // Based on inferno's lis_algorithm @ https://github.com/infernojs/inferno/blob/master/packages/inferno/src/DOM/patching.ts#L732
     // with some tweaks to make it just a bit faster + account for IndexMap (and some names changes for readability)
     /** @internal */

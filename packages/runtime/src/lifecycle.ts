@@ -31,7 +31,7 @@ import {
 import {
   IElementProjector, CustomElementDefinition,
 } from './resources/custom-element';
-import { CustomElementBoilerplate } from './templating/boilerplate';
+import { RenderContext } from './templating/render-context';
 import { CustomAttributeDefinition } from './resources/custom-attribute';
 
 export interface IBinding {
@@ -99,7 +99,7 @@ export interface IController<
   projector?: IElementProjector;
 
   nodes?: INodeSequence<T>;
-  boilerplate?: CustomElementBoilerplate;
+  context?: RenderContext;
   location?: IRenderLocation<T>;
 
   lockScope(scope: IScope): void;

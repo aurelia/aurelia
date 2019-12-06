@@ -65,7 +65,7 @@ import {
 import {
   BindableDefinition,
 } from './bindable';
-import { CustomElementBoilerplate } from './boilerplate';
+import { RenderContext } from './render-context';
 import { ChildrenObserver } from './children';
 
 type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
@@ -122,7 +122,7 @@ export class Controller<
   public projector: IElementProjector | undefined = void 0;
 
   public nodes: INodeSequence<T> | undefined = void 0;
-  public boilerplate: CustomElementBoilerplate | undefined = void 0;
+  public context: RenderContext | undefined = void 0;
   public location: IRenderLocation<T> | undefined = void 0;
   public mountStrategy: MountStrategy = MountStrategy.insertBefore;
 
@@ -224,7 +224,7 @@ export class Controller<
   >(
     viewFactory: IViewFactory<T>,
     lifecycle: ILifecycle,
-    boilerplate: CustomElementBoilerplate,
+    context: RenderContext,
     flags: LifecycleFlags = LifecycleFlags.none,
   ): Controller<T, C> {
     const controller = new Controller<T, C>(
@@ -238,7 +238,7 @@ export class Controller<
       /* host           */void 0,
     );
 
-    controller.hydrateSynthetic(boilerplate);
+    controller.hydrateSynthetic(context);
 
     return controller;
   }
@@ -253,28 +253,28 @@ export class Controller<
     createObservers(this.lifecycle, definition, flags, instance);
     createChildrenObservers(this, definition, flags, instance);
 
-    const boilerplate = this.boilerplate = CustomElementBoilerplate.getOrCreate(definition, parentContainer);
-    // Support Recursive Components by adding self to own boilerplate
-    definition.register(boilerplate);
+    const context = this.context = RenderContext.getOrCreate(definition, parentContainer);
+    // Support Recursive Components by adding self to own context
+    definition.register(context);
     if (definition.injectable !== null) {
       // If the element is registered as injectable, support injecting the instance into children
-      boilerplate.beginChildComponentOperation(instance);
+      context.beginChildComponentOperation(instance);
     }
 
-    const compiledDefinition = boilerplate.compile();
+    const compiledDefinition = context.compile();
 
     this.scopeParts = compiledDefinition.scopeParts;
     this.isStrictBinding = compiledDefinition.isStrictBinding;
 
-    const nodes = boilerplate.createNodes();
+    const nodes = context.createNodes();
     if (nodes !== null) {
       this.nodes = nodes as INodeSequence<T>;
 
       const targets = nodes.findTargets();
-      boilerplate.renderer.render(
+      context.renderer.render(
         /* flags      */this.flags,
-        /* dom        */boilerplate.dom,
-        /* context    */boilerplate,
+        /* dom        */context.dom,
+        /* context    */context,
         /* renderable */this,
         /* targets    */targets,
         /* definition */compiledDefinition,
@@ -287,7 +287,7 @@ export class Controller<
     const projectorLocator = parentContainer.get(IProjectorLocator);
 
     this.projector = projectorLocator.getElementProjector(
-      boilerplate.dom,
+      context.dom,
       this,
       this.host!,
       compiledDefinition,
@@ -302,21 +302,21 @@ export class Controller<
     createObservers(this.lifecycle, definition, flags, instance);
   }
 
-  private hydrateSynthetic(boilerplate: CustomElementBoilerplate): void {
-    const compiledDefinition = boilerplate.compile();
+  private hydrateSynthetic(context: RenderContext): void {
+    const compiledDefinition = context.compile();
 
     this.scopeParts = compiledDefinition.scopeParts;
     this.isStrictBinding = compiledDefinition.isStrictBinding;
 
-    const nodes = boilerplate.createNodes();
+    const nodes = context.createNodes();
     if (nodes !== null) {
       this.nodes = nodes as INodeSequence<T>;
 
       const targets = nodes.findTargets();
-      boilerplate.renderer.render(
+      context.renderer.render(
         /* flags      */this.flags,
-        /* dom        */boilerplate.dom,
-        /* context    */boilerplate,
+        /* dom        */context.dom,
+        /* context    */context,
         /* renderable */this,
         /* targets    */targets,
         /* definition */compiledDefinition,

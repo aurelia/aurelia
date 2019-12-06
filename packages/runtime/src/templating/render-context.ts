@@ -7,10 +7,10 @@ import { IRenderer, ITemplateCompiler, ViewCompileFlags } from '../renderer';
 import { ViewFactory } from './view';
 
 // definition-to-parentContainerToBoilerplateCache-Cache :)
-const definitionToPCTBCCache = new WeakMap<CustomElementDefinition, WeakMap<IContainer, CustomElementBoilerplate>>();
+const definitionToPCTBCCache = new WeakMap<CustomElementDefinition, WeakMap<IContainer, RenderContext>>();
 const fragmentCache = new WeakMap<CustomElementDefinition, INode | undefined>();
 
-export class CustomElementBoilerplate implements IContainer {
+export class RenderContext implements IContainer {
   public get id(): number {
     return this.container.id;
   }
@@ -69,7 +69,7 @@ export class CustomElementBoilerplate implements IContainer {
   public static getOrCreate(
     definition: CustomElementDefinition,
     parentContainer: IContainer,
-  ): CustomElementBoilerplate {
+  ): RenderContext {
     let parentContextToBoilerplateCache = definitionToPCTBCCache.get(definition);
     if (parentContextToBoilerplateCache === void 0) {
       definitionToPCTBCCache.set(
@@ -78,15 +78,15 @@ export class CustomElementBoilerplate implements IContainer {
       );
     }
 
-    let boilerplate = parentContextToBoilerplateCache.get(parentContainer);
-    if (boilerplate === void 0) {
+    let context = parentContextToBoilerplateCache.get(parentContainer);
+    if (context === void 0) {
       parentContextToBoilerplateCache.set(
         parentContainer,
-        boilerplate = new CustomElementBoilerplate(definition, parentContainer),
+        context = new RenderContext(definition, parentContainer),
       );
     }
 
-    return boilerplate;
+    return context;
   }
 
   // #region IServiceLocator api
@@ -232,7 +232,7 @@ export class CustomElementBoilerplate implements IContainer {
   // TODO: unify dispose / operation api in some way
   public beginChildComponentOperation(instance: IViewModel): void {
     const definition = this.definition;
-    // Support Recursive Components by adding self to own boilerplate
+    // Support Recursive Components by adding self to own context
     definition.register(this);
     if (definition.injectable !== null) {
       this.container.registerResolver(
@@ -264,7 +264,7 @@ export class ViewFactoryProvider implements IResolver {
     factory.addParts(parts);
   }
 
-  public resolve(handler: IContainer, requestor: CustomElementBoilerplate): IViewFactory {
+  public resolve(handler: IContainer, requestor: RenderContext): IViewFactory {
     const factory = this.factory;
     if (factory === null) { // unmet precondition: call prepare
       throw Reporter.error(50); // TODO: organize error codes
@@ -275,8 +275,8 @@ export class ViewFactoryProvider implements IResolver {
     const found = factory.parts[factory.name];
     if (found) {
       const definition = CustomElementDefinition.getOrCreate(found);
-      const boilerplate = CustomElementBoilerplate.getOrCreate(definition, requestor);
-      return boilerplate.getViewFactory(factory.name);
+      const context = RenderContext.getOrCreate(definition, requestor);
+      return context.getViewFactory(factory.name);
     }
 
     return factory;

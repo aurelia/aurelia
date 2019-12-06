@@ -14,7 +14,7 @@ import {
   IViewFactory,
   TargetedInstructionType,
   CustomElementDefinition,
-  CustomElementBoilerplate
+  RenderContext
 } from '@aurelia/runtime';
 import {
   HTMLTargetedInstruction,
@@ -63,8 +63,8 @@ export class RenderPlan<T extends INode = Node> {
     return this.lazyDefinition;
   }
 
-  public getBoilerplate(parentContainer: IContainer): CustomElementBoilerplate {
-    return CustomElementBoilerplate.getOrCreate(this.definition, parentContainer);
+  public getBoilerplate(parentContainer: IContainer): RenderContext {
+    return RenderContext.getOrCreate(this.definition, parentContainer);
   }
 
   public createView(parentContainer: IContainer): IController {

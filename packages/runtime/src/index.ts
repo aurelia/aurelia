@@ -430,8 +430,8 @@ export {
   MountStrategy,
 } from './lifecycle';
 export {
-  CustomElementBoilerplate,
-} from './templating/boilerplate';
+  RenderContext,
+} from './templating/render-context';
 export {
   PromiseOrTask,
   MaybePromiseOrTask,

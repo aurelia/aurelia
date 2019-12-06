@@ -22,7 +22,7 @@ import {
   bindable,
   customElement,
   MountStrategy,
-  CustomElementBoilerplate,
+  RenderContext,
 } from '@aurelia/runtime';
 import {
   createElement,
@@ -227,7 +227,7 @@ export class Compose<T extends INode = Node> {
     }
 
     if ('createView' in subject) { // RenderPlan
-      return subject.createView(this.controller.boilerplate!) as IController<T>;
+      return subject.createView(this.controller.context!) as IController<T>;
     }
 
     if ('create' in subject) { // IViewFactory
@@ -236,7 +236,7 @@ export class Compose<T extends INode = Node> {
 
     if ('template' in subject) { // Raw Template Definition
       const definition = CustomElementDefinition.getOrCreate(subject);
-      return CustomElementBoilerplate.getOrCreate(definition, this.controller.boilerplate!).getViewFactory().create(flags) as IController<T>;
+      return RenderContext.getOrCreate(definition, this.controller.context!).getViewFactory().create(flags) as IController<T>;
     }
 
     // Constructable (Custom Element Constructor)
@@ -247,6 +247,6 @@ export class Compose<T extends INode = Node> {
       this.$controller.projector === void 0
         ? PLATFORM.emptyArray
         : this.$controller.projector.children
-    ).createView(this.controller.boilerplate!) as IController<T>;
+    ).createView(this.controller.context!) as IController<T>;
   }
 }

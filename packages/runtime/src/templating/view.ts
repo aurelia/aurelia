@@ -11,7 +11,7 @@ import { Scope } from '../observation/binding-context';
 import { CustomElement, PartialCustomElementDefinition, CustomElementDefinition } from '../resources/custom-element';
 import { Controller } from './controller';
 import { PartialCustomElementDefinitionParts } from '../definitions';
-import { CustomElementBoilerplate } from './boilerplate';
+import { RenderContext } from './render-context';
 
 export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
   public static maxCacheSize: number = 0xFFFF;
@@ -24,7 +24,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
 
   public constructor(
     public name: string,
-    private readonly boilerplate: CustomElementBoilerplate,
+    private readonly context: RenderContext,
     private readonly lifecycle: ILifecycle,
   ) {}
 
@@ -74,7 +74,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
       return controller;
     }
 
-    controller = Controller.forSyntheticView(this, this.lifecycle, this.boilerplate, flags);
+    controller = Controller.forSyntheticView(this, this.lifecycle, this.context, flags);
     return controller;
   }
 

@@ -51,7 +51,7 @@ import {
 } from './resources/custom-element';
 import { Controller } from './templating/controller';
 import { ObserversLookup } from './observation';
-import { CustomElementBoilerplate } from './templating/boilerplate';
+import { RenderContext } from './templating/render-context';
 
 export interface ITemplateCompiler {
   readonly name: string;
@@ -82,7 +82,7 @@ export interface IInstructionRenderer<
   render(
     flags: LifecycleFlags,
     dom: IDOM,
-    boilerplate: CustomElementBoilerplate,
+    context: RenderContext,
     renderable: IController,
     target: unknown,
     instruction: ITargetedInstruction,
@@ -98,7 +98,7 @@ export interface IRenderer {
   render(
     flags: LifecycleFlags,
     dom: IDOM,
-    boilerplate: CustomElementBoilerplate,
+    context: RenderContext,
     renderable: IController,
     targets: ArrayLike<INode>,
     templateDefinition: CustomElementDefinition,
@@ -164,7 +164,7 @@ export class Renderer implements IRenderer {
   public render(
     flags: LifecycleFlags,
     dom: IDOM,
-    boilerplate: CustomElementBoilerplate,
+    context: RenderContext,
     renderable: IController,
     targets: ArrayLike<INode>,
     definition: CustomElementDefinition,
@@ -190,7 +190,7 @@ export class Renderer implements IRenderer {
 
       for (let j = 0, jj = instructions.length; j < jj; ++j) {
         current = instructions[j];
-        instructionRenderers[current.type](flags, dom, boilerplate, renderable, target, current, parts);
+        instructionRenderers[current.type](flags, dom, context, renderable, target, current, parts);
       }
     }
 
@@ -199,7 +199,7 @@ export class Renderer implements IRenderer {
 
       for (let i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
         current = surrogateInstructions[i];
-        instructionRenderers[current.type](flags, dom, boilerplate, renderable, host, current, parts);
+        instructionRenderers[current.type](flags, dom, context, renderable, host, current, parts);
       }
     }
   }
@@ -269,7 +269,7 @@ export class SetPropertyRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     dom: IDOM,
-    boilerplate: CustomElementBoilerplate,
+    context: RenderContext,
     renderable: IController,
     target: IController,
     instruction: ISetPropertyInstruction,
@@ -289,19 +289,19 @@ export class CustomElementRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     dom: IDOM,
-    boilerplate: CustomElementBoilerplate,
+    context: RenderContext,
     renderable: IController,
     target: INode,
     instruction: IHydrateElementInstruction,
   ): void {
-    const operation = boilerplate.beginComponentOperation(renderable, target, instruction, null, null!, target);
+    const operation = context.beginComponentOperation(renderable, target, instruction, null, null!, target);
     const key = CustomElement.keyFrom(instruction.res);
-    const component = boilerplate.get<object>(key);
-    const instructionRenderers = boilerplate.get(IRenderer).instructionRenderers;
+    const component = context.get<object>(key);
+    const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
 
-    const lifecycle = boilerplate.get(ILifecycle);
-    const controller = Controller.forCustomElement(component, lifecycle, target, boilerplate, void 0, flags);
+    const lifecycle = context.get(ILifecycle);
+    const controller = Controller.forCustomElement(component, lifecycle, target, context, void 0, flags);
     flags = controller.flags;
 
     Metadata.define(key, controller, target);
@@ -309,7 +309,7 @@ export class CustomElementRenderer implements IInstructionRenderer {
     let current: ITargetedInstruction;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       current = childInstructions[i];
-      instructionRenderers[current.type](flags, dom, boilerplate, renderable, controller, current);
+      instructionRenderers[current.type](flags, dom, context, renderable, controller, current);
     }
 
     addComponent(renderable, controller);
@@ -324,18 +324,18 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     dom: IDOM,
-    boilerplate: CustomElementBoilerplate,
+    context: RenderContext,
     renderable: IController,
     target: INode,
     instruction: IHydrateAttributeInstruction,
   ): void {
-    const operation = boilerplate.beginComponentOperation(renderable, target, instruction, null);
+    const operation = context.beginComponentOperation(renderable, target, instruction, null);
     const key = CustomAttribute.keyFrom(instruction.res);
-    const component = boilerplate.get<object>(key);
-    const instructionRenderers = boilerplate.get(IRenderer).instructionRenderers;
+    const component = context.get<object>(key);
+    const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
 
-    const lifecycle = boilerplate.get(ILifecycle);
+    const lifecycle = context.get(ILifecycle);
     const controller = Controller.forCustomAttribute(component, lifecycle, flags);
 
     Metadata.define(key, controller, target);
@@ -343,7 +343,7 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
     let current: ITargetedInstruction;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       current = childInstructions[i];
-      instructionRenderers[current.type](flags, dom, boilerplate, renderable, controller, current);
+      instructionRenderers[current.type](flags, dom, context, renderable, controller, current);
     }
 
     addComponent(renderable, controller);
@@ -358,15 +358,15 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     dom: IDOM,
-    parentBoilerplate: CustomElementBoilerplate,
+    parentBoilerplate: RenderContext,
     renderable: IController,
     target: INode,
     instruction: IHydrateTemplateController,
     parts?: PartialCustomElementDefinitionParts,
   ): void {
     const definition = CustomElementDefinition.getOrCreate(instruction.def);
-    const boilerplate = CustomElementBoilerplate.getOrCreate(definition, parentBoilerplate);
-    const factory = boilerplate.getViewFactory();
+    const context = RenderContext.getOrCreate(definition, parentBoilerplate);
+    const factory = context.getViewFactory();
     const renderLocation = dom.convertToRenderLocation(target);
     const operation = parentBoilerplate.beginComponentOperation(renderable, target, instruction, factory, parts, renderLocation);
     const key = CustomAttribute.keyFrom(instruction.res);
@@ -420,7 +420,7 @@ export class LetElementRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     dom: IDOM,
-    boilerplate: CustomElementBoilerplate,
+    context: RenderContext,
     renderable: IController,
     target: INode,
     instruction: IHydrateLetElementInstruction,
@@ -435,7 +435,7 @@ export class LetElementRenderer implements IInstructionRenderer {
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       childInstruction = childInstructions[i];
       expr = ensureExpression(this.parser, childInstruction.from, BindingType.IsPropertyCommand);
-      binding = new LetBinding(expr, childInstruction.to, this.observerLocator, boilerplate, toBindingContext);
+      binding = new LetBinding(expr, childInstruction.to, this.observerLocator, context, toBindingContext);
       addBinding(renderable, binding);
     }
   }
@@ -452,13 +452,13 @@ export class CallBindingRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     dom: IDOM,
-    boilerplate: CustomElementBoilerplate,
+    context: RenderContext,
     renderable: IController,
     target: IController,
     instruction: ICallBindingInstruction,
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.CallCommand);
-    const binding = new CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, boilerplate);
+    const binding = new CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, context);
     addBinding(renderable, binding);
   }
 }
@@ -473,13 +473,13 @@ export class RefBindingRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     dom: IDOM,
-    boilerplate: CustomElementBoilerplate,
+    context: RenderContext,
     renderable: IController,
     target: INode,
     instruction: IRefBindingInstruction,
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsRef);
-    const binding = new RefBinding(expr, getRefTarget(target, instruction.to), boilerplate);
+    const binding = new RefBinding(expr, getRefTarget(target, instruction.to), context);
     addBinding(renderable, binding);
   }
 }
@@ -495,7 +495,7 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     dom: IDOM,
-    boilerplate: CustomElementBoilerplate,
+    context: RenderContext,
     renderable: IController,
     target: IController,
     instruction: IInterpolationInstruction,
@@ -503,9 +503,9 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
     let binding: MultiInterpolationBinding | InterpolationBinding;
     const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation);
     if (expr.isMulti) {
-      binding = new MultiInterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, BindingMode.toView, boilerplate);
+      binding = new MultiInterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, BindingMode.toView, context);
     } else {
-      binding = new InterpolationBinding(expr.firstExpression, expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, boilerplate, true);
+      binding = new InterpolationBinding(expr.firstExpression, expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context, true);
     }
     addBinding(renderable, binding);
   }
@@ -522,13 +522,13 @@ export class PropertyBindingRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     dom: IDOM,
-    boilerplate: CustomElementBoilerplate,
+    context: RenderContext,
     renderable: IController,
     target: IController,
     instruction: IPropertyBindingInstruction,
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | instruction.mode);
-    const binding = new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, boilerplate);
+    const binding = new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context);
     addBinding(renderable, binding);
   }
 }
@@ -544,13 +544,13 @@ export class IteratorBindingRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     dom: IDOM,
-    boilerplate: CustomElementBoilerplate,
+    context: RenderContext,
     renderable: IController,
     target: IController,
     instruction: IIteratorBindingInstruction,
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.ForCommand);
-    const binding = new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, boilerplate);
+    const binding = new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context);
     addBinding(renderable, binding);
   }
 }

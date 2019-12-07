@@ -127,10 +127,12 @@ export class BindingBehaviorFactory<T extends Constructable = Constructable> {
     const deps = this.deps;
     switch (deps.length) {
       case 0:
-        return new this.Type(binding, expr) as IInterceptableBinding;
       case 1:
-        return new this.Type(container.get(deps[0]), binding, expr) as IInterceptableBinding;
       case 2:
+        return new this.Type(binding, expr) as IInterceptableBinding;
+      case 3:
+        return new this.Type(container.get(deps[0]), binding, expr) as IInterceptableBinding;
+      case 4:
         return new this.Type(container.get(deps[0]), container.get(deps[1]), binding, expr) as IInterceptableBinding;
       default:
         return new this.Type(...deps.map(d => container.get(d)), binding, expr) as IInterceptableBinding;

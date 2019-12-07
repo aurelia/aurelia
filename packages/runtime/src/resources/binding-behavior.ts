@@ -21,7 +21,7 @@ import { IScope, ISubscribable, IProxySubscribable } from '../observation';
 import { IBinding } from '../lifecycle';
 import { connectable, IConnectableBinding } from '../binding/connectable';
 import { IObserverLocator } from '../observation/observer-locator';
-import { BindingBehaviorExpression } from '../binding/ast';
+import { IBindingBehaviorExpression } from '../ast';
 
 export type PartialBindingBehaviorDefinition = PartialResourceDefinition<{
   strategy?: BindingBehaviorStrategy;
@@ -121,7 +121,7 @@ export class BindingBehaviorFactory<T extends Constructable = Constructable> {
 
   public construct(
     binding: IInterceptableBinding,
-    expr: BindingBehaviorExpression,
+    expr: IBindingBehaviorExpression,
   ): IInterceptableBinding {
     const container = this.container;
     const deps = this.deps;
@@ -178,7 +178,7 @@ export class BindingInterceptor implements IInterceptableBinding {
 
   public constructor(
     public readonly binding: IInterceptableBinding,
-    public readonly expr: BindingBehaviorExpression,
+    public readonly expr: IBindingBehaviorExpression,
   ) {
     let interceptor: IBinding;
     while (binding.interceptor !== this) {

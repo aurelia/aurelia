@@ -10,11 +10,15 @@ import {
   PartialResourceDefinition,
   mergeArrays,
   firstDefined,
+  IServiceLocator,
 } from '@aurelia/kernel';
 import { registerAliases } from '../definitions';
-import { LifecycleFlags } from '../flags';
-import { IScope } from '../observation';
+import { LifecycleFlags, State } from '../flags';
+import { IScope, ISubscribable, IProxySubscribable } from '../observation';
 import { IBinding } from '../lifecycle';
+import { connectable, IConnectableBinding } from '../binding/connectable';
+import { IObserverLocator } from '../observation/observer-locator';
+import { BindingBehaviorExpression } from '../binding/ast';
 
 export type PartialBindingBehaviorDefinition = PartialResourceDefinition;
 
@@ -78,9 +82,80 @@ export class BindingBehaviorDefinition<T extends Constructable = Constructable> 
 
   public register(container: IContainer): void {
     const { Type, key, aliases } = this;
-    Registration.singleton(key, Type).register(container);
+    Registration.transient(key, Type).register(container);
     Registration.alias(key, Type).register(container);
     registerAliases(aliases, BindingBehavior, key, container);
+  }
+}
+
+export interface IInterceptableBinding extends IBinding {
+  id?: number;
+  readonly observerLocator?: IObserverLocator;
+  updateTarget?(value: unknown, flags: LifecycleFlags): void;
+  updateSource?(value: unknown, flags: LifecycleFlags): void;
+
+  callSource?(args: object): unknown;
+  handleChange?(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
+
+  observeProperty?(flags: LifecycleFlags, obj: object, propertyName: string): void;
+  addObserver?(observer: ISubscribable | IProxySubscribable): void;
+  unobserve?(all?: boolean): void;
+}
+
+export interface BindingInterceptor extends IConnectableBinding {}
+
+@connectable
+export class BindingInterceptor implements IInterceptableBinding {
+  public interceptor: this = this;
+  public get id(): number {
+    return this.binding.id!;
+  }
+  public get observerLocator(): IObserverLocator {
+    return this.binding.observerLocator!;
+  }
+  public get locator(): IServiceLocator {
+    return this.binding.locator;
+  }
+  public get $scope(): IScope | undefined {
+    return this.binding.$scope;
+  }
+  public get part(): string | undefined {
+    return this.binding.part;
+  }
+  public get $state(): State {
+    return this.binding.$state;
+  }
+
+  public constructor(
+    public readonly binding: IInterceptableBinding,
+    public readonly expr: BindingBehaviorExpression,
+  ) {
+    let interceptor: IBinding;
+    while (binding.interceptor !== this) {
+      interceptor = binding.interceptor;
+      binding.interceptor = this;
+      binding = interceptor;
+    }
+  }
+
+  public updateTarget(value: unknown, flags: LifecycleFlags): void {
+    this.binding.updateTarget!(value, flags);
+  }
+  public updateSource(value: unknown, flags: LifecycleFlags): void {
+    this.binding.updateSource!(value, flags);
+  }
+  public callSource(args: object): unknown {
+    return this.binding.callSource!(args);
+  }
+  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
+    this.binding.handleChange!(newValue, previousValue, flags);
+  }
+
+  public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined): void {
+    this.binding.$bind(flags, scope, part);
+  }
+  public $unbind(flags: LifecycleFlags): void {
+    this.binding.$unbind(flags);
   }
 }
 

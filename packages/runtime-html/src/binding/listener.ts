@@ -10,8 +10,6 @@ import {
   IScope,
   LifecycleFlags,
   State,
-  IScheduler,
-  ITaskQueue
 } from '@aurelia/runtime';
 import { IEventManager } from '../observation/event-manager';
 
@@ -20,6 +18,8 @@ export interface Listener extends IConnectableBinding { }
  * Listener binding. Handle event binding between view and view model
  */
 export class Listener implements IBinding {
+  public interceptor: this = this;
+
   public $state: State = State.none;
   public $scope!: IScope;
   public part?: string;
@@ -34,8 +34,8 @@ export class Listener implements IBinding {
     public target: Node,
     public preventDefault: boolean,
     public eventManager: IEventManager,
-    public locator: IServiceLocator
-  ) { }
+    public locator: IServiceLocator,
+  ) {}
 
   public callSource(event: Event): ReturnType<IsBindingBehavior['evaluate']> {
     const overrideContext = this.$scope.overrideContext;
@@ -53,7 +53,7 @@ export class Listener implements IBinding {
   }
 
   public handleEvent(event: Event): void {
-    this.callSource(event!);
+    this.interceptor.callSource(event);
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
@@ -62,7 +62,7 @@ export class Listener implements IBinding {
         return;
       }
 
-      this.$unbind(flags | LifecycleFlags.fromBind);
+      this.interceptor.$unbind(flags | LifecycleFlags.fromBind);
     }
     // add isBinding flag
     this.$state |= State.isBinding;
@@ -72,14 +72,14 @@ export class Listener implements IBinding {
 
     const sourceExpression = this.sourceExpression;
     if (hasBind(sourceExpression)) {
-      sourceExpression.bind(flags, scope, this);
+      sourceExpression.bind(flags, scope, this.interceptor);
     }
 
     this.handler = this.eventManager.addEventListener(
       this.dom,
       this.target,
       this.targetEvent,
-      this,
+      this.interceptor,
       this.delegationStrategy
     );
 
@@ -97,7 +97,7 @@ export class Listener implements IBinding {
 
     const sourceExpression = this.sourceExpression;
     if (hasUnbind(sourceExpression)) {
-      sourceExpression.unbind(flags, this.$scope, this);
+      sourceExpression.unbind(flags, this.$scope, this.interceptor);
     }
 
     this.$scope = null!;

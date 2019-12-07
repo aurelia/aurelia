@@ -19,6 +19,8 @@ import { IConnectableBinding } from './connectable';
 
 export interface CallBinding extends IConnectableBinding { }
 export class CallBinding {
+  public interceptor: this = this;
+
   public $state: State = State.none;
   public $scope?: IScope;
   public part?: string;
@@ -53,7 +55,7 @@ export class CallBinding {
         return;
       }
 
-      this.$unbind(flags | LifecycleFlags.fromBind);
+      this.interceptor.$unbind(flags | LifecycleFlags.fromBind);
     }
     // add isBinding flag
     this.$state |= State.isBinding;
@@ -62,10 +64,10 @@ export class CallBinding {
     this.part = part;
 
     if (hasBind(this.sourceExpression)) {
-      this.sourceExpression.bind(flags, scope, this);
+      this.sourceExpression.bind(flags, scope, this.interceptor);
     }
 
-    this.targetObserver.setValue(($args: object) => this.callSource($args as object), flags);
+    this.targetObserver.setValue(($args: object) => this.interceptor.callSource($args), flags);
 
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;
@@ -80,7 +82,7 @@ export class CallBinding {
     this.$state |= State.isUnbinding;
 
     if (hasUnbind(this.sourceExpression)) {
-      this.sourceExpression.unbind(flags, this.$scope!, this);
+      this.sourceExpression.unbind(flags, this.$scope!, this.interceptor);
     }
 
     this.$scope = void 0;

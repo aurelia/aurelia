@@ -40,6 +40,8 @@ export interface AttributeBinding extends IConnectableBinding { }
  */
 @connectable()
 export class AttributeBinding implements IPartialConnectableBinding {
+  public interceptor: this = this;
+
   public id!: number;
   public $state: State = State.none;
   public $scheduler: IScheduler;
@@ -68,7 +70,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     public targetProperty: string,
     public mode: BindingMode,
     public observerLocator: IObserverLocator,
-    public locator: IServiceLocator
+    public locator: IServiceLocator,
   ) {
     this.target = target as Element;
     connectable.assignIdTo(this);
@@ -104,19 +106,19 @@ export class AttributeBinding implements IPartialConnectableBinding {
         newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);
       }
       if (newValue !== previousValue) {
-        this.updateTarget(newValue, flags);
+        this.interceptor.updateTarget(newValue, flags);
       }
       if ((this.mode & oneTime) === 0) {
         this.version++;
-        this.sourceExpression.connect(flags, this.$scope, this, this.part);
-        this.unobserve(false);
+        this.sourceExpression.connect(flags, this.$scope, this.interceptor, this.part);
+        this.interceptor.unobserve(false);
       }
       return;
     }
 
     if (flags & LifecycleFlags.updateSourceExpression) {
       if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part)) {
-        this.updateSource(newValue, flags);
+        this.interceptor.updateSource(newValue, flags);
       }
       return;
     }
@@ -129,7 +131,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
       if (this.$scope === scope) {
         return;
       }
-      this.$unbind(flags | LifecycleFlags.fromBind);
+      this.interceptor.$unbind(flags | LifecycleFlags.fromBind);
     }
     // add isBinding flag
     this.$state |= State.isBinding;
@@ -143,7 +145,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
 
     let sourceExpression = this.sourceExpression;
     if (hasBind(sourceExpression)) {
-      sourceExpression.bind(flags, scope, this);
+      sourceExpression.bind(flags, scope, this.interceptor);
     }
 
     let targetObserver = this.targetObserver as IBindingTargetObserver;
@@ -164,14 +166,14 @@ export class AttributeBinding implements IPartialConnectableBinding {
     // during bind, binding behavior might have changed sourceExpression
     sourceExpression = this.sourceExpression;
     if (this.mode & toViewOrOneTime) {
-      this.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
+      this.interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
     }
     if (this.mode & toView) {
       sourceExpression.connect(flags, scope, this, part);
     }
     if (this.mode & fromView) {
       (targetObserver as IBindingTargetObserver & { [key: string]: number })[this.id] |= LifecycleFlags.updateSourceExpression;
-      targetObserver.subscribe(this);
+      targetObserver.subscribe(this.interceptor);
     }
 
     // add isBound flag and remove isBinding flag
@@ -190,7 +192,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     this.persistentFlags = LifecycleFlags.none;
 
     if (hasUnbind(this.sourceExpression)) {
-      this.sourceExpression.unbind(flags, this.$scope, this);
+      this.sourceExpression.unbind(flags, this.$scope, this.interceptor);
     }
     this.$scope = null!;
 
@@ -198,10 +200,10 @@ export class AttributeBinding implements IPartialConnectableBinding {
       (this.targetObserver as IBindingTargetObserver).unbind!(flags);
     }
     if ((this.targetObserver as IBindingTargetObserver).unsubscribe) {
-      (this.targetObserver as IBindingTargetObserver).unsubscribe(this);
+      (this.targetObserver as IBindingTargetObserver).unsubscribe(this.interceptor);
       (this.targetObserver as IBindingTargetObserver & { [key: string]: number })[this.id] &= ~LifecycleFlags.updateSourceExpression;
     }
-    this.unobserve(true);
+    this.interceptor.unobserve(true);
 
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);
@@ -210,7 +212,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
   public connect(flags: LifecycleFlags): void {
     if (this.$state & State.isBound) {
       flags |= this.persistentFlags;
-      this.sourceExpression.connect(flags | LifecycleFlags.mustEvaluate, this.$scope, this, this.part); // why do we have a connect method here in the first place? will this be called after bind?
+      this.sourceExpression.connect(flags | LifecycleFlags.mustEvaluate, this.$scope, this.interceptor, this.part); // why do we have a connect method here in the first place? will this be called after bind?
     }
   }
 }

@@ -58,4 +58,4 @@ importAll(require.context('./fetch-client/', true, /\.spec\.js$/));
 importAll(require.context('./i18n/', true, /\.spec\.js$/));
 importAll(require.context('./integration/', true, /\.spec\.js$/));
 importAll(require.context('./router/', true, /\.spec\.js$/));
-importAll(require.context('./validation/', true, /\.spec\.js$/));
+// importAll(require.context('./validation/', true, /\.spec\.js$/));

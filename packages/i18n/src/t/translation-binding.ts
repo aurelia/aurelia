@@ -46,8 +46,11 @@ interface ContentValue {
 
 const attributeAliases = new Map([['text', 'textContent'], ['html', 'innerHTML']]);
 
+export interface TranslationBinding extends IConnectableBinding {}
+
 @connectable()
 export class TranslationBinding implements IPartialConnectableBinding {
+  public interceptor: this = this;
   public id!: number;
   public $state: State;
   public expr!: IsExpression;

@@ -12,6 +12,7 @@ export declare class MultiInterpolationBinding implements IBinding {
     targetProperty: string;
     mode: BindingMode;
     locator: IServiceLocator;
+    interceptor: this;
     $state: State;
     $scope?: IScope;
     part?: string;
@@ -31,6 +32,7 @@ export declare class InterpolationBinding implements IPartialConnectableBinding 
     observerLocator: IObserverLocator;
     locator: IServiceLocator;
     isFirst: boolean;
+    interceptor: this;
     id: number;
     $scope?: IScope;
     part?: string;

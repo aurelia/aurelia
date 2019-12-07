@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/kernel", "./binding/call-binding", "./binding/expression-parser", "./binding/interpolation-binding", "./binding/let-binding", "./binding/property-binding", "./binding/ref-binding", "./flags", "./observation/observer-locator", "./rendering-engine", "./resources/custom-attribute", "./resources/custom-element", "./templating/controller"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "./binding/call-binding", "./binding/expression-parser", "./binding/interpolation-binding", "./binding/let-binding", "./binding/property-binding", "./binding/ref-binding", "./flags", "./observation/observer-locator", "./rendering-engine", "./resources/custom-attribute", "./resources/custom-element", "./templating/controller", "./binding/ast", "./resources/binding-behavior"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -23,6 +23,8 @@
     const custom_attribute_1 = require("./resources/custom-attribute");
     const custom_element_1 = require("./resources/custom-element");
     const controller_1 = require("./templating/controller");
+    const ast_1 = require("./binding/ast");
+    const binding_behavior_1 = require("./resources/binding-behavior");
     function instructionRenderer(instructionType) {
         return function decorator(target) {
             // wrap the constructor to set the instructionType to the instance (for better performance than when set on the prototype)
@@ -298,7 +300,7 @@
             for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
                 childInstruction = childInstructions[i];
                 expr = ensureExpression(this.parser, childInstruction.from, 48 /* IsPropertyCommand */);
-                binding = new let_binding_1.LetBinding(expr, childInstruction.to, this.observerLocator, context, toBindingContext);
+                binding = applyBindingBehavior(new let_binding_1.LetBinding(expr, childInstruction.to, this.observerLocator, context, toBindingContext), expr, context);
                 addBinding(renderable, binding);
             }
         }
@@ -321,7 +323,7 @@
         }
         render(flags, dom, context, renderable, target, instruction) {
             const expr = ensureExpression(this.parser, instruction.from, 153 /* CallCommand */);
-            const binding = new call_binding_1.CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, context);
+            const binding = applyBindingBehavior(new call_binding_1.CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, context), expr, context);
             addBinding(renderable, binding);
         }
     };
@@ -342,7 +344,7 @@
         }
         render(flags, dom, context, renderable, target, instruction) {
             const expr = ensureExpression(this.parser, instruction.from, 5376 /* IsRef */);
-            const binding = new ref_binding_1.RefBinding(expr, getRefTarget(target, instruction.to), context);
+            const binding = applyBindingBehavior(new ref_binding_1.RefBinding(expr, getRefTarget(target, instruction.to), context), expr, context);
             addBinding(renderable, binding);
         }
     };
@@ -365,10 +367,10 @@
             let binding;
             const expr = ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
             if (expr.isMulti) {
-                binding = new interpolation_binding_1.MultiInterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, flags_1.BindingMode.toView, context);
+                binding = applyBindingBehavior(new interpolation_binding_1.MultiInterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, flags_1.BindingMode.toView, context), expr, context);
             }
             else {
-                binding = new interpolation_binding_1.InterpolationBinding(expr.firstExpression, expr, getTarget(target), instruction.to, flags_1.BindingMode.toView, this.observerLocator, context, true);
+                binding = applyBindingBehavior(new interpolation_binding_1.InterpolationBinding(expr.firstExpression, expr, getTarget(target), instruction.to, flags_1.BindingMode.toView, this.observerLocator, context, true), expr, context);
             }
             addBinding(renderable, binding);
         }
@@ -391,7 +393,7 @@
         }
         render(flags, dom, context, renderable, target, instruction) {
             const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | instruction.mode);
-            const binding = new property_binding_1.PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context);
+            const binding = applyBindingBehavior(new property_binding_1.PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context), expr, context);
             addBinding(renderable, binding);
         }
     };
@@ -413,7 +415,7 @@
         }
         render(flags, dom, context, renderable, target, instruction) {
             const expr = ensureExpression(this.parser, instruction.from, 539 /* ForCommand */);
-            const binding = new property_binding_1.PropertyBinding(expr, getTarget(target), instruction.to, flags_1.BindingMode.toView, this.observerLocator, context);
+            const binding = applyBindingBehavior(new property_binding_1.PropertyBinding(expr, getTarget(target), instruction.to, flags_1.BindingMode.toView, this.observerLocator, context), expr, context);
             addBinding(renderable, binding);
         }
     };
@@ -426,5 +428,23 @@
         tslib_1.__metadata("design:paramtypes", [Object, Object])
     ], IteratorBindingRenderer);
     exports.IteratorBindingRenderer = IteratorBindingRenderer;
+    let behaviorExpressionIndex = 0;
+    const behaviorExpressions = [];
+    function applyBindingBehavior(binding, expression, locator) {
+        while (expression instanceof ast_1.BindingBehaviorExpression) {
+            behaviorExpressions[behaviorExpressionIndex++] = expression;
+            expression = expression.expression;
+        }
+        while (behaviorExpressionIndex > 0) {
+            const behaviorExpression = behaviorExpressions[--behaviorExpressionIndex];
+            const behaviorOrFactory = locator.get(behaviorExpression.behaviorKey);
+            if (behaviorOrFactory instanceof binding_behavior_1.BindingBehaviorFactory) {
+                binding = behaviorOrFactory.construct(binding, behaviorExpression);
+            }
+        }
+        behaviorExpressions.length = 0;
+        return binding;
+    }
+    exports.applyBindingBehavior = applyBindingBehavior;
 });
 //# sourceMappingURL=renderer.js.map

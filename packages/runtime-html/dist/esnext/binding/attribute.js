@@ -23,6 +23,7 @@ let AttributeBinding = class AttributeBinding {
         this.mode = mode;
         this.observerLocator = observerLocator;
         this.locator = locator;
+        this.interceptor = this;
         this.$state = 0 /* none */;
         this.$scope = null;
         this.persistentFlags = 0 /* none */;
@@ -54,18 +55,18 @@ let AttributeBinding = class AttributeBinding {
                 newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);
             }
             if (newValue !== previousValue) {
-                this.updateTarget(newValue, flags);
+                this.interceptor.updateTarget(newValue, flags);
             }
             if ((this.mode & oneTime) === 0) {
                 this.version++;
-                this.sourceExpression.connect(flags, this.$scope, this, this.part);
-                this.unobserve(false);
+                this.sourceExpression.connect(flags, this.$scope, this.interceptor, this.part);
+                this.interceptor.unobserve(false);
             }
             return;
         }
         if (flags & 32 /* updateSourceExpression */) {
             if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part)) {
-                this.updateSource(newValue, flags);
+                this.interceptor.updateSource(newValue, flags);
             }
             return;
         }
@@ -76,7 +77,7 @@ let AttributeBinding = class AttributeBinding {
             if (this.$scope === scope) {
                 return;
             }
-            this.$unbind(flags | 4096 /* fromBind */);
+            this.interceptor.$unbind(flags | 4096 /* fromBind */);
         }
         // add isBinding flag
         this.$state |= 1 /* isBinding */;
@@ -87,7 +88,7 @@ let AttributeBinding = class AttributeBinding {
         this.part = part;
         let sourceExpression = this.sourceExpression;
         if (hasBind(sourceExpression)) {
-            sourceExpression.bind(flags, scope, this);
+            sourceExpression.bind(flags, scope, this.interceptor);
         }
         let targetObserver = this.targetObserver;
         if (!targetObserver) {
@@ -99,14 +100,14 @@ let AttributeBinding = class AttributeBinding {
         // during bind, binding behavior might have changed sourceExpression
         sourceExpression = this.sourceExpression;
         if (this.mode & toViewOrOneTime) {
-            this.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
+            this.interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
         }
         if (this.mode & toView) {
             sourceExpression.connect(flags, scope, this, part);
         }
         if (this.mode & fromView) {
             targetObserver[this.id] |= 32 /* updateSourceExpression */;
-            targetObserver.subscribe(this);
+            targetObserver.subscribe(this.interceptor);
         }
         // add isBound flag and remove isBinding flag
         this.$state |= 4 /* isBound */;
@@ -121,24 +122,24 @@ let AttributeBinding = class AttributeBinding {
         // clear persistent flags
         this.persistentFlags = 0 /* none */;
         if (hasUnbind(this.sourceExpression)) {
-            this.sourceExpression.unbind(flags, this.$scope, this);
+            this.sourceExpression.unbind(flags, this.$scope, this.interceptor);
         }
         this.$scope = null;
         if (this.targetObserver.unbind) {
             this.targetObserver.unbind(flags);
         }
         if (this.targetObserver.unsubscribe) {
-            this.targetObserver.unsubscribe(this);
+            this.targetObserver.unsubscribe(this.interceptor);
             this.targetObserver[this.id] &= ~32 /* updateSourceExpression */;
         }
-        this.unobserve(true);
+        this.interceptor.unobserve(true);
         // remove isBound and isUnbinding flags
         this.$state &= ~(4 /* isBound */ | 2 /* isUnbinding */);
     }
     connect(flags) {
         if (this.$state & 4 /* isBound */) {
             flags |= this.persistentFlags;
-            this.sourceExpression.connect(flags | 2097152 /* mustEvaluate */, this.$scope, this, this.part); // why do we have a connect method here in the first place? will this be called after bind?
+            this.sourceExpression.connect(flags | 2097152 /* mustEvaluate */, this.$scope, this.interceptor, this.part); // why do we have a connect method here in the first place? will this be called after bind?
         }
     }
 };

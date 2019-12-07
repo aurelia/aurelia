@@ -1,4 +1,5 @@
-import { Class, IRegistry } from '@aurelia/kernel';
+import { Class, IRegistry, IServiceLocator } from '@aurelia/kernel';
+import { IsBindingBehavior } from './ast';
 import { BindingType, IExpressionParser } from './binding/expression-parser';
 import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateLetElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetPropertyInstruction, PartialCustomElementDefinitionParts } from './definitions';
 import { IDOM, INode } from './dom';
@@ -6,6 +7,7 @@ import { LifecycleFlags } from './flags';
 import { IBinding, IController, IRenderContext } from './lifecycle';
 import { IObserverLocator } from './observation/observer-locator';
 import { IInstructionRenderer, IInstructionTypeClassifier, IRenderingEngine } from './rendering-engine';
+import { IInterceptableBinding } from './resources/binding-behavior';
 declare type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>>, TClass> & Partial<IRegistry>;
 declare type DecoratedInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>, TClass> & IRegistry;
 declare type InstructionRendererDecorator<TType extends string> = <TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>) => DecoratedInstructionRenderer<TType, TProto, TClass>;
@@ -65,5 +67,6 @@ export declare class IteratorBindingRenderer implements IInstructionRenderer {
     constructor(parser: IExpressionParser, observerLocator: IObserverLocator);
     render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: IIteratorBindingInstruction): void;
 }
+export declare function applyBindingBehavior(binding: IInterceptableBinding, expression: IsBindingBehavior, locator: IServiceLocator): IInterceptableBinding;
 export {};
 //# sourceMappingURL=renderer.d.ts.map

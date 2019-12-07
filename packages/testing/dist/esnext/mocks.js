@@ -1,6 +1,7 @@
 import { PLATFORM } from '@aurelia/kernel';
 export class MockBinding {
     constructor() {
+        this.interceptor = this;
         this.calls = [];
     }
     updateTarget(value, flags) {

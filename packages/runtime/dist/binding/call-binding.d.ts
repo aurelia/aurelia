@@ -9,6 +9,7 @@ export interface CallBinding extends IConnectableBinding {
 export declare class CallBinding {
     sourceExpression: IsBindingBehavior;
     locator: IServiceLocator;
+    interceptor: this;
     $state: State;
     $scope?: IScope;
     part?: string;

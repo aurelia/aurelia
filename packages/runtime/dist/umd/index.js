@@ -290,6 +290,7 @@
     exports.ensureExpression = renderer_1.ensureExpression;
     exports.addComponent = renderer_1.addComponent;
     exports.addBinding = renderer_1.addBinding;
+    exports.applyBindingBehavior = renderer_1.applyBindingBehavior;
     var rendering_engine_1 = require("./rendering-engine");
     exports.CompiledTemplate = rendering_engine_1.CompiledTemplate;
     exports.ChildrenObserver = rendering_engine_1.ChildrenObserver;

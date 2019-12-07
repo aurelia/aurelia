@@ -143,12 +143,14 @@
             if (!behavior) {
                 throw kernel_1.Reporter.error(203 /* NoBehaviorFound */, this);
             }
-            if (binding[behaviorKey] === void 0) {
-                binding[behaviorKey] = behavior;
-                behavior.bind.call(behavior, flags, scope, binding, ...evalList(flags, scope, locator, this.args));
-            }
-            else {
-                kernel_1.Reporter.write(204 /* BehaviorAlreadyApplied */, this);
+            if (!(behavior instanceof binding_behavior_1.BindingBehaviorFactory)) {
+                if (binding[behaviorKey] === void 0) {
+                    binding[behaviorKey] = behavior;
+                    behavior.bind.call(behavior, flags, scope, binding, ...evalList(flags, scope, locator, this.args));
+                }
+                else {
+                    kernel_1.Reporter.write(204 /* BehaviorAlreadyApplied */, this);
+                }
             }
         }
         unbind(flags, scope, binding) {
@@ -156,11 +158,6 @@
             if (binding[behaviorKey] !== void 0) {
                 binding[behaviorKey].unbind(flags, scope, binding);
                 binding[behaviorKey] = void 0;
-            }
-            else {
-                // TODO: this is a temporary hack to make testing repeater keyed mode easier,
-                // we should remove this idempotency again when track-by attribute is implemented
-                kernel_1.Reporter.write(204 /* BehaviorAlreadyApplied */, this);
             }
             if (hasUnbind(this.expression)) {
                 this.expression.unbind(flags, scope, binding);

@@ -2,7 +2,7 @@ import { isNumeric, PLATFORM, Reporter, isNumberOrBigInt, isStringOrDate, } from
 import { BindingContext } from '../observation/binding-context';
 import { ProxyObserver } from '../observation/proxy-observer';
 import { ISignaler } from '../observation/signaler';
-import { BindingBehavior, } from '../resources/binding-behavior';
+import { BindingBehavior, BindingBehaviorFactory, } from '../resources/binding-behavior';
 import { ValueConverter, } from '../resources/value-converter';
 export function connects(expr) {
     return (expr.$kind & 32 /* Connects */) === 32 /* Connects */;
@@ -118,12 +118,14 @@ export class BindingBehaviorExpression {
         if (!behavior) {
             throw Reporter.error(203 /* NoBehaviorFound */, this);
         }
-        if (binding[behaviorKey] === void 0) {
-            binding[behaviorKey] = behavior;
-            behavior.bind.call(behavior, flags, scope, binding, ...evalList(flags, scope, locator, this.args));
-        }
-        else {
-            Reporter.write(204 /* BehaviorAlreadyApplied */, this);
+        if (!(behavior instanceof BindingBehaviorFactory)) {
+            if (binding[behaviorKey] === void 0) {
+                binding[behaviorKey] = behavior;
+                behavior.bind.call(behavior, flags, scope, binding, ...evalList(flags, scope, locator, this.args));
+            }
+            else {
+                Reporter.write(204 /* BehaviorAlreadyApplied */, this);
+            }
         }
     }
     unbind(flags, scope, binding) {
@@ -131,11 +133,6 @@ export class BindingBehaviorExpression {
         if (binding[behaviorKey] !== void 0) {
             binding[behaviorKey].unbind(flags, scope, binding);
             binding[behaviorKey] = void 0;
-        }
-        else {
-            // TODO: this is a temporary hack to make testing repeater keyed mode easier,
-            // we should remove this idempotency again when track-by attribute is implemented
-            Reporter.write(204 /* BehaviorAlreadyApplied */, this);
         }
         if (hasUnbind(this.expression)) {
             this.expression.unbind(flags, scope, binding);

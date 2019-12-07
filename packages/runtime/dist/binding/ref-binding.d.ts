@@ -10,6 +10,7 @@ export declare class RefBinding implements IBinding {
     sourceExpression: IsBindingBehavior;
     target: object;
     locator: IServiceLocator;
+    interceptor: this;
     $state: State;
     $scope?: IScope;
     part?: string;

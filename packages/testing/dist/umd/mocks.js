@@ -12,6 +12,7 @@
     const kernel_1 = require("@aurelia/kernel");
     class MockBinding {
         constructor() {
+            this.interceptor = this;
             this.calls = [];
         }
         updateTarget(value, flags) {

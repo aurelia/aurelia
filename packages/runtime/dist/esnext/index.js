@@ -52,7 +52,7 @@ export { CallBindingInstruction, FromViewBindingInstruction, HydrateAttributeIns
 export { ViewModelKind, ILifecycle, IController, IViewFactory, MountStrategy, } from './lifecycle';
 export { AggregateContinuationTask, TerminalTask, AggregateTerminalTask, ContinuationTask, LifecycleTask, PromiseTask, TaskSlot, StartTask, IStartTask, IStartTaskManager, ProviderTask, } from './lifecycle-task';
 export { CollectionKind, DelegationStrategy, isIndexMap, copyIndexMap, cloneIndexMap, createIndexMap, } from './observation';
-export { instructionRenderer, ensureExpression, addComponent, addBinding } from './renderer';
+export { instructionRenderer, ensureExpression, addComponent, addBinding, applyBindingBehavior, } from './renderer';
 export { CompiledTemplate, ChildrenObserver, IInstructionRenderer, IRenderer, IRenderingEngine, ITemplateCompiler, ITemplateFactory, ViewCompileFlags, } from './rendering-engine';
 export { RenderContext, } from './render-context';
 //# sourceMappingURL=index.js.map

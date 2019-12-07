@@ -28,6 +28,7 @@
             this.mode = mode;
             this.observerLocator = observerLocator;
             this.locator = locator;
+            this.interceptor = this;
             this.$state = 0 /* none */;
             this.$scope = void 0;
             this.targetObserver = void 0;
@@ -56,18 +57,18 @@
                     newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);
                 }
                 if (newValue !== previousValue) {
-                    this.updateTarget(newValue, flags);
+                    this.interceptor.updateTarget(newValue, flags);
                 }
                 if ((this.mode & oneTime) === 0) {
                     this.version++;
-                    this.sourceExpression.connect(flags, this.$scope, this, this.part);
-                    this.unobserve(false);
+                    this.sourceExpression.connect(flags, this.$scope, this.interceptor, this.part);
+                    this.interceptor.unobserve(false);
                 }
                 return;
             }
             if ((flags & 32 /* updateSourceExpression */) > 0) {
                 if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part)) {
-                    this.updateSource(newValue, flags);
+                    this.interceptor.updateSource(newValue, flags);
                 }
                 return;
             }
@@ -78,7 +79,7 @@
                 if (this.$scope === scope) {
                     return;
                 }
-                this.$unbind(flags | 4096 /* fromBind */);
+                this.interceptor.$unbind(flags | 4096 /* fromBind */);
             }
             // add isBinding flag
             this.$state |= 1 /* isBinding */;
@@ -91,7 +92,7 @@
             this.part = part;
             let sourceExpression = this.sourceExpression;
             if (ast_1.hasBind(sourceExpression)) {
-                sourceExpression.bind(flags, scope, this);
+                sourceExpression.bind(flags, scope, this.interceptor);
             }
             let targetObserver = this.targetObserver;
             if (!targetObserver) {
@@ -108,13 +109,13 @@
             // during bind, binding behavior might have changed sourceExpression
             sourceExpression = this.sourceExpression;
             if (this.mode & toViewOrOneTime) {
-                this.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
+                this.interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
             }
             if (this.mode & toView) {
-                sourceExpression.connect(flags, scope, this, part);
+                sourceExpression.connect(flags, scope, this.interceptor, part);
             }
             if (this.mode & fromView) {
-                targetObserver.subscribe(this);
+                targetObserver.subscribe(this.interceptor);
                 targetObserver[this.id] |= 32 /* updateSourceExpression */;
             }
             // add isBound flag and remove isBinding flag
@@ -130,17 +131,17 @@
             // clear persistent flags
             this.persistentFlags = 0 /* none */;
             if (ast_1.hasUnbind(this.sourceExpression)) {
-                this.sourceExpression.unbind(flags, this.$scope, this);
+                this.sourceExpression.unbind(flags, this.$scope, this.interceptor);
             }
             this.$scope = void 0;
             if (this.targetObserver.unbind) {
                 this.targetObserver.unbind(flags);
             }
             if (this.targetObserver.unsubscribe) {
-                this.targetObserver.unsubscribe(this);
+                this.targetObserver.unsubscribe(this.interceptor);
                 this.targetObserver[this.id] &= ~32 /* updateSourceExpression */;
             }
-            this.unobserve(true);
+            this.interceptor.unobserve(true);
             // remove isBound and isUnbinding flags
             this.$state &= ~(4 /* isBound */ | 2 /* isUnbinding */);
         }

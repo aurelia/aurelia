@@ -21,6 +21,7 @@
             this.observerLocator = observerLocator;
             this.locator = locator;
             this.toBindingContext = toBindingContext;
+            this.interceptor = this;
             this.$state = 0 /* none */;
             this.$scope = void 0;
             this.target = null;
@@ -47,7 +48,7 @@
                 if (this.$scope === scope) {
                     return;
                 }
-                this.$unbind(flags | 4096 /* fromBind */);
+                this.interceptor.$unbind(flags | 4096 /* fromBind */);
             }
             // add isBinding flag
             this.$state |= 1 /* isBinding */;
@@ -56,11 +57,11 @@
             this.target = (this.toBindingContext ? scope.bindingContext : scope.overrideContext);
             const sourceExpression = this.sourceExpression;
             if (sourceExpression.bind) {
-                sourceExpression.bind(flags, scope, this);
+                sourceExpression.bind(flags, scope, this.interceptor);
             }
             // sourceExpression might have been changed during bind
             this.target[this.targetProperty] = this.sourceExpression.evaluate(flags | 4096 /* fromBind */, scope, this.locator, part);
-            this.sourceExpression.connect(flags, scope, this, part);
+            this.sourceExpression.connect(flags, scope, this.interceptor, part);
             // add isBound flag and remove isBinding flag
             this.$state |= 4 /* isBound */;
             this.$state &= ~1 /* isBinding */;
@@ -73,10 +74,10 @@
             this.$state |= 2 /* isUnbinding */;
             const sourceExpression = this.sourceExpression;
             if (sourceExpression.unbind) {
-                sourceExpression.unbind(flags, this.$scope, this);
+                sourceExpression.unbind(flags, this.$scope, this.interceptor);
             }
             this.$scope = void 0;
-            this.unobserve(true);
+            this.interceptor.unobserve(true);
             // remove isBound and isUnbinding flags
             this.$state &= ~(4 /* isBound */ | 2 /* isUnbinding */);
         }

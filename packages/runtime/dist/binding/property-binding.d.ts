@@ -14,6 +14,7 @@ export declare class PropertyBinding implements IPartialConnectableBinding {
     mode: BindingMode;
     observerLocator: IObserverLocator;
     locator: IServiceLocator;
+    interceptor: this;
     id: number;
     $state: State;
     $lifecycle: ILifecycle;

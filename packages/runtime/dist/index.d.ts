@@ -52,7 +52,7 @@ export { CallBindingInstruction, FromViewBindingInstruction, HydrateAttributeIns
 export { ViewModelKind, IBinding, ILifecycle, IViewModel, IController, IRenderContext, IViewCache, IViewFactory, MountStrategy, } from './lifecycle';
 export { PromiseOrTask, MaybePromiseOrTask, AggregateContinuationTask, TerminalTask, AggregateTerminalTask, ContinuationTask, ILifecycleTask, LifecycleTask, PromiseTask, TaskSlot, StartTask, IStartTask, IStartTaskManager, ProviderTask, } from './lifecycle-task';
 export { AccessorOrObserver, Collection, CollectionKind, DelegationStrategy, IAccessor, IBindingContext, IBindingTargetAccessor, IBindingTargetObserver, ICollectionChangeTracker, ICollectionObserver, ICollectionSubscriber, IndexMap, IObservable, IObservedArray, IObservedMap, IObservedSet, IOverrideContext, IPropertyChangeTracker, IPropertyObserver, IScope, ISubscribable, ISubscriberCollection, ObservedCollection, ObserversLookup, PropertyObserver, CollectionObserver, ICollectionSubscriberCollection, IProxyObserver, IProxy, IProxySubscribable, IProxySubscriber, IProxySubscriberCollection, ICollectionSubscribable, ISubscriber, isIndexMap, copyIndexMap, cloneIndexMap, createIndexMap, } from './observation';
-export { instructionRenderer, ensureExpression, addComponent, addBinding } from './renderer';
+export { instructionRenderer, ensureExpression, addComponent, addBinding, applyBindingBehavior, } from './renderer';
 export { CompiledTemplate, ChildrenObserver, IInstructionRenderer, IInstructionTypeClassifier, IRenderer, IRenderingEngine, ITemplate, ITemplateCompiler, ITemplateFactory, ViewCompileFlags, } from './rendering-engine';
 export { RenderContext, } from './render-context';
 //# sourceMappingURL=index.d.ts.map

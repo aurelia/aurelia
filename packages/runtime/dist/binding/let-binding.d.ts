@@ -13,6 +13,7 @@ export declare class LetBinding implements IPartialConnectableBinding {
     observerLocator: IObserverLocator;
     locator: IServiceLocator;
     private readonly toBindingContext;
+    interceptor: this;
     id: number;
     $state: State;
     $lifecycle: ILifecycle;

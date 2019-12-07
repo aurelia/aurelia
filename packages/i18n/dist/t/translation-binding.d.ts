@@ -1,5 +1,5 @@
 import { IServiceLocator } from '@aurelia/kernel';
-import { ICallBindingInstruction, IController, IExpressionParser, IObserverLocator, IPartialConnectableBinding, IRenderContext, IScope, IsExpression, LifecycleFlags, State, INode } from '@aurelia/runtime';
+import { ICallBindingInstruction, IConnectableBinding, IController, IExpressionParser, IObserverLocator, IPartialConnectableBinding, IRenderContext, IScope, IsExpression, LifecycleFlags, State, INode } from '@aurelia/runtime';
 import i18next from 'i18next';
 interface TranslationBindingCreationContext {
     parser: IExpressionParser;
@@ -10,9 +10,12 @@ interface TranslationBindingCreationContext {
     instruction: ICallBindingInstruction;
     isParameterContext?: boolean;
 }
+export interface TranslationBinding extends IConnectableBinding {
+}
 export declare class TranslationBinding implements IPartialConnectableBinding {
     observerLocator: IObserverLocator;
     locator: IServiceLocator;
+    interceptor: this;
     id: number;
     $state: State;
     expr: IsExpression;

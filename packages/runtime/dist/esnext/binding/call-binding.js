@@ -3,6 +3,7 @@ export class CallBinding {
     constructor(sourceExpression, target, targetProperty, observerLocator, locator) {
         this.sourceExpression = sourceExpression;
         this.locator = locator;
+        this.interceptor = this;
         this.$state = 0 /* none */;
         this.targetObserver = observerLocator.getObserver(0 /* none */, target, targetProperty);
     }
@@ -20,16 +21,16 @@ export class CallBinding {
             if (this.$scope === scope) {
                 return;
             }
-            this.$unbind(flags | 4096 /* fromBind */);
+            this.interceptor.$unbind(flags | 4096 /* fromBind */);
         }
         // add isBinding flag
         this.$state |= 1 /* isBinding */;
         this.$scope = scope;
         this.part = part;
         if (hasBind(this.sourceExpression)) {
-            this.sourceExpression.bind(flags, scope, this);
+            this.sourceExpression.bind(flags, scope, this.interceptor);
         }
-        this.targetObserver.setValue(($args) => this.callSource($args), flags);
+        this.targetObserver.setValue(($args) => this.interceptor.callSource($args), flags);
         // add isBound flag and remove isBinding flag
         this.$state |= 4 /* isBound */;
         this.$state &= ~1 /* isBinding */;
@@ -41,7 +42,7 @@ export class CallBinding {
         // add isUnbinding flag
         this.$state |= 2 /* isUnbinding */;
         if (hasUnbind(this.sourceExpression)) {
-            this.sourceExpression.unbind(flags, this.$scope, this);
+            this.sourceExpression.unbind(flags, this.$scope, this.interceptor);
         }
         this.$scope = void 0;
         this.targetObserver.setValue(null, flags);

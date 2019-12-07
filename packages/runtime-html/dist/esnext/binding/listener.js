@@ -12,6 +12,7 @@ export class Listener {
         this.preventDefault = preventDefault;
         this.eventManager = eventManager;
         this.locator = locator;
+        this.interceptor = this;
         this.$state = 0 /* none */;
     }
     callSource(event) {
@@ -25,14 +26,14 @@ export class Listener {
         return result;
     }
     handleEvent(event) {
-        this.callSource(event);
+        this.interceptor.callSource(event);
     }
     $bind(flags, scope, part) {
         if (this.$state & 4 /* isBound */) {
             if (this.$scope === scope) {
                 return;
             }
-            this.$unbind(flags | 4096 /* fromBind */);
+            this.interceptor.$unbind(flags | 4096 /* fromBind */);
         }
         // add isBinding flag
         this.$state |= 1 /* isBinding */;
@@ -40,9 +41,9 @@ export class Listener {
         this.part = part;
         const sourceExpression = this.sourceExpression;
         if (hasBind(sourceExpression)) {
-            sourceExpression.bind(flags, scope, this);
+            sourceExpression.bind(flags, scope, this.interceptor);
         }
-        this.handler = this.eventManager.addEventListener(this.dom, this.target, this.targetEvent, this, this.delegationStrategy);
+        this.handler = this.eventManager.addEventListener(this.dom, this.target, this.targetEvent, this.interceptor, this.delegationStrategy);
         // add isBound flag and remove isBinding flag
         this.$state |= 4 /* isBound */;
         this.$state &= ~1 /* isBinding */;
@@ -55,7 +56,7 @@ export class Listener {
         this.$state |= 2 /* isUnbinding */;
         const sourceExpression = this.sourceExpression;
         if (hasUnbind(sourceExpression)) {
-            sourceExpression.unbind(flags, this.$scope, this);
+            sourceExpression.unbind(flags, this.$scope, this.interceptor);
         }
         this.$scope = null;
         this.handler.dispose();

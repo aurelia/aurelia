@@ -1,61 +1,59 @@
-import { __decorate } from "tslib";
-import { bindingBehavior } from '../binding-behavior';
+import { __decorate, __metadata } from "tslib";
+import { bindingBehavior, BindingInterceptor } from '../binding-behavior';
 import { IScheduler, IClock } from '../../scheduler';
-class Throttler {
-    constructor(binding, delay) {
-        this.binding = binding;
-        const clock = binding.locator.get(IClock);
-        const taskQueue = binding.locator.get(IScheduler).getPostRenderTaskQueue();
-        const taskQueueOpts = { delay };
-        const methodName = this.methodName = 'callSource' in binding ? 'callSource' : 'handleChange';
-        let task = null;
-        let lastCall = 0;
-        let nextDelay = 0;
-        const originalHandler = this.originalHandler = binding[methodName];
-        this.wrappedHandler = (...args) => {
-            nextDelay = lastCall + delay - clock.now();
-            if (nextDelay > 0) {
-                if (task !== null) {
-                    task.cancel();
-                }
-                taskQueueOpts.delay = nextDelay;
-                task = taskQueue.queueTask(() => {
-                    lastCall = clock.now();
-                    originalHandler.call(binding, ...args);
-                }, taskQueueOpts);
-            }
-            else {
-                lastCall = clock.now();
-                originalHandler.call(binding, ...args);
-            }
-        };
-    }
-    start() {
-        this.binding[this.methodName] = this.wrappedHandler;
-    }
-    stop() {
-        this.binding[this.methodName] = this.originalHandler;
-    }
-}
-const lookup = new WeakMap();
-let ThrottleBindingBehavior = class ThrottleBindingBehavior {
-    bind(flags, scope, binding, delay = 200) {
-        let throttler = lookup.get(binding);
-        if (throttler === void 0) {
-            throttler = new Throttler(binding, delay);
-            lookup.set(binding, throttler);
+import { BindingBehaviorExpression } from '../../binding/ast';
+let ThrottleBindingBehavior = class ThrottleBindingBehavior extends BindingInterceptor {
+    constructor(binding, expr) {
+        super(binding, expr);
+        this.opts = { delay: 0 };
+        this.firstArg = null;
+        this.task = null;
+        this.lastCall = 0;
+        this.taskQueue = binding.locator.get(IScheduler).getPostRenderTaskQueue();
+        this.clock = binding.locator.get(IClock);
+        if (expr.args.length > 0) {
+            this.firstArg = expr.args[0];
         }
-        throttler.start();
     }
-    unbind(flags, scope, binding) {
-        // The binding exists so it can't have been garbage-collected and a binding can only unbind if it was bound first,
-        // so we know for sure the throttler exists in the lookup.
-        const throttler = lookup.get(binding);
-        throttler.stop();
+    callSource(args) {
+        this.queueTask(() => this.binding.callSource(args));
+        return void 0;
+    }
+    handleChange(newValue, previousValue, flags) {
+        this.queueTask(() => this.binding.handleChange(newValue, previousValue, flags));
+    }
+    queueTask(callback) {
+        const opts = this.opts;
+        const clock = this.clock;
+        const nextDelay = this.lastCall + opts.delay - clock.now();
+        if (nextDelay > 0) {
+            if (this.task !== null) {
+                this.task.cancel();
+            }
+            opts.delay = nextDelay;
+            this.task = this.taskQueue.queueTask(() => {
+                this.lastCall = clock.now();
+                callback();
+            }, opts);
+        }
+        else {
+            this.lastCall = clock.now();
+            callback();
+        }
+    }
+    $bind(flags, scope, part) {
+        if (this.firstArg !== null) {
+            const delay = Number(this.firstArg.evaluate(flags, scope, this.locator, part));
+            if (!isNaN(delay)) {
+                this.opts.delay = delay;
+            }
+        }
+        this.binding.$bind(flags, scope, part);
     }
 };
 ThrottleBindingBehavior = __decorate([
-    bindingBehavior('throttle')
+    bindingBehavior('throttle'),
+    __metadata("design:paramtypes", [Object, BindingBehaviorExpression])
 ], ThrottleBindingBehavior);
 export { ThrottleBindingBehavior };
 //# sourceMappingURL=throttle.js.map

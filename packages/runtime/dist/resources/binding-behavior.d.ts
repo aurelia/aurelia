@@ -1,12 +1,21 @@
-import { Constructable, IContainer, ResourceDefinition, IResourceKind, ResourceType, PartialResourceDefinition } from '@aurelia/kernel';
-import { LifecycleFlags } from '../flags';
-import { IScope } from '../observation';
+import { Constructable, IContainer, ResourceDefinition, IResourceKind, ResourceType, PartialResourceDefinition, IServiceLocator } from '@aurelia/kernel';
+import { LifecycleFlags, State } from '../flags';
+import { IScope, ISubscribable, IProxySubscribable } from '../observation';
 import { IBinding } from '../lifecycle';
-export declare type PartialBindingBehaviorDefinition = PartialResourceDefinition;
+import { IConnectableBinding } from '../binding/connectable';
+import { IObserverLocator } from '../observation/observer-locator';
+import { IBindingBehaviorExpression } from '../ast';
+export declare type PartialBindingBehaviorDefinition = PartialResourceDefinition<{
+    strategy?: BindingBehaviorStrategy;
+}>;
 export declare type BindingBehaviorInstance<T extends {} = {}> = {
     bind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...args: T[]): void;
     unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...args: T[]): void;
 } & T;
+export declare const enum BindingBehaviorStrategy {
+    singleton = 1,
+    interceptor = 2
+}
 export declare type BindingBehaviorType<T extends Constructable = Constructable> = ResourceType<T, BindingBehaviorInstance>;
 export declare type BindingBehaviorKind = IResourceKind<BindingBehaviorType, BindingBehaviorDefinition> & {
     isType<T>(value: T): value is (T extends Constructable ? BindingBehaviorType<T> : never);
@@ -26,9 +35,48 @@ export declare class BindingBehaviorDefinition<T extends Constructable = Constru
     readonly name: string;
     readonly aliases: readonly string[];
     readonly key: string;
+    readonly strategy: BindingBehaviorStrategy;
     private constructor();
     static create<T extends Constructable = Constructable>(nameOrDef: string | PartialBindingBehaviorDefinition, Type: BindingBehaviorType<T>): BindingBehaviorDefinition<T>;
     register(container: IContainer): void;
+}
+export declare class BindingBehaviorFactory<T extends Constructable = Constructable> {
+    private readonly container;
+    private readonly Type;
+    private readonly deps;
+    constructor(container: IContainer, Type: BindingBehaviorType<T>);
+    construct(binding: IInterceptableBinding, expr: IBindingBehaviorExpression): IInterceptableBinding;
+}
+export interface IInterceptableBinding extends IBinding {
+    id?: number;
+    readonly observerLocator?: IObserverLocator;
+    updateTarget?(value: unknown, flags: LifecycleFlags): void;
+    updateSource?(value: unknown, flags: LifecycleFlags): void;
+    callSource?(args: object): unknown;
+    handleChange?(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
+    observeProperty?(flags: LifecycleFlags, obj: object, propertyName: string): void;
+    addObserver?(observer: ISubscribable | IProxySubscribable): void;
+    unobserve?(all?: boolean): void;
+}
+export interface BindingInterceptor extends IConnectableBinding {
+}
+export declare class BindingInterceptor implements IInterceptableBinding {
+    readonly binding: IInterceptableBinding;
+    readonly expr: IBindingBehaviorExpression;
+    interceptor: this;
+    get id(): number;
+    get observerLocator(): IObserverLocator;
+    get locator(): IServiceLocator;
+    get $scope(): IScope | undefined;
+    get part(): string | undefined;
+    get $state(): State;
+    constructor(binding: IInterceptableBinding, expr: IBindingBehaviorExpression);
+    updateTarget(value: unknown, flags: LifecycleFlags): void;
+    updateSource(value: unknown, flags: LifecycleFlags): void;
+    callSource(args: object): unknown;
+    handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
+    $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined): void;
+    $unbind(flags: LifecycleFlags): void;
 }
 export declare const BindingBehavior: BindingBehaviorKind;
 //# sourceMappingURL=binding-behavior.d.ts.map

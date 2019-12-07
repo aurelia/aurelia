@@ -12,6 +12,8 @@ import { IInstructionRenderer, IRenderer, IRenderingEngine } from './rendering-e
 import { CustomAttribute, } from './resources/custom-attribute';
 import { CustomElement, } from './resources/custom-element';
 import { Controller, } from './templating/controller';
+import { BindingBehaviorExpression } from './binding/ast';
+import { BindingBehaviorFactory } from './resources/binding-behavior';
 export function instructionRenderer(instructionType) {
     return function decorator(target) {
         // wrap the constructor to set the instructionType to the instance (for better performance than when set on the prototype)
@@ -281,7 +283,7 @@ class LetElementRenderer {
         for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
             childInstruction = childInstructions[i];
             expr = ensureExpression(this.parser, childInstruction.from, 48 /* IsPropertyCommand */);
-            binding = new LetBinding(expr, childInstruction.to, this.observerLocator, context, toBindingContext);
+            binding = applyBindingBehavior(new LetBinding(expr, childInstruction.to, this.observerLocator, context, toBindingContext), expr, context);
             addBinding(renderable, binding);
         }
     }
@@ -304,7 +306,7 @@ class CallBindingRenderer {
     }
     render(flags, dom, context, renderable, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 153 /* CallCommand */);
-        const binding = new CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, context);
+        const binding = applyBindingBehavior(new CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, context), expr, context);
         addBinding(renderable, binding);
     }
 };
@@ -325,7 +327,7 @@ class RefBindingRenderer {
     }
     render(flags, dom, context, renderable, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 5376 /* IsRef */);
-        const binding = new RefBinding(expr, getRefTarget(target, instruction.to), context);
+        const binding = applyBindingBehavior(new RefBinding(expr, getRefTarget(target, instruction.to), context), expr, context);
         addBinding(renderable, binding);
     }
 };
@@ -348,10 +350,10 @@ class InterpolationBindingRenderer {
         let binding;
         const expr = ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
         if (expr.isMulti) {
-            binding = new MultiInterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, BindingMode.toView, context);
+            binding = applyBindingBehavior(new MultiInterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, BindingMode.toView, context), expr, context);
         }
         else {
-            binding = new InterpolationBinding(expr.firstExpression, expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context, true);
+            binding = applyBindingBehavior(new InterpolationBinding(expr.firstExpression, expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context, true), expr, context);
         }
         addBinding(renderable, binding);
     }
@@ -374,7 +376,7 @@ class PropertyBindingRenderer {
     }
     render(flags, dom, context, renderable, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | instruction.mode);
-        const binding = new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context);
+        const binding = applyBindingBehavior(new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context), expr, context);
         addBinding(renderable, binding);
     }
 };
@@ -396,7 +398,7 @@ class IteratorBindingRenderer {
     }
     render(flags, dom, context, renderable, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 539 /* ForCommand */);
-        const binding = new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context);
+        const binding = applyBindingBehavior(new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context), expr, context);
         addBinding(renderable, binding);
     }
 };
@@ -409,4 +411,21 @@ IteratorBindingRenderer = __decorate([
     __metadata("design:paramtypes", [Object, Object])
 ], IteratorBindingRenderer);
 export { IteratorBindingRenderer };
+let behaviorExpressionIndex = 0;
+const behaviorExpressions = [];
+export function applyBindingBehavior(binding, expression, locator) {
+    while (expression instanceof BindingBehaviorExpression) {
+        behaviorExpressions[behaviorExpressionIndex++] = expression;
+        expression = expression.expression;
+    }
+    while (behaviorExpressionIndex > 0) {
+        const behaviorExpression = behaviorExpressions[--behaviorExpressionIndex];
+        const behaviorOrFactory = locator.get(behaviorExpression.behaviorKey);
+        if (behaviorOrFactory instanceof BindingBehaviorFactory) {
+            binding = behaviorOrFactory.construct(binding, behaviorExpression);
+        }
+    }
+    behaviorExpressions.length = 0;
+    return binding;
+}
 //# sourceMappingURL=renderer.js.map

@@ -12,6 +12,7 @@ export class MultiInterpolationBinding {
         this.targetProperty = targetProperty;
         this.mode = mode;
         this.locator = locator;
+        this.interceptor = this;
         this.$state = 0 /* none */;
         this.$scope = void 0;
         // Note: the child expressions of an Interpolation expression are full Aurelia expressions, meaning they may include
@@ -30,14 +31,14 @@ export class MultiInterpolationBinding {
             if (this.$scope === scope) {
                 return;
             }
-            this.$unbind(flags);
+            this.interceptor.$unbind(flags);
         }
         this.$state |= 4 /* isBound */;
         this.$scope = scope;
         this.part = part;
         const parts = this.parts;
         for (let i = 0, ii = parts.length; i < ii; ++i) {
-            parts[i].$bind(flags, scope, part);
+            parts[i].interceptor.$bind(flags, scope, part);
         }
     }
     $unbind(flags) {
@@ -48,7 +49,7 @@ export class MultiInterpolationBinding {
         this.$scope = void 0;
         const parts = this.parts;
         for (let i = 0, ii = parts.length; i < ii; ++i) {
-            parts[i].$unbind(flags);
+            parts[i].interceptor.$unbind(flags);
         }
     }
 }
@@ -62,6 +63,7 @@ let InterpolationBinding = class InterpolationBinding {
         this.observerLocator = observerLocator;
         this.locator = locator;
         this.isFirst = isFirst;
+        this.interceptor = this;
         this.$state = 0 /* none */;
         connectable.assignIdTo(this);
         this.targetObserver = observerLocator.getAccessor(0 /* none */, target, targetProperty);
@@ -76,12 +78,12 @@ let InterpolationBinding = class InterpolationBinding {
         const previousValue = this.targetObserver.getValue();
         const newValue = this.interpolation.evaluate(flags, this.$scope, this.locator, this.part);
         if (newValue !== previousValue) {
-            this.updateTarget(newValue, flags);
+            this.interceptor.updateTarget(newValue, flags);
         }
         if ((this.mode & oneTime) === 0) {
             this.version++;
-            this.sourceExpression.connect(flags, this.$scope, this, this.part);
-            this.unobserve(false);
+            this.sourceExpression.connect(flags, this.$scope, this.interceptor, this.part);
+            this.interceptor.unobserve(false);
         }
     }
     $bind(flags, scope, part) {
@@ -89,14 +91,14 @@ let InterpolationBinding = class InterpolationBinding {
             if (this.$scope === scope) {
                 return;
             }
-            this.$unbind(flags);
+            this.interceptor.$unbind(flags);
         }
         this.$state |= 4 /* isBound */;
         this.$scope = scope;
         this.part = part;
         const sourceExpression = this.sourceExpression;
         if (sourceExpression.bind) {
-            sourceExpression.bind(flags, scope, this);
+            sourceExpression.bind(flags, scope, this.interceptor);
         }
         if (this.mode !== BindingMode.oneTime && this.targetObserver.bind) {
             this.targetObserver.bind(flags);
@@ -104,10 +106,10 @@ let InterpolationBinding = class InterpolationBinding {
         // since the interpolation already gets the whole value, we only need to let the first
         // text binding do the update if there are multiple
         if (this.isFirst) {
-            this.updateTarget(this.interpolation.evaluate(flags, scope, this.locator, part), flags);
+            this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, this.locator, part), flags);
         }
         if (this.mode & toView) {
-            sourceExpression.connect(flags, scope, this, part);
+            sourceExpression.connect(flags, scope, this.interceptor, part);
         }
     }
     $unbind(flags) {
@@ -117,13 +119,13 @@ let InterpolationBinding = class InterpolationBinding {
         this.$state &= ~4 /* isBound */;
         const sourceExpression = this.sourceExpression;
         if (sourceExpression.unbind) {
-            sourceExpression.unbind(flags, this.$scope, this);
+            sourceExpression.unbind(flags, this.$scope, this.interceptor);
         }
         if (this.targetObserver.unbind) {
             this.targetObserver.unbind(flags);
         }
         this.$scope = void 0;
-        this.unobserve(true);
+        this.interceptor.unobserve(true);
     }
 };
 InterpolationBinding = __decorate([

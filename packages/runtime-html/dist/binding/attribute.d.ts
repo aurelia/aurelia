@@ -12,6 +12,7 @@ export declare class AttributeBinding implements IPartialConnectableBinding {
     mode: BindingMode;
     observerLocator: IObserverLocator;
     locator: IServiceLocator;
+    interceptor: this;
     id: number;
     $state: State;
     $scheduler: IScheduler;

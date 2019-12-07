@@ -15,6 +15,7 @@
             this.sourceExpression = sourceExpression;
             this.target = target;
             this.locator = locator;
+            this.interceptor = this;
             this.$state = 0 /* none */;
             this.$scope = void 0;
         }
@@ -23,7 +24,7 @@
                 if (this.$scope === scope) {
                     return;
                 }
-                this.$unbind(flags | 4096 /* fromBind */);
+                this.interceptor.$unbind(flags | 4096 /* fromBind */);
             }
             // add isBinding flag
             this.$state |= 1 /* isBinding */;
@@ -50,7 +51,7 @@
             // source expression might have been modified durring assign, via a BB
             sourceExpression = this.sourceExpression;
             if (ast_1.hasUnbind(sourceExpression)) {
-                sourceExpression.unbind(flags, this.$scope, this);
+                sourceExpression.unbind(flags, this.$scope, this.interceptor);
             }
             this.$scope = void 0;
             // remove isBound and isUnbinding flags

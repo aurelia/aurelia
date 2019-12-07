@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "../binding-behavior", "../../scheduler"], factory);
+        define(["require", "exports", "tslib", "../binding-behavior", "../../scheduler", "../../binding/ast"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -12,49 +12,44 @@
     const tslib_1 = require("tslib");
     const binding_behavior_1 = require("../binding-behavior");
     const scheduler_1 = require("../../scheduler");
-    class Debouncer {
-        constructor(binding, delay) {
-            this.binding = binding;
-            const taskQueue = binding.locator.get(scheduler_1.IScheduler).getPostRenderTaskQueue();
-            const taskQueueOpts = { delay };
-            // TODO: expose binding API that tells the outside what method name is the primary change handler
-            // Or expose some kind of `decorate` or `applyBehavior` api. This monkey patching is bad and needs to go.
-            const methodName = this.methodName = 'callSource' in binding ? 'callSource' : 'handleChange';
-            let task = null;
-            const originalHandler = this.originalHandler = binding[methodName];
-            this.wrappedHandler = (...args) => {
-                if (task !== null) {
-                    task.cancel();
-                }
-                task = taskQueue.queueTask(() => originalHandler.call(binding, ...args), taskQueueOpts);
-            };
-        }
-        start() {
-            this.binding[this.methodName] = this.wrappedHandler;
-        }
-        stop() {
-            this.binding[this.methodName] = this.originalHandler;
-        }
-    }
-    const lookup = new WeakMap();
-    let DebounceBindingBehavior = class DebounceBindingBehavior {
-        bind(flags, scope, binding, delay = 200) {
-            let debouncer = lookup.get(binding);
-            if (debouncer === void 0) {
-                debouncer = new Debouncer(binding, delay);
-                lookup.set(binding, debouncer);
+    const ast_1 = require("../../binding/ast");
+    let DebounceBindingBehavior = class DebounceBindingBehavior extends binding_behavior_1.BindingInterceptor {
+        constructor(binding, expr) {
+            super(binding, expr);
+            this.opts = { delay: 0 };
+            this.firstArg = null;
+            this.task = null;
+            this.taskQueue = binding.locator.get(scheduler_1.IScheduler).getPostRenderTaskQueue();
+            if (expr.args.length > 0) {
+                this.firstArg = expr.args[0];
             }
-            debouncer.start();
         }
-        unbind(flags, scope, binding) {
-            // The binding exists so it can't have been garbage-collected and a binding can only unbind if it was bound first,
-            // so we know for sure the debouncer exists in the lookup.
-            const debouncer = lookup.get(binding);
-            debouncer.stop();
+        callSource(args) {
+            this.queueTask(() => this.binding.callSource(args));
+            return void 0;
+        }
+        handleChange(newValue, previousValue, flags) {
+            this.queueTask(() => this.binding.handleChange(newValue, previousValue, flags));
+        }
+        queueTask(callback) {
+            if (this.task !== null) {
+                this.task.cancel();
+            }
+            this.task = this.taskQueue.queueTask(callback, this.opts);
+        }
+        $bind(flags, scope, part) {
+            if (this.firstArg !== null) {
+                const delay = Number(this.firstArg.evaluate(flags, scope, this.locator, part));
+                if (!isNaN(delay)) {
+                    this.opts.delay = delay;
+                }
+            }
+            this.binding.$bind(flags, scope, part);
         }
     };
     DebounceBindingBehavior = tslib_1.__decorate([
-        binding_behavior_1.bindingBehavior('debounce')
+        binding_behavior_1.bindingBehavior('debounce'),
+        tslib_1.__metadata("design:paramtypes", [Object, ast_1.BindingBehaviorExpression])
     ], DebounceBindingBehavior);
     exports.DebounceBindingBehavior = DebounceBindingBehavior;
 });

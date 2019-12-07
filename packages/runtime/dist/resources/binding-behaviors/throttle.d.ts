@@ -1,17 +1,18 @@
 import { LifecycleFlags } from '../../flags';
-import { IBinding } from '../../lifecycle';
 import { IScope } from '../../observation';
-interface ICallSource {
-    callSource(arg: object): void;
+import { BindingInterceptor, IInterceptableBinding } from '../binding-behavior';
+import { BindingBehaviorExpression } from '../../binding/ast';
+export declare class ThrottleBindingBehavior extends BindingInterceptor {
+    private readonly taskQueue;
+    private readonly clock;
+    private readonly opts;
+    private readonly firstArg;
+    private task;
+    private lastCall;
+    constructor(binding: IInterceptableBinding, expr: BindingBehaviorExpression);
+    callSource(args: object): unknown;
+    handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
+    private queueTask;
+    $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined): void;
 }
-interface IHandleChange {
-    handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
-}
-interface IThrottleableBinding extends ICallSource, IHandleChange, IBinding {
-}
-export declare class ThrottleBindingBehavior {
-    bind(flags: LifecycleFlags, scope: IScope, binding: IThrottleableBinding, delay?: number): void;
-    unbind(flags: LifecycleFlags, scope: IScope, binding: IThrottleableBinding): void;
-}
-export {};
 //# sourceMappingURL=throttle.d.ts.map

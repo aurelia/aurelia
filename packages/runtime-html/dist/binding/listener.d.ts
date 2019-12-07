@@ -15,6 +15,7 @@ export declare class Listener implements IBinding {
     preventDefault: boolean;
     eventManager: IEventManager;
     locator: IServiceLocator;
+    interceptor: this;
     $state: State;
     $scope: IScope;
     part?: string;

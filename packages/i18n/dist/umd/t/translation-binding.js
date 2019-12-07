@@ -20,6 +20,7 @@
         constructor(target, observerLocator, locator) {
             this.observerLocator = observerLocator;
             this.locator = locator;
+            this.interceptor = this;
             this.contentAttributes = contentAttributes;
             this.target = target;
             this.$state = 0 /* none */;

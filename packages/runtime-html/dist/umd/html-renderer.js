@@ -29,10 +29,10 @@
             let binding;
             const expr = runtime_1.ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
             if (expr.isMulti) {
-                binding = new runtime_1.MultiInterpolationBinding(this.observerLocator, expr, next, 'textContent', runtime_1.BindingMode.toView, context);
+                binding = runtime_1.applyBindingBehavior(new runtime_1.MultiInterpolationBinding(this.observerLocator, expr, next, 'textContent', runtime_1.BindingMode.toView, context), expr, context);
             }
             else {
-                binding = new runtime_1.InterpolationBinding(expr.firstExpression, expr, next, 'textContent', runtime_1.BindingMode.toView, this.observerLocator, context, true);
+                binding = runtime_1.applyBindingBehavior(new runtime_1.InterpolationBinding(expr.firstExpression, expr, next, 'textContent', runtime_1.BindingMode.toView, this.observerLocator, context, true), expr, context);
             }
             runtime_1.addBinding(renderable, binding);
         }
@@ -56,7 +56,7 @@
         render(flags, dom, context, renderable, target, instruction) {
             // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
             const expr = runtime_1.ensureExpression(this.parser, instruction.from, 80 /* IsEventCommand */ | (instruction.strategy + 6 /* DelegationStrategyDelta */));
-            const binding = new listener_1.Listener(dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context);
+            const binding = runtime_1.applyBindingBehavior(new listener_1.Listener(dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context), expr, context);
             runtime_1.addBinding(renderable, binding);
         }
     };
@@ -108,7 +108,7 @@
         }
         render(flags, dom, context, renderable, target, instruction) {
             const expr = runtime_1.ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | runtime_1.BindingMode.toView);
-            const binding = new runtime_1.PropertyBinding(expr, target.style, instruction.to, runtime_1.BindingMode.toView, this.observerLocator, context);
+            const binding = runtime_1.applyBindingBehavior(new runtime_1.PropertyBinding(expr, target.style, instruction.to, runtime_1.BindingMode.toView, this.observerLocator, context), expr, context);
             runtime_1.addBinding(renderable, binding);
         }
     };
@@ -130,7 +130,7 @@
         }
         render(flags, dom, context, renderable, target, instruction) {
             const expr = runtime_1.ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | runtime_1.BindingMode.toView);
-            const binding = new attribute_1.AttributeBinding(expr, target, instruction.attr /* targetAttribute */, instruction.to /* targetKey */, runtime_1.BindingMode.toView, this.observerLocator, context);
+            const binding = runtime_1.applyBindingBehavior(new attribute_1.AttributeBinding(expr, target, instruction.attr /* targetAttribute */, instruction.to /* targetKey */, runtime_1.BindingMode.toView, this.observerLocator, context), expr, context);
             runtime_1.addBinding(renderable, binding);
         }
     };

@@ -1,17 +1,16 @@
 import { LifecycleFlags } from '../../flags';
-import { IBinding } from '../../lifecycle';
 import { IScope } from '../../observation';
-interface ICallSource {
-    callSource(arg: object): void;
+import { BindingInterceptor, IInterceptableBinding } from '../binding-behavior';
+import { BindingBehaviorExpression } from '../../binding/ast';
+export declare class DebounceBindingBehavior extends BindingInterceptor {
+    private readonly taskQueue;
+    private readonly opts;
+    private readonly firstArg;
+    private task;
+    constructor(binding: IInterceptableBinding, expr: BindingBehaviorExpression);
+    callSource(args: object): unknown;
+    handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
+    private queueTask;
+    $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined): void;
 }
-interface IHandleChange {
-    handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
-}
-interface IDebounceableBinding extends ICallSource, IHandleChange, IBinding {
-}
-export declare class DebounceBindingBehavior {
-    bind(flags: LifecycleFlags, scope: IScope, binding: IDebounceableBinding, delay?: number): void;
-    unbind(flags: LifecycleFlags, scope: IScope, binding: IDebounceableBinding): void;
-}
-export {};
 //# sourceMappingURL=debounce.d.ts.map

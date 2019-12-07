@@ -16,22 +16,14 @@ import {
   hasUnbind,
 } from './ast';
 import { IConnectableBinding } from './connectable';
-import { IBindingMiddleware, IHookableCallBinding, registerMiddleware, ICallSourceMiddlewareContext, deregisterMiddleware } from './binding-middleware';
-import { ITaskQueue, IScheduler } from '../scheduler';
 
 export interface CallBinding extends IConnectableBinding { }
-export class CallBinding implements IHookableCallBinding {
+export class CallBinding {
   public $state: State = State.none;
   public $scope?: IScope;
   public part?: string;
 
   public targetObserver: IAccessor;
-
-  // TODO need better way to avoid repetition
-  public readonly middlewares: IBindingMiddleware[] = [];
-  public readonly registerMiddleware: typeof registerMiddleware = registerMiddleware;
-  public readonly deregisterMiddleware: typeof deregisterMiddleware = deregisterMiddleware;
-  public readonly postRenderTaskQueue: ITaskQueue;
 
   public constructor(
     public sourceExpression: IsBindingBehavior,
@@ -41,7 +33,6 @@ export class CallBinding implements IHookableCallBinding {
     public locator: IServiceLocator,
   ) {
     this.targetObserver = observerLocator.getObserver(LifecycleFlags.none, target, targetProperty);
-    this.postRenderTaskQueue = locator.get(IScheduler).getPostRenderTaskQueue();
   }
 
   public callSource(args: object): unknown {
@@ -74,13 +65,7 @@ export class CallBinding implements IHookableCallBinding {
       this.sourceExpression.bind(flags, scope, this);
     }
 
-    this.targetObserver.setValue(($args: object) => {
-      if (this.middlewares.length > 0) {
-        this.runMiddlewares($args);
-      } else {
-        this.callSource($args as object);
-      }
-    }, flags);
+    this.targetObserver.setValue(($args: object) => this.callSource($args as object), flags);
 
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;
@@ -111,14 +96,5 @@ export class CallBinding implements IHookableCallBinding {
 
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
     return;
-  }
-
-  private runMiddlewares(args: object) {
-    this.postRenderTaskQueue.queueTask(async () => {
-      await this.middlewares.reduce(async (acc, middleware) => {
-        const ctx = await acc;
-        return !ctx.done ? middleware.runCallSource!(ctx) : acc;
-      }, Promise.resolve<ICallSourceMiddlewareContext>({ done: false, arguments: args }));
-    });
   }
 }

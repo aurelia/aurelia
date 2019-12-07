@@ -1,5 +1,5 @@
 import { DI, IContainer, Registration } from '@aurelia/kernel';
-import { AccessKeyedExpression, AccessMemberExpression, AccessScopeExpression, BindingBehaviorExpression, IBinding, IExpressionParser, IHookableValueBinding, IScope, LifecycleFlags, PrimitiveLiteralExpression } from '@aurelia/runtime';
+import { AccessKeyedExpression, AccessMemberExpression, AccessScopeExpression, BindingBehaviorExpression, IBinding, IExpressionParser, IScope, LifecycleFlags, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IValidateable, parsePropertyName, PropertyAccessor, PropertyRule, ValidationResult } from './rule';
 import { RenderInstruction, ValidationRenderer } from './validation-renderer';
 import { IValidator } from './validator';
@@ -31,7 +31,7 @@ export const enum ValidationTrigger {
   changeOrBlur = "changeOrBlur"
 }
 
-export type BindingWithBehavior = IBinding & IHookableValueBinding & {
+export type BindingWithBehavior = IBinding & {
   sourceExpression: BindingBehaviorExpression;
   target: Element | object;
 };

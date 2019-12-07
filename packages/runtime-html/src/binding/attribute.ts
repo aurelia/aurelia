@@ -20,13 +20,6 @@ import {
   State,
   IScheduler,
   INode,
-  IHookableValueBinding,
-  IBindingMiddleware,
-  runTargetMiddlewares,
-  deregisterMiddleware,
-  registerMiddleware,
-  runSourceMiddlewares,
-  IUpdateMiddlewareContext,
   ITaskQueue
 } from '@aurelia/runtime';
 import {
@@ -46,7 +39,7 @@ export interface AttributeBinding extends IConnectableBinding { }
  * Attribute binding. Handle attribute binding betwen view/view model. Understand Html special attributes
  */
 @connectable()
-export class AttributeBinding implements IPartialConnectableBinding, IHookableValueBinding {
+export class AttributeBinding implements IPartialConnectableBinding {
   public id!: number;
   public $state: State = State.none;
   public $scheduler: IScheduler;
@@ -62,14 +55,6 @@ export class AttributeBinding implements IPartialConnectableBinding, IHookableVa
   public persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
   public target: Element;
-
-  public readonly sourceMiddlewares: IBindingMiddleware[] = [];
-  public readonly targetMiddlewares: IBindingMiddleware[] = [];
-  public readonly registerMiddleware: typeof registerMiddleware = registerMiddleware;
-  public readonly deregisterMiddleware: typeof deregisterMiddleware = deregisterMiddleware;
-  private readonly runTargetMiddlewares: typeof runTargetMiddlewares = runTargetMiddlewares;
-  private readonly runSourceMiddlewares: typeof runSourceMiddlewares = runSourceMiddlewares;
-  public readonly postRenderTaskQueue: ITaskQueue;
 
   public constructor(
     public sourceExpression: IsBindingBehavior | IForOfStatement,
@@ -88,7 +73,6 @@ export class AttributeBinding implements IPartialConnectableBinding, IHookableVa
     this.target = target as Element;
     connectable.assignIdTo(this);
     this.$scheduler = locator.get(IScheduler);
-    this.postRenderTaskQueue = this.$scheduler.getPostRenderTaskQueue();
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
@@ -99,16 +83,6 @@ export class AttributeBinding implements IPartialConnectableBinding, IHookableVa
   public updateSource(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
     this.sourceExpression.assign!(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.locator, value);
-  }
-
-  public async runupdateTarget(context: IUpdateMiddlewareContext): Promise<IUpdateMiddlewareContext> {
-    this.updateTarget(context.newValue, context.flags);
-    return Promise.resolve(context);
-  }
-
-  public async runUpdateSource(context: IUpdateMiddlewareContext): Promise<IUpdateMiddlewareContext> {
-    this.updateSource(context.newValue, context.flags);
-    return Promise.resolve(context);
   }
 
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
@@ -130,11 +104,7 @@ export class AttributeBinding implements IPartialConnectableBinding, IHookableVa
         newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);
       }
       if (newValue !== previousValue) {
-        if (this.targetMiddlewares.length > 0) {
-          this.runTargetMiddlewares(newValue, previousValue, flags);
-        } else {
-          this.updateTarget(newValue, flags);
-        }
+        this.updateTarget(newValue, flags);
       }
       if ((this.mode & oneTime) === 0) {
         this.version++;
@@ -146,11 +116,7 @@ export class AttributeBinding implements IPartialConnectableBinding, IHookableVa
 
     if (flags & LifecycleFlags.updateSourceExpression) {
       if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part)) {
-        if (this.sourceMiddlewares.length > 0) {
-          this.runSourceMiddlewares(newValue, previousValue, flags);
-        } else {
-          this.updateSource(newValue, flags);
-        }
+        this.updateSource(newValue, flags);
       }
       return;
     }

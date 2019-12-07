@@ -89,7 +89,6 @@ export {
   BindingIdentifierOrPattern,
   UnaryOperator
 } from './ast';
-export  * from './binding/binding-middleware';
 export {
   PropertyBinding
 } from './binding/property-binding';

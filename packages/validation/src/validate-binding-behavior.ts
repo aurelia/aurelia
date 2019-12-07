@@ -2,10 +2,7 @@ import {
   bindingBehavior,
   IScheduler,
   IScope,
-  LifecycleFlags,
-  MiddlewareType,
-  IBindingMiddleware,
-  IUpdateMiddlewareContext
+  LifecycleFlags
 } from '@aurelia/runtime';
 import { PropertyRule } from './rule';
 import {
@@ -20,7 +17,7 @@ import { IContainer } from '@aurelia/kernel';
  * Binding behavior. Indicates the bound property should be validated.
  */
 @bindingBehavior('validate')
-export class ValidateBindingBehavior implements IBindingMiddleware {
+export class ValidateBindingBehavior {
   private rules: PropertyRule[] = [];
   private binding: BindingWithBehavior = (void 0)!;
   private target: HTMLElement = (void 0)!;
@@ -37,9 +34,9 @@ export class ValidateBindingBehavior implements IBindingMiddleware {
     const trigger = this.processBindingExpressionArgs(flags, scope);
 
     this.controller.registerBinding(binding, target, scope, this.rules);
-    if (trigger === ValidationTrigger.change || trigger === ValidationTrigger.changeOrBlur) {
-      binding.registerMiddleware(MiddlewareType.updateSource, this, true);
-    }
+    // if (trigger === ValidationTrigger.change || trigger === ValidationTrigger.changeOrBlur) {
+    //   binding.registerMiddleware(MiddlewareType.updateSource, this, true);
+    // }
     if (trigger === ValidationTrigger.blur || trigger === ValidationTrigger.changeOrBlur) {
       target.addEventListener('blur', this);
     }
@@ -48,15 +45,15 @@ export class ValidateBindingBehavior implements IBindingMiddleware {
   public unbind(binding: BindingWithBehavior) {
     console.log("BB unbind");
     this.target.removeEventListener('blur', this);
-    this.binding.deregisterMiddleware(MiddlewareType.updateSource, this);
+    // this.binding.deregisterMiddleware(MiddlewareType.updateSource, this);
     this.controller.deregisterBinding(binding);
   }
 
-  public async runUpdateSource(ctx: IUpdateMiddlewareContext): Promise<IUpdateMiddlewareContext> {
-    // no need to put this in queue as it will be queued in binding (middleware processor)
-    await this.controller.validateBinding(this.binding);
-    return ctx;
-  }
+  // public async runUpdateSource(ctx: IUpdateMiddlewareContext): Promise<IUpdateMiddlewareContext> {
+  //   // no need to put this in queue as it will be queued in binding (middleware processor)
+  //   await this.controller.validateBinding(this.binding);
+  //   return ctx;
+  // }
 
   public handleEvent(_event: Event) {
     this.scheduler.getPostRenderTaskQueue().queueTask(async () => {

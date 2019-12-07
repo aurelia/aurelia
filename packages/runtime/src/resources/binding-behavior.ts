@@ -11,6 +11,9 @@ import {
   mergeArrays,
   firstDefined,
   IServiceLocator,
+  DI,
+  Key,
+  fromAnnotationOrDefinitionOrTypeOrDefault,
 } from '@aurelia/kernel';
 import { registerAliases } from '../definitions';
 import { LifecycleFlags, State } from '../flags';
@@ -20,12 +23,19 @@ import { connectable, IConnectableBinding } from '../binding/connectable';
 import { IObserverLocator } from '../observation/observer-locator';
 import { BindingBehaviorExpression } from '../binding/ast';
 
-export type PartialBindingBehaviorDefinition = PartialResourceDefinition;
+export type PartialBindingBehaviorDefinition = PartialResourceDefinition<{
+  strategy?: BindingBehaviorStrategy;
+}>;
 
 export type BindingBehaviorInstance<T extends {} = {}> = {
   bind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...args: T[]): void;
   unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...args: T[]): void;
 } & T;
+
+export const enum BindingBehaviorStrategy {
+  singleton = 1,
+  interceptor = 2,
+}
 
 export type BindingBehaviorType<T extends Constructable = Constructable> = ResourceType<T, BindingBehaviorInstance>;
 export type BindingBehaviorKind = IResourceKind<BindingBehaviorType, BindingBehaviorDefinition> & {
@@ -55,6 +65,7 @@ export class BindingBehaviorDefinition<T extends Constructable = Constructable> 
     public readonly name: string,
     public readonly aliases: readonly string[],
     public readonly key: string,
+    public readonly strategy: BindingBehaviorStrategy,
   ) {}
 
   public static create<T extends Constructable = Constructable>(
@@ -72,19 +83,58 @@ export class BindingBehaviorDefinition<T extends Constructable = Constructable> 
       def = nameOrDef;
     }
 
+    const inheritsFromInterceptor = Object.getPrototypeOf(Type) === BindingInterceptor;
+
     return new BindingBehaviorDefinition(
       Type,
       firstDefined(BindingBehavior.getAnnotation(Type, 'name'), name),
       mergeArrays(BindingBehavior.getAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
       BindingBehavior.keyFrom(name),
+      fromAnnotationOrDefinitionOrTypeOrDefault('strategy', def, Type, () => inheritsFromInterceptor ? BindingBehaviorStrategy.interceptor : BindingBehaviorStrategy.singleton),
     );
   }
 
   public register(container: IContainer): void {
-    const { Type, key, aliases } = this;
-    Registration.transient(key, Type).register(container);
+    const { Type, key, aliases, strategy } = this;
+    switch (strategy) {
+      case BindingBehaviorStrategy.singleton:
+        Registration.singleton(key, Type).register(container);
+        break;
+      case BindingBehaviorStrategy.interceptor:
+        Registration.instance(key, new BindingBehaviorFactory(container, Type)).register(container);
+        break;
+    }
     Registration.alias(key, Type).register(container);
     registerAliases(aliases, BindingBehavior, key, container);
+  }
+}
+
+export class BindingBehaviorFactory<T extends Constructable = Constructable> {
+  private readonly deps: readonly Key[];
+
+  public constructor(
+    private readonly container: IContainer,
+    private readonly Type: BindingBehaviorType<T>,
+  ) {
+    this.deps = DI.getDependencies(Type);
+  }
+
+  public construct(
+    binding: IInterceptableBinding,
+    expr: BindingBehaviorExpression,
+  ): IInterceptableBinding {
+    const container = this.container;
+    const deps = this.deps;
+    switch (deps.length) {
+      case 0:
+        return new this.Type(binding, expr) as IInterceptableBinding;
+      case 1:
+        return new this.Type(container.get(deps[0]), binding, expr) as IInterceptableBinding;
+      case 2:
+        return new this.Type(container.get(deps[0]), container.get(deps[1]), binding, expr) as IInterceptableBinding;
+      default:
+        return new this.Type(...deps.map(d => container.get(d)), binding, expr) as IInterceptableBinding;
+    }
   }
 }
 

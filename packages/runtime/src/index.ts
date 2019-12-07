@@ -490,7 +490,8 @@ export {
   instructionRenderer,
   ensureExpression,
   addComponent,
-  addBinding
+  addBinding,
+  applyBindingBehavior,
 } from './renderer';
 export {
   CompiledTemplate,

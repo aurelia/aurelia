@@ -501,7 +501,8 @@ export class ValidationController implements IValidationController {
       return;
     }
     const { object, propertyName } = propertyInfo;
-    await this.validate({ object, propertyName, rules });
+    const result = await this.validate({ object, propertyName, rules });
+    console.log(result);
   }
 
   /**

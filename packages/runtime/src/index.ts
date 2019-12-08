@@ -197,6 +197,8 @@ export {
   BindingBehaviorDecorator,
   BindingBehaviorInstance,
   BindingBehaviorType,
+  BindingInterceptor,
+  IInterceptableBinding
 } from './resources/binding-behavior';
 export {
   BindingModeBehavior,

@@ -1,5 +1,11 @@
-import { Class, IContainer } from '@aurelia/kernel';
-import { IInterpolationExpression, IExpressionParser, BindingType, IsBindingBehavior, LifecycleFlags } from '@aurelia/runtime';
+import { Class, DI } from '@aurelia/kernel';
+import {
+  BindingType,
+  IExpressionParser,
+  IInterpolationExpression,
+  IsBindingBehavior,
+  LifecycleFlags,
+} from '@aurelia/runtime';
 import { IValidationMessageProvider } from './validation-messages';
 
 export type IValidateable<T = any> = (Class<T> | object) & { [key in PropertyKey]: any };
@@ -134,7 +140,7 @@ export abstract class ValidationRule<TValue = any, TObject extends IValidateable
   public abstract execute(value: TValue, object?: TObject): boolean | Promise<boolean>;
 }
 
-class RequiredRule extends ValidationRule {
+export class RequiredRule extends ValidationRule {
   protected _messageKey: string = 'required';
   public execute(value: unknown): boolean | Promise<boolean> {
     return value !== null
@@ -142,7 +148,7 @@ class RequiredRule extends ValidationRule {
       && !(typeof value === 'string' && !/\S/.test(value));
   }
 }
-class RegexRule extends ValidationRule<string> {
+export class RegexRule extends ValidationRule<string> {
 
   public constructor(
     messageProvider: IValidationMessageProvider,
@@ -156,7 +162,7 @@ class RegexRule extends ValidationRule<string> {
     return value === null || value === undefined || value.length === 0 || this.pattern.test(value);
   }
 }
-class LengthRule extends ValidationRule<string> {
+export class LengthRule extends ValidationRule<string> {
 
   public constructor(
     messageProvider: IValidationMessageProvider,
@@ -171,7 +177,7 @@ class LengthRule extends ValidationRule<string> {
     return value === null || value === undefined || value.length === 0 || (this.isMax ? value.length <= this.length : value.length >= this.length);
   }
 }
-class SizeRule extends ValidationRule<unknown[]> {
+export class SizeRule extends ValidationRule<unknown[]> {
 
   public constructor(
     messageProvider: IValidationMessageProvider,
@@ -187,7 +193,7 @@ class SizeRule extends ValidationRule<unknown[]> {
   }
 }
 type Range = { min?: number; max?: number };
-class RangeRule extends ValidationRule<number> {
+export class RangeRule extends ValidationRule<number> {
 
   private readonly min: number = Number.NEGATIVE_INFINITY;
   private readonly max: number = Number.POSITIVE_INFINITY;
@@ -216,7 +222,7 @@ class RangeRule extends ValidationRule<number> {
     );
   }
 }
-class EqualsRule extends ValidationRule {
+export class EqualsRule extends ValidationRule {
   protected _messageKey: string = 'equals';
   public constructor(
     messageProvider: IValidationMessageProvider,
@@ -533,47 +539,51 @@ export class PropertyRule {
   // #endregion
 }
 
+export interface IValidationRules {
+  rules: PropertyRule[];
+  ensure<TValue>(property: string | PropertyAccessor): PropertyRule;
+  ensureObject(): PropertyRule;
+  on(target: IValidateable): this;
+}
+export const IValidationRules = DI.createInterface<IValidationRules>('IValidationRules').noDefault();
+
 /**
  * Part of the fluent rule API. Enables targeting properties and objects with rules.
  */
-export class ValidationRules {
-  private static parser: IExpressionParser;
-  private static messageProvider: IValidationMessageProvider;
+export class ValidationRules implements IValidationRules {
+  // /**
+  //  * Returns rules with the matching tag.
+  //  *
+  //  * @param rules - The rules to search.
+  //  * @param tag - The tag to search for.
+  //  */
+  // public static taggedRules(rules: PropertyRule[], tag: string): PropertyRule[] {
+  //   return rules.map(rule => rule.getTagedRules(tag));
+  // }
 
-  public static register(container: IContainer) {
-    this.parser = container.get<IExpressionParser>(IExpressionParser);
-    this.messageProvider = container.get(IValidationMessageProvider);
-  }
+  // /**
+  //  * Returns rules that have no tag.
+  //  *
+  //  * @param rules - The rules to search.
+  //  */
+  // public static untaggedRules(rules: PropertyRule[]): PropertyRule[][] {
+  //   return rules.map(rule => rule.getTagedRules(void 0));
+  // }
 
-  /**
-   * Returns rules with the matching tag.
-   *
-   * @param rules - The rules to search.
-   * @param tag - The tag to search for.
-   */
-  public static taggedRules(rules: PropertyRule[], tag: string): PropertyRule[] {
-    return rules.map(rule => rule.getTagedRules(tag));
-  }
-
-  /**
-   * Returns rules that have no tag.
-   *
-   * @param rules - The rules to search.
-   */
-  public static untaggedRules(rules: PropertyRule[]): PropertyRule[][] {
-    return rules.map(rule => rule.getTagedRules(void 0));
-  }
-
-  /**
-   * Removes the rules from a class or object.
-   *
-   * @param target - A class or object.
-   */
-  public static off(target: IValidateable): void {
-    Rules.unset(target);
-  }
+  // /**
+  //  * Removes the rules from a class or object.
+  //  *
+  //  * @param target - A class or object.
+  //  */
+  // public static off(target: IValidateable): void {
+  //   Rules.unset(target);
+  // }
 
   public rules: PropertyRule[] = [];
+  public constructor(
+    @IExpressionParser private readonly parser: IExpressionParser,
+    @IValidationMessageProvider private readonly messageProvider: IValidationMessageProvider,
+  ) { }
 
   /**
    * Target a property with validation rules.
@@ -582,12 +592,12 @@ export class ValidationRules {
    * function.
    */
   public ensure<TValue>(property: string | PropertyAccessor): PropertyRule {
-    this.assertInitialized();
-    const [name, expression] = parsePropertyName(property, ValidationRules.parser);
+    // this.assertInitialized();
+    const [name, expression] = parsePropertyName(property, this.parser);
     // eslint-disable-next-line eqeqeq
     let rule = this.rules.find((r) => r.property.name == name);
     if (rule === void 0) {
-      rule = new PropertyRule(this, ValidationRules.messageProvider, new RuleProperty(expression, name));
+      rule = new PropertyRule(this, this.messageProvider, new RuleProperty(expression, name));
       this.rules.push(rule);
     }
     return rule;
@@ -597,8 +607,8 @@ export class ValidationRules {
    * Targets an object with validation rules.
    */
   public ensureObject(): PropertyRule {
-    this.assertInitialized();
-    const rule = new PropertyRule(this, ValidationRules.messageProvider, new RuleProperty());
+    // this.assertInitialized();
+    const rule = new PropertyRule(this, this.messageProvider, new RuleProperty());
     this.rules.push(rule);
     return rule;
   }
@@ -611,12 +621,6 @@ export class ValidationRules {
   public on(target: IValidateable) {
     Rules.set(target, this.rules);
     return this;
-  }
-
-  private assertInitialized() {
-    if (ValidationRules.parser === void 0 || ValidationRules.messageProvider === void 0) {
-      throw new Error(`Did you forget to register 'ValidationConfiguration' from '@aurelia/validation'?`);
-    }
   }
 }
 

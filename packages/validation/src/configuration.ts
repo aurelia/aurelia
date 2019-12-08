@@ -1,5 +1,5 @@
 import { IContainer, PLATFORM, Registration } from '@aurelia/kernel';
-import { ValidationRules } from './rule';
+import { ValidationRules, IValidationRules } from './rule';
 import { ValidateBindingBehavior } from './validate-binding-behavior';
 import { IValidationController, ValidationController, ValidationControllerFactory, IValidationControllerFactory } from './validation-controller';
 import { ValidationErrorsCustomAttribute } from './validation-errors-custom-attribute';
@@ -22,7 +22,7 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
       return container.register(
         Registration.singleton(IValidator, options.validator),
         Registration.singleton(IValidationMessageProvider, ValidationMessageProvider),
-        ValidationRules,
+        Registration.transient(IValidationRules, ValidationRules),
         ValidateBindingBehavior,
         ValidationErrorsCustomAttribute,
         ValidationRendererCustomAttribute,

@@ -13,7 +13,7 @@ export * from './validation-controller';
 export * from './validator';
 
 export * from './rule';
-// export * from './implementation/validation-messages';
+export * from './validation-messages';
 // export * from './implementation/validation-rules';
 
 export * from './configuration';

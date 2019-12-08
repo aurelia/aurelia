@@ -521,6 +521,9 @@
             let jj;
             for (let i = 0, ii = params.length; i < ii; ++i) {
                 current = params[i];
+                if (!functions_1.isObject(current)) {
+                    continue;
+                }
                 if (isRegistry(current)) {
                     current.register(this);
                 }
@@ -546,6 +549,9 @@
                     jj = keys.length;
                     for (; j < jj; ++j) {
                         value = current[keys[j]];
+                        if (!functions_1.isObject(value)) {
+                            continue;
+                        }
                         // note: we could remove this if-branch and call this.register directly
                         // - the extra check is just a perf tweak to create fewer unnecessary arrays by the spread operator
                         if (isRegistry(value)) {

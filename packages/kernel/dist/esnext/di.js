@@ -2,7 +2,7 @@ import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
 import { Protocol } from './resource';
 import { Metadata } from './metadata';
-import { isNumeric, isNativeFunction } from './functions';
+import { isNumeric, isNativeFunction, isObject } from './functions';
 function cloneArrayWithPossibleProps(source) {
     const clone = source.slice();
     const keys = Object.keys(source);
@@ -505,6 +505,9 @@ export class Container {
         let jj;
         for (let i = 0, ii = params.length; i < ii; ++i) {
             current = params[i];
+            if (!isObject(current)) {
+                continue;
+            }
             if (isRegistry(current)) {
                 current.register(this);
             }
@@ -530,6 +533,9 @@ export class Container {
                 jj = keys.length;
                 for (; j < jj; ++j) {
                     value = current[keys[j]];
+                    if (!isObject(value)) {
+                        continue;
+                    }
                     // note: we could remove this if-branch and call this.register directly
                     // - the extra check is just a perf tweak to create fewer unnecessary arrays by the spread operator
                     if (isRegistry(value)) {

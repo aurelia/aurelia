@@ -1,5 +1,5 @@
 import { DI } from '@aurelia/kernel';
-import { IValidateable, PropertyRule, Rules, ValidationResult } from './rule';
+import { IValidateable, PropertyRule, validationRules, ValidationResult } from './rule';
 
 export const IValidator = DI.createInterface<IValidator>("IValidator").noDefault();
 /**
@@ -86,7 +86,7 @@ export class StandardValidator implements IValidator {
     propertyName?: string | number,
     rules?: PropertyRule[],
   ): Promise<ValidationResult[]> {
-    rules = rules ?? Rules.get(object);
+    rules = rules ?? validationRules.get(object);
     const validateAllProperties = propertyName === void 0;
 
     const result = await Promise.all(rules.reduce((acc: Promise<ValidationResult[]>[], rule) => {

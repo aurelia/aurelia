@@ -1,4 +1,4 @@
-import { Class, DI } from '@aurelia/kernel';
+import { Class, DI, Protocol, Constructable, Metadata } from '@aurelia/kernel';
 import {
   BindingType,
   IExpressionParser,
@@ -27,85 +27,31 @@ export class RuleProperty {
   ) { }
 }
 export type RuleCondition<TObject extends IValidateable = IValidateable, TValue = any> = (value: TValue, object?: TObject) => boolean | Promise<boolean>;
-// /**
-//  * A rule definition. Associations a rule with a property or object.
-//  */
-// export class Rule<TObject extends IValidateable = IValidateable, TValue = any> {
-//   private message: IInterpolationExpression;
 
-//   public constructor(
-//     private readonly messageProvider: IValidationMessageProvider,
-//     public property: RuleProperty,
-//     public condition: RuleCondition<TObject, TValue>,
-//     public config: object,
-//     public sequence: number,
-//     public messageKey: string = 'default',
-//     public when?: ((object: TObject) => boolean),
-//     public tag?: string,
-//   ) {
-//     this.message = (void 0)!;
-//   }
-
-//   public setMessageKey(key: string) {
-//     this.messageKey = key;
-//     this.message = (void 0)!;
-//   }
-
-//   public setMessage(message: string) {
-//     this.messageKey = 'custom';
-//     this.message = this.messageProvider.parseMessage(message);
-//   }
-
-//   public getMessage() {
-//     let message = this.message;
-//     if (message !== void 0) {
-//       return message;
-//     }
-//     message = this.message = this.messageProvider.getMessageByKey(this.messageKey);
-//     return message;
-//   }
-// }
-
-// TODO use metadata service for this.
-/**
- * Sets, unsets and retrieves rules on an object or constructor function.
- */
-export class Rules {
-  /**
-   * The name of the property that stores the rules.
-   */
-  private static key = '__rules__';
-
-  /**
-   * Applies the rules to a target.
-   */
-  public static set(target: IValidateable, rules: PropertyRule[]): void {
+/** @internal */
+export const validationRules = Object.freeze({
+  name: 'validation-rules',
+  key: Protocol.annotation.keyFor('validation-rules'),
+  set(target: IValidateable, rules: PropertyRule[]): void {
     if (target instanceof Function) {
-      target = target.prototype;
+      const key = validationRules.name;
+      Protocol.annotation.set(target as Constructable, key, rules);
+      Protocol.annotation.appendTo(target as Constructable, key);
+    } else {
+      Metadata.define(validationRules.key, rules, target);
     }
-    Object.defineProperty(
-      target,
-      Rules.key,
-      { enumerable: false, configurable: false, writable: true, value: rules });
-  }
-
-  /**
-   * Removes rules from a target.
-   */
-  public static unset(target: IValidateable): void {
-    if (target instanceof Function) {
-      target = target.prototype;
+  },
+  get(target: IValidateable): PropertyRule[] {
+    return target instanceof Function
+      ? Protocol.annotation.get(target as Constructable, validationRules.name)
+      : Metadata.getOwn(validationRules.key, target);
+  },
+  unset(target: IValidateable): void {
+    if (!(target instanceof Function)) {
+      Metadata.delete(validationRules.key, target);
     }
-    target[Rules.key] = null;
   }
-
-  /**
-   * Retrieves the target's rules.
-   */
-  public static get(target: IValidateable): PropertyRule[] {
-    return target[Rules.key];
-  }
-}
+});
 
 export type ValidationRuleExecutionPredicate = (object?: IValidateable) => boolean;
 
@@ -233,7 +179,7 @@ export class EqualsRule extends ValidationRule {
   }
 }
 
-export class PropertyRule {
+export class PropertyRule<TObject extends IValidateable = IValidateable, TValue = unknown> {
 
   private latestRule?: ValidationRule;
 
@@ -261,7 +207,7 @@ export class PropertyRule {
     return this.$rules[depth];
   }
 
-  public async validate(value: unknown, object?: IValidateable): Promise<ValidationResult[]> {
+  public async validate(value: TValue, object?: IValidateable): Promise<ValidationResult[]> {
 
     let isValid = true;
     const validateRuleset = async (rules: ValidationRule[]) => {
@@ -411,7 +357,7 @@ export class PropertyRule {
    * Value must match the specified regular expression.
    * null, undefined and empty-string values are considered valid.
    */
-  public matches(regex: RegExp) {
+  public matches(this: PropertyRule<TObject, string>, regex: RegExp) {
     return this.addRule(new RegexRule(this.messageProvider, regex));
   }
 
@@ -419,7 +365,7 @@ export class PropertyRule {
    * Applies the "email" rule to the property.
    * null, undefined and empty-string values are considered valid.
    */
-  public email() {
+  public email(this: PropertyRule<TObject, string>) {
     // eslint-disable-next-line no-useless-escape
     const emailPattern = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
     return this.addRule(new RegexRule(this.messageProvider, emailPattern, 'email'));
@@ -429,7 +375,7 @@ export class PropertyRule {
    * Applies the "minLength" STRING validation rule to the property.
    * null, undefined and empty-string values are considered valid.
    */
-  public minLength(length: number) {
+  public minLength(this: PropertyRule<TObject, string>, length: number) {
     return this.addRule(new LengthRule(this.messageProvider, length, false));
   }
 
@@ -437,7 +383,7 @@ export class PropertyRule {
    * Applies the "maxLength" STRING validation rule to the property.
    * null, undefined and empty-string values are considered valid.
    */
-  public maxLength(length: number) {
+  public maxLength(this: PropertyRule<TObject, string>, length: number) {
     return this.addRule(new LengthRule(this.messageProvider, length, true));
   }
 
@@ -445,7 +391,7 @@ export class PropertyRule {
    * Applies the "minItems" ARRAY validation rule to the property.
    * null and undefined values are considered valid.
    */
-  public minItems(count: number) {
+  public minItems(this: PropertyRule<TObject, unknown[]>, count: number) {
     return this.addRule(new SizeRule(this.messageProvider, count, false));
   }
 
@@ -453,7 +399,7 @@ export class PropertyRule {
    * Applies the "maxItems" ARRAY validation rule to the property.
    * null and undefined values are considered valid.
    */
-  public maxItems(count: number) {
+  public maxItems(this: PropertyRule<TObject, unknown[]>, count: number) {
     return this.addRule(new SizeRule(this.messageProvider, count, true));
   }
 
@@ -462,7 +408,7 @@ export class PropertyRule {
    * Value must be greater than or equal to the specified constraint.
    * null and undefined values are considered valid.
    */
-  public min(constraint: number) {
+  public min(this: PropertyRule<TObject, number>, constraint: number) {
     return this.addRule(new RangeRule(this.messageProvider, true, { min: constraint }));
   }
 
@@ -471,7 +417,7 @@ export class PropertyRule {
    * Value must be less than or equal to the specified constraint.
    * null and undefined values are considered valid.
    */
-  public max(constraint: number) {
+  public max(this: PropertyRule<TObject, number>, constraint: number) {
     return this.addRule(new RangeRule(this.messageProvider, true, { max: constraint }));
   }
 
@@ -480,7 +426,7 @@ export class PropertyRule {
    * Value must be between or equal to the specified min and max.
    * null and undefined values are considered valid.
    */
-  public range(min: number, max: number) {
+  public range(this: PropertyRule<TObject, number>, min: number, max: number) {
     return this.addRule(new RangeRule(this.messageProvider, true, { min, max }));
   }
 
@@ -489,7 +435,7 @@ export class PropertyRule {
    * Value must be between but not equal to the specified min and max.
    * null and undefined values are considered valid.
    */
-  public between(min: number, max: number) {
+  public between(this: PropertyRule<TObject, number>, min: number, max: number) {
     return this.addRule(new RangeRule(this.messageProvider, false, { min, max }));
   }
 
@@ -508,9 +454,12 @@ export class PropertyRule {
    *
    * @param property - The property to target. Can be the property name or a property accessor function.
    */
-  public ensure<TValue>(subject: string /* | number | PropertyAccessor<IValidateable, TValue> */) {
+  public ensure<TProp extends keyof TObject>(property: TProp): PropertyRule<TObject, TObject[TProp]>;
+  public ensure<TValue>(property: PropertyAccessor<TObject, TValue>): PropertyRule<TObject, TValue>;
+  public ensure(property: string): PropertyRule;
+  public ensure<TValue>(property: string | PropertyAccessor<TObject, TValue>) {
     this.latestRule = void 0;
-    return this.validationRules.ensure<TValue>(subject);
+    return this.validationRules.ensure<TValue>(property);
   }
 
   /**
@@ -539,18 +488,21 @@ export class PropertyRule {
   // #endregion
 }
 
-export interface IValidationRules {
+export interface IValidationRules<TObject extends IValidateable = IValidateable> {
   rules: PropertyRule[];
-  ensure<TValue>(property: string | PropertyAccessor): PropertyRule;
+  ensure<TProp extends keyof TObject>(property: TProp): PropertyRule<TObject, TObject[TProp]>;
+  ensure<TValue>(property: PropertyAccessor<TObject, TValue>): PropertyRule<TObject, TValue>;
+  ensure(property: string): PropertyRule;
   ensureObject(): PropertyRule;
-  on(target: IValidateable): this;
+  on<TAnotherObject extends IValidateable = IValidateable>(target: Class<TAnotherObject>): IValidationRules<TAnotherObject>;
+  on<TAnotherObject extends IValidateable = IValidateable>(target: TAnotherObject): IValidationRules<TAnotherObject>;
 }
 export const IValidationRules = DI.createInterface<IValidationRules>('IValidationRules').noDefault();
 
 /**
  * Part of the fluent rule API. Enables targeting properties and objects with rules.
  */
-export class ValidationRules implements IValidationRules {
+export class ValidationRules<TObject extends IValidateable = IValidateable> implements IValidationRules<TObject> {
   // /**
   //  * Returns rules with the matching tag.
   //  *
@@ -591,9 +543,9 @@ export class ValidationRules implements IValidationRules {
    * @param property - The property to target. Can be the property name or a property accessor
    * function.
    */
-  public ensure<TValue>(property: string | PropertyAccessor): PropertyRule {
+  public ensure<TValue>(property: keyof TObject | string | PropertyAccessor): PropertyRule {
     // this.assertInitialized();
-    const [name, expression] = parsePropertyName(property, this.parser);
+    const [name, expression] = parsePropertyName(property as any, this.parser);
     // eslint-disable-next-line eqeqeq
     let rule = this.rules.find((r) => r.property.name == name);
     if (rule === void 0) {
@@ -619,7 +571,7 @@ export class ValidationRules implements IValidationRules {
    * @param target - A class or object.
    */
   public on(target: IValidateable) {
-    Rules.set(target, this.rules);
+    validationRules.set(target, this.rules);
     return this;
   }
 }

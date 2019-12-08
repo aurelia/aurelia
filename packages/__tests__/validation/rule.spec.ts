@@ -1,18 +1,18 @@
-import { DI } from '@aurelia/kernel';
+import { DI, Metadata, Protocol } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 import {
-  ValidationConfiguration,
-  IValidationRules,
-  RequiredRule,
-  LengthRule,
-  RegexRule,
-  RangeRule,
   EqualsRule,
-  SizeRule,
-  PropertyRule,
-  ValidationRule,
   IValidateable,
   IValidationMessageProvider,
+  IValidationRules,
+  LengthRule,
+  PropertyRule,
+  RangeRule,
+  RegexRule,
+  RequiredRule,
+  SizeRule,
+  ValidationConfiguration,
+  ValidationRule,
 } from "@aurelia/validation";
 
 describe.only('ValidationRules', function () {
@@ -31,7 +31,7 @@ describe.only('ValidationRules', function () {
 
   it('can be used to define validation rules fluenty on string properties', function () {
     const { sut } = setup();
-    const propName = 'strProp';
+    const propName = 'name';
     const rules = sut
       .ensure(propName)
       .required()
@@ -82,7 +82,7 @@ describe.only('ValidationRules', function () {
 
   it('can be used to define validation rules fluenty on number properties', function () {
     const { sut } = setup();
-    const propName = 'numProp';
+    const propName = 'age';
     const rules = sut
       .ensure(propName)
       .required()
@@ -220,11 +220,11 @@ describe.only('ValidationRules', function () {
     const { sut } = setup();
     const rules = sut
 
-      .ensure('strProp')
+      .ensure('name')
       .required()
       .matches(/foo/)
 
-      .ensure('numProp')
+      .ensure('age')
       .range(24, 42)
 
       .rules;
@@ -232,12 +232,146 @@ describe.only('ValidationRules', function () {
     assert.equal(rules.length, 2);
     const [rule1, rule2] = rules;
     assert.instanceOf(rule1, PropertyRule);
-    assert.equal((rule1 as PropertyRule).property.name, 'strProp');
+    assert.equal((rule1 as PropertyRule).property.name, 'name');
     assert.instanceOf(rule1.$rules[0][0], RequiredRule, 'exprected required rule');
     assert.instanceOf(rule1.$rules[0][1], RegexRule, 'exprected regex rule');
 
     assert.instanceOf(rule2, PropertyRule);
-    assert.equal((rule2 as PropertyRule).property.name, 'numProp');
+    assert.equal((rule2 as PropertyRule).property.name, 'age');
     assert.instanceOf(rule2.$rules[0][0], RangeRule, 'expected range rule');
+  });
+
+  it('conslidates the rule based on property name', function () {
+    const { sut } = setup();
+    const rules = sut
+
+      .ensure('name')
+      .required()
+
+      .ensure('age')
+      .range(24, 42)
+
+      .ensure('name')
+      .matches(/foo/)
+
+      .rules;
+
+    assert.equal(rules.length, 2);
+    const [rule1, rule2] = rules;
+    assert.instanceOf(rule1, PropertyRule);
+    assert.equal((rule1 as PropertyRule).property.name, 'name');
+    assert.instanceOf(rule1.$rules[0][0], RequiredRule, 'exprected required rule');
+    assert.instanceOf(rule1.$rules[0][1], RegexRule, 'exprected regex rule');
+
+    assert.instanceOf(rule2, PropertyRule);
+    assert.equal((rule2 as PropertyRule).property.name, 'age');
+    assert.instanceOf(rule2.$rules[0][0], RangeRule, 'expected range rule');
+  });
+
+  it('can define metadata annotation for rules on an object', function () {
+    const { sut } = setup();
+    interface Person { name: string; age: number }
+    const obj: Person = { name: undefined, age: undefined };
+    const rules = sut
+      .on(obj)
+
+      .ensure('name')
+      .required()
+
+      .ensure('age')
+      .range(24, 42)
+
+      .rules;
+
+    assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules'), obj), rules);
+  });
+
+  it('can define metadata annotation for rules on a class', function () {
+    const { sut } = setup();
+    class Person {
+      public constructor(
+        public name: string,
+        public age: number,
+      ) { }
+    }
+
+    const rules = sut
+      .on(Person)
+
+      .ensure('name')
+      .required()
+
+      .ensure('age')
+      .range(24, 42)
+
+      .rules;
+
+    assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules'), Person), rules);
+  });
+
+  it('can define rules on properties of an object using lambda expression', function () {
+    const { sut } = setup();
+    interface Address { line1: string; line2?: string; city: string; pin: number; }
+    interface Person { name: string; age: number, address: Address }
+    const obj: Person = { name: undefined, age: undefined, address: undefined };
+    const rules = sut
+      .on(obj)
+
+      .ensure(function (o) { return o.name; })
+      .required()
+
+      .ensure((o) => o.age)
+      .range(24, 42)
+
+      .ensure((o) => o.address.line1)
+      .required()
+
+      .rules;
+
+    assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules'), obj), rules);
+
+    const [rules1, rules2, rules3] = rules;
+    assert.equal(rules1.property.name, 'name');
+    assert.instanceOf(rules1.$rules[0][0], RequiredRule);
+    assert.equal(rules2.property.name, 'age');
+    assert.instanceOf(rules2.$rules[0][0], RangeRule);
+    assert.equal(rules3.property.name, 'address.line1');
+    assert.instanceOf(rules3.$rules[0][0], RequiredRule);
+  });
+
+  it('can define rules on properties of a class using lambda expression', function () {
+    const { sut } = setup();
+    interface Address { line1: string; line2?: string; city: string; pin: number; }
+    class Person {
+      public constructor(
+        public name: string,
+        public age: number,
+        public address: Address,
+      ) { }
+    }
+
+    const rules = sut
+      .on(Person)
+
+      .ensure((p) => p.name)
+      .required()
+
+      .ensure(function (p) { return p.age; })
+      .range(24, 42)
+
+      .ensure((o) => o.address.line1)
+      .required()
+
+      .rules;
+
+    assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules'), Person), rules);
+
+    const [rules1, rules2, rules3] = rules;
+    assert.equal(rules1.property.name, 'name');
+    assert.instanceOf(rules1.$rules[0][0], RequiredRule);
+    assert.equal(rules2.property.name, 'age');
+    assert.instanceOf(rules2.$rules[0][0], RangeRule);
+    assert.equal(rules3.property.name, 'address.line1');
+    assert.instanceOf(rules3.$rules[0][0], RequiredRule);
   });
 });

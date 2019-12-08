@@ -1,6 +1,7 @@
 import { customElement } from '@aurelia/runtime';
-import { IValidationControllerFactory, IValidator, ValidationRules, ValidationController, IValidationController } from '@aurelia/validation';
+import { IValidationController, IValidationControllerFactory, IValidator, ValidationRules } from '@aurelia/validation';
 import template from './sut-validation.html';
+import { IContainer } from '@aurelia/kernel';
 
 @customElement({ name: 'sut-validation', template })
 export class SutValidation {
@@ -11,20 +12,23 @@ export class SutValidation {
     },
     d: 1
   };
-  // private readonly controller: ValidationController;
+  private readonly controller: IValidationController;
   private readonly dstr = 'd';
 
   public constructor(
-    // @IValidationControllerFactory validationControllerFactory: IValidationControllerFactory,
-    @IValidationController private readonly controller: IValidationController,
+    @IContainer container: IContainer,
+    @IValidationControllerFactory validationControllerFactory: IValidationControllerFactory,
+    // @IValidationController private readonly controller: IValidationController,
     @IValidator private readonly validator: IValidator
   ) {
-    console.log('in SutValidation', controller['validator']);
-    // this.controller = validationControllerFactory.createForCurrentScope();
+    this.controller = validationControllerFactory.createForCurrentScope();
+    console.log('in SutValidation', this.controller['validator']);
+    const controller: IValidationController = container.get(IValidationController);
+    console.log(Object.is(controller, this.controller));
+    console.log(Object.is(container, validationControllerFactory['container']));
   }
 
-  public async binding(...arg: any[]) {
-    console.log(arg)
+  public async binding() {
     // const rules = new ValidationRules()
     //   .ensure("firstName")
     //   .required()
@@ -58,9 +62,6 @@ export class SutValidation {
       .rules;
     const result = await this.validator.validateObject(this.a, rules1);
     console.log(result);
-  }
-  public bound(...args: any[]) {
-    console.log(args);
   }
 
   private async validate() {

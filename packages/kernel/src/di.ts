@@ -5,7 +5,7 @@ import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
 import { ResourceType, Protocol } from './resource';
 import { Metadata } from './metadata';
-import { isNumeric, isNativeFunction } from './functions';
+import { isNumeric, isNativeFunction, isObject } from './functions';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -735,7 +735,7 @@ export class Container implements IContainer {
     let jj: number;
     for (let i = 0, ii = params.length; i < ii; ++i) {
       current = params[i];
-      if (typeof current !== 'object' && typeof current !== 'function' || current === null) {
+      if (!isObject(current)) {
         continue;
       }
       if (isRegistry(current)) {
@@ -759,7 +759,7 @@ export class Container implements IContainer {
         jj = keys.length;
         for (; j < jj; ++j) {
           value = current[keys[j]];
-          if (typeof value !== 'object' && typeof value !== 'function' || value === null) {
+          if (!isObject(value)) {
             continue;
           }
           // note: we could remove this if-branch and call this.register directly

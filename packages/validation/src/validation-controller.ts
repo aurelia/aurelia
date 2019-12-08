@@ -623,7 +623,7 @@ export class ValidationControllerFactory implements IValidationControllerFactory
    */
   public createForCurrentScope(validator?: IValidator): IValidationController {
     const controller = this.create(validator);
-    this.container.register(Registration.instance(ValidationController, controller));
+    Registration.instance(IValidationController, controller).register(this.container);
     return controller;
   }
 }

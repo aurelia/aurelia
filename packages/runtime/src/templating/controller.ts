@@ -57,6 +57,7 @@ import {
   IProjectorLocator,
   CustomElementDefinition,
   CustomElement,
+  PartialCustomElementDefinition,
 } from '../resources/custom-element';
 import {
   CustomAttributeDefinition,
@@ -69,7 +70,31 @@ import { RenderContext } from './render-context';
 import { ChildrenObserver } from './children';
 
 type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
-  created(flags: LifecycleFlags): void;
+  create(
+    controller: IController,
+    definition: CustomElementDefinition,
+    parentContainer: IContainer,
+    parts: PartialCustomElementDefinitionParts | undefined,
+    flags: LifecycleFlags,
+  ): PartialCustomElementDefinition | void;
+  beforeCompile(
+    controller: IController,
+    definition: CustomElementDefinition,
+    container: IContainer,
+    parts: PartialCustomElementDefinitionParts | undefined,
+    flags: LifecycleFlags,
+  ): void;
+  afterCompile(
+    controller: IController,
+    compiledDefinition: CustomElementDefinition,
+    projector: IElementProjector,
+    nodes: INodeSequence | null,
+    flags: LifecycleFlags,
+  ): void;
+  afterCompileChildren(
+    children: readonly IController[] | undefined,
+    flags: LifecycleFlags,
+  ): void;
 
   beforeBind(flags: LifecycleFlags): MaybePromiseOrTask;
   afterBind(flags: LifecycleFlags): void;
@@ -253,6 +278,22 @@ export class Controller<
     createObservers(this.lifecycle, definition, flags, instance);
     createChildrenObservers(this, definition, flags, instance);
 
+    this.scope = Scope.create(flags, this.bindingContext!, null);
+
+    const hooks = this.hooks;
+    if (hooks.hasCreate) {
+      const result = instance.create!(
+        this as IController<T, NonNullable<C>>,
+        definition,
+        parentContainer,
+        parts,
+        flags,
+      );
+      if (result !== void 0 && result !== definition) {
+        definition = CustomElementDefinition.getOrCreate(result);
+      }
+    }
+
     const context = this.context = RenderContext.getOrCreate(definition, parentContainer);
     // Support Recursive Components by adding self to own context
     definition.register(context);
@@ -261,12 +302,44 @@ export class Controller<
       context.beginChildComponentOperation(instance);
     }
 
+    if (hooks.hasBeforeCompile) {
+      instance.beforeCompile!(
+        this as IController<T, NonNullable<C>>,
+        definition,
+        context,
+        parts,
+        flags,
+      );
+    }
+
     const compiledDefinition = context.compile();
 
     this.scopeParts = compiledDefinition.scopeParts;
     this.isStrictBinding = compiledDefinition.isStrictBinding;
 
     const nodes = context.createNodes();
+
+    const projectorLocator = parentContainer.get(IProjectorLocator);
+
+    const projector = this.projector = projectorLocator.getElementProjector(
+      context.dom,
+      this,
+      this.host!,
+      compiledDefinition,
+    );
+
+    (instance as Writable<C>).$controller = this;
+
+    if (hooks.hasAfterCompile) {
+      instance.afterCompile!(
+        this as IController<T, NonNullable<C>>,
+        compiledDefinition,
+        projector,
+        nodes,
+        flags,
+      );
+    }
+
     if (nodes !== null) {
       this.nodes = nodes as INodeSequence<T>;
 
@@ -281,19 +354,14 @@ export class Controller<
         /* host       */this.host,
         /* parts      */parts,
       );
+
+      if (hooks.hasAfterCompileChildren) {
+        instance.afterCompileChildren!(
+          this.controllers,
+          flags,
+        );
+      }
     }
-
-    this.scope = Scope.create(this.flags, this.bindingContext!, null);
-    const projectorLocator = parentContainer.get(IProjectorLocator);
-
-    this.projector = projectorLocator.getElementProjector(
-      context.dom,
-      this,
-      this.host!,
-      compiledDefinition,
-    );
-
-    (instance as Writable<C>).$controller = this;
   }
 
   private hydrateCustomAttribute(definition: CustomAttributeDefinition): void {

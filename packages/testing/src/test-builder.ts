@@ -34,7 +34,6 @@ import {
   Interpolation,
   IObserverLocator,
   IObserverLocatorRegistration,
-  IRenderingEngine,
   IsBindingBehavior,
   IScope,
   ITargetAccessorLocator,

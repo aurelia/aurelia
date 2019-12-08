@@ -1,8 +1,8 @@
+import { IContainer } from '@aurelia/kernel';
 import {
   bindable,
   IController,
   INode,
-  IRenderContext,
   LifecycleFlags,
   customElement,
 } from '@aurelia/runtime';
@@ -99,11 +99,11 @@ export class ViewportCustomElement {
     if (this.element.hasAttribute('stateful')) {
       options.stateful = true;
     }
-    this.viewport = this.router.connectViewport(this.name, this.element, this.$controller.context as IRenderContext, options);
+    this.viewport = this.router.connectViewport(this.name, this.element, this.$controller.context as IContainer, options);
   }
   public disconnect(): void {
     if (this.viewport) {
-      this.router.disconnectViewport(this.viewport, this.element, this.$controller.context as IRenderContext);
+      this.router.disconnectViewport(this.viewport, this.element, this.$controller.context as IContainer);
     }
   }
 

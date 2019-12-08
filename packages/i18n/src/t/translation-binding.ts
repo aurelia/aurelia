@@ -1,4 +1,4 @@
-import { IEventAggregator, IServiceLocator, toArray } from '@aurelia/kernel';
+import { IEventAggregator, IServiceLocator, IContainer, toArray } from '@aurelia/kernel';
 import {
   addBinding,
   BindingType,
@@ -15,7 +15,6 @@ import {
   Interpolation,
   IObserverLocator,
   IPartialConnectableBinding,
-  IRenderContext,
   IScope,
   IsExpression,
   LifecycleFlags,
@@ -29,7 +28,7 @@ import { Signals } from '../utils';
 interface TranslationBindingCreationContext {
   parser: IExpressionParser;
   observerLocator: IObserverLocator;
-  context: IRenderContext;
+  context: IContainer;
   renderable: IController;
   target: HTMLElement;
   instruction: ICallBindingInstruction;

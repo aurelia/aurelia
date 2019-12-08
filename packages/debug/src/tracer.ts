@@ -250,7 +250,7 @@ const RenderingArgsProcessor = {
     return flagsText(info);
   },
   render(info: ITraceInfo): string {
-    return `${flagsText(info)},IDOM,IRenderContext,${ctorName(info, 3)}`;
+    return `${flagsText(info)},IDOM,IContainer,${ctorName(info, 3)}`;
   },
   addBinding(info: ITraceInfo): string {
     return `${ctorName(info)},${ctorName(info, 1)}`;

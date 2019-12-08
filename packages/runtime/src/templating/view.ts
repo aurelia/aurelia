@@ -1,5 +1,5 @@
 import { Constructable, ConstructableClass, DI, IContainer, IResolver, PLATFORM, Registration, Metadata, Protocol } from '@aurelia/kernel';
-import { INode } from '../dom';
+import { INode, INodeSequence } from '../dom';
 import { LifecycleFlags, State } from '../flags';
 import {
   IController,
@@ -8,10 +8,11 @@ import {
   IViewModel,
 } from '../lifecycle';
 import { Scope } from '../observation/binding-context';
-import { CustomElement, PartialCustomElementDefinition, CustomElementDefinition } from '../resources/custom-element';
+import { CustomElement, PartialCustomElementDefinition, CustomElementDefinition, IElementProjector } from '../resources/custom-element';
 import { Controller } from './controller';
 import { PartialCustomElementDefinitionParts } from '../definitions';
 import { RenderContext } from './render-context';
+import { MaybePromiseOrTask } from '../lifecycle-task';
 
 export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
   public static maxCacheSize: number = 0xFFFF;
@@ -153,6 +154,9 @@ export type ComposableObjectComponentType<T extends ComposableObject>
   = ConstructableClass<{ viewModel: T } & ComposableObject>;
 
 const lifecycleCallbacks = [
+  'beforeCompile',
+  'afterCompile',
+  'afterCompileChildren',
   'beforeBind',
   'afterBind',
   'beforeAttach',
@@ -248,19 +252,24 @@ export class ViewLocator implements IViewLocator {
       UnboundComponent = CustomElement.define<ComposableObjectComponentType<T>>(
         this.getView(availableViews, resolvedViewName),
         class {
-          protected $controller!: IController;
-
           public constructor(public viewModel: T) {}
 
-          public created(flags: LifecycleFlags) {
-            this.$controller.scope = Scope.fromParent(
+          public create(
+            controller: IController,
+            definition: CustomElementDefinition,
+            parentContainer: IContainer,
+            parts: PartialCustomElementDefinitionParts,
+            flags: LifecycleFlags,
+          ) {
+            const vm = this.viewModel;
+            controller.scope = Scope.fromParent(
               flags,
-              this.$controller.scope!,
-              this.viewModel
+              controller.scope!,
+              vm,
             );
 
-            if (this.viewModel.created) {
-              this.viewModel.created(flags);
+            if (vm.create !== void 0) {
+              return vm.create(controller, definition, parentContainer, parts, flags);
             }
           }
         }
@@ -268,13 +277,81 @@ export class ViewLocator implements IViewLocator {
 
       const proto = UnboundComponent.prototype;
 
-      lifecycleCallbacks.forEach(x => {
-        if (x in object) {
-          const fn = function (this: InstanceType<ComposableObjectComponentType<T>>, flags: LifecycleFlags) { return this.viewModel[x]!(flags); };
-          Reflect.defineProperty(fn, 'name', { configurable: true, value: x });
-          proto[x] = fn;
-        }
-      });
+      if ('beforeCompile' in object) {
+        proto.beforeCompile = function beforeCompile(
+          controller: IController,
+          definition: CustomElementDefinition,
+          container: IContainer,
+          parts: PartialCustomElementDefinitionParts | undefined,
+          flags: LifecycleFlags,
+        ): void {
+          this.viewModel.beforeCompile!(controller, definition, container, parts, flags);
+        };
+      }
+      if ('afterCompile' in object) {
+        proto.afterCompile = function afterCompile(
+          controller: IController,
+          compiledDefinition: CustomElementDefinition,
+          projector: IElementProjector,
+          nodes: INodeSequence | null,
+          flags: LifecycleFlags,
+        ): void {
+          this.viewModel.afterCompile!(controller, compiledDefinition, projector, nodes, flags);
+        };
+      }
+      if ('afterCompileChildren' in object) {
+        proto.afterCompileChildren = function afterCompileChildren(
+          children: readonly IController[] | undefined,
+          flags: LifecycleFlags,
+        ): void {
+          this.viewModel.afterCompileChildren!(children, flags);
+        };
+      }
+      if ('beforeBind' in object) {
+        proto.beforeBind = function beforeBind(flags: LifecycleFlags): MaybePromiseOrTask {
+          return this.viewModel.beforeBind!(flags);
+        };
+      }
+      if ('afterBind' in object) {
+        proto.afterBind = function afterBind(flags: LifecycleFlags): void {
+          this.viewModel.afterBind!(flags);
+        };
+      }
+      if ('beforeUnbind' in object) {
+        proto.beforeUnbind = function beforeUnbind(flags: LifecycleFlags): MaybePromiseOrTask {
+          return this.viewModel.beforeUnbind!(flags);
+        };
+      }
+      if ('afterUnbind' in object) {
+        proto.afterUnbind = function afterUnbind(flags: LifecycleFlags): void {
+          this.viewModel.afterUnbind!(flags);
+        };
+      }
+      if ('beforeAttach' in object) {
+        proto.beforeAttach = function beforeAttach(flags: LifecycleFlags): void {
+          this.viewModel.beforeAttach!(flags);
+        };
+      }
+      if ('afterAttach' in object) {
+        proto.afterAttach = function afterAttach(flags: LifecycleFlags): void {
+          this.viewModel.afterAttach!(flags);
+        };
+      }
+      if ('beforeDetach' in object) {
+        proto.beforeDetach = function beforeDetach(flags: LifecycleFlags): void {
+          this.viewModel.beforeDetach!(flags);
+        };
+      }
+      if ('afterDetach' in object) {
+        proto.afterDetach = function afterDetach(flags: LifecycleFlags): void {
+          this.viewModel.afterDetach!(flags);
+        };
+      }
+      if ('caching' in object) {
+        proto.caching = function caching(flags: LifecycleFlags): void {
+          this.viewModel.caching!(flags);
+        };
+      }
 
       lookup[resolvedViewName] = UnboundComponent;
     }

@@ -16,7 +16,6 @@ import {
   Aurelia,
   BindingMode,
   BindingType,
-  CompiledTemplate,
   CustomElementHost,
   HydrateElementInstruction,
   HydrateTemplateController,
@@ -34,16 +33,13 @@ import {
   instructionRenderer,
   IObserverLocator,
   IProjectorLocator,
-  IRenderContext,
   IRenderLocation,
   IsBindingBehavior,
   ISinglePageApp,
   ITargetAccessorLocator,
   ITargetedInstruction,
   ITargetObserverLocator,
-  ITemplate,
   PartialCustomElementDefinition,
-  ITemplateFactory,
   IteratorBindingInstruction,
   LetBindingInstruction,
   LetElementInstruction,
@@ -295,6 +291,9 @@ export class AuNode implements INode {
 }
 
 export class AuDOM implements IDOM<AuNode> {
+  public createNodeSequence(fragment: AuNode): AuNodeSequence {
+    return new AuNodeSequence(this, fragment.cloneNode(true));
+  }
   public addEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void {
     return;
   }
@@ -623,20 +622,6 @@ export class AuDOMInitializer implements IDOMInitializer {
   }
 }
 
-export class AuTemplateFactory implements ITemplateFactory<AuNode> {
-  public static readonly inject: readonly Key[] = [IDOM];
-
-  private readonly dom: AuDOM;
-
-  public constructor(dom: AuDOM) {
-    this.dom = dom;
-  }
-
-  public create(parentRenderContext: IRenderContext<AuNode>, definition: CustomElementDefinition): ITemplate<AuNode> {
-    return new CompiledTemplate<AuNode>(this.dom, definition, new AuNodeSequenceFactory(this.dom, definition.template as AuNode), parentRenderContext);
-  }
-}
-
 export class AuObserverLocator implements ITargetAccessorLocator, ITargetObserverLocator {
   public getObserver(flags: LifecycleFlags, scheduler: IScheduler, lifecycle: ILifecycle, observerLocator: IObserverLocator, obj: unknown, propertyName: string): IBindingTargetAccessor | IBindingTargetObserver {
     return null!;
@@ -672,7 +657,7 @@ export class AuTextRenderer implements IInstructionRenderer {
     this.observerLocator = observerLocator;
   }
 
-  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext<AuNode>, renderable: IController<AuNode>, target: AuNode, instruction: AuTextInstruction): void {
+  public render(flags: LifecycleFlags, dom: IDOM, context: IContainer, renderable: IController<AuNode>, target: AuNode, instruction: AuTextInstruction): void {
     let realTarget: AuNode;
     if (target.isRenderLocation) {
       realTarget = AuNode.createText();
@@ -695,7 +680,6 @@ export const AuDOMConfiguration = {
       Registration.singleton(IProjectorLocator, AuProjectorLocator),
       Registration.singleton(ITargetAccessorLocator, AuObserverLocator),
       Registration.singleton(ITargetObserverLocator, AuObserverLocator),
-      Registration.singleton(ITemplateFactory, AuTemplateFactory),
       Registration.instance(ITemplateCompiler, {}), // TODO: fix this dep tree
     );
   },

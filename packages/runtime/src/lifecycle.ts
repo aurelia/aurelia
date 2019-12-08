@@ -29,10 +29,9 @@ import {
   IScope,
 } from './observation';
 import {
-  IElementProjector, CustomElementDefinition,
+  IElementProjector, CustomElementDefinition, PartialCustomElementDefinition,
 } from './resources/custom-element';
 import { RenderContext } from './templating/render-context';
-import { CustomAttributeDefinition } from './resources/custom-attribute';
 
 export interface IBinding {
   readonly locator: IServiceLocator;
@@ -150,7 +149,31 @@ export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory').noD
  */
 export interface IViewModel<T extends INode = INode> {
   readonly $controller?: IController<T, this>;
-  created?(flags: LifecycleFlags): void;
+  create?(
+    controller: IController<T, this>,
+    definition: CustomElementDefinition,
+    parentContainer: IContainer,
+    parts: PartialCustomElementDefinitionParts | undefined,
+    flags: LifecycleFlags,
+  ): PartialCustomElementDefinition | void;
+  beforeCompile?(
+    controller: IController<T, this>,
+    definition: CustomElementDefinition,
+    container: IContainer,
+    parts: PartialCustomElementDefinitionParts | undefined,
+    flags: LifecycleFlags,
+  ): void;
+  afterCompile?(
+    controller: IController<T, this>,
+    compiledDefinition: CustomElementDefinition,
+    projector: IElementProjector,
+    nodes: INodeSequence | null,
+    flags: LifecycleFlags,
+  ): void;
+  afterCompileChildren?(
+    children: readonly IController[] | undefined,
+    flags: LifecycleFlags,
+  ): void;
   beforeBind?(flags: LifecycleFlags): MaybePromiseOrTask;
   afterBind?(flags: LifecycleFlags): void;
   beforeUnbind?(flags: LifecycleFlags): MaybePromiseOrTask;

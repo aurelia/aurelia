@@ -154,8 +154,10 @@ export interface ILetBindingInstruction extends ITargetedInstruction {
 export class HooksDefinition {
   public static readonly none: Readonly<HooksDefinition> = new HooksDefinition({});
 
-  public readonly hasRender: boolean;
-  public readonly hasCreated: boolean;
+  public readonly hasCreate: boolean;
+  public readonly hasBeforeCompile: boolean;
+  public readonly hasAfterCompile: boolean;
+  public readonly hasAfterCompileChildren: boolean;
 
   public readonly hasBeforeBind: boolean;
   public readonly hasAfterBind: boolean;
@@ -171,8 +173,10 @@ export class HooksDefinition {
   public readonly hasCaching: boolean;
 
   public constructor(target: object) {
-    this.hasRender = 'render' in target;
-    this.hasCreated = 'created' in target;
+    this.hasCreate = 'create' in target;
+    this.hasBeforeCompile = 'beforeCompile' in target;
+    this.hasAfterCompile = 'afterCompile' in target;
+    this.hasAfterCompileChildren = 'afterCompileChildren' in target;
     this.hasBeforeBind = 'beforeBind' in target;
     this.hasAfterBind = 'afterBind' in target;
     this.hasBeforeUnbind = 'beforeUnbind' in target;

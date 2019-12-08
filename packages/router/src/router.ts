@@ -1,5 +1,5 @@
 import { DI, IContainer, Key, Reporter } from '@aurelia/kernel';
-import { Aurelia, CustomElement, IController, IRenderContext } from '@aurelia/runtime';
+import { Aurelia, CustomElement, IController } from '@aurelia/runtime';
 import { BrowserNavigator } from './browser-navigator';
 import { Guardian, GuardTypes } from './guardian';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
@@ -64,9 +64,9 @@ export interface IRouter {
   getViewport(name: string): Viewport | null;
 
   // Called from the viewport custom element in afterAttach()
-  connectViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;
+  connectViewport(name: string, element: Element, context: IContainer, options?: IViewportOptions): Viewport;
   // Called from the viewport custom element
-  disconnectViewport(viewport: Viewport, element: Element | null, context: IRenderContext | null): void;
+  disconnectViewport(viewport: Viewport, element: Element | null, context: IContainer | null): void;
 
   allViewports(includeDisabled?: boolean): Viewport[];
   findScope(element: Element | null): Viewport;
@@ -449,7 +449,7 @@ export class Router implements IRouter {
   }
 
   // Called from the viewport custom element in afterAttach()
-  public connectViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport {
+  public connectViewport(name: string, element: Element, context: IContainer, options?: IViewportOptions): Viewport {
     Reporter.write(10000, 'Viewport added', name, element);
     const parentScope = this.findScope(element);
     const viewport = parentScope.addViewport(name, element, context, options);
@@ -467,7 +467,7 @@ export class Router implements IRouter {
     return viewport;
   }
   // Called from the viewport custom element
-  public disconnectViewport(viewport: Viewport, element: Element | null, context: IRenderContext | null): void {
+  public disconnectViewport(viewport: Viewport, element: Element | null, context: IContainer | null): void {
     if (!viewport.owningScope!.removeViewport(viewport, element, context)) {
       throw new Error(`Failed to remove viewport: ${viewport.name}`);
     }
@@ -649,7 +649,7 @@ export class Router implements IRouter {
   private ensureRootScope(): void {
     if (!this.rootScope) {
       const root = this.container.get(Aurelia).root;
-      this.rootScope = new Viewport(this, 'rootScope', root.host as Element, (root.controller as IController).context as IRenderContext, null, true);
+      this.rootScope = new Viewport(this, 'rootScope', root.host as Element, (root.controller as IController).context as IContainer, null, true);
     }
   }
 

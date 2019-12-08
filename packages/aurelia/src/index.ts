@@ -746,7 +746,7 @@ export {
   ILifecycle,
   IViewModel,
   // IController,
-  // IRenderContext,
+  // IContainer,
   // IViewCache,
   // IViewFactory,
   // MountStrategy,

@@ -1,4 +1,4 @@
-import { IContainer, PLATFORM, Registration } from '@aurelia/kernel';
+import { IContainer, PLATFORM, Registration, Class } from '@aurelia/kernel';
 import { ValidationRules, IValidationRules } from './rule';
 import { ValidateBindingBehavior } from './validate-binding-behavior';
 import { IValidationController, ValidationController, ValidationControllerFactory, IValidationControllerFactory } from './validation-controller';
@@ -9,7 +9,7 @@ import { IValidator, StandardValidator } from './validator';
 
 export type ValidationConfigurationProvider = (options: ValidationCustomizationOpions) => void;
 export interface ValidationCustomizationOpions {
-  validator: typeof StandardValidator;
+  validator: Class<IValidator>;
 }
 
 function createConfiguration(optionsProvider: ValidationConfigurationProvider) {

@@ -15,7 +15,7 @@ export interface IValidator {
    * @param rules - Optional. If unspecified, the implementation should lookup the rules for the
    * specified object. This may not be possible for all implementations of this interface.
    */
-  validateProperty(object: any, propertyName: string, rules?: any): Promise<ValidationResult[]>;
+  validateProperty(object: IValidateable, propertyName: string, rules?: PropertyRule[]): Promise<ValidationResult[]>;
 
   /**
    * Validates all rules for specified object and it's properties.
@@ -24,7 +24,7 @@ export interface IValidator {
    * @param rules - Optional. If unspecified, the implementation should lookup the rules for the
    * specified object. This may not be possible for all implementations of this interface.
    */
-  validateObject(object: any, rules?: any): Promise<ValidationResult[]>;
+  validateObject(object: IValidateable, rules?: PropertyRule[]): Promise<ValidationResult[]>;
 }
 
 /**
@@ -40,7 +40,7 @@ export class StandardValidator implements IValidator {
    * @param {*} [rules] - If unspecified, the rules will be looked up using the metadata
    * for the object created by ValidationRules....on(class/object)
    */
-  public async validateProperty(object: IValidateable, propertyName: string | number, rules?: PropertyRule[]): Promise<ValidationResult[]> {
+  public async validateProperty(object: IValidateable, propertyName: string | number, rules?: [PropertyRule]): Promise<ValidationResult[]> {
     // TODO support filter by tags
     return this.validate(object, propertyName, rules);
   }
@@ -91,8 +91,8 @@ export class StandardValidator implements IValidator {
 
     const result = await Promise.all(rules.reduce((acc: Promise<ValidationResult[]>[], rule) => {
       // eslint-disable-next-line eqeqeq
-      if (validateAllProperties || rule.property.name != propertyName) {
-        const value = rule.property.name === null ? object : object[rule.property.name];
+      if (validateAllProperties || rule.property.name == propertyName) {
+        const value = rule.property.name === void 0 ? object : object[rule.property.name];
         acc.push(rule.validate(value, object));
       }
       return acc;

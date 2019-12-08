@@ -14,6 +14,7 @@ import {
   ValidationConfiguration,
   ValidationRule,
 } from "@aurelia/validation";
+import { IPerson, Person } from './_test-resources';
 
 describe.only('ValidationRules', function () {
 
@@ -24,8 +25,8 @@ describe.only('ValidationRules', function () {
   }
 
   it('is transient', function () {
-    const { sut: instance1 } = setup();
-    const { sut: instance2 } = setup();
+    const { sut: instance1, container } = setup();
+    const instance2 = container.get(IValidationRules);
     assert.equal(Object.is(instance1, instance2), false);
   });
 
@@ -270,8 +271,7 @@ describe.only('ValidationRules', function () {
 
   it('can define metadata annotation for rules on an object', function () {
     const { sut } = setup();
-    interface Person { name: string; age: number }
-    const obj: Person = { name: undefined, age: undefined };
+    const obj: IPerson = { name: undefined, age: undefined };
     const rules = sut
       .on(obj)
 
@@ -288,13 +288,6 @@ describe.only('ValidationRules', function () {
 
   it('can define metadata annotation for rules on a class', function () {
     const { sut } = setup();
-    class Person {
-      public constructor(
-        public name: string,
-        public age: number,
-      ) { }
-    }
-
     const rules = sut
       .on(Person)
 
@@ -311,9 +304,7 @@ describe.only('ValidationRules', function () {
 
   it('can define rules on properties of an object using lambda expression', function () {
     const { sut } = setup();
-    interface Address { line1: string; line2?: string; city: string; pin: number; }
-    interface Person { name: string; age: number, address: Address }
-    const obj: Person = { name: undefined, age: undefined, address: undefined };
+    const obj: IPerson = { name: undefined, age: undefined, address: undefined };
     const rules = sut
       .on(obj)
 
@@ -341,14 +332,6 @@ describe.only('ValidationRules', function () {
 
   it('can define rules on properties of a class using lambda expression', function () {
     const { sut } = setup();
-    interface Address { line1: string; line2?: string; city: string; pin: number; }
-    class Person {
-      public constructor(
-        public name: string,
-        public age: number,
-        public address: Address,
-      ) { }
-    }
 
     const rules = sut
       .on(Person)

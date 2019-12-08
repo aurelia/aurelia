@@ -22,8 +22,8 @@ export class RuleProperty {
    */
   public constructor(
     public expression?: IsBindingBehavior,
-    public name: string | number | null = null,
-    public displayName: string | ValidationDisplayNameAccessor | null = null,
+    public name: string | number | undefined = void 0,
+    public displayName: string | ValidationDisplayNameAccessor | undefined = void 0,
   ) { }
 }
 export type RuleCondition<TObject extends IValidateable = IValidateable, TValue = any> = (value: TValue, object?: TObject) => boolean | Promise<boolean>;
@@ -316,7 +316,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   /**
    * Sets the display name of the ensured property.
    */
-  public displayName(name: string | ValidationDisplayNameAccessor | null) {
+  public displayName(name: string | ValidationDisplayNameAccessor) {
     this.property.displayName = name;
     return this;
   }
@@ -621,7 +621,7 @@ export class ValidationResult {
   public constructor(
     public rule: any,
     public object: any,
-    public propertyName: string | number | null, // TODO recheck if we need propertyName at this level
+    public propertyName: string | number | undefined, // TODO recheck if we need propertyName at this level
     public valid: boolean,
     public message: string | null = null
   ) {

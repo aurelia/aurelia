@@ -152,10 +152,10 @@ export class ValidationController implements IValidationController {
   public addError<TObject>(
     message: string,
     object: TObject,
-    propertyName: string | PropertyAccessor | null = null
+    propertyName?: string | PropertyAccessor
   ): ValidationResult {
-    let resolvedPropertyName: string | number | null;
-    if (propertyName === null) {
+    let resolvedPropertyName: string | number | undefined;
+    if (propertyName === void 0) {
       resolvedPropertyName = propertyName;
     } else {
       [resolvedPropertyName] = parsePropertyName(propertyName, this.parser);

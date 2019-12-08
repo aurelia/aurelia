@@ -735,6 +735,9 @@ export class Container implements IContainer {
     let jj: number;
     for (let i = 0, ii = params.length; i < ii; ++i) {
       current = params[i];
+      if (typeof current !== 'object' && typeof current !== 'function' || current === null) {
+        continue;
+      }
       if (isRegistry(current)) {
         current.register(this);
       } else if (Protocol.resource.has(current)) {
@@ -756,6 +759,9 @@ export class Container implements IContainer {
         jj = keys.length;
         for (; j < jj; ++j) {
           value = current[keys[j]];
+          if (typeof value !== 'object' && typeof value !== 'function' || value === null) {
+            continue;
+          }
           // note: we could remove this if-branch and call this.register directly
           // - the extra check is just a perf tweak to create fewer unnecessary arrays by the spread operator
           if (isRegistry(value)) {

@@ -75,7 +75,6 @@ export const NavigationInstructionResolver = {
   createViewportInstructions: function (router: IRouter, navigationInstructions: NavigationInstruction | NavigationInstruction[], options?: IViewportInstructionsOptions): { instructions: string | ViewportInstruction[], scope: Scope | null } {
     options = options || {};
     let scope: Scope | null = null;
-    // if (navigationInstructions !== router.instructionResolver.clearViewportInstruction) {
     if (options.context) {
       scope = router.findScope(options.context);
       if (typeof navigationInstructions === 'string') {
@@ -109,9 +108,6 @@ export const NavigationInstructionResolver = {
         }
       }
     }
-    // } else {
-    //   navigationInstructions = NavigationInstructionResolver.toViewportInstructions(router, navigationInstructions);
-    // }
 
     return {
       instructions: navigationInstructions as string | ViewportInstruction[],

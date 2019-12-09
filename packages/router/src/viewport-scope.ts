@@ -85,13 +85,6 @@ export class ViewportScope implements IScopeOwner {
 
   public get source(): unknown[] | null {
     return this.options.source || null;
-    // let source: unknown[] | undefined = this.connectedScope!.parent!.childCollections[this.name];
-    // if (source === void 0) {
-    //   source = [];
-    //   source.push({});
-    //   this.connectedScope.parent!.childCollections[this.name] = source;
-    // }
-    // return source;
   }
 
   public setNextContent(content: ComponentAppellation | ViewportInstruction, instruction: INavigatorInstruction): boolean {
@@ -142,7 +135,7 @@ export class ViewportScope implements IScopeOwner {
   }
 
   public finalizeContentChange(): void {
-    console.log('ViewportScope finalizing', this.content);
+    // console.log('ViewportScope finalizing', this.content);
   }
   public async abortContentChange(): Promise<void> {
     this.nextContent = null;
@@ -214,6 +207,7 @@ export class ViewportScope implements IScopeOwner {
   public removeSourceItem(): void {
     this.sourceItemIndex = this.source!.indexOf(this.sourceItem);
     if (this.sourceItemIndex >= 0) {
+      // TODO: This sometimes causes a bug in repeater code. Investigate!
       this.source!.splice(this.sourceItemIndex, 1);
     }
   }

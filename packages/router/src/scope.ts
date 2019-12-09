@@ -126,12 +126,6 @@ export class Scope {
         return viewports;
       },
       {});
-    // return this.getOwnedViewports().filter(viewport => viewport.enabled).reduce(
-    //   (viewports: Record<string, Viewport>, viewport) => {
-    //     viewports[viewport.name] = viewport;
-    //     return viewports;
-    //   },
-    //   {});
   }
 
   public getOwnedViewports(includeDisabled: boolean = false): Viewport[] {
@@ -154,21 +148,6 @@ export class Scope {
   public findViewports(instructions: ViewportInstruction[], alreadyFound: ViewportInstruction[], disregardViewports: boolean = false): IFindViewportsResult {
     const foundViewports: ViewportInstruction[] = [];
     let remainingInstructions: ViewportInstruction[] = [];
-
-    // // This is a "manual" viewport scope
-    // if (skipManual && this.viewport === null) {
-    //   for (const child of this.enabledChildren) {
-    //     console.log(child.scope === this, this, child.scope);
-    //     const childFound: IFindViewportsResult = child.findViewports(instructions, alreadyFound, disregardViewports, true);
-    //     foundViewports.push(...childFound.foundViewports);
-    //     alreadyFound.push(...childFound.foundViewports);
-    //     remainingInstructions.push(...childFound.remainingInstructions);
-    //   }
-    //   return {
-    //     foundViewports,
-    //     remainingInstructions,
-    //   };
-    // }
 
     const ownedScopes: Scope[] = this.getOwnedScopes();
     // Get a shallow copy of all available manual viewport scopes
@@ -408,37 +387,6 @@ export class Scope {
       scope.parent = null;
     }
   }
-  // public reparent(viewModel: IViewModel): void {
-  //   const container = this.getContainer(viewModel);
-  //   const id = container!.path.split('.').map(i => '00000'.slice(0, 5 - ('' + i).length) + i).join('.');
-  //   this.id = `${id}.`;
-
-  //   const scope: Scope = this.router.rootScope!.connectedScope;
-
-  //   let parent = this.parent as Scope;
-  //   let parentIds = parent.children.filter(child => child !== this && child.id.indexOf(this.id));
-  //   while (Array.isArray(parentIds) && parentIds.length > 0) {
-  //     parent = parentIds[0];
-  //     parentIds = parent.children.filter(child => child !== this && child.id.indexOf(this.id));
-  //   }
-  //   parent.addChild(this);
-  //   const children: Scope[] = parent.children.filter(child => child !== this);
-  //   for (const child of children) {
-  //     if (child.id.indexOf(this.id) >= 0) {
-  //       this.addChild(child);
-  //     }
-  //   }
-  //   scope.reparentScope();
-  // }
-  // public reparentScope(): void {
-  //   if (this.parent !== null) {
-  //     this.owningScope = this.parent.scope;
-  //     this.scope = this.hasScope ? this : this.owningScope;
-  //   }
-  //   for (const child of this.children) {
-  //     child.reparentScope();
-  //   }
-  // }
 
   public clearReplacedChildren(): void {
     this.replacedChildren = [];
@@ -457,12 +405,6 @@ export class Scope {
 
   public allViewports(includeDisabled: boolean = false, includeReplaced: boolean = false): Viewport[] {
     return this.allScopes(includeDisabled, includeReplaced).filter(scope => scope.isViewport).map(scope => scope.viewport!);
-    // const scopes: Scope[] = includeDisabled ? this.children : this.enabledChildren;
-    // const viewports: Viewport[] = scopes.filter(scope => scope.isViewport).map(scope => scope.viewport!);
-    // for (const scope of scopes) {
-    //   viewports.push(...scope.allViewports(includeDisabled, includeReplaced));
-    // }
-    // return viewports;
   }
 
   public allScopes(includeDisabled: boolean = false, includeReplaced: boolean = false): Scope[] {
@@ -485,18 +427,6 @@ export class Scope {
         childInstructions !== null && childInstructions.length > 0 ? childInstructions : null;
     }
     return scopes.map(scope => scope.viewportInstruction!);
-    // const enabledViewports = this.enabledViewports.filter(viewport => viewport.content.content
-    //   && viewport.content.content.componentName);
-    // if (!enabledViewports.length) {
-    //   return null;
-    // }
-    // for (const viewport of enabledViewports) {
-    //   if (viewport.content.content !== void 0 && viewport.content.content !== null) {
-    //     const childInstructions = viewport.viewportScope.reparentViewportInstructions();
-    //     viewport.content.content.nextScopeInstructions = childInstructions !== null && childInstructions.length > 0 ? childInstructions : null;
-    //   }
-    // }
-    // return enabledViewports.map(viewport => viewport.content.content);
   }
 
   public findMatchingRoute(path: string): FoundRoute | null {
@@ -582,21 +512,4 @@ export class Scope {
     route.instructions = NavigationInstructionResolver.toViewportInstructions(this.router, route.instructions);
     return route;
   }
-
-  // private getContainer(viewModel: IViewModel): IContainer | null {
-  //   let context;
-  //   if ('context' in viewModel) {
-  //     context = (viewModel as IViewModel & { context: IRenderContext }).context;
-  //   } else {
-  //     context = (viewModel as IViewModel & { context: IRenderContext }).context !== void 0
-  //       ? (viewModel as IViewModel & { context: IRenderContext }).context
-  //       : viewModel.$controller!.context;
-  //   }
-
-  //   const container = context!.get(IContainer);
-  //   if (container === void 0) {
-  //     return null;
-  //   }
-  //   return container;
-  // }
 }

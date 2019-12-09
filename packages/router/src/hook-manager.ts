@@ -1,4 +1,3 @@
-// tslint:disable:max-line-length
 import { Hook } from './hook';
 import { INavigatorInstruction, ComponentAppellation, IComponentAndOrViewportOrNothing } from './interfaces';
 import { ViewportInstruction } from './viewport-instruction';

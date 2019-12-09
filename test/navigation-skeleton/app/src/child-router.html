@@ -1,17 +1,16 @@
 <template>
   <section class="au-animate">
-    <h2>${heading}</h2>
-    <div>
-      <div class="col-md-2">
-        <!-- <ul class="well nav nav-pills nav-stacked">
-          <li repeat.for="row of router.navigation" class="${row.isActive ? 'active' : ''}">
-            <a href.bind="row.href">${row.title}</a>
-          </li>
-        </ul> -->
-        <au-nav name="child-menu"></au-nav>
+    <h3>${heading}</h3>
+    <div style="display: flex; align-items: stretch;">
+      <div style="flex-grow: 1;">
+        <div class="card shadow-none">
+          <div class="card-body bg-light shadow-none">
+            <au-nav name="child-menu"></au-nav>
+          </div>
+        </div>
       </div>
-      <div class="col-md-10" style="padding: 0">
-        <au-viewport name="child-viewport" scope></au-viewport>
+      <div style="flex-grow: 8;">
+        <au-viewport name="child-viewport" default="welcome"></au-viewport>
       </div>
     </div>
   </section>

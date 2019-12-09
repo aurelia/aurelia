@@ -20,6 +20,7 @@ export const ParentViewportScope = CustomElement.createInjectable();
 export class ViewportScopeCustomElement {
   @bindable public name: string = 'default';
   @bindable public catches: string = '';
+  @bindable public collection: boolean = false;
   @bindable public source: unknown[] | null = null;
   public viewportScope: ViewportScope | null = null;
 
@@ -83,6 +84,10 @@ export class ViewportScopeCustomElement {
     if (value !== void 0) {
       options.catches = value as string;
     }
+    value = this.getAttribute('collection', this.collection, true);
+    if (value !== void 0) {
+      options.collection = value as boolean;
+    }
 
     // TODO: Needs to be bound? How to solve?
     options.source = this.source || null;
@@ -99,11 +104,15 @@ export class ViewportScopeCustomElement {
   public binding(flags: LifecycleFlags): void {
     this.isBound = true;
     this.connect();
+    if (this.viewportScope !== null) {
+      this.viewportScope.binding();
+    }
   }
   public async unbinding(flags: LifecycleFlags): Promise<void> {
-    if (this.viewportScope) {
-      this.disconnect();
+    if (this.viewportScope !== null) {
+      this.viewportScope.unbinding();
     }
+    this.disconnect();
   }
 
   private getAttribute(key: string, value: string | boolean, checkExists: boolean = false): string | boolean | undefined {

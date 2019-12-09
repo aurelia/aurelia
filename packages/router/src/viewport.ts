@@ -1,5 +1,5 @@
 import { IContainer, Reporter } from '@aurelia/kernel';
-import { IRenderContext, LifecycleFlags, IController, CustomElement, INode } from '@aurelia/runtime';
+import { LifecycleFlags, IController, CustomElement, INode } from '@aurelia/runtime';
 import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, ReentryBehavior, IRoute, RouteableComponentType } from './interfaces';
 import { INavigatorFlags } from './navigator';
 import { IRouter } from './router';

@@ -324,9 +324,13 @@ export class Router implements IRouter {
     // TODO: Fetch title (probably when done)
 
     let clearViewports: Viewport[] = [];
-    for (const instruction of instructions.filter(instr => this.instructionResolver.isClearAllViewportsInstruction(instr))) {
-      const scope: Scope = instruction.scope || this.rootScope!.scope;
+    let clearViewportScopes: ViewportScope[] = [];
+    for (const clearInstruction of instructions.filter(instr => this.instructionResolver.isClearAllViewportsInstruction(instr))) {
+      const scope: Scope = clearInstruction.scope || this.rootScope!.scope;
       clearViewports.push(...scope.allViewports().filter((viewport) => viewport.content.componentInstance !== null));
+      if (scope.viewportScope !== null) {
+        clearViewportScopes.push(scope.viewportScope);
+      }
     }
     instructions = instructions.filter(instr => !this.instructionResolver.isClearAllViewportsInstruction(instr));
 
@@ -342,7 +346,7 @@ export class Router implements IRouter {
     //   && viewport.content.componentInstance === null
     //   && doneDefaultViewports.every(done => done !== viewport)
     // );
-    const updatedViewports: Viewport[] = [];
+    const updatedScopeOwners: IScopeOwner[] = [];
     const alreadyFoundInstructions: ViewportInstruction[] = [];
     // TODO: Take care of cancellations down in subsets/iterations
     let { found: viewportInstructions, remaining: remainingInstructions } = this.findViewports(instructions, alreadyFoundInstructions);
@@ -354,11 +358,11 @@ export class Router implements IRouter {
         throw Reporter.error(2002);
       }
       // defaultViewports = [];
-      const changedViewports: Viewport[] = [];
+      const changedScopeOwners: IScopeOwner[] = [];
 
       const hooked = await this.hookManager.invokeBeforeNavigation(viewportInstructions, instruction);
       if (hooked === false) {
-        return this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
+        return this.cancelNavigation([...changedScopeOwners, ...updatedScopeOwners], instruction);
       } else {
         viewportInstructions = hooked as ViewportInstruction[];
       }
@@ -367,10 +371,17 @@ export class Router implements IRouter {
         const scopeOwner: IScopeOwner | null = viewportInstruction.owner;
         if (scopeOwner !== null) {
           scopeOwner.path = configuredRoutePath;
-          if (scopeOwner.setNextContent(viewportInstruction, instruction) && scopeOwner.isViewport) {
-            changedViewports.push(scopeOwner as Viewport);
+          if (scopeOwner.setNextContent(viewportInstruction, instruction)) {
+            changedScopeOwners.push(scopeOwner);
           }
           arrayRemove(clearViewports, value => value === scopeOwner);
+          if (!this.instructionResolver.isClearViewportInstruction(viewportInstruction)
+            && viewportInstruction.scope !== null
+            && viewportInstruction.scope!.parent! !== null
+            && viewportInstruction.scope!.parent!.isViewportScope
+          ) {
+            arrayRemove(clearViewportScopes, value => value === viewportInstruction.scope!.parent!.viewportScope);
+          }
         }
         // const viewport: Viewport = viewportInstruction.viewport as Viewport;
         // // Manual viewport scopes don't have viewports
@@ -382,11 +393,11 @@ export class Router implements IRouter {
         //   arrayRemove(clearViewports, value => value === viewport);
         // }
       }
-      let results = await Promise.all(changedViewports.map((value) => value.canLeave()));
+      let results = await Promise.all(changedScopeOwners.map((value) => value.canLeave()));
       if (results.some(result => result === false)) {
-        return this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
+        return this.cancelNavigation([...changedScopeOwners, ...updatedScopeOwners], instruction);
       }
-      results = await Promise.all(changedViewports.map(async (value) => {
+      results = await Promise.all(changedScopeOwners.map(async (value) => {
         const canEnter = await value.canEnter();
         if (typeof canEnter === 'boolean') {
           if (canEnter) {
@@ -401,11 +412,11 @@ export class Router implements IRouter {
         return true;
       }));
       if (results.some(result => result === false)) {
-        return this.cancelNavigation([...changedViewports, ...updatedViewports], qInstruction);
+        return this.cancelNavigation([...changedScopeOwners, ...updatedScopeOwners], qInstruction);
       }
-      for (const viewport of changedViewports) {
-        if (updatedViewports.every(value => value !== viewport)) {
-          updatedViewports.push(viewport);
+      for (const viewport of changedScopeOwners) {
+        if (updatedScopeOwners.every(value => value !== viewport)) {
+          updatedScopeOwners.push(viewport);
         }
       }
 
@@ -516,6 +527,12 @@ export class Router implements IRouter {
         //   ...clearViewports.map(viewport => this.createViewportInstruction(this.instructionResolver.clearViewportInstruction, viewport))
         // ];
         viewportInstructions = clearViewports.map(viewport => this.createViewportInstruction(this.instructionResolver.clearViewportInstruction, viewport));
+        viewportInstructions.push(...clearViewportScopes.map(viewportScope => {
+          const instr: ViewportInstruction = this.createViewportInstruction(this.instructionResolver.clearViewportInstruction);
+          instr.viewportScope = viewportScope;
+          return instr;
+        }));
+        clearViewportScopes = [];
         // clearViewports = [];
       }
       // TODO: Do we still need this? What if no viewport at all?
@@ -523,16 +540,16 @@ export class Router implements IRouter {
       // clearUsedViewports = false;
     } while (viewportInstructions.length || remainingInstructions.length /*|| defaultViewports.length || clearUsedViewports */);
 
-    await Promise.all(updatedViewports.map((value) => value.loadContent()));
+    await Promise.all(updatedScopeOwners.map((value) => value.loadContent()));
     await this.replacePaths(instruction);
     // this.updateNav();
 
     // Remove history entry if no history viewports updated
-    if (instructionNavigation.new && !instructionNavigation.first && !instruction.repeating && updatedViewports.every(viewport => viewport.options.noHistory)) {
+    if (instructionNavigation.new && !instructionNavigation.first && !instruction.repeating && updatedScopeOwners.every(viewport => viewport.options.noHistory)) {
       instruction.untracked = true;
     }
 
-    updatedViewports.forEach((viewport) => {
+    updatedScopeOwners.forEach((viewport) => {
       viewport.finalizeContentChange();
     });
     this.lastNavigation = this.processingNavigation;
@@ -665,7 +682,7 @@ export class Router implements IRouter {
     const parentScope: Scope = this.findParentScope(container);
     // console.log('>>> connectViewportScope container', container, parentScope);
     if (viewportScope === null) {
-      const viewportScope: ViewportScope = parentScope.addViewportScope(name, element, options);
+      viewportScope = parentScope.addViewportScope(name, element, options);
       this.setClosestScope(container, viewportScope.connectedScope);
     }
     // this.setClosestScope(viewModel, viewportScope.connectedScope);
@@ -1067,9 +1084,9 @@ export class Router implements IRouter {
     return { found: found.slice(), remaining };
   }
 
-  private async cancelNavigation(updatedViewports: Viewport[], qInstruction: QueueItem<INavigatorInstruction>): Promise<void> {
+  private async cancelNavigation(updatedScopeOwners: IScopeOwner[], qInstruction: QueueItem<INavigatorInstruction>): Promise<void> {
     // TODO: Take care of disabling viewports when cancelling and stateful!
-    updatedViewports.forEach((viewport) => {
+    updatedScopeOwners.forEach((viewport) => {
       viewport.abortContentChange().catch(error => { throw error; });
     });
     await this.navigator.cancel(qInstruction as INavigatorInstruction);

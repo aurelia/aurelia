@@ -57,9 +57,25 @@ export class InstructionResolver {
     return this.separators.clear;
   }
 
+  public get addViewportInstruction(): string {
+    return this.separators.add;
+  }
+
   public isClearViewportInstruction(instruction: string | ViewportInstruction): boolean {
     return instruction instanceof ViewportInstruction
       ? instruction.componentName === this.clearViewportInstruction && !!instruction.viewportName
+      : instruction.startsWith(this.clearViewportInstruction) && instruction !== this.clearViewportInstruction;
+  }
+
+  public isAddViewportInstruction(instruction: string | ViewportInstruction): boolean {
+    return instruction instanceof ViewportInstruction
+      ? instruction.componentName === this.addViewportInstruction
+      : instruction.startsWith(this.clearViewportInstruction);
+  }
+
+  public isClearViewportScopeInstruction(instruction: string | ViewportInstruction): boolean {
+    return instruction instanceof ViewportInstruction
+      ? instruction.componentName === this.clearViewportInstruction && !!instruction.viewportScope
       : instruction.startsWith(this.clearViewportInstruction) && instruction !== this.clearViewportInstruction;
   }
 

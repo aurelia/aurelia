@@ -8,10 +8,16 @@ import { IRouter } from './router';
 import { ViewportInstruction } from './viewport-instruction';
 import { NavigationInstructionResolver } from './type-resolvers';
 import { Viewport, IViewportOptions } from './viewport';
+import { arrayRemove } from './utils';
+import { Collection } from './collection';
 
 export interface IFindViewportsResult {
   foundViewports: ViewportInstruction[];
   remainingInstructions: ViewportInstruction[];
+}
+
+export interface IScopeOwnerOptions {
+  noHistory?: boolean;
 }
 
 export interface IScopeOwner {
@@ -21,11 +27,19 @@ export interface IScopeOwner {
   enabled: boolean;
   path: string | null;
 
+  options: IScopeOwnerOptions;
+
   isViewport: boolean;
   isViewportScope: boolean;
 
   setNextContent(content: ComponentAppellation | ViewportInstruction, instruction: INavigatorInstruction): boolean;
   canLeave(): Promise<boolean>;
+  canEnter(): Promise<boolean | ViewportInstruction[]>;
+  enter(): Promise<boolean>;
+  loadContent(): Promise<boolean>;
+  finalizeContentChange(): void;
+  abortContentChange(): Promise<void>;
+
   getRoutes(): IRoute[] | null;
 }
 
@@ -39,6 +53,9 @@ export class Scope {
   public path: string | null = null;
 
   public enabled: boolean = true;
+
+  // Support collection feature in viewport scopes
+  public childCollections: Record<string, unknown[]> = {};
 
   public constructor(
     public readonly router: IRouter,
@@ -133,6 +150,7 @@ export class Scope {
     return scopes;
   }
 
+  // Note: This can't change state other than the instructions!
   public findViewports(instructions: ViewportInstruction[], alreadyFound: ViewportInstruction[], disregardViewports: boolean = false): IFindViewportsResult {
     const foundViewports: ViewportInstruction[] = [];
     let remainingInstructions: ViewportInstruction[] = [];
@@ -154,77 +172,64 @@ export class Scope {
 
     const ownedScopes: Scope[] = this.getOwnedScopes();
     // Get a shallow copy of all available manual viewport scopes
-    const viewportScopes: Scope[] = ownedScopes.filter(scope => scope.isViewportScope);
-    for (const scope of viewportScopes) {
-      scope.viewportScope!.available = alreadyFound.every(found => found.viewportScope !== scope.viewportScope);
-    }
+    const viewportScopes: ViewportScope[] = ownedScopes.filter(scope => scope.isViewportScope).map(scope => scope.viewportScope!);
+    const availableViewportScopes: ViewportScope[] = viewportScopes.filter(viewportScope => alreadyFound.every(found => found.viewportScope !== viewportScope));
     // Get a shallow copy of all available viewports
     const availableViewports: Record<string, Viewport | null> = { ...this.getEnabledViewports(ownedScopes) };
     for (const instruction of alreadyFound.filter(found => found.scope === this)) {
       availableViewports[instruction.viewportName!] = null;
     }
 
-    const viewportInstructions = instructions.slice();
+    const viewportInstructions: Collection<ViewportInstruction> = new Collection<ViewportInstruction>(...instructions.slice());
+    let instruction: ViewportInstruction | null = null;
+
+    // The viewport scope is already known
+    while ((instruction = viewportInstructions.next()) !== null) {
+      if (instruction.viewportScope !== null) {
+        remainingInstructions.push(...this.foundViewportScope(instruction, instruction.viewportScope));
+        foundViewports.push(instruction);
+        arrayRemove(availableViewportScopes, available => available === instruction!.viewportScope);
+        viewportInstructions.removeCurrent();
+      }
+    }
 
     // The viewport is already known
     if (!disregardViewports) {
-      for (let i = 0; i < viewportInstructions.length; i++) {
-        const instruction = viewportInstructions[i];
+      while ((instruction = viewportInstructions.next()) !== null) {
         if (instruction.viewport) {
-          const remaining = this.foundViewport(instruction, instruction.viewport, disregardViewports);
+          remainingInstructions.push(...this.foundViewport(instruction, instruction.viewport, disregardViewports));
           foundViewports.push(instruction);
-          remainingInstructions.push(...remaining);
           availableViewports[instruction.viewport.name] = null;
-          viewportInstructions.splice(i--, 1);
+          viewportInstructions.removeCurrent();
         }
       }
     }
 
-    // Manual viewport scopes have priority
-    for (let i = 0; i < viewportInstructions.length; i++) {
-      const instruction: ViewportInstruction = viewportInstructions[i];
-      for (let scope of viewportScopes) {
-        if (scope.viewportScope!.acceptSegment(instruction.componentName as string)) {
-          const viewportScope: ViewportScope = scope.viewportScope as ViewportScope;
-          // const available: boolean = true;
-          if (Array.isArray(viewportScope.options.source)) {
-            const source: unknown[] = viewportScope.options.source;
+    // Viewport scopes have priority
+    while ((instruction = viewportInstructions.next()) !== null) {
+      for (let viewportScope of viewportScopes) {
+        if (viewportScope.acceptSegment(instruction.componentName as string)) {
+          if (Array.isArray(viewportScope.source)) {
             // console.log('available', viewportScope.available, source);
-            const availableIndex: number = viewportScopes
-              .map(scope => scope.viewportScope!)
-              .findIndex(find => find.name === viewportScope.name && find.available);
-            if (availableIndex >= 0) {
-              scope = viewportScopes[availableIndex];
-            } else {
-              source.push((source[0] as any).create());
+            const available: ViewportScope | undefined = availableViewportScopes.find(available => available.name === viewportScope.name);
+            if (available === void 0) {
+              viewportScope.addSourceItem();
               instruction.viewportScope = null;
-              // available = false;
               break;
             }
+            viewportScope = available;
           }
-          // TODO: Move to setNextContent?
-          scope.viewportScope!.available = false;
-          instruction.needsViewportDescribed = false;
-          instruction.viewportScope = scope.viewportScope;
-          const remaining: ViewportInstruction[] = (instruction.nextScopeInstructions || []).slice();
-          for (const rem of remaining) {
-            if (rem.scope === null) {
-              rem.scope = scope.scope;
-            }
-          }
+          remainingInstructions.push(...this.foundViewportScope(instruction, viewportScope));
           foundViewports.push(instruction);
-          remainingInstructions.push(...remaining);
-          // TODO: Tick this viewport scope of
-          // availableViewports[name] = null;
-          viewportInstructions.splice(i--, 1);
+          arrayRemove(availableViewportScopes, available => available === instruction!.viewportScope);
+          viewportInstructions.removeCurrent();
           break;
         }
       }
     }
 
     // Configured viewport is ruling
-    for (let i = 0; i < viewportInstructions.length; i++) {
-      const instruction = viewportInstructions[i];
+    while ((instruction = viewportInstructions.next()) !== null) {
       instruction.needsViewportDescribed = true;
       for (const name in availableViewports) {
         if (Object.prototype.hasOwnProperty.call(availableViewports, name)) {
@@ -235,7 +240,7 @@ export class Scope {
             foundViewports.push(instruction);
             remainingInstructions.push(...remaining);
             availableViewports[name] = null;
-            viewportInstructions.splice(i--, 1);
+            viewportInstructions.removeCurrent();
             break;
           }
         }
@@ -244,8 +249,7 @@ export class Scope {
 
     // Next in line is specified viewport (but not if we're disregarding viewports)
     if (!disregardViewports) {
-      for (let i = 0; i < viewportInstructions.length; i++) {
-        const instruction = viewportInstructions[i];
+      while ((instruction = viewportInstructions.next()) !== null) {
         const name = instruction.viewportName as string;
         if (!name || !name.length) {
           continue;
@@ -263,14 +267,13 @@ export class Scope {
           foundViewports.push(instruction);
           remainingInstructions.push(...remaining);
           availableViewports[name] = null;
-          viewportInstructions.splice(i--, 1);
+          viewportInstructions.removeCurrent();
         }
       }
     }
 
     // Finally, only one accepting viewport left?
-    for (let i = 0; i < viewportInstructions.length; i++) {
-      const instruction = viewportInstructions[i];
+    while ((instruction = viewportInstructions.next()) !== null) {
       const remainingViewports: Viewport[] = [];
       for (const name in availableViewports) {
         if (Object.prototype.hasOwnProperty.call(availableViewports, name)) {
@@ -286,14 +289,13 @@ export class Scope {
         foundViewports.push(instruction);
         remainingInstructions.push(...remaining);
         availableViewports[viewport.name] = null;
-        viewportInstructions.splice(i--, 1);
+        viewportInstructions.removeCurrent();
       }
     }
 
     // If we're ignoring viewports, we now match them anyway
     if (disregardViewports) {
-      for (let i = 0; i < viewportInstructions.length; i++) {
-        const instruction = viewportInstructions[i];
+      while ((instruction = viewportInstructions.next()) !== null) {
         let viewport = instruction.viewport;
         if (!viewport) {
           const name = instruction.viewportName as string;
@@ -314,7 +316,7 @@ export class Scope {
           foundViewports.push(instruction);
           remainingInstructions.push(...remaining);
           availableViewports[viewport.name] = null;
-          viewportInstructions.splice(i--, 1);
+          viewportInstructions.removeCurrent();
         }
       }
     }
@@ -324,6 +326,18 @@ export class Scope {
       foundViewports,
       remainingInstructions,
     };
+  }
+
+  public foundViewportScope(instruction: ViewportInstruction, viewportScope: ViewportScope): ViewportInstruction[] {
+    instruction.viewportScope = viewportScope;
+    instruction.needsViewportDescribed = false;
+    const remaining: ViewportInstruction[] = (instruction.nextScopeInstructions || []).slice();
+    for (const rem of remaining) {
+      if (rem.scope === null) {
+        rem.scope = viewportScope.scope.scope;
+      }
+    }
+    return remaining;
   }
 
   public foundViewport(instruction: ViewportInstruction, viewport: Viewport, withoutViewports: boolean, doesntNeedViewportDescribed: boolean = false): ViewportInstruction[] {

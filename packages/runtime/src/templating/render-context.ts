@@ -259,9 +259,11 @@ export class RenderContext implements IContainer {
 export class ViewFactoryProvider implements IResolver {
   private factory: IViewFactory | null = null;
 
-  public prepare(factory: IViewFactory, parts: PartialCustomElementDefinitionParts): void {
+  public prepare(factory: IViewFactory, parts?: PartialCustomElementDefinitionParts): void {
     this.factory = factory;
-    factory.addParts(parts);
+    if (parts !== void 0) {
+      factory.addParts(parts);
+    }
   }
 
   public resolve(handler: IContainer, requestor: RenderContext): IViewFactory {

@@ -301,7 +301,7 @@ export class CustomElementRenderer implements IInstructionRenderer {
     const childInstructions = instruction.instructions;
 
     const lifecycle = context.get(ILifecycle);
-    const controller = Controller.forCustomElement(component, lifecycle, target, context, void 0, flags);
+    const controller = Controller.forCustomElement(component, lifecycle, target, context, instruction.parts, flags);
     flags = controller.flags;
 
     Metadata.define(key, controller, target);

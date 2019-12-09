@@ -11,7 +11,7 @@ import {
 } from '../binding/property-binding';
 import {
   HooksDefinition,
-  PartialCustomElementDefinitionParts
+  PartialCustomElementDefinitionParts,
 } from '../definitions';
 import {
   INode,
@@ -316,6 +316,7 @@ export class Controller<
 
     this.scopeParts = compiledDefinition.scopeParts;
     this.isStrictBinding = compiledDefinition.isStrictBinding;
+    parts = compiledDefinition.getParts(parts);
 
     const nodes = context.createNodes();
 
@@ -368,6 +369,8 @@ export class Controller<
     const flags = this.flags | definition.strategy;
     const instance = this.viewModel!;
     createObservers(this.lifecycle, definition, flags, instance);
+
+    (instance as Writable<C>).$controller = this;
   }
 
   private hydrateSynthetic(context: RenderContext): void {

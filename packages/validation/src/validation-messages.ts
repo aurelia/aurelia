@@ -1,10 +1,18 @@
-import { DI } from '@aurelia/kernel';
-import { BindingType, IExpressionParser, IInterpolationExpression } from '@aurelia/runtime';
+import { DI, ILogger } from '@aurelia/kernel';
+import { BindingType, IExpressionParser, IInterpolationExpression, PrimitiveLiteralExpression, Interpolation, AccessScopeExpression, AccessThisExpression } from '@aurelia/runtime';
 
 export interface ValidationMessages {
   [key: string]: string;
 }
 
+const contextualProperties: Readonly<Set<string>> = new Set([
+  "displayName",
+  "propertyName",
+  "value",
+  "object",
+  "config",
+  "getDisplayName"
+]);
 /**
  * Dictionary of validation messages. [messageKey]: messageExpression
  */
@@ -28,8 +36,8 @@ export const validationMessages: ValidationMessages = {
 };
 
 export interface IValidationMessageProvider {
-  getMessageByKey(key: string): IInterpolationExpression;
-  parseMessage(message: string): IInterpolationExpression;
+  getMessageByKey(key: string): IInterpolationExpression | PrimitiveLiteralExpression;
+  parseMessage(message: string): IInterpolationExpression | PrimitiveLiteralExpression;
   getDisplayName(propertyName: string | number, displayName?: string | null | (() => string)): string;
 }
 
@@ -40,12 +48,18 @@ export const IValidationMessageProvider = DI.createInterface<IValidationMessageP
  */
 export class ValidationMessageProvider implements IValidationMessageProvider {
 
-  public constructor(@IExpressionParser public parser: IExpressionParser) { }
+  private logger: ILogger;
+  public constructor(
+    @IExpressionParser public parser: IExpressionParser,
+    @ILogger logger: ILogger,
+  ) {
+    this.logger = logger.scopeTo(ValidationMessageProvider.name);
+  }
 
   /**
    * Returns a message binding expression that corresponds to the key.
    */
-  public getMessageByKey(key: string): IInterpolationExpression {
+  public getMessageByKey(key: string): IInterpolationExpression | PrimitiveLiteralExpression {
     let message: string;
     if (key in validationMessages) {
       message = validationMessages[key];
@@ -55,19 +69,21 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
     return this.parseMessage(message);
   }
 
-  public parseMessage(message: string): IInterpolationExpression {
-    /*
-    // TODO
-     if (access.ancestor !== 0) {
-      throw new Error('$parent is not permitted in validation message expressions.');
+  public parseMessage(message: string): IInterpolationExpression | PrimitiveLiteralExpression {
+    const parsed = this.parser.parse(message, BindingType.Interpolation);
+    if (parsed instanceof Interpolation) {
+      for (const expr of parsed.expressions) {
+        const name = (expr as AccessScopeExpression).name;
+        if (contextualProperties.has(name)) {
+          this.logger.warn(`Did you mean to use "$${name}" instead of "${name}" in this validation message template: "${message}"?`)
+        }
+        if (expr instanceof AccessThisExpression || (expr as AccessScopeExpression).ancestor > 0) {
+          throw new Error('$parent is not permitted in validation message expressions.'); // use reporter
+        }
+      }
+      return parsed;
     }
-    if (['displayName', 'propertyName', 'value', 'object', 'config', 'getDisplayName'].indexOf(access.name) !== -1) {
-      LogManager.getLogger('aurelia-validation')
-        // tslint:disable-next-line:max-line-length
-        .warn(`Did you mean to use "$${access.name}" instead of "${access.name}" in this validation message template: "${this.originalMessage}"?`);
-    }
-    */
-    return this.parser.parse(message, BindingType.Interpolation);
+    return new PrimitiveLiteralExpression(message);
   }
 
   /**

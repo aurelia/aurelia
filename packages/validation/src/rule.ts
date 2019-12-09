@@ -5,6 +5,8 @@ import {
   IInterpolationExpression,
   IsBindingBehavior,
   LifecycleFlags,
+  PrimitiveLiteralExpression,
+  Interpolation,
 } from '@aurelia/runtime';
 import { IValidationMessageProvider } from './validation-messages';
 
@@ -57,7 +59,7 @@ export type ValidationRuleExecutionPredicate = (object?: IValidateable) => boole
 
 export abstract class ValidationRule<TValue = any, TObject extends IValidateable = IValidateable> {
   public tag?: string = (void 0)!;
-  protected _message: IInterpolationExpression = (void 0)!;
+  protected _message: IInterpolationExpression | PrimitiveLiteralExpression = (void 0)!;
 
   protected _messageKey: string = 'default';
   public get messageKey() { return this._messageKey; }
@@ -78,6 +80,7 @@ export abstract class ValidationRule<TValue = any, TObject extends IValidateable
   public setMessage(message: string) {
     this._messageKey = 'custom';
     this._message = this.messageProvider.parseMessage(message);
+    console.log(this._message);
   }
 
   public constructor(protected readonly messageProvider: IValidationMessageProvider) { }
@@ -220,7 +223,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
         const message = rule.message.evaluate(
           LifecycleFlags.none,
           { bindingContext: object!, parentScope: null, scopeParts: [], overrideContext: (void 0)! }
-          , null) as string;
+          , null!) as string;
         return new ValidationResult(rule, object, this.property.name, isValidOrPromise, message);
       };
 

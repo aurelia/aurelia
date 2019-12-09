@@ -64,10 +64,9 @@ describe.only('StandardValidator', function () {
     };
   }
 
-  it('validates an object property against all specified rules by default', async function () {
+  it('can validate an object property', async function () {
     const { sut, validationRules } = setup();
     const requiredMessage = 'name is required';
-    const patternMessage = 'name must contain foo';
 
     const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
     validationRules
@@ -75,24 +74,15 @@ describe.only('StandardValidator', function () {
       .ensure(o => o.name)
       .required()
       .withMessage(requiredMessage)
-      // .matches(/foo/)
-      // .withMessage(patternMessage)
       ;
 
     const result = await sut.validateProperty(obj, 'name');
     assert.equal(result.length, 1);
-    // assert.equal(result.length, 2);
 
     assert.equal(result[0].valid, false);
     assert.equal(result[0].propertyName, 'name');
     assert.equal(result[0].message, requiredMessage);
     assert.equal(result[0].object, obj);
     assert.instanceOf(result[0].rule, RequiredRule);
-
-    // assert.equal(result[1].valid, false);
-    // assert.equal(result[1].propertyName, 'name');
-    // assert.equal(result[1].message, patternMessage);
-    // assert.equal(result[1].object, obj);
-    // assert.instanceOf(result[1].rule, RegexRule);
   });
 });

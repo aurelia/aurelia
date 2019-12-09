@@ -6,15 +6,14 @@ import { IRouter } from './router';
 import { arrayRemove } from './utils';
 import { ViewportContent } from './viewport-content';
 import { ViewportInstruction } from './viewport-instruction';
-import { IScopeOwner, Scope } from './scope';
+import { IScopeOwner, IScopeOwnerOptions, Scope } from './scope';
 
-export interface IViewportOptions {
+export interface IViewportOptions extends IScopeOwnerOptions {
   scope?: boolean;
   usedBy?: string | string[];
   default?: string;
   fallback?: string;
   noLink?: boolean;
-  noHistory?: boolean;
   stateful?: boolean;
   forceDescription?: boolean;
 }

@@ -170,15 +170,6 @@ export class ViewportContent {
       ((this.content.componentInstance as IRouteableComponent & { $controller: Controller }).$controller as IController).parent =
         (element as Element & { $controller: Controller }).$controller;
     }
-    // Temporarily tag content so that it can find parent scope before viewport is attached
-    // const childNodes = this.content.componentInstance.$controller!.nodes!.childNodes;
-    // for (let i = 0; i < childNodes.length; i++) {
-    //   const child = childNodes[i] as Element;
-    //   if (child.nodeType === 1) {
-    //     Reflect.set(child, '$viewport', viewport);
-    //     this.taggedNodes.push(child);
-    //   }
-    // }
     this.contentStatus = ContentStatus.loaded;
     return Promise.resolve();
   }
@@ -188,8 +179,6 @@ export class ViewportContent {
       return;
     }
 
-    // this.clearTaggedNodes();
-
     // Don't unload components when stateful
     if (!stateful) {
       this.contentStatus = ContentStatus.created;
@@ -197,12 +186,6 @@ export class ViewportContent {
       cache.push(this);
     }
   }
-  // public clearTaggedNodes(): void {
-  //   for (const node of this.taggedNodes) {
-  //     Reflect.deleteProperty(node, '$viewport');
-  //   }
-  //   this.taggedNodes = [];
-  // }
 
   public initializeComponent(parent: IController): void {
     if (this.contentStatus !== ContentStatus.loaded) {

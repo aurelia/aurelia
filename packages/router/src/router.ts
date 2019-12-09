@@ -1,7 +1,5 @@
-// tslint:disable:max-line-length
-// tslint:disable:comment-format
 import { DI, IContainer, Key, Reporter, Registration, Metadata } from '@aurelia/kernel';
-import { Aurelia, IController, IRenderContext, IViewModel, CustomElement, INode, DOM, Controller } from '@aurelia/runtime';
+import { Aurelia, IController, IRenderContext, IViewModel, CustomElement, INode, DOM } from '@aurelia/runtime';
 import { BrowserNavigator } from './browser-navigator';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
 import { INavigatorInstruction, IRouteableComponent, NavigationInstruction, IRoute, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces';
@@ -67,10 +65,6 @@ export interface IRouter {
   // External API to get viewport by name
   getViewport(name: string): Viewport | null;
 
-  // // Called from the viewport custom element in created()
-  // setClosestViewport(viewModel: IViewModel): void;
-  // getClosestViewport(viewModelOrElement: IViewModel | Element): Viewport | null;
-
   // Called from the viewport scope custom element
   setClosestScope(viewModelOrContainer: IViewModel | IContainer, scope: Scope): void;
   getClosestScope(viewModelOrElement: IViewModel | Element | IController | IContainer): Scope | null;
@@ -80,9 +74,9 @@ export interface IRouter {
   connectViewport(viewport: Viewport | null, container: IContainer, name: string, element: Element, options?: IViewportOptions): Viewport;
   // Called from the viewport custom element
   disconnectViewport(viewport: Viewport, container: IContainer, element: Element | null): void;
-  // // Called from the viewport scope custom element in attached()
+  // Called from the viewport scope custom element in attached()
   connectViewportScope(viewportScope: ViewportScope | null, name: string, container: IContainer, element: Element, options?: IViewportScopeOptions): ViewportScope;
-  // // Called from the viewport scope custom element
+  // Called from the viewport scope custom element
   disconnectViewportScope(viewportScope: ViewportScope, container: IContainer): void;
 
 
@@ -100,7 +94,6 @@ export interface IRouter {
   addNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
   updateNav(name?: string): void;
   findNav(name: string): Nav;
-  // closestViewport(elementOrViewModel: Element | IViewModel): Viewport | null;
 
   addRoutes(routes: IRoute[], context?: IViewModel | Element): IRoute[];
   removeRoutes(routes: IRoute[] | string[], context?: IViewModel | Element): void;
@@ -334,18 +327,6 @@ export class Router implements IRouter {
     }
     instructions = instructions.filter(instr => !this.instructionResolver.isClearAllViewportsInstruction(instr));
 
-    // if (instructions.some(instr => this.instructionResolver.isClearAllViewportsInstruction(instr))) {
-    //   clearUsedViewports = true;
-    //   instructions = instructions.filter(instr => !this.instructionResolver.isClearAllViewportsInstruction(instr));
-    // }
-    // let clearViewports = (clearUsedViewports ? this.allViewports().filter((value) => value.content.componentInstance !== null) : []);
-
-    // const doneDefaultViewports: Viewport[] = [];
-    // let defaultViewports = this.allViewports().filter(viewport =>
-    //   viewport.options.default
-    //   && viewport.content.componentInstance === null
-    //   && doneDefaultViewports.every(done => done !== viewport)
-    // );
     const updatedScopeOwners: IScopeOwner[] = [];
     const alreadyFoundInstructions: ViewportInstruction[] = [];
     // TODO: Take care of cancellations down in subsets/iterations
@@ -357,7 +338,6 @@ export class Router implements IRouter {
         console.log('remainingInstructions', remainingInstructions);
         throw Reporter.error(2002);
       }
-      // defaultViewports = [];
       const changedScopeOwners: IScopeOwner[] = [];
 
       const hooked = await this.hookManager.invokeBeforeNavigation(viewportInstructions, instruction);
@@ -383,15 +363,6 @@ export class Router implements IRouter {
             arrayRemove(clearViewportScopes, value => value === viewportInstruction.scope!.parent!.viewportScope);
           }
         }
-        // const viewport: Viewport = viewportInstruction.viewport as Viewport;
-        // // Manual viewport scopes don't have viewports
-        // if (viewport !== null) {
-        //   viewport.path = configuredRoutePath;
-        //   if (viewport.setNextContent(viewportInstruction, instruction)) {
-        //     changedViewports.push(viewport);
-        //   }
-        //   arrayRemove(clearViewports, value => value === viewport);
-        // }
       }
       let results = await Promise.all(changedScopeOwners.map((value) => value.canLeave()));
       if (results.some(result => result === false)) {
@@ -423,29 +394,12 @@ export class Router implements IRouter {
       // TODO: Fix multi level recursiveness!
       alreadyFoundInstructions.push(...viewportInstructions);
       ({ found: viewportInstructions, remaining: remainingInstructions } = this.findViewports(remainingInstructions, alreadyFoundInstructions));
-      // const remaining = this.findViewports(remainingInstructions, alreadyFoundInstructions);
-      // viewportInstructions = remaining.found.slice();
-      // remainingInstructions = remaining.remaining;
 
       // Look for configured child routes (once we've loaded everything so far?)
       if (configuredRoute.hasRemaining &&
         viewportInstructions.length === 0 &&
         remainingInstructions.length === 0) {
         let configured = new FoundRoute();
-        // const routeViewportScopes: ViewportScope[] = alreadyFoundInstructions
-        //   .filter(instr => instr.viewport === null || instr.viewport.path === configuredRoutePath)
-        //   .map(instr => instr.scope)
-        //   .filter((value, index, arr) => arr.indexOf(value) === index) as ViewportScope[];
-        // for (const viewportScope of routeViewportScopes) {
-        //   configured = await this.findInstructions(
-        //     viewportScope,
-        //     configuredRoute.remaining,
-        //     viewportScope);
-        //   if (configured.foundConfiguration) {
-        //     break;
-        //   }
-        // }
-        // const routeScopeOwners: IScopeOwner[] = alreadyFoundInstructions.getScopeOwners(configuredRoutePath);
         const routeScopeOwners: IScopeOwner[] = alreadyFoundInstructions
           .filter(instr => instr.owner !== null && instr.owner.path === configuredRoutePath)
           .map(instr => instr.owner)
@@ -459,19 +413,6 @@ export class Router implements IRouter {
             break;
           }
         }
-        // const routeViewports: Viewport[] = alreadyFoundInstructions
-        //   .filter(instr => instr.viewport !== null && instr.viewport.path === configuredRoutePath)
-        //   .map(instr => instr.viewport)
-        //   .filter((value, index, arr) => arr.indexOf(value) === index) as Viewport[];
-        // for (const viewport of routeViewports) {
-        //   configured = await this.findInstructions(
-        //     viewport.scope,
-        //     configuredRoute.remaining,
-        //     viewport.scope || viewport.owningScope!);
-        //   if (configured.foundConfiguration) {
-        //     break;
-        //   }
-        // }
         if (configured.foundInstructions) {
           configuredRoute = configured;
           configuredRoutePath = `${configuredRoutePath || ''}/${configuredRoute.matching}`;
@@ -519,13 +460,7 @@ export class Router implements IRouter {
         }
       }
       // clearViewports is empty if we're not clearing viewports
-      if (viewportInstructions.length === 0 &&
-        remainingInstructions.length === 0 /* &&
-        defaultViewports.length === 0*/) {
-        // viewportInstructions = [
-        //   ...viewportInstructions,
-        //   ...clearViewports.map(viewport => this.createViewportInstruction(this.instructionResolver.clearViewportInstruction, viewport))
-        // ];
+      if (viewportInstructions.length === 0 && remainingInstructions.length === 0) {
         viewportInstructions = clearViewports.map(viewport => this.createViewportInstruction(this.instructionResolver.clearViewportInstruction, viewport));
         viewportInstructions.push(...clearViewportScopes.map(viewportScope => {
           const instr: ViewportInstruction = this.createViewportInstruction(this.instructionResolver.clearViewportInstruction);
@@ -535,10 +470,7 @@ export class Router implements IRouter {
         clearViewportScopes = [];
         // clearViewports = [];
       }
-      // TODO: Do we still need this? What if no viewport at all?
-      // if (!this.allViewports().length) { viewportsRemaining = false; }
-      // clearUsedViewports = false;
-    } while (viewportInstructions.length || remainingInstructions.length /*|| defaultViewports.length || clearUsedViewports */);
+    } while (viewportInstructions.length > 0 || remainingInstructions.length > 0);
 
     await Promise.all(updatedScopeOwners.map((value) => value.loadContent()));
     await this.replacePaths(instruction);
@@ -569,19 +501,8 @@ export class Router implements IRouter {
       return origin.scope;
     }
     return this.getClosestScope(origin) || this.rootScope!.scope;
-    // const viewport: Viewport | null = this.getClosestViewport(origin);
-
-    // if (viewport !== null) {
-    //   return viewport.scope;
-    // }
-    // return this.rootScope!;
   }
   public findParentScope(container: IContainer | null): Scope {
-    // if (viewModel === void 0 || viewModel === null) {
-    //   return this.rootScope!.scope;
-    // }
-    // // Gets the container on the view model
-    // let container: IContainer | null = this.getClosestContainer(viewModel);
     if (container === null) {
       return this.rootScope!.scope;
     }
@@ -603,30 +524,8 @@ export class Router implements IRouter {
     return this.allViewports().find(viewport => viewport.name === name) || null;
   }
 
-  // // Called from the viewport custom element
-  // public setClosestViewport(viewModel: IViewModel): void {
-  //   const container = viewModel.$controller!.context!.get(IContainer);
-  //   Registration.instance(ClosestViewportCustomElement, viewModel).register(container);
-  // }
-  // public getClosestViewport(viewModelOrElement: IViewModel | Element): Viewport | null {
-  //   const container = this.getClosestContainer(viewModelOrElement);
-  //   if (container === null) {
-  //     return null;
-  //   }
-  //   if (!container.has(ClosestViewportCustomElement, true)) {
-  //     return null;
-  //   }
-  //   const viewportCE = container.get<IViewModel>(ClosestViewportCustomElement) as IViewModel & { viewport: Viewport };
-  //   if (viewportCE === void 0) {
-  //     return null;
-  //   }
-  //   return viewportCE.viewport || null;
-  // }
   // Called from the viewport scope custom element in created()
   public setClosestScope(viewModelOrContainer: IViewModel | IContainer, scope: Scope): void {
-    // const container: IContainer | null = '$controller' in viewModelOrContainer
-    //   ? (viewModelOrContainer as IViewModel).$controller!.context!.get(IContainer)
-    //   : viewModelOrContainer as IContainer;
     const container: IContainer | null = this.getContainer(viewModelOrContainer);
     Registration.instance(ClosestScope, scope).register(container!);
   }
@@ -643,9 +542,6 @@ export class Router implements IRouter {
     return container.get<Scope>(ClosestScope) || null;
   }
   public unsetClosestScope(viewModelOrContainer: IViewModel | IContainer): void {
-    // const container: IContainer | null = '$controller' in viewModelOrContainer
-    //   ? (viewModelOrContainer as IViewModel).$controller!.context!.get(IContainer)
-    //   : viewModelOrContainer as IContainer;
     const container: IContainer | null = this.getContainer(viewModelOrContainer);
     // TODO: Get an 'unregister' on container
     (container as any).resolvers.delete(ClosestScope);
@@ -653,40 +549,27 @@ export class Router implements IRouter {
 
   // Called from the viewport custom element in attached()
   public connectViewport(viewport: Viewport | null, container: IContainer, name: string, element: Element, options?: IViewportOptions): Viewport {
-    // console.log('Viewport connect', name, viewport);
-    // console.log('Viewport container', this.getClosestContainer(viewModel));
-    // const parentScope: Scope = this.ensureRootScope().scope; // this.findParentScope(viewModel);
     const parentScope: Scope = this.findParentScope(container);
-    // console.log('>>> connectViewport', name, container, parentScope);
     if (viewport === null) {
       viewport = parentScope.addViewport(name, element, container, options);
       this.setClosestScope(container, viewport.connectedScope);
     }
-    // this.setClosestScope(viewModel, viewport.connectedScope);
-    // viewport.connectedScope.reparent(viewModel);
     return viewport as Viewport;
   }
   // Called from the viewport custom element
   public disconnectViewport(viewport: Viewport, container: IContainer, element: Element | null): void {
-    // console.log('Viewport disconnect', viewport.name, viewport);
     if (!viewport.owningScope!.removeViewport(viewport, element, container)) {
       throw new Error(`Failed to remove viewport: ${viewport.name}`);
     }
-    // this.unsetClosestScope(viewModel);
     this.unsetClosestScope(container);
   }
   // Called from the viewport scope custom element in attached()
   public connectViewportScope(viewportScope: ViewportScope | null, name: string, container: IContainer, element: Element, options?: IViewportScopeOptions): ViewportScope {
-    // console.log('ViewportScope container', this.getClosestContainer(viewModel));
-    // const parentScope: Scope = this.ensureRootScope().scope; // this.findParentScope(viewModel);
     const parentScope: Scope = this.findParentScope(container);
-    // console.log('>>> connectViewportScope container', container, parentScope);
     if (viewportScope === null) {
       viewportScope = parentScope.addViewportScope(name, element, options);
       this.setClosestScope(container, viewportScope.connectedScope);
     }
-    // this.setClosestScope(viewModel, viewportScope.connectedScope);
-    // viewportScope.connectedScope.reparent(viewModel);
     return viewportScope as ViewportScope;
   }
   // Called from the viewport scope custom element
@@ -694,7 +577,6 @@ export class Router implements IRouter {
     if (!viewportScope.owningScope!.removeViewportScope(viewportScope)) {
       throw new Error(`Failed to remove viewport scope: ${viewportScope.path}`);
     }
-    // this.unsetClosestScope(viewModel);
     this.unsetClosestScope(container);
   }
 
@@ -718,48 +600,6 @@ export class Router implements IRouter {
 
     let scope: Scope | null = null;
     ({ instructions, scope } = NavigationInstructionResolver.createViewportInstructions(this, instructions, toOptions));
-
-    // if (/* typeof instructions !== 'string' || */ instructions !== this.instructionResolver.clearViewportInstruction) {
-    //   if (options.origin) {
-    //     scope = this.findScope(options.origin);
-    //     if (typeof instructions === 'string') {
-    //       // If it's not from scope root, figure out which scope
-    //       if (!instructions.startsWith('/')) {
-    //         // Scope modifications
-    //         if (instructions.startsWith('.')) {
-    //           // The same as no scope modification
-    //           if (instructions.startsWith('./')) {
-    //             instructions = instructions.slice(2);
-    //           }
-    //           // Find out how many scopes upwards we should move
-    //           while (instructions.startsWith('../')) {
-    //             scope = scope.parent || scope;
-    //             instructions = instructions.slice(3);
-    //           }
-    //         }
-    //         if (scope.path !== null) {
-    //           instructions = `${scope.path}/${instructions}`;
-    //           scope = this.rootScope!.scope;
-    //         }
-    //       } else { // Specified root scope with /
-    //         scope = this.rootScope!.scope;
-    //       }
-    //     } else {
-    //       instructions = NavigationInstructionResolver.toViewportInstructions(this, instructions);
-    //       for (const instruction of instructions as ViewportInstruction[]) {
-    //         if (instruction.scope === null) {
-    //           instruction.scope = scope;
-    //         }
-    //       }
-    //     }
-    //   }
-    // } else {
-    //   instructions = NavigationInstructionResolver.toViewportInstructions(this, instructions);
-    // }
-
-    // const scope: Scope | null = options.origin !== void 0 && options.origin !== null
-    //   ? this.findScope(options.origin)
-    //   : null;
 
     if (options.append && this.processingNavigation) {
       instructions = NavigationInstructionResolver.toViewportInstructions(this, instructions);
@@ -841,92 +681,6 @@ export class Router implements IRouter {
   public findNav(name: string): Nav {
     return this.navs[name];
   }
-
-  /**
-   * Finds the closest ancestor viewport. The provided element, view model or controller
-   * is NOT a valid ancestor.
-   *
-   * @param elementOrViewModelOrController - The element, view model or controller to search upward from.
-   * @returns The Viewport that is the closest ancestor.
-   */
-  // public closestViewport(elementOrViewModelOrController: Element | IViewModel | IController): Viewport | null {
-  //   let element: INode | undefined;
-  //   if ('$controller' in elementOrViewModelOrController) {
-  //     let controller: IController | undefined = elementOrViewModelOrController.$controller;
-  //     while (controller !== void 0 && controller.host === void 0) {
-  //       controller = controller.parent;
-  //     }
-  //     if (controller !== void 0) {
-  //       element = controller.host;
-  //     }
-  //   } else {
-  //     element = elementOrViewModelOrController;
-  //   }
-  //   if (element === void 0) {
-  //     return null;
-  //   }
-  //   const controller: IController | undefined = CustomElement.for(element, 'au-viewport', true);
-  //   if (controller !== void 0 && controller.viewModel !== void 0) {
-  //     return (controller.viewModel as IViewModel & { viewport: Viewport }).viewport;
-  //   }
-  //   return null;
-  //   // // let el: Element & { $viewport?: Viewport } | IViewModel | null = elementOrViewModelOrController;
-  //   // // TODO: This might still be necessary. Find out!
-  //   // // let $viewport: Viewport | undefined = el.$viewport;
-  //   // // while (!$viewport && el.parentElement) {
-  //   // //   el = el.parentElement;
-  //   // //   $viewport = el.$viewport;
-  //   // // }
-  //   // // // TODO: Always also check controllers and return the closest one
-  //   // // if (el.$viewport) {
-  //   // //   return el.$viewport;
-  //   // // }
-  //   // // Fred's change:
-  //   // // el = element;
-  //   // // let controller = CustomElement.for(el);
-  //   // // while (!controller && el.parentElement) {
-  //   // //   el = el.parentElement;
-  //   // //   CustomElement.for(el);
-  //   // // }
-
-  //   // // if ((elementOrViewModelOrController as IViewModel).$controller !== void 0) {
-  //   // //   elementOrViewModelOrController = (elementOrViewModelOrController as IViewModel).$controller;
-  //   // // }
-  //   // // const element: HTMLElement = elementOrViewModelOrController instanceof Controller
-  //   // //   ? elementOrViewModelOrController.host
-  //   // //   : elementOrViewModelOrController;
-  //   // // const controller: IController<HTMLElement> | undefined = CustomElement.for(element, 'au-viewport', true);
-  //   // // return controller !== void 0 && controller.viewModel !== void 0
-  //   // //   ? (controller.viewModel as IViewModel & { viewport: Viewport }).viewport : null;
-
-  //   // let controller: any = elementOrViewModelOrController instanceof Controller ? elementOrViewModelOrController : closestController(elementOrViewModelOrController);
-  //   // // Make sure we don't include the provided element, view model or controller
-  //   // if (controller) {
-  //   //   controller = controller.parent;
-  //   // }
-  //   // while (controller && !controller.host) {
-  //   //   controller = controller.parent;
-  //   // }
-  //   // if (controller !== void 0 && controller.host !== void 0) {
-  //   //   controller = CustomElement.for(controller.host, 'au-viewport', true);
-  //   //   if (controller !== void 0) {
-  //   //     return controller.viewModel.viewport;
-  //   //   }
-  //   // }
-  //   // // while (controller) {
-  //   // //   if (controller.host && controller.host.$au && controller.host.$au['au-viewport'] && controller.host.$au['au-viewport'].viewModel && controller.host.$au['au-viewport'].viewModel.viewport) {
-  //   // //     return controller.host.$au['au-viewport'].viewModel.viewport;
-  //   // //   }
-  //   // //   // if (controller.host) {
-  //   // //   //   const viewport = this.allViewports().find((item) => item.element === controller!.host);
-  //   // //   //   if (viewport) {
-  //   // //   //     return viewport;
-  //   // //   //   }
-  //   // //   // }
-  //   // //   controller = controller.parent;
-  //   // // }
-  //   // return null;
-  // }
 
   public addRoutes(routes: IRoute[], context?: IViewModel | Element): IRoute[] {
     // TODO: This should add to the context instead
@@ -1071,14 +825,9 @@ export class Router implements IRouter {
         instructions[0].scope = this.rootScope!.scope;
       }
       const scope: Scope = instructions[0].scope!;
-      // Start with non-defaults
-      let { foundViewports, remainingInstructions } = scope.findViewports(instructions.filter(instruction => instruction.scope === scope /* && instruction.default */), alreadyFound, withoutViewports);
+      let { foundViewports, remainingInstructions } = scope.findViewports(instructions.filter(instruction => instruction.scope === scope), alreadyFound, withoutViewports);
       found.push(...foundViewports);
       remaining.push(...remainingInstructions);
-      // And then defaults
-      // ({ foundViewports, remainingInstructions } = scope.findViewports(instructions.filter(instruction => instruction.scope === scope && !instruction.default), alreadyFound, withoutViewports));
-      // found.push(...foundViewports);
-      // remaining.push(...remainingInstructions);
       instructions = instructions.filter(instruction => instruction.scope !== scope);
     }
     return { found: found.slice(), remaining };
@@ -1108,9 +857,6 @@ export class Router implements IRouter {
     let instructions: ViewportInstruction[] = (this.rootScope as ViewportScope).scope.hoistedChildren
       .filter(scope => scope.viewportInstruction !== null && !scope.viewportInstruction.isEmpty())
       .map(scope => scope.viewportInstruction) as ViewportInstruction[];
-    // const viewports: Viewport[] = (this.rootScope as ViewportScope).enabledViewports.filter(viewport => !viewport.content.content.isEmpty());
-    // let instructions = viewports.map(viewport => viewport.content.content);
-    // TODO: Check if this is really necessary
     instructions = this.instructionResolver.cloneViewportInstructions(instructions, true);
 
     const alreadyFound: ViewportInstruction[] = [];

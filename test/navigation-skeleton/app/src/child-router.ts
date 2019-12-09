@@ -14,7 +14,6 @@ export class ChildRouter {
   ) {}
 
   public binding() {
-    console.log('nav', this.router.navs);
     this.router.setNav('child-menu', [
       { title: 'Welcome', route: 'welcome' },
       { title: 'Users', route: 'users' },

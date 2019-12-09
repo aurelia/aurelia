@@ -1,29 +1,102 @@
 /* eslint-disable import/no-unassigned-import */
-import { IRouter } from '@aurelia/router';
-import { customElement } from '@aurelia/runtime';
+import { IRouter, HookTypes } from '@aurelia/router';
+import { customElement, IObserverLocator, LifecycleFlags, CustomElement } from '@aurelia/runtime';
 import * as html from './app.html';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'font-awesome/css/font-awesome.min.css';
 import './styles.css';
 
-@customElement({ name: 'app', template: html })
+interface IWindow {
+  id: number;
+}
+
+@customElement({ name: 'app', template: html, })
 export class App {
-  public count: number = 3;
+  public url: string = '';
+  public windows: IWindow[] = [{ id: 1 }];
   public maxWindows: number = 5;
 
   public constructor(
     @IRouter public router: IRouter
-  ) {}
+  ) {
+    router.addHooks([{
+      hook: path => {
+        // console.log('TransformToUrl', path);
+        if (typeof path === 'string') {
+          this.url = path;
+        }
+        return Promise.resolve(path);
+      },
+      options: {
+        type: HookTypes.TransformToUrl
+      },
+    }]);
+  }
 
-  public bound() {
-    // Yeah, this is cheating somewhat, should've reacted to actual count
-    for (let i = 1; i <= this.maxWindows; i++) {
-      this.router.setNav(`app-menu-${i}`, [
-        { title: 'Welcome', route: `welcome@app-viewport-${i}` },
-        { title: 'Users', route: `users@app-viewport-${i}` },
-        { title: 'Child router', route:  `child-router@app-viewport-${i}` },
-      ]);
+  public get count(): number {
+    return this.windows.length;
+  }
+
+  public get maxId(): number {
+    return Math.max(...this.windows.map(w => w.id));
+  }
+
+  public binding(): void {
+    const observerLocator = this.router.container.get(IObserverLocator);
+    const observer = observerLocator.getArrayObserver(LifecycleFlags.none, this.windows) as any;
+    observer.subscribeToCollection(this);
+  }
+
+  public bound(): void {
+    this.setupNavs();
+  }
+
+  public handleCollectionChange(): void {
+    this.setupNavs();
+  }
+
+  public add(): void {
+    // this.windows.push({ id: this.maxId + 1 });
+  }
+
+  public remove(window: IWindow): void {
+    // const index: number = this.windows.findIndex(w => w.id === window.id);
+    // if (index >= 0) {
+    //   this.windows.splice(index, 1);
+    // }
+  }
+  private setupNavs(): void {
+    for (const window of this.windows) {
+      const id = window.id;
+      this.router.setNav(`app-menu-${id}`, [
+        { title: '<span style="white-space: nowrap"><i class="fa fa-home"></i> Aurelia</span>', route: `welcome@app-viewport` },
+        { title: 'Welcome', route: `welcome` },
+        { title: 'Users', route: `users` },
+        { title: 'Child router', route: `child-router` },
+        // { title: '/child-router', route: `/child-router@app-viewport` },
+        // { title: '/main/child-router', route: `/main/child-router@app-viewport` },
+        // { title: '/alternate/child-router', route: `/alternate/child-router@app-viewport` },
+        // { title: '/alternate/child-router/users', route: `/alternate/child-router@app-viewport/users` },
+        // { title: '/++alternate/child-router', route: `/++alternate/child-router` },
+      ],
+        {
+          nav: 'navbar navbar-expand-lg navbar-light bg-light',
+          ul: 'navbar-nav mr-auto',
+          li: 'nav-item',
+          a: 'nav-link',
+          liActive: 'active',
+        });
+      if (this.count > 1) {
+        this.router.addNav(`app-menu-${id}`, [
+          { title: '<i class="fa fa-minus"></i>', execute: () => { this.remove(window); }, consideredActive: '' },
+        ]);
+      }
+      if (id === this.count - 1 && this.count < this.maxWindows) {
+        this.router.addNav(`app-menu-${id}`, [
+          { title: '<i class="fa fa-plus"></i>', execute: () => { this.add(); }, consideredActive: '' },
+        ]);
+      }
     }
   }
 }

@@ -1,23 +1,34 @@
 <template>
-  <!-- <require from="bootstrap/dist/css/bootstrap.min.css"></require>
-  <require from="font-awesome/css/font-awesome.min.css"></require>
-  <require from="./styles.css"></require> -->
-
-  <!-- <require from="./nav-bar.html"></require> -->
-
-  <nav-bar router.bind="router"></nav-bar>
-
   <div class="page-host">
-    <div>
-      Amount of "windows":
-      <!-- <select value.two-way="count">
-      <option repeat.for="index of maxWindows" model.one-time="index + 1">${index + 1}</option>
-    </select>  -->
-      ${count}
-    </div>
-    <div class="window" repeat.for="index of count">
-      <au-nav name="app-menu-${index + 1}"></au-nav>
-      <au-viewport name="app-viewport-${index + 1}" scope></au-viewport>
+    <input class="url" value.bind="url">
+    <!-- <a goto.bind="[{ component: '+', viewport: 'default'}]">[{ component: '+', viewport: 'default'}] | </a> -->
+    <div class="window-container">
+      <au-viewport-scope catches="window,alternate" class="window" source.bind="windows" repeat.for="window of windows">
+        <div replace>
+          <!-- id: ${window.id} ${name} ${sourceItem.id}
+          <a goto="users">users | </a>
+          <a goto="child-router/welcome">child-router/welcome | </a>
+          <a goto="child-router/users">child-router/users | </a>
+          <a goto="child-router/child-router">child-router/child-router | </a>
+          <a goto="child-router/child-router/users">child-router/child-router/users | </a>
+          <a goto="child-router+child-router/welcome">child-router+child-router/welcome | </a>
+          <a goto="/child-router/welcome">/child-router/welcome | </a>
+          <a goto="/window/child-router/welcome">/window/child-router/welcome | </a>
+          <a goto="/alternate/child-router/welcome">/alternate/child-router@app-viewport/welcome | </a>
+          <a goto="/window+window">/window+window | </a>
+          <a goto="/window+window/child-router">/window+window/child-router | </a>
+          <a goto="/window+alternate/child-router/welcome">/window+alternate/child-router@app-viewport/welcome | </a>
+          <a goto="/window">/window | </a>
+          <a goto="/+window">/+window | </a>
+          <a goto="/window/users">/window/users | </a>
+          <a goto="-">- | </a>
+          <a goto="+">+ | </a>
+          <a goto="++">++ | </a>
+          <a goto="+@default">+@default | </a> -->
+          <au-nav name="app-menu-${window.id}"></au-nav>
+          <au-viewport name="app-viewport" default="welcome"></au-viewport>
+        </div>
+      </au-viewport-scope>
     </div>
   </div>
 </template>

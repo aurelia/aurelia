@@ -1,11 +1,10 @@
 import { DI, Registration } from '@aurelia/kernel';
 import { Subscription } from 'rxjs';
 import { distinctUntilChanged, pluck } from 'rxjs/operators';
-import { STORE, Store } from '../../src/store';
+import { STORE, Store, connectTo } from '@aurelia/store';
 
 import { expect } from 'chai';
 import { stub } from 'sinon';
-import { connectTo } from '../../src/decorator';
 import { Spied } from './helpers';
 
 interface DemoState {

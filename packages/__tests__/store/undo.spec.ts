@@ -1,17 +1,17 @@
 import {
   applyLimits,
   jump,
-  nextStateHistory
-} from '../../src/history';
+  nextStateHistory,
+  StateHistory
+} from '@aurelia/store';
 import {
   createStoreWithStateAndOptions,
   createUndoableTestStore,
+  executeSteps,
   testState
 } from './helpers';
 
 import { expect } from 'chai';
-import { StateHistory } from '../../src/index';
-import { executeSteps } from '../../src/test-helpers';
 
 describe('an undoable store', () => {
   it('should return state as is if not matching type of StateHistory', () => {

@@ -1,22 +1,23 @@
 import { PLATFORM } from '@aurelia/kernel';
 import { skip, take } from 'rxjs/operators';
 import { createSandbox, spy, stub } from 'sinon';
-import { LogLevel } from './../../src/logging';
+import { LogLevel } from '@aurelia/store';
 
 import {
   localStorageMiddleware,
   logMiddleware,
+  LogLevel,
   Middleware,
   MiddlewarePlacement,
-  rehydrateFromLocalStorage
-} from '../../src/middleware';
+  rehydrateFromLocalStorage,
+  StateHistory
+} from '@aurelia/store';
 
 import { expect } from 'chai';
-import { StateHistory } from '../../src/history';
-import { executeSteps } from '../../src/test-helpers';
 import {
   createStoreWithState,
-  createStoreWithStateAndOptions
+  createStoreWithStateAndOptions,
+  executeSteps
 } from './helpers';
 
 import { fail } from 'assert';

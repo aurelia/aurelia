@@ -1,9 +1,7 @@
 import { DI, Registration } from '@aurelia/kernel';
 import { expect } from 'chai';
 import { skip } from 'rxjs/operators';
-import { STORE } from './../../src/store';
-
-import { dispatchify, Store } from '../../src/store';
+import { STORE, dispatchify, Store } from '@aurelia/store';
 import { createTestStore, testState } from './helpers';
 
 describe('dispatchify', () => {

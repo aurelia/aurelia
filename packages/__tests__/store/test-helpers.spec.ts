@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { stub } from 'sinon';
-import { executeSteps } from '../../src/test-helpers';
-import { Reporter } from './../../../kernel/src/reporter';
+import { executeSteps } from './helpers';
+import { Reporter } from '@aurelia/kernel';
 import {
   createTestStore,
   testState

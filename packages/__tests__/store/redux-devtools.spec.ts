@@ -3,8 +3,7 @@ import { stub } from 'sinon';
 
 import { PLATFORM } from '@aurelia/kernel';
 import { expect } from 'chai';
-import { DevToolsOptions } from '../../src/devtools';
-import { Store } from '../../src/store';
+import { DevToolsOptions, Store } from '@aurelia/store';
 import {
   createTestStore,
   testState

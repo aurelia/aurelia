@@ -4,6 +4,7 @@ import {
   nextStateHistory,
   StateHistory
 } from '@aurelia/store';
+
 import {
   createStoreWithStateAndOptions,
   createUndoableTestStore,

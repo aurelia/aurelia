@@ -19,7 +19,7 @@ describe.only('IValidator', function () {
     container.register(
       validator
         ? ValidationConfiguration.customize((options) => {
-          options.validator = validator
+          options.validator = validator;
         })
         : ValidationConfiguration);
     return { sut: container.get(IValidator), container };
@@ -36,10 +36,10 @@ describe.only('IValidator', function () {
 
   it('can be registered to Singleton custom validator', function () {
     class CustomValidator implements IValidator {
-      validateProperty(object: IValidateable<any>, propertyName: string, rules?: PropertyRule<IValidateable<any>, unknown>[]): Promise<ValidationResult[]> {
+      public validateProperty(object: IValidateable, propertyName: string, rules?: PropertyRule[]): Promise<ValidationResult[]> {
         throw new Error('Method not implemented.');
       }
-      validateObject(object: IValidateable<any>, rules?: PropertyRule<IValidateable<any>, unknown>[]): Promise<ValidationResult[]> {
+      public validateObject(object: IValidateable, rules?: PropertyRule[]): Promise<ValidationResult[]> {
         throw new Error('Method not implemented.');
       }
 

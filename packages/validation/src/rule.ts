@@ -1,4 +1,5 @@
-import { Class, DI, Protocol, Constructable, Metadata } from '@aurelia/kernel';
+/* eslint-disable no-template-curly-in-string */
+import { Class, DI, Protocol, Constructable, Metadata, ILogger } from '@aurelia/kernel';
 import {
   BindingType,
   IExpressionParser,
@@ -7,8 +8,118 @@ import {
   LifecycleFlags,
   PrimitiveLiteralExpression,
   Interpolation,
+  AccessScopeExpression,
+  AccessThisExpression,
 } from '@aurelia/runtime';
-import { IValidationMessageProvider } from './validation-messages';
+
+export interface IValidationMessageProvider {
+  getMessage(rule: BaseValidationRule): IInterpolationExpression | PrimitiveLiteralExpression;
+  parseMessage(message: string): IInterpolationExpression | PrimitiveLiteralExpression;
+  getDisplayName(propertyName: string | number, displayName?: string | null | (() => string)): string;
+}
+
+export const IValidationMessageProvider = DI.createInterface<IValidationMessageProvider>("IValidationMessageProvider").noDefault();
+/* @internal */
+export const ICustomMessages = DI.createInterface("ICustomMessages").noDefault();
+
+const contextualProperties: Readonly<Set<string>> = new Set([
+  "displayName",
+  "propertyName",
+  "value",
+  "object",
+  "config",
+  "getDisplayName"
+]);
+/**
+ * Retrieves validation messages and property display names.
+ */
+export class ValidationMessageProvider implements IValidationMessageProvider {
+
+  // TODO move the messages to rules as well as facilitate having custom message registration
+  protected defaultMessages: Record<string, string> = {
+    /**
+     * The default validation message. Used with rules that have no standard message.
+     */
+    default: `\${$displayName} is invalid.`,
+    required: `\${$displayName} is required.`,
+    matches: `\${$displayName} is not correctly formatted.`,
+    email: `\${$displayName} is not a valid email.`,
+    minLength: `\${$displayName} must be at least \${$rule.length} character\${$rule.length === 1 ? '' : 's'}.`,
+    maxLength: `\${$displayName} cannot be longer than \${$rule.length} character\${$rule.length === 1 ? '' : 's'}.`,
+    minItems: `\${$displayName} must contain at least \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.`,
+    maxItems: `\${$displayName} cannot contain more than \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.`,
+    min: `\${$displayName} must be at least \${$rule.min}.`,
+    max: `\${$displayName} must be at most \${$rule.max}.`,
+    range: `\${$displayName} must be between or equal to \${$rule.min} and \${$rule.max}.`,
+    between: `\${$displayName} must be between but not equal to \${$rule.min} and \${$rule.max}.`,
+    equals: `\${$displayName} must be \${$rule.expectedValue}.`,
+  };
+  private readonly logger: ILogger;
+
+  public constructor(
+    @IExpressionParser public parser: IExpressionParser,
+    @ILogger logger: ILogger,
+  ) {
+    this.logger = logger.scopeTo(ValidationMessageProvider.name);
+  }
+
+  /**
+   * Returns a message binding expression that corresponds to the key.
+   */
+  public getMessage(rule: BaseValidationRule): IInterpolationExpression | PrimitiveLiteralExpression {
+    const validationMessages = ValidationRule.getDefaultMessages(rule);
+    let message: string | undefined;
+    const messageCount = validationMessages.length;
+    if (messageCount === 1) {
+      message = validationMessages[0].defaultMessage;
+    } else if (messageCount > 1) {
+      message = validationMessages.find(m => m.name === rule.messageKey)?.defaultMessage;
+    }
+    if (!message) {
+      message = ValidationRule.getDefaultMessages(BaseValidationRule)[0].defaultMessage!;
+    }
+    return this.parseMessage(message);
+  }
+
+  public parseMessage(message: string): IInterpolationExpression | PrimitiveLiteralExpression {
+    const parsed = this.parser.parse(message, BindingType.Interpolation);
+    if (parsed instanceof Interpolation) {
+      for (const expr of parsed.expressions) {
+        const name = (expr as AccessScopeExpression).name;
+        if (contextualProperties.has(name)) {
+          this.logger.warn(`Did you mean to use "$${name}" instead of "${name}" in this validation message template: "${message}"?`);
+        }
+        if (expr instanceof AccessThisExpression || (expr as AccessScopeExpression).ancestor > 0) {
+          throw new Error('$parent is not permitted in validation message expressions.'); // TODO use reporter
+        }
+      }
+      return parsed;
+    }
+    return new PrimitiveLiteralExpression(message);
+  }
+
+  /**
+   * Formulates a property display name using the property name and the configured
+   * displayName (if provided).
+   * Override this with your own custom logic.
+   *
+   * @param propertyName - The property name.
+   */
+  public getDisplayName(propertyName: string | number, displayName?: string | null | (() => string)): string {
+    if (displayName !== null && displayName !== undefined) {
+      return (displayName instanceof Function) ? displayName() : displayName as string;
+    }
+
+    // split on upper-case letters.
+    const words = propertyName.toString().split(/(?=[A-Z])/).join(' ');
+    // capitalize first letter.
+    return words.charAt(0).toUpperCase() + words.slice(1);
+  }
+}
+
+export class LocalizedValidationMessageProvider extends ValidationMessageProvider {
+  // TODO no more monkey patching prototype in user code, rather a standard i18n validation message provider impl
+}
 
 export type IValidateable<T = any> = (Class<T> | object) & { [key in PropertyKey]: any };
 export type ValidationDisplayNameAccessor = () => string;
@@ -57,23 +168,51 @@ export const validationRules = Object.freeze({
 
 export type ValidationRuleExecutionPredicate = (object?: IValidateable) => boolean;
 
-export abstract class ValidationRule<TValue = any, TObject extends IValidateable = IValidateable> {
+interface ValidationRuleAlias {
+  name: string;
+  defaultMessage?: string;
+}
+interface ValidationRuleDefinition {
+  aliases: ValidationRuleAlias[];
+}
+/* @internal */
+const ValidationRule = Object.freeze({
+  aliasKey: Protocol.annotation.keyFor('validation-rule-alias-message'),
+  define<TRule extends BaseValidationRule>(target: Constructable<TRule>, definition: ValidationRuleDefinition): Constructable<TRule> {
+    ValidationRule.setDefaultMessage(target, definition);
+    return target;
+  },
+  setDefaultMessage<TRule extends BaseValidationRule>(target: Constructable<TRule> | TRule, { aliases }: ValidationRuleDefinition) {
+    Metadata.define(ValidationRule.aliasKey, aliases, target instanceof Function ? target.prototype : target);
+  },
+  getDefaultMessages<TRule extends BaseValidationRule>(rule: Constructable<TRule> | TRule): ValidationRuleAlias[] {
+    return Metadata.get(this.aliasKey, rule);
+  }
+});
+export function validationRule(definition: ValidationRuleDefinition) {
+  return function <TRule extends BaseValidationRule>(target: Constructable<TRule>) {
+    return ValidationRule.define(target, definition);
+  };
+}
+
+@validationRule({ aliases: [{ name: (void 0)!, defaultMessage: `\${$displayName} is invalid.` }] })
+export class BaseValidationRule<TValue = any, TObject extends IValidateable = IValidateable> {
   public tag?: string = (void 0)!;
   protected _message: IInterpolationExpression | PrimitiveLiteralExpression = (void 0)!;
 
-  protected _messageKey: string = 'default';
+  protected _messageKey: string = (void 0)!;
   public get messageKey() { return this._messageKey; }
   public set messageKey(key: string) {
     this._messageKey = key;
     this._message = (void 0)!;
   }
 
-  public get message() {
+  public get message(): IInterpolationExpression | PrimitiveLiteralExpression {
     let message = this._message;
     if (message !== void 0) {
       return message;
     }
-    message = this._message = this.messageProvider.getMessageByKey(this.messageKey);
+    message = this._message = this.messageProvider.getMessage(this);
     return message;
   }
 
@@ -85,18 +224,26 @@ export abstract class ValidationRule<TValue = any, TObject extends IValidateable
   public constructor(protected readonly messageProvider: IValidationMessageProvider) { }
 
   public canExecute: ValidationRuleExecutionPredicate = () => true;
-  public abstract execute(value: TValue, object?: TObject): boolean | Promise<boolean>;
+  public execute(value: TValue, object?: TObject): boolean | Promise<boolean> {
+    throw new Error('No base implementation of execute. Did you forget to implement the excute method?'); // TODO reporter
+  }
 }
 
-export class RequiredRule extends ValidationRule {
-  protected _messageKey: string = 'required';
+@validationRule({ aliases: [{ name: 'required', defaultMessage: `\${$displayName} is required.` }] })
+export class RequiredRule extends BaseValidationRule {
   public execute(value: unknown): boolean | Promise<boolean> {
     return value !== null
       && value !== undefined
       && !(typeof value === 'string' && !/\S/.test(value));
   }
 }
-export class RegexRule extends ValidationRule<string> {
+@validationRule({
+  aliases: [
+    { name: 'matches', defaultMessage: `\${$displayName} is not correctly formatted.` },
+    { name: 'email', defaultMessage: `\${$displayName} is not a valid email.` },
+  ]
+})
+export class RegexRule extends BaseValidationRule<string> {
 
   public constructor(
     messageProvider: IValidationMessageProvider,
@@ -110,7 +257,13 @@ export class RegexRule extends ValidationRule<string> {
     return value === null || value === undefined || value.length === 0 || this.pattern.test(value);
   }
 }
-export class LengthRule extends ValidationRule<string> {
+@validationRule({
+  aliases: [
+    { name: 'minLength', defaultMessage: `\${$displayName} must be at least \${$rule.length} character\${$rule.length === 1 ? '' : 's'}.` },
+    { name: 'maxLength', defaultMessage: `\${$displayName} cannot be longer than \${$rule.length} character\${$rule.length === 1 ? '' : 's'}.` },
+  ]
+})
+export class LengthRule extends BaseValidationRule<string> {
 
   public constructor(
     messageProvider: IValidationMessageProvider,
@@ -125,7 +278,13 @@ export class LengthRule extends ValidationRule<string> {
     return value === null || value === undefined || value.length === 0 || (this.isMax ? value.length <= this.length : value.length >= this.length);
   }
 }
-export class SizeRule extends ValidationRule<unknown[]> {
+@validationRule({
+  aliases: [
+    { name: 'minItems', defaultMessage: `\${$displayName} must contain at least \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.` },
+    { name: 'maxItems', defaultMessage: `\${$displayName} cannot contain more than \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.` },
+  ]
+})
+export class SizeRule extends BaseValidationRule<unknown[]> {
 
   public constructor(
     messageProvider: IValidationMessageProvider,
@@ -141,7 +300,15 @@ export class SizeRule extends ValidationRule<unknown[]> {
   }
 }
 type Range = { min?: number; max?: number };
-export class RangeRule extends ValidationRule<number> {
+@validationRule({
+  aliases: [
+    { name: 'min', defaultMessage: `\${$displayName} must be at least \${$rule.min}.` },
+    { name: 'max', defaultMessage: `\${$displayName} must be at most \${$rule.max}.` },
+    { name: 'range', defaultMessage: `\${$displayName} must be between or equal to \${$rule.min} and \${$rule.max}.` },
+    { name: 'between', defaultMessage: `\${$displayName} must be between but not equal to \${$rule.min} and \${$rule.max}.` },
+  ]
+})
+export class RangeRule extends BaseValidationRule<number> {
 
   private readonly min: number = Number.NEGATIVE_INFINITY;
   private readonly max: number = Number.POSITIVE_INFINITY;
@@ -170,7 +337,13 @@ export class RangeRule extends ValidationRule<number> {
     );
   }
 }
-export class EqualsRule extends ValidationRule {
+
+@validationRule({
+  aliases: [
+    { name: 'equals', defaultMessage: `\${$displayName} must be \${$rule.expectedValue}.` },
+  ]
+})
+export class EqualsRule extends BaseValidationRule {
   protected _messageKey: string = 'equals';
   public constructor(
     messageProvider: IValidationMessageProvider,
@@ -183,28 +356,28 @@ export class EqualsRule extends ValidationRule {
 
 export class PropertyRule<TObject extends IValidateable = IValidateable, TValue = unknown> {
 
-  private latestRule?: ValidationRule;
+  private latestRule?: BaseValidationRule;
 
   /**
    * @param {RuleProperty} property - Property to validate
-   * @internal @param {ValidationRule[][]} [$rules=[]] - configured rules
+   * @internal @param {BaseValidationRule[][]} [$rules=[]] - configured rules
    * @memberof PropertyRule
    */
   public constructor(
     private readonly validationRules: ValidationRules,
     private readonly messageProvider: IValidationMessageProvider,
     public property: RuleProperty,
-    public $rules: ValidationRule[][] = [[]],
+    public $rules: BaseValidationRule[][] = [[]],
   ) { }
 
   /** @internal */
-  public addRule(rule: ValidationRule) {
-    const rules: ValidationRule[] = this.getLeafRules();
+  public addRule(rule: BaseValidationRule) {
+    const rules: BaseValidationRule[] = this.getLeafRules();
     rules.push(this.latestRule = rule);
     return this;
   }
 
-  private getLeafRules(): ValidationRule[] {
+  private getLeafRules(): BaseValidationRule[] {
     const depth = this.$rules.length - 1;
     return this.$rules[depth];
   }
@@ -212,8 +385,8 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   public async validate(value: TValue, object?: IValidateable): Promise<ValidationResult[]> {
 
     let isValid = true;
-    const validateRuleset = async (rules: ValidationRule[]) => {
-      const validateRule = async (rule: ValidationRule) => {
+    const validateRuleset = async (rules: BaseValidationRule[]) => {
+      const validateRule = async (rule: BaseValidationRule) => {
         let isValidOrPromise = rule.execute(value, object);
         if (isValidOrPromise instanceof Promise) {
           isValidOrPromise = await isValidOrPromise;
@@ -242,7 +415,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
       }
       return Promise.all(promises);
     };
-    const accumulateResult = async (results: ValidationResult[], rules: ValidationRule[]) => {
+    const accumulateResult = async (results: ValidationResult[], rules: BaseValidationRule[]) => {
       const result = await validateRuleset(rules);
       results.push(...result);
       return results;
@@ -315,7 +488,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
     );
   }
 
-  private assertLatesRule(latestRule: ValidationRule | undefined): asserts latestRule is ValidationRule {
+  private assertLatesRule(latestRule: BaseValidationRule | undefined): asserts latestRule is BaseValidationRule {
     if (latestRule === void 0) {
       throw new Error('No rule has been added'); // TODO use reporter
     }
@@ -340,7 +513,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
    */
   public satisfies(condition: RuleCondition, config?: object) {
     // TODO handle config
-    const rule = new (class extends ValidationRule { public execute: RuleCondition = condition; })(this.messageProvider);
+    const rule = new (class extends BaseValidationRule { public execute: RuleCondition = condition; })(this.messageProvider);
     return this.addRule(rule);
   }
 
@@ -350,7 +523,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
    * @param name - The name of the custom or standard rule.
    * @param args - The rule's arguments.
    */
-  public satisfiesRule(validationRule: ValidationRule) {
+  public satisfiesRule(validationRule: BaseValidationRule) {
     return this.addRule(validationRule);
   }
 

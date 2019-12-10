@@ -1,4 +1,4 @@
-import { DI, IContainer, InterfaceSymbol, IResolver, Key, Profiler, Registration } from '@aurelia/kernel';
+import { DI, IContainer, InterfaceSymbol, IResolver, Registration } from '@aurelia/kernel';
 import { IDOM, INode } from '@aurelia/runtime';
 
 /**
@@ -11,20 +11,20 @@ export interface ITemplateElementFactory<TNode extends INode = INode> {
   /**
    * Create a `HTMLTemplateElement` from a provided html string.
    *
-   * @param markup A raw html string that may or may not be wrapped in `<template></template>`
+   * @param markup - A raw html string that may or may not be wrapped in `<template></template>`
    */
   createTemplate(markup: string): TNode;
   /**
    * Create a `HTMLTemplateElement` from a provided DOM node. If the node is already a template, it
    * will be returned as-is (and removed from the DOM).
    *
-   * @param node A DOM node that may or may not be wrapped in `<template></template>`
+   * @param node - A DOM node that may or may not be wrapped in `<template></template>`
    */
   createTemplate(node: TNode): TNode;
   /**
    * Create a `HTMLTemplateElement` from a provided DOM node or html string.
    *
-   * @param input A DOM node or raw html string that may or may not be wrapped in `<template></template>`
+   * @param input - A DOM node or raw html string that may or may not be wrapped in `<template></template>`
    */
   createTemplate(input: unknown): TNode;
   createTemplate(input: unknown): TNode;
@@ -35,8 +35,6 @@ export interface ITemplateElementFactory<TNode extends INode = INode> {
 // So.. investigate why that happens (or rather, why it *only* happens here and not for the other 50)
 export const ITemplateElementFactory: InterfaceSymbol<ITemplateElementFactory> = DI.createInterface<ITemplateElementFactory>('ITemplateElementFactory').noDefault();
 
-const { enter, leave } = Profiler.createTimer('TemplateElementFactory');
-
 const markupCache: Record<string, HTMLTemplateElement | undefined> = {};
 
 /**
@@ -45,13 +43,11 @@ const markupCache: Record<string, HTMLTemplateElement | undefined> = {};
  * @internal
  */
 export class HTMLTemplateElementFactory implements ITemplateElementFactory {
-  public static readonly inject: readonly Key[] = [IDOM];
-
-  private readonly dom: IDOM;
   private template: HTMLTemplateElement;
 
-  constructor(dom: IDOM) {
-    this.dom = dom;
+  public constructor(
+    @IDOM private readonly dom: IDOM,
+  ) {
     this.template = dom.createTemplate() as HTMLTemplateElement;
   }
 

@@ -1,4 +1,4 @@
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
+import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
 import { register } from '@aurelia/plugin-svg';
 import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { startFPSMonitor, startMemMonitor } from 'perf-monitor';
@@ -11,7 +11,7 @@ startMemMonitor();
 try {
   new Aurelia()
     .register(
-      BasicConfiguration,
+      JitHtmlBrowserConfiguration,
       { register }
     )
     .app({
@@ -37,14 +37,14 @@ try {
           ]
         },
         (() => {
-          class App {        
+          class App {
             constructor(state) {
               this.state = state;
               const base = state.baseSize;
               this.totalNodes = 2 ** (10 + 1);
               this.baseTransform = `translate(50%, 100%) translate(-${base / 2}px, 0) scale(${base}, ${-base})`;
             }
-          
+
             onMouseMove({ clientX, clientY }) {
               this.state.mouseMoved(clientX, clientY);
             }

@@ -1,9 +1,7 @@
 import {
   IIndexable,
   IServiceLocator,
-  Tracer,
 } from '@aurelia/kernel';
-
 import { IsBindingBehavior } from '../ast';
 import {
   LifecycleFlags,
@@ -11,7 +9,6 @@ import {
 } from '../flags';
 import { IBinding } from '../lifecycle';
 import {
-  IObservable,
   IScope,
 } from '../observation';
 import {
@@ -20,30 +17,19 @@ import {
 } from './ast';
 import { IConnectableBinding } from './connectable';
 
-const slice = Array.prototype.slice;
-
 export interface RefBinding extends IConnectableBinding {}
 export class RefBinding implements IBinding {
-  public $state: State;
-  public $scope?: IScope;
+  public interceptor: this = this;
+
+  public $state: State = State.none;
+  public $scope?: IScope = void 0;
   public part?: string;
 
-  public locator: IServiceLocator;
-  public sourceExpression: IsBindingBehavior;
-  public target: IObservable;
-
-  constructor(
-    sourceExpression: IsBindingBehavior,
-    target: object,
-    locator: IServiceLocator,
-  ) {
-    this.$state = State.none;
-    this.$scope = void 0;
-
-    this.locator = locator;
-    this.sourceExpression = sourceExpression;
-    this.target = target as IObservable;
-  }
+  public constructor(
+    public sourceExpression: IsBindingBehavior,
+    public target: object,
+    public locator: IServiceLocator,
+  ) {}
 
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
     if (this.$state & State.isBound) {
@@ -51,7 +37,7 @@ export class RefBinding implements IBinding {
         return;
       }
 
-      this.$unbind(flags | LifecycleFlags.fromBind);
+      this.interceptor.$unbind(flags | LifecycleFlags.fromBind);
     }
     // add isBinding flag
     this.$state |= State.isBinding;
@@ -63,7 +49,7 @@ export class RefBinding implements IBinding {
       this.sourceExpression.bind(flags, scope, this);
     }
 
-    this.sourceExpression.assign!(flags, this.$scope, this.locator, this.target, part);
+    this.sourceExpression.assign!(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.locator, this.target, part);
 
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;
@@ -85,7 +71,7 @@ export class RefBinding implements IBinding {
     // source expression might have been modified durring assign, via a BB
     sourceExpression = this.sourceExpression;
     if (hasUnbind(sourceExpression)) {
-      sourceExpression.unbind(flags, this.$scope!, this);
+      sourceExpression.unbind(flags, this.$scope!, this.interceptor);
     }
 
     this.$scope = void 0;

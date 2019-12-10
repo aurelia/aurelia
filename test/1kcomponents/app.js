@@ -1,4 +1,4 @@
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
+import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia, CustomElementResource, ValueConverterResource, ILifecycle, Priority, LifecycleFlags } from '@aurelia/runtime';
 import { register } from '@aurelia/plugin-svg';
 import { startFPSMonitor, startMemMonitor } from 'perf-monitor';
@@ -7,7 +7,7 @@ import { interpolateViridis } from 'd3-scale-chromatic';
 startFPSMonitor();
 startMemMonitor();
 
-const { sqrt, PI, cos, sin, min, max } = Math;
+const { sqrt, PI, cos, sin, min } = Math;
 
 const LAYOUT_ORDER = [0, 3, 0, 1, 2];
 const xForLayout = ['px', 'gx', 'wx', 'sx'];
@@ -255,7 +255,7 @@ const App = CustomElementResource.define(
   }
 );
 
-new Aurelia().register(BasicConfiguration, { register }).app(
+new Aurelia().register(JitHtmlBrowserConfiguration, { register }).app(
   {
     host: document.getElementById('app'),
     component: App,

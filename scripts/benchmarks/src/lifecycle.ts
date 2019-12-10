@@ -11,30 +11,30 @@ const suites = {
   ['bind']() {
     const count = parseInt(rest[0], 10);
     class LocalFoo {
-      static inject = [local.runtime.ILifecycle];
-      static register(container) {
+      public static inject = [local.runtime.ILifecycle];
+      public static register(container) {
         return local.kernel.Registration.transient(LocalFoo, this).register(container);
       }
-      $nextBound;
-      lifecycle;
-      constructor(lifecycle) {
+      public $nextBound;
+      public lifecycle;
+      public constructor(lifecycle) {
         this.lifecycle = lifecycle;
         this.$nextBound = null;
       }
-      bound() { }
+      public bound() { return; }
     }
     class DevFoo {
-      static inject = [dev.runtime.ILifecycle];
-      static register(container) {
+      public static inject = [dev.runtime.ILifecycle];
+      public static register(container) {
         return dev.kernel.Registration.transient(DevFoo, this).register(container);
       }
-      $nextBound;
-      lifecycle;
-      constructor(lifecycle) {
+      public $nextBound;
+      public lifecycle;
+      public constructor(lifecycle) {
         this.lifecycle = lifecycle;
         this.$nextBound = null;
       }
-      bound() { }
+      public bound() { return; }
     }
     const localContainer = local.kernel.DI.createContainer();
     localContainer.register(LocalFoo);
@@ -47,12 +47,12 @@ const suites = {
     const devFoos = Array(count).fill(0).map(() => devContainer.get(DevFoo));
 
     const suite = new Benchmark.Suite('bind', {
-      onCycle: function(event) {
+      onCycle: function (event) {
         log(`[${c.cyan(name)}] ${event.target}`);
       }
     });
 
-    suite.add(`local beginBind+enqueueBound+endBind x ${count}`, function() {
+    suite.add(`local beginBind+enqueueBound+endBind x ${count}`, function () {
       for (let i = 0; i < count; ++i) {
         localLifecycle.beginBind();
         localLifecycle.enqueueBound(localFoos[i]);
@@ -61,7 +61,7 @@ const suites = {
         localLifecycle.endBind(0);
       }
     });
-    suite.add(`  dev beginBind+enqueueBound+endBind x ${count}`, function() {
+    suite.add(`  dev beginBind+enqueueBound+endBind x ${count}`, function () {
       for (let i = 0; i < count; ++i) {
         devLifecycle.beginBind();
         devLifecycle.enqueueBound(devFoos[i]);
@@ -71,10 +71,8 @@ const suites = {
       }
     });
 
-
     suite.run();
   }
 };
-
 
 suites[name]();

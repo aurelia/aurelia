@@ -1,6 +1,6 @@
+import * as path from 'path';
 import { kebabCase } from '@aurelia/kernel';
 import modifyCode, { ModifyCodeResult } from 'modify-code';
-import * as path from 'path';
 import * as ts from 'typescript';
 import { nameConvention } from './name-convention';
 import { IFileUnit, IPreprocessOptions, ResourceType } from './options';
@@ -25,6 +25,7 @@ interface IFoundResource {
 }
 
 interface IModifyResourceOptions {
+  expectedResourceName: string;
   runtimeImport: ICapturedImport;
   jitImport: ICapturedImport;
   implicitElement?: IPos;
@@ -37,6 +38,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
   const expectedResourceName = kebabCase(basename);
   const sf = ts.createSourceFile(unit.path, unit.contents, ts.ScriptTarget.Latest);
 
+  let auImport: ICapturedImport = { names: [], start: 0, end: 0 };
   let runtimeImport: ICapturedImport = { names: [], start: 0, end: 0 };
   let jitImport: ICapturedImport = { names: [], start: 0, end: 0 };
 
@@ -48,6 +50,14 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
   const conventionalDecorators: [number, string][] = [];
 
   sf.statements.forEach(s => {
+    // Find existing import Aurelia, {customElement, templateController} from 'aurelia';
+    const au = captureImport(s, 'aurelia', unit.contents);
+    if (au) {
+      // Assumes only one import statement for @aurelia/runtime
+      auImport = au;
+      return;
+    }
+
     // Find existing import {customElement} from '@aurelia/runtime';
     const runtime = captureImport(s, '@aurelia/runtime', unit.contents);
     if (runtime) {
@@ -81,11 +91,16 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     if (localDep) localDeps.push(localDep);
     if (needDecorator) conventionalDecorators.push(needDecorator);
     if (implicitStatement) implicitElement = implicitStatement;
-    if (runtimeImportName) ensureTypeIsExported(runtimeImport.names, runtimeImportName);
-    if (jitImportName) ensureTypeIsExported(jitImport.names, jitImportName);
+    if (runtimeImportName && !auImport.names.includes(runtimeImportName)) {
+      ensureTypeIsExported(runtimeImport.names, runtimeImportName);
+    }
+    if (jitImportName && !auImport.names.includes(jitImportName)) {
+      ensureTypeIsExported(jitImport.names, jitImportName);
+    }
   });
 
   return modifyResource(unit, {
+    expectedResourceName,
     runtimeImport,
     jitImport,
     implicitElement,
@@ -96,6 +111,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
 
 function modifyResource(unit: IFileUnit, options: IModifyResourceOptions) {
   const {
+    expectedResourceName,
     runtimeImport,
     jitImport,
     implicitElement,
@@ -105,6 +121,10 @@ function modifyResource(unit: IFileUnit, options: IModifyResourceOptions) {
 
   const m = modifyCode(unit.contents, unit.path);
   if (implicitElement && unit.filePair) {
+    // @view() for foo.js and foo-view.html
+    // @customElement() for foo.js and foo.html
+    const dec = kebabCase(unit.filePair).startsWith(`${expectedResourceName}-view`) ? 'view' : 'customElement';
+
     const viewDef = '__au2ViewDef';
     m.prepend(`import * as ${viewDef} from './${unit.filePair}';\n`);
 
@@ -113,9 +133,9 @@ function modifyResource(unit: IFileUnit, options: IModifyResourceOptions) {
       // in order to avoid TS2449: Class '...' used before its declaration.
       const elementStatement = unit.contents.slice(implicitElement.pos, implicitElement.end);
       m.replace(implicitElement.pos, implicitElement.end, '');
-      m.append(`\n@customElement({ ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] })\n${elementStatement}\n`);
+      m.append(`\n@${dec}({ ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] })\n${elementStatement}\n`);
     } else {
-      conventionalDecorators.push([implicitElement.pos, `@customElement(${viewDef})\n`]);
+      conventionalDecorators.push([implicitElement.pos, `@${dec}(${viewDef})\n`]);
     }
   }
 
@@ -145,11 +165,11 @@ function captureImport(s: ts.Statement, lib: string, code: string): ICapturedImp
       s.importClause &&
       s.importClause.namedBindings &&
       ts.isNamedImports(s.importClause.namedBindings)) {
-        return {
-          names: s.importClause.namedBindings.elements.map(e => e.name.text),
-          start: ensureTokenStart(s.pos, code),
-          end: s.end
-        };
+    return {
+      names: s.importClause.namedBindings.elements.map(e => e.name.text),
+      start: ensureTokenStart(s.pos, code),
+      end: s.end
+    };
   }
 }
 
@@ -163,18 +183,19 @@ function ensureTypeIsExported(runtimeExports: string[], type: string) {
 // TypeScript parsed statement could contain leading white spaces.
 // This find the exact starting position for latter code injection.
 function ensureTokenStart(start: number, code: string) {
-  while (start < code.length - 1 && code[start].match(/^\s$/)) start++;
+  while (start < code.length - 1 && /^\s$/.exec(code[start])) start++;
   return start;
 }
 
-function findExportPos(node: ts.Node): number | void {
-  if (!node.modifiers) return;
+function isExported(node: ts.Node): boolean {
+  if (!node.modifiers) return false;
   for (const mod of node.modifiers) {
-    if (mod.kind === ts.SyntaxKind.ExportKeyword) return mod.pos;
+    if (mod.kind === ts.SyntaxKind.ExportKeyword) return true;
   }
+  return false;
 }
 
-const KNOWN_DECORATORS = ['customElement', 'customAttribute', 'valueConverter', 'bindingBehavior', 'bindingCommand'];
+const KNOWN_DECORATORS = ['view', 'customElement', 'customAttribute', 'valueConverter', 'bindingBehavior', 'bindingCommand', 'templateController'];
 
 function findDecoratedResourceType(node: ts.Node): ResourceType | void {
   if (!node.decorators) return;
@@ -190,21 +211,24 @@ function findDecoratedResourceType(node: ts.Node): ResourceType | void {
   }
 }
 
+function isKindOfSame(name1: string, name2: string): boolean {
+  return name1.replace(/-/g, '') === name2.replace(/-/g, '');
+}
+
 function findResource(node: ts.Node, expectedResourceName: string, filePair: string | undefined, code: string): IFoundResource | void {
   if (!ts.isClassDeclaration(node)) return;
   if (!node.name) return;
-  let exportPos = findExportPos(node);
-  if (typeof exportPos !== 'number') return;
-  exportPos = ensureTokenStart(exportPos, code);
+  if (!isExported(node)) return;
+  const pos = ensureTokenStart(node.pos, code);
 
   const className = node.name.text;
   const {name, type} = nameConvention(className);
-  const isImplicitResource = name === expectedResourceName;
+  const isImplicitResource = isKindOfSame(name, expectedResourceName);
   const decoratedType = findDecoratedResourceType(node);
 
   if (decoratedType) {
     // Explicitly decorated resource
-    if (!isImplicitResource && decoratedType !== 'customElement') {
+    if (!isImplicitResource && decoratedType !== 'customElement' && decoratedType !== 'view') {
       return { localDep: className };
     }
   } else {
@@ -212,13 +236,13 @@ function findResource(node: ts.Node, expectedResourceName: string, filePair: str
       // Custom element can only be implicit resource
       if (isImplicitResource && filePair) {
         return {
-          implicitStatement: { pos: exportPos, end: node.end },
-          runtimeImportName: type
+          implicitStatement: { pos: pos, end: node.end },
+          runtimeImportName: kebabCase(filePair).startsWith(`${expectedResourceName}-view`) ? 'view' : 'customElement'
         };
       }
     } else {
       const result: IFoundResource = {
-        needDecorator: [exportPos, `@${type}('${name}')\n`],
+        needDecorator: [pos, `@${type}('${name}')\n`],
         localDep: className,
       };
 

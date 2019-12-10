@@ -60,6 +60,7 @@ const enum TaskType {
   from,
 }
 
+// eslint-disable-next-line @typescript-eslint/class-name-casing
 export const StartTask = class $StartTask implements IStartTask {
   public get slot(): TaskSlot {
     if (this._slot === void 0) {
@@ -185,10 +186,8 @@ export interface IStartTaskManager {
 }
 
 export class StartTaskManager implements IStartTaskManager {
-  public static readonly inject: readonly Key[] = [IServiceLocator];
-
-  constructor(
-    private readonly locator: IServiceLocator,
+  public constructor(
+    @IServiceLocator private readonly locator: IServiceLocator,
   ) {}
 
   public static register(container: IContainer): IResolver<IStartTaskManager> {
@@ -233,29 +232,25 @@ export interface ILifecycleTask<T = unknown> {
 }
 
 export class PromiseTask<TArgs extends unknown[], T = void> implements ILifecycleTask {
-  public done: boolean;
+  public done: boolean = false;
 
-  private hasStarted: boolean;
-  private isCancelled: boolean;
+  private hasStarted: boolean = false;
+  private isCancelled: boolean = false;
   private readonly promise: Promise<unknown>;
 
-  constructor(
+  public constructor(
     promise: Promise<T>,
     next: ((result?: T, ...args: TArgs) => MaybePromiseOrTask) | null,
     context: unknown,
     ...args: TArgs
   ) {
-    this.done = false;
-    this.isCancelled = false;
-    this.hasStarted = false;
     this.promise = promise.then(value => {
       if (this.isCancelled === true) {
         return;
       }
       this.hasStarted = true;
       if (next !== null) {
-        // @ts-ignore
-        const nextResult = next.call(context, value, ...args);
+        const nextResult = (next as (this: (result?: T, ...args: TArgs) => MaybePromiseOrTask, value: T, ...args: TArgs[]) => MaybePromiseOrTask).call(context as (result?: T, ...args: TArgs) => MaybePromiseOrTask, value, ...args as TArgs[]);
         if (nextResult === void 0) {
           this.done = true;
         } else {
@@ -286,17 +281,15 @@ export class PromiseTask<TArgs extends unknown[], T = void> implements ILifecycl
 }
 
 export class ProviderTask implements ILifecycleTask {
-  public done: boolean;
+  public done: boolean = false;
 
   private promise?: Promise<unknown>;
 
-  constructor(
+  public constructor(
     private container: IContainer,
     private key: Key,
     private callback: (instance: unknown) => PromiseOrTask,
-  ) {
-    this.done = false;
-  }
+  ) {}
 
   public canCancel(): boolean {
     return false;
@@ -329,22 +322,18 @@ export class ProviderTask implements ILifecycleTask {
 }
 
 export class ContinuationTask<TArgs extends unknown[]> implements ILifecycleTask {
-  public done: boolean;
+  public done: boolean = false;
 
-  private hasStarted: boolean;
-  private isCancelled: boolean;
+  private hasStarted: boolean = false;
+  private isCancelled: boolean = false;
   private readonly promise: Promise<unknown>;
 
-  constructor(
+  public constructor(
     antecedent: Promise<unknown> | ILifecycleTask,
     next: (...args: TArgs) => MaybePromiseOrTask,
     context: unknown,
     ...args: TArgs
   ) {
-    this.done = false;
-    this.hasStarted = false;
-    this.isCancelled = false;
-
     const promise = (antecedent as Promise<unknown>).then instanceof Function
       ? antecedent as Promise<unknown>
       : (antecedent as ILifecycleTask).wait();
@@ -384,13 +373,13 @@ export class ContinuationTask<TArgs extends unknown[]> implements ILifecycleTask
 }
 
 export class TerminalTask implements ILifecycleTask {
-  public done: boolean;
+  public done: boolean = false;
 
   private readonly promise: Promise<unknown>;
 
-  constructor(antecedent: Promise<unknown> | ILifecycleTask) {
-    this.done = false;
-
+  public constructor(
+    antecedent: Promise<unknown> | ILifecycleTask,
+  ) {
     this.promise = (antecedent as Promise<unknown>).then instanceof Function
       ? antecedent as Promise<unknown>
       : (antecedent as ILifecycleTask).wait();
@@ -414,21 +403,18 @@ export class TerminalTask implements ILifecycleTask {
 }
 
 export class AggregateContinuationTask<TArgs extends unknown[]> implements ILifecycleTask {
-  public done: boolean;
+  public done: boolean = false;
 
-  private hasStarted: boolean;
-  private isCancelled: boolean;
+  private hasStarted: boolean = false;
+  private isCancelled: boolean = false;
   private readonly promise: Promise<unknown>;
 
-  constructor(
+  public constructor(
     antecedents: ILifecycleTask[],
     next: (...args: TArgs) => void | ILifecycleTask,
     context: unknown,
     ...args: TArgs
   ) {
-    this.done = false;
-    this.hasStarted = false;
-    this.isCancelled = false;
     this.promise = Promise.all(antecedents.map(t => t.wait())).then(() => {
       if (this.isCancelled === true) {
         return;
@@ -461,12 +447,13 @@ export class AggregateContinuationTask<TArgs extends unknown[]> implements ILife
 }
 
 export class AggregateTerminalTask implements ILifecycleTask {
-  public done: boolean;
+  public done: boolean = false;
 
   private readonly promise: Promise<unknown>;
 
-  constructor(antecedents: ILifecycleTask[]) {
-    this.done = false;
+  public constructor(
+    antecedents: ILifecycleTask[],
+  ) {
     this.promise = Promise.all(antecedents.map(t => t.wait())).then(() => {
       this.done = true;
     });

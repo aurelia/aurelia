@@ -76,19 +76,19 @@ javac 1.8.0_131
 As stated above building and running the benchmarks for all frameworks can be challenging, thus we start step by step...
 
 Install global dependencies
-This installs just a few top level dependencies for the building the frameworks and a http-server.
+This installs just a few top level dependencies for the building the frameworks and a local-web-server.
 ```
-npm install
+npm i
 ```
-We start the http-server in the root directory
+We start the local-web-server in the root directory
 ```
 npm start
 ```
-Verify that the http-server works:
+Verify that the local-web-server works:
 Try to open [http://localhost:8080/index.html](http://localhost:8080/index.html). If you see something like that you're on the right track:
 ![Index.html](images/index.png?raw=true "Index.html")
 
-Now open a new terminal window and keep http-server running in background.
+Now open a new terminal window and keep local-web-server running in background.
 
 ### 3. Building and running a single framework
 
@@ -98,7 +98,7 @@ cd frameworks/keyed/vanillajs
 ```
 and install the dependencies
 ```
-npm install
+npm i
 ```
 and build the framework
 ```
@@ -116,7 +116,7 @@ Open the browser console and click a bit on the buttons and you should see some 
 
 ## Optional 3.1: Contributing a new implementation
 
-For contributions it is basically sufficient to create a new directory for your framework that supports `npm install` and `npm run build-prod` and can be then opened in the browser. All other steps are optional. Let's simulate that by copying vanillajs.
+For contributions it is basically sufficient to create a new directory for your framework that supports `npm i` and `npm run build-prod` and can be then opened in the browser. All other steps are optional. Let's simulate that by copying vanillajs.
 ```
 cd ../frameworks/keyed
 cp -r vanillajs super-vanillajs
@@ -128,7 +128,7 @@ Then we edit super-vanillajs/index.html to have a correct index.html:
 ...
                     <h1>Super-VanillaJS-"keyed"</h1>
 ```
-In most cases you'll need `npm install` and `npm run build-prod` and then check whether it works in the browser on [http://localhost:8080/frameworks/keyed/super-vanillajs/](http://localhost:8080/frameworks/keyed/super-vanillajs/).
+In most cases you'll need `npm i` and `npm run build-prod` and then check whether it works in the browser on [http://localhost:8080/frameworks/keyed/super-vanillajs/](http://localhost:8080/frameworks/keyed/super-vanillajs/).
 
 (Of course in reality you'd rather throw out the javascript source files and use your framework there instead of only changing the html file.)
 
@@ -142,7 +142,7 @@ cd webdriver-ts
 ```
 and install the dependencies
 ```
-npm install
+npm i
 ```
 and build the benchmark driver
 ```
@@ -152,7 +152,7 @@ now run the benchmark driver for the vanillajs-keyed framework:
 ```
 npm run bench keyed/vanillajs
 ```
-Just lean back and watch chrome run the benchmarks. 
+Just lean back and watch chrome run the benchmarks.
 If it doesn't complain then the html for the table should be fine and your categorization as keyed or non-keyed should also be correct.
 
 
@@ -177,7 +177,7 @@ Install libraries
 ```
 cd ..
 cd webdriver-ts-results
-npm install
+npm i
 cd ..
 cd webdriver-ts
 ```
@@ -248,7 +248,7 @@ After that you can check all results in [http://localhost:8080/webdriver-ts/tabl
 `npm run bench -- --framework angular bob --benchmark 01_ 02_`
 runs the test for all frameworks that contain either angular or bob, which means all angular versions and bobril and all benchmarks whose id contain 01_ or 02_
 * You can also run implementations by passing their directory names (cd to webdriver-ts):
-`npm run bench keyed/angular keyed/react` or if you want to pass more options it becomes: 
+`npm run bench keyed/angular keyed/react` or if you want to pass more options it becomes:
 `npm run bench -- --count 3 keyed/angular keyed/react`.
 * If you can't get one framework to compile or run, just move it out of the root directory and remove it from common.ts, recompile and re-run
 * To achieve good precision you should run each framework often enough. I recommend at least 10 times, more is better. The result table contains the mean and the standard deviation. You can seen the effect on the latter pretty well if you increase the count.
@@ -258,9 +258,9 @@ runs the test for all frameworks that contain either angular or bob, which means
 
 Contributions are very welcome. Please use the following rules:
 * Name your directory frameworks/[keyed|non-keyed]/[FrameworkName]
-* Each contribution must be buildable by `npm install` and `npm run build-prod` command in the directory. What build-prod does is up to you. Often there's an `npm run build-dev` that creates a development build
+* Each contribution must be buildable by `npm i` and `npm run build-prod` command in the directory. What build-prod does is up to you. Often there's an `npm run build-dev` that creates a development build
 * Every implementation must use bootstrap provided in the root css directory.
-* All npm dependencies should be installed locally (i.e. listed in your package.json). Http-server should not be a local dependency. It is installed from the root directory to allow access to bootstrap.
+* All npm dependencies should be installed locally (i.e. listed in your package.json). local-web-server should not be a local dependency. It is installed from the root directory to allow access to bootstrap.
 * Please use *fixed version* numbers, no ranges, in package.json. Otherwise the build will break sooner or later - believe me. Updating works IMO best with npm-check-updates, which keeps the version format.
 * Webdriver-ts must be able to run the perf tests for the contribution. This means that all buttons (like "Create 1,000 rows") must have the correct id e.g. like in vanillajs. Using shadow DOM is a real pain for webdriver. The closer you can get to polymer the higher the chances I can make that contribution work.
 * Don't change the ids in the index.html, since the automated benchmarking relies on those ids.

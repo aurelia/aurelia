@@ -32,8 +32,8 @@ export class JsonValueConverter {
 
 @customElement({
   name: 'name-tag',
-  template: '<template>${name}</template>',
-  build: { required: true, compiler: 'default' },
+  template: `<template>\${name}</template>`,
+  needsCompile: true,
   dependencies: [],
   instructions: [],
   surrogates: []

@@ -3,7 +3,6 @@ import {
   PLATFORM,
   Reporter,
 } from '@aurelia/kernel';
-
 import {
   AnyBindingExpression,
   IForOfStatement,
@@ -33,15 +32,9 @@ export const IExpressionParser = DI.createInterface<IExpressionParser>('IExpress
 
 /** @internal */
 export class ExpressionParser implements IExpressionParser {
-  private readonly expressionLookup: Record<string, IsBindingBehavior>;
-  private readonly forOfLookup: Record<string, IForOfStatement>;
-  private readonly interpolationLookup: Record<string, IInterpolationExpression>;
-
-  constructor() {
-    this.expressionLookup = Object.create(null);
-    this.forOfLookup = Object.create(null);
-    this.interpolationLookup = Object.create(null);
-  }
+  private readonly expressionLookup: Record<string, IsBindingBehavior> = Object.create(null);
+  private readonly forOfLookup: Record<string, IForOfStatement> = Object.create(null);
+  private readonly interpolationLookup: Record<string, IInterpolationExpression> = Object.create(null);
 
   public parse(expression: string, bindingType: BindingType.ForCommand): IForOfStatement;
   public parse(expression: string, bindingType: BindingType.Interpolation): IInterpolationExpression;
@@ -130,6 +123,7 @@ export class ExpressionParser implements IExpressionParser {
   }
 }
 
+/* eslint-disable @typescript-eslint/indent */
 export const enum BindingType {
                 None = 0,
     IgnoreCustomAttr = 0b100000000_0000,
@@ -159,3 +153,4 @@ export const enum BindingType {
           ForCommand = 0b000100001_1011,
        CustomCommand = 0b000010001_1100
 }
+/* eslint-enable @typescript-eslint/indent */

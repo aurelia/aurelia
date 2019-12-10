@@ -1,21 +1,23 @@
-import { inject } from "@aurelia/kernel";
-import { getPages } from "shared/get-pages";
-import { Article } from "shared/models/article";
-import { ArticleService } from "shared/services/article-service";
+import { inject } from '@aurelia/kernel';
+
+import { getPages } from 'shared/get-pages';
+import { Article } from 'shared/models/article';
+import { ArticleService } from 'shared/services/article-service';
 
 @inject(ArticleService)
 export class ProfileArticle {
   public static parameters: string[] = ['name'];
 
   private articles: Article[] = [];
-  private pageNumber?: number;
+  private readonly pageNumber?: number;
   private totalPages?: number[];
   private currentPage = 1;
-  private limit = 10;
+  private readonly limit = 10;
   private username?: string;
 
-  constructor(private readonly articleService: ArticleService) {
-  }
+  public constructor(
+    private readonly articleService: ArticleService,
+  ) {}
 
   public enter(params: any) {
     this.username = params.name;

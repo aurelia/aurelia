@@ -2,7 +2,7 @@ import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aure
 import { getOptions } from 'loader-utils';
 import * as webpack from 'webpack';
 
-export default function(
+export default function (
   this: webpack.loader.LoaderContext,
   contents: string,
   sourceMap?: object, // ignore existing source map for now
@@ -15,7 +15,7 @@ export function loader(
   contents: string,
   _preprocess = preprocess // for testing
 ) {
-  // tslint:disable-next-line:no-unused-expression strict-boolean-expressions
+  // eslint-disable-next-line no-unused-expressions, @typescript-eslint/strict-boolean-expressions
   this.cacheable && this.cacheable();
   const cb = this.async() as webpack.loader.loaderCallback;
   const options = getOptions(this) as IOptionalPreprocessOptions;
@@ -25,13 +25,12 @@ export function loader(
   try {
     const result = _preprocess(
       { path: filePath, contents },
-      preprocessOptions({ ...options, stringModuleWrap })
+      preprocessOptions(options || {})
     );
     // webpack uses source-map 0.6.1 typings for RawSourceMap which
     // contains typing error version: string (should be number).
     // use result.map as any to bypass the typing issue.
     if (result) {
-      // tslint:disable-next-line:no-any
       cb(null, result.code, result.map as any);
       return;
     }
@@ -41,8 +40,4 @@ export function loader(
   } catch (e) {
     cb(e);
   }
-}
-
-function stringModuleWrap(id: string) {
-  return '!!raw-loader!' + id;
 }

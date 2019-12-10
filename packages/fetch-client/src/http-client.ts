@@ -1,6 +1,6 @@
-import { IIndexable, Key, PLATFORM } from '@aurelia/kernel';
-import { DOM, IDOM } from '@aurelia/runtime';
-import { HTMLDOM } from '@aurelia/runtime-html';
+import { IIndexable } from '@aurelia/kernel';
+import { IDOM } from '@aurelia/runtime';
+import { DOM, HTMLDOM } from '@aurelia/runtime-html';
 import { HttpClientConfiguration } from './http-client-configuration';
 import { Interceptor, ValidInterceptorMethodName } from './interfaces';
 import { RetryInterceptor } from './retry-interceptor';
@@ -11,8 +11,6 @@ const absoluteUrlRegexp = /^([a-z][a-z0-9+\-.]*:)?\/\//i;
  * An HTTP client based on the Fetch API.
  */
 export class HttpClient {
-  public static readonly inject: readonly Key[] = [IDOM];
-
   /**
    * The current number of active requests.
    * Requests being processed by interceptors are considered active.
@@ -44,13 +42,13 @@ export class HttpClient {
    */
   public interceptors: Interceptor[];
 
-  private readonly dom: HTMLDOM;
   /**
    * Creates an instance of HttpClient.
    */
-  constructor(dom: HTMLDOM) {
+  public constructor(
+    @IDOM private readonly dom: HTMLDOM,
+  ) {
     if (dom.window.fetch === undefined) {
-      // tslint:disable-next-line:max-line-length
       throw new Error('HttpClient requires a Fetch API implementation, but the current environment doesn\'t support it. You may need to load a polyfill such as https://github.com/github/fetch');
     }
     this.dom = dom;
@@ -65,7 +63,7 @@ export class HttpClient {
   /**
    * Configure this client with default settings to be used by all requests.
    *
-   * @param config A configuration object, or a function that takes a config
+   * @param config - A configuration object, or a function that takes a config
    * object and configures it.
    * @returns The chainable instance of this HttpClient.
    * @chainable
@@ -84,7 +82,7 @@ export class HttpClient {
       normalizedConfig.interceptors = this.interceptors;
 
       const c = config(normalizedConfig);
-      if (HttpClientConfiguration.prototype.isPrototypeOf(c)) {
+      if (Object.prototype.isPrototypeOf.call(HttpClientConfiguration.prototype, c)) {
         normalizedConfig = c;
       }
     } else {
@@ -92,7 +90,7 @@ export class HttpClient {
     }
 
     const defaults = normalizedConfig.defaults;
-    if (defaults !== undefined && Headers.prototype.isPrototypeOf(defaults.headers as HeadersInit)) {
+    if (defaults !== undefined && Object.prototype.isPrototypeOf.call(Headers.prototype, defaults.headers as HeadersInit)) {
       // Headers instances are not iterable in all browsers. Require a plain
       // object here to allow default headers to be merged into request headers.
       throw new Error('Default headers must be a plain object.');
@@ -102,11 +100,11 @@ export class HttpClient {
 
     if (interceptors !== undefined && interceptors.length) {
       // find if there is a RetryInterceptor
-      if (interceptors.filter(x => RetryInterceptor.prototype.isPrototypeOf(x)).length > 1) {
+      if (interceptors.filter(x => Object.prototype.isPrototypeOf.call(RetryInterceptor.prototype, x)).length > 1) {
         throw new Error('Only one RetryInterceptor is allowed.');
       }
 
-      const retryInterceptorIndex = interceptors.findIndex(x => RetryInterceptor.prototype.isPrototypeOf(x));
+      const retryInterceptorIndex = interceptors.findIndex(x => Object.prototype.isPrototypeOf.call(RetryInterceptor.prototype, x));
 
       if (retryInterceptorIndex >= 0 && retryInterceptorIndex !== interceptors.length - 1) {
         throw new Error('The retry interceptor must be the last interceptor defined.');
@@ -129,9 +127,9 @@ export class HttpClient {
    *
    * See also https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
    *
-   * @param input The resource that you wish to fetch. Either a
+   * @param input - The resource that you wish to fetch. Either a
    * Request object, or a string containing the URL of the resource.
-   * @param init An options object containing settings to be applied to
+   * @param init - An options object containing settings to be applied to
    * the Request.
    * @returns A Promise for the Response from the fetch request.
    */
@@ -142,9 +140,9 @@ export class HttpClient {
     return this.processRequest(request, this.interceptors).then(result => {
       let response: Promise<Response>;
 
-      if (Response.prototype.isPrototypeOf(result)) {
+      if (Object.prototype.isPrototypeOf.call(Response.prototype, result)) {
         response = Promise.resolve(result as Response);
-      } else if (Request.prototype.isPrototypeOf(result)) {
+      } else if (Object.prototype.isPrototypeOf.call(Request.prototype, result)) {
         request = result as Request;
         response = fetch(request);
       } else {
@@ -154,7 +152,7 @@ export class HttpClient {
       return this.processResponse(response, this.interceptors, request);
     })
       .then(result => {
-        if (Request.prototype.isPrototypeOf(result)) {
+        if (Object.prototype.isPrototypeOf.call(Request.prototype, result)) {
           return this.fetch(result as Request);
         }
         return result as Response;
@@ -178,7 +176,7 @@ export class HttpClient {
     let requestContentType: string | null;
 
     const parsedDefaultHeaders = parseHeaderValues(defaults.headers as IIndexable);
-    if (Request.prototype.isPrototypeOf(input)) {
+    if (Object.prototype.isPrototypeOf.call(Request.prototype, input)) {
       request = input as Request;
       requestContentType = new Headers(request.headers).get('Content-Type');
     } else {
@@ -199,7 +197,7 @@ export class HttpClient {
       }
     }
     setDefaultHeaders(request.headers, parsedDefaultHeaders);
-    if (body !== undefined && Blob.prototype.isPrototypeOf(body as Blob) && (body as Blob).type) {
+    if (body !== undefined && Object.prototype.isPrototypeOf.call(Blob.prototype, body as Blob) && (body as Blob).type) {
       // work around bug in IE & Edge where the Blob type is ignored in the request
       // https://connect.microsoft.com/IE/feedback/details/2136163
       request.headers.set('Content-Type', (body as Blob).type);
@@ -210,9 +208,9 @@ export class HttpClient {
   /**
    * Calls fetch as a GET request.
    *
-   * @param input The resource that you wish to fetch. Either a
+   * @param input - The resource that you wish to fetch. Either a
    * Request object, or a string containing the URL of the resource.
-   * @param init An options object containing settings to be applied to
+   * @param init - An options object containing settings to be applied to
    * the Request.
    * @returns A Promise for the Response from the fetch request.
    */
@@ -223,10 +221,10 @@ export class HttpClient {
   /**
    * Calls fetch with request method set to POST.
    *
-   * @param input The resource that you wish to fetch. Either a
+   * @param input - The resource that you wish to fetch. Either a
    * Request object, or a string containing the URL of the resource.
-   * @param body The body of the request.
-   * @param init An options object containing settings to be applied to
+   * @param body - The body of the request.
+   * @param init - An options object containing settings to be applied to
    * the Request.
    * @returns A Promise for the Response from the fetch request.
    */
@@ -237,10 +235,10 @@ export class HttpClient {
   /**
    * Calls fetch with request method set to PUT.
    *
-   * @param input The resource that you wish to fetch. Either a
+   * @param input - The resource that you wish to fetch. Either a
    * Request object, or a string containing the URL of the resource.
-   * @param body The body of the request.
-   * @param init An options object containing settings to be applied to
+   * @param body - The body of the request.
+   * @param init - An options object containing settings to be applied to
    * the Request.
    * @returns A Promise for the Response from the fetch request.
    */
@@ -251,10 +249,10 @@ export class HttpClient {
   /**
    * Calls fetch with request method set to PATCH.
    *
-   * @param input The resource that you wish to fetch. Either a
+   * @param input - The resource that you wish to fetch. Either a
    * Request object, or a string containing the URL of the resource.
-   * @param body The body of the request.
-   * @param init An options object containing settings to be applied to
+   * @param body - The body of the request.
+   * @param init - An options object containing settings to be applied to
    * the Request.
    * @returns A Promise for the Response from the fetch request.
    */
@@ -265,10 +263,10 @@ export class HttpClient {
   /**
    * Calls fetch with request method set to DELETE.
    *
-   * @param input The resource that you wish to fetch. Either a
+   * @param input - The resource that you wish to fetch. Either a
    * Request object, or a string containing the URL of the resource.
-   * @param body The body of the request.
-   * @param init An options object containing settings to be applied to
+   * @param body - The body of the request.
+   * @param init - An options object containing settings to be applied to
    * the Request.
    * @returns A Promise for the Response from the fetch request.
    */
@@ -280,7 +278,7 @@ export class HttpClient {
     this.isRequesting = !!(++this.activeRequestCount);
     if (this.isRequesting) {
       const evt = DOM.createCustomEvent('aurelia-fetch-client-request-started', { bubbles: true, cancelable: true });
-      PLATFORM.setTimeout(() => { DOM.dispatchEvent(evt); }, 1);
+      DOM.window.setTimeout(() => { DOM.dispatchEvent(evt); }, 1);
     }
   }
 
@@ -288,7 +286,7 @@ export class HttpClient {
     this.isRequesting = !!(--this.activeRequestCount);
     if (!this.isRequesting) {
       const evt = DOM.createCustomEvent('aurelia-fetch-client-requests-drained', { bubbles: true, cancelable: true });
-      PLATFORM.setTimeout(() => { DOM.dispatchEvent(evt); }, 1);
+      DOM.window.setTimeout(() => { DOM.dispatchEvent(evt); }, 1);
     }
   }
 
@@ -332,7 +330,7 @@ function parseHeaderValues(headers: Record<string, unknown> | undefined): Record
   const parsedHeaders: Record<string, string> = {};
   const $headers = headers !== undefined ? headers : {};
   for (const name in $headers) {
-    if ($headers.hasOwnProperty(name)) {
+    if (Object.prototype.hasOwnProperty.call($headers, name)) {
       parsedHeaders[name] = (typeof $headers[name] === 'function')
         ? ($headers[name] as () => string)()
         : $headers[name] as string;
@@ -352,7 +350,7 @@ function getRequestUrl(baseUrl: string, url: string): string {
 function setDefaultHeaders(headers: Headers, defaultHeaders?: Record<string, string>): void {
   const $defaultHeaders = defaultHeaders !== undefined ? defaultHeaders : {};
   for (const name in $defaultHeaders) {
-    if ($defaultHeaders.hasOwnProperty(name) && !headers.has(name)) {
+    if (Object.prototype.hasOwnProperty.call($defaultHeaders, name) && !headers.has(name)) {
       headers.set(name, $defaultHeaders[name]);
     }
   }

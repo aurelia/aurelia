@@ -1,19 +1,24 @@
 import { IContainer } from '@aurelia/kernel';
-import { CustomElement, ICustomElementType, IRenderContext } from '@aurelia/runtime';
-import { ComponentAppellation, ComponentParameters, IRouteableComponentType, ViewportHandle } from './interfaces';
+import { CustomElement, IRenderContext } from '@aurelia/runtime';
+import { ComponentAppellation, ComponentParameters, IRouteableComponent, RouteableComponentType, ViewportHandle } from './interfaces';
 import { IRouter } from './router';
+import { ComponentAppellationResolver } from './type-resolvers';
 import { Viewport } from './viewport';
 
 export class ViewportInstruction {
-  public componentType: IRouteableComponentType | null = null;
   public componentName: string | null = null;
-  public viewport: Viewport | null = null;
+  public componentType: RouteableComponentType | null = null;
+  public componentInstance: IRouteableComponent | null = null;
   public viewportName: string | null = null;
+  public viewport: Viewport | null = null;
   public parametersString: string | null = null;
   public parameters: Record<string, unknown> | null = null;
   public parametersList: string[] | null = null;
 
-  constructor(
+  public scope: Viewport | null = null;
+  public needsViewportDescribed: boolean = false;
+
+  public constructor(
     component: ComponentAppellation,
     viewport?: ViewportHandle,
     parameters?: ComponentParameters,
@@ -26,15 +31,20 @@ export class ViewportInstruction {
   }
 
   public setComponent(component: ComponentAppellation): void {
-    if (typeof component === 'string') {
-      this.componentName = component;
+    if (ComponentAppellationResolver.isName(component)) {
+      this.componentName = ComponentAppellationResolver.getName(component);
       this.componentType = null;
-    } else {
-      this.componentType = component as IRouteableComponentType;
-      this.componentName = (component as ICustomElementType).description.name;
+      this.componentInstance = null;
+    } else if (ComponentAppellationResolver.isType(component)) {
+      this.componentName = ComponentAppellationResolver.getName(component);
+      this.componentType = ComponentAppellationResolver.getType(component);
+      this.componentInstance = null;
+    } else if (ComponentAppellationResolver.isInstance(component)) {
+      this.componentName = ComponentAppellationResolver.getName(component);
+      this.componentType = ComponentAppellationResolver.getType(component);
+      this.componentInstance = ComponentAppellationResolver.getInstance(component);
     }
   }
-
   public setViewport(viewport?: ViewportHandle | null): void {
     if (viewport === undefined || viewport === '') {
       viewport = null;
@@ -46,6 +56,7 @@ export class ViewportInstruction {
       this.viewport = viewport;
       if (viewport !== null) {
         this.viewportName = viewport.name;
+        this.scope = viewport.owningScope;
       }
     }
   }
@@ -65,20 +76,49 @@ export class ViewportInstruction {
     // TODO: Deal with parametersList
   }
 
-  public toComponentType(context: IRenderContext | IContainer): IRouteableComponentType | null {
+  public isEmpty(): boolean {
+    return !this.isComponentName() && !this.isComponentType() && !this.isComponentInstance();
+  }
+  public isComponentName(): boolean {
+    return !!this.componentName && !this.isComponentType() && !this.isComponentInstance();
+  }
+  public isComponentType(): boolean {
+    return this.componentType !== null && !this.isComponentInstance();
+  }
+  public isComponentInstance(): boolean {
+    return this.componentInstance !== null;
+  }
+
+  public toComponentType(context: IRenderContext | IContainer): RouteableComponentType | null {
     if (this.componentType !== null) {
       return this.componentType;
     }
     if (this.componentName !== null && typeof this.componentName === 'string') {
       const container = context.get(IContainer);
-      if (container) {
-        const resolver = container.getResolver<IRouteableComponentType>(CustomElement.keyFrom(this.componentName));
-        if (resolver && resolver.getFactory) {
+      if (container !== null && container.has<RouteableComponentType>(CustomElement.keyFrom(this.componentName), true)) {
+        const resolver = container.getResolver<RouteableComponentType>(CustomElement.keyFrom(this.componentName));
+        if (resolver !== null && resolver.getFactory !== void 0) {
           const factory = resolver.getFactory(container);
           if (factory) {
             return factory.Type;
           }
         }
+      }
+    }
+    return null;
+  }
+  public toComponentInstance(context: IRenderContext | IContainer): IRouteableComponent | null {
+    if (this.componentInstance !== null) {
+      return this.componentInstance;
+    }
+    // TODO: Remove once "local registration is fixed"
+    // const component = this.toComponentName();
+    const container = context.get(IContainer);
+    if (container !== void 0 && container !== null) {
+      if (this.isComponentType()) {
+        return container.get<IRouteableComponent>(this.componentType!);
+      } else {
+        return container.get<IRouteableComponent>(CustomElement.keyFrom(this.componentName!));
       }
     }
     return null;
@@ -96,6 +136,11 @@ export class ViewportInstruction {
       return false;
     }
     return compareType ? this.componentType === other.componentType : this.componentName === other.componentName;
+  }
+
+  // TODO: Somewhere we need to check for format such as spaces etc
+  public sameParameters(other: ViewportInstruction): boolean {
+    return this.parametersString === other.parametersString;
   }
 
   public sameViewport(other: ViewportInstruction): boolean {

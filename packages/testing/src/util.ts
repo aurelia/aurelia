@@ -29,11 +29,7 @@ import {
   Primitive,
 } from '@aurelia/kernel';
 
-// tslint:disable: no-commented-code
-// tslint:disable: use-primitive-type
-// tslint:disable: ban-types
-// tslint:disable: no-any
-// tslint:disable: no-control-regex
+/* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any, no-control-regex */
 
 export type BoxedPrimitive = Number | Boolean | String | Symbol;
 
@@ -303,43 +299,43 @@ interface IColors {
 export const colors: Readonly<IColors> = Object_freeze(
   {
     bold(str: string): string {
-      return '\u001b[1m' + str + '\u001b[22m';
+      return `\u001b[1m${str}\u001b[22m`;
     },
     italic(str: string): string {
-      return '\u001b[3m' + str + '\u001b[23m';
+      return `\u001b[3m${str}\u001b[23m`;
     },
     underline(str: string): string {
-      return '\u001b[4m' + str + '\u001b[24m';
+      return `\u001b[4m${str}\u001b[24m`;
     },
     inverse(str: string): string {
-      return '\u001b[7m' + str + '\u001b[27m';
+      return `\u001b[7m${str}\u001b[27m`;
     },
     white(str: string): string {
-      return '\u001b[37m' + str + '\u001b[39m';
+      return `\u001b[37m${str}\u001b[39m`;
     },
     grey(str: string): string {
-      return '\u001b[90m' + str + '\u001b[39m';
+      return `\u001b[90m${str}\u001b[39m`;
     },
     black(str: string): string {
-      return '\u001b[30m' + str + '\u001b[39m';
+      return `\u001b[30m${str}\u001b[39m`;
     },
     blue(str: string): string {
-      return '\u001b[34m' + str + '\u001b[39m';
+      return `\u001b[34m${str}\u001b[39m`;
     },
     cyan(str: string): string {
-      return '\u001b[36m' + str + '\u001b[39m';
+      return `\u001b[36m${str}\u001b[39m`;
     },
     green(str: string): string {
-      return '\u001b[32m' + str + '\u001b[39m';
+      return `\u001b[32m${str}\u001b[39m`;
     },
     magenta(str: string): string {
-      return '\u001b[35m' + str + '\u001b[39m';
+      return `\u001b[35m${str}\u001b[39m`;
     },
     red(str: string): string {
-      return '\u001b[31m' + str + '\u001b[39m';
+      return `\u001b[31m${str}\u001b[39m`;
     },
     yellow(str: string): string {
-      return '\u001b[33m' + str + '\u001b[39m';
+      return `\u001b[33m${str}\u001b[39m`;
     },
   },
 );
@@ -542,7 +538,7 @@ export function createSpy<
     }
 
     // Already wrapped, restore first
-    if (Reflect.has(descriptor.value, 'restore')) {
+    if (descriptor.value !== null && (typeof descriptor.value === 'object' || typeof descriptor.value === 'function') && typeof descriptor.value.restore === 'function') {
       (descriptor.value as ISpy).restore();
       descriptor = Reflect.getOwnPropertyDescriptor(descriptorOwner, key)!;
     }

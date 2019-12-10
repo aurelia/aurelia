@@ -1,5 +1,5 @@
 
-import { IContainer, IResolver, Key, Registration } from '@aurelia/kernel';
+import { IContainer, IResolver, Registration, IIndexable } from '@aurelia/kernel';
 import {
   IBindingTargetAccessor,
   IBindingTargetObserver,
@@ -9,7 +9,8 @@ import {
   ITargetAccessorLocator,
   ITargetObserverLocator,
   LifecycleFlags,
-  SetterObserver
+  SetterObserver,
+  IScheduler
 } from '@aurelia/runtime';
 import { AttributeNSAccessor } from './attribute-ns-accessor';
 import { CheckedObserver, IInputElement } from './checked-observer';
@@ -77,53 +78,55 @@ const overrideProps = Object.assign(
 ) as Record<string, boolean>;
 
 export class TargetObserverLocator implements ITargetObserverLocator {
-  public static readonly inject: readonly Key[] = [IDOM, ISVGAnalyzer];
-
-  private readonly dom: IDOM;
-  private readonly svgAnalyzer: ISVGAnalyzer;
-
-  constructor(dom: IDOM, svgAnalyzer: ISVGAnalyzer) {
-    this.dom = dom;
-    this.svgAnalyzer = svgAnalyzer;
-  }
+  public constructor(
+    @IDOM private readonly dom: IDOM,
+    @ISVGAnalyzer private readonly svgAnalyzer: ISVGAnalyzer,
+  ) {}
 
   public static register(container: IContainer): IResolver<ITargetObserverLocator> {
     return Registration.singleton(ITargetObserverLocator, this).register(container);
   }
 
-  public getObserver(flags: LifecycleFlags, lifecycle: ILifecycle, observerLocator: IObserverLocator, obj: Node, propertyName: string): IBindingTargetObserver | IBindingTargetAccessor {
+  public getObserver(
+    flags: LifecycleFlags,
+    scheduler: IScheduler,
+    lifecycle: ILifecycle,
+    observerLocator: IObserverLocator,
+    obj: Node,
+    propertyName: string,
+  ): IBindingTargetObserver | IBindingTargetAccessor {
     switch (propertyName) {
       case 'checked':
-        return new CheckedObserver(lifecycle, flags, observerLocator, new EventSubscriber(this.dom, inputEvents), obj as IInputElement);
+        return new CheckedObserver(scheduler, flags, observerLocator, new EventSubscriber(this.dom, inputEvents), obj as IInputElement);
       case 'value':
         if ((obj as Element).tagName === 'SELECT') {
-          return new SelectValueObserver(lifecycle, flags, observerLocator, this.dom, new EventSubscriber(this.dom, selectEvents), obj as ISelectElement);
+          return new SelectValueObserver(scheduler, flags, observerLocator, this.dom, new EventSubscriber(this.dom, selectEvents), obj as ISelectElement);
         }
-        return new ValueAttributeObserver(lifecycle, flags, new EventSubscriber(this.dom, inputEvents), obj, propertyName);
+        return new ValueAttributeObserver(scheduler, flags, new EventSubscriber(this.dom, inputEvents), obj as Node & IIndexable, propertyName);
       case 'files':
-        return new ValueAttributeObserver(lifecycle, flags, new EventSubscriber(this.dom, inputEvents), obj, propertyName);
+        return new ValueAttributeObserver(scheduler, flags, new EventSubscriber(this.dom, inputEvents), obj as Node & IIndexable, propertyName);
       case 'textContent':
       case 'innerHTML':
-        return new ValueAttributeObserver(lifecycle, flags, new EventSubscriber(this.dom, contentEvents), obj, propertyName);
+        return new ValueAttributeObserver(scheduler, flags, new EventSubscriber(this.dom, contentEvents), obj as Node & IIndexable, propertyName);
       case 'scrollTop':
       case 'scrollLeft':
-        return new ValueAttributeObserver(lifecycle, flags, new EventSubscriber(this.dom, scrollEvents), obj, propertyName);
+        return new ValueAttributeObserver(scheduler, flags, new EventSubscriber(this.dom, scrollEvents), obj as Node & IIndexable, propertyName);
       case 'class':
-        return new ClassAttributeAccessor(lifecycle, flags, obj as HTMLElement);
+        return new ClassAttributeAccessor(scheduler, flags, obj as HTMLElement);
       case 'style':
       case 'css':
-        return new StyleAttributeAccessor(lifecycle, flags, obj as HTMLElement);
+        return new StyleAttributeAccessor(scheduler, flags, obj as HTMLElement);
       case 'model':
-        return new SetterObserver(lifecycle, flags, obj, propertyName);
+        return new SetterObserver(lifecycle, flags, obj as Node & IIndexable, propertyName);
       case 'role':
-        return new DataAttributeAccessor(lifecycle, flags, obj as HTMLElement, propertyName);
+        return new DataAttributeAccessor(scheduler, flags, obj as HTMLElement, propertyName);
       default:
         if (nsAttributes[propertyName] !== undefined) {
           const nsProps = nsAttributes[propertyName];
-          return new AttributeNSAccessor(lifecycle, flags, obj as HTMLElement, nsProps[0], nsProps[1]);
+          return new AttributeNSAccessor(scheduler, flags, obj as HTMLElement, nsProps[0], nsProps[1]);
         }
         if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
-          return new DataAttributeAccessor(lifecycle, flags, obj as HTMLElement, propertyName);
+          return new DataAttributeAccessor(scheduler, flags, obj as HTMLElement, propertyName);
         }
     }
     return null!;
@@ -139,46 +142,47 @@ export class TargetObserverLocator implements ITargetObserverLocator {
 }
 
 export class TargetAccessorLocator implements ITargetAccessorLocator {
-  public static readonly inject: readonly Key[] = [IDOM, ISVGAnalyzer];
-
-  private readonly dom: IDOM;
-  private readonly svgAnalyzer: ISVGAnalyzer;
-
-  constructor(dom: IDOM, svgAnalyzer: ISVGAnalyzer) {
-    this.dom = dom;
-    this.svgAnalyzer = svgAnalyzer;
-  }
+  public constructor(
+    @IDOM private readonly dom: IDOM,
+    @ISVGAnalyzer private readonly svgAnalyzer: ISVGAnalyzer,
+  ) {}
 
   public static register(container: IContainer): IResolver<ITargetAccessorLocator> {
     return Registration.singleton(ITargetAccessorLocator, this).register(container);
   }
 
-  public getAccessor(flags: LifecycleFlags, lifecycle: ILifecycle, obj: Node, propertyName: string): IBindingTargetAccessor {
+  public getAccessor(
+    flags: LifecycleFlags,
+    scheduler: IScheduler,
+    lifecycle: ILifecycle,
+    obj: Node,
+    propertyName: string,
+  ): IBindingTargetAccessor {
     switch (propertyName) {
       case 'textContent':
         // note: this case is just an optimization (textContent is the most often used property)
-        return new ElementPropertyAccessor(lifecycle, flags, obj, propertyName);
+        return new ElementPropertyAccessor(scheduler, flags, obj as Node & IIndexable, propertyName);
       case 'class':
-        return new ClassAttributeAccessor(lifecycle, flags, obj as HTMLElement);
+        return new ClassAttributeAccessor(scheduler, flags, obj as HTMLElement);
       case 'style':
       case 'css':
-        return new StyleAttributeAccessor(lifecycle, flags, obj as HTMLElement);
+        return new StyleAttributeAccessor(scheduler, flags, obj as HTMLElement);
       // TODO: there are (many) more situation where we want to default to DataAttributeAccessor,
       // but for now stick to what vCurrent does
       case 'src':
       case 'href':
       // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
       case 'role':
-        return new DataAttributeAccessor(lifecycle, flags, obj as HTMLElement, propertyName);
+        return new DataAttributeAccessor(scheduler, flags, obj as HTMLElement, propertyName);
       default:
         if (nsAttributes[propertyName] !== undefined) {
           const nsProps = nsAttributes[propertyName];
-          return new AttributeNSAccessor(lifecycle, flags, obj as HTMLElement, nsProps[0], nsProps[1]);
+          return new AttributeNSAccessor(scheduler, flags, obj as HTMLElement, nsProps[0], nsProps[1]);
         }
         if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
-          return new DataAttributeAccessor(lifecycle, flags, obj as HTMLElement, propertyName);
+          return new DataAttributeAccessor(scheduler, flags, obj as HTMLElement, propertyName);
         }
-        return new ElementPropertyAccessor(lifecycle, flags, obj, propertyName);
+        return new ElementPropertyAccessor(scheduler, flags, obj as Node & IIndexable, propertyName);
     }
   }
 

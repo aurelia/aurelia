@@ -11,11 +11,10 @@ import {
   ToViewBindingInstruction,
   TwoWayBindingInstruction,
 } from '@aurelia/runtime';
-
 import {
   bindingCommand,
   getTarget,
-  IBindingCommand,
+  BindingCommandInstance,
 } from './binding-command';
 import {
   BindingSymbol,
@@ -23,7 +22,7 @@ import {
 } from './semantic-model';
 
 @bindingCommand('one-time')
-export class OneTimeBindingCommand implements IBindingCommand {
+export class OneTimeBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.OneTimeCommand = BindingType.OneTimeCommand;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
@@ -32,7 +31,7 @@ export class OneTimeBindingCommand implements IBindingCommand {
 }
 
 @bindingCommand('to-view')
-export class ToViewBindingCommand implements IBindingCommand {
+export class ToViewBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.ToViewCommand = BindingType.ToViewCommand;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
@@ -41,7 +40,7 @@ export class ToViewBindingCommand implements IBindingCommand {
 }
 
 @bindingCommand('from-view')
-export class FromViewBindingCommand implements IBindingCommand {
+export class FromViewBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.FromViewCommand = BindingType.FromViewCommand;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
@@ -50,7 +49,7 @@ export class FromViewBindingCommand implements IBindingCommand {
 }
 
 @bindingCommand('two-way')
-export class TwoWayBindingCommand implements IBindingCommand {
+export class TwoWayBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.TwoWayCommand = BindingType.TwoWayCommand;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
@@ -59,7 +58,7 @@ export class TwoWayBindingCommand implements IBindingCommand {
 }
 
 @bindingCommand('bind')
-export class DefaultBindingCommand implements IBindingCommand {
+export class DefaultBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.BindCommand = BindingType.BindCommand;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
@@ -100,7 +99,7 @@ export class DefaultBindingCommand implements IBindingCommand {
 }
 
 @bindingCommand('call')
-export class CallBindingCommand implements IBindingCommand {
+export class CallBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.CallCommand = BindingType.CallCommand;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {
@@ -109,7 +108,7 @@ export class CallBindingCommand implements IBindingCommand {
 }
 
 @bindingCommand('for')
-export class ForBindingCommand implements IBindingCommand {
+export class ForBindingCommand implements BindingCommandInstance {
   public readonly bindingType: BindingType.ForCommand = BindingType.ForCommand;
 
   public compile(binding: PlainAttributeSymbol | BindingSymbol): AttributeInstruction {

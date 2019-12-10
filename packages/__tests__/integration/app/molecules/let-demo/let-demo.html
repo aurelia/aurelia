@@ -1,0 +1,46 @@
+<!-- boolean -->
+<let not-a.bind="!a"></let>
+<let a-and-b.bind="a && b"></let>
+<let a-or-b.bind="a || b"></let>
+<let a-xor-b.bind="a !== b"></let>
+<let a-xnor-b.bind="a === b"></let>
+<let a-or-b.bind="a || b"></let>
+<let a-xor-b-loose.bind="a != b"></let>
+<let a-xnor-b-loose.bind="a == b"></let>
+
+<read-only-text value="NOT a"></read-only-text>
+<read-only-text id="not" value.bind="notA"></read-only-text>
+
+<read-only-text value="a AND b"></read-only-text>
+<read-only-text id="and" value.bind="aAndB"></read-only-text>
+
+<read-only-text value="a OR b"></read-only-text>
+<read-only-text id="or" value.bind="aOrB"></read-only-text>
+
+<read-only-text value="a XOR b"></read-only-text>
+<read-only-text id="xor" value.bind="aXorB"></read-only-text>
+
+<read-only-text value="a XNOR b"></read-only-text>
+<read-only-text id="xnor" value.bind="aXnorB"></read-only-text>
+<read-only-text id="or" value.bind="aOrB"></read-only-text>
+
+<read-only-text value="a XOR b loose"></read-only-text>
+<read-only-text id="xor-loose" value.bind="aXorBLoose"></read-only-text>
+
+<read-only-text value="a XNOR b loose"></read-only-text>
+<read-only-text id="xnor-loose" value.bind="aXnorBLoose"></read-only-text>
+
+<!-- math -->
+<let x1.bind="ec.x"></let>
+<let eca.bind="ec.a"></let>
+<let ecb.bind="ec.b"></let>
+<let ec-ysq.bind="x1*x1*x1 - eca*x1 + ecb"></let>
+<let ecy.bind="ecYsq | sqrt"></let>
+<let y1.bind="line.y"></let>
+<let intercept.bind="line.intercept"></let>
+<let slope.bind="line.slope"></let>
+<let line-x.bind="(y1 - intercept)/slope"></let>
+
+<read-only-text id="ecysq" value.bind="ecYsq"></read-only-text>
+<read-only-text id="ecy" value.bind="ecy"></read-only-text>
+<read-only-text id="linex" value.bind="lineX"></read-only-text>

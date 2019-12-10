@@ -1,17 +1,19 @@
+import { Readable, Writable } from 'stream';
 import { IFileUnit, IOptionalPreprocessOptions } from '@aurelia/plugin-conventions';
 import { plugin } from '@aurelia/plugin-gulp';
 import { assert } from '@aurelia/testing';
-import { Readable, Writable } from 'stream';
 import * as v from 'vinyl';
+
 const Vinyl = ((v as any).default || v) as typeof import('vinyl');
 type Vinyl = typeof Vinyl.prototype;
 
 function preprocess(unit: IFileUnit, options: IOptionalPreprocessOptions) {
   if (unit.path.endsWith('.css')) return;
   const { defaultShadowOptions, stringModuleWrap } = options;
+  const shadowOptionsString = defaultShadowOptions ? (`${JSON.stringify(defaultShadowOptions)} `) : '';
+  const stringModuleWrapString = defaultShadowOptions && stringModuleWrap ? stringModuleWrap(unit.path) : unit.path;
   return {
-    code: 'processed ' + (defaultShadowOptions ? (JSON.stringify(defaultShadowOptions) +
-          ' ') : '') + (defaultShadowOptions && stringModuleWrap ? stringModuleWrap(unit.path) : unit.path) + ' ' + unit.contents,
+    code: `processed ${shadowOptionsString}${stringModuleWrapString} ${unit.contents}`,
     map: { version: 3 }
   };
 }
@@ -65,7 +67,7 @@ describe('plugin-gulp', function () {
     }));
   });
 
-  it('transforms html file', function(done) {
+  it('transforms html file', function (done) {
     const content = 'content';
     const expected = 'processed src/foo-bar.html content';
 
@@ -93,7 +95,7 @@ describe('plugin-gulp', function () {
     }));
   });
 
-  it('transforms html file in shadowDOM mode', function(done) {
+  it('transforms html file in shadowDOM mode', function (done) {
     const content = 'content';
     const expected = 'processed {"mode":"open"} text!src/foo-bar.html content';
 
@@ -128,7 +130,7 @@ describe('plugin-gulp', function () {
     }));
   });
 
-  it('transforms html file in CSSModule mode', function(done) {
+  it('transforms html file in CSSModule mode', function (done) {
     const content = 'content';
     const expected = 'processed src/foo-bar.html content';
 
@@ -157,7 +159,7 @@ describe('plugin-gulp', function () {
     }));
   });
 
-  it('transforms html file in shadowDOM mode + CSSModule mode', function(done) {
+  it('transforms html file in shadowDOM mode + CSSModule mode', function (done) {
     const content = 'content';
     const expected = 'processed {"mode":"open"} src/foo-bar.html content';
 
@@ -193,7 +195,7 @@ describe('plugin-gulp', function () {
     }));
   });
 
-  it('transforms js file', function(done) {
+  it('transforms js file', function (done) {
     const content = 'content';
     const expected = 'processed src/foo-bar.js content';
 
@@ -221,7 +223,7 @@ describe('plugin-gulp', function () {
     }));
   });
 
-  it('transforms ts file', function(done) {
+  it('transforms ts file', function (done) {
     const content = 'content';
     const expected = 'processed src/foo-bar.ts content';
 

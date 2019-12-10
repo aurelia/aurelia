@@ -1,6 +1,6 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-module.exports = function(env, { mode }) {
+module.exports = function (env, { mode }) {
   const production = mode === 'production';
   return {
     mode: production ? 'production' : 'development',
@@ -27,5 +27,5 @@ module.exports = function(env, { mode }) {
       ]
     },
     plugins: [new HtmlWebpackPlugin({ template: 'index.ejs' })]
-  }
-}
+  };
+};

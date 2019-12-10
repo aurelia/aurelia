@@ -9,7 +9,7 @@ const log = createLogger('change-tsconfigs');
 
   const packages = project.packages;
   const tsconfigFiles = packages
-    .filter(pkg => pkg.name.kebab !== '__tests__') // ignore @aurelia/__tests__
+    .filter(pkg => pkg.name.kebab !== '__tests__' && pkg.name.kebab !== '__e2e__' && pkg.folder === 'packages') // ignore @aurelia/__tests__, __e2e__, and packages outside of the packages folder
     .map(pkg => new File(pkg.tsconfig));
 
   for (const file of tsconfigFiles) {

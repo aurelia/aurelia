@@ -1,17 +1,13 @@
-import { Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { IBindingTargetAccessor } from '../observation';
 
 export interface PropertyAccessor extends IBindingTargetAccessor<Record<string, unknown>, string> {}
-const slice = Array.prototype.slice;
 
 export class PropertyAccessor implements PropertyAccessor {
-  public obj: Record<string, unknown>;
-  public propertyKey: string;
-
-  constructor(obj: Record<string, unknown>, propertyKey: string) {
-    this.obj = obj;
-    this.propertyKey = propertyKey;
+  public constructor(
+    public obj: Record<string, unknown>,
+    public propertyKey: string,
+  ) {
     if (
       obj.$observers !== void 0
       && (obj.$observers as Record<string, unknown>)[propertyKey] !== void 0

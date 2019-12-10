@@ -1,9 +1,7 @@
 import {
   IServiceLocator,
   Reporter,
-  Tracer,
 } from '@aurelia/kernel';
-
 import {
   IForOfStatement,
   IsBindingBehavior,
@@ -18,7 +16,6 @@ import { ILifecycle } from '../lifecycle';
 import {
   AccessorOrObserver,
   IBindingTargetObserver,
-  IObservable,
   IScope,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
@@ -32,8 +29,6 @@ import {
   IPartialConnectableBinding,
 } from './connectable';
 
-const slice = Array.prototype.slice;
-
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
 
@@ -44,44 +39,28 @@ export interface PropertyBinding extends IConnectableBinding {}
 
 @connectable()
 export class PropertyBinding implements IPartialConnectableBinding {
+  public interceptor: this = this;
+
   public id!: number;
-  public $state: State;
+  public $state: State = State.none;
   public $lifecycle: ILifecycle;
-  public $scope?: IScope;
+  public $scope?: IScope = void 0;
   public part?: string;
 
-  public locator: IServiceLocator;
-  public mode: BindingMode;
-  public observerLocator: IObserverLocator;
-  public sourceExpression: IsBindingBehavior | IForOfStatement;
-  public target: IObservable;
-  public targetProperty: string;
+  public targetObserver?: AccessorOrObserver = void 0;;
 
-  public targetObserver?: AccessorOrObserver;
+  public persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
-  public persistentFlags: LifecycleFlags;
-
-  constructor(
-    sourceExpression: IsBindingBehavior | IForOfStatement,
-    target: object,
-    targetProperty: string,
-    mode: BindingMode,
-    observerLocator: IObserverLocator,
-    locator: IServiceLocator,
+  public constructor(
+    public sourceExpression: IsBindingBehavior | IForOfStatement,
+    public target: object,
+    public targetProperty: string,
+    public mode: BindingMode,
+    public observerLocator: IObserverLocator,
+    public locator: IServiceLocator,
   ) {
     connectable.assignIdTo(this);
-    this.$state = State.none;
     this.$lifecycle = locator.get(ILifecycle);
-    this.$scope = void 0;
-
-    this.locator = locator;
-    this.mode = mode;
-    this.observerLocator = observerLocator;
-    this.sourceExpression = sourceExpression;
-    this.target = target as IObservable;
-    this.targetProperty = targetProperty;
-    this.targetObserver = void 0;
-    this.persistentFlags = LifecycleFlags.none;
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
@@ -108,19 +87,19 @@ export class PropertyBinding implements IPartialConnectableBinding {
         newValue = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.part);
       }
       if (newValue !== previousValue) {
-        this.updateTarget(newValue, flags);
+        this.interceptor.updateTarget(newValue, flags);
       }
       if ((this.mode & oneTime) === 0) {
         this.version++;
-        this.sourceExpression.connect(flags, this.$scope!, this, this.part);
-        this.unobserve(false);
+        this.sourceExpression.connect(flags, this.$scope!, this.interceptor, this.part);
+        this.interceptor.unobserve(false);
       }
       return;
     }
 
     if ((flags & LifecycleFlags.updateSourceExpression) > 0) {
       if (newValue !== this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.part)) {
-        this.updateSource(newValue, flags);
+        this.interceptor.updateSource(newValue, flags);
       }
       return;
     }
@@ -133,10 +112,12 @@ export class PropertyBinding implements IPartialConnectableBinding {
       if (this.$scope === scope) {
         return;
       }
-      this.$unbind(flags | LifecycleFlags.fromBind);
+      this.interceptor.$unbind(flags | LifecycleFlags.fromBind);
     }
     // add isBinding flag
     this.$state |= State.isBinding;
+    // Force property binding to always be strict
+    flags |= LifecycleFlags.isStrictBindingStrategy;
 
     // Store flags which we can only receive during $bind and need to pass on
     // to the AST during evaluate/connect/assign
@@ -147,7 +128,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
     let sourceExpression = this.sourceExpression;
     if (hasBind(sourceExpression)) {
-      sourceExpression.bind(flags, scope, this);
+      sourceExpression.bind(flags, scope, this.interceptor);
     }
 
     let targetObserver = this.targetObserver as IBindingTargetObserver | undefined;
@@ -165,13 +146,13 @@ export class PropertyBinding implements IPartialConnectableBinding {
     // during bind, binding behavior might have changed sourceExpression
     sourceExpression = this.sourceExpression;
     if (this.mode & toViewOrOneTime) {
-      this.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
+      this.interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
     }
     if (this.mode & toView) {
-      sourceExpression.connect(flags, scope, this, part);
+      sourceExpression.connect(flags, scope, this.interceptor, part);
     }
     if (this.mode & fromView) {
-      targetObserver.subscribe(this);
+      targetObserver.subscribe(this.interceptor);
       (targetObserver as typeof targetObserver & { [key: string]: number })[this.id] |= LifecycleFlags.updateSourceExpression;
     }
 
@@ -191,7 +172,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     this.persistentFlags = LifecycleFlags.none;
 
     if (hasUnbind(this.sourceExpression)) {
-      this.sourceExpression.unbind(flags, this.$scope!, this);
+      this.sourceExpression.unbind(flags, this.$scope!, this.interceptor);
     }
     this.$scope = void 0;
 
@@ -199,10 +180,10 @@ export class PropertyBinding implements IPartialConnectableBinding {
       (this.targetObserver as IBindingTargetObserver).unbind!(flags);
     }
     if ((this.targetObserver as IBindingTargetObserver).unsubscribe) {
-      (this.targetObserver as IBindingTargetObserver).unsubscribe(this);
+      (this.targetObserver as IBindingTargetObserver).unsubscribe(this.interceptor);
       (this.targetObserver as this['targetObserver'] & { [key: number]: number })[this.id] &= ~LifecycleFlags.updateSourceExpression;
     }
-    this.unobserve(true);
+    this.interceptor.unobserve(true);
 
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);

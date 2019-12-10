@@ -1,4 +1,3 @@
-import { Tracer } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import {
@@ -9,6 +8,8 @@ import {
 } from '../observation';
 import { CollectionSizeObserver } from './collection-size-observer';
 import { collectionSubscriberCollection } from './subscriber-collection';
+
+const observerLookup = new WeakMap<Map<unknown, unknown>, MapObserver>();
 
 const proto = Map.prototype as { [K in keyof Map<any, any>]: Map<any, any>[K] & { observing?: boolean } };
 
@@ -24,16 +25,17 @@ const methods: ['set', 'clear', 'delete'] = ['set', 'clear', 'delete'];
 
 const observe = {
   // https://tc39.github.io/ecma262/#sec-map.prototype.map
-  set: function(this: IObservedMap, key: unknown, value: unknown): ReturnType<typeof $set> {
+  set: function (this: IObservedMap, key: unknown, value: unknown): ReturnType<typeof $set> {
     let $this = this;
     if ($this.$raw !== undefined) {
       $this = $this.$raw;
     }
-    const o = $this.$observer;
+    const o = observerLookup.get($this);
     if (o === undefined) {
       $set.call($this, key, value);
       return this;
     }
+    const oldValue = $this.get(key);
     const oldSize = $this.size;
     $set.call($this, key, value);
     const newSize = $this.size;
@@ -41,8 +43,10 @@ const observe = {
       let i = 0;
       for (const entry of $this.entries()) {
         if (entry[0] === key) {
-          if (entry[1] !== value) {
+          if (entry[1] !== oldValue) {
+            o.indexMap.deletedItems.push(o.indexMap[i]);
             o.indexMap[i] = -2;
+            o.notify();
           }
           return this;
         }
@@ -55,12 +59,12 @@ const observe = {
     return this;
   },
   // https://tc39.github.io/ecma262/#sec-map.prototype.clear
-  clear: function(this: IObservedMap): ReturnType<typeof $clear>  {
+  clear: function (this: IObservedMap): ReturnType<typeof $clear>  {
     let $this = this;
     if ($this.$raw !== undefined) {
       $this = $this.$raw;
     }
-    const o = $this.$observer;
+    const o = observerLookup.get($this);
     if (o === undefined) {
       return $clear.call($this);
     }
@@ -70,7 +74,7 @@ const observe = {
       let i = 0;
       for (const entry of $this.keys()) {
         if (indexMap[i] > -1) {
-          indexMap.deletedItems!.push(indexMap[i]);
+          indexMap.deletedItems.push(indexMap[i]);
         }
         i++;
       }
@@ -81,12 +85,12 @@ const observe = {
     return undefined;
   },
   // https://tc39.github.io/ecma262/#sec-map.prototype.delete
-  delete: function(this: IObservedMap, value: unknown): ReturnType<typeof $delete> {
+  delete: function (this: IObservedMap, value: unknown): ReturnType<typeof $delete> {
     let $this = this;
     if ($this.$raw !== undefined) {
       $this = $this.$raw;
     }
-    const o = $this.$observer;
+    const o = observerLookup.get($this);
     if (o === undefined) {
       return $delete.call($this, value);
     }
@@ -99,14 +103,17 @@ const observe = {
     for (const entry of $this.keys()) {
       if (entry === value) {
         if (indexMap[i] > -1) {
-          indexMap.deletedItems!.push(indexMap[i]);
+          indexMap.deletedItems.push(indexMap[i]);
         }
         indexMap.splice(i, 1);
-        return $delete.call($this, value);
+        const deleteResult = $delete.call($this, value);
+        if (deleteResult === true) {
+          o.notify();
+        }
+        return deleteResult;
       }
-      i++;
+      ++i;
     }
-    o.notify();
     return false;
   }
 };
@@ -149,7 +156,7 @@ export interface MapObserver extends ICollectionObserver<CollectionKind.map> {}
 export class MapObserver {
   public inBatch: boolean;
 
-  constructor(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap) {
+  public constructor(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap) {
 
     if (!enableMapObservationCalled) {
       enableMapObservationCalled = true;
@@ -164,8 +171,7 @@ export class MapObserver {
     this.lifecycle = lifecycle;
     this.lengthObserver = (void 0)!;
 
-    map.$observer = this;
-
+    observerLookup.set(map, this);
   }
 
   public notify(): void {
@@ -199,8 +205,9 @@ export class MapObserver {
 }
 
 export function getMapObserver(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap): MapObserver {
-  if (map.$observer === void 0) {
-    map.$observer = new MapObserver(flags, lifecycle, map);
+  const observer = observerLookup.get(map);
+  if (observer === void 0) {
+    return new MapObserver(flags, lifecycle, map);
   }
-  return map.$observer;
+  return observer;
 }

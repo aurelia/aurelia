@@ -9,7 +9,9 @@ import { valueConverter } from '../value-converter';
 
 @valueConverter('view')
 export class ViewValueConverter {
-  constructor(@IViewLocator private readonly viewLocator: IViewLocator) {}
+  public constructor(
+    @IViewLocator private readonly viewLocator: IViewLocator,
+  ) {}
 
   public toView<T extends ClassInstance<ComposableObject>>(
     object: T | null | undefined,

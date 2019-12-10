@@ -1,8 +1,6 @@
 import {
   IServiceLocator,
-  Tracer,
 } from '@aurelia/kernel';
-
 import { IsBindingBehavior } from '../ast';
 import {
   LifecycleFlags,
@@ -19,29 +17,23 @@ import {
 } from './ast';
 import { IConnectableBinding } from './connectable';
 
-const slice = Array.prototype.slice;
-
 export interface CallBinding extends IConnectableBinding {}
 export class CallBinding {
-  public $state: State;
+  public interceptor: this = this;
+
+  public $state: State = State.none;
   public $scope?: IScope;
   public part?: string;
 
-  public locator: IServiceLocator;
-  public sourceExpression: IsBindingBehavior;
   public targetObserver: IAccessor;
 
-  constructor(
-    sourceExpression: IsBindingBehavior,
+  public constructor(
+    public sourceExpression: IsBindingBehavior,
     target: object,
     targetProperty: string,
     observerLocator: IObserverLocator,
-    locator: IServiceLocator,
+    public locator: IServiceLocator,
   ) {
-    this.$state = State.none;
-
-    this.locator = locator;
-    this.sourceExpression = sourceExpression;
     this.targetObserver = observerLocator.getObserver(LifecycleFlags.none, target, targetProperty);
   }
 
@@ -63,7 +55,7 @@ export class CallBinding {
         return;
       }
 
-      this.$unbind(flags | LifecycleFlags.fromBind);
+      this.interceptor.$unbind(flags | LifecycleFlags.fromBind);
     }
     // add isBinding flag
     this.$state |= State.isBinding;
@@ -72,10 +64,10 @@ export class CallBinding {
     this.part = part;
 
     if (hasBind(this.sourceExpression)) {
-      this.sourceExpression.bind(flags, scope, this);
+      this.sourceExpression.bind(flags, scope, this.interceptor);
     }
 
-    this.targetObserver.setValue(($args: object) => this.callSource($args), flags);
+    this.targetObserver.setValue(($args: object) => this.interceptor.callSource($args), flags);
 
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;
@@ -90,7 +82,7 @@ export class CallBinding {
     this.$state |= State.isUnbinding;
 
     if (hasUnbind(this.sourceExpression)) {
-      this.sourceExpression.unbind(flags, this.$scope!, this);
+      this.sourceExpression.unbind(flags, this.$scope!, this.interceptor);
     }
 
     this.$scope = void 0;

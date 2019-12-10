@@ -1,125 +1,118 @@
-import * as fs from 'fs';
 import * as path from 'path';
-const ncu = require('npm-check-updates');
 import * as semver from 'semver';
 import * as yargs from 'yargs';
+const ncu = require('npm-check-updates');
+const exec = require('child_process').execSync;
 
-var exec = require('child_process').execSync;
-
-async function prepareDockerVolume() {
-    // Check if docker volume js-framework-benchmark exists and create it if not
-    try {
-        let r: string[] = [];
-        exec('docker volume inspect js-framework-benchmark', {
-            stdio: r
-        });
-        console.log("docker volume js-framework-benchmark exists already");
-    } catch (e) {
-        let r: string[] = [];
-        if (e.message.indexOf("No such volume: js-framework-benchmark")>-1) {
-            console.log("Volume not found. Creating volume: docker volume create js-framework-benchmark");
-            exec('docker volume create js-framework-benchmark', {
-                stdio: r
-            });
-        } else {
-            console.log("Unknown error checking volume ", e);
-        }
-    }
-}
-
-async function clearDockerVolume() {
-    try {
-        let r: string[] = [];
-        exec('docker volume inspect js-framework-benchmark', {
-            stdio: r
-        });
-    } catch (e) {
-        console.log("docker volume js-framework-benchmark not found");
-        return;
-    }
-    console.log("Remove docker volume js-framework-benchmark");
-    let r: string[] = [];
-    exec('docker volume rm js-framework-benchmark', {
+function prepareDockerVolume() {
+  // Check if docker volume js-framework-benchmark exists and create it if not
+  try {
+    const r: string[] = [];
+    exec('docker volume inspect js-framework-benchmark', {
+      stdio: r
+    });
+    console.log("docker volume js-framework-benchmark exists already");
+  } catch (e) {
+    const r: string[] = [];
+    if (e.message.indexOf("No such volume: js-framework-benchmark")>-1) {
+      console.log("Volume not found. Creating volume: docker volume create js-framework-benchmark");
+      exec('docker volume create js-framework-benchmark', {
         stdio: r
-    });
-}
-
-async function stopContainerIfRunnning() {
-    console.log("checking if js-framework-benchmark container runs.");
-    let r : string[] = [];
-    let res = exec('docker ps', {
-        stdio: r
-    });
-    if (res.indexOf('js-framework-benchmark')>-1) {
-        console.log("js-framework-benchmark container runs. Stopping this container.");
-        let res = exec('docker stop js-framework-benchmark', {
-            stdio: r
-        });    
+      });
+    } else {
+      console.log("Unknown error checking volume ", e);
     }
+  }
 }
 
-async function startDocker() {
-    console.log("starting docker");
-    exec('docker run --rm -d -i --name js-framework-benchmark -p 8080:8080 --volume js-framework-benchmark:/build js-framework-benchmark-centos', {
-        stdio: 'inherit'
+function clearDockerVolume() {
+  try {
+    const r: string[] = [];
+    exec('docker volume inspect js-framework-benchmark', {
+      stdio: r
     });
+  } catch (e) {
+    console.log("docker volume js-framework-benchmark not found");
+    return;
+  }
+  console.log("Remove docker volume js-framework-benchmark");
+  const r: string[] = [];
+  exec('docker volume rm js-framework-benchmark', {
+    stdio: r
+  });
+}
+
+function stopContainerIfRunnning() {
+  console.log("checking if js-framework-benchmark container runs.");
+  const r: string[] = [];
+  const res = exec('docker ps', {
+    stdio: r
+  });
+  if (res.indexOf('js-framework-benchmark')>-1) {
+    console.log("js-framework-benchmark container runs. Stopping this container.");
+    const res = exec('docker stop js-framework-benchmark', {
+      stdio: r
+    });
+  }
+}
+
+function startDocker() {
+  console.log("starting docker");
+  exec('docker run --rm -d -i --name js-framework-benchmark -p 8080:8080 --volume js-framework-benchmark:/build js-framework-benchmark-centos', {
+    stdio: 'inherit'
+  });
 }
 
 function copyFileToBuild(file: string) {
-    exec(`docker cp ${file} js-framework-benchmark:/build`, {
-        stdio: 'inherit'
-    });
+  exec(`docker cp ${file} js-framework-benchmark:/build`, {
+    stdio: 'inherit'
+  });
 }
 function dockerRootExec(cmd: string) {
-    return exec(`docker exec -it -u root js-framework-benchmark ${cmd}`, {
-        stdio: 'inherit'
-    });
+  return exec(`docker exec -it -u root js-framework-benchmark ${cmd}`, {
+    stdio: 'inherit'
+  });
 }
 
-async function copyFilesToDocker() {
-    try {
-        console.log('copying build files to docker volume');
-        copyFileToBuild("../build.js");
-        copyFileToBuild("../css");
-        copyFileToBuild("../package.json");
-        copyFileToBuild("../frameworks");
-        dockerRootExec('npm install');
-        dockerRootExec('chown -R user:user /build');
-    } catch (e) {
-        console.log("copy files to docker failed. Trying to stop container js-framework-benchmark");
-        stopContainerIfRunnning();
-        throw e;
-    }
-}
-
-async function runBuildInDocker() {
-    console.log("executing npm install and node build.js in docker container");
-    exec('docker exec -it -w /build js-framework-benchmark npm install', {
-        stdio: 'inherit'
-    });
-
-    exec('docker exec -it -w /build js-framework-benchmark node build.js --benchmarks_only', {
-        stdio: 'inherit'
-    });
-}
-
-async function main() {
+function copyFilesToDocker() {
+  try {
+    console.log('copying build files to docker volume');
+    copyFileToBuild("../build.js");
+    copyFileToBuild("../css");
+    copyFileToBuild("../package.json");
+    copyFileToBuild("../frameworks");
+    dockerRootExec('npm i');
+    dockerRootExec('chown -R user:user /build');
+  } catch (e) {
+    console.log("copy files to docker failed. Trying to stop container js-framework-benchmark");
     stopContainerIfRunnning();
-    // clearDockerVolume();
-    // prepareDockerVolume();
-    startDocker();
-    copyFilesToDocker();
-    runBuildInDocker();
+    throw e;
+  }
 }
 
-main()
-    .then(text => {
-    })
-    .catch(err => {
-        console.log('error', err);
-    });
+function runBuildInDocker() {
+  console.log("executing npm i and node build.js in docker container");
+  exec('docker exec -it -w /build js-framework-benchmark npm i', {
+    stdio: 'inherit'
+  });
 
-/*let args = yargs(process.argv)
+  exec('docker exec -it -w /build js-framework-benchmark node build.js --benchmarks_only', {
+    stdio: 'inherit'
+  });
+}
+
+function main() {
+  stopContainerIfRunnning();
+  // clearDockerVolume();
+  // prepareDockerVolume();
+  startDocker();
+  copyFilesToDocker();
+  runBuildInDocker();
+}
+
+main();
+
+/* let args = yargs(process.argv)
     .usage("$0 --updade true|false --dir")
     .default('update', 'true')
     .array('dir')
@@ -128,7 +121,7 @@ main()
 let updatePackages = args.update;
 console.log("ARGS", args._.slice(2, args._.length));
 let directories = args._.slice(2, args._.length);
-let checkDirectory = (keyedType:string, folderName: string) => directories.length===0 || args._.includes(path.join(keyedType, folderName));
+let checkDirectory = (keyedType:string, folderName: string) => directories.length===0 || args._.includes(path.join(keyedType, folderName));
 
 async function ncuReportsUpdatedVersion(packageVersionInfo: PackageVersionInformationResult) {
     let ncuInfo = await ncu.run({
@@ -163,7 +156,6 @@ async function ncuRunUpdate(packageVersionInfo: PackageVersionInformationResult)
     });
 }
 
-
 async function main() {
 
     let frameworkVersionInformations = loadFrameworkVersionInformation();
@@ -191,7 +183,7 @@ async function main() {
     let noPackageLock = packageLockInformations.filter(pli => pli.versions.some((packageVersionInfo: PackageVersionInformation) => packageVersionInfo instanceof PackageVersionInformationErrorNoPackageJSONLock));
 
     if (noPackageLock.length > 0) {
-        console.log("WARNING: The following frameworks do not yet have a package-lock.json file (maybe you must 'npm install' it): ");
+        console.log("WARNING: The following frameworks do not yet have a package-lock.json file (maybe you must 'npm i' it): ");
         console.log(noPackageLock.map(val => val.framework.keyedType +'/' + val.framework.directory).join('\n') + '\n');
     }
 
@@ -245,6 +237,5 @@ main()
     .catch(err => {
         console.log('error', err);
     });
-
 
 */

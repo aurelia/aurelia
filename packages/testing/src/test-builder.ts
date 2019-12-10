@@ -1,5 +1,5 @@
 import { parseExpression } from '@aurelia/jit';
-import { BasicConfiguration } from '@aurelia/jit-html';
+import { JitHtmlConfiguration } from '@aurelia/jit-html';
 import {
   Class,
   Constructable,
@@ -19,10 +19,10 @@ import {
   HydrateAttributeInstruction,
   HydrateElementInstruction,
   HydrateTemplateController,
-  IAttributeDefinition,
+  PartialCustomAttributeDefinition,
   IController,
 
-  ICustomElementType,
+  CustomElementType,
 
   IDirtyChecker,
   IHydrateElementInstruction,
@@ -40,7 +40,7 @@ import {
   ITargetAccessorLocator,
   ITargetedInstruction,
   ITargetObserverLocator,
-  ITemplateDefinition,
+  PartialCustomElementDefinition,
   IteratorBindingInstruction,
   IViewFactory,
   IViewModel,
@@ -50,6 +50,7 @@ import {
   TargetedInstructionType,
   templateController,
   ToViewBindingInstruction,
+  IScheduler,
 } from '@aurelia/runtime';
 // import {
 //   HTMLTargetedInstruction,
@@ -177,7 +178,7 @@ import {
 //     defCbOrBuilder: DefinitionCb | DefinitionBuilder
 //   ): InstructionBuilder {
 //     let childInstructions: HTMLTargetedInstruction[];
-//     let definition: ITemplateDefinition;
+//     let definition: PartialCustomElementDefinition;
 //     if (insCbOrBuilder instanceof InstructionBuilder) {
 //       childInstructions = insCbOrBuilder.build();
 //     } else {
@@ -222,7 +223,7 @@ import {
 //   private instructions: HTMLTargetedInstruction[][];
 
 //   constructor(name?: string) {
-//     // tslint:disable-next-line:prefer-template
+//     // eslint-disable-next-line prefer-template
 //     this.name = name || ('$' + ++DefinitionBuilder.lastId);
 //     this.templateBuilder = new TemplateBuilder();
 //     this.instructionBuilder = new InstructionBuilder();
@@ -328,7 +329,7 @@ import {
 //     return this.next();
 //   }
 
-//   public build(): ITemplateDefinition {
+//   public build(): PartialCustomElementDefinition {
 //     const { name, templateBuilder, instructions } = this;
 //     const definition = { name, template: templateBuilder.build(), instructions };
 //     this.name = null!;
@@ -350,7 +351,7 @@ import {
 //   private readonly Type: T;
 
 //   constructor(Type: T) {
-//     this.container = BasicConfiguration.createContainer();
+//     this.container = JitHtmlConfiguration.createContainer();
 //     this.container.register(Type as any);
 //     this.Type = Type;
 //   }
@@ -358,7 +359,7 @@ import {
 //   public static app<T extends object>(obj: T, defBuilder: DefinitionBuilder): T extends Constructable ? TestBuilder<Class<InstanceType<T>, T>> : TestBuilder<Class<T, {}>>;
 //   public static app<T extends object>(obj: T, defCb: DefinitionCb): T extends Constructable ? TestBuilder<Class<InstanceType<T>, T>> : TestBuilder<Class<T, {}>>;
 //   public static app<T extends object>(obj: T, defCbOrBuilder: DefinitionCb | DefinitionBuilder): T extends Constructable ? TestBuilder<Class<InstanceType<T>, T>> : TestBuilder<Class<T, {}>> {
-//     let definition: ITemplateDefinition;
+//     let definition: PartialCustomElementDefinition;
 //     if (defCbOrBuilder instanceof DefinitionBuilder) {
 //       definition = defCbOrBuilder.build();
 //     } else {
@@ -502,10 +503,14 @@ export function createObserverLocator(containerOrLifecycle?: IContainer | ILifec
       return false;
     }
   };
+  const dummyScheduler: any = {
+
+  };
   Registration.instance(IDirtyChecker, null).register(container);
   Registration.instance(ITargetObserverLocator, dummyLocator).register(container);
   Registration.instance(ITargetAccessorLocator, dummyLocator).register(container);
   container.register(IObserverLocatorRegistration);
+  Registration.instance(IScheduler, dummyScheduler).register(container);
   return container.get(IObserverLocator);
 }
 
@@ -518,14 +523,14 @@ export function createScopeForTest(bindingContext: any = {}, parentBindingContex
 
 // export type CustomAttribute = Writable<IViewModel> & IComponentLifecycleMock;
 
-// export function createCustomAttribute(nameOrDef: string | IAttributeDefinition = 'foo') {
+// export function createCustomAttribute(nameOrDef: string | PartialCustomAttributeDefinition = 'foo') {
 //   const Type = customAttribute(nameOrDef)(defineComponentLifecycleMock());
 //   const sut: CustomAttribute = new (Type as any)();
 
 //   return { Type, sut };
 // }
 
-// export function createTemplateController(nameOrDef: string | IAttributeDefinition = 'foo') {
+// export function createTemplateController(nameOrDef: string | PartialCustomAttributeDefinition = 'foo') {
 //   const Type = templateController(nameOrDef)(defineComponentLifecycleMock());
 //   const sut: CustomAttribute = new (Type as any)();
 
@@ -534,7 +539,7 @@ export function createScopeForTest(bindingContext: any = {}, parentBindingContex
 
 // export type CustomElement = Writable<IViewModel> & IComponentLifecycleMock;
 
-// export function createCustomElement(nameOrDef: string | ITemplateDefinition) {
+// export function createCustomElement(nameOrDef: string | PartialCustomElementDefinition) {
 //   if (arguments.length === 0) {
 //     nameOrDef = 'foo';
 //   }

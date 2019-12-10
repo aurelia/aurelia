@@ -1,6 +1,6 @@
 import { CustomElementResource } from '@aurelia/runtime';
 
-const TEMPLATE = 
+const TEMPLATE =
 `<template
   class="cursor \${big ? 'big' : '' } \${label ? 'label' : ''}"
   css='

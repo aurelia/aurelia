@@ -1,5 +1,6 @@
 export {
   assert,
+  fail
 } from './assert';
 
 export {
@@ -31,6 +32,9 @@ export {
   h,
   hJsx,
 } from './h';
+export {
+  setup
+} from './startup';
 export {
   HTMLTestContext,
   TestContext,
@@ -98,6 +102,7 @@ export {
   CallCollection,
   recordCalls,
   stopRecordingCalls,
+  trace
 } from './tracing';
 export {
   trimFull,

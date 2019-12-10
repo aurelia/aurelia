@@ -1,6 +1,6 @@
+import * as path from 'path';
 import { kebabCase } from '@aurelia/kernel';
 import modifyCode, { ModifyCodeResult } from 'modify-code';
-import * as path from 'path';
 import { IFileUnit, IPreprocessOptions } from './options';
 import { stripMetaData } from './strip-meta-data';
 
@@ -15,14 +15,14 @@ import { stripMetaData } from './strip-meta-data';
 export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOptions): ModifyCodeResult {
   const name = kebabCase(path.basename(unit.path, path.extname(unit.path)));
   const stripped = stripMetaData(unit.contents);
-  const { html, deps, containerless, bindables } = stripped;
+  const { html, deps, containerless, bindables, aliases } = stripped;
   let { shadowMode } = stripped;
 
   if (unit.filePair) {
     const basename = path.basename(unit.filePair, path.extname(unit.filePair));
-    if (!deps.some(dep => options.cssExtensions.some(e => dep === './' + basename + e))) {
+    if (!deps.some(dep => options.cssExtensions.some(e => dep === `./${basename}${e}`))) {
       // implicit dep ./foo.css for foo.html
-      deps.unshift('./' + unit.filePair);
+      deps.unshift(`./${unit.filePair}`);
     }
   }
 
@@ -38,23 +38,19 @@ export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOpti
   if (!name.includes('-') && shadowMode) {
     shadowMode = null;
     const error = `WARN: ShadowDOM is disabled for ${unit.path}. ShadowDOM requires element name to contain a dash (-), you have to refactor <${name}> to something like <lorem-${name}>.`;
-    // tslint:disable-next-line:no-console
     console.warn(error);
     statements.push(`console.warn(${JSON.stringify(error)});\n`);
   }
 
   deps.forEach((d, i) => {
     const ext = path.extname(d);
-    if (options.templateExtensions.includes(ext)) {
-      statements.push(`import * as h${i} from ${s(d)};\nconst d${i} = h${i}.getHTMLOnlyElement();\n`);
-      viewDeps.push(`d${i}`);
-    } else if (ext && ext !== '.js' && ext !== '.ts') {
+    if (ext && ext !== '.js' && ext !== '.ts' && !options.templateExtensions.includes(ext)) {
       // Wrap all other unknown resources (including .css, .scss) in defer.
       if (!registrationImported) {
         statements.push(`import { Registration } from '@aurelia/kernel';\n`);
         registrationImported = true;
       }
-      const isCssResource = options.cssExtensions.indexOf(ext) !== -1;
+      const isCssResource = options.cssExtensions.includes(ext);
       let stringModuleId = d;
 
       if (isCssResource && shadowMode && options.stringModuleWrap) {
@@ -90,16 +86,20 @@ export const dependencies = [ ${viewDeps.join(', ')} ];
     m.append(`export const bindables = ${JSON.stringify(bindables)};\n`);
   }
 
-  m.append(`let _e;
-export function getHTMLOnlyElement() {
-  if (!_e) {
-    _e = CustomElement.define({ name, template, dependencies${shadowMode ? ', shadowOptions' : ''}${containerless ? ', containerless' : ''}${Object.keys(bindables).length ? ', bindables' : ''} });
+  if (aliases.length > 0) {
+    m.append(`export const aliases = ${JSON.stringify(aliases)};\n`);
   }
-  return _e;
+
+  m.append(`let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies${shadowMode ? ', shadowOptions' : ''}${containerless ? ', containerless' : ''}${Object.keys(bindables).length ? ', bindables' : ''}${aliases.length > 0 ? ', aliases' : ''} });
+  }
+  container.register(_e);
 }
 `);
   const { code, map } = m.transform();
-  map.sourcesContent = [ unit.contents ];
+  map.sourcesContent = [unit.contents];
   return { code, map };
 }
 

@@ -1,12 +1,13 @@
 import {
   stringifyLifecycleFlags,
-  Tracer as DebugTracer
+  DebugTracer
 } from '@aurelia/debug';
 import {
-  ICustomAttributeSymbol,
-  INodeSymbol,
-  IPlainAttributeSymbol,
-  ISymbol,
+  CustomAttributeSymbol,
+  NodeSymbol,
+  PlainAttributeSymbol,
+  AnySymbol,
+  AttrSyntax,
 } from '@aurelia/jit';
 import {
   Class,
@@ -14,6 +15,7 @@ import {
   ITraceInfo,
   Registration,
   Tracer,
+  PLATFORM,
 } from '@aurelia/kernel';
 import { getOwnPropertyDescriptors, Reflect_apply } from './util';
 
@@ -46,17 +48,14 @@ export const SymbolTraceWriter = {
           if (p === null) {
             output += 'null';
           } else {
-            if ((p as ISymbol).flags !== undefined) {
-              const symbol = p as INodeSymbol | IPlainAttributeSymbol | ICustomAttributeSymbol;
+            if ((p as AnySymbol).flags !== undefined) {
+              const symbol = p as NodeSymbol | PlainAttributeSymbol | CustomAttributeSymbol;
               if ('target' in symbol) {
-                //@ts-ignore
-                output += `attr: ${symbol.target}=${symbol.rawValue}`;
+                output += `attr: ${(symbol as AttrSyntax).target}=${(symbol as AttrSyntax).rawValue}`;
               } else if ('interpolation' in symbol) {
-                //@ts-ignore
-                output += `text: "${symbol.physicalNode.textContent}"`;
+                output += `text: "${((symbol as NodeSymbol).physicalNode as HTMLElement).textContent}"`;
               } else {
-                //@ts-ignore
-                output += `element: ${symbol.physicalNode.outerHTML}`;
+                output += `element: ${((symbol as NodeSymbol).physicalNode as HTMLElement).outerHTML}`;
               }
             } else {
               if ('outerHTML' in (p as HTMLElement)) {
@@ -89,7 +88,7 @@ export class Call {
   public readonly method: PropertyKey;
   public readonly index: number;
 
-  constructor(
+  public constructor(
     instance: any,
     args: any[],
     method: PropertyKey,
@@ -105,7 +104,7 @@ export class Call {
 export class CallCollection {
   public readonly calls: Call[];
 
-  constructor() {
+  public constructor() {
     this.calls = [];
   }
 
@@ -138,8 +137,8 @@ export function recordCalls<TProto extends object>(
 
       const original = property.value;
 
-      const wrapper = function(this: any, ...args: any[]): any {
-        calls.addCall(this.id, key, ...args);
+      const wrapper = function (this: any, ...args: any[]): any {
+        calls.addCall(this, key, ...args);
         return Reflect_apply(original, this, args);
       };
 
@@ -163,6 +162,29 @@ export function recordCalls<TProto extends object>(
           enumerable: property.enumerable,
         },
       );
+    } else {
+      const { get, set } = property;
+      let newGet, newSet;
+      if (get) {
+        newGet = function (this: any) {
+          calls.addCall(this, `get ${key}`, PLATFORM.emptyArray);
+          return Reflect_apply(get, this, PLATFORM.emptyArray);
+        };
+        Reflect.defineProperty(newGet, 'original', { value: get });
+      }
+      if (set) {
+        newSet = function (this: any, valueToSet: any) {
+          calls.addCall(this, `get ${key}`, PLATFORM.emptyArray);
+          Reflect_apply(set, this, [valueToSet]);
+        };
+        Reflect.defineProperty(newSet, 'original', { value: set });
+      }
+      if (get || set) {
+        Reflect.defineProperty(
+          proto,
+          key,
+          { ...property, get: newGet, set: newSet });
+      }
     }
   }
 }
@@ -192,6 +214,24 @@ export function stopRecordingCalls<TProto extends object>(
           enumerable: property.enumerable,
         },
       );
+    } else {
+      const { get, set } = property;
+      if (get || set) {
+        Reflect.defineProperty(
+          proto,
+          key,
+          {
+            ...property,
+            get: get && Reflect.get(get, 'original'),
+            set: set && Reflect.get(set, 'original')
+          });
+      }
     }
   }
+}
+
+export function trace(calls: CallCollection) {
+  return function (ctor: Class<any>) {
+    recordCalls(ctor, calls);
+  };
 }

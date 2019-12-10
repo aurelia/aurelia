@@ -1,5 +1,5 @@
 import { kebabCase } from '@aurelia/kernel';
-import { BindingMode, IBindableDescription } from '@aurelia/runtime';
+import { BindingMode, PartialBindableDefinition } from '@aurelia/runtime';
 import { DefaultTreeElement, ElementLocation, parseFragment } from 'parse5';
 
 interface IStrippedHtml {
@@ -7,35 +7,45 @@ interface IStrippedHtml {
   deps: string[];
   shadowMode: 'open' | 'closed' | null;
   containerless: boolean;
-  bindables: Record<string, IBindableDescription>;
+  bindables: Record<string, PartialBindableDefinition>;
+  aliases: string[];
 }
 
 export function stripMetaData(rawHtml: string): IStrippedHtml {
   const deps: string[] = [];
   let shadowMode: 'open' | 'closed' | null = null;
   let containerless: boolean = false;
-  const bindables: Record<string, IBindableDescription> = {};
+  const bindables: Record<string, PartialBindableDefinition> = {};
+  const aliases: string[] = [];
   const toRemove: [number, number][] = [];
   const tree = parseFragment(rawHtml, { sourceCodeLocationInfo: true });
 
-  traverse(tree, node =>
+  traverse(tree, node => {
     stripImport(node, (dep, ranges) => {
       if (dep) deps.push(dep);
       toRemove.push(...ranges);
-    }) ||
+    });
+
     stripUseShadowDom(node, (mode, ranges) => {
       if (mode) shadowMode = mode;
       toRemove.push(...ranges);
-    }) ||
+    });
+
     stripContainerlesss(node, ranges => {
       containerless = true;
       toRemove.push(...ranges);
-    }) ||
+    });
+
     stripBindable(node, (bs, ranges) => {
       Object.assign(bindables, bs);
       toRemove.push(...ranges);
-    })
-  );
+    });
+
+    stripAlias(node, (aliasArray, ranges) => {
+      aliases.push(...aliasArray);
+      toRemove.push(...ranges);
+    });
+  });
 
   let html = '';
   let lastIdx = 0;
@@ -45,12 +55,10 @@ export function stripMetaData(rawHtml: string): IStrippedHtml {
   });
   html += rawHtml.slice(lastIdx);
 
-  return { html, deps, shadowMode, containerless, bindables};
+  return { html, deps, shadowMode, containerless, bindables, aliases };
 }
 
-// tslint:disable-next-line:no-any
 function traverse(tree: any, cb: (node: DefaultTreeElement) => void) {
-  // tslint:disable-next-line:no-any
   tree.childNodes.forEach((n: any) => {
     cb(n as DefaultTreeElement);
     if (n.childNodes) traverse(n, cb);
@@ -61,7 +69,7 @@ function traverse(tree: any, cb: (node: DefaultTreeElement) => void) {
 
 function stripTag(node: DefaultTreeElement, tagNames: string[] | string, cb: (attrs: Record<string, string>, ranges: [number, number][]) => void): boolean {
   if (!Array.isArray(tagNames)) tagNames = [tagNames];
-  if (tagNames.indexOf(node.tagName) !== -1) {
+  if (tagNames.includes(node.tagName)) {
     const attrs: Record<string, string> = {};
     node.attrs.forEach(attr => attrs[attr.name] = attr.value);
     const loc = node.sourceCodeLocation as ElementLocation;
@@ -81,6 +89,7 @@ function stripAttribute(node: DefaultTreeElement, tagName: string, attributeName
     const attr = node.attrs.find(a => a.name === attributeName);
     if (attr) {
       const loc = node.sourceCodeLocation as ElementLocation;
+
       cb(attr.value, [[loc.attrs[attributeName].startOffset, loc.attrs[attributeName].endOffset]]);
       return true;
     }
@@ -127,6 +136,24 @@ function stripContainerlesss(node: DefaultTreeElement, cb: (ranges: [number, num
   });
 }
 
+// <alias name="firstName">
+// <alias name="firstName, lastName></alias>
+// <template alias="firstName">
+// <template alias="firstName,lastName">
+function stripAlias(node: DefaultTreeElement, cb: (bindables: string[], ranges: [number, number][]) => void) {
+  return stripTag(node, 'alias', (attrs, ranges) => {
+    const { name } = attrs;
+    let aliases: string[] = [];
+    if (name) {
+      aliases = name.split(',').map(s => s.trim()).filter(s => s);
+    }
+    cb(aliases, ranges);
+  }) || stripAttribute(node, 'template', 'alias', (value, ranges) => {
+    const aliases: string[] = value.split(',').map(s => s.trim()).filter(s => s);
+    cb(aliases, ranges);
+  });
+}
+
 // <bindable name="firstName">
 // <bindable name="lastName" attribute="surname" mode="two-way"></bindable>
 // <bindable name="lastName" attribute="surname" mode="TwoWay"></bindable>
@@ -134,12 +161,12 @@ function stripContainerlesss(node: DefaultTreeElement, cb: (ranges: [number, num
 // <template bindable="firstName,lastName">
 // <template bindable="firstName,
 //                     lastName">
-function stripBindable(node: DefaultTreeElement, cb: (bindables: Record<string, IBindableDescription>, ranges: [number, number][]) => void) {
+function stripBindable(node: DefaultTreeElement, cb: (bindables: Record<string, PartialBindableDefinition>, ranges: [number, number][]) => void) {
   return stripTag(node, 'bindable', (attrs, ranges) => {
     const { name, mode, attribute } = attrs;
-    const bindables: Record<string, IBindableDescription> = {};
+    const bindables: Record<string, PartialBindableDefinition> = {};
     if (name) {
-      const description: IBindableDescription = {};
+      const description: PartialBindableDefinition = {};
       if (attribute) description.attribute = attribute;
       const bindingMode = toBindingMode(mode);
       if (bindingMode) description.mode = bindingMode;
@@ -147,7 +174,7 @@ function stripBindable(node: DefaultTreeElement, cb: (bindables: Record<string, 
     }
     cb(bindables, ranges);
   }) || stripAttribute(node, 'template', 'bindable', (value, ranges) => {
-    const bindables: Record<string, IBindableDescription> = {};
+    const bindables: Record<string, PartialBindableDefinition> = {};
     const names = value.split(',').map(s => s.trim()).filter(s => s);
     names.forEach(name => bindables[name] = {});
     cb(bindables, ranges);

@@ -10,14 +10,15 @@ export class FollowButton {
   @bindable public article: any;
   @bindable public toggle: any;
 
-  constructor(private readonly router: IRouter,
-              private readonly sharedState: SharedState,
-              private readonly profileService: ProfileService) {
-  }
+  public constructor(
+    private readonly router: IRouter,
+    private readonly sharedState: SharedState,
+    private readonly profileService: ProfileService,
+  ) {}
 
   public onToggleFollowing() {
     if (!this.sharedState.isAuthenticated) {
-      this.router.goto('auth(type=login)');
+      this.router.goto('auth(type=login)').catch((error: Error) => { throw error; });
       return;
     }
     this.article.author.following = !this.article.author.following;

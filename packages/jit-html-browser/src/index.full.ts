@@ -5,4 +5,5 @@ import * as runtime from '@aurelia/runtime';
 import * as runtimeHtml from '@aurelia/runtime-html';
 import * as runtimeHtmlBrowser from '@aurelia/runtime-html-browser';
 import * as jitHtmlBrowser from './index';
+
 export { kernel, runtime, runtimeHtml, runtimeHtmlBrowser, jit, jitHtml, jitHtmlBrowser };

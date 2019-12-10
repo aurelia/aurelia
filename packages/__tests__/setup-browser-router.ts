@@ -3,8 +3,11 @@ import {
   TestContext,
 } from '@aurelia/testing';
 import {
-  BasicConfiguration as BasicBrowserConfiguration
+  JitHtmlBrowserConfiguration
 } from '@aurelia/jit-html-browser';
+import {
+  BrowserScheduler
+} from '@aurelia/runtime-html-browser';
 import {
   Reporter,
   LogLevel,
@@ -14,8 +17,9 @@ Reporter.level = LogLevel.error;
 
 function createBrowserTestContext(): HTMLTestContext {
   return HTMLTestContext.create(
-    BasicBrowserConfiguration,
+    JitHtmlBrowserConfiguration,
     window,
+    BrowserScheduler,
     UIEvent,
     Event,
     CustomEvent,
@@ -36,7 +40,6 @@ function initializeBrowserTestContext(): void {
   // Just trigger the HTMLDOM to be resolved once so it sets the DOM globals
   TestContext.createHTMLTestContext().dom.createElement('div');
 }
-
 
 initializeBrowserTestContext();
 

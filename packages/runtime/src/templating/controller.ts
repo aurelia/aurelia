@@ -6,21 +6,17 @@ import {
   nextId,
   PLATFORM,
   Writable,
+  Constructable,
+  isObject,
 } from '@aurelia/kernel';
-
 import {
   PropertyBinding,
 } from '../binding/property-binding';
 import {
   HooksDefinition,
-  IAttributeDefinition,
-  IBindableDescription,
-  IChildrenObserverDescription,
-  IElementHydrationOptions,
   IHydrateElementInstruction,
   IHydrateTemplateController,
-  ITemplateDefinition,
-  TemplateDefinition
+  PartialCustomElementDefinitionParts
 } from '../definitions';
 import {
   IDOM,
@@ -37,9 +33,10 @@ import {
   IController,
   ILifecycle,
   IRenderContext,
-  IViewCache,
   IViewModel,
-  ViewModelKind
+  ViewModelKind,
+  MountStrategy,
+  IViewFactory,
 } from '../lifecycle';
 import {
   AggregateContinuationTask,
@@ -60,50 +57,47 @@ import {
   ProxyObserver,
 } from '../observation/proxy-observer';
 import {
-  SelfObserver,
-} from '../observation/self-observer';
+  BindableObserver,
+} from '../observation/bindable-observer';
 import {
   ChildrenObserver,
   IRenderingEngine,
   ITemplate,
 } from '../rendering-engine';
 import {
-  ICustomElementType,
   IElementProjector,
-  IProjectorLocator
+  IProjectorLocator,
+  CustomElementDefinition,
+  CustomElement
 } from '../resources/custom-element';
+import { CustomAttributeDefinition, CustomAttribute } from '../resources/custom-attribute';
+import { BindableDefinition } from './bindable';
 
-type Description = Required<IAttributeDefinition> | Required<ITemplateDefinition>;
+type Definition = CustomAttributeDefinition | CustomElementDefinition;
 type Kind = { name: string };
-
-function hasDescription(type: unknown): type is ({ description: Description; kind: Kind }) {
-  return (type as { description: Description }).description != void 0;
-}
 
 interface IElementTemplateProvider {
   getElementTemplate(renderingEngine: unknown, customElementType: unknown, parentContext: IServiceLocator): ITemplate;
 }
 
-type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<
-  C & {
-    render(flags: LifecycleFlags, host: T, parts: Record<string, TemplateDefinition>, parentContext: IServiceLocator): IElementTemplateProvider | void;
-    created(flags: LifecycleFlags): void;
+type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
+  render(flags: LifecycleFlags, host: T, parts: PartialCustomElementDefinitionParts, parentContext: IServiceLocator): IElementTemplateProvider | void;
+  created(flags: LifecycleFlags): void;
 
-    binding(flags: LifecycleFlags): MaybePromiseOrTask;
-    bound(flags: LifecycleFlags): void;
+  binding(flags: LifecycleFlags): MaybePromiseOrTask;
+  bound(flags: LifecycleFlags): void;
 
-    unbinding(flags: LifecycleFlags): MaybePromiseOrTask;
-    unbound(flags: LifecycleFlags): void;
+  unbinding(flags: LifecycleFlags): MaybePromiseOrTask;
+  unbound(flags: LifecycleFlags): void;
 
-    attaching(flags: LifecycleFlags): void;
-    attached(flags: LifecycleFlags): void;
+  attaching(flags: LifecycleFlags): void;
+  attached(flags: LifecycleFlags): void;
 
-    detaching(flags: LifecycleFlags): void;
-    detached(flags: LifecycleFlags): void;
+  detaching(flags: LifecycleFlags): void;
+  detached(flags: LifecycleFlags): void;
 
-    caching(flags: LifecycleFlags): void;
-  }
->;
+  caching(flags: LifecycleFlags): void;
+}>;
 
 export class Controller<
   T extends INode = INode,
@@ -111,43 +105,34 @@ export class Controller<
 > implements IController<T, C> {
   private static readonly lookup: WeakMap<object, Controller> = new WeakMap();
 
-  public readonly id: number;
+  public readonly id: number = nextId('au$component');
 
-  public nextBound?: Controller<T, C>;
-  public nextUnbound?: Controller<T, C>;
-  public prevBound?: Controller<T, C>;
-  public prevUnbound?: Controller<T, C>;
+  public nextBound?: Controller<T, C> = void 0;
+  public nextUnbound?: Controller<T, C> = void 0;
+  public prevBound?: Controller<T, C> = void 0;
+  public prevUnbound?: Controller<T, C> = void 0;
 
-  public nextAttached?: Controller<T, C>;
-  public nextDetached?: Controller<T, C>;
-  public prevAttached?: Controller<T, C>;
-  public prevDetached?: Controller<T, C>;
+  public nextAttached?: Controller<T, C> = void 0;
+  public nextDetached?: Controller<T, C> = void 0;
+  public prevAttached?: Controller<T, C> = void 0;
+  public prevDetached?: Controller<T, C> = void 0;
 
-  public nextMount?: Controller<T, C>;
-  public nextUnmount?: Controller<T, C>;
-  public prevMount?: Controller<T, C>;
-  public prevUnmount?: Controller<T, C>;
+  public nextMount?: Controller<T, C> = void 0;
+  public nextUnmount?: Controller<T, C> = void 0;
+  public prevMount?: Controller<T, C> = void 0;
+  public prevUnmount?: Controller<T, C> = void 0;
 
-  public readonly flags: LifecycleFlags;
-  public readonly viewCache?: IViewCache<T>;
+  public parent?: IController<T> = void 0;
+  public bindings?: IBinding[] = void 0;
+  public controllers?: Controller<T, C>[] = void 0;
 
-  public parent?: IController<T>;
-  public bindings?: IBinding[];
-  public controllers?: Controller<T, C>[];
-
-  public state: State;
-
-  public readonly lifecycle: ILifecycle;
+  public state: State = State.none;
 
   public readonly hooks: HooksDefinition;
-  public readonly viewModel?: C;
   public readonly bindingContext?: BindingContext<T, C>;
 
-  public readonly host?: T;
-
-  public readonly vmKind: ViewModelKind;
-
   public scopeParts?: string[];
+  public isStrictBinding?: boolean;
 
   public scope?: IScope;
   public part?: string;
@@ -156,177 +141,164 @@ export class Controller<
   public nodes?: INodeSequence<T>;
   public context?: IContainer | IRenderContext<T>;
   public location?: IRenderLocation<T>;
+  public mountStrategy: MountStrategy = MountStrategy.insertBefore;
 
   // todo: refactor
-  // tslint:disable-next-line:cognitive-complexity
-  constructor(
-    flags: LifecycleFlags,
-    viewCache: IViewCache<T> | undefined,
-    lifecycle: ILifecycle | undefined,
-    viewModel: C | undefined,
-    parentContext: IContainer | IRenderContext<T> | undefined,
-    host: T | undefined,
-    options: Partial<IElementHydrationOptions>,
+  public constructor(
+    public readonly vmKind: ViewModelKind,
+    public readonly flags: LifecycleFlags,
+    public readonly viewFactory: IViewFactory<T> | undefined,
+    public readonly lifecycle: ILifecycle,
+    public readonly viewModel: C | undefined,
+    public readonly parentContext: IContainer | IRenderContext<T> | undefined,
+    public readonly host: T | undefined,
+    options: { parts?: PartialCustomElementDefinitionParts },
   ) {
-    this.id = nextId('au$component');
+    switch (vmKind) {
+      case ViewModelKind.synthetic: {
+        if (viewFactory == void 0) {
+          // TODO: create error code
+          throw new Error(`No IViewFactory was provided when rendering a synthetic view.`);
+        }
 
-    this.nextBound = void 0;
-    this.nextUnbound = void 0;
-    this.prevBound = void 0;
-    this.prevUnbound = void 0;
+        this.hooks = HooksDefinition.none;
+        this.bindingContext = void 0; // stays undefined
 
-    this.nextAttached = void 0;
-    this.nextDetached = void 0;
-    this.prevAttached = void 0;
-    this.prevDetached = void 0;
+        this.host = void 0; // stays undefined
 
-    this.nextMount = void 0;
-    this.nextUnmount = void 0;
-    this.prevMount = void 0;
-    this.prevUnmount = void 0;
+        this.vmKind = ViewModelKind.synthetic;
 
-    this.flags = flags;
-    this.viewCache = viewCache;
+        this.scopeParts = void 0; // will be populated during ITemplate.render() immediately after the constructor is done
+        this.isStrictBinding = false; // will be populated during ITemplate.render() immediately after the constructor is done
 
-    this.bindings = void 0;
-    this.controllers = void 0;
+        this.scope = void 0; // will be populated during bindSynthetic()
+        this.projector = void 0; // stays undefined
 
-    this.state = State.none;
-
-    if (viewModel == void 0) {
-      if (viewCache == void 0) {
-        // TODO: create error code
-        throw new Error(`No IViewCache was provided when rendering a synthetic view.`);
+        this.nodes = void 0; // will be populated during ITemplate.render() immediately after the constructor is done
+        this.context = void 0; // will be populated during ITemplate.render() immediately after the constructor is done
+        this.location = void 0; // should be set with `hold(location)` by the consumer
+        break;
       }
-      if (lifecycle == void 0) {
-        // TODO: create error code
-        throw new Error(`No ILifecycle was provided when rendering a synthetic view.`);
-      }
-      this.lifecycle = lifecycle;
+      case ViewModelKind.customElement: {
+        if (parentContext == void 0) {
+          // TODO: create error code
+          throw new Error(`No parentContext was provided when rendering a custom element.`);
+        }
+        if (viewModel == void 0) {
+          // TODO: create error code
+          throw new Error(`No viewModel was provided when rendering a custom elemen.`);
+        }
+        if (host == void 0) {
+          // TODO: create error code
+          throw new Error(`No host element was provided when rendering a custom element.`);
+        }
 
-      this.hooks = HooksDefinition.none;
-      this.viewModel = void 0;
-      this.bindingContext = void 0; // stays undefined
+        const Type = viewModel.constructor as Constructable;
+        const definition = CustomElement.getDefinition(Type);
+        flags |= definition.strategy;
+        createObservers(this, definition, flags, viewModel);
+        this.hooks = definition.hooks;
+        this.bindingContext = getBindingContext<T, C>(flags, viewModel);
 
-      this.host = void 0; // stays undefined
+        const renderingEngine = parentContext.get(IRenderingEngine);
 
-      this.vmKind = ViewModelKind.synthetic;
+        let instruction: IHydrateElementInstruction | IHydrateTemplateController;
+        let parts: PartialCustomElementDefinitionParts;
+        let template: ITemplate|undefined = void 0;
 
-      this.scopeParts = void 0; // will be populated during ITemplate.render() immediately after the constructor is done
-
-      this.scope = void 0; // will be populated during bindSynthetic()
-      this.projector = void 0; // stays undefined
-
-      this.nodes = void 0; // will be populated during ITemplate.render() immediately after the constructor is done
-      this.context = void 0; // will be populated during ITemplate.render() immediately after the constructor is done
-      this.location = void 0; // should be set with `hold(location)` by the consumer
-    } else {
-      if (parentContext == void 0) {
-        // TODO: create error code
-        throw new Error(`No parentContext was provided when rendering a custom element or attribute.`);
-      }
-      this.lifecycle = parentContext.get(ILifecycle);
-
-      (viewModel as Writable<C>).$controller = this;
-
-      const Type = viewModel.constructor;
-      if (!hasDescription(Type)) {
-        // TODO: create error code
-        throw new Error(`The provided viewModel does not have a (valid) description.`);
-      }
-      const { description } = Type;
-      flags |= description.strategy;
-      createObservers(this, description, flags, viewModel);
-      this.hooks = description.hooks;
-      this.viewModel = viewModel;
-      this.bindingContext = getBindingContext<T, C>(flags, viewModel);
-
-      this.host = host;
-
-      switch (Type.kind.name) {
-        case 'custom-element':
-          if (host == void 0) {
-            // TODO: create error code
-            throw new Error(`No host element was provided when rendering a custom element.`);
-          }
-
-          this.vmKind = ViewModelKind.customElement;
-
-          const renderingEngine = parentContext.get(IRenderingEngine);
-
-          let template: ITemplate<INode> | undefined = void 0;
-          if (this.hooks.hasRender) {
-            const result = this.bindingContext.render(
-              flags,
-              host,
-              options.parts == void 0
-                ? PLATFORM.emptyObject
-                : options.parts,
-              parentContext,
-            );
-
-            if (result != void 0 && 'getElementTemplate' in result) {
-              template = result.getElementTemplate(renderingEngine, Type, parentContext);
-            }
-          } else {
-            const dom = parentContext.get(IDOM);
-            template = renderingEngine.getElementTemplate(dom, description as Required<ITemplateDefinition>, parentContext, Type as ICustomElementType);
-          }
-
-          if (template !== void 0) {
-            let parts: Record<string, TemplateDefinition>;
-            if (
-              template.definition == null ||
-              template.definition.instructions.length === 0 ||
-              template.definition.instructions[0].length === 0 ||
-              (
-                (template.definition.instructions[0][0] as IHydrateElementInstruction | IHydrateTemplateController).parts == void 0
-              )
-            ) {
-              if (options.parts == void 0) {
-                parts = PLATFORM.emptyObject;
-              } else {
-                parts = options.parts;
-              }
-            } else {
-              const instruction = template.definition.instructions[0][0] as IHydrateElementInstruction | IHydrateTemplateController;
-              if (options.parts == void 0) {
-                parts = instruction.parts as typeof parts;
-              } else {
-                parts = { ...options.parts, ...(instruction.parts as typeof parts) };
-              }
-            }
-            template.render(this, host, parts);
-          }
-
-          this.scope = Scope.create(flags, this.bindingContext, null);
-
-          this.projector = parentContext.get(IProjectorLocator).getElementProjector(
-            parentContext.get(IDOM),
-            this,
+        if (this.hooks.hasRender) {
+          const result = this.bindingContext.render(
+            flags,
             host,
-            description as Required<ITemplateDefinition>
+            options.parts == void 0
+              ? PLATFORM.emptyObject
+              : options.parts,
+            parentContext,
           );
 
-          this.location = void 0;
-          break;
-        case 'custom-attribute':
-          this.vmKind = ViewModelKind.customAttribute;
+          if (result != void 0 && 'getElementTemplate' in result) {
+            template = result.getElementTemplate(renderingEngine, Type, parentContext);
+          }
+        } else {
+          template = renderingEngine.getElementTemplate(parentContext.get(IDOM), definition, parentContext, Type, viewModel);
+        }
 
-          this.scope = void 0;
-          this.projector = void 0;
+        if (template !== void 0) {
+          if (
+            template.definition == null ||
+            template.definition.instructions.length === 0 ||
+            template.definition.instructions[0].length === 0 ||
+            (
+              (template.definition.instructions[0][0] as IHydrateElementInstruction | IHydrateTemplateController).parts == void 0
+            )
+          ) {
+            if (options.parts == void 0) {
+              parts = PLATFORM.emptyObject;
+            } else {
+              parts = options.parts;
+            }
+          } else {
+            instruction = template.definition.instructions[0][0] as IHydrateElementInstruction | IHydrateTemplateController;
+            if (options.parts == void 0) {
+              parts = instruction.parts as typeof parts;
+            } else {
+              parts = { ...options.parts, ...(instruction.parts as typeof parts) };
+            }
+          }
+          template.render(this, host, parts);
+        }
 
-          this.nodes = void 0;
-          this.context = void 0;
-          this.location = void 0;
-          break;
-        default:
-          throw new Error(`Invalid resource kind: '${Type.kind.name}'`);
+        this.scope = Scope.create(flags, this.bindingContext, null);
+
+        this.projector = parentContext.get(IProjectorLocator).getElementProjector(
+          parentContext.get(IDOM),
+          this,
+          host,
+          template !== void 0 ? template.definition : definition,
+        );
+
+        this.location = void 0;
+
+        (viewModel as Writable<IViewModel>).$controller = this;
+
+        if (this.hooks.hasCreated) {
+          this.bindingContext.created(flags);
+        }
+        break;
       }
+      case ViewModelKind.customAttribute: {
+        if (parentContext == void 0) {
+          // TODO: create error code
+          throw new Error(`No parentContext was provided when rendering a custom element or attribute.`);
+        }
+        if (viewModel == void 0) {
+          // TODO: create error code
+          throw new Error(`No viewModel was provided when rendering a custom elemen.`);
+        }
 
-      if (this.hooks.hasCreated) {
-        this.bindingContext.created(flags);
+        const Type = viewModel.constructor as Constructable;
+        const definition = CustomAttribute.getDefinition(Type);
+        flags |= definition.strategy;
+        createObservers(this, definition, flags, viewModel);
+        this.hooks = definition.hooks;
+        this.bindingContext = getBindingContext<T, C>(flags, viewModel);
+
+        this.scope = void 0;
+        this.projector = void 0;
+
+        this.nodes = void 0;
+        this.context = void 0;
+        this.location = void 0;
+
+        (viewModel as Writable<IViewModel>).$controller = this;
+
+        if (this.hooks.hasCreated) {
+          this.bindingContext.created(flags);
+        }
+        break;
       }
+      default:
+        throw new Error(`Invalid ViewModelKind: ${vmKind}`);
     }
   }
 
@@ -335,14 +307,15 @@ export class Controller<
     parentContext: IContainer | IRenderContext<T>,
     host: T,
     flags: LifecycleFlags = LifecycleFlags.none,
-    options: IElementHydrationOptions = PLATFORM.emptyObject,
+    options: { parts?: PartialCustomElementDefinitionParts } = PLATFORM.emptyObject,
   ): Controller<T> {
     let controller = Controller.lookup.get(viewModel) as Controller<T> | undefined;
     if (controller === void 0) {
       controller = new Controller<T>(
+        ViewModelKind.customElement,
         flags,
         void 0,
-        void 0,
+        parentContext.get(ILifecycle),
         viewModel,
         parentContext,
         host,
@@ -361,9 +334,10 @@ export class Controller<
     let controller = Controller.lookup.get(viewModel) as Controller<T> | undefined;
     if (controller === void 0) {
       controller = new Controller<T>(
-        flags,
+        ViewModelKind.customAttribute,
+        flags | LifecycleFlags.isStrictBindingStrategy,
         void 0,
-        void 0,
+        parentContext.get(ILifecycle),
         viewModel,
         parentContext,
         void 0,
@@ -375,13 +349,14 @@ export class Controller<
   }
 
   public static forSyntheticView<T extends INode = INode>(
-    viewCache: IViewCache<T>,
+    viewFactory: IViewFactory<T>,
     lifecycle: ILifecycle,
     flags: LifecycleFlags = LifecycleFlags.none,
   ): Controller<T> {
     return new Controller<T>(
+      ViewModelKind.synthetic,
       flags,
-      viewCache,
+      viewFactory,
       lifecycle,
       void 0,
       void 0,
@@ -390,21 +365,38 @@ export class Controller<
     );
   }
 
+  public is(name: string): boolean {
+    switch (this.vmKind) {
+      case ViewModelKind.customAttribute: {
+        const def = CustomAttribute.getDefinition(this.viewModel!.constructor as Constructable);
+        return def.name === name;
+      }
+      case ViewModelKind.customElement: {
+        const def = CustomElement.getDefinition(this.viewModel!.constructor as Constructable);
+        return def.name === name;
+      }
+      case ViewModelKind.synthetic:
+        return this.viewFactory!.name === name;
+    }
+    return false;
+  }
+
   public lockScope(scope: IScope): void {
     this.scope = scope;
     this.state |= State.hasLockedScope;
   }
 
-  public hold(location: IRenderLocation<T>): void {
+  public hold(location: IRenderLocation<T>, mountStrategy: MountStrategy): void {
     this.state = (this.state | State.canBeCached) ^ State.canBeCached;
     this.location = location;
+    this.mountStrategy = mountStrategy;
   }
 
   public release(flags: LifecycleFlags): boolean {
     this.state |= State.canBeCached;
     if ((this.state & State.isAttached) > 0) {
-      // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-      return this.viewCache!.canReturnToCache(this);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return this.viewFactory!.canReturnToCache(this); // non-null is implied by the hook
     }
 
     return this.unmountSynthetic(flags);
@@ -444,13 +436,13 @@ export class Controller<
   }
 
   public bound(flags: LifecycleFlags): void {
-    // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-    this.bindingContext!.bound(flags);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.bindingContext!.bound(flags); // non-null is implied by the hook
   }
 
   public unbound(flags: LifecycleFlags): void {
-    // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-    this.bindingContext!.unbound(flags);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.bindingContext!.unbound(flags); // non-null is implied by the hook
   }
 
   public attach(flags: LifecycleFlags): void {
@@ -490,13 +482,13 @@ export class Controller<
   }
 
   public attached(flags: LifecycleFlags): void {
-    // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-    this.bindingContext!.attached(flags);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.bindingContext!.attached(flags); // non-null is implied by the hook
   }
 
   public detached(flags: LifecycleFlags): void {
-    // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-    this.bindingContext!.detached(flags);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.bindingContext!.detached(flags); // non-null is implied by the hook
   }
 
   public mount(flags: LifecycleFlags): void {
@@ -641,6 +633,9 @@ export class Controller<
     const { bindings } = this;
     if (bindings !== void 0) {
       const { length } = bindings;
+      if (this.isStrictBinding) {
+        flags |= LifecycleFlags.isStrictBindingStrategy;
+      }
       for (let i = 0; i < length; ++i) {
         bindings[i].$bind(flags, scope, this.part);
       }
@@ -927,14 +922,22 @@ export class Controller<
     }
 
     this.state |= State.isMounted;
-    // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-    this.projector!.project(this.nodes!);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.projector!.project(this.nodes!); // non-null is implied by the hook
   }
 
   private mountSynthetic(flags: LifecycleFlags): void {
+    const nodes = this.nodes!; // non null is implied by the hook
+    const location = this.location!; // non null is implied by the hook
     this.state |= State.isMounted;
-    // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-    this.nodes!.insertBefore(this.location!);
+
+    switch (this.mountStrategy) {
+      case MountStrategy.append:
+        nodes.appendTo(location as T);
+        break;
+      default:
+        nodes.insertBefore(location);
+    }
   }
 
   private unmountCustomElement(flags: LifecycleFlags): void {
@@ -943,8 +946,8 @@ export class Controller<
     }
 
     this.state = (this.state | State.isMounted) ^ State.isMounted;
-    // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-    this.projector!.take(this.nodes!);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.projector!.take(this.nodes!); // non-null is implied by the hook
   }
 
   private unmountSynthetic(flags: LifecycleFlags): boolean {
@@ -953,14 +956,14 @@ export class Controller<
     }
 
     this.state = (this.state | State.isMounted) ^ State.isMounted;
-    // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-    this.nodes!.remove();
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.nodes!.remove(); // non-null is implied by the hook
     this.nodes!.unlink();
 
     if ((this.state & State.canBeCached) > 0) {
       this.state = (this.state | State.canBeCached) ^ State.canBeCached;
-      // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-      if (this.viewCache!.tryReturnToCache(this)) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      if (this.viewFactory!.tryReturnToCache(this)) { // non-null is implied by the hook
         this.state |= State.isCached;
         return true;
       }
@@ -971,16 +974,16 @@ export class Controller<
   private cacheCustomElement(flags: LifecycleFlags): void {
     flags |= LifecycleFlags.fromCache;
     if (this.hooks.hasCaching) {
-      // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-      this.bindingContext!.caching(flags);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      this.bindingContext!.caching(flags); // non-null is implied by the hook
     }
   }
 
   private cacheCustomAttribute(flags: LifecycleFlags): void {
     flags |= LifecycleFlags.fromCache;
     if (this.hooks.hasCaching) {
-      // tslint:disable-next-line: no-non-null-assertion // non-null is implied by the hook
-      this.bindingContext!.caching(flags);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      this.bindingContext!.caching(flags); // non-null is implied by the hook
     }
 
     const { controllers } = this;
@@ -1006,13 +1009,13 @@ export class Controller<
 
 function createObservers(
   controller: IController,
-  description: Description,
+  description: Definition,
   flags: LifecycleFlags,
   instance: object,
 ): void {
   const hasLookup = (instance as IIndexable).$observers != void 0;
-  const observers: Record<string, SelfObserver | ChildrenObserver> = hasLookup ? (instance as IIndexable).$observers as Record<string, SelfObserver> : {};
-  const bindables = description.bindables as Record<string, Required<IBindableDescription>>;
+  const observers: Record<string, BindableObserver | ChildrenObserver> = hasLookup ? (instance as IIndexable).$observers as Record<string, BindableObserver> : {};
+  const bindables = description.bindables;
   const observableNames = Object.getOwnPropertyNames(bindables);
   const useProxy = (flags & LifecycleFlags.proxyStrategy) > 0 ;
   const lifecycle = controller.lifecycle;
@@ -1020,22 +1023,27 @@ function createObservers(
 
   const length = observableNames.length;
   let name: string;
+  let bindable: BindableDefinition;
+
   for (let i = 0; i < length; ++i) {
     name = observableNames[i];
 
     if (observers[name] == void 0) {
-      observers[name] = new SelfObserver(
+      bindable = bindables[name];
+
+      observers[name] = new BindableObserver(
         lifecycle,
         flags,
-        useProxy ? ProxyObserver.getOrCreate(instance).proxy : instance,
+        useProxy ? ProxyObserver.getOrCreate(instance).proxy : instance as IIndexable,
         name,
-        bindables[name].callback
+        bindable.callback,
+        bindable.set,
       );
     }
   }
 
   if (hasChildrenObservers) {
-    const childrenObservers = (description as any).childrenObservers as Record<string, Required<IChildrenObserverDescription>>;
+    const childrenObservers = (description as CustomElementDefinition).childrenObservers;
 
     if (childrenObservers) {
       const childObserverNames = Object.getOwnPropertyNames(childrenObservers);
@@ -1049,7 +1057,7 @@ function createObservers(
           const childrenDescription = childrenObservers[name];
           observers[name] = new ChildrenObserver(
             controller,
-            instance,
+            instance as IIndexable,
             flags,
             name,
             childrenDescription.callback,

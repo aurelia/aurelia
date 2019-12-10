@@ -76,6 +76,12 @@ export {
 } from './resources/custom-attributes/focus';
 
 export {
+  Portal,
+  PortalTarget,
+  PortalLifecycleCallback
+} from './resources/custom-attributes/portal';
+
+export {
   Subject,
   Compose
 } from './resources/custom-elements/compose';
@@ -98,12 +104,14 @@ export {
   AttributeBindingRendererRegistration,
   ListenerBindingRendererRegistration,
   SetAttributeRendererRegistration,
+  SetClassAttributeRendererRegistration,
+  SetStyleAttributeRendererRegistration,
   StylePropertyBindingRendererRegistration,
   TextBindingRendererRegistration,
 
   DefaultRenderers,
 
-  BasicConfiguration
+  RuntimeHtmlConfiguration
 } from './configuration';
 export {
   createElement,
@@ -134,6 +142,8 @@ export {
   CaptureBindingInstruction,
   DelegateBindingInstruction,
   SetAttributeInstruction,
+  SetClassAttributeInstruction,
+  SetStyleAttributeInstruction,
   StylePropertyBindingInstruction,
   TextBindingInstruction,
   TriggerBindingInstruction
@@ -159,5 +169,6 @@ export {
 export {
   AdoptedStyleSheetsStyles,
   StyleElementStyles,
-  IShadowDOMStyles
+  IShadowDOMStyles,
+  IShadowDOMGlobalStyles
 } from './styles/shadow-dom-styles';

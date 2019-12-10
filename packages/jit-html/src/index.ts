@@ -25,7 +25,7 @@ export {
 
   DefaultBindingLanguage,
 
-  BasicConfiguration
+  JitHtmlConfiguration
 } from './configuration';
 export {
   stringifyDOM,
@@ -33,7 +33,7 @@ export {
   stringifyTemplateDefinition
 } from './debugging';
 export {
-  TemplateBinder
+  TemplateBinder,
 } from './template-binder';
 export {
   ITemplateElementFactory

@@ -1,124 +1,34 @@
-import {
-  IContainer,
-  Key,
-  nextId,
-  PLATFORM,
-  Registration
-} from '@aurelia/kernel';
-import {
-  HooksDefinition,
-  IAttributeDefinition
-} from '../../definitions';
-import {
-  INode,
-  IRenderLocation
-} from '../../dom';
-import {
-  BindingMode,
-  BindingStrategy,
-  LifecycleFlags,
-  State
-} from '../../flags';
-import {
-  IController,
-  IViewFactory,
-} from '../../lifecycle';
+import { nextId } from '@aurelia/kernel';
+import { INode, IRenderLocation } from '../../dom';
+import { LifecycleFlags, State } from '../../flags';
+import { IController, IViewFactory, MountStrategy } from '../../lifecycle';
 import {
   ContinuationTask,
   ILifecycleTask,
   LifecycleTask,
   PromiseTask
 } from '../../lifecycle-task';
-import {
-  InlineObserversLookup,
-} from '../../observation';
-import { Bindable } from '../../templating/bindable';
-import {
-  CustomAttribute,
-  ICustomAttributeResource
-} from '../custom-attribute';
+import { bindable } from '../../templating/bindable';
+import { templateController } from '../custom-attribute';
 
+@templateController('if')
 export class If<T extends INode = INode> {
+  public readonly id: number = nextId('au$component');
 
-  public get value(): boolean {
-    return this._value;
-  }
-  public set value(newValue: boolean) {
-    const oldValue = this._value;
-    if (oldValue !== newValue) {
-      this._value = newValue;
-      this.valueChanged(newValue, oldValue, this.$controller.flags);
-    }
-  }
-  public static readonly inject: readonly Key[] = [IViewFactory, IRenderLocation];
+  public elseFactory?: IViewFactory<T> = void 0;
+  public elseView?: IController<T> = void 0;
+  public ifView?: IController<T> = void 0;
+  public view?: IController<T> = void 0;
+  public $controller!: IController<T>; // This is set by the controller after this instance is constructed
 
-  public static readonly kind: ICustomAttributeResource = CustomAttribute;
-  public static readonly description: Required<IAttributeDefinition> = Object.freeze({
-    name: 'if',
-    aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],
-    defaultBindingMode: BindingMode.toView,
-    hasDynamicOptions: false,
-    isTemplateController: true,
-    bindables: Object.freeze(Bindable.for({ bindables: ['value'] }).get()),
-    strategy: BindingStrategy.getterSetter,
-    hooks: Object.freeze(new HooksDefinition(If.prototype)),
-  });
+  private task: ILifecycleTask = LifecycleTask.done;;
 
-  public readonly id: number;
+  @bindable public value: boolean = false;
 
-  public readonly $observers: InlineObserversLookup<this> = Object.freeze({
-    value: this,
-  });
-
-  public elseFactory?: IViewFactory<T>;
-  public elseView?: IController<T>;
-  public ifFactory: IViewFactory<T>;
-  public ifView?: IController<T>;
-  public location: IRenderLocation<T>;
-  public readonly noProxy: true;
-  public view?: IController<T>;
-  // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
-  public $controller!: IController<T>;
-
-  private task: ILifecycleTask;
-
-  private _value: boolean;
-
-  constructor(
-    ifFactory: IViewFactory<T>,
-    location: IRenderLocation<T>,
-  ) {
-    this.id = nextId('au$component');
-
-    this.elseFactory = void 0;
-    this.elseView = void 0;
-    this.ifFactory = ifFactory;
-    this.ifView = void 0;
-    this.location = location;
-    this.noProxy = true;
-
-    this.task = LifecycleTask.done;
-    this.view = void 0;
-
-    this._value = false;
-  }
-
-  public static register(container: IContainer): void {
-    container.register(Registration.transient('custom-attribute:if', this));
-    container.register(Registration.transient(this, this));
-  }
-
-  public getValue(): boolean {
-    return this._value;
-  }
-
-  public setValue(newValue: boolean, flags: LifecycleFlags): void {
-    const oldValue = this._value;
-    if (oldValue !== newValue) {
-      this._value = newValue;
-      this.valueChanged(newValue, oldValue, flags | this.$controller.flags);
-    }
-  }
+  public constructor(
+    @IViewFactory private readonly ifFactory: IViewFactory<T>,
+    @IRenderLocation private readonly location: IRenderLocation<T>,
+  ) {}
 
   public binding(flags: LifecycleFlags): ILifecycleTask {
     if (this.task.done) {
@@ -204,7 +114,7 @@ export class If<T extends INode = INode> {
       view = factory.create(flags);
     }
 
-    view.hold(this.location);
+    view.hold(this.location, MountStrategy.insertBefore);
 
     return view;
   }
@@ -271,30 +181,13 @@ export class If<T extends INode = INode> {
   }
 }
 
+@templateController('else')
 export class Else<T extends INode = INode> {
-  public static readonly inject: readonly Key[] = [IViewFactory];
+  public readonly id: number = nextId('au$component');
 
-  public static readonly kind: ICustomAttributeResource = CustomAttribute;
-  public static readonly description: Required<IAttributeDefinition> = {
-    name: 'else',
-    aliases: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & string[],
-    defaultBindingMode: BindingMode.toView,
-    hasDynamicOptions: false,
-    isTemplateController: true,
-    bindables: PLATFORM.emptyObject,
-    strategy: BindingStrategy.getterSetter,
-    hooks: HooksDefinition.none,
-  };
-
-  private readonly factory: IViewFactory<T>;
-
-  constructor(factory: IViewFactory<T>) {
-    this.factory = factory;
-  }
-
-  public static register(container: IContainer): void {
-    container.register(Registration.transient('custom-attribute:else', this));
-  }
+  public constructor(
+    @IViewFactory private readonly factory: IViewFactory<T>,
+  ) {}
 
   public link(ifBehavior: If<T> | IController<T>): void {
     if (ifBehavior instanceof If) {

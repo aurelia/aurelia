@@ -11,13 +11,13 @@
 For the latest stable version:
 
 ```bash
-npm install --save @aurelia/plugin-gulp
+npm i -D @aurelia/plugin-gulp
 ```
 
 For our nightly builds:
 
 ```bash
-npm install --save @aurelia/plugin-gulp@dev
+npm i -D @aurelia/plugin-gulp@dev
 ```
 
 ## Usage
@@ -50,15 +50,16 @@ For apps in TypeScript, an extra typing definition is required for html module. 
 `html.d.ts`
 ```ts
 declare module '*.html' {
-  import { IBindableDescription } from '@aurelia/runtime';
+  import { IContainer } from '@aurelia/kernel';
+  import { BindableDefinition } from '@aurelia/runtime';
   export const name: string;
   export const template: string;
   export default template;
   export const dependencies: string[];
   export const containerless: boolean | undefined;
-  export const bindables: Record<string, IBindableDescription>;
+  export const bindables: Record<string, BindableDefinition>;
   export const shadowOptions: { mode: 'open' | 'closed'} | undefined;
-  export function getHTMLOnlyElement();
+  export function register(container: IContainer);
 }
 ```
 

@@ -10,7 +10,7 @@ RUN mkdir /src
 
 COPY package.json /server
 WORKDIR /server
-RUN npm install 
+RUN npm i
 
 # Volume before chown changes owwner
 VOLUME /src
@@ -26,6 +26,6 @@ RUN bash /root/install_rust.sh
 
 # USER user
 
-# RUN npm install
+# RUN npm i
 EXPOSE 8080
-CMD ["/server/node_modules/.bin/http-server","-c-1","/build"]
+CMD ["/server/node_modules/.bin/local-web-server","/build"]

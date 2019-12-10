@@ -1,4 +1,4 @@
-import { BasicConfiguration } from '../../../../../jit';
+import { JitConfiguration } from '../../../../../jit';
 import { DI } from '../../../../../kernel';
 import { NavCustomElement, ViewportCustomElement } from '../../../../../router';
 import { Aurelia, CustomElement } from '../../../../../runtime';
@@ -26,7 +26,7 @@ import { Beta } from './components/beta';
 import { Sub } from './components/sub';
 
 const container = DI.createContainer();
-container.register(BasicConfiguration,
+container.register(JitConfiguration,
                    ViewportCustomElement as any,
                    NavCustomElement as any,
                    GotoCustomElement as any,

@@ -1,5 +1,6 @@
 import { IContainer, IRegistry } from '@aurelia/kernel';
 import { bindable, customAttribute, INode } from '@aurelia/runtime';
+import { getClassesToAdd } from '../observation/class-attribute-accessor';
 
 export class CSSModulesProcessorRegistry implements IRegistry {
   public register(container: IContainer, ...params: (Record<string, string>)[]) {
@@ -9,7 +10,13 @@ export class CSSModulesProcessorRegistry implements IRegistry {
     class ClassCustomAttribute {
       @bindable public value!: string;
 
-      constructor(@INode private element: HTMLElement) {}
+      private element: HTMLElement;
+
+      public constructor(
+        @INode element: INode,
+      ) {
+        this.element = element as HTMLElement;
+      }
 
       public binding() {
         this.valueChanged();
@@ -21,7 +28,7 @@ export class CSSModulesProcessorRegistry implements IRegistry {
           return;
         }
 
-        this.element.className = this.value.split(' ')
+        this.element.className = getClassesToAdd(this.value)
           .map(x => classLookup[x] || x)
           .join(' ');
       }

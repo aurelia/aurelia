@@ -2,12 +2,9 @@ import {
   Constructable,
   DI,
   IContainer,
-  IRegistry,
   PLATFORM,
-  Profiler,
   Registration
 } from '@aurelia/kernel';
-
 import { IActivator } from './activator';
 import {
   IDOM,
@@ -31,13 +28,10 @@ import {
 import { ExposedContext } from './rendering-engine';
 import {
   CustomElement,
-  ICustomElementType
 } from './resources/custom-element';
 import { Controller } from './templating/controller';
 
 export interface ISinglePageApp<THost extends INode = INode> {
-  enableTimeSlicing?: boolean;
-  adaptiveTimeSlicing?: boolean;
   strategy?: BindingStrategy;
   dom?: IDOM;
   host: THost;
@@ -61,7 +55,7 @@ export class CompositionRoot<T extends INode = INode> {
 
   private createTask?: ILifecycleTask;
 
-  constructor(
+  public constructor(
     config: ISinglePageApp<T>,
     container: IContainer,
   ) {
@@ -159,7 +153,7 @@ export class CompositionRoot<T extends INode = INode> {
 
   private create(): void {
     const config = this.config;
-    this.viewModel = CustomElement.isType(config.component as ICustomElementType)
+    this.viewModel = CustomElement.isType(config.component as Constructable)
       ? this.container.get(config.component as Constructable | {}) as IHydratedViewModel<T>
       : config.component as IHydratedViewModel<T>;
 
@@ -169,11 +163,6 @@ export class CompositionRoot<T extends INode = INode> {
       this.host,
       this.strategy as number,
     );
-    if (config.enableTimeSlicing === true) {
-      this.lifecycle.enableTimeslicing(config.adaptiveTimeSlicing);
-    } else {
-      this.lifecycle.disableTimeslicing();
-    }
   }
 }
 
@@ -205,7 +194,7 @@ export class Aurelia<TNode extends INode = INode> {
 
   private next?: CompositionRoot<TNode>;
 
-  constructor(container: IContainer = DI.createContainer()) {
+  public constructor(container: IContainer = DI.createContainer()) {
     this.container = container;
     this.task = LifecycleTask.done;
 
@@ -220,12 +209,12 @@ export class Aurelia<TNode extends INode = INode> {
     Registration.instance(Aurelia, this).register(container);
   }
 
-  public register(...params: (IRegistry | Record<string, Partial<IRegistry>>)[]): this {
+  public register(...params: any[]): this {
     this.container.register(...params);
     return this;
   }
 
-  public app(config: ISinglePageApp<TNode>): this {
+  public app(config: ISinglePageApp<TNode>): Omit<this, 'register' | 'app'> {
     this.next = new CompositionRoot(config, this.container);
 
     if (this.isRunning) {

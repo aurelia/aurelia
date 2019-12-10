@@ -1,6 +1,6 @@
 const { resolve } = require('path');
 
-module.exports = function() {
+module.exports = function () {
   return {
     target: 'web',
     mode: 'development',
@@ -16,5 +16,5 @@ module.exports = function() {
       extensions: ['.js'],
       modules: ['.', 'node_modules']
     }
-  }
-}
+  };
+};

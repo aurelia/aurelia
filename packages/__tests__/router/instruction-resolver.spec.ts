@@ -1,5 +1,5 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { IRouter, RouterConfiguration, ViewportCustomElement, ViewportInstruction } from '@aurelia/router';
+import { IRouter, RouterConfiguration, ViewportInstruction } from '@aurelia/router';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
@@ -26,9 +26,9 @@ describe('InstructionResolver', function () {
     await au.start().wait();
 
     async function tearDown() {
+      router.deactivate();
       await au.stop().wait();
       ctx.doc.body.removeChild(host);
-      router.deactivate();
     }
 
     return { au, container, host, router, tearDown, ctx };
@@ -97,16 +97,16 @@ describe('InstructionResolver', function () {
   }
 
   for (const instructionTest of instructions) {
-    let { instruction, viewportInstruction } = instructionTest;
-    instruction = `/${instruction}`;
+    const { instruction, viewportInstruction } = instructionTest;
+    const prefixedInstruction = `/${instruction}`;
 
-    it(`parses viewport instruction: ${instruction}`, async function () {
+    it(`parses viewport instruction: ${prefixedInstruction}`, async function () {
       const { host, router, tearDown } = await setup();
 
-      const parsed = router.instructionResolver.parseViewportInstruction(instruction);
+      const parsed = router.instructionResolver.parseViewportInstruction(prefixedInstruction);
       assert.deepStrictEqual(parsed, viewportInstruction, `parsed`);
       const newInstruction = router.instructionResolver.stringifyViewportInstruction(parsed);
-      assert.strictEqual(`/${newInstruction}`, instruction, `newInstruction`);
+      assert.strictEqual(`/${newInstruction}`, prefixedInstruction, `newInstruction`);
 
       await tearDown();
     });
@@ -145,11 +145,11 @@ describe('InstructionResolver', function () {
     e.nextScopeInstructions = [f];
     f.nextScopeInstructions = [g];
 
-    let instructions: ViewportInstruction[] = [a, h];
+    const instructions: ViewportInstruction[] = [a, h];
 
-    let instructionsString = router.instructionResolver.stringifyViewportInstructions(instructions);
+    const instructionsString = router.instructionResolver.stringifyViewportInstructions(instructions);
     console.log('Instructions', instructionsString);
-    let parsedInstructions = router.instructionResolver.parseViewportInstructions(instructionsString);
+    const parsedInstructions = router.instructionResolver.parseViewportInstructions(instructionsString);
     console.log('Parsed', parsedInstructions);
     const stringified = router.instructionResolver.stringifyViewportInstructions(parsedInstructions);
     console.log('Stringified', stringified);

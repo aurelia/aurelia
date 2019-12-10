@@ -13,7 +13,7 @@ export interface ConfigurableRoute {
 }
 
 export class HandlerEntry {
-  constructor(
+  public constructor(
     public handler: RouteHandler,
     public names: string[]
   ) { }
@@ -23,7 +23,7 @@ export class HandlerEntry {
 * An object that is indexed and used for route generation, particularly for dynamic routes.
 */
 export class RouteGenerator {
-  constructor(
+  public constructor(
     public segments: Segment[],
     public handlers: HandlerEntry[]
   ) { }
@@ -36,7 +36,7 @@ export class TypesRecord {
 }
 
 export class RecognizeResult {
-  constructor(
+  public constructor(
     public handler: RouteHandler,
     public params: Record<string, string>,
     public isDynamic: boolean
@@ -48,7 +48,7 @@ export interface RecognizeResults extends Array<RecognizeResult> {
 }
 
 export class CharSpec {
-  constructor(
+  public constructor(
     public invalidChars: string | null,
     public validChars: string | null,
     public repeat: boolean
@@ -65,7 +65,7 @@ export class State {
   public types!: TypesRecord;
   public nextStates: State[] = [];
 
-  constructor(
+  public constructor(
     public charSpec?: CharSpec
   ) { }
 
@@ -113,7 +113,7 @@ export class StaticSegment {
   public string: string;
   public optional: boolean = false;
 
-  constructor(
+  public constructor(
     str: string,
     public caseSensitive: boolean
   ) {
@@ -149,10 +149,10 @@ export class StaticSegment {
 }
 
 export class DynamicSegment {
-  constructor(
+  public constructor(
     public name: string,
     public optional: boolean
-  ) { }
+  ) {}
 
   public eachChar(callback: (spec: CharSpec) => void): void {
     callback(new CharSpec('/', null, true));
@@ -171,7 +171,7 @@ export class DynamicSegment {
 export class StarSegment {
   public optional: boolean = false;
 
-  constructor(
+  public constructor(
     public name: string
   ) { }
 
@@ -211,18 +211,14 @@ export type Segment = StaticSegment | DynamicSegment | StarSegment | EpsilonSegm
  * Class that parses route patterns and matches path strings.
  */
 export class RouteRecognizer {
-  public rootState: State;
+  public rootState: State = new State();
   public names: Record<string, RouteGenerator> = {};
   public routes: Map<RouteHandler, RouteGenerator> = new Map();
-
-  constructor() {
-    this.rootState = new State();
-  }
 
   /**
    * Parse a route pattern and add it to the collection of recognized routes.
    *
-   * @param route The route to add.
+   * @param route - The route to add.
    */
   public add(route: ConfigurableRoute | ConfigurableRoute[]): State | undefined {
     if (Array.isArray(route)) {
@@ -241,7 +237,7 @@ export class RouteRecognizer {
     let isEmpty = true;
 
     let normalizedRoute = route.path;
-    if (normalizedRoute.charAt(0) === '/') {
+    if (normalizedRoute.startsWith('/')) {
       normalizedRoute = normalizedRoute.slice(1);
     }
 
@@ -254,10 +250,10 @@ export class RouteRecognizer {
       part = splitRoute[i];
 
       // Try to parse a parameter :param?
-      let match = part.match(/^:([^?]+)(\?)?$/);
+      let match = /^:([^?]+)(\?)?$/.exec(part);
       if (match) {
         const [, name, optional] = match;
-        if (name.indexOf('=') !== -1) {
+        if (name.includes('=')) {
           throw new Error(`Parameter ${name} in route ${route} has a default value, which is not supported.`);
         }
         segments.push(segment = new DynamicSegment(name, !!optional));
@@ -265,7 +261,7 @@ export class RouteRecognizer {
         types.dynamics++;
       } else {
         // Try to parse a star segment *whatever
-        match = part.match(/^\*(.+)$/);
+        match = /^\*(.+)$/.exec(part);
         if (match) {
           segments.push(segment = new StarSegment(match[1]));
           names.push(match[1]);
@@ -346,7 +342,7 @@ export class RouteRecognizer {
   /**
    * Retrieve a RouteGenerator for a route by name or RouteConfig (RouteHandler).
    *
-   * @param nameOrRoute The name of the route or RouteConfig object.
+   * @param nameOrRoute - The name of the route or RouteConfig object.
    * @returns The RouteGenerator for that route.
    */
   public getRoute(nameOrRoute: string | RouteHandler): RouteGenerator {
@@ -356,7 +352,7 @@ export class RouteRecognizer {
   /**
    * Retrieve the handlers registered for the route by name or RouteConfig (RouteHandler).
    *
-   * @param nameOrRoute The name of the route or RouteConfig object.
+   * @param nameOrRoute - The name of the route or RouteConfig object.
    * @returns The handlers.
    */
   public handlersFor(nameOrRoute: string | RouteHandler): HandlerEntry[] {
@@ -371,7 +367,7 @@ export class RouteRecognizer {
   /**
    * Check if this RouteRecognizer recognizes a route by name or RouteConfig (RouteHandler).
    *
-   * @param nameOrRoute The name of the route or RouteConfig object.
+   * @param nameOrRoute - The name of the route or RouteConfig object.
    * @returns True if the named route is recognized.
    */
   public hasRoute(nameOrRoute: string | RouteHandler): boolean {
@@ -381,9 +377,9 @@ export class RouteRecognizer {
   /**
    * Generate a path and query string from a route name or RouteConfig (RouteHandler) and params object.
    *
-   * @param nameOrRoute The name of the route or RouteConfig object.
-   * @param params The route params to use when populating the pattern.
-   *  Properties not required by the pattern will be appended to the query string.
+   * @param nameOrRoute - The name of the route or RouteConfig object.
+   * @param params - The route params to use when populating the pattern.
+   * Properties not required by the pattern will be appended to the query string.
    * @returns The generated absolute path and query string.
    */
   public generate(nameOrRoute: string | RouteHandler, params?: object): string {
@@ -420,7 +416,7 @@ export class RouteRecognizer {
       }
     }
 
-    if (output.charAt(0) !== '/') {
+    if (!output.startsWith('/')) {
       output = `/${output}`;
     }
 
@@ -438,10 +434,10 @@ export class RouteRecognizer {
   /**
    * Match a path string against registered route patterns.
    *
-   * @param path The path to attempt to match.
+   * @param path - The path to attempt to match.
    * @returns Array of objects containing `handler`, `params`, and
-   *  `isDynamic` values for the matched route(s), or undefined if no match
-   *  was found.
+   * `isDynamic` values for the matched route(s), or undefined if no match
+   * was found.
    */
   public recognize(path: string): RecognizeResults {
     let states = [this.rootState];
@@ -458,7 +454,7 @@ export class RouteRecognizer {
 
     normalizedPath = decodeURI(normalizedPath);
 
-    if (normalizedPath.charAt(0) !== '/') {
+    if (!normalizedPath.startsWith('/')) {
       normalizedPath = `/${normalizedPath}`;
     }
 
@@ -476,11 +472,11 @@ export class RouteRecognizer {
       states.forEach(state => {
         state.nextStates.forEach(nextState => {
           if ((nextState.charSpec as CharSpec).validChars !== null) {
-            if (((nextState.charSpec as CharSpec).validChars as string).indexOf(ch) !== -1) {
+            if (((nextState.charSpec as CharSpec).validChars as string).includes(ch)) {
               nextStates.push(nextState);
             }
           } else if ((nextState.charSpec as CharSpec).invalidChars !== null
-            && ((nextState.charSpec as CharSpec).invalidChars as string).indexOf(ch) === -1) {
+            && !((nextState.charSpec as CharSpec).invalidChars as string).includes(ch)) {
             nextStates.push(nextState);
           }
         });
@@ -533,9 +529,11 @@ export class RouteRecognizer {
     if (solution && solution.handlers) {
       // if a trailing slash was dropped and a star segment is the last segment
       // specified, put the trailing slash back
-      if (isSlashDropped && solution.regex.source.slice(-5) === '(.+)$') {
+      if (isSlashDropped && solution.regex.source.endsWith('(.+)$')) {
         normalizedPath = `${normalizedPath}/`;
       }
+
+      // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
       const captures = normalizedPath.match(solution.regex);
       let currentCapture = 1;
       const result = [] as RecognizeResults;

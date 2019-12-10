@@ -4,7 +4,6 @@ import {
   IController,
   State
 } from '@aurelia/runtime';
-
 import {
   Circle,
   Container,
@@ -78,8 +77,8 @@ export class PixiSprite {
   @bindable public cacheAsBitmap?: boolean;
   @bindable public cursor?: string;
   @bindable public filterArea?: Rectangle;
-  // tslint:disable-next-line:ban-types // Object usage is "inherited" from Pixi.
-  @bindable public filters?: Filter<Object>[];
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  @bindable public filters?: Filter<Object>[]; // Object usage is "inherited" from Pixi.
   @bindable public hitArea?: Rectangle | Circle | Ellipse | Polygon | RoundedRectangle;
   @bindable public interactive?: boolean;
   public get localTransform(): Matrix {
@@ -135,8 +134,8 @@ export class PixiSprite {
   }
   @bindable public pluginName?: string;
   @bindable public roundPixels?: boolean;
-  // tslint:disable-next-line:ban-types // Object usage is "inherited" from Pixi.
-  @bindable public shader?: Filter<Object> | Shader;
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  @bindable public shader?: Filter<Object> | Shader; // Object usage is "inherited" from Pixi.
   @bindable public texture?: Texture;
   @bindable public tint?: number;
 
@@ -144,7 +143,7 @@ export class PixiSprite {
 
   private _sprite: Sprite & { [key: string]: unknown } | null;
 
-  constructor() {
+  public constructor() {
     this._sprite = null;
   }
 
@@ -180,19 +179,19 @@ export class PixiSprite {
 }
 
 for (const prop of directProps) {
-  (PixiSprite.prototype as PixiSprite & { [key: string]: unknown })[`${prop}Changed`] = function(this: PixiSprite, newValue: unknown): void {
+  (PixiSprite.prototype as PixiSprite & { [key: string]: unknown })[`${prop}Changed`] = function (this: PixiSprite, newValue: unknown): void {
     if ((this.$controller.state & State.isBound) > 0 && this.sprite != null) {
       this.sprite[prop] = newValue;
     }
   };
 }
 for (const prop of pointProps) {
-  (PixiSprite.prototype as PixiSprite & { [key: string]: unknown })[`${prop}XChanged`] = function(this: PixiSprite, newValue: unknown): void {
+  (PixiSprite.prototype as PixiSprite & { [key: string]: unknown })[`${prop}XChanged`] = function (this: PixiSprite, newValue: unknown): void {
     if ((this.$controller.state & State.isBound) > 0 && this.sprite != null) {
       (this.sprite[prop] as { x: unknown }).x = newValue;
     }
   };
-  (PixiSprite.prototype as PixiSprite & { [key: string]: unknown })[`${prop}YChanged`] = function(this: PixiSprite, newValue: unknown): void {
+  (PixiSprite.prototype as PixiSprite & { [key: string]: unknown })[`${prop}YChanged`] = function (this: PixiSprite, newValue: unknown): void {
     if ((this.$controller.state & State.isBound) > 0 && this.sprite != null) {
       (this.sprite[prop] as { y: unknown }).y = newValue;
     }

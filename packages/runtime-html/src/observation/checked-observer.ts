@@ -2,18 +2,17 @@ import {
   CollectionKind,
   IAccessor,
   ICollectionObserver,
-  ILifecycle,
   IndexMap,
   IObserverLocator,
   ISubscriber,
   ISubscriberCollection,
   LifecycleFlags,
   ObserversLookup,
-  Priority,
   SetterObserver,
   subscriberCollection,
+  IScheduler,
+  ITask,
 } from '@aurelia/runtime';
-
 import { IEventSubscriber } from './event-manager';
 import { ValueAttributeObserver } from './value-attribute-observer';
 
@@ -34,43 +33,25 @@ export interface CheckedObserver extends
   ISubscriberCollection {}
 
 @subscriberCollection()
-export class CheckedObserver implements IAccessor<unknown> {
-  public readonly lifecycle: ILifecycle;
-  public readonly observerLocator: IObserverLocator;
-  public readonly handler: IEventSubscriber;
-
-  public readonly obj: IInputElement;
-  public currentValue: unknown;
-  public oldValue: unknown;
+export class CheckedObserver implements IAccessor {
+  public currentValue: unknown = void 0;
+  public oldValue: unknown = void 0;
 
   public readonly persistentFlags: LifecycleFlags;
 
-  public hasChanges: boolean;
-  public priority: Priority;
+  public hasChanges: boolean = false;
+  public task: ITask | null = null;
 
-  public arrayObserver?: ICollectionObserver<CollectionKind.array>;
-  public valueObserver?: ValueAttributeObserver | SetterObserver;
+  public arrayObserver?: ICollectionObserver<CollectionKind.array> = void 0;
+  public valueObserver?: ValueAttributeObserver | SetterObserver = void 0;
 
-  constructor(
-    lifecycle: ILifecycle,
+  public constructor(
+    public readonly scheduler: IScheduler,
     flags: LifecycleFlags,
-    observerLocator: IObserverLocator,
-    handler: IEventSubscriber,
-    obj: IInputElement,
+    public readonly observerLocator: IObserverLocator,
+    public readonly handler: IEventSubscriber,
+    public readonly obj: IInputElement,
   ) {
-    this.lifecycle = lifecycle;
-    this.observerLocator = observerLocator;
-    this.handler = handler;
-
-    this.obj = obj;
-    this.currentValue = void 0;
-    this.oldValue = void 0;
-
-    this.hasChanges = false;
-    this.priority = Priority.propagate;
-
-    this.arrayObserver = void 0;
-    this.valueObserver = void 0;
     this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
@@ -82,13 +63,16 @@ export class CheckedObserver implements IAccessor<unknown> {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
     if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
-      this.flushRAF(flags);
-    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue) {
-      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
+      this.flushChanges(flags);
+    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
+      this.task = this.scheduler.queueRenderTask(() => {
+        this.flushChanges(flags);
+        this.task = null;
+      });
     }
   }
 
-  public flushRAF(flags: LifecycleFlags): void {
+  public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
       const { currentValue } = this;
@@ -129,8 +113,11 @@ export class CheckedObserver implements IAccessor<unknown> {
     } else {
       this.hasChanges = true;
     }
-    if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue) {
-      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
+    if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
+      this.task = this.scheduler.queueRenderTask(() => {
+        this.flushChanges(flags);
+        this.task = null;
+      });
     }
     this.callSubscribers(currentValue, oldValue, flags);
   }
@@ -141,15 +128,15 @@ export class CheckedObserver implements IAccessor<unknown> {
     } else {
       this.hasChanges = true;
     }
-    if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue) {
-      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
+    if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
+      this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags));
     }
     this.callSubscribers(newValue, previousValue, flags);
   }
 
   public synchronizeElement(): void {
     const { currentValue, obj } = this;
-    const elementValue = obj.hasOwnProperty('model') ? obj.model : obj.value;
+    const elementValue = Object.prototype.hasOwnProperty.call(obj, 'model') ? obj.model : obj.value;
     const isRadio = obj.type === 'radio';
     const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;
 
@@ -168,7 +155,7 @@ export class CheckedObserver implements IAccessor<unknown> {
     this.oldValue = this.currentValue;
     let { currentValue } = this;
     const { obj } = this;
-    const elementValue = obj.hasOwnProperty('model') ? obj.model : obj.value;
+    const elementValue = Object.prototype.hasOwnProperty.call(obj, 'model') ? obj.model : obj.value;
     let index: number;
     const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;
 
@@ -195,7 +182,10 @@ export class CheckedObserver implements IAccessor<unknown> {
 
   public bind(flags: LifecycleFlags): void {
     if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
-      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+      if (this.task !== null) {
+        this.task.cancel();
+      }
+      this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
     }
     this.currentValue = this.obj.checked;
   }
@@ -210,8 +200,9 @@ export class CheckedObserver implements IAccessor<unknown> {
       this.valueObserver.unsubscribe(this);
     }
 
-    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
-      this.lifecycle.dequeueRAF(this.flushRAF, this);
+    if (this.task !== null) {
+      this.task.cancel();
+      this.task = null;
     }
   }
 

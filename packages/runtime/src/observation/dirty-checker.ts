@@ -1,8 +1,8 @@
-import { DI, IIndexable, Key, Reporter, Tracer } from '@aurelia/kernel';
+import { DI, IIndexable, Reporter } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
-import { ILifecycle, Priority } from '../lifecycle';
 import { IBindingTargetObserver, IObservable, ISubscriber } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
+import { IScheduler, ITask } from '../scheduler';
 
 export interface IDirtyChecker {
   createProperty(obj: object, propertyName: string): IBindingTargetObserver;
@@ -54,18 +54,14 @@ export const DirtyCheckSettings = {
 
 /** @internal */
 export class DirtyChecker {
-  public static readonly inject: readonly Key[] = [ILifecycle];
+  private readonly tracked: DirtyCheckProperty[] = [];
 
-  private readonly tracked: DirtyCheckProperty[];
-  private readonly lifecycle: ILifecycle;
+  public task: ITask | null = null;
+  private elapsedFrames: number = 0;
 
-  private elapsedFrames: number;
-
-  public constructor(lifecycle: ILifecycle) {
-    this.elapsedFrames = 0;
-    this.tracked = [];
-    this.lifecycle = lifecycle;
-  }
+  public constructor(
+    @IScheduler public readonly scheduler: IScheduler,
+  ) {}
 
   public createProperty(obj: object, propertyName: string): DirtyCheckProperty {
     if (DirtyCheckSettings.throw) {
@@ -74,21 +70,22 @@ export class DirtyChecker {
     if (DirtyCheckSettings.warn) {
       Reporter.write(801, propertyName);
     }
-    return new DirtyCheckProperty(this, obj, propertyName);
+    return new DirtyCheckProperty(this, obj as IIndexable, propertyName);
   }
 
   public addProperty(property: DirtyCheckProperty): void {
     this.tracked.push(property);
 
     if (this.tracked.length === 1) {
-      this.lifecycle.enqueueRAF(this.check, this, Priority.low);
+      this.task = this.scheduler.queueRenderTask(() => this.check(), { persistent: true });
     }
   }
 
   public removeProperty(property: DirtyCheckProperty): void {
     this.tracked.splice(this.tracked.indexOf(property), 1);
     if (this.tracked.length === 0) {
-      this.lifecycle.dequeueRAF(this.check, this);
+      this.task!.cancel();
+      this.task = null;
     }
   }
 
@@ -113,24 +110,17 @@ export class DirtyChecker {
   }
 }
 
-const slice = Array.prototype.slice;
-
 export interface DirtyCheckProperty extends IBindingTargetObserver { }
 
 @subscriberCollection()
 export class DirtyCheckProperty implements DirtyCheckProperty {
-  public obj: IObservable & IIndexable;
   public oldValue: unknown;
-  public propertyKey: string;
 
-  private readonly dirtyChecker: IDirtyChecker;
-
-  constructor(dirtyChecker: IDirtyChecker, obj: object, propertyKey: string) {
-    this.obj = obj as IObservable & IIndexable;
-    this.propertyKey = propertyKey;
-
-    this.dirtyChecker = dirtyChecker;
-  }
+  public constructor(
+    private readonly dirtyChecker: IDirtyChecker,
+    public obj: IObservable & IIndexable,
+    public propertyKey: string,
+  ) {}
 
   public isDirty(): boolean {
     return this.oldValue !== this.obj[this.propertyKey];

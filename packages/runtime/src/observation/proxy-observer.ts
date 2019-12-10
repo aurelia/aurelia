@@ -1,4 +1,4 @@
-import { PLATFORM, Tracer } from '@aurelia/kernel';
+import { PLATFORM } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import {
   IPropertyObserver,
@@ -10,7 +10,6 @@ import {
 } from '../observation';
 import { proxySubscriberCollection, subscriberCollection } from './subscriber-collection';
 
-const slice = Array.prototype.slice;
 type Indexable = Record<string | number, unknown>;
 
 const lookup: WeakMap<object, IProxy> = new WeakMap();
@@ -18,18 +17,13 @@ export interface ProxySubscriberCollection extends IPropertyObserver<Indexable, 
 
 @subscriberCollection()
 export class ProxySubscriberCollection<TObj extends object = object> implements ProxySubscriberCollection<TObj> {
-  public inBatch: boolean;
+  public inBatch: boolean = false;
 
-  public readonly proxy: IProxy<TObj>;
-  public readonly raw: TObj;
-  public readonly key: string | number;
-  constructor(proxy: IProxy<TObj>, raw: TObj, key: string | number) {
-
-    this.inBatch = false;
-
-    this.raw = raw;
-    this.key = key;
-    this.proxy = proxy;
+  public constructor(
+    public readonly proxy: IProxy<TObj>,
+    public readonly raw: TObj,
+    public readonly key: string | number,
+  ) {
     this.subscribe = this.addSubscriber;
     this.unsubscribe = this.removeSubscriber;
     if (raw[key as keyof TObj] instanceof Object) { // Ensure we observe array indices and newly created object properties
@@ -49,7 +43,7 @@ export class ProxySubscriberCollection<TObj extends object = object> implements 
   }
 
   public flushBatch(flags: LifecycleFlags): void {
-
+    return;
   }
 }
 
@@ -61,7 +55,7 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
   public readonly raw: TObj;
   private readonly subscribers: Record<string | number, ProxySubscriberCollection<TObj>>;
 
-  constructor(obj: TObj) {
+  public constructor(obj: TObj) {
     this.raw = obj;
     this.proxy = new Proxy<TObj>(obj, this) as IProxy<TObj>;
     lookup.set(obj, this.proxy);
@@ -161,8 +155,8 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
   }
 
   public apply(target: TObj, thisArg: unknown, argArray: ArrayLike<unknown> = PLATFORM.emptyArray): unknown {
-    // tslint:disable-next-line:ban-types // Reflect API dictates this
-    return Reflect.apply(target as Function, target, argArray);
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    return Reflect.apply(target as Function, target, argArray); // Reflect API dictates this
   }
 
   public subscribe(subscriber: IProxySubscriber): void;

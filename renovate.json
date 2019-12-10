@@ -19,6 +19,11 @@
   "node": {
     "supportPolicy": ["lts"]
   },
+  "ignoreDeps": [
+    "i18next",
+    "pixi.js",
+    "@types/pixi.js"
+  ],
   "packageRules": [
     {
       "depTypeList": ["devDependencies"],
@@ -34,19 +39,19 @@
     },
     {
       "packageNames": ["chromedriver"],
-      "allowedVersions": "^74.0.0"
+      "allowedVersions": "^77.0.0"
     },
     {
       "packageNames": ["karma"],
       "allowedVersions": "~4.1.0"
     },
     {
-      "packageNames": ["mocha"],
-      "allowedVersions": "~6.1.4"
+      "packageNames": ["http-server"],
+      "allowedVersions": "0.9.0"
     },
     {
-      "packageNames": ["pixi.js", "@types/pixi.js"],
-      "allowedVersions": "~4.8.8"
+      "packageNames": ["mocha"],
+      "allowedVersions": "~6.1.4"
     }
   ]
 }

@@ -4,7 +4,13 @@
 
 ## Getting Started
 
-* [Quick Start Guide](getting-started/quick-start-guide.md)
+* [Quick Start Guide](getting-started/quick-start-guide/README.md)
+  * [Creating Your First App](getting-started/quick-start-guide/creating-your-first-app.md)
+  * [Exploring the Source Code](getting-started/quick-start-guide/exploring-the-source-code.md)
+  * [Your First Component - Part 1: The View-Model](getting-started/quick-start-guide/your-first-component-part-1-the-view-model.md)
+  * [Your First Component - Part 2: The View](getting-started/quick-start-guide/your-first-component-part-2-the-view.md)
+  * [Beyond the Basics](getting-started/quick-start-guide/bonus.md)
+  * [Next Steps](getting-started/quick-start-guide/next-steps.md)
 * [Building Components](getting-started/components.md)
 * [Displaying Basic Data](getting-started/displaying-basic-data.md)
 * [Rendering Collections](getting-started/rendering-collections.md)
@@ -16,6 +22,7 @@
 * [Building a Contact Manager App](app-basics/building-a-contact-manager-app.md)
 * [Working with Form Elements](app-basics/working-with-form-elements.md)
 * [Dependency Injection](app-basics/dependency-injection.md)
+* [Components Revisited](app-basics/more-components.md)
 * [Styling Components](app-basics/styling-components.md)
 * [Routing](app-basics/routing.md)
 * [Tooling](app-basics/tooling.md)
@@ -59,10 +66,21 @@
 
 ## Examples
 
+* [Binding & Templating](examples/binding-and-templating/README.md)
+  * [Expression Syntax](examples/binding-and-templating/expression-syntax.md)
 * [Custom Attributes](examples/custom-attributes/README.md)
   * [Binding to Element Size](examples/custom-attributes/binding-to-element-size.md)
 * [Routing](examples/routing/README.md)
   * [Configuring Auth-Protected Routes](examples/routing/configuring-auth-protected-routes.md)
+
+## Community Contribution
+
+* [Joining the Community](community-contribution/joining-the-community.md)
+* [Code of Conduct](community-contribution/code-of-conduct.md)
+* [Contributor Guide](community-contribution/contributor-guide.md)
+* [Build and Testing Aurelia](community-contribution/building-and-testing-aurelia.md)
+* [Writing Documentation](community-contribution/writing-documentation.md)
+* [Translating Documentation](community-contribution/translating-documentation.md)
 
 ## Resources
 
@@ -74,13 +92,4 @@
 * [The Aurelia Team](resources/the-aurelia-team.md)
 * [Glossary](resources/glossary.md)
 * [Cheat Sheet](resources/cheat-sheet.md)
-
-## Community Contributions
-
-* [Joining the Community](community-contributions/joining-the-community.md)
-* [Code of Conduct](community-contributions/code-of-conduct.md)
-* [Contributor Guide](community-contributions/contributor-guide.md)
-* [Build and Testing Aurelia](community-contributions/building-and-testing-aurelia.md)
-* [Writing Documentation](community-contributions/writing-documentation.md)
-* [Translating Documentation](community-contributions/translating-documentation.md)
 

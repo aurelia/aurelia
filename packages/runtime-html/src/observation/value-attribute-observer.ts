@@ -1,14 +1,13 @@
 import { IIndexable } from '@aurelia/kernel';
 import {
   IAccessor,
-  ILifecycle,
   ISubscriber,
   ISubscriberCollection,
   LifecycleFlags,
-  Priority,
   subscriberCollection,
+  IScheduler,
+  ITask,
 } from '@aurelia/runtime';
-
 import { IEventSubscriber } from './event-manager';
 
 export interface ValueAttributeObserver
@@ -16,38 +15,26 @@ export interface ValueAttributeObserver
 
 // TODO: handle file attribute properly again, etc
 
+/**
+ * Observer for non-radio, non-checkbox input.
+ */
 @subscriberCollection()
-export class ValueAttributeObserver implements IAccessor<unknown> {
-  public readonly lifecycle: ILifecycle;
-  public readonly handler: IEventSubscriber;
-
-  public readonly obj: Node & IIndexable;
-  public readonly propertyKey: string;
-  public currentValue: unknown;
-  public oldValue: unknown;
+export class ValueAttributeObserver implements IAccessor {
+  public currentValue: unknown = '';
+  public oldValue: unknown = '';
 
   public readonly persistentFlags: LifecycleFlags;
 
-  public hasChanges: boolean;
-  public priority: Priority;
+  public hasChanges: boolean = false;
+  public task: ITask | null = null;
 
-  constructor(
-    lifecycle: ILifecycle,
+  public constructor(
+    public readonly scheduler: IScheduler,
     flags: LifecycleFlags,
-    handler: IEventSubscriber,
-    obj: Node,
-    propertyKey: string,
+    public readonly handler: IEventSubscriber,
+    public readonly obj: Node & IIndexable,
+    public readonly propertyKey: string,
   ) {
-    this.lifecycle = lifecycle;
-    this.handler = handler;
-
-    this.obj = obj as Node & IIndexable;
-    this.propertyKey = propertyKey;
-    this.currentValue = '';
-    this.oldValue = '';
-
-    this.hasChanges = false;
-    this.priority = Priority.propagate;
     this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
@@ -59,13 +46,16 @@ export class ValueAttributeObserver implements IAccessor<unknown> {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
     if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
-      this.flushRAF(flags);
-    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue) {
-      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority, true);
+      this.flushChanges(flags);
+    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
+      this.task = this.scheduler.queueRenderTask(() => {
+        this.flushChanges(flags);
+        this.task = null;
+      });
     }
   }
 
-  public flushRAF(flags: LifecycleFlags): void {
+  public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
       const { currentValue, oldValue } = this;
@@ -108,13 +98,17 @@ export class ValueAttributeObserver implements IAccessor<unknown> {
 
   public bind(flags: LifecycleFlags): void {
     if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
-      this.lifecycle.enqueueRAF(this.flushRAF, this, this.priority);
+      if (this.task !== null) {
+        this.task.cancel();
+      }
+      this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
     }
   }
 
   public unbind(flags: LifecycleFlags): void {
-    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
-      this.lifecycle.dequeueRAF(this.flushRAF, this);
+    if (this.task !== null) {
+      this.task.cancel();
+      this.task = null;
     }
   }
 }

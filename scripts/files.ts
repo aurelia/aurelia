@@ -27,9 +27,9 @@ export async function getFiles(
         }
 
         let dirent: Dirent;
-        const dirents_length = dirents.length;
+        const direntsLength = dirents.length;
 
-        for (let i = 0; i < dirents_length; ++i) {
+        for (let i = 0; i < direntsLength; ++i) {
           dirent = dirents[i];
           if (isMatch(dir, dirent)) {
             if (dirent.isDirectory()) {
@@ -62,7 +62,7 @@ export class File {
   public content: Buffer;
   private buffer: Buffer;
 
-  constructor(path: string) {
+  public constructor(path: string) {
     this.path = path;
     this.content = emptyBuffer;
     this.buffer = emptyBuffer;
@@ -73,7 +73,7 @@ export class File {
       if (existsSync(fromPath)) {
         const content = await readFile(fromPath);
         await this.overwrite(content);
-  
+
         if (deleteFromPath) {
           await unlink(fromPath);
         }
@@ -152,7 +152,7 @@ export class File {
         }
       }
 
-      stream.on('open', onStreamOpen);
+      stream.on('open', onStreamOpen as (descriptor: number) => void);
     }
 
     return new Promise(streamCompare);

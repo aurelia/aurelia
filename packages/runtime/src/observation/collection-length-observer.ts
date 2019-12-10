@@ -7,9 +7,9 @@ export interface CollectionLengthObserver extends ISubscriberCollection {}
 @subscriberCollection()
 export class CollectionLengthObserver {
   public currentValue: number;
-  public obj: unknown[];
-  constructor(obj: unknown[]) {
-    this.obj = obj;
+  public constructor(
+    public obj: unknown[],
+  ) {
     this.currentValue = obj.length;
   }
   public getValue(): number {

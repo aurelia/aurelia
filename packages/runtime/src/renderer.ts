@@ -4,11 +4,13 @@ import {
   IContainer,
   IRegistry,
   IResolver,
-  Key,
   Registration,
   Reporter,
+  Metadata,
+  IIndexable,
+  IServiceLocator,
 } from '@aurelia/kernel';
-import { AnyBindingExpression } from './ast';
+import { AnyBindingExpression, IsBindingBehavior } from './ast';
 import { CallBinding } from './binding/call-binding';
 import { BindingType, IExpressionParser } from './binding/expression-parser';
 import { InterpolationBinding, MultiInterpolationBinding } from './binding/interpolation-binding';
@@ -17,7 +19,6 @@ import { PropertyBinding } from './binding/property-binding';
 import { RefBinding } from './binding/ref-binding';
 import {
   ICallBindingInstruction,
-  IElementHydrationOptions,
   IHydrateAttributeInstruction,
   IHydrateElementInstruction,
   IHydrateLetElementInstruction,
@@ -31,8 +32,7 @@ import {
   ISetPropertyInstruction,
   ITargetedInstruction,
   TargetedInstructionType,
-  TemplateDefinition,
-  TemplatePartDefinitions
+  PartialCustomElementDefinitionParts
 } from './definitions';
 import { IDOM, INode } from './dom';
 import { BindingMode, LifecycleFlags } from './flags';
@@ -52,11 +52,14 @@ import {
   CustomAttribute,
 } from './resources/custom-attribute';
 import {
-  CustomElement, CustomElementHost,
+  CustomElement, CustomElementDefinition,
 } from './resources/custom-element';
 import {
   Controller,
 } from './templating/controller';
+import { ObserversLookup } from './observation';
+import { BindingBehaviorExpression } from './binding/ast';
+import { BindingBehaviorFactory, BindingBehaviorInstance, IInterceptableBinding } from './resources/binding-behavior';
 
 type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>>, TClass> & Partial<IRegistry>;
 type DecoratedInstructionRenderer<TType extends string, TProto, TClass> =  Class<TProto & IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>, TClass> & IRegistry;
@@ -66,7 +69,7 @@ type InstructionRendererDecorator<TType extends string> = <TProto, TClass>(targe
 export function instructionRenderer<TType extends string>(instructionType: TType): InstructionRendererDecorator<TType> {
   return function decorator<TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>): DecoratedInstructionRenderer<TType, TProto, TClass> {
     // wrap the constructor to set the instructionType to the instance (for better performance than when set on the prototype)
-    const decoratedTarget = function(...args: unknown[]): TProto {
+    const decoratedTarget = function (...args: unknown[]): TProto {
       const instance = new target(...args);
       instance.instructionType = instructionType;
       return instance;
@@ -75,9 +78,13 @@ export function instructionRenderer<TType extends string>(instructionType: TType
     decoratedTarget.register = function register(container: IContainer): void {
       Registration.singleton(IInstructionRenderer, decoratedTarget).register(container);
     };
-    // copy over any static properties such as inject (set by preceding decorators)
+    // copy over any metadata such as annotations (set by preceding decorators) as well as static properties set by the user
     // also copy the name, to be less confusing to users (so they can still use constructor.name for whatever reason)
     // the length (number of ctor arguments) is copied for the same reason
+    const metadataKeys = Metadata.getOwnKeys(target);
+    for (const key of metadataKeys) {
+      Metadata.define(key, Metadata.getOwn(key, target), decoratedTarget);
+    }
     const ownProperties = Object.getOwnPropertyDescriptors(target);
     Object.keys(ownProperties).filter(prop => prop !== 'prototype').forEach(prop => {
       Reflect.defineProperty(decoratedTarget, prop, ownProperties[prop]);
@@ -88,11 +95,11 @@ export function instructionRenderer<TType extends string>(instructionType: TType
 
 /* @internal */
 export class Renderer implements IRenderer {
-  public static readonly inject: readonly Key[] = [all(IInstructionRenderer)];
-
   public instructionRenderers: Record<InstructionTypeName, IInstructionRenderer['render']>;
 
-  constructor(instructionRenderers: IInstructionRenderer[]) {
+  public constructor(
+    @all(IInstructionRenderer) instructionRenderers: IInstructionRenderer[],
+  ) {
     const record: Record<InstructionTypeName, IInstructionRenderer['render']> = this.instructionRenderers = {};
     instructionRenderers.forEach(item => {
       // Binding the functions to the renderer instances and calling the functions directly,
@@ -106,8 +113,16 @@ export class Renderer implements IRenderer {
     return Registration.singleton(IRenderer, this).register(container);
   }
 
-  // tslint:disable-next-line:parameters-max-number
-  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, targets: ArrayLike<INode>, definition: TemplateDefinition, host?: INode, parts?: TemplatePartDefinitions): void {
+  public render(
+    flags: LifecycleFlags,
+    dom: IDOM,
+    context: IRenderContext,
+    renderable: IController,
+    targets: ArrayLike<INode>,
+    definition: CustomElementDefinition,
+    host?: INode,
+    parts?: PartialCustomElementDefinitionParts,
+  ): void {
     const targetInstructions = definition.instructions;
     const instructionRenderers = this.instructionRenderers;
 
@@ -118,7 +133,7 @@ export class Renderer implements IRenderer {
         throw Reporter.error(31);
       }
     }
-    let instructions: ITargetedInstruction[];
+    let instructions: readonly ITargetedInstruction[];
     let target: INode;
     let current: ITargetedInstruction;
     for (let i = 0, ii = targets.length; i < ii; ++i) {
@@ -176,60 +191,64 @@ export function getRefTarget(refHost: INode, refTargetName: string): object {
   if (refTargetName === 'element') {
     return refHost;
   }
-  const $auRefs = refHost.$au;
-  if ($auRefs === void 0) {
-    // todo: code error code, this message is from v1
-    throw new Error(`No Aurelia APIs are defined for the element: "${(refHost as { tagName: string }).tagName}".`);
-  }
   switch (refTargetName) {
     case 'controller':
       // this means it supports returning undefined
-      return (refHost as CustomElementHost<INode>).$controller as IController;
+      return CustomElement.for(refHost)!;
     case 'view':
       // todo: returns node sequences for fun?
       throw new Error('Not supported API');
     case 'view-model':
-        // this means it supports returning undefined
-        return ((refHost as CustomElementHost<INode>).$controller as IController).viewModel!;
-    default:
-      const refTargetController = $auRefs[refTargetName];
-      if (refTargetController === void 0) {
+      // this means it supports returning undefined
+      return CustomElement.for(refHost)!.viewModel!;
+    default: {
+      const caController = CustomAttribute.for(refHost, refTargetName);
+      if (caController !== void 0) {
+        return caController.viewModel!;
+      }
+      const ceController = CustomElement.for(refHost, refTargetName);
+      if (ceController === void 0) {
         throw new Error(`Attempted to reference "${refTargetName}", but it was not found amongst the target's API.`);
       }
-      return refTargetController.viewModel!;
+      return ceController.viewModel!;
+    }
   }
-}
-
-function setControllerReference<T extends INode = INode>(
-  controller: Controller<T>,
-  host: T,
-  referenceName: string
-): void {
-  let $auRefs = host.$au;
-  if ($auRefs === void 0) {
-    $auRefs = host.$au = new ControllersLookup<T>();
-  }
-  $auRefs[referenceName] = controller;
-}
-
-class ControllersLookup<T extends INode> {
-  [key: string]: IController<T>;
 }
 
 @instructionRenderer(TargetedInstructionType.setProperty)
 /** @internal */
 export class SetPropertyRenderer implements IInstructionRenderer {
-  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: ISetPropertyInstruction): void {
-    getTarget(target)[instruction.to as keyof object] = (instruction.value === '' ? true : instruction.value) as never; // Yeah, yeah..
+  public render(
+    flags: LifecycleFlags,
+    dom: IDOM,
+    context: IRenderContext,
+    renderable: IController,
+    target: IController,
+    instruction: ISetPropertyInstruction,
+  ): void {
+    const obj = getTarget(target) as IIndexable & { $observers: ObserversLookup };
+    if (obj.$observers !== void 0 && obj.$observers[instruction.to] !== void 0) {
+      obj.$observers[instruction.to].setValue(instruction.value, LifecycleFlags.fromBind);
+    } else {
+      obj[instruction.to] = instruction.value;
+    }
   }
 }
 
 @instructionRenderer(TargetedInstructionType.hydrateElement)
 /** @internal */
 export class CustomElementRenderer implements IInstructionRenderer {
-  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IHydrateElementInstruction): void {
-    const operation = context.beginComponentOperation(renderable, target, instruction, null!, null!, target, true);
-    const component = context.get<object>(CustomElement.keyFrom(instruction.res));
+  public render(
+    flags: LifecycleFlags,
+    dom: IDOM,
+    context: IRenderContext,
+    renderable: IController,
+    target: INode,
+    instruction: IHydrateElementInstruction,
+  ): void {
+    const operation = context.beginComponentOperation(renderable, target, instruction, null, null!, target, true);
+    const key = CustomElement.keyFrom(instruction.res);
+    const component = context.get<object>(key);
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
 
@@ -238,10 +257,10 @@ export class CustomElementRenderer implements IInstructionRenderer {
       context,
       target,
       flags,
-      instruction as IElementHydrationOptions,
+      instruction,
     );
 
-    setControllerReference(controller, controller.host!, instruction.res);
+    Metadata.define(key, controller, target);
 
     let current: ITargetedInstruction;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
@@ -258,19 +277,22 @@ export class CustomElementRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.hydrateAttribute)
 /** @internal */
 export class CustomAttributeRenderer implements IInstructionRenderer {
-  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IHydrateAttributeInstruction): void {
+  public render(
+    flags: LifecycleFlags,
+    dom: IDOM,
+    context: IRenderContext,
+    renderable: IController,
+    target: INode,
+    instruction: IHydrateAttributeInstruction,
+  ): void {
     const operation = context.beginComponentOperation(renderable, target, instruction);
-    const component = context.get<object>(CustomAttribute.keyFrom(instruction.res));
+    const key = CustomAttribute.keyFrom(instruction.res);
+    const component = context.get<object>(key);
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
 
-    const controller = Controller.forCustomAttribute(
-      component,
-      context,
-      flags,
-    );
-
-    setControllerReference(controller, target, instruction.res);
+    const controller = Controller.forCustomAttribute(component, context, flags);
+    Metadata.define(key, controller, target);
 
     let current: ITargetedInstruction;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
@@ -287,16 +309,25 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.hydrateTemplateController)
 /** @internal */
 export class TemplateControllerRenderer implements IInstructionRenderer {
-  constructor(
+  public constructor(
     @IRenderingEngine private readonly renderingEngine: IRenderingEngine,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
 
-  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IHydrateTemplateController, parts?: TemplatePartDefinitions): void {
+  public render(
+    flags: LifecycleFlags,
+    dom: IDOM,
+    context: IRenderContext,
+    renderable: IController,
+    target: INode,
+    instruction: IHydrateTemplateController,
+    parts?: PartialCustomElementDefinitionParts,
+  ): void {
     const factory = this.renderingEngine.getViewFactory(dom, instruction.def, context);
     const renderLocation = dom.convertToRenderLocation(target);
     const operation = context.beginComponentOperation(renderable, target, instruction, factory, parts, renderLocation, false);
-    const component = context.get<object>(CustomAttribute.keyFrom(instruction.res));
+    const key = CustomAttribute.keyFrom(instruction.res);
+    const component = context.get<object>(key);
     const instructionRenderers = context.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
     if (instruction.parts !== void 0) {
@@ -314,13 +345,12 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     }
 
     const controller = Controller.forCustomAttribute(component, context, flags);
+    Metadata.define(key, controller, renderLocation);
 
     if (instruction.link) {
       const controllers = renderable.controllers!;
       (component as { link(componentTail: IController): void}).link(controllers[controllers.length - 1]);
     }
-
-    setControllerReference(controller, renderLocation, instruction.res);
 
     let current: ITargetedInstruction;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
@@ -337,15 +367,22 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.hydrateLetElement)
 /** @internal */
 export class LetElementRenderer implements IInstructionRenderer {
-  constructor(
+  public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
 
-  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IHydrateLetElementInstruction): void {
+  public render(
+    flags: LifecycleFlags,
+    dom: IDOM,
+    context: IRenderContext,
+    renderable: IController,
+    target: INode,
+    instruction: IHydrateLetElementInstruction,
+  ): void {
     dom.remove(target);
     const childInstructions = instruction.instructions;
-    const toViewModel = instruction.toViewModel;
+    const toBindingContext = instruction.toBindingContext;
 
     let childInstruction: ILetBindingInstruction;
     let expr: AnyBindingExpression;
@@ -353,7 +390,11 @@ export class LetElementRenderer implements IInstructionRenderer {
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       childInstruction = childInstructions[i];
       expr = ensureExpression(this.parser, childInstruction.from, BindingType.IsPropertyCommand);
-      binding = new LetBinding(expr, childInstruction.to, this.observerLocator, context, toViewModel);
+      binding = applyBindingBehavior(
+        new LetBinding(expr, childInstruction.to, this.observerLocator, context, toBindingContext),
+        expr as unknown as IsBindingBehavior,
+        context,
+      ) as LetBinding;
       addBinding(renderable, binding);
     }
   }
@@ -362,14 +403,25 @@ export class LetElementRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.callBinding)
 /** @internal */
 export class CallBindingRenderer implements IInstructionRenderer {
-  constructor(
+  public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
 
-  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: ICallBindingInstruction): void {
+  public render(
+    flags: LifecycleFlags,
+    dom: IDOM,
+    context: IRenderContext,
+    renderable: IController,
+    target: IController,
+    instruction: ICallBindingInstruction,
+  ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.CallCommand);
-    const binding = new CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, context);
+    const binding = applyBindingBehavior(
+      new CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, context),
+      expr,
+      context,
+    );
     addBinding(renderable, binding);
   }
 }
@@ -377,13 +429,24 @@ export class CallBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.refBinding)
 /** @internal */
 export class RefBindingRenderer implements IInstructionRenderer {
-  constructor(
+  public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
   ) {}
 
-  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: INode, instruction: IRefBindingInstruction): void {
+  public render(
+    flags: LifecycleFlags,
+    dom: IDOM,
+    context: IRenderContext,
+    renderable: IController,
+    target: INode,
+    instruction: IRefBindingInstruction,
+  ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsRef);
-    const binding = new RefBinding(expr, getRefTarget(target, instruction.to), context);
+    const binding = applyBindingBehavior(
+      new RefBinding(expr, getRefTarget(target, instruction.to), context),
+      expr,
+      context,
+    );
     addBinding(renderable, binding);
   }
 }
@@ -391,18 +454,33 @@ export class RefBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.interpolation)
 /** @internal */
 export class InterpolationBindingRenderer implements IInstructionRenderer {
-  constructor(
+  public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
 
-  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: IInterpolationInstruction): void {
+  public render(
+    flags: LifecycleFlags,
+    dom: IDOM,
+    context: IRenderContext,
+    renderable: IController,
+    target: IController,
+    instruction: IInterpolationInstruction,
+  ): void {
     let binding: MultiInterpolationBinding | InterpolationBinding;
     const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation);
     if (expr.isMulti) {
-      binding = new MultiInterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, BindingMode.toView, context);
+      binding = applyBindingBehavior(
+        new MultiInterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, BindingMode.toView, context),
+        expr as unknown as IsBindingBehavior,
+        context,
+      ) as MultiInterpolationBinding;
     } else {
-      binding = new InterpolationBinding(expr.firstExpression, expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context, true);
+      binding = applyBindingBehavior(
+        new InterpolationBinding(expr.firstExpression, expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context, true),
+        expr as unknown as IsBindingBehavior,
+        context,
+      ) as InterpolationBinding;
     }
     addBinding(renderable, binding);
   }
@@ -411,14 +489,25 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.propertyBinding)
 /** @internal */
 export class PropertyBindingRenderer implements IInstructionRenderer {
-  constructor(
+  public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
 
-  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: IPropertyBindingInstruction): void {
+  public render(
+    flags: LifecycleFlags,
+    dom: IDOM,
+    context: IRenderContext,
+    renderable: IController,
+    target: IController,
+    instruction: IPropertyBindingInstruction,
+  ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | instruction.mode);
-    const binding = new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context);
+    const binding = applyBindingBehavior(
+      new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context),
+      expr,
+      context,
+    );
     addBinding(renderable, binding);
   }
 }
@@ -426,14 +515,48 @@ export class PropertyBindingRenderer implements IInstructionRenderer {
 @instructionRenderer(TargetedInstructionType.iteratorBinding)
 /** @internal */
 export class IteratorBindingRenderer implements IInstructionRenderer {
-  constructor(
+  public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
 
-  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: IController, instruction: IIteratorBindingInstruction): void {
+  public render(
+    flags: LifecycleFlags,
+    dom: IDOM,
+    context: IRenderContext,
+    renderable: IController,
+    target: IController,
+    instruction: IIteratorBindingInstruction,
+  ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.ForCommand);
-    const binding = new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context);
+    const binding = applyBindingBehavior(
+      new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context),
+      expr as unknown as IsBindingBehavior,
+      context,
+    );
     addBinding(renderable, binding);
   }
+}
+
+let behaviorExpressionIndex = 0;
+const behaviorExpressions: BindingBehaviorExpression[] = [];
+
+export function applyBindingBehavior(
+  binding: IInterceptableBinding,
+  expression: IsBindingBehavior,
+  locator: IServiceLocator,
+): IInterceptableBinding {
+  while (expression instanceof BindingBehaviorExpression) {
+    behaviorExpressions[behaviorExpressionIndex++] = expression;
+    expression = expression.expression;
+  }
+  while (behaviorExpressionIndex > 0) {
+    const behaviorExpression = behaviorExpressions[--behaviorExpressionIndex];
+    const behaviorOrFactory = locator.get<BindingBehaviorFactory | BindingBehaviorInstance>(behaviorExpression.behaviorKey);
+    if (behaviorOrFactory instanceof BindingBehaviorFactory) {
+      binding = behaviorOrFactory.construct(binding, behaviorExpression);
+    }
+  }
+  behaviorExpressions.length = 0;
+  return binding;
 }

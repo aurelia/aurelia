@@ -1,13 +1,5 @@
-// tslint:disable: no-any
-
 export interface IPerformance {
   now(): number;
-  mark(name: string): void;
-  measure(name: string, start?: string, end?: string): void;
-  getEntriesByName(name: string): IPerformanceEntry[];
-  getEntriesByType(type: string): IPerformanceEntry[];
-  clearMarks(name?: string): void;
-  clearMeasures(name?: string): void;
 }
 
 export interface IPerformanceEntry {
@@ -19,9 +11,10 @@ export interface IPerformanceEntry {
 
 export type ITimerHandler = string | ((...args: unknown[]) => void);
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 declare namespace NodeJS {
   interface Process {
-    // tslint:disable-next-line:no-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     env?: any;
     uptime(): number;
     hrtime(): [number, number];
@@ -35,7 +28,7 @@ export interface IStorage {
   key(index: number): string | null;
   removeItem(key: string): void;
   setItem(key: string, value: string): void;
-  // tslint:disable-next-line:no-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [name: string]: any;
 }
 
@@ -44,19 +37,10 @@ export interface IWindowOrWorkerGlobalScope {
   readonly performance: IPerformance;
   readonly localStorage?: IStorage;
   readonly Intl: typeof Intl;
-
-  clearInterval(handle?: number): void;
-  clearTimeout(handle?: number): void;
-  // tslint:disable-next-line:no-any
-  setInterval(handler: ITimerHandler, timeout?: number, ...args: any[]): number;
-  // tslint:disable-next-line:no-any
-  setTimeout(handler: ITimerHandler, timeout?: number, ...args: any[]): number;
-  requestAnimationFrame(callback: IFrameRequestCallback): number;
-  cancelAnimationFrame(handle: number): void;
 }
 
 export interface IFrameRequestCallback {
-  // tslint:disable-next-line:callable-types
+  // eslint-disable-next-line @typescript-eslint/prefer-function-type
   (time: number): void;
 }
 
@@ -69,7 +53,7 @@ export interface IDisposable {
 }
 
 export type Constructable<T = {}> = {
-  // tslint:disable-next-line:callable-types
+  // eslint-disable-next-line @typescript-eslint/prefer-function-type
   new(...args: any[]): T;
 };
 
@@ -128,18 +112,18 @@ export type Purify<T extends string> = { [P in T]: T }[T];
 
 export type Public<T> = { [P in keyof T]: T[P] };
 
-// tslint:disable-next-line:no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Param0<Func> = Func extends (a: infer T, ...args: any[]) => any ? T : never;
 
-// tslint:disable-next-line:no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Param1<Func> = Func extends (a: any, b: infer T, ...args: any[]) => any ? T : never;
 
-// tslint:disable-next-line:no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Param2<Func> = Func extends (a: any, b: any, c: infer T, ...args: any[]) => any
   ? T
   : never;
 
-// tslint:disable-next-line:no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Param3<Func> = Func extends (a: any, b: any, c: any, d: infer T, ...args: any[]) => any
   ? T
   : never;
@@ -156,14 +140,11 @@ export type Pick3<T, K1 extends keyof T, K2 extends keyof T[K1], K3 extends keyo
 
 export type Primitive = undefined | null | number | boolean | string | symbol;
 
-// https://github.com/palantir/tslint/issues/4235
-// tslint:disable:no-shadowed-variable
 export type Unwrap<T> =
     T extends (infer U)[] ? U :
-    T extends (...args: unknown[]) => infer U ? U :
-    T extends Promise<infer U> ? U :
-    T;
-// tslint:enable:no-shadowed-variable
+      T extends (...args: unknown[]) => infer U ? U :
+        T extends Promise<infer U> ? U :
+          T;
 
 export type StrictPrimitive = string | number | boolean | null | undefined;
 

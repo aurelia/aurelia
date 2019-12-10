@@ -1,21 +1,23 @@
-import { inject } from "@aurelia/kernel";
-import { IRouter } from "@aurelia/router";
-import { bindable } from "@aurelia/runtime";
-import { Article } from "shared/models/article";
-import { ArticleService } from "shared/services/article-service";
-import { SharedState } from "shared/state/shared-state";
+import { inject } from '@aurelia/kernel';
+import { IRouter } from '@aurelia/router';
+import { bindable } from '@aurelia/runtime';
+
+import { Article } from 'shared/models/article';
+import { ArticleService } from 'shared/services/article-service';
+import { SharedState } from 'shared/state/shared-state';
 
 @inject(ArticleService, SharedState, IRouter)
 export class ArticleMeta {
   @bindable public article?: Article;
 
-  constructor(private readonly articleService: ArticleService,
-              private readonly sharedState: SharedState,
-              private readonly router: IRouter) {
-  }
+  public constructor(
+    private readonly articleService: ArticleService,
+    private readonly sharedState: SharedState,
+    private readonly router: IRouter,
+  ) {}
 
-  get canModify() {
-    if (!this.article || !this.article.author) { return; }
+  public get canModify() {
+    if (!this.article || !this.article.author) { return false; }
     return this.article.author.username === this.sharedState.currentUser.username;
   }
 

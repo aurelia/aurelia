@@ -1,4 +1,4 @@
-import { IEventAggregator, IServiceLocator, PLATFORM, toArray } from '@aurelia/kernel';
+import { IEventAggregator, IServiceLocator, toArray } from '@aurelia/kernel';
 import {
   addBinding,
   BindingType,
@@ -19,10 +19,11 @@ import {
   IScope,
   IsExpression,
   LifecycleFlags,
-  State
+  State,
+  INode
 } from '@aurelia/runtime';
 import i18next from 'i18next';
-import { I18N, I18nService } from '../i18n';
+import { I18N } from '../i18n';
 import { Signals } from '../utils';
 
 interface TranslationBindingCreationContext {
@@ -45,25 +46,31 @@ interface ContentValue {
 
 const attributeAliases = new Map([['text', 'textContent'], ['html', 'innerHTML']]);
 
+export interface TranslationBinding extends IConnectableBinding {}
+
 @connectable()
 export class TranslationBinding implements IPartialConnectableBinding {
+  public interceptor: this = this;
   public id!: number;
   public $state: State;
   public expr!: IsExpression;
   public parametersExpr?: IsExpression;
-  private readonly i18n: I18nService;
-  private readonly contentAttributes: ReadonlyArray<string> = contentAttributes;
+  private readonly i18n: I18N;
+  private readonly contentAttributes: readonly string[] = contentAttributes;
   private keyExpression!: string;
   private translationParameters!: i18next.TOptions;
   private scope!: IScope;
   private isInterpolatedSourceExpr!: boolean;
   private readonly targetObservers: Set<IBindingTargetAccessor>;
 
-  constructor(
-    public readonly target: HTMLElement,
+  public readonly target: HTMLElement;
+
+  public constructor(
+    target: INode,
     public observerLocator: IObserverLocator,
-    public locator: IServiceLocator
+    public locator: IServiceLocator,
   ) {
+    this.target = target as HTMLElement;
     this.$state = State.none;
     this.i18n = this.locator.get(I18N);
     const ea: IEventAggregator = this.locator.get(IEventAggregator);
@@ -97,8 +104,9 @@ export class TranslationBinding implements IPartialConnectableBinding {
 
     this.keyExpression = this.expr.evaluate(flags, scope, this.locator, part) as string;
     if (this.parametersExpr) {
-      this.translationParameters = this.parametersExpr.evaluate(flags, scope, this.locator, part) as i18next.TOptions;
-      this.parametersExpr.connect(flags, scope, this as any, part);
+      const parametersFlags = flags | LifecycleFlags.secondaryExpression;
+      this.translationParameters = this.parametersExpr.evaluate(parametersFlags, scope, this.locator, part) as i18next.TOptions;
+      this.parametersExpr.connect(parametersFlags, scope, this as any, part);
     }
 
     const expressions = !(this.expr instanceof CustomExpression) ? this.isInterpolatedSourceExpr ? (this.expr as Interpolation).expressions : [this.expr] : [];
@@ -122,7 +130,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
     }
 
     if (this.parametersExpr && this.parametersExpr.unbind) {
-      this.parametersExpr.unbind(flags, this.scope, this as any);
+      this.parametersExpr.unbind(flags | LifecycleFlags.secondaryExpression, this.scope, this as any);
     }
     this.unobserveTargets(flags);
 
@@ -131,12 +139,13 @@ export class TranslationBinding implements IPartialConnectableBinding {
   }
 
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {
-    if (typeof newValue === 'object') {
-      this.translationParameters = newValue;
+    if (flags & LifecycleFlags.secondaryExpression) {
+      // @ToDo, @Fixme: where do we get "part" from (last argument for evaluate)?
+      this.translationParameters = this.parametersExpr!.evaluate(flags, this.scope, this.locator) as i18next.TOptions;
     } else {
       this.keyExpression = this.isInterpolatedSourceExpr
         ? this.expr.evaluate(flags, this.scope, this.locator, '') as string
-        : newValue;
+        : newValue as string;
     }
     this.updateTranslations(flags);
   }
@@ -167,7 +176,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   }
 
   private updateAttribute(attribute: string, value: string, flags: LifecycleFlags) {
-    const controller = CustomElement.behaviorFor(this.target);
+    const controller = CustomElement.for(this.target);
     const observer = controller && controller.viewModel
       ? this.observerLocator.getAccessor(LifecycleFlags.none, controller.viewModel, attribute)
       : this.observerLocator.getAccessor(LifecycleFlags.none, this.target, attribute);

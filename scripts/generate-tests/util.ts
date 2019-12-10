@@ -1,5 +1,6 @@
 import { writeFileSync } from 'fs';
 import {
+  addSyntheticLeadingComment,
   ArrayLiteralExpression,
   ClassElement,
   ClassExpression,
@@ -67,7 +68,7 @@ export function emit(path: string, ...nodes: Node[]): void {
       content += `${printer.printNode(EmitHint.Unspecified, node, emptyFile)}\n`;
     }
   }
-  writeFileSync(path, `// tslint:disable:quotemark member-access no-all-duplicated-branches\r\n${content.slice(0, -1)}\r\n`, { encoding: 'utf8' });
+  writeFileSync(path, `${content.slice(0, -1)}\r\n`, { encoding: 'utf8' });
 }
 
 export function addRange(start: number, end: number, ...records: Record<string, boolean>[]): void {
@@ -116,7 +117,7 @@ export function $access(nameOrPath: string | [string | Expression | Identifier, 
 export function $access(nameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]]): PropertyAccessExpression | Identifier {
   if (Array.isArray(nameOrPath)) {
     let left = $id(nameOrPath[0]);
-    const rest = <(string | Identifier)[]>nameOrPath.slice(1);
+    const rest = nameOrPath.slice(1) as (string | Identifier)[];
     rest.forEach(name => {
       left = createPropertyAccess(left, $id(name));
     });
@@ -200,6 +201,10 @@ export function $$new(variable: string, path: [string | Expression | Identifier,
 export function $$new(variable: string, nameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]], variablesOrExpressions?: (string | Expression | Identifier)[]): Statement;
 export function $$new(variable: string, nameOrPath: string | [string | Expression | Identifier, ...(string | Identifier)[]], variablesOrExpressions: (string | Expression | Identifier)[] = []): Statement {
   return $$const(variable, $new(nameOrPath, variablesOrExpressions));
+}
+
+export function $$comment(comment: string, arg: Statement): Statement {
+  return addSyntheticLeadingComment(arg, SyntaxKind.SingleLineCommentTrivia, ` ${comment}`, true);
 }
 
 export function $$const(name: string, initializer: Expression): VariableStatement;
@@ -288,7 +293,7 @@ export function $method(name: string, statements: Statement[], params?: Paramete
     return createMethod([], modifiers, undefined, $id(name), undefined, undefined, params, undefined, createBlock(statements, true));
   }
 }
-export function $class(elements: ReadonlyArray<ClassElement>): ClassExpression {
+export function $class(elements: readonly ClassElement[]): ClassExpression {
   return createClassExpression([], undefined, [], [], elements);
 }
 export function $functionExpr(parameters: ParameterDeclaration[], statements: Statement[]): Expression;

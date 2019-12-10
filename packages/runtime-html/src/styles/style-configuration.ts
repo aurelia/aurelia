@@ -7,7 +7,8 @@ import {
   AdoptedStyleSheetsStyles,
   IShadowDOMStyles,
   noopShadowDOMStyles,
-  StyleElementStyles
+  StyleElementStyles,
+  IShadowDOMGlobalStyles
 } from './shadow-dom-styles';
 
 const ext = '.css';
@@ -61,18 +62,18 @@ export const StyleConfiguration = {
         };
       }
 
-      let globalSharedStyles: IShadowDOMStyles;
+      let globalStyles: IShadowDOMStyles;
 
       if (config && config.sharedStyles) {
-        globalSharedStyles = createStyles(config.sharedStyles, null);
+        globalStyles = createStyles(config.sharedStyles, null);
       } else {
-        globalSharedStyles = noopShadowDOMStyles;
+        globalStyles = noopShadowDOMStyles;
       }
 
       container.register(
         Registration.instance(
-          IShadowDOMStyles,
-          globalSharedStyles
+          IShadowDOMGlobalStyles,
+          globalStyles
         )
       );
 
@@ -80,7 +81,7 @@ export const StyleConfiguration = {
         Registration.instance(
           ext,
           new ShadowDOMRegistry(
-            globalSharedStyles,
+            globalStyles,
             createStyles
           )
         )

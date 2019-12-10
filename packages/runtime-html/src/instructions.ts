@@ -13,117 +13,95 @@ import {
 } from './definitions';
 
 export class TextBindingInstruction implements ITextBindingInstruction {
-  public type: HTMLTargetedInstructionType.textBinding;
+  public type: HTMLTargetedInstructionType.textBinding = HTMLTargetedInstructionType.textBinding;
 
-  public from: string | IInterpolationExpression;
-
-  constructor(from: string | IInterpolationExpression) {
-    this.type = HTMLTargetedInstructionType.textBinding;
-
-    this.from = from;
-  }
+  public constructor(
+    public from: string | IInterpolationExpression,
+  ) {}
 }
 
 export class TriggerBindingInstruction implements IListenerBindingInstruction {
-  public type: HTMLTargetedInstructionType.listenerBinding;
+  public type: HTMLTargetedInstructionType.listenerBinding = HTMLTargetedInstructionType.listenerBinding;
 
-  public from: string | IsBindingBehavior;
-  public preventDefault: true;
-  public strategy: DelegationStrategy.none;
-  public to: string;
+  public preventDefault: true = true;
+  public strategy: DelegationStrategy.none = DelegationStrategy.none;
 
-  constructor(from: string | IsBindingBehavior, to: string) {
-    this.type = HTMLTargetedInstructionType.listenerBinding;
-
-    this.from = from;
-    this.preventDefault = true;
-    this.strategy = DelegationStrategy.none;
-    this.to = to;
-  }
+  public constructor(
+    public from: string | IsBindingBehavior,
+    public to: string,
+  ) {}
 }
 
 export class DelegateBindingInstruction implements IListenerBindingInstruction {
-  public type: HTMLTargetedInstructionType.listenerBinding;
+  public type: HTMLTargetedInstructionType.listenerBinding = HTMLTargetedInstructionType.listenerBinding;
 
-  public from: string | IsBindingBehavior;
-  public preventDefault: false;
-  public strategy: DelegationStrategy.bubbling;
-  public to: string;
+  public preventDefault: false = false;
+  public strategy: DelegationStrategy.bubbling = DelegationStrategy.bubbling;
 
-  constructor(from: string | IsBindingBehavior, to: string) {
-    this.type = HTMLTargetedInstructionType.listenerBinding;
-
-    this.from = from;
-    this.preventDefault = false;
-    this.strategy = DelegationStrategy.bubbling;
-    this.to = to;
-  }
+  public constructor(
+    public from: string | IsBindingBehavior,
+    public to: string,
+  ) {}
 }
 
 export class CaptureBindingInstruction implements IListenerBindingInstruction {
-  public type: HTMLTargetedInstructionType.listenerBinding;
+  public type: HTMLTargetedInstructionType.listenerBinding = HTMLTargetedInstructionType.listenerBinding;
 
-  public from: string | IsBindingBehavior;
-  public preventDefault: false;
-  public strategy: DelegationStrategy.capturing;
-  public to: string;
+  public preventDefault: false = false;
+  public strategy: DelegationStrategy.capturing = DelegationStrategy.capturing;
 
-  constructor(from: string | IsBindingBehavior, to: string) {
-    this.type = HTMLTargetedInstructionType.listenerBinding;
-
-    this.from = from;
-    this.preventDefault = false;
-    this.strategy = DelegationStrategy.capturing;
-    this.to = to;
-  }
+  public constructor(
+    public from: string | IsBindingBehavior,
+    public to: string,
+  ) {}
 }
 
 export class StylePropertyBindingInstruction implements IStylePropertyBindingInstruction {
-  public type: HTMLTargetedInstructionType.stylePropertyBinding;
+  public type: HTMLTargetedInstructionType.stylePropertyBinding = HTMLTargetedInstructionType.stylePropertyBinding;
 
-  public from: string | IsBindingBehavior;
-  public to: string;
-
-  constructor(from: string | IsBindingBehavior, to: string) {
-    this.type = HTMLTargetedInstructionType.stylePropertyBinding;
-
-    this.from = from;
-    this.to = to;
-  }
+  public constructor(
+    public from: string | IsBindingBehavior,
+    public to: string,
+  ) {}
 }
 
 export class SetAttributeInstruction implements ITargetedInstruction {
-  public type: HTMLTargetedInstructionType.setAttribute;
+  public type: HTMLTargetedInstructionType.setAttribute = HTMLTargetedInstructionType.setAttribute;
 
-  public to: string;
-  public value: string;
+  public constructor(
+    public value: string,
+    public to: string,
+  ) {}
+}
 
-  constructor(value: string, to: string) {
-    this.type = HTMLTargetedInstructionType.setAttribute;
+export class SetClassAttributeInstruction implements ITargetedInstruction {
+  public readonly type: HTMLTargetedInstructionType.setClassAttribute = HTMLTargetedInstructionType.setClassAttribute;
 
-    this.to = to;
-    this.value = value;
-  }
+  public constructor(
+    public readonly value: string,
+  ) {}
+}
+
+export class SetStyleAttributeInstruction implements ITargetedInstruction {
+  public readonly type: HTMLTargetedInstructionType.setStyleAttribute = HTMLTargetedInstructionType.setStyleAttribute;
+
+  public constructor(
+    public readonly value: string,
+  ) {}
 }
 
 export class AttributeBindingInstruction implements IAttributeBindingInstruction {
-  public type: HTMLTargetedInstructionType.attributeBinding;
+  public type: HTMLTargetedInstructionType.attributeBinding = HTMLTargetedInstructionType.attributeBinding;
 
-  public from: string | IsBindingBehavior;
-  /**
-   * `attr` and `to` have the same value on a normal attribute
-   * Will be different on `class` and `style`
-   * on `class`: attr = `class` (from binding command), to = attribute name
-   * on `style`: attr = `style` (from binding command), to = attribute name
-   */
-  public attr: string;
-  public to: string;
-
-  constructor(attr: string, from: string | IsBindingBehavior, to: string) {
-    this.type = HTMLTargetedInstructionType.attributeBinding;
-
-    this.from = from;
-    this.attr = attr;
-    this.to = to;
-  }
+  public constructor(
+    /**
+     * `attr` and `to` have the same value on a normal attribute
+     * Will be different on `class` and `style`
+     * on `class`: attr = `class` (from binding command), to = attribute name
+     * on `style`: attr = `style` (from binding command), to = attribute name
+     */
+    public attr: string,
+    public from: string | IsBindingBehavior,
+    public to: string,
+  ) {}
 }

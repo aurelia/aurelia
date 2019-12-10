@@ -118,7 +118,9 @@ export {
 export {
   ArrayObserver,
   enableArrayObservation,
-  disableArrayObservation
+  disableArrayObservation,
+  applyMutationsToIndices,
+  synchronizeIndices,
 } from './observation/array-observer';
 export {
   MapObserver,
@@ -172,8 +174,8 @@ export {
   ProxyObserver
 } from './observation/proxy-observer';
 export {
-  SelfObserver
-} from './observation/self-observer';
+  BindableObserver
+} from './observation/bindable-observer';
 export {
   SetterObserver
 } from './observation/setter-observer';
@@ -189,10 +191,12 @@ export {
 export {
   bindingBehavior,
   BindingBehavior,
-  IBindingBehavior,
-  IBindingBehaviorDefinition,
-  IBindingBehaviorResource,
-  IBindingBehaviorType
+  BindingBehaviorDefinition,
+  PartialBindingBehaviorDefinition,
+  BindingBehaviorKind,
+  BindingBehaviorDecorator,
+  BindingBehaviorInstance,
+  BindingBehaviorType,
 } from './resources/binding-behavior';
 export {
   BindingModeBehavior,
@@ -202,30 +206,25 @@ export {
   TwoWayBindingBehavior
 } from './resources/binding-behaviors/binding-mode';
 export {
-  DebounceableBinding,
   DebounceBindingBehavior
 } from './resources/binding-behaviors/debounce';
-export {
-  PriorityBindingBehavior,
-} from './resources/binding-behaviors/priority';
 export {
   SignalableBinding,
   SignalBindingBehavior
 } from './resources/binding-behaviors/signals';
 export {
-  ThrottleableBinding,
   ThrottleBindingBehavior
 } from './resources/binding-behaviors/throttle';
 
 export {
   customAttribute,
-  CustomAttributeConstructor,
   CustomAttributeDecorator,
   CustomAttribute,
-  dynamicOptions,
-  ICustomAttributeResource,
-  ICustomAttributeType,
-  templateController
+  CustomAttributeDefinition,
+  CustomAttributeKind,
+  CustomAttributeType,
+  PartialCustomAttributeDefinition,
+  templateController,
 } from './resources/custom-attribute';
 export {
   FrequentMutations,
@@ -251,21 +250,25 @@ export {
   customElement,
   CustomElementHost,
   CustomElement,
-  ICustomElementDecorator,
-  ICustomElementResource,
-  ICustomElementType,
+  CustomElementDecorator,
+  CustomElementKind,
+  CustomElementType,
+  CustomElementDefinition,
+  PartialCustomElementDefinition,
   IElementProjector,
   IProjectorLocator,
   useShadowDOM
 } from './resources/custom-element';
 
 export {
-  IValueConverter,
-  IValueConverterDefinition,
-  IValueConverterResource,
-  IValueConverterType,
+  ValueConverter,
+  ValueConverterDefinition,
+  PartialValueConverterDefinition,
+  ValueConverterKind,
+  ValueConverterDecorator,
+  ValueConverterInstance,
+  ValueConverterType,
   valueConverter,
-  ValueConverter
 } from './resources/value-converter';
 export {
   ISanitizer,
@@ -276,16 +279,34 @@ export {
 } from './resources/value-converters/view';
 
 export {
+  Clock,
+  IClock,
+  IClockSettings,
+  IScheduler,
+  ITask,
+  ITaskQueue,
+  QueueTaskOptions,
+  Task,
+  TaskAbortError,
+  TaskCallback,
+  TaskQueue,
+  TaskQueuePriority,
+  TaskStatus,
+  QueueTaskTargetOptions,
+} from './scheduler';
+
+export {
   bindable,
-  BindableDecorator,
-  WithBindables,
+  PartialBindableDefinition,
+  BindableDefinition,
   Bindable,
 } from './templating/bindable';
 
 export {
+  PartialChildrenDefinition,
+  ChildrenDefinition,
+  Children,
   children,
-  ChildrenDecorator,
-  HasChildrenObservers
 } from './templating/children';
 
 // These exports are temporary until we have a proper way to unit test them
@@ -296,7 +317,8 @@ export {
   ViewFactory,
   IViewLocator,
   ViewLocator,
-  view
+  view,
+  Views,
 } from './templating/view';
 
 export {
@@ -318,7 +340,6 @@ export {
   OneTimeBindingBehaviorRegistration,
   ToViewBindingBehaviorRegistration,
   FromViewBindingBehaviorRegistration,
-  PriorityBindingBehaviorRegistration,
   SignalBindingBehaviorRegistration,
   ThrottleBindingBehaviorRegistration,
   TwoWayBindingBehaviorRegistration,
@@ -338,21 +359,12 @@ export {
   IObserverLocatorRegistration,
   ILifecycleRegistration,
   IRendererRegistration,
-  RuntimeBasicConfiguration
+  RuntimeConfiguration
 } from './configuration';
 export {
-  AttributeDefinition,
   AttributeInstruction,
-  BindableDefinitions,
-  BindableSource,
-  buildTemplateDefinition,
-  CustomElementConstructor,
   HooksDefinition,
-  IAttributeDefinition,
-  IBindableDescription,
-  IBuildInstruction,
   ICallBindingInstruction,
-  IElementHydrationOptions,
   IHydrateAttributeInstruction,
   IHydrateElementInstruction,
   IHydrateLetElementInstruction,
@@ -367,12 +379,12 @@ export {
   ISetPropertyInstruction,
   isTargetedInstruction,
   ITargetedInstruction,
-  ITemplateDefinition,
   NodeInstruction,
   TargetedInstruction,
   TargetedInstructionType,
-  TemplateDefinition,
-  TemplatePartDefinitions
+  PartialCustomElementDefinitionParts,
+  alias,
+  registerAliases
 } from './definitions';
 export {
   DOM,
@@ -416,7 +428,7 @@ export {
   IRenderContext,
   IViewCache,
   IViewFactory,
-  Priority,
+  MountStrategy,
 } from './lifecycle';
 export {
   PromiseOrTask,
@@ -478,11 +490,11 @@ export {
   instructionRenderer,
   ensureExpression,
   addComponent,
-  addBinding
+  addBinding,
+  applyBindingBehavior,
 } from './renderer';
 export {
   CompiledTemplate,
-  createRenderContext,
   ChildrenObserver,
   IInstructionRenderer,
   IInstructionTypeClassifier,
@@ -493,3 +505,6 @@ export {
   ITemplateFactory,
   ViewCompileFlags,
 } from './rendering-engine';
+export {
+  RenderContext,
+} from './render-context';

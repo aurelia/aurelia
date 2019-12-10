@@ -1,5 +1,4 @@
 import {
-  Constructable,
   IContainer,
   IResolver,
   Key,
@@ -8,7 +7,6 @@ import {
   Reporter,
   Writable
 } from '@aurelia/kernel';
-
 import {
   CompiledTemplate,
   DOM,
@@ -20,8 +18,10 @@ import {
   ITemplate,
   ITemplateFactory,
   NodeSequence,
-  TemplateDefinition
+  CustomElementDefinition,
+  CustomElement
 } from '@aurelia/runtime';
+import { ShadowDOMProjector } from './projectors';
 
 export const enum NodeType {
   Element = 1,
@@ -38,9 +38,7 @@ export const enum NodeType {
   Notation = 12
 }
 
-function isRenderLocation(node: Node): node is Node & IRenderLocation {
-  return node.textContent === 'au-end';
-}
+const effectiveParentNodeOverrides = new WeakMap<Node, Node>();
 
 /**
  * IDOM implementation for Html.
@@ -52,12 +50,10 @@ export class HTMLDOM implements IDOM {
   public readonly CustomEvent: typeof CustomEvent;
   public readonly CSSStyleSheet: typeof CSSStyleSheet;
   public readonly ShadowRoot: typeof ShadowRoot;
-  public readonly window: Window;
-  public readonly document: Document;
 
-  constructor(
-    window: Window,
-    document: Document,
+  public constructor(
+    public readonly window: Window,
+    public readonly document: Document,
     TNode: typeof Node,
     TElement: typeof Element,
     THTMLElement: typeof HTMLElement,
@@ -65,8 +61,6 @@ export class HTMLDOM implements IDOM {
     TCSSStyleSheet: typeof CSSStyleSheet,
     TShadowRoot: typeof ShadowRoot
   ) {
-    this.window = window;
-    this.document = document;
     this.Node = TNode;
     this.Element = TElement;
     this.HTMLElement = THTMLElement;
@@ -144,8 +138,8 @@ export class HTMLDOM implements IDOM {
     return this.window.fetch(input, init);
   }
 
-  // tslint:disable-next-line:no-any // this is how the DOM is typed
-  public createCustomEvent<T = any>(eventType: string, options?: CustomEventInit<T>): CustomEvent<T> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public createCustomEvent<T = any>(eventType: string, options?: CustomEventInit<T>): CustomEvent<T> { // this is how the DOM is typed
     return new this.CustomEvent(eventType, options);
   }
 
@@ -157,8 +151,8 @@ export class HTMLDOM implements IDOM {
     if (typeof MutationObserver === 'undefined') {
       // TODO: find a proper response for this scenario
       return {
-        disconnect(): void { /*empty*/ },
-        observe(): void { /*empty*/ },
+        disconnect(): void { /* empty */ },
+        observe(): void { /* empty */ },
         takeRecords(): MutationRecord[] { return PLATFORM.emptyArray as typeof PLATFORM.emptyArray & MutationRecord[]; }
       };
     }
@@ -180,6 +174,95 @@ export class HTMLDOM implements IDOM {
   }
   public createTextNode(text: string): Text {
     return this.document.createTextNode(text);
+  }
+
+  /**
+   * Returns the effective parentNode according to Aurelia's component hierarchy.
+   *
+   * Used by Aurelia to find the closest parent controller relative to a node.
+   *
+   * This method supports 3 additional scenarios that `node.parentNode` does not support:
+   * - Containerless elements. The parentNode in this case is a comment precending the element under specific conditions, rather than a node wrapping the element.
+   * - ShadowDOM. If a `ShadowRoot` is encountered, this method retrieves the associated controller via the metadata api to locate the original host.
+   * - Portals. If the provided node was moved to a different location in the DOM by a `portal` attribute, then the original parent of the node will be returned.
+   *
+   * @param node - The node to get the parent for.
+   * @returns Either the closest parent node, the closest `IRenderLocation` (comment node that is the containerless host), original portal host, or `null` if this is either the absolute document root or a disconnected node.
+   */
+  public getEffectiveParentNode(node: Node): Node | null {
+    // TODO: this method needs more tests!
+    // First look for any overrides
+    if (effectiveParentNodeOverrides.has(node)) {
+      return effectiveParentNodeOverrides.get(node)!;
+    }
+
+    // Then try to get the nearest au-start render location, which would be the containerless parent,
+    // again looking for any overrides along the way.
+    // otherwise return the normal parent node
+    let containerlessOffset = 0;
+    let next = node.nextSibling;
+    while (next !== null) {
+      if (next.nodeType === NodeType.Comment) {
+        switch (next.textContent) {
+          case 'au-start':
+            // If we see an au-start before we see au-end, it will precede the host of a sibling containerless element rather than a parent.
+            // So we use the offset to ignore the next au-end
+            ++containerlessOffset;
+            break;
+          case 'au-end':
+            if (containerlessOffset-- === 0) {
+              return next;
+            }
+        }
+      }
+      next = next.nextSibling;
+    }
+
+    if (node.parentNode === null && node.nodeType === NodeType.DocumentFragment) {
+      // Could be a shadow root; see if there's a controller and if so, get the original host via the projector
+      const controller = CustomElement.for(node);
+      if (controller === void 0) {
+        // Not a shadow root (or at least, not one created by Aurelia)
+        // Nothing more we can try, just return null
+        return null;
+      }
+      const projector = controller.projector!;
+      if (projector instanceof ShadowDOMProjector) {
+        // Now we can use the original host to traverse further up
+        return this.getEffectiveParentNode(projector.host);
+      }
+    }
+
+    return node.parentNode;
+  }
+
+  /**
+   * Set the effective parentNode, overriding the DOM-based structure that `getEffectiveParentNode` otherwise defaults to.
+   *
+   * Used by Aurelia's `portal` template controller to retain the linkage between the portaled nodes (after they are moved to the portal target) and the original `portal` host.
+   *
+   * @param nodeSequence - The node sequence whose children that, when `getEffectiveParentNode` is called on, return the supplied `parentNode`.
+   * @param parentNode - The node to return when `getEffectiveParentNode` is called on any child of the supplied `nodeSequence`.
+   */
+  public setEffectiveParentNode(nodeSequence: INodeSequence, parentNode: Node): void;
+  /**
+   * Set the effective parentNode, overriding the DOM-based structure that `getEffectiveParentNode` otherwise defaults to.
+   *
+   * Used by Aurelia's `portal` template controller to retain the linkage between the portaled nodes (after they are moved to the portal target) and the original `portal` host.
+   *
+   * @param childNode - The node that, when `getEffectiveParentNode` is called on, returns the supplied `parentNode`.
+   * @param parentNode - The node to return when `getEffectiveParentNode` is called on the supplied `childNode`.
+   */
+  public setEffectiveParentNode(childNode: Node, parentNode: Node): void;
+  public setEffectiveParentNode(childNodeOrNodeSequence: Node | INodeSequence, parentNode: Node): void {
+    if (this.isNodeInstance(childNodeOrNodeSequence)) {
+      effectiveParentNodeOverrides.set(childNodeOrNodeSequence, parentNode);
+    } else {
+      const nodes = childNodeOrNodeSequence.childNodes;
+      for (let i = 0, ii = nodes.length; i < ii; ++i) {
+        effectiveParentNodeOverrides.set(nodes[i] as Node, parentNode);
+      }
+    }
   }
 
   public insertBefore(nodeToInsert: Node, referenceNode: Node): void {
@@ -229,101 +312,7 @@ export class HTMLDOM implements IDOM {
 const $DOM = DOM as unknown as HTMLDOM;
 export { $DOM as DOM };
 
-/**
- * A specialized INodeSequence with optimizations for text (interpolation) bindings
- * The contract of this INodeSequence is:
- * - the previous element is an `au-m` node
- * - text is the actual text node
- */
-/** @internal */
-export class TextNodeSequence implements INodeSequence {
-  public isMounted: boolean;
-  public isLinked: boolean;
-
-  public dom: HTMLDOM;
-  public firstChild: Text;
-  public lastChild: Text;
-  public childNodes: Text[];
-
-  public next?: INodeSequence<Node>;
-
-  private refNode?: Node;
-
-  private readonly targets: [Node];
-
-  constructor(dom: HTMLDOM, text: Text) {
-    this.isMounted = false;
-    this.isLinked = false;
-
-    this.dom = dom;
-    this.firstChild = text;
-    this.lastChild = text;
-    this.childNodes = [text];
-    this.targets = [new AuMarker(text) as unknown as Node];
-
-    this.next = void 0;
-
-    this.refNode = void 0;
-  }
-
-  public findTargets(): ArrayLike<Node> {
-    return this.targets;
-  }
-
-  public insertBefore(refNode: Node): void {
-    if (this.isLinked && !!this.refNode) {
-      this.addToLinked();
-    } else {
-      this.isMounted = true;
-      refNode.parentNode!.insertBefore(this.firstChild, refNode);
-    }
-  }
-
-  public appendTo(parent: Node): void {
-    if (this.isLinked && !!this.refNode) {
-      this.addToLinked();
-    } else {
-      this.isMounted = true;
-      parent.appendChild(this.firstChild);
-    }
-  }
-
-  public remove(): void {
-    this.isMounted = false;
-    this.firstChild.remove();
-  }
-
-  public addToLinked(): void {
-    const refNode = this.refNode!;
-    this.isMounted = true;
-    refNode.parentNode!.insertBefore(this.firstChild, refNode);
-  }
-
-  public unlink(): void {
-    this.isLinked = false;
-    this.next = void 0;
-    this.refNode = void 0;
-  }
-
-  public link(next: INodeSequence<Node> | (IRenderLocation & Comment) | undefined): void {
-    this.isLinked = true;
-    if (this.dom.isRenderLocation(next)) {
-      this.refNode = next;
-    } else {
-      this.next = next;
-      this.obtainRefNode();
-    }
-  }
-
-  private obtainRefNode(): void {
-    if (this.next !== void 0) {
-      this.refNode = this.next.firstChild;
-    } else {
-      this.refNode = void 0;
-    }
-  }
-}
-// tslint:enable:no-any
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 // This is the most common form of INodeSequence.
 // Every custom element or template controller whose node sequence is based on an HTML template
@@ -332,31 +321,27 @@ export class TextNodeSequence implements INodeSequence {
 // CompiledTemplates create instances of FragmentNodeSequence.
 /**
  * This is the most common form of INodeSequence.
+ *
  * @internal
  */
 export class FragmentNodeSequence implements INodeSequence {
-  public isMounted: boolean;
-  public isLinked: boolean;
+  public isMounted: boolean = false;
+  public isLinked: boolean = false;
 
-  public dom: IDOM;
   public firstChild: Node;
   public lastChild: Node;
   public childNodes: Node[];
 
-  public next?: INodeSequence<Node>;
+  public next?: INodeSequence<Node> = void 0;
 
-  private refNode?: Node;
+  private refNode?: Node = void 0;
 
-  private readonly fragment: DocumentFragment;
   private readonly targets: ArrayLike<Node>;
 
-  constructor(dom: IDOM, fragment: DocumentFragment) {
-    this.isMounted = false;
-    this.isLinked = false;
-
-    this.dom = dom;
-    this.fragment = fragment;
-    // tslint:disable-next-line:no-any
+  public constructor(
+    public readonly dom: IDOM,
+    private readonly fragment: DocumentFragment,
+  ) {
     const targetNodeList = fragment.querySelectorAll('.au');
     let i = 0;
     let ii = targetNodeList.length;
@@ -390,10 +375,6 @@ export class FragmentNodeSequence implements INodeSequence {
 
     this.firstChild = fragment.firstChild!;
     this.lastChild = fragment.lastChild!;
-
-    this.next = void 0;
-
-    this.refNode = void 0;
   }
 
   public findTargets(): ArrayLike<Node> {
@@ -525,40 +506,25 @@ export interface NodeSequenceFactory {
 }
 
 export class NodeSequenceFactory implements NodeSequenceFactory {
-  private readonly dom: IDOM;
-  private readonly deepClone!: boolean;
-  private readonly node!: Node;
-  private readonly Type!: Constructable<INodeSequence>;
+  private readonly node: DocumentFragment | null;
 
-  constructor(dom: IDOM, markupOrNode: string | Node) {
-    this.dom = dom;
-    const fragment = dom.createDocumentFragment(markupOrNode) as DocumentFragment;
-    const childNodes = fragment.childNodes;
-    switch (childNodes.length) {
-      case 0:
-        this.createNodeSequence = () => NodeSequence.empty;
-        return;
-      case 2:
-        const target = childNodes[0];
-        if (target.nodeName === 'AU-M' || target.nodeName === '#comment') {
-          const text = childNodes[1];
-          if (text.nodeType === NodeType.Text && text.textContent!.length === 0) {
-            this.deepClone = false;
-            this.node = text;
-            this.Type = TextNodeSequence;
-            return;
-          }
-        }
-      // falls through if not returned
-      default:
-        this.deepClone = true;
-        this.node = fragment;
-        this.Type = FragmentNodeSequence;
+  public constructor(
+    private readonly dom: IDOM,
+    markupOrNode: string | Node | null,
+  ) {
+    if (markupOrNode === null) {
+      this.node = null;
+    } else {
+      this.node = dom.createDocumentFragment(markupOrNode) as DocumentFragment;
     }
   }
 
   public createNodeSequence(): INodeSequence {
-    return new this.Type(this.dom, this.node.cloneNode(this.deepClone));
+    if (this.node === null) {
+      return NodeSequence.empty;
+    }
+
+    return new FragmentNodeSequence(this.dom, this.node.cloneNode(true) as DocumentFragment);
   }
 }
 
@@ -570,19 +536,17 @@ export class AuMarker implements INode {
     return this.nextSibling.parentNode!;
   }
 
-  public readonly nextSibling: Node;
   public readonly previousSibling!: Node;
   public readonly content?: Node;
   public readonly childNodes!: ArrayLike<ChildNode>;
   public readonly nodeName!: 'AU-M';
   public readonly nodeType!: NodeType.Element;
 
-  public textContent: string;
+  public textContent: string = '';
 
-  constructor(next: Node) {
-    this.nextSibling = next;
-    this.textContent = '';
-  }
+  public constructor(
+    public readonly nextSibling: Node,
+  ) {}
 
   public remove(): void { /* do nothing */ }
 }
@@ -596,19 +560,15 @@ export class AuMarker implements INode {
 
 /** @internal */
 export class HTMLTemplateFactory implements ITemplateFactory {
-  public static readonly inject: readonly Key[] = [IDOM];
-
-  private readonly dom: IDOM;
-
-  constructor(dom: IDOM) {
-    this.dom = dom;
-  }
+  public constructor(
+    @IDOM private readonly dom: IDOM,
+  ) {}
 
   public static register(container: IContainer): IResolver<ITemplateFactory> {
     return Registration.singleton(ITemplateFactory, this).register(container);
   }
 
-  public create(parentRenderContext: IRenderContext, definition: TemplateDefinition): ITemplate {
-    return new CompiledTemplate(this.dom, definition, new NodeSequenceFactory(this.dom, definition.template as string | Node), parentRenderContext);
+  public create(parentRenderContext: IRenderContext, definition: CustomElementDefinition): ITemplate {
+    return new CompiledTemplate(this.dom, definition, new NodeSequenceFactory(this.dom, definition.template as string | Node | null), parentRenderContext);
   }
 }

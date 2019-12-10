@@ -1,4 +1,4 @@
-import { HttpError } from "./HttpError";
+import { HttpError } from './HttpError';
 
 export function status(response: Response) {
   if (response.status >= 200 && response.status < 400) {

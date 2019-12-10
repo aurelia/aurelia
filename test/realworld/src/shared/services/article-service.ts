@@ -1,4 +1,5 @@
 import { inject } from '@aurelia/kernel';
+
 import { Article } from 'shared/models/article';
 import { ApiService } from './api-service';
 
@@ -9,27 +10,27 @@ export interface ArticleResponse {
 
 @inject(ApiService)
 export class ArticleService {
-
-  constructor(private readonly apiService: ApiService) {
-  }
+  public constructor(
+    private readonly apiService: ApiService,
+  ) {}
 
   public getList(type: string, params: any): Promise<ArticleResponse> {
-    return this.apiService.get('/articles' + ((type === 'feed') ? '/feed' : ''), params);
+    return this.apiService.get(`/articles${type === 'feed' ? '/feed' : ''}`, params);
   }
 
   public async get(slug: string): Promise<Article> {
-    const data = await this.apiService.get('/articles/' + slug);
+    const data = await this.apiService.get(`/articles/${slug}`);
     return data.article;
   }
 
   public destroy(slug: string) {
-    return this.apiService.delete('/articles/' + slug);
+    return this.apiService.delete(`/articles/${slug}`);
   }
 
   public async save(article: Article): Promise<Article> {
     if (article.slug) {
       // If we're updating an existing article
-      const data = await this.apiService.put('/articles/' + article.slug, { article });
+      const data = await this.apiService.put(`/articles/${article.slug}`, { article });
       return data.article;
     } else {
       // Otherwise, create a new article
@@ -39,11 +40,11 @@ export class ArticleService {
   }
 
   public favorite(slug: string) {
-    return this.apiService.post('/articles/' + slug + '/favorite');
+    return this.apiService.post(`/articles/${slug}/favorite`);
   }
 
   public unfavorite(slug: string) {
-    return this.apiService.delete('/articles/' + slug + '/favorite');
+    return this.apiService.delete(`/articles/${slug}/favorite`);
   }
 
 }

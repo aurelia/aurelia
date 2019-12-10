@@ -1,5 +1,4 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs';
-import { getCurrentVersion, getDate, getNewVersion } from './bump-version';
 import { getGitLog } from './git';
 import { createLogger } from './logger';
 import project from './project';
@@ -24,14 +23,33 @@ interface IChangeLog {
 
 const regex = {
   commit: /^commit ([0-9a-f]{40})$/i,
-  feat: /feat\((.*)\):\s*(.*)$/i,
-  fix: /fix\((.*)\):\s*(.*)$/i,
-  perf: /perf\((.*)\):\s*(.*)$/i,
-  refactor: /refactor\((.*)\):\s*(.*)$/i
+  feat: /feat(.*):\s*(.*)$/i,
+  fix: /fix(.*):\s*(.*)$/i,
+  perf: /perf(.*):\s*(.*)$/i,
+  refactor: /refactor(.*):\s*(.*)$/i
 };
 
-async function getRawChangeLog(fromRevision: string, toRevision: string, path: string): Promise<IChangeLog> {
-  const gitLog = await getGitLog(fromRevision, toRevision, path);
+function getCurrentVersion(): {
+  major: string;
+  minor: string;
+  patch: string;
+} {
+  const versionRegExp = /(\d+)\.(\d+)\.(\d+)($|-)/;
+  const match = versionRegExp.exec(project.lerna.version);
+
+  return {
+    major: match[1],
+    minor: match[2],
+    patch: match[3],
+  };
+}
+
+async function getRawChangeLog(
+  fromRevision: string,
+  toRevision: string,
+  pathRef: string,
+): Promise<IChangeLog> {
+  const gitLog = await getGitLog(fromRevision, toRevision, pathRef);
   const lines = gitLog.split('\n');
   const results: IChangeLog = {
     feat: [],
@@ -58,65 +76,77 @@ async function getRawChangeLog(fromRevision: string, toRevision: string, path: s
     } else {
       Type = null;
     }
+
     if (Type !== null) {
       const result = {
         hash: currentHash,
-        scope: match[1],
+        scope: match[1].length > 0 ? match[1].slice(1, -1) : '*',
         message: match[2]
       };
       log.info(`${Type}(${result.scope}): ${result.message}`);
       results[Type].push(result);
     }
   }
+
   return results;
 }
 
-async function getChangeLogContent(fromRevision: string, toRevision: string, path: string, pkgName?: string, newVersion?: string): Promise<{content: string; newVersion: string}> {
-  const changelog = await getRawChangeLog(fromRevision, toRevision, path);
+async function getChangeLogContent(
+  fromRevision: string,
+  toRevision: string,
+  pathRef: string,
+  pkgName?: string,
+  newVersion?: string,
+): Promise<{
+    content: string;
+    newVersion: string;
+  }> {
+  const changelog = await getRawChangeLog(fromRevision, toRevision, pathRef);
 
-  if (newVersion === undefined) {
+  if (newVersion === void 0) {
     const { major, minor, patch } = getCurrentVersion();
     if (changelog.feat.length > 0) {
-      newVersion = getNewVersion(major, parseInt(minor, 10) + 1, patch, 'latest');
+      newVersion = `${major}.${parseInt(minor, 10) + 1}.0`;
     } else {
-      newVersion = getNewVersion(major, minor, parseInt(patch, 10) + 1, 'latest');
-    }
-  } else if (pkgName === undefined) {
-    if (pkgName === undefined) {
-      throw new Error('if newVersion is specified, pkgName must be too');
+      newVersion = `${major}.${minor}.${parseInt(patch, 10) + 1}`;
     }
   }
 
-  let content = `<a name="${newVersion}"></a>\n# ${newVersion} (${getDate('-')})`;
+  const datestamp = new Date().toISOString().split('T')[0];
+  let content = `<a name="${newVersion}"></a>\n# ${newVersion} (${datestamp})`;
 
   let hasChanges = false;
-  if (changelog.feat.length) {
+  if (changelog.feat.length > 0) {
     hasChanges = true;
     content += '\n\n### Features:\n\n';
+
     for (const feat of changelog.feat) {
       content += `* **${feat.scope}:** ${feat.message} ${toUrl(feat.hash)}\n`;
     }
   }
 
-  if (changelog.fix.length) {
+  if (changelog.fix.length > 0) {
     hasChanges = true;
     content += '\n\n### Bug Fixes:\n\n';
+
     for (const fix of changelog.fix) {
       content += `* **${fix.scope}:** ${fix.message} ${toUrl(fix.hash)}\n`;
     }
   }
 
-  if (changelog.perf.length) {
+  if (changelog.perf.length > 0) {
     hasChanges = true;
     content += '\n\n### Performance Improvements:\n\n';
+
     for (const perf of changelog.perf) {
       content += `* **${perf.scope}:** ${perf.message} ${toUrl(perf.hash)}\n`;
     }
   }
 
-  if (changelog.refactor.length) {
+  if (changelog.refactor.length > 0) {
     hasChanges = true;
     content += '\n\n### Refactorings:\n\n';
+
     for (const refactor of changelog.refactor) {
       content += `* **${refactor.scope}:** ${refactor.message} ${toUrl(refactor.hash)}\n`;
     }
@@ -131,7 +161,10 @@ async function getChangeLogContent(fromRevision: string, toRevision: string, pat
   return { content, newVersion };
 }
 
-export async function generateChangeLog(fromRevision: string, toRevision: string): Promise<string> {
+export async function generateChangeLog(
+  fromRevision: string,
+  toRevision: string,
+): Promise<string> {
   const standardHeader = `# Change Log
 
 All notable changes to this project will be documented in this file.
@@ -147,7 +180,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
   const newContent = standardHeader + newChangeLog + currentAnchor + (currentParts[1] || '');
   writeFileSync(project.changelog.path, newContent, { encoding: 'utf8' });
 
-  for (const pkg of project.packages) {
+  for (const pkg of project.packages.filter(p => p.folder === 'packages')) {
     let existingChangeLog = '';
     if (existsSync(pkg.changelog)) {
       const currentPkgChangelog = readFileSync(pkg.changelog, { encoding: 'utf8' });

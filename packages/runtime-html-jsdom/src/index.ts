@@ -1,17 +1,16 @@
-import { DI, IContainer, IRegistry, IResolver, Key, Registration } from '@aurelia/kernel';
-import { IDOM, IDOMInitializer, ISinglePageApp } from '@aurelia/runtime';
-import { BasicConfiguration as RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
+import { DI, IContainer, IRegistry, IResolver, Registration } from '@aurelia/kernel';
+import { IDOM, IDOMInitializer, ISinglePageApp, IScheduler, DOM } from '@aurelia/runtime';
+import { RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
 import { JSDOM } from 'jsdom';
+import { JSDOMScheduler } from './jsdom-scheduler';
 
 class JSDOMInitializer implements IDOMInitializer {
-  public static readonly inject: readonly Key[] = [IContainer];
-
-  private readonly container: IContainer;
   private readonly jsdom: JSDOM;
 
-  constructor(container: IContainer) {
-    this.container = container;
-    this.jsdom = new JSDOM();
+  public constructor(
+    @IContainer private readonly container: IContainer,
+  ) {
+    this.jsdom = new JSDOM('', { pretendToBeVisual: true });
   }
 
   public static register(container: IContainer): IResolver<IDOMInitializer> {
@@ -65,26 +64,35 @@ class JSDOMInitializer implements IDOMInitializer {
       );
     }
     Registration.instance(IDOM, dom).register(this.container);
+
+    if (DOM.scheduler === void 0) {
+      this.container.register(JSDOMScheduler);
+    } else {
+      Registration.instance(IScheduler, DOM.scheduler).register(this.container);
+    }
+
     return dom;
   }
 }
 
 export const IDOMInitializerRegistration = JSDOMInitializer as IRegistry;
+export const IJSDOMSchedulerRegistration = JSDOMScheduler as IRegistry;
 
 /**
  * Default HTML-specific, jsdom-specific implementations for the following interfaces:
  * - `IDOMInitializer`
  */
 export const DefaultComponents = [
-  IDOMInitializerRegistration
+  IDOMInitializerRegistration,
+  IJSDOMSchedulerRegistration,
 ];
 
 /**
  * A DI configuration object containing html-specific, jsdom-specific registrations:
- * - `BasicConfiguration` from `@aurelia/runtime-html`
+ * - `RuntimeHtmlConfiguration` from `@aurelia/runtime-html`
  * - `DefaultComponents`
  */
-export const BasicConfiguration = {
+export const RuntimeHtmlJsdomConfiguration = {
   /**
    * Apply this configuration to the provided container.
    */
@@ -99,4 +107,9 @@ export const BasicConfiguration = {
   createContainer(): IContainer {
     return this.register(DI.createContainer());
   }
+};
+
+export {
+  JSDOMInitializer,
+  JSDOMScheduler,
 };

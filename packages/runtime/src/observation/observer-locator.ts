@@ -2,12 +2,10 @@ import {
   DI,
   IContainer,
   IResolver,
-  Key,
   Primitive,
   Registration,
   Reporter,
 } from '@aurelia/kernel';
-
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import {
@@ -34,6 +32,7 @@ import { PropertyAccessor } from './property-accessor';
 import { ProxyObserver } from './proxy-observer';
 import { getSetObserver } from './set-observer';
 import { SetterObserver } from './setter-observer';
+import { IScheduler } from '../scheduler';
 
 const toStringTag = Object.prototype.toString;
 
@@ -53,14 +52,27 @@ export interface IObserverLocator {
 export const IObserverLocator = DI.createInterface<IObserverLocator>('IObserverLocator').noDefault();
 
 export interface ITargetObserverLocator {
-  getObserver(flags: LifecycleFlags, lifecycle: ILifecycle, observerLocator: IObserverLocator, obj: unknown, propertyName: string): IBindingTargetAccessor | IBindingTargetObserver;
+  getObserver(
+    flags: LifecycleFlags,
+    scheduler: IScheduler,
+    lifecycle: ILifecycle,
+    observerLocator: IObserverLocator,
+    obj: unknown,
+    propertyName: string,
+  ): IBindingTargetAccessor | IBindingTargetObserver;
   overridesAccessor(flags: LifecycleFlags, obj: unknown, propertyName: string): boolean;
   handles(flags: LifecycleFlags, obj: unknown): boolean;
 }
 export const ITargetObserverLocator = DI.createInterface<ITargetObserverLocator>('ITargetObserverLocator').noDefault();
 
 export interface ITargetAccessorLocator {
-  getAccessor(flags: LifecycleFlags, lifecycle: ILifecycle, obj: unknown, propertyName: string): IBindingTargetAccessor;
+  getAccessor(
+    flags: LifecycleFlags,
+    scheduler: IScheduler,
+    lifecycle: ILifecycle,
+    obj: unknown,
+    propertyName: string,
+  ): IBindingTargetAccessor;
   handles(flags: LifecycleFlags, obj: unknown): boolean;
 }
 export const ITargetAccessorLocator = DI.createInterface<ITargetAccessorLocator>('ITargetAccessorLocator').noDefault();
@@ -79,26 +91,15 @@ function getPropertyDescriptor(subject: object, name: string): PropertyDescripto
 
 /** @internal */
 export class ObserverLocator implements IObserverLocator {
-  public static readonly inject: readonly Key[] = [ILifecycle, IDirtyChecker, ITargetObserverLocator, ITargetAccessorLocator];
+  private readonly adapters: IObjectObservationAdapter[] = [];
 
-  private readonly adapters: IObjectObservationAdapter[];
-  private readonly dirtyChecker: IDirtyChecker;
-  private readonly lifecycle: ILifecycle;
-  private readonly targetObserverLocator: ITargetObserverLocator;
-  private readonly targetAccessorLocator: ITargetAccessorLocator;
-
-  constructor(
-    lifecycle: ILifecycle,
-    dirtyChecker: IDirtyChecker,
-    targetObserverLocator: ITargetObserverLocator,
-    targetAccessorLocator: ITargetAccessorLocator
-  ) {
-    this.adapters = [];
-    this.dirtyChecker = dirtyChecker;
-    this.lifecycle = lifecycle;
-    this.targetObserverLocator = targetObserverLocator;
-    this.targetAccessorLocator = targetAccessorLocator;
-  }
+  public constructor(
+    @ILifecycle private readonly lifecycle: ILifecycle,
+    @IScheduler private readonly scheduler: IScheduler,
+    @IDirtyChecker private readonly dirtyChecker: IDirtyChecker,
+    @ITargetObserverLocator private readonly targetObserverLocator: ITargetObserverLocator,
+    @ITargetAccessorLocator private readonly targetAccessorLocator: ITargetAccessorLocator
+  ) {}
 
   public static register(container: IContainer): IResolver<IObserverLocator> {
     return Registration.singleton(IObserverLocator, this).register(container);
@@ -112,13 +113,12 @@ export class ObserverLocator implements IObserverLocator {
       return obj.getObservers!(flags).getOrCreate(this.lifecycle, flags, obj, propertyName);
     }
     let observersLookup = obj.$observers as ObserversLookup;
-    let observer: AccessorOrObserver & { doNotCache?: boolean };
 
     if (observersLookup && propertyName in observersLookup) {
       return observersLookup[propertyName];
     }
 
-    observer = this.createPropertyObserver(flags, obj, propertyName);
+    const observer: AccessorOrObserver & { doNotCache?: boolean } = this.createPropertyObserver(flags, obj, propertyName);
 
     if (!observer.doNotCache) {
       if (observersLookup === void 0) {
@@ -140,7 +140,7 @@ export class ObserverLocator implements IObserverLocator {
       if (this.targetObserverLocator.overridesAccessor(flags, obj, propertyName)) {
         return this.getObserver(flags, obj, propertyName);
       }
-      return this.targetAccessorLocator.getAccessor(flags, this.lifecycle, obj, propertyName);
+      return this.targetAccessorLocator.getAccessor(flags, this.scheduler, this.lifecycle, obj, propertyName);
     }
 
     if (flags & LifecycleFlags.proxyStrategy) {
@@ -196,7 +196,7 @@ export class ObserverLocator implements IObserverLocator {
 
     let isNode = false;
     if (this.targetObserverLocator.handles(flags, obj)) {
-      const observer = this.targetObserverLocator.getObserver(flags, this.lifecycle, this, obj, propertyName);
+      const observer = this.targetObserverLocator.getObserver(flags, this.scheduler, this.lifecycle, this, obj, propertyName);
       if (observer != null) {
         return observer;
       }
@@ -247,7 +247,7 @@ export class ObserverLocator implements IObserverLocator {
   }
 }
 
-type RepeatableCollection = IObservedMap | IObservedSet | IObservedArray | null | undefined | number;
+export type RepeatableCollection = IObservedMap | IObservedSet | IObservedArray | null | undefined | number;
 
 export function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecycle, collection: RepeatableCollection): CollectionObserver | undefined {
   // If the collection is wrapped by a proxy then `$observer` will return the proxy observer instead of the collection observer, which is not what we want

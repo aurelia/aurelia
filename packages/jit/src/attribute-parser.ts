@@ -1,6 +1,6 @@
-import { all, DI, Key, Profiler } from '@aurelia/kernel';
+import { all, Constructable, DI } from '@aurelia/kernel';
 import { AttrSyntax } from './ast';
-import { IAttributePattern, IAttributePatternHandler, Interpretation, ISyntaxInterpreter } from './attribute-pattern';
+import { AttributePattern, IAttributePattern, Interpretation, ISyntaxInterpreter } from './attribute-pattern';
 
 export interface IAttributeParser {
   parse(name: string, value: string): AttrSyntax;
@@ -8,26 +8,22 @@ export interface IAttributeParser {
 
 export const IAttributeParser = DI.createInterface<IAttributeParser>('IAttributeParser').withDefault(x => x.singleton(AttributeParser));
 
-const { enter, leave } = Profiler.createTimer('AttributeParser');
-
 /** @internal */
 export class AttributeParser implements IAttributeParser {
-  // @ts-ignore
-  public static readonly inject: readonly Key[] = [ISyntaxInterpreter, all(IAttributePattern)];
+  private readonly cache: Record<string, Interpretation> = {};
+  private readonly patterns: Record<string, IAttributePattern>;
 
-  private readonly interpreter: ISyntaxInterpreter;
-  private readonly cache: Record<string, Interpretation>;
-  private readonly patterns: Record<string, IAttributePatternHandler>;
-
-  constructor(interpreter: ISyntaxInterpreter, attrPatterns: IAttributePattern[]) {
+  public constructor(
+    @ISyntaxInterpreter private readonly interpreter: ISyntaxInterpreter,
+    @all(IAttributePattern) attrPatterns: IAttributePattern[],
+  ) {
     this.interpreter = interpreter;
-    this.cache = {};
     const patterns: AttributeParser['patterns'] = this.patterns = {};
     attrPatterns.forEach(attrPattern => {
-      const defs = attrPattern.$patternDefs;
+      const defs = AttributePattern.getPatternDefinitions(attrPattern.constructor as Constructable);
       interpreter.add(defs);
       defs.forEach(def => {
-        patterns[def.pattern] = attrPattern as unknown as IAttributePatternHandler;
+        patterns[def.pattern] = attrPattern as unknown as IAttributePattern;
       });
     });
   }

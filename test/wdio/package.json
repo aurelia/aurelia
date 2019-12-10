@@ -2,8 +2,8 @@
   "name": "examples-e2e",
   "version": "0.3.0",
   "devDependencies": {
-    "chromedriver": "^74.0.0",
-    "fibers": "^4.0.1",
+    "chromedriver": "^77.0.0",
+    "fibers": "^4.0.2",
     "mocha": "~6.1.4",
     "wdio": "^3.0.3",
     "wdio-mocha-framework": "^0.6.4"

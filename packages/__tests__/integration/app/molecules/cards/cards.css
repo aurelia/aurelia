@@ -1,0 +1,23 @@
+cards>* {
+  display: flex;
+  flex-wrap: wrap;
+  font-weight: 600;
+}
+
+.card {
+  width: 10em;
+  height: 15em;
+  padding: 2em;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.selected {
+  background-color: rgb(0, 0, 255);
+}
+
+.selectedDetails {
+  color: rgb(203, 203, 203);
+}

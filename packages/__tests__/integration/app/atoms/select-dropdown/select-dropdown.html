@@ -1,0 +1,55 @@
+<select id="select1" value.two-way="selection1">
+  <option model.bind="undefined">Choose...</option>
+  <option repeat.for="option of options1" model.bind="option.id">
+    ${option.displayText}
+  </option>
+</select>
+
+<select id="select2" value.two-way="selection2">
+  <option model.bind="undefined">Choose...</option>
+  <option repeat.for="option of options2" model.bind="option.id">
+    ${option.displayText}
+  </option>
+</select>
+
+<select id="select3" value.two-way="selection3" matcher.bind="matcher">
+  <option model.bind="undefined">Choose...</option>
+  <option repeat.for="option of options3" model.bind="option.id">
+    ${option.displayText}
+  </option>
+</select>
+
+<select id="select4" value.two-way="selection4">
+  <option model.bind="undefined">Choose...</option>
+  <option repeat.for="option of options4" model.bind="option.id">
+    ${option.displayText}
+  </option>
+</select>
+
+<select id="select11" multiple value.two-way="selections1">
+  <option model.bind="undefined">Choose...</option>
+  <option repeat.for="option of options1" model.bind="option.id">
+    ${option.displayText}
+  </option>
+</select>
+
+<select id="select21" multiple value.two-way="selections2">
+  <option model.bind="undefined">Choose...</option>
+  <option repeat.for="option of options2" model.bind="option.id">
+    ${option.displayText}
+  </option>
+</select>
+
+<select id="select31" multiple value.two-way="selections3" matcher.bind="matcher">
+  <option model.bind="undefined">Choose...</option>
+  <option repeat.for="option of options3" model.bind="option.id">
+    ${option.displayText}
+  </option>
+</select>
+
+<select id="select41" multiple value.two-way="selections4">
+  <option model.bind="undefined">Choose...</option>
+  <option repeat.for="option of options4" model.bind="option.id">
+    ${option.displayText}
+  </option>
+</select>

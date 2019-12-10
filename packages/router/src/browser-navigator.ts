@@ -1,7 +1,7 @@
-import { Key, Reporter } from '@aurelia/kernel';
-import { IDOM, ILifecycle } from '@aurelia/runtime';
+import { Reporter } from '@aurelia/kernel';
+import { IDOM, IScheduler } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
-import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions } from './navigator';
+import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions, INavigatorViewerState } from './navigator';
 import { Queue, QueueItem } from './queue';
 
 interface Call {
@@ -22,8 +22,6 @@ export interface IBrowserNavigatorOptions extends INavigatorViewerOptions {
 }
 
 export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
-  public static readonly inject: readonly Key[] = [ILifecycle, IDOM];
-
   public window: Window;
   public history: History;
   public location: Location;
@@ -39,9 +37,9 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
 
   private forwardedState: ForwardedState = {};
 
-  constructor(
-    public readonly lifecycle: ILifecycle,
-    dom: HTMLDOM
+  public constructor(
+    @IScheduler public readonly scheduler: IScheduler,
+    @IDOM dom: HTMLDOM
   ) {
     this.window = dom.window;
     this.history = dom.window.history;
@@ -58,29 +56,35 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
     if (options.useUrlFragmentHash != void 0) {
       this.options.useUrlFragmentHash = options.useUrlFragmentHash;
     }
-    this.pendingCalls.activate({ lifecycle: this.lifecycle, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
-    this.window.addEventListener('popstate', this.handlePopstate);
-  }
-
-  public loadUrl(): Promise<void> {
-    return this.handlePopstate(null);
+    this.pendingCalls.activate({ scheduler: this.scheduler, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
+    this.window.addEventListener('popstate', this.handlePopstate as (ev: PopStateEvent | null) => void);
   }
 
   public deactivate(): void {
     if (!this.isActive) {
       throw new Error('Browser navigation has not been activated');
     }
-    this.window.removeEventListener('popstate', this.handlePopstate);
+    this.window.removeEventListener('popstate', this.handlePopstate as (ev: PopStateEvent | null) => void);
     this.pendingCalls.deactivate();
     this.options = { useUrlFragmentHash: true, callback: () => { } };
     this.isActive = false;
   }
 
-  get length(): number {
+  public get length(): number {
     return this.history.length;
   }
-  get state(): Record<string, unknown> {
+  public get state(): Record<string, unknown> {
     return this.history.state;
+  }
+
+  public get viewerState(): INavigatorViewerState {
+    const { pathname, search, hash } = this.location;
+    return {
+      path: pathname,
+      query: search,
+      hash,
+      instruction: this.options.useUrlFragmentHash ? hash.slice(1) : pathname,
+    };
   }
 
   public go(delta?: number, suppressPopstate: boolean = false): Promise<void> {
@@ -105,21 +109,19 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
 
   public readonly handlePopstate = (ev: PopStateEvent | null): Promise<void> => {
     return this.enqueue(this, 'popstate', [ev]);
-  }
+  };
 
   private popstate(ev: PopStateEvent, resolve: ((value?: void | PromiseLike<void>) => void), suppressPopstate: boolean = false): void {
     if (!suppressPopstate) {
-      const { pathname, search, hash } = this.location;
       this.options.callback({
-        event: ev,
-        state: this.history.state,
-        path: pathname,
-        data: search,
-        hash,
-        instruction: this.options.useUrlFragmentHash ? hash.slice(1) : pathname,
+        ...this.viewerState,
+        ...{
+          event: ev,
+          state: this.history.state,
+        },
       });
     }
-    if (resolve) {
+    if (resolve !== null && resolve !== void 0) {
       resolve();
     }
   }
@@ -149,7 +151,6 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
     if (suppressPopstate !== undefined) {
       // Due to (browser) events not having a promise, we create and propagate one
       let resolve: ((value: void | PromiseLike<void>) => void) | null = null;
-      // tslint:disable-next-line:promise-must-complete
       promises.push(new Promise(_resolve => {
         resolve = _resolve;
       }));
@@ -193,11 +194,12 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
         this.forwardedState.suppressPopstate = false;
       }
     }
+    // eslint-disable-next-line @typescript-eslint/ban-types
     const method = (call.target as { [key: string]: Function | undefined })[call.methodName];
     Reporter.write(10000, 'DEQUEUE', call.methodName, call.parameters);
     if (method) {
       method.apply(call.target, call.parameters);
     }
     (qCall.resolve as ((value: void | PromiseLike<void>) => void))();
-  }
+  };
 }

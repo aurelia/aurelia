@@ -1,21 +1,16 @@
-import { I18N, I18nConfiguration, TranslationAttributePattern, TranslationBindAttributePattern, TranslationBindBindingCommand, TranslationBindingCommand, Signals } from '@aurelia/i18n';
+import { I18N, I18nConfiguration, Signals } from '@aurelia/i18n';
 import { IRegistration } from '@aurelia/kernel';
-import { Aurelia, bindable, customElement, DOM, INode, LifecycleFlags, ISignaler } from '@aurelia/runtime';
+import { Aurelia, bindable, customElement, CustomElement, DOM, INode, ISignaler } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 
 describe('translation-integration', function () {
-  afterEach(function () {
-    TranslationBindingCommand.aliases = ['t'];
-    TranslationAttributePattern.aliases = ['t'];
-    TranslationBindBindingCommand.aliases = ['t'];
-    TranslationBindAttributePattern.aliases = ['t'];
-  });
-  @customElement({ name: 'custom-message', template: `<div>\${message}</div>` })
+  @customElement({ name: 'custom-message', template: `<div>\${message}</div>`, isStrictBinding: true })
   class CustomMessage {
     @bindable public message: string;
   }
 
   async function setup(host: INode, component: unknown, aliases?: string[], skipTranslationOnMissingKey = false) {
+    /* eslint-disable @typescript-eslint/camelcase */
     const translation = {
       simple: {
         text: 'simple text',
@@ -25,7 +20,9 @@ describe('translation-integration', function () {
       status_dispatched: 'dispatched on {{date}}',
       status_delivered: 'delivered on {{date}}',
       custom_interpolation_brace: 'delivered on {date}',
-      custom_interpolation_es6_syntax: 'delivered on ${date}',
+      custom_interpolation_es6_syntax: `delivered on \${date}`,
+
+      interpolation_greeting: 'hello {{name}}',
 
       itemWithCount: '{{count}} item',
       itemWithCount_plural: '{{count}} items',
@@ -50,7 +47,9 @@ describe('translation-integration', function () {
       status_dispatched: 'Versand am {{date}}',
       status_delivered: 'geliefert am {{date}}',
       custom_interpolation_brace: 'geliefert am {date}',
-      custom_interpolation_es6_syntax: 'geliefert am ${date}',
+      custom_interpolation_es6_syntax: `geliefert am \${date}`,
+
+      interpolation_greeting: 'Hallo {{name}}',
 
       itemWithCount: '{{count}} Artikel',
       itemWithCount_plural: '{{count}} Artikel',
@@ -64,6 +63,7 @@ describe('translation-integration', function () {
 
       imgPath: 'bar.jpg'
     };
+    /* eslint-enable @typescript-eslint/camelcase */
     const ctx = TestContext.createHTMLTestContext();
     const au = new Aurelia(ctx.container);
     await au.register(
@@ -79,7 +79,12 @@ describe('translation-integration', function () {
       .start()
       .wait();
     const i18n = au.container.get(I18N);
-    return { en: translation, de: deTranslation, container: au.container, i18n, ctx };
+
+    return {
+      en: translation, de: deTranslation, container: au.container, i18n, ctx, tearDown: async () => {
+        await au.stop().wait();
+      }
+    };
   }
   function assertTextContent(host: INode, selector: string, translation: string) {
     assert.equal((host as Element).querySelector(selector).textContent, translation);
@@ -87,7 +92,7 @@ describe('translation-integration', function () {
 
   it('left the content as-is if empty value is used for translation attribute', async function () {
 
-    @customElement({ name: 'app', template: `<span t=''>The Intouchables</span>` })
+    @customElement({ name: 'app', template: `<span t=''>The Intouchables</span>`, isStrictBinding: true })
     class App { }
 
     const host = DOM.createElement('app');
@@ -97,7 +102,7 @@ describe('translation-integration', function () {
 
   it('works for simple string literal key', async function () {
 
-    @customElement({ name: 'app', template: `<span t='simple.text'></span>` })
+    @customElement({ name: 'app', template: `<span t='simple.text'></span>`, isStrictBinding: true })
     class App { }
 
     const host = DOM.createElement('app');
@@ -107,7 +112,7 @@ describe('translation-integration', function () {
 
   it('with multiple `t` attribute only the first one is considered', async function () {
 
-    @customElement({ name: 'app', template: `<span t='simple.text' t='simple.attr'></span>` })
+    @customElement({ name: 'app', template: `<span t='simple.text' t='simple.attr'></span>`, isStrictBinding: true })
     class App { }
 
     const host = DOM.createElement('app');
@@ -134,7 +139,7 @@ describe('translation-integration', function () {
 
   it('works for bound key', async function () {
 
-    @customElement({ name: 'app', template: `<span t.bind='obj.key'></span>` })
+    @customElement({ name: 'app', template: `<span t.bind='obj.key'></span>`, isStrictBinding: true })
     class App {
       private readonly obj = { key: 'simple.text' };
     }
@@ -168,15 +173,20 @@ describe('translation-integration', function () {
       <span id="i18n-interpolation" t="status_delivered" t-params.bind="{date: deliveredOn}"></span>
       <span id="i18n-interpolation-custom" t="custom_interpolation_brace" t-params.bind="{date: deliveredOn, interpolation: { prefix: '{', suffix: '}' }}"></span>
       <span id="i18n-interpolation-es6" t="custom_interpolation_es6_syntax" t-params.bind="{date: deliveredOn, interpolation: { prefix: '\${', suffix: '}' }}"></span>
+      <span id="i18n-interpolation-string-direct" t="interpolation_greeting" t-params.bind="nameParams"></span>
+      <span id="i18n-interpolation-string-obj" t="interpolation_greeting" t-params.bind="{name: name}"></span>
 
       <span id="i18n-items-plural-0"  t="itemWithCount" t-params.bind="{count: 0}"></span>
       <span id="i18n-items-plural-1"  t="itemWithCount" t-params.bind="{count: 1}"></span>
       <span id="i18n-items-plural-10" t="itemWithCount" t-params.bind="{count: 10}"></span>`
+
       })
       class App {
         public dispatchedOn = new Date(2020, 1, 10, 5, 15);
         public deliveredOn = new Date(2021, 1, 10, 5, 15);
         public tParams = { context: 'dispatched', date: this.dispatchedOn };
+        public name = 'john';
+        public nameParams = { name: this.name };
       }
       const host = DOM.createElement('app');
       const app = new App();
@@ -189,6 +199,13 @@ describe('translation-integration', function () {
       assertTextContent(host, '#i18n-ctx-vm', translation.status_dispatched.replace('{{date}}', app.dispatchedOn.toString()));
     });
 
+    it('works when a vm property is bound as t-params and changes', async function () {
+      const { host, translation, app } = await suiteSetup();
+      assertTextContent(host, '#i18n-ctx-vm', translation.status_dispatched.replace('{{date}}', app.dispatchedOn.toString()));
+      app.tParams = { context: 'dispatched', date: new Date(2020, 2, 10, 5, 15) };
+      assertTextContent(host, '#i18n-ctx-vm', translation.status_dispatched.replace('{{date}}', app.tParams.date.toString()));
+    });
+
     it('works for context-sensitive translations', async function () {
       const { host, translation, app } = await suiteSetup();
       assertTextContent(host, '#i18n-ctx-dispatched', translation.status_dispatched.replace('{{date}}', app.dispatchedOn.toString()));
@@ -199,7 +216,24 @@ describe('translation-integration', function () {
       const { host, translation, app } = await suiteSetup();
       assertTextContent(host, '#i18n-interpolation', translation.status_delivered.replace('{{date}}', app.deliveredOn.toString()));
       assertTextContent(host, '#i18n-interpolation-custom', translation.custom_interpolation_brace.replace('{date}', app.deliveredOn.toString()));
-      assertTextContent(host, '#i18n-interpolation-es6', translation.custom_interpolation_es6_syntax.replace('${date}', app.deliveredOn.toString()));
+      assertTextContent(host, '#i18n-interpolation-es6', translation.custom_interpolation_es6_syntax.replace(`\${date}`, app.deliveredOn.toString()));
+    });
+
+    it('works for interpolation when the interpolation changes', async function () {
+      const { host, translation, app } = await suiteSetup();
+      assertTextContent(host, '#i18n-interpolation', translation.status_delivered.replace('{{date}}', app.deliveredOn.toString()));
+      app.deliveredOn = new Date(2022, 1, 10, 5, 15);
+      assertTextContent(host, '#i18n-interpolation', translation.status_delivered.replace('{{date}}', app.deliveredOn.toString()));
+    });
+
+    it('works for interpolation when a string changes', async function () {
+      const { host, translation, app } = await suiteSetup();
+      assertTextContent(host, '#i18n-interpolation-string-direct', translation.interpolation_greeting.replace('{{name}}', app.name));
+      assertTextContent(host, '#i18n-interpolation-string-obj', translation.interpolation_greeting.replace('{{name}}', app.name));
+      app.name = 'Jane';
+      app.nameParams = { name: 'Jane' };
+      assertTextContent(host, '#i18n-interpolation-string-direct', translation.interpolation_greeting.replace('{{name}}', app.name));
+      assertTextContent(host, '#i18n-interpolation-string-obj', translation.interpolation_greeting.replace('{{name}}', app.name));
     });
 
     it('works for pluralization', async function () {
@@ -260,7 +294,7 @@ describe('translation-integration', function () {
     assertTextContent(host, `span[title='${translation.simple.attr}'][data-foo='${translation.simple.attr}']`, translation.simple.text);
   });
 
-  it('works for interpolated keys are used - t="\${obj.key1}"', async function () {
+  it(`works for interpolated keys are used - t="\${obj.key1}"`, async function () {
 
     @customElement({
       name: 'app', template: `
@@ -271,7 +305,7 @@ describe('translation-integration', function () {
     ` })
     class App {
       private readonly obj = { key1: 'simple.text', key2: 'simple.attr' };
-      private readonly status = 'dispatched'
+      private readonly status = 'dispatched';
     }
 
     const host = DOM.createElement('app');
@@ -519,7 +553,7 @@ describe('translation-integration', function () {
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> <i>tac</i> <b>toe</b><span>bar</span>');
     });
 
-    it('works correctly with the change of both [prepend], and [append] - textContent', async function () {
+    it('works correctly for html with the change of both [prepend], and [append] - textContent', async function () {
 
       @customElement({
         name: 'app', template: `<span t.bind='keyExpr'>tac</span>`
@@ -535,7 +569,7 @@ describe('translation-integration', function () {
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
       app.keyExpr = '[prepend]pre;[append]post';
 
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assert.equal((host as Element).querySelector('span').innerHTML, 'tic tac toe');
     });
@@ -555,7 +589,7 @@ describe('translation-integration', function () {
       assert.equal((host as Element).querySelector('span').innerHTML, 'tic tac toe');
       app.keyExpr = '[prepend]preHtml;[append]postHtml';
 
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
     });
@@ -575,7 +609,7 @@ describe('translation-integration', function () {
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
       app.keyExpr = '[prepend]preHtml';
 
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac');
     });
@@ -595,7 +629,7 @@ describe('translation-integration', function () {
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
       app.keyExpr = '[append]postHtml';
 
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assert.equal((host as Element).querySelector('span').innerHTML, 'tac <b>toe</b><span>bar</span>');
     });
@@ -615,7 +649,7 @@ describe('translation-integration', function () {
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
       app.keyExpr = '[html]midHtml';
 
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assert.equal((host as Element).querySelector('span').innerHTML, '<i>tac</i>');
     });
@@ -738,7 +772,7 @@ describe('translation-integration', function () {
       const { de, container, ctx } = await setup(host, new App());
       const i18n = container.get(I18N);
       await i18n.setLocale('de');
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'custom-message div', de.simple.text);
     });
@@ -757,7 +791,7 @@ describe('translation-integration', function () {
     it('key bound from vm property', async function () {
 
       @customElement({ name: 'app', template: `<span>\${key | t}</span>` })
-      class App { key = 'simple.text'; }
+      class App { public key = 'simple.text'; }
 
       const host = DOM.createElement('app');
       const { en: translation } = await setup(host, new App());
@@ -797,7 +831,7 @@ describe('translation-integration', function () {
       const { i18n, de, ctx } = await setup(host, new App());
 
       await i18n.setLocale('de');
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
       assertTextContent(host, 'span', de.simple.text);
     });
   });
@@ -815,7 +849,7 @@ describe('translation-integration', function () {
     it('key bound from vm property', async function () {
 
       @customElement({ name: 'app', template: `<span>\${key & t}</span>` })
-      class App { key = 'simple.text'; }
+      class App { public key = 'simple.text'; }
 
       const host = DOM.createElement('app');
       const { en: translation } = await setup(host, new App());
@@ -855,7 +889,7 @@ describe('translation-integration', function () {
       const { i18n, de, ctx } = await setup(host, new App());
 
       await i18n.setLocale('de');
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', de.simple.text);
     });
@@ -863,24 +897,33 @@ describe('translation-integration', function () {
 
   describe('`df` value-converter', function () {
     const cases = [
-      { name: 'works for date object', input: new Date(2019, 7, 20), output: '8/20/2019' },
-      { name: 'works for ISO 8601 date string', input: new Date(2019, 7, 20).toISOString(), output: '8/20/2019' },
-      { name: 'works for integer', input: 0, output: '1/1/1970' },
-      { name: 'works for integer string', input: '0', output: '1/1/1970' },
-      { name: 'returns undefined for undefined', input: undefined, output: 'undefined' },
-      { name: 'returns null for null', input: null, output: 'null' },
+      { name: 'works for date object', input: new Date(2019, 7, 20), output: new Date('8/20/2019').toLocaleDateString() },
+      { name: 'works for ISO 8601 date string', input: new Date(2019, 7, 20).toISOString(), output: new Date('8/20/2019').toLocaleDateString() },
+      { name: 'works for integer', input: 0, output: new Date(0).toLocaleDateString() },
+      { name: 'works for integer string', input: '0', output: new Date(0).toLocaleDateString() },
+      { name: 'returns undefined for undefined', input: undefined, output: undefined },
+      { name: 'returns null for null', input: null, output: null },
       { name: 'returns empty string for empty string', input: '', output: '' },
       { name: 'returns whitespace for whitespace', input: '  ', output: '  ' },
       { name: 'returns `invalidValueForDate` for `invalidValueForDate`', input: 'invalidValueForDate', output: 'invalidValueForDate' },
     ];
     for (const { name, input, output } of cases) {
+      it(`${name} STRICT`, async function () {
+        @customElement({ name: `app`, template: `<span>\${ dt | df }</span>`, isStrictBinding: true })
+        class App { private readonly dt = input; }
+
+        const host = DOM.createElement('app');
+        await setup(host, new App());
+        assertTextContent(host, 'span', `${output}`);
+      });
+
       it(name, async function () {
         @customElement({ name: 'app', template: `<span>\${ dt | df }</span>` })
         class App { private readonly dt = input; }
 
         const host = DOM.createElement('app');
         await setup(host, new App());
-        assertTextContent(host, 'span', output);
+        assertTextContent(host, 'span', (output || '').toString());
       });
     }
 
@@ -902,7 +945,7 @@ describe('translation-integration', function () {
       const { i18n, ctx } = await setup(host, new App());
 
       await i18n.setLocale('de');
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
       assertTextContent(host, 'span', '20.8.2019');
     });
 
@@ -916,31 +959,40 @@ describe('translation-integration', function () {
       const { ctx } = await setup(host, app);
 
       app.dt = new Date(2019, 7, 21);
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
       assertTextContent(host, 'span', '8/21/2019');
     });
   });
 
   describe('`df` binding-behavior', function () {
     const cases = [
-      { name: 'works for date object', input: new Date(2019, 7, 20), output: '8/20/2019' },
-      { name: 'works for ISO 8601 date string', input: new Date(2019, 7, 20).toISOString(), output: '8/20/2019' },
-      { name: 'works for integer', input: 0, output: '1/1/1970' },
-      { name: 'works for integer string', input: '0', output: '1/1/1970' },
-      { name: 'returns undefined for undefined', input: undefined, output: 'undefined' },
-      { name: 'returns null for null', input: null, output: 'null' },
+      { name: 'works for date object', input: new Date(2019, 7, 20), output: new Date('8/20/2019').toLocaleDateString() },
+      { name: 'works for ISO 8601 date string', input: new Date(2019, 7, 20).toISOString(), output: new Date('8/20/2019').toLocaleDateString() },
+      { name: 'works for integer', input: 0, output: new Date(0).toLocaleDateString() },
+      { name: 'works for integer string', input: '0', output: new Date(0).toLocaleDateString() },
+      { name: 'returns undefined for undefined', input: undefined, output: undefined },
+      { name: 'returns null for null', input: null, output: null },
       { name: 'returns empty string for empty string', input: '', output: '' },
       { name: 'returns whitespace for whitespace', input: '  ', output: '  ' },
       { name: 'returns `invalidValueForDate` for `invalidValueForDate`', input: 'invalidValueForDate', output: 'invalidValueForDate' },
     ];
     for (const { name, input, output } of cases) {
+      it(`${name} STRICT`, async function () {
+        @customElement({ name: 'app', template: `<span>\${ dt & df }</span>`, isStrictBinding: true })
+        class App { private readonly dt = input; }
+
+        const host = DOM.createElement('app');
+        await setup(host, new App());
+        assertTextContent(host, 'span', `${output}`);
+      });
+
       it(name, async function () {
         @customElement({ name: 'app', template: `<span>\${ dt & df }</span>` })
         class App { private readonly dt = input; }
 
         const host = DOM.createElement('app');
         await setup(host, new App());
-        assertTextContent(host, 'span', output);
+        assertTextContent(host, 'span', (output || '').toString());
       });
     }
 
@@ -962,7 +1014,7 @@ describe('translation-integration', function () {
       const { i18n, ctx } = await setup(host, new App());
 
       await i18n.setLocale('de');
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
       assertTextContent(host, 'span', '20.8.2019');
     });
 
@@ -976,7 +1028,7 @@ describe('translation-integration', function () {
       const { ctx } = await setup(host, app);
 
       app.dt = new Date(2019, 7, 21);
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
       assertTextContent(host, 'span', '8/21/2019');
     });
   });
@@ -984,13 +1036,22 @@ describe('translation-integration', function () {
   describe('`nf` value-converter', function () {
 
     for (const value of [undefined, null, 'chaos', new Date(), true]) {
+      it(`returns the value itself if the value is not a number STRICT binding, for example: ${value}`, async function () {
+        @customElement({ name: 'app', template: `<span>\${ num | nf }</span>`, isStrictBinding: true })
+        class App { private readonly num = value; }
+
+        const host = DOM.createElement('app');
+        await setup(host, new App());
+        assertTextContent(host, 'span', `${value}`);
+      });
+
       it(`returns the value itself if the value is not a number, for example: ${value}`, async function () {
         @customElement({ name: 'app', template: `<span>\${ num | nf }</span>` })
         class App { private readonly num = value; }
 
         const host = DOM.createElement('app');
         await setup(host, new App());
-        assertTextContent(host, 'span', `${value}`);
+        assertTextContent(host, 'span', `${value || ''}`);
       });
     }
 
@@ -1037,7 +1098,7 @@ describe('translation-integration', function () {
       const host = DOM.createElement('app');
       const { ctx, i18n } = await setup(host, new App());
       await i18n.setLocale('de');
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', '123.456.789,12');
     });
@@ -1050,22 +1111,31 @@ describe('translation-integration', function () {
       const app = new App();
       const { ctx } = await setup(host, app);
       app.num = 123456789.21;
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', '123,456,789.21');
-  });
+    });
   });
 
   describe('`nf` binding-behavior', function () {
 
     for (const value of [undefined, null, 'chaos', new Date(), true]) {
+      it(`returns the value itself if the value is not a number STRICT binding, for example: ${value}`, async function () {
+        @customElement({ name: 'app', template: `<span>\${ num & nf }</span>`, isStrictBinding: true })
+        class App { private readonly num = value; }
+
+        const host = DOM.createElement('app');
+        await setup(host, new App());
+        assertTextContent(host, 'span', `${value}`);
+      });
+
       it(`returns the value itself if the value is not a number, for example: ${value}`, async function () {
         @customElement({ name: 'app', template: `<span>\${ num & nf }</span>` })
         class App { private readonly num = value; }
 
         const host = DOM.createElement('app');
         await setup(host, new App());
-        assertTextContent(host, 'span', `${value}`);
+        assertTextContent(host, 'span', `${value || ''}`);
       });
     }
 
@@ -1112,7 +1182,7 @@ describe('translation-integration', function () {
       const host = DOM.createElement('app');
       const { ctx, i18n } = await setup(host, new App());
       await i18n.setLocale('de');
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', '123.456.789,12');
     });
@@ -1125,22 +1195,31 @@ describe('translation-integration', function () {
       const app = new App();
       const { ctx } = await setup(host, app);
       app.num = 123456789.21;
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', '123,456,789.21');
-  });
+    });
   });
 
   describe('`rt` value-converter', function () {
 
     for (const value of [undefined, null, 'chaos', 123, true]) {
+      it(`returns the value itself if the value is not a number STRICT, for example: ${value}`, async function () {
+        @customElement({ name: 'app', template: `<span>\${ dt | rt }</span>`, isStrictBinding: true })
+        class App { private readonly dt = value; }
+
+        const host = DOM.createElement('app');
+        await setup(host, new App());
+        assertTextContent(host, 'span', `${value}`);
+      });
+
       it(`returns the value itself if the value is not a number, for example: ${value}`, async function () {
         @customElement({ name: 'app', template: `<span>\${ dt | rt }</span>` })
         class App { private readonly dt = value; }
 
         const host = DOM.createElement('app');
         await setup(host, new App());
-        assertTextContent(host, 'span', `${value}`);
+        assertTextContent(host, 'span', `${value || ''}`);
       });
     }
 
@@ -1148,7 +1227,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt | rt }</span>` })
       class App {
         private readonly dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1163,7 +1242,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt | rt : undefined : 'de' }</span>` })
       class App {
         private readonly dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1178,7 +1257,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt | rt : { style: 'short' } : 'de' }</span>` })
       class App {
         private readonly dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1193,7 +1272,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt | rt }</span>` })
       class App {
         private readonly dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1202,7 +1281,7 @@ describe('translation-integration', function () {
       const host = DOM.createElement('app');
       const { i18n, ctx } = await setup(host, new App());
       await i18n.setLocale('de');
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', 'vor 2 Stunden');
     });
@@ -1211,7 +1290,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt | rt }</span>` })
       class App {
         public dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1222,12 +1301,14 @@ describe('translation-integration', function () {
       const { ctx } = await setup(host, app);
       app.dt = new Date(app.dt.setHours(app.dt.getHours() - 3));
 
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', '5 hours ago');
     });
 
     it('updates formatted value if rt_signal', async function () {
+      this.timeout(10000);
+
       @customElement({ name: 'app', template: `<span>\${ dt | rt }</span>` })
       class App {
         public dt: Date = new Date();
@@ -1236,30 +1317,29 @@ describe('translation-integration', function () {
       const host = DOM.createElement('app');
       const app = new App();
       const { ctx } = await setup(host, app);
-      await new Promise((resolve) => {
-        setTimeout(
-          () => {
-            ctx.container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
-            resolve();
-          },
-          3000);
-      });
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
 
-      assertTextContent(host, 'span', '3 seconds ago');
+      await ctx.scheduler.queueMacroTask(delta => {
+        ctx.container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
+        ctx.scheduler.getRenderTaskQueue().flush();
+        assertTextContent(host, 'span', `${Math.round(delta / 1000)} seconds ago`);
+      }, { delay: 3000 }).result;
     });
   });
 
   describe('`rt` binding-behavior', function () {
 
     for (const value of [undefined, null, 'chaos', 123, true]) {
-      it(`returns the value itself if the value is not a number, for example: ${value}`, async function () {
-        @customElement({ name: 'app', template: `<span>\${ dt & rt }</span>` })
-        class App { private readonly dt = value; }
-
+      it(`returns the value itself if the value is not a number STRICT binding, for example: ${value}`, async function () {
+        const App = CustomElement.define({ name: 'app', template: `<span>\${ dt & rt }</span>`, isStrictBinding: true }, class App { private readonly dt = value; });
         const host = DOM.createElement('app');
         await setup(host, new App());
         assertTextContent(host, 'span', `${value}`);
+      });
+      it(`returns the value itself if the value is not a number, for example: ${value}`, async function () {
+        const App = CustomElement.define({ name: 'app', template: `<span>\${ dt & rt }</span>` }, class App { private readonly dt = value; });
+        const host = DOM.createElement('app');
+        await setup(host, new App());
+        assertTextContent(host, 'span', `${value || ''}`);
       });
     }
 
@@ -1267,7 +1347,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt & rt }</span>` })
       class App {
         private readonly dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1282,7 +1362,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt & rt : undefined : 'de' }</span>` })
       class App {
         private readonly dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1297,7 +1377,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt & rt : { style: 'short' } : 'de' }</span>` })
       class App {
         private readonly dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1312,7 +1392,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt & rt }</span>` })
       class App {
         private readonly dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1321,7 +1401,7 @@ describe('translation-integration', function () {
       const host = DOM.createElement('app');
       const { i18n, ctx } = await setup(host, new App());
       await i18n.setLocale('de');
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', 'vor 2 Stunden');
     });
@@ -1330,7 +1410,7 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt & rt }</span>` })
       class App {
         public dt: Date;
-        constructor() {
+        public constructor() {
           this.dt = new Date();
           this.dt.setHours(this.dt.getHours() - 2);
         }
@@ -1341,12 +1421,14 @@ describe('translation-integration', function () {
       const { ctx } = await setup(host, app);
       app.dt = new Date(app.dt.setHours(app.dt.getHours() - 3));
 
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
+      ctx.scheduler.getRenderTaskQueue().flush();
 
       assertTextContent(host, 'span', '5 hours ago');
     });
 
     it('updates formatted value if rt_signal', async function () {
+      this.timeout(10000);
+
       @customElement({ name: 'app', template: `<span>\${ dt & rt }</span>` })
       class App {
         public dt: Date = new Date();
@@ -1355,17 +1437,12 @@ describe('translation-integration', function () {
       const host = DOM.createElement('app');
       const app = new App();
       const { ctx } = await setup(host, app);
-      await new Promise((resolve) => {
-        setTimeout(
-          () => {
-            ctx.container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
-            resolve();
-          },
-          3000);
-      });
-      ctx.lifecycle.processRAFQueue(LifecycleFlags.none);
 
-      assertTextContent(host, 'span', '3 seconds ago');
+      await ctx.scheduler.queueMacroTask(delta => {
+        ctx.container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
+        ctx.scheduler.getRenderTaskQueue().flush();
+        assertTextContent(host, 'span', `${Math.round(delta / 1000)} seconds ago`);
+      }, { delay: 3000 }).result;
     });
   });
 

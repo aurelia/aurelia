@@ -1,12 +1,13 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
 /// <reference types="reflect-metadata" />
-import { Class, Constructable, IIndexable } from './interfaces';
+import { Class, Constructable } from './interfaces';
 import { PLATFORM } from './platform';
-import { Reporter, Tracer } from './reporter';
-import { IResourceType } from './resource';
+import { Reporter } from './reporter';
+import { ResourceType, Protocol } from './resource';
+import { Metadata } from './metadata';
+import { isNumeric, isNativeFunction, isObject } from './functions';
 
-// tslint:disable: no-any
-
-const slice = Array.prototype.slice;
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export type ResolveCallback<T = any> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
 
@@ -40,20 +41,26 @@ export interface IFactory<T extends Constructable = any> {
 
 export interface IServiceLocator {
   has<K extends Key>(key: K | Key, searchAncestors: boolean): boolean;
+  get<K extends Key>(key: K): Resolved<K>;
+  get<K extends Key>(key: Key): Resolved<K>;
   get<K extends Key>(key: K | Key): Resolved<K>;
+  getAll<K extends Key>(key: K): readonly Resolved<K>[];
+  getAll<K extends Key>(key: Key): readonly Resolved<K>[];
   getAll<K extends Key>(key: K | Key): readonly Resolved<K>[];
 }
 
 export interface IRegistry {
-  register(container: IContainer, ...params: unknown[]): void;
+  register(container: IContainer, ...params: unknown[]): void | IResolver | IContainer;
 }
 
 export interface IContainer extends IServiceLocator {
+  readonly id: number;
+  readonly path: string;
   register(...params: any[]): IContainer;
-  registerResolver<K extends Key>(key: K, resolver: IResolver<K>): IResolver<K>;
-  registerTransformer<K extends Key>(key: K, transformer: Transformer<K>): boolean;
-  getResolver<K extends Key>(key: K | Key, autoRegister?: boolean): IResolver<K> | null;
-  getFactory<T extends Constructable>(key: T): IFactory<T>;
+  registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>): IResolver<T>;
+  registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
+  getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
+  getFactory<T extends Constructable>(key: T): IFactory<T> | null;
   createChild(): IContainer;
 }
 
@@ -76,88 +83,139 @@ export type Resolved<K> = (
     ? T
     : K extends Constructable
       ? InstanceType<K>
-      : K extends IResolverLike<infer T1, any>
+      : K extends IResolverLike<any, infer T1>
         ? T1 extends Constructable
-            ? InstanceType<T1>
-            : T1
+          ? InstanceType<T1>
+          : T1
         : K
 );
 
 export type Injectable<T = {}> = Constructable<T> & { inject?: Key[] };
 
-// Shims to augment the Reflect object with methods used from the Reflect Metadata API proposal:
-// https://www.typescriptlang.org/docs/handbook/decorators.html#metadata
-// https://rbuckton.github.io/reflect-metadata/
-// As the official spec proposal uses "any", we use it here as well and suppress related typedef linting warnings.
-// tslint:disable:no-any ban-types
-if (!('getOwnMetadata' in Reflect)) {
-  Reflect.getOwnMetadata = function(metadataKey: any, target: Object): any {
-    return (target as IIndexable<Object>)[metadataKey];
-  };
-
-  Reflect.metadata = function(metadataKey: any, metadataValue: any): (target: Function) => void {
-    return function(target: Function): void {
-      (target as IIndexable<Function>)[metadataKey] = metadataValue;
-    };
-  } as (metadataKey: any, metadataValue: any) => {
-    (target: Function): void;
-    (target: Object, propertyKey: string | symbol): void;
-  };
-}
-
 type InternalDefaultableInterfaceSymbol<K> = IDefaultableInterfaceSymbol<K> & Partial<IRegistration<K> & {friendlyName: string}>;
 
-const hasOwnProperty = PLATFORM.hasOwnProperty;
+function cloneArrayWithPossibleProps<T>(source: readonly T[]): T[] {
+  const clone = source.slice();
+  const keys = Object.keys(source);
+  const len = keys.length;
+  let key: string;
+  for (let i = 0; i < len; ++i) {
+    key = keys[i];
+    if (!isNumeric(key)) {
+      clone[key] = source[key];
+    }
+  }
+  return clone;
+}
 
 export class DI {
-  private constructor() {}
+  private constructor() { return; }
 
   public static createContainer(...params: any[]): IContainer {
     if (params.length === 0) {
-      return new Container();
+      return new Container(null);
     } else {
-      return new Container().register(...params);
+      return new Container(null).register(...params);
     }
   }
 
-  public static getDesignParamTypes(target: Constructable): Key[] {
-    const paramTypes = Reflect.getOwnMetadata('design:paramtypes', target);
-    if (paramTypes == null) {
-      return PLATFORM.emptyArray as typeof PLATFORM.emptyArray & Key[];
+  public static getDesignParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined {
+    return Metadata.getOwn('design:paramtypes', Type);
+  }
+
+  public static getAnnotationParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined {
+    const key = Protocol.annotation.keyFor('di:paramtypes');
+    return Metadata.getOwn(key, Type);
+  }
+
+  public static getOrCreateAnnotationParamTypes(Type: Constructable | Injectable): Key[] {
+    const key = Protocol.annotation.keyFor('di:paramtypes');
+    let annotationParamtypes = Metadata.getOwn(key, Type);
+    if (annotationParamtypes === void 0) {
+      Metadata.define(key, annotationParamtypes = [], Type);
+      Protocol.annotation.appendTo(Type, key);
     }
-    return paramTypes;
+    return annotationParamtypes;
   }
 
   public static getDependencies(Type: Constructable | Injectable): Key[] {
-    let dependencies: Key[];
+    // Note: Every detail of this getDependencies method is pretty deliberate at the moment, and probably not yet 100% tested from every possible angle,
+    // so be careful with making changes here as it can have a huge impact on complex end user apps.
+    // Preferably, only make changes to the dependency resolution process via a RFC.
 
-    if ((Type as Injectable).inject == null) {
-      dependencies = DI.getDesignParamTypes(Type);
-    } else {
-      dependencies = [];
-      let ctor = Type as Injectable;
+    const key = Protocol.annotation.keyFor('di:dependencies');
+    let dependencies = Metadata.getOwn(key, Type) as Key[] | undefined;
+    if (dependencies === void 0) {
+      // Type.length is the number of constructor parameters. If this is 0, it could mean the class has an empty constructor
+      // but it could also mean the class has no constructor at all (in which case it inherits the constructor from the prototype).
 
-      while (typeof ctor === 'function') {
-        if (hasOwnProperty.call(ctor, 'inject')) {
-          dependencies.push(...ctor.inject!);
+      // Non-zero constructor length + no paramtypes means emitDecoratorMetadata is off, or the class has no decorator.
+      // We're not doing anything with the above right now, but it's good to keep in mind for any future issues.
+
+      const inject = (Type as Injectable).inject;
+      if (inject === void 0) {
+        // design:paramtypes is set by tsc when emitDecoratorMetadata is enabled.
+        const designParamtypes = DI.getDesignParamtypes(Type);
+        // au:annotation:di:paramtypes is set by the parameter decorator from DI.createInterface or by @inject
+        const annotationParamtypes = DI.getAnnotationParamtypes(Type);
+        if (designParamtypes === void 0) {
+          if (annotationParamtypes === void 0) {
+            // Only go up the prototype if neither static inject nor any of the paramtypes is defined, as
+            // there is no sound way to merge a type's deps with its prototype's deps
+            const Proto = Object.getPrototypeOf(Type);
+            if (typeof Proto === 'function' && Proto !== Function.prototype) {
+              dependencies = cloneArrayWithPossibleProps(DI.getDependencies(Proto));
+            } else {
+              dependencies = [];
+            }
+          } else {
+            // No design:paramtypes so just use the au:annotation:di:paramtypes
+            dependencies = cloneArrayWithPossibleProps(annotationParamtypes);
+          }
+        } else if (annotationParamtypes === void 0) {
+          // No au:annotation:di:paramtypes so just use the design:paramtypes
+          dependencies = cloneArrayWithPossibleProps(designParamtypes);
+        } else {
+          // We've got both, so merge them (in case of conflict on same index, au:annotation:di:paramtypes take precedence)
+          dependencies = cloneArrayWithPossibleProps(designParamtypes);
+          let len = annotationParamtypes.length;
+          let auAnnotationParamtype: Key;
+          for (let i = 0; i < len; ++i) {
+            auAnnotationParamtype = annotationParamtypes[i];
+            if (auAnnotationParamtype !== void 0) {
+              dependencies![i] = auAnnotationParamtype;
+            }
+          }
+
+          const keys = Object.keys(annotationParamtypes);
+          len = keys.length;
+          let key: string;
+          for (let i = 0; i < len; ++i) {
+            key = keys[i];
+            if (!isNumeric(key)) {
+              dependencies[key] = annotationParamtypes[key];
+            }
+          }
         }
-
-        ctor = Object.getPrototypeOf(ctor);
+      } else {
+        // Ignore paramtypes if we have static inject
+        dependencies = cloneArrayWithPossibleProps(inject);
       }
+
+      Metadata.define(key, dependencies, Type);
+      Protocol.annotation.appendTo(Type, key);
     }
 
-    return dependencies;
+    return dependencies!;
   }
 
   public static createInterface<K extends Key>(friendlyName?: string): IDefaultableInterfaceSymbol<K> {
-    const Interface: InternalDefaultableInterfaceSymbol<K> = function(target: Injectable<K>, property: string, index: number): any {
+    const Interface: InternalDefaultableInterfaceSymbol<K> = function (target: Injectable<K>, property: string, index: number): any {
       if (target == null) {
         throw Reporter.error(16, Interface.friendlyName, Interface); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
       }
-      if (target.inject == null) {
-        target.inject = [];
-      }
-      target.inject[index] = Interface;
+      const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
+      annotationParamtypes[index] = Interface;
       return target;
     };
     Interface.friendlyName = friendlyName == null ? 'Interface' : friendlyName;
@@ -166,12 +224,12 @@ export class DI {
       return Interface;
     };
 
-    Interface.withDefault = function(configure: (builder: IResolverBuilder<K>) => IResolver<K>): InterfaceSymbol<K> {
+    Interface.withDefault = function (configure: (builder: IResolverBuilder<K>) => IResolver<K>): InterfaceSymbol<K> {
       Interface.withDefault = function (): InterfaceSymbol<K> {
         throw Reporter.error(17, Interface);
       };
 
-      Interface.register = function(container: IContainer, key?: Key): IResolver<K> {
+      Interface.register = function (container: IContainer, key?: Key): IResolver<K> {
         const trueKey = key == null ? Interface : key;
         return configure({
           instance(value: K): IResolver<K> {
@@ -199,59 +257,60 @@ export class DI {
   }
 
   public static inject(...dependencies: Key[]): (target: Injectable, key?: string | number, descriptor?: PropertyDescriptor | number) => void {
-    return function(target: Injectable, key?: string | number, descriptor?: PropertyDescriptor | number): void {
+    return function (target: Injectable, key?: string | number, descriptor?: PropertyDescriptor | number): void {
       if (typeof descriptor === 'number') { // It's a parameter decorator.
-        if (!hasOwnProperty.call(target, 'inject')) {
-          const types = DI.getDesignParamTypes(target);
-          target.inject = types.slice() as Constructable[];
-        }
-
-        if (dependencies.length === 1) {
-          // We know for sure that it's not void 0 due to the above check.
-          // tslint:disable-next-line: no-non-null-assertion
-          target.inject![descriptor] = dependencies[0] as Constructable;
+        const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
+        const dep = dependencies[0];
+        if (dep !== void 0) {
+          annotationParamtypes[descriptor] = dep;
         }
       } else if (key) { // It's a property decorator. Not supported by the container without plugins.
-        const actualTarget = target.constructor as Injectable;
-        if (actualTarget.inject == null) {
-          actualTarget.inject = [];
+        const annotationParamtypes = DI.getOrCreateAnnotationParamTypes((target as unknown as { constructor: Injectable }).constructor);
+        const dep = dependencies[0];
+        if (dep !== void 0) {
+          annotationParamtypes[key as number] = dep;
         }
-        actualTarget.inject[key as number] = dependencies[0];
       } else if (descriptor) { // It's a function decorator (not a Class constructor)
         const fn = descriptor.value;
-        fn.inject = dependencies;
+        const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(fn);
+        let dep: Key;
+        for (let i = 0; i < dependencies.length; ++i) {
+          dep = dependencies[i];
+          if (dep !== void 0) {
+            annotationParamtypes[i] = dep;
+          }
+        }
       } else { // It's a class decorator.
-        if (dependencies.length === 0) {
-          const types = DI.getDesignParamTypes(target);
-          target.inject = types.slice() as Constructable[];
-        } else {
-          target.inject = dependencies as Constructable[];
+        const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
+        let dep: Key;
+        for (let i = 0; i < dependencies.length; ++i) {
+          dep = dependencies[i];
+          if (dep !== void 0) {
+            annotationParamtypes[i] = dep;
+          }
         }
       }
     };
   }
 
-  // tslint:disable:jsdoc-format
   /**
    * Registers the `target` class as a transient dependency; each time the dependency is resolved
    * a new instance will be created.
    *
-   * @param target The class / constructor function to register as transient.
+   * @param target - The class / constructor function to register as transient.
    * @returns The same class, with a static `register` method that takes a container and returns the appropriate resolver.
    *
-   * Example usage:
-```ts
-// On an existing class
-class Foo { }
-DI.transient(Foo);
-
-// Inline declaration
-const Foo = DI.transient(class { });
-// Foo is now strongly typed with register
-Foo.register(container);
-```
+   * @example ```ts
+   * // On an existing class
+   * class Foo { }
+   * DI.transient(Foo);
+   *
+   * // Inline declaration
+   * const Foo = DI.transient(class { });
+   * // Foo is now strongly typed with register
+   * Foo.register(container);
+   * ```
    */
-  // tslint:enable:jsdoc-format
   public static transient<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
     target.register = function register(container: IContainer): IResolver<InstanceType<T>> {
       const registration = Registration.transient(target as T, target as T);
@@ -260,26 +319,23 @@ Foo.register(container);
     return target as T & RegisterSelf<T>;
   }
 
-  // tslint:disable:jsdoc-format
   /**
    * Registers the `target` class as a singleton dependency; the class will only be created once. Each
    * consecutive time the dependency is resolved, the same instance will be returned.
    *
-   * @param target The class / constructor function to register as a singleton.
+   * @param target - The class / constructor function to register as a singleton.
    * @returns The same class, with a static `register` method that takes a container and returns the appropriate resolver.
-   * Example usage:
-```ts
-// On an existing class
-class Foo { }
-DI.singleton(Foo);
-
-// Inline declaration
-const Foo = DI.singleton(class { });
-// Foo is now strongly typed with register
-Foo.register(container);
-```
+   * @example ```ts
+   * // On an existing class
+   * class Foo { }
+   * DI.singleton(Foo);
+   *
+   * // Inline declaration
+   * const Foo = DI.singleton(class { });
+   * // Foo is now strongly typed with register
+   * Foo.register(container);
+   * ```
    */
-  // tslint:enable:jsdoc-format
   public static singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
     target.register = function register(container: IContainer): IResolver<InstanceType<T>> {
       const registration = Registration.singleton(target, target);
@@ -298,7 +354,7 @@ function createResolver(getter: (key: any, handler: IContainer, requestor: ICont
       DI.inject(resolver)(target, property, descriptor);
     };
 
-    resolver.resolve = function(handler: IContainer, requestor: IContainer): any {
+    resolver.resolve = function (handler: IContainer, requestor: IContainer): any {
       return getter(key, handler, requestor);
     };
 
@@ -311,33 +367,27 @@ export const inject = DI.inject;
 function transientDecorator<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
   return DI.transient(target);
 }
-// tslint:disable:jsdoc-format
 /**
  * Registers the decorated class as a transient dependency; each time the dependency is resolved
  * a new instance will be created.
  *
- * Example usage:
-```ts
-@transient
-class Foo { }
-```
+ * @example ```ts
+ * @transient()
+ * class Foo { }
+ * ```
  */
-// tslint:enable:jsdoc-format
 export function transient<T extends Constructable>(): typeof transientDecorator;
-// tslint:disable:jsdoc-format
 /**
  * Registers the `target` class as a transient dependency; each time the dependency is resolved
  * a new instance will be created.
  *
- * @param target The class / constructor function to register as transient.
+ * @param target - The class / constructor function to register as transient.
  *
- * Example usage:
-```ts
-@transient()
-class Foo { }
-```
+ * @example ```ts
+ * @transient()
+ * class Foo { }
+ * ```
  */
-// tslint:enable:jsdoc-format
 export function transient<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
 export function transient<T extends Constructable>(target?: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> | typeof transientDecorator {
   return target == null ? transientDecorator : transientDecorator(target);
@@ -346,33 +396,27 @@ export function transient<T extends Constructable>(target?: T & Partial<Register
 function singletonDecorator<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
   return DI.singleton(target);
 }
-// tslint:disable:jsdoc-format
 /**
  * Registers the decorated class as a singleton dependency; the class will only be created once. Each
  * consecutive time the dependency is resolved, the same instance will be returned.
  *
- * Example usage:
-```ts
-@singleton
-class Foo { }
-```
+ * @example ```ts
+ * @singleton()
+ * class Foo { }
+ * ```
  */
-// tslint:enable:jsdoc-format
 export function singleton<T extends Constructable>(): typeof singletonDecorator;
-// tslint:disable:jsdoc-format
 /**
  * Registers the `target` class as a singleton dependency; the class will only be created once. Each
  * consecutive time the dependency is resolved, the same instance will be returned.
  *
- * @param target The class / constructor function to register as a singleton.
+ * @param target - The class / constructor function to register as a singleton.
  *
- * Example usage:
-```ts
-@singleton()
-class Foo { }
-```
+ * @example ```ts
+ * @singleton()
+ * class Foo { }
+ * ```
  */
-// tslint:enable:jsdoc-format
 export function singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
 export function singleton<T extends Constructable>(target?: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> | typeof singletonDecorator {
   return target == null ? singletonDecorator : singletonDecorator(target);
@@ -411,14 +455,11 @@ export const enum ResolverStrategy {
 
 /** @internal */
 export class Resolver implements IResolver, IRegistration {
-  public key: Key;
-  public strategy: ResolverStrategy;
-  public state: any;
-  constructor(key: Key, strategy: ResolverStrategy, state: any) {
-    this.key = key;
-    this.strategy = strategy;
-    this.state = state;
-  }
+  public constructor(
+    public key: Key,
+    public strategy: ResolverStrategy,
+    public state: any,
+  ) {}
 
   public register(container: IContainer, key?: Key): IResolver {
     return container.registerResolver(key || this.key, this);
@@ -431,11 +472,17 @@ export class Resolver implements IResolver, IRegistration {
       case ResolverStrategy.singleton: {
         this.strategy = ResolverStrategy.instance;
         const factory = handler.getFactory(this.state as Constructable);
-        return this.state = factory.construct(handler);
+        if (factory === null) {
+          throw new Error(`Resolver for ${String(this.key)} returned a null factory`);
+        }
+        return this.state = factory.construct(requestor);
       }
       case ResolverStrategy.transient: {
         // Always create transients from the requesting container
         const factory = handler.getFactory(this.state as Constructable);
+        if (factory === null) {
+          throw new Error(`Resolver for ${String(this.key)} returned a null factory`);
+        }
         return factory.construct(requestor);
       }
       case ResolverStrategy.callback:
@@ -450,10 +497,17 @@ export class Resolver implements IResolver, IRegistration {
   }
 
   public getFactory(container: IContainer): IFactory | null {
+    let resolver: IResolver | null;
     switch (this.strategy) {
       case ResolverStrategy.singleton:
       case ResolverStrategy.transient:
         return container.getFactory(this.state as Constructable);
+      case ResolverStrategy.alias:
+        resolver = container.getResolver(this.state);
+        if (resolver == null || resolver.getFactory === void 0) {
+          return null;
+        }
+        return resolver.getFactory(container);
       default:
         return null;
     }
@@ -473,23 +527,13 @@ export interface IInvoker<T extends Constructable = any> {
 
 /** @internal */
 export class Factory<T extends Constructable = any> implements IFactory<T> {
-  public Type: T;
-  private readonly invoker: IInvoker;
-  private readonly dependencies: Key[];
-  private transformers: ((instance: any) => any)[] | null;
+  private transformers: ((instance: any) => any)[] | null = null;
 
-  constructor(Type: T, invoker: IInvoker, dependencies: Key[]) {
-    this.Type = Type;
-    this.invoker = invoker;
-    this.dependencies = dependencies;
-    this.transformers = null;
-  }
-
-  public static create<T extends Constructable>(Type: T): IFactory<T> {
-    const dependencies = DI.getDependencies(Type);
-    const invoker = classInvokers.length > dependencies.length ? classInvokers[dependencies.length] : fallbackInvoker;
-    return new Factory<T>(Type, invoker, dependencies);
-  }
+  public constructor(
+    public Type: T,
+    private readonly invoker: IInvoker,
+    private readonly dependencies: Key[],
+  ) {}
 
   public construct(container: IContainer, dynamicDependencies?: Key[]): Resolved<T> {
     const transformers = this.transformers;
@@ -518,10 +562,103 @@ export class Factory<T extends Constructable = any> implements IFactory<T> {
   }
 }
 
+const createFactory = (function () {
+  function invokeWithDynamicDependencies<T>(
+    container: IContainer,
+    Type: Constructable<T>,
+    staticDependencies: Key[],
+    dynamicDependencies: Key[]
+  ): T {
+    let i = staticDependencies.length;
+    let args: Key[] = new Array(i);
+    let lookup: Key;
+
+    while (i-- > 0) {
+      lookup = staticDependencies[i];
+
+      if (lookup == null) {
+        throw Reporter.error(7, `Index ${i}.`);
+      } else {
+        args[i] = container.get(lookup);
+      }
+    }
+
+    if (dynamicDependencies !== void 0) {
+      args = args.concat(dynamicDependencies);
+    }
+
+    return Reflect.construct(Type, args);
+  }
+
+  const classInvokers: IInvoker[] = [
+    {
+      invoke<T>(container: IContainer, Type: Constructable<T>): T {
+        return new Type();
+      },
+      invokeWithDynamicDependencies
+    },
+    {
+      invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
+        return new Type(container.get(deps[0]));
+      },
+      invokeWithDynamicDependencies
+    },
+    {
+      invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
+        return new Type(container.get(deps[0]), container.get(deps[1]));
+      },
+      invokeWithDynamicDependencies
+    },
+    {
+      invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
+        return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]));
+      },
+      invokeWithDynamicDependencies
+    },
+    {
+      invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
+        return new Type(
+          container.get(deps[0]),
+          container.get(deps[1]),
+          container.get(deps[2]),
+          container.get(deps[3])
+        );
+      },
+      invokeWithDynamicDependencies
+    },
+    {
+      invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
+        return new Type(
+          container.get(deps[0]),
+          container.get(deps[1]),
+          container.get(deps[2]),
+          container.get(deps[3]),
+          container.get(deps[4])
+        );
+      },
+      invokeWithDynamicDependencies
+    }
+  ];
+
+  const fallbackInvoker: IInvoker = {
+    invoke: invokeWithDynamicDependencies as (container: IContainer, fn: Constructable, dependencies: Key[]) => Constructable,
+    invokeWithDynamicDependencies
+  };
+
+  return function <T extends Constructable> (Type: T): Factory<T> {
+    if (isNativeFunction(Type)) {
+      Reporter.write(5, Type.name);
+    }
+    const dependencies = DI.getDependencies(Type);
+    const invoker = classInvokers.length > dependencies.length ? classInvokers[dependencies.length] : fallbackInvoker;
+    return new Factory<T>(Type, invoker, dependencies);
+  };
+})();
+
 /** @internal */
 export interface IContainerConfiguration {
   factories?: Map<Constructable, IFactory>;
-  resourceLookup?: Record<string, IResourceType<any, any>>;
+  resourceLookup?: Record<string, ResourceType<any, any>>;
 }
 
 const containerResolver: IResolver = {
@@ -538,25 +675,49 @@ function isClass<T extends { prototype?: any }>(obj: T): obj is Class<any, T> {
   return obj.prototype !== void 0;
 }
 
+const nextContainerId = (function () {
+  let id = 0;
+  return function () {
+    return ++id;
+  };
+})();
+
+function isResourceKey(key: Key): key is string {
+  return typeof key === 'string' && key.indexOf(':') > 0;
+}
+
 /** @internal */
 export class Container implements IContainer {
-  private parent: Container | null;
-  private registerDepth: number;
-  private readonly resolvers: Map<Key, IResolver>;
-  private readonly factories: Map<Key, IFactory>;
-  private readonly configuration: IContainerConfiguration;
-  private readonly resourceLookup: Record<string, IResolver>;
+  public readonly id: number = nextContainerId();
+  public readonly path: string;
 
-  constructor(configuration: IContainerConfiguration = {}) {
-    this.parent = null;
-    this.registerDepth = 0;
-    this.resolvers = new Map<InterfaceSymbol<IContainer>, IResolver>();
-    this.configuration = configuration;
-    if (configuration.factories == null) {
-      configuration.factories = new Map();
+  private registerDepth: number = 0;
+
+  private readonly root: Container;
+
+  private readonly resolvers: Map<Key, IResolver>;
+
+  private readonly resourceResolvers: Record<string, IResolver | undefined>;
+
+  public constructor(
+    private readonly parent: Container | null,
+  ) {
+    if (parent === null) {
+      this.path = this.id.toString();
+      this.root = this;
+
+      this.resolvers = new Map();
+
+      this.resourceResolvers = Object.create(null);
+    } else {
+      this.path = `${parent.path}.${this.id}`;
+      this.root = parent.root;
+
+      this.resolvers = new Map();
+
+      this.resourceResolvers = Object.assign(Object.create(null), this.root.resourceResolvers);
     }
-    this.factories = configuration.factories;
-    this.resourceLookup = configuration.resourceLookup || (configuration.resourceLookup = Object.create(null));
+
     this.resolvers.set(IContainer, containerResolver);
   }
 
@@ -574,8 +735,22 @@ export class Container implements IContainer {
     let jj: number;
     for (let i = 0, ii = params.length; i < ii; ++i) {
       current = params[i];
+      if (!isObject(current)) {
+        continue;
+      }
       if (isRegistry(current)) {
         current.register(this);
+      } else if (Protocol.resource.has(current)) {
+        const defs = Protocol.resource.getAll(current);
+        if (defs.length === 1) {
+          // Fast path for the very common case
+          defs[0].register(this);
+        } else {
+          const len = defs.length;
+          for (let d = 0; d < len; ++d) {
+            defs[d].register(this);
+          }
+        }
       } else if (isClass(current)) {
         Registration.singleton(current, current as Constructable).register(this);
       } else {
@@ -584,6 +759,9 @@ export class Container implements IContainer {
         jj = keys.length;
         for (; j < jj; ++j) {
           value = current[keys[j]];
+          if (!isObject(value)) {
+            continue;
+          }
           // note: we could remove this if-branch and call this.register directly
           // - the extra check is just a perf tweak to create fewer unnecessary arrays by the spread operator
           if (isRegistry(value)) {
@@ -598,7 +776,7 @@ export class Container implements IContainer {
     return this;
   }
 
-  public registerResolver<K extends Key>(key: K, resolver: IResolver<K>): IResolver<K> {
+  public registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>): IResolver<T> {
     validateKey(key);
 
     const resolvers = this.resolvers;
@@ -606,8 +784,8 @@ export class Container implements IContainer {
 
     if (result == null) {
       resolvers.set(key, resolver);
-      if (typeof key === 'string') {
-        this.resourceLookup[key] = resolver;
+      if (isResourceKey(key)) {
+        this.resourceResolvers[key] = resolver;
       }
     } else if (result instanceof Resolver && result.strategy === ResolverStrategy.array) {
       (result.state as IResolver[]).push(resolver);
@@ -618,7 +796,7 @@ export class Container implements IContainer {
     return resolver;
   }
 
-  public registerTransformer<K extends Key>(key: K, transformer: Transformer<K>): boolean {
+  public registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean {
     const resolver = this.getResolver(key);
 
     if (resolver == null) {
@@ -642,7 +820,7 @@ export class Container implements IContainer {
     return false;
   }
 
-  public getResolver<K extends Key>(key: K | Key, autoRegister: boolean = true): IResolver<K> | null {
+  public getResolver<K extends Key, T = K>(key: K | Key, autoRegister: boolean = true): IResolver<T> | null {
     validateKey(key);
 
     if ((key as unknown as IResolver).resolve !== void 0) {
@@ -673,8 +851,8 @@ export class Container implements IContainer {
     return this.resolvers.has(key)
       ? true
       : searchAncestors && this.parent != null
-      ? this.parent.has(key, true)
-      : false;
+        ? this.parent.has(key, true)
+        : false;
   }
 
   public get<K extends Key>(key: K): Resolved<K> {
@@ -728,41 +906,56 @@ export class Container implements IContainer {
     return PLATFORM.emptyArray;
   }
 
-  public getFactory<K extends Constructable>(key: K): IFactory<K> {
-    let factory = this.factories.get(key);
-
-    if (factory == null) {
-      factory = Factory.create(key);
-      this.factories.set(key, factory);
+  public getFactory<K extends Constructable>(Type: K): IFactory<K> | null {
+    const key = Protocol.annotation.keyFor('di:factory');
+    let factory = Metadata.getOwn(key, Type);
+    if (factory === void 0) {
+      Metadata.define(key, factory = createFactory(Type), Type);
+      Protocol.annotation.appendTo(Type, key);
     }
-
     return factory;
   }
 
   public createChild(): IContainer {
-    const config = this.configuration;
-    const childConfig = { factories: config.factories, resourceLookup: Object.assign(Object.create(null), config.resourceLookup) };
-    const child = new Container(childConfig);
-    child.parent = this;
-    return child;
+    return new Container(this);
   }
 
   private jitRegister(keyAsValue: any, handler: Container): IResolver {
-    if (keyAsValue.register !== void 0) {
+    if (typeof keyAsValue !== 'function') {
+      throw new Error(`Attempted to jitRegister something that is not a constructor: '${keyAsValue}'. Did you forget to register this resource?`);
+    }
+
+    if (isRegistry(keyAsValue)) {
       const registrationResolver = keyAsValue.register(handler, keyAsValue);
-      if (!(registrationResolver instanceof Object) || registrationResolver.resolve == null) {
+      if (!(registrationResolver instanceof Object) || (registrationResolver as IResolver).resolve == null) {
         const newResolver = handler.resolvers.get(keyAsValue);
         if (newResolver != void 0) {
           return newResolver;
         }
         throw Reporter.error(40); // did not return a valid resolver from the static register method
       }
-      return registrationResolver;
+      return registrationResolver as IResolver;
+    } else if (Protocol.resource.has(keyAsValue)) {
+      const defs = Protocol.resource.getAll(keyAsValue);
+      if (defs.length === 1) {
+        // Fast path for the very common case
+        defs[0].register(handler);
+      } else {
+        const len = defs.length;
+        for (let d = 0; d < len; ++d) {
+          defs[d].register(handler);
+        }
+      }
+      const newResolver = handler.resolvers.get(keyAsValue);
+      if (newResolver != void 0) {
+        return newResolver;
+      }
+      throw Reporter.error(40); // did not return a valid resolver from the static register method
+    } else {
+      const resolver = new Resolver(keyAsValue, ResolverStrategy.singleton, keyAsValue);
+      handler.resolvers.set(keyAsValue, resolver);
+      return resolver;
     }
-
-    const resolver = new Resolver(keyAsValue, ResolverStrategy.singleton, keyAsValue);
-    handler.resolvers.set(keyAsValue, resolver);
-    return resolver;
   }
 }
 
@@ -772,7 +965,7 @@ export class Container implements IContainer {
  * passing of parameters to the final registry.
  */
 export class ParameterizedRegistry implements IRegistry {
-  constructor(
+  public constructor(
     private readonly key: Key,
     private readonly params: unknown[]
   ) {}
@@ -787,7 +980,7 @@ export class ParameterizedRegistry implements IRegistry {
   }
 }
 
-export const Registration = Object.freeze({
+export const Registration = {
   instance<T>(key: Key, value: T): IRegistration<T> {
     return new Resolver(key, ResolverStrategy.instance, value);
   },
@@ -806,14 +999,10 @@ export const Registration = Object.freeze({
   defer(key: Key, ...params: unknown[]): IRegistry {
     return new ParameterizedRegistry(key, params);
   }
-});
+};
 
 export class InstanceProvider<K extends Key> implements IResolver<K | null> {
-  private instance: Resolved<K> | null;
-
-  constructor() {
-    this.instance = null;
-  }
+  private instance: Resolved<K> | null = null;
 
   public prepare(instance: Resolved<K>): void {
     this.instance = instance;
@@ -833,9 +1022,7 @@ export class InstanceProvider<K extends Key> implements IResolver<K | null> {
 
 /** @internal */
 export function validateKey(key: any): void {
-  // note: design:paramTypes which will default to Object if the param types cannot be statically analyzed by tsc
-  // this check is intended to properly report on that problem - under no circumstance should Object be a valid key anyway
-  if (key == null || key === Object) {
+  if (key === null || key === void 0) {
     throw Reporter.error(5);
   }
 }
@@ -854,89 +1041,4 @@ function buildAllResponse(resolver: IResolver, handler: IContainer, requestor: I
   }
 
   return [resolver.resolve(handler, requestor)];
-}
-
-/** @internal */
-export const classInvokers: IInvoker[] = [
-  {
-    invoke<T>(container: IContainer, Type: Constructable<T>): T {
-      return new Type();
-    },
-    invokeWithDynamicDependencies
-  },
-  {
-    invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
-      return new Type(container.get(deps[0]));
-    },
-    invokeWithDynamicDependencies
-  },
-  {
-    invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
-      return new Type(container.get(deps[0]), container.get(deps[1]));
-    },
-    invokeWithDynamicDependencies
-  },
-  {
-    invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
-      return new Type(container.get(deps[0]), container.get(deps[1]), container.get(deps[2]));
-    },
-    invokeWithDynamicDependencies
-  },
-  {
-    invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
-      return new Type(
-        container.get(deps[0]),
-        container.get(deps[1]),
-        container.get(deps[2]),
-        container.get(deps[3])
-      );
-    },
-    invokeWithDynamicDependencies
-  },
-  {
-    invoke<T>(container: IContainer, Type: Constructable<T>, deps: Key[]): T {
-      return new Type(
-        container.get(deps[0]),
-        container.get(deps[1]),
-        container.get(deps[2]),
-        container.get(deps[3]),
-        container.get(deps[4])
-      );
-    },
-    invokeWithDynamicDependencies
-  }
-];
-
-/** @internal */
-export const fallbackInvoker: IInvoker = {
-  invoke: invokeWithDynamicDependencies as (container: IContainer, fn: Constructable, dependencies: Key[]) => Constructable,
-  invokeWithDynamicDependencies
-};
-
-/** @internal */
-export function invokeWithDynamicDependencies<T>(
-  container: IContainer,
-  Type: Constructable<T>,
-  staticDependencies: Key[],
-  dynamicDependencies: Key[]
-): T {
-  let i = staticDependencies.length;
-  let args: Key[] = new Array(i);
-  let lookup: Key;
-
-  while (i--) {
-    lookup = staticDependencies[i];
-
-    if (lookup == null) {
-      throw Reporter.error(7, `Index ${i}.`);
-    } else {
-      args[i] = container.get(lookup);
-    }
-  }
-
-  if (dynamicDependencies !== void 0) {
-    args = args.concat(dynamicDependencies);
-  }
-
-  return Reflect.construct(Type, args);
 }

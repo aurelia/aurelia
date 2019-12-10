@@ -9,7 +9,7 @@ import {
   Container
 } from 'pixi.js';
 
-@customElement({ name: 'pixi-app', template: '<template><div replaceable part="children"></div></template>' })
+@customElement({ name: 'pixi-app', template: '<template><div replaceable="children"></div></template>' })
 export class PixiApp {
   public static readonly inject: readonly Key[] = [Element];
 
@@ -43,7 +43,7 @@ export class PixiApp {
   private readonly element: Element;
   private _app: Application | null;
 
-  constructor(...args: unknown[]) {
+  public constructor(...args: unknown[]) {
     this.element = args[0] as Element;
     this._app = null;
     this.stage = null;
@@ -85,8 +85,8 @@ export class PixiApp {
     if (this._app !== null) {
       this.element.appendChild(this._app.view);
       this._app.ticker.add(this.callTick);
-      }
     }
+  }
 
   public detached(): void {
     if (this._app !== null) {

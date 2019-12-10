@@ -1,6 +1,6 @@
 import { LogLevel, Reporter as RuntimeReporter } from '@aurelia/kernel';
 
-declare var console: {
+declare let console: {
   log(...args: unknown[]): void;
   debug(...args: unknown[]): void;
   info(...args: unknown[]): void;
@@ -13,6 +13,13 @@ interface IMessageInfo {
   level: LogLevel;
 }
 
+function applyFormat(message: string, ...params: unknown[]): string {
+  while (message.includes('%s')) {
+    message = message.replace('%s', String(params.shift()));
+  }
+  return message;
+}
+
 export const Reporter: typeof RuntimeReporter = {
   ...RuntimeReporter,
   get level() {
@@ -22,32 +29,31 @@ export const Reporter: typeof RuntimeReporter = {
     const info = getMessageInfoForCode(code);
     const message = `Code ${code}: ${info.message}`;
 
-    // tslint:disable:no-console
     switch (info.level) {
       case LogLevel.debug:
-        if (this.level >= LogLevel.debug) {
+        if (this.level <= LogLevel.debug) {
           console.debug(message, ...params);
         }
         break;
       case LogLevel.info:
-        if (this.level >= LogLevel.info) {
+        if (this.level <= LogLevel.info) {
           console.info(message, ...params);
         }
         break;
       case LogLevel.warn:
-        if (this.level >= LogLevel.warn) {
+        if (this.level <= LogLevel.warn) {
           console.warn(message, ...params);
         }
         break;
-      case LogLevel.error:
+      case LogLevel.error: {
         throw this.error(code, ...params);
+      }
     }
-    // tslint:enable:no-console
   },
   error(code: number, ...params: unknown[]): Error {
     const info = getMessageInfoForCode(code);
-    const error = new Error(`Code ${code}: ${info.message}`);
-    (error as Error & {data: unknown}).data = params;
+    const error = new Error(`Code ${code}: ${applyFormat(info.message, ...params)}`);
+    (error as Error & { data: unknown[] }).data = params;
     return error;
   }
 };
@@ -127,7 +133,7 @@ const codeLookup: Record<string, IMessageInfo> = {
   },
   16: {
     level: LogLevel.error,
-    message: 'Only one child observer per content view is supported for the life of the content view.'
+    message: 'A dependency registration is missing for the interface %s.'
   },
   17: {
     level: LogLevel.error,

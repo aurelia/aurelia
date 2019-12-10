@@ -16,6 +16,6 @@ jobs:
           source $NVM_DIR/nvm.sh
           nvm install v10.16.0
 
-          npm install
+          npm i
           npm start &
           npm run build -- --check

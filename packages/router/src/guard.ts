@@ -1,5 +1,5 @@
 import { GuardIdentity, GuardTypes, IGuardOptions, } from './guardian';
-import { ComponentAppellation, GuardFunction, GuardTarget, IComponentAndOrViewportOrNothing, INavigatorInstruction, IRouteableComponentType, ViewportHandle } from './interfaces';
+import { GuardFunction, GuardTarget, IComponentAndOrViewportOrNothing, INavigatorInstruction, RouteableComponentType } from './interfaces';
 import { ComponentAppellationResolver, ViewportHandleResolver } from './type-resolvers';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
@@ -9,12 +9,12 @@ export class Guard {
   public includeTargets: Target[] = [];
   public excludeTargets: Target[] = [];
 
-  constructor(
+  public constructor(
     public guard: GuardFunction,
     options: IGuardOptions,
     public id: GuardIdentity
   ) {
-    if (options.type) {
+    if (options.type !== void 0) {
       this.type = options.type;
     }
 
@@ -42,26 +42,28 @@ export class Guard {
 }
 
 class Target {
-  public componentType: IRouteableComponentType | null = null;
+  public componentType: RouteableComponentType | null = null;
   public componentName: string | null = null;
   public viewport: Viewport | null = null;
   public viewportName: string | null = null;
 
-  constructor(target: GuardTarget) {
+  public constructor(target: GuardTarget) {
     if (typeof target === 'string') {
       this.componentName = target;
-    } else if (ComponentAppellationResolver.isType(target as IRouteableComponentType)) {
-      this.componentType = target as IRouteableComponentType;
-      this.componentName = ComponentAppellationResolver.getName(target as IRouteableComponentType);
+    } else if (ComponentAppellationResolver.isType(target as RouteableComponentType)) {
+      this.componentType = target as RouteableComponentType;
+      this.componentName = ComponentAppellationResolver.getName(target as RouteableComponentType);
     } else {
       const cvTarget = target as IComponentAndOrViewportOrNothing;
       if (cvTarget.component) {
-        this.componentType = ComponentAppellationResolver.isType(cvTarget.component as ComponentAppellation) ? ComponentAppellationResolver.getType(cvTarget.component as ComponentAppellation) : null;
-        this.componentName = ComponentAppellationResolver.getName(cvTarget.component as ComponentAppellation);
+        this.componentType = ComponentAppellationResolver.isType(cvTarget.component)
+          ? ComponentAppellationResolver.getType(cvTarget.component)
+          : null;
+        this.componentName = ComponentAppellationResolver.getName(cvTarget.component);
       }
       if (cvTarget.viewport) {
-        this.viewport = ViewportHandleResolver.isInstance(cvTarget.viewport as ViewportHandle) ? cvTarget.viewport as Viewport : null;
-        this.viewportName = ViewportHandleResolver.getName(cvTarget.viewport as ViewportHandle);
+        this.viewport = ViewportHandleResolver.isInstance(cvTarget.viewport) ? cvTarget.viewport : null;
+        this.viewportName = ViewportHandleResolver.getName(cvTarget.viewport);
       }
     }
   }
@@ -72,10 +74,10 @@ class Target {
       instructions.push(new ViewportInstruction(''));
     }
     for (const instruction of instructions) {
-      if (this.componentName === instruction.componentName ||
-        this.componentType === instruction.componentType ||
-        this.viewportName === instruction.viewportName ||
-        this.viewport === instruction.viewport) {
+      if ((this.componentName !== null && this.componentName === instruction.componentName) ||
+        (this.componentType !== null && this.componentType === instruction.componentType) ||
+        (this.viewportName !== null && this.viewportName === instruction.viewportName) ||
+        (this.viewport !== null && this.viewport === instruction.viewport)) {
         return true;
       }
     }

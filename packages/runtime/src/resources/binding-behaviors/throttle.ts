@@ -1,86 +1,68 @@
-import { PLATFORM } from '@aurelia/kernel';
-import { PropertyBinding } from '../../binding/property-binding';
-import { BindingMode, LifecycleFlags } from '../../flags';
-import { IBinding } from '../../lifecycle';
+import { LifecycleFlags } from '../../flags';
 import { IScope } from '../../observation';
-import { bindingBehavior } from '../binding-behavior';
-
-export type ThrottleableBinding = IBinding & {
-  throttledMethod: ((value: unknown) => unknown) & { originalName: string };
-  throttleState: {
-    delay: number;
-    timeoutId: number;
-    last: number;
-    newValue?: unknown;
-  };
-};
-
-/** @internal */
-export function throttle(this: ThrottleableBinding, newValue: unknown): void {
-  const state = this.throttleState;
-  const elapsed = +new Date() - state.last;
-
-  if (elapsed >= state.delay) {
-    PLATFORM.global.clearTimeout(state.timeoutId);
-    state.timeoutId = -1;
-    state.last = +new Date();
-    this.throttledMethod(newValue);
-    return;
-  }
-
-  state.newValue = newValue;
-
-  if (state.timeoutId === -1) {
-    const timeoutId = PLATFORM.global.setTimeout(
-      () => {
-        state.timeoutId = -1;
-        state.last = +new Date();
-        this.throttledMethod(state.newValue);
-      },
-      state.delay - elapsed
-    );
-    state.timeoutId = timeoutId;
-  }
-}
+import { bindingBehavior, BindingInterceptor, IInterceptableBinding } from '../binding-behavior';
+import { ITask, IScheduler, ITaskQueue, QueueTaskOptions, IClock } from '../../scheduler';
+import { BindingBehaviorExpression } from '../../binding/ast';
+import { IsAssign } from '../../ast';
 
 @bindingBehavior('throttle')
-export class ThrottleBindingBehavior {
-  public bind(flags: LifecycleFlags, scope: IScope, binding: ThrottleableBinding, delay: number = 200): void {
-    let methodToThrottle: string;
+export class ThrottleBindingBehavior extends BindingInterceptor {
+  private readonly taskQueue: ITaskQueue;
+  private readonly clock: IClock;
+  private readonly opts: QueueTaskOptions = { delay: 0 };
+  private readonly firstArg: IsAssign | null = null;
+  private task: ITask | null = null;
+  private lastCall: number = 0;
 
-    if (binding instanceof PropertyBinding) {
-      if (binding.mode === BindingMode.twoWay) {
-        methodToThrottle = 'updateSource';
-      } else {
-        methodToThrottle = 'updateTarget';
-      }
-    } else {
-      methodToThrottle = 'callSource';
+  public constructor(
+    binding: IInterceptableBinding,
+    expr: BindingBehaviorExpression,
+  ) {
+    super(binding, expr);
+    this.taskQueue = binding.locator.get(IScheduler).getPostRenderTaskQueue();
+    this.clock = binding.locator.get(IClock);
+    if (expr.args.length > 0) {
+      this.firstArg = expr.args[0];
     }
-
-    // stash the original method and it's name.
-    // note: a generic name like "originalMethod" is not used to avoid collisions
-    // with other binding behavior types.
-    binding.throttledMethod = binding[methodToThrottle as keyof ThrottleableBinding] as ThrottleableBinding['throttledMethod'];
-    binding.throttledMethod.originalName = methodToThrottle;
-
-    // replace the original method with the throttling version.
-    (binding as typeof binding & { [key: string]: typeof throttle})[methodToThrottle] = throttle as ThrottleableBinding['throttledMethod'];
-
-    // create the throttle state.
-    binding.throttleState = {
-      delay: delay,
-      last: 0,
-      timeoutId: -1
-    };
   }
 
-  public unbind(flags: LifecycleFlags, scope: IScope, binding: ThrottleableBinding): void {
-    // restore the state of the binding.
-    const methodToRestore = binding.throttledMethod.originalName;
-    (binding as typeof binding & { [key: string]: ThrottleableBinding['throttledMethod'] })[methodToRestore] = binding.throttledMethod;
-    binding.throttledMethod = null!;
-    PLATFORM.global.clearTimeout(binding.throttleState.timeoutId);
-    binding.throttleState = null!;
+  public callSource(args: object): unknown {
+    this.queueTask(() => this.binding.callSource!(args));
+    return void 0;
+  }
+
+  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
+    this.queueTask(() => this.binding.handleChange!(newValue, previousValue, flags));
+  }
+
+  private queueTask(callback: () => void): void {
+    const opts = this.opts;
+    const clock = this.clock;
+    const nextDelay = this.lastCall + opts.delay! - clock.now();
+
+    if (nextDelay > 0) {
+      if (this.task !== null) {
+        this.task.cancel();
+      }
+
+      opts.delay = nextDelay;
+      this.task = this.taskQueue.queueTask(() => {
+        this.lastCall = clock.now();
+        callback();
+      }, opts);
+    } else {
+      this.lastCall = clock.now();
+      callback();
+    }
+  }
+
+  public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined): void {
+    if (this.firstArg !== null) {
+      const delay = Number(this.firstArg.evaluate(flags, scope, this.locator, part));
+      if (!isNaN(delay)) {
+        this.opts.delay = delay;
+      }
+    }
+    this.binding.$bind(flags, scope, part);
   }
 }

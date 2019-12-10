@@ -10,7 +10,10 @@ export const noopShadowDOMStyles = Object.freeze({
 });
 
 export const IShadowDOMStyles =
-  DI.createInterface<IShadowDOMStyles>('IShadowDOMStyles')
+  DI.createInterface<IShadowDOMStyles>('IShadowDOMStyles').noDefault();
+
+export const IShadowDOMGlobalStyles =
+  DI.createInterface<IShadowDOMStyles>('IShadowDOMGlobalStyles')
     .withDefault(x => x.instance(noopShadowDOMStyles));
 
 export interface IShadowDOMStyles {
@@ -20,11 +23,11 @@ export interface IShadowDOMStyles {
 export class AdoptedStyleSheetsStyles implements IShadowDOMStyles {
   private readonly styleSheets: CSSStyleSheet[];
 
-  constructor(
+  public constructor(
     dom: HTMLDOM,
     localStyles: (string | CSSStyleSheet)[],
     styleSheetCache: Map<string, CSSStyleSheet>,
-    private sharedStyles: IShadowDOMStyles | null = null
+    private readonly sharedStyles: IShadowDOMStyles | null = null
   ) {
     this.styleSheets = localStyles.map(x => {
       let sheet: CSSStyleSheet | undefined;
@@ -64,10 +67,10 @@ export class AdoptedStyleSheetsStyles implements IShadowDOMStyles {
 }
 
 export class StyleElementStyles implements IShadowDOMStyles {
-  constructor(
-    private dom: HTMLDOM,
-    private localStyles: string[],
-    private sharedStyles: IShadowDOMStyles | null = null
+  public constructor(
+    private readonly dom: HTMLDOM,
+    private readonly localStyles: string[],
+    private readonly sharedStyles: IShadowDOMStyles | null = null
   ) { }
 
   public applyTo(shadowRoot: ShadowRoot) {

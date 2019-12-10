@@ -1,4 +1,4 @@
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
+import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia, CustomElementResource, ValueConverterResource, ILifecycle, Priority } from '@aurelia/runtime';
 import { register } from '@aurelia/plugin-svg';
 import { startFPSMonitor, startMemMonitor } from 'perf-monitor';
@@ -14,7 +14,7 @@ export const clock = {
   },
 };
 
-new Aurelia().register(BasicConfiguration, { register }).app(
+new Aurelia().register(JitHtmlBrowserConfiguration, { register }).app(
   {
     host: document.getElementById('app'),
     component: CustomElementResource.define(
@@ -71,7 +71,7 @@ new Aurelia().register(BasicConfiguration, { register }).app(
         attached() {
           this.tick0();
           this.intervalID = setInterval(this.tick0, 1000);
-          this.lifecycle.enqueueRAF(this.tick, this, Priority.preempt)
+          this.lifecycle.enqueueRAF(this.tick, this, Priority.preempt);
           this.fps = this.lifecycle.minFPS = 45;
         }
 
@@ -92,10 +92,10 @@ new Aurelia().register(BasicConfiguration, { register }).app(
         }
 
         tick() {
-          let elapsed = new Date().getTime() - this.start;
-          let t = (elapsed / 1000) % 10;
-          let scale = 1 + (t > 5 ? 10 - t : t) / 10;
-          this.app.style.transform = 'scaleX(' + (scale / 2.1) + ') scaleY(0.7) translateZ(0.1px)';
+          const elapsed = new Date().getTime() - this.start;
+          const t = (elapsed / 1000) % 10;
+          const scale = 1 + (t > 5 ? 10 - t : t) / 10;
+          this.app.style.transform = `scaleX(${scale / 2.1}) scaleY(0.7) translateZ(0.1px)`;
           if (this.haveFun) {
             clock.next();
           }
@@ -104,5 +104,3 @@ new Aurelia().register(BasicConfiguration, { register }).app(
     )
   }
 ).start();
-
-

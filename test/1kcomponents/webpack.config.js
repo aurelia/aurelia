@@ -1,6 +1,6 @@
 const { resolve } = require('path');
 
-module.exports = function() {
+module.exports = function () {
   return {
     mode: 'none',
     devtool: false,
@@ -38,5 +38,5 @@ module.exports = function() {
       modules: ['.', 'node_modules'],
       mainFields: ['module']
     }
-  }
-}
+  };
+};

@@ -1,36 +1,21 @@
-// tslint:disable: no-object-literal-type-assertion
 import { I18nConfiguration, TranslationAttributePattern, TranslationBindAttributePattern, TranslationBindBindingCommand, TranslationBindBindingInstruction, TranslationBindBindingRenderer, TranslationBinding, TranslationBindingCommand, TranslationBindingInstruction, TranslationBindingRenderer, TranslationBindInstructionType, TranslationInstructionType } from '@aurelia/i18n';
-import { AttributePatternDefinition, AttrSyntax, BindingCommandResource, IAttributePattern, PlainAttributeSymbol } from '@aurelia/jit';
+import { AttributePattern, AttributePatternDefinition, AttrSyntax, BindingCommand, IAttributePattern, PlainAttributeSymbol } from '@aurelia/jit';
 import { AttrBindingCommand } from '@aurelia/jit-html';
-import { DI } from '@aurelia/kernel';
-import { AnyBindingExpression, BindingType, ICallBindingInstruction, IController, IExpressionParser, IInstructionRenderer, IObserverLocator, IRenderContext, LifecycleFlags, RuntimeBasicConfiguration } from '@aurelia/runtime';
+import { Constructable, DI } from '@aurelia/kernel';
+import { AnyBindingExpression, BindingType, ICallBindingInstruction, IController, IExpressionParser, IInstructionRenderer, IObserverLocator, IRenderContext, LifecycleFlags, RuntimeConfiguration } from '@aurelia/runtime';
 import { DOM } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
 describe('TranslationAttributePattern', function () {
-  let originalAliases: string[];
-  afterEach(function () {
-    TranslationAttributePattern.aliases = originalAliases;
-  });
-  function setup(aliases?: any[]) {
-    aliases = aliases || TranslationAttributePattern.aliases;
-    [originalAliases, TranslationAttributePattern.aliases] = [TranslationAttributePattern.aliases, aliases];
-    const container = DI.createContainer();
-    TranslationAttributePattern.register(container);
+  function setup(aliases: string[] = ['t']) {
+    const patterns: AttributePatternDefinition[] = [];
+    for (const pattern of aliases) {
+      patterns.push({ pattern, symbols: '' });
+      TranslationAttributePattern.registerAlias(pattern);
+    }
+    const container = DI.createContainer(AttributePattern.define(patterns, TranslationAttributePattern));
     return container.get(IAttributePattern);
   }
-
-  it('registers the `t` attr. pattern by default', function () {
-    const sut = setup();
-    const pattern = 't';
-
-    assert.instanceOf(sut, TranslationAttributePattern);
-    assert.deepEqual(TranslationAttributePattern.prototype.$patternDefs, [
-      { pattern: pattern, symbols: '' },
-    ] as AttributePatternDefinition[]);
-
-    assert.typeOf(sut[pattern], 'function');
-  });
 
   it('registers alias attribute patterns when provided', function () {
     const aliases = ['t', 'i18n'];
@@ -44,7 +29,7 @@ describe('TranslationAttributePattern', function () {
       patternDefs.push({ pattern: alias, symbols: '' });
     }
 
-    assert.deepEqual(TranslationAttributePattern.prototype.$patternDefs, patternDefs);
+    assert.deepEqual(AttributePattern.getPatternDefinitions(sut.constructor as Constructable), patternDefs);
   });
 
   it('creates attribute syntax without `to` part when `T="expr"` is used', function () {
@@ -61,33 +46,21 @@ describe('TranslationAttributePattern', function () {
 });
 
 describe('TranslationBindingCommand', function () {
-  let originalAliases: string[];
-  afterEach(function () {
-    TranslationBindingCommand.aliases = originalAliases;
-  });
   function setup(aliases?: string[]) {
-    aliases = aliases || TranslationBindingCommand.aliases;
-    [originalAliases, TranslationBindingCommand.aliases] = [TranslationBindingCommand.aliases, aliases];
-    const container = DI.createContainer();
-    TranslationBindingCommand.register(container);
+    aliases = aliases || [];
+    const container = DI.createContainer(BindingCommand.define({ name: 't', aliases }, TranslationBindingCommand));
+    if (!aliases.includes('t')) {
+      aliases.push('t');
+    }
     return aliases.reduce(
       (acc: TranslationBindingCommand[], alias) => {
         acc.push(
-          container.get<TranslationBindingCommand>(BindingCommandResource.keyFrom(alias)),
+          container.get<TranslationBindingCommand>(BindingCommand.keyFrom(alias)),
         );
         return acc;
       },
       []);
   }
-
-  it('registers the `t` command by default', function () {
-    const suts = setup();
-
-    assert.equal(suts.length, 1);
-    assert.equal(
-      suts.every((sut) => sut instanceof TranslationBindingCommand),
-      true);
-  });
 
   it('registers alias commands when provided', function () {
     const aliases = ['t', 'i18n'];
@@ -102,13 +75,14 @@ describe('TranslationBindingCommand', function () {
   it('compiles the binding to a TranslationBindingInstruction', function () {
     const [sut] = setup();
     const syntax: AttrSyntax = { command: 't', rawName: 't', rawValue: 'obj.key', target: '' };
-
-    const actual = sut.compile({
+    const plainAttributeSymbol: PlainAttributeSymbol = {
       command: new AttrBindingCommand(),
       flags: (void 0)!,
       expression: { syntax } as unknown as AnyBindingExpression,
       syntax
-    } as PlainAttributeSymbol);
+    };
+
+    const actual = sut.compile(plainAttributeSymbol);
 
     assert.instanceOf(actual, TranslationBindingInstruction);
   });
@@ -118,7 +92,7 @@ describe('TranslationBindingRenderer', function () {
 
   function setup() {
     const container = DI.createContainer();
-    container.register(RuntimeBasicConfiguration, I18nConfiguration);
+    container.register(RuntimeConfiguration, I18nConfiguration);
     return container;
   }
 
@@ -135,13 +109,14 @@ describe('TranslationBindingRenderer', function () {
     const renderable = ({} as unknown as IController);
 
     const from = expressionParser.parse('simple.key', BindingType.CustomCommand);
+    const callBindingInstruction: ICallBindingInstruction = { from } as unknown as ICallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
       DOM,
       container as unknown as IRenderContext,
       renderable,
       DOM.createElement('span'),
-      { from } as ICallBindingInstruction);
+      callBindingInstruction);
 
     assert.instanceOf(renderable.bindings[0], TranslationBinding);
   });
@@ -155,42 +130,29 @@ describe('TranslationBindingRenderer', function () {
     const renderable = ({ bindings: [binding] } as unknown as IController);
 
     const from = expressionParser.parse('simple.key', BindingType.CustomCommand);
+    const callBindingInstruction: ICallBindingInstruction = { from } as unknown as ICallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
       DOM,
       container as unknown as IRenderContext,
       renderable,
       targetElement,
-      { from } as ICallBindingInstruction);
+      callBindingInstruction);
 
     assert.equal(binding.expr, from);
   });
 });
 
 describe('TranslationBindAttributePattern', function () {
-  let originalAliases: string[];
-  afterEach(function () {
-    TranslationBindAttributePattern.aliases = originalAliases;
-  });
-  function setup(aliases?: any[]) {
-    aliases = aliases || TranslationBindAttributePattern.aliases;
-    [originalAliases, TranslationBindAttributePattern.aliases] = [TranslationBindAttributePattern.aliases, aliases];
-    const container = DI.createContainer();
-    TranslationBindAttributePattern.register(container);
+  function setup(aliases: string[] = ['t']) {
+    const patterns: AttributePatternDefinition[] = [];
+    for (const pattern of aliases) {
+      patterns.push({ pattern: `${pattern}.bind`, symbols: '.' });
+      TranslationBindAttributePattern.registerAlias(pattern);
+    }
+    const container = DI.createContainer(AttributePattern.define(patterns, TranslationBindAttributePattern));
     return container.get(IAttributePattern);
   }
-
-  it('registers the `t.bind` attr. pattern by default', function () {
-    const sut = setup();
-    const pattern = 't.bind';
-
-    assert.instanceOf(sut, TranslationBindAttributePattern);
-    assert.deepEqual(TranslationBindAttributePattern.prototype.$patternDefs, [
-      { pattern: pattern, symbols: '.' },
-    ] as AttributePatternDefinition[]);
-
-    assert.typeOf(sut[pattern], 'function');
-  });
 
   it('registers alias attribute patterns when provided', function () {
     const aliases = ['t', 'i18n'];
@@ -198,7 +160,7 @@ describe('TranslationBindAttributePattern', function () {
 
     assert.instanceOf(sut, TranslationBindAttributePattern);
     assert.deepEqual(
-      TranslationBindAttributePattern.prototype.$patternDefs,
+      AttributePattern.getPatternDefinitions(sut.constructor as Constructable),
       aliases.reduce(
         (acc, alias) => {
           acc.push({ pattern: `${alias}.bind`, symbols: '.' });
@@ -207,7 +169,7 @@ describe('TranslationBindAttributePattern', function () {
         []));
 
     aliases.forEach((alias) => {
-      assert.typeOf(sut[`${alias}.bind`], 'function');
+      assert.typeOf(sut[`${alias}.bind`], 'function', `${alias}.bind`);
     });
   });
 
@@ -225,33 +187,22 @@ describe('TranslationBindAttributePattern', function () {
 });
 
 describe('TranslationBindBindingCommand', function () {
-  let originalAliases: string[];
-  afterEach(function () {
-    TranslationBindBindingCommand.aliases = originalAliases;
-  });
   function setup(aliases?: string[]) {
-    aliases = aliases || TranslationBindBindingCommand.aliases;
-    [originalAliases, TranslationBindBindingCommand.aliases] = [TranslationBindBindingCommand.aliases, aliases];
-    const container = DI.createContainer();
-    TranslationBindBindingCommand.register(container);
+    aliases = aliases || [];
+    aliases = aliases.map(alias => `${alias}.bind`);
+    const container = DI.createContainer(BindingCommand.define({ name: 't.bind', aliases }, TranslationBindBindingCommand));
+    if (!aliases.includes('t.bind')) {
+      aliases.push('t.bind');
+    }
     return aliases.reduce(
       (acc: TranslationBindBindingCommand[], alias) => {
         acc.push(
-          container.get<TranslationBindBindingCommand>(BindingCommandResource.keyFrom(`${alias}.bind`)),
+          container.get<TranslationBindBindingCommand>(BindingCommand.keyFrom(alias)),
         );
         return acc;
       },
       []);
   }
-
-  it('registers the `t` command by default', function () {
-    const suts = setup();
-
-    assert.equal(suts.length, 1);
-    assert.equal(
-      suts.every((sut) => sut instanceof TranslationBindBindingCommand),
-      true);
-  });
 
   it('registers alias commands when provided', function () {
     const aliases = ['t', 'i18n'];
@@ -282,7 +233,7 @@ describe('TranslationBindBindingRenderer', function () {
 
   function setup() {
     const container = DI.createContainer();
-    container.register(RuntimeBasicConfiguration, I18nConfiguration);
+    container.register(RuntimeConfiguration, I18nConfiguration);
     return container;
   }
 
@@ -299,13 +250,14 @@ describe('TranslationBindBindingRenderer', function () {
     const renderable = ({} as unknown as IController);
 
     const from = expressionParser.parse('simple.key', BindingType.BindCommand);
+    const callBindingInstruction: ICallBindingInstruction = { from, to: '.bind' } as unknown as ICallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
       DOM,
       container as unknown as IRenderContext,
       renderable,
       DOM.createElement('span'),
-      { from, to: '.bind' } as ICallBindingInstruction);
+      callBindingInstruction);
 
     assert.instanceOf(renderable.bindings[0], TranslationBinding);
   });
@@ -317,13 +269,14 @@ describe('TranslationBindBindingRenderer', function () {
     const renderable = ({} as unknown as IController);
 
     const from = expressionParser.parse('simple.key', BindingType.BindCommand);
+    const callBindingInstruction: ICallBindingInstruction = { from, to: '.bind' } as unknown as ICallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
       DOM,
       container as unknown as IRenderContext,
       renderable,
       DOM.createElement('span'),
-      { from, to: '.bind' } as ICallBindingInstruction);
+      callBindingInstruction);
 
     assert.instanceOf(renderable.bindings[0], TranslationBinding);
   });
@@ -337,13 +290,14 @@ describe('TranslationBindBindingRenderer', function () {
     const renderable = ({ bindings: [binding] } as unknown as IController);
 
     const from = expressionParser.parse('simple.key', BindingType.BindCommand);
+    const callBindingInstruction: ICallBindingInstruction = { from, to: '.bind' } as unknown as ICallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
       DOM,
       container as unknown as IRenderContext,
       renderable,
       targetElement,
-      { from: from, to: '.bind' } as ICallBindingInstruction);
+      callBindingInstruction);
 
     assert.equal(binding.expr, from);
   });

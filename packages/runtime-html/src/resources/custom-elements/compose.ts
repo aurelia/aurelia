@@ -1,37 +1,29 @@
 import {
   Constructable,
-  IContainer,
-  IRegistry,
-  Key,
   nextId,
   PLATFORM,
-  Registration,
 } from '@aurelia/kernel';
 import {
-  Bindable,
   BindingMode,
-  BindingStrategy,
   ContinuationTask,
-  CustomElement,
-  HooksDefinition,
   IController,
-  ICustomElementResource,
   IDOM,
   IHydrateElementInstruction,
   ILifecycleTask,
   INode,
   IRenderingEngine,
   ITargetedInstruction,
-  ITemplateDefinition,
   IViewFactory,
   LifecycleFlags,
   LifecycleTask,
   PromiseTask,
   State,
   TargetedInstruction,
-  TemplateDefinition,
+  CustomElementDefinition,
+  bindable,
+  customElement,
+  MountStrategy,
 } from '@aurelia/runtime';
-
 import {
   createElement,
   RenderPlan,
@@ -39,90 +31,43 @@ import {
 
 const bindables = ['subject', 'composing'];
 
-export type Subject<T extends INode = Node> = IViewFactory<T> | IController<T> | RenderPlan<T> | Constructable | TemplateDefinition;
+export type Subject<T extends INode = Node> = IViewFactory<T> | IController<T> | RenderPlan<T> | Constructable | CustomElementDefinition;
 export type MaybeSubjectPromise<T> = Subject<T> | Promise<Subject<T>> | undefined;
 
+@customElement({ name: 'au-compose', template: null, containerless: true })
 export class Compose<T extends INode = Node> {
-  public static readonly inject: readonly Key[] = [IDOM, IController, ITargetedInstruction, IRenderingEngine];
+  public readonly id: number = nextId('au$component');
 
-  public static readonly kind: ICustomElementResource = CustomElement;
-  public static readonly description: Required<ITemplateDefinition> = Object.freeze({
-    name: 'au-compose',
-    template: null,
-    cache: 0,
-    build: Object.freeze({ compiler: 'default', required: false }),
-    bindables: Object.freeze({
-      subject: Bindable.for({ bindables: ['subject'] }).get().subject,
-      composing: {
-        ...Bindable.for({ bindables: ['composing'] }).get().composing,
-        mode: BindingMode.fromView,
-      },
-    }),
-    instructions: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & ITargetedInstruction[][],
-    dependencies: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & IRegistry[],
-    surrogates: PLATFORM.emptyArray as typeof PLATFORM.emptyArray & ITargetedInstruction[],
-    containerless: true,
-    // tslint:disable-next-line: no-non-null-assertion
-    shadowOptions: null!,
-    hasSlots: false,
-    strategy: BindingStrategy.getterSetter,
-    hooks: Object.freeze(new HooksDefinition(Compose.prototype)),
-    scopeParts: PLATFORM.emptyArray,
-    childrenObservers: PLATFORM.emptyObject
-  });
+  @bindable public subject?: MaybeSubjectPromise<T> = void 0;
+  @bindable({ mode: BindingMode.fromView }) public composing: boolean = false;
 
-  public readonly id: number;
+  public view?: IController<T> = void 0;
 
-  public subject?: MaybeSubjectPromise<T>;
-  public composing: boolean;
-
-  public view?: IController<T>;
-
-  private readonly dom: IDOM;
-  private readonly renderable: IController<T>;
-  private readonly renderingEngine: IRenderingEngine;
   private readonly properties: Record<string, TargetedInstruction>;
 
-  private task: ILifecycleTask;
-  private lastSubject?: MaybeSubjectPromise<T>;
-  // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
-  private $controller!: IController<T>;
+  private task: ILifecycleTask = LifecycleTask.done;
+  private lastSubject?: MaybeSubjectPromise<T> = void 0;
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly
+  private $controller!: IController<T>; // This is set by the controller after this instance is constructed
 
-  constructor(
-    dom: IDOM<T>,
-    renderable: IController<T>,
-    instruction: IHydrateElementInstruction,
-    renderingEngine: IRenderingEngine,
+  public constructor(
+    @IDOM private readonly dom: IDOM<T>,
+    @IController private readonly renderable: IController<T>,
+    @ITargetedInstruction private readonly instruction: IHydrateElementInstruction,
+    @IRenderingEngine private readonly renderingEngine: IRenderingEngine,
   ) {
-    this.id = nextId('au$component');
-
-    this.subject = void 0;
-    this.composing = false;
-
-    this.dom = dom;
-    this.renderable = renderable;
-    this.renderingEngine = renderingEngine;
     this.properties = instruction.instructions
-      .filter((x: ITargetedInstruction & {to?: string}) => !bindables.includes(x.to!))
+      .filter((x: ITargetedInstruction & { to?: string }) => !bindables.includes(x.to!))
       .reduce<Record<string, TargetedInstruction>>(
-        (acc, item: ITargetedInstruction & {to?: string}) => {
-          if (item.to) {
-            acc[item.to!] = item! as TargetedInstruction;
-          }
+      (acc, item: ITargetedInstruction & { to?: string }) => {
+        if (item.to) {
+          acc[item.to] = item as TargetedInstruction;
+        }
 
-          return acc;
-        },
-        {}
-      );
-
-    this.task = LifecycleTask.done;
-    this.lastSubject = void 0;
-    this.view = void 0;
-  }
-
-  public static register(container: IContainer): void {
-    container.register(Registration.transient('custom-element:au-compose', this));
-    container.register(Registration.transient(this, this));
+        return acc;
+      },
+      {}
+    );
   }
 
   public binding(flags: LifecycleFlags): ILifecycleTask {
@@ -265,7 +210,7 @@ export class Compose<T extends INode = Node> {
     const view = this.provideViewFor(subject, flags);
 
     if (view) {
-      view.hold(this.$controller.projector!.host);
+      view.hold(this.$controller.projector!.host, MountStrategy.insertBefore);
       view.lockScope(this.renderable.scope!);
       return view;
     }

@@ -3,8 +3,9 @@ import { stripMetaData } from '@aurelia/plugin-conventions';
 import { assert } from '@aurelia/testing';
 
 describe('stripMetaData', function () {
-  it('returns empty html', function() {
+  it('returns empty html', function () {
     assert.deepEqual(stripMetaData(' '), {
+      aliases: [],
       html: ' ',
       shadowMode: null,
       deps: [],
@@ -13,7 +14,7 @@ describe('stripMetaData', function () {
     });
   });
 
-  it('strips import tag', function() {
+  it('strips import tag', function () {
     const html = `<import from="./a"></import>
 <template>
   <p></p>
@@ -26,6 +27,7 @@ describe('stripMetaData', function () {
 `;
 
     assert.deepEqual(stripMetaData(html), {
+      aliases: [],
       html: expected,
       shadowMode: null,
       deps: ['./a'],
@@ -34,7 +36,7 @@ describe('stripMetaData', function () {
     });
   });
 
-  it('strips import tags with wrong or missing close tag', function() {
+  it('strips import tags with wrong or missing close tag', function () {
     const html = `<import from="./a" />
 <import from="b"></import>
 <template>
@@ -51,6 +53,7 @@ ${'  ' /* leading space is untouched */}
 `;
 
     assert.deepEqual(stripMetaData(html), {
+      aliases: [],
       html: expected,
       shadowMode: null,
       deps: ['./a', 'b', './c.css'],
@@ -59,7 +62,7 @@ ${'  ' /* leading space is untouched */}
     });
   });
 
-  it('strips require tag', function() {
+  it('strips require tag', function () {
     const html = `<require from="./a"></require>
 <template>
   <p></p>
@@ -72,6 +75,7 @@ ${'  ' /* leading space is untouched */}
 `;
 
     assert.deepEqual(stripMetaData(html), {
+      aliases: [],
       html: expected,
       shadowMode: null,
       deps: ['./a'],
@@ -80,7 +84,7 @@ ${'  ' /* leading space is untouched */}
     });
   });
 
-  it('strips mixed import/require tags with wrong or missing close tag', function() {
+  it('strips mixed import/require tags with wrong or missing close tag', function () {
     const html = `<import from="./a" /><import from="foo">
 <require from="b"></require>
 <template>
@@ -97,6 +101,7 @@ ${'  ' /* leading space is untouched */}
 `;
 
     assert.deepEqual(stripMetaData(html), {
+      aliases: [],
       html: expected,
       shadowMode: null,
       deps: ['./a', 'foo', 'b', './c.css'],
@@ -105,7 +110,7 @@ ${'  ' /* leading space is untouched */}
     });
   });
 
-  it('strips use-shadow-dom tag', function() {
+  it('strips use-shadow-dom tag', function () {
     const html = `<use-shadow-dom></use-shadow-dom>
 <template>
 </template>
@@ -115,6 +120,7 @@ ${'  ' /* leading space is untouched */}
 </template>
 `;
     assert.deepEqual(stripMetaData(html), {
+      aliases: [],
       html: expected,
       shadowMode: 'open',
       deps: [],
@@ -123,7 +129,7 @@ ${'  ' /* leading space is untouched */}
     });
   });
 
-  it('strips use-shadow-dom tag with mode attribute', function() {
+  it('strips use-shadow-dom tag with mode attribute', function () {
     const html = `<use-shadow-dom mode="closed">
 <template>
 <require from="./a"></require>
@@ -135,6 +141,7 @@ ${'  ' /* leading space is untouched */}
 </template>
 `;
     assert.deepEqual(stripMetaData(html), {
+      aliases: [],
       html: expected,
       shadowMode: 'closed',
       deps: ['./a'],
@@ -143,7 +150,7 @@ ${'  ' /* leading space is untouched */}
     });
   });
 
-  it('strips use-shadow-dom attribute', function() {
+  it('strips use-shadow-dom attribute', function () {
     const html = `<template use-shadow-dom>
 </template>
 `;
@@ -151,6 +158,7 @@ ${'  ' /* leading space is untouched */}
 </template>
 `;
     assert.deepEqual(stripMetaData(html), {
+      aliases: [],
       html: expected,
       shadowMode: 'open',
       deps: [],
@@ -159,7 +167,7 @@ ${'  ' /* leading space is untouched */}
     });
   });
 
-  it('strips use-shadow-dom attribute with explicit mode', function() {
+  it('strips use-shadow-dom attribute with explicit mode', function () {
     const html = `<template use-shadow-dom="closed">
 <require from="./a"></require>
 </template>
@@ -169,6 +177,7 @@ ${'  ' /* leading space is untouched */}
 </template>
 `;
     assert.deepEqual(stripMetaData(html), {
+      aliases: [],
       html: expected,
       shadowMode: 'closed',
       deps: ['./a'],
@@ -177,7 +186,7 @@ ${'  ' /* leading space is untouched */}
     });
   });
 
-  it('strips containerless tag', function() {
+  it('strips containerless tag', function () {
     const html = `<containerless></containerless>
 <template>
 </template>
@@ -187,6 +196,7 @@ ${'  ' /* leading space is untouched */}
 </template>
 `;
     assert.deepEqual(stripMetaData(html), {
+      aliases: [],
       html: expected,
       shadowMode: null,
       deps: [],
@@ -195,7 +205,7 @@ ${'  ' /* leading space is untouched */}
     });
   });
 
-  it('strips containerless tag without closing tag', function() {
+  it('strips containerless tag without closing tag', function () {
     const html = `<containerless>
 <template>
 </template>
@@ -205,6 +215,7 @@ ${'  ' /* leading space is untouched */}
 </template>
 `;
     assert.deepEqual(stripMetaData(html), {
+      aliases: [],
       html: expected,
       shadowMode: null,
       deps: [],
@@ -213,7 +224,7 @@ ${'  ' /* leading space is untouched */}
     });
   });
 
-  it('strips containerless attribute', function() {
+  it('strips containerless attribute', function () {
     const html = `<template containerless>
 </template>
 `;
@@ -221,6 +232,7 @@ ${'  ' /* leading space is untouched */}
 </template>
 `;
     assert.deepEqual(stripMetaData(html), {
+      aliases: [],
       html: expected,
       shadowMode: null,
       deps: [],
@@ -229,7 +241,7 @@ ${'  ' /* leading space is untouched */}
     });
   });
 
-  it('strips bindable tag', function() {
+  it('strips bindable tag', function () {
     const html = `<bindable name="firstName"></bindable>
 <template>
 </template>
@@ -239,6 +251,7 @@ ${'  ' /* leading space is untouched */}
 </template>
 `;
     assert.deepEqual(stripMetaData(html), {
+      aliases: [],
       html: expected,
       shadowMode: null,
       deps: [],
@@ -247,10 +260,10 @@ ${'  ' /* leading space is untouched */}
     });
   });
 
-  it('strips bindable tag with more attrs', function() {
+  it('strips bindable tag with more attrs', function () {
     const html = `<bindable name="firstName" mode="one-way">
 <bindable name="lastName" mode="TwoWay" attribute="surname">
-<bindable name="foo" mode="one-time"></bindable>
+<bindable name="foo" mode="one_time"></bindable>
 <bindable name="bar" mode="toView">
 <bindable name="lo" mode="from-view"></bindable>
 <template>
@@ -265,6 +278,7 @@ ${'  ' /* leading space is untouched */}
 </template>
 `;
     assert.deepEqual(stripMetaData(html), {
+      aliases: [],
       html: expected,
       shadowMode: null,
       deps: [],
@@ -274,12 +288,12 @@ ${'  ' /* leading space is untouched */}
         lastName: { mode: BindingMode.twoWay, attribute: 'surname' },
         foo: { mode: BindingMode.oneTime },
         bar: { mode: BindingMode.toView },
-        lo: { mode: BindingMode.fromView}
+        lo: { mode: BindingMode.fromView }
       }
     });
   });
 
-  it('strips bindable attribute', function() {
+  it('strips bindable attribute', function () {
     const html = `<template bindable="firstName">
 </template>
 `;
@@ -287,15 +301,16 @@ ${'  ' /* leading space is untouched */}
 </template>
 `;
     assert.deepEqual(stripMetaData(html), {
+      aliases: [],
       html: expected,
       shadowMode: null,
       deps: [],
       containerless: false,
-      bindables: {firstName: {}}
+      bindables: { firstName: {} }
     });
   });
 
-  it('strips bindable attribute with multiple names', function() {
+  it('strips bindable attribute with multiple names', function () {
     const html = `<template bindable="firstName,lastName">
 </template>
 `;
@@ -303,15 +318,16 @@ ${'  ' /* leading space is untouched */}
 </template>
 `;
     assert.deepEqual(stripMetaData(html), {
+      aliases: [],
       html: expected,
       shadowMode: null,
       deps: [],
       containerless: false,
-      bindables: {firstName: {}, lastName: {}}
+      bindables: { firstName: {}, lastName: {} }
     });
   });
 
-  it('strips bindable attribute with multiple names with spaces', function() {
+  it('strips bindable attribute with multiple names with spaces', function () {
     const html = `<template bindable="firstName,
                                       lastName,
                                       age">
@@ -321,11 +337,133 @@ ${'  ' /* leading space is untouched */}
 </template>
 `;
     assert.deepEqual(stripMetaData(html), {
+      aliases: [],
       html: expected,
       shadowMode: null,
       deps: [],
       containerless: false,
-      bindables: {firstName: {}, lastName: {}, age: {}}
+      bindables: { firstName: {}, lastName: {}, age: {} }
     });
   });
+
+  it('strips alias attribute with multiple names with spaces', function () {
+    const html = `<template alias="firstName,
+                                   alias">
+</template>
+`;
+    const expected = `<template >
+</template>
+`;
+    assert.deepEqual(stripMetaData(html), {
+      aliases: ['firstName', 'alias'],
+      html: expected,
+      shadowMode: null,
+      deps: [],
+      containerless: false,
+      bindables: {}
+    });
+  });
+
+  it('strips alias attribute with multiple names', function () {
+    const html = `<template alias="firstName,                alias">
+</template>
+`;
+    const expected = `<template >
+</template>
+`;
+    assert.deepEqual(stripMetaData(html), {
+      aliases: ['firstName', 'alias'],
+      html: expected,
+      shadowMode: null,
+      deps: [],
+      containerless: false,
+      bindables: {}
+    });
+  });
+
+  it('strips alias attribute with single name', function () {
+    const html = `<template alias="firstName">
+</template>
+`;
+    const expected = `<template >
+</template>
+`;
+    assert.deepEqual(stripMetaData(html), {
+      aliases: ['firstName'],
+      html: expected,
+      shadowMode: null,
+      deps: [],
+      containerless: false,
+      bindables: {}
+    });
+  });
+
+  it('strips alias node with single name', function () {
+    const html = `<alias name="firstName"><template>
+</template>
+`;
+    const expected = `<template>
+</template>
+`;
+    assert.deepEqual(stripMetaData(html), {
+      aliases: ['firstName'],
+      html: expected,
+      shadowMode: null,
+      deps: [],
+      containerless: false,
+      bindables: {}
+    });
+  });
+
+  it('strips alias node with multiple name', function () {
+    const html = `<alias name="firstName,alias"><template>
+</template>
+`;
+    const expected = `<template>
+</template>
+`;
+    assert.deepEqual(stripMetaData(html), {
+      aliases: ['firstName', 'alias'],
+      html: expected,
+      shadowMode: null,
+      deps: [],
+      containerless: false,
+      bindables: {}
+    });
+  });
+
+  it('strips alias node and attr combo', function () {
+    const html = `<alias name="firstName,alias"><template alias="firstName2,            alias2">
+</template>
+`;
+    const expected = `<template >
+</template>
+`;
+    assert.deepEqual(stripMetaData(html), {
+      aliases: ['firstName', "alias", "firstName2", "alias2"],
+      html: expected,
+      shadowMode: null,
+      deps: [],
+      containerless: false,
+      bindables: {}
+    });
+  });
+
+  it('strips alias node with no name', function () {
+    const html = `<alias><template>
+</template>
+`;
+    const expected = `<template>
+</template>
+`;
+    assert.deepEqual(stripMetaData(html), {
+      aliases: [],
+      html: expected,
+      shadowMode: null,
+      deps: [],
+      containerless: false,
+      bindables: {}
+    });
+  });
+
 });

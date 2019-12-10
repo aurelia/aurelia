@@ -3,22 +3,26 @@ import {
   TestContext,
 } from '@aurelia/testing';
 import {
-  BasicConfiguration as BasicJSDOMConfiguration
+  JitHtmlJsdomConfiguration
 } from '@aurelia/jit-html-jsdom';
+import {
+  JSDOMScheduler
+} from '@aurelia/runtime-html-jsdom';
 import {
   Reporter,
   LogLevel,
 } from '@aurelia/kernel';
-
-Reporter.level = LogLevel.error;
 import { JSDOM } from 'jsdom';
 
+Reporter.level = LogLevel.error;
+
 function createJSDOMTestContext(): HTMLTestContext {
-  const jsdom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`);
+  const jsdom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`, { pretendToBeVisual: true });
 
   return HTMLTestContext.create(
-    BasicJSDOMConfiguration,
+    JitHtmlJsdomConfiguration,
     jsdom.window,
+    JSDOMScheduler,
     jsdom.window.UIEvent,
     jsdom.window.Event,
     jsdom.window.CustomEvent,

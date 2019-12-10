@@ -1,5 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import { IRouteableComponentType, NavigationInstruction } from './interfaces';
+import { RouteableComponentType, NavigationInstruction } from './interfaces';
 import { INavRoute, Nav } from './nav';
 import { ComponentAppellationResolver, NavigationInstructionResolver } from './type-resolvers';
 import { ViewportInstruction } from './viewport-instruction';
@@ -18,7 +18,7 @@ export class NavRoute {
   public visible: boolean = true;
   public active: string = '';
 
-  constructor(
+  public constructor(
     public nav: Nav,
     route: INavRoute
   ) {
@@ -30,7 +30,7 @@ export class NavRoute {
       this.link = this.computeLink(this.instructions);
     }
     this.linkActive = route.consideredActive ? route.consideredActive : this.link;
-    if (!(this.linkActive instanceof Function) || ComponentAppellationResolver.isType(this.linkActive as IRouteableComponentType)) {
+    if (!(this.linkActive instanceof Function) || ComponentAppellationResolver.isType(this.linkActive as RouteableComponentType)) {
       this.linkActive = NavigationInstructionResolver.toViewportInstructions(this.nav.router, this.linkActive as NavigationInstruction | NavigationInstruction[]);
     }
     this.execute = route.execute;
@@ -79,8 +79,7 @@ export class NavRoute {
       return (this.linkActive as ((route: NavRoute) => boolean))(this) ? 'nav-active' : '';
     }
     const components = this.linkActive as ViewportInstruction[];
-    let activeComponents = this.nav.router.activeComponents.map((state) => this.nav.router.instructionResolver.parseViewportInstruction(state));
-    activeComponents = this.nav.router.instructionResolver.flattenViewportInstructions(activeComponents);
+    const activeComponents = this.nav.router.instructionResolver.flattenViewportInstructions(this.nav.router.activeComponents);
     for (const component of components) {
       if (activeComponents.every((active) => !active.sameComponent(component, this.compareParameters && !!component.parametersString))) {
         return '';

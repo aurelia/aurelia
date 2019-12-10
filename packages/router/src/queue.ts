@@ -1,4 +1,5 @@
-import { ILifecycle, Priority } from '@aurelia/runtime';
+import { IScheduler, ITask } from '@aurelia/runtime';
+import { bound } from '@aurelia/kernel';
 
 export interface QueueItem<T> {
   resolve?: ((value: void | PromiseLike<void>) => void);
@@ -7,7 +8,7 @@ export interface QueueItem<T> {
 }
 
 export interface IQueueOptions {
-  lifecycle: ILifecycle;
+  scheduler: IScheduler;
   allowedExecutionCostWithinTick: number;
 }
 
@@ -21,14 +22,17 @@ export interface IQueueOptions {
  * a specific amount of execution cost per RAF/tick.
  */
 export class Queue<T> {
-  public isActive: boolean = false;
+  public get isActive(): boolean {
+    return this.task !== null;
+  }
   public readonly pending: QueueItem<T>[] = [];
   public processing: QueueItem<T> | null = null;
   public allowedExecutionCostWithinTick: number | null = null;
   public currentExecutionCostInCurrentTick: number = 0;
-  private lifecycle: ILifecycle | null = null;
+  private scheduler: IScheduler | null = null;
+  private task: ITask | null = null;
 
-  constructor(
+  public constructor(
     private readonly callback: (item: QueueItem<T>) => void
   ) { }
 
@@ -40,19 +44,18 @@ export class Queue<T> {
     if (this.isActive) {
       throw new Error('Queue has already been activated');
     }
-    this.isActive = true;
-    this.lifecycle = options.lifecycle;
+    this.scheduler = options.scheduler;
     this.allowedExecutionCostWithinTick = options.allowedExecutionCostWithinTick;
-    this.lifecycle.enqueueRAF(this.dequeue, this, Priority.preempt);
+    this.task = this.scheduler.queueRenderTask(this.dequeue, { persistent: true });
   }
   public deactivate(): void {
     if (!this.isActive) {
       throw new Error('Queue has not been activated');
     }
-    this.lifecycle!.dequeueRAF(this.dequeue, this);
+    this.task!.cancel();
+    this.task = null;
     this.allowedExecutionCostWithinTick = null;
     this.clear();
-    this.isActive = false;
   }
 
   public enqueue(item: T, cost?: number): Promise<void>;
@@ -68,7 +71,6 @@ export class Queue<T> {
     for (const item of items) {
       const qItem: QueueItem<T> = { ...item };
       qItem.cost = costs.shift();
-      // tslint:disable-next-line:promise-must-complete
       promises.push(new Promise((resolve, reject) => {
         qItem.resolve = () => {
           resolve();
@@ -87,6 +89,7 @@ export class Queue<T> {
     return list ? promises : promises[0];
   }
 
+  @bound
   public dequeue(delta?: number): void {
     if (this.processing !== null) {
       return;

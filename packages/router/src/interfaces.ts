@@ -1,6 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import { ICustomElementType, INode, IViewModel } from '@aurelia/runtime';
-import { ComponentAppellation } from './interfaces';
+import { CustomElementType, INode, IViewModel } from '@aurelia/runtime';
 import { INavigatorEntry, INavigatorFlags, IStoredNavigatorEntry } from './navigator';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
@@ -11,9 +10,9 @@ import { ViewportInstruction } from './viewport-instruction';
 * of the API.
 */
 
-export interface IRouteableComponentType<C extends Constructable = Constructable> extends ICustomElementType<C> {
+export type RouteableComponentType<C extends Constructable = Constructable> = CustomElementType<C> & {
   parameters?: string[];
-}
+};
 
 export interface IRouteableComponent<T extends INode = INode> extends IViewModel<T> {
   reentryBehavior?: ReentryBehavior;
@@ -52,6 +51,6 @@ export type NavigationInstruction = ComponentAppellation | IViewportInstruction 
 export type GuardFunction = (viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction) => boolean | ViewportInstruction[];
 export type GuardTarget = ComponentAppellation | IComponentAndOrViewportOrNothing;
 
-export type ComponentAppellation = string | IRouteableComponentType | IRouteableComponent | Constructable; // TODO: | IRouteableComponent;
+export type ComponentAppellation = string | RouteableComponentType | IRouteableComponent | Constructable; // TODO: | IRouteableComponent;
 export type ViewportHandle = string | Viewport;
 export type ComponentParameters = string | Record<string, unknown>; // TODO: | unknown[];

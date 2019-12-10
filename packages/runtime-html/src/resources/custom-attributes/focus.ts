@@ -21,18 +21,18 @@ export class Focus {
   /**
    * Indicates whether `apply` should be called when `attached` callback is invoked
    */
-  private needsApply: boolean;
+  private needsApply: boolean = false;
 
   // This is set by the controller after this instance is constructed
   private readonly $controller!: IController;
 
-  constructor(
-    @INode private readonly element: HTMLElement,
+  private readonly element: HTMLElement;
+
+  public constructor(
+    @INode element: INode,
     @IDOM private readonly dom: HTMLDOM
   ) {
-    this.element = element;
-    this.dom = dom;
-    this.needsApply = false;
+    this.element = element as HTMLElement;
   }
 
   public binding(): void {
@@ -41,7 +41,8 @@ export class Focus {
 
   /**
    * Invoked everytime the bound value changes.
-   * @param newValue The new value.
+   *
+   * @param newValue - The new value.
    */
   public valueChanged(): void {
     // In theory, we could/should react immediately
@@ -51,12 +52,10 @@ export class Focus {
     // before applying the value to the element
     if (this.$controller.state & State.isAttached) {
       this.apply();
-    }
-    // If the element is not currently connect
-    // toggle the flag to add pending work for later
-    // in attached lifecycle
-    // tslint:disable-next-line:one-line
-    else {
+    } else {
+      // If the element is not currently connect
+      // toggle the flag to add pending work for later
+      // in attached lifecycle
       this.needsApply = true;
     }
   }
@@ -92,16 +91,14 @@ export class Focus {
     // only need to switch the value to true
     if (e.type === 'focus') {
       this.value = true;
-    }
-    // else, it's blur event
-    // when a blur event happens, there are two situations
-    // 1. the element itself lost the focus
-    // 2. window lost the focus
-    // To handle both (1) and (2), only need to check if
-    // current active element is still the same element of this focus custom attribute
-    // If it's not, it's a blur event happened on Window because the browser tab lost focus
-    // tslint:disable-next-line:one-line
-    else if (this.dom.document.activeElement !== this.element) {
+    } else if (this.dom.document.activeElement !== this.element) {
+      // else, it's blur event
+      // when a blur event happens, there are two situations
+      // 1. the element itself lost the focus
+      // 2. window lost the focus
+      // To handle both (1) and (2), only need to check if
+      // current active element is still the same element of this focus custom attribute
+      // If it's not, it's a blur event happened on Window because the browser tab lost focus
       this.value = false;
     }
   }

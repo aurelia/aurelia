@@ -1,34 +1,25 @@
 import {
-  Key,
-  Writable
-} from '@aurelia/kernel';
-
-import {
   bindable,
-  createRenderContext,
-  CustomElement,
   IController,
-  ICustomElementType,
-  IDOM,
   INode,
   IRenderContext,
-  IRenderingEngine,
-  ITemplate,
   LifecycleFlags,
-  TemplateDefinition
+  customElement,
 } from '@aurelia/runtime';
+import { IRouter } from '../router';
+import { IViewportOptions, Viewport } from '../viewport';
 
-import {
-  IRouter,
-} from '../router';
-import {
-  IViewportOptions,
-  Viewport
-} from '../viewport';
-
+@customElement({
+  name: 'au-viewport',
+  template: `
+    <template>
+      <div class="viewport-header" style="display: none;">
+        Viewport: <b>\${name}</b> \${scope ? "[new scope]" : ""} : <b>\${viewport.content && viewport.content.toComponentName()}</b>
+      </div>
+    </template>
+  `.replace(/\s+/g, '')
+})
 export class ViewportCustomElement {
-  public static readonly inject: readonly Key[] = [IRouter, INode, IRenderingEngine];
-
   @bindable public name: string = 'default';
   @bindable public usedBy: string = '';
   @bindable public default: string = '';
@@ -39,23 +30,15 @@ export class ViewportCustomElement {
 
   public viewport: Viewport | null = null;
 
-  // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
-  public $controller!: IController;
+  public $controller!: IController; // This is set by the controller after this instance is constructed
 
-  constructor(
-    private readonly router: IRouter,
-    private readonly element: Element, private readonly renderingEngine: IRenderingEngine
-  ) { }
+  private readonly element: Element;
 
-  public render(flags: LifecycleFlags, host: INode, parts: Record<string, TemplateDefinition>, parentContext: IRenderContext | null): void {
-    const Type = this.constructor as ICustomElementType;
-    if (!parentContext) {
-      parentContext = this.$controller.context as IRenderContext;
-    }
-    const dom = parentContext.get(IDOM);
-    const template = this.renderingEngine.getElementTemplate(dom, Type.description, parentContext, Type);
-    (template as Writable<ITemplate>).renderContext = createRenderContext(dom, parentContext, Type.description.dependencies, Type);
-    template.render(this, host, parts);
+  public constructor(
+    @IRouter private readonly router: IRouter,
+    @INode element: INode,
+  ) {
+    this.element = element as HTMLElement;
   }
 
   // public created(...rest): void {
@@ -93,6 +76,12 @@ export class ViewportCustomElement {
     this.disconnect();
   }
 
+  public attached(): void {
+    if (this.viewport) {
+      this.viewport.clearTaggedNodes();
+    }
+  }
+
   public connect(): void {
     const options: IViewportOptions = { scope: !this.element.hasAttribute('no-scope') };
     if (this.usedBy && this.usedBy.length) {
@@ -110,11 +99,11 @@ export class ViewportCustomElement {
     if (this.element.hasAttribute('stateful')) {
       options.stateful = true;
     }
-    this.viewport = this.router.addViewport(this.name, this.element, this.$controller.context as IRenderContext, options);
+    this.viewport = this.router.connectViewport(this.name, this.element, this.$controller.context as IRenderContext, options);
   }
   public disconnect(): void {
     if (this.viewport) {
-      this.router.removeViewport(this.viewport, this.element, this.$controller.context as IRenderContext);
+      this.router.disconnectViewport(this.viewport, this.element, this.$controller.context as IRenderContext);
     }
   }
 
@@ -124,23 +113,24 @@ export class ViewportCustomElement {
     }
   }
 
-  public attaching(flags: LifecycleFlags): void {
+  public attaching(flags: LifecycleFlags): Promise<void> {
     if (this.viewport) {
-      this.viewport.attaching(flags);
+      return this.viewport.attaching(flags);
     }
+    return Promise.resolve();
   }
 
-  public detaching(flags: LifecycleFlags): void {
+  public detaching(flags: LifecycleFlags): Promise<void> {
     if (this.viewport) {
-      this.viewport.detaching(flags);
+      return this.viewport.detaching(flags);
     }
+    return Promise.resolve();
   }
 
-  public unbinding(flags: LifecycleFlags): void {
+  public async unbinding(flags: LifecycleFlags): Promise<void> {
     if (this.viewport) {
-      this.viewport.unbinding(flags);
+      await this.viewport.unbinding(flags);
     }
   }
 }
-// tslint:disable-next-line:no-invalid-template-strings
-CustomElement.define({ name: 'au-viewport', template: '<template><div class="viewport-header" style="display: none;"> Viewport: <b>${name}</b> ${scope ? "[new scope]" : ""} : <b>${viewport.content && viewport.content.toComponentName()}</b></div></template>' }, ViewportCustomElement);
+

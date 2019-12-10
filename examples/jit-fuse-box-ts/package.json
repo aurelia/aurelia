@@ -12,20 +12,13 @@
     "serve": "http-server -c-1 -p 9000 dist"
   },
   "dependencies": {
-    "@aurelia/debug": "dev",
-    "@aurelia/jit-html": "dev",
-    "@aurelia/jit-html-browser": "dev",
-    "@aurelia/jit": "dev",
-    "@aurelia/kernel": "dev",
-    "@aurelia/runtime-html": "dev",
-    "@aurelia/runtime-html-browser": "dev",
-    "@aurelia/runtime": "dev"
+    "aurelia": "dev"
   },
   "devDependencies": {
-    "@types/node": "latest",
-    "http-server": "latest",
-    "rimraf": "latest",
-    "typescript": "latest",
+    "@types/node": "^12.12.7",
+    "http-server": "0.9.0",
+    "rimraf": "^3.0.0",
+    "typescript": "^3.7.2",
     "fuse-box": "latest",
     "uglify-es": "latest",
     "uglify-js": "latest"

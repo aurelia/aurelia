@@ -220,7 +220,7 @@ describe('I18N', function () {
     it('formats a given number considering it as UNIX timestamp', async function () {
       const { sut } = await setup();
 
-      assert.equal(sut.df(0), '1/1/1970');
+      assert.equal(sut.df(0), new Date(0).toLocaleDateString());
     });
   });
 
@@ -342,12 +342,11 @@ describe('I18N', function () {
       { input: '- 123,456,789.12' },
     ];
     for (const { input, locale } of cases) {
-      // tslint:disable-next-line: no-nested-template-literals
       it(`returns 123456789.12 given ${input}${locale ? ` - ${locale}` : ''}`, async function () {
         const { sut } = await setup();
         assert.equal(
           sut.uf(input, locale),
-          input[0] === '-' ? -123456789.12 : 123456789.12);
+          input.startsWith('-') ? -123456789.12 : 123456789.12);
       });
     }
   });

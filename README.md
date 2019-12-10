@@ -23,8 +23,6 @@ This is the Aurelia 2 monorepo, containing core and plugin packages, examples, b
 
 ## Introduction
 
-*Please keep in mind that Aurelia 2 is still in pre-alpha.* Many core features and use cases around the public API are still untested and there will be several breaking changes to come.
-
 Aurelia is a modern, front-end JavaScript framework for building browser, mobile, and desktop applications. It focuses on aligning closely with web platform specifications, using convention over configuration, and having minimal framework intrusion. Basically, we want you to just write your code without the framework getting in your way. :wink:
 
 Aurelia applications are built by composing a series of simple components. By convention, components are made up of a vanilla JavaScript or Typescript class, with a corresponding HTML template.
@@ -59,21 +57,29 @@ export class App {
 <p if.bind="quest">Now set forth ${quest.toLowerCase()}!</p>
 ```
 
-This example shows you some of the powerful features of the aurelia binding syntax. To learn further, please [see our documentation](docs/user-docs).
+This example shows you some of the powerful features of the aurelia binding syntax. To learn further, please [see our documentation](https://docs.aurelia.io/).
 
-Feeling excited? Check out how to how to use `makes` to get started in the next section.
+Feeling excited? Check out how to use `makes` to get started in the next section.
+
+Note: *Please keep in mind that Aurelia 2 is still in pre-alpha.* A number of features and use cases around the public API are still untested and there will be a few more breaking changes.
 
 ## Getting Started
 
-To get started with a new Aurelia 2 project, with Node.js installed, simply run `npx makes aurelia`. You'll then be guided through a series of choices on how you'd like to setup your project. Once complete, you'll have a new Aurelia 2 project ready to run. For more information on Aurelia's use of `makes`, see [here](https://github.com/aurelia/new). If you aren't interested in taking our preferred approach to generating a project, you can also see [the examples folder in this repo](examples) for pure JIT setups (no conventions) with various loaders and bundlers.
+First, ensure that you have Node.js v8.9.0 or above installed on your system. Next, using [npx](https://medium.com/@maybekatz/introducing-npx-an-npm-package-runner-55f7d4bd282b), a tool distributed as part of Node.js, we'll create a new Aurelia 2 app. At a command prompt, run the following command:
+
+```bash
+npx makes aurelia
+```
+
+This will cause `npx` to download the `makes` scaffolding tool, along with the `aurelia` generator, which it will use to guide you through the setup process. Once complete, you'll have a new Aurelia 2 project ready to run. For more information on Aurelia's use of `makes`, see [here](https://github.com/aurelia/new). If you aren't interested in taking our preferred approach to generating a project, you can also see [the examples folder in this repo](examples) for pure JIT setups (no conventions) with various loaders and bundlers.
 
 ## Documentation
 
-You can read the documentation on Aurelia 2 [here](docs/user-docs). During the pre-Alpha phase, the most complete documentation is available in [our getting started section](docs/user-docs/getting-started).
+You can read the documentation on Aurelia 2 [here](https://docs.aurelia.io/). Our new docs are currently a work-in-progress, so the most complete documentation is available in our getting started section. If you've never used Aurelia before, you'll want to begin with our [Quick Start Guide](https://docs.aurelia.io/getting-started/quick-start-guide).
 
 ## Contributing
 
-If you are interested in contributing to Aurelia, please see [our contributor documentation](docs/user-docs/community-contributions/joining-the-community.md) for more information. You'll learn how to build the code and run tests, how best to engage in our social channels, how to submit PRs, and even how to contribute to our documentation. We welcome you and thank you in advance for joining with us in this endeavor.
+If you are interested in contributing to Aurelia, please see [our contributor documentation](https://docs.aurelia.io/community-contribution/joining-the-community) for more information. You'll learn how to build the code and run tests, how best to engage in our social channels, how to submit PRs, and even how to contribute to our documentation. We welcome you and thank you in advance for joining with us in this endeavor.
 
 ## Staying Up-to-Date
 

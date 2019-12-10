@@ -4,8 +4,8 @@ import project from './project';
 const log = createLogger('get-version-info');
 
 export function getCurrentVersion(): {major: string; minor: string; patch: string} {
-  const versionRegExp = /(\d+)\.(\d+)\.(\d+)($|\-)/;
-  const match = project.lerna.version.match(versionRegExp);
+  const versionRegExp = /(\d+)\.(\d+)\.(\d+)($|-)/;
+  const match = versionRegExp.exec(project.lerna.version);
   if (match === null) {
     throw new Error(`lerna.json 'version' should match ${versionRegExp}`);
   }

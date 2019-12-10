@@ -1,5 +1,5 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { BasicConfiguration } from '@aurelia/jit-html-browser';
+import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia } from '@aurelia/runtime';
 import { registerComponent } from './utils';
 
@@ -29,7 +29,7 @@ import { Alpha } from './components/alpha';
 import { Beta } from './components/beta';
 import { Sub } from './components/sub';
 
-const container = BasicConfiguration.createContainer();
+const container = JitHtmlBrowserConfiguration.createContainer();
 
 container.register(
   ViewportCustomElement as any,

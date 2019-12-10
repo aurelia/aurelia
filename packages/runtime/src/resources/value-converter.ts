@@ -1,57 +1,114 @@
 import {
-  Class,
   Constructable,
   IContainer,
-  IResourceDefinition,
+  ResourceDefinition,
   IResourceKind,
-  IResourceType,
+  ResourceType,
   Registration,
-  Writable
+  Metadata,
+  Protocol,
+  PartialResourceDefinition,
+  mergeArrays,
+  firstDefined,
 } from '@aurelia/kernel';
+import { registerAliases } from '../definitions';
 
-export interface IValueConverter {
+export type PartialValueConverterDefinition = PartialResourceDefinition;
+
+export type ValueConverterInstance<T extends {} = {}> = {
   toView(input: unknown, ...args: unknown[]): unknown;
   fromView?(input: unknown, ...args: unknown[]): unknown;
-}
+} & T;
 
-export interface IValueConverterDefinition extends IResourceDefinition { }
+export type ValueConverterType<T extends Constructable = Constructable> = ResourceType<T, ValueConverterInstance>;
+export type ValueConverterKind = IResourceKind<ValueConverterType, ValueConverterDefinition> & {
+  isType<T>(value: T): value is (T extends Constructable ? ValueConverterType<T> : never);
+  define<T extends Constructable>(name: string, Type: T): ValueConverterType<T>;
+  define<T extends Constructable>(def: PartialValueConverterDefinition, Type: T): ValueConverterType<T>;
+  define<T extends Constructable>(nameOrDef: string | PartialValueConverterDefinition, Type: T): ValueConverterType<T>;
+  getDefinition<T extends Constructable>(Type: T): ValueConverterDefinition<T>;
+  annotate<K extends keyof PartialValueConverterDefinition>(Type: Constructable, prop: K, value: PartialValueConverterDefinition[K]): void;
+  getAnnotation<K extends keyof PartialValueConverterDefinition>(Type: Constructable, prop: K): PartialValueConverterDefinition[K];
+};
 
-export interface IValueConverterType<C extends Constructable = Constructable> extends IResourceType<IValueConverterDefinition, InstanceType<C> & IValueConverter> { }
+export type ValueConverterDecorator = <T extends Constructable>(Type: T) => ValueConverterType<T>;
 
-export interface IValueConverterResource extends
-  IResourceKind<IValueConverterDefinition, IValueConverter, Class<IValueConverter>> { }
-
-export function valueConverter(definition: IValueConverterDefinition): ValueConverterDecorator;
+export function valueConverter(definition: PartialValueConverterDefinition): ValueConverterDecorator;
 export function valueConverter(name: string): ValueConverterDecorator;
-export function valueConverter(nameOrDefinition: string | IValueConverterDefinition): ValueConverterDecorator;
-export function valueConverter(nameOrDefinition: string | IValueConverterDefinition): ValueConverterDecorator {
-  return target => ValueConverter.define(nameOrDefinition, target) as any; // TODO: fix this at some point
+export function valueConverter(nameOrDef: string | PartialValueConverterDefinition): ValueConverterDecorator;
+export function valueConverter(nameOrDef: string | PartialValueConverterDefinition): ValueConverterDecorator {
+  return function (target) {
+    return ValueConverter.define(nameOrDef, target);
+  };
 }
 
-export const ValueConverter: Readonly<IValueConverterResource> = Object.freeze({
-  name: 'value-converter',
+export class ValueConverterDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, ValueConverterInstance> {
+  private constructor(
+    public readonly Type: ValueConverterType<T>,
+    public readonly name: string,
+    public readonly aliases: readonly string[],
+    public readonly key: string,
+  ) {}
+
+  public static create<T extends Constructable = Constructable>(
+    nameOrDef: string | PartialValueConverterDefinition,
+    Type: ValueConverterType<T>,
+  ): ValueConverterDefinition<T> {
+
+    let name: string;
+    let def: PartialValueConverterDefinition;
+    if (typeof nameOrDef === 'string') {
+      name = nameOrDef;
+      def = { name };
+    } else {
+      name = nameOrDef.name;
+      def = nameOrDef;
+    }
+
+    return new ValueConverterDefinition(
+      Type,
+      firstDefined(ValueConverter.getAnnotation(Type, 'name'), name),
+      mergeArrays(ValueConverter.getAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
+      ValueConverter.keyFrom(name),
+    );
+  }
+
+  public register(container: IContainer): void {
+    const { Type, key, aliases } = this;
+    Registration.singleton(key, Type).register(container);
+    Registration.alias(key, Type).register(container);
+    registerAliases(aliases, ValueConverter, key, container);
+  }
+}
+
+export const ValueConverter: ValueConverterKind = {
+  name: Protocol.resource.keyFor('value-converter'),
   keyFrom(name: string): string {
     return `${ValueConverter.name}:${name}`;
   },
-  isType<T>(Type: T & Partial<IValueConverterType>): Type is T & IValueConverterType {
-    return Type.kind === ValueConverter;
+  isType<T>(value: T): value is (T extends Constructable ? ValueConverterType<T> : never) {
+    return typeof value === 'function' && Metadata.hasOwn(ValueConverter.name, value);
   },
-  define<T extends Constructable = Constructable>(nameOrDefinition: string | IValueConverterDefinition, ctor: T): T & IValueConverterType<T> {
-    const Type = ctor as T & Writable<IValueConverterType>;
-    const description = typeof nameOrDefinition === 'string'
-      ? { name: nameOrDefinition }
-      : nameOrDefinition;
+  define<T extends Constructable<ValueConverterInstance>>(nameOrDef: string | PartialValueConverterDefinition, Type: T): ValueConverterType<T> {
+    const definition = ValueConverterDefinition.create(nameOrDef, Type as Constructable<ValueConverterInstance>);
+    Metadata.define(ValueConverter.name, definition, definition.Type);
+    Metadata.define(ValueConverter.name, definition, definition);
+    Protocol.resource.appendTo(Type, ValueConverter.name);
 
-    Type.kind = ValueConverter;
-    Type.description = description;
-    Type.register = function register(container: IContainer): void {
-      const key = ValueConverter.keyFrom(description.name);
-      Registration.singleton(key, this).register(container);
-      Registration.alias(key, this).register(container);
-    };
-
-    return Type as T & IValueConverterType<T>;
+    return definition.Type as ValueConverterType<T>;
   },
-});
+  getDefinition<T extends Constructable>(Type: T): ValueConverterDefinition<T> {
+    const def = Metadata.getOwn(ValueConverter.name, Type);
+    if (def === void 0) {
+      throw new Error(`No definition found for type ${Type.name}`);
+    }
 
-export type ValueConverterDecorator = <T extends Constructable>(target: T) => T & IValueConverterType<T>;
+    return def;
+  },
+  annotate<K extends keyof PartialValueConverterDefinition>(Type: Constructable, prop: K, value: PartialValueConverterDefinition[K]): void {
+    Metadata.define(Protocol.annotation.keyFor(prop), value, Type);
+  },
+  getAnnotation<K extends keyof PartialValueConverterDefinition>(Type: Constructable, prop: K): PartialValueConverterDefinition[K] {
+    return Metadata.getOwn(Protocol.annotation.keyFor(prop), Type);
+  },
+};

@@ -1,21 +1,23 @@
-import { inject } from "@aurelia/kernel";
-import { Article } from "models/article";
-import { getPages } from "shared/get-pages";
-import { ArticleService } from "shared/services/article-service";
+import { inject } from '@aurelia/kernel';
+
+import { Article } from 'models/article';
+import { getPages } from 'shared/get-pages';
+import { ArticleService } from 'shared/services/article-service';
 
 @inject(ArticleService)
 export class ProfileFavorites {
   public static parameters: string[] = ['name'];
 
-  private articles: Article[] = [];
-  private pageNumber?: number;
+  private readonly articles: Article[] = [];
+  private readonly pageNumber?: number;
   private totalPages?: number[];
   private currentPage = 1;
-  private limit = 10;
+  private readonly limit = 10;
   private username: any;
 
-  constructor(private readonly articleService: ArticleService) {
-  }
+  public constructor(
+    private readonly articleService: ArticleService,
+  ) {}
 
   public async enter(params: { name: string }) {
     this.username = params.name;

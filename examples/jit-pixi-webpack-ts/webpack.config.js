@@ -1,8 +1,7 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
 const path = require('path');
 
-module.exports = function(env, { mode }) {
+module.exports = function (env, { mode }) {
   const production = mode === 'production';
   return {
     mode: production ? 'production' : 'development',
@@ -32,5 +31,5 @@ module.exports = function(env, { mode }) {
     plugins: [
       new HtmlWebpackPlugin({ template: 'index.ejs' })
     ]
-  }
-}
+  };
+};

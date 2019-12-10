@@ -1,8 +1,30 @@
-import { IServiceLocator, Reporter, Tracer } from '@aurelia/kernel';
-import { AccessorOrObserver, BindingMode, connectable, ExpressionKind, hasBind, hasUnbind, IBindingTargetObserver, IConnectableBinding, IForOfStatement, ILifecycle, IObserverLocator, IPartialConnectableBinding, IsBindingBehavior, IScope, LifecycleFlags, State } from '@aurelia/runtime';
-import { AttributeObserver } from '../observation/element-attribute-observer';
-
-const slice = Array.prototype.slice;
+import {
+  IServiceLocator,
+  Reporter,
+} from '@aurelia/kernel';
+import {
+  AccessorOrObserver,
+  BindingMode,
+  connectable,
+  ExpressionKind,
+  hasBind,
+  hasUnbind,
+  IBindingTargetObserver,
+  IConnectableBinding,
+  IForOfStatement,
+  IObserverLocator,
+  IPartialConnectableBinding,
+  IsBindingBehavior,
+  IScope,
+  LifecycleFlags,
+  State,
+  IScheduler,
+  INode,
+} from '@aurelia/runtime';
+import {
+  AttributeObserver,
+  IHtmlElement,
+} from '../observation/element-attribute-observer';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
@@ -17,54 +39,41 @@ export interface AttributeBinding extends IConnectableBinding {}
  */
 @connectable()
 export class AttributeBinding implements IPartialConnectableBinding {
+  public interceptor: this = this;
+
   public id!: number;
-  public $state: State;
-  public $lifecycle: ILifecycle;
-  public $scope: IScope;
+  public $state: State = State.none;
+  public $scheduler: IScheduler;
+  public $scope: IScope = null!;
   public part?: string;
 
-  public locator: IServiceLocator;
-  public mode: BindingMode;
-  public observerLocator: IObserverLocator;
-  public sourceExpression: IsBindingBehavior | IForOfStatement;
-  public target: Element;
-  public targetAttribute: string;
   /**
    * Target key. In case Attr has inner structure, such as class -> classList, style -> CSSStyleDeclaration
    */
-  public targetProperty: string;
 
   public targetObserver!: AccessorOrObserver;
 
-  public persistentFlags: LifecycleFlags;
+  public persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
-  constructor(
-    sourceExpression: IsBindingBehavior | IForOfStatement,
-    target: Element,
+  public target: Element;
+
+  public constructor(
+    public sourceExpression: IsBindingBehavior | IForOfStatement,
+    target: INode,
     // some attributes may have inner structure
     // such as class -> collection of class names
     // such as style -> collection of style rules
     //
     // for normal attributes, targetAttribute and targetProperty are the same and can be ignore
-    targetAttribute: string,
-    targetKey: string,
-    mode: BindingMode,
-    observerLocator: IObserverLocator,
-    locator: IServiceLocator
+    public targetAttribute: string,
+    public targetProperty: string,
+    public mode: BindingMode,
+    public observerLocator: IObserverLocator,
+    public locator: IServiceLocator,
   ) {
+    this.target = target as Element;
     connectable.assignIdTo(this);
-    this.$state = State.none;
-    this.$lifecycle = locator.get(ILifecycle);
-    this.$scope = null!;
-
-    this.locator = locator;
-    this.mode = mode;
-    this.observerLocator = observerLocator;
-    this.sourceExpression = sourceExpression;
-    this.target = target;
-    this.targetAttribute = targetAttribute;
-    this.targetProperty = targetKey;
-    this.persistentFlags = LifecycleFlags.none;
+    this.$scheduler = locator.get(IScheduler);
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
@@ -96,19 +105,19 @@ export class AttributeBinding implements IPartialConnectableBinding {
         newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);
       }
       if (newValue !== previousValue) {
-        this.updateTarget(newValue, flags);
+        this.interceptor.updateTarget(newValue, flags);
       }
       if ((this.mode & oneTime) === 0) {
         this.version++;
-        this.sourceExpression.connect(flags, this.$scope, this, this.part);
-        this.unobserve(false);
+        this.sourceExpression.connect(flags, this.$scope, this.interceptor, this.part);
+        this.interceptor.unobserve(false);
       }
       return;
     }
 
     if (flags & LifecycleFlags.updateSourceExpression) {
       if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part)) {
-        this.updateSource(newValue, flags);
+        this.interceptor.updateSource(newValue, flags);
       }
       return;
     }
@@ -121,7 +130,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
       if (this.$scope === scope) {
         return;
       }
-      this.$unbind(flags | LifecycleFlags.fromBind);
+      this.interceptor.$unbind(flags | LifecycleFlags.fromBind);
     }
     // add isBinding flag
     this.$state |= State.isBinding;
@@ -135,16 +144,16 @@ export class AttributeBinding implements IPartialConnectableBinding {
 
     let sourceExpression = this.sourceExpression;
     if (hasBind(sourceExpression)) {
-      sourceExpression.bind(flags, scope, this);
+      sourceExpression.bind(flags, scope, this.interceptor);
     }
 
     let targetObserver = this.targetObserver as IBindingTargetObserver;
     if (!targetObserver) {
       targetObserver = this.targetObserver = new AttributeObserver(
-        this.$lifecycle,
+        this.$scheduler,
         flags,
         this.observerLocator,
-        this.target,
+        this.target as IHtmlElement,
         this.targetProperty,
         this.targetAttribute,
       );
@@ -156,14 +165,14 @@ export class AttributeBinding implements IPartialConnectableBinding {
     // during bind, binding behavior might have changed sourceExpression
     sourceExpression = this.sourceExpression;
     if (this.mode & toViewOrOneTime) {
-      this.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
+      this.interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
     }
     if (this.mode & toView) {
       sourceExpression.connect(flags, scope, this, part);
     }
     if (this.mode & fromView) {
       (targetObserver as IBindingTargetObserver & { [key: string]: number })[this.id] |= LifecycleFlags.updateSourceExpression;
-      targetObserver.subscribe(this);
+      targetObserver.subscribe(this.interceptor);
     }
 
     // add isBound flag and remove isBinding flag
@@ -182,7 +191,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     this.persistentFlags = LifecycleFlags.none;
 
     if (hasUnbind(this.sourceExpression)) {
-      this.sourceExpression.unbind(flags, this.$scope, this);
+      this.sourceExpression.unbind(flags, this.$scope, this.interceptor);
     }
     this.$scope = null!;
 
@@ -190,10 +199,10 @@ export class AttributeBinding implements IPartialConnectableBinding {
       (this.targetObserver as IBindingTargetObserver).unbind!(flags);
     }
     if ((this.targetObserver as IBindingTargetObserver).unsubscribe) {
-      (this.targetObserver as IBindingTargetObserver).unsubscribe(this);
+      (this.targetObserver as IBindingTargetObserver).unsubscribe(this.interceptor);
       (this.targetObserver as IBindingTargetObserver & { [key: string]: number })[this.id] &= ~LifecycleFlags.updateSourceExpression;
     }
-    this.unobserve(true);
+    this.interceptor.unobserve(true);
 
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);
@@ -202,7 +211,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
   public connect(flags: LifecycleFlags): void {
     if (this.$state & State.isBound) {
       flags |= this.persistentFlags;
-      this.sourceExpression.connect(flags | LifecycleFlags.mustEvaluate, this.$scope, this, this.part); // why do we have a connect method here in the first place? will this be called after bind?
+      this.sourceExpression.connect(flags | LifecycleFlags.mustEvaluate, this.$scope, this.interceptor, this.part); // why do we have a connect method here in the first place? will this be called after bind?
     }
   }
 }

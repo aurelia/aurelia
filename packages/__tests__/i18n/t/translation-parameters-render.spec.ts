@@ -1,9 +1,8 @@
-// tslint:disable: no-object-literal-type-assertion
 import { I18nConfiguration, TranslationBinding, TranslationParametersAttributePattern, TranslationParametersBindingCommand, TranslationParametersBindingInstruction, TranslationParametersBindingRenderer, TranslationParametersInstructionType } from '@aurelia/i18n';
-import { AttributePatternDefinition, AttrSyntax, BindingCommandResource, IAttributePattern, IBindingCommand, PlainAttributeSymbol } from '@aurelia/jit';
+import { AttrSyntax, BindingCommand, BindingCommandInstance, IAttributePattern, PlainAttributeSymbol } from '@aurelia/jit';
 import { AttrBindingCommand } from '@aurelia/jit-html';
 import { DI } from '@aurelia/kernel';
-import { AnyBindingExpression, BindingType, IController, IExpressionParser, IInstructionRenderer, IObserverLocator, IRenderContext, LifecycleFlags, RuntimeBasicConfiguration, ICallBindingInstruction } from '@aurelia/runtime';
+import { AnyBindingExpression, BindingType, ICallBindingInstruction, IController, IExpressionParser, IInstructionRenderer, IObserverLocator, IRenderContext, LifecycleFlags, RuntimeConfiguration } from '@aurelia/runtime';
 import { DOM } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
@@ -13,18 +12,6 @@ describe('TranslationParametersAttributePattern', function () {
     container.register(TranslationParametersAttributePattern);
     return container.get(IAttributePattern);
   }
-
-  it('registers the `t-params.bind` attr. pattern', function () {
-    const sut = setup();
-    const pattern = 't-params.bind';
-
-    assert.instanceOf(sut, TranslationParametersAttributePattern);
-    assert.deepEqual(
-      (TranslationParametersAttributePattern.prototype as unknown as IAttributePattern).$patternDefs,
-      [{ pattern, symbols: '' }] as AttributePatternDefinition[]);
-
-    assert.typeOf(sut[pattern], 'function');
-  });
 
   it('creates attribute syntax without `to`', function () {
     const sut = setup();
@@ -43,7 +30,7 @@ describe('TranslationParametersBindingCommand', function () {
   function setup() {
     const container = DI.createContainer();
     container.register(TranslationParametersBindingCommand);
-    return container.get<IBindingCommand>(BindingCommandResource.keyFrom(`t-params.bind`));
+    return container.get<BindingCommandInstance>(BindingCommand.keyFrom(`t-params.bind`));
   }
 
   it('registers the `t-params.bind` command', function () {
@@ -54,15 +41,14 @@ describe('TranslationParametersBindingCommand', function () {
   it('compiles the binding to a TranslationParametersBindingInstruction', function () {
     const sut = setup();
     const syntax: AttrSyntax = { command: 't-params.bind', rawName: 't-params.bind', rawValue: '{foo: "bar"}', target: '' };
+    const plainAttributesymbol: PlainAttributeSymbol = {
+      command: new AttrBindingCommand(),
+      flags: (void 0)!,
+      expression: { syntax } as unknown as AnyBindingExpression,
+      syntax
+    };
 
-    const actual = sut.compile(
-      {
-        command: new AttrBindingCommand(),
-        flags: (void 0)!,
-        expression: { syntax } as unknown as AnyBindingExpression,
-        syntax
-      } as PlainAttributeSymbol
-    );
+    const actual = sut.compile(plainAttributesymbol);
 
     assert.instanceOf(actual, TranslationParametersBindingInstruction);
   });
@@ -72,7 +58,7 @@ describe('TranslationParametersBindingRenderer', function () {
 
   function setup() {
     const { container } = TestContext.createHTMLTestContext();
-    container.register(RuntimeBasicConfiguration, I18nConfiguration);
+    container.register(RuntimeConfiguration, I18nConfiguration);
     return container as unknown as IRenderContext;
   }
 
@@ -87,6 +73,7 @@ describe('TranslationParametersBindingRenderer', function () {
     const sut: IInstructionRenderer = new TranslationParametersBindingRenderer(container.get(IExpressionParser), container.get(IObserverLocator));
     const expressionParser = container.get(IExpressionParser);
     const renderable = ({} as unknown as IController);
+    const callBindingInstruction: ICallBindingInstruction = { from: expressionParser.parse('{foo: "bar"}', BindingType.BindCommand) } as unknown as ICallBindingInstruction;
 
     sut.render(
       LifecycleFlags.none,
@@ -94,7 +81,7 @@ describe('TranslationParametersBindingRenderer', function () {
       container,
       renderable,
       DOM.createElement('span'),
-      { from: expressionParser.parse('{foo: "bar"}', BindingType.BindCommand) } as ICallBindingInstruction
+      callBindingInstruction
     );
 
     assert.instanceOf(renderable.bindings[0], TranslationBinding);
@@ -108,6 +95,7 @@ describe('TranslationParametersBindingRenderer', function () {
     const binding = new TranslationBinding(targetElement, container.get(IObserverLocator), container);
     const renderable = ({ bindings: [binding] } as unknown as IController);
     const paramExpr = expressionParser.parse('{foo: "bar"}', BindingType.BindCommand);
+    const callBindingInstruction: ICallBindingInstruction = { from: paramExpr } as unknown as ICallBindingInstruction;
 
     sut.render(
       LifecycleFlags.none,
@@ -115,7 +103,7 @@ describe('TranslationParametersBindingRenderer', function () {
       container,
       renderable,
       targetElement,
-      { from: paramExpr } as ICallBindingInstruction
+      callBindingInstruction
     );
 
     assert.equal(binding.parametersExpr, paramExpr);

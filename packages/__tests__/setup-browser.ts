@@ -3,8 +3,11 @@ import {
   TestContext,
 } from '@aurelia/testing';
 import {
-  BasicConfiguration as BasicBrowserConfiguration
+  JitHtmlBrowserConfiguration
 } from '@aurelia/jit-html-browser';
+import {
+  BrowserScheduler
+} from '@aurelia/runtime-html-browser';
 import {
   Reporter,
   LogLevel,
@@ -14,8 +17,9 @@ Reporter.level = LogLevel.error;
 
 function createBrowserTestContext(): HTMLTestContext {
   return HTMLTestContext.create(
-    BasicBrowserConfiguration,
+    JitHtmlBrowserConfiguration,
     window,
+    BrowserScheduler,
     UIEvent,
     Event,
     CustomEvent,
@@ -37,19 +41,20 @@ function initializeBrowserTestContext(): void {
   TestContext.createHTMLTestContext().dom.createElement('div');
 }
 
-
 initializeBrowserTestContext();
 
-function importAll (r) {
+function importAll(r) {
   r.keys().forEach(r);
 }
 
 // Explicitly add to browser test
+importAll(require.context('./1-kernel/', true, /\.spec\.js$/));
+importAll(require.context('./2-runtime/', true, /\.spec\.js$/));
+importAll(require.context('./3-runtime-html/', true, /\.spec\.js$/));
+importAll(require.context('./4-jit/', true, /\.spec\.js$/));
+importAll(require.context('./5-jit-html/', true, /\.spec\.js$/));
+
 importAll(require.context('./fetch-client/', true, /\.spec\.js$/));
 importAll(require.context('./i18n/', true, /\.spec\.js$/));
-importAll(require.context('./jit/', true, /\.spec\.js$/));
-importAll(require.context('./jit-html/', true, /\.spec\.js$/));
-importAll(require.context('./kernel/', true, /\.spec\.js$/));
+importAll(require.context('./integration/', true, /\.spec\.js$/));
 importAll(require.context('./router/', true, /\.spec\.js$/));
-importAll(require.context('./runtime/', true, /\.spec\.js$/));
-importAll(require.context('./runtime-html/', true, /\.spec\.js$/));

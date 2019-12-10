@@ -21,7 +21,7 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
 
       return container.register(
         Registration.singleton(IValidator, options.validator),
-        Registration.singleton(IValidationMessageProvider, ValidationMessageProvider),
+        Registration.singleton(IValidationMessageProvider, ValidationMessageProvider), // TODO enable customization of messages and i18n
         Registration.transient(IValidationRules, ValidationRules),
         ValidateBindingBehavior,
         ValidationErrorsCustomAttribute,

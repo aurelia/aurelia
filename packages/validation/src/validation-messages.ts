@@ -1,10 +1,6 @@
 import { DI, ILogger } from '@aurelia/kernel';
 import { BindingType, IExpressionParser, IInterpolationExpression, PrimitiveLiteralExpression, Interpolation, AccessScopeExpression, AccessThisExpression } from '@aurelia/runtime';
 
-export interface ValidationMessages {
-  [key: string]: string;
-}
-
 const contextualProperties: Readonly<Set<string>> = new Set([
   "displayName",
   "propertyName",
@@ -13,27 +9,6 @@ const contextualProperties: Readonly<Set<string>> = new Set([
   "config",
   "getDisplayName"
 ]);
-/**
- * Dictionary of validation messages. [messageKey]: messageExpression
- */
-export const validationMessages: ValidationMessages = {
-  /**
-   * The default validation message. Used with rules that have no standard message.
-   */
-  default: `\${$displayName} is invalid.`,
-  required: `\${$displayName} is required.`,
-  matches: `\${$displayName} is not correctly formatted.`,
-  email: `\${$displayName} is not a valid email.`,
-  minLength: `\${$displayName} must be at least \${$config.length} character\${$config.length === 1 ? '' : 's'}.`,
-  maxLength: `\${$displayName} cannot be longer than \${$config.length} character\${$config.length === 1 ? '' : 's'}.`,
-  minItems: `\${$displayName} must contain at least \${$config.count} item\${$config.count === 1 ? '' : 's'}.`,
-  maxItems: `\${$displayName} cannot contain more than \${$config.count} item\${$config.count === 1 ? '' : 's'}.`,
-  min: `\${$displayName} must be at least \${$config.constraint}.`,
-  max: `\${$displayName} must be at most \${$config.constraint}.`,
-  range: `\${$displayName} must be between or equal to \${$config.min} and \${$config.max}.`,
-  between: `\${$displayName} must be between but not equal to \${$config.min} and \${$config.max}.`,
-  equals: `\${$displayName} must be \${$config.expectedValue}.`,
-};
 
 export interface IValidationMessageProvider {
   getMessageByKey(key: string): IInterpolationExpression | PrimitiveLiteralExpression;
@@ -42,13 +17,34 @@ export interface IValidationMessageProvider {
 }
 
 export const IValidationMessageProvider = DI.createInterface<IValidationMessageProvider>("IValidationMessageProvider").noDefault();
-
+/* @internal */
+export const ICustomMessages = DI.createInterface("ICustomMessages").noDefault();
 /**
  * Retrieves validation messages and property display names.
  */
 export class ValidationMessageProvider implements IValidationMessageProvider {
 
-  private logger: ILogger;
+  // TODO move the messages to rules as well as facilitate having custom message registration
+  protected defaultMessages: Record<string, string> = {
+    /**
+     * The default validation message. Used with rules that have no standard message.
+     */
+    default: `\${$displayName} is invalid.`,
+    required: `\${$displayName} is required.`,
+    matches: `\${$displayName} is not correctly formatted.`,
+    email: `\${$displayName} is not a valid email.`,
+    minLength: `\${$displayName} must be at least \${$rule.length} character\${$rule.length === 1 ? '' : 's'}.`,
+    maxLength: `\${$displayName} cannot be longer than \${$rule.length} character\${$rule.length === 1 ? '' : 's'}.`,
+    minItems: `\${$displayName} must contain at least \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.`,
+    maxItems: `\${$displayName} cannot contain more than \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.`,
+    min: `\${$displayName} must be at least \${$rule.min}.`,
+    max: `\${$displayName} must be at most \${$rule.max}.`,
+    range: `\${$displayName} must be between or equal to \${$rule.min} and \${$rule.max}.`,
+    between: `\${$displayName} must be between but not equal to \${$rule.min} and \${$rule.max}.`,
+    equals: `\${$displayName} must be \${$rule.expectedValue}.`,
+  };
+  private readonly logger: ILogger;
+
   public constructor(
     @IExpressionParser public parser: IExpressionParser,
     @ILogger logger: ILogger,
@@ -60,12 +56,8 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
    * Returns a message binding expression that corresponds to the key.
    */
   public getMessageByKey(key: string): IInterpolationExpression | PrimitiveLiteralExpression {
-    let message: string;
-    if (key in validationMessages) {
-      message = validationMessages[key];
-    } else {
-      message = validationMessages['default'];
-    }
+    const validationMessages = this.defaultMessages;
+    const message = validationMessages[key] ?? validationMessages['default'];
     return this.parseMessage(message);
   }
 
@@ -75,10 +67,10 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
       for (const expr of parsed.expressions) {
         const name = (expr as AccessScopeExpression).name;
         if (contextualProperties.has(name)) {
-          this.logger.warn(`Did you mean to use "$${name}" instead of "${name}" in this validation message template: "${message}"?`)
+          this.logger.warn(`Did you mean to use "$${name}" instead of "${name}" in this validation message template: "${message}"?`);
         }
         if (expr instanceof AccessThisExpression || (expr as AccessScopeExpression).ancestor > 0) {
-          throw new Error('$parent is not permitted in validation message expressions.'); // use reporter
+          throw new Error('$parent is not permitted in validation message expressions.'); // TODO use reporter
         }
       }
       return parsed;

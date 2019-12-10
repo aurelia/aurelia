@@ -80,7 +80,6 @@ export abstract class ValidationRule<TValue = any, TObject extends IValidateable
   public setMessage(message: string) {
     this._messageKey = 'custom';
     this._message = this.messageProvider.parseMessage(message);
-    console.log(this._message);
   }
 
   public constructor(protected readonly messageProvider: IValidationMessageProvider) { }
@@ -220,10 +219,18 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
           isValidOrPromise = await isValidOrPromise;
         }
         isValid = isValid && isValidOrPromise;
-        const message = rule.message.evaluate(
-          LifecycleFlags.none,
-          { bindingContext: object!, parentScope: null, scopeParts: [], overrideContext: (void 0)! }
-          , null!) as string;
+        const { displayName, name } = this.property;
+        const scope = {
+          bindingContext: {
+            $object: object,
+            $displayName: displayName instanceof Function ? displayName() : displayName,
+            $propertyName: name,
+            $value: value,
+            $rule: rule,
+            $getDisplayName: this.messageProvider.getDisplayName
+          }, parentScope: null, scopeParts: [], overrideContext: (void 0)!
+        };
+        const message = rule.message.evaluate(LifecycleFlags.none, scope, null!) as string;
         return new ValidationResult(rule, object, this.property.name, isValidOrPromise, message);
       };
 

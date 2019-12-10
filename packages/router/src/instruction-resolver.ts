@@ -92,7 +92,7 @@ export class InstructionResolver {
   }
 
   public parseViewportInstructions(instructions: string): ViewportInstruction[] {
-    const match = instructions.match(/^[./]+/);
+    const match = /^[./]+/.exec(instructions);
     let context = '';
     if (Array.isArray(match) && match.length > 0) {
       context = match[0];

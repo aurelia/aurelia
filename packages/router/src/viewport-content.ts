@@ -20,8 +20,6 @@ export class ViewportContent {
   public fromHistory: boolean = false;
   public reentry: boolean = false;
 
-  private taggedNodes: Element[] = [];
-
   public constructor(
     // Can (and wants) be a (resolved) type or a string (to be resolved later)
     public content: ViewportInstruction = new ViewportInstruction(''),

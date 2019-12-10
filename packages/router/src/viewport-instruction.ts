@@ -156,14 +156,16 @@ export class ViewportInstruction {
     if (this.componentType !== null) {
       return this.componentType;
     }
-    if (this.componentName !== null && typeof this.componentName === 'string') {
-      if (container !== null && container.has<RouteableComponentType>(CustomElement.keyFrom(this.componentName), true)) {
-        const resolver = container.getResolver<RouteableComponentType>(CustomElement.keyFrom(this.componentName));
-        if (resolver !== null && resolver.getFactory !== void 0) {
-          const factory = resolver.getFactory(container);
-          if (factory) {
-            return factory.Type;
-          }
+    if (this.componentName !== null
+      && typeof this.componentName === 'string'
+      && container !== null
+      && container.has<RouteableComponentType>(CustomElement.keyFrom(this.componentName), true)
+    ) {
+      const resolver = container.getResolver<RouteableComponentType>(CustomElement.keyFrom(this.componentName));
+      if (resolver !== null && resolver.getFactory !== void 0) {
+        const factory = resolver.getFactory(container);
+        if (factory) {
+          return factory.Type;
         }
       }
     }

@@ -137,7 +137,7 @@ export class ViewportScope implements IScopeOwner {
   public finalizeContentChange(): void {
     // console.log('ViewportScope finalizing', this.content);
   }
-  public async abortContentChange(): Promise<void> {
+  public abortContentChange(): Promise<void> {
     this.nextContent = null;
     if (this.remove) {
       this.source!.splice(this.sourceItemIndex, 0, this.sourceItem);
@@ -147,6 +147,7 @@ export class ViewportScope implements IScopeOwner {
       this.source!.splice(index, 1);
       this.sourceItem = null;
     }
+    return Promise.resolve();
   }
 
   public acceptSegment(segment: string): boolean {
@@ -177,7 +178,7 @@ export class ViewportScope implements IScopeOwner {
   }
 
   public binding(): void {
-    let source: unknown[] = this.source || [];
+    const source: unknown[] = this.source || [];
     if (source.length > 0 && this.sourceItem === null) {
       this.sourceItem = this.getAvailableSourceItem();
     }

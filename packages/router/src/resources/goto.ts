@@ -1,4 +1,4 @@
-import { NavigationInstructionResolver } from './../type-resolvers';
+import { NavigationInstructionResolver } from '../type-resolvers';
 import { customAttribute, INode, bindable, BindingMode, IDOM, DelegationStrategy, IObserverLocator, LifecycleFlags, CustomAttribute } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { IEventManager } from '@aurelia/runtime-html';
@@ -15,7 +15,7 @@ export class GotoCustomAttribute {
   private readonly element: HTMLElement;
   private observer: any;
 
-  private activeClass: string = 'goto-active';
+  private readonly activeClass: string = 'goto-active';
   public constructor(
     @IDOM private readonly dom: IDOM,
     @INode element: INode,
@@ -58,19 +58,19 @@ export class GotoCustomAttribute {
   }
 
   public handleChange(): void {
-      const controller = CustomAttribute.for(this.element, 'goto')!.parent;
-      const created = NavigationInstructionResolver.createViewportInstructions(this.router, this.value as any, { context: controller });
-      const instructions = NavigationInstructionResolver.toViewportInstructions(this.router, created.instructions);
-      for (const instruction of instructions) {
-        if (instruction.scope === null) {
-          instruction.scope = created.scope;
-        }
+    const controller = CustomAttribute.for(this.element, 'goto')!.parent;
+    const created = NavigationInstructionResolver.createViewportInstructions(this.router, this.value as any, { context: controller });
+    const instructions = NavigationInstructionResolver.toViewportInstructions(this.router, created.instructions);
+    for (const instruction of instructions) {
+      if (instruction.scope === null) {
+        instruction.scope = created.scope;
       }
-      // TODO: Use router configuration for class name and update target
-      if (this.router.checkActive(instructions)) {
-        this.element.classList.add(this.activeClass);
-      } else {
-        this.element.classList.remove(this.activeClass);
-      }
+    }
+    // TODO: Use router configuration for class name and update target
+    if (this.router.checkActive(instructions)) {
+      this.element.classList.add(this.activeClass);
+    } else {
+      this.element.classList.remove(this.activeClass);
+    }
   }
 }

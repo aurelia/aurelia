@@ -1,5 +1,5 @@
 import { DI, IContainer, Key, Reporter, Registration, Metadata } from '@aurelia/kernel';
-import { Aurelia, IController, IRenderContext, IViewModel, CustomElement, INode, DOM } from '@aurelia/runtime';
+import { Aurelia, CustomElementType, IController, IRenderContext, IViewModel, CustomElement, INode, DOM } from '@aurelia/runtime';
 import { BrowserNavigator } from './browser-navigator';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
 import { INavigatorInstruction, IRouteableComponent, NavigationInstruction, IRoute, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces';
@@ -15,7 +15,6 @@ import { ViewportInstruction } from './viewport-instruction';
 import { FoundRoute } from './found-route';
 import { HookManager, IHookDefinition, HookIdentity, HookFunction, IHookOptions, BeforeNavigationHookFunction, TransformFromUrlHookFunction, TransformToUrlHookFunction } from './hook-manager';
 import { Scope, IScopeOwner } from './scope';
-import { CustomElementType } from '@aurelia/runtime';
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
 
 export interface IGotoOptions {
@@ -78,7 +77,6 @@ export interface IRouter {
   connectViewportScope(viewportScope: ViewportScope | null, name: string, container: IContainer, element: Element, options?: IViewportScopeOptions): ViewportScope;
   // Called from the viewport scope custom element
   disconnectViewportScope(viewportScope: ViewportScope, container: IContainer): void;
-
 
   allViewports(includeDisabled?: boolean): Viewport[];
   findScope(elementOrViewmodelOrviewport: Element | IViewModel | Viewport | IController | null): Scope;
@@ -287,10 +285,8 @@ export class Router implements IRouter {
     const instructionNavigation: INavigatorFlags = instruction.navigation as INavigatorFlags;
     if ((instructionNavigation.back || instructionNavigation.forward) && instruction.fullStateInstruction) {
       fullStateInstruction = true;
-      // if (!confirm('Perform history navigation?')) { this.navigator.cancel(instruction); this.processingNavigation = null;
-      //   return Promise.resolve(); }
+      // if (!confirm('Perform history navigation?')) { this.navigator.cancel(instruction); this.processingNavigation = null; return Promise.resolve(); }
     }
-    // let clearUsedViewports: boolean = fullStateInstruction;
     let configuredRoute = await this.findInstructions(
       this.rootScope!.scope,
       instruction.instruction,
@@ -299,9 +295,7 @@ export class Router implements IRouter {
     let instructions = configuredRoute.instructions;
     let configuredRoutePath: string | null = null;
 
-    if (instruction.instruction.length > 0
-      && !configuredRoute.foundConfiguration
-      && !configuredRoute.foundInstructions) {
+    if (instruction.instruction.length > 0 && !configuredRoute.foundConfiguration && !configuredRoute.foundInstructions) {
       // TODO: Do something here!
       this.unknownRoute(configuredRoute.remaining);
     }
@@ -313,10 +307,7 @@ export class Router implements IRouter {
       this.rootScope!.path = configuredRoutePath;
     }
     // TODO: Used to have an early exit if no instructions. Restore it?
-
-    // TODO: Fetch title (probably when done)
-
-    let clearViewports: Viewport[] = [];
+    const clearViewports: Viewport[] = [];
     let clearViewportScopes: ViewportScope[] = [];
     for (const clearInstruction of instructions.filter(instr => this.instructionResolver.isClearAllViewportsInstruction(instr))) {
       const scope: Scope = clearInstruction.scope || this.rootScope!.scope;
@@ -333,8 +324,7 @@ export class Router implements IRouter {
     let { found: viewportInstructions, remaining: remainingInstructions } = this.findViewports(instructions, alreadyFoundInstructions);
     let guard = 100;
     do {
-      // Guard against endless loop
-      if (!guard--) {
+      if (!guard--) { // Guard against endless loop
         console.log('remainingInstructions', remainingInstructions);
         throw Reporter.error(2002);
       }
@@ -346,7 +336,6 @@ export class Router implements IRouter {
       } else {
         viewportInstructions = hooked as ViewportInstruction[];
       }
-
       for (const viewportInstruction of viewportInstructions) {
         const scopeOwner: IScopeOwner | null = viewportInstruction.owner;
         if (scopeOwner !== null) {
@@ -390,7 +379,6 @@ export class Router implements IRouter {
           updatedScopeOwners.push(viewport);
         }
       }
-
       // TODO: Fix multi level recursiveness!
       alreadyFoundInstructions.push(...viewportInstructions);
       ({ found: viewportInstructions, remaining: remainingInstructions } = this.findViewports(remainingInstructions, alreadyFoundInstructions));
@@ -399,16 +387,13 @@ export class Router implements IRouter {
       if (configuredRoute.hasRemaining &&
         viewportInstructions.length === 0 &&
         remainingInstructions.length === 0) {
-        let configured = new FoundRoute();
+        let configured: FoundRoute = new FoundRoute();
         const routeScopeOwners: IScopeOwner[] = alreadyFoundInstructions
           .filter(instr => instr.owner !== null && instr.owner.path === configuredRoutePath)
           .map(instr => instr.owner)
           .filter((value, index, arr) => arr.indexOf(value) === index) as IScopeOwner[];
         for (const owner of routeScopeOwners) {
-          configured = await this.findInstructions(
-            owner.scope,
-            configuredRoute.remaining,
-            owner.scope);
+          configured = await this.findInstructions(owner.scope, configuredRoute.remaining, owner.scope);
           if (configured.foundConfiguration) {
             break;
           }
@@ -459,7 +444,6 @@ export class Router implements IRouter {
           remainingInstructions.push(appendedInstruction);
         }
       }
-      // clearViewports is empty if we're not clearing viewports
       if (viewportInstructions.length === 0 && remainingInstructions.length === 0) {
         viewportInstructions = clearViewports.map(viewport => this.createViewportInstruction(this.instructionResolver.clearViewportInstruction, viewport));
         viewportInstructions.push(...clearViewportScopes.map(viewportScope => {
@@ -825,7 +809,7 @@ export class Router implements IRouter {
         instructions[0].scope = this.rootScope!.scope;
       }
       const scope: Scope = instructions[0].scope!;
-      let { foundViewports, remainingInstructions } = scope.findViewports(instructions.filter(instruction => instruction.scope === scope), alreadyFound, withoutViewports);
+      const { foundViewports, remainingInstructions } = scope.findViewports(instructions.filter(instruction => instruction.scope === scope), alreadyFound, withoutViewports);
       found.push(...foundViewports);
       remaining.push(...remainingInstructions);
       instructions = instructions.filter(instruction => instruction.scope !== scope);
@@ -891,6 +875,9 @@ export class Router implements IRouter {
     const fullViewportStates = [this.createViewportInstruction(this.instructionResolver.clearViewportInstruction)];
     fullViewportStates.push(...this.instructionResolver.cloneViewportInstructions(instructions, this.statefulHistory));
     instruction.fullStateInstruction = fullViewportStates;
+
+    // TODO: Fetch and update title
+
     return Promise.resolve();
   }
 
@@ -958,11 +945,11 @@ export class Router implements IRouter {
   // TODO: This is probably wrong since it caused test fails when in CustomElement.for
   // Fred probably knows and will need to look at it
   // This can most likely also be changed so that the node traversal isn't necessary
-  private CustomElementFor(node: INode): IController<INode> | undefined {
-    let cur: INode | null = node as INode | null;
+  private CustomElementFor(node: INode): IController | undefined {
+    let cur: INode | null = node;
     while (cur !== null) {
       const nodeResourceName: string = (cur as Element).nodeName.toLowerCase();
-      const controller: IController<INode> = Metadata.getOwn(`${CustomElement.name}:${nodeResourceName}`, cur)
+      const controller: IController = Metadata.getOwn(`${CustomElement.name}:${nodeResourceName}`, cur)
         || Metadata.getOwn(CustomElement.name, cur);
       if (controller !== void 0) {
         return controller;

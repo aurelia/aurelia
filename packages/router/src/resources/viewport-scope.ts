@@ -108,11 +108,12 @@ export class ViewportScopeCustomElement {
       this.viewportScope.binding();
     }
   }
-  public async unbinding(flags: LifecycleFlags): Promise<void> {
+  public unbinding(flags: LifecycleFlags): Promise<void> {
     if (this.viewportScope !== null) {
       this.viewportScope.unbinding();
     }
     this.disconnect();
+    return Promise.resolve();
   }
 
   private getAttribute(key: string, value: string | boolean, checkExists: boolean = false): string | boolean | undefined {

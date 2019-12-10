@@ -92,7 +92,7 @@ export class Scope {
     return this.children.filter(scope => scope.enabled);
   }
   public get hoistedChildren(): Scope[] {
-    let scopes: Scope[] = this.enabledChildren;
+    const scopes: Scope[] = this.enabledChildren;
     while (scopes.some(scope => scope.passThroughScope)) {
       for (const scope of scopes.slice()) {
         if (scope.passThroughScope) {

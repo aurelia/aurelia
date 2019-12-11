@@ -124,7 +124,7 @@ export class HTMLDOM implements IDOM {
   }
 
   public createNodeSequence(fragment: DocumentFragment): FragmentNodeSequence {
-    return new FragmentNodeSequence(this, fragment);
+    return new FragmentNodeSequence(this, fragment.cloneNode(true) as DocumentFragment);
   }
 
   public createElement(name: string): HTMLElement {

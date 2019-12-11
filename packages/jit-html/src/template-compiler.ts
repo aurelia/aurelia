@@ -112,6 +112,10 @@ export class TemplateCompiler implements ITemplateCompiler {
     partialDefinition: PartialCustomElementDefinition,
     descriptions: IResourceDescriptions,
   ): CustomElementDefinition {
+    if (partialDefinition.template == null) {
+      return CustomElementDefinition.getOrCreate(partialDefinition);
+    }
+
     const resources = new ResourceModel(descriptions);
     const { attrParser, exprParser, attrSyntaxModifier, factory } = this;
 

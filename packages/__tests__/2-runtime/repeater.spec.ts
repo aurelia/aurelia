@@ -1,20 +1,14 @@
-import { Writable } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
-  addBinding,
   PropertyBinding,
   BindingContext,
   BindingIdentifier,
-  BindingMode,
   BindingStrategy,
   ForOfStatement,
-  IDOM,
   ILifecycle,
   IObservedArray,
-  IObserverLocator,
   IController,
   IScope,
-  ITemplate,
   LifecycleFlags,
   ProxyObserver,
   Repeat,
@@ -22,12 +16,13 @@ import {
   ViewFactory,
   Controller,
   IScheduler,
+  RenderContext,
+  CustomElementDefinition,
+  ToViewBindingInstruction,
 } from '@aurelia/runtime';
 import {
-  AuDOM,
   AuDOMConfiguration,
   AuNode,
-  AuNodeSequence,
   eachCartesianJoin,
   assert,
 } from '@aurelia/testing';
@@ -581,32 +576,27 @@ describe(`Repeat`, function () {
         const baseFlags: LifecycleFlags = strategy as unknown as LifecycleFlags;
         const proxies = (strategy & BindingStrategy.proxies) > 0;
         const container = AuDOMConfiguration.createContainer();
-        const dom = container.get<AuDOM>(IDOM);
-        const observerLocator = container.get(IObserverLocator);
         const lifecycle = container.get(ILifecycle);
         const scheduler = container.get(IScheduler);
 
         const location = AuNode.createRenderLocation();
         const host = AuNode.createHost().appendChild(location.$start).appendChild(location);
 
-        const itemTemplate: ITemplate<AuNode> = {
-          renderContext: null as any,
-          dom: null as any,
-          definition: null as any,
-          render(itemRenderable) {
-            const text = AuNode.createText();
-            const wrapper = AuNode.createTemplate().appendChild(text);
+        const itemContext = RenderContext.getOrCreate(
+          CustomElementDefinition.create({
+            name: void 0,
+            template: AuNode.createText().makeTarget(),
+            instructions: [
+              [
+                new ToViewBindingInstruction(new AccessScopeExpression('item'), 'textContent'),
+              ],
+            ],
+            needsCompile: false,
+          }),
+          container,
+        );
 
-            const nodes = new AuNodeSequence(dom, wrapper);
-            const itemBinding = new PropertyBinding(new AccessScopeExpression('item'), text, 'textContent', BindingMode.toView, observerLocator, container);
-            binding.persistentFlags |= strategy;
-
-            (itemRenderable as Writable<typeof itemRenderable>).nodes = nodes;
-            addBinding(itemRenderable, itemBinding);
-          }
-        };
-
-        const itemFactory = new ViewFactory<AuNode>(`item-view`, itemTemplate, lifecycle);
+        const itemFactory = new ViewFactory<AuNode>(`item-view`, itemContext, lifecycle);
 
         const binding: PropertyBinding = {
           target: null,
@@ -620,10 +610,10 @@ describe(`Repeat`, function () {
         if (proxies) {
           const raw = new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory);
           sut = new ProxyObserver(raw).proxy;
-          raw.$controller = Controller.forCustomAttribute(sut, container);
+          raw.$controller = Controller.forCustomAttribute(sut, lifecycle);
         } else {
           sut = new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory);
-          sut.$controller = Controller.forCustomAttribute(sut, container);
+          sut.$controller = Controller.forCustomAttribute(sut, lifecycle);
         }
         binding.target = sut as any;
 

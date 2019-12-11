@@ -249,9 +249,6 @@ export class RenderContext implements IContainer {
     this.instructionProvider.dispose();
     this.elementProvider.dispose();
     this.renderLocationProvider.dispose();
-    if (this.viewModelProvider !== void 0) {
-      this.viewModelProvider.dispose();
-    }
   }
 }
 

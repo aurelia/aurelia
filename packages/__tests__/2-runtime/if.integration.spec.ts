@@ -1,32 +1,23 @@
 import {
-  Writable
-} from '@aurelia/kernel';
-import {
   AccessScopeExpression,
-  addBinding,
-  PropertyBinding,
   BindingContext,
-  BindingMode,
   BindingStrategy,
   Else,
-  IDOM,
   If,
   ILifecycle,
-  IObserverLocator,
   IScope,
-  ITemplate,
   LifecycleFlags,
   ProxyObserver,
   Scope,
   ViewFactory,
   Controller,
-  IController
+  CustomElementDefinition,
+  ToViewBindingInstruction,
+  RenderContext
 } from '@aurelia/runtime';
 import {
-  AuDOM,
   AuDOMConfiguration,
   AuNode,
-  AuNodeSequence,
   eachCartesianJoin,
   assert,
 } from '@aurelia/testing';
@@ -160,50 +151,41 @@ describe(`If/Else`, function () {
         const baseFlags: LifecycleFlags = strategy as unknown as LifecycleFlags;
         const proxies = (strategy & BindingStrategy.proxies) > 0;
         const container = AuDOMConfiguration.createContainer();
-        const dom = container.get<AuDOM>(IDOM);
-        const observerLocator = container.get(IObserverLocator);
         const lifecycle = container.get(ILifecycle);
 
         const location = AuNode.createRenderLocation();
         const location2 = AuNode.createRenderLocation();
         const host = AuNode.createHost().appendChild(location.$start).appendChild(location).appendChild(location2.$start).appendChild(location2);
 
-        const ifTemplate: ITemplate<AuNode> = {
-          renderContext: null as any,
-          dom: null as any,
-          definition: null as any,
-          render(controller: IController<AuNode>) {
-            const text = AuNode.createText();
-            const wrapper = AuNode.createTemplate().appendChild(text);
+        const ifContext = RenderContext.getOrCreate(
+          CustomElementDefinition.create({
+            name: void 0,
+            template: AuNode.createText().makeTarget(),
+            instructions: [
+              [
+                new ToViewBindingInstruction(new AccessScopeExpression(ifPropName), 'textContent'),
+              ],
+            ],
+            needsCompile: false,
+          }),
+          container,
+        );
+        const elseContext = RenderContext.getOrCreate(
+          CustomElementDefinition.create({
+            name: void 0,
+            template: AuNode.createText().makeTarget(),
+            instructions: [
+              [
+                new ToViewBindingInstruction(new AccessScopeExpression(elsePropName), 'textContent'),
+              ],
+            ],
+            needsCompile: false,
+          }),
+          container,
+        );
 
-            const nodes = new AuNodeSequence(dom, wrapper);
-            const binding = new PropertyBinding(new AccessScopeExpression(ifPropName), text, 'textContent', BindingMode.toView, observerLocator, container);
-            binding.persistentFlags |= baseFlags;
-
-            (controller as Writable<typeof controller>).nodes = nodes;
-            addBinding(controller, binding);
-          }
-        };
-
-        const elseTemplate: ITemplate<AuNode> = {
-          renderContext: null as any,
-          dom: null as any,
-          definition: null as any,
-          render(controller: IController<AuNode>) {
-            const text = AuNode.createText();
-            const wrapper = AuNode.createTemplate().appendChild(text);
-
-            const nodes = new AuNodeSequence(dom, wrapper);
-            const binding = new PropertyBinding(new AccessScopeExpression(elsePropName), text, 'textContent', BindingMode.toView, observerLocator, container);
-            binding.persistentFlags |= baseFlags;
-
-            (controller as Writable<typeof controller>).nodes = nodes;
-            addBinding(controller, binding);
-          }
-        };
-
-        const ifFactory = new ViewFactory<AuNode>('if-view', ifTemplate, lifecycle);
-        const elseFactory = new ViewFactory<AuNode>('else-view', elseTemplate, lifecycle);
+        const ifFactory = new ViewFactory<AuNode>('if-view', ifContext, lifecycle);
+        const elseFactory = new ViewFactory<AuNode>('else-view', elseContext, lifecycle);
         let sut: If<AuNode>;
         let elseSut: Else<AuNode>;
         if (proxies) {
@@ -214,7 +196,7 @@ describe(`If/Else`, function () {
           elseSut = new Else<AuNode>(elseFactory);
         }
         elseSut.link(sut);
-        sut.$controller = Controller.forCustomAttribute(sut, container);
+        sut.$controller = Controller.forCustomAttribute(sut, lifecycle);
 
         let firstBindFinalNodesText: string;
         let secondBindFinalNodesText: string;

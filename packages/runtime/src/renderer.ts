@@ -175,11 +175,7 @@ export class Renderer implements IRenderer {
     const instructionRenderers = this.instructionRenderers;
 
     if (targets.length !== targetInstructions.length) {
-      if (targets.length > targetInstructions.length) {
-        throw Reporter.error(30);
-      } else {
-        throw Reporter.error(31);
-      }
+      throw new Error(`The compiled template is not aligned with the render instructions. There are ${targets.length} targets and ${targetInstructions.length} instructions.`);
     }
     let instructions: readonly ITargetedInstruction[];
     let target: INode;

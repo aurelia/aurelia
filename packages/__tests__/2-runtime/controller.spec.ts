@@ -1,8 +1,6 @@
 import {
   Controller,
   LifecycleFlags as LF,
-  ITemplateFactory,
-  RenderContext,
   Interpolation,
   AccessScopeExpression,
   CustomElement,
@@ -157,8 +155,6 @@ describe.skip('controller', function () {
 
     const ctx = TestContext.createHTMLTestContext();
     const { container, lifecycle, dom, scheduler } = ctx;
-    const templateFactory = container.get(ITemplateFactory);
-    const renderContext = new RenderContext(dom, container, null);
     const $loc = h('div');
     const host = h('div', null, $loc);
     const loc = dom.convertToRenderLocation($loc);
@@ -174,8 +170,6 @@ describe.skip('controller', function () {
       scheduler,
       lifecycle,
       dom,
-      templateFactory,
-      renderContext,
       host,
       loc,
     };
@@ -187,25 +181,7 @@ describe.skip('controller', function () {
   }
 
   describe('forSyntheticView()', function () {
-    for (const viewCache of [null, void 0]) {
-      it(`throws if viewCache is ${viewCache}`, function () {
-        const {
-          lifecycle,
-        } = setup();
-
-        assert.throws(
-          () => {
-            Controller.forSyntheticView(
-              viewCache,
-              lifecycle,
-              LF.none,
-            );
-          },
-        );
-      });
-    }
-
-    it(`correctly executes 1 CustomElement lifecycles`, function () {
+    it(`correctly executes 1 CustomElement lifecycle`, function () {
       const {
         lifecycle,
         scheduler,
@@ -235,7 +211,7 @@ describe.skip('controller', function () {
 
       const viewModel = container.get(ViewModel);
 
-      const sut = Controller.forCustomElement(viewModel, container, host);
+      const sut = Controller.forCustomElement(viewModel, lifecycle, host, container);
 
       const expectedCalls = new CallCollection();
 
@@ -377,7 +353,7 @@ describe.skip('controller', function () {
 
       const viewModel = container.get(ViewModel);
 
-      const sut = Controller.forCustomElement(viewModel, container, host);
+      const sut = Controller.forCustomElement(viewModel, lifecycle, host, container);
 
       const expectedCalls = new CallCollection();
 
@@ -779,7 +755,7 @@ describe.skip('controller', function () {
       const viewModel = container.get(ViewModel);
       viewModel['msg'] = 'hi';
 
-      const sut = Controller.forCustomElement(viewModel, container, host);
+      const sut = Controller.forCustomElement(viewModel, lifecycle, host, container);
 
       const expectedCalls = new CallCollection();
 

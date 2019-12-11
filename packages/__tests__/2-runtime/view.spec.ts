@@ -1,29 +1,13 @@
 import {
-  Writable, DI
+  Writable,
+  DI,
 } from '@aurelia/kernel';
 import {
-  AccessScopeExpression,
-  addBinding,
-  addComponent,
-  PropertyBinding,
-  BindingContext,
-  BindingMode,
-  IDOM,
   ILifecycle,
-  IObserverLocator,
-  IRenderLocation,
-  IScope,
-  ITemplate,
   IController,
-  LifecycleFlags as LF,
-  Scope,
-  ViewFactory
+  ViewFactory,
 } from '@aurelia/runtime';
 import {
-  AuDOM,
-  AuDOMConfiguration,
-  AuNode,
-  AuNodeSequence,
   eachCartesianJoin,
   assert,
 } from '@aurelia/testing';
@@ -42,7 +26,7 @@ class StubTemplate {
   }
 }
 
-describe.skip(`ViewFactory`, function () {
+describe(`ViewFactory`, function () {
   describe(`tryReturnToCache`, function () {
     const doNotOverrideVariations: [string, boolean][] = [
       [' true', true],

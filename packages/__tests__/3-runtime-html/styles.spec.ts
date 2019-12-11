@@ -1,5 +1,5 @@
 import { DI, Registration, RuntimeCompilationResources } from '@aurelia/kernel';
-import { Aurelia, Controller, CustomAttribute, CustomElement, INode } from '@aurelia/runtime';
+import { Aurelia, Controller, CustomAttribute, CustomElement, INode, ILifecycle, IViewModel } from '@aurelia/runtime';
 import {
   AdoptedStyleSheetsStyles,
   CSSModulesProcessorRegistry,
@@ -216,8 +216,7 @@ describe('Styles', function () {
       );
 
       const component = new FooBar();
-      const controller = Controller.forCustomElement(component, ctx.container, host);
-      controller.context = context;
+      const controller = Controller.forCustomElement(component as IViewModel<HTMLElement>, ctx.container.get(ILifecycle), host, ctx.container);
 
       const seq = { appendTo() { return; } };
       const projector = controller.projector;

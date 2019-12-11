@@ -8,10 +8,8 @@ import {
   Aurelia,
   CustomElement,
   IExpressionParser,
-  INodeSequence,
   ISignaler,
   LifecycleFlags } from '@aurelia/runtime';
-import { NodeSequenceFactory } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
 const spec = 'kitchen-sink';
@@ -105,32 +103,6 @@ describe(spec, function () {
     signaler.dispatchSignal('updateItem', LifecycleFlags.fromFlush);
 
     assert.strictEqual(host.textContent, '212', `host.textContent`);
-
-  });
-
-  it.skip('render hook', function () {
-
-    const ctx = TestContext.createHTMLTestContext();
-    const App = CustomElement.define({
-      name: 'app',
-      template: `<template></template>`
-    },                                       class {
-      public $nodes: INodeSequence;
-      public render() {
-        this.$nodes = new NodeSequenceFactory(ctx.dom, 'foo').createNodeSequence();
-      }
-    });
-
-    const au = new Aurelia(ctx.container);
-
-    const host = ctx.createElement('div');
-    const component = new App();
-
-    au.app({ host, component });
-
-    au.start();
-
-    assert.strictEqual(host.textContent, 'foo', `host.textContent`);
 
   });
 });

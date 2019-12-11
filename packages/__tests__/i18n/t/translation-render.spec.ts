@@ -2,7 +2,7 @@ import { I18nConfiguration, TranslationAttributePattern, TranslationBindAttribut
 import { AttributePattern, AttributePatternDefinition, AttrSyntax, BindingCommand, IAttributePattern, PlainAttributeSymbol } from '@aurelia/jit';
 import { AttrBindingCommand } from '@aurelia/jit-html';
 import { Constructable, DI } from '@aurelia/kernel';
-import { AnyBindingExpression, BindingType, ICallBindingInstruction, IController, IExpressionParser, IInstructionRenderer, IObserverLocator, IRenderContext, LifecycleFlags, RuntimeConfiguration } from '@aurelia/runtime';
+import { AnyBindingExpression, BindingType, ICallBindingInstruction, IController, IExpressionParser, IInstructionRenderer, IObserverLocator, LifecycleFlags, RuntimeConfiguration, RenderContext } from '@aurelia/runtime';
 import { DOM } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
@@ -113,7 +113,7 @@ describe('TranslationBindingRenderer', function () {
     sut.render(
       LifecycleFlags.none,
       DOM,
-      container as unknown as IRenderContext,
+      container as unknown as RenderContext,
       renderable,
       DOM.createElement('span'),
       callBindingInstruction);
@@ -134,7 +134,7 @@ describe('TranslationBindingRenderer', function () {
     sut.render(
       LifecycleFlags.none,
       DOM,
-      container as unknown as IRenderContext,
+      container as unknown as RenderContext,
       renderable,
       targetElement,
       callBindingInstruction);
@@ -254,7 +254,7 @@ describe('TranslationBindBindingRenderer', function () {
     sut.render(
       LifecycleFlags.none,
       DOM,
-      container as unknown as IRenderContext,
+      container as unknown as RenderContext,
       renderable,
       DOM.createElement('span'),
       callBindingInstruction);
@@ -273,7 +273,7 @@ describe('TranslationBindBindingRenderer', function () {
     sut.render(
       LifecycleFlags.none,
       DOM,
-      container as unknown as IRenderContext,
+      container as unknown as RenderContext,
       renderable,
       DOM.createElement('span'),
       callBindingInstruction);
@@ -294,7 +294,7 @@ describe('TranslationBindBindingRenderer', function () {
     sut.render(
       LifecycleFlags.none,
       DOM,
-      container as unknown as IRenderContext,
+      container as unknown as RenderContext,
       renderable,
       targetElement,
       callBindingInstruction);

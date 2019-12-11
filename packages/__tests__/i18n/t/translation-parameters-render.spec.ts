@@ -2,7 +2,7 @@ import { I18nConfiguration, TranslationBinding, TranslationParametersAttributePa
 import { AttrSyntax, BindingCommand, BindingCommandInstance, IAttributePattern, PlainAttributeSymbol } from '@aurelia/jit';
 import { AttrBindingCommand } from '@aurelia/jit-html';
 import { DI } from '@aurelia/kernel';
-import { AnyBindingExpression, BindingType, ICallBindingInstruction, IController, IExpressionParser, IInstructionRenderer, IObserverLocator, IRenderContext, LifecycleFlags, RuntimeConfiguration } from '@aurelia/runtime';
+import { AnyBindingExpression, BindingType, ICallBindingInstruction, IController, IExpressionParser, IInstructionRenderer, IObserverLocator, LifecycleFlags, RuntimeConfiguration, RenderContext } from '@aurelia/runtime';
 import { DOM } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
@@ -59,7 +59,7 @@ describe('TranslationParametersBindingRenderer', function () {
   function setup() {
     const { container } = TestContext.createHTMLTestContext();
     container.register(RuntimeConfiguration, I18nConfiguration);
-    return container as unknown as IRenderContext;
+    return container;
   }
 
   it('instantiated with instruction type', function () {
@@ -78,7 +78,7 @@ describe('TranslationParametersBindingRenderer', function () {
     sut.render(
       LifecycleFlags.none,
       DOM,
-      container,
+      container as unknown as RenderContext,
       renderable,
       DOM.createElement('span'),
       callBindingInstruction
@@ -100,7 +100,7 @@ describe('TranslationParametersBindingRenderer', function () {
     sut.render(
       LifecycleFlags.none,
       DOM,
-      container,
+      container as unknown as RenderContext,
       renderable,
       targetElement,
       callBindingInstruction

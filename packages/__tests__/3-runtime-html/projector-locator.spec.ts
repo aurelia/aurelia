@@ -1,4 +1,4 @@
-import { CustomElement, Controller } from '@aurelia/runtime';
+import { CustomElement, Controller, ILifecycle } from '@aurelia/runtime';
 import { ContainerlessProjector, HostProjector, HTMLProjectorLocator, ShadowDOMProjector } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
 
@@ -18,7 +18,7 @@ describe.skip(`determineProjector`, function () {
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container, host);
+    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container);
     const projector = locator.getElementProjector(dom, controller, host, definition);
 
     assert.instanceOf(projector, ShadowDOMProjector, `projector`);
@@ -43,7 +43,7 @@ describe.skip(`determineProjector`, function () {
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container, host);
+    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container);
     const projector = locator.getElementProjector(dom, controller, host, definition);
 
     assert.instanceOf(projector, ShadowDOMProjector, `projector`);
@@ -70,7 +70,7 @@ describe.skip(`determineProjector`, function () {
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container, host);
+    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container);
     const projector = locator.getElementProjector(dom, controller, host, definition);
 
     assert.instanceOf(projector, ContainerlessProjector, `projector`);
@@ -104,7 +104,7 @@ describe.skip(`determineProjector`, function () {
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container, host);
+    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container);
     const projector = locator.getElementProjector(dom, controller, host, definition);
 
     assert.instanceOf(projector, ContainerlessProjector, `projector`);
@@ -129,7 +129,7 @@ describe.skip(`determineProjector`, function () {
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container, host);
+    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container);
     const projector = locator.getElementProjector(dom, controller, host, definition);
 
     assert.strictEqual(CustomElement.for(host), component, `CustomElement.for(host)`);
@@ -150,7 +150,7 @@ describe.skip(`determineProjector`, function () {
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container, host);
+    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container);
 
     assert.throws(() => locator.getElementProjector(dom, controller, host, definition), /21/, `() => locator.getElementProjector(dom, component, host, definition)`);
   });
@@ -167,7 +167,7 @@ describe.skip(`determineProjector`, function () {
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container, host);
+    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container);
 
     assert.throws(() => locator.getElementProjector(dom, controller, host, definition), /21/, `() => locator.getElementProjector(dom, component, host, definition)`);
   });

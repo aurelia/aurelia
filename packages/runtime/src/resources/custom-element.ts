@@ -216,12 +216,12 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
   ) {}
 
   public static create<T extends Constructable = Constructable>(
-    name: string,
-    Type: CustomElementType<T>,
-  ): CustomElementDefinition<T>;
-  public static create<T extends Constructable = Constructable>(
     def: PartialCustomElementDefinition,
     Type?: null,
+  ): CustomElementDefinition<T>;
+  public static create<T extends Constructable = Constructable>(
+    name: string,
+    Type: CustomElementType<T>,
   ): CustomElementDefinition<T>;
   public static create<T extends Constructable = Constructable>(
     nameOrDef: string | PartialCustomElementDefinition,

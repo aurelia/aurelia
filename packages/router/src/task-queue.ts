@@ -5,6 +5,7 @@ import { bound } from '@aurelia/kernel';
 export interface IQueueableItem<T> {
   execute: ((task: QueueTask<IQueueableItem<T>>) => void);
 }
+export type QueueableFunction = ((task: QueueTask<void>) => void);
 
 export class QueueTask<T> implements ILifecycleTask {
   public done: boolean = false;
@@ -15,7 +16,7 @@ export class QueueTask<T> implements ILifecycleTask {
 
   public constructor(
     private taskQueue: TaskQueue<T>,
-    public item: IQueueableItem<T> | ((task: QueueTask<IQueueableItem<T>>) => void),
+    public item: IQueueableItem<T> | QueueableFunction,
     public cost: number = 0,
   ) {
     this.promise = new Promise((resolve, reject) => {
@@ -44,8 +45,6 @@ export class QueueTask<T> implements ILifecycleTask {
   public cancel(): void { }
 }
 
-// this.taskQueue.enqueue((task) => { this.doSomething(); task.resolve(); }).wait();
-
 export interface ITaskQueueOptions {
   scheduler: IScheduler;
   allowedExecutionCostWithinTick: number;
@@ -53,9 +52,11 @@ export interface ITaskQueueOptions {
 
 /**
  * A first-in-first-out task queue that only processes the next queued item
- * when the current one has been resolved or rejected. Sends queued items
- * as tasks one at a time to a specified callback function. The callback
- * function should resolve or reject the task when processing is done.
+ * when the current one has been resolved or rejected. If a callback function
+ * is specified, it receives the queued items as tasks one at a time. If no
+ * callback is specified, the tasks themselves are either executed (if a
+ * function) or the execute method in them are run. The executed function
+ * should resolve or reject the task when processing is done.
  * Enqueued items' tasks can be awaited. Enqueued items can specify an
  * (arbitrary) execution cost and the queue can be set up (activated) to
  * only process a specific amount of execution cost per RAF/tick.
@@ -72,7 +73,7 @@ export class TaskQueue<T> {
   private task: ITask | null = null;
 
   public constructor(
-    private readonly callback: (task: QueueTask<T>) => void
+    private readonly callback?: (task: QueueTask<T>) => void
   ) { }
 
   public get length(): number {
@@ -97,12 +98,12 @@ export class TaskQueue<T> {
     this.clear();
   }
 
-  public enqueue(item: IQueueableItem<T>, cost?: number): QueueTask<T>;
-  public enqueue(items: IQueueableItem<T>[], cost?: number): QueueTask<T>[];
-  public enqueue(items: IQueueableItem<T>[], costs?: number[]): QueueTask<T>[];
+  public enqueue(item: IQueueableItem<T> | QueueableFunction, cost?: number): QueueTask<T>;
+  public enqueue(items: (IQueueableItem<T> | QueueableFunction)[], cost?: number): QueueTask<T>[];
+  public enqueue(items: (IQueueableItem<T> | QueueableFunction)[], costs?: number[]): QueueTask<T>[];
   public enqueue(task: QueueTask<T>): QueueTask<T>;
   public enqueue(tasks: QueueTask<T>[]): QueueTask<T>[];
-  public enqueue(itemOrItems: IQueueableItem<T> | IQueueableItem<T>[] | QueueTask<T> | QueueTask<T>[], costOrCosts?: number | number[]): QueueTask<T> | QueueTask<T>[] {
+  public enqueue(itemOrItems: IQueueableItem<T> | QueueableFunction | (IQueueableItem<T> | QueueableFunction)[] | QueueTask<T> | QueueTask<T>[], costOrCosts?: number | number[]): QueueTask<T> | QueueTask<T>[] {
     const list: boolean = Array.isArray(itemOrItems);
     const items: (IQueueableItem<T> | QueueTask<T>)[] = (list ? itemOrItems : [itemOrItems]) as (IQueueableItem<T> | QueueTask<T>)[];
     const costs: number[] = items
@@ -119,7 +120,7 @@ export class TaskQueue<T> {
     return list ? tasks : tasks[0];
   }
 
-  public createQueueTask(item: IQueueableItem<T>, cost?: number): QueueTask<T> {
+  public createQueueTask(item: IQueueableItem<T> | QueueableFunction, cost?: number): QueueTask<T> {
     return new QueueTask(this, item, cost);
   }
 
@@ -140,8 +141,11 @@ export class TaskQueue<T> {
     this.processing = this.pending.shift() || null;
     if (this.processing) {
       this.currentExecutionCostInCurrentTick += this.processing.cost || 0;
-      // this.callback(this.processing);
-      this.processing.execute();
+      if (this.callback !== void 0) {
+        this.callback(this.processing);
+      } else {
+        this.processing.execute();
+      }
     }
   }
 

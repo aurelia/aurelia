@@ -527,9 +527,9 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   }
 }
 
-let prevIndices: Int32Array;
-let tailIndices: Int32Array;
-let maxLen = 0;
+let maxLen = 16;
+let prevIndices = new Int32Array(maxLen);
+let tailIndices = new Int32Array(maxLen);
 
 // Based on inferno's lis_algorithm @ https://github.com/infernojs/inferno/blob/master/packages/inferno/src/DOM/patching.ts#L732
 // with some tweaks to make it just a bit faster + account for IndexMap (and some names changes for readability)

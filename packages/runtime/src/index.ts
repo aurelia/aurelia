@@ -489,6 +489,7 @@ export {
   createIndexMap,
 } from './observation';
 export {
+  applyBindingBehavior,
   IInstructionRenderer,
   IInstructionTypeClassifier,
   IRenderer,

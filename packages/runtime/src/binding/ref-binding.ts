@@ -19,6 +19,8 @@ import { IConnectableBinding } from './connectable';
 
 export interface RefBinding extends IConnectableBinding {}
 export class RefBinding implements IBinding {
+  public interceptor: this = this;
+
   public $state: State = State.none;
   public $scope?: IScope = void 0;
   public part?: string;
@@ -35,7 +37,7 @@ export class RefBinding implements IBinding {
         return;
       }
 
-      this.$unbind(flags | LifecycleFlags.fromBind);
+      this.interceptor.$unbind(flags | LifecycleFlags.fromBind);
     }
     // add isBinding flag
     this.$state |= State.isBinding;
@@ -69,7 +71,7 @@ export class RefBinding implements IBinding {
     // source expression might have been modified durring assign, via a BB
     sourceExpression = this.sourceExpression;
     if (hasUnbind(sourceExpression)) {
-      sourceExpression.unbind(flags, this.$scope!, this);
+      sourceExpression.unbind(flags, this.$scope!, this.interceptor);
     }
 
     this.$scope = void 0;

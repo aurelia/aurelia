@@ -19,6 +19,7 @@ import {
 } from '@aurelia/runtime';
 
 export class MockBinding implements IConnectableBinding {
+  public interceptor: this = this;
   public id!: number;
   public observerSlots!: number;
   public version!: number;

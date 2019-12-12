@@ -5,13 +5,13 @@ import {
   IRegistry,
   IResolver,
   Registration,
-  Reporter,
   Metadata,
   IIndexable,
   IResourceDescriptions,
   DI,
+  IServiceLocator,
 } from '@aurelia/kernel';
-import { AnyBindingExpression } from './ast';
+import { AnyBindingExpression, IsBindingBehavior } from './ast';
 import { CallBinding } from './binding/call-binding';
 import { BindingType, IExpressionParser } from './binding/expression-parser';
 import { InterpolationBinding, MultiInterpolationBinding } from './binding/interpolation-binding';
@@ -52,6 +52,8 @@ import {
 import { Controller } from './templating/controller';
 import { ObserversLookup } from './observation';
 import { RenderContext } from './templating/render-context';
+import { BindingBehaviorExpression } from './binding/ast';
+import { BindingBehaviorFactory, BindingBehaviorInstance, IInterceptableBinding } from './resources/binding-behavior';
 
 export interface ITemplateCompiler {
   readonly name: string;
@@ -431,7 +433,11 @@ export class LetElementRenderer implements IInstructionRenderer {
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       childInstruction = childInstructions[i];
       expr = ensureExpression(this.parser, childInstruction.from, BindingType.IsPropertyCommand);
-      binding = new LetBinding(expr, childInstruction.to, this.observerLocator, context, toBindingContext);
+      binding = applyBindingBehavior(
+        new LetBinding(expr, childInstruction.to, this.observerLocator, context, toBindingContext),
+        expr as unknown as IsBindingBehavior,
+        context,
+      ) as LetBinding;
       addBinding(renderable, binding);
     }
   }
@@ -454,7 +460,11 @@ export class CallBindingRenderer implements IInstructionRenderer {
     instruction: ICallBindingInstruction,
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.CallCommand);
-    const binding = new CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, context);
+    const binding = applyBindingBehavior(
+      new CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, context),
+      expr,
+      context,
+    );
     addBinding(renderable, binding);
   }
 }
@@ -475,7 +485,11 @@ export class RefBindingRenderer implements IInstructionRenderer {
     instruction: IRefBindingInstruction,
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsRef);
-    const binding = new RefBinding(expr, getRefTarget(target, instruction.to), context);
+    const binding = applyBindingBehavior(
+      new RefBinding(expr, getRefTarget(target, instruction.to), context),
+      expr,
+      context,
+    );
     addBinding(renderable, binding);
   }
 }
@@ -499,9 +513,17 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
     let binding: MultiInterpolationBinding | InterpolationBinding;
     const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation);
     if (expr.isMulti) {
-      binding = new MultiInterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, BindingMode.toView, context);
+      binding = applyBindingBehavior(
+        new MultiInterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, BindingMode.toView, context),
+        expr as unknown as IsBindingBehavior,
+        context,
+      ) as MultiInterpolationBinding;
     } else {
-      binding = new InterpolationBinding(expr.firstExpression, expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context, true);
+      binding = applyBindingBehavior(
+        new InterpolationBinding(expr.firstExpression, expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context, true),
+        expr as unknown as IsBindingBehavior,
+        context,
+      ) as InterpolationBinding;
     }
     addBinding(renderable, binding);
   }
@@ -524,7 +546,11 @@ export class PropertyBindingRenderer implements IInstructionRenderer {
     instruction: IPropertyBindingInstruction,
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | instruction.mode);
-    const binding = new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context);
+    const binding = applyBindingBehavior(
+      new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context),
+      expr,
+      context,
+    );
     addBinding(renderable, binding);
   }
 }
@@ -546,7 +572,34 @@ export class IteratorBindingRenderer implements IInstructionRenderer {
     instruction: IIteratorBindingInstruction,
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.ForCommand);
-    const binding = new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context);
+    const binding = applyBindingBehavior(
+      new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context),
+      expr as unknown as IsBindingBehavior,
+      context,
+    );
     addBinding(renderable, binding);
   }
+}
+
+let behaviorExpressionIndex = 0;
+const behaviorExpressions: BindingBehaviorExpression[] = [];
+
+export function applyBindingBehavior(
+  binding: IInterceptableBinding,
+  expression: IsBindingBehavior,
+  locator: IServiceLocator,
+): IInterceptableBinding {
+  while (expression instanceof BindingBehaviorExpression) {
+    behaviorExpressions[behaviorExpressionIndex++] = expression;
+    expression = expression.expression;
+  }
+  while (behaviorExpressionIndex > 0) {
+    const behaviorExpression = behaviorExpressions[--behaviorExpressionIndex];
+    const behaviorOrFactory = locator.get<BindingBehaviorFactory | BindingBehaviorInstance>(behaviorExpression.behaviorKey);
+    if (behaviorOrFactory instanceof BindingBehaviorFactory) {
+      binding = behaviorOrFactory.construct(binding, behaviorExpression);
+    }
+  }
+  behaviorExpressions.length = 0;
+  return binding;
 }

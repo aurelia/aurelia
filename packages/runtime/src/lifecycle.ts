@@ -34,8 +34,14 @@ import {
 import { RenderContext } from './templating/render-context';
 
 export interface IBinding {
+  interceptor: this;
   readonly locator: IServiceLocator;
   readonly $scope?: IScope;
+  /**
+   * The name of the `replace-part` template that this binding was declared inside of (if any, otherwise this property is `undefined`).
+   *
+   * This property is passed through the AST during evaluation, which allows the scope traversal to go up to the scope of the `replace-part` if a property does not exist inside the `replaceable`.
+   */
   readonly part?: string;
   readonly $state: State;
   $bind(flags: LifecycleFlags, scope: IScope, part?: string): void;

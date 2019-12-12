@@ -8,87 +8,6 @@ interface IAction {
   execute(task: QueueTask<IAction>, resolve?: ((value?: void | PromiseLike<void>) => void) | null | undefined, suppressEvent?: boolean): void;
 }
 
-class HistoryGoAction implements IAction {
-  public constructor(
-    public readonly taskQueue: TaskQueue<IAction>,
-    public readonly history: History,
-    public readonly delta: number,
-    public readonly suppressPopstate: boolean = false,
-  ) { }
-
-  public execute(task: QueueTask<IAction>): void {
-    this.history.go(this.delta);
-    task.resolve();
-  }
-}
-class HistoryPushStateAction implements IAction {
-  public constructor(
-    public readonly history: History,
-    public readonly data: any,
-    public readonly title: string,
-    public readonly url?: string,
-  ) { }
-
-  public execute(task: QueueTask<IAction>): void {
-    this.history.pushState(this.data, this.title, this.url);
-    task.resolve();
-  }
-}
-class HistoryReplaceStateAction implements IAction {
-  public constructor(
-    public readonly history: History,
-    public readonly data: any,
-    public readonly title: string,
-    public readonly url?: string,
-  ) { }
-
-  public execute(task: QueueTask<IAction>): void {
-    this.history.replaceState(this.data, this.title, this.url);
-    task.resolve();
-  }
-}
-class HistoryPopStateAction implements IAction {
-  public constructor(
-    public readonly store: BrowserViewerStore,
-    public readonly doneTask: QueueTask<IAction>
-  ) { }
-
-  public async execute(task: QueueTask<IAction>): Promise<void> {
-    await this.store.popState(this.doneTask);
-    task.resolve();
-  }
-}
-class ForwardStateAction implements IAction {
-  public constructor(
-    public readonly store: BrowserViewerStore,
-    public readonly task: QueueTask<IAction> | null,
-    public readonly suppressPopstate: boolean = false,
-  ) { }
-
-  public execute(task: QueueTask<IAction>): void {
-    this.store.forwardState({ eventTask: this.task, suppressPopstate: this.suppressPopstate });
-    task.resolve();
-  }
-}
-class PopstateEventAction implements IAction {
-  public constructor(
-    public readonly store: BrowserViewerStore,
-    public readonly ev: PopStateEvent,
-    public readonly eventTask: QueueTask<IAction> | null,
-    public readonly suppressPopstate: boolean,
-  ) { }
-
-  public execute(task: QueueTask<IAction>): void {
-    this.store.popstate(this.ev, this.eventTask, this.suppressPopstate);
-    task.resolve();
-  }
-}
-class NoopAction implements IAction {
-  public execute(task: QueueTask<IAction>): void {
-    task.resolve();
-  }
-}
-
 interface IForwardedState {
   eventTask: QueueTask<IAction> | null;
   suppressPopstate: boolean;
@@ -121,7 +40,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
     this.window = dom.window;
     this.history = dom.window.history;
     this.location = dom.window.location;
-    this.pendingCalls = new TaskQueue<IAction>(this.processCalls);
+    this.pendingCalls = new TaskQueue<IAction>();
   }
 
   public activate(options: IBrowserViewerStoreOptions): void {
@@ -164,45 +83,90 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
     };
   }
 
-  public go(delta: number, suppressPopstate: boolean = false): Promise<void> {
-    const eventTask: QueueTask<IAction> = this.pendingCalls.createQueueTask(new NoopAction(), 1);
+  public go(delta: number, suppressPopstateEvent: boolean = false): Promise<void> {
+    const doneTask: QueueTask<IAction> = this.pendingCalls.createQueueTask((task: QueueTask<IAction>) => task.resolve(), 1);
+
     this.pendingCalls.enqueue([
-      new ForwardStateAction(this, eventTask, suppressPopstate),
-      new HistoryGoAction(this.pendingCalls, this.history, delta, suppressPopstate),
+      (task: QueueTask<IAction>) => {
+        const store: BrowserViewerStore = this;
+        const eventTask: QueueTask<IAction> = doneTask;
+        const suppressPopstate: boolean = suppressPopstateEvent;
+
+        store.forwardState({ eventTask, suppressPopstate });
+        task.resolve();
+      },
+      (task: QueueTask<IAction>) => {
+        const history: History = this.history;
+        const steps: number = delta;
+
+        history.go(steps);
+        task.resolve();
+      },
     ], [0, 1]);
-    return eventTask.wait();
+
+    return doneTask.wait();
   }
 
   public pushNavigatorState(state: INavigatorState): Promise<void> {
     const { title, path } = state.currentEntry;
     const fragment: string = this.options.useUrlFragmentHash ? '#/' : '';
+
     return this.pendingCalls.enqueue(
-      new HistoryPushStateAction(this.history, state, title || '', `${fragment}${path}`), 1
-    ).wait();
+      (task: QueueTask<IAction>) => {
+        const history: History = this.history;
+        const data: INavigatorState = state;
+        const titleOrEmpty: string = title || '';
+        const url: string = `${fragment}${path}`;
+
+        history.pushState(data, titleOrEmpty, url);
+        task.resolve();
+      }, 1).wait();
   }
 
   public replaceNavigatorState(state: INavigatorState): Promise<void> {
     const { title, path } = state.currentEntry;
     const fragment: string = this.options.useUrlFragmentHash ? '#/' : '';
+
     return this.pendingCalls.enqueue(
-      new HistoryReplaceStateAction(this.history, state, title || '', `${fragment}${path}`), 1
-    ).wait();
+      (task: QueueTask<IAction>) => {
+        const history: History = this.history;
+        const data: INavigatorState = state;
+        const titleOrEmpty: string = title || '';
+        const url: string = `${fragment}${path}`;
+
+        history.replaceState(data, titleOrEmpty, url);
+        task.resolve();
+      }, 1).wait();
   }
 
   public popNavigatorState(): Promise<void> {
-    const doneTask: QueueTask<IAction> = this.pendingCalls.createQueueTask(new NoopAction(), 1);
+    const doneTask: QueueTask<IAction> = this.pendingCalls.createQueueTask((task: QueueTask<IAction>) => task.resolve(), 1);
+
     this.pendingCalls.enqueue(
-      new HistoryPopStateAction(this, doneTask), 1
-    );
+      async (task: QueueTask<IAction>) => {
+        const store: BrowserViewerStore = this;
+        const eventTask: QueueTask<IAction> = doneTask;
+
+        await store.popState(eventTask);
+        task.resolve();
+      }, 1);
     return doneTask.wait();
   }
 
-  public readonly handlePopstate = (ev: PopStateEvent): Promise<void> => {
+  public readonly handlePopstate = (event: PopStateEvent): Promise<void> => {
     const { eventTask, suppressPopstate } = this.forwardedState;
     this.forwardedState = { eventTask: null, suppressPopstate: false };
+
     return this.pendingCalls.enqueue(
-      new PopstateEventAction(this, ev, eventTask, suppressPopstate), 1
-    ).wait();
+      (task: QueueTask<IAction>) => {
+        const store: BrowserViewerStore = this;
+        const ev: PopStateEvent = event;
+        const evTask: QueueTask<IAction> | null = eventTask;
+        const suppressPopstateEvent: boolean = suppressPopstate;
+
+        store.popstate(ev, evTask, suppressPopstateEvent);
+        task.resolve();
+      }, 1).wait();
   }
 
   public async popState(doneTask: QueueTask<IAction>): Promise<void> {
@@ -233,25 +197,5 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
     if (eventTask !== null) {
       eventTask.execute();
     }
-  }
-
-  // Everything that wants to await a browser event should pass suppressPopstate param
-  // Events NOT resulting in popstate events should NOT pass suppressPopstate param
-  private readonly processCalls = (task: QueueTask<IAction>): void => {
-    // let resolve: ((value?: void | PromiseLike<void>) => void) | null = null;
-    // let suppressPopstate: boolean = false;
-    // if (task.item instanceof HistoryPopStateAction
-    //   || task.item instanceof PopstateEventAction
-    // ) {
-    //   resolve = this.forwardedState.resolve;
-    //   this.forwardedState.resolve = null;
-
-    //   if (task.item instanceof PopstateEventAction && this.forwardedState.suppressPopstate) {
-    //     suppressPopstate = true;
-    //     this.forwardedState.suppressPopstate = false;
-    //   }
-    //   task.item.execute(resolve, suppressPopstate);
-    //   task.resolve();
-    // };
   }
 }

@@ -1,6 +1,5 @@
 import { DI, IContainer, Key, Reporter, Registration, Metadata } from '@aurelia/kernel';
 import { Aurelia, CustomElementType, IController, IRenderContext, IViewModel, CustomElement, INode, DOM } from '@aurelia/runtime';
-import { BrowserNavigator } from './browser-navigator';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
 import { INavigatorInstruction, IRouteableComponent, NavigationInstruction, IRoute, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
@@ -16,6 +15,7 @@ import { FoundRoute } from './found-route';
 import { HookManager, IHookDefinition, HookIdentity, HookFunction, IHookOptions, BeforeNavigationHookFunction, TransformFromUrlHookFunction, TransformToUrlHookFunction } from './hook-manager';
 import { Scope, IScopeOwner } from './scope';
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
+import { BrowserViewerStore } from './browser-viewer-store';
 
 export interface IGotoOptions {
   title?: string;
@@ -45,7 +45,7 @@ export interface IRouter {
   readonly container: IContainer;
   readonly instructionResolver: InstructionResolver;
   navigator: Navigator;
-  readonly navigation: BrowserNavigator;
+  readonly navigation: BrowserViewerStore;
   readonly hookManager: HookManager;
   readonly linkHandler: LinkHandler;
   readonly navs: Readonly<Record<string, Nav>>;
@@ -112,7 +112,7 @@ class ClosestScope { }
 export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x.singleton(Router));
 
 export class Router implements IRouter {
-  public static readonly inject: readonly Key[] = [IContainer, Navigator, BrowserNavigator, LinkHandler, InstructionResolver];
+  public static readonly inject: readonly Key[] = [IContainer, Navigator, BrowserViewerStore, LinkHandler, InstructionResolver];
 
   public rootScope: ViewportScope | null = null;
 
@@ -140,7 +140,7 @@ export class Router implements IRouter {
   public constructor(
     public readonly container: IContainer,
     public navigator: Navigator,
-    public navigation: BrowserNavigator,
+    public navigation: BrowserViewerStore,
     public linkHandler: LinkHandler,
     public instructionResolver: InstructionResolver
   ) {

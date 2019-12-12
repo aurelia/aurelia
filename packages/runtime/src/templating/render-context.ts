@@ -11,13 +11,6 @@ const definitionToPCTCCCache = new WeakMap<CustomElementDefinition, WeakMap<ICon
 const fragmentCache = new WeakMap<CustomElementDefinition, INode | undefined>();
 
 export class RenderContext implements IContainer {
-  public get id(): number {
-    return this.container.id;
-  }
-  public get path(): string {
-    return this.container.path;
-  }
-
   private readonly container: IContainer;
 
   private readonly parentControllerProvider: InstanceProvider<IController>;

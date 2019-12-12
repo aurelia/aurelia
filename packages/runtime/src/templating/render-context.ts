@@ -6,8 +6,8 @@ import { IDOM, INode, IRenderLocation, INodeSequence } from '../dom';
 import { IRenderer, ITemplateCompiler, ViewCompileFlags } from '../renderer';
 import { ViewFactory } from './view';
 
-// definition-to-parentContainerToBoilerplateCache-Cache :)
-const definitionToPCTBCCache = new WeakMap<CustomElementDefinition, WeakMap<IContainer, RenderContext>>();
+// definition-to-parentContainerToContextCache-Cache :)
+const definitionToPCTCCCache = new WeakMap<CustomElementDefinition, WeakMap<IContainer, RenderContext>>();
 const fragmentCache = new WeakMap<CustomElementDefinition, INode | undefined>();
 
 export class RenderContext implements IContainer {
@@ -70,17 +70,17 @@ export class RenderContext implements IContainer {
     definition: CustomElementDefinition,
     parentContainer: IContainer,
   ): RenderContext {
-    let parentContextToBoilerplateCache = definitionToPCTBCCache.get(definition);
-    if (parentContextToBoilerplateCache === void 0) {
-      definitionToPCTBCCache.set(
+    let parentContextToContextCache = definitionToPCTCCCache.get(definition);
+    if (parentContextToContextCache === void 0) {
+      definitionToPCTCCCache.set(
         definition,
-        parentContextToBoilerplateCache = new WeakMap(),
+        parentContextToContextCache = new WeakMap(),
       );
     }
 
-    let context = parentContextToBoilerplateCache.get(parentContainer);
+    let context = parentContextToContextCache.get(parentContainer);
     if (context === void 0) {
-      parentContextToBoilerplateCache.set(
+      parentContextToContextCache.set(
         parentContainer,
         context = new RenderContext(definition, parentContainer),
       );

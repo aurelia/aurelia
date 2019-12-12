@@ -63,7 +63,7 @@ export class RenderPlan<T extends INode = Node> {
     return this.lazyDefinition;
   }
 
-  public getBoilerplate(parentContainer: IContainer): RenderContext {
+  public getContext(parentContainer: IContainer): RenderContext {
     return RenderContext.getOrCreate(this.definition, parentContainer);
   }
 
@@ -72,7 +72,7 @@ export class RenderPlan<T extends INode = Node> {
   }
 
   public getViewFactory(parentContainer: IContainer): IViewFactory {
-    return this.getBoilerplate(parentContainer).getViewFactory();
+    return this.getContext(parentContainer).getViewFactory();
   }
 
   /** @internal */

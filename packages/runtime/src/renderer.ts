@@ -356,20 +356,20 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     dom: IDOM,
-    parentBoilerplate: RenderContext,
+    parentContext: RenderContext,
     renderable: IController,
     target: INode,
     instruction: IHydrateTemplateController,
     parts?: PartialCustomElementDefinitionParts,
   ): void {
     const definition = CustomElementDefinition.getOrCreate(instruction.def);
-    const context = RenderContext.getOrCreate(definition, parentBoilerplate);
+    const context = RenderContext.getOrCreate(definition, parentContext);
     const factory = context.getViewFactory();
     const renderLocation = dom.convertToRenderLocation(target);
-    const operation = parentBoilerplate.beginComponentOperation(renderable, target, instruction, factory, parts, renderLocation);
+    const operation = parentContext.beginComponentOperation(renderable, target, instruction, factory, parts, renderLocation);
     const key = CustomAttribute.keyFrom(instruction.res);
-    const component = parentBoilerplate.get<object>(key);
-    const instructionRenderers = parentBoilerplate.get(IRenderer).instructionRenderers;
+    const component = parentContext.get<object>(key);
+    const instructionRenderers = parentContext.get(IRenderer).instructionRenderers;
     const childInstructions = instruction.instructions;
     if (instruction.parts !== void 0) {
       if (parts === void 0) {
@@ -385,7 +385,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
       }
     }
 
-    const lifecycle = parentBoilerplate.get(ILifecycle);
+    const lifecycle = parentContext.get(ILifecycle);
     const controller = Controller.forCustomAttribute(component, lifecycle, flags);
 
     Metadata.define(key, controller, renderLocation);
@@ -398,7 +398,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     let current: ITargetedInstruction;
     for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
       current = childInstructions[i];
-      instructionRenderers[current.type](flags, dom, parentBoilerplate, renderable, controller, current);
+      instructionRenderers[current.type](flags, dom, parentContext, renderable, controller, current);
     }
 
     addComponent(renderable, controller);

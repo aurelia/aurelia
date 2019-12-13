@@ -1,12 +1,25 @@
 <template>
   <div class="page-host">
     <input class="url" value.bind="url">
-    <!-- <a goto.bind="[{ component: '+', viewport: 'default'}]">[{ component: '+', viewport: 'default'}] | </a> -->
+    <!-- <au-viewport-scope catches="left">
+      <template replace>
+        <a goto="welcome">Welcome</a>
+        <au-viewport></au-viewport>
+      </template>
+    </au-viewport-scope>
+    <au-viewport-scope catches="right">
+      <template replace>
+        <a goto="welcome">Welcome</a>
+        <au-viewport></au-viewport>
+      </template>
+    </au-viewport-scope> -->
+    <a goto.bind="[{ component: '+', viewport: 'default'}]">[{ component: '+', viewport: 'default'}] | </a>
+    <a goto="+@default">+@default | </a>
     <div class="window-container">
       <au-viewport-scope catches="window,alternate" class="window" source.bind="windows" repeat.for="window of windows">
         <div replace>
-          <!-- id: ${window.id} ${name} ${sourceItem.id}
-          <a goto="users">users | </a>
+          id: ${window.id} ${name} ${sourceItem.id}
+          <!-- <a goto="users">users | </a>
           <a goto="child-router/welcome">child-router/welcome | </a>
           <a goto="child-router/users">child-router/users | </a>
           <a goto="child-router/child-router">child-router/child-router | </a>

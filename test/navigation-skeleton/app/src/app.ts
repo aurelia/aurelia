@@ -14,7 +14,7 @@ interface IWindow {
 @customElement({ name: 'app', template: html, })
 export class App {
   public url: string = '';
-  public windows: IWindow[] = [{ id: 1 }];
+  public windows: IWindow[] = [{ id: 1 }, { id: 1 }];
   public maxWindows: number = 5;
 
   public constructor(
@@ -57,14 +57,14 @@ export class App {
   }
 
   public add(): void {
-    // this.windows.push({ id: this.maxId + 1 });
+    this.windows.push({ id: this.maxId + 1 });
   }
 
   public remove(window: IWindow): void {
-    // const index: number = this.windows.findIndex(w => w.id === window.id);
-    // if (index >= 0) {
-    //   this.windows.splice(index, 1);
-    // }
+    const index: number = this.windows.findIndex(w => w.id === window.id);
+    if (index >= 0) {
+      this.windows.splice(index, 1);
+    }
   }
   private setupNavs(): void {
     for (const window of this.windows) {
@@ -87,14 +87,16 @@ export class App {
           a: 'nav-link',
           liActive: 'active',
         });
-      if (this.count > 1) {
-        this.router.addNav(`app-menu-${id}`, [
-          { title: '<i class="fa fa-minus"></i>', execute: () => { this.remove(window); }, consideredActive: '' },
-        ]);
-      }
-      if (id === this.count - 1 && this.count < this.maxWindows) {
+      // if (this.count > 1) {
+      this.router.addNav(`app-menu-${id}`, [
+        { title: '<i class="fa fa-minus"></i>', execute: () => { this.remove(window); }, consideredActive: '' },
+        { title: '<i class="fa fa-minus"></i>', route: '-' },
+      ]);
+      // }
+      if (id === this.maxId && this.count < this.maxWindows) {
         this.router.addNav(`app-menu-${id}`, [
           { title: '<i class="fa fa-plus"></i>', execute: () => { this.add(); }, consideredActive: '' },
+          { title: '<i class="fa fa-plus"></i>', route: '+' },
         ]);
       }
     }

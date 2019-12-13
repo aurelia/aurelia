@@ -40,7 +40,7 @@ export class ViewportScope implements IScopeOwner {
   ) {
     this.connectedScope = new Scope(router, scope, owningScope, null, this);
     if (this.catches.length > 0) {
-      this.content = router.createViewportInstruction(this.catches[0]);
+      this.content = router.createViewportInstruction(this.catches[0], this.name);
     }
   }
 

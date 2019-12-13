@@ -70,7 +70,8 @@ export class InstructionResolver {
   public isAddViewportInstruction(instruction: string | ViewportInstruction): boolean {
     return instruction instanceof ViewportInstruction
       ? instruction.componentName === this.addViewportInstruction
-      : instruction.startsWith(this.clearViewportInstruction);
+      : (instruction === this.addViewportInstruction
+        || instruction.startsWith(`${this.separators.add}${this.separators.viewport}`));
   }
 
   public isClearViewportScopeInstruction(instruction: string | ViewportInstruction): boolean {
@@ -83,6 +84,12 @@ export class InstructionResolver {
     return instruction instanceof ViewportInstruction
       ? instruction.componentName === this.clearViewportInstruction && !instruction.viewportName
       : instruction === this.clearViewportInstruction;
+  }
+
+  public isAddAllViewportsInstruction(instruction: string | ViewportInstruction): boolean {
+    return instruction instanceof ViewportInstruction
+      ? instruction.componentName === this.addViewportInstruction && !instruction.viewportName
+      : instruction === this.addViewportInstruction;
   }
 
   public createViewportInstruction(component: ComponentAppellation, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope: boolean = true, nextScopeInstructions: ViewportInstruction[] | null = null): ViewportInstruction {
@@ -348,7 +355,7 @@ export class InstructionResolver {
         }
         return { instructions: viewportInstructions, remaining: instructions };
 
-      } else if (instructions.startsWith(this.separators.sibling)) {
+      } else if (instructions.startsWith(this.separators.sibling) && !this.isAddViewportInstruction(instructions)) {
         if (!grouped) {
           return { instructions: viewportInstructions, remaining: instructions };
         }
@@ -383,34 +390,63 @@ export class InstructionResolver {
   }
 
   private parseAViewportInstruction(instruction: string): { instruction: ViewportInstruction; remaining: string } {
-    const seps = this.separators;
-    const tokens = [seps.parameters, seps.viewport, seps.noScope, seps.scopeEnd, seps.scope, seps.sibling];
-
-    let { token, pos } = this.findNextToken(instruction, tokens);
-
-    const component = pos !== -1 ? instruction.slice(0, pos) : instruction;
-    instruction = pos !== -1 ? instruction.slice(pos + token.length) : '';
-
+    const seps: ISeparators = this.separators;
+    const tokens: string[] = [seps.parameters, seps.viewport, seps.noScope, seps.scopeEnd, seps.scope, seps.sibling];
+    let component: string | undefined = void 0;
     let parametersString: string | undefined = void 0;
-    tokens.shift(); // parameters
-    if (token === seps.parameters) {
-      ({ token, pos } = this.findNextToken(instruction, [seps.parametersEnd]));
-      parametersString = instruction.slice(0, pos);
-      instruction = instruction.slice(pos + token.length);
+    let viewport: string | undefined = void 0;
+    let scope: boolean = true;
+    let token!: string;
+    let pos: number;
 
-      ({ token } = this.findNextToken(instruction, tokens));
-      instruction = instruction.slice(token.length);
+    const specials: string[] = [seps.add, seps.clear];
+    for (const special of specials) {
+      if (instruction === special) {
+        component = instruction;
+        instruction = '';
+        tokens.shift(); // parameters
+        tokens.shift(); // viewport
+        token = seps.viewport;
+        break;
+      }
+    }
+    if (component === void 0) {
+      for (const special of specials) {
+        if (instruction.startsWith(`${special}${seps.viewport}`)) {
+          component = special;
+          instruction = instruction.slice(`${special}${seps.viewport}`.length);
+          tokens.shift(); // parameters
+          tokens.shift(); // viewport
+          token = seps.viewport;
+          break;
+        }
+      }
     }
 
-    let viewport: string | undefined = void 0;
-    tokens.shift(); // viewport
+    if (component === void 0) {
+      ({ token, pos } = this.findNextToken(instruction, tokens));
+
+      component = pos !== -1 ? instruction.slice(0, pos) : instruction;
+      instruction = pos !== -1 ? instruction.slice(pos + token.length) : '';
+
+      tokens.shift(); // parameters
+      if (token === seps.parameters) {
+        ({ token, pos } = this.findNextToken(instruction, [seps.parametersEnd]));
+        parametersString = instruction.slice(0, pos);
+        instruction = instruction.slice(pos + token.length);
+
+        ({ token } = this.findNextToken(instruction, tokens));
+        instruction = instruction.slice(token.length);
+      }
+
+      tokens.shift(); // viewport
+    }
     if (token === seps.viewport) {
       ({ token, pos } = this.findNextToken(instruction, tokens));
       viewport = pos !== -1 ? instruction.slice(0, pos) : instruction;
       instruction = pos !== -1 ? instruction.slice(pos + token.length) : '';
     }
 
-    let scope: boolean = true;
     tokens.shift(); // noScope
     if (token === seps.noScope) {
       scope = false;

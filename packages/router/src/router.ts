@@ -566,7 +566,7 @@ export class Router implements IRouter {
   }
   // Called from the viewport custom element
   public disconnectViewport(viewport: Viewport, container: IContainer, element: Element | null): void {
-    if (!viewport.owningScope!.removeViewport(viewport, element, container)) {
+    if (!viewport.connectedScope.parent!.removeViewport(viewport, element, container)) {
       throw new Error(`Failed to remove viewport: ${viewport.name}`);
     }
     this.unsetClosestScope(container);
@@ -582,7 +582,7 @@ export class Router implements IRouter {
   }
   // Called from the viewport scope custom element
   public disconnectViewportScope(viewportScope: ViewportScope, container: IContainer): void {
-    if (!viewportScope.owningScope!.removeViewportScope(viewportScope)) {
+    if (!viewportScope.connectedScope.parent!.removeViewportScope(viewportScope)) {
       throw new Error(`Failed to remove viewport scope: ${viewportScope.path}`);
     }
     this.unsetClosestScope(container);
@@ -867,6 +867,8 @@ export class Router implements IRouter {
       .map(scope => scope.viewportInstruction) as ViewportInstruction[];
     instructions = this.instructionResolver.cloneViewportInstructions(instructions, true);
 
+    // The following makes sure right viewport/viewport scopes are set and update
+    // whether viewport name is necessary or not
     const alreadyFound: ViewportInstruction[] = [];
     let { found, remaining } = this.findViewports(instructions, alreadyFound, true);
     let guard = 100;

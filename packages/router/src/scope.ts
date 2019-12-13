@@ -31,6 +31,7 @@ export interface IScopeOwner {
 
   isViewport: boolean;
   isViewportScope: boolean;
+  isEmpty: boolean;
 
   setNextContent(content: ComponentAppellation | ViewportInstruction, instruction: INavigatorInstruction): boolean;
   canLeave(): Promise<boolean>;
@@ -190,12 +191,28 @@ export class Scope {
         if (viewportScope.acceptSegment(instruction.componentName as string)) {
           if (Array.isArray(viewportScope.source)) {
             // console.log('available', viewportScope.available, source);
-            const available: ViewportScope | undefined = availableViewportScopes.find(available => available.name === viewportScope.name);
-            if (available === void 0) {
-              viewportScope.addSourceItem();
-              instruction.viewportScope = null;
-              break;
+            let available: ViewportScope | undefined = availableViewportScopes.find(available => available.name === viewportScope.name);
+            if (available === void 0 || this.router.instructionResolver.isAddViewportInstruction(instruction)) {
+              const item: unknown = viewportScope.addSourceItem();
+              available = this.getOwnedScopes()
+                .filter(scope => scope.isViewportScope)
+                .map(scope => scope.viewportScope!)
+                .find(viewportScope => viewportScope.sourceItem === item)!;
             }
+            // if (this.router.instructionResolver.isAddViewportInstruction(instruction)) {
+            //   const item: unknown = viewportScope.addSourceItem();
+            //   instruction.viewportScope = this.getOwnedScopes()
+            //     .filter(scope => scope.isViewportScope)
+            //     .map(scope => scope.viewportScope!)
+            //     .find(viewportScope => viewportScope.sourceItem === item)!;
+            //   break;
+            // } else {
+            //   const available: ViewportScope | undefined = availableViewportScopes.find(available => available.name === viewportScope.name);
+            //   if (available === void 0) {
+            //     viewportScope.addSourceItem();
+            //     instruction.viewportScope = null;
+            //     break;
+            //   }
             viewportScope = available;
           }
           remainingInstructions.push(...this.foundViewportScope(instruction, viewportScope));

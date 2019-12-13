@@ -1,3 +1,4 @@
+// tslint:disable:max-line-length
 import { DI, IContainer, Key, Reporter, Registration, Metadata } from '@aurelia/kernel';
 import { Aurelia, CustomElementType, IController, IRenderContext, IViewModel, CustomElement, INode, DOM } from '@aurelia/runtime';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
@@ -308,15 +309,29 @@ export class Router implements IRouter {
     }
     // TODO: Used to have an early exit if no instructions. Restore it?
     const clearViewports: Viewport[] = [];
+    const clearScopeOwners: IScopeOwner[] = [];
     let clearViewportScopes: ViewportScope[] = [];
     for (const clearInstruction of instructions.filter(instr => this.instructionResolver.isClearAllViewportsInstruction(instr))) {
+      // const scope: Scope = clearInstruction.scope || this.rootScope!.scope;
+      // clearViewports.push(...scope.allViewports().filter((viewport) => viewport.content.componentInstance !== null));
+      // if (scope.viewportScope !== null) {
+      //   clearViewportScopes.push(scope.viewportScope);
+      // }
       const scope: Scope = clearInstruction.scope || this.rootScope!.scope;
-      clearViewports.push(...scope.allViewports().filter((viewport) => viewport.content.componentInstance !== null));
+      clearScopeOwners.push(...scope
+        .children
+        .filter(scope => !scope.owner!.isEmpty)
+        .map(scope => scope.owner!)
+      );
       if (scope.viewportScope !== null) {
         clearViewportScopes.push(scope.viewportScope);
       }
     }
     instructions = instructions.filter(instr => !this.instructionResolver.isClearAllViewportsInstruction(instr));
+
+    for (const addInstruction of instructions.filter(instr => this.instructionResolver.isAddAllViewportsInstruction(instr))) {
+      addInstruction.viewportScope = (addInstruction.scope || this.rootScope!.scope).viewportScope;
+    }
 
     const updatedScopeOwners: IScopeOwner[] = [];
     const alreadyFoundInstructions: ViewportInstruction[] = [];
@@ -343,7 +358,8 @@ export class Router implements IRouter {
           if (scopeOwner.setNextContent(viewportInstruction, instruction)) {
             changedScopeOwners.push(scopeOwner);
           }
-          arrayRemove(clearViewports, value => value === scopeOwner);
+          // arrayRemove(clearViewports, value => value === scopeOwner);
+          arrayRemove(clearScopeOwners, value => value === scopeOwner);
           if (!this.instructionResolver.isClearViewportInstruction(viewportInstruction)
             && viewportInstruction.scope !== null
             && viewportInstruction.scope!.parent! !== null
@@ -445,7 +461,15 @@ export class Router implements IRouter {
         }
       }
       if (viewportInstructions.length === 0 && remainingInstructions.length === 0) {
-        viewportInstructions = clearViewports.map(viewport => this.createViewportInstruction(this.instructionResolver.clearViewportInstruction, viewport));
+        // viewportInstructions = clearViewports.map(viewport => this.createViewportInstruction(this.instructionResolver.clearViewportInstruction, viewport));
+        viewportInstructions = clearScopeOwners.map(owner => {
+          const instruction: ViewportInstruction =
+            this.createViewportInstruction(this.instructionResolver.clearViewportInstruction, owner.isViewport ? owner as Viewport : void 0);
+          if (owner.isViewportScope) {
+            instruction.viewportScope = owner as ViewportScope;
+          }
+          return instruction;
+        });
         viewportInstructions.push(...clearViewportScopes.map(viewportScope => {
           const instr: ViewportInstruction = this.createViewportInstruction(this.instructionResolver.clearViewportInstruction);
           instr.viewportScope = viewportScope;

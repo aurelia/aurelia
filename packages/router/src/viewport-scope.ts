@@ -39,12 +39,8 @@ export class ViewportScope implements IScopeOwner {
     },
   ) {
     this.connectedScope = new Scope(router, scope, owningScope, null, this);
-    let catches: string | string[] = this.options.catches || [];
-    if (typeof catches === 'string') {
-      catches = catches.split(',');
-    }
-    if (catches.length > 0) {
-      this.content = router.createViewportInstruction(catches[0]);
+    if (this.catches.length > 0) {
+      this.content = router.createViewportInstruction(this.catches[0]);
     }
   }
 
@@ -69,8 +65,12 @@ export class ViewportScope implements IScopeOwner {
     return true;
   }
 
+  public get isEmpty(): boolean {
+    return this.content === null;
+  }
+
   public get passThroughScope(): boolean {
-    return this.rootComponentType === null && (this.options.catches === void 0 || this.options.catches.length === 0);
+    return this.rootComponentType === null && this.catches.length === 0;
   }
 
   public get siblings(): ViewportScope[] {
@@ -85,6 +85,20 @@ export class ViewportScope implements IScopeOwner {
 
   public get source(): unknown[] | null {
     return this.options.source || null;
+  }
+
+  public get catches(): string[] {
+    let catches: string | string[] = this.options.catches || [];
+    if (typeof catches === 'string') {
+      catches = catches.split(',');
+    }
+    return catches;
+  }
+
+  public get default(): string | undefined {
+    if (this.catches.length > 0) {
+      return this.catches[0];
+    }
   }
 
   public setNextContent(content: ComponentAppellation | ViewportInstruction, instruction: INavigatorInstruction): boolean {
@@ -106,13 +120,19 @@ export class ViewportScope implements IScopeOwner {
       && Array.isArray(this.source);
 
     if (this.add) {
-      this.addSourceItem();
+      // this.addSourceItem();
+      viewportInstruction.componentName = null;
     }
     if (this.remove && Array.isArray(this.source)) {
       this.removeSourceItem();
     }
 
+    if (this.default !== void 0 && viewportInstruction.componentName === null) {
+      viewportInstruction.componentName = this.default;
+    }
+
     this.nextContent = viewportInstruction;
+
     return true;
   }
 
@@ -160,18 +180,14 @@ export class ViewportScope implements IScopeOwner {
       return true;
     }
 
-    let catches: string | string[] = this.options.catches || [];
-    if (typeof catches === 'string') {
-      catches = catches.split(',');
-    }
-    if (catches.length === 0) {
+    if (this.catches.length === 0) {
       return true;
     }
 
-    if (catches.includes(segment as string)) {
+    if (this.catches.includes(segment as string)) {
       return true;
     }
-    if (catches.filter((value) => value.includes('*')).length) {
+    if (this.catches.filter((value) => value.includes('*')).length) {
       return true;
     }
     return false;
@@ -202,8 +218,11 @@ export class ViewportScope implements IScopeOwner {
     }
     return null;
   }
-  public addSourceItem(): void {
-    this.source!.push({ id: Math.max(...this.source!.map(w => (w as any).id)) + 1 });
+  public addSourceItem(): unknown {
+    const maxId: number = Math.max(...this.source!.map(item => (item as unknown & { id: number }).id));
+    const item: unknown = { id: maxId + 1 };
+    this.source!.push(item);
+    return item;
   }
   public removeSourceItem(): void {
     this.sourceItemIndex = this.source!.indexOf(this.sourceItem);

@@ -239,7 +239,7 @@ export class InstructionResolver {
       if (context) {
         clone.context = instruction.context;
       }
-      clone.viewportScope = instruction.viewportScope;
+      clone.viewportScope = viewportInstances ? instruction.viewportScope : null;
       clone.scope = viewportInstances ? instruction.scope : null;
       if (instruction.nextScopeInstructions) {
         clone.nextScopeInstructions = this.cloneViewportInstructions(instruction.nextScopeInstructions, viewportInstances, context);

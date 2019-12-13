@@ -165,7 +165,7 @@ export class Scope {
 
     // The viewport scope is already known
     while ((instruction = viewportInstructions.next()) !== null) {
-      if (instruction.viewportScope !== null) {
+      if (instruction.viewportScope !== null && !this.router.instructionResolver.isAddViewportInstruction(instruction)) {
         remainingInstructions.push(...this.foundViewportScope(instruction, instruction.viewportScope));
         foundViewports.push(instruction);
         arrayRemove(availableViewportScopes, available => available === instruction!.viewportScope);

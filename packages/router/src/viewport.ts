@@ -69,6 +69,10 @@ export class Viewport implements IScopeOwner {
     return false;
   }
 
+  public get isEmpty(): boolean {
+    return this.content.componentInstance === null;
+  }
+
   public get doForceRemove(): boolean {
     let scope: Scope | null = this.connectedScope;
     while (scope !== null) {

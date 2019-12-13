@@ -126,6 +126,13 @@ export class CompiledTemplate<T extends INode = INode> implements ITemplate {
     (controller as Writable<IController>).scopeParts = this.definition.scopeParts;
     (controller as Writable<IController>).isStrictBinding = this.definition.isStrictBinding;
     flags |= this.definition.strategy;
+    // TODO: Should probably be something like
+    // if (controller.hooks.hasCreating) {
+    //   controller.bindingContext.creating(controller);
+    // }
+    if (controller.bindingContext !== void 0 && (controller.bindingContext as any)['creating']) {
+      (controller.bindingContext as any).creating(controller);
+    }
     this.renderContext.render(flags, controller, nodes.findTargets(), this.definition, host, parts);
   }
 }

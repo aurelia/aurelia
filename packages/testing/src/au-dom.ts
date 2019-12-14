@@ -12,7 +12,6 @@ import {
   Metadata
 } from '@aurelia/kernel';
 import {
-  addBinding,
   Aurelia,
   BindingMode,
   BindingType,
@@ -657,7 +656,13 @@ export class AuTextRenderer implements IInstructionRenderer {
     this.observerLocator = observerLocator;
   }
 
-  public render(flags: LifecycleFlags, dom: IDOM, context: IContainer, renderable: IController<AuNode>, target: AuNode, instruction: AuTextInstruction): void {
+  public render(
+    flags: LifecycleFlags,
+    context: IContainer,
+    controller: IController<AuNode>,
+    target: AuNode,
+    instruction: AuTextInstruction,
+  ): void {
     let realTarget: AuNode;
     if (target.isRenderLocation) {
       realTarget = AuNode.createText();
@@ -666,7 +671,7 @@ export class AuTextRenderer implements IInstructionRenderer {
       realTarget = target;
     }
     const bindable = new PropertyBinding(instruction.from, realTarget, 'textContent', BindingMode.toView, this.observerLocator, context);
-    addBinding(renderable, bindable);
+    controller.addBinding(bindable);
   }
 }
 

@@ -430,7 +430,11 @@ export {
   MountStrategy,
 } from './lifecycle';
 export {
-  RenderContext,
+  getRenderContext,
+  isRenderContext,
+  IRenderContext,
+  ICompiledRenderContext,
+  IComponentFactory,
 } from './templating/render-context';
 export {
   PromiseOrTask,
@@ -494,9 +498,6 @@ export {
   IInstructionTypeClassifier,
   IRenderer,
   ITemplateCompiler,
-  ViewCompileFlags,
   instructionRenderer,
   ensureExpression,
-  addComponent,
-  addBinding
 } from './renderer';

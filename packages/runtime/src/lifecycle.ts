@@ -31,7 +31,7 @@ import {
 import {
   IElementProjector, CustomElementDefinition, PartialCustomElementDefinition,
 } from './resources/custom-element';
-import { RenderContext } from './templating/render-context';
+import { IRenderContext } from './templating/render-context';
 
 export interface IBinding {
   interceptor: this;
@@ -104,7 +104,7 @@ export interface IController<
   projector?: IElementProjector;
 
   nodes?: INodeSequence<T>;
-  context?: RenderContext;
+  context?: IRenderContext;
   location?: IRenderLocation<T>;
 
   lockScope(scope: IScope): void;
@@ -122,6 +122,9 @@ export interface IController<
   unmount(flags: LifecycleFlags): void;
   cache(flags: LifecycleFlags): void;
   getTargetAccessor(propertyName: string): IBindingTargetAccessor | undefined;
+
+  addBinding(binding: IBinding): void;
+  addController(controller: IController<T>): void;
 }
 
 export const IController = DI.createInterface<IController>('IController').noDefault();
@@ -143,9 +146,9 @@ export interface IViewCache<T extends INode = INode> {
 
 export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
   readonly name: string;
-  readonly parts: PartialCustomElementDefinitionParts;
+  readonly parts: PartialCustomElementDefinitionParts | undefined;
   create(flags?: LifecycleFlags): IController<T>;
-  addParts(parts: PartialCustomElementDefinitionParts): void;
+  resolve(requestor: IContainer, parts?: PartialCustomElementDefinitionParts): IViewFactory<T>;
 }
 
 export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory').noDefault();

@@ -226,12 +226,12 @@ export class InstructionResolver {
     return flat;
   }
 
-  public cloneViewportInstructions(instructions: ViewportInstruction[], viewportInstances: boolean = false, context: boolean = false): ViewportInstruction[] {
+  public cloneViewportInstructions(instructions: ViewportInstruction[], keepInstances: boolean = false, context: boolean = false): ViewportInstruction[] {
     const clones: ViewportInstruction[] = [];
     for (const instruction of instructions) {
       const clone: ViewportInstruction = this.createViewportInstruction(
-        instruction.componentInstance || instruction.componentType || instruction.componentName!,
-        viewportInstances ? instruction.viewport || instruction.viewportName! : instruction.viewportName!,
+        (keepInstances ? instruction.componentInstance : null) || instruction.componentType || instruction.componentName!,
+        keepInstances ? instruction.viewport || instruction.viewportName! : instruction.viewportName!,
         instruction.typedParameters !== null ? instruction.typedParameters : void 0,
       );
       clone.needsViewportDescribed = instruction.needsViewportDescribed;
@@ -239,10 +239,10 @@ export class InstructionResolver {
       if (context) {
         clone.context = instruction.context;
       }
-      clone.viewportScope = viewportInstances ? instruction.viewportScope : null;
-      clone.scope = viewportInstances ? instruction.scope : null;
+      clone.viewportScope = keepInstances ? instruction.viewportScope : null;
+      clone.scope = keepInstances ? instruction.scope : null;
       if (instruction.nextScopeInstructions) {
-        clone.nextScopeInstructions = this.cloneViewportInstructions(instruction.nextScopeInstructions, viewportInstances, context);
+        clone.nextScopeInstructions = this.cloneViewportInstructions(instruction.nextScopeInstructions, keepInstances, context);
       }
       clones.push(clone);
     }

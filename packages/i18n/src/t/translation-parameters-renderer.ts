@@ -13,7 +13,6 @@ import {
   BindingType,
   ICallBindingInstruction,
   IController,
-  IDOM,
   IExpressionParser,
   IInstructionRenderer,
   instructionRenderer,
@@ -60,7 +59,13 @@ export class TranslationParametersBindingRenderer implements IInstructionRendere
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) { }
 
-  public render(flags: LifecycleFlags, dom: IDOM, context: IContainer, renderable: IController, target: HTMLElement, instruction: ICallBindingInstruction): void {
-    TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, renderable, target, instruction, isParameterContext: true });
+  public render(
+    flags: LifecycleFlags,
+    context: IContainer,
+    controller: IController,
+    target: HTMLElement,
+    instruction: ICallBindingInstruction,
+  ): void {
+    TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller: controller, target, instruction, isParameterContext: true });
   }
 }

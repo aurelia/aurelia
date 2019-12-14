@@ -52,8 +52,7 @@ export class Compose<T extends INode = Node> {
 
   public constructor(
     @IDOM private readonly dom: IDOM<T>,
-    @IController private readonly controller: IController<T>,
-    @ITargetedInstruction private readonly instruction: IHydrateElementInstruction,
+    @ITargetedInstruction instruction: IHydrateElementInstruction,
   ) {
     this.properties = instruction.instructions
       .filter((x: ITargetedInstruction & { to?: string }) => !bindables.includes(x.to!))
@@ -190,7 +189,7 @@ export class Compose<T extends INode = Node> {
 
   private bindView(flags: LifecycleFlags): ILifecycleTask {
     if (this.view != void 0 && (this.$controller.state & (State.isBoundOrBinding)) > 0) {
-      return this.view.bind(flags, this.controller.scope, this.$controller.part);
+      return this.view.bind(flags, this.$controller.scope, this.$controller.part);
     }
     return LifecycleTask.done;
   }
@@ -210,7 +209,7 @@ export class Compose<T extends INode = Node> {
 
     if (view) {
       view.hold(this.$controller.projector!.host, MountStrategy.insertBefore);
-      view.lockScope(this.controller.scope!);
+      view.lockScope(this.$controller.scope!);
       return view;
     }
 
@@ -227,7 +226,7 @@ export class Compose<T extends INode = Node> {
     }
 
     if ('createView' in subject) { // RenderPlan
-      return subject.createView(this.controller.context!) as IController<T>;
+      return subject.createView(this.$controller.context!) as IController<T>;
     }
 
     if ('create' in subject) { // IViewFactory
@@ -236,7 +235,7 @@ export class Compose<T extends INode = Node> {
 
     if ('template' in subject) { // Raw Template Definition
       const definition = CustomElementDefinition.getOrCreate(subject);
-      return getRenderContext(definition, this.controller.context!, void 0).getViewFactory().create(flags) as IController<T>;
+      return getRenderContext(definition, this.$controller.context!, void 0).getViewFactory().create(flags) as IController<T>;
     }
 
     // Constructable (Custom Element Constructor)
@@ -247,6 +246,6 @@ export class Compose<T extends INode = Node> {
       this.$controller.projector === void 0
         ? PLATFORM.emptyArray
         : this.$controller.projector.children
-    ).createView(this.controller.context!) as IController<T>;
+    ).createView(this.$controller.context!) as IController<T>;
   }
 }

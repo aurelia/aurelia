@@ -264,7 +264,6 @@ export {
   // IResourceType,
   // ResourceDescription,
   // ResourcePartDescription,
-  RuntimeCompilationResources,
   // fromAnnotationOrDefinitionOrTypeOrDefault,
   // fromAnnotationOrTypeOrDefault,
   // fromDefinitionOrDefault,
@@ -807,8 +806,6 @@ export {
 
   instructionRenderer,
   ensureExpression,
-  addComponent,
-  addBinding,
 
   // CompiledTemplate,
   // ChildrenObserver,
@@ -819,7 +816,6 @@ export {
   // ITemplate,
   // ITemplateCompiler,
   // ITemplateFactory,
-  // ViewCompileFlags,
 
   // RenderContext
 } from '@aurelia/runtime';

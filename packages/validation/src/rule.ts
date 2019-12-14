@@ -68,12 +68,13 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
    */
   public getMessage(rule: BaseValidationRule): IInterpolationExpression | PrimitiveLiteralExpression {
     const validationMessages = ValidationRule.getDefaultMessages(rule);
+    const messageKey = rule.messageKey;
     let message: string | undefined;
     const messageCount = validationMessages.length;
-    if (messageCount === 1) {
+    if (messageCount === 1 && messageKey === void 0) {
       message = validationMessages[0].defaultMessage;
-    } else if (messageCount > 1) {
-      message = validationMessages.find(m => m.name === rule.messageKey)?.defaultMessage;
+    } else {
+      message = validationMessages.find(m => m.name === messageKey)?.defaultMessage;
     }
     if (!message) {
       message = ValidationRule.getDefaultMessages(BaseValidationRule)[0].defaultMessage!;
@@ -186,7 +187,7 @@ const ValidationRule = Object.freeze({
     Metadata.define(ValidationRule.aliasKey, aliases, target instanceof Function ? target.prototype : target);
   },
   getDefaultMessages<TRule extends BaseValidationRule>(rule: Constructable<TRule> | TRule): ValidationRuleAlias[] {
-    return Metadata.get(this.aliasKey, rule);
+    return Metadata.get(this.aliasKey, rule instanceof Function ? rule.prototype : rule);
   }
 });
 export function validationRule(definition: ValidationRuleDefinition) {

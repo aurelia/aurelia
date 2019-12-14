@@ -66,7 +66,7 @@ import {
 import {
   BindableDefinition,
 } from './bindable';
-import { RenderContext } from './render-context';
+import { IRenderContext, getRenderContext } from './render-context';
 import { ChildrenObserver } from './children';
 
 type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
@@ -118,24 +118,24 @@ export class Controller<
 > implements IController<T, C> {
   public readonly id: number = nextId('au$component');
 
-  public nextBound: Controller<T, C> | undefined = void 0;
-  public nextUnbound: Controller<T, C> | undefined = void 0;
-  public prevBound: Controller<T, C> | undefined = void 0;
-  public prevUnbound: Controller<T, C> | undefined = void 0;
+  public nextBound: IController<T, C> | undefined = void 0;
+  public nextUnbound: IController<T, C> | undefined = void 0;
+  public prevBound: IController<T, C> | undefined = void 0;
+  public prevUnbound: IController<T, C> | undefined = void 0;
 
-  public nextAttached: Controller<T, C> | undefined = void 0;
-  public nextDetached: Controller<T, C> | undefined = void 0;
-  public prevAttached: Controller<T, C> | undefined = void 0;
-  public prevDetached: Controller<T, C> | undefined = void 0;
+  public nextAttached: IController<T, C> | undefined = void 0;
+  public nextDetached: IController<T, C> | undefined = void 0;
+  public prevAttached: IController<T, C> | undefined = void 0;
+  public prevDetached: IController<T, C> | undefined = void 0;
 
-  public nextMount: Controller<T, C> | undefined = void 0;
-  public nextUnmount: Controller<T, C> | undefined = void 0;
-  public prevMount: Controller<T, C> | undefined = void 0;
-  public prevUnmount: Controller<T, C> | undefined = void 0;
+  public nextMount: IController<T, C> | undefined = void 0;
+  public nextUnmount: IController<T, C> | undefined = void 0;
+  public prevMount: IController<T, C> | undefined = void 0;
+  public prevUnmount: IController<T, C> | undefined = void 0;
 
   public parent: IController<T> | undefined = void 0;
   public bindings: IBinding[] | undefined = void 0;
-  public controllers: Controller<T, C>[] | undefined = void 0;
+  public controllers: IController<T>[] | undefined = void 0;
 
   public state: State = State.none;
 
@@ -147,7 +147,7 @@ export class Controller<
   public projector: IElementProjector | undefined = void 0;
 
   public nodes: INodeSequence<T> | undefined = void 0;
-  public context: RenderContext | undefined = void 0;
+  public context: IRenderContext | undefined = void 0;
   public location: IRenderLocation<T> | undefined = void 0;
   public mountStrategy: MountStrategy = MountStrategy.insertBefore;
 
@@ -174,6 +174,24 @@ export class Controller<
     public readonly host: T | undefined,
   ) {}
 
+  public static getCached<
+    T extends INode = INode,
+    C extends IViewModel<T> = IViewModel<T>,
+  >(viewModel: C): IController<T, C> | undefined {
+    return controllerLookup.get(viewModel) as Controller<T, C> | undefined;
+  }
+
+  public static getCachedOrThrow<
+    T extends INode = INode,
+    C extends IViewModel<T> = IViewModel<T>,
+  >(viewModel: C): IController<T, C> {
+    const controller = Controller.getCached(viewModel);
+    if (controller === void 0) {
+      throw new Error(`There is no cached controller for the provided ViewModel: ${String(viewModel)}`);
+    }
+    return controller as IController<T, C>;
+  }
+
   public static forCustomElement<
     T extends INode = INode,
     C extends IViewModel<T> = IViewModel<T>,
@@ -182,7 +200,7 @@ export class Controller<
     lifecycle: ILifecycle,
     host: T,
     parentContainer: IContainer,
-    parts?: PartialCustomElementDefinitionParts,
+    parts: PartialCustomElementDefinitionParts | undefined,
     flags: LifecycleFlags = LifecycleFlags.none,
   ): Controller<T, C> {
     if (controllerLookup.has(viewModel)) {
@@ -249,7 +267,7 @@ export class Controller<
   >(
     viewFactory: IViewFactory<T>,
     lifecycle: ILifecycle,
-    context: RenderContext,
+    context: IRenderContext,
     flags: LifecycleFlags = LifecycleFlags.none,
   ): Controller<T, C> {
     const controller = new Controller<T, C>(
@@ -263,7 +281,7 @@ export class Controller<
       /* host           */void 0,
     );
 
-    controller.hydrateSynthetic(context);
+    controller.hydrateSynthetic(context, viewFactory.parts);
 
     return controller;
   }
@@ -271,7 +289,7 @@ export class Controller<
   private hydrateCustomElement(
     definition: CustomElementDefinition,
     parentContainer: IContainer,
-    parts?: PartialCustomElementDefinitionParts,
+    parts: PartialCustomElementDefinitionParts | undefined,
   ): void {
     const flags = this.flags |= definition.strategy;
     const instance = this.viewModel!;
@@ -283,18 +301,18 @@ export class Controller<
     const hooks = this.hooks;
     if (hooks.hasCreate) {
       const result = instance.create!(
-        this as IController<T, NonNullable<C>>,
-        definition,
-        parentContainer,
-        parts,
-        flags,
+        /* controller      */this as IController<T, NonNullable<C>>,
+        /* definition      */definition,
+        /* parentContainer */parentContainer,
+        /* parts           */parts,
+        /* flags           */flags,
       );
       if (result !== void 0 && result !== definition) {
         definition = CustomElementDefinition.getOrCreate(result);
       }
     }
 
-    const context = this.context = RenderContext.getOrCreate(definition, parentContainer);
+    const context = this.context = getRenderContext(definition, parentContainer, parts);
     // Support Recursive Components by adding self to own context
     definition.register(context);
     if (definition.injectable !== null) {
@@ -312,13 +330,11 @@ export class Controller<
       );
     }
 
-    const compiledDefinition = context.compile();
+    const compiledContext = context.compile();
+    const compiledDefinition = compiledContext.compiledDefinition;
 
     this.scopeParts = compiledDefinition.scopeParts;
     this.isStrictBinding = compiledDefinition.isStrictBinding;
-    parts = compiledDefinition.getParts(parts);
-
-    const nodes = context.createNodes();
 
     const projectorLocator = parentContainer.get(IProjectorLocator);
 
@@ -330,6 +346,7 @@ export class Controller<
     );
 
     (instance as Writable<C>).$controller = this;
+    const nodes = compiledContext.createNodes();
 
     if (hooks.hasAfterCompile) {
       instance.afterCompile!(
@@ -345,11 +362,9 @@ export class Controller<
       this.nodes = nodes as INodeSequence<T>;
 
       const targets = nodes.findTargets();
-      context.renderer.render(
+      compiledContext.render(
         /* flags      */this.flags,
-        /* dom        */context.dom,
-        /* context    */context,
-        /* renderable */this,
+        /* controller */this,
         /* targets    */targets,
         /* definition */compiledDefinition,
         /* host       */this.host,
@@ -373,27 +388,45 @@ export class Controller<
     (instance as Writable<C>).$controller = this;
   }
 
-  private hydrateSynthetic(context: RenderContext): void {
-    const compiledDefinition = context.compile();
+  private hydrateSynthetic(
+    context: IRenderContext,
+    parts: PartialCustomElementDefinitionParts | undefined,
+  ): void {
+    const compiledContext = context.compile();
+    const compiledDefinition = compiledContext.compiledDefinition;
 
     this.scopeParts = compiledDefinition.scopeParts;
     this.isStrictBinding = compiledDefinition.isStrictBinding;
 
-    const nodes = context.createNodes();
+    const nodes = compiledContext.createNodes();
     if (nodes !== null) {
       this.nodes = nodes as INodeSequence<T>;
 
       const targets = nodes.findTargets();
-      context.renderer.render(
+      compiledContext.render(
         /* flags      */this.flags,
-        /* dom        */context.dom,
-        /* context    */context,
-        /* renderable */this,
+        /* controller */this,
         /* targets    */targets,
         /* definition */compiledDefinition,
         /* host       */void 0,
-        /* parts      */void 0,
+        /* parts      */parts,
       );
+    }
+  }
+
+  public addBinding(binding: IBinding): void {
+    if (this.bindings === void 0) {
+      this.bindings = [binding];
+    } else {
+      this.bindings[this.bindings.length] = binding;
+    }
+  }
+
+  public addController(controller: IController<T>): void {
+    if (this.controllers === void 0) {
+      this.controllers = [controller];
+    } else {
+      this.controllers[this.controllers.length] = controller;
     }
   }
 

@@ -47,11 +47,64 @@ export const enum TargetedInstructionType {
 export type PartialCustomElementDefinitionParts = Record<string, PartialCustomElementDefinition>;
 export type CustomElementDefinitionParts = Record<string, CustomElementDefinition>;
 
+const parentPartsOwnPartsLookup = new WeakMap<PartialCustomElementDefinitionParts, WeakMap<PartialCustomElementDefinitionParts, PartialCustomElementDefinitionParts>>();
+
+/**
+ * Efficiently merge parts, performing the minimal amount of work / using the minimal amount of memory.
+ *
+ * If either of the two part records is undefined, the other will simply be returned.
+ *
+ * If both are undefined, undefined will be returned.
+ *
+ * If neither are undefined, a new object will be returned where parts of the second value will be written last (and thus may overwrite duplicate named parts).
+ *
+ * This function is idempotent via a WeakMap cache: results are cached and if the same two variables are provided again, the same object will be returned.
+ */
+export function mergeParts(
+  parentParts: PartialCustomElementDefinitionParts | undefined,
+  ownParts: PartialCustomElementDefinitionParts | undefined,
+): PartialCustomElementDefinitionParts | undefined {
+  if (parentParts === ownParts) {
+    return parentParts;
+  }
+  if (parentParts === void 0) {
+    return ownParts;
+  }
+  if (ownParts === void 0) {
+    return parentParts;
+  }
+
+  let ownPartsLookup = parentPartsOwnPartsLookup.get(parentParts);
+  if (ownPartsLookup === void 0) {
+    parentPartsOwnPartsLookup.set(
+      parentParts,
+      ownPartsLookup = new WeakMap(),
+    );
+  }
+
+  let mergedParts = ownPartsLookup.get(ownParts);
+  if (mergedParts === void 0) {
+    ownPartsLookup.set(
+      ownParts,
+      mergedParts = {
+        ...parentParts,
+        ...ownParts,
+      },
+    );
+  }
+
+  return mergedParts;
+}
+
 export type InstructionTypeName = string;
 
 export const ITargetedInstruction = DI.createInterface<ITargetedInstruction>('ITargetedInstruction').noDefault();
 export interface ITargetedInstruction {
   type: InstructionTypeName;
+}
+
+export interface IHydrateInstruction extends ITargetedInstruction {
+  readonly instructions: readonly ITargetedInstruction[];
 }
 
 export type NodeInstruction =
@@ -117,20 +170,20 @@ export interface ISetPropertyInstruction extends ITargetedInstruction {
   to: string;
 }
 
-export interface IHydrateElementInstruction extends ITargetedInstruction {
+export interface IHydrateElementInstruction extends IHydrateInstruction {
   type: TargetedInstructionType.hydrateElement;
   res: string;
   instructions: ITargetedInstruction[];
   parts?: Record<string, PartialCustomElementDefinition>;
 }
 
-export interface IHydrateAttributeInstruction extends ITargetedInstruction {
+export interface IHydrateAttributeInstruction extends IHydrateInstruction {
   type: TargetedInstructionType.hydrateAttribute;
   res: string;
   instructions: ITargetedInstruction[];
 }
 
-export interface IHydrateTemplateController extends ITargetedInstruction {
+export interface IHydrateTemplateController extends IHydrateInstruction {
   type: TargetedInstructionType.hydrateTemplateController;
   res: string;
   instructions: ITargetedInstruction[];
@@ -139,7 +192,7 @@ export interface IHydrateTemplateController extends ITargetedInstruction {
   parts?: Record<string, PartialCustomElementDefinition>;
 }
 
-export interface IHydrateLetElementInstruction extends ITargetedInstruction {
+export interface IHydrateLetElementInstruction extends IHydrateInstruction {
   type: TargetedInstructionType.hydrateLetElement;
   instructions: ILetBindingInstruction[];
   toBindingContext: boolean;

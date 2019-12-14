@@ -7,7 +7,6 @@ import {
   Registration,
   Metadata,
   IIndexable,
-  IResourceDescriptions,
   DI,
   IServiceLocator,
 } from '@aurelia/kernel';
@@ -33,12 +32,12 @@ import {
   ISetPropertyInstruction,
   ITargetedInstruction,
   TargetedInstructionType,
-  PartialCustomElementDefinitionParts
+  PartialCustomElementDefinitionParts,
+  mergeParts
 } from './definitions';
-import { IDOM, INode } from './dom';
+import { INode } from './dom';
 import { BindingMode, LifecycleFlags } from './flags';
 import {
-  IBinding,
   IController,
   ILifecycle,
 } from './lifecycle';
@@ -51,28 +50,15 @@ import {
 } from './resources/custom-element';
 import { Controller } from './templating/controller';
 import { ObserversLookup } from './observation';
-import { RenderContext } from './templating/render-context';
+import { ICompiledRenderContext, getRenderContext } from './templating/render-context';
 import { BindingBehaviorExpression } from './binding/ast';
 import { BindingBehaviorFactory, BindingBehaviorInstance, IInterceptableBinding } from './resources/binding-behavior';
 
 export interface ITemplateCompiler {
-  readonly name: string;
-
-  compile(
-    dom: IDOM,
-    definition: PartialCustomElementDefinition,
-    resources: IResourceDescriptions,
-    viewCompileFlags?: ViewCompileFlags,
-  ): CustomElementDefinition;
+  compile(partialDefinition: PartialCustomElementDefinition, context: IContainer): CustomElementDefinition;
 }
 
 export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>('ITemplateCompiler').noDefault();
-
-export enum ViewCompileFlags {
-  none        = 0b0_001,
-  surrogate   = 0b0_010,
-  shadowDOM   = 0b0_100,
-}
 
 export interface IInstructionTypeClassifier<TType extends string = string> {
   instructionType: TType;
@@ -83,29 +69,34 @@ export interface IInstructionRenderer<
 > extends Partial<IInstructionTypeClassifier<TType>> {
   render(
     flags: LifecycleFlags,
-    dom: IDOM,
-    context: RenderContext,
-    renderable: IController,
+    context: ICompiledRenderContext,
+    controller: IController,
     target: unknown,
     instruction: ITargetedInstruction,
-    ...rest: unknown[]
+    parts: PartialCustomElementDefinitionParts | undefined,
   ): void;
 }
 
 export const IInstructionRenderer = DI.createInterface<IInstructionRenderer>('IInstructionRenderer').noDefault();
 
 export interface IRenderer {
-  instructionRenderers: Record<string, IInstructionRenderer['render']>;
-
   render(
     flags: LifecycleFlags,
-    dom: IDOM,
-    context: RenderContext,
-    renderable: IController,
+    context: ICompiledRenderContext,
+    controller: IController,
     targets: ArrayLike<INode>,
     templateDefinition: CustomElementDefinition,
-    host?: INode,
-    parts?: PartialCustomElementDefinitionParts
+    host: INode | null | undefined,
+    parts: PartialCustomElementDefinitionParts | undefined,
+  ): void;
+
+  renderInstructions(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    instructions: readonly ITargetedInstruction[],
+    controller: IController,
+    target: unknown,
+    parts: PartialCustomElementDefinitionParts | undefined,
   ): void;
 }
 
@@ -165,40 +156,55 @@ export class Renderer implements IRenderer {
 
   public render(
     flags: LifecycleFlags,
-    dom: IDOM,
-    context: RenderContext,
-    renderable: IController,
+    context: ICompiledRenderContext,
+    controller: IController,
     targets: ArrayLike<INode>,
     definition: CustomElementDefinition,
-    host?: INode,
-    parts?: PartialCustomElementDefinitionParts,
+    host: INode | null | undefined,
+    parts: PartialCustomElementDefinitionParts | undefined,
   ): void {
     const targetInstructions = definition.instructions;
-    const instructionRenderers = this.instructionRenderers;
 
     if (targets.length !== targetInstructions.length) {
       throw new Error(`The compiled template is not aligned with the render instructions. There are ${targets.length} targets and ${targetInstructions.length} instructions.`);
     }
-    let instructions: readonly ITargetedInstruction[];
-    let target: INode;
-    let current: ITargetedInstruction;
-    for (let i = 0, ii = targets.length; i < ii; ++i) {
-      instructions = targetInstructions[i];
-      target = targets[i];
 
-      for (let j = 0, jj = instructions.length; j < jj; ++j) {
-        current = instructions[j];
-        instructionRenderers[current.type](flags, dom, context, renderable, target, current, parts);
-      }
+    for (let i = 0, ii = targets.length; i < ii; ++i) {
+      this.renderInstructions(
+        /* flags        */flags,
+        /* context      */context,
+        /* instructions */targetInstructions[i],
+        /* controller   */controller,
+        /* target       */targets[i],
+        /* parts        */parts,
+      );
     }
 
-    if (host) {
-      const surrogateInstructions = definition.surrogates;
+    if (host !== void 0 && host !== null) {
+      this.renderInstructions(
+        /* flags        */flags,
+        /* context      */context,
+        /* instructions */definition.surrogates,
+        /* controller   */controller,
+        /* target       */host,
+        /* parts        */parts,
+      );
+    }
+  }
 
-      for (let i = 0, ii = surrogateInstructions.length; i < ii; ++i) {
-        current = surrogateInstructions[i];
-        instructionRenderers[current.type](flags, dom, context, renderable, host, current, parts);
-      }
+  public renderInstructions(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    instructions: readonly ITargetedInstruction[],
+    controller: IController,
+    target: unknown,
+    parts: PartialCustomElementDefinitionParts | undefined,
+  ): void {
+    const instructionRenderers = this.instructionRenderers;
+    let current: ITargetedInstruction;
+    for (let i = 0, ii = instructions.length; i < ii; ++i) {
+      current = instructions[i];
+      instructionRenderers[current.type](flags, context, controller, target, current, parts);
     }
   }
 }
@@ -208,22 +214,6 @@ export function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TF
     return parser.parse(srcOrExpr, bindingType) as unknown as Exclude<TFrom, string>;
   }
   return srcOrExpr as Exclude<TFrom, string>;
-}
-
-export function addBinding(renderable: IController, binding: IBinding): void {
-  if (renderable.bindings == void 0) {
-    renderable.bindings = [binding];
-  } else {
-    renderable.bindings.push(binding);
-  }
-}
-
-export function addComponent(renderable: IController, component: IController): void {
-  if (renderable.controllers == void 0) {
-    renderable.controllers = [component];
-  } else {
-    renderable.controllers.push(component);
-  }
 }
 
 export function getTarget(potentialTarget: object): object {
@@ -266,9 +256,8 @@ export function getRefTarget(refHost: INode, refTargetName: string): object {
 export class SetPropertyRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
-    dom: IDOM,
-    context: RenderContext,
-    renderable: IController,
+    context: ICompiledRenderContext,
+    controller: IController,
     target: IController,
     instruction: ISetPropertyInstruction,
   ): void {
@@ -286,33 +275,49 @@ export class SetPropertyRenderer implements IInstructionRenderer {
 export class CustomElementRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
-    dom: IDOM,
-    context: RenderContext,
-    renderable: IController,
+    context: ICompiledRenderContext,
+    controller: IController,
     target: INode,
     instruction: IHydrateElementInstruction,
+    parts: PartialCustomElementDefinitionParts | undefined,
   ): void {
-    const operation = context.beginComponentOperation(renderable, target, instruction, null, null!, target);
+    parts = mergeParts(parts, instruction.parts);
+
+    const factory = context.getComponentFactory(
+      /* parentController */controller,
+      /* host             */target,
+      /* instruction      */instruction,
+      /* viewFactory      */void 0,
+      /* location         */target,
+    );
+
     const key = CustomElement.keyFrom(instruction.res);
-    const component = context.get<object>(key);
-    const instructionRenderers = context.get(IRenderer).instructionRenderers;
-    const childInstructions = instruction.instructions;
+    const component = factory.createComponent(key);
 
     const lifecycle = context.get(ILifecycle);
-    const controller = Controller.forCustomElement(component, lifecycle, target, context, instruction.parts, flags);
-    flags = controller.flags;
+    const childController = Controller.forCustomElement(
+      /* viewModel       */component,
+      /* lifecycle       */lifecycle,
+      /* host            */target,
+      /* parentContainer */context,
+      /* parts           */parts,
+      /* flags           */flags,
+    );
 
-    Metadata.define(key, controller, target);
+    flags = childController.flags;
+    Metadata.define(key, childController, target);
 
-    let current: ITargetedInstruction;
-    for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
-      current = childInstructions[i];
-      instructionRenderers[current.type](flags, dom, context, renderable, controller, current);
-    }
+    context.renderInstructions(
+      /* flags        */flags,
+      /* instructions */instruction.instructions,
+      /* controller   */controller,
+      /* target       */childController,
+      /* parts        */parts,
+    );
 
-    addComponent(renderable, controller);
+    controller.addController(childController);
 
-    operation.dispose();
+    factory.dispose();
   }
 }
 
@@ -321,32 +326,43 @@ export class CustomElementRenderer implements IInstructionRenderer {
 export class CustomAttributeRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
-    dom: IDOM,
-    context: RenderContext,
-    renderable: IController,
+    context: ICompiledRenderContext,
+    controller: IController,
     target: INode,
     instruction: IHydrateAttributeInstruction,
+    parts: PartialCustomElementDefinitionParts | undefined,
   ): void {
-    const operation = context.beginComponentOperation(renderable, target, instruction, null);
+    const factory = context.getComponentFactory(
+      /* parentController */controller,
+      /* host             */target,
+      /* instruction      */instruction,
+      /* viewFactory      */void 0,
+      /* location         */void 0,
+    );
+
     const key = CustomAttribute.keyFrom(instruction.res);
-    const component = context.get<object>(key);
-    const instructionRenderers = context.get(IRenderer).instructionRenderers;
-    const childInstructions = instruction.instructions;
+    const component = factory.createComponent(key);
 
     const lifecycle = context.get(ILifecycle);
-    const controller = Controller.forCustomAttribute(component, lifecycle, flags);
+    const childController = Controller.forCustomAttribute(
+      /* viewModel */component,
+      /* lifecycle */lifecycle,
+      /* flags     */flags,
+    );
 
-    Metadata.define(key, controller, target);
+    Metadata.define(key, childController, target);
 
-    let current: ITargetedInstruction;
-    for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
-      current = childInstructions[i];
-      instructionRenderers[current.type](flags, dom, context, renderable, controller, current);
-    }
+    context.renderInstructions(
+      /* flags        */flags,
+      /* instructions */instruction.instructions,
+      /* controller   */controller,
+      /* target       */childController,
+      /* parts        */parts,
+    );
 
-    addComponent(renderable, controller);
+    controller.addController(childController);
 
-    operation.dispose();
+    factory.dispose();
   }
 }
 
@@ -355,55 +371,53 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
 export class TemplateControllerRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
-    dom: IDOM,
-    parentContext: RenderContext,
-    renderable: IController,
+    parentContext: ICompiledRenderContext,
+    controller: IController,
     target: INode,
     instruction: IHydrateTemplateController,
-    parts?: PartialCustomElementDefinitionParts,
+    parts: PartialCustomElementDefinitionParts | undefined,
   ): void {
-    const definition = CustomElementDefinition.getOrCreate(instruction.def);
-    const context = RenderContext.getOrCreate(definition, parentContext);
-    const factory = context.getViewFactory();
-    const renderLocation = dom.convertToRenderLocation(target);
-    const operation = parentContext.beginComponentOperation(renderable, target, instruction, factory, parts, renderLocation);
+    parts = mergeParts(parts, instruction.parts);
+
+    const viewFactory = getRenderContext(instruction.def, parentContext, parts).getViewFactory();
+    const renderLocation = parentContext.dom.convertToRenderLocation(target);
+
+    const componentFactory = parentContext.getComponentFactory(
+      /* parentController */controller,
+      /* host             */target,
+      /* instruction      */instruction,
+      /* viewFactory      */viewFactory,
+      /* location         */renderLocation,
+    );
+
     const key = CustomAttribute.keyFrom(instruction.res);
-    const component = parentContext.get<object>(key);
-    const instructionRenderers = parentContext.get(IRenderer).instructionRenderers;
-    const childInstructions = instruction.instructions;
-    if (instruction.parts !== void 0) {
-      if (parts === void 0) {
-        // Just assign it, no need to create new variables
-        parts = instruction.parts;
-      } else {
-        // Create a new object because we shouldn't accidentally put child information in the parent part object.
-        // If the parts conflict, the instruction's parts overwrite the passed-in parts because they were declared last.
-        parts = {
-          ...parts,
-          ...instruction.parts,
-        };
-      }
-    }
+    const component = componentFactory.createComponent(key);
 
     const lifecycle = parentContext.get(ILifecycle);
-    const controller = Controller.forCustomAttribute(component, lifecycle, flags);
+    const childController = Controller.forCustomAttribute(
+      /* viewModel */component,
+      /* lifecycle */lifecycle,
+      /* flags     */flags,
+    );
 
-    Metadata.define(key, controller, renderLocation);
+    Metadata.define(key, childController, renderLocation);
 
     if (instruction.link) {
-      const controllers = renderable.controllers!;
+      const controllers = controller.controllers!;
       (component as { link(componentTail: IController): void}).link(controllers[controllers.length - 1]);
     }
 
-    let current: ITargetedInstruction;
-    for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
-      current = childInstructions[i];
-      instructionRenderers[current.type](flags, dom, parentContext, renderable, controller, current);
-    }
+    parentContext.renderInstructions(
+      /* flags        */flags,
+      /* instructions */instruction.instructions,
+      /* controller   */controller,
+      /* target       */childController,
+      /* parts        */parts,
+    );
 
-    addComponent(renderable, controller);
+    controller.addController(childController);
 
-    operation.dispose();
+    componentFactory.dispose();
   }
 }
 
@@ -417,13 +431,12 @@ export class LetElementRenderer implements IInstructionRenderer {
 
   public render(
     flags: LifecycleFlags,
-    dom: IDOM,
-    context: RenderContext,
-    renderable: IController,
+    context: ICompiledRenderContext,
+    controller: IController,
     target: INode,
     instruction: IHydrateLetElementInstruction,
   ): void {
-    dom.remove(target);
+    context.dom.remove(target);
     const childInstructions = instruction.instructions;
     const toBindingContext = instruction.toBindingContext;
 
@@ -438,7 +451,7 @@ export class LetElementRenderer implements IInstructionRenderer {
         expr as unknown as IsBindingBehavior,
         context,
       ) as LetBinding;
-      addBinding(renderable, binding);
+      controller.addBinding(binding);
     }
   }
 }
@@ -453,9 +466,8 @@ export class CallBindingRenderer implements IInstructionRenderer {
 
   public render(
     flags: LifecycleFlags,
-    dom: IDOM,
-    context: RenderContext,
-    renderable: IController,
+    context: ICompiledRenderContext,
+    controller: IController,
     target: IController,
     instruction: ICallBindingInstruction,
   ): void {
@@ -465,7 +477,7 @@ export class CallBindingRenderer implements IInstructionRenderer {
       expr,
       context,
     );
-    addBinding(renderable, binding);
+    controller.addBinding(binding);
   }
 }
 
@@ -478,9 +490,8 @@ export class RefBindingRenderer implements IInstructionRenderer {
 
   public render(
     flags: LifecycleFlags,
-    dom: IDOM,
-    context: RenderContext,
-    renderable: IController,
+    context: ICompiledRenderContext,
+    controller: IController,
     target: INode,
     instruction: IRefBindingInstruction,
   ): void {
@@ -490,7 +501,7 @@ export class RefBindingRenderer implements IInstructionRenderer {
       expr,
       context,
     );
-    addBinding(renderable, binding);
+    controller.addBinding(binding);
   }
 }
 
@@ -504,9 +515,8 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
 
   public render(
     flags: LifecycleFlags,
-    dom: IDOM,
-    context: RenderContext,
-    renderable: IController,
+    context: ICompiledRenderContext,
+    controller: IController,
     target: IController,
     instruction: IInterpolationInstruction,
   ): void {
@@ -525,7 +535,7 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
         context,
       ) as InterpolationBinding;
     }
-    addBinding(renderable, binding);
+    controller.addBinding(binding);
   }
 }
 
@@ -539,9 +549,8 @@ export class PropertyBindingRenderer implements IInstructionRenderer {
 
   public render(
     flags: LifecycleFlags,
-    dom: IDOM,
-    context: RenderContext,
-    renderable: IController,
+    context: ICompiledRenderContext,
+    controller: IController,
     target: IController,
     instruction: IPropertyBindingInstruction,
   ): void {
@@ -551,7 +560,7 @@ export class PropertyBindingRenderer implements IInstructionRenderer {
       expr,
       context,
     );
-    addBinding(renderable, binding);
+    controller.addBinding(binding);
   }
 }
 
@@ -565,9 +574,8 @@ export class IteratorBindingRenderer implements IInstructionRenderer {
 
   public render(
     flags: LifecycleFlags,
-    dom: IDOM,
-    context: RenderContext,
-    renderable: IController,
+    context: ICompiledRenderContext,
+    controller: IController,
     target: IController,
     instruction: IIteratorBindingInstruction,
   ): void {
@@ -577,7 +585,7 @@ export class IteratorBindingRenderer implements IInstructionRenderer {
       expr as unknown as IsBindingBehavior,
       context,
     );
-    addBinding(renderable, binding);
+    controller.addBinding(binding);
   }
 }
 

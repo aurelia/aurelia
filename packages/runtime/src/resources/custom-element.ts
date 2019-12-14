@@ -17,15 +17,11 @@ import {
   fromAnnotationOrDefinitionOrTypeOrDefault,
   Injectable,
   IResolver,
-  isObject,
 } from '@aurelia/kernel';
 import {
   registerAliases,
   ITargetedInstruction,
   HooksDefinition,
-  PartialCustomElementDefinitionParts,
-  IHydrateElementInstruction,
-  IHydrateTemplateController,
 } from '../definitions';
 import {
   IDOM,
@@ -373,25 +369,6 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
     Registration.transient(key, Type).register(container);
     Registration.alias(key, Type).register(container);
     registerAliases(aliases, CustomElement, key, container);
-  }
-
-  public getParts(inheritedParts?: PartialCustomElementDefinitionParts): PartialCustomElementDefinitionParts | undefined {
-    const instructions = this.instructions;
-    if (instructions.length > 0 && instructions[0].length > 0) {
-      const ownParts = (instructions[0][0] as IHydrateElementInstruction | IHydrateTemplateController).parts;
-      if (isObject(ownParts)) {
-        if (inheritedParts === void 0) {
-          return ownParts;
-        }
-
-        return {
-          ...inheritedParts,
-          ...ownParts,
-        };
-      }
-    }
-
-    return inheritedParts;
   }
 }
 

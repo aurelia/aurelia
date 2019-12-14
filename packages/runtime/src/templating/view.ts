@@ -1,4 +1,4 @@
-import { Constructable, ConstructableClass, DI, IContainer, IResolver, PLATFORM, Registration, Metadata, Protocol } from '@aurelia/kernel';
+import { Constructable, ConstructableClass, DI, IContainer, IResolver, Registration, Metadata, Protocol } from '@aurelia/kernel';
 import { INode, INodeSequence } from '../dom';
 import { LifecycleFlags, State } from '../flags';
 import {
@@ -10,23 +10,23 @@ import {
 import { Scope } from '../observation/binding-context';
 import { CustomElement, PartialCustomElementDefinition, CustomElementDefinition, IElementProjector } from '../resources/custom-element';
 import { Controller } from './controller';
-import { PartialCustomElementDefinitionParts } from '../definitions';
-import { RenderContext } from './render-context';
+import { PartialCustomElementDefinitionParts, mergeParts } from '../definitions';
+import { IRenderContext, getRenderContext } from './render-context';
 import { MaybePromiseOrTask } from '../lifecycle-task';
 
 export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
   public static maxCacheSize: number = 0xFFFF;
 
   public isCaching: boolean = false;
-  public parts: PartialCustomElementDefinitionParts = PLATFORM.emptyObject;
 
   private cache: IController<T>[] = null!;
   private cacheSize: number = -1;
 
   public constructor(
     public name: string,
-    private readonly context: RenderContext,
+    private readonly context: IRenderContext,
     private readonly lifecycle: ILifecycle,
+    public readonly parts: PartialCustomElementDefinitionParts | undefined,
   ) {}
 
   public setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {
@@ -79,10 +79,18 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     return controller;
   }
 
-  public addParts(parts: PartialCustomElementDefinitionParts): void {
-    if (Object.keys(parts).length > 0) {
-      this.parts = { ...this.parts, ...parts };
+  public resolve(requestor: IContainer, parts?: PartialCustomElementDefinitionParts): IViewFactory<T> {
+    parts = mergeParts(this.parts, parts);
+    if (parts === void 0) {
+      return this;
     }
+
+    const part = parts[this.name];
+    if (part === void 0) {
+      return this;
+    }
+
+    return getRenderContext<T>(part, requestor, parts).getViewFactory(this.name);
   }
 }
 

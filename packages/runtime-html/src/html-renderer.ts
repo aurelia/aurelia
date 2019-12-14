@@ -1,21 +1,19 @@
 import {
-  addBinding,
   BindingMode,
   BindingType,
   ensureExpression,
   IController,
-  IDOM,
   IExpressionParser,
   IInstructionRenderer,
   instructionRenderer,
   InterpolationBinding,
   IObserverLocator,
-  RenderContext,
+  ICompiledRenderContext,
   LifecycleFlags,
   MultiInterpolationBinding,
   PropertyBinding,
   applyBindingBehavior,
-  IsBindingBehavior
+  IsBindingBehavior,
 } from '@aurelia/runtime';
 import { AttributeBinding } from './binding/attribute';
 import { Listener } from './binding/listener';
@@ -39,10 +37,16 @@ export class TextBindingRenderer implements IInstructionRenderer {
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
 
-  public render(flags: LifecycleFlags, dom: IDOM, context: RenderContext, renderable: IController, target: ChildNode, instruction: ITextBindingInstruction): void {
+  public render(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    controller: IController,
+    target: ChildNode,
+    instruction: ITextBindingInstruction,
+  ): void {
     const next = target.nextSibling;
-    if (dom.isMarker(target)) {
-      dom.remove(target);
+    if (context.dom.isMarker(target)) {
+      context.dom.remove(target);
     }
     let binding: MultiInterpolationBinding | InterpolationBinding;
     const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation);
@@ -59,7 +63,7 @@ export class TextBindingRenderer implements IInstructionRenderer {
         context,
       ) as InterpolationBinding;
     }
-    addBinding(renderable, binding);
+    controller.addBinding(binding);
   }
 }
 
@@ -71,36 +75,60 @@ export class ListenerBindingRenderer implements IInstructionRenderer {
     @IEventManager private readonly eventManager: IEventManager,
   ) {}
 
-  public render(flags: LifecycleFlags, dom: IDOM, context: RenderContext, renderable: IController, target: HTMLElement, instruction: IListenerBindingInstruction): void {
+  public render(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    controller: IController,
+    target: HTMLElement,
+    instruction: IListenerBindingInstruction,
+  ): void {
     // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsEventCommand | (instruction.strategy + BindingType.DelegationStrategyDelta));
     const binding = applyBindingBehavior(
-      new Listener(dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context),
+      new Listener(context.dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context),
       expr,
       context,
     );
-    addBinding(renderable, binding);
+    controller.addBinding(binding);
   }
 }
 
 @instructionRenderer(HTMLTargetedInstructionType.setAttribute)
 /** @internal */
 export class SetAttributeRenderer implements IInstructionRenderer {
-  public render(flags: LifecycleFlags, dom: IDOM, context: RenderContext, renderable: IController, target: HTMLElement, instruction: ISetAttributeInstruction): void {
+  public render(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    controller: IController,
+    target: HTMLElement,
+    instruction: ISetAttributeInstruction,
+  ): void {
     target.setAttribute(instruction.to, instruction.value);
   }
 }
 
 @instructionRenderer(HTMLTargetedInstructionType.setClassAttribute)
 export class SetClassAttributeRenderer implements IInstructionRenderer {
-  public render(flags: LifecycleFlags, dom: IDOM, context: RenderContext, renderable: IController, target: HTMLElement, instruction: ISetClassAttributeInstruction): void {
+  public render(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    controller: IController,
+    target: HTMLElement,
+    instruction: ISetClassAttributeInstruction,
+  ): void {
     addClasses(target.classList, instruction.value);
   }
 }
 
 @instructionRenderer(HTMLTargetedInstructionType.setStyleAttribute)
 export class SetStyleAttributeRenderer implements IInstructionRenderer {
-  public render(flags: LifecycleFlags, dom: IDOM, context: RenderContext, renderable: IController, target: HTMLElement, instruction: ISetStyleAttributeInstruction): void {
+  public render(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    controller: IController,
+    target: HTMLElement,
+    instruction: ISetStyleAttributeInstruction,
+  ): void {
     target.style.cssText += instruction.value;
   }
 }
@@ -113,14 +141,20 @@ export class StylePropertyBindingRenderer implements IInstructionRenderer {
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
 
-  public render(flags: LifecycleFlags, dom: IDOM, context: RenderContext, renderable: IController, target: HTMLElement, instruction: IStylePropertyBindingInstruction): void {
+  public render(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    controller: IController,
+    target: HTMLElement,
+    instruction: IStylePropertyBindingInstruction,
+  ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | BindingMode.toView);
     const binding = applyBindingBehavior(
       new PropertyBinding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, context),
       expr,
       context,
     );
-    addBinding(renderable, binding);
+    controller.addBinding(binding);
   }
 }
 
@@ -132,7 +166,13 @@ export class AttributeBindingRenderer implements IInstructionRenderer {
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
 
-  public render(flags: LifecycleFlags, dom: IDOM, context: RenderContext, renderable: IController, target: HTMLElement, instruction: IAttributeBindingInstruction): void {
+  public render(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    controller: IController,
+    target: HTMLElement,
+    instruction: IAttributeBindingInstruction,
+  ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | BindingMode.toView);
     const binding = applyBindingBehavior(
       new AttributeBinding(
@@ -147,7 +187,7 @@ export class AttributeBindingRenderer implements IInstructionRenderer {
       expr,
       context,
     );
-    addBinding(renderable, binding);
+    controller.addBinding(binding);
   }
 }
 

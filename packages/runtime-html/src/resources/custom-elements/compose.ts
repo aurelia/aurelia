@@ -22,7 +22,7 @@ import {
   bindable,
   customElement,
   MountStrategy,
-  RenderContext,
+  getRenderContext,
 } from '@aurelia/runtime';
 import {
   createElement,
@@ -236,7 +236,7 @@ export class Compose<T extends INode = Node> {
 
     if ('template' in subject) { // Raw Template Definition
       const definition = CustomElementDefinition.getOrCreate(subject);
-      return RenderContext.getOrCreate(definition, this.controller.context!).getViewFactory().create(flags) as IController<T>;
+      return getRenderContext(definition, this.controller.context!, void 0).getViewFactory().create(flags) as IController<T>;
     }
 
     // Constructable (Custom Element Constructor)

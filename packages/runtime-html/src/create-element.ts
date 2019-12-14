@@ -14,7 +14,8 @@ import {
   IViewFactory,
   TargetedInstructionType,
   CustomElementDefinition,
-  RenderContext
+  IRenderContext,
+  getRenderContext,
 } from '@aurelia/runtime';
 import {
   HTMLTargetedInstruction,
@@ -63,8 +64,8 @@ export class RenderPlan<T extends INode = Node> {
     return this.lazyDefinition;
   }
 
-  public getContext(parentContainer: IContainer): RenderContext {
-    return RenderContext.getOrCreate(this.definition, parentContainer);
+  public getContext(parentContainer: IContainer): IRenderContext {
+    return getRenderContext(this.definition, parentContainer, void 0);
   }
 
   public createView(parentContainer: IContainer): IController {

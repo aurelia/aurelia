@@ -7,8 +7,7 @@ import {
   IObserverLocator,
   view,
   customElement,
-  RenderContext,
-  CustomElementDefinition,
+  getRenderContext,
 } from '@aurelia/runtime';
 import { RenderPlan } from '@aurelia/runtime-html';
 import { eachCartesianJoin, TestContext, trimFull, assert } from '@aurelia/testing';
@@ -66,12 +65,12 @@ describe(spec, function () {
     },
     {
       t: '4',
-      createSubject: ctx => RenderContext.getOrCreate(CustomElementDefinition.create({ name: 'cmp', template: `<template>Hello!</template>` }), ctx.container).getViewFactory(),
+      createSubject: ctx => getRenderContext({ name: 'cmp', template: `<template>Hello!</template>` }, ctx.container, void 0).getViewFactory(),
       expectedText: 'Hello!'
     },
     {
       t: '5',
-      createSubject: ctx => RenderContext.getOrCreate(CustomElementDefinition.create({ name: 'cmp', template: `<template>Hello!</template>` }), ctx.container).getViewFactory().create(),
+      createSubject: ctx => getRenderContext({ name: 'cmp', template: `<template>Hello!</template>` }, ctx.container, void 0).getViewFactory().create(),
       expectedText: 'Hello!'
     },
     {

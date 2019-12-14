@@ -1,4 +1,4 @@
-import { DI, Registration, RuntimeCompilationResources } from '@aurelia/kernel';
+import { DI, Registration } from '@aurelia/kernel';
 import { Aurelia, Controller, CustomAttribute, CustomElement, INode, ILifecycle, IViewModel } from '@aurelia/runtime';
 import {
   AdoptedStyleSheetsStyles,
@@ -11,6 +11,7 @@ import {
   IShadowDOMGlobalStyles
 } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
+import { ResourceModel } from '@aurelia/jit';
 
 describe('Styles', function () {
   async function startApp(configure: (au: Aurelia) => void) {
@@ -99,11 +100,11 @@ describe('Styles', function () {
 
       const childContainer = parentContainer.createChild();
 
-      const parentResources = new RuntimeCompilationResources(parentContainer);
-      const childResources = new RuntimeCompilationResources(childContainer);
+      const parentResources = new ResourceModel(parentContainer);
+      const childResources = new ResourceModel(childContainer);
 
-      const fromParent = parentResources.find(CustomAttribute, 'class');
-      const fromChild = childResources.find(CustomAttribute, 'class');
+      const fromParent = parentResources['find'](CustomAttribute, 'class');
+      const fromChild = childResources['find'](CustomAttribute, 'class');
 
       assert.equal(fromParent.name, 'class');
       assert.equal(fromChild, null);
@@ -216,7 +217,7 @@ describe('Styles', function () {
       );
 
       const component = new FooBar();
-      const controller = Controller.forCustomElement(component as IViewModel<HTMLElement>, ctx.container.get(ILifecycle), host, ctx.container);
+      const controller = Controller.forCustomElement(component as IViewModel<HTMLElement>, ctx.container.get(ILifecycle), host, ctx.container, void 0);
 
       const seq = { appendTo() { return; } };
       const projector = controller.projector;

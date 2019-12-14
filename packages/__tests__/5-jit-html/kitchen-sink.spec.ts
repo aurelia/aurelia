@@ -3,7 +3,6 @@ import {
   IAttrSyntaxTransformer,
   TemplateBinder
 } from '@aurelia/jit-html';
-import { RuntimeCompilationResources } from '@aurelia/kernel';
 import {
   Aurelia,
   CustomElement,
@@ -143,7 +142,7 @@ describe('xml node compiler tests', function () {
 
       const binder = new TemplateBinder(
         ctx.dom,
-        new ResourceModel(new RuntimeCompilationResources(ctx.container)),
+        new ResourceModel(ctx.container),
         ctx.container.get(IAttributeParser),
         ctx.container.get(IExpressionParser),
         ctx.container.get(IAttrSyntaxTransformer)

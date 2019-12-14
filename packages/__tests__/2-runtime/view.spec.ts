@@ -68,7 +68,7 @@ describe(`ViewFactory`, function () {
     eachCartesianJoin(inputs, ([text1, doNotOverride1], [text2, size2, isPositive2], [text3, doNotOverride3], [text4, size4, isPositive4]) => {
       it(`setCacheSize(${text2},${text1}) -> tryReturnToCache -> create x2 -> setCacheSize(${text4},${text3}) -> tryReturnToCache -> create x2`, function () {
         const template = new StubTemplate();
-        const sut = new ViewFactory(null, template as any, DI.createContainer().get(ILifecycle));
+        const sut = new ViewFactory(null, template as any, DI.createContainer().get(ILifecycle), void 0);
         const view1 = new StubView();
         const view2 = new StubView();
 

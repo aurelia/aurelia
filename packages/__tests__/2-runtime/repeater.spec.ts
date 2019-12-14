@@ -16,9 +16,9 @@ import {
   ViewFactory,
   Controller,
   IScheduler,
-  RenderContext,
   CustomElementDefinition,
   ToViewBindingInstruction,
+  getRenderContext,
 } from '@aurelia/runtime';
 import {
   AuDOMConfiguration,
@@ -582,7 +582,7 @@ describe(`Repeat`, function () {
         const location = AuNode.createRenderLocation();
         const host = AuNode.createHost().appendChild(location.$start).appendChild(location);
 
-        const itemContext = RenderContext.getOrCreate(
+        const itemContext = getRenderContext(
           CustomElementDefinition.create({
             name: void 0,
             template: AuNode.createText().makeTarget(),
@@ -594,9 +594,10 @@ describe(`Repeat`, function () {
             needsCompile: false,
           }),
           container,
+          void 0,
         );
 
-        const itemFactory = new ViewFactory<AuNode>(`item-view`, itemContext, lifecycle);
+        const itemFactory = new ViewFactory<AuNode>(`item-view`, itemContext, lifecycle, void 0);
 
         const binding: PropertyBinding = {
           target: null,

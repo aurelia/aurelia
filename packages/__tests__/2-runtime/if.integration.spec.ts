@@ -13,7 +13,7 @@ import {
   Controller,
   CustomElementDefinition,
   ToViewBindingInstruction,
-  RenderContext
+  getRenderContext,
 } from '@aurelia/runtime';
 import {
   AuDOMConfiguration,
@@ -157,7 +157,7 @@ describe(`If/Else`, function () {
         const location2 = AuNode.createRenderLocation();
         const host = AuNode.createHost().appendChild(location.$start).appendChild(location).appendChild(location2.$start).appendChild(location2);
 
-        const ifContext = RenderContext.getOrCreate(
+        const ifContext = getRenderContext(
           CustomElementDefinition.create({
             name: void 0,
             template: AuNode.createText().makeTarget(),
@@ -169,8 +169,9 @@ describe(`If/Else`, function () {
             needsCompile: false,
           }),
           container,
+          void 0,
         );
-        const elseContext = RenderContext.getOrCreate(
+        const elseContext = getRenderContext(
           CustomElementDefinition.create({
             name: void 0,
             template: AuNode.createText().makeTarget(),
@@ -182,10 +183,11 @@ describe(`If/Else`, function () {
             needsCompile: false,
           }),
           container,
+          void 0,
         );
 
-        const ifFactory = new ViewFactory<AuNode>('if-view', ifContext, lifecycle);
-        const elseFactory = new ViewFactory<AuNode>('else-view', elseContext, lifecycle);
+        const ifFactory = new ViewFactory<AuNode>('if-view', ifContext, lifecycle, void 0);
+        const elseFactory = new ViewFactory<AuNode>('else-view', elseContext, lifecycle, void 0);
         let sut: If<AuNode>;
         let elseSut: Else<AuNode>;
         if (proxies) {

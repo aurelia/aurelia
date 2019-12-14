@@ -3,11 +3,8 @@ import { parseExpression } from '@aurelia/jit';
 import {
   Constructable,
   IContainer,
-  IRegistry,
-  IResourceDescriptions,
   kebabCase,
   PLATFORM,
-  RuntimeCompilationResources
 } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
@@ -31,9 +28,7 @@ import {
   PrimitiveLiteralExpression,
   TargetedInstructionType as TT,
   IHydrateLetElementInstruction,
-  ITargetedInstruction,
   PartialCustomAttributeDefinition,
-  CustomElementDefinition,
   HooksDefinition
 } from '@aurelia/runtime';
 import { HTMLTargetedInstructionType as HTT } from '@aurelia/runtime-html';
@@ -54,7 +49,6 @@ export function createAttribute(name: string, value: string): Attr {
 describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
   let ctx: HTMLTestContext;
   let sut: ITemplateCompiler;
-  let resources: IResourceDescriptions;
   let container: IContainer;
   let dom: IDOM;
 
@@ -64,7 +58,6 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
     container = ctx.container;
     sut = ctx.templateCompiler;
     container.registerResolver<string>(CustomAttribute.keyFrom('foo'), { getFactory: () => ({ Type: { description: {} } }) } as any);
-    resources = new RuntimeCompilationResources(container);
     dom = ctx.dom;
   });
 
@@ -399,7 +392,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
     function compileWith(markup: string | Element, extraResources: any[] = []) {
       extraResources.forEach(e => container.register(e));
       const templateDefinition: PartialCustomElementDefinition = { template: markup, instructions: [], surrogates: [] } as unknown as PartialCustomElementDefinition;
-      return sut.compile(dom, templateDefinition, resources);
+      return sut.compile(templateDefinition, container);
     }
 
     function verifyInstructions(actual: readonly any[], expectation: IExpectedInstruction[], type?: string) {
@@ -707,9 +700,7 @@ describe(`TemplateCompiler - combinations`, function () {
     const container = ctx.container;
     container.register(...globals);
     const sut = ctx.templateCompiler;
-    const dom = ctx.dom;
-    const resources = new RuntimeCompilationResources(container);
-    return { container, dom, sut, resources };
+    return { container, sut };
   }
 
   describe('plain attributes', function () {
@@ -756,9 +747,9 @@ describe(`TemplateCompiler - combinations`, function () {
           scopeParts: [],
         };
 
-        const { sut, resources, dom } = setup(ctx);
+        const { sut, container } = setup(ctx);
 
-        const actual = sut.compile(dom, input, resources);
+        const actual = sut.compile(input, container);
 
         verifyBindingInstructionsEqual(actual, expected);
       });
@@ -829,9 +820,9 @@ describe(`TemplateCompiler - combinations`, function () {
         };
 
         const $def = CustomAttribute.define(def, ctor);
-        const { sut, resources, dom  } = setup(ctx, $def);
+        const { sut, container } = setup(ctx, $def);
 
-        const actual = sut.compile(dom, input, resources);
+        const actual = sut.compile(input, container);
 
         verifyBindingInstructionsEqual(actual, expected);
       });
@@ -877,7 +868,7 @@ describe(`TemplateCompiler - combinations`, function () {
     ],                       (ctx, pdName, pdProp, bindables, [cmd, attrValue], [bindableDescription, attrName]) => {
       it(`div - pdName=${pdName}  pdProp=${pdProp}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, function () {
 
-        const { sut, resources, dom  } = setup(
+        const { sut, container } = setup(
           ctx,
           CustomAttribute.define({ name: 'asdf', bindables }, class FooBar {})
         );
@@ -889,7 +880,7 @@ describe(`TemplateCompiler - combinations`, function () {
         if (attrName.endsWith('.qux')) {
           let e;
           try {
-            sut.compile(dom, input, resources);
+            sut.compile(input, container);
           } catch (err) {
             // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
             // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
@@ -899,7 +890,7 @@ describe(`TemplateCompiler - combinations`, function () {
         } else {
           // enableTracing();
           // Tracer.enableLiveLogging(SymbolTraceWriter);
-          const actual = sut.compile(dom, input, resources);
+          const actual = sut.compile(input, container);
           // console.log('\n'+stringifyTemplateDefinition(actual, 0));
           // disableTracing();
           try {
@@ -956,7 +947,7 @@ describe(`TemplateCompiler - combinations`, function () {
 
       it(`${input.template}`, function () {
 
-        const { sut, resources, dom } = setup(
+        const { sut, container } = setup(
           ctx,
           CustomAttribute.define({ name: 'foo', isTemplateController: true }, class Foo {}),
           CustomAttribute.define({ name: 'bar', isTemplateController: true }, class Bar {}),
@@ -964,7 +955,7 @@ describe(`TemplateCompiler - combinations`, function () {
           CustomAttribute.define({ name: 'qux', isTemplateController: true }, class Qux {})
         );
 
-        const actual = sut.compile(dom, input, resources);
+        const actual = sut.compile(input, container);
         try {
           verifyBindingInstructionsEqual(actual, output);
         } catch (err) {
@@ -1017,7 +1008,7 @@ describe(`TemplateCompiler - combinations`, function () {
 
       it(`${input.template}`, function () {
 
-        const { sut, resources, dom } = setup(
+        const { sut, container } = setup(
           ctx,
           CustomAttribute.define({ name: 'foo',  isTemplateController: true }, class Foo {}),
           CustomAttribute.define({ name: 'bar',  isTemplateController: true }, class Bar {}),
@@ -1026,7 +1017,7 @@ describe(`TemplateCompiler - combinations`, function () {
           CustomAttribute.define({ name: 'quux', isTemplateController: true }, class Quux {})
         );
 
-        const actual = sut.compile(dom, input, resources);
+        const actual = sut.compile(input, container);
         try {
           verifyBindingInstructionsEqual(actual, output);
         } catch (err) {
@@ -1078,7 +1069,7 @@ describe(`TemplateCompiler - combinations`, function () {
 
       it(`${input.template}`, function () {
 
-        const { sut, resources, dom } = setup(
+        const { sut, container } = setup(
           ctx,
           CustomAttribute.define({ name: 'foo', isTemplateController: true }, class Foo {}),
           CustomAttribute.define({ name: 'bar', isTemplateController: true }, class Bar {}),
@@ -1094,7 +1085,7 @@ describe(`TemplateCompiler - combinations`, function () {
         };
         // enableTracing();
         // Tracer.enableLiveLogging(SymbolTraceWriter);
-        const actual = sut.compile(dom, input, resources);
+        const actual = sut.compile(input, container);
         // console.log('\n'+stringifyTemplateDefinition(actual, 0));
         // disableTracing();
         try {
@@ -1152,7 +1143,7 @@ describe(`TemplateCompiler - combinations`, function () {
     ],                       (ctx, pdName, pdProp, pdAttr, bindables, [cmd, attrValue], [bindableDescription, attrName]) => {
       it(`customElement - pdName=${pdName}  pdProp=${pdProp}  pdAttr=${pdAttr}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, function () {
 
-        const { sut, resources, dom } = setup(
+        const { sut, container } = setup(
           ctx,
           CustomElement.define({ name: 'foobar', bindables }, class FooBar {})
         );
@@ -1167,7 +1158,7 @@ describe(`TemplateCompiler - combinations`, function () {
         if (attrName.endsWith('.qux')) {
           let e;
           try {
-            sut.compile(dom, input, resources);
+            sut.compile(input, container);
           } catch (err) {
             // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
             // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
@@ -1177,7 +1168,7 @@ describe(`TemplateCompiler - combinations`, function () {
         } else {
           // enableTracing();
           // Tracer.enableLiveLogging(SymbolTraceWriter);
-          const actual = sut.compile(dom, input, resources);
+          const actual = sut.compile(input, container);
           // console.log('\n'+stringifyTemplateDefinition(actual, 0));
           // disableTracing();
           try {
@@ -1216,7 +1207,7 @@ describe(`TemplateCompiler - combinations`, function () {
     ],                       (ctx, [input, output]) => {
       it(`${input.template}`, function () {
 
-        const { sut, resources, dom } = setup(
+        const { sut, container } = setup(
           ctx,
           CustomElement.define({ name: 'foo' }, class Foo {}),
           CustomElement.define({ name: 'bar' }, class Bar {}),
@@ -1225,7 +1216,7 @@ describe(`TemplateCompiler - combinations`, function () {
 
         // enableTracing();
         // Tracer.enableLiveLogging(SymbolTraceWriter);
-        const actual = sut.compile(dom, input, resources);
+        const actual = sut.compile(input, container);
         // console.log('\n'+stringifyTemplateDefinition(actual, 0));
         // disableTracing();
         try {

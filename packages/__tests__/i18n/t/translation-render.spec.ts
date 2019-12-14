@@ -2,7 +2,7 @@ import { I18nConfiguration, TranslationAttributePattern, TranslationBindAttribut
 import { AttributePattern, AttributePatternDefinition, AttrSyntax, BindingCommand, IAttributePattern, PlainAttributeSymbol } from '@aurelia/jit';
 import { AttrBindingCommand } from '@aurelia/jit-html';
 import { Constructable, DI } from '@aurelia/kernel';
-import { AnyBindingExpression, BindingType, ICallBindingInstruction, IController, IExpressionParser, IInstructionRenderer, IObserverLocator, LifecycleFlags, RuntimeConfiguration, RenderContext } from '@aurelia/runtime';
+import { AnyBindingExpression, BindingType, ICallBindingInstruction, IController, IExpressionParser, IInstructionRenderer, IObserverLocator, LifecycleFlags, RuntimeConfiguration, ICompiledRenderContext } from '@aurelia/runtime';
 import { DOM } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
@@ -112,11 +112,12 @@ describe('TranslationBindingRenderer', function () {
     const callBindingInstruction: ICallBindingInstruction = { from } as unknown as ICallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
-      DOM,
-      container as unknown as RenderContext,
+      container as unknown as ICompiledRenderContext,
       renderable,
       DOM.createElement('span'),
-      callBindingInstruction);
+      callBindingInstruction,
+      void 0,
+    );
 
     assert.instanceOf(renderable.bindings[0], TranslationBinding);
   });
@@ -133,11 +134,12 @@ describe('TranslationBindingRenderer', function () {
     const callBindingInstruction: ICallBindingInstruction = { from } as unknown as ICallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
-      DOM,
-      container as unknown as RenderContext,
+      container as unknown as ICompiledRenderContext,
       renderable,
       targetElement,
-      callBindingInstruction);
+      callBindingInstruction,
+      void 0,
+    );
 
     assert.equal(binding.expr, from);
   });
@@ -253,11 +255,12 @@ describe('TranslationBindBindingRenderer', function () {
     const callBindingInstruction: ICallBindingInstruction = { from, to: '.bind' } as unknown as ICallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
-      DOM,
-      container as unknown as RenderContext,
+      container as unknown as ICompiledRenderContext,
       renderable,
       DOM.createElement('span'),
-      callBindingInstruction);
+      callBindingInstruction,
+      void 0,
+    );
 
     assert.instanceOf(renderable.bindings[0], TranslationBinding);
   });
@@ -272,11 +275,12 @@ describe('TranslationBindBindingRenderer', function () {
     const callBindingInstruction: ICallBindingInstruction = { from, to: '.bind' } as unknown as ICallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
-      DOM,
-      container as unknown as RenderContext,
+      container as unknown as ICompiledRenderContext,
       renderable,
       DOM.createElement('span'),
-      callBindingInstruction);
+      callBindingInstruction,
+      void 0,
+    );
 
     assert.instanceOf(renderable.bindings[0], TranslationBinding);
   });
@@ -293,11 +297,12 @@ describe('TranslationBindBindingRenderer', function () {
     const callBindingInstruction: ICallBindingInstruction = { from, to: '.bind' } as unknown as ICallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
-      DOM,
-      container as unknown as RenderContext,
+      container as unknown as ICompiledRenderContext,
       renderable,
       targetElement,
-      callBindingInstruction);
+      callBindingInstruction,
+      void 0,
+    );
 
     assert.equal(binding.expr, from);
   });

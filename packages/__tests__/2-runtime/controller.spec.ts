@@ -211,7 +211,7 @@ describe.skip('controller', function () {
 
       const viewModel = container.get(ViewModel);
 
-      const sut = Controller.forCustomElement(viewModel, lifecycle, host, container);
+      const sut = Controller.forCustomElement(viewModel, lifecycle, host, container, void 0);
 
       const expectedCalls = new CallCollection();
 
@@ -353,7 +353,7 @@ describe.skip('controller', function () {
 
       const viewModel = container.get(ViewModel);
 
-      const sut = Controller.forCustomElement(viewModel, lifecycle, host, container);
+      const sut = Controller.forCustomElement(viewModel, lifecycle, host, container, void 0);
 
       const expectedCalls = new CallCollection();
 
@@ -755,7 +755,7 @@ describe.skip('controller', function () {
       const viewModel = container.get(ViewModel);
       viewModel['msg'] = 'hi';
 
-      const sut = Controller.forCustomElement(viewModel, lifecycle, host, container);
+      const sut = Controller.forCustomElement(viewModel, lifecycle, host, container, void 0);
 
       const expectedCalls = new CallCollection();
 

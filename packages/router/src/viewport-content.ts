@@ -1,5 +1,5 @@
 import { IContainer, Reporter } from '@aurelia/kernel';
-import { Controller, IController, INode, LifecycleFlags, ILifecycle, ILifecycleTask, LifecycleTask, ContinuationTask } from '@aurelia/runtime';
+import { Controller, IController, INode, LifecycleFlags, ILifecycle } from '@aurelia/runtime';
 import { INavigatorInstruction, IRouteableComponent, RouteableComponentType, ReentryBehavior } from './interfaces';
 import { mergeParameters } from './parser';
 import { Viewport } from './viewport';
@@ -19,7 +19,6 @@ export class ViewportContent {
   public fromCache: boolean = false;
   public fromHistory: boolean = false;
   public reentry: boolean = false;
-  private task: ILifecycleTask = LifecycleTask.done;
 
   private taggedNodes: Element[] = [];
 
@@ -193,31 +192,26 @@ export class ViewportContent {
     this.taggedNodes = [];
   }
 
-  public initializeComponent(): ILifecycleTask {
-    if (this.contentStatus === ContentStatus.loaded) {
-      const controller = this.content.componentInstance!.$controller!;
-      this.task = new ContinuationTask(
-        new ContinuationTask(this.task, controller.bind, controller, LifecycleFlags.fromStartTask | LifecycleFlags.fromBind),
-        () => {
-          this.contentStatus = ContentStatus.initialized;
-        },
-        void 0,
-      );
+  public initializeComponent(): void {
+    if (this.contentStatus !== ContentStatus.loaded) {
+      return;
     }
-    return this.task;
+    // Don't initialize cached content or instantiated history content
+    // if (!this.fromCache || !this.fromHistory) {
+    ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
+    // }
+    this.contentStatus = ContentStatus.initialized;
   }
 
-  public terminateComponent(stateful: boolean = false): ILifecycleTask {
-    if (this.contentStatus === ContentStatus.initialized) {
-      this.task = new ContinuationTask(
-        this.content.componentInstance!.$controller!.unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind),
-        () => {
-          this.contentStatus = ContentStatus.loaded;
-        },
-        void 0,
-      );
+  public async terminateComponent(stateful: boolean = false): Promise<void> {
+    if (this.contentStatus !== ContentStatus.initialized) {
+      return;
     }
-    return this.task;
+    // Don't terminate cached content
+    // if (!stateful) {
+    await ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind).wait();
+    // }
+    this.contentStatus = ContentStatus.loaded;
   }
 
   public addComponent(element: Element): void {

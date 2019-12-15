@@ -12,6 +12,34 @@ import {
   AccessThisExpression,
 } from '@aurelia/runtime';
 
+interface ValidationRuleAlias {
+  name: string;
+  defaultMessage?: string;
+}
+interface ValidationRuleDefinition {
+  aliases: ValidationRuleAlias[];
+}
+
+/* @internal */
+const ValidationRule = Object.freeze({
+  aliasKey: Protocol.annotation.keyFor('validation-rule-alias-message'),
+  define<TRule extends BaseValidationRule>(target: Constructable<TRule>, definition: ValidationRuleDefinition): Constructable<TRule> {
+    ValidationRule.setDefaultMessage(target, definition);
+    return target;
+  },
+  setDefaultMessage<TRule extends BaseValidationRule>(target: Constructable<TRule> | TRule, { aliases }: ValidationRuleDefinition) {
+    Metadata.define(ValidationRule.aliasKey, aliases, target instanceof Function ? target.prototype : target);
+  },
+  getDefaultMessages<TRule extends BaseValidationRule>(rule: Constructable<TRule> | TRule): ValidationRuleAlias[] {
+    return Metadata.get(this.aliasKey, rule instanceof Function ? rule.prototype : rule);
+  }
+});
+
+export interface ICustomMessage<T extends BaseValidationRule = BaseValidationRule> {
+  rule: new (...args: any[]) => T;
+  aliases: ValidationRuleAlias[];
+}
+
 export interface IValidationMessageProvider {
   getMessage(rule: BaseValidationRule): IInterpolationExpression | PrimitiveLiteralExpression;
   parseMessage(message: string): IInterpolationExpression | PrimitiveLiteralExpression;
@@ -19,8 +47,9 @@ export interface IValidationMessageProvider {
 }
 
 export const IValidationMessageProvider = DI.createInterface<IValidationMessageProvider>("IValidationMessageProvider").noDefault();
+
 /* @internal */
-export const ICustomMessages = DI.createInterface("ICustomMessages").noDefault();
+export const ICustomMessages = DI.createInterface<ICustomMessage[]>("ICustomMessages").noDefault();
 
 const contextualProperties: Readonly<Set<string>> = new Set([
   "displayName",
@@ -59,8 +88,12 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
   public constructor(
     @IExpressionParser public parser: IExpressionParser,
     @ILogger logger: ILogger,
+    @ICustomMessages customMessages: ICustomMessage[],
   ) {
     this.logger = logger.scopeTo(ValidationMessageProvider.name);
+    for (const { rule, aliases } of customMessages) {
+      ValidationRule.setDefaultMessage(rule, { aliases });
+    }
   }
 
   /**
@@ -169,27 +202,6 @@ export const validationRules = Object.freeze({
 
 export type ValidationRuleExecutionPredicate = (object?: IValidateable) => boolean;
 
-interface ValidationRuleAlias {
-  name: string;
-  defaultMessage?: string;
-}
-interface ValidationRuleDefinition {
-  aliases: ValidationRuleAlias[];
-}
-/* @internal */
-const ValidationRule = Object.freeze({
-  aliasKey: Protocol.annotation.keyFor('validation-rule-alias-message'),
-  define<TRule extends BaseValidationRule>(target: Constructable<TRule>, definition: ValidationRuleDefinition): Constructable<TRule> {
-    ValidationRule.setDefaultMessage(target, definition);
-    return target;
-  },
-  setDefaultMessage<TRule extends BaseValidationRule>(target: Constructable<TRule> | TRule, { aliases }: ValidationRuleDefinition) {
-    Metadata.define(ValidationRule.aliasKey, aliases, target instanceof Function ? target.prototype : target);
-  },
-  getDefaultMessages<TRule extends BaseValidationRule>(rule: Constructable<TRule> | TRule): ValidationRuleAlias[] {
-    return Metadata.get(this.aliasKey, rule instanceof Function ? rule.prototype : rule);
-  }
-});
 export function validationRule(definition: ValidationRuleDefinition) {
   return function <TRule extends BaseValidationRule>(target: Constructable<TRule>) {
     return ValidationRule.define(target, definition);
@@ -345,7 +357,6 @@ export class RangeRule extends BaseValidationRule<number> {
   ]
 })
 export class EqualsRule extends BaseValidationRule {
-  protected _messageKey: string = 'equals';
   public constructor(
     messageProvider: IValidationMessageProvider,
     private readonly expectedValue: unknown,

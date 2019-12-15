@@ -13,7 +13,8 @@ import {
   RequiredRule,
   SizeRule,
   ValidationConfiguration,
-  BaseValidationRule
+  BaseValidationRule,
+  ICustomMessage
 } from "@aurelia/validation";
 import { IPerson, Person } from './_test-resources';
 
@@ -367,11 +368,17 @@ describe.only('ValidationMessageProvider', function () {
       this.log.push(event);
     }
   }
-  function setup() {
+  function setup(customMessages?: ICustomMessage[]) {
     const container = TestContext.createHTMLTestContext().container;
     const eventLog = new EventLog();
+
+    const configuration = customMessages !== (void 0)
+      ? ValidationConfiguration.customize((options) => {
+        options.customMessages = customMessages;
+      })
+      : ValidationConfiguration;
     container.register(
-      ValidationConfiguration,
+      configuration,
       Registration.instance(ISink, eventLog)
     );
     return {
@@ -425,7 +432,7 @@ describe.only('ValidationMessageProvider', function () {
       );
     }));
 
-  [
+  const rules = [
     {
       title: 'RequiredRule',
       getRule: (sut: IValidationMessageProvider) => new RequiredRule(sut),
@@ -474,7 +481,8 @@ describe.only('ValidationMessageProvider', function () {
       title: 'EqualsRule',
       getRule: (sut: IValidationMessageProvider) => new EqualsRule(sut, 42),
     },
-  ].map(({ title, getRule }) =>
+  ];
+  rules.map(({ title, getRule }) =>
     it(`rule.message returns the registered message for a rule instance - ${title}`, function () {
       const { sut, container } = setup();
       const message = "FooBar";
@@ -485,68 +493,21 @@ describe.only('ValidationMessageProvider', function () {
       assert.equal(actual, message);
     }));
 
-  [
-    {
-      title: 'RequiredRule',
-      getRule: (sut: IValidationMessageProvider) => new RequiredRule(sut),
-      expected: 'FooBar is required.',
-    },
-    {
-      title: 'RegexRule',
-      getRule: (sut: IValidationMessageProvider) => new RegexRule(sut, /foo/),
-      expected: 'FooBar is not correctly formatted.',
-    },
-    {
-      title: 'RegexRule - email',
-      getRule: (sut: IValidationMessageProvider) => new RegexRule(sut, /foo/, 'email'),
-      expected: 'FooBar is not a valid email.',
-    },
-    {
-      title: 'LengthRule - minLength',
-      getRule: (sut: IValidationMessageProvider) => new LengthRule(sut, 42, false),
-      expected: 'FooBar must be at least 42 characters.',
-    },
-    {
-      title: 'LengthRule - maxLength',
-      getRule: (sut: IValidationMessageProvider) => new LengthRule(sut, 42, true),
-      expected: 'FooBar cannot be longer than 42 characters.',
-    },
-    {
-      title: 'SizeRule - minItems',
-      getRule: (sut: IValidationMessageProvider) => new SizeRule(sut, 42, false),
-      expected: 'FooBar must contain at least 42 items.',
-    },
-    {
-      title: 'SizeRule - maxItems',
-      getRule: (sut: IValidationMessageProvider) => new SizeRule(sut, 42, true),
-      expected: 'FooBar cannot contain more than 42 items.',
-    },
-    {
-      title: 'RangeRule - min',
-      getRule: (sut: IValidationMessageProvider) => new RangeRule(sut, true, { min: 42 }),
-      expected: 'FooBar must be at least 42.',
-    },
-    {
-      title: 'RangeRule - max',
-      getRule: (sut: IValidationMessageProvider) => new RangeRule(sut, true, { max: 42 }),
-      expected: 'FooBar must be at most 42.',
-    },
-    {
-      title: 'RangeRule - range',
-      getRule: (sut: IValidationMessageProvider) => new RangeRule(sut, true, { min: 42, max: 43 }),
-      expected: 'FooBar must be between or equal to 42 and 43.',
-    },
-    {
-      title: 'RangeRule - between',
-      getRule: (sut: IValidationMessageProvider) => new RangeRule(sut, false, { min: 42, max: 43 }),
-      expected: 'FooBar must be between but not equal to 42 and 43.',
-    },
-    {
-      title: 'EqualsRule',
-      getRule: (sut: IValidationMessageProvider) => new EqualsRule(sut, 42),
-      expected: 'FooBar must be 42.',
-    },
-  ].map(({ title, getRule, expected }) =>
+  const messages = [
+    'FooBar is required.',
+    'FooBar is not correctly formatted.',
+    'FooBar is not a valid email.',
+    'FooBar must be at least 42 characters.',
+    'FooBar cannot be longer than 42 characters.',
+    'FooBar must contain at least 42 items.',
+    'FooBar cannot contain more than 42 items.',
+    'FooBar must be at least 42.',
+    'FooBar must be at most 42.',
+    'FooBar must be between or equal to 42 and 43.',
+    'FooBar must be between but not equal to 42 and 43.',
+    'FooBar must be 42.',
+  ];
+  rules.map((r, i) => ({ ...r, expected: messages[i] })).map(({ title, getRule, expected }) =>
     it(`rule.message returns the registered default message for a rule type when no message for the instance is registered - ${title}`, function () {
       const { sut, container } = setup();
       const $rule = getRule(sut);
@@ -555,56 +516,7 @@ describe.only('ValidationMessageProvider', function () {
       assert.equal(actual, expected);
     }));
 
-  [
-    {
-      title: 'RequiredRule',
-      getRule: (sut: IValidationMessageProvider) => new RequiredRule(sut),
-    },
-    {
-      title: 'RegexRule',
-      getRule: (sut: IValidationMessageProvider) => new RegexRule(sut, /foo/),
-    },
-    {
-      title: 'RegexRule - email',
-      getRule: (sut: IValidationMessageProvider) => new RegexRule(sut, /foo/, 'email'),
-    },
-    {
-      title: 'LengthRule - minLength',
-      getRule: (sut: IValidationMessageProvider) => new LengthRule(sut, 42, false),
-    },
-    {
-      title: 'LengthRule - maxLength',
-      getRule: (sut: IValidationMessageProvider) => new LengthRule(sut, 42, true),
-    },
-    {
-      title: 'SizeRule - minItems',
-      getRule: (sut: IValidationMessageProvider) => new SizeRule(sut, 42, false),
-    },
-    {
-      title: 'SizeRule - maxItems',
-      getRule: (sut: IValidationMessageProvider) => new SizeRule(sut, 42, true),
-    },
-    {
-      title: 'RangeRule - min',
-      getRule: (sut: IValidationMessageProvider) => new RangeRule(sut, true, { min: 42 }),
-    },
-    {
-      title: 'RangeRule - max',
-      getRule: (sut: IValidationMessageProvider) => new RangeRule(sut, true, { max: 42 }),
-    },
-    {
-      title: 'RangeRule - range',
-      getRule: (sut: IValidationMessageProvider) => new RangeRule(sut, true, { min: 42, max: 43 }),
-    },
-    {
-      title: 'RangeRule - between',
-      getRule: (sut: IValidationMessageProvider) => new RangeRule(sut, false, { min: 42, max: 43 }),
-    },
-    {
-      title: 'EqualsRule',
-      getRule: (sut: IValidationMessageProvider) => new EqualsRule(sut, 42),
-    },
-  ].map(({ title, getRule }) =>
+  rules.map(({ title, getRule }) =>
     it(`rule.message returns the default message the registered key is not found - ${title}`, function () {
       const { sut, container } = setup();
       const $rule = getRule(sut);
@@ -614,12 +526,63 @@ describe.only('ValidationMessageProvider', function () {
       assert.equal(actual, "FooBar is invalid.");
     }));
 
-  // it('#getMessageByKey returns t he default message if the key is not found', function () {
-  //   const { sut } = setup();
-  //   const actual: Interpolation = sut.getMessage('foobar') as Interpolation;
-  //   assert.instanceOf(actual, Interpolation);
-  //   assert.equal(actual.parts[1], ' is invalid.');
-  // });
+  it("default messages can be overwritten by registering custom messages", function () {
+
+    const customMessages: ICustomMessage[] = [
+      {
+        rule: RequiredRule,
+        aliases: [
+          { name: 'required', defaultMessage: `\${$displayName} is non-optional.` }
+        ],
+      },
+      {
+        rule: RegexRule,
+        aliases: [
+          { name: 'matches', defaultMessage: `\${$displayName} does not matches the pattern.` },
+          { name: 'email', defaultMessage: `\${$displayName} must be an email` },
+        ],
+      },
+      {
+        rule: LengthRule,
+        aliases: [
+          { name: 'minLength', defaultMessage: `\${$displayName} fails min. chars contraint.` },
+          { name: 'maxLength', defaultMessage: `\${$displayName} fails max. chars contraint.` },
+        ],
+      },
+      {
+        rule: SizeRule,
+        aliases: [
+          { name: 'minItems', defaultMessage: `\${$displayName} should contain at least \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.` },
+          { name: 'maxItems', defaultMessage: `\${$displayName} should not contain more than \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.` },
+        ],
+      },
+      {
+        rule: RangeRule,
+        aliases: [
+          { name: 'min', defaultMessage: `\${$displayName} should be at least \${$rule.min}.` },
+          { name: 'max', defaultMessage: `\${$displayName} should be at most \${$rule.max}.` },
+          { name: 'range', defaultMessage: `\${$displayName} should be between or equal to \${$rule.min} and \${$rule.max}.` },
+          { name: 'between', defaultMessage: `\${$displayName} should be between but not equal to \${$rule.min} and \${$rule.max}.` },
+        ],
+      },
+      {
+        rule: EqualsRule,
+        aliases: [
+          { name: 'equals', defaultMessage: `\${$displayName} should be \${$rule.expectedValue}.` },
+        ],
+      },
+    ];
+    const { sut, container } = setup(customMessages);
+    for (const { getRule } of rules) {
+      const $rule = getRule(sut);
+      const scope = { bindingContext: { $displayName: 'FooBar', $rule }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
+      const actual = $rule.message.evaluate(LifecycleFlags.none, scope, container);
+      const aliases = customMessages.find((item) => $rule instanceof item.rule).aliases;
+      const template = aliases.length === 1? aliases[0].defaultMessage : aliases.find(({name})=> name === $rule.messageKey)?.defaultMessage;
+      const expected = sut.parseMessage(template).evaluate(LifecycleFlags.none, scope, null!);
+      assert.equal(actual, expected);
+    }
+  });
   [
     { arg1: 'foo', arg2: null, expected: 'Foo' },
     { arg1: 'fooBar', arg2: null, expected: 'Foo Bar' },

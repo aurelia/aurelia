@@ -1,5 +1,5 @@
 import { IContainer, PLATFORM, Registration, Class } from '@aurelia/kernel';
-import { ValidationRules, IValidationRules, IValidationMessageProvider, ValidationMessageProvider } from './rule';
+import { ValidationRules, IValidationRules, IValidationMessageProvider, ValidationMessageProvider, ICustomMessage, ICustomMessages } from './rule';
 import { ValidateBindingBehavior } from './validate-binding-behavior';
 import { IValidationController, ValidationController, ValidationControllerFactory, IValidationControllerFactory } from './validation-controller';
 import { ValidationErrorsCustomAttribute } from './validation-errors-custom-attribute';
@@ -9,16 +9,18 @@ import { IValidator, StandardValidator } from './validator';
 export type ValidationConfigurationProvider = (options: ValidationCustomizationOpions) => void;
 export interface ValidationCustomizationOpions {
   validator: Class<IValidator>;
+  customMessages: ICustomMessage[];
 }
 
 function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
   return {
     optionsProvider,
     register(container: IContainer) {
-      const options: ValidationCustomizationOpions = { validator: StandardValidator };
+      const options: ValidationCustomizationOpions = { validator: StandardValidator, customMessages: [] };
       optionsProvider(options);
 
       return container.register(
+        Registration.callback(ICustomMessages, () => options.customMessages),
         Registration.singleton(IValidator, options.validator),
         Registration.singleton(IValidationMessageProvider, ValidationMessageProvider), // TODO enable customization of messages and i18n
         Registration.transient(IValidationRules, ValidationRules),

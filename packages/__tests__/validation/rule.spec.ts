@@ -578,7 +578,7 @@ describe.only('ValidationMessageProvider', function () {
       const scope = { bindingContext: { $displayName: 'FooBar', $rule }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
       const actual = $rule.message.evaluate(LifecycleFlags.none, scope, container);
       const aliases = customMessages.find((item) => $rule instanceof item.rule).aliases;
-      const template = aliases.length === 1? aliases[0].defaultMessage : aliases.find(({name})=> name === $rule.messageKey)?.defaultMessage;
+      const template = aliases.length === 1 ? aliases[0].defaultMessage : aliases.find(({ name }) => name === $rule.messageKey)?.defaultMessage;
       const expected = sut.parseMessage(template).evaluate(LifecycleFlags.none, scope, null!);
       assert.equal(actual, expected);
     }
@@ -597,4 +597,55 @@ describe.only('ValidationMessageProvider', function () {
       const { sut } = setup();
       assert.equal(sut.getDisplayName(arg1, arg2), expected);
     }));
+});
+
+describe.only("rule execution", function () {
+  [
+    { value: null, isValid: false },
+    { value: undefined, isValid: false },
+    { value: '', isValid: false },
+    { value: true, isValid: true },
+    { value: false, isValid: true },
+    { value: "1", isValid: true },
+    { value: "chaos", isValid: true },
+    { value: 0, isValid: true },
+    { value: 1, isValid: true },
+  ].map(({ value, isValid }) =>
+    it(`RequiredRule#execute validates ${value} to be ${isValid}`, function () {
+      const sut = new RequiredRule((void 0)!);
+      assert.equal(sut.execute(value), isValid);
+    })
+  );
+
+  [
+    { value: null, isValid: true },
+    { value: undefined, isValid: true },
+    { value: '', isValid: true },
+    { value: 'foobar', isValid: true },
+    { value: 'barbar', isValid: false },
+  ].map(({ value, isValid }) =>
+    it(`RegexRule#execute validates ${value} to be ${isValid}`, function () {
+      const sut = new RegexRule((void 0)!, /foo/);
+      assert.equal(sut.execute(value), isValid);
+    })
+  );
+
+  [
+    { value: null,      length: void 0,   isMax: true,    isValid: true   },
+    { value: undefined, length: void 0,   isMax: true,    isValid: true   },
+    { value: '',        length: 1,        isMax: true,    isValid: true   },
+    { value: '',        length: 1,        isMax: false,   isValid: true   },
+    { value: null,      length: void 0,   isMax: false,   isValid: true   },
+    { value: undefined, length: void 0,   isMax: false,   isValid: true   },
+    { value: '',        length: 1,        isMax: false,   isValid: true   },
+    { value: 'foobar',  length: 5,        isMax: true,    isValid: false  },
+    { value: 'foobar',  length: 5,        isMax: false,   isValid: true   },
+    { value: 'foo',     length: 5,        isMax: true,    isValid: true   },
+    { value: 'foo',     length: 5,        isMax: false,   isValid: false  },
+  ].map(({ value, length, isMax, isValid }) =>
+    it(`LengthRule#execute validates ${value} to be ${isValid}`, function () {
+      const sut = new LengthRule((void 0)!, length, isMax);
+      assert.equal(sut.execute(value), isValid);
+    })
+  );
 });

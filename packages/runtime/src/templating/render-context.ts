@@ -65,7 +65,7 @@ export interface IRenderContext<T extends INode = INode> extends IContainer {
  * A compiled `IRenderContext` that can create instances of `INodeSequence` (based on the template of the compiled definition)
  * and begin a component operation to create new component instances.
  */
-export interface ICompiledRenderContext<T extends INode = INode> extends IRenderContext {
+export interface ICompiledRenderContext<T extends INode = INode> extends IRenderContext<T> {
   /**
    * The compiled `CustomElementDefinition`.
    *

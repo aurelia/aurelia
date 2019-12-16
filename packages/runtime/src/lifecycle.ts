@@ -31,7 +31,8 @@ import {
 import {
   IElementProjector, CustomElementDefinition, PartialCustomElementDefinition,
 } from './resources/custom-element';
-import { IRenderContext } from './templating/render-context';
+import { IRenderContext, ICompiledRenderContext } from './templating/render-context';
+import { Scope } from './observation/binding-context';
 
 export interface IBinding {
   interceptor: this;
@@ -61,70 +62,135 @@ export interface IController<
   C extends IViewModel<T> = IViewModel<T>,
 > {
   readonly id: number;
-
-  nextBound?: IController<T, C>;
-  nextUnbound?: IController<T, C>;
-  prevBound?: IController<T, C>;
-  prevUnbound?: IController<T, C>;
-
-  nextAttached?: IController<T, C>;
-  nextDetached?: IController<T, C>;
-  prevAttached?: IController<T, C>;
-  prevDetached?: IController<T, C>;
-
-  nextMount?: IController<T, C>;
-  nextUnmount?: IController<T, C>;
-  prevMount?: IController<T, C>;
-  prevUnmount?: IController<T, C>;
-
   readonly flags: LifecycleFlags;
-  readonly viewCache?: IViewCache<T>;
+  readonly state: State;
 
   parent?: IController<T>;
-  bindings?: IBinding[];
-  controllers?: IController<T>[];
-
-  state: State;
 
   readonly lifecycle: ILifecycle;
-
   readonly hooks: HooksDefinition;
-  readonly viewModel?: C;
-  readonly bindingContext?: C & IIndexable;
-
-  readonly host?: T;
-
   readonly vmKind: ViewModelKind;
 
-  readonly scopeParts?: readonly string[];
-  readonly isStrictBinding?: boolean;
+  part: string | undefined;
 
-  scope?: IScope;
-  part?: string;
-  projector?: IElementProjector;
+  bind(flags: LifecycleFlags, scope?: IScope, partName?: string): ILifecycleTask;
+  unbind(flags: LifecycleFlags): ILifecycleTask;
+  attach(flags: LifecycleFlags): void;
+  detach(flags: LifecycleFlags): void;
+  cache(flags: LifecycleFlags): void;
+}
 
-  nodes?: INodeSequence<T>;
-  context?: IRenderContext;
-  location?: IRenderLocation<T>;
+// TODO(fkleuver): Internal (but WIP, so don't touch please)
+export interface ILinkedController extends IController {
+  nextBound: ILinkedController | undefined;
+  nextUnbound: ILinkedController | undefined;
+  prevBound: ILinkedController | undefined;
+  prevUnbound: ILinkedController | undefined;
+
+  nextAttached: ILinkedController | undefined;
+  nextDetached: ILinkedController | undefined;
+  prevAttached: ILinkedController | undefined;
+  prevDetached: ILinkedController | undefined;
+
+  nextMount: ILinkedController | undefined;
+  nextUnmount: ILinkedController | undefined;
+  prevMount: ILinkedController | undefined;
+  prevUnmount: ILinkedController | undefined;
+}
+
+export interface ISyntheticView<
+  T extends INode = INode,
+> {
+  readonly vmKind: ViewModelKind.synthetic;
+  readonly scope: Scope | undefined;
+
+  readonly context: ICompiledRenderContext<T>;
+  readonly scopeParts: readonly string[];
+  readonly isStrictBinding: boolean;
+  readonly nodes: INodeSequence<T>;
+  readonly location: IRenderLocation<T> | undefined;
+
+  readonly bindings: readonly IBinding[] | undefined;
+  readonly controllers: readonly IController<T>[] | undefined;
 
   lockScope(scope: IScope): void;
   hold(location: IRenderLocation<T>, mountStrategy: MountStrategy): void;
   release(flags: LifecycleFlags): boolean;
-  bind(flags: LifecycleFlags, scope?: IScope, partName?: string): ILifecycleTask;
-  unbind(flags: LifecycleFlags): ILifecycleTask;
-  afterBind(flags: LifecycleFlags): void;
-  afterUnbind(flags: LifecycleFlags): void;
-  attach(flags: LifecycleFlags): void;
-  detach(flags: LifecycleFlags): void;
-  afterAttach(flags: LifecycleFlags): void;
-  afterDetach(flags: LifecycleFlags): void;
+
   mount(flags: LifecycleFlags): void;
   unmount(flags: LifecycleFlags): void;
-  cache(flags: LifecycleFlags): void;
+
   getTargetAccessor(propertyName: string): IBindingTargetAccessor | undefined;
 
   addBinding(binding: IBinding): void;
   addController(controller: IController<T>): void;
+}
+
+export interface ICustomAttributeController<
+  T extends INode = INode,
+  C extends IViewModel<T> = IViewModel<T>,
+> extends IController<T, C> {
+  readonly vmKind: ViewModelKind.customAttribute;
+  readonly scope: Scope | undefined;
+
+  readonly viewModel: C;
+  readonly bindingContext: C & IIndexable;
+
+  afterBind(flags: LifecycleFlags): void;
+  afterUnbind(flags: LifecycleFlags): void;
+  afterAttach(flags: LifecycleFlags): void;
+  afterDetach(flags: LifecycleFlags): void;
+}
+
+export interface ICustomElementController<
+  T extends INode = INode,
+  C extends IViewModel<T> = IViewModel<T>,
+> {
+  readonly vmKind: ViewModelKind.customElement;
+  readonly scope: Scope;
+  readonly host: T;
+
+  readonly viewModel: C;
+  readonly bindingContext: C & IIndexable;
+
+  afterBind(flags: LifecycleFlags): void;
+  afterUnbind(flags: LifecycleFlags): void;
+  afterAttach(flags: LifecycleFlags): void;
+  afterDetach(flags: LifecycleFlags): void;
+
+  mount(flags: LifecycleFlags): void;
+  unmount(flags: LifecycleFlags): void;
+
+  getTargetAccessor(propertyName: string): IBindingTargetAccessor | undefined;
+
+  addBinding(binding: IBinding): void;
+  addController(controller: IController<T>): void;
+}
+
+export interface IContextualCustomElementController<
+  T extends INode = INode,
+  C extends IViewModel<T> = IViewModel<T>,
+> extends ICustomElementController<T, C> {
+  readonly context: IRenderContext<T>;
+}
+
+export interface ICompiledCustomElementController<
+  T extends INode = INode,
+  C extends IViewModel<T> = IViewModel<T>,
+> extends IContextualCustomElementController<T, C> {
+  readonly context: ICompiledRenderContext<T>;
+  readonly scopeParts: readonly string[];
+  readonly isStrictBinding: boolean;
+  readonly projector: IElementProjector<T>;
+  readonly nodes: INodeSequence<T>;
+}
+
+export interface IHydratedCustomElementController<
+  T extends INode = INode,
+  C extends IViewModel<T> = IViewModel<T>,
+> extends ICompiledCustomElementController<T, C> {
+  readonly bindings: readonly IBinding[] | undefined;
+  readonly controllers: readonly IController<T>[] | undefined;
 }
 
 export const IController = DI.createInterface<IController>('IController').noDefault();
@@ -229,8 +295,8 @@ export interface IAutoProcessingQueue<T> extends IProcessingQueue<T> {
 export class BoundQueue implements IAutoProcessingQueue<IController> {
   public depth: number = 0;
 
-  public head?: IController = void 0;
-  public tail?: IController = void 0;
+  public head: ILinkedController | undefined = void 0;
+  public tail: ILinkedController | undefined = void 0;
 
   public constructor(
     @ILifecycle public readonly lifecycle: ILifecycle,
@@ -255,7 +321,7 @@ export class BoundQueue implements IAutoProcessingQueue<IController> {
     this.end(flags);
   }
 
-  public add(controller: IController): void {
+  public add(controller: ILinkedController): void {
     if (this.head === void 0) {
       this.head = controller;
     } else {
@@ -267,7 +333,7 @@ export class BoundQueue implements IAutoProcessingQueue<IController> {
     controller.state |= State.inBoundQueue;
   }
 
-  public remove(controller: IController): void {
+  public remove(controller: ILinkedController): void {
     if (controller.prevBound !== void 0) {
       controller.prevBound.nextBound = controller.nextBound;
     }
@@ -289,7 +355,7 @@ export class BoundQueue implements IAutoProcessingQueue<IController> {
     while (this.head !== void 0) {
       let cur = this.head;
       this.head = this.tail = void 0;
-      let next: IController | undefined;
+      let next: ILinkedController | undefined;
       do {
         cur.state = (cur.state | State.inBoundQueue) ^ State.inBoundQueue;
         cur.afterBind(flags);
@@ -306,8 +372,8 @@ export class BoundQueue implements IAutoProcessingQueue<IController> {
 export class UnboundQueue implements IAutoProcessingQueue<IController> {
   public depth: number = 0;
 
-  public head?: IController = void 0;
-  public tail?: IController = void 0;
+  public head: ILinkedController | undefined = void 0;
+  public tail: ILinkedController | undefined = void 0;
 
   public constructor(
     @ILifecycle public readonly lifecycle: ILifecycle,
@@ -332,7 +398,7 @@ export class UnboundQueue implements IAutoProcessingQueue<IController> {
     this.end(flags);
   }
 
-  public add(controller: IController): void {
+  public add(controller: ILinkedController): void {
     if (this.head === void 0) {
       this.head = controller;
     } else {
@@ -344,7 +410,7 @@ export class UnboundQueue implements IAutoProcessingQueue<IController> {
     controller.state |= State.inUnboundQueue;
   }
 
-  public remove(controller: IController): void {
+  public remove(controller: ILinkedController): void {
     if (controller.prevUnbound !== void 0) {
       controller.prevUnbound.nextUnbound = controller.nextUnbound;
     }
@@ -366,7 +432,7 @@ export class UnboundQueue implements IAutoProcessingQueue<IController> {
     while (this.head !== void 0) {
       let cur = this.head;
       this.head = this.tail = void 0;
-      let next: IController | undefined;
+      let next: ILinkedController | undefined;
       do {
         cur.state = (cur.state | State.inUnboundQueue) ^ State.inUnboundQueue;
         cur.afterUnbind(flags);
@@ -383,8 +449,8 @@ export class UnboundQueue implements IAutoProcessingQueue<IController> {
 export class AttachedQueue implements IAutoProcessingQueue<IController> {
   public depth: number = 0;
 
-  public head?: IController = void 0;
-  public tail?: IController = void 0;
+  public head: ILinkedController | undefined = void 0;
+  public tail: ILinkedController | undefined = void 0;
 
   public constructor(
     @ILifecycle public readonly lifecycle: ILifecycle,
@@ -411,7 +477,7 @@ export class AttachedQueue implements IAutoProcessingQueue<IController> {
     this.end(flags);
   }
 
-  public add(controller: IController): void {
+  public add(controller: ILinkedController): void {
     if (this.head === void 0) {
       this.head = controller;
     } else {
@@ -423,7 +489,7 @@ export class AttachedQueue implements IAutoProcessingQueue<IController> {
     controller.state |= State.inAttachedQueue;
   }
 
-  public remove(controller: IController): void {
+  public remove(controller: ILinkedController): void {
     if (controller.prevAttached !== void 0) {
       controller.prevAttached.nextAttached = controller.nextAttached;
     }
@@ -445,7 +511,7 @@ export class AttachedQueue implements IAutoProcessingQueue<IController> {
     while (this.head !== void 0) {
       let cur = this.head;
       this.head = this.tail = void 0;
-      let next: IController | undefined;
+      let next: ILinkedController | undefined;
       do {
         cur.state = (cur.state | State.inAttachedQueue) ^ State.inAttachedQueue;
         cur.afterAttach(flags);
@@ -462,8 +528,8 @@ export class AttachedQueue implements IAutoProcessingQueue<IController> {
 export class DetachedQueue implements IAutoProcessingQueue<IController> {
   public depth: number = 0;
 
-  public head?: IController = void 0;
-  public tail?: IController = void 0;
+  public head: ILinkedController | undefined = void 0;
+  public tail: ILinkedController | undefined = void 0;
 
   public constructor(
     @ILifecycle public readonly lifecycle: ILifecycle,
@@ -490,7 +556,7 @@ export class DetachedQueue implements IAutoProcessingQueue<IController> {
     this.end(flags);
   }
 
-  public add(controller: IController): void {
+  public add(controller: ILinkedController): void {
     if (this.head === void 0) {
       this.head = controller;
     } else {
@@ -502,7 +568,7 @@ export class DetachedQueue implements IAutoProcessingQueue<IController> {
     controller.state |= State.inDetachedQueue;
   }
 
-  public remove(controller: IController): void {
+  public remove(controller: ILinkedController): void {
     if (controller.prevDetached !== void 0) {
       controller.prevDetached.nextDetached = controller.nextDetached;
     }
@@ -524,7 +590,7 @@ export class DetachedQueue implements IAutoProcessingQueue<IController> {
     while (this.head !== void 0) {
       let cur = this.head;
       this.head = this.tail = void 0;
-      let next: IController | undefined;
+      let next: ILinkedController | undefined;
       do {
         cur.state = (cur.state | State.inDetachedQueue) ^ State.inDetachedQueue;
         cur.afterDetach(flags);
@@ -541,14 +607,14 @@ export class DetachedQueue implements IAutoProcessingQueue<IController> {
 export class MountQueue implements IProcessingQueue<IController> {
   public depth: number = 0;
 
-  public head?: IController = void 0;
-  public tail?: IController = void 0;
+  public head: ILinkedController | undefined = void 0;
+  public tail: ILinkedController | undefined = void 0;
 
   public constructor(
     @ILifecycle public readonly lifecycle: ILifecycle,
   ) {}
 
-  public add(controller: IController): void {
+  public add(controller: ILinkedController): void {
     if ((controller.state & State.inUnmountQueue) > 0) {
       this.lifecycle.unmount.remove(controller);
       console.log(`in unmount queue during mountQueue.add, so removing`, this);
@@ -565,7 +631,7 @@ export class MountQueue implements IProcessingQueue<IController> {
     controller.state |= State.inMountQueue;
   }
 
-  public remove(controller: IController): void {
+  public remove(controller: ILinkedController): void {
     if (controller.prevMount !== void 0) {
       controller.prevMount.nextMount = controller.nextMount;
     }
@@ -588,7 +654,7 @@ export class MountQueue implements IProcessingQueue<IController> {
     while (this.head !== void 0) {
       let cur = this.head;
       this.head = this.tail = void 0;
-      let next: IController | undefined;
+      let next: ILinkedController | undefined;
       do {
         cur.state = (cur.state | State.inMountQueue) ^ State.inMountQueue;
         ++i;
@@ -604,14 +670,14 @@ export class MountQueue implements IProcessingQueue<IController> {
 }
 
 export class UnmountQueue implements IProcessingQueue<IController> {
-  public head?: IController = void 0;
-  public tail?: IController = void 0;
+  public head: ILinkedController | undefined = void 0;
+  public tail: ILinkedController | undefined = void 0;
 
   public constructor(
     @ILifecycle public readonly lifecycle: ILifecycle,
   ) {}
 
-  public add(controller: IController): void {
+  public add(controller: ILinkedController): void {
     if ((controller.state & State.inMountQueue) > 0) {
       this.lifecycle.mount.remove(controller);
       return;
@@ -627,7 +693,7 @@ export class UnmountQueue implements IProcessingQueue<IController> {
     controller.state |= State.inUnmountQueue;
   }
 
-  public remove(controller: IController): void {
+  public remove(controller: ILinkedController): void {
     if (controller.prevUnmount !== void 0) {
       controller.prevUnmount.nextUnmount = controller.nextUnmount;
     }
@@ -650,7 +716,7 @@ export class UnmountQueue implements IProcessingQueue<IController> {
     while (this.head !== void 0) {
       let cur = this.head;
       this.head = this.tail = void 0;
-      let next: IController | undefined;
+      let next: ILinkedController | undefined;
       do {
         cur.state = (cur.state | State.inUnmountQueue) ^ State.inUnmountQueue;
         ++i;

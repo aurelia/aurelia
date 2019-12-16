@@ -267,7 +267,7 @@ export class Controller<
   >(
     viewFactory: IViewFactory<T>,
     lifecycle: ILifecycle,
-    context: IRenderContext,
+    context: IRenderContext<T>,
     flags: LifecycleFlags = LifecycleFlags.none,
   ): Controller<T, C> {
     const controller = new Controller<T, C>(
@@ -312,7 +312,7 @@ export class Controller<
       }
     }
 
-    const context = this.context = getRenderContext(definition, parentContainer, parts);
+    const context = this.context = getRenderContext<T>(definition, parentContainer, parts);
     // Support Recursive Components by adding self to own context
     definition.register(context);
     if (definition.injectable !== null) {
@@ -346,7 +346,7 @@ export class Controller<
     );
 
     (instance as Writable<C>).$controller = this;
-    const nodes = compiledContext.createNodes();
+    const nodes = this.nodes = compiledContext.createNodes();
 
     if (hooks.hasAfterCompile) {
       instance.afterCompile!(
@@ -358,25 +358,21 @@ export class Controller<
       );
     }
 
-    if (nodes !== null) {
-      this.nodes = nodes as INodeSequence<T>;
+    const targets = nodes.findTargets();
+    compiledContext.render(
+      /* flags      */this.flags,
+      /* controller */this,
+      /* targets    */targets,
+      /* definition */compiledDefinition,
+      /* host       */this.host,
+      /* parts      */parts,
+    );
 
-      const targets = nodes.findTargets();
-      compiledContext.render(
-        /* flags      */this.flags,
-        /* controller */this,
-        /* targets    */targets,
-        /* definition */compiledDefinition,
-        /* host       */this.host,
-        /* parts      */parts,
+    if (hooks.hasAfterCompileChildren) {
+      instance.afterCompileChildren!(
+        this.controllers,
+        flags,
       );
-
-      if (hooks.hasAfterCompileChildren) {
-        instance.afterCompileChildren!(
-          this.controllers,
-          flags,
-        );
-      }
     }
   }
 
@@ -389,29 +385,26 @@ export class Controller<
   }
 
   private hydrateSynthetic(
-    context: IRenderContext,
+    context: IRenderContext<T>,
     parts: PartialCustomElementDefinitionParts | undefined,
   ): void {
+    this.context = context;
     const compiledContext = context.compile();
     const compiledDefinition = compiledContext.compiledDefinition;
 
     this.scopeParts = compiledDefinition.scopeParts;
     this.isStrictBinding = compiledDefinition.isStrictBinding;
 
-    const nodes = compiledContext.createNodes();
-    if (nodes !== null) {
-      this.nodes = nodes as INodeSequence<T>;
-
-      const targets = nodes.findTargets();
-      compiledContext.render(
-        /* flags      */this.flags,
-        /* controller */this,
-        /* targets    */targets,
-        /* definition */compiledDefinition,
-        /* host       */void 0,
-        /* parts      */parts,
-      );
-    }
+    const nodes = this.nodes = compiledContext.createNodes();
+    const targets = nodes.findTargets();
+    compiledContext.render(
+      /* flags      */this.flags,
+      /* controller */this,
+      /* targets    */targets,
+      /* definition */compiledDefinition,
+      /* host       */void 0,
+      /* parts      */parts,
+    );
   }
 
   public addBinding(binding: IBinding): void {

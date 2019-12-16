@@ -1,14 +1,18 @@
 import { Constructable, ConstructableClass, DI, IContainer, IResolver, Registration, Metadata, Protocol } from '@aurelia/kernel';
-import { INode, INodeSequence } from '../dom';
-import { LifecycleFlags, State } from '../flags';
+import { INode } from '../dom';
+import { LifecycleFlags } from '../flags';
 import {
-  IController,
   ILifecycle,
   IViewFactory,
   IViewModel,
+  ISyntheticView,
+  ICustomElementController,
+  IContextualCustomElementController,
+  ICompiledCustomElementController,
+  IHydratedCustomElementController,
 } from '../lifecycle';
 import { Scope } from '../observation/binding-context';
-import { CustomElement, PartialCustomElementDefinition, CustomElementDefinition, IElementProjector } from '../resources/custom-element';
+import { CustomElement, PartialCustomElementDefinition, CustomElementDefinition } from '../resources/custom-element';
 import { Controller } from './controller';
 import { PartialCustomElementDefinitionParts, mergeParts } from '../definitions';
 import { IRenderContext, getRenderContext } from './render-context';
@@ -19,12 +23,12 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
 
   public isCaching: boolean = false;
 
-  private cache: IController<T>[] = null!;
+  private cache: ISyntheticView<T>[] = null!;
   private cacheSize: number = -1;
 
   public constructor(
     public name: string,
-    private readonly context: IRenderContext,
+    private readonly context: IRenderContext<T>,
     private readonly lifecycle: ILifecycle,
     public readonly parts: PartialCustomElementDefinitionParts | undefined,
   ) {}
@@ -51,11 +55,11 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     this.isCaching = this.cacheSize > 0;
   }
 
-  public canReturnToCache(controller: IController<T>): boolean {
+  public canReturnToCache(controller: ISyntheticView<T>): boolean {
     return this.cache != null && this.cache.length < this.cacheSize;
   }
 
-  public tryReturnToCache(controller: IController<T>): boolean {
+  public tryReturnToCache(controller: ISyntheticView<T>): boolean {
     if (this.canReturnToCache(controller)) {
       controller.cache(LifecycleFlags.none);
       this.cache.push(controller);
@@ -65,13 +69,12 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     return false;
   }
 
-  public create(flags?: LifecycleFlags): IController<T> {
+  public create(flags?: LifecycleFlags): ISyntheticView<T> {
     const cache = this.cache;
-    let controller: IController<T>;
+    let controller: ISyntheticView<T>;
 
     if (cache != null && cache.length > 0) {
       controller = cache.pop()!;
-      controller.state = (controller.state | State.isCached) ^ State.isCached;
       return controller;
     }
 
@@ -161,21 +164,6 @@ export type ViewSelector = (object: ComposableObject, views: readonly PartialCus
 export type ComposableObjectComponentType<T extends ComposableObject>
   = ConstructableClass<{ viewModel: T } & ComposableObject>;
 
-const lifecycleCallbacks = [
-  'beforeCompile',
-  'afterCompile',
-  'afterCompileChildren',
-  'beforeBind',
-  'afterBind',
-  'beforeAttach',
-  'afterAttach',
-  'beforeDetach',
-  'caching',
-  'afterDetach',
-  'beforeUnbind',
-  'afterUnbind'
-] as const;
-
 export class ViewLocator implements IViewLocator {
   private readonly modelInstanceToBoundComponent: WeakMap<object, Record<string, ComposableObjectComponentType<ComposableObject>>> = new WeakMap();
   private readonly modelTypeToUnboundComponent: Map<object, Record<string, ComposableObjectComponentType<ComposableObject>>> = new Map();
@@ -263,21 +251,20 @@ export class ViewLocator implements IViewLocator {
           public constructor(public viewModel: T) {}
 
           public create(
-            controller: IController,
-            definition: CustomElementDefinition,
+            controller: ICustomElementController<T, this>,
             parentContainer: IContainer,
-            parts: PartialCustomElementDefinitionParts,
-            flags: LifecycleFlags,
-          ) {
+            definition: CustomElementDefinition,
+            parts: PartialCustomElementDefinitionParts | undefined,
+          ): PartialCustomElementDefinition | void {
             const vm = this.viewModel;
             controller.scope = Scope.fromParent(
-              flags,
-              controller.scope!,
+              controller.flags,
+              controller.scope,
               vm,
             );
 
             if (vm.create !== void 0) {
-              return vm.create(controller, definition, parentContainer, parts, flags);
+              return vm.create(controller, parentContainer, definition, parts);
             }
           }
         }
@@ -287,32 +274,23 @@ export class ViewLocator implements IViewLocator {
 
       if ('beforeCompile' in object) {
         proto.beforeCompile = function beforeCompile(
-          controller: IController,
-          definition: CustomElementDefinition,
-          container: IContainer,
-          parts: PartialCustomElementDefinitionParts | undefined,
-          flags: LifecycleFlags,
+          controller: IContextualCustomElementController<T, typeof proto>,
         ): void {
-          this.viewModel.beforeCompile!(controller, definition, container, parts, flags);
+          this.viewModel.beforeCompile!(controller);
         };
       }
       if ('afterCompile' in object) {
         proto.afterCompile = function afterCompile(
-          controller: IController,
-          compiledDefinition: CustomElementDefinition,
-          projector: IElementProjector,
-          nodes: INodeSequence | null,
-          flags: LifecycleFlags,
+          controller: ICompiledCustomElementController<T, typeof proto>,
         ): void {
-          this.viewModel.afterCompile!(controller, compiledDefinition, projector, nodes, flags);
+          this.viewModel.afterCompile!(controller);
         };
       }
       if ('afterCompileChildren' in object) {
         proto.afterCompileChildren = function afterCompileChildren(
-          children: readonly IController[] | undefined,
-          flags: LifecycleFlags,
+          controller: IHydratedCustomElementController<T, typeof proto>,
         ): void {
-          this.viewModel.afterCompileChildren!(children, flags);
+          this.viewModel.afterCompileChildren!(controller);
         };
       }
       if ('beforeBind' in object) {

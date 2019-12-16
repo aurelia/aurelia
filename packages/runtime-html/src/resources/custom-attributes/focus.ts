@@ -5,7 +5,8 @@ import {
   IController,
   IDOM,
   INode,
-  State
+  State,
+  ICustomAttributeController
 } from '@aurelia/runtime';
 import { HTMLDOM } from '../../dom';
 
@@ -24,7 +25,7 @@ export class Focus {
   private needsApply: boolean = false;
 
   // This is set by the controller after this instance is constructed
-  private readonly $controller!: IController;
+  public readonly $controller!: ICustomAttributeController<HTMLElement, this>;
 
   private readonly element: HTMLElement;
 

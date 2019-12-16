@@ -1,17 +1,17 @@
 import { nextId } from '@aurelia/kernel';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags } from '../../flags';
-import { IController, IViewFactory, MountStrategy } from '../../lifecycle';
+import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController } from '../../lifecycle';
 import { ILifecycleTask } from '../../lifecycle-task';
 import { templateController } from '../custom-attribute';
 
 abstract class FlagsTemplateController<T extends INode = INode> {
   public readonly id: number;
 
-  public readonly view: IController<T>;
+  public readonly view: ISyntheticView<T>;
 
   // eslint-disable-next-line @typescript-eslint/prefer-readonly
-  private $controller!: IController<T>;
+  private $controller!: ICustomAttributeController<T>;
 
   public constructor(
     private readonly factory: IViewFactory<T>,

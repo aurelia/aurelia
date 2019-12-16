@@ -425,9 +425,18 @@ export {
   ILifecycle,
   IViewModel,
   IController,
+  IComponentController,
+  IContextualCustomElementController,
+  IRenderableController,
+  ICustomElementController,
+  ICustomAttributeController,
+  ICompiledCustomElementController,
+  IHydratedCustomElementController,
   IViewCache,
   IViewFactory,
   MountStrategy,
+  IHydratedViewModel,
+  ISyntheticView,
 } from './lifecycle';
 export {
   getRenderContext,

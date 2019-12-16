@@ -2,7 +2,7 @@ import {
   BindingMode,
   BindingType,
   ensureExpression,
-  IController,
+  IRenderableController,
   IExpressionParser,
   IInstructionRenderer,
   instructionRenderer,
@@ -40,7 +40,7 @@ export class TextBindingRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IController,
+    controller: IRenderableController,
     target: ChildNode,
     instruction: ITextBindingInstruction,
   ): void {
@@ -78,7 +78,7 @@ export class ListenerBindingRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IController,
+    controller: IRenderableController,
     target: HTMLElement,
     instruction: IListenerBindingInstruction,
   ): void {
@@ -99,7 +99,7 @@ export class SetAttributeRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IController,
+    controller: IRenderableController,
     target: HTMLElement,
     instruction: ISetAttributeInstruction,
   ): void {
@@ -112,7 +112,7 @@ export class SetClassAttributeRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IController,
+    controller: IRenderableController,
     target: HTMLElement,
     instruction: ISetClassAttributeInstruction,
   ): void {
@@ -125,7 +125,7 @@ export class SetStyleAttributeRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IController,
+    controller: IRenderableController,
     target: HTMLElement,
     instruction: ISetStyleAttributeInstruction,
   ): void {
@@ -144,7 +144,7 @@ export class StylePropertyBindingRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IController,
+    controller: IRenderableController,
     target: HTMLElement,
     instruction: IStylePropertyBindingInstruction,
   ): void {
@@ -169,7 +169,7 @@ export class AttributeBindingRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IController,
+    controller: IRenderableController,
     target: HTMLElement,
     instruction: IAttributeBindingInstruction,
   ): void {

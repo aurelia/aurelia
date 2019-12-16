@@ -10,13 +10,13 @@ import {
   BindingMode,
   BindingType,
   ICallBindingInstruction,
-  IController,
   IExpressionParser,
   IInstructionRenderer,
   instructionRenderer,
   IObserverLocator,
   IsBindingBehavior,
-  LifecycleFlags
+  LifecycleFlags,
+  IRenderableController
 } from '@aurelia/runtime';
 import { TranslationBinding } from './translation-binding';
 
@@ -60,11 +60,11 @@ export class TranslationBindingRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     context: IContainer,
-    controller: IController,
+    controller: IRenderableController,
     target: HTMLElement,
     instruction: ICallBindingInstruction,
   ): void {
-    TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller: controller, target, instruction });
+    TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller, target, instruction });
   }
 }
 
@@ -109,10 +109,10 @@ export class TranslationBindBindingRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     context: IContainer,
-    controller: IController,
+    controller: IRenderableController,
     target: HTMLElement,
     instruction: ICallBindingInstruction,
   ): void {
-    TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller: controller, target, instruction });
+    TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller, target, instruction });
   }
 }

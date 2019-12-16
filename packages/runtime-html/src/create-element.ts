@@ -7,7 +7,6 @@ import {
 import {
   CustomElement,
   HydrateElementInstruction,
-  IController,
   CustomElementType,
   IDOM,
   INode,
@@ -22,6 +21,7 @@ import {
   isHTMLTargetedInstruction
 } from './definitions';
 import { SetAttributeInstruction } from './instructions';
+import { ISyntheticView } from '@aurelia/runtime/dist/lifecycle';
 
 export function createElement<T extends INode = Node, C extends Constructable = Constructable>(
   dom: IDOM<T>,
@@ -64,15 +64,15 @@ export class RenderPlan<T extends INode = Node> {
     return this.lazyDefinition;
   }
 
-  public getContext(parentContainer: IContainer): IRenderContext {
+  public getContext(parentContainer: IContainer): IRenderContext<T> {
     return getRenderContext(this.definition, parentContainer, void 0);
   }
 
-  public createView(parentContainer: IContainer): IController {
+  public createView(parentContainer: IContainer): ISyntheticView<T> {
     return this.getViewFactory(parentContainer).create();
   }
 
-  public getViewFactory(parentContainer: IContainer): IViewFactory {
+  public getViewFactory(parentContainer: IContainer): IViewFactory<T> {
     return this.getContext(parentContainer).getViewFactory();
   }
 

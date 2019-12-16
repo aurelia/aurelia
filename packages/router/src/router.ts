@@ -1,5 +1,5 @@
 import { DI, IContainer, Key, Reporter } from '@aurelia/kernel';
-import { Aurelia, CustomElement, IController } from '@aurelia/runtime';
+import { Aurelia, CustomElement, IController, ICustomElementController, ISyntheticView } from '@aurelia/runtime';
 import { BrowserNavigator } from './browser-navigator';
 import { Guardian, GuardTypes } from './guardian';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
@@ -605,19 +605,19 @@ export class Router implements IRouter {
       return el.$viewport;
     }
     el = element;
-    let controller = CustomElement.for(el);
+    let controller = CustomElement.for(el) as ICustomElementController | ISyntheticView;
     while (!controller && el.parentElement) {
       el = el.parentElement;
       CustomElement.for(el);
     }
     while (controller) {
-      if (controller.host) {
-        const viewport = this.allViewports().find((item) => item.element === controller!.host);
+      if ((controller as ICustomElementController).host) {
+        const viewport = this.allViewports().find((item) => item.element === (controller as ICustomElementController).host);
         if (viewport) {
           return viewport;
         }
       }
-      controller = controller.parent;
+      controller = controller.parent!;
     }
     return null;
   }
@@ -649,7 +649,7 @@ export class Router implements IRouter {
   private ensureRootScope(): void {
     if (!this.rootScope) {
       const root = this.container.get(Aurelia).root;
-      this.rootScope = new Viewport(this, 'rootScope', root.host as Element, (root.controller as IController).context as IContainer, null, true);
+      this.rootScope = new Viewport(this, 'rootScope', root.host as Element, root.controller!.context, null, true);
     }
   }
 

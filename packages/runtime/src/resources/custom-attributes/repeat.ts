@@ -3,7 +3,7 @@ import { ForOfStatement } from '../../binding/ast';
 import { PropertyBinding } from '../../binding/property-binding';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags as LF, State, LifecycleFlags } from '../../flags';
-import { IController, IViewFactory, MountStrategy } from '../../lifecycle';
+import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController, IRenderableController, IController } from '../../lifecycle';
 import {
   AggregateContinuationTask,
   ContinuationTask,
@@ -32,13 +32,13 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   public hasPendingInstanceMutation: boolean = false;
   public observer?: CollectionObserver = void 0;
-  public views: IController<T>[] = [];
+  public views: ISyntheticView<T>[] = [];
   public key?: string = void 0;
 
   public forOf!: ForOfStatement;
   public local!: string;
 
-  public $controller!: IController<T>; // This is set by the controller after this instance is constructed
+  public $controller!: ICustomAttributeController<T>; // This is set by the controller after this instance is constructed
 
   private task: ILifecycleTask = LifecycleTask.done;
 
@@ -48,7 +48,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   public constructor(
     @IRenderLocation public location: IRenderLocation<T>,
-    @IController public renderable: IController<T>,
+    @IController public renderable: IRenderableController<T>,
     @IViewFactory public factory: IViewFactory<T>
   ) {}
 
@@ -214,7 +214,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   private detachViewsByRange(iStart: number, iEnd: number, flags: LF): void {
     const views = this.views;
     this.$controller.lifecycle.afterDetach.begin();
-    let view: IController<T>;
+    let view: ISyntheticView<T>;
     for (let i = iStart; i < iEnd; ++i) {
       view = views[i];
       view.release(flags);
@@ -228,7 +228,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     let tasks: ILifecycleTask[] | undefined = void 0;
     let task: ILifecycleTask;
     this.$controller.lifecycle.afterUnbind.begin();
-    let view: IController<T>;
+    let view: ISyntheticView<T>;
     for (let i = iStart; i < iEnd; ++i) {
       view = views[i];
       task = view.unbind(flags);
@@ -263,7 +263,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     this.$controller.lifecycle.afterDetach.begin();
     const deleted = indexMap.deletedItems;
     const deletedLen = deleted.length;
-    let view: IController<T>;
+    let view: ISyntheticView<T>;
     for (let i = 0; i < deletedLen; ++i) {
       view = views[deleted[i]];
       view.release(flags);
@@ -279,7 +279,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     this.$controller.lifecycle.afterUnbind.begin();
     const deleted = indexMap.deletedItems;
     const deletedLen = deleted.length;
-    let view: IController<T>;
+    let view: ISyntheticView<T>;
     let i = 0;
     for (; i < deletedLen; ++i) {
       view = views[deleted[i]];
@@ -316,7 +316,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   private createAndBindAllViews(flags: LF): ILifecycleTask {
     let tasks: ILifecycleTask[] | undefined = void 0;
     let task: ILifecycleTask;
-    let view: IController<T>;
+    let view: ISyntheticView<T>;
     let viewScope: IScope;
 
     const $controller = this.$controller;
@@ -373,7 +373,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   private createAndBindNewViewsByKey(indexMap: IndexMap, flags: LF): ILifecycleTask {
     let tasks: ILifecycleTask[] | undefined = void 0;
     let task: ILifecycleTask;
-    let view: IController<T>;
+    let view: ISyntheticView<T>;
     let viewScope: IScope;
 
     const factory = this.factory;
@@ -438,7 +438,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   }
 
   private attachViews(indexMap: IndexMap | undefined, flags: LF): void {
-    let view: IController<T>;
+    let view: ISyntheticView<T>;
 
     const views = this.views;
     const location = this.location;
@@ -468,7 +468,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   }
 
   private attachViewsKeyed(flags: LF): void {
-    let view: IController<T>;
+    let view: ISyntheticView<T>;
     const { views, location } = this;
     this.$controller.lifecycle.afterAttach.begin();
     for (let i = 0, ii = views.length; i < ii; ++i) {
@@ -495,10 +495,10 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
     flags |= LF.reorderNodes;
 
-    let next: IController;
+    let next: ISyntheticView;
     let j = seqLen - 1;
     let i = newLen - 1;
-    let view: IController;
+    let view: ISyntheticView;
     for (; i >= 0; --i) {
       view = views[i];
       if (indexMap[i] === -2) {

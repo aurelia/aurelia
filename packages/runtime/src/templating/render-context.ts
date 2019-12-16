@@ -1,7 +1,7 @@
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
 import { PartialCustomElementDefinitionParts, ITargetedInstruction, IHydrateInstruction, mergeParts } from '../definitions';
 import { IContainer, InstanceProvider, Key, Resolved, IResolver, Constructable, IFactory, Transformer, Reporter, IDisposable } from '@aurelia/kernel';
-import { IController, IViewFactory, IViewModel, ILifecycle } from '../lifecycle';
+import { IController, IViewFactory, IViewModel, ILifecycle, IRenderableController } from '../lifecycle';
 import { IDOM, INode, IRenderLocation, INodeSequence } from '../dom';
 import { IRenderer, ITemplateCompiler } from '../renderer';
 import { ViewFactory } from './view';
@@ -415,7 +415,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
 
   public render(
     flags: LifecycleFlags,
-    controller: IController,
+    controller: IRenderableController,
     targets: ArrayLike<INode>,
     templateDefinition: CustomElementDefinition,
     host: INode | null | undefined,
@@ -427,7 +427,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
   public renderInstructions(
     flags: LifecycleFlags,
     instructions: readonly ITargetedInstruction[],
-    controller: IController,
+    controller: IRenderableController,
     target: unknown,
     parts: PartialCustomElementDefinitionParts | undefined,
   ): void {

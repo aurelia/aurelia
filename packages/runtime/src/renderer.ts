@@ -40,6 +40,7 @@ import { BindingMode, LifecycleFlags } from './flags';
 import {
   IController,
   ILifecycle,
+  IRenderableController,
 } from './lifecycle';
 import { IObserverLocator } from './observation/observer-locator';
 import {
@@ -70,7 +71,7 @@ export interface IInstructionRenderer<
   render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IController,
+    controller: IRenderableController,
     target: unknown,
     instruction: ITargetedInstruction,
     parts: PartialCustomElementDefinitionParts | undefined,
@@ -83,7 +84,7 @@ export interface IRenderer {
   render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IController,
+    controller: IRenderableController,
     targets: ArrayLike<INode>,
     templateDefinition: CustomElementDefinition,
     host: INode | null | undefined,
@@ -94,7 +95,7 @@ export interface IRenderer {
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
     instructions: readonly ITargetedInstruction[],
-    controller: IController,
+    controller: IRenderableController,
     target: unknown,
     parts: PartialCustomElementDefinitionParts | undefined,
   ): void;
@@ -157,7 +158,7 @@ export class Renderer implements IRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IController,
+    controller: IRenderableController,
     targets: ArrayLike<INode>,
     definition: CustomElementDefinition,
     host: INode | null | undefined,
@@ -196,7 +197,7 @@ export class Renderer implements IRenderer {
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
     instructions: readonly ITargetedInstruction[],
-    controller: IController,
+    controller: IRenderableController,
     target: unknown,
     parts: PartialCustomElementDefinitionParts | undefined,
   ): void {
@@ -257,7 +258,7 @@ export class SetPropertyRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IController,
+    controller: IRenderableController,
     target: IController,
     instruction: ISetPropertyInstruction,
   ): void {
@@ -276,7 +277,7 @@ export class CustomElementRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IController,
+    controller: IRenderableController,
     target: INode,
     instruction: IHydrateElementInstruction,
     parts: PartialCustomElementDefinitionParts | undefined,
@@ -327,7 +328,7 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IController,
+    controller: IRenderableController,
     target: INode,
     instruction: IHydrateAttributeInstruction,
     parts: PartialCustomElementDefinitionParts | undefined,
@@ -372,7 +373,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     parentContext: ICompiledRenderContext,
-    controller: IController,
+    controller: IRenderableController,
     target: INode,
     instruction: IHydrateTemplateController,
     parts: PartialCustomElementDefinitionParts | undefined,
@@ -432,7 +433,7 @@ export class LetElementRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IController,
+    controller: IRenderableController,
     target: INode,
     instruction: IHydrateLetElementInstruction,
   ): void {
@@ -467,7 +468,7 @@ export class CallBindingRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IController,
+    controller: IRenderableController,
     target: IController,
     instruction: ICallBindingInstruction,
   ): void {
@@ -491,7 +492,7 @@ export class RefBindingRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IController,
+    controller: IRenderableController,
     target: INode,
     instruction: IRefBindingInstruction,
   ): void {
@@ -516,7 +517,7 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IController,
+    controller: IRenderableController,
     target: IController,
     instruction: IInterpolationInstruction,
   ): void {
@@ -550,7 +551,7 @@ export class PropertyBindingRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IController,
+    controller: IRenderableController,
     target: IController,
     instruction: IPropertyBindingInstruction,
   ): void {
@@ -575,7 +576,7 @@ export class IteratorBindingRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
-    controller: IController,
+    controller: IRenderableController,
     target: IController,
     instruction: IIteratorBindingInstruction,
   ): void {

@@ -15,9 +15,9 @@ import {
   LifecycleFlags
 } from './flags';
 import {
-  IController,
   IHydratedViewModel,
   ILifecycle,
+  IHydratedCustomElementController,
 } from './lifecycle';
 import {
   ContinuationTask,
@@ -47,7 +47,7 @@ export class CompositionRoot<T extends INode = INode> {
   public readonly activator: IActivator;
   public task: ILifecycleTask;
 
-  public controller?: IController;
+  public controller?: IHydratedCustomElementController<T>;
   public viewModel?: IHydratedViewModel<T>;
 
   private createTask?: ILifecycleTask;

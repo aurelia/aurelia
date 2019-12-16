@@ -12,7 +12,7 @@ import {
   BindingMode,
   BindingType,
   ICallBindingInstruction,
-  IController,
+  IRenderableController,
   IExpressionParser,
   IInstructionRenderer,
   instructionRenderer,
@@ -62,7 +62,7 @@ export class TranslationParametersBindingRenderer implements IInstructionRendere
   public render(
     flags: LifecycleFlags,
     context: IContainer,
-    controller: IController,
+    controller: IRenderableController,
     target: HTMLElement,
     instruction: ICallBindingInstruction,
   ): void {

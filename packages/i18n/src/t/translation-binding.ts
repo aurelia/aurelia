@@ -9,7 +9,6 @@ import {
   IBindingTargetAccessor,
   ICallBindingInstruction,
   IConnectableBinding,
-  IController,
   IExpressionParser,
   Interpolation,
   IObserverLocator,
@@ -18,7 +17,8 @@ import {
   IsExpression,
   LifecycleFlags,
   State,
-  INode
+  INode,
+  IRenderableController,
 } from '@aurelia/runtime';
 import i18next from 'i18next';
 import { I18N } from '../i18n';
@@ -28,7 +28,7 @@ interface TranslationBindingCreationContext {
   parser: IExpressionParser;
   observerLocator: IObserverLocator;
   context: IContainer;
-  controller: IController;
+  controller: IRenderableController;
   target: HTMLElement;
   instruction: ICallBindingInstruction;
   isParameterContext?: boolean;

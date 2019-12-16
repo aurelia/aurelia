@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { Constructable, Protocol, Metadata, firstDefined, getPrototypeChain, IIndexable, Reporter } from '@aurelia/kernel';
 import { INode } from '../dom';
-import { IController, IViewModel } from '../lifecycle';
+import { IViewModel, IHydratedCustomElementController } from '../lifecycle';
 import { IElementProjector, CustomElement } from '../resources/custom-element';
 import { ISubscriberCollection, IAccessor, ISubscribable, IPropertyObserver, ISubscriber } from '../observation';
 import { LifecycleFlags } from '../flags';
@@ -12,8 +12,8 @@ export type PartialChildrenDefinition<TNode extends INode = INode> = {
   property?: string;
   options?: MutationObserverInit;
   query?: (projector: IElementProjector<TNode>) => ArrayLike<TNode>;
-  filter?: (node: TNode, controller?: IController<TNode>, viewModel?: IViewModel<TNode>) => boolean;
-  map?: (node: TNode, controller?: IController<TNode>, viewModel?: IViewModel<TNode>) => any;
+  filter?: (node: TNode, controller?: IHydratedCustomElementController<TNode>, viewModel?: IViewModel<TNode>) => boolean;
+  map?: (node: TNode, controller?: IHydratedCustomElementController<TNode>, viewModel?: IViewModel<TNode>) => any;
 };
 
 /**
@@ -139,8 +139,8 @@ export class ChildrenDefinition<TNode extends INode = INode> {
     public readonly property: string,
     public readonly options?: MutationObserverInit,
     public readonly query?: (projector: IElementProjector<TNode>) => ArrayLike<TNode>,
-    public readonly filter?: (node: TNode, controller?: IController<TNode>, viewModel?: IViewModel<TNode>) => boolean,
-    public readonly map?: (node: TNode, controller?: IController<TNode>, viewModel?: IViewModel<TNode>) => any,
+    public readonly filter?: (node: TNode, controller?: IHydratedCustomElementController<TNode>, viewModel?: IViewModel<TNode>) => boolean,
+    public readonly map?: (node: TNode, controller?: IHydratedCustomElementController<TNode>, viewModel?: IViewModel<TNode>) => any,
   ) {}
 
   public static create<TNode extends INode = INode>(prop: string, def: PartialChildrenDefinition<TNode> = {}): ChildrenDefinition<TNode> {
@@ -170,7 +170,7 @@ export class ChildrenObserver {
   private children: any[] = (void 0)!;
 
   public constructor(
-    private readonly controller: IController,
+    private readonly controller: IHydratedCustomElementController,
     public readonly obj: IIndexable,
     flags: LifecycleFlags,
     public readonly propertyKey: string,
@@ -238,11 +238,11 @@ function defaultChildQuery(projector: IElementProjector): ArrayLike<INode> {
   return projector.children;
 }
 
-function defaultChildFilter(node: INode, controller?: IController, viewModel?: any): boolean {
+function defaultChildFilter(node: INode, controller?: IHydratedCustomElementController, viewModel?: any): boolean {
   return !!viewModel;
 }
 
-function defaultChildMap(node: INode, controller?: IController, viewModel?: any): any {
+function defaultChildMap(node: INode, controller?: IHydratedCustomElementController, viewModel?: any): any {
   return viewModel;
 }
 

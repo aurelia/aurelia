@@ -1,7 +1,7 @@
 import { nextId } from '@aurelia/kernel';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags, State } from '../../flags';
-import { IController, IViewFactory, MountStrategy } from '../../lifecycle';
+import { ISyntheticView, IViewFactory, MountStrategy, IViewModel, ICustomAttributeController } from '../../lifecycle';
 import {
   ContinuationTask,
   ILifecycleTask,
@@ -12,14 +12,14 @@ import { bindable } from '../../templating/bindable';
 import { templateController } from '../custom-attribute';
 
 @templateController('if')
-export class If<T extends INode = INode> {
+export class If<T extends INode = INode> implements IViewModel<T> {
   public readonly id: number = nextId('au$component');
 
   public elseFactory?: IViewFactory<T> = void 0;
-  public elseView?: IController<T> = void 0;
-  public ifView?: IController<T> = void 0;
-  public view?: IController<T> = void 0;
-  public $controller!: IController<T>; // This is set by the controller after this instance is constructed
+  public elseView?: ISyntheticView<T> = void 0;
+  public ifView?: ISyntheticView<T> = void 0;
+  public view?: ISyntheticView<T> = void 0;
+  public $controller!: ICustomAttributeController<T, this>; // This is set by the controller after this instance is constructed
 
   private task: ILifecycleTask = LifecycleTask.done;;
 
@@ -96,8 +96,8 @@ export class If<T extends INode = INode> {
   }
 
   /** @internal */
-  public updateView(value: boolean, flags: LifecycleFlags): IController<T> | undefined {
-    let view: IController<T> | undefined;
+  public updateView(value: boolean, flags: LifecycleFlags): ISyntheticView<T> | undefined {
+    let view: ISyntheticView<T> | undefined;
     if (value) {
       view = this.ifView = this.ensureView(this.ifView, this.ifFactory, flags);
     } else if (this.elseFactory != void 0) {
@@ -109,7 +109,7 @@ export class If<T extends INode = INode> {
   }
 
   /** @internal */
-  public ensureView(view: IController<T> | undefined, factory: IViewFactory<T>, flags: LifecycleFlags): IController<T> {
+  public ensureView(view: ISyntheticView<T> | undefined, factory: IViewFactory<T>, flags: LifecycleFlags): ISyntheticView<T> {
     if (view === void 0) {
       view = factory.create(flags);
     }
@@ -131,7 +131,7 @@ export class If<T extends INode = INode> {
       const view = this.updateView(value, flags);
       task = this.activate(view, flags);
     } else {
-      task = new PromiseTask<[LifecycleFlags], IController<T> | undefined>(task.wait().then(() => this.updateView(value, flags)), this.activate, this, flags);
+      task = new PromiseTask<[LifecycleFlags], ISyntheticView<T> | undefined>(task.wait().then(() => this.updateView(value, flags)), this.activate, this, flags);
     }
     return task;
   }
@@ -148,7 +148,7 @@ export class If<T extends INode = INode> {
     return task;
   }
 
-  private activate(view: IController<T> | undefined, flags: LifecycleFlags): ILifecycleTask {
+  private activate(view: ISyntheticView<T> | undefined, flags: LifecycleFlags): ILifecycleTask {
     this.view = view;
     if (view === void 0) {
       return LifecycleTask.done;
@@ -189,7 +189,7 @@ export class Else<T extends INode = INode> {
     @IViewFactory private readonly factory: IViewFactory<T>,
   ) {}
 
-  public link(ifBehavior: If<T> | IController<T>): void {
+  public link(ifBehavior: If<T> | ICustomAttributeController<T>): void {
     if (ifBehavior instanceof If) {
       ifBehavior.elseFactory = this.factory;
     } else if (ifBehavior.viewModel instanceof If) {

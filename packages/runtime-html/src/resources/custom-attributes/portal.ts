@@ -14,7 +14,9 @@ import {
   LifecycleTask,
   State,
   templateController,
-  TerminalTask
+  TerminalTask,
+  ISyntheticView,
+  ICustomAttributeController,
 } from '@aurelia/runtime';
 import {
   HTMLDOM,
@@ -23,7 +25,7 @@ import {
 export type PortalTarget<T extends ParentNode = ParentNode> = string | T | null | undefined;
 type ResolvedTarget<T extends ParentNode = ParentNode> = T | null;
 
-export type PortalLifecycleCallback<T extends ParentNode = ParentNode> = (target: PortalTarget<T>, view: IController<T>) => void | Promise<void> | ILifecycleTask;
+export type PortalLifecycleCallback<T extends ParentNode = ParentNode> = (target: PortalTarget<T>, view: ISyntheticView<T>) => void | Promise<void> | ILifecycleTask;
 
 function toTask(maybePromiseOrTask: void | Promise<void> | ILifecycleTask): ILifecycleTask {
   if (maybePromiseOrTask == null) {
@@ -66,14 +68,14 @@ export class Portal<T extends ParentNode = ParentNode> {
   @bindable()
   public callbackContext: unknown;
 
-  public readonly view: IController<T>;
+  public readonly view: ISyntheticView<T>;
 
   private task: ILifecycleTask = LifecycleTask.done;
 
   private currentTarget?: PortalTarget;
 
   // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
-  private readonly $controller!: IController<T>;
+  public readonly $controller!: ICustomAttributeController<T, this>;
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory<T>,

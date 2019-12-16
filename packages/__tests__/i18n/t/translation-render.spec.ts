@@ -106,20 +106,20 @@ describe('TranslationBindingRenderer', function () {
     const container = setup();
     const sut: IInstructionRenderer = new TranslationBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
     const expressionParser = container.get(IExpressionParser);
-    const renderable = ({} as unknown as IController);
+    const controller = ({ bindings: [], addBinding(binding) { controller.bindings.push(binding); } } as unknown as IController);
 
     const from = expressionParser.parse('simple.key', BindingType.CustomCommand);
     const callBindingInstruction: ICallBindingInstruction = { from } as unknown as ICallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
       container as unknown as ICompiledRenderContext,
-      renderable,
+      controller,
       DOM.createElement('span'),
       callBindingInstruction,
       void 0,
     );
 
-    assert.instanceOf(renderable.bindings[0], TranslationBinding);
+    assert.instanceOf(controller.bindings[0], TranslationBinding);
   });
 
   it('#render adds expr to the existing TranslationBinding for the target element', function () {
@@ -128,14 +128,14 @@ describe('TranslationBindingRenderer', function () {
     const expressionParser = container.get(IExpressionParser);
     const targetElement = DOM.createElement('span');
     const binding = new TranslationBinding(targetElement, {} as unknown as IObserverLocator, container);
-    const renderable = ({ bindings: [binding] } as unknown as IController);
+    const controller = ({ bindings: [binding], addBinding(binding) { controller.bindings.push(binding); } } as unknown as IController);
 
     const from = expressionParser.parse('simple.key', BindingType.CustomCommand);
     const callBindingInstruction: ICallBindingInstruction = { from } as unknown as ICallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
       container as unknown as ICompiledRenderContext,
-      renderable,
+      controller,
       targetElement,
       callBindingInstruction,
       void 0,
@@ -249,40 +249,40 @@ describe('TranslationBindBindingRenderer', function () {
     const container = setup();
     const sut: IInstructionRenderer = new TranslationBindBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
     const expressionParser = container.get(IExpressionParser);
-    const renderable = ({} as unknown as IController);
+    const controller = ({ bindings: [], addBinding(binding) { controller.bindings.push(binding); } } as unknown as IController);
 
     const from = expressionParser.parse('simple.key', BindingType.BindCommand);
     const callBindingInstruction: ICallBindingInstruction = { from, to: '.bind' } as unknown as ICallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
       container as unknown as ICompiledRenderContext,
-      renderable,
+      controller,
       DOM.createElement('span'),
       callBindingInstruction,
       void 0,
     );
 
-    assert.instanceOf(renderable.bindings[0], TranslationBinding);
+    assert.instanceOf(controller.bindings[0], TranslationBinding);
   });
 
   it('#render instantiates TranslationBinding - .bind expr', function () {
     const container = setup();
     const sut: IInstructionRenderer = new TranslationBindBindingRenderer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
     const expressionParser = container.get(IExpressionParser);
-    const renderable = ({} as unknown as IController);
+    const controller = ({ bindings: [], addBinding(binding) { controller.bindings.push(binding); } } as unknown as IController);
 
     const from = expressionParser.parse('simple.key', BindingType.BindCommand);
     const callBindingInstruction: ICallBindingInstruction = { from, to: '.bind' } as unknown as ICallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
       container as unknown as ICompiledRenderContext,
-      renderable,
+      controller,
       DOM.createElement('span'),
       callBindingInstruction,
       void 0,
     );
 
-    assert.instanceOf(renderable.bindings[0], TranslationBinding);
+    assert.instanceOf(controller.bindings[0], TranslationBinding);
   });
 
   it('#render adds expr to the existing TranslationBinding for the target element', function () {
@@ -291,14 +291,14 @@ describe('TranslationBindBindingRenderer', function () {
     const expressionParser = container.get(IExpressionParser);
     const targetElement = DOM.createElement('span');
     const binding = new TranslationBinding(targetElement, {} as unknown as IObserverLocator, container);
-    const renderable = ({ bindings: [binding] } as unknown as IController);
+    const controller = ({ bindings: [binding], addBinding(binding) { controller.bindings.push(binding); } } as unknown as IController);
 
     const from = expressionParser.parse('simple.key', BindingType.BindCommand);
     const callBindingInstruction: ICallBindingInstruction = { from, to: '.bind' } as unknown as ICallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
       container as unknown as ICompiledRenderContext,
-      renderable,
+      controller,
       targetElement,
       callBindingInstruction,
       void 0,

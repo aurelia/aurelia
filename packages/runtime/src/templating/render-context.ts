@@ -10,7 +10,7 @@ import { LifecycleFlags } from '../flags';
 const definitionContainerLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, RenderContext>>();
 const definitionContainerPartsLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, WeakMap<PartialCustomElementDefinitionParts, RenderContext>>>();
 
-const fragmentCache = new WeakMap<CustomElementDefinition, INode | undefined>();
+const fragmentCache = new WeakMap<CustomElementDefinition, INode | null>();
 
 export function isRenderContext<T extends INode = INode>(value: unknown): value is IRenderContext<T> {
   return value instanceof RenderContext;
@@ -78,9 +78,9 @@ export interface ICompiledRenderContext<T extends INode = INode> extends IRender
    *
    * A new instance will be created from a clone of the fragment on each call.
    *
-   * @returns An new instance of `INodeSequence` if there is a template, otherwise `null`. If `null` is returned, that means there is nothing to render.
+   * @returns An new instance of `INodeSequence` if there is a template, otherwise a shared empty instance.
    */
-  createNodes(): INodeSequence<T> | null;
+  createNodes(): INodeSequence<T>;
 
   /**
    * Prepare this render context for creating a new component instance.
@@ -222,7 +222,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
   private readonly renderLocationProvider: InstanceProvider<IRenderLocation<T>>;
 
   private viewModelProvider: InstanceProvider<IViewModel<T>> | undefined = void 0;
-  private fragment: T | undefined = void 0;
+  private fragment: T | null = null;
   private factory: IViewFactory<T> | undefined = void 0;
   private isCompiled: boolean = false;
 
@@ -330,7 +330,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     } else {
       const template = compiledDefinition.template as string | T | null;
       if (template === null) {
-        fragmentCache.set(compiledDefinition, void 0);
+        fragmentCache.set(compiledDefinition, null);
       } else {
         fragmentCache.set(
           compiledDefinition,
@@ -373,12 +373,8 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
 
   // #region ICompiledRenderContext api
 
-  public createNodes(): INodeSequence<T> | null {
-    const fragment = this.fragment;
-    if (fragment === void 0) {
-      return null;
-    }
-    return this.dom.createNodeSequence(fragment);
+  public createNodes(): INodeSequence<T> {
+    return this.dom.createNodeSequence(this.fragment);
   }
 
   // TODO: split up into 2 methods? getComponentFactory + getSyntheticFactory or something

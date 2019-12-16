@@ -44,6 +44,8 @@ export class HTMLDOM implements IDOM {
   public readonly CSSStyleSheet: typeof CSSStyleSheet;
   public readonly ShadowRoot: typeof ShadowRoot;
 
+  private readonly emptyNodes: FragmentNodeSequence;
+
   public constructor(
     public readonly window: Window,
     public readonly document: Document,
@@ -65,6 +67,8 @@ export class HTMLDOM implements IDOM {
       DOM.destroy();
     }
     DOM.initialize(this);
+
+    this.emptyNodes = new FragmentNodeSequence(this, document.createDocumentFragment());
   }
 
   public static register(container: IContainer): IResolver<IDOM> {
@@ -123,7 +127,10 @@ export class HTMLDOM implements IDOM {
     return this.createTemplate(markupOrNode).content;
   }
 
-  public createNodeSequence(fragment: DocumentFragment): FragmentNodeSequence {
+  public createNodeSequence(fragment: DocumentFragment | null): FragmentNodeSequence {
+    if (fragment === null) {
+      return this.emptyNodes;
+    }
     return new FragmentNodeSequence(this, fragment.cloneNode(true) as DocumentFragment);
   }
 

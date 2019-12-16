@@ -222,7 +222,10 @@ describe('the view locator', function () {
   });
 
   [
-    'created',
+    'beforeCompile',
+    'create',
+    'afterCompile',
+    'afterCompileChildren',
     'beforeBind',
     'afterBind',
     'beforeAttach',

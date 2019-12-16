@@ -370,11 +370,6 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
 
   private latestRule?: BaseValidationRule;
 
-  /**
-   * @param {RuleProperty} property - Property to validate
-   * @internal @param {BaseValidationRule[][]} [$rules=[]] - configured rules
-   * @memberof PropertyRule
-   */
   public constructor(
     private readonly validationRules: ValidationRules,
     private readonly messageProvider: IValidationMessageProvider,

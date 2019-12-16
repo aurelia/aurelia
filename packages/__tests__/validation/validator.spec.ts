@@ -7,8 +7,8 @@ import {
   IValidateable,
   ValidationResult,
   IValidationRules,
-  RequiredRule,
-  RegexRule
+  RegexRule,
+  LengthRule
 } from '@aurelia/validation';
 import { assert } from '@aurelia/testing';
 import { Person } from './_test-resources';
@@ -64,25 +64,59 @@ describe.only('StandardValidator', function () {
     };
   }
 
-  it('can validate an object property', async function () {
+  it('validates all rules by default for an object property', async function () {
     const { sut, validationRules } = setup();
-    const requiredMessage = 'name is required';
-
-    const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
+    const message1 = 'message1', message2 = 'message2';
+    const obj: Person = new Person('test', (void 0)!, (void 0)!);
     validationRules
       .on(obj)
       .ensure(o => o.name)
-      .required()
-      .withMessage(requiredMessage)
-      ;
+      .matches(/foo/)
+      .withMessage(message1)
+      .minLength(42)
+      .withMessage(message2);
 
     const result = await sut.validateProperty(obj, 'name');
+    assert.equal(result.length, 2);
+
+    assert.equal(result[0].valid, false);
+    assert.equal(result[0].propertyName, 'name');
+    assert.equal(result[0].message, message1);
+    assert.equal(result[0].object, obj);
+    assert.instanceOf(result[0].rule, RegexRule);
+
+    assert.equal(result[1].valid, false);
+    assert.equal(result[1].propertyName, 'name');
+    assert.equal(result[1].message, message2);
+    assert.equal(result[1].object, obj);
+    assert.instanceOf(result[1].rule, LengthRule);
+  });
+
+  it('validates only given rules for an object property', async function () {
+    const { sut, validationRules } = setup();
+    const message1 = 'message1', message2 = 'message2';
+    const obj: Person = new Person('test', (void 0)!, (void 0)!);
+    const rules = validationRules
+      .on(obj)
+      .ensure(o => o.name)
+      .matches(/foo/)
+      .withMessage(message1)
+      .minLength(42)
+      .withMessage(message2)
+      .rules[0];
+    const rule = new PropertyRule(
+      rules['validationRules'],
+      rules['messageProvider'],
+      rules.property,
+      [[rules.$rules[0][0]]]);
+
+    const result = await sut.validateProperty(obj, 'name', [rule]);
     assert.equal(result.length, 1);
 
     assert.equal(result[0].valid, false);
     assert.equal(result[0].propertyName, 'name');
-    assert.equal(result[0].message, requiredMessage);
+    assert.equal(result[0].message, message1);
     assert.equal(result[0].object, obj);
-    assert.instanceOf(result[0].rule, RequiredRule);
+    assert.instanceOf(result[0].rule, RegexRule);
   });
 });

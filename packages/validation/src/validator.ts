@@ -40,7 +40,7 @@ export class StandardValidator implements IValidator {
    * @param {*} [rules] - If unspecified, the rules will be looked up using the metadata
    * for the object created by ValidationRules....on(class/object)
    */
-  public async validateProperty(object: IValidateable, propertyName: string | number, rules?: [PropertyRule]): Promise<ValidationResult[]> {
+  public async validateProperty(object: IValidateable, propertyName: string | number, rules?: PropertyRule[]): Promise<ValidationResult[]> {
     // TODO support filter by tags
     return this.validate(object, propertyName, rules);
   }
@@ -56,30 +56,6 @@ export class StandardValidator implements IValidator {
     // TODO support filter by tags
     return this.validate(object, void 0, rules);
   }
-
-  // private getMessage(rule: PropertyRule, object: any, value: any): string {
-  //   const expression = rule.getMessage();
-  //   // eslint-disable-next-line prefer-const
-  //   let { name: propertyName, displayName } = rule.property;
-  //   if (propertyName !== null) {
-  //     displayName = this.messageProvider.getDisplayName(propertyName, displayName);
-  //   }
-  //   const overrideContext: any = {
-  //     $displayName: displayName,
-  //     $propertyName: propertyName,
-  //     $value: value,
-  //     $object: object,
-  //     $config: rule.config,
-  //     // returns the name of a given property, given just the property name (irrespective of the property's displayName)
-  //     // split on capital letters, first letter ensured to be capitalized
-  //     $getDisplayName: this.getDisplayName
-  //   };
-  //   return expression.evaluate(
-  //     LifecycleFlags.none,
-  //     // { bindingContext: object, overrideContext },
-  //     (void 0)!,
-  //     null) as string;
-  // }
 
   private async validate(
     object: IValidateable,

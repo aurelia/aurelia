@@ -13,13 +13,13 @@
         <au-viewport></au-viewport>
       </template>
     </au-viewport-scope> -->
-    <a goto="/window/users+window/child-router+window+window/child-router/users">/window/users+window/child-router+window+window/child-router/users | </a>
+    <!-- <a goto="/window/users+window/child-router+window+window/child-router/users">/window/users+window/child-router+window+window/child-router/users | </a>
     <a goto.bind="[{ component: '+', viewport: 'default'}]">[{ component: '+', viewport: 'default'}] | </a>
-    <a goto="+@default">+@default | </a>
+    <a goto="+@default">+@default | </a> -->
     <div class="window-container">
       <au-viewport-scope catches="window,alternate" class="window" source.bind="windows" repeat.for="window of windows">
         <div replace>
-          id: ${window.id} ${name} ${sourceItem.id}
+          <!-- id: ${window.id} ${name} ${sourceItem.id} -->
           <!-- <a goto="users">users | </a>
           <a goto="child-router/welcome">child-router/welcome | </a>
           <a goto="child-router/users">child-router/users | </a>
@@ -39,6 +39,28 @@
           <a goto="+">+ | </a>
           <a goto="++">++ | </a>
           <a goto="+@default">+@default | </a> -->
+          <nav class="navbar-expand-lg navbar-light bg-light">
+            <ul class="navbar-nav mr-auto">
+              <li class="nav-item">
+                <a goto="welcome" class="nav-link">
+                  <span style="white-space: nowrap"><i class="fa fa-home"></i>Aurelia</span>
+                </a>
+              </li>
+              <li repeat.for="link of [
+              { link: 'welcome', title: 'Welcome'},
+              { link: 'users', title: 'Users'},
+              { link: 'child-router', title: 'Child router'},
+              ]">
+                <a goto="${link.link}" class="nav-link">${link.title}</a>
+              </li>
+              <li if.bind="window === windows[windows.length - 1]" class="nav-item">
+                <a goto="+" class="nav-link"><i class="fa fa-plus"></i></a>
+              </li>
+              <li if.bind="windows.length > 1" class="nav-item">
+                <a goto="-" class="nav-link"><i class="fa fa-minus"></i></a>
+              </li>
+            </ul>
+          </nav>
           <au-nav name="app-menu-${window.id}"></au-nav>
           <au-viewport name="app-viewport" default="welcome"></au-viewport>
         </div>

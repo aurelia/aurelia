@@ -330,7 +330,9 @@ export class Router implements IRouter {
     instructions = instructions.filter(instr => !this.instructionResolver.isClearAllViewportsInstruction(instr));
 
     for (const addInstruction of instructions.filter(instr => this.instructionResolver.isAddAllViewportsInstruction(instr))) {
-      addInstruction.viewportScope = (addInstruction.scope || this.rootScope!.scope).viewportScope;
+      addInstruction.setViewport((addInstruction.scope || this.rootScope!.scope).viewportScope!.name);
+      addInstruction.scope = addInstruction.scope!.owningScope!;
+      // addInstruction.viewportScope = (addInstruction.scope || this.rootScope!.scope).viewportScope;
     }
 
     const updatedScopeOwners: IScopeOwner[] = [];

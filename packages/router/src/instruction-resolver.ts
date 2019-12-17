@@ -143,6 +143,9 @@ export class InstructionResolver {
         if (instruction.viewport && instruction.viewport.options.fallback === instruction.componentName) {
           excludeCurrentComponent = true;
         }
+        if (!instruction.needsViewportDescribed && instruction.viewportScope) {
+          excludeCurrentViewport = true;
+        }
       }
       const route: string | null = instruction.route;
       const nextInstructions: ViewportInstruction[] | null = instruction.nextScopeInstructions;

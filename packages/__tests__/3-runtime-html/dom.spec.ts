@@ -1,13 +1,6 @@
-import { INode, NodeSequence } from '@aurelia/runtime';
-import { FragmentNodeSequence, NodeSequenceFactory } from '@aurelia/runtime-html';
+import { INode } from '@aurelia/runtime';
+import { FragmentNodeSequence } from '@aurelia/runtime-html';
 import { HTMLTestContext, TestContext, assert, createSpy } from '@aurelia/testing';
-
-function wrap(inner: string, tag: string): string {
-  if (tag.length === 0) {
-    return inner;
-  }
-  return `<${tag}>${inner}</${tag}>`;
-}
 
 function verifyThrows(call: () => void): void {
   let err;
@@ -28,71 +21,6 @@ function verifyDoesNotThrow(call: () => void): void {
   }
   assert.strictEqual(err, undefined, `err`);
 }
-
-describe('NodeSequenceFactory', function () {
-  const ctx = TestContext.createHTMLTestContext();
-
-  describe('createNodeSequenceFactory', function () {
-    const textArr = ['', 'text', '#text'];
-    const elementsArr = [[''], ['div'], ['div', 'p']];
-    const wrapperArr = ['', 'div', 'template'];
-
-    for (const text of textArr) {
-
-      for (const elements of elementsArr) {
-        const elementsMarkup = elements.map(e => wrap(text, e)).join('');
-
-        for (const wrapper of wrapperArr) {
-          const markup = wrap(elementsMarkup, wrapper);
-
-          it(`should create a factory that returns the correct markup for "${markup}"`, function () {
-            const factory = new NodeSequenceFactory(ctx.dom, markup);
-            const view = factory.createNodeSequence();
-            const fragment = view['fragment'] as DocumentFragment;
-            let parsedMarkup = '';
-            const childCount = fragment.childNodes.length;
-            let i = 0;
-            while (i < childCount) {
-              const child = fragment.childNodes.item(i);
-              if (child['outerHTML']) {
-                parsedMarkup += child['outerHTML'];
-              } else {
-                parsedMarkup += child['textContent'];
-              }
-              i++;
-            }
-            assert.strictEqual(parsedMarkup, markup, `parsedMarkup`);
-          });
-
-          it(`should create a factory that always returns a view with a different fragment instance for "${markup}"`, function () {
-            const factory = new NodeSequenceFactory(ctx.dom, markup);
-            const fragment1 = factory.createNodeSequence()['fragment'];
-            const fragment2 = factory.createNodeSequence()['fragment'];
-            const fragment3 = factory.createNodeSequence()['fragment'];
-
-            if (fragment1 === fragment2 || fragment1 === fragment3 || fragment2 === fragment3) {
-              throw new Error('Expected all fragments to be different instances');
-            }
-          });
-        }
-      }
-    }
-
-    const validInputArr: any[] = ['', 'asdf', 'div', 1, true, false, {}, new Error(), undefined, null, Symbol()];
-    for (const validInput of validInputArr) {
-      it(`should not throw for valid input type "${typeof validInput}"`, function () {
-        verifyDoesNotThrow(() => new NodeSequenceFactory(ctx.dom, validInput));
-      });
-    }
-
-    const invalidInputArr: any[] = [];
-    for (const invalidInput of invalidInputArr) {
-      it(`should throw for invalid input type "${typeof invalidInput}"`, function () {
-        verifyThrows(() => new NodeSequenceFactory(ctx.dom, invalidInput));
-      });
-    }
-  });
-});
 
 describe('dom', function () {
   const ctx = TestContext.createHTMLTestContext();

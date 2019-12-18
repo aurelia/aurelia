@@ -1,5 +1,5 @@
 import { IContainer, Reporter } from '@aurelia/kernel';
-import { Controller, IController, INode, IRenderContext, LifecycleFlags } from '@aurelia/runtime';
+import { Controller, IController, INode, LifecycleFlags, ILifecycle } from '@aurelia/runtime';
 import { INavigatorInstruction, IRouteableComponent, RouteableComponentType, ReentryBehavior } from './interfaces';
 import { mergeParameters } from './parser';
 import { Viewport } from './viewport';
@@ -29,7 +29,7 @@ export class ViewportContent {
       instruction: '',
       fullStateInstruction: '',
     },
-    context: IRenderContext | IContainer | null = null
+    context: IContainer | null = null
   ) {
     // If we've got a container, we're good to resolve type
     if (!this.content.isComponentType() && context !== null) {
@@ -63,7 +63,7 @@ export class ViewportContent {
     return this.content.sameComponent(other.content, true);
   }
 
-  public createComponent(context: IRenderContext | IContainer): void {
+  public createComponent(context: IContainer): void {
     if (this.contentStatus !== ContentStatus.none) {
       return;
     }
@@ -142,7 +142,7 @@ export class ViewportContent {
     this.entered = false;
   }
 
-  public loadComponent(context: IRenderContext | IContainer, element: Element, viewport: Viewport): Promise<void> {
+  public loadComponent(context: IContainer, element: Element, viewport: Viewport): Promise<void> {
     if (this.contentStatus !== ContentStatus.created || !this.entered || !this.content.componentInstance) {
       return Promise.resolve();
     }
@@ -150,9 +150,15 @@ export class ViewportContent {
     if (!this.fromCache || !this.fromHistory) {
       const host: INode = element as INode;
       const container = context;
-      Controller.forCustomElement(this.content.componentInstance, container, host);
+      Controller.forCustomElement(
+        this.content.componentInstance,
+        container.get(ILifecycle),
+        host,
+        container,
+        void 0,
+      );
     }
-    // Temporarily tag content so that it can find parent scope before viewport is attached
+    // Temporarily tag content so that it can find parent scope before viewport is afterAttach
     const childNodes = this.content.componentInstance.$controller!.nodes!.childNodes;
     for (let i = 0; i < childNodes.length; i++) {
       const child = childNodes[i] as Element;
@@ -196,6 +202,7 @@ export class ViewportContent {
     // }
     this.contentStatus = ContentStatus.initialized;
   }
+
   public async terminateComponent(stateful: boolean = false): Promise<void> {
     if (this.contentStatus !== ContentStatus.initialized) {
       return;
@@ -258,13 +265,13 @@ export class ViewportContent {
   public toComponentName(): string | null {
     return this.content.componentName;
   }
-  public toComponentType(context: IRenderContext | IContainer): RouteableComponentType | null {
+  public toComponentType(context: IContainer): RouteableComponentType | null {
     if (this.content.isEmpty()) {
       return null;
     }
     return this.content.toComponentType(context);
   }
-  public toComponentInstance(context: IRenderContext | IContainer): IRouteableComponent | null {
+  public toComponentInstance(context: IContainer): IRouteableComponent | null {
     if (this.content.isEmpty()) {
       return null;
     }

@@ -14,7 +14,6 @@ export {
   AuObserverLocator,
   AuProjector,
   AuProjectorLocator,
-  AuTemplateFactory,
   AuTextInstruction,
   AuTextRenderer,
 } from './au-dom';

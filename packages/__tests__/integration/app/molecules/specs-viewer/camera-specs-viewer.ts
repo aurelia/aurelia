@@ -28,7 +28,7 @@ export class CameraSpecsViewer {
   private focalLength: string;
   private fNumber: string;
 
-  public binding(...args) {
+  public beforeBind(...args) {
     const { focalLengthRange: [fln, flx], fNumberRange: [fnn, fnx] } = this.model;
     this.focalLength = `${fln}-${flx}`;
     this.fNumber = `${fnn}-${fnx}`;

@@ -1,11 +1,10 @@
 import {
-  ClassInstance,
-  ComposableObject,
   ComposableObjectComponentType,
   IViewLocator,
   ViewSelector
 } from '../../templating/view';
 import { valueConverter } from '../value-converter';
+import { ICustomElementViewModel } from '../../lifecycle';
 
 @valueConverter('view')
 export class ViewValueConverter {
@@ -13,7 +12,7 @@ export class ViewValueConverter {
     @IViewLocator private readonly viewLocator: IViewLocator,
   ) {}
 
-  public toView<T extends ClassInstance<ComposableObject>>(
+  public toView<T extends ICustomElementViewModel>(
     object: T | null | undefined,
     viewNameOrSelector?: string | ViewSelector
   ): ComposableObjectComponentType<T> | null {

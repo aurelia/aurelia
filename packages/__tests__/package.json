@@ -8,7 +8,10 @@
   },
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts .",
+    "test-262": "node -r esm dist/esnext/__tests__/setup-test262.js",
     "test-node": "cross-env NODE_ICU_DATA=../../node_modules/full-icu mocha --opts mocha.opts --reporter min --exit dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/**/*.spec.js --exclude dist/esnext/__tests__/integration/**/*.spec.js",
+    "test-node:aot": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/aot/**/*.spec.js --exit",
+    "test-node:aot:watch": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/aot/**/*.spec.js --watch-extensions ts --watch",
     "test-node:kernel": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/1-kernel/**/*.spec.js --watch",
     "test-node:runtime": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/2-runtime/**/*.spec.js --watch",
     "test-node:runtime-html": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/3-runtime-html/**/*.spec.js --watch",
@@ -101,7 +104,5 @@
     "webpack": "^4.41.2",
     "yargs": "^14.2.0"
   },
-  "version": "0.6.1-dev.201912180658",
-  "main": "dist/umd/index.js",
-  "module": "dist/esnext/index.js"
+  "version": "0.6.0"
 }

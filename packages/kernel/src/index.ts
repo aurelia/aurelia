@@ -78,6 +78,7 @@ export {
   DefaultLogger,
   ConsoleSink,
   LoggerConfiguration,
+  format,
 } from './logger';
 export {
   relativeToFile,

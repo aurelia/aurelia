@@ -1,5 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import { CustomElement, IViewModel, IController } from '@aurelia/runtime';
+import { CustomElement, IController, ICustomElementViewModel } from '@aurelia/runtime';
 import { ComponentAppellation, IRouteableComponent, RouteableComponentType, IViewportInstruction, NavigationInstruction, ViewportHandle } from './interfaces';
 import { IRouter } from './router';
 import { Viewport } from './viewport';
@@ -68,7 +68,7 @@ export const ViewportHandleResolver = {
 };
 
 export interface IViewportInstructionsOptions {
-  context?: IViewModel | Element | IController;
+  context?: ICustomElementViewModel | Element | IController;
 }
 
 export const NavigationInstructionResolver = {
@@ -79,17 +79,17 @@ export const NavigationInstructionResolver = {
       scope = router.findScope(options.context);
       if (typeof navigationInstructions === 'string') {
         // If it's not from scope root, figure out which scope
-        if (!navigationInstructions.startsWith('/')) {
+        if (!(navigationInstructions as string).startsWith('/')) {
           // Scope modifications
-          if (navigationInstructions.startsWith('.')) {
+          if ((navigationInstructions as string).startsWith('.')) {
             // The same as no scope modification
-            if (navigationInstructions.startsWith('./')) {
-              navigationInstructions = navigationInstructions.slice(2);
+            if ((navigationInstructions as string).startsWith('./')) {
+              navigationInstructions = (navigationInstructions as string).slice(2);
             }
             // Find out how many scopes upwards we should move
-            while (navigationInstructions.startsWith('../')) {
+            while ((navigationInstructions as string).startsWith('../')) {
               scope = scope.parent || scope;
-              navigationInstructions = navigationInstructions.slice(3);
+              navigationInstructions = (navigationInstructions as string).slice(3);
             }
           }
           if (scope.path !== null) {

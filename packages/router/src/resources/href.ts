@@ -1,16 +1,17 @@
-import { customAttribute, INode, bindable, BindingMode, IViewModel, ViewModelKind, IDOM, DelegationStrategy } from '@aurelia/runtime';
+import { customAttribute, INode, bindable, BindingMode, ViewModelKind, IDOM, DelegationStrategy, ICustomAttributeViewModel, IController, IRenderableController, ICustomAttributeController } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { GotoCustomAttribute } from '../configuration';
 import { IEventManager } from '@aurelia/runtime-html';
 import { IDisposable } from '@aurelia/kernel';
 
 @customAttribute('href')
-export class HrefCustomAttribute {
+export class HrefCustomAttribute implements ICustomAttributeViewModel<HTMLElement> {
   @bindable({ mode: BindingMode.toView })
   public value: string | undefined;
 
   private eventListener: IDisposable | null = null;
   private readonly element: HTMLElement;
+  public readonly $controller!: ICustomAttributeController<HTMLElement, this>;
 
   public constructor(
     @IDOM private readonly dom: IDOM,
@@ -22,10 +23,10 @@ export class HrefCustomAttribute {
   }
 
   public binding(): void {
-    if (this.router.options.useHref &&
-      ((this as IViewModel).$controller!.parent!.controllers!
-        .filter(c => c.vmKind === ViewModelKind.customAttribute &&
-          c.bindingContext instanceof GotoCustomAttribute).length === 0)) {
+    if (this.router.options.useHref && !this.hasGoto()) {
+      // ((this as ICustomAttributeViewModel).$controller!.parent!.controllers!
+      //   .filter((c: IController) => c.vmKind === ViewModelKind.customAttribute &&
+      //     c.bindingContext instanceof GotoCustomAttribute).length === 0)) {
       this.eventListener = this.eventManager.addEventListener(
         this.dom, this.element, 'click', this.router.linkHandler.handler, DelegationStrategy.none);
     }
@@ -43,5 +44,12 @@ export class HrefCustomAttribute {
 
   private updateValue(): void {
     this.element.setAttribute('href', this.value as string);
+  }
+
+  private hasGoto(): boolean {
+    const parent = this.$controller.parent!;
+    const siblings = parent.vmKind !== ViewModelKind.customAttribute ? parent.controllers : void 0;
+    return siblings !== void 0
+      && siblings.some(c => c.vmKind === ViewModelKind.customAttribute && c.viewModel instanceof GotoCustomAttribute);
   }
 }

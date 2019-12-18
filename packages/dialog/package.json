@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/dialog",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "main": "dist/esnext/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -35,8 +35,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.5.0",
-    "@aurelia/runtime": "0.5.0"
+    "@aurelia/kernel": "0.6.0",
+    "@aurelia/runtime": "0.6.0"
   },
   "devDependencies": {
     "@types/node": "^12.12.7",

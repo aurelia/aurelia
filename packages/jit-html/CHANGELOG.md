@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.6.0"></a>
+# 0.6.0 (2019-12-18)
+
+### Bug Fixes:
+
+* **template-compiler:** just return the definition if template is null ([9f3d595](https://github.com/aurelia/aurelia/commit/9f3d595))
+
+
+### Refactorings:
+
+* **template-compiler:** merge RuntimeCompilationResources into ResourceModel ([43f09d3](https://github.com/aurelia/aurelia/commit/43f09d3))
+* **runtime:** rename 'attached' to 'afterAttach' ([6ae7be1](https://github.com/aurelia/aurelia/commit/6ae7be1))
+
 <a name="0.5.0"></a>
 # 0.5.0 (2019-11-15)
 

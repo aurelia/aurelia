@@ -2,7 +2,7 @@ import { I18nConfiguration, TranslationBinding, TranslationParametersAttributePa
 import { AttrSyntax, BindingCommand, BindingCommandInstance, IAttributePattern, PlainAttributeSymbol } from '@aurelia/jit';
 import { AttrBindingCommand } from '@aurelia/jit-html';
 import { DI } from '@aurelia/kernel';
-import { AnyBindingExpression, BindingType, ICallBindingInstruction, IController, IExpressionParser, IInstructionRenderer, IObserverLocator, LifecycleFlags, RuntimeConfiguration, ICompiledRenderContext } from '@aurelia/runtime';
+import { AnyBindingExpression, BindingType, ICallBindingInstruction, IExpressionParser, IInstructionRenderer, IObserverLocator, LifecycleFlags, RuntimeConfiguration, ICompiledRenderContext, IRenderableController, IBinding } from '@aurelia/runtime';
 import { DOM } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
@@ -72,19 +72,19 @@ describe('TranslationParametersBindingRenderer', function () {
     const container = setup();
     const sut: IInstructionRenderer = new TranslationParametersBindingRenderer(container.get(IExpressionParser), container.get(IObserverLocator));
     const expressionParser = container.get(IExpressionParser);
-    const renderable = ({} as unknown as IController);
+    const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); }} as unknown as IRenderableController);
     const callBindingInstruction: ICallBindingInstruction = { from: expressionParser.parse('{foo: "bar"}', BindingType.BindCommand) } as unknown as ICallBindingInstruction;
 
     sut.render(
       LifecycleFlags.none,
       container as unknown as ICompiledRenderContext,
-      renderable,
+      controller,
       DOM.createElement('span'),
       callBindingInstruction,
       void 0,
     );
 
-    assert.instanceOf(renderable.bindings[0], TranslationBinding);
+    assert.instanceOf(controller.bindings[0], TranslationBinding);
   });
 
   it('#render add the paramExpr to the existing TranslationBinding for the target element', function () {
@@ -93,7 +93,7 @@ describe('TranslationParametersBindingRenderer', function () {
     const expressionParser = container.get(IExpressionParser);
     const targetElement = DOM.createElement('span');
     const binding = new TranslationBinding(targetElement, container.get(IObserverLocator), container);
-    const renderable = ({ bindings: [binding] } as unknown as IController);
+    const renderable = ({ bindings: [binding] } as unknown as IRenderableController);
     const paramExpr = expressionParser.parse('{foo: "bar"}', BindingType.BindCommand);
     const callBindingInstruction: ICallBindingInstruction = { from: paramExpr } as unknown as ICallBindingInstruction;
 

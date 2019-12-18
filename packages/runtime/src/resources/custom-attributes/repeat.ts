@@ -3,7 +3,7 @@ import { ForOfStatement } from '../../binding/ast';
 import { PropertyBinding } from '../../binding/property-binding';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags as LF, State, LifecycleFlags } from '../../flags';
-import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController, IRenderableController, IController } from '../../lifecycle';
+import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController, IRenderableController, IController, ICustomAttributeViewModel } from '../../lifecycle';
 import {
   AggregateContinuationTask,
   ContinuationTask,
@@ -27,7 +27,7 @@ import { templateController } from '../custom-attribute';
 type Items<C extends ObservedCollection = IObservedArray> = C | undefined;
 
 @templateController('repeat')
-export class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> {
+export class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> implements ICustomAttributeViewModel<T> {
   public readonly id: number = nextId('au$component');
 
   public hasPendingInstanceMutation: boolean = false;
@@ -38,7 +38,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   public forOf!: ForOfStatement;
   public local!: string;
 
-  public $controller!: ICustomAttributeController<T>; // This is set by the controller after this instance is constructed
+  public readonly $controller!: ICustomAttributeController<T, this>; // This is set by the controller after this instance is constructed
 
   private task: ILifecycleTask = LifecycleTask.done;
 

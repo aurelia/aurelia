@@ -21,6 +21,7 @@ import {
   eachCartesianJoin,
   assert,
 } from '@aurelia/testing';
+import { Writable } from '@aurelia/kernel';
 
 describe(`If/Else`, function () {
   function runBindLifecycle(lifecycle: ILifecycle, sut: If<AuNode>, flags: LifecycleFlags, scope: IScope): void {
@@ -157,7 +158,7 @@ describe(`If/Else`, function () {
         const location2 = AuNode.createRenderLocation();
         const host = AuNode.createHost().appendChild(location.$start).appendChild(location).appendChild(location2.$start).appendChild(location2);
 
-        const ifContext = getRenderContext(
+        const ifContext = getRenderContext<AuNode>(
           CustomElementDefinition.create({
             name: void 0,
             template: AuNode.createText().makeTarget(),
@@ -171,7 +172,7 @@ describe(`If/Else`, function () {
           container,
           void 0,
         );
-        const elseContext = getRenderContext(
+        const elseContext = getRenderContext<AuNode>(
           CustomElementDefinition.create({
             name: void 0,
             template: AuNode.createText().makeTarget(),
@@ -198,7 +199,7 @@ describe(`If/Else`, function () {
           elseSut = new Else<AuNode>(elseFactory);
         }
         elseSut.link(sut);
-        sut.$controller = Controller.forCustomAttribute(sut, lifecycle);
+        (sut as Writable<If>).$controller = Controller.forCustomAttribute(sut, lifecycle);
 
         let firstBindFinalNodesText: string;
         let secondBindFinalNodesText: string;

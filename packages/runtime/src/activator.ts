@@ -7,7 +7,7 @@ import {
 } from '@aurelia/kernel';
 import { INode } from './dom';
 import { LifecycleFlags } from './flags';
-import { IViewModel, ILifecycle } from './lifecycle';
+import { IViewModel, ILifecycle, ICustomElementViewModel } from './lifecycle';
 import {
   ContinuationTask,
   ILifecycleTask,
@@ -37,7 +37,7 @@ export class Activator implements IActivator {
 
   public activate(
     host: INode,
-    component: IViewModel,
+    component: ICustomElementViewModel,
     container: IContainer,
     flags: LifecycleFlags = LifecycleFlags.fromStartTask,
     parentScope?: IScope
@@ -80,7 +80,7 @@ export class Activator implements IActivator {
     return task;
   }
 
-  public deactivate(component: IViewModel, flags: LifecycleFlags = LifecycleFlags.fromStopTask): ILifecycleTask {
+  public deactivate(component: ICustomElementViewModel, flags: LifecycleFlags = LifecycleFlags.fromStopTask): ILifecycleTask {
     const controller = Controller.getCachedOrThrow(component);
     controller.detach(flags | LifecycleFlags.fromDetach);
     return controller.unbind(flags | LifecycleFlags.fromUnbind);
@@ -88,7 +88,7 @@ export class Activator implements IActivator {
 
   private render(
     host: INode,
-    component: IViewModel,
+    component: ICustomElementViewModel,
     container: IContainer,
     flags: LifecycleFlags,
   ): void {
@@ -97,7 +97,7 @@ export class Activator implements IActivator {
   }
 
   private bind(
-    component: IViewModel,
+    component: ICustomElementViewModel,
     flags: LifecycleFlags,
     parentScope?: IScope,
   ): ILifecycleTask {
@@ -105,7 +105,7 @@ export class Activator implements IActivator {
   }
 
   private attach(
-    component: IViewModel,
+    component: ICustomElementViewModel,
     flags: LifecycleFlags,
   ): void {
     Controller.getCachedOrThrow(component).attach(flags | LifecycleFlags.fromAttach);

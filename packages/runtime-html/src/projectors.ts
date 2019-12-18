@@ -15,8 +15,7 @@ import {
   IProjectorLocator,
   CustomElementDefinition,
   CustomElement,
-  IHydratedCustomElementController,
-  ICustomElementController
+  ICustomElementController,
 } from '@aurelia/runtime';
 import { IShadowDOMStyles, IShadowDOMGlobalStyles } from './styles/shadow-dom-styles';
 
@@ -35,14 +34,14 @@ export class HTMLProjectorLocator implements IProjectorLocator<Node> {
         throw Reporter.error(21);
       }
 
-      return new ShadowDOMProjector(dom, $component as IHydratedCustomElementController<Node>, host, def);
+      return new ShadowDOMProjector(dom, $component, host, def);
     }
 
     if (def.containerless) {
-      return new ContainerlessProjector(dom, $component as IHydratedCustomElementController<Node>, host);
+      return new ContainerlessProjector(dom, $component, host);
     }
 
-    return new HostProjector($component as IHydratedCustomElementController<Node>, host);
+    return new HostProjector($component, host);
   }
 }
 
@@ -55,7 +54,7 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
   public constructor(
     public dom: IDOM<Node>,
     // eslint-disable-next-line @typescript-eslint/prefer-readonly
-    private $controller: IHydratedCustomElementController<Node>,
+    private $controller: ICustomElementController<Node>,
     public host: CustomElementHost<HTMLElement>,
     definition: CustomElementDefinition,
   ) {
@@ -110,7 +109,7 @@ export class ContainerlessProjector implements IElementProjector<Node> {
 
   public constructor(
     dom: IDOM<Node>,
-    $controller: IHydratedCustomElementController<Node>,
+    $controller: ICustomElementController<Node>,
     host: Node,
   ) {
     if (host.childNodes.length) {
@@ -149,7 +148,7 @@ export class ContainerlessProjector implements IElementProjector<Node> {
 /** @internal */
 export class HostProjector implements IElementProjector<Node> {
   public constructor(
-    $controller: IHydratedCustomElementController<Node>,
+    $controller: ICustomElementController<Node>,
     public host: CustomElementHost<Node>,
   ) {
     Metadata.define(CustomElement.name, $controller, host);

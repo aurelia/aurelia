@@ -4,7 +4,9 @@ import {
   customAttribute,
   IDOM,
   INode,
-  IScheduler
+  IScheduler,
+  ICustomAttributeViewModel,
+  ICustomAttributeController
 } from '@aurelia/runtime';
 import { HTMLDOM, NodeType } from '../../dom';
 
@@ -91,7 +93,9 @@ export interface HasContains {
 }
 
 @customAttribute('blur')
-export class Blur {
+export class Blur implements ICustomAttributeViewModel<HTMLElement> {
+
+  public readonly $controller!: ICustomAttributeController<HTMLElement, this>;
 
   @bindable()
   public value: boolean | typeof unset;

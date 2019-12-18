@@ -1,5 +1,5 @@
 import { DI, IContainer, Key, Reporter } from '@aurelia/kernel';
-import { Aurelia, CustomElement, IController, ICustomElementController, ISyntheticView } from '@aurelia/runtime';
+import { Aurelia, CustomElement, ICustomElementController, IHydratedController } from '@aurelia/runtime';
 import { BrowserNavigator } from './browser-navigator';
 import { Guardian, GuardTypes } from './guardian';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
@@ -499,9 +499,9 @@ export class Router implements IRouter {
                 instructions = instructions.slice(2);
               }
               // Find out how many scopes upwards we should move
-              while (instructions.startsWith('../')) {
+              while ((instructions as string).startsWith('../')) {
                 scope = scope.parent || scope;
-                instructions = instructions.slice(3);
+                instructions = (instructions as string).slice(3);
               }
             }
           } else { // Specified root scope with /
@@ -605,7 +605,7 @@ export class Router implements IRouter {
       return el.$viewport;
     }
     el = element;
-    let controller = CustomElement.for(el) as ICustomElementController | ISyntheticView;
+    let controller = CustomElement.for(el) as IHydratedController;
     while (!controller && el.parentElement) {
       el = el.parentElement;
       CustomElement.for(el);

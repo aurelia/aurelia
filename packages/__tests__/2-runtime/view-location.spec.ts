@@ -257,7 +257,11 @@ describe('the view locator', function () {
         scope: {}
       };
 
-      instance[lifecycleHook]();
+      if (lifecycleHook === 'create') {
+        instance[lifecycleHook](instance.$controller);
+      } else {
+        instance[lifecycleHook]();
+      }
 
       assert.isCustomElementType(Component);
       assert.equal(model.invoked, true);

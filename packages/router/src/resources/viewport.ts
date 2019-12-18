@@ -1,10 +1,10 @@
 import { IContainer } from '@aurelia/kernel';
 import {
   bindable,
-  IController,
   INode,
   LifecycleFlags,
   customElement,
+  ICustomElementController,
 } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { IViewportOptions, Viewport } from '../viewport';
@@ -30,7 +30,7 @@ export class ViewportCustomElement {
 
   public viewport: Viewport | null = null;
 
-  public $controller!: IController; // This is set by the controller after this instance is constructed
+  public $controller!: ICustomElementController; // This is set by the controller after this instance is constructed
 
   private readonly element: Element;
 

@@ -1,7 +1,7 @@
 import { nextId } from '@aurelia/kernel';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags, State } from '../../flags';
-import { ISyntheticView, IViewFactory, MountStrategy, IViewModel, ICustomAttributeController } from '../../lifecycle';
+import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel } from '../../lifecycle';
 import {
   ContinuationTask,
   ILifecycleTask,
@@ -12,14 +12,15 @@ import { bindable } from '../../templating/bindable';
 import { templateController } from '../custom-attribute';
 
 @templateController('if')
-export class If<T extends INode = INode> implements IViewModel<T> {
+export class If<T extends INode = INode> implements ICustomAttributeViewModel<T> {
   public readonly id: number = nextId('au$component');
 
   public elseFactory?: IViewFactory<T> = void 0;
   public elseView?: ISyntheticView<T> = void 0;
   public ifView?: ISyntheticView<T> = void 0;
   public view?: ISyntheticView<T> = void 0;
-  public $controller!: ICustomAttributeController<T, this>; // This is set by the controller after this instance is constructed
+
+  public readonly $controller!: ICustomAttributeController<T, this>; // This is set by the controller after this instance is constructed
 
   private task: ILifecycleTask = LifecycleTask.done;;
 

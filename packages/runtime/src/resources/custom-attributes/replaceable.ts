@@ -1,18 +1,17 @@
 import { nextId } from '@aurelia/kernel';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags } from '../../flags';
-import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController } from '../../lifecycle';
+import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel } from '../../lifecycle';
 import { ILifecycleTask } from '../../lifecycle-task';
 import { templateController } from '../custom-attribute';
 
 @templateController('replaceable')
-export class Replaceable<T extends INode = INode> {
+export class Replaceable<T extends INode = INode> implements ICustomAttributeViewModel<T> {
   public readonly id: number = nextId('au$component');
 
   public readonly view: ISyntheticView<T>;
 
-  // eslint-disable-next-line @typescript-eslint/prefer-readonly
-  private $controller!: ICustomAttributeController<T>; // This is set by the controller after this instance is constructed
+  public readonly $controller!: ICustomAttributeController<T, this>; // This is set by the controller after this instance is constructed
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory<T>,

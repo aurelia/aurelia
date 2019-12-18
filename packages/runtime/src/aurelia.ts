@@ -15,9 +15,9 @@ import {
   LifecycleFlags
 } from './flags';
 import {
-  IHydratedViewModel,
+  ICustomElementViewModel,
   ILifecycle,
-  IHydratedCustomElementController,
+  ICustomElementController,
 } from './lifecycle';
 import {
   ContinuationTask,
@@ -47,8 +47,8 @@ export class CompositionRoot<T extends INode = INode> {
   public readonly activator: IActivator;
   public task: ILifecycleTask;
 
-  public controller?: IHydratedCustomElementController<T>;
-  public viewModel?: IHydratedViewModel<T>;
+  public controller?: ICustomElementController<T>;
+  public viewModel?: ICustomElementViewModel<T>;
 
   private createTask?: ILifecycleTask;
 
@@ -151,8 +151,8 @@ export class CompositionRoot<T extends INode = INode> {
   private create(): void {
     const config = this.config;
     const instance = this.viewModel = CustomElement.isType(config.component as Constructable)
-      ? this.container.get(config.component as Constructable | {}) as IHydratedViewModel<T>
-      : config.component as IHydratedViewModel<T>;
+      ? this.container.get(config.component as Constructable | {}) as ICustomElementViewModel<T>
+      : config.component as ICustomElementViewModel<T>;
 
     const container = this.container;
     const lifecycle = container.get(ILifecycle);

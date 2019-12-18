@@ -31,8 +31,8 @@ import {
   DOM
 } from '../dom';
 import {
-  IViewModel,
-  IHydratedCustomElementController,
+  ICustomElementViewModel,
+  ICustomElementController,
 } from '../lifecycle';
 import { BindingStrategy } from '../flags';
 import { Bindable, PartialBindableDefinition, BindableDefinition } from '../templating/bindable';
@@ -57,7 +57,7 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly scopeParts?: readonly string[];
 }>;
 
-export type CustomElementType<T extends Constructable = Constructable> = ResourceType<T, IViewModel & (T extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
+export type CustomElementType<T extends Constructable = Constructable> = ResourceType<T, ICustomElementViewModel & (T extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
 export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDefinition> & {
   /**
    * Returns the closest controller that is associated with either this node (if it is a custom element) or the first
@@ -69,14 +69,14 @@ export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDe
    * @param searchParents - Also search the parent nodes (including containerless).
    * @returns The closest controller relative to the provided node.
    */
-  for<T extends INode = INode, C extends IViewModel<T> = IViewModel<T>>(node: T, searchParents: true): IHydratedCustomElementController<T, C>;
+  for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, searchParents: true): ICustomElementController<T, C>;
   /**
    * Returns the controller that is associated with this node, if it is a custom element with the provided name.
    *
    * @param node - The node to retrieve the controller for, if it is a custom element with the provided name.
    * @returns The controller associated with the provided node, if it is a custom element with the provided name, or otherwise `undefined`.
    */
-  for<T extends INode = INode, C extends IViewModel<T> = IViewModel<T>>(node: T, name: string): IHydratedCustomElementController<T, C> | undefined;
+  for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, name: string): ICustomElementController<T, C> | undefined;
   /**
    * Returns the closest controller that is associated with either this node (if it is a custom element) or the first
    * parent node (including containerless) that is a custom element with the provided name.
@@ -85,14 +85,14 @@ export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDe
    * @param searchParents - Also search the parent nodes (including containerless).
    * @returns The closest controller of a custom element with the provided name, relative to the provided node, if one can be found, or otherwise `undefined`.
    */
-  for<T extends INode = INode, C extends IViewModel<T> = IViewModel<T>>(node: T, name: string, searchParents: true): IHydratedCustomElementController<T, C> | undefined;
+  for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, name: string, searchParents: true): ICustomElementController<T, C> | undefined;
   /**
    * Returns the controller that is associated with this node, if it is a custom element.
    *
    * @param node - The node to retrieve the controller for, if it is a custom element.
    * @returns The controller associated with the provided node, if it is a custom element, or otherwise `undefined`.
    */
-  for<T extends INode = INode, C extends IViewModel<T> = IViewModel<T>>(node: T): IHydratedCustomElementController<T, C> | undefined;
+  for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T): ICustomElementController<T, C> | undefined;
   isType<T>(value: T): value is (T extends Constructable ? CustomElementType<T> : never);
   define<T extends Constructable>(name: string, Type: T): CustomElementType<T>;
   define<T extends Constructable>(def: PartialCustomElementDefinition, Type: T): CustomElementType<T>;
@@ -187,7 +187,7 @@ export function strict(target?: Constructable): void | ((target: Constructable) 
 
 const definitionLookup = new WeakMap<PartialCustomElementDefinition, CustomElementDefinition>();
 
-export class CustomElementDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, IViewModel, PartialCustomElementDefinition> {
+export class CustomElementDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, ICustomElementViewModel, PartialCustomElementDefinition> {
   private constructor(
     public readonly Type: CustomElementType<T>,
     public readonly name: string,
@@ -385,7 +385,7 @@ export const CustomElement: CustomElementKind = {
   isType<T>(value: T): value is (T extends Constructable ? CustomElementType<T> : never) {
     return typeof value === 'function' && Metadata.hasOwn(CustomElement.name, value);
   },
-  for<T extends INode = INode, C extends IViewModel<T> = IViewModel<T>>(node: T, nameOrSearchParents?: string | boolean, searchParents?: boolean): IHydratedCustomElementController<T, C> {
+  for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, nameOrSearchParents?: string | boolean, searchParents?: boolean): ICustomElementController<T, C> {
     if (nameOrSearchParents === void 0) {
       return Metadata.getOwn(CustomElement.name, node)!;
     }
@@ -514,7 +514,7 @@ export const CustomElement: CustomElementKind = {
 };
 
 export type CustomElementHost<T extends INode = INode> = IRenderLocation<T> & T & {
-  $controller?: IHydratedCustomElementController<T>;
+  $controller?: ICustomElementController<T>;
 };
 
 export interface IElementProjector<T extends INode = INode> {
@@ -531,5 +531,5 @@ export interface IElementProjector<T extends INode = INode> {
 export const IProjectorLocator = DI.createInterface<IProjectorLocator>('IProjectorLocator').noDefault();
 
 export interface IProjectorLocator<T extends INode = INode> {
-  getElementProjector(dom: IDOM<T>, $component: IHydratedCustomElementController<T>, host: CustomElementHost<T>, def: CustomElementDefinition): IElementProjector<T>;
+  getElementProjector(dom: IDOM<T>, $component: ICustomElementController<T>, host: CustomElementHost<T>, def: CustomElementDefinition): IElementProjector<T>;
 }

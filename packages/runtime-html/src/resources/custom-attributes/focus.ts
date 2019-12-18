@@ -2,11 +2,11 @@ import {
   bindable,
   BindingMode,
   customAttribute,
-  IController,
   IDOM,
   INode,
   State,
-  ICustomAttributeController
+  ICustomAttributeController,
+  ICustomAttributeViewModel
 } from '@aurelia/runtime';
 import { HTMLDOM } from '../../dom';
 
@@ -14,7 +14,9 @@ import { HTMLDOM } from '../../dom';
  * Focus attribute for element focus binding
  */
 @customAttribute('focus')
-export class Focus {
+export class Focus implements ICustomAttributeViewModel<HTMLElement> {
+
+  public readonly $controller!: ICustomAttributeController<HTMLElement, this>;
 
   @bindable({ mode: BindingMode.twoWay })
   public value: unknown;
@@ -23,9 +25,6 @@ export class Focus {
    * Indicates whether `apply` should be called when `afterAttach` callback is invoked
    */
   private needsApply: boolean = false;
-
-  // This is set by the controller after this instance is constructed
-  public readonly $controller!: ICustomAttributeController<HTMLElement, this>;
 
   private readonly element: HTMLElement;
 

@@ -1,18 +1,18 @@
 import { nextId } from '@aurelia/kernel';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags, State } from '../../flags';
-import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController } from '../../lifecycle';
+import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel } from '../../lifecycle';
 import { templateController } from '../custom-attribute';
 import { bindable } from '../../templating/bindable';
 import { Scope } from '../../observation/binding-context';
 
 @templateController('with')
-export class With<T extends INode = INode> {
+export class With<T extends INode = INode> implements ICustomAttributeViewModel<T> {
   public readonly id: number = nextId('au$component');
 
   public readonly view: ISyntheticView<T>;
-  // eslint-disable-next-line @typescript-eslint/prefer-readonly
-  private $controller!: ICustomAttributeController<T>; // This is set by the controller after this instance is constructed
+
+  public readonly $controller!: ICustomAttributeController<T, this>; // This is set by the controller after this instance is constructed
 
   @bindable public value?: object;
 

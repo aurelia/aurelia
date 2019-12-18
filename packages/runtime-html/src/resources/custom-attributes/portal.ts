@@ -4,7 +4,6 @@ import {
 import {
   bindable,
   ContinuationTask,
-  IController,
   MountStrategy,
   IDOM,
   ILifecycleTask,
@@ -17,6 +16,7 @@ import {
   TerminalTask,
   ISyntheticView,
   ICustomAttributeController,
+  ICustomAttributeViewModel,
 } from '@aurelia/runtime';
 import {
   HTMLDOM,
@@ -40,7 +40,9 @@ function toTask(maybePromiseOrTask: void | Promise<void> | ILifecycleTask): ILif
 }
 
 @templateController('portal')
-export class Portal<T extends ParentNode = ParentNode> {
+export class Portal<T extends ParentNode = ParentNode> implements ICustomAttributeViewModel<T> {
+
+  public readonly $controller!: ICustomAttributeController<T, this>;
 
   public readonly id: number = nextId('au$component');
 
@@ -73,9 +75,6 @@ export class Portal<T extends ParentNode = ParentNode> {
   private task: ILifecycleTask = LifecycleTask.done;
 
   private currentTarget?: PortalTarget;
-
-  // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
-  public readonly $controller!: ICustomAttributeController<T, this>;
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory<T>,

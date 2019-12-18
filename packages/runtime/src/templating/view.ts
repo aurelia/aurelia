@@ -4,12 +4,12 @@ import { LifecycleFlags } from '../flags';
 import {
   ILifecycle,
   IViewFactory,
-  IViewModel,
+  ICustomElementViewModel,
   ISyntheticView,
-  ICustomElementController,
+  IDryCustomElementController,
   IContextualCustomElementController,
   ICompiledCustomElementController,
-  IHydratedCustomElementController,
+  ICustomElementController,
 } from '../lifecycle';
 import { Scope } from '../observation/binding-context';
 import { CustomElement, PartialCustomElementDefinition, CustomElementDefinition } from '../resources/custom-element';
@@ -148,7 +148,7 @@ export const IViewLocator = DI.createInterface<IViewLocator>('IViewLocator')
   .noDefault();
 
 export interface IViewLocator {
-  getViewComponentForObject<T extends ClassInstance<ComposableObject>>(
+  getViewComponentForObject<T extends ClassInstance<ICustomElementViewModel>>(
     object: T | null | undefined,
     viewNameOrSelector?: string | ViewSelector,
   ): ComposableObjectComponentType<T> | null;
@@ -159,20 +159,19 @@ export type ClassInstance<T> = T & {
   readonly constructor: Function;
 };
 
-export type ComposableObject = Omit<IViewModel, '$controller'>;
-export type ViewSelector = (object: ComposableObject, views: readonly PartialCustomElementDefinition[]) => string;
-export type ComposableObjectComponentType<T extends ComposableObject>
-  = ConstructableClass<{ viewModel: T } & ComposableObject>;
+export type ViewSelector = (object: ICustomElementViewModel, views: readonly PartialCustomElementDefinition[]) => string;
+export type ComposableObjectComponentType<T extends ICustomElementViewModel>
+  = ConstructableClass<{ viewModel: T } & ICustomElementViewModel>;
 
 export class ViewLocator implements IViewLocator {
-  private readonly modelInstanceToBoundComponent: WeakMap<object, Record<string, ComposableObjectComponentType<ComposableObject>>> = new WeakMap();
-  private readonly modelTypeToUnboundComponent: Map<object, Record<string, ComposableObjectComponentType<ComposableObject>>> = new Map();
+  private readonly modelInstanceToBoundComponent: WeakMap<object, Record<string, ComposableObjectComponentType<ICustomElementViewModel>>> = new WeakMap();
+  private readonly modelTypeToUnboundComponent: Map<object, Record<string, ComposableObjectComponentType<ICustomElementViewModel>>> = new Map();
 
   public static register(container: IContainer): IResolver<IViewLocator> {
     return Registration.singleton(IViewLocator, this).register(container);
   }
 
-  public getViewComponentForObject<T extends ClassInstance<ComposableObject>>(
+  public getViewComponentForObject<T extends ClassInstance<ICustomElementViewModel>>(
     object: T | null | undefined,
     viewNameOrSelector?: string | ViewSelector
   ): ComposableObjectComponentType<T> | null {
@@ -192,7 +191,7 @@ export class ViewLocator implements IViewLocator {
     return null;
   }
 
-  private getOrCreateBoundComponent<T extends ClassInstance<ComposableObject>>(
+  private getOrCreateBoundComponent<T extends ClassInstance<ICustomElementViewModel>>(
     object: T,
     availableViews: readonly CustomElementDefinition[],
     resolvedViewName: string
@@ -229,7 +228,7 @@ export class ViewLocator implements IViewLocator {
     return BoundComponent;
   }
 
-  private getOrCreateUnboundComponent<T extends ClassInstance<ComposableObject>>(
+  private getOrCreateUnboundComponent<T extends ClassInstance<ICustomElementViewModel>>(
     object: T,
     availableViews: readonly CustomElementDefinition[],
     resolvedViewName: string
@@ -251,7 +250,7 @@ export class ViewLocator implements IViewLocator {
           public constructor(public viewModel: T) {}
 
           public create(
-            controller: ICustomElementController<T, this>,
+            controller: IDryCustomElementController<INode, T>,
             parentContainer: IContainer,
             definition: CustomElementDefinition,
             parts: PartialCustomElementDefinitionParts | undefined,
@@ -274,23 +273,23 @@ export class ViewLocator implements IViewLocator {
 
       if ('beforeCompile' in object) {
         proto.beforeCompile = function beforeCompile(
-          controller: IContextualCustomElementController<T, typeof proto>,
+          controller: IContextualCustomElementController,
         ): void {
-          this.viewModel.beforeCompile!(controller);
+          this.viewModel.beforeCompile!(controller as IContextualCustomElementController<INode, T>);
         };
       }
       if ('afterCompile' in object) {
         proto.afterCompile = function afterCompile(
-          controller: ICompiledCustomElementController<T, typeof proto>,
+          controller: ICompiledCustomElementController,
         ): void {
-          this.viewModel.afterCompile!(controller);
+          this.viewModel.afterCompile!(controller as ICompiledCustomElementController<INode, T>);
         };
       }
       if ('afterCompileChildren' in object) {
         proto.afterCompileChildren = function afterCompileChildren(
-          controller: IHydratedCustomElementController<T, typeof proto>,
+          controller: ICustomElementController,
         ): void {
-          this.viewModel.afterCompileChildren!(controller);
+          this.viewModel.afterCompileChildren!(controller as ICustomElementController<INode, T>);
         };
       }
       if ('beforeBind' in object) {

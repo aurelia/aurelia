@@ -7,7 +7,6 @@ import {
   ForOfStatement,
   ILifecycle,
   IObservedArray,
-  IController,
   IScope,
   LifecycleFlags,
   ProxyObserver,
@@ -19,6 +18,7 @@ import {
   CustomElementDefinition,
   ToViewBindingInstruction,
   getRenderContext,
+  IRenderableController,
 } from '@aurelia/runtime';
 import {
   AuDOMConfiguration,
@@ -26,6 +26,7 @@ import {
   eachCartesianJoin,
   assert,
 } from '@aurelia/testing';
+import { Writable } from '@aurelia/kernel';
 
 describe(`Repeat`, function () {
   function runBindLifecycle(lifecycle: ILifecycle, sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags, scope: IScope): void {
@@ -582,7 +583,7 @@ describe(`Repeat`, function () {
         const location = AuNode.createRenderLocation();
         const host = AuNode.createHost().appendChild(location.$start).appendChild(location);
 
-        const itemContext = getRenderContext(
+        const itemContext = getRenderContext<AuNode>(
           CustomElementDefinition.create({
             name: void 0,
             template: AuNode.createText().makeTarget(),
@@ -604,17 +605,17 @@ describe(`Repeat`, function () {
           targetProperty: 'items',
           sourceExpression: new ForOfStatement(new BindingIdentifier('item'), new AccessScopeExpression('items'))
         } as any;
-        const renderable: IController<AuNode> = {
+        const renderable: IRenderableController<AuNode> = {
           bindings: [binding]
         } as any;
         let sut: Repeat<IObservedArray, AuNode>;
         if (proxies) {
           const raw = new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory);
           sut = new ProxyObserver(raw).proxy;
-          raw.$controller = Controller.forCustomAttribute(sut, lifecycle);
+          (raw as Writable<Repeat>).$controller = Controller.forCustomAttribute(sut, lifecycle);
         } else {
           sut = new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory);
-          sut.$controller = Controller.forCustomAttribute(sut, lifecycle);
+          (sut as Writable<Repeat>).$controller = Controller.forCustomAttribute(sut, lifecycle);
         }
         binding.target = sut as any;
 

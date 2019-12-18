@@ -50,7 +50,8 @@ import {
   ToViewBindingInstruction,
   ITemplateCompiler,
   IScheduler,
-  CustomElement
+  CustomElement,
+  ICustomElementController
 } from '@aurelia/runtime';
 import { TestContext } from './html-test-context';
 
@@ -395,7 +396,7 @@ export class AuDOM implements IDOM<AuNode> {
 }
 
 export class AuProjectorLocator implements IProjectorLocator {
-  public getElementProjector(dom: IDOM, $component: IController<AuNode>, host: CustomElementHost<AuNode>, def: CustomElementDefinition): IElementProjector {
+  public getElementProjector(dom: IDOM, $component: ICustomElementController<AuNode>, host: CustomElementHost<AuNode>, def: CustomElementDefinition): IElementProjector {
     return new AuProjector($component, host);
   }
 }
@@ -403,7 +404,7 @@ export class AuProjectorLocator implements IProjectorLocator {
 export class AuProjector implements IElementProjector {
   public host: CustomElementHost<AuNode>;
 
-  public constructor($controller: IController<AuNode>, host: CustomElementHost<AuNode>) {
+  public constructor($controller: ICustomElementController<AuNode>, host: CustomElementHost<AuNode>) {
     this.host = host;
     Metadata.define(CustomElement.name, $controller, host);
   }
@@ -659,7 +660,7 @@ export class AuTextRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
     context: IContainer,
-    controller: IController<AuNode>,
+    controller: ICustomElementController<AuNode>,
     target: AuNode,
     instruction: AuTextInstruction,
   ): void {

@@ -32,11 +32,14 @@ import {
   IViewFactory,
   ISyntheticView,
   ICustomAttributeController,
-  ICustomElementController,
+  IDryCustomElementController,
   IContextualCustomElementController,
   ICompiledCustomElementController,
-  IHydratedCustomElementController,
+  ICustomElementController,
   IComponentController,
+  IHydratedController,
+  ICustomElementViewModel,
+  ICustomAttributeViewModel,
 } from '../lifecycle';
 import {
   AggregateContinuationTask,
@@ -144,7 +147,7 @@ export class Controller<
   public prevMount: IController<T, C> | undefined = void 0;
   public prevUnmount: IController<T, C> | undefined = void 0;
 
-  public parent: ISyntheticView<T> | IHydratedCustomElementController<T> | ICustomAttributeController<T> | undefined = void 0;
+  public parent: ISyntheticView<T> | ICustomElementController<T> | ICustomAttributeController<T> | undefined = void 0;
   public bindings: IBinding[] | undefined = void 0;
   public controllers: IController<T>[] | undefined = void 0;
 
@@ -187,25 +190,25 @@ export class Controller<
 
   public static getCached<
     T extends INode = INode,
-    C extends IViewModel<T> = IViewModel<T>,
-  >(viewModel: C): IComponentController<T, C> | undefined {
-    return controllerLookup.get(viewModel) as IComponentController<T, C> | undefined;
+    C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>,
+  >(viewModel: C): ICustomElementController<T, C> | undefined {
+    return controllerLookup.get(viewModel) as ICustomElementController<T, C> | undefined;
   }
 
   public static getCachedOrThrow<
     T extends INode = INode,
-    C extends IViewModel<T> = IViewModel<T>,
-  >(viewModel: C): IComponentController<T, C> {
+    C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>,
+  >(viewModel: C): ICustomElementController<T, C> {
     const controller = Controller.getCached(viewModel);
     if (controller === void 0) {
       throw new Error(`There is no cached controller for the provided ViewModel: ${String(viewModel)}`);
     }
-    return controller as IComponentController<T, C>;
+    return controller as ICustomElementController<T, C>;
   }
 
   public static forCustomElement<
     T extends INode = INode,
-    C extends IViewModel<T> = IViewModel<T>,
+    C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>,
   >(
     viewModel: C,
     lifecycle: ILifecycle,
@@ -213,9 +216,9 @@ export class Controller<
     parentContainer: IContainer,
     parts: PartialCustomElementDefinitionParts | undefined,
     flags: LifecycleFlags = LifecycleFlags.none,
-  ): IHydratedCustomElementController<T, C> {
+  ): ICustomElementController<T, C> {
     if (controllerLookup.has(viewModel)) {
-      return controllerLookup.get(viewModel) as unknown as IHydratedCustomElementController<T, C>;
+      return controllerLookup.get(viewModel) as unknown as ICustomElementController<T, C>;
     }
 
     const definition = CustomElement.getDefinition(viewModel.constructor as Constructable);
@@ -236,12 +239,12 @@ export class Controller<
 
     controller.hydrateCustomElement(definition, parentContainer, parts);
 
-    return controller as unknown as IHydratedCustomElementController<T, C>;
+    return controller as unknown as ICustomElementController<T, C>;
   }
 
   public static forCustomAttribute<
     T extends INode = INode,
-    C extends IViewModel<T> = IViewModel<T>,
+    C extends ICustomAttributeViewModel<T> = ICustomAttributeViewModel<T>,
   >(
     viewModel: C,
     lifecycle: ILifecycle,
@@ -302,16 +305,16 @@ export class Controller<
     parts: PartialCustomElementDefinitionParts | undefined,
   ): void {
     const flags = this.flags |= definition.strategy;
-    const instance = this.viewModel!;
+    const instance = this.viewModel as ICustomElementViewModel<T>;
     createObservers(this.lifecycle, definition, flags, instance);
-    createChildrenObservers(this as unknown as IHydratedCustomElementController<T, NonNullable<C>>, definition, flags, instance);
+    createChildrenObservers(this as unknown as IDryCustomElementController<T, NonNullable<C>>, definition, flags, instance);
 
     this.scope = Scope.create(flags, this.bindingContext!, null);
 
     const hooks = this.hooks;
     if (hooks.hasCreate) {
       const result = instance.create!(
-        /* controller      */this as unknown as ICustomElementController<T, NonNullable<C>>,
+        /* controller      */this as unknown as IDryCustomElementController<T, ICustomElementViewModel<T>>,
         /* parentContainer */parentContainer,
         /* definition      */definition,
         /* parts           */parts,
@@ -331,7 +334,7 @@ export class Controller<
 
     if (hooks.hasBeforeCompile) {
       instance.beforeCompile!(
-        this as unknown as IContextualCustomElementController<T, NonNullable<C>>,
+        this as unknown as IContextualCustomElementController<T, ICustomElementViewModel<T>>,
       );
     }
 
@@ -345,17 +348,17 @@ export class Controller<
 
     this.projector = projectorLocator.getElementProjector(
       context.dom,
-      this as unknown as IHydratedCustomElementController<T, NonNullable<C>>,
+      this as unknown as ICustomElementController<T>,
       this.host!,
       compiledDefinition,
     );
 
-    (instance as Writable<C>).$controller = this as unknown as IHydratedCustomElementController<T, NonNullable<C>>;
+    (instance as Writable<C>).$controller = this as unknown as IDryCustomElementController<T, NonNullable<C>>;
     const nodes = this.nodes = compiledContext.createNodes();
 
     if (hooks.hasAfterCompile) {
       instance.afterCompile!(
-        this as unknown as ICompiledCustomElementController<T, NonNullable<C>>,
+        this as unknown as ICompiledCustomElementController<T, ICustomElementViewModel<T>>,
       );
     }
 
@@ -371,7 +374,7 @@ export class Controller<
 
     if (hooks.hasAfterCompileChildren) {
       instance.afterCompileChildren!(
-        this as unknown as IHydratedCustomElementController<T, NonNullable<C>>,
+        this as unknown as ICustomElementController<T>,
       );
     }
   }
@@ -707,7 +710,7 @@ export class Controller<
     if (controllers !== void 0) {
       const { length } = controllers;
       for (let i = 0; i < length; ++i) {
-        controllers[i].parent = this as unknown as ISyntheticView<T> | IHydratedCustomElementController<T>;
+        controllers[i].parent = this as unknown as IHydratedController<T>;
         task = controllers[i].bind(flags, scope, this.part);
         if (!task.done) {
           if (tasks === void 0) {
@@ -1155,7 +1158,7 @@ function createChildrenObservers(
       if (observers[name] == void 0) {
         const childrenDescription = childrenObservers[name];
         observers[name] = new ChildrenObserver(
-          controller as unknown as IHydratedCustomElementController,
+          controller as unknown as ICustomElementController,
           instance as IIndexable,
           flags,
           name,

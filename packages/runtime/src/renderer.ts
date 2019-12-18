@@ -41,6 +41,8 @@ import {
   IController,
   ILifecycle,
   IRenderableController,
+  ICustomAttributeViewModel,
+  ICustomElementViewModel,
 } from './lifecycle';
 import { IObserverLocator } from './observation/observer-locator';
 import {
@@ -293,7 +295,7 @@ export class CustomElementRenderer implements IInstructionRenderer {
     );
 
     const key = CustomElement.keyFrom(instruction.res);
-    const component = factory.createComponent(key);
+    const component = factory.createComponent<ICustomElementViewModel>(key);
 
     const lifecycle = context.get(ILifecycle);
     const childController = Controller.forCustomElement(
@@ -342,7 +344,7 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
     );
 
     const key = CustomAttribute.keyFrom(instruction.res);
-    const component = factory.createComponent(key);
+    const component = factory.createComponent<ICustomAttributeViewModel>(key);
 
     const lifecycle = context.get(ILifecycle);
     const childController = Controller.forCustomAttribute(
@@ -392,7 +394,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     );
 
     const key = CustomAttribute.keyFrom(instruction.res);
-    const component = componentFactory.createComponent(key);
+    const component = componentFactory.createComponent<ICustomAttributeViewModel>(key);
 
     const lifecycle = parentContext.get(ILifecycle);
     const childController = Controller.forCustomAttribute(

@@ -22,8 +22,9 @@ import {
   customElement,
   MountStrategy,
   getRenderContext,
-  IHydratedCustomElementController,
+  ICustomElementController,
   ISyntheticView,
+  ICustomElementViewModel,
 } from '@aurelia/runtime';
 import {
   createElement,
@@ -36,7 +37,7 @@ export type Subject<T extends INode = Node> = IViewFactory<T> | ISyntheticView<T
 export type MaybeSubjectPromise<T> = Subject<T> | Promise<Subject<T>> | undefined;
 
 @customElement({ name: 'au-compose', template: null, containerless: true })
-export class Compose<T extends INode = Node> {
+export class Compose<T extends INode = Node> implements ICustomElementViewModel<T> {
   public readonly id: number = nextId('au$component');
 
   @bindable public subject?: MaybeSubjectPromise<T> = void 0;
@@ -48,8 +49,8 @@ export class Compose<T extends INode = Node> {
 
   private task: ILifecycleTask = LifecycleTask.done;
   private lastSubject?: MaybeSubjectPromise<T> = void 0;
-  // eslint-disable-next-line @typescript-eslint/prefer-readonly
-  public $controller!: IHydratedCustomElementController<T, this>; // This is set by the controller after this instance is constructed
+
+  public readonly $controller!: ICustomElementController<T, this>; // This is set by the controller after this instance is constructed
 
   public constructor(
     @IDOM private readonly dom: IDOM<T>,

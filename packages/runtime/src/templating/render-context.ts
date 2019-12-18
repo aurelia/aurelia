@@ -1,7 +1,7 @@
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
 import { PartialCustomElementDefinitionParts, ITargetedInstruction, IHydrateInstruction, mergeParts } from '../definitions';
 import { IContainer, InstanceProvider, Key, Resolved, IResolver, Constructable, IFactory, Transformer, Reporter, IDisposable } from '@aurelia/kernel';
-import { IController, IViewFactory, IViewModel, ILifecycle, IRenderableController } from '../lifecycle';
+import { IController, IViewFactory, ICustomElementViewModel, ILifecycle, IRenderableController, ICustomAttributeViewModel } from '../lifecycle';
 import { IDOM, INode, IRenderLocation, INodeSequence } from '../dom';
 import { IRenderer, ITemplateCompiler } from '../renderer';
 import { ViewFactory } from './view';
@@ -40,7 +40,7 @@ export interface IRenderContext<T extends INode = INode> extends IContainer {
    *
    * @param instance - The component instance to make available to child components if this context's definition has `injectable` set to `true`.
    */
-  beginChildComponentOperation(instance: IViewModel): IRenderContext<T>;
+  beginChildComponentOperation(instance: ICustomElementViewModel): IRenderContext<T>;
 
   /**
    * Compiles the backing `CustomElementDefinition` (if needed) and returns the compiled `IRenderContext` that exposes the compiled `CustomElementDefinition` as well as rendering operations.
@@ -147,7 +147,7 @@ export interface IComponentFactory<T extends INode = INode> extends ICompiledRen
    * const attributeInstance = factory.createComponent(CustomElement.keyFrom(name));
    * ```
    */
-  createComponent<TViewModel = IViewModel<T>>(resourceKey: string): TViewModel;
+  createComponent<TViewModel = ICustomAttributeViewModel<T> | ICustomElementViewModel<T>>(resourceKey: string): TViewModel;
 
   /**
    * Release any resources that were stored by `getComponentFactory()`.
@@ -221,7 +221,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
   private readonly factoryProvider: ViewFactoryProvider<T>;
   private readonly renderLocationProvider: InstanceProvider<IRenderLocation<T>>;
 
-  private viewModelProvider: InstanceProvider<IViewModel<T>> | undefined = void 0;
+  private viewModelProvider: InstanceProvider<ICustomElementViewModel<T>> | undefined = void 0;
   private fragment: T | null = null;
   private factory: IViewFactory<T> | undefined = void 0;
   private isCompiled: boolean = false;
@@ -354,16 +354,16 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     return factory;
   }
 
-  public beginChildComponentOperation(instance: IViewModel): IRenderContext<T> {
+  public beginChildComponentOperation(instance: ICustomElementViewModel): IRenderContext<T> {
     const definition = this.definition;
     if (definition.injectable !== null) {
       if (this.viewModelProvider === void 0) {
         this.container.registerResolver(
           definition.injectable,
-          this.viewModelProvider = new InstanceProvider<IViewModel<T>>(),
+          this.viewModelProvider = new InstanceProvider<ICustomElementViewModel<T>>(),
         );
       }
-      this.viewModelProvider!.prepare(instance as IViewModel<T>);
+      this.viewModelProvider!.prepare(instance as ICustomElementViewModel<T>);
     }
 
     return this;
@@ -409,7 +409,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
 
   // #region IComponentFactory api
 
-  public createComponent<TViewModel = IViewModel<T>>(resourceKey: string): TViewModel {
+  public createComponent<TViewModel = ICustomElementViewModel<T>>(resourceKey: string): TViewModel {
     return this.container.get(resourceKey) as unknown as TViewModel;
   }
 

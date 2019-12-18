@@ -6,12 +6,10 @@ import {
 import {
   BindingMode,
   ContinuationTask,
-  IController,
   IDOM,
   IHydrateElementInstruction,
   ILifecycleTask,
   INode,
-  IRenderingEngine,
   ITargetedInstruction,
   IViewFactory,
   LifecycleFlags,
@@ -23,6 +21,10 @@ import {
   bindable,
   customElement,
   MountStrategy,
+  getRenderContext,
+  ICustomElementController,
+  ISyntheticView,
+  ICustomElementViewModel,
 } from '@aurelia/runtime';
 import {
   createElement,
@@ -31,30 +33,28 @@ import {
 
 const bindables = ['subject', 'composing'];
 
-export type Subject<T extends INode = Node> = IViewFactory<T> | IController<T> | RenderPlan<T> | Constructable | CustomElementDefinition;
+export type Subject<T extends INode = Node> = IViewFactory<T> | ISyntheticView<T> | RenderPlan<T> | Constructable | CustomElementDefinition;
 export type MaybeSubjectPromise<T> = Subject<T> | Promise<Subject<T>> | undefined;
 
 @customElement({ name: 'au-compose', template: null, containerless: true })
-export class Compose<T extends INode = Node> {
+export class Compose<T extends INode = Node> implements ICustomElementViewModel<T> {
   public readonly id: number = nextId('au$component');
 
   @bindable public subject?: MaybeSubjectPromise<T> = void 0;
   @bindable({ mode: BindingMode.fromView }) public composing: boolean = false;
 
-  public view?: IController<T> = void 0;
+  public view?: ISyntheticView<T> = void 0;
 
   private readonly properties: Record<string, TargetedInstruction>;
 
   private task: ILifecycleTask = LifecycleTask.done;
   private lastSubject?: MaybeSubjectPromise<T> = void 0;
-  // eslint-disable-next-line @typescript-eslint/prefer-readonly
-  private $controller!: IController<T>; // This is set by the controller after this instance is constructed
+
+  public readonly $controller!: ICustomElementController<T, this>; // This is set by the controller after this instance is constructed
 
   public constructor(
     @IDOM private readonly dom: IDOM<T>,
-    @IController private readonly renderable: IController<T>,
-    @ITargetedInstruction private readonly instruction: IHydrateElementInstruction,
-    @IRenderingEngine private readonly renderingEngine: IRenderingEngine,
+    @ITargetedInstruction instruction: IHydrateElementInstruction,
   ) {
     this.properties = instruction.instructions
       .filter((x: ITargetedInstruction & { to?: string }) => !bindables.includes(x.to!))
@@ -70,7 +70,7 @@ export class Compose<T extends INode = Node> {
     );
   }
 
-  public binding(flags: LifecycleFlags): ILifecycleTask {
+  public beforeBind(flags: LifecycleFlags): ILifecycleTask {
     if (this.task.done) {
       this.task = this.compose(this.subject, flags);
     } else {
@@ -86,7 +86,7 @@ export class Compose<T extends INode = Node> {
     return this.task;
   }
 
-  public attaching(flags: LifecycleFlags): void {
+  public beforeAttach(flags: LifecycleFlags): void {
     if (this.task.done) {
       this.attachView(flags);
     } else {
@@ -94,7 +94,7 @@ export class Compose<T extends INode = Node> {
     }
   }
 
-  public detaching(flags: LifecycleFlags): void {
+  public beforeDetach(flags: LifecycleFlags): void {
     if (this.view != void 0) {
       if (this.task.done) {
         this.view.detach(flags);
@@ -104,7 +104,7 @@ export class Compose<T extends INode = Node> {
     }
   }
 
-  public unbinding(flags: LifecycleFlags): ILifecycleTask {
+  public beforeUnbind(flags: LifecycleFlags): ILifecycleTask {
     this.lastSubject = void 0;
     if (this.view != void 0) {
       if (this.task.done) {
@@ -141,13 +141,13 @@ export class Compose<T extends INode = Node> {
     let task = this.deactivate(flags);
 
     if (subject instanceof Promise) {
-      let viewPromise: Promise<IController<T> | undefined>;
+      let viewPromise: Promise<ISyntheticView<T> | undefined>;
       if (task.done) {
         viewPromise = subject.then(s => this.resolveView(s, flags));
       } else {
         viewPromise = task.wait().then(() => subject.then(s => this.resolveView(s, flags)));
       }
-      task = new PromiseTask<[LifecycleFlags], IController<T> | undefined>(viewPromise, this.activate, this, flags);
+      task = new PromiseTask<[LifecycleFlags], ISyntheticView<T> | undefined>(viewPromise, this.activate, this, flags);
     } else {
       const view = this.resolveView(subject, flags);
       if (task.done) {
@@ -175,7 +175,7 @@ export class Compose<T extends INode = Node> {
     return view.unbind(flags);
   }
 
-  private activate(view: IController<T> | undefined, flags: LifecycleFlags): ILifecycleTask {
+  private activate(view: ISyntheticView<T> | undefined, flags: LifecycleFlags): ILifecycleTask {
     this.view = view;
     if (view == void 0) {
       return LifecycleTask.done;
@@ -191,7 +191,7 @@ export class Compose<T extends INode = Node> {
 
   private bindView(flags: LifecycleFlags): ILifecycleTask {
     if (this.view != void 0 && (this.$controller.state & (State.isBoundOrBinding)) > 0) {
-      return this.view.bind(flags, this.renderable.scope, this.$controller.part);
+      return this.view.bind(flags, this.$controller.scope, this.$controller.part);
     }
     return LifecycleTask.done;
   }
@@ -206,45 +206,38 @@ export class Compose<T extends INode = Node> {
     this.composing = false;
   }
 
-  private resolveView(subject: Subject<T> | undefined, flags: LifecycleFlags): IController<T> | undefined {
+  private resolveView(subject: Subject<T> | undefined, flags: LifecycleFlags): ISyntheticView<T> | undefined {
     const view = this.provideViewFor(subject, flags);
 
     if (view) {
       view.hold(this.$controller.projector!.host, MountStrategy.insertBefore);
-      view.lockScope(this.renderable.scope!);
+      view.lockScope(this.$controller.scope!);
       return view;
     }
 
     return void 0;
   }
 
-  private provideViewFor(subject: Subject<T> | undefined, flags: LifecycleFlags): IController<T> | undefined {
+  private provideViewFor(subject: Subject<T> | undefined, flags: LifecycleFlags): ISyntheticView<T> | undefined {
     if (!subject) {
       return void 0;
     }
 
-    if ('lockScope' in subject) { // IController
+    if (isController(subject)) { // IController
       return subject;
     }
 
     if ('createView' in subject) { // RenderPlan
-      return subject.createView(
-        flags,
-        this.renderingEngine,
-        this.renderable.context
-      ) as IController<T>;
+      return subject.createView(this.$controller.context!);
     }
 
     if ('create' in subject) { // IViewFactory
-      return subject.create();
+      return subject.create(flags);
     }
 
     if ('template' in subject) { // Raw Template Definition
-      return this.renderingEngine.getViewFactory(
-        this.dom,
-        subject,
-        this.renderable.context
-      ).create() as IController<T>;
+      const definition = CustomElementDefinition.getOrCreate(subject);
+      return getRenderContext<T>(definition, this.$controller.context!, void 0).getViewFactory().create(flags);
     }
 
     // Constructable (Custom Element Constructor)
@@ -255,10 +248,10 @@ export class Compose<T extends INode = Node> {
       this.$controller.projector === void 0
         ? PLATFORM.emptyArray
         : this.$controller.projector.children
-    ).createView(
-      flags,
-      this.renderingEngine,
-      this.renderable.context
-    ) as IController<T>;
+    ).createView(this.$controller.context!);
   }
+}
+
+function isController<T extends INode = INode>(subject: Subject<T>): subject is ISyntheticView<T> {
+  return 'lockScope' in subject;
 }

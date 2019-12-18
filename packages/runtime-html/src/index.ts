@@ -90,7 +90,6 @@ export {
   IProjectorLocatorRegistration,
   ITargetAccessorLocatorRegistration,
   ITargetObserverLocatorRegistration,
-  ITemplateFactoryRegistration,
 
   DefaultComponents,
 
@@ -134,7 +133,6 @@ export {
   NodeType,
   HTMLDOM,
   DOM,
-  NodeSequenceFactory,
   FragmentNodeSequence
 } from './dom';
 export {

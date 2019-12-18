@@ -9,13 +9,13 @@ import {
 } from '@aurelia/kernel';
 import {
   CustomElementHost,
-  IController,
   IDOM,
   IElementProjector,
   INodeSequence,
   IProjectorLocator,
   CustomElementDefinition,
-  CustomElement
+  CustomElement,
+  ICustomElementController,
 } from '@aurelia/runtime';
 import { IShadowDOMStyles, IShadowDOMGlobalStyles } from './styles/shadow-dom-styles';
 
@@ -24,11 +24,11 @@ const defaultShadowOptions = {
 };
 
 export class HTMLProjectorLocator implements IProjectorLocator<Node> {
-  public static register(container: IContainer): IResolver<IProjectorLocator> {
+  public static register(container: IContainer): IResolver<IProjectorLocator<Node>> {
     return Registration.singleton(IProjectorLocator, this).register(container);
   }
 
-  public getElementProjector(dom: IDOM<Node>, $component: IController<Node>, host: CustomElementHost<HTMLElement>, def: CustomElementDefinition): IElementProjector<Node> {
+  public getElementProjector(dom: IDOM<Node>, $component: ICustomElementController<Node>, host: CustomElementHost<HTMLElement>, def: CustomElementDefinition): IElementProjector<Node> {
     if (def.shadowOptions || def.hasSlots) {
       if (def.containerless) {
         throw Reporter.error(21);
@@ -54,7 +54,7 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
   public constructor(
     public dom: IDOM<Node>,
     // eslint-disable-next-line @typescript-eslint/prefer-readonly
-    private $controller: IController<Node>,
+    private $controller: ICustomElementController<Node>,
     public host: CustomElementHost<HTMLElement>,
     definition: CustomElementDefinition,
   ) {
@@ -109,7 +109,7 @@ export class ContainerlessProjector implements IElementProjector<Node> {
 
   public constructor(
     dom: IDOM<Node>,
-    $controller: IController<Node>,
+    $controller: ICustomElementController<Node>,
     host: Node,
   ) {
     if (host.childNodes.length) {
@@ -148,7 +148,7 @@ export class ContainerlessProjector implements IElementProjector<Node> {
 /** @internal */
 export class HostProjector implements IElementProjector<Node> {
   public constructor(
-    $controller: IController<Node>,
+    $controller: ICustomElementController<Node>,
     public host: CustomElementHost<Node>,
   ) {
     Metadata.define(CustomElement.name, $controller, host);

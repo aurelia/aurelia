@@ -8,19 +8,11 @@ import { camelCase } from '../packages/kernel/src/index';
 const rootPath = resolve(__dirname, '..');
 
 const testApps = [
-  'jit-aurelia-cli-ts',
-  'jit-browserify-ts',
-  'jit-fuse-box-ts',
-  'jit-iife-inline',
-  'jit-parcel-ts',
-  'jit-webpack-ts'
+  'jit-webpack-conventions-ts',
+  'jit-webpack-vanilla-ts'
 ] as [
-  'jit-aurelia-cli-ts',
-  'jit-browserify-ts',
-  'jit-fuse-box-ts',
-  'jit-iife-inline',
-  'jit-parcel-ts',
-  'jit-webpack-ts'
+  'jit-webpack-conventions-ts',
+  'jit-webpack-vanilla-ts'
 ];
 
 export default {

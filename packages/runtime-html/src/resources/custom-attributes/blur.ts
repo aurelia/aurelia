@@ -4,7 +4,9 @@ import {
   customAttribute,
   IDOM,
   INode,
-  IScheduler
+  IScheduler,
+  ICustomAttributeViewModel,
+  ICustomAttributeController
 } from '@aurelia/runtime';
 import { HTMLDOM, NodeType } from '../../dom';
 
@@ -91,7 +93,9 @@ export interface HasContains {
 }
 
 @customAttribute('blur')
-export class Blur {
+export class Blur implements ICustomAttributeViewModel<HTMLElement> {
+
+  public readonly $controller!: ICustomAttributeController<HTMLElement, this>;
 
   @bindable()
   public value: boolean | typeof unset;
@@ -157,11 +161,11 @@ export class Blur {
     this.manager = BlurManager.createFor(dom, scheduler);
   }
 
-  public attached(): void {
+  public afterAttach(): void {
     this.manager.register(this);
   }
 
-  public detaching(): void {
+  public beforeDetach(): void {
     this.manager.unregister(this);
   }
 

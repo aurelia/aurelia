@@ -100,13 +100,11 @@ export {
   Profiler
 } from './profiler';
 export {
-  IResourceDescriptions,
   IResourceKind,
   PartialResourceDefinition,
   Protocol,
   ResourceDefinition,
   ResourceType,
-  RuntimeCompilationResources,
   fromAnnotationOrDefinitionOrTypeOrDefault,
   fromAnnotationOrTypeOrDefault,
   fromDefinitionOrDefault,

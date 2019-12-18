@@ -1006,6 +1006,43 @@ describe(`The Container class`, function () {
         `register.calls`,
       );
     });
+
+    describe(`does NOT throw when attempting to register primitive values`, function () {
+      for (const value of [
+        void 0,
+        null,
+        true,
+        false,
+        '',
+        'asdf',
+        NaN,
+        Infinity,
+        0,
+        42,
+        Symbol(),
+        Symbol('a'),
+      ]) {
+        it(`{foo:${String(value)}}`, function () {
+          const { sut } = setup();
+          sut.register({foo:value});
+        });
+
+        it(`{foo:{bar:${String(value)}}}`, function () {
+          const { sut } = setup();
+          sut.register({foo:{bar:value}});
+        });
+
+        it(`[${String(value)}]`, function () {
+          const { sut } = setup();
+          sut.register([value]);
+        });
+
+        it(`${String(value)}`, function () {
+          const { sut } = setup();
+          sut.register(value);
+        });
+      }
+    });
   });
 
   // describe(`registerResolver()`, function () {

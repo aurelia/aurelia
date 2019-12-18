@@ -4,7 +4,6 @@ import {
 import {
   bindable,
   ContinuationTask,
-  IController,
   MountStrategy,
   IDOM,
   ILifecycleTask,
@@ -14,7 +13,10 @@ import {
   LifecycleTask,
   State,
   templateController,
-  TerminalTask
+  TerminalTask,
+  ISyntheticView,
+  ICustomAttributeController,
+  ICustomAttributeViewModel,
 } from '@aurelia/runtime';
 import {
   HTMLDOM,
@@ -23,7 +25,7 @@ import {
 export type PortalTarget<T extends ParentNode = ParentNode> = string | T | null | undefined;
 type ResolvedTarget<T extends ParentNode = ParentNode> = T | null;
 
-export type PortalLifecycleCallback<T extends ParentNode = ParentNode> = (target: PortalTarget<T>, view: IController<T>) => void | Promise<void> | ILifecycleTask;
+export type PortalLifecycleCallback<T extends ParentNode = ParentNode> = (target: PortalTarget<T>, view: ISyntheticView<T>) => void | Promise<void> | ILifecycleTask;
 
 function toTask(maybePromiseOrTask: void | Promise<void> | ILifecycleTask): ILifecycleTask {
   if (maybePromiseOrTask == null) {
@@ -38,7 +40,9 @@ function toTask(maybePromiseOrTask: void | Promise<void> | ILifecycleTask): ILif
 }
 
 @templateController('portal')
-export class Portal<T extends ParentNode = ParentNode> {
+export class Portal<T extends ParentNode = ParentNode> implements ICustomAttributeViewModel<T> {
+
+  public readonly $controller!: ICustomAttributeController<T, this>;
 
   public readonly id: number = nextId('au$component');
 
@@ -66,14 +70,11 @@ export class Portal<T extends ParentNode = ParentNode> {
   @bindable()
   public callbackContext: unknown;
 
-  public readonly view: IController<T>;
+  public readonly view: ISyntheticView<T>;
 
   private task: ILifecycleTask = LifecycleTask.done;
 
   private currentTarget?: PortalTarget;
-
-  // tslint:disable-next-line: prefer-readonly // This is set by the controller after this instance is constructed
-  private readonly $controller!: IController<T>;
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory<T>,
@@ -89,7 +90,7 @@ export class Portal<T extends ParentNode = ParentNode> {
     this.view.hold(originalLoc, MountStrategy.insertBefore);
   }
 
-  public binding(flags: LifecycleFlags): ILifecycleTask {
+  public beforeBind(flags: LifecycleFlags): ILifecycleTask {
     if (this.callbackContext == null) {
       this.callbackContext = this.$controller.scope!.bindingContext;
     }
@@ -97,15 +98,15 @@ export class Portal<T extends ParentNode = ParentNode> {
     return this.view.bind(flags, this.$controller.scope);
   }
 
-  public attached(flags: LifecycleFlags): void {
+  public afterAttach(flags: LifecycleFlags): void {
     this.targetChanged();
   }
 
-  public detaching(flags: LifecycleFlags): void {
+  public beforeDetach(flags: LifecycleFlags): void {
     this.task = this.deactivate(flags);
   }
 
-  public unbinding(flags: LifecycleFlags): ILifecycleTask {
+  public beforeUnbind(flags: LifecycleFlags): ILifecycleTask {
     this.callbackContext = null;
     return this.view.unbind(flags);
   }

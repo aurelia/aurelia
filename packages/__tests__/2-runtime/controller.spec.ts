@@ -1,8 +1,6 @@
 import {
   Controller,
   LifecycleFlags as LF,
-  ITemplateFactory,
-  RenderContext,
   Interpolation,
   AccessScopeExpression,
   CustomElement,
@@ -17,6 +15,7 @@ import {
   If,
   CustomElementDefinition,
   BindableDefinition,
+  ICustomElementController,
 } from '@aurelia/runtime';
 import {
   parseExpression,
@@ -43,60 +42,60 @@ describe.skip('controller', function () {
   const allHooks = Object.freeze(new HooksDefinition({
     created: true,
     binding: true,
-    bound: true,
-    attaching: true,
-    attached: true,
-    detaching: true,
+    afterBind: true,
+    beforeAttach: true,
+    afterAttach: true,
+    beforeDetach: true,
     caching: true,
-    detached: true,
-    unbinding: true,
-    unbound: true,
+    afterDetach: true,
+    beforeUnbind: true,
+    afterUnbind: true,
   }));
   const noHooks = Object.freeze(new HooksDefinition({}));
 
   function addTracingHooks<TProto>(ctor: Class<TProto>): Class<TProto & {
     created(...args: any[]): void;
-    binding(...args: any[]): void;
-    bound(...args: any[]): void;
-    attaching(...args: any[]): void;
-    attached(...args: any[]): void;
-    detaching(...args: any[]): void;
+    beforeBind(...args: any[]): void;
+    afterBind(...args: any[]): void;
+    beforeAttach(...args: any[]): void;
+    afterAttach(...args: any[]): void;
+    beforeDetach(...args: any[]): void;
     caching(...args: any[]): void;
-    detached(...args: any[]): void;
-    unbinding(...args: any[]): void;
-    unbound(...args: any[]): void;
+    afterDetach(...args: any[]): void;
+    beforeUnbind(...args: any[]): void;
+    afterUnbind(...args: any[]): void;
   }> {
     const proto = ctor.prototype as any;
 
     proto.created = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'created', ...args);
     };
-    proto.binding = function (...args: any[]): void {
-      this.$$calls.addCall(this.id, 'binding', ...args);
+    proto.beforeBind = function (...args: any[]): void {
+      this.$$calls.addCall(this.id, 'beforeBind', ...args);
     };
-    proto.bound = function (...args: any[]): void {
-      this.$$calls.addCall(this.id, 'bound', ...args);
+    proto.afterBind = function (...args: any[]): void {
+      this.$$calls.addCall(this.id, 'afterBind', ...args);
     };
-    proto.attaching = function (...args: any[]): void {
-      this.$$calls.addCall(this.id, 'attaching', ...args);
+    proto.beforeAttach = function (...args: any[]): void {
+      this.$$calls.addCall(this.id, 'beforeAttach', ...args);
     };
-    proto.attached = function (...args: any[]): void {
-      this.$$calls.addCall(this.id, 'attached', ...args);
+    proto.afterAttach = function (...args: any[]): void {
+      this.$$calls.addCall(this.id, 'afterAttach', ...args);
     };
-    proto.detaching = function (...args: any[]): void {
-      this.$$calls.addCall(this.id, 'detaching', ...args);
+    proto.beforeDetach = function (...args: any[]): void {
+      this.$$calls.addCall(this.id, 'beforeDetach', ...args);
     };
     proto.caching = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'caching', ...args);
     };
-    proto.detached = function (...args: any[]): void {
-      this.$$calls.addCall(this.id, 'detached', ...args);
+    proto.afterDetach = function (...args: any[]): void {
+      this.$$calls.addCall(this.id, 'afterDetach', ...args);
     };
-    proto.unbinding = function (...args: any[]): void {
-      this.$$calls.addCall(this.id, 'unbinding', ...args);
+    proto.beforeUnbind = function (...args: any[]): void {
+      this.$$calls.addCall(this.id, 'beforeUnbind', ...args);
     };
-    proto.unbound = function (...args: any[]): void {
-      this.$$calls.addCall(this.id, 'unbound', ...args);
+    proto.afterUnbind = function (...args: any[]): void {
+      this.$$calls.addCall(this.id, 'afterUnbind', ...args);
     };
 
     return ctor as any;
@@ -157,8 +156,6 @@ describe.skip('controller', function () {
 
     const ctx = TestContext.createHTMLTestContext();
     const { container, lifecycle, dom, scheduler } = ctx;
-    const templateFactory = container.get(ITemplateFactory);
-    const renderContext = new RenderContext(dom, container, null);
     const $loc = h('div');
     const host = h('div', null, $loc);
     const loc = dom.convertToRenderLocation($loc);
@@ -174,8 +171,6 @@ describe.skip('controller', function () {
       scheduler,
       lifecycle,
       dom,
-      templateFactory,
-      renderContext,
       host,
       loc,
     };
@@ -187,25 +182,7 @@ describe.skip('controller', function () {
   }
 
   describe('forSyntheticView()', function () {
-    for (const viewCache of [null, void 0]) {
-      it(`throws if viewCache is ${viewCache}`, function () {
-        const {
-          lifecycle,
-        } = setup();
-
-        assert.throws(
-          () => {
-            Controller.forSyntheticView(
-              viewCache,
-              lifecycle,
-              LF.none,
-            );
-          },
-        );
-      });
-    }
-
-    it(`correctly executes 1 CustomElement lifecycles`, function () {
+    it(`correctly executes 1 CustomElement lifecycle`, function () {
       const {
         lifecycle,
         scheduler,
@@ -235,7 +212,7 @@ describe.skip('controller', function () {
 
       const viewModel = container.get(ViewModel);
 
-      const sut = Controller.forCustomElement(viewModel, container, host);
+      const sut = Controller.forCustomElement(viewModel, lifecycle, host, container, void 0);
 
       const expectedCalls = new CallCollection();
 
@@ -254,11 +231,11 @@ describe.skip('controller', function () {
           .addCall(2, 'bind', LF.none)
           .addCall(2, 'bindCustomElement', LF.fromBind, sut.scope)
           .addCall(2, 'bindBindings', LF.fromBind, sut.scope)
-          .addCall(1, 'binding', LF.fromBind)
+          .addCall(1, 'beforeBind', LF.fromBind)
           .addCall(2, 'bindControllers', LF.fromBind, sut.scope)
           .addCall(2, 'endBind', LF.fromBind)
-          .addCall(2, 'bound', LF.fromBind)
-          .addCall(1, 'bound', LF.fromBind),
+          .addCall(2, 'afterBind', LF.fromBind)
+          .addCall(1, 'afterBind', LF.fromBind),
         '2',
       );
 
@@ -269,7 +246,7 @@ describe.skip('controller', function () {
         expectedCalls
           .addCall(2, 'attach', LF.none)
           .addCall(2, 'attachCustomElement', LF.fromAttach)
-          .addCall(1, 'attaching', LF.fromAttach)
+          .addCall(1, 'beforeAttach', LF.fromAttach)
           .addCall(2, 'attachControllers', LF.fromAttach),
         '3',
       );
@@ -282,8 +259,8 @@ describe.skip('controller', function () {
         expectedCalls
           .addCall(2, 'mount', LF.fromTick)
           .addCall(2, 'mountCustomElement', LF.fromTick)
-          .addCall(2, 'attached', LF.fromTick)
-          .addCall(1, 'attached', LF.fromTick),
+          .addCall(2, 'afterAttach', LF.fromTick)
+          .addCall(1, 'afterAttach', LF.fromTick),
         '5',
       );
       assert.strictEqual(host.textContent, '1', '6');
@@ -295,7 +272,7 @@ describe.skip('controller', function () {
         expectedCalls
           .addCall(2, 'detach', LF.none)
           .addCall(2, 'detachCustomElement', LF.fromDetach)
-          .addCall(1, 'detaching', LF.fromDetach)
+          .addCall(1, 'beforeDetach', LF.fromDetach)
           .addCall(2, 'detachControllers', LF.fromDetach),
         '7',
       );
@@ -308,8 +285,8 @@ describe.skip('controller', function () {
         expectedCalls
           .addCall(2, 'unmount', LF.fromTick)
           .addCall(2, 'unmountCustomElement', LF.fromTick)
-          .addCall(2, 'detached', LF.fromTick)
-          .addCall(1, 'detached', LF.fromTick),
+          .addCall(2, 'afterDetach', LF.fromTick)
+          .addCall(1, 'afterDetach', LF.fromTick),
         '9',
       );
       assert.strictEqual(host.textContent, '', '10');
@@ -321,12 +298,12 @@ describe.skip('controller', function () {
         expectedCalls
           .addCall(2, 'unbind', LF.none)
           .addCall(2, 'unbindCustomElement', LF.fromUnbind)
-          .addCall(1, 'unbinding', LF.fromUnbind)
+          .addCall(1, 'beforeUnbind', LF.fromUnbind)
           .addCall(2, 'unbindControllers', LF.fromUnbind)
           .addCall(2, 'unbindBindings', LF.fromUnbind)
           .addCall(2, 'endUnbind', LF.fromUnbind)
-          .addCall(2, 'unbound', LF.fromUnbind)
-          .addCall(1, 'unbound', LF.fromUnbind),
+          .addCall(2, 'afterUnbind', LF.fromUnbind)
+          .addCall(1, 'afterUnbind', LF.fromUnbind),
         '11',
       );
 
@@ -377,7 +354,7 @@ describe.skip('controller', function () {
 
       const viewModel = container.get(ViewModel);
 
-      const sut = Controller.forCustomElement(viewModel, container, host);
+      const sut = Controller.forCustomElement(viewModel, lifecycle, host, container, void 0);
 
       const expectedCalls = new CallCollection();
 
@@ -392,7 +369,7 @@ describe.skip('controller', function () {
       sut.bind(flags);
 
       const ifInstance = sut.controllers[0].bindingContext as unknown as If;
-      const secondCustomElementController = ifInstance.ifView.controllers[0];
+      const secondCustomElementController = ifInstance.ifView.controllers[0] as ICustomElementController;
       const secondIfInstance = secondCustomElementController.controllers[0].bindingContext as unknown as If;
 
       assert.deepStrictEqual(
@@ -407,7 +384,7 @@ describe.skip('controller', function () {
           .addCall(3, 'valueChanged', true, false, LF.none)
 
           // ce #1
-          .addCall(1, 'binding', LF.fromBind)
+          .addCall(1, 'beforeBind', LF.fromBind)
 
           // ce #1 controller
           .addCall(2, 'bindControllers', LF.fromBind, sut.scope)
@@ -417,7 +394,7 @@ describe.skip('controller', function () {
           .addCall(4, 'bindCustomAttribute', LF.fromBind, sut.scope)
 
           // if #1
-          .addCall(3, 'binding', LF.fromBind)
+          .addCall(3, 'beforeBind', LF.fromBind)
           .addCall(3, 'swap', true, LF.fromBind)
           .addCall(3, 'updateView', true, LF.fromBind)
           .addCall(3, 'ensureView', void 0, ifInstance['ifFactory'], LF.fromBind)
@@ -444,7 +421,7 @@ describe.skip('controller', function () {
           .addCall(7, 'bindBindings', LF.fromBind, secondCustomElementController.scope)
 
           // ce #2
-          .addCall(6, 'binding', LF.fromBind)
+          .addCall(6, 'beforeBind', LF.fromBind)
 
           // ce #2 controller
           .addCall(7, 'bindControllers', LF.fromBind, secondCustomElementController.scope)
@@ -454,7 +431,7 @@ describe.skip('controller', function () {
           .addCall(9, 'bindCustomAttribute', LF.fromBind, secondCustomElementController.scope)
 
           // if #2
-          .addCall(8, 'binding', LF.fromBind)
+          .addCall(8, 'beforeBind', LF.fromBind)
           .addCall(8, 'swap', false, LF.fromBind)
           .addCall(8, 'deactivate', LF.fromBind)
           .addCall(8, 'updateView', false, LF.fromBind)
@@ -476,16 +453,16 @@ describe.skip('controller', function () {
           .addCall(2, 'endBind', LF.fromBind)
 
           // ce #2 controller
-          .addCall(7, 'bound', LF.fromBind)
+          .addCall(7, 'afterBind', LF.fromBind)
 
           // ce #2
-          .addCall(6, 'bound', LF.fromBind)
+          .addCall(6, 'afterBind', LF.fromBind)
 
           // ce #1 controller
-          .addCall(2, 'bound', LF.fromBind)
+          .addCall(2, 'afterBind', LF.fromBind)
 
           // ce #1
-          .addCall(1, 'bound', LF.fromBind),
+          .addCall(1, 'afterBind', LF.fromBind),
         '2',
       );
 
@@ -499,7 +476,7 @@ describe.skip('controller', function () {
           .addCall(2, 'attachCustomElement', LF.fromAttach)
 
           // ce #1
-          .addCall(1, 'attaching', LF.fromAttach)
+          .addCall(1, 'beforeAttach', LF.fromAttach)
 
           // ce #1 controller
           .addCall(2, 'attachControllers', LF.fromAttach)
@@ -509,7 +486,7 @@ describe.skip('controller', function () {
           .addCall(4, 'attachCustomAttribute', LF.fromAttach)
 
           // if #1
-          .addCall(3, 'attaching', LF.fromAttach)
+          .addCall(3, 'beforeAttach', LF.fromAttach)
           .addCall(3, 'attachView', LF.fromAttach)
 
           // if #1 ifView
@@ -522,7 +499,7 @@ describe.skip('controller', function () {
           .addCall(7, 'attachCustomElement', LF.fromAttach)
 
           // ce #2
-          .addCall(6, 'attaching', LF.fromAttach)
+          .addCall(6, 'beforeAttach', LF.fromAttach)
 
           // ce #2 controller
           .addCall(7, 'attachControllers', LF.fromAttach)
@@ -532,7 +509,7 @@ describe.skip('controller', function () {
           .addCall(9, 'attachCustomAttribute', LF.fromAttach)
 
           // if #2
-          .addCall(8, 'attaching', LF.fromAttach)
+          .addCall(8, 'beforeAttach', LF.fromAttach)
           .addCall(8, 'attachView', LF.fromAttach),
         '3',
       );
@@ -555,16 +532,16 @@ describe.skip('controller', function () {
           .addCall(7, 'mount', LF.fromTick)
           .addCall(7, 'mountCustomElement', LF.fromTick)
 
-          .addCall(7, 'attached', LF.fromTick)
+          .addCall(7, 'afterAttach', LF.fromTick)
 
           // ce #2
-          .addCall(6, 'attached', LF.fromTick)
+          .addCall(6, 'afterAttach', LF.fromTick)
 
           // ce #1 controller
-          .addCall(2, 'attached', LF.fromTick)
+          .addCall(2, 'afterAttach', LF.fromTick)
 
           // ce #1
-          .addCall(1, 'attached', LF.fromTick),
+          .addCall(1, 'afterAttach', LF.fromTick),
         '5',
       );
       assert.strictEqual(host.textContent, '16', '6');
@@ -579,7 +556,7 @@ describe.skip('controller', function () {
           .addCall(2, 'detachCustomElement', LF.fromDetach)
 
           // ce #1
-          .addCall(1, 'detaching', LF.fromDetach)
+          .addCall(1, 'beforeDetach', LF.fromDetach)
 
           // ce #1 controller
           .addCall(2, 'detachControllers', LF.fromDetach)
@@ -589,7 +566,7 @@ describe.skip('controller', function () {
           .addCall(4, 'detachCustomAttribute', LF.fromDetach)
 
           // if #1
-          .addCall(3, 'detaching', LF.fromDetach)
+          .addCall(3, 'beforeDetach', LF.fromDetach)
 
           // if #1 ifView
           .addCall(5, 'detach', LF.fromDetach)
@@ -601,7 +578,7 @@ describe.skip('controller', function () {
           .addCall(7, 'detachCustomElement', LF.fromDetach)
 
           // ce #2
-          .addCall(6, 'detaching', LF.fromDetach)
+          .addCall(6, 'beforeDetach', LF.fromDetach)
 
           // ce #2 controller
           .addCall(7, 'detachControllers', LF.fromDetach)
@@ -611,7 +588,7 @@ describe.skip('controller', function () {
           .addCall(9, 'detachCustomAttribute', LF.fromDetach)
 
           // if #2
-          .addCall(8, 'detaching', LF.fromDetach),
+          .addCall(8, 'beforeDetach', LF.fromDetach),
         '7',
       );
       assert.strictEqual(host.textContent, '16', '8');
@@ -633,16 +610,16 @@ describe.skip('controller', function () {
           .addCall(7, 'unmount', LF.fromTick)
           .addCall(7, 'unmountCustomElement', LF.fromTick)
 
-          .addCall(7, 'detached', LF.fromTick)
+          .addCall(7, 'afterDetach', LF.fromTick)
 
           // ce #2
-          .addCall(6, 'detached', LF.fromTick)
+          .addCall(6, 'afterDetach', LF.fromTick)
 
           // ce #1 controller
-          .addCall(2, 'detached', LF.fromTick)
+          .addCall(2, 'afterDetach', LF.fromTick)
 
           // ce #1
-          .addCall(1, 'detached', LF.fromTick)
+          .addCall(1, 'afterDetach', LF.fromTick)
         ,
         '9',
       );
@@ -658,7 +635,7 @@ describe.skip('controller', function () {
           .addCall(2, 'unbindCustomElement', LF.fromUnbind)
 
           // ce #1
-          .addCall(1, 'unbinding', LF.fromUnbind)
+          .addCall(1, 'beforeUnbind', LF.fromUnbind)
 
           // ce #1 controller
           .addCall(2, 'unbindControllers', LF.fromUnbind)
@@ -668,7 +645,7 @@ describe.skip('controller', function () {
           .addCall(4, 'unbindCustomAttribute', LF.fromUnbind)
 
           // if #1
-          .addCall(3, 'unbinding', LF.fromUnbind)
+          .addCall(3, 'beforeUnbind', LF.fromUnbind)
 
           // if #1 ifView
           .addCall(5, 'unbind', LF.fromUnbind)
@@ -680,7 +657,7 @@ describe.skip('controller', function () {
           .addCall(7, 'unbindCustomElement', LF.fromUnbind)
 
           // ce #2
-          .addCall(6, 'unbinding', LF.fromUnbind)
+          .addCall(6, 'beforeUnbind', LF.fromUnbind)
 
           // ce #2 controller
           .addCall(7, 'unbindControllers', LF.fromUnbind)
@@ -690,7 +667,7 @@ describe.skip('controller', function () {
           .addCall(9, 'unbindCustomAttribute', LF.fromUnbind)
 
           // if #2
-          .addCall(8, 'unbinding', LF.fromUnbind)
+          .addCall(8, 'beforeUnbind', LF.fromUnbind)
 
           // if #2 controller
           .addCall(9, 'endUnbind', LF.fromUnbind)
@@ -711,16 +688,16 @@ describe.skip('controller', function () {
           .addCall(2, 'endUnbind', LF.fromUnbind)
 
           // ce #2 controller
-          .addCall(7, 'unbound', LF.fromUnbind)
+          .addCall(7, 'afterUnbind', LF.fromUnbind)
 
           // ce #2
-          .addCall(6, 'unbound', LF.fromUnbind)
+          .addCall(6, 'afterUnbind', LF.fromUnbind)
 
           // ce #1 controller
-          .addCall(2, 'unbound', LF.fromUnbind)
+          .addCall(2, 'afterUnbind', LF.fromUnbind)
 
           // ce #1
-          .addCall(1, 'unbound', LF.fromUnbind),
+          .addCall(1, 'afterUnbind', LF.fromUnbind),
         '11',
       );
 
@@ -779,7 +756,7 @@ describe.skip('controller', function () {
       const viewModel = container.get(ViewModel);
       viewModel['msg'] = 'hi';
 
-      const sut = Controller.forCustomElement(viewModel, container, host);
+      const sut = Controller.forCustomElement(viewModel, lifecycle, host, container, void 0);
 
       const expectedCalls = new CallCollection();
 
@@ -794,7 +771,7 @@ describe.skip('controller', function () {
       sut.bind(flags);
 
       const ifInstance = sut.controllers[0].bindingContext as unknown as If;
-      const secondCustomElementController = ifInstance.ifView.controllers[0];
+      const secondCustomElementController = ifInstance.ifView.controllers[0] as ICustomElementController;
       const secondIfInstance = secondCustomElementController.controllers[0].bindingContext as unknown as If;
 
       assert.deepStrictEqual(
@@ -809,7 +786,7 @@ describe.skip('controller', function () {
           .addCall(3, 'valueChanged', true, false, LF.none)
 
           // ce #1
-          .addCall(1, 'binding', LF.fromBind)
+          .addCall(1, 'beforeBind', LF.fromBind)
 
           // ce #1 controller
           .addCall(2, 'bindControllers', LF.fromBind, sut.scope)
@@ -819,7 +796,7 @@ describe.skip('controller', function () {
           .addCall(4, 'bindCustomAttribute', LF.fromBind, sut.scope)
 
           // if #1
-          .addCall(3, 'binding', LF.fromBind)
+          .addCall(3, 'beforeBind', LF.fromBind)
           .addCall(3, 'swap', true, LF.fromBind)
           .addCall(3, 'updateView', true, LF.fromBind)
           .addCall(3, 'ensureView', void 0, ifInstance['ifFactory'], LF.fromBind)
@@ -846,7 +823,7 @@ describe.skip('controller', function () {
           .addCall(7, 'bindBindings', LF.fromBind, secondCustomElementController.scope)
 
           // ce #2
-          .addCall(6, 'binding', LF.fromBind)
+          .addCall(6, 'beforeBind', LF.fromBind)
 
           // ce #2 controller
           .addCall(7, 'bindControllers', LF.fromBind, secondCustomElementController.scope)
@@ -856,7 +833,7 @@ describe.skip('controller', function () {
           .addCall(9, 'bindCustomAttribute', LF.fromBind, secondCustomElementController.scope)
 
           // if #2
-          .addCall(8, 'binding', LF.fromBind)
+          .addCall(8, 'beforeBind', LF.fromBind)
           .addCall(8, 'swap', false, LF.fromBind)
           .addCall(8, 'deactivate', LF.fromBind)
           .addCall(8, 'updateView', false, LF.fromBind)
@@ -878,16 +855,16 @@ describe.skip('controller', function () {
           .addCall(2, 'endBind', LF.fromBind)
 
           // ce #2 controller
-          .addCall(7, 'bound', LF.fromBind)
+          .addCall(7, 'afterBind', LF.fromBind)
 
           // ce #2
-          .addCall(6, 'bound', LF.fromBind)
+          .addCall(6, 'afterBind', LF.fromBind)
 
           // ce #1 controller
-          .addCall(2, 'bound', LF.fromBind)
+          .addCall(2, 'afterBind', LF.fromBind)
 
           // ce #1
-          .addCall(1, 'bound', LF.fromBind),
+          .addCall(1, 'afterBind', LF.fromBind),
         '2',
       );
 
@@ -901,7 +878,7 @@ describe.skip('controller', function () {
           .addCall(2, 'attachCustomElement', LF.fromAttach)
 
           // ce #1
-          .addCall(1, 'attaching', LF.fromAttach)
+          .addCall(1, 'beforeAttach', LF.fromAttach)
 
           // ce #1 controller
           .addCall(2, 'attachControllers', LF.fromAttach)
@@ -911,7 +888,7 @@ describe.skip('controller', function () {
           .addCall(4, 'attachCustomAttribute', LF.fromAttach)
 
           // if #1
-          .addCall(3, 'attaching', LF.fromAttach)
+          .addCall(3, 'beforeAttach', LF.fromAttach)
           .addCall(3, 'attachView', LF.fromAttach)
 
           // if #1 ifView
@@ -924,7 +901,7 @@ describe.skip('controller', function () {
           .addCall(7, 'attachCustomElement', LF.fromAttach)
 
           // ce #2
-          .addCall(6, 'attaching', LF.fromAttach)
+          .addCall(6, 'beforeAttach', LF.fromAttach)
 
           // ce #2 controller
           .addCall(7, 'attachControllers', LF.fromAttach)
@@ -934,7 +911,7 @@ describe.skip('controller', function () {
           .addCall(9, 'attachCustomAttribute', LF.fromAttach)
 
           // if #2
-          .addCall(8, 'attaching', LF.fromAttach)
+          .addCall(8, 'beforeAttach', LF.fromAttach)
           .addCall(8, 'attachView', LF.fromAttach),
         '3',
       );
@@ -957,16 +934,16 @@ describe.skip('controller', function () {
           .addCall(7, 'mount', LF.fromTick)
           .addCall(7, 'mountCustomElement', LF.fromTick)
 
-          .addCall(7, 'attached', LF.fromTick)
+          .addCall(7, 'afterAttach', LF.fromTick)
 
           // ce #2
-          .addCall(6, 'attached', LF.fromTick)
+          .addCall(6, 'afterAttach', LF.fromTick)
 
           // ce #1 controller
-          .addCall(2, 'attached', LF.fromTick)
+          .addCall(2, 'afterAttach', LF.fromTick)
 
           // ce #1
-          .addCall(1, 'attached', LF.fromTick),
+          .addCall(1, 'afterAttach', LF.fromTick),
         '5',
       );
       assert.strictEqual(host.textContent, 'hihi', '6');
@@ -981,7 +958,7 @@ describe.skip('controller', function () {
           .addCall(2, 'detachCustomElement', LF.fromDetach)
 
           // ce #1
-          .addCall(1, 'detaching', LF.fromDetach)
+          .addCall(1, 'beforeDetach', LF.fromDetach)
 
           // ce #1 controller
           .addCall(2, 'detachControllers', LF.fromDetach)
@@ -991,7 +968,7 @@ describe.skip('controller', function () {
           .addCall(4, 'detachCustomAttribute', LF.fromDetach)
 
           // if #1
-          .addCall(3, 'detaching', LF.fromDetach)
+          .addCall(3, 'beforeDetach', LF.fromDetach)
 
           // if #1 ifView
           .addCall(5, 'detach', LF.fromDetach)
@@ -1003,7 +980,7 @@ describe.skip('controller', function () {
           .addCall(7, 'detachCustomElement', LF.fromDetach)
 
           // ce #2
-          .addCall(6, 'detaching', LF.fromDetach)
+          .addCall(6, 'beforeDetach', LF.fromDetach)
 
           // ce #2 controller
           .addCall(7, 'detachControllers', LF.fromDetach)
@@ -1013,7 +990,7 @@ describe.skip('controller', function () {
           .addCall(9, 'detachCustomAttribute', LF.fromDetach)
 
           // if #2
-          .addCall(8, 'detaching', LF.fromDetach),
+          .addCall(8, 'beforeDetach', LF.fromDetach),
         '7',
       );
       assert.strictEqual(host.textContent, 'hihi', '8');
@@ -1035,16 +1012,16 @@ describe.skip('controller', function () {
           .addCall(7, 'unmount', LF.fromTick)
           .addCall(7, 'unmountCustomElement', LF.fromTick)
 
-          .addCall(7, 'detached', LF.fromTick)
+          .addCall(7, 'afterDetach', LF.fromTick)
 
           // ce #2
-          .addCall(6, 'detached', LF.fromTick)
+          .addCall(6, 'afterDetach', LF.fromTick)
 
           // ce #1 controller
-          .addCall(2, 'detached', LF.fromTick)
+          .addCall(2, 'afterDetach', LF.fromTick)
 
           // ce #1
-          .addCall(1, 'detached', LF.fromTick)
+          .addCall(1, 'afterDetach', LF.fromTick)
         ,
         '9',
       );
@@ -1060,7 +1037,7 @@ describe.skip('controller', function () {
           .addCall(2, 'unbindCustomElement', LF.fromUnbind)
 
           // ce #1
-          .addCall(1, 'unbinding', LF.fromUnbind)
+          .addCall(1, 'beforeUnbind', LF.fromUnbind)
 
           // ce #1 controller
           .addCall(2, 'unbindControllers', LF.fromUnbind)
@@ -1070,7 +1047,7 @@ describe.skip('controller', function () {
           .addCall(4, 'unbindCustomAttribute', LF.fromUnbind)
 
           // if #1
-          .addCall(3, 'unbinding', LF.fromUnbind)
+          .addCall(3, 'beforeUnbind', LF.fromUnbind)
 
           // if #1 ifView
           .addCall(5, 'unbind', LF.fromUnbind)
@@ -1082,7 +1059,7 @@ describe.skip('controller', function () {
           .addCall(7, 'unbindCustomElement', LF.fromUnbind)
 
           // ce #2
-          .addCall(6, 'unbinding', LF.fromUnbind)
+          .addCall(6, 'beforeUnbind', LF.fromUnbind)
 
           // ce #2 controller
           .addCall(7, 'unbindControllers', LF.fromUnbind)
@@ -1092,7 +1069,7 @@ describe.skip('controller', function () {
           .addCall(9, 'unbindCustomAttribute', LF.fromUnbind)
 
           // if #2
-          .addCall(8, 'unbinding', LF.fromUnbind)
+          .addCall(8, 'beforeUnbind', LF.fromUnbind)
 
           // if #2 controller
           .addCall(9, 'endUnbind', LF.fromUnbind)
@@ -1113,16 +1090,16 @@ describe.skip('controller', function () {
           .addCall(2, 'endUnbind', LF.fromUnbind)
 
           // ce #2 controller
-          .addCall(7, 'unbound', LF.fromUnbind)
+          .addCall(7, 'afterUnbind', LF.fromUnbind)
 
           // ce #2
-          .addCall(6, 'unbound', LF.fromUnbind)
+          .addCall(6, 'afterUnbind', LF.fromUnbind)
 
           // ce #1 controller
-          .addCall(2, 'unbound', LF.fromUnbind)
+          .addCall(2, 'afterUnbind', LF.fromUnbind)
 
           // ce #1
-          .addCall(1, 'unbound', LF.fromUnbind),
+          .addCall(1, 'afterUnbind', LF.fromUnbind),
         '11',
       );
 

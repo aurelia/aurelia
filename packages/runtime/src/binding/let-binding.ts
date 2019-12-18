@@ -26,6 +26,8 @@ export interface LetBinding extends IConnectableBinding {}
 
 @connectable()
 export class LetBinding implements IPartialConnectableBinding {
+  public interceptor: this = this;
+
   public id!: number;
   public $state: State = State.none;
   public $lifecycle: ILifecycle;
@@ -68,7 +70,7 @@ export class LetBinding implements IPartialConnectableBinding {
       if (this.$scope === scope) {
         return;
       }
-      this.$unbind(flags | LifecycleFlags.fromBind);
+      this.interceptor.$unbind(flags | LifecycleFlags.fromBind);
     }
     // add isBinding flag
     this.$state |= State.isBinding;
@@ -79,11 +81,11 @@ export class LetBinding implements IPartialConnectableBinding {
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.bind) {
-      sourceExpression.bind(flags, scope, this);
+      sourceExpression.bind(flags, scope, this.interceptor);
     }
     // sourceExpression might have been changed during bind
     this.target[this.targetProperty] = this.sourceExpression.evaluate(flags | LifecycleFlags.fromBind, scope, this.locator, part);
-    this.sourceExpression.connect(flags, scope, this, part);
+    this.sourceExpression.connect(flags, scope, this.interceptor, part);
 
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;
@@ -99,10 +101,10 @@ export class LetBinding implements IPartialConnectableBinding {
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.unbind) {
-      sourceExpression.unbind(flags, this.$scope!, this);
+      sourceExpression.unbind(flags, this.$scope!, this.interceptor);
     }
     this.$scope = void 0;
-    this.unobserve(true);
+    this.interceptor.unobserve(true);
 
     // remove isBound and isUnbinding flags
     this.$state &= ~(State.isBound | State.isUnbinding);

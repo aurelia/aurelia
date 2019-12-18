@@ -234,10 +234,10 @@ export function generateSummary(sourceFileInfo: SourceFileInfo, ...prepend: stri
         .value();
     for (let i = 0; i < summaryGroup.length; i++) {
         const root = summaryGroup[i];
-        result.push(`* ${beautifyName(root[0].folders[0])}(${root[0].folders[0].toLowerCase()}/README.md)`);
+        result.push(`* [${beautifyName(root[0].folders[0])}](${root[0].folders[0].toLowerCase()}/README.md)`);
         for (let j = 0; j < root.length; j++) {
             const child = root[j];
-            const item = `   * ${child.category}(${root[0].folders[0].toLowerCase()}/${child.category.toUpperCase()}.md)`;
+            const item = `   * [${child.category}](${root[0].folders[0].toLowerCase()}/${child.category.toUpperCase()}.md)`;
             if (!result.includes(item))
                 result.push(item);
         }

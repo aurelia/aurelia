@@ -147,7 +147,7 @@ export class PixiSprite {
     this._sprite = null;
   }
 
-  public attached(): void {
+  public afterAttach(): void {
     if (this.container) {
       const $this = this as this & { [key: string]: unknown };
       this._sprite = new Sprite(loader.resources[this.src as string].texture) as Sprite & { [key: string]: unknown };
@@ -169,7 +169,7 @@ export class PixiSprite {
     }
   }
 
-  public detached(): void {
+  public afterDetach(): void {
     if (this.container && this._sprite) {
       this.container.removeChild(this._sprite);
       this._sprite.destroy();

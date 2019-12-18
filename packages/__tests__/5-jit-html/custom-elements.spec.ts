@@ -88,12 +88,12 @@ describe('custom-elements', function () {
       @bindable()
       public value: any;
       public value1: any;
-      public bound(): void {
+      public afterBind(): void {
         assert.strictEqual(this.value, 'w00t', 'Foo1.this.value');
         assert.strictEqual(this.value1, 'w00t1', 'Foo1.this.value1');
         boundCalls++;
       }
-      public binding() { this.valueChanged(); }
+      public beforeBind() { this.valueChanged(); }
       public valueChanged(): void {
         this.value1 = `${this.value}1`;
       }
@@ -106,13 +106,13 @@ describe('custom-elements', function () {
       public value1: any;
       @bindable()
       public value2: any;
-      public bound(): void {
+      public afterBind(): void {
         assert.strictEqual(this.value, 'w00t', 'Foo2.this.value');
         assert.strictEqual(this.value1, 'w00t1', 'Foo2.this.value1');
         assert.strictEqual(this.value2, 'w00t1', 'Foo2.this.value2');
         boundCalls++;
       }
-      public binding() { this.valueChanged(); }
+      public beforeBind() { this.valueChanged(); }
       public valueChanged(): void {
         this.value1 = `${this.value}1`;
       }
@@ -125,13 +125,13 @@ describe('custom-elements', function () {
       public value1: any;
       @bindable()
       public value2: any;
-      public bound(): void {
+      public afterBind(): void {
         assert.strictEqual(this.value, 'w00t', 'Foo3.this.value');
         assert.strictEqual(this.value1, 'w00t1', 'Foo3.this.value1');
         assert.strictEqual(this.value2, 'w00t1', 'Foo3.this.value2');
         boundCalls++;
       }
-      public binding() { this.valueChanged(); }
+      public beforeBind() { this.valueChanged(); }
       public valueChanged(): void {
         this.value1 = `${this.value}1`;
       }
@@ -144,13 +144,13 @@ describe('custom-elements', function () {
       public value1: any;
       @bindable()
       public value2: any;
-      public bound(): void {
+      public afterBind(): void {
         assert.strictEqual(this.value, 'w00t', 'Foo4.this.value');
         assert.strictEqual(this.value1, 'w00t1', 'Foo4.this.value1');
         assert.strictEqual(this.value2, 'w00t1', 'Foo4.this.value2');
         boundCalls++;
       }
-      public binding() { this.valueChanged(); }
+      public beforeBind() { this.valueChanged(); }
       public valueChanged(): void {
         this.value1 = `${this.value}1`;
       }
@@ -163,13 +163,13 @@ describe('custom-elements', function () {
       public value1: any;
       @bindable()
       public value2: any;
-      public bound(): void {
+      public afterBind(): void {
         assert.strictEqual(this.value, 'w00t', 'Foo5.this.value');
         assert.strictEqual(this.value1, 'w00t1', 'Foo5.this.value1');
         assert.strictEqual(this.value2, 'w00t1', 'Foo5.this.value2');
         boundCalls++;
       }
-      public binding() { this.valueChanged(); }
+      public beforeBind() { this.valueChanged(); }
       public valueChanged(): void {
         this.value1 = `${this.value}1`;
       }
@@ -199,7 +199,7 @@ describe('custom-elements', function () {
       @bindable()
       public value: any;
       public value1: any;
-      public binding() { this.valueChanged(); }
+      public beforeBind() { this.valueChanged(); }
       public valueChanged(): void {
         this.value1 = `${this.value}1`;
       }
@@ -212,7 +212,7 @@ describe('custom-elements', function () {
       public value1: any;
       @bindable()
       public value2: any;
-      public binding() { this.valueChanged(); }
+      public beforeBind() { this.valueChanged(); }
       public valueChanged(): void {
         this.value1 = `${this.value}1`;
       }
@@ -223,7 +223,7 @@ describe('custom-elements', function () {
       @bindable()
       public value: any;
       public value1: any;
-      public binding() { this.valueChanged(); }
+      public beforeBind() { this.valueChanged(); }
       public valueChanged(): void {
         this.value1 = `${this.value}1`;
       }
@@ -235,7 +235,7 @@ describe('custom-elements', function () {
       @bindable()
       public value: any;
       public value1: any;
-      public binding() { this.valueChanged(); }
+      public beforeBind() { this.valueChanged(); }
       public valueChanged(): void {
         this.value1 = `${this.value}1`;
       }
@@ -247,7 +247,7 @@ describe('custom-elements', function () {
       @bindable()
       public value: any;
       public value1: any;
-      public binding() { this.valueChanged(); }
+      public beforeBind() { this.valueChanged(); }
       public valueChanged(): void {
         this.value1 = `${this.value}1`;
       }
@@ -339,7 +339,7 @@ describe('custom-elements', function () {
       @bindable()
       public value: any;
       public value1: any;
-      public binding() { this.valueChanged(); }
+      public beforeBind() { this.valueChanged(); }
       public valueChanged(): void {
         this.value1 = `${this.value}1`;
       }
@@ -352,7 +352,7 @@ describe('custom-elements', function () {
       public value1: any;
       @bindable()
       public value2: any;
-      public binding() { this.valueChanged(); }
+      public beforeBind() { this.valueChanged(); }
       public valueChanged(): void {
         this.value1 = `${this.value}1`;
       }
@@ -363,7 +363,7 @@ describe('custom-elements', function () {
       @bindable()
       public value: any;
       public value1: any;
-      public binding() { this.valueChanged(); }
+      public beforeBind() { this.valueChanged(); }
       public valueChanged(): void {
         this.value1 = `${this.value}1`;
       }

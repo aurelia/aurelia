@@ -1,3 +1,4 @@
+import { IContainer } from '@aurelia/kernel';
 import {
   attributePattern,
   AttrSyntax,
@@ -11,13 +12,11 @@ import {
   BindingMode,
   BindingType,
   ICallBindingInstruction,
-  IController,
-  IDOM,
+  IRenderableController,
   IExpressionParser,
   IInstructionRenderer,
   instructionRenderer,
   IObserverLocator,
-  IRenderContext,
   IsBindingBehavior,
   LifecycleFlags
 } from '@aurelia/runtime';
@@ -60,7 +59,13 @@ export class TranslationParametersBindingRenderer implements IInstructionRendere
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) { }
 
-  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: ICallBindingInstruction): void {
-    TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, renderable, target, instruction, isParameterContext: true });
+  public render(
+    flags: LifecycleFlags,
+    context: IContainer,
+    controller: IRenderableController,
+    target: HTMLElement,
+    instruction: ICallBindingInstruction,
+  ): void {
+    TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller: controller, target, instruction, isParameterContext: true });
   }
 }

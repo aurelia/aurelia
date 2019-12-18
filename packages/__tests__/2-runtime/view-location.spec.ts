@@ -222,16 +222,19 @@ describe('the view locator', function () {
   });
 
   [
-    'created',
-    'binding',
-    'bound',
-    'attaching',
-    'attached',
-    'detaching',
+    'beforeCompile',
+    'create',
+    'afterCompile',
+    'afterCompileChildren',
+    'beforeBind',
+    'afterBind',
+    'beforeAttach',
+    'afterAttach',
+    'beforeDetach',
     'caching',
-    'detached',
-    'unbinding',
-    'unbound'
+    'afterDetach',
+    'beforeUnbind',
+    'afterUnbind'
   ].forEach(lifecycleHook => {
     it(`returns a component that implements lifecycle '${lifecycleHook}' if present on the model`, function () {
       const template = { name: 'name' };
@@ -254,7 +257,11 @@ describe('the view locator', function () {
         scope: {}
       };
 
-      instance[lifecycleHook]();
+      if (lifecycleHook === 'create') {
+        instance[lifecycleHook](instance.$controller);
+      } else {
+        instance[lifecycleHook]();
+      }
 
       assert.isCustomElementType(Component);
       assert.equal(model.invoked, true);

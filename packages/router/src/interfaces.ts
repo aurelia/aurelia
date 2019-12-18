@@ -1,5 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import { CustomElementType, INode, IViewModel } from '@aurelia/runtime';
+import { CustomElementType, INode, ICustomElementViewModel } from '@aurelia/runtime';
 import { INavigatorEntry, INavigatorFlags, IStoredNavigatorEntry } from './navigator';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
@@ -14,7 +14,7 @@ export type RouteableComponentType<C extends Constructable = Constructable> = Cu
   parameters?: string[];
 };
 
-export interface IRouteableComponent<T extends INode = INode> extends IViewModel<T> {
+export interface IRouteableComponent<T extends INode = INode> extends ICustomElementViewModel<T> {
   reentryBehavior?: ReentryBehavior;
   canEnter?(parameters: string[] | Record<string, string>, nextInstruction: INavigatorInstruction, instruction: INavigatorInstruction): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]>;
   enter?(parameters: string[] | Record<string, string>, nextInstruction: INavigatorInstruction, instruction: INavigatorInstruction): void | Promise<void>;

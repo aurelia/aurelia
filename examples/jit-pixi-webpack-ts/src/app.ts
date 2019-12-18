@@ -21,7 +21,7 @@ export class App {
     this.sprites = [];
   }
 
-  public binding(): void {
+  public beforeBind(): void {
     // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
     loader.add('logo', require('img/aurelia-icon-256x256.png'));
     loader.load();

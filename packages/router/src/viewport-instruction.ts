@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { CustomElement, IRenderContext } from '@aurelia/runtime';
+import { CustomElement } from '@aurelia/runtime';
 import { ComponentAppellation, ComponentParameters, IRouteableComponent, RouteableComponentType, ViewportHandle } from './interfaces';
 import { IRouter } from './router';
 import { ComponentAppellationResolver } from './type-resolvers';
@@ -89,7 +89,7 @@ export class ViewportInstruction {
     return this.componentInstance !== null;
   }
 
-  public toComponentType(context: IRenderContext | IContainer): RouteableComponentType | null {
+  public toComponentType(context: IContainer): RouteableComponentType | null {
     if (this.componentType !== null) {
       return this.componentType;
     }
@@ -107,7 +107,7 @@ export class ViewportInstruction {
     }
     return null;
   }
-  public toComponentInstance(context: IRenderContext | IContainer): IRouteableComponent | null {
+  public toComponentInstance(context: IContainer): IRouteableComponent | null {
     if (this.componentInstance !== null) {
       return this.componentInstance;
     }

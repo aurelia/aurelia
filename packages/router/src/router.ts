@@ -1,5 +1,5 @@
 import { DI, IContainer, Key, Reporter } from '@aurelia/kernel';
-import { Aurelia, CustomElement, IController, IRenderContext } from '@aurelia/runtime';
+import { Aurelia, CustomElement, ICustomElementController, IHydratedController } from '@aurelia/runtime';
 import { BrowserNavigator } from './browser-navigator';
 import { Guardian, GuardTypes } from './guardian';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
@@ -63,10 +63,10 @@ export interface IRouter {
   // External API to get viewport by name
   getViewport(name: string): Viewport | null;
 
-  // Called from the viewport custom element in attached()
-  connectViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;
+  // Called from the viewport custom element in afterAttach()
+  connectViewport(name: string, element: Element, context: IContainer, options?: IViewportOptions): Viewport;
   // Called from the viewport custom element
-  disconnectViewport(viewport: Viewport, element: Element | null, context: IRenderContext | null): void;
+  disconnectViewport(viewport: Viewport, element: Element | null, context: IContainer | null): void;
 
   allViewports(includeDisabled?: boolean): Viewport[];
   findScope(element: Element | null): Viewport;
@@ -448,8 +448,8 @@ export class Router implements IRouter {
     return this.allViewports().find(viewport => viewport.name === name) || null;
   }
 
-  // Called from the viewport custom element in attached()
-  public connectViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport {
+  // Called from the viewport custom element in afterAttach()
+  public connectViewport(name: string, element: Element, context: IContainer, options?: IViewportOptions): Viewport {
     Reporter.write(10000, 'Viewport added', name, element);
     const parentScope = this.findScope(element);
     const viewport = parentScope.addViewport(name, element, context, options);
@@ -467,7 +467,7 @@ export class Router implements IRouter {
     return viewport;
   }
   // Called from the viewport custom element
-  public disconnectViewport(viewport: Viewport, element: Element | null, context: IRenderContext | null): void {
+  public disconnectViewport(viewport: Viewport, element: Element | null, context: IContainer | null): void {
     if (!viewport.owningScope!.removeViewport(viewport, element, context)) {
       throw new Error(`Failed to remove viewport: ${viewport.name}`);
     }
@@ -499,9 +499,9 @@ export class Router implements IRouter {
                 instructions = instructions.slice(2);
               }
               // Find out how many scopes upwards we should move
-              while (instructions.startsWith('../')) {
+              while ((instructions as string).startsWith('../')) {
                 scope = scope.parent || scope;
-                instructions = instructions.slice(3);
+                instructions = (instructions as string).slice(3);
               }
             }
           } else { // Specified root scope with /
@@ -605,19 +605,19 @@ export class Router implements IRouter {
       return el.$viewport;
     }
     el = element;
-    let controller = CustomElement.for(el);
+    let controller = CustomElement.for(el) as IHydratedController;
     while (!controller && el.parentElement) {
       el = el.parentElement;
       CustomElement.for(el);
     }
     while (controller) {
-      if (controller.host) {
-        const viewport = this.allViewports().find((item) => item.element === controller!.host);
+      if ((controller as ICustomElementController).host) {
+        const viewport = this.allViewports().find((item) => item.element === (controller as ICustomElementController).host);
         if (viewport) {
           return viewport;
         }
       }
-      controller = controller.parent;
+      controller = controller.parent!;
     }
     return null;
   }
@@ -649,7 +649,7 @@ export class Router implements IRouter {
   private ensureRootScope(): void {
     if (!this.rootScope) {
       const root = this.container.get(Aurelia).root;
-      this.rootScope = new Viewport(this, 'rootScope', root.host as Element, (root.controller as IController).context as IRenderContext, null, true);
+      this.rootScope = new Viewport(this, 'rootScope', root.host as Element, root.controller!.context, null, true);
     }
   }
 

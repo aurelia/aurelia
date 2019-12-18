@@ -27,7 +27,7 @@ export class LaptopSpecsViewer {
   @bindable public model: Laptop;
   private storage: string;
 
-  public binding() {
+  public beforeBind() {
     const { storage: { size, unit, type } } = this.model;
     this.storage = `${size}${unit} ${type}`;
   }

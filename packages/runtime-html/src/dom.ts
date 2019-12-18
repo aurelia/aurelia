@@ -1,24 +1,17 @@
 import {
   IContainer,
   IResolver,
-  Key,
   PLATFORM,
   Registration,
   Reporter,
   Writable
 } from '@aurelia/kernel';
 import {
-  CompiledTemplate,
   DOM,
   IDOM,
   INode,
   INodeSequence,
-  IRenderContext,
   IRenderLocation,
-  ITemplate,
-  ITemplateFactory,
-  NodeSequence,
-  CustomElementDefinition,
   CustomElement
 } from '@aurelia/runtime';
 import { ShadowDOMProjector } from './projectors';
@@ -51,6 +44,8 @@ export class HTMLDOM implements IDOM {
   public readonly CSSStyleSheet: typeof CSSStyleSheet;
   public readonly ShadowRoot: typeof ShadowRoot;
 
+  private readonly emptyNodes: FragmentNodeSequence;
+
   public constructor(
     public readonly window: Window,
     public readonly document: Document,
@@ -72,6 +67,8 @@ export class HTMLDOM implements IDOM {
       DOM.destroy();
     }
     DOM.initialize(this);
+
+    this.emptyNodes = new FragmentNodeSequence(this, document.createDocumentFragment());
   }
 
   public static register(container: IContainer): IResolver<IDOM> {
@@ -128,6 +125,13 @@ export class HTMLDOM implements IDOM {
     }
 
     return this.createTemplate(markupOrNode).content;
+  }
+
+  public createNodeSequence(fragment: DocumentFragment | null): FragmentNodeSequence {
+    if (fragment === null) {
+      return this.emptyNodes;
+    }
+    return new FragmentNodeSequence(this, fragment.cloneNode(true) as DocumentFragment);
   }
 
   public createElement(name: string): HTMLElement {
@@ -501,33 +505,6 @@ export class FragmentNodeSequence implements INodeSequence {
   }
 }
 
-export interface NodeSequenceFactory {
-  createNodeSequence(): INodeSequence;
-}
-
-export class NodeSequenceFactory implements NodeSequenceFactory {
-  private readonly node: DocumentFragment | null;
-
-  public constructor(
-    private readonly dom: IDOM,
-    markupOrNode: string | Node | null,
-  ) {
-    if (markupOrNode === null) {
-      this.node = null;
-    } else {
-      this.node = dom.createDocumentFragment(markupOrNode) as DocumentFragment;
-    }
-  }
-
-  public createNodeSequence(): INodeSequence {
-    if (this.node === null) {
-      return NodeSequence.empty;
-    }
-
-    return new FragmentNodeSequence(this.dom, this.node.cloneNode(true) as DocumentFragment);
-  }
-}
-
 export interface AuMarker extends INode { }
 
 /** @internal */
@@ -557,18 +534,3 @@ export class AuMarker implements INode {
   proto.nodeName = 'AU-M';
   proto.nodeType = NodeType.Element;
 })(AuMarker.prototype as Writable<AuMarker>);
-
-/** @internal */
-export class HTMLTemplateFactory implements ITemplateFactory {
-  public constructor(
-    @IDOM private readonly dom: IDOM,
-  ) {}
-
-  public static register(container: IContainer): IResolver<ITemplateFactory> {
-    return Registration.singleton(ITemplateFactory, this).register(container);
-  }
-
-  public create(parentRenderContext: IRenderContext, definition: CustomElementDefinition): ITemplate {
-    return new CompiledTemplate(this.dom, definition, new NodeSequenceFactory(this.dom, definition.template as string | Node | null), parentRenderContext);
-  }
-}

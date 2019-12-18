@@ -86,28 +86,28 @@
 //       public created() {
 //         return;
 //       }
-//       public binding() {
+//       public beforeBind() {
 //         return;
 //       }
-//       public bound() {
+//       public afterBind() {
 //         return;
 //       }
-//       public attaching() {
+//       public beforeAttach() {
 //         return;
 //       }
-//       public attached() {
+//       public afterAttach() {
 //         return;
 //       }
-//       public detaching() {
+//       public beforeDetach() {
 //         return;
 //       }
-//       public detached() {
+//       public afterDetach() {
 //         return;
 //       }
-//       public unbinding() {
+//       public beforeUnbind() {
 //         return;
 //       }
-//       public unbound() {
+//       public afterUnbind() {
 //         return;
 //       }
 //     });
@@ -122,28 +122,28 @@
 //       public created() {
 //         return;
 //       }
-//       public binding() {
+//       public beforeBind() {
 //         return;
 //       }
-//       public bound() {
+//       public afterBind() {
 //         return;
 //       }
-//       public attaching() {
+//       public beforeAttach() {
 //         return;
 //       }
-//       public attached() {
+//       public afterAttach() {
 //         return;
 //       }
-//       public detaching() {
+//       public beforeDetach() {
 //         return;
 //       }
-//       public detached() {
+//       public afterDetach() {
 //         return;
 //       }
-//       public unbinding() {
+//       public beforeUnbind() {
 //         return;
 //       }
-//       public unbound() {
+//       public afterUnbind() {
 //         return;
 //       }
 //     });
@@ -158,28 +158,28 @@
 //       public created() {
 //         return;
 //       }
-//       public binding() {
+//       public beforeBind() {
 //         return;
 //       }
-//       public bound() {
+//       public afterBind() {
 //         return;
 //       }
-//       public attaching() {
+//       public beforeAttach() {
 //         return;
 //       }
-//       public attached() {
+//       public afterAttach() {
 //         return;
 //       }
-//       public detaching() {
+//       public beforeDetach() {
 //         return;
 //       }
-//       public detached() {
+//       public afterDetach() {
 //         return;
 //       }
-//       public unbinding() {
+//       public beforeUnbind() {
 //         return;
 //       }
-//       public unbound() {
+//       public afterUnbind() {
 //         return;
 //       }
 //     });
@@ -193,28 +193,28 @@
 //       public created() {
 //         return;
 //       }
-//       public binding() {
+//       public beforeBind() {
 //         return;
 //       }
-//       public bound() {
+//       public afterBind() {
 //         return;
 //       }
-//       public attaching() {
+//       public beforeAttach() {
 //         return;
 //       }
-//       public attached() {
+//       public afterAttach() {
 //         return;
 //       }
-//       public detaching() {
+//       public beforeDetach() {
 //         return;
 //       }
-//       public detached() {
+//       public afterDetach() {
 //         return;
 //       }
-//       public unbinding() {
+//       public beforeUnbind() {
 //         return;
 //       }
-//       public unbound() {
+//       public afterUnbind() {
 //         return;
 //       }
 //     });
@@ -267,14 +267,14 @@
 
 //   });
 
-//   it('attached task awaited indirectly', async function () {
+//   it('afterAttach task awaited indirectly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
 //       public $lifecycle: ILifecycle;
-//       public attaching() {
+//       public beforeAttach() {
 //         this.$lifecycle.registerTask({
 //           done: false,
 //           canCancel() { return false; },
@@ -326,14 +326,14 @@
 //     assert.strictEqual(host.textContent, '', `host.textContent`);
 //   });
 
-//   it('attached task awaited directly', async function () {
+//   it('afterAttach task awaited directly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
 //       public $lifecycle: ILifecycle;
-//       public attaching() {
+//       public beforeAttach() {
 //         this.$lifecycle.registerTask({
 //           done: false,
 //           canCancel() { return false; },
@@ -390,14 +390,14 @@
 //     assert.strictEqual(host.textContent, '', `host.textContent`);
 //   });
 
-//   it('attached task (triple then) awaited indirectly', async function () {
+//   it('afterAttach task (triple then) awaited indirectly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
 //       public $lifecycle: ILifecycle;
-//       public attaching() {
+//       public beforeAttach() {
 //         this.$lifecycle.registerTask({
 //           done: false,
 //           canCancel() { return false; },
@@ -457,14 +457,14 @@
 //     assert.strictEqual(host.textContent, '', `host.textContent`);
 //   });
 
-//   it('attached task (triple then) awaited directly', async function () {
+//   it('afterAttach task (triple then) awaited directly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
 //       public $lifecycle: ILifecycle;
-//       public attaching() {
+//       public beforeAttach() {
 //         this.$lifecycle.registerTask({
 //           done: false,
 //           canCancel() { return false; },
@@ -521,14 +521,14 @@
 //     assert.strictEqual(host.textContent, '', `host.textContent`);
 //   });
 
-//   it('detached task awaited indirectly', async function () {
+//   it('afterDetach task awaited indirectly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
 //       public $lifecycle: ILifecycle;
-//       public detaching() {
+//       public beforeDetach() {
 //         this.$lifecycle.registerTask({
 //           done: false,
 //           canCancel() { return false; },
@@ -582,14 +582,14 @@
 
 //   });
 
-//   it('detached task awaited directly', async function () {
+//   it('afterDetach task awaited directly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
 //       public $lifecycle: ILifecycle;
-//       public detaching() {
+//       public beforeDetach() {
 //         this.$lifecycle.registerTask({
 //           done: false,
 //           canCancel() { return false; },
@@ -643,14 +643,14 @@
 
 //   });
 
-//   it('detached task (triple then) awaited indirectly', async function () {
+//   it('afterDetach task (triple then) awaited indirectly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
 //       public $lifecycle: ILifecycle;
-//       public detaching() {
+//       public beforeDetach() {
 //         this.$lifecycle.registerTask({
 //           done: false,
 //           canCancel() { return false; },
@@ -707,14 +707,14 @@
 //     assert.strictEqual(host.textContent, '', `host.textContent`);
 //   });
 
-//   it('detached task (triple then) awaited directly', async function () {
+//   it('afterDetach task (triple then) awaited directly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',
 //       template: `<template><div ref="div">bar</div></template>`
 //     },                                       class {
 //       public $lifecycle: ILifecycle;
-//       public detaching() {
+//       public beforeDetach() {
 //         this.$lifecycle.registerTask({
 //           done: false,
 //           canCancel() { return false; },

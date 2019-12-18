@@ -20,7 +20,7 @@ export const ISink = DI.createInterface('ISink').noDefault();
 export const ILogEventFactory = DI.createInterface('ILogEventFactory').withDefault(x => x.singleton(DefaultLogEventFactory));
 export const ILogger = DI.createInterface('ILogger').withDefault(x => x.singleton(DefaultLogger));
 // http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
-const format = toLookup({
+export const format = toLookup({
     red(str) {
         return `\u001b[31m${str}\u001b[39m`;
     },
@@ -179,6 +179,7 @@ let DefaultLogger = class DefaultLogger {
         this.factory = factory;
         this.sinks = sinks;
         this.scope = scope;
+        this.scopedLoggers = Object.create(null);
         if (parent === null) {
             this.root = this;
             this.parent = this;
@@ -228,7 +229,12 @@ let DefaultLogger = class DefaultLogger {
         };
     }
     scopeTo(name) {
-        return new DefaultLogger(this.config, this.factory, this.sinks, this.scope.concat(name), this);
+        const scopedLoggers = this.scopedLoggers;
+        let scopedLogger = scopedLoggers[name];
+        if (scopedLogger === void 0) {
+            scopedLogger = scopedLoggers[name] = new DefaultLogger(this.config, this.factory, this.sinks, this.scope.concat(name), this);
+        }
+        return scopedLogger;
     }
 };
 DefaultLogger = __decorate([

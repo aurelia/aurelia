@@ -288,6 +288,16 @@ export interface IConsoleLike {
     warn(message: string, ...optionalParams: unknown[]): void;
     error(message: string, ...optionalParams: unknown[]): void;
 }
+export declare const format: {
+    readonly red: <T extends string>(str: T) => T;
+    readonly green: <T_1 extends string>(str: T_1) => T_1;
+    readonly yellow: <T_2 extends string>(str: T_2) => T_2;
+    readonly blue: <T_3 extends string>(str: T_3) => T_3;
+    readonly magenta: <T_4 extends string>(str: T_4) => T_4;
+    readonly cyan: <T_5 extends string>(str: T_5) => T_5;
+    readonly white: <T_6 extends string>(str: T_6) => T_6;
+    readonly grey: <T_7 extends string>(str: T_7) => T_7;
+};
 export interface ILogEvent {
     readonly severity: LogLevel;
     readonly optionalParams?: readonly unknown[];
@@ -330,6 +340,7 @@ export declare class DefaultLogger implements ILogger {
     readonly warn: (...args: unknown[]) => void;
     readonly error: (...args: unknown[]) => void;
     readonly fatal: (...args: unknown[]) => void;
+    private readonly scopedLoggers;
     constructor(config: ILogConfig, factory: ILogEventFactory, sinks: ISink[], scope?: string[], parent?: ILogger | null);
     scopeTo(name: string): ILogger;
 }

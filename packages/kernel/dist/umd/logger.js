@@ -31,7 +31,7 @@
     exports.ILogEventFactory = di_1.DI.createInterface('ILogEventFactory').withDefault(x => x.singleton(DefaultLogEventFactory));
     exports.ILogger = di_1.DI.createInterface('ILogger').withDefault(x => x.singleton(DefaultLogger));
     // http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
-    const format = functions_1.toLookup({
+    exports.format = functions_1.toLookup({
         red(str) {
             return `\u001b[31m${str}\u001b[39m`;
         },
@@ -76,13 +76,13 @@
                 QQQ: '???',
             }),
             functions_1.toLookup({
-                TRC: format.grey('TRC'),
-                DBG: format.grey('DBG'),
-                INF: format.white('INF'),
-                WRN: format.yellow('WRN'),
-                ERR: format.red('ERR'),
-                FTL: format.red('FTL'),
-                QQQ: format.grey('???'),
+                TRC: exports.format.grey('TRC'),
+                DBG: exports.format.grey('DBG'),
+                INF: exports.format.white('INF'),
+                WRN: exports.format.yellow('WRN'),
+                ERR: exports.format.red('ERR'),
+                FTL: exports.format.red('FTL'),
+                QQQ: exports.format.grey('???'),
             }),
         ];
         return function (level, colorOptions) {
@@ -112,13 +112,13 @@
             return scope.join('.');
         }
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        return scope.map(format.cyan).join('.');
+        return scope.map(exports.format.cyan).join('.');
     }
     function getIsoString(timestamp, colorOptions) {
         if (colorOptions === 0 /* noColors */) {
             return new Date(timestamp).toISOString();
         }
-        return format.grey(new Date(timestamp).toISOString());
+        return exports.format.grey(new Date(timestamp).toISOString());
     }
     class DefaultLogEvent {
         constructor(severity, message, optionalParams, scope, colorOptions, timestamp) {
@@ -193,6 +193,7 @@
             this.factory = factory;
             this.sinks = sinks;
             this.scope = scope;
+            this.scopedLoggers = Object.create(null);
             if (parent === null) {
                 this.root = this;
                 this.parent = this;
@@ -242,7 +243,12 @@
             };
         }
         scopeTo(name) {
-            return new DefaultLogger(this.config, this.factory, this.sinks, this.scope.concat(name), this);
+            const scopedLoggers = this.scopedLoggers;
+            let scopedLogger = scopedLoggers[name];
+            if (scopedLogger === void 0) {
+                scopedLogger = scopedLoggers[name] = new DefaultLogger(this.config, this.factory, this.sinks, this.scope.concat(name), this);
+            }
+            return scopedLogger;
         }
     };
     DefaultLogger = tslib_1.__decorate([

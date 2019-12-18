@@ -230,7 +230,7 @@ module.exports = {
     '@typescript-eslint/quotes': ['off']
   },
   overrides: [{ // Specific overrides for JS files as some TS rules don't make sense there.
-    files: ['**/*.js', 'examples/jit-parcel-ts/**'],
+    files: ['**/*.js'],
     rules: {
       '@typescript-eslint/explicit-member-accessibility': 'off',
       '@typescript-eslint/no-require-imports': 'off',

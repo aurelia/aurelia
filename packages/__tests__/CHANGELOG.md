@@ -3,6 +3,35 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.6.0"></a>
+# 0.6.0 (2019-12-18)
+
+### Features:
+
+* **runtime:** add CustomElement.createInjectable api ([c2ea5fc](https://github.com/aurelia/aurelia/commit/c2ea5fc))
+* **bindable:** basic working state for set/get ([ae1d87a](https://github.com/aurelia/aurelia/commit/ae1d87a))
+
+
+### Bug Fixes:
+
+* **container:** ignore primitive values in register ([b5eb137](https://github.com/aurelia/aurelia/commit/b5eb137))
+* **webpack-loader:** canot use raw-loader on scss or less ([7e00cc5](https://github.com/aurelia/aurelia/commit/7e00cc5))
+
+
+### Refactorings:
+
+* **all:** refine+document controller interfaces and fix types/tests ([0a77fbd](https://github.com/aurelia/aurelia/commit/0a77fbd))
+* **runtime:** rename 'detached' to 'afterDetach' ([d1e2b0c](https://github.com/aurelia/aurelia/commit/d1e2b0c))
+* **runtime:** rename 'attached' to 'afterAttach' ([6ae7be1](https://github.com/aurelia/aurelia/commit/6ae7be1))
+* **runtime:** rename 'unbound' to 'afterUnbind' ([35e203c](https://github.com/aurelia/aurelia/commit/35e203c))
+* **runtime:** rename 'detaching' to 'beforeDetach' ([9f8b858](https://github.com/aurelia/aurelia/commit/9f8b858))
+* **runtime:** rename 'unbinding' to 'beforeUnbind' ([79cd5fa](https://github.com/aurelia/aurelia/commit/79cd5fa))
+* **runtime:** rename 'attaching' to 'beforeAttach' ([4685bb1](https://github.com/aurelia/aurelia/commit/4685bb1))
+* **runtime:** rename 'bound' to 'afterBind' ([4060bbe](https://github.com/aurelia/aurelia/commit/4060bbe))
+* **runtime:** rename 'binding' to 'beforeBind' ([45b2e91](https://github.com/aurelia/aurelia/commit/45b2e91))
+* **bindable:** remove getter interceptor ([269d6ff](https://github.com/aurelia/aurelia/commit/269d6ff))
+* **bindable-observer:** rename self-observer -> bindable-observer ([bc0647c](https://github.com/aurelia/aurelia/commit/bc0647c))
+
 <a name="0.5.0"></a>
 # 0.5.0 (2019-11-15)
 

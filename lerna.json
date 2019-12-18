@@ -45,5 +45,5 @@
     "test/realworld",
     "test/sierpinski-triangle"
   ],
-  "version": "0.6.0-dev.201912180427"
+  "version": "0.6.0"
 }

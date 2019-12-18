@@ -11,13 +11,13 @@
     "e2e:compat": "cross-env BS_COMPAT_CHECK=true npm run e2e"
   },
   "dependencies": {
-    "@aurelia/jit": "0.4.0",
-    "@aurelia/jit-html": "0.4.0",
-    "@aurelia/jit-html-browser": "0.4.0",
-    "@aurelia/kernel": "0.4.0",
-    "@aurelia/runtime": "0.4.0",
-    "@aurelia/runtime-html": "0.4.0",
-    "@aurelia/runtime-html-browser": "0.4.0"
+    "@aurelia/jit": "0.6.0",
+    "@aurelia/jit-html": "0.6.0",
+    "@aurelia/jit-html-browser": "0.6.0",
+    "@aurelia/kernel": "0.6.0",
+    "@aurelia/runtime": "0.6.0",
+    "@aurelia/runtime-html": "0.6.0",
+    "@aurelia/runtime-html-browser": "0.6.0"
   },
   "devDependencies": {
     "@types/chai": "^4.2.5",

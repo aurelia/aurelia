@@ -491,13 +491,13 @@ workflows:
          e: docker-circleci
          npm_command: "test-node:verbose"
          coverage: false
-      - unit_test:
-         <<: *filter_ignore_develop_release
-         name: test_test262
-         e: docker-circleci
-         npm_command: "test-262"
-         coverage: false
-         submodules: true
+      # - unit_test:
+      #    <<: *filter_ignore_develop_release
+      #    name: test_test262
+      #    e: docker-circleci
+      #    npm_command: "test-262"
+      #    coverage: false
+      #    submodules: true
       - lint_packages:
           <<: *filter_ignore_develop_release
       - e2e_browserstack:

@@ -361,13 +361,13 @@ export class Viewport implements IScopeOwner {
     return false;
   }
 
-  public binding(flags: LifecycleFlags): void {
+  public beforeBind(flags: LifecycleFlags): void {
     if (this.content.componentInstance) {
       this.content.initializeComponent(CustomElement.for(this.element as INode) as IController);
     }
   }
 
-  public async attaching(flags: LifecycleFlags): Promise<void> {
+  public async beforeAttach(flags: LifecycleFlags): Promise<void> {
     this.enabled = true;
     if (this.content.componentInstance) {
       // Only acts if not already entered
@@ -376,7 +376,7 @@ export class Viewport implements IScopeOwner {
     }
   }
 
-  public async detaching(flags: LifecycleFlags): Promise<void> {
+  public async beforeDetach(flags: LifecycleFlags): Promise<void> {
     if (this.content.componentInstance) {
       // Only acts if not already left
       await this.content.leave(this.content.instruction);
@@ -388,7 +388,7 @@ export class Viewport implements IScopeOwner {
     this.enabled = false;
   }
 
-  public async unbinding(flags: LifecycleFlags): Promise<void> {
+  public async beforeUnbind(flags: LifecycleFlags): Promise<void> {
     if (this.content.componentInstance) {
       await this.content.terminateComponent(this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful);
     }

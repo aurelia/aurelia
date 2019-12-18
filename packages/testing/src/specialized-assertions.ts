@@ -2,7 +2,7 @@ import {
   Serializer,
   Unparser,
 } from '@aurelia/debug';
-import { IController, IElementProjector, If, Repeat, Replaceable, TargetedInstructionType, With } from '@aurelia/runtime';
+import { IElementProjector, If, Repeat, Replaceable, TargetedInstructionType, With, ICustomElementController, ViewModelKind, ISyntheticView } from '@aurelia/runtime';
 import { Compose, HTMLTargetedInstructionType } from '@aurelia/runtime-html';
 import { assert } from './assert';
 
@@ -62,7 +62,7 @@ export function verifyEqual(actual: any, expected: any, depth?: number, property
   }
 }
 
-export function getVisibleText(root: IController, host: Node, removeWhiteSpace?: boolean): string | null {
+export function getVisibleText(root: ICustomElementController, host: Node, removeWhiteSpace?: boolean): string | null {
   const context = { text: host.textContent };
   $getVisibleText(root, context);
   const text = context.text;
@@ -73,7 +73,7 @@ function isShadowDOMProjector(projector: IElementProjector | undefined): project
   return projector != void 0 && 'shadowRoot' in projector;
 }
 
-function $getVisibleText(root: IController, context: { text: string | null}): void {
+function $getVisibleText(root: ICustomElementController | ISyntheticView, context: { text: string | null}): void {
   if (root == void 0) {
     return;
   }
@@ -86,21 +86,28 @@ function $getVisibleText(root: IController, context: { text: string | null}): vo
   let controller;
   for (let i = 0; i < length; ++i) {
     controller = controllers[i];
-    if (isShadowDOMProjector(controller.projector)) {
-      context.text += controller.projector.shadowRoot.textContent!;
-      $getVisibleText(controller, context);
-    } else if (controller.viewModel instanceof Replaceable) {
-      $getVisibleText((controller.viewModel as Replaceable).view, context);
-    } else if (controller.viewModel instanceof With) {
-      $getVisibleText((controller.viewModel as With).view, context);
-    } else if (controller.viewModel instanceof If) {
-      $getVisibleText((controller.viewModel as If).view!, context);
-    } else if (controller.viewModel instanceof Compose) {
-      $getVisibleText((controller.viewModel as Compose).view!, context);
-    } else if (controller.viewModel instanceof Repeat) {
-      for (const view of (controller.viewModel as Repeat).views) {
-        $getVisibleText(view, context);
-      }
+    switch (controller.vmKind) {
+      case ViewModelKind.customElement:
+        if (isShadowDOMProjector(controller.projector)) {
+          context.text += controller.projector.shadowRoot.textContent!;
+          $getVisibleText(controller, context);
+        } else if (controller.viewModel instanceof Compose) {
+          $getVisibleText((controller.viewModel as Compose).view!, context);
+        }
+        break;
+      case ViewModelKind.customAttribute:
+        if (controller.viewModel instanceof Replaceable) {
+          $getVisibleText((controller.viewModel as Replaceable).view, context);
+        } else if (controller.viewModel instanceof With) {
+          $getVisibleText((controller.viewModel as With).view, context);
+        } else if (controller.viewModel instanceof If) {
+          $getVisibleText((controller.viewModel as If).view!, context);
+        } else if (controller.viewModel instanceof Repeat) {
+          for (const view of (controller.viewModel as Repeat).views) {
+            $getVisibleText(view, context);
+          }
+        }
+        break;
     }
   }
 }

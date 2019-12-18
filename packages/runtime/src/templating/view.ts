@@ -1,35 +1,36 @@
-import { Constructable, ConstructableClass, DI, IContainer, IResolver, PLATFORM, Registration, Reporter, Metadata, Protocol } from '@aurelia/kernel';
+import { Constructable, ConstructableClass, DI, IContainer, IResolver, Registration, Metadata, Protocol } from '@aurelia/kernel';
 import { INode } from '../dom';
-import { LifecycleFlags, State } from '../flags';
+import { LifecycleFlags } from '../flags';
 import {
-  IController,
   ILifecycle,
   IViewFactory,
-  IViewModel
+  ICustomElementViewModel,
+  ISyntheticView,
+  IDryCustomElementController,
+  IContextualCustomElementController,
+  ICompiledCustomElementController,
+  ICustomElementController,
 } from '../lifecycle';
 import { Scope } from '../observation/binding-context';
-import { ITemplate } from '../rendering-engine';
 import { CustomElement, PartialCustomElementDefinition, CustomElementDefinition } from '../resources/custom-element';
 import { Controller } from './controller';
-import { PartialCustomElementDefinitionParts } from '../definitions';
+import { PartialCustomElementDefinitionParts, mergeParts } from '../definitions';
+import { IRenderContext, getRenderContext } from './render-context';
+import { MaybePromiseOrTask } from '../lifecycle-task';
 
 export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
   public static maxCacheSize: number = 0xFFFF;
 
-  public get parentContextId(): number {
-    return this.template.renderContext.parentId;
-  }
-
   public isCaching: boolean = false;
-  public parts: PartialCustomElementDefinitionParts = PLATFORM.emptyObject;
 
-  private cache: IController<T>[] = null!;
+  private cache: ISyntheticView<T>[] = null!;
   private cacheSize: number = -1;
 
   public constructor(
     public name: string,
-    private readonly template: ITemplate<T>,
+    private readonly context: IRenderContext<T>,
     private readonly lifecycle: ILifecycle,
+    public readonly parts: PartialCustomElementDefinitionParts | undefined,
   ) {}
 
   public setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {
@@ -54,11 +55,11 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     this.isCaching = this.cacheSize > 0;
   }
 
-  public canReturnToCache(controller: IController<T>): boolean {
+  public canReturnToCache(controller: ISyntheticView<T>): boolean {
     return this.cache != null && this.cache.length < this.cacheSize;
   }
 
-  public tryReturnToCache(controller: IController<T>): boolean {
+  public tryReturnToCache(controller: ISyntheticView<T>): boolean {
     if (this.canReturnToCache(controller)) {
       controller.cache(LifecycleFlags.none);
       this.cache.push(controller);
@@ -68,28 +69,31 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     return false;
   }
 
-  public create(flags?: LifecycleFlags): IController<T> {
+  public create(flags?: LifecycleFlags): ISyntheticView<T> {
     const cache = this.cache;
-    let controller: IController<T>;
+    let controller: ISyntheticView<T>;
 
     if (cache != null && cache.length > 0) {
       controller = cache.pop()!;
-      controller.state = (controller.state | State.isCached) ^ State.isCached;
       return controller;
     }
 
-    controller = Controller.forSyntheticView(this, this.lifecycle, flags);
-    this.template.render(controller, null!, this.parts, flags);
-    if (!controller.nodes) {
-      throw Reporter.error(90);
-    }
+    controller = Controller.forSyntheticView(this, this.lifecycle, this.context, flags);
     return controller;
   }
 
-  public addParts(parts: PartialCustomElementDefinitionParts): void {
-    if (Object.keys(parts).length > 0) {
-      this.parts = { ...this.parts, ...parts };
+  public resolve(requestor: IContainer, parts?: PartialCustomElementDefinitionParts): IViewFactory<T> {
+    parts = mergeParts(this.parts, parts);
+    if (parts === void 0) {
+      return this;
     }
+
+    const part = parts[this.name];
+    if (part === void 0) {
+      return this;
+    }
+
+    return getRenderContext<T>(part, requestor, parts).getViewFactory(this.name);
   }
 }
 
@@ -144,7 +148,7 @@ export const IViewLocator = DI.createInterface<IViewLocator>('IViewLocator')
   .noDefault();
 
 export interface IViewLocator {
-  getViewComponentForObject<T extends ClassInstance<ComposableObject>>(
+  getViewComponentForObject<T extends ClassInstance<ICustomElementViewModel>>(
     object: T | null | undefined,
     viewNameOrSelector?: string | ViewSelector,
   ): ComposableObjectComponentType<T> | null;
@@ -155,32 +159,19 @@ export type ClassInstance<T> = T & {
   readonly constructor: Function;
 };
 
-export type ComposableObject = Omit<IViewModel, '$controller'>;
-export type ViewSelector = (object: ComposableObject, views: readonly PartialCustomElementDefinition[]) => string;
-export type ComposableObjectComponentType<T extends ComposableObject>
-  = ConstructableClass<{ viewModel: T } & ComposableObject>;
-
-const lifecycleCallbacks = [
-  'binding',
-  'bound',
-  'attaching',
-  'attached',
-  'detaching',
-  'caching',
-  'detached',
-  'unbinding',
-  'unbound'
-] as const;
+export type ViewSelector = (object: ICustomElementViewModel, views: readonly PartialCustomElementDefinition[]) => string;
+export type ComposableObjectComponentType<T extends ICustomElementViewModel>
+  = ConstructableClass<{ viewModel: T } & ICustomElementViewModel>;
 
 export class ViewLocator implements IViewLocator {
-  private readonly modelInstanceToBoundComponent: WeakMap<object, Record<string, ComposableObjectComponentType<ComposableObject>>> = new WeakMap();
-  private readonly modelTypeToUnboundComponent: Map<object, Record<string, ComposableObjectComponentType<ComposableObject>>> = new Map();
+  private readonly modelInstanceToBoundComponent: WeakMap<object, Record<string, ComposableObjectComponentType<ICustomElementViewModel>>> = new WeakMap();
+  private readonly modelTypeToUnboundComponent: Map<object, Record<string, ComposableObjectComponentType<ICustomElementViewModel>>> = new Map();
 
   public static register(container: IContainer): IResolver<IViewLocator> {
     return Registration.singleton(IViewLocator, this).register(container);
   }
 
-  public getViewComponentForObject<T extends ClassInstance<ComposableObject>>(
+  public getViewComponentForObject<T extends ClassInstance<ICustomElementViewModel>>(
     object: T | null | undefined,
     viewNameOrSelector?: string | ViewSelector
   ): ComposableObjectComponentType<T> | null {
@@ -200,7 +191,7 @@ export class ViewLocator implements IViewLocator {
     return null;
   }
 
-  private getOrCreateBoundComponent<T extends ClassInstance<ComposableObject>>(
+  private getOrCreateBoundComponent<T extends ClassInstance<ICustomElementViewModel>>(
     object: T,
     availableViews: readonly CustomElementDefinition[],
     resolvedViewName: string
@@ -237,7 +228,7 @@ export class ViewLocator implements IViewLocator {
     return BoundComponent;
   }
 
-  private getOrCreateUnboundComponent<T extends ClassInstance<ComposableObject>>(
+  private getOrCreateUnboundComponent<T extends ClassInstance<ICustomElementViewModel>>(
     object: T,
     availableViews: readonly CustomElementDefinition[],
     resolvedViewName: string
@@ -256,19 +247,23 @@ export class ViewLocator implements IViewLocator {
       UnboundComponent = CustomElement.define<ComposableObjectComponentType<T>>(
         this.getView(availableViews, resolvedViewName),
         class {
-          protected $controller!: IController;
-
           public constructor(public viewModel: T) {}
 
-          public created(flags: LifecycleFlags) {
-            this.$controller.scope = Scope.fromParent(
-              flags,
-              this.$controller.scope!,
-              this.viewModel
+          public create(
+            controller: IDryCustomElementController<INode, T>,
+            parentContainer: IContainer,
+            definition: CustomElementDefinition,
+            parts: PartialCustomElementDefinitionParts | undefined,
+          ): PartialCustomElementDefinition | void {
+            const vm = this.viewModel;
+            controller.scope = Scope.fromParent(
+              controller.flags,
+              controller.scope,
+              vm,
             );
 
-            if (this.viewModel.created) {
-              this.viewModel.created(flags);
+            if (vm.create !== void 0) {
+              return vm.create(controller, parentContainer, definition, parts);
             }
           }
         }
@@ -276,13 +271,72 @@ export class ViewLocator implements IViewLocator {
 
       const proto = UnboundComponent.prototype;
 
-      lifecycleCallbacks.forEach(x => {
-        if (x in object) {
-          const fn = function (this: InstanceType<ComposableObjectComponentType<T>>, flags: LifecycleFlags) { return this.viewModel[x]!(flags); };
-          Reflect.defineProperty(fn, 'name', { configurable: true, value: x });
-          proto[x] = fn;
-        }
-      });
+      if ('beforeCompile' in object) {
+        proto.beforeCompile = function beforeCompile(
+          controller: IContextualCustomElementController,
+        ): void {
+          this.viewModel.beforeCompile!(controller as IContextualCustomElementController<INode, T>);
+        };
+      }
+      if ('afterCompile' in object) {
+        proto.afterCompile = function afterCompile(
+          controller: ICompiledCustomElementController,
+        ): void {
+          this.viewModel.afterCompile!(controller as ICompiledCustomElementController<INode, T>);
+        };
+      }
+      if ('afterCompileChildren' in object) {
+        proto.afterCompileChildren = function afterCompileChildren(
+          controller: ICustomElementController,
+        ): void {
+          this.viewModel.afterCompileChildren!(controller as ICustomElementController<INode, T>);
+        };
+      }
+      if ('beforeBind' in object) {
+        proto.beforeBind = function beforeBind(flags: LifecycleFlags): MaybePromiseOrTask {
+          return this.viewModel.beforeBind!(flags);
+        };
+      }
+      if ('afterBind' in object) {
+        proto.afterBind = function afterBind(flags: LifecycleFlags): void {
+          this.viewModel.afterBind!(flags);
+        };
+      }
+      if ('beforeUnbind' in object) {
+        proto.beforeUnbind = function beforeUnbind(flags: LifecycleFlags): MaybePromiseOrTask {
+          return this.viewModel.beforeUnbind!(flags);
+        };
+      }
+      if ('afterUnbind' in object) {
+        proto.afterUnbind = function afterUnbind(flags: LifecycleFlags): void {
+          this.viewModel.afterUnbind!(flags);
+        };
+      }
+      if ('beforeAttach' in object) {
+        proto.beforeAttach = function beforeAttach(flags: LifecycleFlags): void {
+          this.viewModel.beforeAttach!(flags);
+        };
+      }
+      if ('afterAttach' in object) {
+        proto.afterAttach = function afterAttach(flags: LifecycleFlags): void {
+          this.viewModel.afterAttach!(flags);
+        };
+      }
+      if ('beforeDetach' in object) {
+        proto.beforeDetach = function beforeDetach(flags: LifecycleFlags): void {
+          this.viewModel.beforeDetach!(flags);
+        };
+      }
+      if ('afterDetach' in object) {
+        proto.afterDetach = function afterDetach(flags: LifecycleFlags): void {
+          this.viewModel.afterDetach!(flags);
+        };
+      }
+      if ('caching' in object) {
+        proto.caching = function caching(flags: LifecycleFlags): void {
+          this.viewModel.caching!(flags);
+        };
+      }
 
       lookup[resolvedViewName] = UnboundComponent;
     }

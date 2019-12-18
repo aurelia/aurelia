@@ -13,7 +13,7 @@ export class ChildRouter {
     @IRouter public readonly router: IRouter,
   ) {}
 
-  public binding() {
+  public beforeBind() {
     this.router.setNav('child-menu', [
       { title: 'Welcome', route: 'welcome' },
       { title: 'Users', route: 'users' },

@@ -1,5 +1,5 @@
 import { IContainer, Reporter } from '@aurelia/kernel';
-import { Controller, IController, INode, LifecycleFlags } from '@aurelia/runtime';
+import { Controller, IController, INode, LifecycleFlags, ILifecycle, CustomElement } from '@aurelia/runtime';
 import { INavigatorInstruction, IRouteableComponent, RouteableComponentType, ReentryBehavior } from './interfaces';
 import { parseQuery } from './parser';
 import { Viewport } from './viewport';
@@ -97,13 +97,13 @@ export class ViewportContent {
     this.contentStatus = ContentStatus.none;
   }
 
-  public canEnter(viewport: Viewport, previousInstruction: INavigatorInstruction): Promise<boolean | ViewportInstruction[]> {
+  public async canEnter(viewport: Viewport, previousInstruction: INavigatorInstruction): Promise<boolean | ViewportInstruction[]> {
     if (!this.content.componentInstance) {
-      return Promise.resolve(false);
+      return false;
     }
 
     if (!this.content.componentInstance.canEnter) {
-      return Promise.resolve(true);
+      return true;
     }
 
     const typeParameters = this.content.componentType ? this.content.componentType.parameters : null;
@@ -112,23 +112,24 @@ export class ViewportContent {
     const result = this.content.componentInstance.canEnter(merged, this.instruction, previousInstruction);
     Reporter.write(10000, 'viewport canEnter', result);
     if (typeof result === 'boolean') {
-      return Promise.resolve(result);
+      return result;
     }
     if (typeof result === 'string') {
-      return Promise.resolve([viewport.router.createViewportInstruction(result, viewport)]);
+      return [viewport.router.createViewportInstruction(result, viewport)];
     }
     return result as Promise<ViewportInstruction[]>;
   }
-  public canLeave(nextInstruction: INavigatorInstruction | null): Promise<boolean> {
+
+  public async canLeave(nextInstruction: INavigatorInstruction | null): Promise<boolean> {
     if (!this.content.componentInstance || !this.content.componentInstance.canLeave) {
-      return Promise.resolve(true);
+      return true;
     }
 
     const result = this.content.componentInstance.canLeave(nextInstruction, this.instruction);
     Reporter.write(10000, 'viewport canLeave', result);
 
     if (typeof result === 'boolean') {
-      return Promise.resolve(result);
+      return result;
     }
     return result;
   }
@@ -156,21 +157,28 @@ export class ViewportContent {
     this.entered = false;
   }
 
-  public loadComponent(container: IContainer, element: Element, viewport: Viewport): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public async loadComponent(container: IContainer, element: Element, viewport: Viewport): Promise<void> {
     // if (this.contentStatus !== ContentStatus.created || !this.entered || !this.content.componentInstance) {
     if (this.contentStatus !== ContentStatus.created || this.entered || !this.content.componentInstance) {
-      return Promise.resolve();
+      return;
     }
     // Don't load cached content or instantiated history content
     if (!this.fromCache || !this.fromHistory) {
       const host: INode = element as INode;
-      Controller.forCustomElement(this.content.componentInstance, container, host);
-      ((this.content.componentInstance as IRouteableComponent & { $controller: Controller }).$controller as IController).parent =
-        (element as Element & { $controller: Controller }).$controller;
+      const controller = Controller.forCustomElement(
+        this.content.componentInstance,
+        container.get(ILifecycle),
+        host,
+        container,
+        void 0,
+        void 0,
+      );
+      controller.parent = CustomElement.for(element)!;
     }
     this.contentStatus = ContentStatus.loaded;
-    return Promise.resolve();
   }
+
   public unloadComponent(cache: ViewportContent[], stateful: boolean = false): void {
     // TODO: We might want to do something here eventually, who knows?
     if (this.contentStatus !== ContentStatus.loaded) {
@@ -196,6 +204,7 @@ export class ViewportContent {
     // }
     this.contentStatus = ContentStatus.initialized;
   }
+
   public async terminateComponent(stateful: boolean = false): Promise<void> {
     if (this.contentStatus !== ContentStatus.initialized) {
       return;

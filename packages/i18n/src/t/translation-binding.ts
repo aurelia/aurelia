@@ -1,6 +1,5 @@
-import { IEventAggregator, IServiceLocator, toArray } from '@aurelia/kernel';
+import { IEventAggregator, IServiceLocator, IContainer, toArray } from '@aurelia/kernel';
 import {
-  addBinding,
   BindingType,
   connectable,
   CustomElement,
@@ -10,17 +9,16 @@ import {
   IBindingTargetAccessor,
   ICallBindingInstruction,
   IConnectableBinding,
-  IController,
   IExpressionParser,
   Interpolation,
   IObserverLocator,
   IPartialConnectableBinding,
-  IRenderContext,
   IScope,
   IsExpression,
   LifecycleFlags,
   State,
-  INode
+  INode,
+  IRenderableController,
 } from '@aurelia/runtime';
 import i18next from 'i18next';
 import { I18N } from '../i18n';
@@ -29,8 +27,8 @@ import { Signals } from '../utils';
 interface TranslationBindingCreationContext {
   parser: IExpressionParser;
   observerLocator: IObserverLocator;
-  context: IRenderContext;
-  renderable: IController;
+  context: IContainer;
+  controller: IRenderableController;
   target: HTMLElement;
   instruction: ICallBindingInstruction;
   isParameterContext?: boolean;
@@ -46,8 +44,11 @@ interface ContentValue {
 
 const attributeAliases = new Map([['text', 'textContent'], ['html', 'innerHTML']]);
 
+export interface TranslationBinding extends IConnectableBinding {}
+
 @connectable()
 export class TranslationBinding implements IPartialConnectableBinding {
+  public interceptor: this = this;
   public id!: number;
   public $state: State;
   public expr!: IsExpression;
@@ -75,8 +76,16 @@ export class TranslationBinding implements IPartialConnectableBinding {
     this.targetObservers = new Set<IBindingTargetAccessor>();
   }
 
-  public static create({ parser, observerLocator, context, renderable, target, instruction, isParameterContext }: TranslationBindingCreationContext) {
-    const binding = this.getBinding({ observerLocator, context, renderable, target });
+  public static create({
+    parser,
+    observerLocator,
+    context,
+    controller,
+    target,
+    instruction,
+    isParameterContext,
+  }: TranslationBindingCreationContext) {
+    const binding = this.getBinding({ observerLocator, context, controller, target });
     const expr = ensureExpression(parser, instruction.from, BindingType.BindCommand);
     if (!isParameterContext) {
       const interpolation = expr instanceof CustomExpression ? parser.parse(expr.value, BindingType.Interpolation) : undefined;
@@ -85,11 +94,16 @@ export class TranslationBinding implements IPartialConnectableBinding {
       binding.parametersExpr = expr;
     }
   }
-  private static getBinding({ observerLocator, context, renderable, target }: Omit<TranslationBindingCreationContext, 'parser' | 'instruction' | 'isParameterContext'>): TranslationBinding {
-    let binding: TranslationBinding | undefined = renderable.bindings && renderable.bindings.find((b) => b instanceof TranslationBinding && b.target === target) as TranslationBinding;
+  private static getBinding({
+    observerLocator,
+    context,
+    controller,
+    target,
+  }: Omit<TranslationBindingCreationContext, 'parser' | 'instruction' | 'isParameterContext'>): TranslationBinding {
+    let binding: TranslationBinding | undefined = controller.bindings && controller.bindings.find((b) => b instanceof TranslationBinding && b.target === target) as TranslationBinding;
     if (!binding) {
       binding = new TranslationBinding(target, observerLocator, context);
-      addBinding(renderable, binding);
+      controller.addBinding(binding);
     }
     return binding;
   }

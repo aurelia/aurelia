@@ -1,6 +1,5 @@
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
 import { RuntimeConfiguration } from '@aurelia/runtime';
-import { HTMLTemplateFactory } from './dom';
 import {
   AttributeBindingRenderer,
   ListenerBindingRenderer,
@@ -23,7 +22,6 @@ import { Compose } from './resources/custom-elements/compose';
 export const IProjectorLocatorRegistration = HTMLProjectorLocator as IRegistry;
 export const ITargetAccessorLocatorRegistration = TargetAccessorLocator as IRegistry;
 export const ITargetObserverLocatorRegistration = TargetObserverLocator as IRegistry;
-export const ITemplateFactoryRegistration = HTMLTemplateFactory as IRegistry;
 
 /**
  * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
@@ -36,7 +34,6 @@ export const DefaultComponents = [
   IProjectorLocatorRegistration,
   ITargetAccessorLocatorRegistration,
   ITargetObserverLocatorRegistration,
-  ITemplateFactoryRegistration
 ];
 
 export const AttrBindingBehaviorRegistration = AttrBindingBehavior as unknown as IRegistry;

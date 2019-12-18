@@ -1,11 +1,11 @@
 import { NavigationInstructionResolver } from '../type-resolvers';
-import { customAttribute, INode, bindable, BindingMode, IDOM, DelegationStrategy, IObserverLocator, LifecycleFlags, CustomAttribute } from '@aurelia/runtime';
+import { customAttribute, INode, bindable, BindingMode, IDOM, DelegationStrategy, IObserverLocator, LifecycleFlags, CustomAttribute, ICustomAttributeController, ICustomAttributeViewModel } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { IEventManager } from '@aurelia/runtime-html';
 import { IDisposable } from '@aurelia/kernel';
 
 @customAttribute('goto')
-export class GotoCustomAttribute {
+export class GotoCustomAttribute implements ICustomAttributeViewModel<HTMLElement> {
   @bindable({ mode: BindingMode.toView })
   public value: unknown;
 
@@ -14,6 +14,8 @@ export class GotoCustomAttribute {
 
   private readonly element: HTMLElement;
   private observer: any;
+
+  public readonly $controller!: ICustomAttributeController<HTMLElement, this>;
 
   private readonly activeClass: string = 'goto-active';
   public constructor(

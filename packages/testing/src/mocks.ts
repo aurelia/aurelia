@@ -11,7 +11,6 @@ import {
   IConnectableBinding,
   IndexMap,
   IObserverLocator,
-  IRenderContext,
   IScope,
   ISignaler,
   ISubscribable,
@@ -20,6 +19,7 @@ import {
 } from '@aurelia/runtime';
 
 export class MockBinding implements IConnectableBinding {
+  public interceptor: this = this;
   public id!: number;
   public observerSlots!: number;
   public version!: number;
@@ -205,7 +205,7 @@ export class MockValueConverter {
 export class MockContext {
   public log: any[] = [];
 }
-export type ExposedContext = IRenderContext & IDisposable & IContainer;
+export type ExposedContext = IContainer & IDisposable & IContainer;
 
 export class MockBrowserHistoryLocation {
   public changeCallback?: (ev: PopStateEvent) => Promise<void>;

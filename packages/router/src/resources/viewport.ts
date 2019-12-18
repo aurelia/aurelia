@@ -1,14 +1,16 @@
+import { IContainer } from '@aurelia/kernel';
 import {
   bindable,
-  IController,
   INode,
   LifecycleFlags,
   customElement,
   CustomElement,
+  ICompiledCustomElementController,
+  ICustomElementViewModel,
+  ICustomElementController,
 } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { IViewportOptions, Viewport } from '../viewport';
-import { IContainer } from '@aurelia/kernel';
 
 export const ParentViewport = CustomElement.createInjectable();
 
@@ -16,7 +18,7 @@ export const ParentViewport = CustomElement.createInjectable();
   name: 'au-viewport',
   injectable: ParentViewport
 })
-export class ViewportCustomElement {
+export class ViewportCustomElement implements ICustomElementViewModel<Element> {
   @bindable public name: string = 'default';
   @bindable public usedBy: string = '';
   @bindable public default: string = '';
@@ -28,7 +30,7 @@ export class ViewportCustomElement {
 
   public viewport: Viewport | null = null;
 
-  public $controller!: IController; // This is set by the controller after this instance is constructed
+  public readonly $controller!: ICustomElementController<Element, this>;
 
   private readonly element: Element;
 
@@ -61,8 +63,8 @@ export class ViewportCustomElement {
   //   // this.connect();
   // }
 
-  public creating(controller: any) {
-    this.container = controller.context.container;
+  public afterCompile(controller: ICompiledCustomElementController) {
+    this.container = controller.context;
     // console.log('Viewport creating', this.getAttribute('name', this.name), this.container, this.parentViewport, controller, this);
     // this.connect();
   }
@@ -102,10 +104,10 @@ export class ViewportCustomElement {
   //   }
   //   this.viewport = this.router.addViewport(name, this.element, (this as any).$context.get(IContainer), options);
   // }
-  public bound(): void {
+  public afterBind(): void {
     // this.connect();
   }
-  public unbound(): void {
+  public afterUnbind(): void {
     this.isBound = false;
   }
 
@@ -173,31 +175,31 @@ export class ViewportCustomElement {
     this.viewport = null;
   }
 
-  public binding(flags: LifecycleFlags): void {
+  public beforeBind(flags: LifecycleFlags): void {
     this.isBound = true;
     this.connect();
     if (this.viewport) {
-      this.viewport.binding(flags);
+      this.viewport.beforeBind(flags);
     }
   }
 
-  public attaching(flags: LifecycleFlags): Promise<void> {
+  public beforeAttach(flags: LifecycleFlags): Promise<void> {
     if (this.viewport) {
-      return this.viewport.attaching(flags);
-    }
-    return Promise.resolve();
-  }
-
-  public detaching(flags: LifecycleFlags): Promise<void> {
-    if (this.viewport) {
-      return this.viewport.detaching(flags);
+      return this.viewport.beforeAttach(flags);
     }
     return Promise.resolve();
   }
 
-  public async unbinding(flags: LifecycleFlags): Promise<void> {
+  public beforeDetach(flags: LifecycleFlags): Promise<void> {
     if (this.viewport) {
-      await this.viewport.unbinding(flags);
+      return this.viewport.beforeDetach(flags);
+    }
+    return Promise.resolve();
+  }
+
+  public async beforeUnbind(flags: LifecycleFlags): Promise<void> {
+    if (this.viewport) {
+      await this.viewport.beforeUnbind(flags);
       this.disconnect();
     }
   }

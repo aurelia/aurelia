@@ -21,7 +21,8 @@ import {
   BindingStrategy,
 } from '../flags';
 import {
-  IViewModel, IController,
+  ICustomAttributeViewModel,
+  ICustomAttributeController,
 } from '../lifecycle';
 import { Bindable, BindableDefinition, PartialBindableDefinition } from '../templating/bindable';
 import { INode } from '../dom';
@@ -34,9 +35,9 @@ export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
   readonly hooks?: HooksDefinition;
 }>;
 
-export type CustomAttributeType<T extends Constructable = Constructable> = ResourceType<T, IViewModel, PartialCustomAttributeDefinition>;
+export type CustomAttributeType<T extends Constructable = Constructable> = ResourceType<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition>;
 export type CustomAttributeKind = IResourceKind<CustomAttributeType, CustomAttributeDefinition> & {
-  for<T extends INode = INode>(node: T, name: string): IController<T> | undefined;
+  for<T extends INode = INode, C extends ICustomAttributeViewModel<T> = ICustomAttributeViewModel<T>>(node: T, name: string): ICustomAttributeController<T, C> | undefined;
   isType<T>(value: T): value is (T extends Constructable ? CustomAttributeType<T> : never);
   define<T extends Constructable>(name: string, Type: T): CustomAttributeType<T>;
   define<T extends Constructable>(def: PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T>;
@@ -79,7 +80,7 @@ export function templateController(nameOrDef: string | Omit<PartialCustomAttribu
   };
 }
 
-export class CustomAttributeDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, IViewModel, PartialCustomAttributeDefinition> {
+export class CustomAttributeDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition> {
   private constructor(
     public readonly Type: CustomAttributeType<T>,
     public readonly name: string,
@@ -136,7 +137,7 @@ export const CustomAttribute: CustomAttributeKind = {
   isType<T>(value: T): value is (T extends Constructable ? CustomAttributeType<T> : never) {
     return typeof value === 'function' && Metadata.hasOwn(CustomAttribute.name, value);
   },
-  for<T extends INode = INode>(node: T, name: string): IController<T> | undefined {
+  for<T extends INode = INode, C extends ICustomAttributeViewModel<T> = ICustomAttributeViewModel<T>>(node: T, name: string): ICustomAttributeController<T, C> | undefined {
     return Metadata.getOwn(CustomAttribute.keyFrom(name), node);
   },
   define<T extends Constructable>(nameOrDef: string | PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T> {

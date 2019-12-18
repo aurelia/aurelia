@@ -1,6 +1,7 @@
+/* eslint-disable max-lines-per-function */
 // tslint:disable:max-line-length
 import { DI, IContainer, Key, Reporter, Registration, Metadata } from '@aurelia/kernel';
-import { Aurelia, CustomElementType, IController, IRenderContext, IViewModel, CustomElement, INode, DOM } from '@aurelia/runtime';
+import { Aurelia, CustomElementType, CustomElement, INode, DOM, ICustomElementController, ICustomElementViewModel, isRenderContext } from '@aurelia/runtime';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
 import { INavigatorInstruction, IRouteableComponent, NavigationInstruction, IRoute, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
@@ -24,7 +25,7 @@ export interface IGotoOptions {
   data?: Record<string, unknown>;
   replace?: boolean;
   append?: boolean;
-  origin?: IViewModel | Element;
+  origin?: ICustomElementViewModel | Element;
 }
 
 export interface IRouterOptions extends INavigatorOptions {
@@ -66,9 +67,9 @@ export interface IRouter {
   getViewport(name: string): Viewport | null;
 
   // Called from the viewport scope custom element
-  setClosestScope(viewModelOrContainer: IViewModel | IContainer, scope: Scope): void;
-  getClosestScope(viewModelOrElement: IViewModel | Element | IController | IContainer): Scope | null;
-  unsetClosestScope(viewModelOrContainer: IViewModel | IContainer): void;
+  setClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer, scope: Scope): void;
+  getClosestScope(viewModelOrElement: ICustomElementViewModel | Element | ICustomElementController | IContainer): Scope | null;
+  unsetClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer): void;
 
   // Called from the viewport custom element in attached()
   connectViewport(viewport: Viewport | null, container: IContainer, name: string, element: Element, options?: IViewportOptions): Viewport;
@@ -80,7 +81,7 @@ export interface IRouter {
   disconnectViewportScope(viewportScope: ViewportScope, container: IContainer): void;
 
   allViewports(includeDisabled?: boolean): Viewport[];
-  findScope(elementOrViewmodelOrviewport: Element | IViewModel | Viewport | IController | null): Scope;
+  findScope(elementOrViewmodelOrviewport: Element | ICustomElementViewModel | Viewport | ICustomElementController | null): Scope;
 
   goto(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void>;
   refresh(): Promise<void>;
@@ -94,8 +95,8 @@ export interface IRouter {
   updateNav(name?: string): void;
   findNav(name: string): Nav;
 
-  addRoutes(routes: IRoute[], context?: IViewModel | Element): IRoute[];
-  removeRoutes(routes: IRoute[] | string[], context?: IViewModel | Element): void;
+  addRoutes(routes: IRoute[], context?: ICustomElementViewModel | Element): IRoute[];
+  removeRoutes(routes: IRoute[] | string[], context?: ICustomElementViewModel | Element): void;
   addHooks(hooks: IHookDefinition[]): HookIdentity[];
 
   addHook(beforeNavigationHookFunction: BeforeNavigationHookFunction, options?: IHookOptions): HookIdentity;
@@ -185,7 +186,7 @@ export class Router implements IRouter {
     this.ensureRootScope();
   }
 
-  public loadUrl(): Promise<void> {
+  public async loadUrl(): Promise<void> {
     const entry: INavigatorEntry = {
       ...this.navigation.viewerState,
       ...{
@@ -208,6 +209,8 @@ export class Router implements IRouter {
     this.navigation.deactivate();
   }
 
+  // TODO: use @bound and improve name (eslint-disable is temp)
+  // eslint-disable-next-line @typescript-eslint/typedef
   public linkCallback = (info: AnchorEventInfo): void => {
     let instruction = info.instruction || '';
     if (typeof instruction === 'string' && instruction.startsWith('#')) {
@@ -221,10 +224,15 @@ export class Router implements IRouter {
     this.goto(instruction, { origin: info.anchor! }).catch(error => { throw error; });
   };
 
+  // TODO: use @bound and improve name (eslint-disable is temp)
+  // eslint-disable-next-line @typescript-eslint/typedef
   public navigatorCallback = (instruction: INavigatorInstruction): void => {
     // Instructions extracted from queue, one at a time
     this.processNavigations(instruction).catch(error => { throw error; });
   };
+
+  // TODO: use @bound and improve name (eslint-disable is temp)
+  // eslint-disable-next-line @typescript-eslint/typedef
   public navigatorSerializeCallback = async (entry: IStoredNavigatorEntry, preservedEntries: IStoredNavigatorEntry[]): Promise<IStoredNavigatorEntry> => {
     let excludeComponents = [];
     for (const preservedEntry of preservedEntries) {
@@ -267,6 +275,8 @@ export class Router implements IRouter {
     return serialized;
   };
 
+  // TODO: use @bound and improve name (eslint-disable is temp)
+  // eslint-disable-next-line @typescript-eslint/typedef
   public browserNavigatorCallback = (browserNavigationEvent: INavigatorViewerEvent): void => {
     const entry: INavigatorEntry = (browserNavigationEvent.state && browserNavigationEvent.state.currentEntry
       ? browserNavigationEvent.state.currentEntry as INavigatorEntry
@@ -276,6 +286,8 @@ export class Router implements IRouter {
     this.navigator.navigate(entry).catch(error => { throw error; });
   };
 
+  // TODO: use @bound and improve name (eslint-disable is temp)
+  // eslint-disable-next-line @typescript-eslint/typedef
   public processNavigations = async (qInstruction: QueueItem<INavigatorInstruction>): Promise<void> => {
     const instruction: INavigatorInstruction = this.processingNavigation = qInstruction as INavigatorInstruction;
 
@@ -502,7 +514,7 @@ export class Router implements IRouter {
     await this.navigator.finalize(instruction);
   };
 
-  public findScope(origin: Element | IViewModel | Viewport | Scope | IController | null): Scope {
+  public findScope(origin: Element | ICustomElementViewModel | Viewport | Scope | ICustomElementController | null): Scope {
     // this.ensureRootScope();
     if (origin === void 0 || origin === null) {
       return this.rootScope!.scope;
@@ -535,14 +547,14 @@ export class Router implements IRouter {
   }
 
   // Called from the viewport scope custom element in created()
-  public setClosestScope(viewModelOrContainer: IViewModel | IContainer, scope: Scope): void {
+  public setClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer, scope: Scope): void {
     const container: IContainer | null = this.getContainer(viewModelOrContainer);
     Registration.instance(ClosestScope, scope).register(container!);
   }
-  public getClosestScope(viewModelOrElement: IViewModel | Element | IController | IContainer): Scope | null {
+  public getClosestScope(viewModelOrElement: ICustomElementViewModel | Element | ICustomElementController | IContainer): Scope | null {
     const container: IContainer | null = 'resourceResolvers' in viewModelOrElement
       ? viewModelOrElement as IContainer
-      : this.getClosestContainer(viewModelOrElement as IViewModel | Element | IController);
+      : this.getClosestContainer(viewModelOrElement as ICustomElementViewModel | Element | ICustomElementController);
     if (container === null) {
       return null;
     }
@@ -551,7 +563,7 @@ export class Router implements IRouter {
     }
     return container.get<Scope>(ClosestScope) || null;
   }
-  public unsetClosestScope(viewModelOrContainer: IViewModel | IContainer): void {
+  public unsetClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer): void {
     const container: IContainer | null = this.getContainer(viewModelOrContainer);
     // TODO: Get an 'unregister' on container
     (container as any).resolvers.delete(ClosestScope);
@@ -692,14 +704,14 @@ export class Router implements IRouter {
     return this.navs[name];
   }
 
-  public addRoutes(routes: IRoute[], context?: IViewModel | Element): IRoute[] {
+  public addRoutes(routes: IRoute[], context?: ICustomElementViewModel | Element): IRoute[] {
     // TODO: This should add to the context instead
     // TODO: Add routes without context to rootScope content (which needs to be created)?
     return [];
     // const viewport = (context !== void 0 ? this.closestViewport(context) : this.rootScope) || this.rootScope as Viewport;
     // return viewport.addRoutes(routes);
   }
-  public removeRoutes(routes: IRoute[] | string[], context?: IViewModel | Element): void {
+  public removeRoutes(routes: IRoute[] | string[], context?: ICustomElementViewModel | Element): void {
     // TODO: This should remove from the context instead
     // const viewport = (context !== void 0 ? this.closestViewport(context) : this.rootScope) || this.rootScope as Viewport;
     // return viewport.removeRoutes(routes);
@@ -927,57 +939,43 @@ export class Router implements IRouter {
     }
   }
 
-  private getClosestContainer(viewModelOrElement: IViewModel | Element | IController): IContainer | null {
-    let context;
+  private getClosestContainer(viewModelOrElement: ICustomElementViewModel | Element | ICustomElementController): IContainer | null {
     if ('context' in viewModelOrElement) {
-      context = viewModelOrElement.context;
-    } else {
-      const viewModel: IViewModel | undefined = '$controller' in viewModelOrElement
-        ? viewModelOrElement
-        : this.CustomElementFor(viewModelOrElement); // CustomElement.for(viewModelOrElement, true)
-
-      if (viewModel === void 0) {
-        return null;
-      }
-      context = (viewModel as IViewModel & { context: IRenderContext }).context !== void 0
-        ? (viewModel as IViewModel & { context: IRenderContext }).context
-        : viewModel.$controller!.context;
+      return viewModelOrElement.context;
     }
 
-    const container = context!.get(IContainer);
-    if (container === void 0) {
+    if ('$controller' in viewModelOrElement) {
+      return viewModelOrElement.$controller!.context;
+    }
+    const controller = this.CustomElementFor(viewModelOrElement);
+
+    if (controller === void 0) {
       return null;
     }
-    return container;
+
+    return controller.context;
   }
-  private getContainer(viewModelOrContainer: IViewModel | IContainer): IContainer | null {
-    if ('resourceResolvers' in viewModelOrContainer) {
+
+  private getContainer(viewModelOrContainer: ICustomElementViewModel | IContainer): IContainer | null {
+    if ('resourceResolvers' in viewModelOrContainer || isRenderContext(viewModelOrContainer)) {
       return viewModelOrContainer;
     }
 
-    const viewModel: IViewModel & { context?: IRenderContext } = viewModelOrContainer as IViewModel;
-    let context: IRenderContext;
-    if ('context' in viewModel) {
-      context = viewModel.context!;
-    } else {
-      context = viewModel.context !== void 0 ? viewModel.context : viewModel.$controller!.context as IRenderContext;
+    if ('$controller' in viewModelOrContainer) {
+      return viewModelOrContainer.$controller!.context;
     }
 
-    const container: IContainer = context!.get(IContainer);
-    if (container === void 0) {
-      return null;
-    }
-    return container;
+    return null;
   }
 
   // TODO: This is probably wrong since it caused test fails when in CustomElement.for
   // Fred probably knows and will need to look at it
   // This can most likely also be changed so that the node traversal isn't necessary
-  private CustomElementFor(node: INode): IController | undefined {
+  private CustomElementFor(node: INode): ICustomElementController | undefined {
     let cur: INode | null = node;
     while (cur !== null) {
       const nodeResourceName: string = (cur as Element).nodeName.toLowerCase();
-      const controller: IController = Metadata.getOwn(`${CustomElement.name}:${nodeResourceName}`, cur)
+      const controller: ICustomElementController = Metadata.getOwn(`${CustomElement.name}:${nodeResourceName}`, cur)
         || Metadata.getOwn(CustomElement.name, cur);
       if (controller !== void 0) {
         return controller;

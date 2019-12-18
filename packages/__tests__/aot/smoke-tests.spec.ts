@@ -25,6 +25,7 @@ describe('AOT (smoke tests)', function () {
       rootlessPath: '',
       name: '',
       ext: '',
+      // eslint-disable-next-line @typescript-eslint/require-await
       async getContent() {
         return content;
       },

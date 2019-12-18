@@ -1,6 +1,5 @@
 import {
   DI,
-  LoggerConfiguration,
   LogLevel,
   ColorOptions,
   Registration,
@@ -50,10 +49,10 @@ class TestMetadata {
   ) {}
 
   public static from(content: string): TestMetadata | null {
-    let start = content.indexOf('/*---');
-    let end = content.indexOf('---*/');
+    const start = content.indexOf('/*---');
+    const end = content.indexOf('---*/');
     if (start >= 0 && end >= start) {
-      let banner = content.slice(start + '/*---'.length, end);
+      const banner = content.slice(start + '/*---'.length, end);
       const lines = banner.split('\n');
 
       let negative: TestMetadataNegative | null = null;
@@ -116,11 +115,10 @@ class TestCase implements IDisposable {
 
   public async GetSourceFiles(ctx: ExecutionContext): Promise<readonly $$ESModuleOrScript[]> {
     const host = this.host;
-    const esModules = await Promise.all(this.files.map(x => host.loadSpecificFile(ctx, x, 'script'))); // TODO: decide this based on meta
-    return esModules;
+    return Promise.all(this.files.map(async x => host.loadSpecificFile(ctx, x, 'script'))); // TODO: decide this based on meta
   }
 
-  public run(): Promise<$Any> {
+  public async run(): Promise<$Any> {
     return this.host.executeProvider(this);
   }
 
@@ -250,12 +248,12 @@ class TestReporter {
   }
 
   private reportTotals(stats: TestStats): void {
-    this.logger.info(`------ FINISHED -------`)
+    this.logger.info(`------ FINISHED -------`);
     this.logger.info(stats.toString());
   }
 }
 
-function toString(x: { toString(): string; }): string {
+function toString(x: { toString(): string }): string {
   return x.toString();
 }
 
@@ -331,12 +329,12 @@ class TestRunner {
     const now = PLATFORM.now();
 
     const files: IFile[] = [
-      //...(await fs.getFiles(join(languageDir, 'eval-code', 'indirect'), true)).filter(x => x.shortName.endsWith('realm'))
+      // ...(await fs.getFiles(join(languageDir, 'eval-code', 'indirect'), true)).filter(x => x.shortName.endsWith('realm'))
     ];
     for (const dir of [
-      //annexBDir,
-      //builtInsDir,
-      //intl402Dir,
+      // annexBDir,
+      // builtInsDir,
+      // intl402Dir,
       languageDir,
     ]) {
       logger.info(`Loading test files from ${dir}`);
@@ -373,7 +371,6 @@ class TestRunner {
         return true;
       });
 
-
     for (const tc of testCases) {
       try {
         const result = await tc.run();
@@ -393,7 +390,7 @@ class TestRunner {
             } else {
               message = (value as unknown as string);
               stack = result.stack;
-              type = (result as unknown as { Type: string; }).Type;
+              type = (result as unknown as { Type: string }).Type;
             }
             logger.error(`${format.red('FAIL')} - ${tc.file.rootlessPath}\n  Expected no error, but got: ${type}: ${message}\n${stack}\n`);
           } else {
@@ -421,7 +418,7 @@ class TestRunner {
       } catch (err) {
         reporter.error(tc);
 
-        logger.fatal(`${format.red('Host error')}: ${err.message}\n${err.stack}\n\nTest file: ${tc.file.rootlessPath}\n${tc.meta?.negative?.phase}`)
+        logger.fatal(`${format.red('Host error')}: ${err.message}\n${err.stack}\n\nTest file: ${tc.file.rootlessPath}\n${tc.meta?.negative?.phase}`);
       } finally {
         tc.dispose();
       }

@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/require-await */
 import { IFileSystem, Encoding, IFile, IDirent, IStats } from '@aurelia/aot';
 
 function toParts(path: string): string[] {
+  // eslint-disable-next-line no-useless-escape
   return path.split(/[\\\/]/);
 }
 
@@ -30,11 +32,12 @@ export class VirtualFileSystem implements IFileSystem {
   public readdirSync(path: string): readonly string[];
   public readdirSync(path: string, withFileTypes: true): readonly IDirent[];
   public readdirSync(path: string, withFileTypes?: true): readonly string[] | readonly IDirent[] {
+    // eslint-disable-next-line no-useless-escape
     const parts = path.split(/[\\\/]/);
 
     let dir = this.root;
     while (parts.length > 0) {
-      let part = parts.shift()!;
+      const part = parts.shift()!;
       let subdir = dir.get(part);
       if (subdir === void 0) {
         dir.set(part, subdir = new Map());
@@ -44,7 +47,7 @@ export class VirtualFileSystem implements IFileSystem {
 
     const keys = Array.from(dir.keys());
     if (withFileTypes) {
-      const items = keys.map(k => {
+      return keys.map(k => {
         return {
           name: k,
           isFile() {
@@ -58,7 +61,6 @@ export class VirtualFileSystem implements IFileSystem {
           },
         };
       });
-      return items;
     }
     return keys;
   }
@@ -156,11 +158,12 @@ export class VirtualFileSystem implements IFileSystem {
   }
 
   private getParentDir(path: string): Map<string, any> {
+    // eslint-disable-next-line no-useless-escape
     const parts = path.split(/[\\\/]/);
 
     let dir = this.root;
     while (parts.length > 1) {
-      let part = parts.shift()!;
+      const part = parts.shift()!;
       let subdir = dir.get(part);
       if (subdir === void 0) {
         dir.set(part, subdir = new Map());

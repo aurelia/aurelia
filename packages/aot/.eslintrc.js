@@ -19,6 +19,7 @@ module.exports = {
     '@typescript-eslint/indent': 'off', // deviation often needed for spec step comments
     'no-irregular-whitespace': 'off', // doesn't make sense
     'sonarjs/prefer-immediate-return': 'off', // need temporary variables for debugging
+    'sonarjs/no-collapsible-if': 'off', // necessary for spec steps readability
     'compat/compat': 'off',
     'import/no-nodejs-modules': 'off',
     'jsdoc/require-jsdoc': 'off',

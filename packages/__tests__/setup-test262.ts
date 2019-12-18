@@ -115,10 +115,12 @@ class TestCase implements IDisposable {
 
   public async GetSourceFiles(ctx: ExecutionContext): Promise<readonly $$ESModuleOrScript[]> {
     const host = this.host;
-    return Promise.all(this.files.map(async x => host.loadSpecificFile(ctx, x, 'script'))); // TODO: decide this based on meta
+    // eslint-disable-next-line @typescript-eslint/promise-function-async
+    return Promise.all(this.files.map(x => host.loadSpecificFile(ctx, x, 'script'))); // TODO: decide this based on meta
   }
 
-  public async run(): Promise<$Any> {
+  // eslint-disable-next-line @typescript-eslint/promise-function-async
+  public run(): Promise<$Any> {
     return this.host.executeProvider(this);
   }
 

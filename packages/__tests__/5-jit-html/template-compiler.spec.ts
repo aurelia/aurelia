@@ -20,7 +20,6 @@ import {
   ForOfStatement,
   HydrateTemplateController,
   BindableDefinition,
-  IDOM,
   IHydrateElementInstruction,
   IHydrateTemplateController,
   ITemplateCompiler,
@@ -50,7 +49,6 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
   let ctx: HTMLTestContext;
   let sut: ITemplateCompiler;
   let container: IContainer;
-  let dom: IDOM;
 
   // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
@@ -58,7 +56,6 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
     container = ctx.container;
     sut = ctx.templateCompiler;
     container.registerResolver<string>(CustomAttribute.keyFrom('foo'), { getFactory: () => ({ Type: { description: {} } }) } as any);
-    dom = ctx.dom;
   });
 
   describe('compileElement()', function () {

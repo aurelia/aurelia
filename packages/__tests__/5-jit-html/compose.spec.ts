@@ -5,9 +5,9 @@ import {
   IDOM,
   ILifecycle,
   IObserverLocator,
-  IRenderingEngine,
   view,
   customElement,
+  getRenderContext,
 } from '@aurelia/runtime';
 import { RenderPlan } from '@aurelia/runtime-html';
 import { eachCartesianJoin, TestContext, trimFull, assert } from '@aurelia/testing';
@@ -17,11 +17,11 @@ const spec = 'compose';
 describe(spec, function () {
   function setup(): SpecContext {
     const ctx = TestContext.createHTMLTestContext();
-    const { container, dom, lifecycle, observerLocator, renderingEngine: re } = ctx;
+    const { container, dom, lifecycle, observerLocator } = ctx;
     const au = new Aurelia(container);
     const host = dom.createElement('div');
 
-    return { container, dom, au, host, lifecycle, re, observerLocator };
+    return { container, dom, au, host, lifecycle, observerLocator };
   }
 
   interface SpecContext {
@@ -30,7 +30,6 @@ describe(spec, function () {
     au: Aurelia;
     host: HTMLElement;
     lifecycle: ILifecycle;
-    re: IRenderingEngine;
     observerLocator: IObserverLocator;
   }
   interface Spec {
@@ -66,12 +65,12 @@ describe(spec, function () {
     },
     {
       t: '4',
-      createSubject: ctx => ctx.re.getViewFactory(ctx.dom, { name: 'cmp', template: `<template>Hello!</template>` }, ctx.container),
+      createSubject: ctx => getRenderContext({ name: 'cmp', template: `<template>Hello!</template>` }, ctx.container, void 0).getViewFactory(),
       expectedText: 'Hello!'
     },
     {
       t: '5',
-      createSubject: ctx => ctx.re.getViewFactory(ctx.dom, {  name: 'cmp', template: `<template>Hello!</template>` }, ctx.container).create(),
+      createSubject: ctx => getRenderContext({ name: 'cmp', template: `<template>Hello!</template>` }, ctx.container, void 0).getViewFactory().create(),
       expectedText: 'Hello!'
     },
     {

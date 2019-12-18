@@ -1298,8 +1298,8 @@ const methodNamesWithFlags: PropertyKey[] = [
   'bindControllers',
   'endBind',
 
-  'binding',
-  'bound',
+  'beforeBind',
+  'afterBind',
 
   'attach',
   'attachCustomElement',
@@ -1308,8 +1308,8 @@ const methodNamesWithFlags: PropertyKey[] = [
 
   'attachControllers',
 
-  'attaching',
-  'attached',
+  'beforeAttach',
+  'afterAttach',
 
   'mount',
   'mountCustomElement',
@@ -1323,8 +1323,8 @@ const methodNamesWithFlags: PropertyKey[] = [
 
   'detachControllers',
 
-  'detaching',
-  'detached',
+  'beforeDetach',
+  'afterDetach',
 
   'unmount',
   'unmountCustomElement',
@@ -1349,8 +1349,8 @@ const methodNamesWithFlags: PropertyKey[] = [
   'unbindControllers',
   'endUnbind',
 
-  'unbinding',
-  'unbound',
+  'beforeUnbind',
+  'afterUnbind',
 ];
 
 export function formatProperty(
@@ -1378,8 +1378,8 @@ export function formatProperty(
           case 'bindControllers':
           case 'endBind':
 
-          case 'binding':
-          case 'bound':
+          case 'beforeBind':
+          case 'afterBind':
 
           case 'attach':
           case 'attachCustomElement':
@@ -1388,8 +1388,8 @@ export function formatProperty(
 
           case 'attachControllers':
 
-          case 'attaching':
-          case 'attached':
+          case 'beforeAttach':
+          case 'afterAttach':
 
           case 'mount':
           case 'mountCustomElement':
@@ -1403,8 +1403,8 @@ export function formatProperty(
 
           case 'detachControllers':
 
-          case 'detaching':
-          case 'detached':
+          case 'beforeDetach':
+          case 'afterDetach':
 
           case 'unmount':
           case 'unmountCustomElement':
@@ -1429,8 +1429,8 @@ export function formatProperty(
           case 'unbindControllers':
           case 'endUnbind':
 
-          case 'unbinding':
-          case 'unbound':
+          case 'beforeUnbind':
+          case 'afterUnbind':
             value.args[0] = stringifyLifecycleFlags(value.args[0]);
             break;
           case 'valueChanged':

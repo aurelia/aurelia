@@ -16,7 +16,7 @@ export class App {
     @IRouter public router: IRouter
   ) {}
 
-  public bound() {
+  public afterBind() {
     // Yeah, this is cheating somewhat, should've reacted to actual count
     for (let i = 1; i <= this.maxWindows; i++) {
       this.router.setNav(`app-menu-${i}`, [

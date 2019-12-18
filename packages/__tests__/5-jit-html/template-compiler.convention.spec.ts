@@ -1,7 +1,4 @@
 import {
-  RuntimeCompilationResources
-} from '@aurelia/kernel';
-import {
   BindingMode,
   ITemplateCompiler,
   TargetedInstructionType as TT,
@@ -42,9 +39,8 @@ describe('template-compiler.convention.spec.ts \n\thtml convention', function ()
       const compiler = ctx.container.get(ITemplateCompiler);
       const template = `<${el} ${bindingAttr}.bind="value" ${elAttrsStr}></${el}>`;
       const { instructions: rootInstructions } = compiler.compile(
-        ctx.dom,
         { name: '', template, surrogates: [], instructions: [] },
-        new RuntimeCompilationResources(ctx.container)
+        ctx.container
       );
 
       const expectedElInstructions: IExpectedInstruction[] = [
@@ -90,9 +86,8 @@ describe('template-compiler.convention.spec.ts \n\thtml convention', function ()
       const compiler = ctx.container.get(ITemplateCompiler);
       const template = `<${el} ${bindingAttr}.bind="value" ${elAttrsStr}></${el}>`;
       const { instructions: rootInstructions } = compiler.compile(
-        ctx.dom,
         { name: '', template, surrogates: [], instructions: [] },
-        new RuntimeCompilationResources(ctx.container)
+        ctx.container
       );
 
       const expectedElInstructions: IExpectedInstruction[] = [

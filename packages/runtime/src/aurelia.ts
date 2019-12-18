@@ -15,9 +15,9 @@ import {
   LifecycleFlags
 } from './flags';
 import {
-  IController,
-  IHydratedViewModel,
+  ICustomElementViewModel,
   ILifecycle,
+  ICustomElementController,
 } from './lifecycle';
 import {
   ContinuationTask,
@@ -25,10 +25,7 @@ import {
   IStartTaskManager,
   LifecycleTask,
 } from './lifecycle-task';
-import { ExposedContext } from './rendering-engine';
-import {
-  CustomElement,
-} from './resources/custom-element';
+import { CustomElement } from './resources/custom-element';
 import { Controller } from './templating/controller';
 
 export interface ISinglePageApp<THost extends INode = INode> {
@@ -50,8 +47,8 @@ export class CompositionRoot<T extends INode = INode> {
   public readonly activator: IActivator;
   public task: ILifecycleTask;
 
-  public controller?: IController;
-  public viewModel?: IHydratedViewModel<T>;
+  public controller?: ICustomElementController<T>;
+  public viewModel?: ICustomElementViewModel<T>;
 
   private createTask?: ILifecycleTask;
 
@@ -153,16 +150,13 @@ export class CompositionRoot<T extends INode = INode> {
 
   private create(): void {
     const config = this.config;
-    this.viewModel = CustomElement.isType(config.component as Constructable)
-      ? this.container.get(config.component as Constructable | {}) as IHydratedViewModel<T>
-      : config.component as IHydratedViewModel<T>;
+    const instance = this.viewModel = CustomElement.isType(config.component as Constructable)
+      ? this.container.get(config.component as Constructable | {}) as ICustomElementViewModel<T>
+      : config.component as ICustomElementViewModel<T>;
 
-    this.controller = Controller.forCustomElement(
-      this.viewModel,
-      this.container as ExposedContext,
-      this.host,
-      this.strategy as number,
-    );
+    const container = this.container;
+    const lifecycle = container.get(ILifecycle);
+    this.controller = Controller.forCustomElement(instance, lifecycle, this.host, container, void 0, this.strategy as number);
   }
 }
 

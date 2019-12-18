@@ -18,14 +18,14 @@ export class Editor {
   ) {}
 
   public created() { return; }
-  public binding() { return; }
-  public bound() { return; }
-  public attaching() { return; }
-  public attached() { return; }
-  public detaching() { return; }
-  public detached() { return; }
-  public unbinding() { return; }
-  public unbound() { return; }
+  public beforeBind() { return; }
+  public afterBind() { return; }
+  public beforeAttach() { return; }
+  public afterAttach() { return; }
+  public beforeDetach() { return; }
+  public afterDetach() { return; }
+  public beforeUnbind() { return; }
+  public afterUnbind() { return; }
 
   public enter(params: { slug: any }) {
     this.slug = params.slug;

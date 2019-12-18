@@ -1,6 +1,6 @@
 import { __decorate, __metadata, __param } from "tslib";
 import { nextId, } from '@aurelia/kernel';
-import { bindable, ContinuationTask, IDOM, IRenderLocation, IViewFactory, LifecycleTask, templateController, TerminalTask } from '@aurelia/runtime';
+import { bindable, ContinuationTask, IDOM, IRenderLocation, IViewFactory, LifecycleTask, templateController, TerminalTask, } from '@aurelia/runtime';
 import { HTMLDOM, } from '../../dom';
 function toTask(maybePromiseOrTask) {
     if (maybePromiseOrTask == null) {
@@ -26,19 +26,19 @@ let Portal = class Portal {
         dom.setEffectiveParentNode(this.view.nodes, originalLoc);
         this.view.hold(originalLoc, 1 /* insertBefore */);
     }
-    binding(flags) {
+    beforeBind(flags) {
         if (this.callbackContext == null) {
             this.callbackContext = this.$controller.scope.bindingContext;
         }
         return this.view.bind(flags, this.$controller.scope);
     }
-    attached(flags) {
+    afterAttach(flags) {
         this.targetChanged();
     }
-    detaching(flags) {
+    beforeDetach(flags) {
         this.task = this.deactivate(flags);
     }
-    unbinding(flags) {
+    beforeUnbind(flags) {
         this.callbackContext = null;
         return this.view.unbind(flags);
     }

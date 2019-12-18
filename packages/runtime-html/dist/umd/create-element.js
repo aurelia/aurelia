@@ -47,14 +47,14 @@
             }
             return this.lazyDefinition;
         }
-        getElementTemplate(engine, Type) {
-            return engine.getElementTemplate(this.dom, this.definition, void 0, Type);
+        getContext(parentContainer) {
+            return runtime_1.getRenderContext(this.definition, parentContainer, void 0);
         }
-        createView(flags, engine, parentContext) {
-            return this.getViewFactory(engine, parentContext).create();
+        createView(parentContainer) {
+            return this.getViewFactory(parentContainer).create();
         }
-        getViewFactory(engine, parentContext) {
-            return engine.getViewFactory(this.dom, this.definition, parentContext);
+        getViewFactory(parentContainer) {
+            return this.getContext(parentContainer).getViewFactory();
         }
         /** @internal */
         mergeInto(parent, instructions, dependencies) {

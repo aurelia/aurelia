@@ -29,8 +29,8 @@
             ea.subscribe("i18n:locale:changed" /* I18N_EA_CHANNEL */, this.handleLocaleChange.bind(this));
             this.targetObservers = new Set();
         }
-        static create({ parser, observerLocator, context, renderable, target, instruction, isParameterContext }) {
-            const binding = this.getBinding({ observerLocator, context, renderable, target });
+        static create({ parser, observerLocator, context, controller, target, instruction, isParameterContext, }) {
+            const binding = this.getBinding({ observerLocator, context, controller, target });
             const expr = runtime_1.ensureExpression(parser, instruction.from, 53 /* BindCommand */);
             if (!isParameterContext) {
                 const interpolation = expr instanceof runtime_1.CustomExpression ? parser.parse(expr.value, 2048 /* Interpolation */) : undefined;
@@ -40,11 +40,11 @@
                 binding.parametersExpr = expr;
             }
         }
-        static getBinding({ observerLocator, context, renderable, target }) {
-            let binding = renderable.bindings && renderable.bindings.find((b) => b instanceof TranslationBinding_1 && b.target === target);
+        static getBinding({ observerLocator, context, controller, target, }) {
+            let binding = controller.bindings && controller.bindings.find((b) => b instanceof TranslationBinding_1 && b.target === target);
             if (!binding) {
                 binding = new TranslationBinding_1(target, observerLocator, context);
-                runtime_1.addBinding(renderable, binding);
+                controller.addBinding(binding);
             }
             return binding;
         }

@@ -93,26 +93,32 @@
         let controller;
         for (let i = 0; i < length; ++i) {
             controller = controllers[i];
-            if (isShadowDOMProjector(controller.projector)) {
-                context.text += controller.projector.shadowRoot.textContent;
-                $getVisibleText(controller, context);
-            }
-            else if (controller.viewModel instanceof runtime_1.Replaceable) {
-                $getVisibleText(controller.viewModel.view, context);
-            }
-            else if (controller.viewModel instanceof runtime_1.With) {
-                $getVisibleText(controller.viewModel.view, context);
-            }
-            else if (controller.viewModel instanceof runtime_1.If) {
-                $getVisibleText(controller.viewModel.view, context);
-            }
-            else if (controller.viewModel instanceof runtime_html_1.Compose) {
-                $getVisibleText(controller.viewModel.view, context);
-            }
-            else if (controller.viewModel instanceof runtime_1.Repeat) {
-                for (const view of controller.viewModel.views) {
-                    $getVisibleText(view, context);
-                }
+            switch (controller.vmKind) {
+                case 0 /* customElement */:
+                    if (isShadowDOMProjector(controller.projector)) {
+                        context.text += controller.projector.shadowRoot.textContent;
+                        $getVisibleText(controller, context);
+                    }
+                    else if (controller.viewModel instanceof runtime_html_1.Compose) {
+                        $getVisibleText(controller.viewModel.view, context);
+                    }
+                    break;
+                case 1 /* customAttribute */:
+                    if (controller.viewModel instanceof runtime_1.Replaceable) {
+                        $getVisibleText(controller.viewModel.view, context);
+                    }
+                    else if (controller.viewModel instanceof runtime_1.With) {
+                        $getVisibleText(controller.viewModel.view, context);
+                    }
+                    else if (controller.viewModel instanceof runtime_1.If) {
+                        $getVisibleText(controller.viewModel.view, context);
+                    }
+                    else if (controller.viewModel instanceof runtime_1.Repeat) {
+                        for (const view of controller.viewModel.views) {
+                            $getVisibleText(view, context);
+                        }
+                    }
+                    break;
             }
         }
     }

@@ -2,7 +2,7 @@ import { IContainer } from '@aurelia/kernel';
 import { IActivator } from './activator';
 import { IDOM, INode } from './dom';
 import { BindingStrategy } from './flags';
-import { IController, IHydratedViewModel, ILifecycle } from './lifecycle';
+import { ICustomElementViewModel, ILifecycle, ICustomElementController } from './lifecycle';
 import { ILifecycleTask } from './lifecycle-task';
 export interface ISinglePageApp<THost extends INode = INode> {
     strategy?: BindingStrategy;
@@ -21,8 +21,8 @@ export declare class CompositionRoot<T extends INode = INode> {
     readonly lifecycle: ILifecycle;
     readonly activator: IActivator;
     task: ILifecycleTask;
-    controller?: IController;
-    viewModel?: IHydratedViewModel<T>;
+    controller?: ICustomElementController<T>;
+    viewModel?: ICustomElementViewModel<T>;
     private createTask?;
     constructor(config: ISinglePageApp<T>, container: IContainer);
     activate(antecedent?: ILifecycleTask): ILifecycleTask;

@@ -22,6 +22,41 @@ export var TargetedInstructionType;
     TargetedInstructionType["refBinding"] = "rj";
     TargetedInstructionType["iteratorBinding"] = "rk";
 })(TargetedInstructionType || (TargetedInstructionType = {}));
+const parentPartsOwnPartsLookup = new WeakMap();
+/**
+ * Efficiently merge parts, performing the minimal amount of work / using the minimal amount of memory.
+ *
+ * If either of the two part records is undefined, the other will simply be returned.
+ *
+ * If both are undefined, undefined will be returned.
+ *
+ * If neither are undefined, a new object will be returned where parts of the second value will be written last (and thus may overwrite duplicate named parts).
+ *
+ * This function is idempotent via a WeakMap cache: results are cached and if the same two variables are provided again, the same object will be returned.
+ */
+export function mergeParts(parentParts, ownParts) {
+    if (parentParts === ownParts) {
+        return parentParts;
+    }
+    if (parentParts === void 0) {
+        return ownParts;
+    }
+    if (ownParts === void 0) {
+        return parentParts;
+    }
+    let ownPartsLookup = parentPartsOwnPartsLookup.get(parentParts);
+    if (ownPartsLookup === void 0) {
+        parentPartsOwnPartsLookup.set(parentParts, ownPartsLookup = new WeakMap());
+    }
+    let mergedParts = ownPartsLookup.get(ownParts);
+    if (mergedParts === void 0) {
+        ownPartsLookup.set(ownParts, mergedParts = {
+            ...parentParts,
+            ...ownParts,
+        });
+    }
+    return mergedParts;
+}
 export const ITargetedInstruction = DI.createInterface('ITargetedInstruction').noDefault();
 export function isTargetedInstruction(value) {
     const type = value.type;
@@ -29,16 +64,18 @@ export function isTargetedInstruction(value) {
 }
 export class HooksDefinition {
     constructor(target) {
-        this.hasRender = 'render' in target;
-        this.hasCreated = 'created' in target;
-        this.hasBinding = 'binding' in target;
-        this.hasBound = 'bound' in target;
-        this.hasUnbinding = 'unbinding' in target;
-        this.hasUnbound = 'unbound' in target;
-        this.hasAttaching = 'attaching' in target;
-        this.hasAttached = 'attached' in target;
-        this.hasDetaching = 'detaching' in target;
-        this.hasDetached = 'detached' in target;
+        this.hasCreate = 'create' in target;
+        this.hasBeforeCompile = 'beforeCompile' in target;
+        this.hasAfterCompile = 'afterCompile' in target;
+        this.hasAfterCompileChildren = 'afterCompileChildren' in target;
+        this.hasBeforeBind = 'beforeBind' in target;
+        this.hasAfterBind = 'afterBind' in target;
+        this.hasBeforeUnbind = 'beforeUnbind' in target;
+        this.hasAfterUnbind = 'afterUnbind' in target;
+        this.hasBeforeAttach = 'beforeAttach' in target;
+        this.hasAfterAttach = 'afterAttach' in target;
+        this.hasBeforeDetach = 'beforeDetach' in target;
+        this.hasAfterDetach = 'afterDetach' in target;
         this.hasCaching = 'caching' in target;
     }
 }

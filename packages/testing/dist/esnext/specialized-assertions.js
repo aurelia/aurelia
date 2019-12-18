@@ -79,26 +79,32 @@ function $getVisibleText(root, context) {
     let controller;
     for (let i = 0; i < length; ++i) {
         controller = controllers[i];
-        if (isShadowDOMProjector(controller.projector)) {
-            context.text += controller.projector.shadowRoot.textContent;
-            $getVisibleText(controller, context);
-        }
-        else if (controller.viewModel instanceof Replaceable) {
-            $getVisibleText(controller.viewModel.view, context);
-        }
-        else if (controller.viewModel instanceof With) {
-            $getVisibleText(controller.viewModel.view, context);
-        }
-        else if (controller.viewModel instanceof If) {
-            $getVisibleText(controller.viewModel.view, context);
-        }
-        else if (controller.viewModel instanceof Compose) {
-            $getVisibleText(controller.viewModel.view, context);
-        }
-        else if (controller.viewModel instanceof Repeat) {
-            for (const view of controller.viewModel.views) {
-                $getVisibleText(view, context);
-            }
+        switch (controller.vmKind) {
+            case 0 /* customElement */:
+                if (isShadowDOMProjector(controller.projector)) {
+                    context.text += controller.projector.shadowRoot.textContent;
+                    $getVisibleText(controller, context);
+                }
+                else if (controller.viewModel instanceof Compose) {
+                    $getVisibleText(controller.viewModel.view, context);
+                }
+                break;
+            case 1 /* customAttribute */:
+                if (controller.viewModel instanceof Replaceable) {
+                    $getVisibleText(controller.viewModel.view, context);
+                }
+                else if (controller.viewModel instanceof With) {
+                    $getVisibleText(controller.viewModel.view, context);
+                }
+                else if (controller.viewModel instanceof If) {
+                    $getVisibleText(controller.viewModel.view, context);
+                }
+                else if (controller.viewModel instanceof Repeat) {
+                    for (const view of controller.viewModel.views) {
+                        $getVisibleText(view, context);
+                    }
+                }
+                break;
         }
     }
 }

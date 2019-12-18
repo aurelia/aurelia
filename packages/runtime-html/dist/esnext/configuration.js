@@ -1,6 +1,5 @@
 import { DI } from '@aurelia/kernel';
 import { RuntimeConfiguration } from '@aurelia/runtime';
-import { HTMLTemplateFactory } from './dom';
 import { AttributeBindingRenderer, ListenerBindingRenderer, SetAttributeRenderer, StylePropertyBindingRenderer, TextBindingRenderer, SetClassAttributeRenderer, SetStyleAttributeRenderer } from './html-renderer';
 import { TargetAccessorLocator, TargetObserverLocator } from './observation/observer-locator';
 import { HTMLProjectorLocator } from './projectors';
@@ -14,7 +13,6 @@ import { Compose } from './resources/custom-elements/compose';
 export const IProjectorLocatorRegistration = HTMLProjectorLocator;
 export const ITargetAccessorLocatorRegistration = TargetAccessorLocator;
 export const ITargetObserverLocatorRegistration = TargetObserverLocator;
-export const ITemplateFactoryRegistration = HTMLTemplateFactory;
 /**
  * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
  * - `IProjectorLocator`
@@ -26,7 +24,6 @@ export const DefaultComponents = [
     IProjectorLocatorRegistration,
     ITargetAccessorLocatorRegistration,
     ITargetObserverLocatorRegistration,
-    ITemplateFactoryRegistration
 ];
 export const AttrBindingBehaviorRegistration = AttrBindingBehavior;
 export const SelfBindingBehaviorRegistration = SelfBindingBehavior;

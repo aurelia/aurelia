@@ -260,12 +260,12 @@
             }
             return false;
         }
-        binding(flags) {
+        beforeBind(flags) {
             if (this.content.componentInstance) {
                 this.content.initializeComponent();
             }
         }
-        async attaching(flags) {
+        async beforeAttach(flags) {
             kernel_1.Reporter.write(10000, 'ATTACHING viewport', this.name, this.content, this.nextContent);
             this.enabled = true;
             if (this.content.componentInstance) {
@@ -274,7 +274,7 @@
                 this.content.addComponent(this.element);
             }
         }
-        async detaching(flags) {
+        async beforeDetach(flags) {
             kernel_1.Reporter.write(10000, 'DETACHING viewport', this.name);
             if (this.content.componentInstance) {
                 // Only acts if not already left
@@ -283,7 +283,7 @@
             }
             this.enabled = false;
         }
-        async unbinding(flags) {
+        async beforeUnbind(flags) {
             if (this.content.componentInstance) {
                 await this.content.terminateComponent(this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful);
             }

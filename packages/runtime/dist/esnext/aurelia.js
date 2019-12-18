@@ -3,7 +3,7 @@ import { IActivator } from './activator';
 import { INode } from './dom';
 import { ILifecycle, } from './lifecycle';
 import { ContinuationTask, IStartTaskManager, LifecycleTask, } from './lifecycle-task';
-import { CustomElement, } from './resources/custom-element';
+import { CustomElement } from './resources/custom-element';
 import { Controller } from './templating/controller';
 export class CompositionRoot {
     constructor(config, container) {
@@ -98,10 +98,12 @@ export class CompositionRoot {
     }
     create() {
         const config = this.config;
-        this.viewModel = CustomElement.isType(config.component)
+        const instance = this.viewModel = CustomElement.isType(config.component)
             ? this.container.get(config.component)
             : config.component;
-        this.controller = Controller.forCustomElement(this.viewModel, this.container, this.host, this.strategy);
+        const container = this.container;
+        const lifecycle = container.get(ILifecycle);
+        this.controller = Controller.forCustomElement(instance, lifecycle, this.host, container, void 0, this.strategy);
     }
 }
 export class Aurelia {

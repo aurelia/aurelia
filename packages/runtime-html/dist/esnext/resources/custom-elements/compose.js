@@ -1,14 +1,11 @@
 import { __decorate, __metadata, __param } from "tslib";
 import { nextId, PLATFORM, } from '@aurelia/kernel';
-import { BindingMode, ContinuationTask, IController, IDOM, IRenderingEngine, ITargetedInstruction, LifecycleTask, PromiseTask, bindable, customElement, } from '@aurelia/runtime';
+import { BindingMode, ContinuationTask, IDOM, ITargetedInstruction, LifecycleTask, PromiseTask, CustomElementDefinition, bindable, customElement, getRenderContext, } from '@aurelia/runtime';
 import { createElement, } from '../../create-element';
 const bindables = ['subject', 'composing'];
 let Compose = class Compose {
-    constructor(dom, renderable, instruction, renderingEngine) {
+    constructor(dom, instruction) {
         this.dom = dom;
-        this.renderable = renderable;
-        this.instruction = instruction;
-        this.renderingEngine = renderingEngine;
         this.id = nextId('au$component');
         this.subject = void 0;
         this.composing = false;
@@ -24,7 +21,7 @@ let Compose = class Compose {
             return acc;
         }, {});
     }
-    binding(flags) {
+    beforeBind(flags) {
         if (this.task.done) {
             this.task = this.compose(this.subject, flags);
         }
@@ -39,7 +36,7 @@ let Compose = class Compose {
         }
         return this.task;
     }
-    attaching(flags) {
+    beforeAttach(flags) {
         if (this.task.done) {
             this.attachView(flags);
         }
@@ -47,7 +44,7 @@ let Compose = class Compose {
             this.task = new ContinuationTask(this.task, this.attachView, this, flags);
         }
     }
-    detaching(flags) {
+    beforeDetach(flags) {
         if (this.view != void 0) {
             if (this.task.done) {
                 this.view.detach(flags);
@@ -57,7 +54,7 @@ let Compose = class Compose {
             }
         }
     }
-    unbinding(flags) {
+    beforeUnbind(flags) {
         this.lastSubject = void 0;
         if (this.view != void 0) {
             if (this.task.done) {
@@ -139,7 +136,7 @@ let Compose = class Compose {
     }
     bindView(flags) {
         if (this.view != void 0 && (this.$controller.state & (5 /* isBoundOrBinding */)) > 0) {
-            return this.view.bind(flags, this.renderable.scope, this.$controller.part);
+            return this.view.bind(flags, this.$controller.scope, this.$controller.part);
         }
         return LifecycleTask.done;
     }
@@ -155,7 +152,7 @@ let Compose = class Compose {
         const view = this.provideViewFor(subject, flags);
         if (view) {
             view.hold(this.$controller.projector.host, 1 /* insertBefore */);
-            view.lockScope(this.renderable.scope);
+            view.lockScope(this.$controller.scope);
             return view;
         }
         return void 0;
@@ -164,22 +161,23 @@ let Compose = class Compose {
         if (!subject) {
             return void 0;
         }
-        if ('lockScope' in subject) { // IController
+        if (isController(subject)) { // IController
             return subject;
         }
         if ('createView' in subject) { // RenderPlan
-            return subject.createView(flags, this.renderingEngine, this.renderable.context);
+            return subject.createView(this.$controller.context);
         }
         if ('create' in subject) { // IViewFactory
-            return subject.create();
+            return subject.create(flags);
         }
         if ('template' in subject) { // Raw Template Definition
-            return this.renderingEngine.getViewFactory(this.dom, subject, this.renderable.context).create();
+            const definition = CustomElementDefinition.getOrCreate(subject);
+            return getRenderContext(definition, this.$controller.context, void 0).getViewFactory().create(flags);
         }
         // Constructable (Custom Element Constructor)
         return createElement(this.dom, subject, this.properties, this.$controller.projector === void 0
             ? PLATFORM.emptyArray
-            : this.$controller.projector.children).createView(flags, this.renderingEngine, this.renderable.context);
+            : this.$controller.projector.children).createView(this.$controller.context);
     }
 };
 __decorate([
@@ -193,10 +191,11 @@ __decorate([
 Compose = __decorate([
     customElement({ name: 'au-compose', template: null, containerless: true }),
     __param(0, IDOM),
-    __param(1, IController),
-    __param(2, ITargetedInstruction),
-    __param(3, IRenderingEngine),
-    __metadata("design:paramtypes", [Object, Object, Object, Object])
+    __param(1, ITargetedInstruction),
+    __metadata("design:paramtypes", [Object, Object])
 ], Compose);
 export { Compose };
+function isController(subject) {
+    return 'lockScope' in subject;
+}
 //# sourceMappingURL=compose.js.map

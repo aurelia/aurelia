@@ -4,13 +4,17 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "../resources/custom-element", "../observation/subscriber-collection"], factory);
     }
 })(function (require, exports) {
     "use strict";
+    var ChildrenObserver_1;
     Object.defineProperty(exports, "__esModule", { value: true });
+    const tslib_1 = require("tslib");
     /* eslint-disable @typescript-eslint/no-use-before-define */
     const kernel_1 = require("@aurelia/kernel");
+    const custom_element_1 = require("../resources/custom-element");
+    const subscriber_collection_1 = require("../observation/subscriber-collection");
     function children(configOrTarget, prop) {
         let config;
         function decorator($target, $prop) {
@@ -113,5 +117,85 @@
         }
     }
     exports.ChildrenDefinition = ChildrenDefinition;
+    /** @internal */
+    let ChildrenObserver = ChildrenObserver_1 = class ChildrenObserver {
+        constructor(controller, obj, flags, propertyKey, cbName, query = defaultChildQuery, filter = defaultChildFilter, map = defaultChildMap, options) {
+            this.controller = controller;
+            this.obj = obj;
+            this.propertyKey = propertyKey;
+            this.query = query;
+            this.filter = filter;
+            this.map = map;
+            this.options = options;
+            this.observing = false;
+            this.children = (void 0);
+            this.callback = obj[cbName];
+            this.persistentFlags = flags & 2080374799 /* persistentBindingFlags */;
+            this.createGetterSetter();
+        }
+        getValue() {
+            this.tryStartObserving();
+            return this.children;
+        }
+        setValue(newValue) { }
+        subscribe(subscriber) {
+            this.tryStartObserving();
+            this.addSubscriber(subscriber);
+        }
+        tryStartObserving() {
+            if (!this.observing) {
+                this.observing = true;
+                const projector = this.controller.projector;
+                this.children = filterChildren(projector, this.query, this.filter, this.map);
+                projector.subscribeToChildrenChange(() => { this.onChildrenChanged(); }, this.options);
+            }
+        }
+        onChildrenChanged() {
+            this.children = filterChildren(this.controller.projector, this.query, this.filter, this.map);
+            if (this.callback !== void 0) {
+                this.callback.call(this.obj);
+            }
+            this.callSubscribers(this.children, undefined, this.persistentFlags | 16 /* updateTargetInstance */);
+        }
+        createGetterSetter() {
+            if (!Reflect.defineProperty(this.obj, this.propertyKey, {
+                enumerable: true,
+                configurable: true,
+                get: () => this.getValue(),
+                set: () => { },
+            })) {
+                kernel_1.Reporter.write(1, this.propertyKey, this.obj);
+            }
+        }
+    };
+    ChildrenObserver = ChildrenObserver_1 = tslib_1.__decorate([
+        subscriber_collection_1.subscriberCollection(),
+        tslib_1.__metadata("design:paramtypes", [Object, Object, Number, String, String, Object, Object, Object, Object])
+    ], ChildrenObserver);
+    exports.ChildrenObserver = ChildrenObserver;
+    function defaultChildQuery(projector) {
+        return projector.children;
+    }
+    function defaultChildFilter(node, controller, viewModel) {
+        return !!viewModel;
+    }
+    function defaultChildMap(node, controller, viewModel) {
+        return viewModel;
+    }
+    /** @internal */
+    function filterChildren(projector, query, filter, map) {
+        const nodes = query(projector);
+        const children = [];
+        for (let i = 0, ii = nodes.length; i < ii; ++i) {
+            const node = nodes[i];
+            const controller = custom_element_1.CustomElement.for(node);
+            const viewModel = controller ? controller.viewModel : null;
+            if (filter(node, controller, viewModel)) {
+                children.push(map(node, controller, viewModel));
+            }
+        }
+        return children;
+    }
+    exports.filterChildren = filterChildren;
 });
 //# sourceMappingURL=children.js.map

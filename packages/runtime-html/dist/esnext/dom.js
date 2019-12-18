@@ -1,6 +1,5 @@
-import { __decorate, __metadata, __param } from "tslib";
 import { PLATFORM, Registration, Reporter } from '@aurelia/kernel';
-import { CompiledTemplate, DOM, IDOM, INode, ITemplateFactory, NodeSequence, CustomElement } from '@aurelia/runtime';
+import { DOM, IDOM, INode, CustomElement } from '@aurelia/runtime';
 import { ShadowDOMProjector } from './projectors';
 export var NodeType;
 (function (NodeType) {
@@ -36,6 +35,7 @@ export class HTMLDOM {
             DOM.destroy();
         }
         DOM.initialize(this);
+        this.emptyNodes = new FragmentNodeSequence(this, document.createDocumentFragment());
     }
     static register(container) {
         return Registration.alias(IDOM, this).register(container);
@@ -77,6 +77,12 @@ export class HTMLDOM {
             return fragment;
         }
         return this.createTemplate(markupOrNode).content;
+    }
+    createNodeSequence(fragment) {
+        if (fragment === null) {
+            return this.emptyNodes;
+        }
+        return new FragmentNodeSequence(this, fragment.cloneNode(true));
     }
     createElement(name) {
         return this.document.createElement(name);
@@ -379,23 +385,6 @@ export class FragmentNodeSequence {
         }
     }
 }
-export class NodeSequenceFactory {
-    constructor(dom, markupOrNode) {
-        this.dom = dom;
-        if (markupOrNode === null) {
-            this.node = null;
-        }
-        else {
-            this.node = dom.createDocumentFragment(markupOrNode);
-        }
-    }
-    createNodeSequence() {
-        if (this.node === null) {
-            return NodeSequence.empty;
-        }
-        return new FragmentNodeSequence(this.dom, this.node.cloneNode(true));
-    }
-}
 /** @internal */
 export class AuMarker {
     constructor(nextSibling) {
@@ -413,21 +402,4 @@ export class AuMarker {
     proto.nodeName = 'AU-M';
     proto.nodeType = 1 /* Element */;
 })(AuMarker.prototype);
-/** @internal */
-let HTMLTemplateFactory = class HTMLTemplateFactory {
-    constructor(dom) {
-        this.dom = dom;
-    }
-    static register(container) {
-        return Registration.singleton(ITemplateFactory, this).register(container);
-    }
-    create(parentRenderContext, definition) {
-        return new CompiledTemplate(this.dom, definition, new NodeSequenceFactory(this.dom, definition.template), parentRenderContext);
-    }
-};
-HTMLTemplateFactory = __decorate([
-    __param(0, IDOM),
-    __metadata("design:paramtypes", [Object])
-], HTMLTemplateFactory);
-export { HTMLTemplateFactory };
 //# sourceMappingURL=dom.js.map

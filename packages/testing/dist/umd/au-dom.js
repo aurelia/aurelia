@@ -14,7 +14,6 @@
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const html_test_context_1 = require("./html-test-context");
-    const slice = Array.prototype.slice;
     class AuNode {
         constructor(name, isWrapper, isTarget, isMarker, isRenderLocation, isMounted, isConnected) {
             this.nodeName = name;
@@ -208,6 +207,9 @@
     }
     exports.AuNode = AuNode;
     class AuDOM {
+        createNodeSequence(fragment) {
+            return new AuNodeSequence(this, fragment.cloneNode(true));
+        }
         addEventListener(eventName, subscriber, publisher, options) {
             return;
         }
@@ -484,16 +486,6 @@
     }
     exports.AuDOMInitializer = AuDOMInitializer;
     AuDOMInitializer.inject = [kernel_1.IContainer];
-    class AuTemplateFactory {
-        constructor(dom) {
-            this.dom = dom;
-        }
-        create(parentRenderContext, definition) {
-            return new runtime_1.CompiledTemplate(this.dom, definition, new AuNodeSequenceFactory(this.dom, definition.template), parentRenderContext);
-        }
-    }
-    exports.AuTemplateFactory = AuTemplateFactory;
-    AuTemplateFactory.inject = [runtime_1.IDOM];
     class AuObserverLocator {
         getObserver(flags, scheduler, lifecycle, observerLocator, obj, propertyName) {
             return null;
@@ -522,7 +514,7 @@
         constructor(observerLocator) {
             this.observerLocator = observerLocator;
         }
-        render(flags, dom, context, renderable, target, instruction) {
+        render(flags, context, controller, target, instruction) {
             let realTarget;
             if (target.isRenderLocation) {
                 realTarget = AuNode.createText();
@@ -532,7 +524,7 @@
                 realTarget = target;
             }
             const bindable = new runtime_1.PropertyBinding(instruction.from, realTarget, 'textContent', runtime_1.BindingMode.toView, this.observerLocator, context);
-            runtime_1.addBinding(renderable, bindable);
+            controller.addBinding(bindable);
         }
     };
     AuTextRenderer = tslib_1.__decorate([
@@ -545,7 +537,7 @@
     exports.AuTextRenderer = AuTextRenderer;
     exports.AuDOMConfiguration = {
         register(container) {
-            container.register(runtime_1.RuntimeConfiguration, AuTextRenderer, kernel_1.Registration.singleton(runtime_1.IDOM, AuDOM), kernel_1.Registration.singleton(runtime_1.IDOMInitializer, AuDOMInitializer), kernel_1.Registration.singleton(runtime_1.IProjectorLocator, AuProjectorLocator), kernel_1.Registration.singleton(runtime_1.ITargetAccessorLocator, AuObserverLocator), kernel_1.Registration.singleton(runtime_1.ITargetObserverLocator, AuObserverLocator), kernel_1.Registration.singleton(runtime_1.ITemplateFactory, AuTemplateFactory), kernel_1.Registration.instance(runtime_1.ITemplateCompiler, {}));
+            container.register(runtime_1.RuntimeConfiguration, AuTextRenderer, kernel_1.Registration.singleton(runtime_1.IDOM, AuDOM), kernel_1.Registration.singleton(runtime_1.IDOMInitializer, AuDOMInitializer), kernel_1.Registration.singleton(runtime_1.IProjectorLocator, AuProjectorLocator), kernel_1.Registration.singleton(runtime_1.ITargetAccessorLocator, AuObserverLocator), kernel_1.Registration.singleton(runtime_1.ITargetObserverLocator, AuObserverLocator), kernel_1.Registration.instance(runtime_1.ITemplateCompiler, {}));
         },
         createContainer() {
             const scheduler = html_test_context_1.TestContext.createHTMLTestContext().scheduler;

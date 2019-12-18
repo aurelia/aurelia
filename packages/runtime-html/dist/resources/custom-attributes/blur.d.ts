@@ -1,4 +1,4 @@
-import { INode, IScheduler } from '@aurelia/runtime';
+import { INode, IScheduler, ICustomAttributeViewModel, ICustomAttributeController } from '@aurelia/runtime';
 import { HTMLDOM } from '../../dom';
 declare const unset: unique symbol;
 export declare class BlurManager {
@@ -16,8 +16,9 @@ export declare class BlurManager {
 export interface HasContains {
     contains(el: Element): boolean;
 }
-export declare class Blur {
+export declare class Blur implements ICustomAttributeViewModel<HTMLElement> {
     private readonly dom;
+    readonly $controller: ICustomAttributeController<HTMLElement, this>;
     value: boolean | typeof unset;
     onBlur: () => void;
     /**
@@ -44,8 +45,8 @@ export declare class Blur {
     linkingContext: string | Element | null;
     private readonly element;
     constructor(element: INode, dom: HTMLDOM, scheduler: IScheduler);
-    attached(): void;
-    detaching(): void;
+    afterAttach(): void;
+    beforeDetach(): void;
     handleEventTarget(target: EventTarget): void;
     contains(target: Element): boolean;
     triggerBlur(): void;

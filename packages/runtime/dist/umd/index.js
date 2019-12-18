@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./binding/ast", "./binding/property-binding", "./binding/call-binding", "./binding/connectable", "./binding/expression-parser", "./binding/interpolation-binding", "./binding/let-binding", "./binding/ref-binding", "./observation/array-observer", "./observation/map-observer", "./observation/set-observer", "./observation/binding-context", "./observation/collection-length-observer", "./observation/collection-size-observer", "./observation/computed-observer", "./observation/dirty-checker", "./observation/observer-locator", "./observation/primitive-observer", "./observation/property-accessor", "./observation/proxy-observer", "./observation/bindable-observer", "./observation/setter-observer", "./observation/signaler", "./observation/subscriber-collection", "./resources/binding-behavior", "./resources/binding-behaviors/binding-mode", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attribute", "./resources/custom-attributes/flags", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/replaceable", "./resources/custom-attributes/with", "./resources/custom-element", "./resources/value-converter", "./resources/value-converters/sanitize", "./resources/value-converters/view", "./scheduler", "./templating/bindable", "./templating/children", "./templating/controller", "./templating/view", "./aurelia", "./configuration", "./definitions", "./dom", "./flags", "./instructions", "./lifecycle", "./lifecycle-task", "./observation", "./renderer", "./rendering-engine", "./render-context"], factory);
+        define(["require", "exports", "./binding/ast", "./binding/property-binding", "./binding/call-binding", "./binding/connectable", "./binding/expression-parser", "./binding/interpolation-binding", "./binding/let-binding", "./binding/ref-binding", "./observation/array-observer", "./observation/map-observer", "./observation/set-observer", "./observation/binding-context", "./observation/collection-length-observer", "./observation/collection-size-observer", "./observation/computed-observer", "./observation/dirty-checker", "./observation/observer-locator", "./observation/primitive-observer", "./observation/property-accessor", "./observation/proxy-observer", "./observation/bindable-observer", "./observation/setter-observer", "./observation/signaler", "./observation/subscriber-collection", "./resources/binding-behavior", "./resources/binding-behaviors/binding-mode", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attribute", "./resources/custom-attributes/flags", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/replaceable", "./resources/custom-attributes/with", "./resources/custom-element", "./resources/value-converter", "./resources/value-converters/sanitize", "./resources/value-converters/view", "./scheduler", "./templating/bindable", "./templating/children", "./templating/controller", "./templating/view", "./aurelia", "./configuration", "./definitions", "./dom", "./flags", "./instructions", "./lifecycle", "./templating/render-context", "./lifecycle-task", "./observation", "./renderer"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -183,6 +183,7 @@
     exports.ChildrenDefinition = children_1.ChildrenDefinition;
     exports.Children = children_1.Children;
     exports.children = children_1.children;
+    exports.ChildrenObserver = children_1.ChildrenObserver;
     // These exports are temporary until we have a proper way to unit test them
     var controller_1 = require("./templating/controller");
     exports.Controller = controller_1.Controller;
@@ -242,7 +243,6 @@
     exports.BindingMode = flags_2.BindingMode;
     exports.BindingStrategy = flags_2.BindingStrategy;
     exports.ExpressionKind = flags_2.ExpressionKind;
-    exports.Hooks = flags_2.Hooks;
     exports.LifecycleFlags = flags_2.LifecycleFlags;
     exports.State = flags_2.State;
     var instructions_1 = require("./instructions");
@@ -266,6 +266,9 @@
     exports.IController = lifecycle_1.IController;
     exports.IViewFactory = lifecycle_1.IViewFactory;
     exports.MountStrategy = lifecycle_1.MountStrategy;
+    var render_context_1 = require("./templating/render-context");
+    exports.getRenderContext = render_context_1.getRenderContext;
+    exports.isRenderContext = render_context_1.isRenderContext;
     var lifecycle_task_1 = require("./lifecycle-task");
     exports.AggregateContinuationTask = lifecycle_task_1.AggregateContinuationTask;
     exports.TerminalTask = lifecycle_task_1.TerminalTask;
@@ -286,21 +289,11 @@
     exports.cloneIndexMap = observation_1.cloneIndexMap;
     exports.createIndexMap = observation_1.createIndexMap;
     var renderer_1 = require("./renderer");
+    exports.applyBindingBehavior = renderer_1.applyBindingBehavior;
+    exports.IInstructionRenderer = renderer_1.IInstructionRenderer;
+    exports.IRenderer = renderer_1.IRenderer;
+    exports.ITemplateCompiler = renderer_1.ITemplateCompiler;
     exports.instructionRenderer = renderer_1.instructionRenderer;
     exports.ensureExpression = renderer_1.ensureExpression;
-    exports.addComponent = renderer_1.addComponent;
-    exports.addBinding = renderer_1.addBinding;
-    exports.applyBindingBehavior = renderer_1.applyBindingBehavior;
-    var rendering_engine_1 = require("./rendering-engine");
-    exports.CompiledTemplate = rendering_engine_1.CompiledTemplate;
-    exports.ChildrenObserver = rendering_engine_1.ChildrenObserver;
-    exports.IInstructionRenderer = rendering_engine_1.IInstructionRenderer;
-    exports.IRenderer = rendering_engine_1.IRenderer;
-    exports.IRenderingEngine = rendering_engine_1.IRenderingEngine;
-    exports.ITemplateCompiler = rendering_engine_1.ITemplateCompiler;
-    exports.ITemplateFactory = rendering_engine_1.ITemplateFactory;
-    exports.ViewCompileFlags = rendering_engine_1.ViewCompileFlags;
-    var render_context_1 = require("./render-context");
-    exports.RenderContext = render_context_1.RenderContext;
 });
 //# sourceMappingURL=index.js.map

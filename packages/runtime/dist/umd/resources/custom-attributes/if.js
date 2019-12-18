@@ -29,7 +29,7 @@
             this.value = false;
         }
         ;
-        binding(flags) {
+        beforeBind(flags) {
             if (this.task.done) {
                 this.task = this.swap(this.value, flags);
             }
@@ -38,7 +38,7 @@
             }
             return this.task;
         }
-        attaching(flags) {
+        beforeAttach(flags) {
             if (this.task.done) {
                 this.attachView(flags);
             }
@@ -46,7 +46,7 @@
                 this.task = new lifecycle_task_1.ContinuationTask(this.task, this.attachView, this, flags);
             }
         }
-        detaching(flags) {
+        beforeDetach(flags) {
             if (this.view !== void 0) {
                 if (this.task.done) {
                     this.view.detach(flags);
@@ -57,7 +57,7 @@
             }
             return this.task;
         }
-        unbinding(flags) {
+        beforeUnbind(flags) {
             if (this.view !== void 0) {
                 if (this.task.done) {
                     this.task = this.view.unbind(flags);

@@ -2,7 +2,6 @@ import { IContainer, IRegistry } from '@aurelia/kernel';
 export declare const IProjectorLocatorRegistration: IRegistry;
 export declare const ITargetAccessorLocatorRegistration: IRegistry;
 export declare const ITargetObserverLocatorRegistration: IRegistry;
-export declare const ITemplateFactoryRegistration: IRegistry;
 /**
  * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
  * - `IProjectorLocator`

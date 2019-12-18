@@ -124,7 +124,7 @@ const defaultOptions = {
     rendering: true,
     binding: true,
     observation: true,
-    attaching: true,
+    beforeAttach: true,
     mounting: true,
     di: true,
     lifecycle: true,
@@ -219,7 +219,7 @@ const RenderingArgsProcessor = {
         return flagsText(info);
     },
     render(info) {
-        return `${flagsText(info)},IDOM,IRenderContext,${ctorName(info, 3)}`;
+        return `${flagsText(info)},IDOM,IContainer,${ctorName(info, 3)}`;
     },
     addBinding(info) {
         return `${ctorName(info)},${ctorName(info, 1)}`;
@@ -464,7 +464,7 @@ function createLiveTraceWriter(options) {
     if (options.observation) {
         Object.assign(Processors, ObservationArgsProcessor);
     }
-    if (options.attaching) {
+    if (options.beforeAttach) {
         Object.assign(Processors, AttachingArgsProcessor);
     }
     if (options.mounting) {

@@ -8,12 +8,12 @@ let Focus = class Focus {
     constructor(element, dom) {
         this.dom = dom;
         /**
-         * Indicates whether `apply` should be called when `attached` callback is invoked
+         * Indicates whether `apply` should be called when `afterAttach` callback is invoked
          */
         this.needsApply = false;
         this.element = element;
     }
-    binding() {
+    beforeBind() {
         this.valueChanged();
     }
     /**
@@ -33,14 +33,14 @@ let Focus = class Focus {
         else {
             // If the element is not currently connect
             // toggle the flag to add pending work for later
-            // in attached lifecycle
+            // in afterAttach lifecycle
             this.needsApply = true;
         }
     }
     /**
-     * Invoked when the attribute is attached to the DOM.
+     * Invoked when the attribute is afterAttach to the DOM.
      */
-    attached() {
+    afterAttach() {
         if (this.needsApply) {
             this.needsApply = false;
             this.apply();
@@ -50,9 +50,9 @@ let Focus = class Focus {
         el.addEventListener('blur', this);
     }
     /**
-     * Invoked when the attribute is detached from the DOM.
+     * Invoked when the attribute is afterDetach from the DOM.
      */
-    detached() {
+    afterDetach() {
         const el = this.element;
         el.removeEventListener('focus', this);
         el.removeEventListener('blur', this);

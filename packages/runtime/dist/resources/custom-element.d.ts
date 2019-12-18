@@ -1,7 +1,7 @@
 import { Constructable, IContainer, IResourceKind, ResourceType, PartialResourceDefinition, Key, ResourceDefinition, Injectable } from '@aurelia/kernel';
 import { ITargetedInstruction, HooksDefinition } from '../definitions';
 import { IDOM, INode, INodeSequence, IRenderLocation } from '../dom';
-import { IController, IViewModel } from '../lifecycle';
+import { ICustomElementViewModel, ICustomElementController } from '../lifecycle';
 import { BindingStrategy } from '../flags';
 import { PartialBindableDefinition, BindableDefinition } from '../templating/bindable';
 import { PartialChildrenDefinition, ChildrenDefinition } from '../templating/children';
@@ -25,7 +25,7 @@ export declare type PartialCustomElementDefinition = PartialResourceDefinition<{
     readonly hooks?: Readonly<HooksDefinition>;
     readonly scopeParts?: readonly string[];
 }>;
-export declare type CustomElementType<T extends Constructable = Constructable> = ResourceType<T, IViewModel & (T extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
+export declare type CustomElementType<T extends Constructable = Constructable> = ResourceType<T, ICustomElementViewModel & (T extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
 export declare type CustomElementKind = IResourceKind<CustomElementType, CustomElementDefinition> & {
     /**
      * Returns the closest controller that is associated with either this node (if it is a custom element) or the first
@@ -37,14 +37,14 @@ export declare type CustomElementKind = IResourceKind<CustomElementType, CustomE
      * @param searchParents - Also search the parent nodes (including containerless).
      * @returns The closest controller relative to the provided node.
      */
-    for<T extends INode = INode>(node: T, searchParents: true): IController<T>;
+    for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, searchParents: true): ICustomElementController<T, C>;
     /**
      * Returns the controller that is associated with this node, if it is a custom element with the provided name.
      *
      * @param node - The node to retrieve the controller for, if it is a custom element with the provided name.
      * @returns The controller associated with the provided node, if it is a custom element with the provided name, or otherwise `undefined`.
      */
-    for<T extends INode = INode>(node: T, name: string): IController<T> | undefined;
+    for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, name: string): ICustomElementController<T, C> | undefined;
     /**
      * Returns the closest controller that is associated with either this node (if it is a custom element) or the first
      * parent node (including containerless) that is a custom element with the provided name.
@@ -53,14 +53,14 @@ export declare type CustomElementKind = IResourceKind<CustomElementType, CustomE
      * @param searchParents - Also search the parent nodes (including containerless).
      * @returns The closest controller of a custom element with the provided name, relative to the provided node, if one can be found, or otherwise `undefined`.
      */
-    for<T extends INode = INode>(node: T, name: string, searchParents: true): IController<T> | undefined;
+    for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, name: string, searchParents: true): ICustomElementController<T, C> | undefined;
     /**
      * Returns the controller that is associated with this node, if it is a custom element.
      *
      * @param node - The node to retrieve the controller for, if it is a custom element.
      * @returns The controller associated with the provided node, if it is a custom element, or otherwise `undefined`.
      */
-    for<T extends INode = INode>(node: T): IController<T> | undefined;
+    for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T): ICustomElementController<T, C> | undefined;
     isType<T>(value: T): value is (T extends Constructable ? CustomElementType<T> : never);
     define<T extends Constructable>(name: string, Type: T): CustomElementType<T>;
     define<T extends Constructable>(def: PartialCustomElementDefinition, Type: T): CustomElementType<T>;
@@ -105,7 +105,7 @@ export declare function strict(target: Constructable): void;
  * Decorator: Indicates that the custom element should be rendered with the strict binding option. undefined/null -> 0 or '' based on type
  */
 export declare function strict(): (target: Constructable) => void;
-export declare class CustomElementDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, IViewModel, PartialCustomElementDefinition> {
+export declare class CustomElementDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, ICustomElementViewModel, PartialCustomElementDefinition> {
     readonly Type: CustomElementType<T>;
     readonly name: string;
     readonly aliases: string[];
@@ -129,15 +129,16 @@ export declare class CustomElementDefinition<T extends Constructable = Construct
     readonly hooks: Readonly<HooksDefinition>;
     readonly scopeParts: string[];
     private constructor();
-    static create<T extends Constructable = Constructable>(name: string, Type: CustomElementType<T>): CustomElementDefinition<T>;
     static create<T extends Constructable = Constructable>(def: PartialCustomElementDefinition, Type?: null): CustomElementDefinition<T>;
+    static create<T extends Constructable = Constructable>(name: string, Type: CustomElementType<T>): CustomElementDefinition<T>;
     static create<T extends Constructable = Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type?: CustomElementType<T> | null): CustomElementDefinition<T>;
+    static getOrCreate(partialDefinition: PartialCustomElementDefinition): CustomElementDefinition;
     register(container: IContainer): void;
 }
 export declare type InjectableToken<K = any> = (target: Injectable<K>, property: string, index: number) => void;
 export declare const CustomElement: CustomElementKind;
 export declare type CustomElementHost<T extends INode = INode> = IRenderLocation<T> & T & {
-    $controller?: IController<T>;
+    $controller?: ICustomElementController<T>;
 };
 export interface IElementProjector<T extends INode = INode> {
     readonly host: CustomElementHost<T>;
@@ -149,7 +150,7 @@ export interface IElementProjector<T extends INode = INode> {
 }
 export declare const IProjectorLocator: import("@aurelia/kernel").InterfaceSymbol<IProjectorLocator<INode>>;
 export interface IProjectorLocator<T extends INode = INode> {
-    getElementProjector(dom: IDOM<T>, $component: IController<T>, host: CustomElementHost<T>, def: CustomElementDefinition): IElementProjector<T>;
+    getElementProjector(dom: IDOM<T>, $component: ICustomElementController<T>, host: CustomElementHost<T>, def: CustomElementDefinition): IElementProjector<T>;
 }
 export {};
 //# sourceMappingURL=custom-element.d.ts.map

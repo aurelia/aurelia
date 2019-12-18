@@ -1,7 +1,7 @@
 import { __decorate, __metadata, __param } from "tslib";
 import { IAttributeParser, ResourceModel, } from '@aurelia/jit';
 import { mergeDistinct, PLATFORM, Registration, mergeArrays, } from '@aurelia/kernel';
-import { HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, IExpressionParser, InterpolationInstruction, ITemplateCompiler, LetBindingInstruction, LetElementInstruction, SetPropertyInstruction, CustomElementDefinition } from '@aurelia/runtime';
+import { HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, IExpressionParser, InterpolationInstruction, ITemplateCompiler, LetBindingInstruction, LetElementInstruction, SetPropertyInstruction, CustomElementDefinition, IDOM } from '@aurelia/runtime';
 import { SetAttributeInstruction, TextBindingInstruction, SetClassAttributeInstruction, SetStyleAttributeInstruction, } from '@aurelia/runtime-html';
 import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
 import { TemplateBinder } from './template-binder';
@@ -47,13 +47,17 @@ let TemplateCompiler = class TemplateCompiler {
     static register(container) {
         return Registration.singleton(ITemplateCompiler, this).register(container);
     }
-    compile(dom, partialDefinition, descriptions) {
-        const resources = new ResourceModel(descriptions);
+    compile(partialDefinition, context) {
+        const definition = CustomElementDefinition.getOrCreate(partialDefinition);
+        if (definition.template === null || definition.template === void 0) {
+            return definition;
+        }
+        const resources = ResourceModel.getOrCreate(context);
         const { attrParser, exprParser, attrSyntaxModifier, factory } = this;
-        const binder = new TemplateBinder(dom, resources, attrParser, exprParser, attrSyntaxModifier);
-        const template = factory.createTemplate(partialDefinition.template);
+        const binder = new TemplateBinder(context.get(IDOM), resources, attrParser, exprParser, attrSyntaxModifier);
+        const template = factory.createTemplate(definition.template);
         const surrogate = binder.bind(template);
-        const compilation = this.compilation = new CustomElementCompilationUnit(partialDefinition, surrogate, template);
+        const compilation = this.compilation = new CustomElementCompilationUnit(definition, surrogate, template);
         const customAttributes = surrogate.customAttributes;
         const plainAttributes = surrogate.plainAttributes;
         const customAttributeLength = customAttributes.length;
@@ -70,9 +74,9 @@ let TemplateCompiler = class TemplateCompiler {
             }
         }
         this.compileChildNodes(surrogate, compilation.instructions, compilation.scopeParts);
-        const definition = compilation.toDefinition();
+        const compiledDefinition = compilation.toDefinition();
         this.compilation = null;
-        return definition;
+        return compiledDefinition;
     }
     compileChildNodes(parent, instructionRows, scopeParts) {
         if ((parent.flags & 8192 /* hasChildNodes */) > 0) {

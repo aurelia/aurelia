@@ -15,11 +15,8 @@
     const create_element_1 = require("../../create-element");
     const bindables = ['subject', 'composing'];
     let Compose = class Compose {
-        constructor(dom, renderable, instruction, renderingEngine) {
+        constructor(dom, instruction) {
             this.dom = dom;
-            this.renderable = renderable;
-            this.instruction = instruction;
-            this.renderingEngine = renderingEngine;
             this.id = kernel_1.nextId('au$component');
             this.subject = void 0;
             this.composing = false;
@@ -35,7 +32,7 @@
                 return acc;
             }, {});
         }
-        binding(flags) {
+        beforeBind(flags) {
             if (this.task.done) {
                 this.task = this.compose(this.subject, flags);
             }
@@ -50,7 +47,7 @@
             }
             return this.task;
         }
-        attaching(flags) {
+        beforeAttach(flags) {
             if (this.task.done) {
                 this.attachView(flags);
             }
@@ -58,7 +55,7 @@
                 this.task = new runtime_1.ContinuationTask(this.task, this.attachView, this, flags);
             }
         }
-        detaching(flags) {
+        beforeDetach(flags) {
             if (this.view != void 0) {
                 if (this.task.done) {
                     this.view.detach(flags);
@@ -68,7 +65,7 @@
                 }
             }
         }
-        unbinding(flags) {
+        beforeUnbind(flags) {
             this.lastSubject = void 0;
             if (this.view != void 0) {
                 if (this.task.done) {
@@ -150,7 +147,7 @@
         }
         bindView(flags) {
             if (this.view != void 0 && (this.$controller.state & (5 /* isBoundOrBinding */)) > 0) {
-                return this.view.bind(flags, this.renderable.scope, this.$controller.part);
+                return this.view.bind(flags, this.$controller.scope, this.$controller.part);
             }
             return runtime_1.LifecycleTask.done;
         }
@@ -166,7 +163,7 @@
             const view = this.provideViewFor(subject, flags);
             if (view) {
                 view.hold(this.$controller.projector.host, 1 /* insertBefore */);
-                view.lockScope(this.renderable.scope);
+                view.lockScope(this.$controller.scope);
                 return view;
             }
             return void 0;
@@ -175,22 +172,23 @@
             if (!subject) {
                 return void 0;
             }
-            if ('lockScope' in subject) { // IController
+            if (isController(subject)) { // IController
                 return subject;
             }
             if ('createView' in subject) { // RenderPlan
-                return subject.createView(flags, this.renderingEngine, this.renderable.context);
+                return subject.createView(this.$controller.context);
             }
             if ('create' in subject) { // IViewFactory
-                return subject.create();
+                return subject.create(flags);
             }
             if ('template' in subject) { // Raw Template Definition
-                return this.renderingEngine.getViewFactory(this.dom, subject, this.renderable.context).create();
+                const definition = runtime_1.CustomElementDefinition.getOrCreate(subject);
+                return runtime_1.getRenderContext(definition, this.$controller.context, void 0).getViewFactory().create(flags);
             }
             // Constructable (Custom Element Constructor)
             return create_element_1.createElement(this.dom, subject, this.properties, this.$controller.projector === void 0
                 ? kernel_1.PLATFORM.emptyArray
-                : this.$controller.projector.children).createView(flags, this.renderingEngine, this.renderable.context);
+                : this.$controller.projector.children).createView(this.$controller.context);
         }
     };
     tslib_1.__decorate([
@@ -204,11 +202,12 @@
     Compose = tslib_1.__decorate([
         runtime_1.customElement({ name: 'au-compose', template: null, containerless: true }),
         tslib_1.__param(0, runtime_1.IDOM),
-        tslib_1.__param(1, runtime_1.IController),
-        tslib_1.__param(2, runtime_1.ITargetedInstruction),
-        tslib_1.__param(3, runtime_1.IRenderingEngine),
-        tslib_1.__metadata("design:paramtypes", [Object, Object, Object, Object])
+        tslib_1.__param(1, runtime_1.ITargetedInstruction),
+        tslib_1.__metadata("design:paramtypes", [Object, Object])
     ], Compose);
     exports.Compose = Compose;
+    function isController(subject) {
+        return 'lockScope' in subject;
+    }
 });
 //# sourceMappingURL=compose.js.map

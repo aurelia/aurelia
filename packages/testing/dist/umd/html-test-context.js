@@ -37,7 +37,6 @@
             this._lifecycle = void 0;
             this._renderer = void 0;
             this._projectorLocator = void 0;
-            this._renderingEngine = void 0;
             this._domParser = void 0;
         }
         get container() {
@@ -85,12 +84,6 @@
                 this._projectorLocator = this.container.get(runtime_1.IProjectorLocator);
             }
             return this._projectorLocator;
-        }
-        get renderingEngine() {
-            if (this._renderingEngine === void 0) {
-                this._renderingEngine = this.container.get(runtime_1.IRenderingEngine);
-            }
-            return this._renderingEngine;
         }
         get domParser() {
             if (this._domParser === void 0) {

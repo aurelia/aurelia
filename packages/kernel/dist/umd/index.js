@@ -51,7 +51,6 @@
     exports.Profiler = profiler_1.Profiler;
     var resource_1 = require("./resource");
     exports.Protocol = resource_1.Protocol;
-    exports.RuntimeCompilationResources = resource_1.RuntimeCompilationResources;
     exports.fromAnnotationOrDefinitionOrTypeOrDefault = resource_1.fromAnnotationOrDefinitionOrTypeOrDefault;
     exports.fromAnnotationOrTypeOrDefault = resource_1.fromAnnotationOrTypeOrDefault;
     exports.fromDefinitionOrDefault = resource_1.fromDefinitionOrDefault;

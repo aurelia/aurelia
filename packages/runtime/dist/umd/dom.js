@@ -23,6 +23,7 @@
         cloneNode: ni,
         convertToRenderLocation: ni,
         createDocumentFragment: ni,
+        createNodeSequence: ni,
         createElement: ni,
         createCustomEvent: ni,
         dispatchEvent: ni,

@@ -1,5 +1,4 @@
 import { IContainer } from '@aurelia/kernel';
-import { IRenderContext } from '@aurelia/runtime';
 import { ComponentAppellation, ComponentParameters, IRouteableComponent, RouteableComponentType, ViewportHandle } from './interfaces';
 import { IRouter } from './router';
 import { Viewport } from './viewport';
@@ -24,8 +23,8 @@ export declare class ViewportInstruction {
     isComponentName(): boolean;
     isComponentType(): boolean;
     isComponentInstance(): boolean;
-    toComponentType(context: IRenderContext | IContainer): RouteableComponentType | null;
-    toComponentInstance(context: IRenderContext | IContainer): IRouteableComponent | null;
+    toComponentType(context: IContainer): RouteableComponentType | null;
+    toComponentInstance(context: IContainer): IRouteableComponent | null;
     toViewportInstance(router: IRouter): Viewport | null;
     sameComponent(other: ViewportInstruction, compareParameters?: boolean, compareType?: boolean): boolean;
     sameParameters(other: ViewportInstruction): boolean;

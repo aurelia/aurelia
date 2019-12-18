@@ -61,7 +61,6 @@
                 this.tail.nextBound = controller; // implied by boundHead not being undefined
             }
             this.tail = controller;
-            controller.state |= 65536 /* inBoundQueue */;
         }
         remove(controller) {
             if (controller.prevBound !== void 0) {
@@ -78,7 +77,6 @@
             if (this.head === controller) {
                 this.head = controller.nextBound;
             }
-            controller.state = (controller.state | 65536 /* inBoundQueue */) ^ 65536 /* inBoundQueue */;
         }
         process(flags) {
             while (this.head !== void 0) {
@@ -86,8 +84,7 @@
                 this.head = this.tail = void 0;
                 let next;
                 do {
-                    cur.state = (cur.state | 65536 /* inBoundQueue */) ^ 65536 /* inBoundQueue */;
-                    cur.bound(flags);
+                    cur.afterBind(flags);
                     next = cur.nextBound;
                     cur.nextBound = void 0;
                     cur.prevBound = void 0;
@@ -135,7 +132,6 @@
                 this.tail.nextUnbound = controller; // implied by unboundHead not being undefined
             }
             this.tail = controller;
-            controller.state |= 131072 /* inUnboundQueue */;
         }
         remove(controller) {
             if (controller.prevUnbound !== void 0) {
@@ -152,7 +148,6 @@
             if (this.head === controller) {
                 this.head = controller.nextUnbound;
             }
-            controller.state = (controller.state | 131072 /* inUnboundQueue */) ^ 131072 /* inUnboundQueue */;
         }
         process(flags) {
             while (this.head !== void 0) {
@@ -160,8 +155,7 @@
                 this.head = this.tail = void 0;
                 let next;
                 do {
-                    cur.state = (cur.state | 131072 /* inUnboundQueue */) ^ 131072 /* inUnboundQueue */;
-                    cur.unbound(flags);
+                    cur.afterUnbind(flags);
                     next = cur.nextUnbound;
                     cur.nextUnbound = void 0;
                     cur.prevUnbound = void 0;
@@ -211,7 +205,6 @@
                 this.tail.nextAttached = controller; // implied by attachedHead not being undefined
             }
             this.tail = controller;
-            controller.state |= 262144 /* inAttachedQueue */;
         }
         remove(controller) {
             if (controller.prevAttached !== void 0) {
@@ -228,7 +221,6 @@
             if (this.head === controller) {
                 this.head = controller.nextAttached;
             }
-            controller.state = (controller.state | 262144 /* inAttachedQueue */) ^ 262144 /* inAttachedQueue */;
         }
         process(flags) {
             while (this.head !== void 0) {
@@ -236,8 +228,7 @@
                 this.head = this.tail = void 0;
                 let next;
                 do {
-                    cur.state = (cur.state | 262144 /* inAttachedQueue */) ^ 262144 /* inAttachedQueue */;
-                    cur.attached(flags);
+                    cur.afterAttach(flags);
                     next = cur.nextAttached;
                     cur.nextAttached = void 0;
                     cur.prevAttached = void 0;
@@ -287,7 +278,6 @@
                 this.tail.nextDetached = controller; // implied by detachedHead not being undefined
             }
             this.tail = controller;
-            controller.state |= 524288 /* inDetachedQueue */;
         }
         remove(controller) {
             if (controller.prevDetached !== void 0) {
@@ -304,7 +294,6 @@
             if (this.head === controller) {
                 this.head = controller.nextDetached;
             }
-            controller.state = (controller.state | 524288 /* inDetachedQueue */) ^ 524288 /* inDetachedQueue */;
         }
         process(flags) {
             while (this.head !== void 0) {
@@ -312,8 +301,7 @@
                 this.head = this.tail = void 0;
                 let next;
                 do {
-                    cur.state = (cur.state | 524288 /* inDetachedQueue */) ^ 524288 /* inDetachedQueue */;
-                    cur.detached(flags);
+                    cur.afterDetach(flags);
                     next = cur.nextDetached;
                     cur.nextDetached = void 0;
                     cur.prevDetached = void 0;
@@ -336,11 +324,6 @@
             this.tail = void 0;
         }
         add(controller) {
-            if ((controller.state & 2097152 /* inUnmountQueue */) > 0) {
-                this.lifecycle.unmount.remove(controller);
-                console.log(`in unmount queue during mountQueue.add, so removing`, this);
-                return;
-            }
             if (this.head === void 0) {
                 this.head = controller;
             }
@@ -350,7 +333,6 @@
                 this.tail.nextMount = controller; // implied by mountHead not being undefined
             }
             this.tail = controller;
-            controller.state |= 1048576 /* inMountQueue */;
         }
         remove(controller) {
             if (controller.prevMount !== void 0) {
@@ -367,7 +349,6 @@
             if (this.head === controller) {
                 this.head = controller.nextMount;
             }
-            controller.state = (controller.state | 1048576 /* inMountQueue */) ^ 1048576 /* inMountQueue */;
         }
         process(flags) {
             let i = 0;
@@ -376,7 +357,6 @@
                 this.head = this.tail = void 0;
                 let next;
                 do {
-                    cur.state = (cur.state | 1048576 /* inMountQueue */) ^ 1048576 /* inMountQueue */;
                     ++i;
                     cur.mount(flags);
                     next = cur.nextMount;
@@ -400,10 +380,6 @@
             this.tail = void 0;
         }
         add(controller) {
-            if ((controller.state & 1048576 /* inMountQueue */) > 0) {
-                this.lifecycle.mount.remove(controller);
-                return;
-            }
             if (this.head === void 0) {
                 this.head = controller;
             }
@@ -413,7 +389,6 @@
                 this.tail.nextUnmount = controller; // implied by unmountHead not being undefined
             }
             this.tail = controller;
-            controller.state |= 2097152 /* inUnmountQueue */;
         }
         remove(controller) {
             if (controller.prevUnmount !== void 0) {
@@ -430,7 +405,6 @@
             if (this.head === controller) {
                 this.head = controller.nextUnmount;
             }
-            controller.state = (controller.state | 2097152 /* inUnmountQueue */) ^ 2097152 /* inUnmountQueue */;
         }
         process(flags) {
             let i = 0;
@@ -439,7 +413,6 @@
                 this.head = this.tail = void 0;
                 let next;
                 do {
-                    cur.state = (cur.state | 2097152 /* inUnmountQueue */) ^ 2097152 /* inUnmountQueue */;
                     ++i;
                     cur.unmount(flags);
                     next = cur.nextUnmount;
@@ -509,10 +482,10 @@
             this.batch = new BatchQueue(this);
             this.mount = new MountQueue(this);
             this.unmount = new UnmountQueue(this);
-            this.bound = new BoundQueue(this);
-            this.unbound = new UnboundQueue(this);
-            this.attached = new AttachedQueue(this);
-            this.detached = new DetachedQueue(this);
+            this.afterBind = new BoundQueue(this);
+            this.afterUnbind = new UnboundQueue(this);
+            this.afterAttach = new AttachedQueue(this);
+            this.afterDetach = new DetachedQueue(this);
         }
         static register(container) {
             return kernel_1.Registration.singleton(exports.ILifecycle, this).register(container);

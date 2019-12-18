@@ -16,7 +16,7 @@
             this.hasHref = null;
             this.element = element;
         }
-        binding() {
+        beforeBind() {
             this.updateValue();
         }
         valueChanged(newValue) {

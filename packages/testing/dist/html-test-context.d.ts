@@ -1,5 +1,5 @@
 import { IContainer, IRegistry, Constructable } from '@aurelia/kernel';
-import { ILifecycle, IObserverLocator, IProjectorLocator, IRenderer, IRenderingEngine, ITemplateCompiler, IScheduler } from '@aurelia/runtime';
+import { ILifecycle, IObserverLocator, IProjectorLocator, IRenderer, ITemplateCompiler, IScheduler } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
 export declare class HTMLTestContext {
     readonly wnd: Window;
@@ -23,7 +23,6 @@ export declare class HTMLTestContext {
     get lifecycle(): ILifecycle;
     get renderer(): IRenderer;
     get projectorLocator(): IProjectorLocator;
-    get renderingEngine(): IRenderingEngine;
     get domParser(): HTMLDivElement;
     private _container?;
     private _scheduler?;
@@ -32,7 +31,6 @@ export declare class HTMLTestContext {
     private _lifecycle?;
     private _renderer?;
     private _projectorLocator?;
-    private _renderingEngine?;
     private _domParser?;
     private readonly Scheduler;
     private constructor();

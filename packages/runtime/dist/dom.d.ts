@@ -48,6 +48,7 @@ export interface IDOM<T extends INode = INode> {
     cloneNode<TClone extends T>(node: TClone, deep?: boolean): TClone;
     convertToRenderLocation(node: T): IRenderLocation<T>;
     createDocumentFragment(markupOrNode?: string | T): T;
+    createNodeSequence(fragment: T | null): INodeSequence<T>;
     createElement(name: string): T;
     createCustomEvent(eventType: string, options?: unknown): unknown;
     dispatchEvent(evt: unknown): void;

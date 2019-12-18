@@ -1,5 +1,5 @@
 import { PLATFORM, Registration, Reporter, toArray, Metadata } from '@aurelia/kernel';
-import { IProjectorLocator, CustomElement } from '@aurelia/runtime';
+import { IProjectorLocator, CustomElement, } from '@aurelia/runtime';
 import { IShadowDOMStyles, IShadowDOMGlobalStyles } from './styles/shadow-dom-styles';
 const defaultShadowOptions = {
     mode: 'open'

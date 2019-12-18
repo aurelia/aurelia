@@ -52,6 +52,7 @@
         exports.CustomElement.annotate(target, 'isStrictBinding', true);
     }
     exports.strict = strict;
+    const definitionLookup = new WeakMap();
     class CustomElementDefinition {
         constructor(Type, name, aliases, key, cache, template, instructions, dependencies, injectable, needsCompile, surrogates, bindables, childrenObservers, containerless, isStrictBinding, shadowOptions, hasSlots, strategy, hooks, scopeParts) {
             this.Type = Type;
@@ -110,6 +111,19 @@
             return new CustomElementDefinition(Type, name, kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases), exports.CustomElement.keyFrom(name), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, () => 0), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, () => null), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, () => null), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, () => true), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates), bindable_1.Bindable.from(...bindable_1.Bindable.getAll(Type), exports.CustomElement.getAnnotation(Type, 'bindables'), Type.bindables, nameOrDef.bindables), children_1.Children.from(...children_1.Children.getAll(Type), exports.CustomElement.getAnnotation(Type, 'childrenObservers'), Type.childrenObservers, nameOrDef.childrenObservers), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, () => false), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('isStrictBinding', nameOrDef, Type, () => false), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, () => null), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, () => false), kernel_1.fromAnnotationOrDefinitionOrTypeOrDefault('strategy', nameOrDef, Type, () => 1 /* getterSetter */), 
             // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
             kernel_1.fromAnnotationOrTypeOrDefault('hooks', Type, () => new definitions_1.HooksDefinition(Type.prototype)), kernel_1.mergeArrays(exports.CustomElement.getAnnotation(Type, 'scopeParts'), nameOrDef.scopeParts, Type.scopeParts));
+        }
+        static getOrCreate(partialDefinition) {
+            if (partialDefinition instanceof CustomElementDefinition) {
+                return partialDefinition;
+            }
+            if (definitionLookup.has(partialDefinition)) {
+                return definitionLookup.get(partialDefinition);
+            }
+            const definition = CustomElementDefinition.create(partialDefinition);
+            definitionLookup.set(partialDefinition, definition);
+            // Make sure the full definition can be retrieved from dynamically created classes as well
+            kernel_1.Metadata.define(exports.CustomElement.name, definition, definition.Type);
+            return definition;
         }
         register(container) {
             const { Type, key, aliases } = this;

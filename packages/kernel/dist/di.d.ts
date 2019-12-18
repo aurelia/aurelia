@@ -33,8 +33,6 @@ export interface IRegistry {
     register(container: IContainer, ...params: unknown[]): void | IResolver | IContainer;
 }
 export interface IContainer extends IServiceLocator {
-    readonly id: number;
-    readonly path: string;
     register(...params: any[]): IContainer;
     registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>): IResolver<T>;
     registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;

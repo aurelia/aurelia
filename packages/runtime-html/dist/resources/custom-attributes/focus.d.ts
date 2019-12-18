@@ -1,19 +1,19 @@
-import { INode } from '@aurelia/runtime';
+import { INode, ICustomAttributeController, ICustomAttributeViewModel } from '@aurelia/runtime';
 import { HTMLDOM } from '../../dom';
 /**
  * Focus attribute for element focus binding
  */
-export declare class Focus {
+export declare class Focus implements ICustomAttributeViewModel<HTMLElement> {
     private readonly dom;
+    readonly $controller: ICustomAttributeController<HTMLElement, this>;
     value: unknown;
     /**
-     * Indicates whether `apply` should be called when `attached` callback is invoked
+     * Indicates whether `apply` should be called when `afterAttach` callback is invoked
      */
     private needsApply;
-    private readonly $controller;
     private readonly element;
     constructor(element: INode, dom: HTMLDOM);
-    binding(): void;
+    beforeBind(): void;
     /**
      * Invoked everytime the bound value changes.
      *
@@ -21,13 +21,13 @@ export declare class Focus {
      */
     valueChanged(): void;
     /**
-     * Invoked when the attribute is attached to the DOM.
+     * Invoked when the attribute is afterAttach to the DOM.
      */
-    attached(): void;
+    afterAttach(): void;
     /**
-     * Invoked when the attribute is detached from the DOM.
+     * Invoked when the attribute is afterDetach from the DOM.
      */
-    detached(): void;
+    afterDetach(): void;
     /**
      * EventTarget interface handler for better memory usage
      */

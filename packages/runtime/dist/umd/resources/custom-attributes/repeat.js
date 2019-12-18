@@ -32,7 +32,7 @@
             this.task = lifecycle_task_1.LifecycleTask.done;
             this.normalizedItems = void 0;
         }
-        binding(flags) {
+        beforeBind(flags) {
             this.checkCollectionObserver(flags);
             const bindings = this.renderable.bindings;
             const { length } = bindings;
@@ -49,7 +49,7 @@
             this.processViewsKeyed(void 0, flags);
             return this.task;
         }
-        attaching(flags) {
+        beforeAttach(flags) {
             if (this.task.done) {
                 this.attachViews(void 0, flags);
             }
@@ -57,7 +57,7 @@
                 this.task = new lifecycle_task_1.ContinuationTask(this.task, this.attachViews, this, void 0, flags);
             }
         }
-        detaching(flags) {
+        beforeDetach(flags) {
             if (this.task.done) {
                 this.detachViewsByRange(0, this.views.length, flags);
             }
@@ -65,7 +65,7 @@
                 this.task = new lifecycle_task_1.ContinuationTask(this.task, this.detachViewsByRange, this, 0, this.views.length, flags);
             }
         }
-        unbinding(flags) {
+        beforeUnbind(flags) {
             this.checkCollectionObserver(flags);
             if (this.task.done) {
                 this.task = this.unbindAndRemoveViewsByRange(0, this.views.length, flags, false);
@@ -190,20 +190,20 @@
         }
         detachViewsByRange(iStart, iEnd, flags) {
             const views = this.views;
-            this.$controller.lifecycle.detached.begin();
+            this.$controller.lifecycle.afterDetach.begin();
             let view;
             for (let i = iStart; i < iEnd; ++i) {
                 view = views[i];
                 view.release(flags);
                 view.detach(flags);
             }
-            this.$controller.lifecycle.detached.end(flags);
+            this.$controller.lifecycle.afterDetach.end(flags);
         }
         unbindAndRemoveViewsByRange(iStart, iEnd, flags, adjustLength) {
             const views = this.views;
             let tasks = void 0;
             let task;
-            this.$controller.lifecycle.unbound.begin();
+            this.$controller.lifecycle.afterUnbind.begin();
             let view;
             for (let i = iStart; i < iEnd; ++i) {
                 view = views[i];
@@ -220,14 +220,14 @@
                 this.views.length = iStart;
             }
             if (tasks === undefined) {
-                this.$controller.lifecycle.unbound.end(flags);
+                this.$controller.lifecycle.afterUnbind.end(flags);
                 return lifecycle_task_1.LifecycleTask.done;
             }
-            return new lifecycle_task_1.AggregateContinuationTask(tasks, this.$controller.lifecycle.unbound.end, this.$controller.lifecycle.unbound, flags);
+            return new lifecycle_task_1.AggregateContinuationTask(tasks, this.$controller.lifecycle.afterUnbind.end, this.$controller.lifecycle.afterUnbind, flags);
         }
         detachViewsByKey(indexMap, flags) {
             const views = this.views;
-            this.$controller.lifecycle.detached.begin();
+            this.$controller.lifecycle.afterDetach.begin();
             const deleted = indexMap.deletedItems;
             const deletedLen = deleted.length;
             let view;
@@ -236,13 +236,13 @@
                 view.release(flags);
                 view.detach(flags);
             }
-            this.$controller.lifecycle.detached.end(flags);
+            this.$controller.lifecycle.afterDetach.end(flags);
         }
         unbindAndRemoveViewsByKey(indexMap, flags) {
             const views = this.views;
             let tasks = void 0;
             let task;
-            this.$controller.lifecycle.unbound.begin();
+            this.$controller.lifecycle.afterUnbind.begin();
             const deleted = indexMap.deletedItems;
             const deletedLen = deleted.length;
             let view;
@@ -265,10 +265,10 @@
                 this.views.splice(j, 1);
             }
             if (tasks === undefined) {
-                this.$controller.lifecycle.unbound.end(flags);
+                this.$controller.lifecycle.afterUnbind.end(flags);
                 return lifecycle_task_1.LifecycleTask.done;
             }
-            return new lifecycle_task_1.AggregateContinuationTask(tasks, this.$controller.lifecycle.unbound.end, this.$controller.lifecycle.unbound, flags);
+            return new lifecycle_task_1.AggregateContinuationTask(tasks, this.$controller.lifecycle.afterUnbind.end, this.$controller.lifecycle.afterUnbind, flags);
         }
         createAndBindAllViews(flags) {
             let tasks = void 0;
@@ -278,7 +278,7 @@
             const $controller = this.$controller;
             const lifecycle = $controller.lifecycle;
             const parentScope = $controller.scope;
-            lifecycle.bound.begin();
+            lifecycle.afterBind.begin();
             const part = $controller.part;
             const factory = this.factory;
             const local = this.local;
@@ -299,10 +299,10 @@
                 }
             });
             if (tasks === undefined) {
-                lifecycle.bound.end(flags);
+                lifecycle.afterBind.end(flags);
                 return lifecycle_task_1.LifecycleTask.done;
             }
-            return new lifecycle_task_1.AggregateContinuationTask(tasks, lifecycle.bound.end, lifecycle.bound, flags);
+            return new lifecycle_task_1.AggregateContinuationTask(tasks, lifecycle.afterBind.end, lifecycle.afterBind, flags);
         }
         createAndBindNewViewsByKey(indexMap, flags) {
             let tasks = void 0;
@@ -316,7 +316,7 @@
             const $controller = this.$controller;
             const lifecycle = $controller.lifecycle;
             const parentScope = $controller.scope;
-            lifecycle.bound.begin();
+            lifecycle.afterBind.begin();
             const part = $controller.part;
             const mapLen = indexMap.length;
             for (let i = 0; i < mapLen; ++i) {
@@ -342,17 +342,17 @@
                 throw new Error(`viewsLen=${views.length}, mapLen=${mapLen}`);
             }
             if (tasks === undefined) {
-                lifecycle.bound.end(flags);
+                lifecycle.afterBind.end(flags);
                 return lifecycle_task_1.LifecycleTask.done;
             }
-            return new lifecycle_task_1.AggregateContinuationTask(tasks, lifecycle.bound.end, lifecycle.bound, flags);
+            return new lifecycle_task_1.AggregateContinuationTask(tasks, lifecycle.afterBind.end, lifecycle.afterBind, flags);
         }
         attachViews(indexMap, flags) {
             let view;
             const views = this.views;
             const location = this.location;
             const lifecycle = this.$controller.lifecycle;
-            lifecycle.attached.begin();
+            lifecycle.afterAttach.begin();
             if (indexMap === void 0) {
                 for (let i = 0, ii = views.length; i < ii; ++i) {
                     view = views[i];
@@ -371,19 +371,19 @@
                     }
                 }
             }
-            lifecycle.attached.end(flags);
+            lifecycle.afterAttach.end(flags);
         }
         attachViewsKeyed(flags) {
             let view;
             const { views, location } = this;
-            this.$controller.lifecycle.attached.begin();
+            this.$controller.lifecycle.afterAttach.begin();
             for (let i = 0, ii = views.length; i < ii; ++i) {
                 view = views[i];
                 view.hold(location, 1 /* insertBefore */);
                 view.nodes.unlink();
                 view.attach(flags);
             }
-            this.$controller.lifecycle.attached.end(flags);
+            this.$controller.lifecycle.afterAttach.end(flags);
         }
         sortViewsByKey(oldLength, indexMap, flags) {
             // TODO: integrate with tasks
@@ -395,7 +395,7 @@
             // the items on those indices are not moved; this minimizes the number of DOM operations that need to be performed
             const seq = longestIncreasingSubsequence(indexMap);
             const seqLen = seq.length;
-            this.$controller.lifecycle.attached.begin();
+            this.$controller.lifecycle.afterAttach.begin();
             flags |= 33554432 /* reorderNodes */;
             let next;
             let j = seqLen - 1;
@@ -426,7 +426,7 @@
                     view.nodes.link(location);
                 }
             }
-            this.$controller.lifecycle.attached.end(flags);
+            this.$controller.lifecycle.afterAttach.end(flags);
         }
     };
     tslib_1.__decorate([

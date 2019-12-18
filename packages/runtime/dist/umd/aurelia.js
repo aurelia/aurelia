@@ -109,10 +109,12 @@
         }
         create() {
             const config = this.config;
-            this.viewModel = custom_element_1.CustomElement.isType(config.component)
+            const instance = this.viewModel = custom_element_1.CustomElement.isType(config.component)
                 ? this.container.get(config.component)
                 : config.component;
-            this.controller = controller_1.Controller.forCustomElement(this.viewModel, this.container, this.host, this.strategy);
+            const container = this.container;
+            const lifecycle = container.get(lifecycle_1.ILifecycle);
+            this.controller = controller_1.Controller.forCustomElement(instance, lifecycle, this.host, container, void 0, this.strategy);
         }
     }
     exports.CompositionRoot = CompositionRoot;

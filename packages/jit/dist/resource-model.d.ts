@@ -1,4 +1,4 @@
-import { IResourceDescriptions } from '@aurelia/kernel';
+import { IContainer } from '@aurelia/kernel';
 import { CustomAttributeDefinition, BindingMode, CustomElementDefinition } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { BindingCommandInstance } from './binding-command';
@@ -86,11 +86,14 @@ export declare class AttrInfo {
  * binding commands, optimized for consumption by the template compiler.
  */
 export declare class ResourceModel {
-    private readonly resources;
     private readonly elementLookup;
     private readonly attributeLookup;
     private readonly commandLookup;
-    constructor(resources: IResourceDescriptions);
+    private readonly container;
+    private readonly resourceResolvers;
+    private readonly rootResourceResolvers;
+    constructor(container: IContainer);
+    static getOrCreate(context: IContainer): ResourceModel;
     /**
      * Retrieve information about a custom element resource.
      *
@@ -115,5 +118,7 @@ export declare class ResourceModel {
      * @returns An instance of the command if it exists, or `null` if it does not exist.
      */
     getBindingCommand(syntax: AttrSyntax, optional: boolean): BindingCommandInstance | null;
+    private find;
+    private create;
 }
 //# sourceMappingURL=resource-model.d.ts.map

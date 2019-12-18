@@ -1,7 +1,7 @@
 import { Constructable, IContainer, IResourceKind, Omit, ResourceDefinition, PartialResourceDefinition, ResourceType } from '@aurelia/kernel';
 import { HooksDefinition } from '../definitions';
 import { BindingMode, BindingStrategy } from '../flags';
-import { IViewModel, IController } from '../lifecycle';
+import { ICustomAttributeViewModel, ICustomAttributeController } from '../lifecycle';
 import { BindableDefinition, PartialBindableDefinition } from '../templating/bindable';
 import { INode } from '../dom';
 export declare type PartialCustomAttributeDefinition = PartialResourceDefinition<{
@@ -11,9 +11,9 @@ export declare type PartialCustomAttributeDefinition = PartialResourceDefinition
     readonly strategy?: BindingStrategy;
     readonly hooks?: HooksDefinition;
 }>;
-export declare type CustomAttributeType<T extends Constructable = Constructable> = ResourceType<T, IViewModel, PartialCustomAttributeDefinition>;
+export declare type CustomAttributeType<T extends Constructable = Constructable> = ResourceType<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition>;
 export declare type CustomAttributeKind = IResourceKind<CustomAttributeType, CustomAttributeDefinition> & {
-    for<T extends INode = INode>(node: T, name: string): IController<T> | undefined;
+    for<T extends INode = INode, C extends ICustomAttributeViewModel<T> = ICustomAttributeViewModel<T>>(node: T, name: string): ICustomAttributeController<T, C> | undefined;
     isType<T>(value: T): value is (T extends Constructable ? CustomAttributeType<T> : never);
     define<T extends Constructable>(name: string, Type: T): CustomAttributeType<T>;
     define<T extends Constructable>(def: PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T>;
@@ -37,7 +37,7 @@ export declare function customAttribute(nameOrDef: string | PartialCustomAttribu
 export declare function templateController(definition: Omit<PartialCustomAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator;
 export declare function templateController(name: string): CustomAttributeDecorator;
 export declare function templateController(nameOrDef: string | Omit<PartialCustomAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator;
-export declare class CustomAttributeDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, IViewModel, PartialCustomAttributeDefinition> {
+export declare class CustomAttributeDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition> {
     readonly Type: CustomAttributeType<T>;
     readonly name: string;
     readonly aliases: readonly string[];

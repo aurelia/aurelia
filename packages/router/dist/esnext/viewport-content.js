@@ -1,5 +1,5 @@
 import { Reporter } from '@aurelia/kernel';
-import { Controller } from '@aurelia/runtime';
+import { Controller, ILifecycle } from '@aurelia/runtime';
 import { mergeParameters } from './parser';
 import { ViewportInstruction } from './viewport-instruction';
 export var ContentStatus;
@@ -131,9 +131,9 @@ export class ViewportContent {
         if (!this.fromCache || !this.fromHistory) {
             const host = element;
             const container = context;
-            Controller.forCustomElement(this.content.componentInstance, container, host);
+            Controller.forCustomElement(this.content.componentInstance, container.get(ILifecycle), host, container, void 0);
         }
-        // Temporarily tag content so that it can find parent scope before viewport is attached
+        // Temporarily tag content so that it can find parent scope before viewport is afterAttach
         const childNodes = this.content.componentInstance.$controller.nodes.childNodes;
         for (let i = 0; i < childNodes.length; i++) {
             const child = childNodes[i];

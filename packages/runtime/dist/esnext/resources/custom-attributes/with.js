@@ -19,17 +19,17 @@ let With = class With {
             this.bindChild(4096 /* fromBind */);
         }
     }
-    binding(flags) {
+    beforeBind(flags) {
         this.view.parent = this.$controller;
         this.bindChild(flags);
     }
-    attaching(flags) {
+    beforeAttach(flags) {
         this.view.attach(flags);
     }
-    detaching(flags) {
+    beforeDetach(flags) {
         this.view.detach(flags);
     }
-    unbinding(flags) {
+    beforeUnbind(flags) {
         this.view.unbind(flags);
         this.view.parent = void 0;
     }

@@ -4,12 +4,11 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/kernel", "@aurelia/runtime", "./projectors"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./projectors"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const projectors_1 = require("./projectors");
@@ -47,6 +46,7 @@
                 runtime_1.DOM.destroy();
             }
             runtime_1.DOM.initialize(this);
+            this.emptyNodes = new FragmentNodeSequence(this, document.createDocumentFragment());
         }
         static register(container) {
             return kernel_1.Registration.alias(runtime_1.IDOM, this).register(container);
@@ -88,6 +88,12 @@
                 return fragment;
             }
             return this.createTemplate(markupOrNode).content;
+        }
+        createNodeSequence(fragment) {
+            if (fragment === null) {
+                return this.emptyNodes;
+            }
+            return new FragmentNodeSequence(this, fragment.cloneNode(true));
         }
         createElement(name) {
             return this.document.createElement(name);
@@ -392,24 +398,6 @@
         }
     }
     exports.FragmentNodeSequence = FragmentNodeSequence;
-    class NodeSequenceFactory {
-        constructor(dom, markupOrNode) {
-            this.dom = dom;
-            if (markupOrNode === null) {
-                this.node = null;
-            }
-            else {
-                this.node = dom.createDocumentFragment(markupOrNode);
-            }
-        }
-        createNodeSequence() {
-            if (this.node === null) {
-                return runtime_1.NodeSequence.empty;
-            }
-            return new FragmentNodeSequence(this.dom, this.node.cloneNode(true));
-        }
-    }
-    exports.NodeSequenceFactory = NodeSequenceFactory;
     /** @internal */
     class AuMarker {
         constructor(nextSibling) {
@@ -428,22 +416,5 @@
         proto.nodeName = 'AU-M';
         proto.nodeType = 1 /* Element */;
     })(AuMarker.prototype);
-    /** @internal */
-    let HTMLTemplateFactory = class HTMLTemplateFactory {
-        constructor(dom) {
-            this.dom = dom;
-        }
-        static register(container) {
-            return kernel_1.Registration.singleton(runtime_1.ITemplateFactory, this).register(container);
-        }
-        create(parentRenderContext, definition) {
-            return new runtime_1.CompiledTemplate(this.dom, definition, new NodeSequenceFactory(this.dom, definition.template), parentRenderContext);
-        }
-    };
-    HTMLTemplateFactory = tslib_1.__decorate([
-        tslib_1.__param(0, runtime_1.IDOM),
-        tslib_1.__metadata("design:paramtypes", [Object])
-    ], HTMLTemplateFactory);
-    exports.HTMLTemplateFactory = HTMLTemplateFactory;
 });
 //# sourceMappingURL=dom.js.map

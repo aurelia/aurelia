@@ -1,14 +1,15 @@
-import { Constructable } from '@aurelia/kernel';
+import { Constructable, IIndexable } from '@aurelia/kernel';
 import { INode } from '../dom';
-import { IController, IViewModel } from '../lifecycle';
+import { ICustomElementViewModel, ICustomElementController } from '../lifecycle';
 import { IElementProjector } from '../resources/custom-element';
+import { ISubscriberCollection, IAccessor, ISubscribable, IPropertyObserver } from '../observation';
 export declare type PartialChildrenDefinition<TNode extends INode = INode> = {
     callback?: string;
     property?: string;
     options?: MutationObserverInit;
     query?: (projector: IElementProjector<TNode>) => ArrayLike<TNode>;
-    filter?: (node: TNode, controller?: IController<TNode>, viewModel?: IViewModel<TNode>) => boolean;
-    map?: (node: TNode, controller?: IController<TNode>, viewModel?: IViewModel<TNode>) => any;
+    filter?: (node: TNode, controller?: ICustomElementController<TNode>, viewModel?: ICustomElementViewModel<TNode>) => boolean;
+    map?: (node: TNode, controller?: ICustomElementController<TNode>, viewModel?: ICustomElementViewModel<TNode>) => any;
 };
 /**
  * Decorator: Specifies custom behavior for an array children property that synchronizes its items with child content nodes of the element.
@@ -40,9 +41,11 @@ export declare class ChildrenDefinition<TNode extends INode = INode> {
     readonly property: string;
     readonly options?: MutationObserverInit | undefined;
     readonly query?: ((projector: IElementProjector<TNode>) => ArrayLike<TNode>) | undefined;
-    readonly filter?: ((node: TNode, controller?: IController<TNode, IViewModel<TNode>> | undefined, viewModel?: IViewModel<TNode> | undefined) => boolean) | undefined;
-    readonly map?: ((node: TNode, controller?: IController<TNode, IViewModel<TNode>> | undefined, viewModel?: IViewModel<TNode> | undefined) => any) | undefined;
+    readonly filter?: ((node: TNode, controller?: ICustomElementController<TNode, ICustomElementViewModel<TNode>> | undefined, viewModel?: ICustomElementViewModel<TNode> | undefined) => boolean) | undefined;
+    readonly map?: ((node: TNode, controller?: ICustomElementController<TNode, ICustomElementViewModel<TNode>> | undefined, viewModel?: ICustomElementViewModel<TNode> | undefined) => any) | undefined;
     private constructor();
     static create<TNode extends INode = INode>(prop: string, def?: PartialChildrenDefinition<TNode>): ChildrenDefinition<TNode>;
+}
+export interface ChildrenObserver extends IAccessor, ISubscribable, ISubscriberCollection, IPropertyObserver<IIndexable, string> {
 }
 //# sourceMappingURL=children.d.ts.map

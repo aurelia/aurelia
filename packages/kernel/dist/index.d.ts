@@ -6,7 +6,7 @@ export { relativeToFile, join, buildQueryString, parseQueryString, IQueryParams 
 export { PLATFORM } from './platform';
 export { ITraceInfo, ITraceWriter, ILiveLoggingOptions, Reporter, Tracer, LogLevel, } from './reporter';
 export { Profiler } from './profiler';
-export { IResourceDescriptions, IResourceKind, PartialResourceDefinition, Protocol, ResourceDefinition, ResourceType, RuntimeCompilationResources, fromAnnotationOrDefinitionOrTypeOrDefault, fromAnnotationOrTypeOrDefault, fromDefinitionOrDefault, } from './resource';
+export { IResourceKind, PartialResourceDefinition, Protocol, ResourceDefinition, ResourceType, fromAnnotationOrDefinitionOrTypeOrDefault, fromAnnotationOrTypeOrDefault, fromDefinitionOrDefault, } from './resource';
 export { EventAggregator, EventAggregatorCallback, IEventAggregator, } from './eventaggregator';
 export { isNumeric, camelCase, kebabCase, pascalCase, toArray, nextId, resetId, compareNumber, mergeDistinct, isNumberOrBigInt, isStringOrDate, bound, mergeArrays, mergeObjects, firstDefined, getPrototypeChain, isObject, isNullOrUndefined, isNativeFunction, } from './functions';
 //# sourceMappingURL=index.d.ts.map

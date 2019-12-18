@@ -85,10 +85,10 @@ let Blur = class Blur {
         this.value = unset;
         this.manager = BlurManager.createFor(dom, scheduler);
     }
-    attached() {
+    afterAttach() {
         this.manager.register(this);
     }
-    detaching() {
+    beforeDetach() {
         this.manager.unregister(this);
     }
     handleEventTarget(target) {

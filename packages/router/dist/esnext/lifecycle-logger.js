@@ -3,10 +3,10 @@ export function lifecycleLogger(name) {
         'canLeave', 'leave',
         'canEnter', 'enter',
         'created',
-        'binding', 'bound',
-        'attaching', 'attached',
-        'detaching', 'detached',
-        'unbinding', 'unbound',
+        'beforeBind', 'afterBind',
+        'beforeAttach', 'afterAttach',
+        'beforeDetach', 'afterDetach',
+        'beforeUnbind', 'afterUnbind',
     ];
     return function (target) {
         for (const lifecycle of lifecycles) {
@@ -32,15 +32,15 @@ export class LifecycleClass {
     canEnter() { console.log(`name canEnter`); return true; }
     enter(params) { console.log(`name enter`); }
     created() { console.log(`name created`); }
-    binding() { console.log(`name binding`); }
-    bound() { console.log(`name bound`); }
-    attaching() { console.log(`name attaching`); }
-    attached() { console.log(`name attached`); }
+    beforeBind() { console.log(`name binding`); }
+    afterBind() { console.log(`name bound`); }
+    beforeAttach() { console.log(`name beforeAttach`); }
+    afterAttach() { console.log(`name afterAttach`); }
     canLeave() { console.log(`name canLeave`); return true; }
     leave() { console.log(`name leave`); }
-    detaching() { console.log(`name detaching`); }
-    detached() { console.log(`name detached`); }
-    unbinding() { console.log(`name unbinding`); }
-    unbound() { console.log(`name unbound`); }
+    beforeDetach() { console.log(`name beforeDetach`); }
+    afterDetach() { console.log(`name afterDetach`); }
+    beforeUnbind() { console.log(`name beforeUnbind`); }
+    afterUnbind() { console.log(`name unbound`); }
 }
 //# sourceMappingURL=lifecycle-logger.js.map

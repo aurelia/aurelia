@@ -8,7 +8,7 @@ export class CSSModulesProcessorRegistry {
             constructor(element) {
                 this.element = element;
             }
-            binding() {
+            beforeBind() {
                 this.valueChanged();
             }
             valueChanged() {

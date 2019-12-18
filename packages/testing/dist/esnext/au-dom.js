@@ -1,9 +1,8 @@
 import { __decorate, __metadata } from "tslib";
 import { parseExpression } from '@aurelia/jit';
 import { DI, IContainer, inject, Registration, Metadata } from '@aurelia/kernel';
-import { addBinding, Aurelia, BindingMode, CompiledTemplate, HydrateElementInstruction, HydrateTemplateController, IDOM, IDOMInitializer, ILifecycle, INode, instructionRenderer, IObserverLocator, IProjectorLocator, ITargetAccessorLocator, ITargetObserverLocator, ITemplateFactory, IteratorBindingInstruction, LetBindingInstruction, LetElementInstruction, PropertyBinding, RuntimeConfiguration, ToViewBindingInstruction, ITemplateCompiler, IScheduler, CustomElement } from '@aurelia/runtime';
+import { Aurelia, BindingMode, HydrateElementInstruction, HydrateTemplateController, IDOM, IDOMInitializer, ILifecycle, INode, instructionRenderer, IObserverLocator, IProjectorLocator, ITargetAccessorLocator, ITargetObserverLocator, IteratorBindingInstruction, LetBindingInstruction, LetElementInstruction, PropertyBinding, RuntimeConfiguration, ToViewBindingInstruction, ITemplateCompiler, IScheduler, CustomElement } from '@aurelia/runtime';
 import { TestContext } from './html-test-context';
-const slice = Array.prototype.slice;
 export class AuNode {
     constructor(name, isWrapper, isTarget, isMarker, isRenderLocation, isMounted, isConnected) {
         this.nodeName = name;
@@ -196,6 +195,9 @@ export class AuNode {
     }
 }
 export class AuDOM {
+    createNodeSequence(fragment) {
+        return new AuNodeSequence(this, fragment.cloneNode(true));
+    }
     addEventListener(eventName, subscriber, publisher, options) {
         return;
     }
@@ -466,15 +468,6 @@ export class AuDOMInitializer {
     }
 }
 AuDOMInitializer.inject = [IContainer];
-export class AuTemplateFactory {
-    constructor(dom) {
-        this.dom = dom;
-    }
-    create(parentRenderContext, definition) {
-        return new CompiledTemplate(this.dom, definition, new AuNodeSequenceFactory(this.dom, definition.template), parentRenderContext);
-    }
-}
-AuTemplateFactory.inject = [IDOM];
 export class AuObserverLocator {
     getObserver(flags, scheduler, lifecycle, observerLocator, obj, propertyName) {
         return null;
@@ -501,7 +494,7 @@ class AuTextRenderer {
     constructor(observerLocator) {
         this.observerLocator = observerLocator;
     }
-    render(flags, dom, context, renderable, target, instruction) {
+    render(flags, context, controller, target, instruction) {
         let realTarget;
         if (target.isRenderLocation) {
             realTarget = AuNode.createText();
@@ -511,7 +504,7 @@ class AuTextRenderer {
             realTarget = target;
         }
         const bindable = new PropertyBinding(instruction.from, realTarget, 'textContent', BindingMode.toView, this.observerLocator, context);
-        addBinding(renderable, bindable);
+        controller.addBinding(bindable);
     }
 };
 AuTextRenderer = __decorate([
@@ -524,7 +517,7 @@ AuTextRenderer = __decorate([
 export { AuTextRenderer };
 export const AuDOMConfiguration = {
     register(container) {
-        container.register(RuntimeConfiguration, AuTextRenderer, Registration.singleton(IDOM, AuDOM), Registration.singleton(IDOMInitializer, AuDOMInitializer), Registration.singleton(IProjectorLocator, AuProjectorLocator), Registration.singleton(ITargetAccessorLocator, AuObserverLocator), Registration.singleton(ITargetObserverLocator, AuObserverLocator), Registration.singleton(ITemplateFactory, AuTemplateFactory), Registration.instance(ITemplateCompiler, {}));
+        container.register(RuntimeConfiguration, AuTextRenderer, Registration.singleton(IDOM, AuDOM), Registration.singleton(IDOMInitializer, AuDOMInitializer), Registration.singleton(IProjectorLocator, AuProjectorLocator), Registration.singleton(ITargetAccessorLocator, AuObserverLocator), Registration.singleton(ITargetObserverLocator, AuObserverLocator), Registration.instance(ITemplateCompiler, {}));
     },
     createContainer() {
         const scheduler = TestContext.createHTMLTestContext().scheduler;

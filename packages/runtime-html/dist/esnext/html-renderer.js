@@ -1,5 +1,5 @@
 import { __decorate, __metadata, __param } from "tslib";
-import { addBinding, BindingMode, ensureExpression, IExpressionParser, instructionRenderer, InterpolationBinding, IObserverLocator, MultiInterpolationBinding, PropertyBinding, applyBindingBehavior } from '@aurelia/runtime';
+import { BindingMode, ensureExpression, IExpressionParser, instructionRenderer, InterpolationBinding, IObserverLocator, MultiInterpolationBinding, PropertyBinding, applyBindingBehavior, } from '@aurelia/runtime';
 import { AttributeBinding } from './binding/attribute';
 import { Listener } from './binding/listener';
 import { IEventManager } from './observation/event-manager';
@@ -10,10 +10,10 @@ class TextBindingRenderer {
         this.parser = parser;
         this.observerLocator = observerLocator;
     }
-    render(flags, dom, context, renderable, target, instruction) {
+    render(flags, context, controller, target, instruction) {
         const next = target.nextSibling;
-        if (dom.isMarker(target)) {
-            dom.remove(target);
+        if (context.dom.isMarker(target)) {
+            context.dom.remove(target);
         }
         let binding;
         const expr = ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
@@ -23,7 +23,7 @@ class TextBindingRenderer {
         else {
             binding = applyBindingBehavior(new InterpolationBinding(expr.firstExpression, expr, next, 'textContent', BindingMode.toView, this.observerLocator, context, true), expr, context);
         }
-        addBinding(renderable, binding);
+        controller.addBinding(binding);
     }
 };
 TextBindingRenderer = __decorate([
@@ -42,11 +42,11 @@ class ListenerBindingRenderer {
         this.parser = parser;
         this.eventManager = eventManager;
     }
-    render(flags, dom, context, renderable, target, instruction) {
+    render(flags, context, controller, target, instruction) {
         // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
         const expr = ensureExpression(this.parser, instruction.from, 80 /* IsEventCommand */ | (instruction.strategy + 6 /* DelegationStrategyDelta */));
-        const binding = applyBindingBehavior(new Listener(dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context), expr, context);
-        addBinding(renderable, binding);
+        const binding = applyBindingBehavior(new Listener(context.dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context), expr, context);
+        controller.addBinding(binding);
     }
 };
 ListenerBindingRenderer = __decorate([
@@ -61,7 +61,7 @@ export { ListenerBindingRenderer };
 let SetAttributeRenderer = 
 /** @internal */
 class SetAttributeRenderer {
-    render(flags, dom, context, renderable, target, instruction) {
+    render(flags, context, controller, target, instruction) {
         target.setAttribute(instruction.to, instruction.value);
     }
 };
@@ -71,7 +71,7 @@ SetAttributeRenderer = __decorate([
 ], SetAttributeRenderer);
 export { SetAttributeRenderer };
 let SetClassAttributeRenderer = class SetClassAttributeRenderer {
-    render(flags, dom, context, renderable, target, instruction) {
+    render(flags, context, controller, target, instruction) {
         addClasses(target.classList, instruction.value);
     }
 };
@@ -80,7 +80,7 @@ SetClassAttributeRenderer = __decorate([
 ], SetClassAttributeRenderer);
 export { SetClassAttributeRenderer };
 let SetStyleAttributeRenderer = class SetStyleAttributeRenderer {
-    render(flags, dom, context, renderable, target, instruction) {
+    render(flags, context, controller, target, instruction) {
         target.style.cssText += instruction.value;
     }
 };
@@ -95,10 +95,10 @@ class StylePropertyBindingRenderer {
         this.parser = parser;
         this.observerLocator = observerLocator;
     }
-    render(flags, dom, context, renderable, target, instruction) {
+    render(flags, context, controller, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | BindingMode.toView);
         const binding = applyBindingBehavior(new PropertyBinding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, context), expr, context);
-        addBinding(renderable, binding);
+        controller.addBinding(binding);
     }
 };
 StylePropertyBindingRenderer = __decorate([
@@ -117,10 +117,10 @@ class AttributeBindingRenderer {
         this.parser = parser;
         this.observerLocator = observerLocator;
     }
-    render(flags, dom, context, renderable, target, instruction) {
+    render(flags, context, controller, target, instruction) {
         const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | BindingMode.toView);
         const binding = applyBindingBehavior(new AttributeBinding(expr, target, instruction.attr /* targetAttribute */, instruction.to /* targetKey */, BindingMode.toView, this.observerLocator, context), expr, context);
-        addBinding(renderable, binding);
+        controller.addBinding(binding);
     }
 };
 AttributeBindingRenderer = __decorate([

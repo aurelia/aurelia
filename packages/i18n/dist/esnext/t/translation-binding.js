@@ -1,7 +1,7 @@
 var TranslationBinding_1;
 import { __decorate, __metadata } from "tslib";
 import { IEventAggregator, IServiceLocator, toArray } from '@aurelia/kernel';
-import { addBinding, connectable, CustomElement, CustomExpression, DOM, ensureExpression, Interpolation, IObserverLocator, INode } from '@aurelia/runtime';
+import { connectable, CustomElement, CustomExpression, DOM, ensureExpression, Interpolation, IObserverLocator, INode, } from '@aurelia/runtime';
 import { I18N } from '../i18n';
 const contentAttributes = ['textContent', 'innerHTML', 'prepend', 'append'];
 const attributeAliases = new Map([['text', 'textContent'], ['html', 'innerHTML']]);
@@ -18,8 +18,8 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
         ea.subscribe("i18n:locale:changed" /* I18N_EA_CHANNEL */, this.handleLocaleChange.bind(this));
         this.targetObservers = new Set();
     }
-    static create({ parser, observerLocator, context, renderable, target, instruction, isParameterContext }) {
-        const binding = this.getBinding({ observerLocator, context, renderable, target });
+    static create({ parser, observerLocator, context, controller, target, instruction, isParameterContext, }) {
+        const binding = this.getBinding({ observerLocator, context, controller, target });
         const expr = ensureExpression(parser, instruction.from, 53 /* BindCommand */);
         if (!isParameterContext) {
             const interpolation = expr instanceof CustomExpression ? parser.parse(expr.value, 2048 /* Interpolation */) : undefined;
@@ -29,11 +29,11 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
             binding.parametersExpr = expr;
         }
     }
-    static getBinding({ observerLocator, context, renderable, target }) {
-        let binding = renderable.bindings && renderable.bindings.find((b) => b instanceof TranslationBinding_1 && b.target === target);
+    static getBinding({ observerLocator, context, controller, target, }) {
+        let binding = controller.bindings && controller.bindings.find((b) => b instanceof TranslationBinding_1 && b.target === target);
         if (!binding) {
             binding = new TranslationBinding_1(target, observerLocator, context);
-            addBinding(renderable, binding);
+            controller.addBinding(binding);
         }
         return binding;
     }

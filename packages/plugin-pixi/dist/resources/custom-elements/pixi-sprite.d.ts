@@ -53,7 +53,7 @@ export declare class PixiSprite {
     $controller: IController<Element, this>;
     private _sprite;
     constructor();
-    attached(): void;
-    detached(): void;
+    afterAttach(): void;
+    afterDetach(): void;
 }
 //# sourceMappingURL=pixi-sprite.d.ts.map

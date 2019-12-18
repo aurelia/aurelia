@@ -462,12 +462,6 @@ function isRegistry(obj) {
 function isClass(obj) {
     return obj.prototype !== void 0;
 }
-const nextContainerId = (function () {
-    let id = 0;
-    return function () {
-        return ++id;
-    };
-})();
 function isResourceKey(key) {
     return typeof key === 'string' && key.indexOf(':') > 0;
 }
@@ -475,16 +469,13 @@ function isResourceKey(key) {
 export class Container {
     constructor(parent) {
         this.parent = parent;
-        this.id = nextContainerId();
         this.registerDepth = 0;
         if (parent === null) {
-            this.path = this.id.toString();
             this.root = this;
             this.resolvers = new Map();
             this.resourceResolvers = Object.create(null);
         }
         else {
-            this.path = `${parent.path}.${this.id}`;
             this.root = parent.root;
             this.resolvers = new Map();
             this.resourceResolvers = Object.assign(Object.create(null), this.root.resourceResolvers);

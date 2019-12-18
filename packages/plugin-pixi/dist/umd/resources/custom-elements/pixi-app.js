@@ -26,7 +26,7 @@
         get app() {
             return this._app;
         }
-        bound() {
+        afterBind() {
             const boundOptions = {
                 width: typeof this.width === 'string' ? parseInt(this.width, 10) : this.width,
                 height: typeof this.height === 'string' ? parseInt(this.height, 10) : this.height,
@@ -53,19 +53,19 @@
             }
             this.stage = this._app.stage;
         }
-        attached() {
+        afterAttach() {
             if (this._app !== null) {
                 this.element.appendChild(this._app.view);
                 this._app.ticker.add(this.callTick);
             }
         }
-        detached() {
+        afterDetach() {
             if (this._app !== null) {
                 this.element.removeChild(this._app.view);
                 this._app.ticker.remove(this.callTick);
             }
         }
-        unbound() {
+        afterUnbind() {
             if (this.app !== null) {
                 this.app.destroy();
             }

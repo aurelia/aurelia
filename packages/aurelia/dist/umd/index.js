@@ -138,7 +138,6 @@
     // IResourceType,
     // ResourceDescription,
     // ResourcePartDescription,
-    exports.RuntimeCompilationResources = kernel_1.RuntimeCompilationResources;
     // fromAnnotationOrDefinitionOrTypeOrDefault,
     // fromAnnotationOrTypeOrDefault,
     // fromDefinitionOrDefault,
@@ -499,7 +498,7 @@
     // IBinding,
     exports.ILifecycle = runtime_1.ILifecycle;
     // IController,
-    // IRenderContext,
+    // IContainer,
     // IViewCache,
     // IViewFactory,
     // MountStrategy,
@@ -544,8 +543,6 @@
     // createIndexMap,
     exports.instructionRenderer = runtime_1.instructionRenderer;
     exports.ensureExpression = runtime_1.ensureExpression;
-    exports.addComponent = runtime_1.addComponent;
-    exports.addBinding = runtime_1.addBinding;
     var runtime_html_1 = require("@aurelia/runtime-html");
     // Listener,
     // AttributeBinding,

@@ -23,7 +23,6 @@
     exports.AuObserverLocator = au_dom_1.AuObserverLocator;
     exports.AuProjector = au_dom_1.AuProjector;
     exports.AuProjectorLocator = au_dom_1.AuProjectorLocator;
-    exports.AuTemplateFactory = au_dom_1.AuTemplateFactory;
     exports.AuTextInstruction = au_dom_1.AuTextInstruction;
     exports.AuTextRenderer = au_dom_1.AuTextRenderer;
     var data_1 = require("./data");

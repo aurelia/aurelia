@@ -4,12 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./lifecycle-task", "./templating/controller"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./lifecycle", "./lifecycle-task", "./templating/controller"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const kernel_1 = require("@aurelia/kernel");
+    const lifecycle_1 = require("./lifecycle");
     const lifecycle_task_1 = require("./lifecycle-task");
     const controller_1 = require("./templating/controller");
     exports.IActivator = kernel_1.DI.createInterface('IActivator').withDefault(x => x.singleton(Activator));
@@ -21,15 +22,15 @@
         static register(container) {
             return kernel_1.Registration.singleton(exports.IActivator, this).register(container);
         }
-        activate(host, component, locator, flags = 1024 /* fromStartTask */, parentScope) {
+        activate(host, component, container, flags = 1024 /* fromStartTask */, parentScope) {
             flags = flags === void 0 ? 0 /* none */ : flags;
             const mgr = this.taskManager;
             let task = mgr.runBeforeRender();
             if (task.done) {
-                this.render(host, component, locator, flags);
+                this.render(host, component, container, flags);
             }
             else {
-                task = new lifecycle_task_1.ContinuationTask(task, this.render, this, host, component, locator, flags);
+                task = new lifecycle_task_1.ContinuationTask(task, this.render, this, host, component, container, flags);
             }
             if (task.done) {
                 task = mgr.runBeforeBind();
@@ -58,21 +59,19 @@
             return task;
         }
         deactivate(component, flags = 2048 /* fromStopTask */) {
-            const controller = this.getController(component);
+            const controller = controller_1.Controller.getCachedOrThrow(component);
             controller.detach(flags | 32768 /* fromDetach */);
             return controller.unbind(flags | 8192 /* fromUnbind */);
         }
-        render(host, component, locator, flags) {
-            controller_1.Controller.forCustomElement(component, locator, host, flags);
+        render(host, component, container, flags) {
+            const lifecycle = container.get(lifecycle_1.ILifecycle);
+            controller_1.Controller.forCustomElement(component, lifecycle, host, container, void 0, flags);
         }
         bind(component, flags, parentScope) {
-            return this.getController(component).bind(flags | 4096 /* fromBind */, parentScope);
+            return controller_1.Controller.getCachedOrThrow(component).bind(flags | 4096 /* fromBind */, parentScope);
         }
         attach(component, flags) {
-            this.getController(component).attach(flags | 16384 /* fromAttach */);
-        }
-        getController(component) {
-            return controller_1.Controller.forCustomElement(component, (void 0), (void 0));
+            controller_1.Controller.getCachedOrThrow(component).attach(flags | 16384 /* fromAttach */);
         }
     }
     exports.Activator = Activator;

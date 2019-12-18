@@ -1,5 +1,6 @@
+import { IContainer } from '@aurelia/kernel';
 import { AttrSyntax, BindingSymbol, BindingCommandInstance, PlainAttributeSymbol } from '@aurelia/jit';
-import { BindingMode, BindingType, ICallBindingInstruction, IController, IDOM, IExpressionParser, IInstructionRenderer, IObserverLocator, IRenderContext, IsBindingBehavior, LifecycleFlags } from '@aurelia/runtime';
+import { BindingMode, BindingType, ICallBindingInstruction, IExpressionParser, IInstructionRenderer, IObserverLocator, IsBindingBehavior, LifecycleFlags, IRenderableController } from '@aurelia/runtime';
 export declare const TranslationInstructionType = "tt";
 export declare class TranslationAttributePattern {
     [key: string]: ((rawName: string, rawValue: string, parts: string[]) => AttrSyntax);
@@ -20,7 +21,7 @@ export declare class TranslationBindingRenderer implements IInstructionRenderer 
     private readonly parser;
     private readonly observerLocator;
     constructor(parser: IExpressionParser, observerLocator: IObserverLocator);
-    render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: ICallBindingInstruction): void;
+    render(flags: LifecycleFlags, context: IContainer, controller: IRenderableController, target: HTMLElement, instruction: ICallBindingInstruction): void;
 }
 export declare const TranslationBindInstructionType = "tbt";
 export declare class TranslationBindAttributePattern {
@@ -42,6 +43,6 @@ export declare class TranslationBindBindingRenderer implements IInstructionRende
     private readonly parser;
     private readonly observerLocator;
     constructor(parser: IExpressionParser, observerLocator: IObserverLocator);
-    render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: ICallBindingInstruction): void;
+    render(flags: LifecycleFlags, context: IContainer, controller: IRenderableController, target: HTMLElement, instruction: ICallBindingInstruction): void;
 }
 //# sourceMappingURL=translation-renderer.d.ts.map

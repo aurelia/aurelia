@@ -142,9 +142,9 @@
             if (!this.fromCache || !this.fromHistory) {
                 const host = element;
                 const container = context;
-                runtime_1.Controller.forCustomElement(this.content.componentInstance, container, host);
+                runtime_1.Controller.forCustomElement(this.content.componentInstance, container.get(runtime_1.ILifecycle), host, container, void 0);
             }
-            // Temporarily tag content so that it can find parent scope before viewport is attached
+            // Temporarily tag content so that it can find parent scope before viewport is afterAttach
             const childNodes = this.content.componentInstance.$controller.nodes.childNodes;
             for (let i = 0; i < childNodes.length; i++) {
                 const child = childNodes[i];

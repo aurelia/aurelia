@@ -26,10 +26,25 @@ export declare const enum TargetedInstructionType {
 }
 export declare type PartialCustomElementDefinitionParts = Record<string, PartialCustomElementDefinition>;
 export declare type CustomElementDefinitionParts = Record<string, CustomElementDefinition>;
+/**
+ * Efficiently merge parts, performing the minimal amount of work / using the minimal amount of memory.
+ *
+ * If either of the two part records is undefined, the other will simply be returned.
+ *
+ * If both are undefined, undefined will be returned.
+ *
+ * If neither are undefined, a new object will be returned where parts of the second value will be written last (and thus may overwrite duplicate named parts).
+ *
+ * This function is idempotent via a WeakMap cache: results are cached and if the same two variables are provided again, the same object will be returned.
+ */
+export declare function mergeParts(parentParts: PartialCustomElementDefinitionParts | undefined, ownParts: PartialCustomElementDefinitionParts | undefined): PartialCustomElementDefinitionParts | undefined;
 export declare type InstructionTypeName = string;
 export declare const ITargetedInstruction: import("@aurelia/kernel").InterfaceSymbol<ITargetedInstruction>;
 export interface ITargetedInstruction {
     type: InstructionTypeName;
+}
+export interface IHydrateInstruction extends ITargetedInstruction {
+    readonly instructions: readonly ITargetedInstruction[];
 }
 export declare type NodeInstruction = IHydrateElementInstruction | IHydrateTemplateController | IHydrateLetElementInstruction;
 export declare type AttributeInstruction = IInterpolationInstruction | IPropertyBindingInstruction | IIteratorBindingInstruction | ICallBindingInstruction | IRefBindingInstruction | ISetPropertyInstruction | ILetBindingInstruction | IHydrateAttributeInstruction;
@@ -68,18 +83,18 @@ export interface ISetPropertyInstruction extends ITargetedInstruction {
     value: unknown;
     to: string;
 }
-export interface IHydrateElementInstruction extends ITargetedInstruction {
+export interface IHydrateElementInstruction extends IHydrateInstruction {
     type: TargetedInstructionType.hydrateElement;
     res: string;
     instructions: ITargetedInstruction[];
     parts?: Record<string, PartialCustomElementDefinition>;
 }
-export interface IHydrateAttributeInstruction extends ITargetedInstruction {
+export interface IHydrateAttributeInstruction extends IHydrateInstruction {
     type: TargetedInstructionType.hydrateAttribute;
     res: string;
     instructions: ITargetedInstruction[];
 }
-export interface IHydrateTemplateController extends ITargetedInstruction {
+export interface IHydrateTemplateController extends IHydrateInstruction {
     type: TargetedInstructionType.hydrateTemplateController;
     res: string;
     instructions: ITargetedInstruction[];
@@ -87,7 +102,7 @@ export interface IHydrateTemplateController extends ITargetedInstruction {
     link?: boolean;
     parts?: Record<string, PartialCustomElementDefinition>;
 }
-export interface IHydrateLetElementInstruction extends ITargetedInstruction {
+export interface IHydrateLetElementInstruction extends IHydrateInstruction {
     type: TargetedInstructionType.hydrateLetElement;
     instructions: ILetBindingInstruction[];
     toBindingContext: boolean;
@@ -99,16 +114,18 @@ export interface ILetBindingInstruction extends ITargetedInstruction {
 }
 export declare class HooksDefinition {
     static readonly none: Readonly<HooksDefinition>;
-    readonly hasRender: boolean;
-    readonly hasCreated: boolean;
-    readonly hasBinding: boolean;
-    readonly hasBound: boolean;
-    readonly hasUnbinding: boolean;
-    readonly hasUnbound: boolean;
-    readonly hasAttaching: boolean;
-    readonly hasAttached: boolean;
-    readonly hasDetaching: boolean;
-    readonly hasDetached: boolean;
+    readonly hasCreate: boolean;
+    readonly hasBeforeCompile: boolean;
+    readonly hasAfterCompile: boolean;
+    readonly hasAfterCompileChildren: boolean;
+    readonly hasBeforeBind: boolean;
+    readonly hasAfterBind: boolean;
+    readonly hasBeforeUnbind: boolean;
+    readonly hasAfterUnbind: boolean;
+    readonly hasBeforeAttach: boolean;
+    readonly hasAfterAttach: boolean;
+    readonly hasBeforeDetach: boolean;
+    readonly hasAfterDetach: boolean;
     readonly hasCaching: boolean;
     constructor(target: object);
 }

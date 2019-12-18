@@ -1,4 +1,4 @@
-import { IController, INode, LifecycleFlags } from '@aurelia/runtime';
+import { INode, LifecycleFlags, ICustomElementController } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { Viewport } from '../viewport';
 export declare class ViewportCustomElement {
@@ -11,17 +11,17 @@ export declare class ViewportCustomElement {
     noHistory: boolean;
     stateful: boolean;
     viewport: Viewport | null;
-    $controller: IController;
+    $controller: ICustomElementController;
     private readonly element;
     constructor(router: IRouter, element: INode);
-    bound(): void;
-    unbound(): void;
-    attached(): void;
+    afterBind(): void;
+    afterUnbind(): void;
+    afterAttach(): void;
     connect(): void;
     disconnect(): void;
-    binding(flags: LifecycleFlags): void;
-    attaching(flags: LifecycleFlags): Promise<void>;
-    detaching(flags: LifecycleFlags): Promise<void>;
-    unbinding(flags: LifecycleFlags): Promise<void>;
+    beforeBind(flags: LifecycleFlags): void;
+    beforeAttach(flags: LifecycleFlags): Promise<void>;
+    beforeDetach(flags: LifecycleFlags): Promise<void>;
+    beforeUnbind(flags: LifecycleFlags): Promise<void>;
 }
 //# sourceMappingURL=viewport.d.ts.map

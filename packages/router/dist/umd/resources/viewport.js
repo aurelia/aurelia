@@ -53,13 +53,13 @@
         //   }
         //   this.viewport = this.router.addViewport(name, this.element, (this as any).$context.get(IContainer), options);
         // }
-        bound() {
+        afterBind() {
             this.connect();
         }
-        unbound() {
+        afterUnbind() {
             this.disconnect();
         }
-        attached() {
+        afterAttach() {
             if (this.viewport) {
                 this.viewport.clearTaggedNodes();
             }
@@ -88,26 +88,26 @@
                 this.router.disconnectViewport(this.viewport, this.element, this.$controller.context);
             }
         }
-        binding(flags) {
+        beforeBind(flags) {
             if (this.viewport) {
-                this.viewport.binding(flags);
+                this.viewport.beforeBind(flags);
             }
         }
-        attaching(flags) {
+        beforeAttach(flags) {
             if (this.viewport) {
-                return this.viewport.attaching(flags);
-            }
-            return Promise.resolve();
-        }
-        detaching(flags) {
-            if (this.viewport) {
-                return this.viewport.detaching(flags);
+                return this.viewport.beforeAttach(flags);
             }
             return Promise.resolve();
         }
-        async unbinding(flags) {
+        beforeDetach(flags) {
             if (this.viewport) {
-                await this.viewport.unbinding(flags);
+                return this.viewport.beforeDetach(flags);
+            }
+            return Promise.resolve();
+        }
+        async beforeUnbind(flags) {
+            if (this.viewport) {
+                await this.viewport.beforeUnbind(flags);
             }
         }
     };

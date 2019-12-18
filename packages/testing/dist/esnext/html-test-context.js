@@ -1,6 +1,6 @@
 import { DebugConfiguration, } from '@aurelia/debug';
 import { DI, Registration, } from '@aurelia/kernel';
-import { IDOM, ILifecycle, IObserverLocator, IProjectorLocator, IRenderer, IRenderingEngine, ITemplateCompiler, IScheduler, } from '@aurelia/runtime';
+import { IDOM, ILifecycle, IObserverLocator, IProjectorLocator, IRenderer, ITemplateCompiler, IScheduler, } from '@aurelia/runtime';
 import { HTMLDOM, } from '@aurelia/runtime-html';
 export class HTMLTestContext {
     constructor(config, wnd, Scheduler, UIEventType, EventType, CustomEventType, NodeType, ElementType, HTMLElementType, HTMLDivElementType, TextType, CommentType, DOMParserType, CSSStyleSheetType, ShadowRootType) {
@@ -26,7 +26,6 @@ export class HTMLTestContext {
         this._lifecycle = void 0;
         this._renderer = void 0;
         this._projectorLocator = void 0;
-        this._renderingEngine = void 0;
         this._domParser = void 0;
     }
     get container() {
@@ -74,12 +73,6 @@ export class HTMLTestContext {
             this._projectorLocator = this.container.get(IProjectorLocator);
         }
         return this._projectorLocator;
-    }
-    get renderingEngine() {
-        if (this._renderingEngine === void 0) {
-            this._renderingEngine = this.container.get(IRenderingEngine);
-        }
-        return this._renderingEngine;
     }
     get domParser() {
         if (this._domParser === void 0) {

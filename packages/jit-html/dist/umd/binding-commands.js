@@ -105,7 +105,7 @@
     ], ClassBindingCommand);
     exports.ClassBindingCommand = ClassBindingCommand;
     /**
-     * Binding command to refer different targets (element, custom element/attribute view models, controller) attached to an element
+     * Binding command to refer different targets (element, custom element/attribute view models, controller) afterAttach to an element
      */
     let RefBindingCommand = class RefBindingCommand {
         constructor() {

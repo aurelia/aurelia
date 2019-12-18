@@ -1,26 +1,23 @@
 import { Constructable } from '@aurelia/kernel';
-import { IController, IDOM, IHydrateElementInstruction, ILifecycleTask, INode, IRenderingEngine, IViewFactory, LifecycleFlags, CustomElementDefinition } from '@aurelia/runtime';
+import { IDOM, IHydrateElementInstruction, ILifecycleTask, INode, IViewFactory, LifecycleFlags, CustomElementDefinition, ICustomElementController, ISyntheticView, ICustomElementViewModel } from '@aurelia/runtime';
 import { RenderPlan } from '../../create-element';
-export declare type Subject<T extends INode = Node> = IViewFactory<T> | IController<T> | RenderPlan<T> | Constructable | CustomElementDefinition;
+export declare type Subject<T extends INode = Node> = IViewFactory<T> | ISyntheticView<T> | RenderPlan<T> | Constructable | CustomElementDefinition;
 export declare type MaybeSubjectPromise<T> = Subject<T> | Promise<Subject<T>> | undefined;
-export declare class Compose<T extends INode = Node> {
+export declare class Compose<T extends INode = Node> implements ICustomElementViewModel<T> {
     private readonly dom;
-    private readonly renderable;
-    private readonly instruction;
-    private readonly renderingEngine;
     readonly id: number;
     subject?: MaybeSubjectPromise<T>;
     composing: boolean;
-    view?: IController<T>;
+    view?: ISyntheticView<T>;
     private readonly properties;
     private task;
     private lastSubject?;
-    private $controller;
-    constructor(dom: IDOM<T>, renderable: IController<T>, instruction: IHydrateElementInstruction, renderingEngine: IRenderingEngine);
-    binding(flags: LifecycleFlags): ILifecycleTask;
-    attaching(flags: LifecycleFlags): void;
-    detaching(flags: LifecycleFlags): void;
-    unbinding(flags: LifecycleFlags): ILifecycleTask;
+    readonly $controller: ICustomElementController<T, this>;
+    constructor(dom: IDOM<T>, instruction: IHydrateElementInstruction);
+    beforeBind(flags: LifecycleFlags): ILifecycleTask;
+    beforeAttach(flags: LifecycleFlags): void;
+    beforeDetach(flags: LifecycleFlags): void;
+    beforeUnbind(flags: LifecycleFlags): ILifecycleTask;
     caching(flags: LifecycleFlags): void;
     subjectChanged(newValue: Subject<T> | Promise<Subject<T>>, previousValue: Subject<T> | Promise<Subject<T>>, flags: LifecycleFlags): void;
     private compose;

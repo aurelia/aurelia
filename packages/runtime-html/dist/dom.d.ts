@@ -26,6 +26,7 @@ export declare class HTMLDOM implements IDOM {
     readonly CustomEvent: typeof CustomEvent;
     readonly CSSStyleSheet: typeof CSSStyleSheet;
     readonly ShadowRoot: typeof ShadowRoot;
+    private readonly emptyNodes;
     constructor(window: Window, document: Document, TNode: typeof Node, TElement: typeof Element, THTMLElement: typeof HTMLElement, TCustomEvent: typeof CustomEvent, TCSSStyleSheet: typeof CSSStyleSheet, TShadowRoot: typeof ShadowRoot);
     static register(container: IContainer): IResolver<IDOM>;
     addEventListener(eventName: string, subscriber: EventListenerOrEventListenerObject, publisher?: Node, options?: boolean | AddEventListenerOptions): void;
@@ -33,6 +34,7 @@ export declare class HTMLDOM implements IDOM {
     cloneNode<T>(node: T, deep?: boolean): T;
     convertToRenderLocation(node: Node): IRenderLocation;
     createDocumentFragment(markupOrNode?: string | Node): DocumentFragment;
+    createNodeSequence(fragment: DocumentFragment | null): FragmentNodeSequence;
     createElement(name: string): HTMLElement;
     fetch(input: RequestInfo, init?: RequestInit): Promise<Response>;
     createCustomEvent<T = any>(eventType: string, options?: CustomEventInit<T>): CustomEvent<T>;
@@ -84,14 +86,6 @@ export declare class HTMLDOM implements IDOM {
 }
 declare const $DOM: HTMLDOM;
 export { $DOM as DOM };
-export interface NodeSequenceFactory {
-    createNodeSequence(): INodeSequence;
-}
-export declare class NodeSequenceFactory implements NodeSequenceFactory {
-    private readonly dom;
-    private readonly node;
-    constructor(dom: IDOM, markupOrNode: string | Node | null);
-}
 export interface AuMarker extends INode {
 }
 //# sourceMappingURL=dom.d.ts.map

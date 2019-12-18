@@ -39,8 +39,8 @@ let TranslationParametersBindingRenderer = class TranslationParametersBindingRen
         this.parser = parser;
         this.observerLocator = observerLocator;
     }
-    render(flags, dom, context, renderable, target, instruction) {
-        TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, renderable, target, instruction, isParameterContext: true });
+    render(flags, context, controller, target, instruction) {
+        TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller: controller, target, instruction, isParameterContext: true });
     }
 };
 TranslationParametersBindingRenderer = __decorate([

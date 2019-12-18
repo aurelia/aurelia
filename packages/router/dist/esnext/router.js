@@ -322,7 +322,7 @@ export class Router {
     getViewport(name) {
         return this.allViewports().find(viewport => viewport.name === name) || null;
     }
-    // Called from the viewport custom element in attached()
+    // Called from the viewport custom element in afterAttach()
     connectViewport(name, element, context, options) {
         Reporter.write(10000, 'Viewport added', name, element);
         const parentScope = this.findScope(element);

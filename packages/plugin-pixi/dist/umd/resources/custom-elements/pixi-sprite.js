@@ -78,7 +78,7 @@
         get isSprite() {
             return this.sprite['isSprite'];
         }
-        attached() {
+        afterAttach() {
             if (this.container) {
                 const $this = this;
                 this._sprite = new pixi_js_1.Sprite(pixi_js_1.loader.resources[this.src].texture);
@@ -99,7 +99,7 @@
                 this.container.addChild(this._sprite);
             }
         }
-        detached() {
+        afterDetach() {
             if (this.container && this._sprite) {
                 this.container.removeChild(this._sprite);
                 this._sprite.destroy();

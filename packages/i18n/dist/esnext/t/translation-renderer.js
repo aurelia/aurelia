@@ -31,8 +31,8 @@ let TranslationBindingRenderer = class TranslationBindingRenderer {
         this.parser = parser;
         this.observerLocator = observerLocator;
     }
-    render(flags, dom, context, renderable, target, instruction) {
-        TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, renderable, target, instruction });
+    render(flags, context, controller, target, instruction) {
+        TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller, target, instruction });
     }
 };
 TranslationBindingRenderer = __decorate([
@@ -72,8 +72,8 @@ let TranslationBindBindingRenderer = class TranslationBindBindingRenderer {
         this.parser = parser;
         this.observerLocator = observerLocator;
     }
-    render(flags, dom, context, renderable, target, instruction) {
-        TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, renderable, target, instruction });
+    render(flags, context, controller, target, instruction) {
+        TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller, target, instruction });
     }
 };
 TranslationBindBindingRenderer = __decorate([

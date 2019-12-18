@@ -38,35 +38,8 @@ export declare const enum State {
     isAttachedOrAttaching = 40,
     isAttachedOrDetaching = 48,
     isMounted = 64,
-    isCached = 128,
-    needsBind = 256,
-    needsUnbind = 512,
-    needsAttach = 1024,
-    needsDetach = 2048,
-    needsMount = 4096,
-    needsUnmount = 8192,
-    hasLockedScope = 16384,
-    canBeCached = 32768,
-    inBoundQueue = 65536,
-    inUnboundQueue = 131072,
-    inAttachedQueue = 262144,
-    inDetachedQueue = 524288,
-    inMountQueue = 1048576,
-    inUnmountQueue = 2097152
-}
-export declare const enum Hooks {
-    none = 1,
-    hasCreated = 2,
-    hasBinding = 4,
-    hasBound = 8,
-    hasAttaching = 16,
-    hasAttached = 32,
-    hasDetaching = 64,
-    hasDetached = 128,
-    hasUnbinding = 256,
-    hasUnbound = 512,
-    hasRender = 1024,
-    hasCaching = 2048
+    hasLockedScope = 256,
+    canBeCached = 512
 }
 export declare const enum LifecycleFlags {
     none = 0,

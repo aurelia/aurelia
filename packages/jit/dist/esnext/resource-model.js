@@ -1,4 +1,4 @@
-import { kebabCase, } from '@aurelia/kernel';
+import { kebabCase, Metadata, } from '@aurelia/kernel';
 import { BindingMode, CustomAttribute, CustomElement, } from '@aurelia/runtime';
 import { BindingCommand } from './binding-command';
 /**
@@ -143,16 +143,28 @@ export class AttrInfo {
         return info;
     }
 }
+const contextLookup = new WeakMap();
 /**
  * A pre-processed piece of information about declared custom elements, attributes and
  * binding commands, optimized for consumption by the template compiler.
  */
 export class ResourceModel {
-    constructor(resources) {
-        this.resources = resources;
+    constructor(container) {
         this.elementLookup = Object.create(null);
         this.attributeLookup = Object.create(null);
         this.commandLookup = Object.create(null);
+        // Note: don't do this sort of thing elsewhere, this is purely for perf reasons
+        this.container = container;
+        const rootContainer = container.root;
+        this.resourceResolvers = container.resourceResolvers;
+        this.rootResourceResolvers = rootContainer.resourceResolvers;
+    }
+    static getOrCreate(context) {
+        let model = contextLookup.get(context);
+        if (model === void 0) {
+            contextLookup.set(context, model = new ResourceModel(context));
+        }
+        return model;
     }
     /**
      * Retrieve information about a custom element resource.
@@ -164,7 +176,7 @@ export class ResourceModel {
     getElementInfo(name) {
         let result = this.elementLookup[name];
         if (result === void 0) {
-            const def = this.resources.find(CustomElement, name);
+            const def = this.find(CustomElement, name);
             this.elementLookup[name] = result = def === null ? null : ElementInfo.from(def);
         }
         return result;
@@ -179,7 +191,7 @@ export class ResourceModel {
     getAttributeInfo(syntax) {
         let result = this.attributeLookup[syntax.target];
         if (result === void 0) {
-            const def = this.resources.find(CustomAttribute, syntax.target);
+            const def = this.find(CustomAttribute, syntax.target);
             this.attributeLookup[syntax.target] = result = def === null ? null : AttrInfo.from(def);
         }
         return result;
@@ -198,7 +210,7 @@ export class ResourceModel {
         }
         let result = this.commandLookup[name];
         if (result === void 0) {
-            result = this.resources.create(BindingCommand, name);
+            result = this.create(BindingCommand, name);
             if (result === null) {
                 if (optional) {
                     return null;
@@ -208,6 +220,51 @@ export class ResourceModel {
             this.commandLookup[name] = result;
         }
         return result;
+    }
+    find(kind, name) {
+        const key = kind.keyFrom(name);
+        let resolver = this.resourceResolvers[key];
+        if (resolver === void 0) {
+            resolver = this.rootResourceResolvers[key];
+            if (resolver === void 0) {
+                return null;
+            }
+        }
+        if (resolver === null) {
+            return null;
+        }
+        if (typeof resolver.getFactory === 'function') {
+            const factory = resolver.getFactory(this.container);
+            if (factory === null || factory === void 0) {
+                return null;
+            }
+            const definition = Metadata.getOwn(kind.name, factory.Type);
+            if (definition === void 0) {
+                // TODO: we may want to log a warning here, or even throw. This would happen if a dependency is registered with a resource-like key
+                // but does not actually have a definition associated via the type's metadata. That *should* generally not happen.
+                return null;
+            }
+            return definition;
+        }
+        return null;
+    }
+    create(kind, name) {
+        const key = kind.keyFrom(name);
+        let resolver = this.resourceResolvers[key];
+        if (resolver === void 0) {
+            resolver = this.rootResourceResolvers[key];
+            if (resolver === void 0) {
+                return null;
+            }
+        }
+        if (resolver === null) {
+            return null;
+        }
+        const instance = resolver.resolve(this.container, this.container);
+        if (instance === void 0) {
+            return null;
+        }
+        return instance;
     }
 }
 //# sourceMappingURL=resource-model.js.map

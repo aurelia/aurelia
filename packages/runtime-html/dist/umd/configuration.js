@@ -4,14 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./dom", "./html-renderer", "./observation/observer-locator", "./projectors", "./resources/binding-behaviors/attr", "./resources/binding-behaviors/self", "./resources/binding-behaviors/update-trigger", "./resources/custom-attributes/blur", "./resources/custom-attributes/focus", "./resources/custom-attributes/portal", "./resources/custom-elements/compose"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./html-renderer", "./observation/observer-locator", "./projectors", "./resources/binding-behaviors/attr", "./resources/binding-behaviors/self", "./resources/binding-behaviors/update-trigger", "./resources/custom-attributes/blur", "./resources/custom-attributes/focus", "./resources/custom-attributes/portal", "./resources/custom-elements/compose"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
-    const dom_1 = require("./dom");
     const html_renderer_1 = require("./html-renderer");
     const observer_locator_1 = require("./observation/observer-locator");
     const projectors_1 = require("./projectors");
@@ -25,7 +24,6 @@
     exports.IProjectorLocatorRegistration = projectors_1.HTMLProjectorLocator;
     exports.ITargetAccessorLocatorRegistration = observer_locator_1.TargetAccessorLocator;
     exports.ITargetObserverLocatorRegistration = observer_locator_1.TargetObserverLocator;
-    exports.ITemplateFactoryRegistration = dom_1.HTMLTemplateFactory;
     /**
      * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
      * - `IProjectorLocator`
@@ -37,7 +35,6 @@
         exports.IProjectorLocatorRegistration,
         exports.ITargetAccessorLocatorRegistration,
         exports.ITargetObserverLocatorRegistration,
-        exports.ITemplateFactoryRegistration
     ];
     exports.AttrBindingBehaviorRegistration = attr_1.AttrBindingBehavior;
     exports.SelfBindingBehaviorRegistration = self_1.SelfBindingBehavior;

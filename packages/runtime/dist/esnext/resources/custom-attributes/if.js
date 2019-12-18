@@ -18,7 +18,7 @@ let If = class If {
         this.value = false;
     }
     ;
-    binding(flags) {
+    beforeBind(flags) {
         if (this.task.done) {
             this.task = this.swap(this.value, flags);
         }
@@ -27,7 +27,7 @@ let If = class If {
         }
         return this.task;
     }
-    attaching(flags) {
+    beforeAttach(flags) {
         if (this.task.done) {
             this.attachView(flags);
         }
@@ -35,7 +35,7 @@ let If = class If {
             this.task = new ContinuationTask(this.task, this.attachView, this, flags);
         }
     }
-    detaching(flags) {
+    beforeDetach(flags) {
         if (this.view !== void 0) {
             if (this.task.done) {
                 this.view.detach(flags);
@@ -46,7 +46,7 @@ let If = class If {
         }
         return this.task;
     }
-    unbinding(flags) {
+    beforeUnbind(flags) {
         if (this.view !== void 0) {
             if (this.task.done) {
                 this.task = this.view.unbind(flags);

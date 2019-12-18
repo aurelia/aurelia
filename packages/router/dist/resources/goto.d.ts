@@ -4,7 +4,7 @@ export declare class GotoCustomAttribute {
     private hasHref;
     private readonly element;
     constructor(element: INode);
-    binding(): void;
+    beforeBind(): void;
     valueChanged(newValue: unknown): void;
     private updateValue;
 }

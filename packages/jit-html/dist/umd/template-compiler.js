@@ -58,13 +58,17 @@
         static register(container) {
             return kernel_1.Registration.singleton(runtime_1.ITemplateCompiler, this).register(container);
         }
-        compile(dom, partialDefinition, descriptions) {
-            const resources = new jit_1.ResourceModel(descriptions);
+        compile(partialDefinition, context) {
+            const definition = runtime_1.CustomElementDefinition.getOrCreate(partialDefinition);
+            if (definition.template === null || definition.template === void 0) {
+                return definition;
+            }
+            const resources = jit_1.ResourceModel.getOrCreate(context);
             const { attrParser, exprParser, attrSyntaxModifier, factory } = this;
-            const binder = new template_binder_1.TemplateBinder(dom, resources, attrParser, exprParser, attrSyntaxModifier);
-            const template = factory.createTemplate(partialDefinition.template);
+            const binder = new template_binder_1.TemplateBinder(context.get(runtime_1.IDOM), resources, attrParser, exprParser, attrSyntaxModifier);
+            const template = factory.createTemplate(definition.template);
             const surrogate = binder.bind(template);
-            const compilation = this.compilation = new CustomElementCompilationUnit(partialDefinition, surrogate, template);
+            const compilation = this.compilation = new CustomElementCompilationUnit(definition, surrogate, template);
             const customAttributes = surrogate.customAttributes;
             const plainAttributes = surrogate.plainAttributes;
             const customAttributeLength = customAttributes.length;
@@ -81,9 +85,9 @@
                 }
             }
             this.compileChildNodes(surrogate, compilation.instructions, compilation.scopeParts);
-            const definition = compilation.toDefinition();
+            const compiledDefinition = compilation.toDefinition();
             this.compilation = null;
-            return definition;
+            return compiledDefinition;
         }
         compileChildNodes(parent, instructionRows, scopeParts) {
             if ((parent.flags & 8192 /* hasChildNodes */) > 0) {

@@ -45,8 +45,8 @@
             this.parser = parser;
             this.observerLocator = observerLocator;
         }
-        render(flags, dom, context, renderable, target, instruction) {
-            translation_binding_1.TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, renderable, target, instruction });
+        render(flags, context, controller, target, instruction) {
+            translation_binding_1.TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller, target, instruction });
         }
     };
     TranslationBindingRenderer = tslib_1.__decorate([
@@ -89,8 +89,8 @@
             this.parser = parser;
             this.observerLocator = observerLocator;
         }
-        render(flags, dom, context, renderable, target, instruction) {
-            translation_binding_1.TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, renderable, target, instruction });
+        render(flags, context, controller, target, instruction) {
+            translation_binding_1.TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller, target, instruction });
         }
     };
     TranslationBindBindingRenderer = tslib_1.__decorate([

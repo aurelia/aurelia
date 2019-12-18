@@ -951,15 +951,15 @@
         'bindBindings',
         'bindControllers',
         'endBind',
-        'binding',
-        'bound',
+        'beforeBind',
+        'afterBind',
         'attach',
         'attachCustomElement',
         'attachCustomAttribute',
         'attachSynthetic',
         'attachControllers',
-        'attaching',
-        'attached',
+        'beforeAttach',
+        'afterAttach',
         'mount',
         'mountCustomElement',
         'mountCustomAttribute',
@@ -969,8 +969,8 @@
         'detachCustomAttribute',
         'detachSynthetic',
         'detachControllers',
-        'detaching',
-        'detached',
+        'beforeDetach',
+        'afterDetach',
         'unmount',
         'unmountCustomElement',
         'unmountCustomAttribute',
@@ -988,8 +988,8 @@
         'unbindBindings',
         'unbindControllers',
         'endUnbind',
-        'unbinding',
-        'unbound',
+        'beforeUnbind',
+        'afterUnbind',
     ];
     function formatProperty(ctx, value, recurseTimes, key, type) {
         switch (key) {
@@ -1007,15 +1007,15 @@
                         case 'bindBindings':
                         case 'bindControllers':
                         case 'endBind':
-                        case 'binding':
-                        case 'bound':
+                        case 'beforeBind':
+                        case 'afterBind':
                         case 'attach':
                         case 'attachCustomElement':
                         case 'attachCustomAttribute':
                         case 'attachSynthetic':
                         case 'attachControllers':
-                        case 'attaching':
-                        case 'attached':
+                        case 'beforeAttach':
+                        case 'afterAttach':
                         case 'mount':
                         case 'mountCustomElement':
                         case 'mountCustomAttribute':
@@ -1025,8 +1025,8 @@
                         case 'detachCustomAttribute':
                         case 'detachSynthetic':
                         case 'detachControllers':
-                        case 'detaching':
-                        case 'detached':
+                        case 'beforeDetach':
+                        case 'afterDetach':
                         case 'unmount':
                         case 'unmountCustomElement':
                         case 'unmountCustomAttribute':
@@ -1044,8 +1044,8 @@
                         case 'unbindBindings':
                         case 'unbindControllers':
                         case 'endUnbind':
-                        case 'unbinding':
-                        case 'unbound':
+                        case 'beforeUnbind':
+                        case 'afterUnbind':
                             value.args[0] = debug_1.stringifyLifecycleFlags(value.args[0]);
                             break;
                         case 'valueChanged':

@@ -60,7 +60,6 @@
     exports.IProjectorLocatorRegistration = configuration_1.IProjectorLocatorRegistration;
     exports.ITargetAccessorLocatorRegistration = configuration_1.ITargetAccessorLocatorRegistration;
     exports.ITargetObserverLocatorRegistration = configuration_1.ITargetObserverLocatorRegistration;
-    exports.ITemplateFactoryRegistration = configuration_1.ITemplateFactoryRegistration;
     exports.DefaultComponents = configuration_1.DefaultComponents;
     exports.AttrBindingBehaviorRegistration = configuration_1.AttrBindingBehaviorRegistration;
     exports.SelfBindingBehaviorRegistration = configuration_1.SelfBindingBehaviorRegistration;
@@ -86,7 +85,6 @@
     exports.NodeType = dom_1.NodeType;
     exports.HTMLDOM = dom_1.HTMLDOM;
     exports.DOM = dom_1.DOM;
-    exports.NodeSequenceFactory = dom_1.NodeSequenceFactory;
     exports.FragmentNodeSequence = dom_1.FragmentNodeSequence;
     var instructions_1 = require("./instructions");
     exports.AttributeBindingInstruction = instructions_1.AttributeBindingInstruction;

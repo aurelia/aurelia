@@ -4,31 +4,47 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../definitions", "../dom", "../lifecycle", "../lifecycle-task", "../observation/binding-context", "../observation/proxy-observer", "../observation/bindable-observer", "../rendering-engine", "../resources/custom-element", "../resources/custom-attribute"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../definitions", "../lifecycle-task", "../observation/binding-context", "../observation/proxy-observer", "../observation/bindable-observer", "../resources/custom-element", "../resources/custom-attribute", "./render-context", "./children"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const kernel_1 = require("@aurelia/kernel");
     const definitions_1 = require("../definitions");
-    const dom_1 = require("../dom");
-    const lifecycle_1 = require("../lifecycle");
     const lifecycle_task_1 = require("../lifecycle-task");
     const binding_context_1 = require("../observation/binding-context");
     const proxy_observer_1 = require("../observation/proxy-observer");
     const bindable_observer_1 = require("../observation/bindable-observer");
-    const rendering_engine_1 = require("../rendering-engine");
     const custom_element_1 = require("../resources/custom-element");
     const custom_attribute_1 = require("../resources/custom-attribute");
+    const render_context_1 = require("./render-context");
+    const children_1 = require("./children");
+    const controllerLookup = new WeakMap();
     class Controller {
-        // todo: refactor
-        constructor(vmKind, flags, viewFactory, lifecycle, viewModel, parentContext, host, options) {
+        constructor(vmKind, flags, lifecycle, hooks, 
+        /**
+         * The viewFactory. Only present for synthetic views.
+         */
+        viewFactory, 
+        /**
+         * The backing viewModel. This is never a proxy. Only present for custom attributes and elements.
+         */
+        viewModel, 
+        /**
+         * The binding context. This may be a proxy. If it is not, then it is the same instance as the viewModel. Only present for custom attributes and elements.
+         */
+        bindingContext, 
+        /**
+         * The physical host dom node. Only present for custom elements.
+         */
+        host) {
             this.vmKind = vmKind;
             this.flags = flags;
-            this.viewFactory = viewFactory;
             this.lifecycle = lifecycle;
+            this.hooks = hooks;
+            this.viewFactory = viewFactory;
             this.viewModel = viewModel;
-            this.parentContext = parentContext;
+            this.bindingContext = bindingContext;
             this.host = host;
             this.id = kernel_1.nextId('au$component');
             this.nextBound = void 0;
@@ -47,140 +63,161 @@
             this.bindings = void 0;
             this.controllers = void 0;
             this.state = 0 /* none */;
+            this.scopeParts = void 0;
+            this.isStrictBinding = false;
+            this.scope = void 0;
+            this.part = void 0;
+            this.projector = void 0;
+            this.nodes = void 0;
+            this.context = void 0;
+            this.location = void 0;
             this.mountStrategy = 1 /* insertBefore */;
-            switch (vmKind) {
-                case 2 /* synthetic */: {
-                    if (viewFactory == void 0) {
-                        // TODO: create error code
-                        throw new Error(`No IViewFactory was provided when rendering a synthetic view.`);
-                    }
-                    this.hooks = definitions_1.HooksDefinition.none;
-                    this.bindingContext = void 0; // stays undefined
-                    this.host = void 0; // stays undefined
-                    this.vmKind = 2 /* synthetic */;
-                    this.scopeParts = void 0; // will be populated during ITemplate.render() immediately after the constructor is done
-                    this.isStrictBinding = false; // will be populated during ITemplate.render() immediately after the constructor is done
-                    this.scope = void 0; // will be populated during bindSynthetic()
-                    this.projector = void 0; // stays undefined
-                    this.nodes = void 0; // will be populated during ITemplate.render() immediately after the constructor is done
-                    this.context = void 0; // will be populated during ITemplate.render() immediately after the constructor is done
-                    this.location = void 0; // should be set with `hold(location)` by the consumer
-                    break;
-                }
-                case 0 /* customElement */: {
-                    if (parentContext == void 0) {
-                        // TODO: create error code
-                        throw new Error(`No parentContext was provided when rendering a custom element.`);
-                    }
-                    if (viewModel == void 0) {
-                        // TODO: create error code
-                        throw new Error(`No viewModel was provided when rendering a custom elemen.`);
-                    }
-                    if (host == void 0) {
-                        // TODO: create error code
-                        throw new Error(`No host element was provided when rendering a custom element.`);
-                    }
-                    const Type = viewModel.constructor;
-                    const definition = custom_element_1.CustomElement.getDefinition(Type);
-                    flags |= definition.strategy;
-                    createObservers(this, definition, flags, viewModel);
-                    this.hooks = definition.hooks;
-                    this.bindingContext = getBindingContext(flags, viewModel);
-                    const renderingEngine = parentContext.get(rendering_engine_1.IRenderingEngine);
-                    let instruction;
-                    let parts;
-                    let template = void 0;
-                    if (this.hooks.hasRender) {
-                        const result = this.bindingContext.render(flags, host, options.parts == void 0
-                            ? kernel_1.PLATFORM.emptyObject
-                            : options.parts, parentContext);
-                        if (result != void 0 && 'getElementTemplate' in result) {
-                            template = result.getElementTemplate(renderingEngine, Type, parentContext);
-                        }
-                    }
-                    else {
-                        template = renderingEngine.getElementTemplate(parentContext.get(dom_1.IDOM), definition, parentContext, Type, viewModel);
-                    }
-                    if (template !== void 0) {
-                        if (template.definition == null ||
-                            template.definition.instructions.length === 0 ||
-                            template.definition.instructions[0].length === 0 ||
-                            (template.definition.instructions[0][0].parts == void 0)) {
-                            if (options.parts == void 0) {
-                                parts = kernel_1.PLATFORM.emptyObject;
-                            }
-                            else {
-                                parts = options.parts;
-                            }
-                        }
-                        else {
-                            instruction = template.definition.instructions[0][0];
-                            if (options.parts == void 0) {
-                                parts = instruction.parts;
-                            }
-                            else {
-                                parts = { ...options.parts, ...instruction.parts };
-                            }
-                        }
-                        template.render(this, host, parts);
-                    }
-                    this.scope = binding_context_1.Scope.create(flags, this.bindingContext, null);
-                    this.projector = parentContext.get(custom_element_1.IProjectorLocator).getElementProjector(parentContext.get(dom_1.IDOM), this, host, template !== void 0 ? template.definition : definition);
-                    this.location = void 0;
-                    viewModel.$controller = this;
-                    if (this.hooks.hasCreated) {
-                        this.bindingContext.created(flags);
-                    }
-                    break;
-                }
-                case 1 /* customAttribute */: {
-                    if (parentContext == void 0) {
-                        // TODO: create error code
-                        throw new Error(`No parentContext was provided when rendering a custom element or attribute.`);
-                    }
-                    if (viewModel == void 0) {
-                        // TODO: create error code
-                        throw new Error(`No viewModel was provided when rendering a custom elemen.`);
-                    }
-                    const Type = viewModel.constructor;
-                    const definition = custom_attribute_1.CustomAttribute.getDefinition(Type);
-                    flags |= definition.strategy;
-                    createObservers(this, definition, flags, viewModel);
-                    this.hooks = definition.hooks;
-                    this.bindingContext = getBindingContext(flags, viewModel);
-                    this.scope = void 0;
-                    this.projector = void 0;
-                    this.nodes = void 0;
-                    this.context = void 0;
-                    this.location = void 0;
-                    viewModel.$controller = this;
-                    if (this.hooks.hasCreated) {
-                        this.bindingContext.created(flags);
-                    }
-                    break;
-                }
-                default:
-                    throw new Error(`Invalid ViewModelKind: ${vmKind}`);
-            }
         }
-        static forCustomElement(viewModel, parentContext, host, flags = 0 /* none */, options = kernel_1.PLATFORM.emptyObject) {
-            let controller = Controller.lookup.get(viewModel);
+        static getCached(viewModel) {
+            return controllerLookup.get(viewModel);
+        }
+        static getCachedOrThrow(viewModel) {
+            const controller = Controller.getCached(viewModel);
             if (controller === void 0) {
-                controller = new Controller(0 /* customElement */, flags, void 0, parentContext.get(lifecycle_1.ILifecycle), viewModel, parentContext, host, options);
-                this.lookup.set(viewModel, controller);
+                throw new Error(`There is no cached controller for the provided ViewModel: ${String(viewModel)}`);
             }
             return controller;
         }
-        static forCustomAttribute(viewModel, parentContext, flags = 0 /* none */) {
-            let controller = Controller.lookup.get(viewModel);
-            if (controller === void 0) {
-                controller = new Controller(1 /* customAttribute */, flags | 4 /* isStrictBindingStrategy */, void 0, parentContext.get(lifecycle_1.ILifecycle), viewModel, parentContext, void 0, kernel_1.PLATFORM.emptyObject);
-                this.lookup.set(viewModel, controller);
+        static forCustomElement(viewModel, lifecycle, host, parentContainer, parts, flags = 0 /* none */) {
+            if (controllerLookup.has(viewModel)) {
+                return controllerLookup.get(viewModel);
             }
+            const definition = custom_element_1.CustomElement.getDefinition(viewModel.constructor);
+            flags |= definition.strategy;
+            const controller = new Controller(0 /* customElement */, 
+            /* flags          */ flags, 
+            /* lifecycle      */ lifecycle, 
+            /* hooks          */ definition.hooks, 
+            /* viewFactory    */ void 0, 
+            /* viewModel      */ viewModel, 
+            /* bindingContext */ getBindingContext(flags, viewModel), 
+            /* host           */ host);
+            controllerLookup.set(viewModel, controller);
+            controller.hydrateCustomElement(definition, parentContainer, parts);
             return controller;
         }
-        static forSyntheticView(viewFactory, lifecycle, flags = 0 /* none */) {
-            return new Controller(2 /* synthetic */, flags, viewFactory, lifecycle, void 0, void 0, void 0, kernel_1.PLATFORM.emptyObject);
+        static forCustomAttribute(viewModel, lifecycle, flags = 0 /* none */) {
+            if (controllerLookup.has(viewModel)) {
+                return controllerLookup.get(viewModel);
+            }
+            const definition = custom_attribute_1.CustomAttribute.getDefinition(viewModel.constructor);
+            flags |= definition.strategy;
+            const controller = new Controller(1 /* customAttribute */, 
+            /* flags          */ flags, 
+            /* lifecycle      */ lifecycle, 
+            /* hooks          */ definition.hooks, 
+            /* viewFactory    */ void 0, 
+            /* viewModel      */ viewModel, 
+            /* bindingContext */ getBindingContext(flags, viewModel), 
+            /* host           */ void 0);
+            controllerLookup.set(viewModel, controller);
+            controller.hydrateCustomAttribute(definition);
+            return controller;
+        }
+        static forSyntheticView(viewFactory, lifecycle, context, flags = 0 /* none */) {
+            const controller = new Controller(2 /* synthetic */, 
+            /* flags          */ flags, 
+            /* lifecycle      */ lifecycle, 
+            /* hooks          */ definitions_1.HooksDefinition.none, 
+            /* viewFactory    */ viewFactory, 
+            /* viewModel      */ void 0, 
+            /* bindingContext */ void 0, 
+            /* host           */ void 0);
+            controller.hydrateSynthetic(context, viewFactory.parts);
+            return controller;
+        }
+        hydrateCustomElement(definition, parentContainer, parts) {
+            const flags = this.flags |= definition.strategy;
+            const instance = this.viewModel;
+            createObservers(this.lifecycle, definition, flags, instance);
+            createChildrenObservers(this, definition, flags, instance);
+            this.scope = binding_context_1.Scope.create(flags, this.bindingContext, null);
+            const hooks = this.hooks;
+            if (hooks.hasCreate) {
+                const result = instance.create(
+                /* controller      */ this, 
+                /* parentContainer */ parentContainer, 
+                /* definition      */ definition, 
+                /* parts           */ parts);
+                if (result !== void 0 && result !== definition) {
+                    definition = custom_element_1.CustomElementDefinition.getOrCreate(result);
+                }
+            }
+            const context = this.context = render_context_1.getRenderContext(definition, parentContainer, parts);
+            // Support Recursive Components by adding self to own context
+            definition.register(context);
+            if (definition.injectable !== null) {
+                // If the element is registered as injectable, support injecting the instance into children
+                context.beginChildComponentOperation(instance);
+            }
+            if (hooks.hasBeforeCompile) {
+                instance.beforeCompile(this);
+            }
+            const compiledContext = context.compile();
+            const compiledDefinition = compiledContext.compiledDefinition;
+            this.scopeParts = compiledDefinition.scopeParts;
+            this.isStrictBinding = compiledDefinition.isStrictBinding;
+            const projectorLocator = parentContainer.get(custom_element_1.IProjectorLocator);
+            this.projector = projectorLocator.getElementProjector(context.dom, this, this.host, compiledDefinition);
+            instance.$controller = this;
+            const nodes = this.nodes = compiledContext.createNodes();
+            if (hooks.hasAfterCompile) {
+                instance.afterCompile(this);
+            }
+            const targets = nodes.findTargets();
+            compiledContext.render(
+            /* flags      */ this.flags, 
+            /* controller */ this, 
+            /* targets    */ targets, 
+            /* definition */ compiledDefinition, 
+            /* host       */ this.host, 
+            /* parts      */ parts);
+            if (hooks.hasAfterCompileChildren) {
+                instance.afterCompileChildren(this);
+            }
+        }
+        hydrateCustomAttribute(definition) {
+            const flags = this.flags | definition.strategy;
+            const instance = this.viewModel;
+            createObservers(this.lifecycle, definition, flags, instance);
+            instance.$controller = this;
+        }
+        hydrateSynthetic(context, parts) {
+            this.context = context;
+            const compiledContext = context.compile();
+            const compiledDefinition = compiledContext.compiledDefinition;
+            this.scopeParts = compiledDefinition.scopeParts;
+            this.isStrictBinding = compiledDefinition.isStrictBinding;
+            const nodes = this.nodes = compiledContext.createNodes();
+            const targets = nodes.findTargets();
+            compiledContext.render(
+            /* flags      */ this.flags, 
+            /* controller */ this, 
+            /* targets    */ targets, 
+            /* definition */ compiledDefinition, 
+            /* host       */ void 0, 
+            /* parts      */ parts);
+        }
+        addBinding(binding) {
+            if (this.bindings === void 0) {
+                this.bindings = [binding];
+            }
+            else {
+                this.bindings[this.bindings.length] = binding;
+            }
+        }
+        addController(controller) {
+            if (this.controllers === void 0) {
+                this.controllers = [controller];
+            }
+            else {
+                this.controllers[this.controllers.length] = controller;
+            }
         }
         is(name) {
             switch (this.vmKind) {
@@ -195,19 +232,18 @@
                 case 2 /* synthetic */:
                     return this.viewFactory.name === name;
             }
-            return false;
         }
         lockScope(scope) {
             this.scope = scope;
-            this.state |= 16384 /* hasLockedScope */;
+            this.state |= 256 /* hasLockedScope */;
         }
         hold(location, mountStrategy) {
-            this.state = (this.state | 32768 /* canBeCached */) ^ 32768 /* canBeCached */;
+            this.state = (this.state | 512 /* canBeCached */) ^ 512 /* canBeCached */;
             this.location = location;
             this.mountStrategy = mountStrategy;
         }
         release(flags) {
-            this.state |= 32768 /* canBeCached */;
+            this.state |= 512 /* canBeCached */;
             if ((this.state & 32 /* isAttached */) > 0) {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 return this.viewFactory.canReturnToCache(this); // non-null is implied by the hook
@@ -245,13 +281,13 @@
                     return this.unbindSynthetic(flags);
             }
         }
-        bound(flags) {
+        afterBind(flags) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            this.bindingContext.bound(flags); // non-null is implied by the hook
+            this.bindingContext.afterBind(flags); // non-null is implied by the hook
         }
-        unbound(flags) {
+        afterUnbind(flags) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            this.bindingContext.unbound(flags); // non-null is implied by the hook
+            this.bindingContext.afterUnbind(flags); // non-null is implied by the hook
         }
         attach(flags) {
             if ((this.state & 40 /* isAttachedOrAttaching */) > 0 && (flags & 33554432 /* reorderNodes */) === 0) {
@@ -285,13 +321,13 @@
                     this.detachSynthetic(flags);
             }
         }
-        attached(flags) {
+        afterAttach(flags) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            this.bindingContext.attached(flags); // non-null is implied by the hook
+            this.bindingContext.afterAttach(flags); // non-null is implied by the hook
         }
-        detached(flags) {
+        afterDetach(flags) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            this.bindingContext.detached(flags); // non-null is implied by the hook
+            this.bindingContext.afterDetach(flags); // non-null is implied by the hook
         }
         mount(flags) {
             switch (this.vmKind) {
@@ -343,10 +379,10 @@
             }
             flags |= 4096 /* fromBind */;
             this.state |= 1 /* isBinding */;
-            this.lifecycle.bound.begin();
+            this.lifecycle.afterBind.begin();
             this.bindBindings(flags, $scope);
-            if (this.hooks.hasBinding) {
-                const ret = this.bindingContext.binding(flags);
+            if (this.hooks.hasBeforeBind) {
+                const ret = this.bindingContext.beforeBind(flags);
                 if (lifecycle_task_1.hasAsyncWork(ret)) {
                     return new lifecycle_task_1.ContinuationTask(ret, this.bindControllers, this, flags, $scope);
                 }
@@ -369,9 +405,9 @@
             }
             this.state |= 1 /* isBinding */;
             this.scope = scope;
-            this.lifecycle.bound.begin();
-            if (this.hooks.hasBinding) {
-                const ret = this.bindingContext.binding(flags);
+            this.lifecycle.afterBind.begin();
+            if (this.hooks.hasBeforeBind) {
+                const ret = this.bindingContext.beforeBind(flags);
                 if (lifecycle_task_1.hasAsyncWork(ret)) {
                     return new lifecycle_task_1.ContinuationTask(ret, this.endBind, this, flags);
                 }
@@ -385,7 +421,7 @@
             }
             scope.scopeParts = kernel_1.mergeDistinct(scope.scopeParts, this.scopeParts, false);
             if ((this.state & 4 /* isBound */) > 0) {
-                if (this.scope === scope || (this.state & 16384 /* hasLockedScope */) > 0) {
+                if (this.scope === scope || (this.state & 256 /* hasLockedScope */) > 0) {
                     return lifecycle_task_1.LifecycleTask.done;
                 }
                 flags |= 4096 /* fromBind */;
@@ -397,11 +433,11 @@
             else {
                 flags |= 4096 /* fromBind */;
             }
-            if ((this.state & 16384 /* hasLockedScope */) === 0) {
+            if ((this.state & 256 /* hasLockedScope */) === 0) {
                 this.scope = scope;
             }
             this.state |= 1 /* isBinding */;
-            this.lifecycle.bound.begin();
+            this.lifecycle.afterBind.begin();
             this.bindBindings(flags, scope);
             return this.bindControllers(flags, scope);
         }
@@ -441,11 +477,11 @@
             return new lifecycle_task_1.AggregateContinuationTask(tasks, this.endBind, this, flags);
         }
         endBind(flags) {
-            if (this.hooks.hasBound) {
-                this.lifecycle.bound.add(this);
+            if (this.hooks.hasAfterBind) {
+                this.lifecycle.afterBind.add(this);
             }
             this.state = this.state ^ 1 /* isBinding */ | 4 /* isBound */;
-            this.lifecycle.bound.end(flags);
+            this.lifecycle.afterBind.end(flags);
         }
         unbindCustomElement(flags) {
             if ((this.state & 4 /* isBound */) === 0) {
@@ -454,9 +490,9 @@
             this.scope.parentScope = null;
             this.state |= 2 /* isUnbinding */;
             flags |= 8192 /* fromUnbind */;
-            this.lifecycle.unbound.begin();
-            if (this.hooks.hasUnbinding) {
-                const ret = this.bindingContext.unbinding(flags);
+            this.lifecycle.afterUnbind.begin();
+            if (this.hooks.hasBeforeUnbind) {
+                const ret = this.bindingContext.beforeUnbind(flags);
                 if (lifecycle_task_1.hasAsyncWork(ret)) {
                     return new lifecycle_task_1.ContinuationTask(ret, this.unbindControllers, this, flags);
                 }
@@ -469,9 +505,9 @@
             }
             this.state |= 2 /* isUnbinding */;
             flags |= 8192 /* fromUnbind */;
-            this.lifecycle.unbound.begin();
-            if (this.hooks.hasUnbinding) {
-                const ret = this.bindingContext.unbinding(flags);
+            this.lifecycle.afterUnbind.begin();
+            if (this.hooks.hasBeforeUnbind) {
+                const ret = this.bindingContext.beforeUnbind(flags);
                 if (lifecycle_task_1.hasAsyncWork(ret)) {
                     return new lifecycle_task_1.ContinuationTask(ret, this.endUnbind, this, flags);
                 }
@@ -485,7 +521,7 @@
             }
             this.state |= 2 /* isUnbinding */;
             flags |= 8192 /* fromUnbind */;
-            this.lifecycle.unbound.begin();
+            this.lifecycle.afterUnbind.begin();
             return this.unbindControllers(flags);
         }
         unbindBindings(flags) {
@@ -525,15 +561,15 @@
                     this.scope = void 0;
                     break;
                 case 2 /* synthetic */:
-                    if ((this.state & 16384 /* hasLockedScope */) === 0) {
+                    if ((this.state & 256 /* hasLockedScope */) === 0) {
                         this.scope = void 0;
                     }
             }
-            if (this.hooks.hasUnbound) {
-                this.lifecycle.unbound.add(this);
+            if (this.hooks.hasAfterUnbind) {
+                this.lifecycle.afterUnbind.add(this);
             }
             this.state = (this.state | 6 /* isBoundOrUnbinding */) ^ 6 /* isBoundOrUnbinding */;
-            this.lifecycle.unbound.end(flags);
+            this.lifecycle.afterUnbind.end(flags);
         }
         // #endregion
         // #region attach/detach
@@ -541,29 +577,29 @@
             flags |= 16384 /* fromAttach */;
             this.state |= 8 /* isAttaching */;
             this.lifecycle.mount.add(this);
-            this.lifecycle.attached.begin();
-            if (this.hooks.hasAttaching) {
-                this.bindingContext.attaching(flags);
+            this.lifecycle.afterAttach.begin();
+            if (this.hooks.hasBeforeAttach) {
+                this.bindingContext.beforeAttach(flags);
             }
             this.attachControllers(flags);
-            if (this.hooks.hasAttached) {
-                this.lifecycle.attached.add(this);
+            if (this.hooks.hasAfterAttach) {
+                this.lifecycle.afterAttach.add(this);
             }
             this.state = this.state ^ 8 /* isAttaching */ | 32 /* isAttached */;
-            this.lifecycle.attached.end(flags);
+            this.lifecycle.afterAttach.end(flags);
         }
         attachCustomAttribute(flags) {
             flags |= 16384 /* fromAttach */;
             this.state |= 8 /* isAttaching */;
-            this.lifecycle.attached.begin();
-            if (this.hooks.hasAttaching) {
-                this.bindingContext.attaching(flags);
+            this.lifecycle.afterAttach.begin();
+            if (this.hooks.hasBeforeAttach) {
+                this.bindingContext.beforeAttach(flags);
             }
-            if (this.hooks.hasAttached) {
-                this.lifecycle.attached.add(this);
+            if (this.hooks.hasAfterAttach) {
+                this.lifecycle.afterAttach.add(this);
             }
             this.state = this.state ^ 8 /* isAttaching */ | 32 /* isAttached */;
-            this.lifecycle.attached.end(flags);
+            this.lifecycle.afterAttach.end(flags);
         }
         attachSynthetic(flags) {
             if (((this.state & 32 /* isAttached */) > 0 && flags & 33554432 /* reorderNodes */) > 0) {
@@ -573,48 +609,48 @@
                 flags |= 16384 /* fromAttach */;
                 this.state |= 8 /* isAttaching */;
                 this.lifecycle.mount.add(this);
-                this.lifecycle.attached.begin();
+                this.lifecycle.afterAttach.begin();
                 this.attachControllers(flags);
                 this.state = this.state ^ 8 /* isAttaching */ | 32 /* isAttached */;
-                this.lifecycle.attached.end(flags);
+                this.lifecycle.afterAttach.end(flags);
             }
         }
         detachCustomElement(flags) {
             flags |= 32768 /* fromDetach */;
             this.state |= 16 /* isDetaching */;
-            this.lifecycle.detached.begin();
+            this.lifecycle.afterDetach.begin();
             this.lifecycle.unmount.add(this);
-            if (this.hooks.hasDetaching) {
-                this.bindingContext.detaching(flags);
+            if (this.hooks.hasBeforeDetach) {
+                this.bindingContext.beforeDetach(flags);
             }
             this.detachControllers(flags);
-            if (this.hooks.hasDetached) {
-                this.lifecycle.detached.add(this);
+            if (this.hooks.hasAfterDetach) {
+                this.lifecycle.afterDetach.add(this);
             }
             this.state = (this.state | 48 /* isAttachedOrDetaching */) ^ 48 /* isAttachedOrDetaching */;
-            this.lifecycle.detached.end(flags);
+            this.lifecycle.afterDetach.end(flags);
         }
         detachCustomAttribute(flags) {
             flags |= 32768 /* fromDetach */;
             this.state |= 16 /* isDetaching */;
-            this.lifecycle.detached.begin();
-            if (this.hooks.hasDetaching) {
-                this.bindingContext.detaching(flags);
+            this.lifecycle.afterDetach.begin();
+            if (this.hooks.hasBeforeDetach) {
+                this.bindingContext.beforeDetach(flags);
             }
-            if (this.hooks.hasDetached) {
-                this.lifecycle.detached.add(this);
+            if (this.hooks.hasAfterDetach) {
+                this.lifecycle.afterDetach.add(this);
             }
             this.state = (this.state | 48 /* isAttachedOrDetaching */) ^ 48 /* isAttachedOrDetaching */;
-            this.lifecycle.detached.end(flags);
+            this.lifecycle.afterDetach.end(flags);
         }
         detachSynthetic(flags) {
             flags |= 32768 /* fromDetach */;
             this.state |= 16 /* isDetaching */;
-            this.lifecycle.detached.begin();
+            this.lifecycle.afterDetach.begin();
             this.lifecycle.unmount.add(this);
             this.detachControllers(flags);
             this.state = (this.state | 48 /* isAttachedOrDetaching */) ^ 48 /* isAttachedOrDetaching */;
-            this.lifecycle.detached.end(flags);
+            this.lifecycle.afterDetach.end(flags);
         }
         attachControllers(flags) {
             const { controllers } = this;
@@ -671,11 +707,10 @@
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             this.nodes.remove(); // non-null is implied by the hook
             this.nodes.unlink();
-            if ((this.state & 32768 /* canBeCached */) > 0) {
-                this.state = (this.state | 32768 /* canBeCached */) ^ 32768 /* canBeCached */;
+            if ((this.state & 512 /* canBeCached */) > 0) {
+                this.state = (this.state | 512 /* canBeCached */) ^ 512 /* canBeCached */;
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 if (this.viewFactory.tryReturnToCache(this)) { // non-null is implied by the hook
-                    this.state |= 128 /* isCached */;
                     return true;
                 }
             }
@@ -713,52 +748,63 @@
         }
     }
     exports.Controller = Controller;
-    Controller.lookup = new WeakMap();
-    function createObservers(controller, description, flags, instance) {
-        const hasLookup = instance.$observers != void 0;
-        const observers = hasLookup ? instance.$observers : {};
-        const bindables = description.bindables;
-        const observableNames = Object.getOwnPropertyNames(bindables);
-        const useProxy = (flags & 2 /* proxyStrategy */) > 0;
-        const lifecycle = controller.lifecycle;
-        const hasChildrenObservers = 'childrenObservers' in description;
-        const length = observableNames.length;
-        let name;
-        let bindable;
-        for (let i = 0; i < length; ++i) {
-            name = observableNames[i];
-            if (observers[name] == void 0) {
-                bindable = bindables[name];
-                observers[name] = new bindable_observer_1.BindableObserver(lifecycle, flags, useProxy ? proxy_observer_1.ProxyObserver.getOrCreate(instance).proxy : instance, name, bindable.callback, bindable.set);
-            }
-        }
-        if (hasChildrenObservers) {
-            const childrenObservers = description.childrenObservers;
-            if (childrenObservers) {
-                const childObserverNames = Object.getOwnPropertyNames(childrenObservers);
-                const { length } = childObserverNames;
-                let name;
-                for (let i = 0; i < length; ++i) {
-                    name = childObserverNames[i];
-                    if (observers[name] == void 0) {
-                        const childrenDescription = childrenObservers[name];
-                        observers[name] = new rendering_engine_1.ChildrenObserver(controller, instance, flags, name, childrenDescription.callback, childrenDescription.query, childrenDescription.filter, childrenDescription.map, childrenDescription.options);
-                    }
-                }
-            }
-        }
-        if (!useProxy || hasChildrenObservers) {
-            Reflect.defineProperty(instance, '$observers', {
-                enumerable: false,
-                value: observers
-            });
-        }
-    }
     function getBindingContext(flags, instance) {
         if (instance.noProxy === true || (flags & 2 /* proxyStrategy */) === 0) {
             return instance;
         }
         return proxy_observer_1.ProxyObserver.getOrCreate(instance).proxy;
+    }
+    function getLookup(instance) {
+        let lookup = instance.$observers;
+        if (lookup === void 0) {
+            Reflect.defineProperty(instance, '$observers', {
+                enumerable: false,
+                value: lookup = {},
+            });
+        }
+        return lookup;
+    }
+    function createObservers(lifecycle, definition, flags, instance) {
+        const bindables = definition.bindables;
+        const observableNames = Object.getOwnPropertyNames(bindables);
+        const length = observableNames.length;
+        if (length > 0) {
+            let name;
+            let bindable;
+            if ((flags & 2 /* proxyStrategy */) > 0) {
+                for (let i = 0; i < length; ++i) {
+                    name = observableNames[i];
+                    bindable = bindables[name];
+                    new bindable_observer_1.BindableObserver(lifecycle, flags, proxy_observer_1.ProxyObserver.getOrCreate(instance).proxy, name, bindable.callback, bindable.set);
+                }
+            }
+            else {
+                const observers = getLookup(instance);
+                for (let i = 0; i < length; ++i) {
+                    name = observableNames[i];
+                    if (observers[name] === void 0) {
+                        bindable = bindables[name];
+                        observers[name] = new bindable_observer_1.BindableObserver(lifecycle, flags, instance, name, bindable.callback, bindable.set);
+                    }
+                }
+            }
+        }
+    }
+    function createChildrenObservers(controller, definition, flags, instance) {
+        const childrenObservers = definition.childrenObservers;
+        const childObserverNames = Object.getOwnPropertyNames(childrenObservers);
+        const length = childObserverNames.length;
+        if (length > 0) {
+            const observers = getLookup(instance);
+            let name;
+            for (let i = 0; i < length; ++i) {
+                name = childObserverNames[i];
+                if (observers[name] == void 0) {
+                    const childrenDescription = childrenObservers[name];
+                    observers[name] = new children_1.ChildrenObserver(controller, instance, flags, name, childrenDescription.callback, childrenDescription.query, childrenDescription.filter, childrenDescription.map, childrenDescription.options);
+                }
+            }
+        }
     }
 });
 //# sourceMappingURL=controller.js.map

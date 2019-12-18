@@ -1,5 +1,4 @@
 import { IContainer, Key } from '@aurelia/kernel';
-import { IRenderContext } from '@aurelia/runtime';
 import { BrowserNavigator } from './browser-navigator';
 import { Guardian } from './guardian';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
@@ -48,8 +47,8 @@ export interface IRouter {
     linkCallback(info: AnchorEventInfo): void;
     processNavigations(qInstruction: QueueItem<INavigatorInstruction>): Promise<void>;
     getViewport(name: string): Viewport | null;
-    connectViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;
-    disconnectViewport(viewport: Viewport, element: Element | null, context: IRenderContext | null): void;
+    connectViewport(name: string, element: Element, context: IContainer, options?: IViewportOptions): Viewport;
+    disconnectViewport(viewport: Viewport, element: Element | null, context: IContainer | null): void;
     allViewports(includeDisabled?: boolean): Viewport[];
     findScope(element: Element | null): Viewport;
     goto(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void>;
@@ -94,8 +93,8 @@ export declare class Router implements IRouter {
     processNavigations: (qInstruction: QueueItem<INavigatorInstruction>) => Promise<void>;
     findScope(element: Element): Viewport;
     getViewport(name: string): Viewport | null;
-    connectViewport(name: string, element: Element, context: IRenderContext, options?: IViewportOptions): Viewport;
-    disconnectViewport(viewport: Viewport, element: Element | null, context: IRenderContext | null): void;
+    connectViewport(name: string, element: Element, context: IContainer, options?: IViewportOptions): Viewport;
+    disconnectViewport(viewport: Viewport, element: Element | null, context: IContainer | null): void;
     allViewports(includeDisabled?: boolean): Viewport[];
     goto(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void>;
     refresh(): Promise<void>;

@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../observation/binding-context", "../resources/custom-element", "./controller"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../observation/binding-context", "../resources/custom-element", "./controller", "../definitions", "./render-context"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -13,18 +13,17 @@
     const binding_context_1 = require("../observation/binding-context");
     const custom_element_1 = require("../resources/custom-element");
     const controller_1 = require("./controller");
+    const definitions_1 = require("../definitions");
+    const render_context_1 = require("./render-context");
     class ViewFactory {
-        constructor(name, template, lifecycle) {
+        constructor(name, context, lifecycle, parts) {
             this.name = name;
-            this.template = template;
+            this.context = context;
             this.lifecycle = lifecycle;
+            this.parts = parts;
             this.isCaching = false;
-            this.parts = kernel_1.PLATFORM.emptyObject;
             this.cache = null;
             this.cacheSize = -1;
-        }
-        get parentContextId() {
-            return this.template.renderContext.parentId;
         }
         setCacheSize(size, doNotOverrideIfAlreadySet) {
             if (size) {
@@ -62,20 +61,21 @@
             let controller;
             if (cache != null && cache.length > 0) {
                 controller = cache.pop();
-                controller.state = (controller.state | 128 /* isCached */) ^ 128 /* isCached */;
                 return controller;
             }
-            controller = controller_1.Controller.forSyntheticView(this, this.lifecycle, flags);
-            this.template.render(controller, null, this.parts, flags);
-            if (!controller.nodes) {
-                throw kernel_1.Reporter.error(90);
-            }
+            controller = controller_1.Controller.forSyntheticView(this, this.lifecycle, this.context, flags);
             return controller;
         }
-        addParts(parts) {
-            if (Object.keys(parts).length > 0) {
-                this.parts = { ...this.parts, ...parts };
+        resolve(requestor, parts) {
+            parts = definitions_1.mergeParts(this.parts, parts);
+            if (parts === void 0) {
+                return this;
             }
+            const part = parts[this.name];
+            if (part === void 0) {
+                return this;
+            }
+            return render_context_1.getRenderContext(part, requestor, parts).getViewFactory(this.name);
         }
     }
     exports.ViewFactory = ViewFactory;
@@ -128,17 +128,6 @@
     exports.view = view;
     exports.IViewLocator = kernel_1.DI.createInterface('IViewLocator')
         .noDefault();
-    const lifecycleCallbacks = [
-        'binding',
-        'bound',
-        'attaching',
-        'attached',
-        'detaching',
-        'caching',
-        'detached',
-        'unbinding',
-        'unbound'
-    ];
     class ViewLocator {
         constructor() {
             this.modelInstanceToBoundComponent = new WeakMap();
@@ -193,21 +182,75 @@
                     constructor(viewModel) {
                         this.viewModel = viewModel;
                     }
-                    created(flags) {
-                        this.$controller.scope = binding_context_1.Scope.fromParent(flags, this.$controller.scope, this.viewModel);
-                        if (this.viewModel.created) {
-                            this.viewModel.created(flags);
+                    create(controller, parentContainer, definition, parts) {
+                        const vm = this.viewModel;
+                        controller.scope = binding_context_1.Scope.fromParent(controller.flags, controller.scope, vm);
+                        if (vm.create !== void 0) {
+                            return vm.create(controller, parentContainer, definition, parts);
                         }
                     }
                 });
                 const proto = UnboundComponent.prototype;
-                lifecycleCallbacks.forEach(x => {
-                    if (x in object) {
-                        const fn = function (flags) { return this.viewModel[x](flags); };
-                        Reflect.defineProperty(fn, 'name', { configurable: true, value: x });
-                        proto[x] = fn;
-                    }
-                });
+                if ('beforeCompile' in object) {
+                    proto.beforeCompile = function beforeCompile(controller) {
+                        this.viewModel.beforeCompile(controller);
+                    };
+                }
+                if ('afterCompile' in object) {
+                    proto.afterCompile = function afterCompile(controller) {
+                        this.viewModel.afterCompile(controller);
+                    };
+                }
+                if ('afterCompileChildren' in object) {
+                    proto.afterCompileChildren = function afterCompileChildren(controller) {
+                        this.viewModel.afterCompileChildren(controller);
+                    };
+                }
+                if ('beforeBind' in object) {
+                    proto.beforeBind = function beforeBind(flags) {
+                        return this.viewModel.beforeBind(flags);
+                    };
+                }
+                if ('afterBind' in object) {
+                    proto.afterBind = function afterBind(flags) {
+                        this.viewModel.afterBind(flags);
+                    };
+                }
+                if ('beforeUnbind' in object) {
+                    proto.beforeUnbind = function beforeUnbind(flags) {
+                        return this.viewModel.beforeUnbind(flags);
+                    };
+                }
+                if ('afterUnbind' in object) {
+                    proto.afterUnbind = function afterUnbind(flags) {
+                        this.viewModel.afterUnbind(flags);
+                    };
+                }
+                if ('beforeAttach' in object) {
+                    proto.beforeAttach = function beforeAttach(flags) {
+                        this.viewModel.beforeAttach(flags);
+                    };
+                }
+                if ('afterAttach' in object) {
+                    proto.afterAttach = function afterAttach(flags) {
+                        this.viewModel.afterAttach(flags);
+                    };
+                }
+                if ('beforeDetach' in object) {
+                    proto.beforeDetach = function beforeDetach(flags) {
+                        this.viewModel.beforeDetach(flags);
+                    };
+                }
+                if ('afterDetach' in object) {
+                    proto.afterDetach = function afterDetach(flags) {
+                        this.viewModel.afterDetach(flags);
+                    };
+                }
+                if ('caching' in object) {
+                    proto.caching = function caching(flags) {
+                        this.viewModel.caching(flags);
+                    };
+                }
                 lookup[resolvedViewName] = UnboundComponent;
             }
             return UnboundComponent;

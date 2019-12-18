@@ -22,17 +22,17 @@
             this.view = this.factory.create();
             this.view.hold(location, 1 /* insertBefore */);
         }
-        binding(flags) {
+        beforeBind(flags) {
             this.view.parent = this.$controller;
             return this.view.bind(flags | 67108864 /* allowParentScopeTraversal */, this.$controller.scope, this.factory.name);
         }
-        attaching(flags) {
+        beforeAttach(flags) {
             this.view.attach(flags);
         }
-        detaching(flags) {
+        beforeDetach(flags) {
             this.view.detach(flags);
         }
-        unbinding(flags) {
+        beforeUnbind(flags) {
             const task = this.view.unbind(flags);
             this.view.parent = void 0;
             return task;

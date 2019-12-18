@@ -11,45 +11,6 @@
     Object.defineProperty(exports, "__esModule", { value: true });
     const metadata_1 = require("./metadata");
     const platform_1 = require("./platform");
-    class RuntimeCompilationResources {
-        constructor(context) {
-            this.context = context;
-        }
-        find(kind, name) {
-            const key = kind.keyFrom(name);
-            let resourceResolvers = this.context.resourceResolvers;
-            let resolver = resourceResolvers[key];
-            if (resolver === void 0) {
-                resourceResolvers = this.context.root.resourceResolvers;
-                resolver = resourceResolvers[key];
-            }
-            if (resolver != null && resolver.getFactory) {
-                const factory = resolver.getFactory(this.context);
-                if (factory != null) {
-                    // TODO: we may want to log a warning here, or even throw. This would happen if a dependency is registered with a resource-like key
-                    // but does not actually have a definition associated via the type's metadata. That *should* generally not happen.
-                    const definition = metadata_1.Metadata.getOwn(kind.name, factory.Type);
-                    return definition === void 0 ? null : definition;
-                }
-            }
-            return null;
-        }
-        create(kind, name) {
-            const key = kind.keyFrom(name);
-            let resourceResolvers = this.context.resourceResolvers;
-            let resolver = resourceResolvers[key];
-            if (resolver === undefined) {
-                resourceResolvers = this.context.root.resourceResolvers;
-                resolver = resourceResolvers[key];
-            }
-            if (resolver != null) {
-                const instance = resolver.resolve(this.context, this.context);
-                return instance === undefined ? null : instance;
-            }
-            return null;
-        }
-    }
-    exports.RuntimeCompilationResources = RuntimeCompilationResources;
     const annotation = {
         name: 'au:annotation',
         appendTo(target, key) {

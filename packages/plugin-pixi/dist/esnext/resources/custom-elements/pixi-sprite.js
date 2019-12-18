@@ -67,7 +67,7 @@ let PixiSprite = class PixiSprite {
     get isSprite() {
         return this.sprite['isSprite'];
     }
-    attached() {
+    afterAttach() {
         if (this.container) {
             const $this = this;
             this._sprite = new Sprite(loader.resources[this.src].texture);
@@ -88,7 +88,7 @@ let PixiSprite = class PixiSprite {
             this.container.addChild(this._sprite);
         }
     }
-    detached() {
+    afterDetach() {
         if (this.container && this._sprite) {
             this.container.removeChild(this._sprite);
             this._sprite.destroy();

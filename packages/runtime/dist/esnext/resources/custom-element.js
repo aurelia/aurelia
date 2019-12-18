@@ -37,6 +37,7 @@ export function strict(target) {
     }
     CustomElement.annotate(target, 'isStrictBinding', true);
 }
+const definitionLookup = new WeakMap();
 export class CustomElementDefinition {
     constructor(Type, name, aliases, key, cache, template, instructions, dependencies, injectable, needsCompile, surrogates, bindables, childrenObservers, containerless, isStrictBinding, shadowOptions, hasSlots, strategy, hooks, scopeParts) {
         this.Type = Type;
@@ -95,6 +96,19 @@ export class CustomElementDefinition {
         return new CustomElementDefinition(Type, name, mergeArrays(CustomElement.getAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases), CustomElement.keyFrom(name), fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, () => 0), fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, () => null), mergeArrays(CustomElement.getAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions), mergeArrays(CustomElement.getAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies), fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, () => null), fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, () => true), mergeArrays(CustomElement.getAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates), Bindable.from(...Bindable.getAll(Type), CustomElement.getAnnotation(Type, 'bindables'), Type.bindables, nameOrDef.bindables), Children.from(...Children.getAll(Type), CustomElement.getAnnotation(Type, 'childrenObservers'), Type.childrenObservers, nameOrDef.childrenObservers), fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, () => false), fromAnnotationOrDefinitionOrTypeOrDefault('isStrictBinding', nameOrDef, Type, () => false), fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, () => null), fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, () => false), fromAnnotationOrDefinitionOrTypeOrDefault('strategy', nameOrDef, Type, () => 1 /* getterSetter */), 
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         fromAnnotationOrTypeOrDefault('hooks', Type, () => new HooksDefinition(Type.prototype)), mergeArrays(CustomElement.getAnnotation(Type, 'scopeParts'), nameOrDef.scopeParts, Type.scopeParts));
+    }
+    static getOrCreate(partialDefinition) {
+        if (partialDefinition instanceof CustomElementDefinition) {
+            return partialDefinition;
+        }
+        if (definitionLookup.has(partialDefinition)) {
+            return definitionLookup.get(partialDefinition);
+        }
+        const definition = CustomElementDefinition.create(partialDefinition);
+        definitionLookup.set(partialDefinition, definition);
+        // Make sure the full definition can be retrieved from dynamically created classes as well
+        Metadata.define(CustomElement.name, definition, definition.Type);
+        return definition;
     }
     register(container) {
         const { Type, key, aliases } = this;

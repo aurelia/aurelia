@@ -1,5 +1,5 @@
 import { IContainer, IResolver, Key } from '@aurelia/kernel';
-import { Aurelia, CustomElementHost, HydrateElementInstruction, HydrateTemplateController, IBindingTargetAccessor, IBindingTargetObserver, IController, IDOM, IDOMInitializer, IElementProjector, IInstructionRenderer, ILifecycle, INode, INodeSequence, INodeSequenceFactory, IObserverLocator, IProjectorLocator, IRenderContext, IRenderLocation, IsBindingBehavior, ISinglePageApp, ITargetAccessorLocator, ITargetedInstruction, ITargetObserverLocator, ITemplate, ITemplateFactory, LetElementInstruction, LifecycleFlags, TargetedInstruction, CustomElementDefinition, IScheduler } from '@aurelia/runtime';
+import { Aurelia, CustomElementHost, HydrateElementInstruction, HydrateTemplateController, IBindingTargetAccessor, IBindingTargetObserver, IDOM, IDOMInitializer, IElementProjector, IInstructionRenderer, ILifecycle, INode, INodeSequence, INodeSequenceFactory, IObserverLocator, IProjectorLocator, IRenderLocation, IsBindingBehavior, ISinglePageApp, ITargetAccessorLocator, ITargetedInstruction, ITargetObserverLocator, LetElementInstruction, LifecycleFlags, TargetedInstruction, CustomElementDefinition, IScheduler, ICustomElementController } from '@aurelia/runtime';
 export declare class AuNode implements INode {
     readonly nodeName: string;
     readonly isWrapper: boolean;
@@ -37,6 +37,7 @@ export declare class AuNode implements INode {
     makeTarget(): this;
 }
 export declare class AuDOM implements IDOM<AuNode> {
+    createNodeSequence(fragment: AuNode): AuNodeSequence;
     addEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void;
     appendChild(parent: AuNode, child: AuNode): void;
     cloneNode<T extends INode = AuNode>(node: T, deep?: boolean): T;
@@ -62,11 +63,11 @@ export declare class AuDOM implements IDOM<AuNode> {
     createNodeObserver?(node: AuNode, cb: (...args: unknown[]) => void, init: unknown): unknown;
 }
 export declare class AuProjectorLocator implements IProjectorLocator {
-    getElementProjector(dom: IDOM, $component: IController<AuNode>, host: CustomElementHost<AuNode>, def: CustomElementDefinition): IElementProjector;
+    getElementProjector(dom: IDOM, $component: ICustomElementController<AuNode>, host: CustomElementHost<AuNode>, def: CustomElementDefinition): IElementProjector;
 }
 export declare class AuProjector implements IElementProjector {
     host: CustomElementHost<AuNode>;
-    constructor($controller: IController<AuNode>, host: CustomElementHost<AuNode>);
+    constructor($controller: ICustomElementController<AuNode>, host: CustomElementHost<AuNode>);
     get children(): ArrayLike<CustomElementHost<IRenderLocation<AuNode> & AuNode>>;
     subscribeToChildrenChange(callback: () => void): void;
     provideEncapsulationSource(): AuNode;
@@ -106,12 +107,6 @@ export declare class AuDOMInitializer implements IDOMInitializer {
     constructor(container: IContainer);
     initialize(config?: ISinglePageApp<AuNode>): AuDOM;
 }
-export declare class AuTemplateFactory implements ITemplateFactory<AuNode> {
-    static readonly inject: readonly Key[];
-    private readonly dom;
-    constructor(dom: AuDOM);
-    create(parentRenderContext: IRenderContext<AuNode>, definition: CustomElementDefinition): ITemplate<AuNode>;
-}
 export declare class AuObserverLocator implements ITargetAccessorLocator, ITargetObserverLocator {
     getObserver(flags: LifecycleFlags, scheduler: IScheduler, lifecycle: ILifecycle, observerLocator: IObserverLocator, obj: unknown, propertyName: string): IBindingTargetAccessor | IBindingTargetObserver;
     overridesAccessor(obj: unknown, propertyName: string): boolean;
@@ -126,7 +121,7 @@ export declare class AuTextInstruction implements ITargetedInstruction {
 export declare class AuTextRenderer implements IInstructionRenderer {
     private readonly observerLocator;
     constructor(observerLocator: IObserverLocator);
-    render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext<AuNode>, renderable: IController<AuNode>, target: AuNode, instruction: AuTextInstruction): void;
+    render(flags: LifecycleFlags, context: IContainer, controller: ICustomElementController<AuNode>, target: AuNode, instruction: AuTextInstruction): void;
 }
 export declare const AuDOMConfiguration: {
     register(container: IContainer): void;

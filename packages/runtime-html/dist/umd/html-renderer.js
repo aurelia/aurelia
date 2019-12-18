@@ -21,10 +21,10 @@
             this.parser = parser;
             this.observerLocator = observerLocator;
         }
-        render(flags, dom, context, renderable, target, instruction) {
+        render(flags, context, controller, target, instruction) {
             const next = target.nextSibling;
-            if (dom.isMarker(target)) {
-                dom.remove(target);
+            if (context.dom.isMarker(target)) {
+                context.dom.remove(target);
             }
             let binding;
             const expr = runtime_1.ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
@@ -34,7 +34,7 @@
             else {
                 binding = runtime_1.applyBindingBehavior(new runtime_1.InterpolationBinding(expr.firstExpression, expr, next, 'textContent', runtime_1.BindingMode.toView, this.observerLocator, context, true), expr, context);
             }
-            runtime_1.addBinding(renderable, binding);
+            controller.addBinding(binding);
         }
     };
     TextBindingRenderer = tslib_1.__decorate([
@@ -53,11 +53,11 @@
             this.parser = parser;
             this.eventManager = eventManager;
         }
-        render(flags, dom, context, renderable, target, instruction) {
+        render(flags, context, controller, target, instruction) {
             // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
             const expr = runtime_1.ensureExpression(this.parser, instruction.from, 80 /* IsEventCommand */ | (instruction.strategy + 6 /* DelegationStrategyDelta */));
-            const binding = runtime_1.applyBindingBehavior(new listener_1.Listener(dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context), expr, context);
-            runtime_1.addBinding(renderable, binding);
+            const binding = runtime_1.applyBindingBehavior(new listener_1.Listener(context.dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context), expr, context);
+            controller.addBinding(binding);
         }
     };
     ListenerBindingRenderer = tslib_1.__decorate([
@@ -72,7 +72,7 @@
     let SetAttributeRenderer = 
     /** @internal */
     class SetAttributeRenderer {
-        render(flags, dom, context, renderable, target, instruction) {
+        render(flags, context, controller, target, instruction) {
             target.setAttribute(instruction.to, instruction.value);
         }
     };
@@ -82,7 +82,7 @@
     ], SetAttributeRenderer);
     exports.SetAttributeRenderer = SetAttributeRenderer;
     let SetClassAttributeRenderer = class SetClassAttributeRenderer {
-        render(flags, dom, context, renderable, target, instruction) {
+        render(flags, context, controller, target, instruction) {
             addClasses(target.classList, instruction.value);
         }
     };
@@ -91,7 +91,7 @@
     ], SetClassAttributeRenderer);
     exports.SetClassAttributeRenderer = SetClassAttributeRenderer;
     let SetStyleAttributeRenderer = class SetStyleAttributeRenderer {
-        render(flags, dom, context, renderable, target, instruction) {
+        render(flags, context, controller, target, instruction) {
             target.style.cssText += instruction.value;
         }
     };
@@ -106,10 +106,10 @@
             this.parser = parser;
             this.observerLocator = observerLocator;
         }
-        render(flags, dom, context, renderable, target, instruction) {
+        render(flags, context, controller, target, instruction) {
             const expr = runtime_1.ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | runtime_1.BindingMode.toView);
             const binding = runtime_1.applyBindingBehavior(new runtime_1.PropertyBinding(expr, target.style, instruction.to, runtime_1.BindingMode.toView, this.observerLocator, context), expr, context);
-            runtime_1.addBinding(renderable, binding);
+            controller.addBinding(binding);
         }
     };
     StylePropertyBindingRenderer = tslib_1.__decorate([
@@ -128,10 +128,10 @@
             this.parser = parser;
             this.observerLocator = observerLocator;
         }
-        render(flags, dom, context, renderable, target, instruction) {
+        render(flags, context, controller, target, instruction) {
             const expr = runtime_1.ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | runtime_1.BindingMode.toView);
             const binding = runtime_1.applyBindingBehavior(new attribute_1.AttributeBinding(expr, target, instruction.attr /* targetAttribute */, instruction.to /* targetKey */, runtime_1.BindingMode.toView, this.observerLocator, context), expr, context);
-            runtime_1.addBinding(renderable, binding);
+            controller.addBinding(binding);
         }
     };
     AttributeBindingRenderer = tslib_1.__decorate([

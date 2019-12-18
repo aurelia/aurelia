@@ -28,9 +28,9 @@ export declare class PixiApp {
     private readonly element;
     private _app;
     constructor(...args: unknown[]);
-    bound(): void;
-    attached(): void;
-    detached(): void;
-    unbound(): void;
+    afterBind(): void;
+    afterAttach(): void;
+    afterDetach(): void;
+    afterUnbind(): void;
 }
 //# sourceMappingURL=pixi-app.d.ts.map

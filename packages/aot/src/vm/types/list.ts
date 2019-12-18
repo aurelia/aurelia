@@ -1,7 +1,4 @@
 import {
-  $AnyNonEmpty,
-} from './_shared';
-import {
   ExecutionContext,
 } from '../realm';
 import {
@@ -10,7 +7,7 @@ import {
 
 export type $ListItem = {
   is(other: unknown): boolean;
-}
+};
 
 export class $List<T extends $ListItem> extends Array<T> {
   public get isAbrupt(): false { return false; }

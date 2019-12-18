@@ -44,7 +44,6 @@ import {
   Job,
 } from '../job';
 import {
-  $ESModule,
   $$ESModuleOrScript,
 } from '../ast/modules';
 import {
@@ -725,7 +724,7 @@ export class $PromiseConstructor extends $BuiltinFunction<'%Promise%'> {
 
     // 1. If NewTarget is undefined, throw a TypeError exception.
     if (NewTarget.isUndefined) {
-      return new $TypeError(realm, `Promise cannot be called as a function.`)
+      return new $TypeError(realm, `Promise cannot be called as a function.`);
     }
 
     // 2. If IsCallable(executor) is false, throw a TypeError exception.
@@ -843,7 +842,6 @@ export class $Promise_all extends $BuiltinFunction<'%Promise_all%'> {
     return result as $AnyNonEmpty; // TODO: fix typings $Empty shenanigans
   }
 }
-
 
 // http://www.ecma-international.org/ecma-262/#sec-performpromiseall
 // 25.6.4.1.1 Runtime Semantics: PerformPromiseAll ( iteratorRecord , constructor , resultCapability )

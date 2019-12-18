@@ -5,7 +5,7 @@ import {
 } from '@aurelia/kernel';
 import {
   $Any,
-} from './types/_shared'
+} from './types/_shared';
 import {
   Realm,
   ExecutionContext,

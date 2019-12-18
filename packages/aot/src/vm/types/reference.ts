@@ -42,7 +42,6 @@ import {
   I$Node,
 } from '../ast/_shared';
 
-
 // http://www.ecma-international.org/ecma-262/#sec-reference-specification-type
 export class $Reference {
   public readonly '<$Reference>': unknown;

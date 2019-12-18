@@ -1,4 +1,3 @@
-/* eslint-disable */
 import {
   ClassDeclaration,
   ClassExpression,
@@ -114,7 +113,6 @@ const {
   emptyArray,
 } = PLATFORM;
 
-
 // #region Declaration members
 
 export type $$NodeWithHeritageClauses = (
@@ -141,7 +139,7 @@ export function $expressionWithTypeArgumentsList(
 }
 
 export class $HeritageClause implements I$Node {
-  public readonly $kind = SyntaxKind.HeritageClause;
+  public get $kind(): SyntaxKind.HeritageClause { return SyntaxKind.HeritageClause; }
 
   public readonly $types: readonly $ExpressionWithTypeArguments[];
 
@@ -161,7 +159,7 @@ export class $HeritageClause implements I$Node {
 }
 
 export class $ExpressionWithTypeArguments implements I$Node {
-  public readonly $kind = SyntaxKind.ExpressionWithTypeArguments;
+  public get $kind(): SyntaxKind.ExpressionWithTypeArguments { return SyntaxKind.ExpressionWithTypeArguments; }
 
   public readonly $expression: $$LHSExpressionOrHigher;
 
@@ -183,7 +181,7 @@ export class $ExpressionWithTypeArguments implements I$Node {
 // #endregion
 
 export class $ClassExpression implements I$Node {
-  public readonly $kind = SyntaxKind.ClassExpression;
+  public get $kind(): SyntaxKind.ClassExpression { return SyntaxKind.ClassExpression; }
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -214,7 +212,6 @@ export class $ClassExpression implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-prototypepropertynamelist
   // 14.6.11 Static Semantics: PrototypePropertyNameList
   public readonly PrototypePropertyNameList: readonly $String[];
-
 
   public constructor(
     public readonly node: ClassExpression,
@@ -323,7 +320,7 @@ export class $ClassExpression implements I$Node {
 }
 
 export class $ClassDeclaration implements I$Node {
-  public readonly $kind = SyntaxKind.ClassDeclaration;
+  public get $kind(): SyntaxKind.ClassDeclaration { return SyntaxKind.ClassDeclaration; }
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -826,7 +823,7 @@ export class $ClassDeclaration implements I$Node {
 }
 
 export class $PropertyDeclaration implements I$Node {
-  public readonly $kind = SyntaxKind.PropertyDeclaration;
+  public get $kind(): SyntaxKind.PropertyDeclaration { return SyntaxKind.PropertyDeclaration; }
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -860,7 +857,7 @@ export class $PropertyDeclaration implements I$Node {
 }
 
 export class $SemicolonClassElement implements I$Node {
-  public readonly $kind = SyntaxKind.SemicolonClassElement;
+  public get $kind(): SyntaxKind.SemicolonClassElement { return SyntaxKind.SemicolonClassElement; }
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-isstatic
   // 14.6.9 Static Semantics: IsStatic

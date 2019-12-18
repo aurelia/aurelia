@@ -6,13 +6,11 @@ import {
   ResolveSet,
   ResolvedBindingRecord,
   ExecutionContext,
+  Realm,
 } from '../realm';
 import {
   $String,
 } from '../types/string';
-import {
-  Realm,
-} from '../realm';
 import {
   $Boolean,
 } from '../types/boolean';
@@ -71,7 +69,6 @@ export class $NamespaceExoticObject extends $Object<'NamespaceExoticObject'> {
 
     // 11. Return M.
   }
-
 
   // http://www.ecma-international.org/ecma-262/#sec-module-namespace-exotic-objects-setprototypeof-v
   // 9.4.6.1 [[SetPrototypeOf]] ( V )

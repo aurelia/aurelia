@@ -1,4 +1,3 @@
-/* eslint-disable */
 import {
   ExportAssignment,
   ExportDeclaration,
@@ -386,7 +385,6 @@ export class $ESScript implements I$Node {
     }
   }
 
-
   // http://www.ecma-international.org/ecma-262/#sec-globaldeclarationinstantiation
   // 15.1.11 Runtime Semantics: GlobalDeclarationInstantiation ( script , env )
   public InstantiateGlobalDeclaration(
@@ -558,7 +556,6 @@ export class $ESScript implements I$Node {
     return new $Empty(realm);
   }
 
-
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-scriptevaluation
   // 15.1.10 ScriptEvaluation ( scriptRecord )
   public EvaluateScript(
@@ -703,7 +700,6 @@ export class $ESScript implements I$Node {
   }
 }
 
-
 export type ModuleStatus = 'uninstantiated' | 'instantiating' | 'instantiated' | 'evaluating' | 'evaluated';
 
 // http://www.ecma-international.org/ecma-262/#sec-abstract-module-records
@@ -720,7 +716,7 @@ export class $ESModule implements I$Node, IModule {
 
   public get isAbrupt(): false { return false; }
 
-  public readonly $kind = SyntaxKind.SourceFile;
+  public get $kind(): SyntaxKind.SourceFile { return SyntaxKind.SourceFile; }
 
   public readonly path: string;
 
@@ -1115,7 +1111,6 @@ export class $ESModule implements I$Node, IModule {
     this.LocalExportEntries = localExportEntries;
     this.StarExportEntries = starExportEntries;
 
-
     this.logger.trace(`RequestedModules: `, requestedModules);
 
     this.logger.trace(`ImportEntries: `, importEntries);
@@ -1486,7 +1481,6 @@ export class $ESModule implements I$Node, IModule {
       exportedNames.push(e.ExportName as $String);
     }
 
-
     // 7. For each ExportEntry Record e in module.[[StarExportEntries]], do
     for (const e of mod.StarExportEntries) {
       // 7. a. Let requestedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
@@ -1550,7 +1544,6 @@ export class $ESModule implements I$Node, IModule {
         return new ResolvedBindingRecord(this, e.LocalName as $String);
       }
     }
-
 
     // 5. For each ExportEntry Record e in module.[[IndirectExportEntries]], do
     for (const e of this.IndirectExportEntries) {
@@ -2004,7 +1997,6 @@ export class $ESModule implements I$Node, IModule {
 export class $DocumentFragment implements I$Node, IModule {
   public readonly '<IModule>': unknown;
 
-
   public readonly documentFragment: $DocumentFragment = this;
   public readonly parent: $DocumentFragment = this;
   public readonly ctx: Context = Context.None;
@@ -2091,7 +2083,7 @@ export type $$ModuleName = (
 );
 
 export class $ModuleDeclaration implements I$Node {
-  public readonly $kind = SyntaxKind.ModuleDeclaration;
+  public get $kind(): SyntaxKind.ModuleDeclaration { return SyntaxKind.ModuleDeclaration; }
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -2167,7 +2159,7 @@ export type $$ModuleReference = (
  * - import x = M.x;
  */
 export class $ImportEqualsDeclaration implements I$Node {
-  public readonly $kind = SyntaxKind.ImportEqualsDeclaration;
+  public get $kind(): SyntaxKind.ImportEqualsDeclaration { return SyntaxKind.ImportEqualsDeclaration; }
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -2209,7 +2201,7 @@ export class $ImportEqualsDeclaration implements I$Node {
 // In rest of the cases, module specifier is string literal corresponding to module
 // ImportClause information is shown at its declaration below.
 export class $ImportDeclaration implements I$Node {
-  public readonly $kind = SyntaxKind.ImportDeclaration;
+  public get $kind(): SyntaxKind.ImportDeclaration { return SyntaxKind.ImportDeclaration; }
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -2268,7 +2260,7 @@ export class $ImportDeclaration implements I$Node {
 // import { a, b as x } from "mod" => name = undefined, namedBinding: NamedImports = { elements: [{ name: a }, { name: x, propertyName: b}]}
 // import d, { a, b as x } from "mod" => name = d, namedBinding: NamedImports = { elements: [{ name: a }, { name: x, propertyName: b}]}
 export class $ImportClause implements I$Node {
-  public readonly $kind = SyntaxKind.ImportClause;
+  public get $kind(): SyntaxKind.ImportClause { return SyntaxKind.ImportClause; }
 
   public readonly $name: $Identifier | $Undefined;
   public readonly $namedBindings: $NamespaceImport | $NamedImports | undefined;
@@ -2333,7 +2325,7 @@ export class $ImportClause implements I$Node {
 }
 
 export class $NamedImports implements I$Node {
-  public readonly $kind = SyntaxKind.NamedImports;
+  public get $kind(): SyntaxKind.NamedImports { return SyntaxKind.NamedImports; }
 
   public readonly $elements: readonly $ImportSpecifier[];
 
@@ -2366,7 +2358,7 @@ export class $NamedImports implements I$Node {
 }
 
 export class $ImportSpecifier implements I$Node {
-  public readonly $kind = SyntaxKind.ImportSpecifier;
+  public get $kind(): SyntaxKind.ImportSpecifier { return SyntaxKind.ImportSpecifier; }
 
   public readonly $propertyName: $Identifier | $Undefined;
   public readonly $name: $Identifier;
@@ -2426,7 +2418,7 @@ export class $ImportSpecifier implements I$Node {
 }
 
 export class $NamespaceImport implements I$Node {
-  public readonly $kind = SyntaxKind.NamespaceImport;
+  public get $kind(): SyntaxKind.NamespaceImport { return SyntaxKind.NamespaceImport; }
 
   public readonly $name: $Identifier;
 
@@ -2491,7 +2483,7 @@ export class ExportEntryRecord {
 }
 
 export class $ExportAssignment implements I$Node {
-  public readonly $kind = SyntaxKind.ExportAssignment;
+  public get $kind(): SyntaxKind.ExportAssignment { return SyntaxKind.ExportAssignment; }
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -2521,7 +2513,7 @@ export class $ExportAssignment implements I$Node {
 }
 
 export class $ExportDeclaration implements I$Node {
-  public readonly $kind = SyntaxKind.ExportDeclaration;
+  public get $kind(): SyntaxKind.ExportDeclaration { return SyntaxKind.ExportDeclaration; }
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -2606,7 +2598,7 @@ export class $ExportDeclaration implements I$Node {
 }
 
 export class $NamedExports implements I$Node {
-  public readonly $kind = SyntaxKind.NamedExports;
+  public get $kind(): SyntaxKind.NamedExports { return SyntaxKind.NamedExports; }
 
   public readonly $elements: readonly $ExportSpecifier[];
 
@@ -2643,7 +2635,7 @@ export class $NamedExports implements I$Node {
 }
 
 export class $ExportSpecifier implements I$Node {
-  public readonly $kind = SyntaxKind.ExportSpecifier;
+  public get $kind(): SyntaxKind.ExportSpecifier { return SyntaxKind.ExportSpecifier; }
 
   public readonly $propertyName: $Identifier | $Undefined;
   public readonly $name: $Identifier;
@@ -2740,7 +2732,7 @@ export class $ExportSpecifier implements I$Node {
 }
 
 export class $NamespaceExportDeclaration implements I$Node {
-  public readonly $kind = SyntaxKind.NamespaceExportDeclaration;
+  public get $kind(): SyntaxKind.NamespaceExportDeclaration { return SyntaxKind.NamespaceExportDeclaration; }
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -2764,7 +2756,7 @@ export class $NamespaceExportDeclaration implements I$Node {
 }
 
 export class $ModuleBlock implements I$Node {
-  public readonly $kind = SyntaxKind.ModuleBlock;
+  public get $kind(): SyntaxKind.ModuleBlock { return SyntaxKind.ModuleBlock; }
 
   // TODO: ModuleBlock shares a lot in common with SourceFile, so we implement this last to try to maximize code reuse / reduce refactoring overhead and/or see if the two can be consolidated.
   public readonly $statements: readonly $$TSModuleItem[] = emptyArray;
@@ -2782,7 +2774,7 @@ export class $ModuleBlock implements I$Node {
 }
 
 export class $ExternalModuleReference implements I$Node {
-  public readonly $kind = SyntaxKind.ExternalModuleReference;
+  public get $kind(): SyntaxKind.ExternalModuleReference { return SyntaxKind.ExternalModuleReference; }
 
   public readonly $expression: $StringLiteral;
 
@@ -2811,7 +2803,7 @@ export type $$EntityName = (
 );
 
 export class $QualifiedName implements I$Node {
-  public readonly $kind = SyntaxKind.QualifiedName;
+  public get $kind(): SyntaxKind.QualifiedName { return SyntaxKind.QualifiedName; }
 
   public readonly $left: $$EntityName;
   public readonly $right: $Identifier;

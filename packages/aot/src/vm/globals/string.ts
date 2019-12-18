@@ -13,9 +13,6 @@ import {
   $AnyNonEmptyNonError,
 } from '../types/_shared';
 import {
-  $Error,
-} from '../types/error';
-import {
   $String,
 } from '../types/string';
 import {

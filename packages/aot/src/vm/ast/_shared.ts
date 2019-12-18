@@ -1,4 +1,3 @@
-/* eslint-disable */
 import {
   ArrayLiteralExpression,
   ArrowFunction,
@@ -56,7 +55,6 @@ import {
   NumericLiteral,
   ObjectLiteralExpression,
   OmittedExpression,
-  ParameterDeclaration,
   ParenthesizedExpression,
   PostfixUnaryExpression,
   PrefixUnaryExpression,
@@ -90,7 +88,6 @@ import {
 import {
   PLATFORM,
   Writable,
-  IDisposable,
 } from '@aurelia/kernel';
 import {
   Realm,
@@ -122,6 +119,7 @@ import {
   $ImportDeclaration,
   $ImportEqualsDeclaration,
   $ESScript,
+  $ESModule,
 } from './modules';
 import {
   $ArrayBindingPattern,
@@ -230,9 +228,6 @@ import {
   $JsxSpreadAttribute,
   $$JsxParent,
 } from './jsx';
-import {
-  $ESModule,
-} from './modules';
 import {
   $TemplateSpan,
   $BigIntLiteral,
@@ -1140,11 +1135,11 @@ export function BlockDeclarationInstantiation(
       // 4. a. i. If IsConstantDeclaration of d is true, then
       if (d.IsConstantDeclaration) {
         // 4. a. i. 1. Perform ! envRec.CreateImmutableBinding(dn, true).
-        envRec.CreateImmutableBinding(ctx, dn, intrinsics.true)
+        envRec.CreateImmutableBinding(ctx, dn, intrinsics.true);
       } else {
         // 4. a. ii. Else,
         // 4. a. ii. 1. Perform ! envRec.CreateMutableBinding(dn, false).
-        envRec.CreateImmutableBinding(ctx, dn, intrinsics.false)
+        envRec.CreateImmutableBinding(ctx, dn, intrinsics.false);
       }
     }
 
@@ -1184,8 +1179,6 @@ export function IsConstructor(ctx: ExecutionContext, argument: $AnyNonEmpty): ar
 // #region AST
 
 // #region Declaration statements
-
-
 export type $NodeWithDecorators = (
   $GetAccessorDeclaration |
   $SetAccessorDeclaration |
@@ -1241,7 +1234,6 @@ export function getImportEntriesForModule<T>(obj: { ImportEntriesForModule: T })
 export function getExportedNames<T>(obj: { ExportedNames: T }): T { return obj.ExportedNames; }
 export function getExportEntriesForModule<T>(obj: { ExportEntriesForModule: T }): T { return obj.ExportEntriesForModule; }
 export function getReferencedBindings<T>(obj: { ReferencedBindings: T }): T { return obj.ReferencedBindings; }
-
 
 export function $heritageClauseList(
   nodes: readonly HeritageClause[] | undefined,
@@ -1390,7 +1382,7 @@ export const modifiersToModifierFlags = (function () {
       // More than 4 modifiers is not possible
       return lookup[mods[0].kind] + lookup[mods[1].kind] + lookup[mods[2].kind] + lookup[mods[3].kind];
     }
-  }
+  };
 })();
 
 export const enum FunctionKind {
@@ -1411,7 +1403,7 @@ export function $i(idx: number): string {
 
 export interface I$Node<
   TNode extends object = object,
-  > {
+> {
   readonly depth: number;
   readonly realm: Realm;
   readonly parent: I$Node;

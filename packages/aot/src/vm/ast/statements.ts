@@ -1,4 +1,3 @@
-/* eslint-disable */
 import {
   Block,
   BreakStatement,
@@ -54,14 +53,10 @@ import {
   $Any,
   CompletionType,
   $AnyNonEmpty,
-  $AnyNonEmptyNonError,
 } from '../types/_shared';
 import {
   $Empty,
 } from '../types/empty';
-import {
-  $Error,
-} from '../types/error';
 import {
   I$Node,
   Context,
@@ -115,7 +110,7 @@ const {
 } = PLATFORM;
 
 export class $VariableStatement implements I$Node {
-  public readonly $kind = SyntaxKind.VariableStatement;
+  public get $kind(): SyntaxKind.VariableStatement { return SyntaxKind.VariableStatement; }
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -270,7 +265,6 @@ export class $VariableStatement implements I$Node {
     // 3. Let env be the running execution context's LexicalEnvironment.
     // 4. Return the result of performing BindingInitialization for BindingPattern using value and env as the arguments.
 
-
     // http://www.ecma-international.org/ecma-262/#sec-variable-statement-runtime-semantics-evaluation
     // 13.3.2.4 Runtime Semantics: Evaluation
 
@@ -312,7 +306,7 @@ export class $VariableStatement implements I$Node {
 }
 
 export class $VariableDeclaration implements I$Node {
-  public readonly $kind = SyntaxKind.VariableDeclaration;
+  public get $kind(): SyntaxKind.VariableDeclaration { return SyntaxKind.VariableDeclaration; }
 
   public readonly modifierFlags: ModifierFlags;
   public readonly combinedModifierFlags: ModifierFlags;
@@ -377,7 +371,6 @@ export class $VariableDeclaration implements I$Node {
     }
   }
 
-
   public InitializeBinding(
     ctx: ExecutionContext,
     value: $AnyNonEmpty,
@@ -396,7 +389,7 @@ export class $VariableDeclaration implements I$Node {
         // 12.1.5 Runtime Semantics: BindingInitialization
         // http://www.ecma-international.org/ecma-262/#sec-initializeboundname
         // 12.1.5.1 Runtime Semantics: InitializeBoundName ( name , value , environment )
-        case SyntaxKind.Identifier:
+        case SyntaxKind.Identifier: {
           const name = boundNames![0]?.GetValue(ctx);
           // 1. Assert: Type(name) is String.
           // 2. If environment is not undefined, then
@@ -415,8 +408,7 @@ export class $VariableDeclaration implements I$Node {
             // 3. b. Return ? PutValue(lhs, value).
             return lhs.PutValue(ctx, value).enrichWith(ctx, this);
           }
-          break;
-
+        }
         case SyntaxKind.ObjectBindingPattern:
           (bindingName as $ObjectBindingPattern).InitializeBinding(ctx, value, envRec);
           break;
@@ -449,7 +441,7 @@ export function $variableDeclarationList(
 }
 
 export class $VariableDeclarationList implements I$Node {
-  public readonly $kind = SyntaxKind.VariableDeclarationList;
+  public get $kind(): SyntaxKind.VariableDeclarationList { return SyntaxKind.VariableDeclarationList; }
 
   public readonly combinedModifierFlags: ModifierFlags;
 
@@ -511,7 +503,7 @@ export class $VariableDeclarationList implements I$Node {
 // #region Statements
 
 export class $Block implements I$Node {
-  public readonly $kind = SyntaxKind.Block;
+  public get $kind(): SyntaxKind.Block { return SyntaxKind.Block; }
 
   public readonly $statements: readonly $$TSStatementListItem[];
 
@@ -673,7 +665,7 @@ export class $Block implements I$Node {
 }
 
 export class $EmptyStatement implements I$Node {
-  public readonly $kind = SyntaxKind.EmptyStatement;
+  public get $kind(): SyntaxKind.EmptyStatement { return SyntaxKind.EmptyStatement; }
 
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
@@ -723,7 +715,7 @@ export type DirectivePrologue = readonly ExpressionStatement_T<StringLiteral>[] 
 };
 
 export class $ExpressionStatement implements I$Node {
-  public readonly $kind = SyntaxKind.ExpressionStatement;
+  public get $kind(): SyntaxKind.ExpressionStatement { return SyntaxKind.ExpressionStatement; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -768,7 +760,7 @@ export class $ExpressionStatement implements I$Node {
 }
 
 export class $IfStatement implements I$Node {
-  public readonly $kind = SyntaxKind.IfStatement;
+  public get $kind(): SyntaxKind.IfStatement { return SyntaxKind.IfStatement; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
   public readonly $thenStatement: $$ESLabelledItem;
@@ -875,7 +867,7 @@ export class $IfStatement implements I$Node {
 }
 
 export class $DoStatement implements I$Node {
-  public readonly $kind = SyntaxKind.DoStatement;
+  public get $kind(): SyntaxKind.DoStatement { return SyntaxKind.DoStatement; }
 
   public readonly $statement: $$ESLabelledItem;
   public readonly $expression: $$AssignmentExpressionOrHigher;
@@ -960,7 +952,7 @@ export class $DoStatement implements I$Node {
 }
 
 export class $WhileStatement implements I$Node {
-  public readonly $kind = SyntaxKind.WhileStatement;
+  public get $kind(): SyntaxKind.WhileStatement { return SyntaxKind.WhileStatement; }
 
   public readonly $statement: $$ESLabelledItem;
   public readonly $expression: $$AssignmentExpressionOrHigher;
@@ -1050,7 +1042,7 @@ export type $$Initializer = (
 );
 
 export class $ForStatement implements I$Node {
-  public readonly $kind = SyntaxKind.ForStatement;
+  public get $kind(): SyntaxKind.ForStatement { return SyntaxKind.ForStatement; }
 
   public readonly $initializer: $$Initializer | undefined;
   public readonly $condition: $$AssignmentExpressionOrHigher | undefined;
@@ -1162,7 +1154,7 @@ export class $ForStatement implements I$Node {
 }
 
 export class $ForInStatement implements I$Node {
-  public readonly $kind = SyntaxKind.ForInStatement;
+  public get $kind(): SyntaxKind.ForInStatement { return SyntaxKind.ForInStatement; }
 
   public readonly $initializer: $$Initializer;
   public readonly $expression: $$AssignmentExpressionOrHigher;
@@ -1298,7 +1290,7 @@ export class $ForInStatement implements I$Node {
 }
 
 export class $ForOfStatement implements I$Node {
-  public readonly $kind = SyntaxKind.ForOfStatement;
+  public get $kind(): SyntaxKind.ForOfStatement { return SyntaxKind.ForOfStatement; }
 
   public readonly $initializer: $$Initializer;
   public readonly $expression: $$AssignmentExpressionOrHigher;
@@ -1430,7 +1422,7 @@ export class $ForOfStatement implements I$Node {
 }
 
 export class $ContinueStatement implements I$Node {
-  public readonly $kind = SyntaxKind.ContinueStatement;
+  public get $kind(): SyntaxKind.ContinueStatement { return SyntaxKind.ContinueStatement; }
 
   public readonly $label: $Identifier | undefined;
 
@@ -1484,7 +1476,7 @@ export class $ContinueStatement implements I$Node {
 }
 
 export class $BreakStatement implements I$Node {
-  public readonly $kind = SyntaxKind.BreakStatement;
+  public get $kind(): SyntaxKind.BreakStatement { return SyntaxKind.BreakStatement; }
 
   public readonly $label: $Identifier | undefined;
 
@@ -1538,7 +1530,7 @@ export class $BreakStatement implements I$Node {
 }
 
 export class $ReturnStatement implements I$Node {
-  public readonly $kind = SyntaxKind.ReturnStatement;
+  public get $kind(): SyntaxKind.ReturnStatement { return SyntaxKind.ReturnStatement; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher | undefined;
 
@@ -1604,7 +1596,7 @@ export class $ReturnStatement implements I$Node {
 }
 
 export class $WithStatement implements I$Node {
-  public readonly $kind = SyntaxKind.WithStatement;
+  public get $kind(): SyntaxKind.WithStatement { return SyntaxKind.WithStatement; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
   public readonly $statement: $$ESLabelledItem;
@@ -1664,7 +1656,7 @@ export class $WithStatement implements I$Node {
 }
 
 export class $SwitchStatement implements I$Node {
-  public readonly $kind = SyntaxKind.SwitchStatement;
+  public get $kind(): SyntaxKind.SwitchStatement { return SyntaxKind.SwitchStatement; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
   public readonly $caseBlock: $CaseBlock;
@@ -1764,7 +1756,7 @@ export class $SwitchStatement implements I$Node {
     let V: $Any = $undefined;
     const defaultClauseIndex: number = clauses.findIndex((clause) => clause.$kind === SyntaxKind.DefaultClause);
     class CaseClausesEvaluationResult {
-      constructor(public result: $Any, public found: boolean, public isAbrupt: boolean) { }
+      public constructor(public result: $Any, public found: boolean, public isAbrupt: boolean) { }
     }
     const evaluateCaseClauses = (inclusiveStartIndex: number, exclusiveEndIndex: number, found = false) => {
       // 1. Let V be undefined.
@@ -1799,7 +1791,7 @@ export class $SwitchStatement implements I$Node {
         found,
         false,
       );
-    }
+    };
 
     // CaseBlock : { CaseClauses }
     if (defaultClauseIndex === -1) {
@@ -1877,7 +1869,7 @@ export class $SwitchStatement implements I$Node {
 }
 
 export class $LabeledStatement implements I$Node {
-  public readonly $kind = SyntaxKind.LabeledStatement;
+  public get $kind(): SyntaxKind.LabeledStatement { return SyntaxKind.LabeledStatement; }
 
   public readonly $label: $Identifier;
   public readonly $statement: $$ESLabelledItem;
@@ -1943,7 +1935,7 @@ export class $LabeledStatement implements I$Node {
       }
       this.VarDeclaredNames = $statement.VarDeclaredNames;
       this.VarScopedDeclarations = $statement.VarScopedDeclarations;
-    };
+    }
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-runtime-semantics-labelledevaluation
@@ -2001,7 +1993,7 @@ export class $LabeledStatement implements I$Node {
 }
 
 export class $ThrowStatement implements I$Node {
-  public readonly $kind = SyntaxKind.ThrowStatement;
+  public get $kind(): SyntaxKind.ThrowStatement { return SyntaxKind.ThrowStatement; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -2054,7 +2046,7 @@ export class $ThrowStatement implements I$Node {
 }
 
 export class $TryStatement implements I$Node {
-  public readonly $kind = SyntaxKind.TryStatement;
+  public get $kind(): SyntaxKind.TryStatement { return SyntaxKind.TryStatement; }
 
   public readonly $tryBlock: $Block;
   public readonly $catchClause: $CatchClause | undefined;
@@ -2200,6 +2192,7 @@ export class $TryStatement implements I$Node {
 
       // 4. For each element argName of the BoundNames of CatchParameter, do
       // 4. a. Perform ! catchEnvRec.CreateMutableBinding(argName, false).
+      // eslint-disable-next-line no-unused-expressions
       catchClause?.CreateBinding(ctx, realm);
 
       // 5. Set the running execution context's LexicalEnvironment to catchEnv.
@@ -2233,7 +2226,7 @@ export class $TryStatement implements I$Node {
 }
 
 export class $DebuggerStatement implements I$Node {
-  public readonly $kind = SyntaxKind.DebuggerStatement;
+  public get $kind(): SyntaxKind.DebuggerStatement { return SyntaxKind.DebuggerStatement; }
 
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
@@ -2310,7 +2303,7 @@ export function $$clauseList(
 }
 
 export class $CaseBlock implements I$Node {
-  public readonly $kind = SyntaxKind.CaseBlock;
+  public get $kind(): SyntaxKind.CaseBlock { return SyntaxKind.CaseBlock; }
 
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallydeclarednames
   // 13.12.5 Static Semantics: LexicallyDeclaredNames
@@ -2347,7 +2340,7 @@ export class $CaseBlock implements I$Node {
 }
 
 export class $CaseClause implements I$Node {
-  public readonly $kind = SyntaxKind.CaseClause;
+  public get $kind(): SyntaxKind.CaseClause { return SyntaxKind.CaseClause; }
 
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallydeclarednames
   // 13.12.5 Static Semantics: LexicallyDeclaredNames
@@ -2387,7 +2380,7 @@ export class $CaseClause implements I$Node {
 }
 
 export class $DefaultClause implements I$Node {
-  public readonly $kind = SyntaxKind.DefaultClause;
+  public get $kind(): SyntaxKind.DefaultClause { return SyntaxKind.DefaultClause; }
 
   // http://www.ecma-international.org/ecma-262/#sec-switch-statement-static-semantics-lexicallydeclarednames
   // 13.12.5 Static Semantics: LexicallyDeclaredNames
@@ -2425,7 +2418,7 @@ export class $DefaultClause implements I$Node {
 }
 
 export class $CatchClause implements I$Node {
-  public readonly $kind = SyntaxKind.CatchClause;
+  public get $kind(): SyntaxKind.CatchClause { return SyntaxKind.CatchClause; }
 
   // http://www.ecma-international.org/ecma-262/#sec-try-statement-static-semantics-vardeclarednames
   // 13.15.5 Static Semantics: VarDeclaredNames

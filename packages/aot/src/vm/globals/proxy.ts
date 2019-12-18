@@ -38,7 +38,6 @@ import {
   $String,
 } from '../types/string';
 
-
 // http://www.ecma-international.org/ecma-262/#sec-proxy-objects
 // 26.2 Proxy Objects
 
@@ -88,7 +87,6 @@ export class $ProxyConstructor extends $BuiltinFunction<'%Proxy%'> {
     return new $ProxyExoticObject(realm, target, handler);
   }
 }
-
 
 // http://www.ecma-international.org/ecma-262/#sec-proxy.revocable
 // 26.2.2.1 Proxy.revocable ( target , handler )

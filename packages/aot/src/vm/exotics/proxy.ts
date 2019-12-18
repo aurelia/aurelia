@@ -103,7 +103,6 @@ export class $ProxyExoticObject extends $Object<'ProxyExoticObject'> {
     // 10. Return P.
   }
 
-
   // http://www.ecma-international.org/ecma-262/#sec-proxy-object-internal-methods-and-internal-slots-getprototypeof
   // 9.5.1 [[GetPrototypeOf]] ( )
   public '[[GetPrototypeOf]]'(

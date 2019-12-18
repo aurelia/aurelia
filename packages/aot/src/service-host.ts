@@ -229,7 +229,7 @@ export class ServiceHost implements IServiceHost {
 
       return this.getESModule(ctx, file, pkg);
     } else {
-      const pkgDep = pkg.deps.find(n => n.refName === specifier || specifier.startsWith(n.refName + '/'));
+      const pkgDep = pkg.deps.find(n => n.refName === specifier || specifier.startsWith(`${n.refName}/`));
       if (pkgDep === void 0) {
         this.logger.debug(`[ResolveImport] resolving internal absolute module: '${$specifier['[[Value]]']}' for ${referencingModule.$file.name}`);
 
@@ -351,6 +351,7 @@ export class ServiceHost implements IServiceHost {
         } else {
           const tsConfigText = tsConfigFile.getContentSync();
           // tsconfig allows some stuff that's not valid JSON, so parse it as a JS object instead
+          // eslint-disable-next-line no-new-func
           const tsConfigObj = new Function(`return ${tsConfigText}`)();
           compilerOptions = tsConfigObj.compilerOptions;
           if (compilerOptions === null || typeof compilerOptions !== 'object') {

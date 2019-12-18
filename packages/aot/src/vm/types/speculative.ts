@@ -1,9 +1,7 @@
 import {
   nextValueId,
-  ESType,
   getPath,
   $AnyNonError,
-  $Primitive,
 } from './_shared';
 import {
   Realm,
@@ -19,7 +17,6 @@ import {
 import {
   $$AssignmentExpressionOrHigher,
 } from '../ast/_shared';
-
 
 export class $SpeculativeValue {
   public readonly '<$SpeculativeValue>': unknown;

@@ -148,7 +148,6 @@ export class $GeneratorFunctionPrototype extends $Object<'%Generator%'> {
 
 // #endregion
 
-
 // http://www.ecma-international.org/ecma-262/#sec-generator-objects
 // 25.4 Generator Objects
 
@@ -337,7 +336,7 @@ export function $GeneratorStart(
   genContext.Generator = generator;
 
   // 4. Set the code evaluation state of genContext such that when evaluation is resumed for that execution context the following steps will be performed:
-  genContext.onResume = function (resumptionValue: $AnyNonEmpty ): $AnyNonEmpty  { // TODO: do we need to do something with resumptionValue?
+  genContext.onResume = function (resumptionValue: $AnyNonEmpty): $AnyNonEmpty { // TODO: do we need to do something with resumptionValue?
     // 4. a. Let result be the result of evaluating generatorBody.
     const result = generatorBody.Evaluate(genContext);
 
@@ -582,12 +581,12 @@ export function $GeneratorYield(
   stack.pop();
 
   // 8. Set the code evaluation state of genContext such that when evaluation is resumed with a Completion resumptionValue the following steps will be performed:
-  genContext.onResume = function (resumptionValue: $AnyNonEmpty ): $AnyNonEmpty  {
+  genContext.onResume = function (resumptionValue: $AnyNonEmpty): $AnyNonEmpty {
     // 8. a. Return resumptionValue.
     return resumptionValue;
 
     // 8. b. NOTE: This returns to the evaluation of the YieldExpression that originally called this abstract operation.
-  }
+  };
 
   // 9. Return NormalCompletion(iterNextObj).
   return iterNextObj;

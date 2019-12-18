@@ -1,4 +1,3 @@
-/* eslint-disable */
 import {
   ILogger,
   IContainer,
@@ -38,8 +37,6 @@ import {
 } from './types/reference';
 import {
   $AnyNonEmpty,
-  $AnyNonEmptyNonError,
-  $Any,
 } from './types/_shared';
 import {
   $Function,
@@ -561,7 +558,7 @@ export class ExecutionContext<TLex extends $EnvRec = $EnvRec, TVar extends ($Mod
   public LexicalEnvironment!: TLex;
   public VariableEnvironment!: TVar;
   public Generator: $GeneratorInstance | $AsyncGeneratorInstance | undefined = void 0;
-  public onResume: ((value: $AnyNonEmpty ) => $AnyNonEmpty ) | undefined = void 0;
+  public onResume: ((value: $AnyNonEmpty) => $AnyNonEmpty) | undefined = void 0;
 
   public suspended: boolean = false;
 

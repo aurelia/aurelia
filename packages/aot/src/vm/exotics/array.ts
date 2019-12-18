@@ -239,7 +239,7 @@ export class $ArrayExoticObject extends $Object<'ArrayExoticObject'> {
       return intrinsics.false;
     }
 
-    let $newLen = newLen['[[Value]]'];
+    const $newLen = newLen['[[Value]]'];
     let $oldLen = oldLen['[[Value]]'];
 
     // 16. Repeat, while newLen < oldLen,

@@ -120,7 +120,6 @@ export class $AsyncFunctionPrototype extends $Object<'%AsyncFunctionPrototype%'>
   }
 }
 
-
 // http://www.ecma-international.org/ecma-262/#sec-async-function-instances
 // 25.7.4 AsyncFunction Instances
 

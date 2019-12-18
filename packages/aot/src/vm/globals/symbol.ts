@@ -12,7 +12,6 @@ import {
   $AnyNonEmptyNonError,
 } from '../types/_shared';
 import {
-  $Error,
   $TypeError,
 } from '../types/error';
 import {

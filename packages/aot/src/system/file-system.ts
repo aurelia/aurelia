@@ -1,4 +1,3 @@
-/* eslint-disable import/no-nodejs-modules */
 import {
   accessSync,
   constants,
@@ -188,8 +187,8 @@ export class NodeFileSystem implements IFileSystem {
   private readonly realPathCache: Map<string, string> = new Map();
   private readonly contentCache: Map<string, string> = new Map();
 
-  private pendingReads = 0;
-  private maxConcurrentReads = 0;
+  private pendingReads: number = 0;
+  private maxConcurrentReads: number = 0;
 
   public constructor(
     @ILogger private readonly logger: ILogger,
@@ -198,7 +197,7 @@ export class NodeFileSystem implements IFileSystem {
     this.logger.info('constructor');
   }
 
-  public realpath(path: string): Promise<string> {
+  public async realpath(path: string): Promise<string> {
     this.logger.trace(`realpath(path: ${path})`);
 
     return realpath(path);
@@ -210,9 +209,9 @@ export class NodeFileSystem implements IFileSystem {
     return realpathSync(path);
   }
 
-  public readdir(path: string): Promise<readonly string[]>;
-  public readdir(path: string, withFileTypes: true): Promise<readonly Dirent[]>;
-  public readdir(path: string, withFileTypes?: true): Promise<readonly string[] | readonly Dirent[]> {
+  public async readdir(path: string): Promise<readonly string[]>;
+  public async readdir(path: string, withFileTypes: true): Promise<readonly Dirent[]>;
+  public async readdir(path: string, withFileTypes?: true): Promise<readonly string[] | readonly Dirent[]> {
     this.logger.trace(`readdir(path: ${path}, withFileTypes: ${withFileTypes})`);
 
     if (withFileTypes === true) {
@@ -234,7 +233,7 @@ export class NodeFileSystem implements IFileSystem {
     return readdirSync(path);
   }
 
-  public mkdir(path: string): Promise<void> {
+  public async mkdir(path: string): Promise<void> {
     this.logger.trace(`mkdir(path: ${path})`);
 
     return mkdir(path, { recursive: true });
@@ -288,7 +287,7 @@ export class NodeFileSystem implements IFileSystem {
     }
   }
 
-  public stat(path: string): Promise<Stats> {
+  public async stat(path: string): Promise<Stats> {
     this.logger.trace(`stat(path: ${path})`);
 
     return stat(path);
@@ -300,7 +299,7 @@ export class NodeFileSystem implements IFileSystem {
     return statSync(path);
   }
 
-  public lstat(path: string): Promise<Stats> {
+  public async lstat(path: string): Promise<Stats> {
     this.logger.trace(`lstat(path: ${path})`);
 
     return lstat(path);
@@ -321,6 +320,7 @@ export class NodeFileSystem implements IFileSystem {
     if (content === void 0 || force) {
       try {
         while (this.maxConcurrentReads > 0 && this.maxConcurrentReads < this.pendingReads) {
+          // eslint-disable-next-line no-await-in-loop
           await tick.wait();
         }
         ++this.pendingReads;
@@ -401,7 +401,7 @@ export class NodeFileSystem implements IFileSystem {
     try {
       const stats = await lstat(path);
       if (stats.isDirectory()) {
-        await Promise.all((await readdir(path)).map(x => this.rimraf(join(path, x))));
+        await Promise.all((await readdir(path)).map(async x => this.rimraf(join(path, x))));
         await rmdir(path);
       } else if (stats.isFile() || stats.isSymbolicLink()) {
         await unlink(path);
@@ -484,12 +484,12 @@ export class NodeFileSystem implements IFileSystem {
             files.push(file);
           }
         } else if (stats.isDirectory()) {
-          await Promise.all((await this.getChildren(path)).map(x => walk(path, x)));
+          await Promise.all((await this.getChildren(path)).map(async x => walk(path, x)));
         }
       }
     };
 
-    await Promise.all((await this.getChildren(root)).map(x => walk(root, x)));
+    await Promise.all((await this.getChildren(root)).map(async x => walk(root, x)));
 
     return files.sort(compareFilePath);
   }

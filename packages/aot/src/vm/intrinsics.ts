@@ -387,23 +387,23 @@ export class Intrinsics implements IDisposable {
   public readonly '$assign': $String<'assign'>;
   public readonly '$create': $String<'create'>;
   public readonly '$defineProperties': $String<'defineProperties'>;
-  //public readonly '$defineProperty': $String<'defineProperty'>;
+  // public readonly '$defineProperty': $String<'defineProperty'>;
   public readonly '$entries': $String<'entries'>;
   public readonly '$freeze': $String<'freeze'>;
   public readonly '$fromEntries': $String<'fromEntries'>;
-  //public readonly '$getOwnPropertyDescriptor': $String<'getOwnPropertyDescriptor'>;
+  // public readonly '$getOwnPropertyDescriptor': $String<'getOwnPropertyDescriptor'>;
   public readonly '$getOwnPropertyDescriptors': $String<'getOwnPropertyDescriptors'>;
   public readonly '$getOwnPropertyNames': $String<'getOwnPropertyNames'>;
   public readonly '$getOwnPropertySymbols': $String<'getOwnPropertySymbols'>;
-  //public readonly '$getPrototypeOf': $String<'getPrototypeOf'>;
+  // public readonly '$getPrototypeOf': $String<'getPrototypeOf'>;
   public readonly '$is': $String<'is'>;
-  //public readonly '$isExtensible': $String<'isExtensible'>;
+  // public readonly '$isExtensible': $String<'isExtensible'>;
   public readonly '$isFrozen': $String<'isFrozen'>;
   public readonly '$isSealed': $String<'isSealed'>;
   public readonly '$keys': $String<'keys'>;
-  //public readonly '$preventExtensions': $String<'preventExtensions'>;
+  // public readonly '$preventExtensions': $String<'preventExtensions'>;
   public readonly '$seal': $String<'seal'>;
-  //public readonly '$setPrototypeOf': $String<'setPrototypeOf'>;
+  // public readonly '$setPrototypeOf': $String<'setPrototypeOf'>;
   public readonly '$values': $String<'values'>;
 
   public readonly '@@asyncIterator': $Symbol<$String<'Symbol.asyncIterator'>>;
@@ -741,37 +741,37 @@ export class Intrinsics implements IDisposable {
     errorPrototype.$name = new $String(realm, 'Error');
     errorPrototype.$toString = new $ErrorPrototype_toString(realm, 'Error.prototype.toString', functionPrototype);
 
-    const evalErrorConstructor = this['%EvalError%'] = new $EvalErrorConstructor(realm, errorConstructor)
+    const evalErrorConstructor = this['%EvalError%'] = new $EvalErrorConstructor(realm, errorConstructor);
     const evalErrorPrototype = this['%EvalErrorPrototype%'] = new $EvalErrorPrototype(realm, errorPrototype);
     (evalErrorConstructor.$prototype = evalErrorPrototype).$constructor = evalErrorConstructor;
     evalErrorPrototype.message = new $String(realm, '');
     evalErrorPrototype.$name = new $String(realm, 'EvalError');
 
-    const rangeErrorConstructor = this['%RangeError%'] = new $RangeErrorConstructor(realm, errorConstructor)
+    const rangeErrorConstructor = this['%RangeError%'] = new $RangeErrorConstructor(realm, errorConstructor);
     const rangeErrorPrototype = this['%RangeErrorPrototype%'] = new $RangeErrorPrototype(realm, errorPrototype);
     (rangeErrorConstructor.$prototype = rangeErrorPrototype).$constructor = rangeErrorConstructor;
     rangeErrorPrototype.message = new $String(realm, '');
     rangeErrorPrototype.$name = new $String(realm, 'RangeError');
 
-    const referenceErrorConstructor = this['%ReferenceError%'] = new $ReferenceErrorConstructor(realm, errorConstructor)
+    const referenceErrorConstructor = this['%ReferenceError%'] = new $ReferenceErrorConstructor(realm, errorConstructor);
     const referenceErrorPrototype = this['%ReferenceErrorPrototype%'] = new $ReferenceErrorPrototype(realm, errorPrototype);
     (referenceErrorConstructor.$prototype = referenceErrorPrototype).$constructor = referenceErrorConstructor;
     referenceErrorPrototype.message = new $String(realm, '');
     referenceErrorPrototype.$name = new $String(realm, 'ReferenceError');
 
-    const syntaxErrorConstructor = this['%SyntaxError%'] = new $SyntaxErrorConstructor(realm, errorConstructor)
+    const syntaxErrorConstructor = this['%SyntaxError%'] = new $SyntaxErrorConstructor(realm, errorConstructor);
     const syntaxErrorPrototype = this['%SyntaxErrorPrototype%'] = new $SyntaxErrorPrototype(realm, errorPrototype);
     (syntaxErrorConstructor.$prototype = syntaxErrorPrototype).$constructor = syntaxErrorConstructor;
     syntaxErrorPrototype.message = new $String(realm, '');
     syntaxErrorPrototype.$name = new $String(realm, 'SyntaxError');
 
-    const typeErrorConstructor = this['%TypeError%'] = new $TypeErrorConstructor(realm, errorConstructor)
+    const typeErrorConstructor = this['%TypeError%'] = new $TypeErrorConstructor(realm, errorConstructor);
     const typeErrorPrototype = this['%TypeErrorPrototype%'] = new $TypeErrorPrototype(realm, errorPrototype);
     (typeErrorConstructor.$prototype = typeErrorPrototype).$constructor = typeErrorConstructor;
     typeErrorPrototype.message = new $String(realm, '');
     typeErrorPrototype.$name = new $String(realm, 'TypeError');
 
-    const URIErrorConstructor = this['%URIError%'] = new $URIErrorConstructor(realm, errorConstructor)
+    const URIErrorConstructor = this['%URIError%'] = new $URIErrorConstructor(realm, errorConstructor);
     const URIErrorPrototype = this['%URIErrorPrototype%'] = new $URIErrorPrototype(realm, errorPrototype);
     (URIErrorConstructor.$prototype = URIErrorPrototype).$constructor = URIErrorConstructor;
     URIErrorPrototype.message = new $String(realm, '');
@@ -779,7 +779,7 @@ export class Intrinsics implements IDisposable {
 
     const iteratorPrototype = this['%IteratorPrototype%'] = new $IteratorPrototype(realm, objectPrototype);
 
-    const generatorFunctionConstructor = this['%GeneratorFunction%'] = new $GeneratorFunctionConstructor(realm, functionConstructor)
+    const generatorFunctionConstructor = this['%GeneratorFunction%'] = new $GeneratorFunctionConstructor(realm, functionConstructor);
     const generatorFunctionPrototype = this['%Generator%'] = new $GeneratorFunctionPrototype(realm, functionPrototype);
     (generatorFunctionConstructor.$prototype = generatorFunctionPrototype).$constructor = generatorFunctionConstructor;
     generatorFunctionConstructor.length = new $Number(realm, 1);
@@ -915,7 +915,6 @@ export class Intrinsics implements IDisposable {
     const proxyConstructor = this['%Proxy%'] = new $ProxyConstructor(realm, functionPrototype);
     proxyConstructor.revocable = new $Proxy_revocable(realm, functionPrototype);
 
-
     this['%decodeURI%'] = new $DecodeURI(realm, functionPrototype);
     this['%decodeURIComponent%'] = new $DecodeURIComponent(realm, functionPrototype);
     this['%encodeURI%'] = new $EncodeURI(realm, functionPrototype);
@@ -997,7 +996,6 @@ export class Intrinsics implements IDisposable {
     this['@@toPrimitive'] = void 0;
     this['@@toStringTag'] = void 0;
     this['@@unscopables'] = void 0;
-
 
     this['%ObjectPrototype%']!.dispose();
     this['%ObjectPrototype%'] = void 0;

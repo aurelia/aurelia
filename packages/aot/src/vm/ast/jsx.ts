@@ -1,4 +1,3 @@
-/* eslint-disable */
 import {
   JsxAttribute,
   JsxAttributes,
@@ -30,9 +29,6 @@ import {
   $Any,
   $AnyNonEmpty,
 } from '../types/_shared';
-import {
-  $Error,
-} from '../types/error';
 import {
   I$Node,
   Context,
@@ -106,7 +102,7 @@ export function $$jsxChildList(
 }
 
 export class $JsxElement implements I$Node {
-  public readonly $kind = SyntaxKind.JsxElement;
+  public get $kind(): SyntaxKind.JsxElement { return SyntaxKind.JsxElement; }
 
   public readonly $openingElement: $JsxOpeningElement;
   public readonly $children: readonly $$JsxChild[];
@@ -177,7 +173,7 @@ export function $$jsxTagNameExpression(
 }
 
 export class $JsxSelfClosingElement implements I$Node {
-  public readonly $kind = SyntaxKind.JsxSelfClosingElement;
+  public get $kind(): SyntaxKind.JsxSelfClosingElement { return SyntaxKind.JsxSelfClosingElement; }
 
   public readonly $tagName: $$JsxTagNameExpression;
   public readonly $attributes: $JsxAttributes;
@@ -212,7 +208,7 @@ export class $JsxSelfClosingElement implements I$Node {
 }
 
 export class $JsxFragment implements I$Node {
-  public readonly $kind = SyntaxKind.JsxFragment;
+  public get $kind(): SyntaxKind.JsxFragment { return SyntaxKind.JsxFragment; }
 
   public readonly $openingFragment: $JsxOpeningFragment;
   public readonly $children: readonly $$JsxChild[];
@@ -249,7 +245,7 @@ export class $JsxFragment implements I$Node {
 }
 
 export class $JsxText implements I$Node {
-  public readonly $kind = SyntaxKind.JsxText;
+  public get $kind(): SyntaxKind.JsxText { return SyntaxKind.JsxText; }
 
   public constructor(
     public readonly node: JsxText,
@@ -278,7 +274,7 @@ export class $JsxText implements I$Node {
 }
 
 export class $JsxOpeningElement implements I$Node {
-  public readonly $kind = SyntaxKind.JsxOpeningElement;
+  public get $kind(): SyntaxKind.JsxOpeningElement { return SyntaxKind.JsxOpeningElement; }
 
   public readonly $tagName: $$JsxTagNameExpression;
   public readonly $attributes: $JsxAttributes;
@@ -312,7 +308,7 @@ export class $JsxOpeningElement implements I$Node {
 }
 
 export class $JsxClosingElement implements I$Node {
-  public readonly $kind = SyntaxKind.JsxClosingElement;
+  public get $kind(): SyntaxKind.JsxClosingElement { return SyntaxKind.JsxClosingElement; }
 
   public readonly $tagName: $$JsxTagNameExpression;
 
@@ -344,7 +340,7 @@ export class $JsxClosingElement implements I$Node {
 }
 
 export class $JsxOpeningFragment implements I$Node {
-  public readonly $kind = SyntaxKind.JsxOpeningFragment;
+  public get $kind(): SyntaxKind.JsxOpeningFragment { return SyntaxKind.JsxOpeningFragment; }
 
   public constructor(
     public readonly node: JsxOpeningFragment,
@@ -372,7 +368,7 @@ export class $JsxOpeningFragment implements I$Node {
 }
 
 export class $JsxClosingFragment implements I$Node {
-  public readonly $kind = SyntaxKind.JsxClosingFragment;
+  public get $kind(): SyntaxKind.JsxClosingFragment { return SyntaxKind.JsxClosingFragment; }
 
   public constructor(
     public readonly node: JsxClosingFragment,
@@ -400,7 +396,7 @@ export class $JsxClosingFragment implements I$Node {
 }
 
 export class $JsxAttribute implements I$Node {
-  public readonly $kind = SyntaxKind.JsxAttribute;
+  public get $kind(): SyntaxKind.JsxAttribute { return SyntaxKind.JsxAttribute; }
 
   public readonly $name: $Identifier;
   public readonly $initializer: $StringLiteral | $JsxExpression | undefined;
@@ -459,7 +455,7 @@ export function $$jsxAttributeLikeList(
 }
 
 export class $JsxAttributes implements I$Node {
-  public readonly $kind = SyntaxKind.JsxAttributes;
+  public get $kind(): SyntaxKind.JsxAttributes { return SyntaxKind.JsxAttributes; }
 
   public readonly $properties: readonly $$JsxAttributeLike[];
 
@@ -491,7 +487,7 @@ export class $JsxAttributes implements I$Node {
 }
 
 export class $JsxSpreadAttribute implements I$Node {
-  public readonly $kind = SyntaxKind.JsxSpreadAttribute;
+  public get $kind(): SyntaxKind.JsxSpreadAttribute { return SyntaxKind.JsxSpreadAttribute; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -524,7 +520,7 @@ export class $JsxSpreadAttribute implements I$Node {
 }
 
 export class $JsxExpression implements I$Node {
-  public readonly $kind = SyntaxKind.JsxExpression;
+  public get $kind(): SyntaxKind.JsxExpression { return SyntaxKind.JsxExpression; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher | undefined;
 

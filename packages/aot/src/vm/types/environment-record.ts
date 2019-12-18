@@ -1,4 +1,3 @@
-/* eslint-disable */
 import {
   IModule,
   Realm,
@@ -429,7 +428,6 @@ export class $ObjectEnvRec implements IDisposable {
     N: $String,
   ): $Boolean | $Error {
     const intrinsics = this.realm['[[Intrinsics]]'];
-
 
     // 1. Let envRec be the object Environment Record for which the method was invoked.
     const envRec = this;

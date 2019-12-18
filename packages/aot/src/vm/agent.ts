@@ -70,7 +70,7 @@ export class Agent implements IDisposable {
       }
     }
 
-    let ctx = rootCtx;
+    const ctx = rootCtx;
     let lastFile: $$ESModuleOrScript | null = null;
 
     // 3. Repeat,
@@ -155,7 +155,7 @@ export class TopLevelModuleEvaluationJob extends Job<$ESModule> {
       // 4. b. Return NormalCompletion(undefined).
 
     // 5. Perform ? m.Instantiate().
-    let result = m.Instantiate(ctx);
+    const result = m.Instantiate(ctx);
     if (result.isAbrupt) {
       return result;
     }

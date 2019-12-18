@@ -1,4 +1,3 @@
-/* eslint-disable */
 import {
   BigIntLiteral,
   BooleanLiteral,
@@ -39,9 +38,6 @@ import {
   $Boolean,
 } from '../types/boolean';
 import {
-  $Error,
-} from '../types/error';
-import {
   I$Node,
   Context,
   $$AssignmentExpressionOrHigher,
@@ -60,7 +56,7 @@ import {
 // #region Pseudo-literals
 
 export class $TemplateHead implements I$Node {
-  public readonly $kind = SyntaxKind.TemplateHead;
+  public get $kind(): SyntaxKind.TemplateHead { return SyntaxKind.TemplateHead; }
 
   public constructor(
     public readonly node: TemplateHead,
@@ -90,7 +86,7 @@ export class $TemplateHead implements I$Node {
 }
 
 export class $TemplateMiddle implements I$Node {
-  public readonly $kind = SyntaxKind.TemplateMiddle;
+  public get $kind(): SyntaxKind.TemplateMiddle { return SyntaxKind.TemplateMiddle; }
 
   public constructor(
     public readonly node: TemplateMiddle,
@@ -120,7 +116,7 @@ export class $TemplateMiddle implements I$Node {
 }
 
 export class $TemplateTail implements I$Node {
-  public readonly $kind = SyntaxKind.TemplateTail;
+  public get $kind(): SyntaxKind.TemplateTail { return SyntaxKind.TemplateTail; }
 
   public constructor(
     public readonly node: TemplateTail,
@@ -155,7 +151,7 @@ export class $TemplateTail implements I$Node {
 }
 
 export class $TemplateSpan implements I$Node {
-  public readonly $kind = SyntaxKind.TemplateSpan;
+  public get $kind(): SyntaxKind.TemplateSpan { return SyntaxKind.TemplateSpan; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
   public readonly $literal: $TemplateMiddle | $TemplateTail;
@@ -222,7 +218,7 @@ export class $TemplateSpan implements I$Node {
 // #endregion
 
 export class $NumericLiteral implements I$Node {
-  public readonly $kind = SyntaxKind.NumericLiteral;
+  public get $kind(): SyntaxKind.NumericLiteral { return SyntaxKind.NumericLiteral; }
 
   public readonly Value: $Number;
 
@@ -284,7 +280,7 @@ export class $NumericLiteral implements I$Node {
 }
 
 export class $BigIntLiteral implements I$Node {
-  public readonly $kind = SyntaxKind.BigIntLiteral;
+  public get $kind(): SyntaxKind.BigIntLiteral { return SyntaxKind.BigIntLiteral; }
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
   // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
@@ -329,7 +325,7 @@ export class $BigIntLiteral implements I$Node {
 }
 
 export class $StringLiteral implements I$Node {
-  public readonly $kind = SyntaxKind.StringLiteral;
+  public get $kind(): SyntaxKind.StringLiteral { return SyntaxKind.StringLiteral; }
 
   public readonly Value: $String;
 
@@ -396,7 +392,7 @@ export class $StringLiteral implements I$Node {
 }
 
 export class $RegularExpressionLiteral implements I$Node {
-  public readonly $kind = SyntaxKind.RegularExpressionLiteral;
+  public get $kind(): SyntaxKind.RegularExpressionLiteral { return SyntaxKind.RegularExpressionLiteral; }
 
   // http://www.ecma-international.org/ecma-262/#sec-regexp-identifier-names-static-semantics-stringvalue
   // 21.2.1.6 Static Semantics: StringValue
@@ -452,7 +448,7 @@ export class $RegularExpressionLiteral implements I$Node {
 }
 
 export class $NoSubstitutionTemplateLiteral implements I$Node {
-  public readonly $kind = SyntaxKind.NoSubstitutionTemplateLiteral;
+  public get $kind(): SyntaxKind.NoSubstitutionTemplateLiteral { return SyntaxKind.NoSubstitutionTemplateLiteral; }
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
   // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
@@ -500,7 +496,7 @@ export class $NoSubstitutionTemplateLiteral implements I$Node {
 }
 
 export class $NullLiteral implements I$Node {
-  public readonly $kind = SyntaxKind.NullKeyword;
+  public get $kind(): SyntaxKind.NullKeyword { return SyntaxKind.NullKeyword; }
 
   public readonly Value: $Null;
 

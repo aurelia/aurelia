@@ -55,7 +55,6 @@ import {
   $List,
 } from '../types/list';
 
-
 // http://www.ecma-international.org/ecma-262/#sec-arguments-exotic-objects
 export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
   public readonly '[[ParameterMap]]': $AnyObject;
@@ -383,8 +382,6 @@ export class $ArgumentsExoticObject extends $Object<'ArgumentsExoticObject'> {
     return result;
   }
 }
-
-
 
 // http://www.ecma-international.org/ecma-262/#sec-makearggetter
 export class $ArgGetter extends $BuiltinFunction {

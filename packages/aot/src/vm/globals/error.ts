@@ -13,7 +13,7 @@ import {
   $AnyNonEmptyNonError,
 } from '../types/_shared';
 import {
-  $Error, $TypeError,
+  $TypeError,
 } from '../types/error';
 import {
   $Undefined,
@@ -71,7 +71,7 @@ export class $ErrorConstructor extends $BuiltinFunction<'%Error%'> {
     const newTarget = NewTarget.isUndefined ? ctx.Function : NewTarget;
 
     // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%ErrorPrototype%", « [[ErrorData]] »).
-    const O = $OrdinaryCreateFromConstructor(ctx, newTarget as $Function, '%ErrorPrototype%', { '[[ErrorData]]': void 0 })
+    const O = $OrdinaryCreateFromConstructor(ctx, newTarget as $Function, '%ErrorPrototype%', { '[[ErrorData]]': void 0 });
     if (O.isAbrupt) { return O; }
 
     // 3. If message is not undefined, then
@@ -198,8 +198,6 @@ export class $ErrorPrototype_toString extends $BuiltinFunction<'Error.prototype.
   }
 }
 
-
-
 // http://www.ecma-international.org/ecma-262/#sec-nativeerror-constructors
 export class $EvalErrorConstructor extends $BuiltinFunction<'%EvalError%'> {
   public get $prototype(): $EvalErrorPrototype {
@@ -231,7 +229,7 @@ export class $EvalErrorConstructor extends $BuiltinFunction<'%EvalError%'> {
     const newTarget = NewTarget.isUndefined ? ctx.Function : NewTarget;
 
     // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%EvalErrorPrototype%", « [[ErrorData]] »).
-    const O = $OrdinaryCreateFromConstructor(ctx, newTarget as $Function, '%EvalErrorPrototype%', { '[[ErrorData]]': void 0 })
+    const O = $OrdinaryCreateFromConstructor(ctx, newTarget as $Function, '%EvalErrorPrototype%', { '[[ErrorData]]': void 0 });
     if (O.isAbrupt) { return O; }
 
     // 3. If message is not undefined, then
@@ -293,8 +291,6 @@ export class $EvalErrorPrototype extends $Object<'%EvalErrorPrototype%'> {
   }
 }
 
-
-
 // http://www.ecma-international.org/ecma-262/#sec-nativeerror-constructors
 export class $RangeErrorConstructor extends $BuiltinFunction<'%RangeError%'> {
   public get $prototype(): $RangeErrorPrototype {
@@ -326,7 +322,7 @@ export class $RangeErrorConstructor extends $BuiltinFunction<'%RangeError%'> {
     const newTarget = NewTarget.isUndefined ? ctx.Function : NewTarget;
 
     // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%RangeErrorPrototype%", « [[ErrorData]] »).
-    const O = $OrdinaryCreateFromConstructor(ctx, newTarget as $Function, '%RangeErrorPrototype%', { '[[ErrorData]]': void 0 })
+    const O = $OrdinaryCreateFromConstructor(ctx, newTarget as $Function, '%RangeErrorPrototype%', { '[[ErrorData]]': void 0 });
     if (O.isAbrupt) { return O; }
 
     // 3. If message is not undefined, then
@@ -388,8 +384,6 @@ export class $RangeErrorPrototype extends $Object<'%RangeErrorPrototype%'> {
   }
 }
 
-
-
 // http://www.ecma-international.org/ecma-262/#sec-nativeerror-constructors
 export class $ReferenceErrorConstructor extends $BuiltinFunction<'%ReferenceError%'> {
   public get $prototype(): $ReferenceErrorPrototype {
@@ -421,7 +415,7 @@ export class $ReferenceErrorConstructor extends $BuiltinFunction<'%ReferenceErro
     const newTarget = NewTarget.isUndefined ? ctx.Function : NewTarget;
 
     // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%ReferenceErrorPrototype%", « [[ErrorData]] »).
-    const O = $OrdinaryCreateFromConstructor(ctx, newTarget as $Function, '%ReferenceErrorPrototype%', { '[[ErrorData]]': void 0 })
+    const O = $OrdinaryCreateFromConstructor(ctx, newTarget as $Function, '%ReferenceErrorPrototype%', { '[[ErrorData]]': void 0 });
     if (O.isAbrupt) { return O; }
 
     // 3. If message is not undefined, then
@@ -483,9 +477,6 @@ export class $ReferenceErrorPrototype extends $Object<'%ReferenceErrorPrototype%
   }
 }
 
-
-
-
 // http://www.ecma-international.org/ecma-262/#sec-nativeerror-constructors
 export class $SyntaxErrorConstructor extends $BuiltinFunction<'%SyntaxError%'> {
   public get $prototype(): $SyntaxErrorPrototype {
@@ -517,7 +508,7 @@ export class $SyntaxErrorConstructor extends $BuiltinFunction<'%SyntaxError%'> {
     const newTarget = NewTarget.isUndefined ? ctx.Function : NewTarget;
 
     // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%SyntaxErrorPrototype%", « [[ErrorData]] »).
-    const O = $OrdinaryCreateFromConstructor(ctx, newTarget as $Function, '%SyntaxErrorPrototype%', { '[[ErrorData]]': void 0 })
+    const O = $OrdinaryCreateFromConstructor(ctx, newTarget as $Function, '%SyntaxErrorPrototype%', { '[[ErrorData]]': void 0 });
     if (O.isAbrupt) { return O; }
 
     // 3. If message is not undefined, then
@@ -579,9 +570,6 @@ export class $SyntaxErrorPrototype extends $Object<'%SyntaxErrorPrototype%'> {
   }
 }
 
-
-
-
 // http://www.ecma-international.org/ecma-262/#sec-nativeerror-constructors
 export class $TypeErrorConstructor extends $BuiltinFunction<'%TypeError%'> {
   public get $prototype(): $TypeErrorPrototype {
@@ -613,7 +601,7 @@ export class $TypeErrorConstructor extends $BuiltinFunction<'%TypeError%'> {
     const newTarget = NewTarget.isUndefined ? ctx.Function : NewTarget;
 
     // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%TypeErrorPrototype%", « [[ErrorData]] »).
-    const O = $OrdinaryCreateFromConstructor(ctx, newTarget as $Function, '%TypeErrorPrototype%', { '[[ErrorData]]': void 0 })
+    const O = $OrdinaryCreateFromConstructor(ctx, newTarget as $Function, '%TypeErrorPrototype%', { '[[ErrorData]]': void 0 });
     if (O.isAbrupt) { return O; }
 
     // 3. If message is not undefined, then
@@ -675,9 +663,6 @@ export class $TypeErrorPrototype extends $Object<'%TypeErrorPrototype%'> {
   }
 }
 
-
-
-
 // http://www.ecma-international.org/ecma-262/#sec-nativeerror-constructors
 export class $URIErrorConstructor extends $BuiltinFunction<'%URIError%'> {
   public get $prototype(): $URIErrorPrototype {
@@ -709,7 +694,7 @@ export class $URIErrorConstructor extends $BuiltinFunction<'%URIError%'> {
     const newTarget = NewTarget.isUndefined ? ctx.Function : NewTarget;
 
     // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%URIErrorPrototype%", « [[ErrorData]] »).
-    const O = $OrdinaryCreateFromConstructor(ctx, newTarget as $Function, '%URIErrorPrototype%', { '[[ErrorData]]': void 0 })
+    const O = $OrdinaryCreateFromConstructor(ctx, newTarget as $Function, '%URIErrorPrototype%', { '[[ErrorData]]': void 0 });
     if (O.isAbrupt) { return O; }
 
     // 3. If message is not undefined, then

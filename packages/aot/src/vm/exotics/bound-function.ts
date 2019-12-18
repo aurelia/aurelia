@@ -7,7 +7,6 @@ import {
 import {
   $AnyNonEmpty,
   $AnyNonEmptyNonError,
-  $AnyObject,
   CompletionType,
 } from '../types/_shared';
 import {
@@ -18,9 +17,6 @@ import {
   $Call,
   $Construct,
 } from '../operations';
-import {
-  $Error,
-} from '../types/error';
 import {
   $Undefined,
 } from '../types/undefined';
@@ -97,7 +93,6 @@ export class $BoundFunctionExoticObject extends $Object<'BoundFunctionExoticObje
     // 5. Return ? Call(target, boundThis, args).
     return $Call(ctx, target, boundThis, args);
   }
-
 
   // http://www.ecma-international.org/ecma-262/#sec-bound-function-exotic-objects-construct-argumentslist-newtarget
   // 9.4.1.2 [[Construct]] ( argumentsList , newTarget )

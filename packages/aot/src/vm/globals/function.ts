@@ -486,6 +486,7 @@ export function $CreateDynamicFunction(
   // 16. Set bodyText to ? ToString(bodyText).
   $bodyText = $bodyText.ToString(ctx);
   if ($bodyText.isAbrupt) { return $bodyText; }
+  // eslint-disable-next-line prefer-const
   bodyText = $bodyText;
 
   // 41. Let sourceText be the string-concatenation of prefix, " anonymous(", P, 0x000A (LINE FEED), ") {", 0x000A (LINE FEED), bodyText, 0x000A (LINE FEED), and "}".

@@ -1,4 +1,3 @@
-/* eslint-disable */
 import {
   GetAccessorDeclaration,
   MethodDeclaration,
@@ -75,15 +74,13 @@ import {
 import {
   $Any,
   $AnyNonEmpty,
-  $AnyNonEmptyNonError,
 } from '../types/_shared';
 import {
   $List,
 } from '../types/list';
 
-
 export class $MethodDeclaration implements I$Node {
-  public readonly $kind = SyntaxKind.MethodDeclaration;
+  public get $kind(): SyntaxKind.MethodDeclaration { return SyntaxKind.MethodDeclaration; }
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -254,7 +251,7 @@ export class $MethodDeclaration implements I$Node {
 }
 
 export class $GetAccessorDeclaration implements I$Node {
-  public readonly $kind = SyntaxKind.GetAccessor;
+  public get $kind(): SyntaxKind.GetAccessor { return SyntaxKind.GetAccessor; }
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -380,7 +377,7 @@ export class $GetAccessorDeclaration implements I$Node {
 }
 
 export class $SetAccessorDeclaration implements I$Node {
-  public readonly $kind = SyntaxKind.SetAccessor;
+  public get $kind(): SyntaxKind.SetAccessor { return SyntaxKind.SetAccessor; }
 
   public readonly modifierFlags: ModifierFlags;
 

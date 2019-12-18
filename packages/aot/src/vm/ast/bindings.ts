@@ -1,11 +1,9 @@
-/* eslint-disable */
 import {
   ArrayBindingElement,
   ArrayBindingPattern,
   BindingElement,
   ComputedPropertyName,
   ModifierFlags,
-  NodeFlags,
   ObjectBindingPattern,
   OmittedExpression,
   SpreadElement,
@@ -123,7 +121,7 @@ export type $$NamedDeclaration = (
 );
 
 export class $ComputedPropertyName implements I$Node {
-  public readonly $kind = SyntaxKind.ComputedPropertyName;
+  public get $kind(): SyntaxKind.ComputedPropertyName { return SyntaxKind.ComputedPropertyName; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -177,9 +175,8 @@ export class $ComputedPropertyName implements I$Node {
   }
 }
 
-
 export class $ObjectBindingPattern implements I$Node {
-  public readonly $kind = SyntaxKind.ObjectBindingPattern;
+  public get $kind(): SyntaxKind.ObjectBindingPattern { return SyntaxKind.ObjectBindingPattern; }
 
   public readonly combinedModifierFlags: ModifierFlags;
 
@@ -329,7 +326,7 @@ export function $bindingElementList(
 }
 
 export class $ArrayBindingPattern implements I$Node {
-  public readonly $kind = SyntaxKind.ArrayBindingPattern;
+  public get $kind(): SyntaxKind.ArrayBindingPattern { return SyntaxKind.ArrayBindingPattern; }
 
   public readonly combinedModifierFlags: ModifierFlags;
 
@@ -418,7 +415,7 @@ export class $ArrayBindingPattern implements I$Node {
     for (let i = 0, ii = elements.length; i < ii; ++i) {
       const el = elements[i];
       switch (el.$kind) {
-        case SyntaxKind.OmittedExpression:
+        case SyntaxKind.OmittedExpression: {
           if (i + 1 === ii) {
             // If the last element is an elision, skip it as per the runtime semantics:
 
@@ -434,6 +431,7 @@ export class $ArrayBindingPattern implements I$Node {
           const result = el.EvaluateDestructuringAssignmentIterator(ctx, iteratorRecord);
           if (result.isAbrupt) { return result.enrichWith(ctx, this); }
           break;
+        }
         case SyntaxKind.BindingElement: {
           // ArrayBindingPattern : [ Elision opt BindingRestElement ]
 
@@ -444,7 +442,6 @@ export class $ArrayBindingPattern implements I$Node {
           // ArrayBindingPattern : [ BindingElementList ]
 
           // 1. Return the result of performing IteratorBindingInitialization for BindingElementList with iteratorRecord and environment as arguments.
-
 
           // ArrayBindingPattern : [ BindingElementList , Elision ]
 
@@ -480,7 +477,7 @@ export type $$BindingPattern = (
 );
 
 export class $BindingElement implements I$Node {
-  public readonly $kind = SyntaxKind.BindingElement;
+  public get $kind(): SyntaxKind.BindingElement { return SyntaxKind.BindingElement; }
 
   public readonly modifierFlags: ModifierFlags;
   public readonly combinedModifierFlags: ModifierFlags;
@@ -634,7 +631,6 @@ export class $BindingElement implements I$Node {
       return BindingElement.InitializeKeyedBinding(ctx, value, environment, propertyName, initializer).enrichWith(ctx, this);
     }
 
-
     // BindingElement : BindingPattern Initializer opt
 
     // 1. Let v be ? GetV(value, propertyName).
@@ -764,7 +760,7 @@ export class $BindingElement implements I$Node {
 }
 
 export class $SpreadElement implements I$Node {
-  public readonly $kind = SyntaxKind.SpreadElement;
+  public get $kind(): SyntaxKind.SpreadElement { return SyntaxKind.SpreadElement; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -875,7 +871,7 @@ export class $SpreadElement implements I$Node {
 }
 
 export class $OmittedExpression implements I$Node {
-  public readonly $kind = SyntaxKind.OmittedExpression;
+  public get $kind(): SyntaxKind.OmittedExpression { return SyntaxKind.OmittedExpression; }
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-boundnames
   // 13.3.3.1 Static Semantics: BoundNames

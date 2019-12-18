@@ -1,4 +1,3 @@
-/* eslint-disable */
 import {
   Realm,
   ExecutionContext,
@@ -436,6 +435,7 @@ export function $ValidateAndApplyPropertyDescriptor(
   }
 
   // 5. If IsGenericDescriptor(Desc) is true, no further validation is required.
+  // eslint-disable-next-line no-empty
   if (Desc.isGenericDescriptor) {
 
   }
@@ -540,7 +540,6 @@ export function $ValidateAndApplyPropertyDescriptor(
   // 10. Return true.
   return intrinsics.true;
 }
-
 
 // http://www.ecma-international.org/ecma-262/#sec-set-immutable-prototype
 export function $SetImmutablePrototype(
@@ -780,7 +779,6 @@ export function $StrictEqualityComparison(
 
   return intrinsics.false;
 }
-
 
 // http://www.ecma-international.org/ecma-262/#sec-instanceofoperator
 export function $InstanceOfOperator(
@@ -1160,9 +1158,8 @@ export function $GetFunctionRealm(
   }
 
   // 5. Return the current Realm Record.
-  return realm
+  return realm;
 }
-
 
 // http://www.ecma-international.org/ecma-262/#sec-copydataproperties
 // 7.3.23 CopyDataProperties ( target , source , excludedItems )

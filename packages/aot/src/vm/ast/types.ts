@@ -1,4 +1,3 @@
-/* eslint-disable */
 import {
   EnumDeclaration,
   EnumMember,
@@ -50,7 +49,7 @@ const {
 } = PLATFORM;
 
 export class $InterfaceDeclaration implements I$Node {
-  public readonly $kind = SyntaxKind.InterfaceDeclaration;
+  public get $kind(): SyntaxKind.InterfaceDeclaration { return SyntaxKind.InterfaceDeclaration; }
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -120,7 +119,7 @@ export class $InterfaceDeclaration implements I$Node {
 }
 
 export class $TypeAliasDeclaration implements I$Node {
-  public readonly $kind = SyntaxKind.TypeAliasDeclaration;
+  public get $kind(): SyntaxKind.TypeAliasDeclaration { return SyntaxKind.TypeAliasDeclaration; }
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -205,7 +204,7 @@ export function $enumMemberList(
 }
 
 export class $EnumDeclaration implements I$Node {
-  public readonly $kind = SyntaxKind.EnumDeclaration;
+  public get $kind(): SyntaxKind.EnumDeclaration { return SyntaxKind.EnumDeclaration; }
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -273,7 +272,7 @@ export class $EnumDeclaration implements I$Node {
 }
 
 export class $EnumMember implements I$Node {
-  public readonly $kind = SyntaxKind.EnumMember;
+  public get $kind(): SyntaxKind.EnumMember { return SyntaxKind.EnumMember; }
 
   public readonly $name: $$PropertyName;
   public readonly $initializer: $$AssignmentExpressionOrHigher | undefined;

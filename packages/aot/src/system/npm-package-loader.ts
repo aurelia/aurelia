@@ -1,4 +1,3 @@
-/* eslint-disable import/no-nodejs-modules */
 import {
   ILogger,
   PLATFORM,
@@ -230,7 +229,7 @@ export class NPMPackageLoader {
     const fs = this.fs;
     const pkgCache = this.pkgCache;
 
-    const refName = dir === null ? issuer!.refName : dir!;
+    const refName = dir === null ? issuer!.refName : dir;
     let pkg = pkgCache.get(refName);
     if (pkg === void 0) {
       if (dir === null) {

@@ -13,9 +13,6 @@ import {
   $AnyNonEmptyNonError,
 } from '../types/_shared';
 import {
-  $Error,
-} from '../types/error';
-import {
   $Boolean,
 } from '../types/boolean';
 import {

@@ -285,7 +285,7 @@ export function $AsyncIteratorClose(
   }
 
   // 6. Let innerResult be Call(return, iterator, « »).
-  let innerResult = $Call(ctx, $return, iterator, intrinsics.undefined);
+  const innerResult = $Call(ctx, $return, iterator, intrinsics.undefined);
 
   // 7. If innerResult.[[Type]] is normal, set innerResult to Await(innerResult.[[Value]]).
   if (innerResult['[[Type]]'] === CompletionType.normal) {
@@ -520,7 +520,6 @@ export class $IteratorPrototype extends $Object<'%IteratorPrototype%'> {
   }
 }
 
-
 // http://www.ecma-international.org/ecma-262/#sec-asynciteratorprototype
 // 25.1.3 The %AsyncIteratorPrototype% Object
 export class $AsyncIteratorPrototype extends $Object<'%AsyncIteratorPrototype%'> {
@@ -743,7 +742,7 @@ export class $AsyncFromSyncIteratorPrototype_return extends $BuiltinFunction<'%A
     if (!result.isObject) {
       // 10. a. Perform ! Call(promiseCapability.[[Reject]], undefined, « a newly created TypeError object »).
       const err = new $TypeError(realm, `Expected syncIterator return result to be an object, but got: ${result}`);
-      $Call(ctx, promiseCapability['[[Reject]]'], intrinsics.undefined, new $List(err))
+      $Call(ctx, promiseCapability['[[Reject]]'], intrinsics.undefined, new $List(err));
 
       // 10. b. Return promiseCapability.[[Promise]].
       return promiseCapability['[[Promise]]'];
@@ -825,7 +824,7 @@ export class $AsyncFromSyncIteratorPrototype_throw extends $BuiltinFunction<'%As
     if (!result.isObject) {
       // 10. a. Perform ! Call(promiseCapability.[[Reject]], undefined, « a newly created TypeError object »).
       const err = new $TypeError(realm, `Expected syncIterator return result to be an object, but got: ${result}`);
-      $Call(ctx, promiseCapability['[[Reject]]'], intrinsics.undefined, new $List(err))
+      $Call(ctx, promiseCapability['[[Reject]]'], intrinsics.undefined, new $List(err));
 
       // 10. b. Return promiseCapability.[[Promise]].
       return promiseCapability['[[Promise]]'];

@@ -400,7 +400,7 @@ export function $AsyncGeneratorStart(
   genContext.Generator = generator;
 
   // 5. Set the code evaluation state of genContext such that when evaluation is resumed for that execution context the following steps will be performed:
-  genContext.onResume = function (resumptionValue: $AnyNonEmpty ): $AnyNonEmpty  { // TODO: do we need to do something with resumptionValue?
+  genContext.onResume = function (resumptionValue: $AnyNonEmpty): $AnyNonEmpty  { // TODO: do we need to do something with resumptionValue?
     // 5. a. Let result be the result of evaluating generatorBody.
     const result = generatorBody.Evaluate(genContext) as $AnyNonEmpty;
 
@@ -479,7 +479,6 @@ export function $AsyncGeneratorResolve(
   // 9. Return undefined.
   return intrinsics.undefined;
 }
-
 
 // http://www.ecma-international.org/ecma-262/#sec-asyncgeneratorreject
 // 25.5.3.4 AsyncGeneratorReject ( generator , exception )
@@ -630,7 +629,6 @@ export function $AsyncGeneratorResumeNext(
   return intrinsics.undefined;
 }
 
-
 // http://www.ecma-international.org/ecma-262/#async-generator-resume-next-return-processor-fulfilled
 // 25.5.3.5.1 AsyncGeneratorResumeNext Return Processor Fulfilled Functions
 export class $AsyncGeneratorResumeNext_Return_Processor_Fulfilled extends $BuiltinFunction<'AsyncGeneratorResumeNext Return Processor Fulfilled'> {
@@ -709,7 +707,6 @@ export class $AsyncGeneratorResumeNext_Return_Processor_Rejected extends $Builti
   }
 }
 
-
 // http://www.ecma-international.org/ecma-262/#sec-asyncgeneratorenqueue
 // 25.5.3.6 AsyncGeneratorEnqueue ( generator , completion )
 export function $AsyncGeneratorEnqueue(
@@ -757,7 +754,6 @@ export function $AsyncGeneratorEnqueue(
   // 9. Return promiseCapability.[[Promise]].
   return promiseCapability['[[Promise]]'] as $PromiseInstance; // TODO: is this cast safe?
 }
-
 
 // http://www.ecma-international.org/ecma-262/#sec-asyncgeneratoryield
 // 25.5.3.7 AsyncGeneratorYield ( value )
@@ -813,8 +809,6 @@ export function $AsyncGeneratorYield(
 
   // 10. NOTE: This returns to the evaluation of the operation that had most previously resumed evaluation of genContext.
 }
-
-
 
 // #endregion
 

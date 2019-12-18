@@ -1,4 +1,3 @@
-/* eslint-disable */
 import {
   ArrayLiteralExpression,
   AsExpression,
@@ -69,7 +68,6 @@ import {
 import {
   $Any,
   $AnyNonEmpty,
-  $AnyNonEmptyNonError,
   $AnyObject,
 } from '../types/_shared';
 import {
@@ -95,7 +93,6 @@ import {
   $IteratorRecord,
   $IteratorStep,
   $IteratorValue,
-  $GetIterator,
 } from '../globals/iteration';
 import {
   $TypeError,
@@ -111,7 +108,6 @@ import {
 import {
   I$Node,
   Context,
-  clearBit,
   modifiersToModifierFlags,
   hasBit,
   $identifier,
@@ -162,7 +158,7 @@ const {
 } = PLATFORM;
 
 export class $Decorator implements I$Node {
-  public readonly $kind = SyntaxKind.Decorator;
+  public get $kind(): SyntaxKind.Decorator { return SyntaxKind.Decorator; }
 
   public readonly $expression: $$LHSExpressionOrHigher;
 
@@ -184,7 +180,7 @@ export class $Decorator implements I$Node {
 // #region LHS
 
 export class $ThisExpression implements I$Node {
-  public readonly $kind = SyntaxKind.ThisKeyword;
+  public get $kind(): SyntaxKind.ThisKeyword { return SyntaxKind.ThisKeyword; }
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
   // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
@@ -232,7 +228,7 @@ export class $ThisExpression implements I$Node {
 }
 
 export class $SuperExpression implements I$Node {
-  public readonly $kind = SyntaxKind.SuperKeyword;
+  public get $kind(): SyntaxKind.SuperKeyword { return SyntaxKind.SuperKeyword; }
 
   public constructor(
     public readonly node: SuperExpression,
@@ -336,7 +332,7 @@ export function $argumentOrArrayLiteralElementList(
 }
 
 export class $ArrayLiteralExpression implements I$Node {
-  public readonly $kind = SyntaxKind.ArrayLiteralExpression;
+  public get $kind(): SyntaxKind.ArrayLiteralExpression { return SyntaxKind.ArrayLiteralExpression; }
 
   public readonly $elements: readonly $$ArgumentOrArrayLiteralElement[];
 
@@ -550,7 +546,7 @@ export function $$objectLiteralElementLikeList(
 }
 
 export class $ObjectLiteralExpression implements I$Node {
-  public readonly $kind = SyntaxKind.ObjectLiteralExpression;
+  public get $kind(): SyntaxKind.ObjectLiteralExpression { return SyntaxKind.ObjectLiteralExpression; }
 
   public readonly $properties: readonly $$ObjectLiteralElementLike[];
 
@@ -615,7 +611,7 @@ export class $ObjectLiteralExpression implements I$Node {
 }
 
 export class $PropertyAssignment implements I$Node {
-  public readonly $kind = SyntaxKind.PropertyAssignment;
+  public get $kind(): SyntaxKind.PropertyAssignment { return SyntaxKind.PropertyAssignment; }
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -693,7 +689,7 @@ export class $PropertyAssignment implements I$Node {
 }
 
 export class $ShorthandPropertyAssignment implements I$Node {
-  public readonly $kind = SyntaxKind.ShorthandPropertyAssignment;
+  public get $kind(): SyntaxKind.ShorthandPropertyAssignment { return SyntaxKind.ShorthandPropertyAssignment; }
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -753,7 +749,7 @@ export class $ShorthandPropertyAssignment implements I$Node {
 }
 
 export class $SpreadAssignment implements I$Node {
-  public readonly $kind = SyntaxKind.SpreadAssignment;
+  public get $kind(): SyntaxKind.SpreadAssignment { return SyntaxKind.SpreadAssignment; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -803,7 +799,7 @@ export class $SpreadAssignment implements I$Node {
 }
 
 export class $PropertyAccessExpression implements I$Node {
-  public readonly $kind = SyntaxKind.PropertyAccessExpression;
+  public get $kind(): SyntaxKind.PropertyAccessExpression { return SyntaxKind.PropertyAccessExpression; }
 
   public readonly $expression: $$LHSExpressionOrHigher;
   public readonly $name: $Identifier;
@@ -858,7 +854,7 @@ export class $PropertyAccessExpression implements I$Node {
 }
 
 export class $ElementAccessExpression implements I$Node {
-  public readonly $kind = SyntaxKind.ElementAccessExpression;
+  public get $kind(): SyntaxKind.ElementAccessExpression { return SyntaxKind.ElementAccessExpression; }
 
   public readonly $expression: $$LHSExpressionOrHigher;
   public readonly $argumentExpression: $$AssignmentExpressionOrHigher;
@@ -921,7 +917,7 @@ export class $ElementAccessExpression implements I$Node {
 }
 
 export class $CallExpression implements I$Node {
-  public readonly $kind = SyntaxKind.CallExpression;
+  public get $kind(): SyntaxKind.CallExpression { return SyntaxKind.CallExpression; }
 
   public readonly $expression: $$LHSExpressionOrHigher;
   public readonly $arguments: readonly $$ArgumentOrArrayLiteralElement[];
@@ -1132,11 +1128,10 @@ export function $ArgumentListEvaluation(
     // 5. c. Let nextArg be ? IteratorValue(next).
     // 5. d. Append nextArg as the last element of precedingArgs.
 
-
 }
 
 export class $NewExpression implements I$Node {
-  public readonly $kind = SyntaxKind.NewExpression;
+  public get $kind(): SyntaxKind.NewExpression { return SyntaxKind.NewExpression; }
 
   public readonly $expression: $$LHSExpressionOrHigher;
   public readonly $arguments: readonly $$ArgumentOrArrayLiteralElement[];
@@ -1184,7 +1179,7 @@ export class $NewExpression implements I$Node {
     const ref = this.$expression.Evaluate(ctx);
 
     // 4. Let constructor be ? GetValue(ref).
-    let constructor = ref.GetValue(ctx);
+    const constructor = ref.GetValue(ctx);
     if (constructor.isAbrupt) { return constructor.enrichWith(ctx, this); }
 
     const $arguments = this.$arguments;
@@ -1216,7 +1211,7 @@ export type $$TemplateLiteral = (
 );
 
 export class $TaggedTemplateExpression implements I$Node {
-  public readonly $kind = SyntaxKind.TaggedTemplateExpression;
+  public get $kind(): SyntaxKind.TaggedTemplateExpression { return SyntaxKind.TaggedTemplateExpression; }
 
   public readonly $tag: $$LHSExpressionOrHigher;
   public readonly $template: $$TemplateLiteral;
@@ -1290,7 +1285,7 @@ export function $$templateSpanList(
 }
 
 export class $TemplateExpression implements I$Node {
-  public readonly $kind = SyntaxKind.TemplateExpression;
+  public get $kind(): SyntaxKind.TemplateExpression { return SyntaxKind.TemplateExpression; }
 
   public readonly $head: $TemplateHead;
   public readonly $templateSpans: readonly $TemplateSpan[];
@@ -1322,7 +1317,7 @@ export class $TemplateExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.TemplateExpression`,
   ) {
-    this.$head = new $TemplateHead(node.head, this, ctx)
+    this.$head = new $TemplateHead(node.head, this, ctx);
     this.$templateSpans = $$templateSpanList(node.templateSpans, this, ctx);
   }
 
@@ -1380,7 +1375,7 @@ export class $TemplateExpression implements I$Node {
 }
 
 export class $ParenthesizedExpression implements I$Node {
-  public readonly $kind = SyntaxKind.ParenthesizedExpression;
+  public get $kind(): SyntaxKind.ParenthesizedExpression { return SyntaxKind.ParenthesizedExpression; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -1427,7 +1422,7 @@ export class $ParenthesizedExpression implements I$Node {
 }
 
 export class $NonNullExpression implements I$Node {
-  public readonly $kind = SyntaxKind.NonNullExpression;
+  public get $kind(): SyntaxKind.NonNullExpression { return SyntaxKind.NonNullExpression; }
 
   public readonly $expression: $$LHSExpressionOrHigher;
 
@@ -1456,7 +1451,7 @@ export class $NonNullExpression implements I$Node {
 }
 
 export class $MetaProperty implements I$Node {
-  public readonly $kind = SyntaxKind.MetaProperty;
+  public get $kind(): SyntaxKind.MetaProperty { return SyntaxKind.MetaProperty; }
 
   public readonly $name: $Identifier;
 
@@ -1498,7 +1493,7 @@ export class $MetaProperty implements I$Node {
 // #region Unary
 
 export class $DeleteExpression implements I$Node {
-  public readonly $kind = SyntaxKind.DeleteExpression;
+  public get $kind(): SyntaxKind.DeleteExpression { return SyntaxKind.DeleteExpression; }
 
   public readonly $expression: $$UnaryExpressionOrHigher;
 
@@ -1548,7 +1543,7 @@ export class $DeleteExpression implements I$Node {
 }
 
 export class $TypeOfExpression implements I$Node {
-  public readonly $kind = SyntaxKind.TypeOfExpression;
+  public get $kind(): SyntaxKind.TypeOfExpression { return SyntaxKind.TypeOfExpression; }
 
   public readonly $expression: $$UnaryExpressionOrHigher;
 
@@ -1632,7 +1627,7 @@ export class $TypeOfExpression implements I$Node {
 }
 
 export class $VoidExpression implements I$Node {
-  public readonly $kind = SyntaxKind.VoidExpression;
+  public get $kind(): SyntaxKind.VoidExpression { return SyntaxKind.VoidExpression; }
 
   public readonly $expression: $$UnaryExpressionOrHigher;
 
@@ -1676,7 +1671,7 @@ export class $VoidExpression implements I$Node {
 }
 
 export class $AwaitExpression implements I$Node {
-  public readonly $kind = SyntaxKind.AwaitExpression;
+  public get $kind(): SyntaxKind.AwaitExpression { return SyntaxKind.AwaitExpression; }
 
   public readonly $expression: $$UnaryExpressionOrHigher;
 
@@ -1716,7 +1711,7 @@ export class $AwaitExpression implements I$Node {
 }
 
 export class $PrefixUnaryExpression implements I$Node {
-  public readonly $kind = SyntaxKind.PrefixUnaryExpression;
+  public get $kind(): SyntaxKind.PrefixUnaryExpression { return SyntaxKind.PrefixUnaryExpression; }
 
   public readonly $operand: $$UnaryExpressionOrHigher;
 
@@ -1826,6 +1821,7 @@ export class $PrefixUnaryExpression implements I$Node {
         if ($value.isAbrupt) { return $value.enrichWith(ctx, this); }
         const value = $value.ToNumber(ctx);
         if (value.isAbrupt) { return value.enrichWith(ctx, this); }
+        return value;
       }
       case SyntaxKind.MinusToken: {
         // http://www.ecma-international.org/ecma-262/#sec-unary-minus-operator-runtime-semantics-evaluation
@@ -1899,7 +1895,7 @@ export class $PrefixUnaryExpression implements I$Node {
 }
 
 export class $PostfixUnaryExpression implements I$Node {
-  public readonly $kind = SyntaxKind.PostfixUnaryExpression;
+  public get $kind(): SyntaxKind.PostfixUnaryExpression { return SyntaxKind.PostfixUnaryExpression; }
 
   public readonly $operand: $$LHSExpressionOrHigher;
 
@@ -1993,7 +1989,7 @@ export class $PostfixUnaryExpression implements I$Node {
 }
 
 export class $TypeAssertion implements I$Node {
-  public readonly $kind = SyntaxKind.TypeAssertionExpression;
+  public get $kind(): SyntaxKind.TypeAssertionExpression { return SyntaxKind.TypeAssertionExpression; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -2008,7 +2004,7 @@ export class $TypeAssertion implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.TypeAssertion`,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1)
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
   }
 
   // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
@@ -2026,7 +2022,7 @@ export class $TypeAssertion implements I$Node {
 // #region Assignment
 
 export class $BinaryExpression implements I$Node {
-  public readonly $kind = SyntaxKind.BinaryExpression;
+  public get $kind(): SyntaxKind.BinaryExpression { return SyntaxKind.BinaryExpression; }
 
   public readonly $left: $$BinaryExpressionOrHigher;
   public readonly $right: $$BinaryExpressionOrHigher;
@@ -2042,8 +2038,8 @@ export class $BinaryExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.BinaryExpression`,
   ) {
-    this.$left = $assignmentExpression(node.left as $BinaryExpressionNode, this, ctx, -1) as $$BinaryExpressionOrHigher
-    this.$right = $assignmentExpression(node.right as $BinaryExpressionNode, this, ctx, -1) as $$BinaryExpressionOrHigher
+    this.$left = $assignmentExpression(node.left as $BinaryExpressionNode, this, ctx, -1) as $$BinaryExpressionOrHigher;
+    this.$right = $assignmentExpression(node.right as $BinaryExpressionNode, this, ctx, -1) as $$BinaryExpressionOrHigher;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-exp-operator-runtime-semantics-evaluation
@@ -3095,7 +3091,7 @@ export class $BinaryExpression implements I$Node {
 }
 
 export class $ConditionalExpression implements I$Node {
-  public readonly $kind = SyntaxKind.ConditionalExpression;
+  public get $kind(): SyntaxKind.ConditionalExpression { return SyntaxKind.ConditionalExpression; }
 
   public readonly $condition: $$BinaryExpressionOrHigher;
   public readonly $whenTrue: $$AssignmentExpressionOrHigher;
@@ -3118,8 +3114,8 @@ export class $ConditionalExpression implements I$Node {
       this.$condition = $unaryExpression(node.condition as $UnaryExpressionNode, this, ctx, -1);
     }
 
-    this.$whenTrue = $assignmentExpression(node.whenTrue as $AssignmentExpressionNode, this, ctx, -1)
-    this.$whenFalse = $assignmentExpression(node.whenFalse as $AssignmentExpressionNode, this, ctx, -1)
+    this.$whenTrue = $assignmentExpression(node.whenTrue as $AssignmentExpressionNode, this, ctx, -1);
+    this.$whenFalse = $assignmentExpression(node.whenFalse as $AssignmentExpressionNode, this, ctx, -1);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-conditional-operator-runtime-semantics-evaluation
@@ -3149,7 +3145,7 @@ export class $ConditionalExpression implements I$Node {
 }
 
 export class $YieldExpression implements I$Node {
-  public readonly $kind = SyntaxKind.YieldExpression;
+  public get $kind(): SyntaxKind.YieldExpression { return SyntaxKind.YieldExpression; }
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
@@ -3164,7 +3160,7 @@ export class $YieldExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.YieldExpression`,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1)
+    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
   }
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
   // 14.4.14 Runtime Semantics: Evaluation
@@ -3249,7 +3245,7 @@ export class $YieldExpression implements I$Node {
 }
 
 export class $AsExpression implements I$Node {
-  public readonly $kind = SyntaxKind.AsExpression;
+  public get $kind(): SyntaxKind.AsExpression { return SyntaxKind.AsExpression; }
 
   public readonly $expression: $$UpdateExpressionOrHigher;
 
@@ -3264,7 +3260,7 @@ export class $AsExpression implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.AsExpression`,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $UpdateExpressionNode, this, ctx, -1) as $$UpdateExpressionOrHigher
+    this.$expression = $assignmentExpression(node.expression as $UpdateExpressionNode, this, ctx, -1) as $$UpdateExpressionOrHigher;
   }
 
   // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
@@ -3280,7 +3276,7 @@ export class $AsExpression implements I$Node {
 // #endregion
 
 export class $Identifier implements I$Node {
-  public readonly $kind = SyntaxKind.Identifier;
+  public get $kind(): SyntaxKind.Identifier { return SyntaxKind.Identifier; }
 
   // http://www.ecma-international.org/ecma-262/#sec-identifiers-static-semantics-stringvalue
   // 12.1.4 Static Semantics: StringValue
@@ -3395,7 +3391,7 @@ export class $Identifier implements I$Node {
     const [name] = this.BoundNames;
 
     // 2. Perform ? KeyedBindingInitialization for SingleNameBinding using value, environment, and name as the arguments.
-    const $InitializeKeyedBindingResult = this.InitializeKeyedBinding(ctx, value, environment, name)
+    const $InitializeKeyedBindingResult = this.InitializeKeyedBinding(ctx, value, environment, name);
     if ($InitializeKeyedBindingResult.isAbrupt) { return $InitializeKeyedBindingResult.enrichWith(ctx, this); }
 
     // 3. Return a new List containing name.

@@ -1,4 +1,3 @@
-/* eslint-disable */
 import {
   $Object,
 } from './object';
@@ -339,7 +338,6 @@ export class $Function<
     return F;
   }
 
-
   // http://www.ecma-international.org/ecma-262/#sec-functioncreate
   // 9.2.5 FunctionCreate ( kind , ParameterList , Body , Scope , Strict [ , prototype ] )
   public static FunctionCreate(
@@ -629,7 +627,6 @@ function $PrepareForOrdinaryCall(
   // 14. Return calleeContext.
   return calleeContext;
 }
-
 
 // http://www.ecma-international.org/ecma-262/#sec-ordinarycallbindthis
 function $OrdinaryCallBindThis(

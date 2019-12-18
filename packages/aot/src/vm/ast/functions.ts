@@ -1,4 +1,3 @@
-/* eslint-disable */
 import {
   ArrowFunction,
   Block,
@@ -35,7 +34,6 @@ import {
   $Any,
   CompletionType,
   $AnyNonEmpty,
-  $AnyNonEmptyNonError,
   $PropertyKey,
 } from '../types/_shared';
 import {
@@ -201,7 +199,7 @@ export class $FormalParameterList extends Array<$ParameterDeclaration> {
 }
 
 export class $FunctionExpression implements I$Node {
-  public readonly $kind = SyntaxKind.FunctionExpression;
+  public get $kind(): SyntaxKind.FunctionExpression { return SyntaxKind.FunctionExpression; }
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -650,7 +648,7 @@ export class $FunctionExpression implements I$Node {
 }
 
 export class $FunctionDeclaration implements I$Node {
-  public readonly $kind = SyntaxKind.FunctionDeclaration;
+  public get $kind(): SyntaxKind.FunctionDeclaration { return SyntaxKind.FunctionDeclaration; }
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -1459,7 +1457,7 @@ export function $FunctionDeclarationInstantiation(
 }
 
 export class $ArrowFunction implements I$Node {
-  public readonly $kind = SyntaxKind.ArrowFunction;
+  public get $kind(): SyntaxKind.ArrowFunction { return SyntaxKind.ArrowFunction; }
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -1613,7 +1611,7 @@ export class MethodDefinitionRecord {
 }
 
 export class $ConstructorDeclaration implements I$Node {
-  public readonly $kind = SyntaxKind.Constructor;
+  public get $kind(): SyntaxKind.Constructor { return SyntaxKind.Constructor; }
 
   public readonly modifierFlags: ModifierFlags;
 
@@ -1673,7 +1671,6 @@ export class $ConstructorDeclaration implements I$Node {
     const intrinsics = realm['[[Intrinsics]]'];
     // NOTE: this logic and signature is adapted to the fact that this is always a constructor method
 
-
     // MethodDefinition : PropertyName ( UniqueFormalParameters ) { FunctionBody }
 
     // 1. Let propKey be the result of evaluating PropertyName.
@@ -1718,7 +1715,7 @@ export class $ConstructorDeclaration implements I$Node {
 }
 
 export class $ParameterDeclaration implements I$Node {
-  public readonly $kind = SyntaxKind.Parameter;
+  public get $kind(): SyntaxKind.Parameter { return SyntaxKind.Parameter; }
 
   public readonly modifierFlags: ModifierFlags;
   public readonly combinedModifierFlags: ModifierFlags;

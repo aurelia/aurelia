@@ -17,7 +17,6 @@ import {
 import {
   $PropertyKey,
   $AnyNonEmpty,
-  $AnyNonEmptyNonError,
   $AnyObject,
   CompletionType,
 } from '../types/_shared';

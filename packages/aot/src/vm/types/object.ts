@@ -71,7 +71,7 @@ export class $Object<
   public readonly id: number = nextValueId();
 
   public '[[Type]]': PotentialNonEmptyCompletionType;
-  public get '[[Value]]'(): Object {
+  public get '[[Value]]'(): Record<string, unknown> {
     const obj = {};
     for (const pd of this.propertyDescriptors) {
       // Reflect.defineProperty(obj, pd.name['[[Value]]'], {
@@ -476,8 +476,8 @@ export class $Object<
   public deleteProperty(key: $PropertyKey): void {
     const idx = this.propertyMap.get(key['[[Value]]'])!;
     this.propertyMap.delete(key['[[Value]]']);
-    this.propertyDescriptors.splice(idx, 1)
-    this.propertyKeys.splice(idx, 1)
+    this.propertyDescriptors.splice(idx, 1);
+    this.propertyKeys.splice(idx, 1);
   }
 
   public setDataProperty(
@@ -905,9 +905,9 @@ export class $Object<
     let arrayIndexLen = 0;
     let stringLen = 0;
     let symbolLen = 0;
-    let arrayIndexProps: $String[] = [];
-    let stringProps: $String[] = [];
-    let symbolProps: $Symbol[] = [];
+    const arrayIndexProps: $String[] = [];
+    const stringProps: $String[] = [];
+    const symbolProps: $Symbol[] = [];
 
     const ownPropertyKeys = this.propertyKeys;
     let ownPropertyKey: $PropertyKey;

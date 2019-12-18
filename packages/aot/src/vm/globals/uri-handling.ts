@@ -20,7 +20,6 @@ import {
   $List,
 } from '../types/list';
 
-
 // http://www.ecma-international.org/ecma-262/#sec-uri-handling-functions
 // 18.2.6 URI Handling Functions
 

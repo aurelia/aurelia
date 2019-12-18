@@ -23,9 +23,6 @@ import {
   $PerformPromiseThen,
 } from '../globals/promise';
 import {
-  $Empty,
-} from './empty';
-import {
   $Error,
 } from './error';
 import {
@@ -75,7 +72,6 @@ export function $Await(
 
   // 13. NOTE: This returns to the evaluation of the operation that had most previously resumed evaluation of asyncContext.
 }
-
 
 // http://www.ecma-international.org/ecma-262/#await-fulfilled
 // 6.2.3.1.1 Await Fulfilled
@@ -138,7 +134,6 @@ export class $Await_Fulfilled extends $BuiltinFunction<'Await_Fulfilled'> {
     return intrinsics.undefined;
   }
 }
-
 
 // http://www.ecma-international.org/ecma-262/#await-rejected
 // 6.2.3.1.2 Await Rejected Functions

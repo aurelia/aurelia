@@ -13,9 +13,6 @@ import {
   CompletionType,
 } from '../types/_shared';
 import {
-  $Error,
-} from '../types/error';
-import {
   $Undefined,
 } from '../types/undefined';
 import {

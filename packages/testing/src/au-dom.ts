@@ -20,7 +20,6 @@ import {
   HydrateTemplateController,
   IBindingTargetAccessor,
   IBindingTargetObserver,
-  IController,
   IDOM,
   IDOMInitializer,
   IElementProjector,
@@ -54,8 +53,6 @@ import {
   ICustomElementController
 } from '@aurelia/runtime';
 import { TestContext } from './html-test-context';
-
-const slice = Array.prototype.slice;
 
 export class AuNode implements INode {
   public readonly nodeName: string;

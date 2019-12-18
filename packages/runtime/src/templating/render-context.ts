@@ -306,7 +306,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
 
   // #region IRenderContext api
   public compile(): ICompiledRenderContext<T> {
-    let compiledDefinition = this.compiledDefinition;
+    let compiledDefinition: CustomElementDefinition;
     if (this.isCompiled) {
       return this;
     }

@@ -36,7 +36,6 @@ import {
   IContextualCustomElementController,
   ICompiledCustomElementController,
   ICustomElementController,
-  IComponentController,
   IHydratedController,
   ICustomElementViewModel,
   ICustomAttributeViewModel,

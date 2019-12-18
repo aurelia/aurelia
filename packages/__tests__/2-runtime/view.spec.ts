@@ -1,10 +1,8 @@
 import {
-  Writable,
   DI,
 } from '@aurelia/kernel';
 import {
   ILifecycle,
-  IController,
   ViewFactory,
 } from '@aurelia/runtime';
 import {

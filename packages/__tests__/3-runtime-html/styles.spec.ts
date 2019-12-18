@@ -1,9 +1,8 @@
 import { DI, Registration } from '@aurelia/kernel';
-import { Aurelia, Controller, CustomAttribute, CustomElement, INode, ILifecycle, ICustomElementViewModel } from '@aurelia/runtime';
+import { Aurelia, CustomAttribute, CustomElement, INode } from '@aurelia/runtime';
 import {
   AdoptedStyleSheetsStyles,
   CSSModulesProcessorRegistry,
-  IShadowDOMStyles,
   ShadowDOMRegistry,
   StyleConfiguration,
   StyleElementStyles,

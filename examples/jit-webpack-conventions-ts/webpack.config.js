@@ -1,8 +1,8 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-module.exports = function(env, { runTest }) {
-  const production = env === 'production' || process.env.NODE_ENV === 'production';
+module.exports = function (env, { mode }) {
+  const production = mode === 'production';
   return {
     mode: production ? 'production' : 'development',
     entry: './src/startup.ts',
@@ -25,5 +25,5 @@ module.exports = function(env, { runTest }) {
       ]
     },
     plugins: [new HtmlWebpackPlugin({ template: 'index.ejs' })]
-  }
-}
+  };
+};

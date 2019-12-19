@@ -22,7 +22,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel<HTMLElemen
     this.element = element as HTMLElement;
   }
 
-  public binding(): void {
+  public beforeBind(): void {
     if (this.router.options.useHref && !this.hasGoto()) {
       // ((this as ICustomAttributeViewModel).$controller!.parent!.controllers!
       //   .filter((c: IController) => c.vmKind === ViewModelKind.customAttribute &&
@@ -32,7 +32,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel<HTMLElemen
     }
     this.updateValue();
   }
-  public unbinding(): void {
+  public beforeUnbind(): void {
     if (this.eventListener !== null) {
       this.eventListener.dispose();
     }

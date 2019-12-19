@@ -70,7 +70,7 @@ export class ViewportScopeCustomElement {
   // public binding(): void {
   //   this.connect();
   // }
-  public unbound(): void {
+  public afterUnbound(): void {
     this.isBound = false;
   }
 
@@ -101,14 +101,14 @@ export class ViewportScopeCustomElement {
     this.viewportScope = null;
   }
 
-  public binding(flags: LifecycleFlags): void {
+  public beforeBind(flags: LifecycleFlags): void {
     this.isBound = true;
     this.connect();
     if (this.viewportScope !== null) {
       this.viewportScope.binding();
     }
   }
-  public unbinding(flags: LifecycleFlags): Promise<void> {
+  public async beforeUnbind(flags: LifecycleFlags): Promise<void> {
     if (this.viewportScope !== null) {
       this.viewportScope.unbinding();
     }

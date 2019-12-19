@@ -64,7 +64,7 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
   // }
 
   public afterCompile(controller: ICompiledCustomElementController) {
-    this.container = controller.context;
+    this.container = controller.context.get(IContainer);
     // console.log('Viewport creating', this.getAttribute('name', this.name), this.container, this.parentViewport, controller, this);
     // this.connect();
   }

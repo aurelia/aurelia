@@ -957,12 +957,16 @@ export class Router implements IRouter {
   }
 
   private getContainer(viewModelOrContainer: ICustomElementViewModel | IContainer): IContainer | null {
-    if ('resourceResolvers' in viewModelOrContainer || isRenderContext(viewModelOrContainer)) {
+    if ('resourceResolvers' in viewModelOrContainer) {
       return viewModelOrContainer;
     }
 
+    if (isRenderContext(viewModelOrContainer)) {
+      return viewModelOrContainer.get(IContainer);
+    }
+
     if ('$controller' in viewModelOrContainer) {
-      return viewModelOrContainer.$controller!.context;
+      return viewModelOrContainer.$controller!.context.get(IContainer);
     }
 
     return null;

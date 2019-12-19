@@ -63,17 +63,17 @@ export class Author {
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
   }
-  public binding() {
+  public beforeBind() {
     console.log('### binding', this);
   }
-  public bound() {
+  public afterBind() {
     console.log('### bound', this);
   }
-  public attaching() {
-    console.log('### attaching', this);
+  public beforeAttach() {
+    console.log('### beforeAttach', this);
   }
-  public attached() {
-    console.log('### attached', this);
+  public afterAttach() {
+    console.log('### afterAttach', this);
   }
 
   public canLeave(parameters) {
@@ -84,16 +84,16 @@ export class Author {
     console.log('### leave', this, parameters);
     return true;
   }
-  public detaching() {
-    console.log('### detaching', this);
+  public beforeDetach() {
+    console.log('### beforeDetach', this);
   }
-  public detached() {
-    console.log('### detached', this);
+  public afterDetach() {
+    console.log('### afterDetach', this);
   }
-  public unbinding() {
-    console.log('### unbinding', this);
+  public beforeUnbind() {
+    console.log('### beforeUnbind', this);
   }
-  public unbound() {
+  public afterUnbind() {
     console.log('### unbound', this);
   }
 }

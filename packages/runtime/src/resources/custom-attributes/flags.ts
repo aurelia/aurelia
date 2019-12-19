@@ -1,17 +1,16 @@
 import { nextId } from '@aurelia/kernel';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags } from '../../flags';
-import { IController, IViewFactory, MountStrategy } from '../../lifecycle';
+import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel } from '../../lifecycle';
 import { ILifecycleTask } from '../../lifecycle-task';
 import { templateController } from '../custom-attribute';
 
-abstract class FlagsTemplateController<T extends INode = INode> {
+abstract class FlagsTemplateController<T extends INode = INode> implements ICustomAttributeViewModel<T> {
   public readonly id: number;
 
-  public readonly view: IController<T>;
+  public readonly view: ISyntheticView<T>;
 
-  // eslint-disable-next-line @typescript-eslint/prefer-readonly
-  private $controller!: IController<T>;
+  public readonly $controller!: ICustomAttributeController<T, this>;
 
   public constructor(
     private readonly factory: IViewFactory<T>,
@@ -24,20 +23,20 @@ abstract class FlagsTemplateController<T extends INode = INode> {
     this.view.hold(location, MountStrategy.insertBefore);
   }
 
-  public binding(flags: LifecycleFlags): ILifecycleTask {
+  public beforeBind(flags: LifecycleFlags): ILifecycleTask {
     this.view.parent = this.$controller;
     return this.view.bind(flags | this.flags, this.$controller.scope);
   }
 
-  public attaching(flags: LifecycleFlags): void {
+  public beforeAttach(flags: LifecycleFlags): void {
     this.view.attach(flags);
   }
 
-  public detaching(flags: LifecycleFlags): void {
+  public beforeDetach(flags: LifecycleFlags): void {
     this.view.detach(flags);
   }
 
-  public unbinding(flags: LifecycleFlags): ILifecycleTask {
+  public beforeUnbind(flags: LifecycleFlags): ILifecycleTask {
     const task = this.view.unbind(flags);
     this.view.parent = void 0;
     return task;

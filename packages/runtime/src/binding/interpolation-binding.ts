@@ -23,6 +23,8 @@ import {
 const { toView, oneTime } = BindingMode;
 
 export class MultiInterpolationBinding implements IBinding {
+  public interceptor: this = this;
+
   public $state: State = State.none;;
   public $scope?: IScope = void 0;
   public part?: string;
@@ -53,7 +55,7 @@ export class MultiInterpolationBinding implements IBinding {
       if (this.$scope === scope) {
         return;
       }
-      this.$unbind(flags);
+      this.interceptor.$unbind(flags);
     }
     this.$state |= State.isBound;
     this.$scope = scope;
@@ -61,7 +63,7 @@ export class MultiInterpolationBinding implements IBinding {
 
     const parts = this.parts;
     for (let i = 0, ii = parts.length; i < ii; ++i) {
-      parts[i].$bind(flags, scope, part);
+      parts[i].interceptor.$bind(flags, scope, part);
     }
   }
 
@@ -73,7 +75,7 @@ export class MultiInterpolationBinding implements IBinding {
     this.$scope = void 0;
     const parts = this.parts;
     for (let i = 0, ii = parts.length; i < ii; ++i) {
-      parts[i].$unbind(flags);
+      parts[i].interceptor.$unbind(flags);
     }
   }
 }
@@ -82,6 +84,8 @@ export interface InterpolationBinding extends IConnectableBinding {}
 
 @connectable()
 export class InterpolationBinding implements IPartialConnectableBinding {
+  public interceptor: this = this;
+
   public id!: number;
   public $scope?: IScope;
   public part?: string;
@@ -116,13 +120,13 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     const previousValue = this.targetObserver.getValue();
     const newValue = this.interpolation.evaluate(flags, this.$scope!, this.locator, this.part);
     if (newValue !== previousValue) {
-      this.updateTarget(newValue, flags);
+      this.interceptor.updateTarget(newValue, flags);
     }
 
     if ((this.mode & oneTime) === 0) {
       this.version++;
-      this.sourceExpression.connect(flags, this.$scope!, this, this.part);
-      this.unobserve(false);
+      this.sourceExpression.connect(flags, this.$scope!, this.interceptor, this.part);
+      this.interceptor.unobserve(false);
     }
   }
 
@@ -131,7 +135,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
       if (this.$scope === scope) {
         return;
       }
-      this.$unbind(flags);
+      this.interceptor.$unbind(flags);
     }
 
     this.$state |= State.isBound;
@@ -140,7 +144,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.bind) {
-      sourceExpression.bind(flags, scope, this);
+      sourceExpression.bind(flags, scope, this.interceptor);
     }
     if (this.mode !== BindingMode.oneTime && this.targetObserver.bind) {
       this.targetObserver.bind(flags);
@@ -149,10 +153,10 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     // since the interpolation already gets the whole value, we only need to let the first
     // text binding do the update if there are multiple
     if (this.isFirst) {
-      this.updateTarget(this.interpolation.evaluate(flags, scope, this.locator, part), flags);
+      this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, this.locator, part), flags);
     }
     if (this.mode & toView) {
-      sourceExpression.connect(flags, scope, this, part);
+      sourceExpression.connect(flags, scope, this.interceptor, part);
     }
   }
 
@@ -164,13 +168,13 @@ export class InterpolationBinding implements IPartialConnectableBinding {
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.unbind) {
-      sourceExpression.unbind(flags, this.$scope!, this);
+      sourceExpression.unbind(flags, this.$scope!, this.interceptor);
     }
     if (this.targetObserver.unbind) {
       this.targetObserver.unbind(flags);
     }
 
     this.$scope = void 0;
-    this.unobserve(true);
+    this.interceptor.unobserve(true);
   }
 }

@@ -159,7 +159,7 @@
 //                         this.thing = thing1;
 //                       }
 
-//                       public attached(): void {
+//                       public afterAttach(): void {
 //                         if (name !== 'template') {
 //                           this.el = this.el.firstElementChild;
 //                         }

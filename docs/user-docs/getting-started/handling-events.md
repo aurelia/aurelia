@@ -27,8 +27,7 @@ Aurelia's binding system supports binding to standard and custom DOM events. A D
 
 Below are a few examples.
 
-{% code-tabs %}
-{% code-tabs-item title="my-app.html" %}
+{% code title="my-app.html" %}
 ```markup
 <button type="button" click.trigger="cancel()">Cancel</button>
   
@@ -38,8 +37,7 @@ Below are a few examples.
 <input type="text" blur.trigger="elementBlurred($event.target)">
 <input type="text" change.delegate="lastName = $event.target.value">
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 The cancel button uses the `trigger` command to attach an event listener to the button element that will call the view-model's `cancel` method. The yes and no buttons use the `delegate` command which will use the event delegation pattern. The input elements have binding expressions that use the special `$event` property to access the [DOM event](https://developer.mozilla.org/en-US/docs/Web/API/Event).
 
@@ -78,8 +76,7 @@ In most situations, `delegate` and `trigger` are enough for you to handle user i
 
 `delegate` and `trigger` will fail in the following example:
 
-{% code-tabs %}
-{% code-tabs-item title="my-app.html" %}
+{% code title="my-app.html" %}
 ```markup
 <div class='my-plugin-container' click.delegate='onClickPluginContainer()'>
   <!--
@@ -88,13 +85,11 @@ In most situations, `delegate` and `trigger` are enough for you to handle user i
   -->
 </div>
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 This is where you may need another way to listen to the `click` event, via the `capture` binding command:
 
-{% code-tabs %}
-{% code-tabs-item title="my-app.html" %}
+{% code title="my-app.html" %}
 ```markup
 <div class='my-plugin-container' click.capture='onClickPluginContainer()'>
   <!--
@@ -103,8 +98,7 @@ This is where you may need another way to listen to the `click` event, via the `
   -->
 </div>
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 In the 2nd example, `onClickPluginContainer()` is guaranteed to happen regardless of whether `event.stopPropagation()` is called or not inside the container.
 

@@ -1,29 +1,11 @@
 import {
-  Writable, DI
+  DI,
 } from '@aurelia/kernel';
 import {
-  AccessScopeExpression,
-  addBinding,
-  addComponent,
-  PropertyBinding,
-  BindingContext,
-  BindingMode,
-  IDOM,
   ILifecycle,
-  IObserverLocator,
-  IRenderLocation,
-  IScope,
-  ITemplate,
-  IController,
-  LifecycleFlags as LF,
-  Scope,
-  ViewFactory
+  ViewFactory,
 } from '@aurelia/runtime';
 import {
-  AuDOM,
-  AuDOMConfiguration,
-  AuNode,
-  AuNodeSequence,
   eachCartesianJoin,
   assert,
 } from '@aurelia/testing';
@@ -35,10 +17,18 @@ class StubView {
   }
 }
 
-class StubTemplate {
-  public constructor(public nodes = {}) {}
-  public render(renderable: Partial<IController>) {
-    (renderable as Writable<IController>).nodes = this.nodes as any;
+class StubContext {
+  public constructor(
+    public nodes = { findTargets() { return []; } },
+    public compiledDefinition = { instructions: [] },
+  ) {}
+
+  public compile(): this {
+    return this;
+  }
+
+  public createNodes(): any {
+    return this.nodes;
   }
 }
 
@@ -83,8 +73,8 @@ describe.skip(`ViewFactory`, function () {
 
     eachCartesianJoin(inputs, ([text1, doNotOverride1], [text2, size2, isPositive2], [text3, doNotOverride3], [text4, size4, isPositive4]) => {
       it(`setCacheSize(${text2},${text1}) -> tryReturnToCache -> create x2 -> setCacheSize(${text4},${text3}) -> tryReturnToCache -> create x2`, function () {
-        const template = new StubTemplate();
-        const sut = new ViewFactory(null, template as any, DI.createContainer().get(ILifecycle));
+        const context = new StubContext();
+        const sut = new ViewFactory(null, context as any, DI.createContainer().get(ILifecycle), void 0);
         const view1 = new StubView();
         const view2 = new StubView();
 
@@ -97,7 +87,7 @@ describe.skip(`ViewFactory`, function () {
           const cached = sut.create();
           assert.strictEqual(cached, view1, 'cached');
           const created = sut.create();
-          assert.strictEqual(created.nodes, template.nodes, 'created.nodes');
+          assert.strictEqual(created.nodes, context.nodes, 'created.nodes');
           assert.strictEqual(sut.tryReturnToCache(view1 as any), true, 'sut.tryReturnToCache(<any>view1)');
 
           if (size2 !== '*') {
@@ -105,7 +95,7 @@ describe.skip(`ViewFactory`, function () {
           }
         } else {
           const created = sut.create();
-          assert.strictEqual(created.nodes, template.nodes, 'created.nodes');
+          assert.strictEqual(created.nodes, context.nodes, 'created.nodes');
         }
 
         // note: the difference in behavior between 0 (number) and '0' (string),
@@ -122,7 +112,7 @@ describe.skip(`ViewFactory`, function () {
           const cached = sut.create();
           assert.strictEqual(cached, view2, 'cached');
           const created = sut.create();
-          assert.strictEqual(created.nodes, template.nodes, 'created.nodes');
+          assert.strictEqual(created.nodes, context.nodes, 'created.nodes');
           assert.strictEqual(sut.tryReturnToCache(view2 as any), true, 'sut.tryReturnToCache(<any>view2)');
 
           if (size2 !== '*' && size4 !== '*') {
@@ -130,7 +120,7 @@ describe.skip(`ViewFactory`, function () {
           }
         } else {
           const created = sut.create();
-          assert.strictEqual(created.nodes, template.nodes, 'created.nodes');
+          assert.strictEqual(created.nodes, context.nodes, 'created.nodes');
         }
 
       });
@@ -145,24 +135,24 @@ describe.skip(`ViewFactory`, function () {
 // }
 // describe.skip('View', function () {
 //   function runBindLifecycle(lifecycle: ILifecycle, view: IController<AuNode>, flags: LF, scope: IScope): void {
-//     lifecycle.bound.begin();
+//     lifecycle.afterBind.begin();
 //     view.bind(flags, scope);
-//     lifecycle.bound.end(flags);
+//     lifecycle.afterBind.end(flags);
 //   }
 //   function runUnbindLifecycle(lifecycle: ILifecycle, view: IController<AuNode>, flags: LF): void {
-//     lifecycle.unbound.begin();
+//     lifecycle.afterUnbind.begin();
 //     view.unbind(flags);
-//     lifecycle.unbound.end(flags);
+//     lifecycle.afterUnbind.end(flags);
 //   }
 //   function runAttachLifecycle(lifecycle: ILifecycle, view: IController<AuNode>, flags: LF): void {
-//     lifecycle.attached.begin();
+//     lifecycle.afterAttach.begin();
 //     view.attach(flags);
-//     lifecycle.attached.end(flags);
+//     lifecycle.afterAttach.end(flags);
 //   }
 //   function runDetachLifecycle(lifecycle: ILifecycle, view: IController<AuNode>, flags: LF): void {
-//     lifecycle.detached.begin();
+//     lifecycle.afterDetach.begin();
 //     view.detach(flags);
-//     lifecycle.detached.end(flags);
+//     lifecycle.afterDetach.end(flags);
 //   }
 
 //   interface Spec {
@@ -476,7 +466,7 @@ describe.skip(`ViewFactory`, function () {
 
 //       // - Round 1 - detach
 
-//       lifecycle.detached.begin();
+//       lifecycle.afterDetach.begin();
 //       if (relBeforeDetach1) {
 //         sut.release(detachFlags1);
 //         assert.strictEqual(host.textContent, firstBindFinalValue.repeat(1 + childCount), 'host.textContent #2');
@@ -486,7 +476,7 @@ describe.skip(`ViewFactory`, function () {
 //         sut.release(detachFlags1);
 //         assert.strictEqual(host.textContent, '', 'host.textContent #3');
 //       }
-//       lifecycle.detached.end(detachFlags1);
+//       lifecycle.afterDetach.end(detachFlags1);
 //       if (relAfterDetach1) {
 //         sut.release(detachFlags1);
 //       }
@@ -499,7 +489,7 @@ describe.skip(`ViewFactory`, function () {
 //         }
 //       }
 //       if (detachTwice) {
-//         lifecycle.detached.begin();
+//         lifecycle.afterDetach.begin();
 //         if (relBeforeDetach1) {
 //           sut.release(detachFlags1);
 //         }
@@ -507,7 +497,7 @@ describe.skip(`ViewFactory`, function () {
 //         if (relBeforeEndDetach1) {
 //           sut.release(detachFlags1);
 //         }
-//         lifecycle.detached.end(detachFlags1);
+//         lifecycle.afterDetach.end(detachFlags1);
 //         if (relAfterDetach1) {
 //           sut.release(detachFlags1);
 //         }
@@ -564,7 +554,7 @@ describe.skip(`ViewFactory`, function () {
 
 //       // Round 2 - detach
 
-//       lifecycle.detached.begin();
+//       lifecycle.afterDetach.begin();
 //       if (relBeforeDetach2) {
 //         sut.release(detachFlags2);
 //         assert.strictEqual(host.textContent, secondBindFinalValue.repeat(1 + childCount), 'host.textContent #6');
@@ -574,7 +564,7 @@ describe.skip(`ViewFactory`, function () {
 //         sut.release(detachFlags2);
 //         assert.strictEqual(host.textContent, '', 'host.textContent #7');
 //       }
-//       lifecycle.detached.end(detachFlags2);
+//       lifecycle.afterDetach.end(detachFlags2);
 //       if (relAfterDetach2) {
 //         sut.release(detachFlags2);
 //       }
@@ -587,7 +577,7 @@ describe.skip(`ViewFactory`, function () {
 //         }
 //       }
 //       if (detachTwice) {
-//         lifecycle.detached.begin();
+//         lifecycle.afterDetach.begin();
 //         if (relBeforeDetach2) {
 //           sut.release(detachFlags2);
 //         }
@@ -595,7 +585,7 @@ describe.skip(`ViewFactory`, function () {
 //         if (relBeforeEndDetach2) {
 //           sut.release(detachFlags2);
 //         }
-//         lifecycle.detached.end(detachFlags2);
+//         lifecycle.afterDetach.end(detachFlags2);
 //         if (relAfterDetach2) {
 //           sut.release(detachFlags2);
 //         }

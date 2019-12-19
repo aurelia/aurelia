@@ -2,10 +2,11 @@ import {
   bindable,
   BindingMode,
   customAttribute,
-  IController,
   IDOM,
   INode,
-  State
+  State,
+  ICustomAttributeController,
+  ICustomAttributeViewModel
 } from '@aurelia/runtime';
 import { HTMLDOM } from '../../dom';
 
@@ -13,18 +14,17 @@ import { HTMLDOM } from '../../dom';
  * Focus attribute for element focus binding
  */
 @customAttribute('focus')
-export class Focus {
+export class Focus implements ICustomAttributeViewModel<HTMLElement> {
+
+  public readonly $controller!: ICustomAttributeController<HTMLElement, this>;
 
   @bindable({ mode: BindingMode.twoWay })
   public value: unknown;
 
   /**
-   * Indicates whether `apply` should be called when `attached` callback is invoked
+   * Indicates whether `apply` should be called when `afterAttach` callback is invoked
    */
   private needsApply: boolean = false;
-
-  // This is set by the controller after this instance is constructed
-  private readonly $controller!: IController;
 
   private readonly element: HTMLElement;
 
@@ -35,7 +35,7 @@ export class Focus {
     this.element = element as HTMLElement;
   }
 
-  public binding(): void {
+  public beforeBind(): void {
     this.valueChanged();
   }
 
@@ -55,15 +55,15 @@ export class Focus {
     } else {
       // If the element is not currently connect
       // toggle the flag to add pending work for later
-      // in attached lifecycle
+      // in afterAttach lifecycle
       this.needsApply = true;
     }
   }
 
   /**
-   * Invoked when the attribute is attached to the DOM.
+   * Invoked when the attribute is afterAttach to the DOM.
    */
-  public attached(): void {
+  public afterAttach(): void {
     if (this.needsApply) {
       this.needsApply = false;
       this.apply();
@@ -74,9 +74,9 @@ export class Focus {
   }
 
   /**
-   * Invoked when the attribute is detached from the DOM.
+   * Invoked when the attribute is afterDetach from the DOM.
    */
-  public detached(): void {
+  public afterDetach(): void {
     const el = this.element;
     el.removeEventListener('focus', this);
     el.removeEventListener('blur', this);

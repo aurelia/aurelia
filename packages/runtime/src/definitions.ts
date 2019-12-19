@@ -47,11 +47,64 @@ export const enum TargetedInstructionType {
 export type PartialCustomElementDefinitionParts = Record<string, PartialCustomElementDefinition>;
 export type CustomElementDefinitionParts = Record<string, CustomElementDefinition>;
 
+const parentPartsOwnPartsLookup = new WeakMap<PartialCustomElementDefinitionParts, WeakMap<PartialCustomElementDefinitionParts, PartialCustomElementDefinitionParts>>();
+
+/**
+ * Efficiently merge parts, performing the minimal amount of work / using the minimal amount of memory.
+ *
+ * If either of the two part records is undefined, the other will simply be returned.
+ *
+ * If both are undefined, undefined will be returned.
+ *
+ * If neither are undefined, a new object will be returned where parts of the second value will be written last (and thus may overwrite duplicate named parts).
+ *
+ * This function is idempotent via a WeakMap cache: results are cached and if the same two variables are provided again, the same object will be returned.
+ */
+export function mergeParts(
+  parentParts: PartialCustomElementDefinitionParts | undefined,
+  ownParts: PartialCustomElementDefinitionParts | undefined,
+): PartialCustomElementDefinitionParts | undefined {
+  if (parentParts === ownParts) {
+    return parentParts;
+  }
+  if (parentParts === void 0) {
+    return ownParts;
+  }
+  if (ownParts === void 0) {
+    return parentParts;
+  }
+
+  let ownPartsLookup = parentPartsOwnPartsLookup.get(parentParts);
+  if (ownPartsLookup === void 0) {
+    parentPartsOwnPartsLookup.set(
+      parentParts,
+      ownPartsLookup = new WeakMap(),
+    );
+  }
+
+  let mergedParts = ownPartsLookup.get(ownParts);
+  if (mergedParts === void 0) {
+    ownPartsLookup.set(
+      ownParts,
+      mergedParts = {
+        ...parentParts,
+        ...ownParts,
+      },
+    );
+  }
+
+  return mergedParts;
+}
+
 export type InstructionTypeName = string;
 
 export const ITargetedInstruction = DI.createInterface<ITargetedInstruction>('ITargetedInstruction').noDefault();
 export interface ITargetedInstruction {
   type: InstructionTypeName;
+}
+
+export interface IHydrateInstruction extends ITargetedInstruction {
+  readonly instructions: readonly ITargetedInstruction[];
 }
 
 export type NodeInstruction =
@@ -117,20 +170,20 @@ export interface ISetPropertyInstruction extends ITargetedInstruction {
   to: string;
 }
 
-export interface IHydrateElementInstruction extends ITargetedInstruction {
+export interface IHydrateElementInstruction extends IHydrateInstruction {
   type: TargetedInstructionType.hydrateElement;
   res: string;
   instructions: ITargetedInstruction[];
   parts?: Record<string, PartialCustomElementDefinition>;
 }
 
-export interface IHydrateAttributeInstruction extends ITargetedInstruction {
+export interface IHydrateAttributeInstruction extends IHydrateInstruction {
   type: TargetedInstructionType.hydrateAttribute;
   res: string;
   instructions: ITargetedInstruction[];
 }
 
-export interface IHydrateTemplateController extends ITargetedInstruction {
+export interface IHydrateTemplateController extends IHydrateInstruction {
   type: TargetedInstructionType.hydrateTemplateController;
   res: string;
   instructions: ITargetedInstruction[];
@@ -139,7 +192,7 @@ export interface IHydrateTemplateController extends ITargetedInstruction {
   parts?: Record<string, PartialCustomElementDefinition>;
 }
 
-export interface IHydrateLetElementInstruction extends ITargetedInstruction {
+export interface IHydrateLetElementInstruction extends IHydrateInstruction {
   type: TargetedInstructionType.hydrateLetElement;
   instructions: ILetBindingInstruction[];
   toBindingContext: boolean;
@@ -154,33 +207,37 @@ export interface ILetBindingInstruction extends ITargetedInstruction {
 export class HooksDefinition {
   public static readonly none: Readonly<HooksDefinition> = new HooksDefinition({});
 
-  public readonly hasRender: boolean;
-  public readonly hasCreated: boolean;
+  public readonly hasCreate: boolean;
+  public readonly hasBeforeCompile: boolean;
+  public readonly hasAfterCompile: boolean;
+  public readonly hasAfterCompileChildren: boolean;
 
-  public readonly hasBinding: boolean;
-  public readonly hasBound: boolean;
+  public readonly hasBeforeBind: boolean;
+  public readonly hasAfterBind: boolean;
 
-  public readonly hasUnbinding: boolean;
-  public readonly hasUnbound: boolean;
+  public readonly hasBeforeUnbind: boolean;
+  public readonly hasAfterUnbind: boolean;
 
-  public readonly hasAttaching: boolean;
-  public readonly hasAttached: boolean;
+  public readonly hasBeforeAttach: boolean;
+  public readonly hasAfterAttach: boolean;
 
-  public readonly hasDetaching: boolean;
-  public readonly hasDetached: boolean;
+  public readonly hasBeforeDetach: boolean;
+  public readonly hasAfterDetach: boolean;
   public readonly hasCaching: boolean;
 
   public constructor(target: object) {
-    this.hasRender = 'render' in target;
-    this.hasCreated = 'created' in target;
-    this.hasBinding = 'binding' in target;
-    this.hasBound = 'bound' in target;
-    this.hasUnbinding = 'unbinding' in target;
-    this.hasUnbound = 'unbound' in target;
-    this.hasAttaching = 'attaching' in target;
-    this.hasAttached = 'attached' in target;
-    this.hasDetaching = 'detaching' in target;
-    this.hasDetached = 'detached' in target;
+    this.hasCreate = 'create' in target;
+    this.hasBeforeCompile = 'beforeCompile' in target;
+    this.hasAfterCompile = 'afterCompile' in target;
+    this.hasAfterCompileChildren = 'afterCompileChildren' in target;
+    this.hasBeforeBind = 'beforeBind' in target;
+    this.hasAfterBind = 'afterBind' in target;
+    this.hasBeforeUnbind = 'beforeUnbind' in target;
+    this.hasAfterUnbind = 'afterUnbind' in target;
+    this.hasBeforeAttach = 'beforeAttach' in target;
+    this.hasAfterAttach = 'afterAttach' in target;
+    this.hasBeforeDetach = 'beforeDetach' in target;
+    this.hasAfterDetach = 'afterDetach' in target;
     this.hasCaching = 'caching' in target;
   }
 }

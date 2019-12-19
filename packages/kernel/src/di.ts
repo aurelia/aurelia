@@ -5,7 +5,7 @@ import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
 import { ResourceType, Protocol } from './resource';
 import { Metadata } from './metadata';
-import { isNumeric, isNativeFunction } from './functions';
+import { isNumeric, isNativeFunction, isObject } from './functions';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -54,8 +54,6 @@ export interface IRegistry {
 }
 
 export interface IContainer extends IServiceLocator {
-  readonly id: number;
-  readonly path: string;
   register(...params: any[]): IContainer;
   registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>): IResolver<T>;
   registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
@@ -675,22 +673,12 @@ function isClass<T extends { prototype?: any }>(obj: T): obj is Class<any, T> {
   return obj.prototype !== void 0;
 }
 
-const nextContainerId = (function () {
-  let id = 0;
-  return function () {
-    return ++id;
-  };
-})();
-
 function isResourceKey(key: Key): key is string {
   return typeof key === 'string' && key.indexOf(':') > 0;
 }
 
 /** @internal */
 export class Container implements IContainer {
-  public readonly id: number = nextContainerId();
-  public readonly path: string;
-
   private registerDepth: number = 0;
 
   private readonly root: Container;
@@ -703,14 +691,12 @@ export class Container implements IContainer {
     private readonly parent: Container | null,
   ) {
     if (parent === null) {
-      this.path = this.id.toString();
       this.root = this;
 
       this.resolvers = new Map();
 
       this.resourceResolvers = Object.create(null);
     } else {
-      this.path = `${parent.path}.${this.id}`;
       this.root = parent.root;
 
       this.resolvers = new Map();
@@ -735,6 +721,9 @@ export class Container implements IContainer {
     let jj: number;
     for (let i = 0, ii = params.length; i < ii; ++i) {
       current = params[i];
+      if (!isObject(current)) {
+        continue;
+      }
       if (isRegistry(current)) {
         current.register(this);
       } else if (Protocol.resource.has(current)) {
@@ -756,6 +745,9 @@ export class Container implements IContainer {
         jj = keys.length;
         for (; j < jj; ++j) {
           value = current[keys[j]];
+          if (!isObject(value)) {
+            continue;
+          }
           // note: we could remove this if-branch and call this.register directly
           // - the extra check is just a perf tweak to create fewer unnecessary arrays by the spread operator
           if (isRegistry(value)) {

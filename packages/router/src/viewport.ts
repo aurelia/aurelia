@@ -1,5 +1,5 @@
 import { IContainer, Reporter } from '@aurelia/kernel';
-import { IRenderContext, LifecycleFlags } from '@aurelia/runtime';
+import { LifecycleFlags } from '@aurelia/runtime';
 import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, ReentryBehavior } from './interfaces';
 import { INavigatorFlags } from './navigator';
 import { IRouter } from './router';
@@ -46,7 +46,7 @@ export class Viewport {
     public readonly router: IRouter,
     public name: string,
     public element: Element | null,
-    public context: IRenderContext | IContainer | null,
+    public context: IContainer | null,
     public owningScope: Viewport | null,
     scope: boolean,
     public options: IViewportOptions = {}
@@ -132,7 +132,7 @@ export class Viewport {
     return false;
   }
 
-  public setElement(element: Element, context: IRenderContext | IContainer, options: IViewportOptions): void {
+  public setElement(element: Element, context: IContainer, options: IViewportOptions): void {
     options = options || {};
     if (this.element !== element) {
       // TODO: Restore this state on navigation cancel
@@ -175,7 +175,7 @@ export class Viewport {
     }
   }
 
-  public async remove(element: Element | null, context: IRenderContext | IContainer | null): Promise<boolean> {
+  public async remove(element: Element | null, context: IContainer | null): Promise<boolean> {
     if (this.element === element && this.context === context) {
       if (this.content.componentInstance) {
         await this.content.freeContent(
@@ -218,7 +218,7 @@ export class Viewport {
 
     await this.waitForElement();
 
-    (this.nextContent as ViewportContent).createComponent(this.context as IRenderContext);
+    (this.nextContent as ViewportContent).createComponent(this.context as IContainer);
 
     return (this.nextContent as ViewportContent).canEnter(this, this.content.instruction);
   }
@@ -235,7 +235,7 @@ export class Viewport {
     }
 
     await this.nextContent.enter(this.content.instruction);
-    await this.nextContent.loadComponent(this.context as IRenderContext, this.element as Element, this);
+    await this.nextContent.loadComponent(this.context as IContainer, this.element as Element, this);
     this.nextContent.initializeComponent();
     return true;
   }
@@ -326,13 +326,13 @@ export class Viewport {
     return false;
   }
 
-  public binding(flags: LifecycleFlags): void {
+  public beforeBind(flags: LifecycleFlags): void {
     if (this.content.componentInstance) {
       this.content.initializeComponent();
     }
   }
 
-  public async attaching(flags: LifecycleFlags): Promise<void> {
+  public async beforeAttach(flags: LifecycleFlags): Promise<void> {
     Reporter.write(10000, 'ATTACHING viewport', this.name, this.content, this.nextContent);
     this.enabled = true;
     if (this.content.componentInstance) {
@@ -342,7 +342,7 @@ export class Viewport {
     }
   }
 
-  public async detaching(flags: LifecycleFlags): Promise<void> {
+  public async beforeDetach(flags: LifecycleFlags): Promise<void> {
     Reporter.write(10000, 'DETACHING viewport', this.name);
     if (this.content.componentInstance) {
       // Only acts if not already left
@@ -355,7 +355,7 @@ export class Viewport {
     this.enabled = false;
   }
 
-  public async unbinding(flags: LifecycleFlags): Promise<void> {
+  public async beforeUnbind(flags: LifecycleFlags): Promise<void> {
     if (this.content.componentInstance) {
       await this.content.terminateComponent(this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful);
     }
@@ -520,7 +520,7 @@ export class Viewport {
     return remaining;
   }
 
-  public addViewport(name: string, element: Element | null, context: IRenderContext | IContainer | null, options: IViewportOptions = {}): Viewport {
+  public addViewport(name: string, element: Element | null, context: IContainer | null, options: IViewportOptions = {}): Viewport {
     let viewport: Viewport | null = this.getEnabledViewports()[name];
     // Each au-viewport element has its own Viewport
     if (element && viewport && viewport.element !== null && viewport.element !== element) {
@@ -536,11 +536,11 @@ export class Viewport {
     }
     // TODO: Either explain why || instead of && here (might only need one) or change it to && if that should turn out to not be relevant
     if (element || context) {
-      viewport.setElement(element as Element, context as IRenderContext, options);
+      viewport.setElement(element as Element, context as IContainer, options);
     }
     return viewport;
   }
-  public removeViewport(viewport: Viewport, element: Element | null, context: IRenderContext | IContainer | null): boolean {
+  public removeViewport(viewport: Viewport, element: Element | null, context: IContainer | null): boolean {
     if ((!element && !context) || viewport.remove(element, context)) {
       this.removeChild(viewport);
       return true;

@@ -305,7 +305,7 @@ export interface IConsoleLike {
 }
 
 // http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
-const format = toLookup({
+export const format = toLookup({
   red<T extends string>(str: T): T {
     return `\u001b[31m${str}\u001b[39m` as T;
   },
@@ -483,6 +483,8 @@ export class DefaultLogger implements ILogger {
   public readonly error: (...args: unknown[]) => void;
   public readonly fatal: (...args: unknown[]) => void;
 
+  private readonly scopedLoggers: { [key: string]: ILogger | undefined } = Object.create(null);
+
   public constructor(
     @ILogConfig public readonly config: ILogConfig,
     @ILogEventFactory private readonly factory: ILogEventFactory,
@@ -547,7 +549,12 @@ export class DefaultLogger implements ILogger {
   }
 
   public scopeTo(name: string): ILogger {
-    return new DefaultLogger(this.config, this.factory, this.sinks, this.scope.concat(name), this);
+    const scopedLoggers = this.scopedLoggers;
+    let scopedLogger = scopedLoggers[name];
+    if (scopedLogger === void 0) {
+      scopedLogger = scopedLoggers[name] = new DefaultLogger(this.config, this.factory, this.sinks, this.scope.concat(name), this);
+    }
+    return scopedLogger;
   }
 }
 

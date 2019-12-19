@@ -1,18 +1,18 @@
 import { nextId } from '@aurelia/kernel';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags, State } from '../../flags';
-import { IController, IViewFactory, MountStrategy } from '../../lifecycle';
+import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel } from '../../lifecycle';
 import { templateController } from '../custom-attribute';
 import { bindable } from '../../templating/bindable';
 import { Scope } from '../../observation/binding-context';
 
 @templateController('with')
-export class With<T extends INode = INode> {
+export class With<T extends INode = INode> implements ICustomAttributeViewModel<T> {
   public readonly id: number = nextId('au$component');
 
-  public readonly view: IController<T>;
-  // eslint-disable-next-line @typescript-eslint/prefer-readonly
-  private $controller!: IController<T>; // This is set by the controller after this instance is constructed
+  public readonly view: ISyntheticView<T>;
+
+  public readonly $controller!: ICustomAttributeController<T, this>; // This is set by the controller after this instance is constructed
 
   @bindable public value?: object;
 
@@ -32,20 +32,20 @@ export class With<T extends INode = INode> {
     }
   }
 
-  public binding(flags: LifecycleFlags): void {
+  public beforeBind(flags: LifecycleFlags): void {
     this.view.parent = this.$controller;
     this.bindChild(flags);
   }
 
-  public attaching(flags: LifecycleFlags): void {
+  public beforeAttach(flags: LifecycleFlags): void {
     this.view.attach(flags);
   }
 
-  public detaching(flags: LifecycleFlags): void {
+  public beforeDetach(flags: LifecycleFlags): void {
     this.view.detach(flags);
   }
 
-  public unbinding(flags: LifecycleFlags): void {
+  public beforeUnbind(flags: LifecycleFlags): void {
     this.view.unbind(flags);
     this.view.parent = void 0;
   }

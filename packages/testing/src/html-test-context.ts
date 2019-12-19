@@ -14,7 +14,6 @@ import {
   IObserverLocator,
   IProjectorLocator,
   IRenderer,
-  IRenderingEngine,
   ITemplateCompiler,
   IScheduler,
 } from '@aurelia/runtime';
@@ -86,12 +85,6 @@ export class HTMLTestContext {
     }
     return this._projectorLocator;
   }
-  public get renderingEngine(): IRenderingEngine {
-    if (this._renderingEngine === void 0) {
-      this._renderingEngine = this.container.get(IRenderingEngine);
-    }
-    return this._renderingEngine;
-  }
   public get domParser(): HTMLDivElement {
     if (this._domParser === void 0) {
       this._domParser = this.doc.createElement('div');
@@ -106,7 +99,6 @@ export class HTMLTestContext {
   private _lifecycle?: ILifecycle;
   private _renderer?: IRenderer;
   private _projectorLocator?: IProjectorLocator;
-  private _renderingEngine?: IRenderingEngine;
   private _domParser?: HTMLDivElement;
 
   private readonly Scheduler: Constructable<IScheduler>;
@@ -150,7 +142,6 @@ export class HTMLTestContext {
     this._lifecycle = void 0;
     this._renderer = void 0;
     this._projectorLocator = void 0;
-    this._renderingEngine = void 0;
     this._domParser = void 0;
   }
 

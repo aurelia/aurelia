@@ -6,7 +6,6 @@ import {
 import {
   IContainer,
   IResolver,
-  IResourceDescriptions,
   mergeDistinct,
   PLATFORM,
   Registration,
@@ -16,7 +15,6 @@ import {
   HydrateAttributeInstruction,
   HydrateElementInstruction,
   HydrateTemplateController,
-  IDOM,
   IExpressionParser,
   IInterpolationExpression,
   ILetBindingInstruction,
@@ -28,7 +26,8 @@ import {
   LetBindingInstruction,
   LetElementInstruction,
   SetPropertyInstruction,
-  CustomElementDefinition
+  CustomElementDefinition,
+  IDOM
 } from '@aurelia/runtime';
 import {
   HTMLAttributeInstruction,
@@ -107,20 +106,21 @@ export class TemplateCompiler implements ITemplateCompiler {
     return Registration.singleton(ITemplateCompiler, this).register(container);
   }
 
-  public compile(
-    dom: IDOM,
-    partialDefinition: PartialCustomElementDefinition,
-    descriptions: IResourceDescriptions,
-  ): CustomElementDefinition {
-    const resources = new ResourceModel(descriptions);
+  public compile(partialDefinition: PartialCustomElementDefinition, context: IContainer): CustomElementDefinition {
+    const definition = CustomElementDefinition.getOrCreate(partialDefinition);
+    if (definition.template === null || definition.template === void 0) {
+      return definition;
+    }
+
+    const resources = ResourceModel.getOrCreate(context);
     const { attrParser, exprParser, attrSyntaxModifier, factory } = this;
 
-    const binder = new TemplateBinder(dom, resources, attrParser, exprParser, attrSyntaxModifier);
+    const binder = new TemplateBinder(context.get(IDOM), resources, attrParser, exprParser, attrSyntaxModifier);
 
-    const template = factory.createTemplate(partialDefinition.template) as HTMLTemplateElement;
+    const template = factory.createTemplate(definition.template) as HTMLTemplateElement;
     const surrogate = binder.bind(template);
 
-    const compilation = this.compilation = new CustomElementCompilationUnit(partialDefinition, surrogate, template);
+    const compilation = this.compilation = new CustomElementCompilationUnit(definition, surrogate, template);
 
     const customAttributes = surrogate.customAttributes;
     const plainAttributes = surrogate.plainAttributes;
@@ -140,10 +140,10 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     this.compileChildNodes(surrogate, compilation.instructions, compilation.scopeParts);
 
-    const definition = compilation.toDefinition();
+    const compiledDefinition = compilation.toDefinition();
     this.compilation = null!;
 
-    return definition;
+    return compiledDefinition;
   }
 
   private compileChildNodes(

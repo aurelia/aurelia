@@ -264,7 +264,6 @@ export {
   // IResourceType,
   // ResourceDescription,
   // ResourcePartDescription,
-  RuntimeCompilationResources,
   // fromAnnotationOrDefinitionOrTypeOrDefault,
   // fromAnnotationOrTypeOrDefault,
   // fromDefinitionOrDefault,
@@ -746,7 +745,7 @@ export {
   ILifecycle,
   IViewModel,
   // IController,
-  // IRenderContext,
+  // IContainer,
   // IViewCache,
   // IViewFactory,
   // MountStrategy,
@@ -807,8 +806,6 @@ export {
 
   instructionRenderer,
   ensureExpression,
-  addComponent,
-  addBinding,
 
   // CompiledTemplate,
   // ChildrenObserver,
@@ -819,7 +816,6 @@ export {
   // ITemplate,
   // ITemplateCompiler,
   // ITemplateFactory,
-  // ViewCompileFlags,
 
   // RenderContext
 } from '@aurelia/runtime';

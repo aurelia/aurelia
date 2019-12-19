@@ -71,7 +71,7 @@ import { BindingContext } from '../observation/binding-context';
 import { ProxyObserver } from '../observation/proxy-observer';
 import { ISignaler } from '../observation/signaler';
 import {
-  BindingBehavior, BindingBehaviorInstance,
+  BindingBehavior, BindingBehaviorInstance, BindingBehaviorFactory,
 } from '../resources/binding-behavior';
 import {
   ValueConverter, ValueConverterInstance,
@@ -202,11 +202,13 @@ export class BindingBehaviorExpression implements IBindingBehaviorExpression {
     if (!behavior) {
       throw Reporter.error(RuntimeError.NoBehaviorFound, this);
     }
-    if (binding[behaviorKey] === void 0) {
-      binding[behaviorKey] = behavior;
-      (behavior.bind.call as (...args: unknown[]) => void)(behavior, flags, scope, binding, ...evalList(flags, scope, locator, this.args));
-    } else {
-      Reporter.write(RuntimeError.BehaviorAlreadyApplied, this);
+    if (!(behavior instanceof BindingBehaviorFactory)) {
+      if (binding[behaviorKey] === void 0) {
+        binding[behaviorKey] = behavior;
+        (behavior.bind.call as (...args: unknown[]) => void)(behavior, flags, scope, binding, ...evalList(flags, scope, locator, this.args));
+      } else {
+        Reporter.write(RuntimeError.BehaviorAlreadyApplied, this);
+      }
     }
   }
 
@@ -215,10 +217,6 @@ export class BindingBehaviorExpression implements IBindingBehaviorExpression {
     if (binding[behaviorKey] !== void 0) {
       binding[behaviorKey]!.unbind(flags, scope, binding);
       binding[behaviorKey] = void 0;
-    } else {
-      // TODO: this is a temporary hack to make testing repeater keyed mode easier,
-      // we should remove this idempotency again when track-by attribute is implemented
-      Reporter.write(RuntimeError.BehaviorAlreadyApplied, this);
     }
     if (hasUnbind(this.expression)) {
       this.expression.unbind(flags, scope, binding);

@@ -1,10 +1,10 @@
+import { IContainer } from '@aurelia/kernel';
 import {
   bindable,
-  IController,
   INode,
-  IRenderContext,
   LifecycleFlags,
   customElement,
+  ICustomElementController,
 } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { IViewportOptions, Viewport } from '../viewport';
@@ -30,7 +30,7 @@ export class ViewportCustomElement {
 
   public viewport: Viewport | null = null;
 
-  public $controller!: IController; // This is set by the controller after this instance is constructed
+  public $controller!: ICustomElementController; // This is set by the controller after this instance is constructed
 
   private readonly element: Element;
 
@@ -69,14 +69,14 @@ export class ViewportCustomElement {
   //   }
   //   this.viewport = this.router.addViewport(name, this.element, (this as any).$context.get(IContainer), options);
   // }
-  public bound(): void {
+  public afterBind(): void {
     this.connect();
   }
-  public unbound(): void {
+  public afterUnbind(): void {
     this.disconnect();
   }
 
-  public attached(): void {
+  public afterAttach(): void {
     if (this.viewport) {
       this.viewport.clearTaggedNodes();
     }
@@ -99,37 +99,37 @@ export class ViewportCustomElement {
     if (this.element.hasAttribute('stateful')) {
       options.stateful = true;
     }
-    this.viewport = this.router.connectViewport(this.name, this.element, this.$controller.context as IRenderContext, options);
+    this.viewport = this.router.connectViewport(this.name, this.element, this.$controller.context as IContainer, options);
   }
   public disconnect(): void {
     if (this.viewport) {
-      this.router.disconnectViewport(this.viewport, this.element, this.$controller.context as IRenderContext);
+      this.router.disconnectViewport(this.viewport, this.element, this.$controller.context as IContainer);
     }
   }
 
-  public binding(flags: LifecycleFlags): void {
+  public beforeBind(flags: LifecycleFlags): void {
     if (this.viewport) {
-      this.viewport.binding(flags);
+      this.viewport.beforeBind(flags);
     }
   }
 
-  public attaching(flags: LifecycleFlags): Promise<void> {
+  public beforeAttach(flags: LifecycleFlags): Promise<void> {
     if (this.viewport) {
-      return this.viewport.attaching(flags);
-    }
-    return Promise.resolve();
-  }
-
-  public detaching(flags: LifecycleFlags): Promise<void> {
-    if (this.viewport) {
-      return this.viewport.detaching(flags);
+      return this.viewport.beforeAttach(flags);
     }
     return Promise.resolve();
   }
 
-  public async unbinding(flags: LifecycleFlags): Promise<void> {
+  public beforeDetach(flags: LifecycleFlags): Promise<void> {
     if (this.viewport) {
-      await this.viewport.unbinding(flags);
+      return this.viewport.beforeDetach(flags);
+    }
+    return Promise.resolve();
+  }
+
+  public async beforeUnbind(flags: LifecycleFlags): Promise<void> {
+    if (this.viewport) {
+      await this.viewport.beforeUnbind(flags);
     }
   }
 }

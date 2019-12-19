@@ -11,7 +11,9 @@ import {
   LifecycleFlags,
   CustomElement,
   Aurelia,
-  BindingStrategy
+  BindingStrategy,
+  GetterObserver,
+  SetterObserver
 } from '@aurelia/runtime';
 import {
   RuntimeHtmlBrowserConfiguration
@@ -23,10 +25,10 @@ import { TestContext, assert, eachCartesianJoin, HTMLTestContext } from '@aureli
 
 describe.only('simple Computed Observer test case', function() {
 
-  interface IComputedObserverTestCase<T = any> {
+  interface IComputedObserverTestCase<T extends IApp = IApp> {
     title: string;
     template: string;
-    app?: Constructable<T>;
+    ViewModel?: Constructable<T>;
     assertFn: AssertionFn;
   }
 
@@ -40,23 +42,21 @@ describe.only('simple Computed Observer test case', function() {
     readonly total: number;
   }
 
-  class TestClass implements IApp {
-    items = Array.from({ length: 10 }, (_, idx) => {
-      return { name: `i-${idx}`, value: idx + 1 };
-    });
-
-    get total() {
-      return this.items.reduce((total, item) => total + (item.value > 5 ? item.value : 0), 0);
-    }
-  }
-
   const computedObserverTestCases: IComputedObserverTestCase[] = [
     {
       title: 'works in basic scenario',
       template: '${total}',
+      ViewModel: class TestClass implements IApp {
+        items = Array.from({ length: 10 }, (_, idx) => {
+          return { name: `i-${idx}`, value: idx + 1 };
+        });
+    
+        get total() {
+          return this.items.reduce((total, item) => total + (item.value > 5 ? item.value : 0), 0);
+        }
+      },
       assertFn: (ctx, host, component) => {
         assert.strictEqual(host.textContent, '40');
-        debugger
         component.items[0].value = 100;
         assert.strictEqual(host.textContent, '40');
         ctx.container.get(IScheduler).getRenderTaskQueue().flush();
@@ -69,16 +69,52 @@ describe.only('simple Computed Observer test case', function() {
         ctx.container.get(IScheduler).getRenderTaskQueue().flush();
         assert.strictEqual(host.textContent, '240');
       }
+    },
+    {
+      title: 'works with [].filter https://github.com/aurelia/aurelia/issues/534',
+      template: '${total}',
+      ViewModel: class App {
+        items = Array.from({ length: 10 }, (_, idx) => {
+          return { name: `i-${idx}`, value: idx + 1, isDone: idx % 2 === 0 };
+        });
+    
+        get total() {
+          return this.items.filter(item => item.isDone).length;
+        }
+      },
+      assertFn: (ctx, host, component) => {
+        const observer = ctx
+          .container
+          .get(IObserverLocator)
+          .getObserver(
+            LifecycleFlags.none,
+            component,
+            'total'
+          ) as GetterObserver;
+
+        assert.strictEqual(observer['propertyDeps']?.length, 11);
+        assert.strictEqual(observer['collectionDeps']?.length, 1);
+
+        observer['propertyDeps'].every((observerDep: SetterObserver) => {
+          assert.instanceOf(observerDep, SetterObserver);
+        });
+
+        assert.strictEqual(host.textContent, '5');
+        component.items[1].isDone = true;
+        assert.strictEqual(host.textContent, '5');
+        ctx.container.get(IScheduler).getRenderTaskQueue().flush();
+        assert.strictEqual(host.textContent, '6');
+      }
     }
   ];
 
   eachCartesianJoin(
     [computedObserverTestCases],
-    ({ title, template, app = TestClass, assertFn }: IComputedObserverTestCase) => {
+    ({ title, template, ViewModel, assertFn }: IComputedObserverTestCase) => {
       it(title, async function () {
         const { ctx, component, testHost, dispose } = await setup<any>(
           template,
-          app
+          ViewModel
         );
         await assertFn(ctx, testHost, component);
         // test cases could be sharing the same context document

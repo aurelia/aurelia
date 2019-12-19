@@ -5,6 +5,7 @@ import {
   Primitive,
   Registration,
   Reporter,
+  isNumeric,
 } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
@@ -209,7 +210,10 @@ export class ObserverLocator implements IObserverLocator {
         if (propertyName === 'length') {
           return this.getArrayObserver(flags, obj as IObservedArray).getLengthObserver();
         }
-        return this.dirtyChecker.createProperty(obj, propertyName);
+        if (isNumeric(propertyName)) {
+          return this.dirtyChecker.createProperty(obj, propertyName);
+        }
+        break;
       case '[object Map]':
         if (propertyName === 'size') {
           return this.getMapObserver(flags, obj as IObservedMap).getLengthObserver();

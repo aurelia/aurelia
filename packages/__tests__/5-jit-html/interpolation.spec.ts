@@ -2,7 +2,7 @@
 /* eslint-disable eqeqeq */
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { assert, setup } from '@aurelia/testing';
+import { assert, createFixture } from '@aurelia/testing';
 import { LifecycleFlags, CustomElement } from '@aurelia/runtime';
 type CaseType = {
   expected: number | string; expectedStrictMode?: number | string; expectedValueAfterChange?: number | string; changeFnc?: (val) => any; app: any; interpolation: string; it: string;
@@ -178,12 +178,12 @@ describe('interpolation', function () {
 
   cases.forEach((x) => {
     it(x.it, async function () {
-      const { tearDown, appHost } = setup(`<template>${x.interpolation}</template>`, x.app);
+      const { tearDown, appHost } = createFixture(`<template>${x.interpolation}</template>`, x.app);
       assert.strictEqual(appHost.textContent, x.expected.toString(), `host.textContent`);
       await tearDown();
     });
     it(`${x.it} change tests work`, async function () {
-      const { tearDown, appHost, scheduler, component } = setup(`<template>${x.interpolation}</template>`, x.app);
+      const { tearDown, appHost, scheduler, component } = createFixture(`<template>${x.interpolation}</template>`, x.app);
       if (x.changeFnc !== undefined) {
         const val = x.changeFnc(component.value);
         if (val != null) {
@@ -203,7 +203,7 @@ describe('interpolation', function () {
     if (x.expectedStrictMode) {
       it(`${x.it} STRICT MODE `, async function () {
         const strict = CustomElement.define({ name: 'strict', template: `${x.interpolation}`, isStrictBinding: true }, x.app);
-        const { tearDown, appHost } = setup(`<template><strict></strict></template>`, class { }, [strict]);
+        const { tearDown, appHost } = createFixture(`<template><strict></strict></template>`, class { }, [strict]);
         assert.strictEqual(appHost.textContent, x.expectedStrictMode.toString(), `host.textContent`);
         await tearDown();
       });

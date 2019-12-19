@@ -4,7 +4,7 @@ import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
 describe('InstructionResolver', function () {
-  async function setup() {
+  async function createFixture() {
     const ctx = TestContext.createHTMLTestContext();
     const container = ctx.container;
 
@@ -36,13 +36,13 @@ describe('InstructionResolver', function () {
 
   this.timeout(5000);
   it('can be created', async function () {
-    const { router, tearDown } = await setup();
+    const { router, tearDown } = await createFixture();
 
     await tearDown();
   });
 
   it('handles state strings', async function () {
-    const { host, router, tearDown } = await setup();
+    const { host, router, tearDown } = await createFixture();
 
     let instructions: ViewportInstruction[] = [
       new ViewportInstruction('foo', 'left', '123'),
@@ -85,7 +85,7 @@ describe('InstructionResolver', function () {
     const { instruction, viewportInstruction } = instructionTest;
 
     it(`parses viewport instruction: ${instruction}`, async function () {
-      const { host, router, tearDown } = await setup();
+      const { host, router, tearDown } = await createFixture();
 
       const parsed = router.instructionResolver.parseViewportInstruction(instruction);
       assert.deepStrictEqual(parsed, viewportInstruction, `parsed`);
@@ -101,7 +101,7 @@ describe('InstructionResolver', function () {
     const prefixedInstruction = `/${instruction}`;
 
     it(`parses viewport instruction: ${prefixedInstruction}`, async function () {
-      const { host, router, tearDown } = await setup();
+      const { host, router, tearDown } = await createFixture();
 
       const parsed = router.instructionResolver.parseViewportInstruction(prefixedInstruction);
       assert.deepStrictEqual(parsed, viewportInstruction, `parsed`);
@@ -113,7 +113,7 @@ describe('InstructionResolver', function () {
   }
 
   it('handles siblings within scope', async function () {
-    const { host, router, tearDown } = await setup();
+    const { host, router, tearDown } = await createFixture();
 
     // <a>
     //   <b>
@@ -164,7 +164,7 @@ describe('InstructionResolver', function () {
 
   for (const instruction of instructionStrings) {
     it(`parses and stringifies viewport instructions: ${instruction}`, async function () {
-      const { host, router, tearDown } = await setup();
+      const { host, router, tearDown } = await createFixture();
 
       const parsed = router.instructionResolver.parseViewportInstructions(instruction);
       const stringifiedInstructions = router.instructionResolver.stringifyViewportInstructions(parsed);
@@ -174,27 +174,3 @@ describe('InstructionResolver', function () {
     });
   }
 });
-
-async function setup() {
-  const ctx = TestContext.createHTMLTestContext();
-  const { container } = ctx;
-
-  const App = CustomElement.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
-
-  const host = ctx.createElement('div');
-  ctx.doc.body.appendChild(host);
-
-  const au = ctx.wnd['au'] = new Aurelia(container)
-    .register(DebugConfiguration, RouterConfiguration)
-    .app({ host: host, component: App });
-
-  const router = container.get(IRouter);
-  const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
-  mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate as any;
-  router.navigation.history = mockBrowserHistoryLocation as any;
-  router.navigation.location = mockBrowserHistoryLocation as any;
-
-  await au.start().wait();
-
-  return { au, container, host, router };
-}

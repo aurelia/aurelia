@@ -5,7 +5,7 @@ import {
   INode,
   CustomAttribute
 } from '@aurelia/runtime';
-import { assert, setup, eachCartesianJoin } from '@aurelia/testing';
+import { assert, eachCartesianJoin, createFixture } from '@aurelia/testing';
 
 describe('custom-attributes', function () {
   // custom elements
@@ -61,73 +61,73 @@ describe('custom-attributes', function () {
     const app = class { public value: string = 'wOOt'; };
 
     it('Simple spread Alias doesn\'t break def alias works on custom attribute', async function () {
-      const options = setup('<template> <div foo53.bind="value"></div> </template>', app, resources);
+      const options = createFixture('<template> <div foo53.bind="value"></div> </template>', app, resources);
       assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
       await options.tearDown();
     });
 
     it('2 aliases and attribute alias original works', async function () {
-      const options = setup('<template> <div foo44.bind="value"></div> </template>', app, resources);
+      const options = createFixture('<template> <div foo44.bind="value"></div> </template>', app, resources);
       assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
       await options.tearDown();
     });
 
     it('2 aliases and attribute alias first alias deco works', async function () {
-      const options = setup('<template> <div foo411.bind="value"></div> </template>', app, resources);
+      const options = createFixture('<template> <div foo411.bind="value"></div> </template>', app, resources);
       assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
       await options.tearDown();
     });
 
     it('2 aliases and attribute alias def alias works', async function () {
-      const options = setup('<template> <div foo431.bind="value"></div> </template>', app, resources);
+      const options = createFixture('<template> <div foo431.bind="value"></div> </template>', app, resources);
       assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
       await options.tearDown();
     });
 
     it('2 aliases and attribute alias second alias works', async function () {
-      const options = setup('<template> <div foo422.bind="value"></div> </template>', app, resources);
+      const options = createFixture('<template> <div foo422.bind="value"></div> </template>', app, resources);
       assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
       await options.tearDown();
     });
 
     it('Simple spread Alias (1st position) works on custom attribute', async function () {
-      const options = setup('<template> <div foo51.bind="value"></div> </template>', app, resources);
+      const options = createFixture('<template> <div foo51.bind="value"></div> </template>', app, resources);
       assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
       await options.tearDown();
     });
 
     it('Simple spread Alias (2nd position) works on custom attribute', async function () {
-      const options = setup('<template> <div foo52.bind="value"></div> </template>', app, resources);
+      const options = createFixture('<template> <div foo52.bind="value"></div> </template>', app, resources);
       assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
       await options.tearDown();
     });
 
     it('Simple spread Alias doesn\'t break original custom attribute', async function () {
-      const options = setup('<template> <div foo5.bind="value"></div> </template>', app, resources);
+      const options = createFixture('<template> <div foo5.bind="value"></div> </template>', app, resources);
       assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
       await options.tearDown();
     });
 
     it('Simple Alias doesn\'t break def alias works on custom attribute', async function () {
-      const options = setup('<template> <div foo43.bind="value"></div> </template>', app, resources);
+      const options = createFixture('<template> <div foo43.bind="value"></div> </template>', app, resources);
       assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
       await options.tearDown();
     });
 
     it('Simple Alias (1st position) works on custom attribute', async function () {
-      const options = setup('<template> <div foo41.bind="value"></div> </template>', app, resources);
+      const options = createFixture('<template> <div foo41.bind="value"></div> </template>', app, resources);
       assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
       await options.tearDown();
     });
 
     it('Simple Alias (2nd position) works on custom attribute', async function () {
-      const options = setup('<template> <div foo42.bind="value"></div> </template>', app, resources);
+      const options = createFixture('<template> <div foo42.bind="value"></div> </template>', app, resources);
       assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
       await options.tearDown();
     });
 
     it('Simple Alias doesn\'t break original custom attribute', async function () {
-      const options = setup('<template> <div foo4.bind="value"></div> </template>', app, resources);
+      const options = createFixture('<template> <div foo4.bind="value"></div> </template>', app, resources);
       assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt');
       await options.tearDown();
     });
@@ -194,19 +194,19 @@ describe('custom-attributes', function () {
     const app = class { public value: string = 'afterBind'; };
 
     it('binds to multiple properties correctly', async function () {
-      const options = setup('<template> <div multi="a.bind: true; b.bind: value">Initial</div> </template>', app, [Multi]);
+      const options = createFixture('<template> <div multi="a.bind: true; b.bind: value">Initial</div> </template>', app, [Multi]);
       assert.strictEqual(options.appHost.firstElementChild.textContent, 'a: true, b: afterBind');
       await options.tearDown();
     });
 
     it('binds to multiple properties correctly when there’s a default property', async function () {
-      const options = setup('<template> <div multi2="a.bind: true; b.bind: value">Initial</div> </template>', app, [Multi2]);
+      const options = createFixture('<template> <div multi2="a.bind: true; b.bind: value">Initial</div> </template>', app, [Multi2]);
       assert.strictEqual(options.appHost.firstElementChild.textContent, 'a: true, b: afterBind');
       await options.tearDown();
     });
 
     it('binds to the default property correctly', async function () {
-      const options = setup('<template> <div multi2.bind="value">Initial</div> </template>', app, [Multi2]);
+      const options = createFixture('<template> <div multi2.bind="value">Initial</div> </template>', app, [Multi2]);
       assert.strictEqual(options.appHost.firstElementChild.textContent, 'a: undefined, b: afterBind');
       await options.tearDown();
     });
@@ -262,7 +262,7 @@ describe('custom-attributes', function () {
     });
 
     function setupChangeHandlerTest(template: string) {
-      const options = setup(template, class {}, [Foo]);
+      const options = createFixture(template, class {}, [Foo]);
       const fooEl = options.appHost.querySelector('div') as INode;
       const fooVm = CustomAttribute.for(fooEl, 'foo').viewModel as Foo;
       return {
@@ -399,7 +399,7 @@ describe('custom-attributes', function () {
     describe('04.1 + with two-way', function () {
       it('does not invoke change handler when starts with two-way usage', async function () {
         const template = `<div foo1.two-way="prop"></div>`;
-        const options = setup(
+        const options = createFixture(
           template,
           class {
             public prop: string = 'prop';
@@ -437,7 +437,7 @@ describe('custom-attributes', function () {
     });
 
     function setupChangeHandlerTest(template: string) {
-      const options = setup(template, class {}, [Foo1, Foo2, Foo3]);
+      const options = createFixture(template, class {}, [Foo1, Foo2, Foo3]);
       const fooEl = options.appHost.querySelector('div') as INode;
       const foo1Vm = CustomAttribute.for(fooEl, 'foo1').viewModel as Foo1;
       const foo2Vm = CustomAttribute.for(fooEl, 'foo2').viewModel as Foo2;
@@ -627,7 +627,7 @@ describe('custom-attributes', function () {
     }
 
     function setupChangeHandlerTest(template: string) {
-      const options = setup(template, class { public prop: string = 'prop'; }, [Foo1, Foo2, Foo3, Foo4]);
+      const options = createFixture(template, class { public prop: string = 'prop'; }, [Foo1, Foo2, Foo3, Foo4]);
       const fooEl = options.appHost.querySelector('div') as INode;
       const foo1Vm = CustomAttribute.for(fooEl, 'foo1').viewModel as Foo1;
       const foo2Vm = CustomAttribute.for(fooEl, 'foo2').viewModel as Foo2;
@@ -647,7 +647,7 @@ describe('custom-attributes', function () {
     describe('05.1 + with two-way', function () {
       it('works properly when two-way binding with number setter interceptor', async function () {
         const template = `<div foo1.two-way="prop">\${prop}</div>`;
-        const options = setup(
+        const options = createFixture(
           template,
           class {
             public prop: string = 'prop';
@@ -692,7 +692,7 @@ describe('custom-attributes', function () {
         }
 
         const template = `<div foo5.two-way="prop">\${prop}</div>`;
-        const options = setup(
+        const options = createFixture(
           template,
           class {
             public prop: string = 'prop';

@@ -15,7 +15,7 @@ import { eachCartesianJoin, TestContext, trimFull, assert } from '@aurelia/testi
 const spec = 'compose';
 
 describe(spec, function () {
-  function setup(): SpecContext {
+  function createFixture(): SpecContext {
     const ctx = TestContext.createHTMLTestContext();
     const { container, dom, lifecycle, observerLocator } = ctx;
     const au = new Aurelia(container);
@@ -124,7 +124,7 @@ describe(spec, function () {
     const { template } = templateSpec;
 
     it(`verify au-compose behavior - subjectSpec ${subjectSpec.t}, templateSpec ${templateSpec.t}`, async function () {
-      const ctx = setup();
+      const ctx = createFixture();
       const subject = createSubject(ctx);
       const { au, host } = ctx;
 
@@ -145,7 +145,7 @@ describe(spec, function () {
 
   describe('With the ViewLocator value converter', function () {
     it('can render a vanilla JS class instance', async function () {
-      const { au, host } = setup();
+      const { au, host } = createFixture();
 
       @view({ name: 'default-view', template: `\${message}` })
       class MyModel {

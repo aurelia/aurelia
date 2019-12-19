@@ -33,7 +33,7 @@
 
 //   // TODO: fix throttle
 //   // it(`throttleBindingBehavior - input.value`, done => {
-//   //   const { au, lifecycle, host, component } = setup(`<template><input value.to-view="message & throttle:50"></template>`);
+//   //   const { au, lifecycle, host, component } = createFixture(`<template><input value.to-view="message & throttle:50"></template>`);
 //   //   au.app({ host, component }).start();
 //   //   assert.strictEqual(host.firstChild['value'], '', `host.firstChild['value']`);
 //   //   component.message = 'hello!';

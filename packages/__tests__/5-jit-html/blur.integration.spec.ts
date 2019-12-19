@@ -109,7 +109,7 @@ describe('blur.integration.spec.ts', function () {
         [blurAttrs, normalUsageTestCases],
         (command, { title, template, getFocusable, app, assertFn }: IBlurTestCase) => {
           it(title(command), async function () {
-            const { ctx, component, testHost, dispose } = await setup<IApp>(
+            const { ctx, component, testHost, dispose } = await createFixture<IApp>(
               template(command),
               app
             );
@@ -201,7 +201,7 @@ describe('blur.integration.spec.ts', function () {
         (command, abnormalCase, callIndex) => {
           const { title, template, app, assertFn } = abnormalCase;
           it(title(callIndex, command), async function () {
-            const { component, testHost, ctx, dispose } = await setup<IApp>(
+            const { component, testHost, ctx, dispose } = await createFixture<IApp>(
               template(command),
               app,
               CustomElement.define(
@@ -302,7 +302,7 @@ describe('blur.integration.spec.ts', function () {
       [testCases],
       ({ title, template, dependencies = [], app, assertFn }: IBlurTestCase) => {
         it(title(), async function () {
-          const { ctx, component, testHost, dispose } = await setup<IApp>(
+          const { ctx, component, testHost, dispose } = await createFixture<IApp>(
             template(''),
             app,
             ...dependencies
@@ -333,7 +333,7 @@ describe('blur.integration.spec.ts', function () {
     title(...args: unknown[]): string;
   }
 
-  async function setup<T>(template: string | Node, $class: Constructable | null, ...registrations: any[]) {
+  async function createFixture<T>(template: string | Node, $class: Constructable | null, ...registrations: any[]) {
     const ctx = TestContext.createHTMLTestContext();
     const { container, lifecycle, observerLocator } = ctx;
     registrations = Array.from(new Set([...registrations, Blur, Focus]));

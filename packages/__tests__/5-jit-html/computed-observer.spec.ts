@@ -1,12 +1,5 @@
 import {
-  createComputedObserver,
-  RuntimeConfiguration,
-  ObserverLocator,
-  ITargetAccessorLocator,
-  ITargetObserverLocator,
   IObserverLocator,
-  IDirtyChecker,
-  ILifecycle,
   IScheduler,
   LifecycleFlags,
   CustomElement,
@@ -16,14 +9,16 @@ import {
   SetterObserver
 } from '@aurelia/runtime';
 import {
-  RuntimeHtmlBrowserConfiguration
-} from '@aurelia/runtime-html-browser'
-import { Registration, Constructable } from '@aurelia/kernel';
-import { TestContext, assert, eachCartesianJoin, HTMLTestContext } from '@aurelia/testing';
+  Constructable
+} from '@aurelia/kernel';
+import {
+  TestContext,
+  assert,
+  eachCartesianJoin,
+  HTMLTestContext
+} from '@aurelia/testing';
 
-
-
-describe.only('simple Computed Observer test case', function() {
+describe('simple Computed Observer test case', function() {
 
   interface IComputedObserverTestCase<T extends IApp = IApp> {
     title: string;
@@ -50,7 +45,7 @@ describe.only('simple Computed Observer test case', function() {
         items = Array.from({ length: 10 }, (_, idx) => {
           return { name: `i-${idx}`, value: idx + 1 };
         });
-    
+
         get total() {
           return this.items.reduce((total, item) => total + (item.value > 5 ? item.value : 0), 0);
         }
@@ -92,7 +87,7 @@ describe.only('simple Computed Observer test case', function() {
             'total'
           ) as GetterObserver;
 
-        assert.strictEqual(observer['propertyDeps']?.length, 11);
+        assert.strictEqual(observer['propertyDeps']?.length, 12);
         assert.strictEqual(observer['collectionDeps']?.length, 1);
 
         observer['propertyDeps'].every((observerDep: SetterObserver) => {
@@ -104,6 +99,44 @@ describe.only('simple Computed Observer test case', function() {
         assert.strictEqual(host.textContent, '5');
         ctx.container.get(IScheduler).getRenderTaskQueue().flush();
         assert.strictEqual(host.textContent, '6');
+      }
+    },
+    {
+      title: 'works with Map.size',
+      template: '${total}',
+      ViewModel: class App {
+        items = Array.from({ length: 10 }, (_, idx) => {
+          return { name: `i-${idx}`, value: idx + 1, isDone: idx % 2 === 0 };
+        });
+
+        itemMap = new Map([1,2,3].map(i => [`item - ${i}`, i]))
+    
+        get total() {
+          return this.itemMap.size;
+        }
+      },
+      assertFn: (ctx, host, component) => {
+        const observer = ctx
+          .container
+          .get(IObserverLocator)
+          .getObserver(
+            LifecycleFlags.none,
+            component,
+            'total'
+          ) as GetterObserver;
+
+        assert.strictEqual(observer['propertyDeps']?.length, 1);
+        assert.strictEqual(observer['collectionDeps']?.length, 1);
+
+        observer['propertyDeps'].every((observerDep: SetterObserver) => {
+          assert.instanceOf(observerDep, SetterObserver);
+        });
+
+        assert.strictEqual(host.textContent, '3');
+        component['itemMap'].set(`item - 4`, 10);
+        assert.strictEqual(host.textContent, '3');
+        ctx.container.get(IScheduler).getRenderTaskQueue().flush();
+        assert.strictEqual(host.textContent, '4');
       }
     }
   ];
@@ -123,7 +156,7 @@ describe.only('simple Computed Observer test case', function() {
       });
     }
   );
-      
+
   async function setup<T>(template: string | Node, $class: Constructable | null, ...registrations: any[]) {
     const ctx = TestContext.createHTMLTestContext();
     const { container, lifecycle, observerLocator } = ctx;

@@ -233,8 +233,8 @@ export class GetterObserver implements GetterObserver {
   public doNotCollect(target: IObservable | IBindingContext, key: PropertyKey, receiver?: unknown): boolean {
     return !this.isCollecting
       || key === '$observers'
-      || key === 'constructor'
-      || target instanceof Array && key !== 'length' && !isNumeric(key);
+      || key === '$synthetic'
+      || key === 'constructor';
   }
 
   private unsubscribeAllDependencies(): void {
@@ -247,6 +247,10 @@ export class GetterObserver implements GetterObserver {
 
 const toStringTag = Object.prototype.toString;
 
+/**
+ * @param observer The owning observer of current evaluation,
+ * will subscribe to all observers created via proxy should
+ */
 function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
   return {
     get: function (target: IObservable | IBindingContext, key: PropertyKey, receiver?: unknown): unknown {
@@ -284,14 +288,58 @@ function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLoca
   };
 }
 
+/**
+ * @param observer The owning observer of current evaluation,
+ * will subscribe to all observers created via proxy should
+ */
 function proxyOrValue(flags: LifecycleFlags, target: object, key: PropertyKey, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
   const value = Reflect.get(target, key, target);
+  return wrapInProxy(flags, value, observerLocator, observer);
+  // if (typeof value === 'function') {
+  //   // eslint-disable-next-line @typescript-eslint/ban-types
+  //   return (target as { [key: string]: Function })[key as string].bind(target); // We need Function's bind() method here
+  // }
+  // if (typeof value !== 'object' || value === null) {
+  //   return value;
+  // }
+  // return new Proxy(value, createGetterTraps(flags, observerLocator, observer));
+}
+
+/**
+ * @param observer The owning observer of current evaluation,
+ * will subscribe to all observers created via proxy should
+ */
+function wrapInProxy(
+  flags: LifecycleFlags,
+  value: object,
+  observerLocator: IObserverLocator,
+  observer: GetterObserver
+): object {
   if (typeof value === 'function') {
     // eslint-disable-next-line @typescript-eslint/ban-types
-    return (target as { [key: string]: Function })[key as string].bind(target); // We need Function's bind() method here
+    return new Proxy(value, createCallerTrap(flags, observerLocator, observer));
   }
   if (typeof value !== 'object' || value === null) {
     return value;
   }
   return new Proxy(value, createGetterTraps(flags, observerLocator, observer));
+}
+
+/**
+ * @param observer The owning observer of current evaluation,
+ * will subscribe to all observers created via proxy should
+ */
+function createCallerTrap(
+  flags: LifecycleFlags,
+  observerLocator: IObserverLocator,
+  observer: GetterObserver
+): ProxyHandler<object> {
+  return {
+    // target must be a function object
+    // else error is thrown
+    apply(target: Function, thisArg: unknown, argArray: any[]) {
+      return target.apply(thisArg, argArray);
+    }
+    // apply(target: object, thisArg: unknown, argArray: any[])
+  }
 }

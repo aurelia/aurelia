@@ -48,7 +48,7 @@ export class LinkHandler {
   // tslint:disable-next-line:no-empty
   private options: ILinkHandlerOptions = {
     useHref: true,
-    callback: () => { }
+    callback: () => { return; }
   };
   private isActive: boolean = false;
 

@@ -382,8 +382,8 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
     });
 
     interface IExpectedInstruction {
-      toVerify: string[];
       [prop: string]: any;
+      toVerify: string[];
     }
 
     function compileWith(markup: string | Element, extraResources: any[] = []) {

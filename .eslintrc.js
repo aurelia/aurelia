@@ -68,8 +68,8 @@ module.exports = {
     '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'as', objectLiteralTypeAssertions: 'never' }],
     '@typescript-eslint/func-call-spacing': ['error', 'never'],
     '@typescript-eslint/member-delimiter-style': 'error',
-    '@typescript-eslint/member-ordering': ['error', { default: ['field'] }],
-    '@typescript-eslint/no-empty-function': 'error',
+    '@typescript-eslint/member-ordering': ['error', { default: ['signature', 'field'] }],
+    '@typescript-eslint/no-empty-function': ['error', { 'allow': ['protected-constructors', 'private-constructors'] }],
     '@typescript-eslint/no-extraneous-class': 'off',
     '@typescript-eslint/no-floating-promises': 'error',
     '@typescript-eslint/no-for-in-array': 'error',
@@ -80,6 +80,7 @@ module.exports = {
     '@typescript-eslint/no-require-imports': 'error',
     '@typescript-eslint/no-unnecessary-qualifier': 'error',
     '@typescript-eslint/no-unnecessary-type-arguments': 'error',
+    '@typescript-eslint/no-unused-expressions': 'error',
     '@typescript-eslint/no-useless-constructor': 'error',
     '@typescript-eslint/prefer-for-of': 'off',
     '@typescript-eslint/prefer-function-type': 'error',
@@ -89,6 +90,11 @@ module.exports = {
     '@typescript-eslint/prefer-string-starts-ends-with': 'error',
     '@typescript-eslint/require-await': 'error',
     '@typescript-eslint/semi': 'error',
+    '@typescript-eslint/space-before-function-paren': ['error', {
+      anonymous: 'always',
+      named: 'never',
+      asyncArrow: 'always'
+    }],
     '@typescript-eslint/triple-slash-reference': ['error', { path: 'never', types: 'always', lib: 'never' }],
     '@typescript-eslint/type-annotation-spacing': 'error',
     'compat/compat': 'warn',
@@ -130,7 +136,7 @@ module.exports = {
     'sonarjs/prefer-immediate-return': 'error',
     'array-callback-return': 'error',
     'eol-last': ['error', 'always'],
-    'func-call-spacing': 'off', //  See @typescript-eslint/func-call-spacing
+    'func-call-spacing': 'off', // See @typescript-eslint/func-call-spacing
     'function-call-argument-newline': ['error', 'consistent'],
     'max-lines-per-function': ['error', 200],
     'new-parens': ['error', 'always'],
@@ -160,7 +166,7 @@ module.exports = {
     'no-template-curly-in-string': 'error',
     'no-throw-literal': 'error',
     'no-undef-init': 'error',
-    'no-unused-expressions': 'error',
+    'no-unused-expressions': 'off', // See @typescript-eslint/no-unused-expressions
     'no-useless-catch': 'error',
     'no-useless-escape': 'error',
     'no-trailing-spaces': 'error',
@@ -175,11 +181,7 @@ module.exports = {
     'quotes': ['off'],
     'radix': 'error',
     'sort-keys': ['off'],
-    'space-before-function-paren': ['error', {
-      anonymous: 'always',
-      named: 'never',
-      asyncArrow: 'always'
-    }],
+    'space-before-function-paren': 'off', // See @typescript-eslint/space-before-function-paren
     'space-in-parens': 'error',
     'spaced-comment': ['error', 'always', {
       line: { markers: ['/'], exceptions: ['-', '+'] },
@@ -192,10 +194,11 @@ module.exports = {
     '@typescript-eslint/no-unnecessary-condition': 'off', // Only false positives seen so far
     '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
     '@typescript-eslint/no-unused-vars': 'warn',
+    '@typescript-eslint/no-unused-vars-experimental': 'off', // Off for now, crashes eslint
     '@typescript-eslint/promise-function-async': 'warn',
     // '@typescript-eslint/quotes': ['warn', 'backtick', { avoidEscape: true }],
     '@typescript-eslint/require-array-sort-compare': 'warn',
-    '@typescript-eslint/restrict-plus-operands': 'warn',
+    '@typescript-eslint/restrict-plus-operands': ['warn', { 'checkCompoundAssignments': true }],
     '@typescript-eslint/strict-boolean-expressions': 'warn',
     '@typescript-eslint/typedef': ['warn', { arrowParameter: false, parameter: false, variableDeclaration: false }],
     '@typescript-eslint/unbound-method': 'off', // Only false positives seen so far

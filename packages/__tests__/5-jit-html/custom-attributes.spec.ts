@@ -138,57 +138,57 @@ describe('custom-attributes', function () {
 
     @customAttribute('multi')
     class Multi {
-        @bindable public a: boolean;
-        @bindable public b: string;
-        public aResult: boolean;
-        public bResult: string;
-        private readonly element: Element;
-        public constructor(@INode element: INode) {
-          this.element = element as Element;
-          this.element.innerHTML = 'Created';
-        }
-        public afterBind() {
-          this.aChanged();
-          this.bChanged();
-        }
-        public aChanged() {
-          this.aResult = this.a;
-          this.updateContent();
-        }
-        public bChanged() {
-          this.bResult = this.b;
-          this.updateContent();
-        }
-        public updateContent() {
-          this.element.innerHTML = `a: ${this.aResult}, b: ${this.bResult}`;
-        }
+      @bindable public a: boolean;
+      @bindable public b: string;
+      public aResult: boolean;
+      public bResult: string;
+      private readonly element: Element;
+      public constructor(@INode element: INode) {
+        this.element = element as Element;
+        this.element.innerHTML = 'Created';
+      }
+      public afterBind() {
+        this.aChanged();
+        this.bChanged();
+      }
+      public aChanged() {
+        this.aResult = this.a;
+        this.updateContent();
+      }
+      public bChanged() {
+        this.bResult = this.b;
+        this.updateContent();
+      }
+      public updateContent() {
+        this.element.innerHTML = `a: ${this.aResult}, b: ${this.bResult}`;
+      }
     }
     @customAttribute('multi2')
     class Multi2 {
-        @bindable public a: boolean;
-        @bindable({ primary: true }) public b: string;
-        public aResult: boolean;
-        public bResult: string;
-        private readonly element: Element;
-        public constructor(@INode element: INode) {
-          this.element = element as Element;
-          this.element.innerHTML = 'Created';
-        }
-        public afterBind() {
-          this.aChanged();
-          this.bChanged();
-        }
-        public aChanged() {
-          this.aResult = this.a;
-          this.updateContent();
-        }
-        public bChanged() {
-          this.bResult = this.b;
-          this.updateContent();
-        }
-        public updateContent() {
-          this.element.innerHTML = `a: ${this.aResult}, b: ${this.bResult}`;
-        }
+      @bindable public a: boolean;
+      @bindable({ primary: true }) public b: string;
+      public aResult: boolean;
+      public bResult: string;
+      private readonly element: Element;
+      public constructor(@INode element: INode) {
+        this.element = element as Element;
+        this.element.innerHTML = 'Created';
+      }
+      public afterBind() {
+        this.aChanged();
+        this.bChanged();
+      }
+      public aChanged() {
+        this.aResult = this.a;
+        this.updateContent();
+      }
+      public bChanged() {
+        this.bResult = this.b;
+        this.updateContent();
+      }
+      public updateContent() {
+        this.element.innerHTML = `a: ${this.aResult}, b: ${this.bResult}`;
+      }
     }
 
     const app = class { public value: string = 'afterBind'; };

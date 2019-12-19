@@ -1,4 +1,10 @@
-import { Constructable, IIndexable, PLATFORM, Reporter } from '@aurelia/kernel';
+import {
+  Constructable,
+  IIndexable,
+  PLATFORM,
+  Reporter,
+  isNumeric
+} from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import {
@@ -62,11 +68,11 @@ export function createComputedObserver(
     return dirtyChecker.createProperty(instance, propertyName);
   }
 
-  if (descriptor.get) {
+  if (descriptor.get != null) {
     const { constructor: { prototype: { computed: givenOverrides } } }: IObservable & { constructor: { prototype: ComputedLookup } } = instance;
-    const overrides = givenOverrides && givenOverrides![propertyName] || computedOverrideDefaults;
+    const overrides: ComputedOverrides = givenOverrides && givenOverrides![propertyName] || computedOverrideDefaults;
 
-    if (descriptor.set) {
+    if (descriptor.set != null) {
       if (overrides.volatile) {
         return new GetterObserver(flags, overrides, instance, propertyName, descriptor, observerLocator);
       }
@@ -165,7 +171,7 @@ export class GetterObserver implements GetterObserver {
   }
 
   public getValue(): unknown {
-    if (this.subscriberCount === 0 || this.isCollecting) {
+    if (this.subscriberCount !== 0 || this.isCollecting) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       this.currentValue = Reflect.apply(this.descriptor.get!, this.proxy, PLATFORM.emptyArray); // Non-null is implied because descriptors without getters won't end up here
     } else {
@@ -224,8 +230,11 @@ export class GetterObserver implements GetterObserver {
     return this.currentValue;
   }
 
-  public doNotCollect(key: PropertyKey): boolean {
-    return !this.isCollecting || key === '$observers';
+  public doNotCollect(target: IObservable | IBindingContext, key: PropertyKey, receiver?: unknown): boolean {
+    return !this.isCollecting
+      || key === '$observers'
+      || key === 'constructor'
+      || target instanceof Array && key !== 'length' && !isNumeric(key);
   }
 
   private unsubscribeAllDependencies(): void {
@@ -241,31 +250,34 @@ const toStringTag = Object.prototype.toString;
 function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
   return {
     get: function (target: IObservable | IBindingContext, key: PropertyKey, receiver?: unknown): unknown {
-      if (observer.doNotCollect(key)) {
+      if (observer.doNotCollect(target, key, receiver)) {
         return Reflect.get(target, key, receiver);
       }
 
-      // The length and iterator properties need to be invoked on the original object (for Map and Set
-      // at least) or they will throw.
+      // The length and iterator properties need to be invoked on the original object
+      // (for Map and Set at least) or they will throw.
       switch (toStringTag.call(target)) {
         case '[object Array]':
-          observer.addCollectionDep(observerLocator.getArrayObserver(flags, target as unknown[]));
-          if (key === 'length') {
-            return Reflect.get(target, key, target);
+          // observer.addCollectionDep(observerLocator.getArrayObserver(flags, target as unknown[]));
+          if (key === 'length' || isNumeric(key)) {
+            observer.addCollectionDep(observerLocator.getArrayObserver(flags, target as unknown[]));
+            return proxyOrValue(flags, target, key, observerLocator, observer);
           }
+          break;
         case '[object Map]':
           observer.addCollectionDep(observerLocator.getMapObserver(flags, target as Map<unknown, unknown>));
           if (key === 'size') {
             return Reflect.get(target, key, target);
           }
+          break;
         case '[object Set]':
           observer.addCollectionDep(observerLocator.getSetObserver(flags, target as Set<unknown>));
           if (key === 'size') {
             return Reflect.get(target, key, target);
           }
-        default:
-          observer.addPropertyDep(observerLocator.getObserver(flags, target, key as string) as IBindingTargetObserver);
+          break;
       }
+      observer.addPropertyDep(observerLocator.getObserver(flags, target, key as string) as IBindingTargetObserver);
 
       return proxyOrValue(flags, target, key, observerLocator, observer);
     }

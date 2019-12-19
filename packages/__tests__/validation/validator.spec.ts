@@ -8,10 +8,11 @@ import {
   ValidationResult,
   IValidationRules,
   RegexRule,
-  LengthRule
+  LengthRule,
+  RequiredRule
 } from '@aurelia/validation';
 import { assert } from '@aurelia/testing';
-import { Person } from './_test-resources';
+import { Person, Address } from './_test-resources';
 
 describe.only('IValidator', function () {
   function setup(validator?: Class<IValidator>) {
@@ -92,7 +93,7 @@ describe.only('StandardValidator', function () {
     assert.instanceOf(result[1].rule, LengthRule);
   });
 
-  it('validates only given rules for an object property', async function () {
+  it('if given, validates only the specific rules for an object property', async function () {
     const { sut, validationRules } = setup();
     const message1 = 'message1', message2 = 'message2';
     const obj: Person = new Person('test', (void 0)!, (void 0)!);
@@ -118,5 +119,73 @@ describe.only('StandardValidator', function () {
     assert.equal(result[0].message, message1);
     assert.equal(result[0].object, obj);
     assert.instanceOf(result[0].rule, RegexRule);
+  });
+
+  it('validates all rules by default for an object', async function () {
+    const { sut, validationRules } = setup();
+    const message1 = 'message1', message2 = 'message2';
+    const obj: Person = new Person((void 0)!, (void 0)!, { line1: 'invalid' } as any as Address);
+    validationRules
+      .on(obj)
+
+      .ensure(o => o.name)
+      .required()
+      .withMessage(message1)
+
+      .ensure(o => o.age)
+      .required()
+      .withMessage(message2)
+
+      .ensure(o => o.address.line1)
+      .matches(/foo/)
+      .withMessage("\${$value} does not match pattern");
+
+    const result = await sut.validateObject(obj);
+    assert.equal(result.length, 3);
+
+    assert.equal(result[0].valid, false, 'expected name to be invalid');
+    assert.equal(result[0].propertyName, 'name');
+    assert.equal(result[0].message, message1);
+    assert.equal(result[0].object, obj);
+    assert.instanceOf(result[0].rule, RequiredRule);
+
+    assert.equal(result[1].valid, false, 'expected age to be invalid');
+    assert.equal(result[1].propertyName, 'age');
+    assert.equal(result[1].message, message2);
+    assert.equal(result[1].object, obj);
+    assert.instanceOf(result[1].rule, RequiredRule);
+
+    assert.equal(result[2].valid, false, 'expected address.line1 to be invalid');
+    assert.equal(result[2].propertyName, 'address.line1');
+    assert.equal(result[2].message, "invalid does not match pattern");
+    assert.equal(result[2].object, obj);
+    assert.instanceOf(result[2].rule, RegexRule);
+  });
+
+  it('if given, validates only the specific rules for an object', async function () {
+    const { sut, validationRules } = setup();
+    const message1 = 'message1', message2 = 'message2';
+    const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
+    const rules = validationRules
+      .on(obj)
+
+      .ensure(o => o.name)
+      .required()
+      .withMessage(message1)
+
+      .ensure(o => o.age)
+      .required()
+      .withMessage(message2)
+
+      .rules;
+
+    const result = await sut.validateObject(obj, [rules[0]]);
+    assert.equal(result.length, 1);
+
+    assert.equal(result[0].valid, false);
+    assert.equal(result[0].propertyName, 'name');
+    assert.equal(result[0].message, message1);
+    assert.equal(result[0].object, obj);
+    assert.instanceOf(result[0].rule, RequiredRule);
   });
 });

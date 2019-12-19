@@ -3,6 +3,7 @@ module.exports = {
     '../.eslintrc.js'
   ],
   rules: {
-    'no-template-curly-in-string': 'off'
+    'no-template-curly-in-string': 'off',
+    'no-useless-escape': 'off'
   }
 };

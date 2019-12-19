@@ -1,5 +1,6 @@
 import { DI } from '@aurelia/kernel';
 import { IValidateable, PropertyRule, validationRules, ValidationResult } from './rule';
+import { LifecycleFlags } from '@aurelia/runtime';
 
 export const IValidator = DI.createInterface<IValidator>("IValidator").noDefault();
 /**
@@ -15,7 +16,8 @@ export interface IValidator {
    * @param rules - Optional. If unspecified, the implementation should lookup the rules for the
    * specified object. This may not be possible for all implementations of this interface.
    */
-  validateProperty(object: IValidateable, propertyName: string, rules?: PropertyRule[]): Promise<ValidationResult[]>;
+  validateProperty<T extends IValidateable = IValidateable>(object: T, propertyName: keyof T, rules?: PropertyRule[]): Promise<ValidationResult[]>;
+  validateProperty<T extends IValidateable = IValidateable>(object: T, propertyName: string, rules?: PropertyRule[]): Promise<ValidationResult[]>;
 
   /**
    * Validates all rules for specified object and it's properties.
@@ -40,7 +42,7 @@ export class StandardValidator implements IValidator {
    * @param {*} [rules] - If unspecified, the rules will be looked up using the metadata
    * for the object created by ValidationRules....on(class/object)
    */
-  public async validateProperty(object: IValidateable, propertyName: string | number, rules?: PropertyRule[]): Promise<ValidationResult[]> {
+  public async validateProperty<T extends IValidateable = IValidateable>(object: T, propertyName: keyof T | string, rules?: PropertyRule[]): Promise<ValidationResult[]> {
     // TODO support filter by tags
     return this.validate(object, propertyName, rules);
   }
@@ -57,18 +59,25 @@ export class StandardValidator implements IValidator {
     return this.validate(object, void 0, rules);
   }
 
-  private async validate(
-    object: IValidateable,
-    propertyName?: string | number,
+  private async validate<T extends IValidateable = IValidateable>(
+    object: T,
+    propertyName?: keyof T | string,
     rules?: PropertyRule[],
   ): Promise<ValidationResult[]> {
     rules = rules ?? validationRules.get(object);
     const validateAllProperties = propertyName === void 0;
 
     const result = await Promise.all(rules.reduce((acc: Promise<ValidationResult[]>[], rule) => {
+      const { name, expression } = rule.property;
       // eslint-disable-next-line eqeqeq
-      if (validateAllProperties || rule.property.name == propertyName) {
-        const value = rule.property.name === void 0 ? object : object[rule.property.name];
+      if (validateAllProperties || name == propertyName) {
+        let value: unknown;
+        if (expression === void 0) {
+          value = object;
+        } else {
+          const scope = { bindingContext: object, parentScope: null, scopeParts: [], overrideContext: (void 0)! };
+          value = expression.evaluate(LifecycleFlags.none, scope, null!);
+        }
         acc.push(rule.validate(value, object));
       }
       return acc;

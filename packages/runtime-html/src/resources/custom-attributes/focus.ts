@@ -28,10 +28,7 @@ export class Focus implements ICustomAttributeViewModel<HTMLElement> {
 
   private readonly element: HTMLElement;
 
-  public constructor(
-    @INode element: INode,
-    @IDOM private readonly dom: HTMLDOM
-  ) {
+  public constructor(@INode element: INode, @IDOM private readonly dom: HTMLDOM) {
     this.element = element as HTMLElement;
   }
 

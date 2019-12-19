@@ -9,9 +9,7 @@ export class GotoCustomAttribute {
 
   private readonly element: HTMLElement;
 
-  public constructor(
-    @INode element: INode,
-  ) {
+  public constructor(@INode element: INode) {
     this.element = element as HTMLElement;
   }
 

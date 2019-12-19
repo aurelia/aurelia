@@ -9,10 +9,12 @@ import {
   IValidationRules,
   RegexRule,
   LengthRule,
-  RequiredRule
+  RequiredRule,
+  SizeRule,
+  EqualsRule
 } from '@aurelia/validation';
 import { assert } from '@aurelia/testing';
-import { Person, Address } from './_test-resources';
+import { Person, Address, Organization } from './_test-resources';
 
 describe.only('IValidator', function () {
   function setup(validator?: Class<IValidator>) {
@@ -187,5 +189,57 @@ describe.only('StandardValidator', function () {
     assert.equal(result[0].message, message1);
     assert.equal(result[0].object, obj);
     assert.instanceOf(result[0].rule, RequiredRule);
+  });
+
+  it('can validate collection', async function () {
+    const { sut, validationRules } = setup();
+    const message1 = 'message1';
+    const obj: Organization = new Organization([], (void 0)!);
+    validationRules
+      .on(obj)
+
+      .ensure(o => o.employees)
+      .minItems(1)
+      .withMessage(message1);
+
+    const result = await sut.validateObject(obj);
+    assert.equal(result.length, 1);
+
+    assert.equal(result[0].valid, false);
+    assert.equal(result[0].propertyName, 'employees');
+    assert.equal(result[0].message, message1);
+    assert.equal(result[0].object, obj);
+    assert.instanceOf(result[0].rule, SizeRule);
+  });
+
+  it('can validate collection by index', async function () {
+    const { sut, validationRules } = setup();
+    const message1 = 'message1', message2 = 'message2';
+    const obj = { coll: [{ a: 1 }, { a: 2 }] };
+    validationRules
+      .on(obj)
+
+      .ensure(o => o.coll[0].a)
+      .equals(11)
+      .withMessage(message1)
+
+      .ensure(o => o.coll[1].a)
+      .equals(11)
+      .withMessage(message2);
+
+    const result = await sut.validateObject(obj);
+    assert.equal(result.length, 2);
+
+    assert.equal(result[0].valid, false);
+    assert.equal(result[0].propertyName, 'coll[0].a');
+    assert.equal(result[0].message, message1);
+    assert.equal(result[0].object, obj);
+    assert.instanceOf(result[0].rule, EqualsRule);
+
+    assert.equal(result[1].valid, false);
+    assert.equal(result[1].propertyName, 'coll[1].a');
+    assert.equal(result[1].message, message2);
+    assert.equal(result[1].object, obj);
+    assert.instanceOf(result[1].rule, EqualsRule);
   });
 });

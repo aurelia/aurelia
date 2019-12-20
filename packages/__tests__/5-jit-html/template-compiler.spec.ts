@@ -382,8 +382,8 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
     });
 
     interface IExpectedInstruction {
-      toVerify: string[];
       [prop: string]: any;
+      toVerify: string[];
     }
 
     function compileWith(markup: string | Element, extraResources: any[] = []) {
@@ -693,7 +693,7 @@ type CTCResult = [PartialCustomElementDefinition, PartialCustomElementDefinition
 type Bindables = { [pdName: string]: BindableDefinition };
 
 describe(`TemplateCompiler - combinations`, function () {
-  function setup(ctx: HTMLTestContext, ...globals: any[]) {
+  function createFixture(ctx: HTMLTestContext, ...globals: any[]) {
     const container = ctx.container;
     container.register(...globals);
     const sut = ctx.templateCompiler;
@@ -744,7 +744,7 @@ describe(`TemplateCompiler - combinations`, function () {
           scopeParts: [],
         };
 
-        const { sut, container } = setup(ctx);
+        const { sut, container } = createFixture(ctx);
 
         const actual = sut.compile(input, container);
 
@@ -817,7 +817,7 @@ describe(`TemplateCompiler - combinations`, function () {
         };
 
         const $def = CustomAttribute.define(def, ctor);
-        const { sut, container } = setup(ctx, $def);
+        const { sut, container } = createFixture(ctx, $def);
 
         const actual = sut.compile(input, container);
 
@@ -865,7 +865,7 @@ describe(`TemplateCompiler - combinations`, function () {
     ],                       (ctx, pdName, pdProp, bindables, [cmd, attrValue], [bindableDescription, attrName]) => {
       it(`div - pdName=${pdName}  pdProp=${pdProp}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, function () {
 
-        const { sut, container } = setup(
+        const { sut, container } = createFixture(
           ctx,
           CustomAttribute.define({ name: 'asdf', bindables }, class FooBar {})
         );
@@ -944,7 +944,7 @@ describe(`TemplateCompiler - combinations`, function () {
 
       it(`${input.template}`, function () {
 
-        const { sut, container } = setup(
+        const { sut, container } = createFixture(
           ctx,
           CustomAttribute.define({ name: 'foo', isTemplateController: true }, class Foo {}),
           CustomAttribute.define({ name: 'bar', isTemplateController: true }, class Bar {}),
@@ -1005,7 +1005,7 @@ describe(`TemplateCompiler - combinations`, function () {
 
       it(`${input.template}`, function () {
 
-        const { sut, container } = setup(
+        const { sut, container } = createFixture(
           ctx,
           CustomAttribute.define({ name: 'foo',  isTemplateController: true }, class Foo {}),
           CustomAttribute.define({ name: 'bar',  isTemplateController: true }, class Bar {}),
@@ -1066,7 +1066,7 @@ describe(`TemplateCompiler - combinations`, function () {
 
       it(`${input.template}`, function () {
 
-        const { sut, container } = setup(
+        const { sut, container } = createFixture(
           ctx,
           CustomAttribute.define({ name: 'foo', isTemplateController: true }, class Foo {}),
           CustomAttribute.define({ name: 'bar', isTemplateController: true }, class Bar {}),
@@ -1140,7 +1140,7 @@ describe(`TemplateCompiler - combinations`, function () {
     ],                       (ctx, pdName, pdProp, pdAttr, bindables, [cmd, attrValue], [bindableDescription, attrName]) => {
       it(`customElement - pdName=${pdName}  pdProp=${pdProp}  pdAttr=${pdAttr}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, function () {
 
-        const { sut, container } = setup(
+        const { sut, container } = createFixture(
           ctx,
           CustomElement.define({ name: 'foobar', bindables }, class FooBar {})
         );
@@ -1204,7 +1204,7 @@ describe(`TemplateCompiler - combinations`, function () {
     ],                       (ctx, [input, output]) => {
       it(`${input.template}`, function () {
 
-        const { sut, container } = setup(
+        const { sut, container } = createFixture(
           ctx,
           CustomElement.define({ name: 'foo' }, class Foo {}),
           CustomElement.define({ name: 'bar' }, class Bar {}),

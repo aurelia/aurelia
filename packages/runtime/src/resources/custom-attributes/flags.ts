@@ -45,30 +45,21 @@ abstract class FlagsTemplateController<T extends INode = INode> implements ICust
 
 @templateController('infrequent-mutations')
 export class InfrequentMutations<T extends INode = INode> extends FlagsTemplateController<T> {
-  public constructor(
-    @IViewFactory factory: IViewFactory<T>,
-    @IRenderLocation location: IRenderLocation<T>,
-  ) {
+  public constructor(@IViewFactory factory: IViewFactory<T>, @IRenderLocation location: IRenderLocation<T>) {
     super(factory, location, LifecycleFlags.noTargetObserverQueue);
   }
 }
 
 @templateController('frequent-mutations')
 export class FrequentMutations<T extends INode = INode> extends FlagsTemplateController<T> {
-  public constructor(
-    @IViewFactory factory: IViewFactory<T>,
-    @IRenderLocation location: IRenderLocation<T>,
-  ) {
+  public constructor(@IViewFactory factory: IViewFactory<T>, @IRenderLocation location: IRenderLocation<T>) {
     super(factory, location, LifecycleFlags.persistentTargetObserverQueue);
   }
 }
 
 @templateController('observe-shallow')
 export class ObserveShallow<T extends INode = INode> extends FlagsTemplateController<T> {
-  public constructor(
-    @IViewFactory factory: IViewFactory<T>,
-    @IRenderLocation location: IRenderLocation<T>,
-  ) {
+  public constructor(@IViewFactory factory: IViewFactory<T>, @IRenderLocation location: IRenderLocation<T>) {
     super(factory, location, LifecycleFlags.observeLeafPropertiesOnly);
   }
 }

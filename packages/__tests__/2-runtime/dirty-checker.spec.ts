@@ -13,7 +13,7 @@ describe('DirtyChecker', function () {
     DirtyCheckSettings.resetToDefault();
   });
 
-  function setup() {
+  function createFixture() {
     const ctx = TestContext.createHTMLTestContext();
     const dirtyChecker = ctx.container.get(IDirtyChecker);
     const taskQueue = ctx.container.get(IScheduler).getRenderTaskQueue();
@@ -97,7 +97,7 @@ describe('DirtyChecker', function () {
     it(`updates after ${spec.framesPerCheck} RAF call`, function (done) {
       const { framesPerCheck, frameChecks } = spec;
       DirtyCheckSettings.framesPerCheck = framesPerCheck;
-      const { dirtyChecker, taskQueue } = setup();
+      const { dirtyChecker, taskQueue } = createFixture();
 
       const obj1 = { foo: '0' };
       const obj2 = { foo: '0' };
@@ -257,7 +257,7 @@ describe('DirtyChecker', function () {
     const framesPerCheck: number = 1;
     DirtyCheckSettings.framesPerCheck = framesPerCheck;
     DirtyCheckSettings.disabled = true;
-    const { dirtyChecker, taskQueue } = setup();
+    const { dirtyChecker, taskQueue } = createFixture();
 
     const obj = { foo: '0' };
     const observer = dirtyChecker.createProperty(obj, 'foo');
@@ -296,7 +296,7 @@ describe('DirtyChecker', function () {
 
   it('throws on property creation if configured', function () {
     DirtyCheckSettings.throw = true;
-    const { dirtyChecker } = setup();
+    const { dirtyChecker } = createFixture();
 
     const obj = { foo: '0' };
     let err;
@@ -317,7 +317,7 @@ describe('DirtyChecker', function () {
         warnCalled = true;
       }
     };
-    const { dirtyChecker } = setup();
+    const { dirtyChecker } = createFixture();
 
     const obj = { foo: '0' };
     dirtyChecker.createProperty(obj, 'foo');
@@ -334,7 +334,7 @@ describe('DirtyChecker', function () {
         warnCalled = true;
       }
     };
-    const { dirtyChecker } = setup();
+    const { dirtyChecker } = createFixture();
 
     const obj = { foo: '0' };
     dirtyChecker.createProperty(obj, 'foo');

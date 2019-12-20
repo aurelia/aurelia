@@ -361,13 +361,13 @@ describe('templating-compiler.ref.spec.ts', function () {
         public divSetterCount: number = 0;
         public divGetterCount: number = 0;
         public _div: HTMLDivElement;
-        public set div(val: HTMLDivElement) {
-          this.divSetterCount++;
-          this._div = val;
-        }
         public get div(): HTMLDivElement {
           this.divGetterCount++;
           return this._div;
+        }
+        public set div(val: HTMLDivElement) {
+          this.divSetterCount++;
+          this._div = val;
         }
       },
       template: '<div repeat.for="i of 10" ref=div></div>',

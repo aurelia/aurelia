@@ -131,7 +131,7 @@ describe('template-compiler.binding-commands.class', function () {
     [classNameTests, testCases],
     (className, testCase, callIndex) => {
       it(testCase.title(className, callIndex), async function () {
-        const { ctx, au, scheduler, host, component, tearDown } = setup(
+        const { ctx, au, scheduler, host, component, tearDown } = createFixture(
           testCase.template(className),
           class App {
             public value: unknown = true;
@@ -219,7 +219,7 @@ describe('template-compiler.binding-commands.class', function () {
     assert(au: Aurelia, scheduler: IScheduler, host: HTMLElement, component: IApp, testCase: ITestCase, className: string): void | Promise<void>;
   }
 
-  function setup<T>(template: string | Node, $class: Constructable<T> | null, ...registrations: any[]) {
+  function createFixture<T>(template: string | Node, $class: Constructable<T> | null, ...registrations: any[]) {
     const ctx = TestContext.createHTMLTestContext();
     const { container, scheduler, observerLocator } = ctx;
     container.register(...registrations);

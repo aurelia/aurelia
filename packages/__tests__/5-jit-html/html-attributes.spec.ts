@@ -14,7 +14,7 @@
 // }
 
 // describe('html attribute', function () {
-//   function setup() {
+//   function createFixture() {
 //     const ctx = TestContext.createHTMLTestContext();
 
 //     const host = ctx.createElement('div');
@@ -129,7 +129,7 @@
 //             const thing3 = createThing3();
 //             const thing4 = createThing4();
 
-//             const { host, au } = setup();
+//             const { host, au } = createFixture();
 //             // verify that the assertions inside change handler / lifecycles were actually performed
 //             let assertionCount = 0;
 

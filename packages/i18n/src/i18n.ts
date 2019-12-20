@@ -106,12 +106,7 @@ export class I18nService implements I18N {
   private options!: I18nInitOptions;
   private readonly intl: typeof Intl;
 
-  public constructor(
-    @I18nWrapper i18nextWrapper: I18nextWrapper,
-    @I18nInitOptions options: I18nInitOptions,
-    @IEventAggregator private readonly ea: IEventAggregator,
-    @ISignaler private readonly signaler: ISignaler,
-  ) {
+  public constructor(@I18nWrapper i18nextWrapper: I18nextWrapper, @I18nInitOptions options: I18nInitOptions, @IEventAggregator private readonly ea: IEventAggregator, @ISignaler private readonly signaler: ISignaler) {
     this.i18next = i18nextWrapper.i18next;
     this.task = new PromiseTask(this.initializeI18next(options), null, this);
     this.intl = PLATFORM.global.Intl;

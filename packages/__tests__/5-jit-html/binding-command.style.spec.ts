@@ -143,7 +143,7 @@ describe('template-compiler.binding-commands.style', function () {
     [rulesTests, testCases],
     ([ruleName, ruleValue, ruleDefaultValue, isInvalid, valueOnInvalid], testCase, callIndex) => {
       it(testCase.title(ruleName, ruleValue, callIndex), async function () {
-        const { ctx, au, scheduler, host, component, tearDown } = setup(
+        const { ctx, au, scheduler, host, component, tearDown } = createFixture(
           testCase.template(ruleName),
           class App {
             public value: string = ruleValue;
@@ -266,7 +266,7 @@ describe('template-compiler.binding-commands.style', function () {
     assert(au: Aurelia, scheduler: IScheduler, host: HTMLElement, component: IApp, ruleCase: [string, string, string, boolean?, string?], testCase): void | Promise<void>;
   }
 
-  function setup<T>(template: string | Node, $class: Constructable<T> | null, ...registrations: any[]) {
+  function createFixture<T>(template: string | Node, $class: Constructable<T> | null, ...registrations: any[]) {
     const ctx = TestContext.createHTMLTestContext();
     const { container, lifecycle, observerLocator, scheduler } = ctx;
     container.register(...registrations);

@@ -1478,7 +1478,7 @@ export class $TryStatement {
             ctx.LexicalEnvironment = new $DeclarativeEnvRec(this.logger, realm, oldEnv);
             // 4. For each element argName of the BoundNames of CatchParameter, do
             // 4. a. Perform ! catchEnvRec.CreateMutableBinding(argName, false).
-            // eslint-disable-next-line no-unused-expressions
+            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             (_b = catchClause) === null || _b === void 0 ? void 0 : _b.CreateBinding(ctx, realm);
             // 5. Set the running execution context's LexicalEnvironment to catchEnv.
             realm.stack.push(ctx);

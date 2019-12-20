@@ -5,7 +5,7 @@ export default function (contents, sourceMap) {
 }
 export function loader(contents, _preprocess = preprocess // for testing
 ) {
-    // eslint-disable-next-line no-unused-expressions, @typescript-eslint/strict-boolean-expressions
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions, @typescript-eslint/strict-boolean-expressions
     this.cacheable && this.cacheable();
     const cb = this.async();
     const options = getOptions(this);

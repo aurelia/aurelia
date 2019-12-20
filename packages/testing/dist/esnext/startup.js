@@ -1,6 +1,6 @@
 import { CustomElement, Aurelia } from '@aurelia/runtime';
 import { TestContext } from './html-test-context';
-export function setup(template, $class, registrations = [], autoStart = true, ctx = TestContext.createHTMLTestContext()) {
+export function createFixture(template, $class, registrations = [], autoStart = true, ctx = TestContext.createHTMLTestContext()) {
     const { container, lifecycle, scheduler, observerLocator } = ctx;
     container.register(...registrations);
     const root = ctx.doc.body.appendChild(ctx.doc.createElement('div'));

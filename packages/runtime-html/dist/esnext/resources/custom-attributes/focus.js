@@ -97,8 +97,7 @@ __decorate([
 ], Focus.prototype, "value", void 0);
 Focus = __decorate([
     customAttribute('focus'),
-    __param(0, INode),
-    __param(1, IDOM),
+    __param(0, INode), __param(1, IDOM),
     __metadata("design:paramtypes", [Object, HTMLDOM])
 ], Focus);
 export { Focus };

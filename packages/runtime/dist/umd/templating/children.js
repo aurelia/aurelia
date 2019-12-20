@@ -162,7 +162,7 @@
                 enumerable: true,
                 configurable: true,
                 get: () => this.getValue(),
-                set: () => { },
+                set: () => { return; },
             })) {
                 kernel_1.Reporter.write(1, this.propertyKey, this.obj);
             }

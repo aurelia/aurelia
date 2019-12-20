@@ -1,7 +1,7 @@
 import { Constructable } from '@aurelia/kernel';
 import { Aurelia } from '@aurelia/runtime';
 import { HTMLTestContext } from './html-test-context';
-export declare function setup<T>(template: string | Node, $class?: Constructable<T>, registrations?: any[], autoStart?: boolean, ctx?: HTMLTestContext): {
+export declare function createFixture<T>(template: string | Node, $class?: Constructable<T>, registrations?: any[], autoStart?: boolean, ctx?: HTMLTestContext): {
     startPromise: Promise<unknown>;
     ctx: HTMLTestContext;
     host: Element | null;

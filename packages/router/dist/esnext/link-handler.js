@@ -8,7 +8,7 @@ export class LinkHandler {
         // tslint:disable-next-line:no-empty
         this.options = {
             useHref: true,
-            callback: () => { }
+            callback: () => { return; }
         };
         this.isActive = false;
         this.handler = (e) => {

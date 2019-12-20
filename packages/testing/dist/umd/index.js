@@ -37,7 +37,7 @@
     exports.h = h_1.h;
     exports.hJsx = h_1.hJsx;
     var startup_1 = require("./startup");
-    exports.setup = startup_1.setup;
+    exports.createFixture = startup_1.createFixture;
     var html_test_context_1 = require("./html-test-context");
     exports.HTMLTestContext = html_test_context_1.HTMLTestContext;
     exports.TestContext = html_test_context_1.TestContext;

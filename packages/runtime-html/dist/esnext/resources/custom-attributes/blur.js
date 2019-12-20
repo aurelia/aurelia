@@ -206,9 +206,7 @@ __decorate([
 ], Blur.prototype, "linkingContext", void 0);
 Blur = __decorate([
     customAttribute('blur'),
-    __param(0, INode),
-    __param(1, IDOM),
-    __param(2, IScheduler),
+    __param(0, INode), __param(1, IDOM), __param(2, IScheduler),
     __metadata("design:paramtypes", [Object, HTMLDOM, Object])
 ], Blur);
 export { Blur };

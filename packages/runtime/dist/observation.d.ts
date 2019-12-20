@@ -32,28 +32,28 @@ export interface ICollectionSubscribable {
     unsubscribeFromCollection(subscriber: ICollectionSubscriber): void;
 }
 export interface ISubscriberCollection extends ISubscribable {
+    [key: number]: LifecycleFlags;
     callSubscribers(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
     hasSubscribers(): boolean;
     hasSubscriber(subscriber: ISubscriber): boolean;
     removeSubscriber(subscriber: ISubscriber): boolean;
     addSubscriber(subscriber: ISubscriber): boolean;
-    [key: number]: LifecycleFlags;
 }
 export interface IProxySubscriberCollection extends IProxySubscribable {
+    [key: number]: LifecycleFlags;
     callProxySubscribers(key: PropertyKey, newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
     hasProxySubscribers(): boolean;
     hasProxySubscriber(subscriber: IProxySubscriber): boolean;
     removeProxySubscriber(subscriber: IProxySubscriber): boolean;
     addProxySubscriber(subscriber: IProxySubscriber): boolean;
-    [key: number]: LifecycleFlags;
 }
 export interface ICollectionSubscriberCollection extends ICollectionSubscribable {
+    [key: number]: LifecycleFlags;
     callCollectionSubscribers(indexMap: IndexMap, flags: LifecycleFlags): void;
     hasCollectionSubscribers(): boolean;
     hasCollectionSubscriber(subscriber: ICollectionSubscriber): boolean;
     removeCollectionSubscriber(subscriber: ICollectionSubscriber): boolean;
     addCollectionSubscriber(subscriber: ICollectionSubscriber): boolean;
-    [key: number]: LifecycleFlags;
 }
 /**
  * Describes a complete property observer with an accessor, change tracking fields, normal and batched subscribers

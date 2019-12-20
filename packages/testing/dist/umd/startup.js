@@ -11,7 +11,7 @@
     Object.defineProperty(exports, "__esModule", { value: true });
     const runtime_1 = require("@aurelia/runtime");
     const html_test_context_1 = require("./html-test-context");
-    function setup(template, $class, registrations = [], autoStart = true, ctx = html_test_context_1.TestContext.createHTMLTestContext()) {
+    function createFixture(template, $class, registrations = [], autoStart = true, ctx = html_test_context_1.TestContext.createHTMLTestContext()) {
         const { container, lifecycle, scheduler, observerLocator } = ctx;
         container.register(...registrations);
         const root = ctx.doc.body.appendChild(ctx.doc.createElement('div'));
@@ -46,6 +46,6 @@
             }
         };
     }
-    exports.setup = setup;
+    exports.createFixture = createFixture;
 });
 //# sourceMappingURL=startup.js.map

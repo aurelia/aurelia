@@ -16,13 +16,13 @@ declare namespace NodeJS {
     }
 }
 export interface IStorage {
+    [name: string]: any;
     readonly length: number;
     clear(): void;
     getItem(key: string): string | null;
     key(index: number): string | null;
     removeItem(key: string): void;
     setItem(key: string, value: string): void;
-    [name: string]: any;
 }
 export interface IWindowOrWorkerGlobalScope {
     process?: NodeJS.Process;

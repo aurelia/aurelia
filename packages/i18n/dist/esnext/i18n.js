@@ -151,10 +151,7 @@ let I18nService = class I18nService {
     }
 };
 I18nService = __decorate([
-    __param(0, I18nWrapper),
-    __param(1, I18nInitOptions),
-    __param(2, IEventAggregator),
-    __param(3, ISignaler),
+    __param(0, I18nWrapper), __param(1, I18nInitOptions), __param(2, IEventAggregator), __param(3, ISignaler),
     __metadata("design:paramtypes", [I18nextWrapper, Object, Object, Object])
 ], I18nService);
 export { I18nService };

@@ -448,8 +448,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], BrowserScheduler.prototype, "yieldAll", null);
 BrowserScheduler = __decorate([
-    __param(0, IClock),
-    __param(1, IDOM),
+    __param(0, IClock), __param(1, IDOM),
     __metadata("design:paramtypes", [Object, HTMLDOM])
 ], BrowserScheduler);
 export { BrowserScheduler };

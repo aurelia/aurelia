@@ -149,7 +149,7 @@ let ChildrenObserver = ChildrenObserver_1 = class ChildrenObserver {
             enumerable: true,
             configurable: true,
             get: () => this.getValue(),
-            set: () => { },
+            set: () => { return; },
         })) {
             Reporter.write(1, this.propertyKey, this.obj);
         }

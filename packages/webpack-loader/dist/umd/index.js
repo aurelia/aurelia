@@ -17,7 +17,7 @@
     exports.default = default_1;
     function loader(contents, _preprocess = plugin_conventions_1.preprocess // for testing
     ) {
-        // eslint-disable-next-line no-unused-expressions, @typescript-eslint/strict-boolean-expressions
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions, @typescript-eslint/strict-boolean-expressions
         this.cacheable && this.cacheable();
         const cb = this.async();
         const options = loader_utils_1.getOptions(this);

@@ -129,7 +129,7 @@
         // incremental
         (retryCount, interval) => interval * retryCount,
         // exponential
-        (retryCount, interval) => retryCount === 1 ? interval : Math.pow(interval, retryCount) / 1000,
+        (retryCount, interval) => retryCount === 1 ? interval : interval ** retryCount / 1000,
         // random
         (retryCount, interval, minRandomInterval = 0, maxRandomInterval = 60000) => {
             return Math.random() * (maxRandomInterval - minRandomInterval) + minRandomInterval;

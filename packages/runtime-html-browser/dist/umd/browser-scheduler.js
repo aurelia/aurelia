@@ -459,8 +459,7 @@
         tslib_1.__metadata("design:returntype", Promise)
     ], BrowserScheduler.prototype, "yieldAll", null);
     BrowserScheduler = tslib_1.__decorate([
-        tslib_1.__param(0, runtime_1.IClock),
-        tslib_1.__param(1, runtime_1.IDOM),
+        tslib_1.__param(0, runtime_1.IClock), tslib_1.__param(1, runtime_1.IDOM),
         tslib_1.__metadata("design:paramtypes", [Object, runtime_html_1.HTMLDOM])
     ], BrowserScheduler);
     exports.BrowserScheduler = BrowserScheduler;

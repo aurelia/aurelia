@@ -394,8 +394,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], JSDOMScheduler.prototype, "yieldAll", null);
 JSDOMScheduler = __decorate([
-    __param(0, IClock),
-    __param(1, IDOM),
+    __param(0, IClock), __param(1, IDOM),
     __metadata("design:paramtypes", [Object, HTMLDOM])
 ], JSDOMScheduler);
 export { JSDOMScheduler };

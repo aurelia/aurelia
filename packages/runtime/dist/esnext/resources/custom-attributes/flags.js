@@ -34,8 +34,7 @@ let InfrequentMutations = class InfrequentMutations extends FlagsTemplateControl
 };
 InfrequentMutations = __decorate([
     templateController('infrequent-mutations'),
-    __param(0, IViewFactory),
-    __param(1, IRenderLocation),
+    __param(0, IViewFactory), __param(1, IRenderLocation),
     __metadata("design:paramtypes", [Object, Object])
 ], InfrequentMutations);
 export { InfrequentMutations };
@@ -46,8 +45,7 @@ let FrequentMutations = class FrequentMutations extends FlagsTemplateController 
 };
 FrequentMutations = __decorate([
     templateController('frequent-mutations'),
-    __param(0, IViewFactory),
-    __param(1, IRenderLocation),
+    __param(0, IViewFactory), __param(1, IRenderLocation),
     __metadata("design:paramtypes", [Object, Object])
 ], FrequentMutations);
 export { FrequentMutations };
@@ -58,8 +56,7 @@ let ObserveShallow = class ObserveShallow extends FlagsTemplateController {
 };
 ObserveShallow = __decorate([
     templateController('observe-shallow'),
-    __param(0, IViewFactory),
-    __param(1, IRenderLocation),
+    __param(0, IViewFactory), __param(1, IRenderLocation),
     __metadata("design:paramtypes", [Object, Object])
 ], ObserveShallow);
 export { ObserveShallow };

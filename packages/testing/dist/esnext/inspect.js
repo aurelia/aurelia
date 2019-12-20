@@ -203,11 +203,11 @@ export class AssertionError extends Error {
         this.operator = operator;
         if (typeof Error.captureStackTrace === 'function') {
             Error.captureStackTrace(this, stackStartFn);
-            // eslint-disable-next-line no-unused-expressions
+            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             this.stack;
         }
         else {
-            // eslint-disable-next-line no-unused-expressions
+            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             Error().stack;
         }
         this.name = 'AssertionError';

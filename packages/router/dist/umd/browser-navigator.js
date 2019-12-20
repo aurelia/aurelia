@@ -21,7 +21,7 @@
             this.isActive = false;
             this.options = {
                 useUrlFragmentHash: true,
-                callback: () => { },
+                callback: () => { return; },
             };
             this.forwardedState = {};
             this.handlePopstate = (ev) => {
@@ -69,7 +69,7 @@
             }
             this.window.removeEventListener('popstate', this.handlePopstate);
             this.pendingCalls.deactivate();
-            this.options = { useUrlFragmentHash: true, callback: () => { } };
+            this.options = { useUrlFragmentHash: true, callback: () => { return; } };
             this.isActive = false;
         }
         get length() {

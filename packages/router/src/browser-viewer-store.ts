@@ -142,7 +142,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
     const doneTask: QueueTask<IAction> = this.pendingCalls.createQueueTask((task: QueueTask<IAction>) => task.resolve(), 1);
 
     this.pendingCalls.enqueue(
-      async (task: QueueTask<IAction>) => {
+      async (task: QueueTask<IAction>): Promise<void> => {
         const store: BrowserViewerStore = this;
         const eventTask: QueueTask<IAction> = doneTask;
 
@@ -157,13 +157,13 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
     this.forwardedState = { eventTask: null, suppressPopstate: false };
 
     return this.pendingCalls.enqueue(
-      (task: QueueTask<IAction>) => {
+      async (task: QueueTask<IAction>) => {
         const store: BrowserViewerStore = this;
         const ev: PopStateEvent = event;
         const evTask: QueueTask<IAction> | null = eventTask;
         const suppressPopstateEvent: boolean = suppressPopstate;
 
-        store.popstate(ev, evTask, suppressPopstateEvent);
+        await store.popstate(ev, evTask, suppressPopstateEvent);
         task.resolve();
       }, 1).wait();
   };
@@ -176,14 +176,14 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
       await this.go(-1, true);
       await this.pushNavigatorState(state);
     }
-    doneTask.execute();
+    await doneTask.execute();
   }
 
   public forwardState(state: IForwardedState): void {
     this.forwardedState = state;
   }
 
-  public popstate(ev: PopStateEvent, eventTask: QueueTask<IAction> | null, suppressPopstate: boolean = false): void {
+  public async popstate(ev: PopStateEvent, eventTask: QueueTask<IAction> | null, suppressPopstate: boolean = false): Promise<void> {
     if (!suppressPopstate) {
       this.options.callback({
         ...this.viewerState,
@@ -194,7 +194,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
       });
     }
     if (eventTask !== null) {
-      eventTask.execute();
+      await eventTask.execute();
     }
   }
 }

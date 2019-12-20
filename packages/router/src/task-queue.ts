@@ -1,11 +1,10 @@
-// tslint:disable:max-line-length
 import { IScheduler, ITask, ILifecycleTask } from '@aurelia/runtime';
 import { bound } from '@aurelia/kernel';
 
 export interface IQueueableItem<T> {
-  execute: ((task: QueueTask<IQueueableItem<T>>) => void);
+  execute: ((task: QueueTask<IQueueableItem<T>>) => void | Promise<void>);
 }
-export type QueueableFunction = ((task: QueueTask<void>) => void);
+export type QueueableFunction = ((task: QueueTask<void>) => void | Promise<void>);
 
 export class QueueTask<T> implements ILifecycleTask {
   public done: boolean = false;
@@ -29,11 +28,11 @@ export class QueueTask<T> implements ILifecycleTask {
     });
   }
 
-  public execute(): void {
+  public async execute(): Promise<void> {
     if ('execute' in this.item) {
-      this.item.execute(this);
+      await this.item.execute(this);
     } else {
-      this.item(this);
+      await this.item(this);
     }
   }
   public wait(): Promise<void> {
@@ -144,7 +143,9 @@ export class TaskQueue<T> {
       if (this.callback !== void 0) {
         this.callback(this.processing);
       } else {
-        this.processing.execute();
+        // Don't need to await this since next task won't be dequeued until
+        // executed function is resolved
+        this.processing.execute().catch(error => { throw error; });
       }
     }
   }

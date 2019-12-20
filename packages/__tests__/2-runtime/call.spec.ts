@@ -19,7 +19,7 @@ import {
 } from '@aurelia/testing';
 
 describe.skip('CallBinding', function () {
-  function setup(sourceExpression: IExpression, target: any, targetProperty: string) {
+  function createFixture(sourceExpression: IExpression, target: any, targetProperty: string) {
     const container = RuntimeConfiguration.createContainer();
     const lifecycle = container.get(ILifecycle);
     const observerLocator = createObserverLocator(container);
@@ -60,7 +60,7 @@ describe.skip('CallBinding', function () {
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [expr, $3], [scope, $4], [renewScope, $5]) => {
       it(`$bind() target=${$1} prop=${$2} expr=${$3} scope=${$4} renewScope=${$5}`, function () {
         // - Arrange -
-        const { sut, lifecycle, observerLocator } = setup(expr, target, prop);
+        const { sut, lifecycle, observerLocator } = createFixture(expr, target, prop);
         const flags = LF.none;
         const targetObserver = observerLocator.getObserver(LF.none, target, prop);
 
@@ -156,7 +156,7 @@ describe.skip('CallBinding', function () {
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [expr, $3], [scope, $4]) => {
       it(`$bind() target=${$1} prop=${$2} expr=${$3} scope=${$4}`, function () {
         // - Arrange -
-        const { sut, lifecycle, observerLocator } = setup(expr, target, prop);
+        const { sut, lifecycle, observerLocator } = createFixture(expr, target, prop);
         const flags = LF.none;
         const targetObserver = observerLocator.getObserver(LF.none, target, prop);
 
@@ -260,7 +260,7 @@ describe.skip('CallBinding', function () {
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [args, $3], [expr, $4], [scope, $5]) => {
       it(`$bind() target=${$1} prop=${$2} args=${$3} expr=${$4} scope=${$5}`, function () {
         // - Arrange -
-        const { sut, lifecycle, observerLocator } = setup(expr, target, prop);
+        const { sut, lifecycle, observerLocator } = createFixture(expr, target, prop);
         const flags = LF.none;
         const targetObserver = observerLocator.getObserver(LF.none, target, prop);
 

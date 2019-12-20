@@ -60,7 +60,7 @@ function eventPropertiesShallowClone<T extends IManagedEvent>(e: T): T & { insta
 }
 
 describe('ListenerTracker', function () {
-  function setup(eventName: string, listener: EventListenerOrEventListenerObject, capture: boolean, bubbles: boolean) {
+  function createFixture(eventName: string, listener: EventListenerOrEventListenerObject, capture: boolean, bubbles: boolean) {
     const ctx = TestContext.createHTMLTestContext();
     const handlerPath: ReturnType<typeof eventPropertiesShallowClone>[] = [];
     const handler = function (e: UIEvent) {
@@ -83,7 +83,7 @@ describe('ListenerTracker', function () {
     return { ctx, sut, el, event, handlerPath };
   }
 
-  function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof setup>>) {
+  function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
     ctx.doc.removeEventListener(sut['eventName'], sut['listener'], sut['capture']);
     el.removeEventListener(sut['eventName'], sut['listener'], sut['capture']);
     ctx.doc.body.removeChild(el);
@@ -96,7 +96,7 @@ describe('ListenerTracker', function () {
           for (const listener of [null, { handleEvent: null }]) {
             describe('increment()', function () {
               it(_`adds the event listener (increment=${increment}, eventName=${eventName}, capture=${capture}, bubbles=${bubbles}, listener=${listener})`, function () {
-                const { ctx, sut, el, event, handlerPath } = setup(eventName, listener, capture, bubbles);
+                const { ctx, sut, el, event, handlerPath } = createFixture(eventName, listener, capture, bubbles);
                 for (let i = 0; i < increment; ++i) {
                   sut.increment();
                 }
@@ -131,7 +131,7 @@ describe('ListenerTracker', function () {
 
             describe('decrement()', function () {
               it(_`removes the event listener (increment=${increment}, eventName=${eventName}, capture=${capture}, bubbles=${bubbles}, listener=${listener})`, function () {
-                const { ctx, sut, el, event, handlerPath } = setup(eventName, listener, capture, bubbles);
+                const { ctx, sut, el, event, handlerPath } = createFixture(eventName, listener, capture, bubbles);
                 for (let i = 0; i < increment; ++i) {
                   sut.increment();
                 }
@@ -174,7 +174,7 @@ describe('ListenerTracker', function () {
 });
 
 describe('DelegateOrCaptureSubscription', function () {
-  function setup(eventName: string) {
+  function createFixture(eventName: string) {
     const entry = {
       decrement: createSpy(),
     };
@@ -187,7 +187,7 @@ describe('DelegateOrCaptureSubscription', function () {
 
   for (const eventName of ['foo', 'bar']) {
     it(_`dispose() decrements and removes the callback (eventName=${eventName})`, function () {
-      const { sut, lookup, callback, entry } = setup(eventName);
+      const { sut, lookup, callback, entry } = createFixture(eventName);
       assert.strictEqual(lookup[eventName], callback, 'lookup[eventName]');
       sut.dispose();
       assert.strictEqual(lookup[eventName], null, 'lookup[eventName]');
@@ -203,7 +203,7 @@ describe('DelegateOrCaptureSubscription', function () {
 });
 
 describe('TriggerSubscription', function () {
-  function setup(listener: EventListenerOrEventListenerObject | null, eventName: string, bubbles: boolean) {
+  function createFixture(listener: EventListenerOrEventListenerObject | null, eventName: string, bubbles: boolean) {
     const ctx = TestContext.createHTMLTestContext();
     const handler = createSpy();
 
@@ -227,7 +227,7 @@ describe('TriggerSubscription', function () {
     return { ctx, callback, sut, handler, event, el };
   }
 
-  function tearDown({ ctx, el }: Partial<ReturnType<typeof setup>>) {
+  function tearDown({ ctx, el }: Partial<ReturnType<typeof createFixture>>) {
     ctx.doc.body.removeChild(el);
   }
 
@@ -235,7 +235,7 @@ describe('TriggerSubscription', function () {
     for (const eventName of ['foo', 'bar']) {
       for (const listener of [null, { handleEvent: null }]) {
         it(_`dispose() removes the event listener (eventName=${eventName}, bubbles=${bubbles}, listener=${listener})`, function () {
-          const { ctx, sut, callback, event, el } = setup(listener, eventName, bubbles);
+          const { ctx, sut, callback, event, el } = createFixture(listener, eventName, bubbles);
 
           el.dispatchEvent(event);
 
@@ -279,7 +279,7 @@ describe('TriggerSubscription', function () {
 });
 
 describe('EventSubscriber', function () {
-  function setup(listener: EventListenerOrEventListenerObject, eventNames: string[], bubbles: boolean) {
+  function createFixture(listener: EventListenerOrEventListenerObject, eventNames: string[], bubbles: boolean) {
     const ctx = TestContext.createHTMLTestContext();
     const handler = createSpy();
 
@@ -304,7 +304,7 @@ describe('EventSubscriber', function () {
     return { ctx, sut, handler, listener, events, el };
   }
 
-  function tearDown({ ctx, el }: Partial<ReturnType<typeof setup>>) {
+  function tearDown({ ctx, el }: Partial<ReturnType<typeof createFixture>>) {
     ctx.doc.body.removeChild(el);
   }
 
@@ -312,7 +312,7 @@ describe('EventSubscriber', function () {
     for (const eventNames of [['foo', 'bar', 'baz'], ['click', 'change', 'input']]) {
       for (const listenerObj of [null, { handleEvent: null }]) {
         it(_`subscribe() adds the event listener (eventNames=${eventNames}, bubbles=${bubbles}, listenerObj=${listenerObj})`, function () {
-          const { ctx, sut, handler, listener, events, el } = setup(listenerObj, eventNames, bubbles);
+          const { ctx, sut, handler, listener, events, el } = createFixture(listenerObj, eventNames, bubbles);
 
           sut.subscribe(el, listener);
 
@@ -465,7 +465,7 @@ describe('EventManager', function () {
   // });
 
   describe('addEventListener()', function () {
-    function setup(
+    function createFixture(
       eventName: string,
       listener: EventListenerOrEventListenerObject,
       bubbles: boolean,
@@ -524,7 +524,7 @@ describe('EventManager', function () {
       return { ctx, sut, wrapper, parentEl, childEl, parentSubscription, childSubscription, childListener, parentListener, childHandlerPath, parentHandlerPath, event };
     }
 
-    function tearDown({ ctx, wrapper, parentSubscription, childSubscription }: Partial<ReturnType<typeof setup>>) {
+    function tearDown({ ctx, wrapper, parentSubscription, childSubscription }: Partial<ReturnType<typeof createFixture>>) {
       parentSubscription.dispose();
       childSubscription.dispose();
       ctx.doc.body.removeChild(wrapper);
@@ -551,7 +551,7 @@ describe('EventManager', function () {
                       parentHandlerPath,
                       childHandlerPath,
                       event
-                    } = setup(eventName, listenerObj, bubbles, stopPropagation, returnValue, strategy, shadow);
+                    } = createFixture(eventName, listenerObj, bubbles, stopPropagation, returnValue, strategy, shadow);
 
                     switch (strategy) {
                       case DelegationStrategy.bubbling:

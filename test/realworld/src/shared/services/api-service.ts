@@ -36,9 +36,13 @@ export class ApiService {
     };
     try {
       const response = await this.http.fetch(`${config.apiUrl}${path}?${qs.stringify(params)}`, options);
-      return status(response);
+      return await status(response);
     } catch (error) {
-      return parseError(error);
+      try {
+        return await parseError(error);
+      } catch {
+        return undefined;
+      }
     }
   }
 
@@ -50,9 +54,13 @@ export class ApiService {
     };
     try {
       const response = await this.http.fetch(`${config.apiUrl}${path}`, options);
-      return status(response);
+      return await status(response);
     } catch (error) {
-      return parseError(error);
+      try {
+        return await parseError(error);
+      } catch {
+        return undefined;
+      }
     }
   }
 
@@ -64,9 +72,13 @@ export class ApiService {
     };
     try {
       const response = await this.http.fetch(`${config.apiUrl}${path}`, options);
-      return status(response);
+      return await status(response);
     } catch (error) {
-      return parseError(error);
+      try {
+        return await parseError(error);
+      } catch {
+        return undefined;
+      }
     }
   }
 
@@ -77,9 +89,13 @@ export class ApiService {
     };
     try {
       const response = await this.http.fetch(`${config.apiUrl}${path}`, options);
-      return status(response);
+      return await status(response);
     } catch (error) {
-      return parseError(error);
+      try {
+        return await parseError(error);
+      } catch {
+        return undefined;
+      }
     }
   }
 }

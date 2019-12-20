@@ -12,9 +12,11 @@ Before you run `makes`, you will need a recent version of Node.js installed on y
 
 Next, using [`npx`](https://medium.com/@maybekatz/introducing-npx-an-npm-package-runner-55f7d4bd282b), a tool distributed with Node.js, we'll create a new Aurelia app. Open a command prompt and run the following command:
 
+{% code title="" %}
 ```bash
 npx makes aurelia
 ```
+{% endcode %}
 
 `makes` will then start the Aurelia project wizard, asking you a few questions to help you get things set up properly. When prompted, give your project the name "todo-app" and then select a default setup, either ESNext or TypeScript, depending on your preference. Finally, choose "yes" to install the project dependencies.
 

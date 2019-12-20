@@ -20,15 +20,15 @@ In most applications, your model is not only composed of objects, but also of va
 
 Aurelia is able to render elements for each item in an array. Let's look at a basic example:
 
-{% code-tabs %}
-{% code-tabs-item title="my-app.html" %}
+{% tabs %}
+{% tab title="my-app.html" %}
 ```markup
 <h1>My Friends</h1>
 <p repeat.for="friend of friends">Hello, ${friend}!</p>
 ```
-{% endcode-tabs-item %}
+{% endtab %}
 
-{% code-tabs-item title="my-app.js" %}
+{% tab title="my-app.js" %}
 ```javascript
 export class MyApp { 
   constructor() { 
@@ -36,23 +36,21 @@ export class MyApp {
   } 
 }
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endtab %}
+{% endtabs %}
 
 This template allows us to list out our friends and greet them one by one, rather than attempting to greet all 7 billion inhabitants of the world at once 🤣 Notice that `for="friend of friends"` bears a strong resemblance to the JavaScript equivalent `for(let friend of friends)`. By design, Aurelia matches JavaScript syntax in its templates as much as possible, while still maintaining compatibility with the HTML standard.
 
 What if we need to repeat elements, but don't want an artificial container element around them? As mentioned above, we can use the template element as our repeater so that a container is not needed.
 
-{% code-tabs %}
-{% code-tabs-item title="my-app.html" %}
+{% code title="my-app.html" %}
 ```markup
 <h1>My Friends</h1>
 <template repeat.for="friend of friends">
   <p>Hello, ${friend}!</p>
 </template>
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 {% hint style="warning" %}
 **Important**
@@ -66,28 +64,24 @@ Aurelia will observe your array for changes and update the DOM efficiently. Howe
 
 Additionally, two-way binding that changes the value at an index \(rather than the property of a value at an index\) requires a special syntax due to the nature of the `for-of` loop construct in JavaScript itself. Do not use `repeat.for="item of dataArray"` if you intend to update arrays by index; doing so will result in one-way binding only - values typed into an input will not be bound back. Instead use the following syntax:
 
-{% code-tabs %}
-{% code-tabs-item title="my-app.html" %}
+{% code title="my-app.html" %}
 ```markup
 <div repeat.for="i of dataArray.length">
   <input type="text" value.bind="$parent.dataArray[i]">
 </div>
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 ## Ranges
 
 The previous example showed iterating based on array length. This is a specific example of Aurelia's more general ability to iterate over ranges. Here's an example using numeric ranges only.
 
-{% code-tabs %}
-{% code-tabs-item title="my-app.html" %}
+{% code title="my-app.html" %}
 ```markup
 <p repeat.for="i of 10">${10-i}</p>
 <p>Blast Off!<p>
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 Note that the range will start at 0 with a length of 10, so our countdown really does start at 10 and end at 1 before blast off.
 
@@ -95,14 +89,14 @@ Note that the range will start at 0 with a length of 10, so our countdown really
 
 Aurelia's repeater isn't limited to simple arrays and ranges. It can also work with a JavaScript `Set`. Here's a simple example showing how that works.
 
-{% code-tabs %}
-{% code-tabs-item title="my-app.html" %}
+{% tabs %}
+{% tab title="my-app.html" %}
 ```markup
 <p repeat.for="friend of friends">Hello, ${friend}!</p>
 ```
-{% endcode-tabs-item %}
+{% endtab %}
 
-{% code-tabs-item title="my-app.js" %}
+{% tab title="my-app.js" %}
 ```javascript
 export class MyApp {
   constructor() {
@@ -114,23 +108,23 @@ export class MyApp {
   }
 }
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endtab %}
+{% endtabs %}
 
 ## Maps
 
 One of the more useful iterables is the `Map`, because you can decompose the key and value into two variables directly in the repeater. Although you can repeat over objects in a straight forward way, maps can be two-way bound much more easily than objects, so you should try to use maps where possible.
 
-{% code-tabs %}
-{% code-tabs-item title="my-app.html" %}
+{% tabs %}
+{% tab title="my-app.html" %}
 ```markup
 <p repeat.for="[greeting, friend] of friends">
   ${greeting}, ${friend.name}!
 </p>
 ```
-{% endcode-tabs-item %}
+{% endtab %}
 
-{% code-tabs-item title="my-app.js" %}
+{% tab title="my-app.js" %}
 ```javascript
 export class MyApp {
   constructor() {
@@ -142,8 +136,8 @@ export class MyApp {
   }
 }
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endtab %}
+{% endtabs %}
 
 One thing to notice in the example above is the dereference operator in `[greeting, friend]` - which breaks apart the map's key-value pair into `greeting`, the key, and `friend`, the value. Note that because all of our values are objects with the `name` property set, we can get our friend's name with `${friend.name}`, just like in standard JavaScript!
 
@@ -151,16 +145,16 @@ One thing to notice in the example above is the dereference operator in `[greeti
 
 Let's see if we accomplish the same thing as we did with `Map`, but using a traditional JavaScript object as an associative array in our view-model.
 
-{% code-tabs %}
-{% code-tabs-item title="my-app.html" %}
+{% tabs %}
+{% tab title="my-app.html" %}
 ```markup
 <p repeat.for="greeting of friends | keys">
   ${greeting}, ${friends[greeting].name}!
 </p>
 ```
-{% endcode-tabs-item %}
+{% endtab %}
 
-{% code-tabs-item title="my-app.js" %}
+{% tab title="my-app.js" %}
 ```javascript
 export class MyApp {
   constructor() {
@@ -179,8 +173,8 @@ export class KeysValueConverter {
   }
 }
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endtab %}
+{% endtabs %}
 
 In order to achieve this with plain objects, we had to introduce something called a "value converter". The binding system takes the `friends` value and pipes it through the `keys` value converter. Aurelia calls the converter's `toView()` method with our `friends` object, which returns an array of object keys that we can iterate through. In a pinch, we can use this to iterate over the object.
 

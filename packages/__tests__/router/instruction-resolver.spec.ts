@@ -124,7 +124,7 @@ describe('InstructionResolver', function () {
       const prefixedInstruction = `../../${instruction}`;
 
       it(`parses viewport instruction: ${prefixedInstruction}`, async function () {
-        const { host, router, tearDown } = await setup();
+        const { host, router, tearDown } = await createFixture();
 
         viewportInstruction.context = '../../';
         const parsed = router.instructionResolver.parseViewportInstruction(prefixedInstruction);
@@ -214,7 +214,7 @@ describe('InstructionResolver', function () {
 
   for (const parameters of parametersStrings) {
     it(`parses and stringifies component parameters: ${parameters.params} => ${parameters.result}`, async function () {
-      const { router, tearDown } = await setup();
+      const { router, tearDown } = await createFixture();
 
       const parsed = router.instructionResolver.parseComponentParameters(parameters.params);
       // console.log('parsed', parsed);
@@ -225,7 +225,7 @@ describe('InstructionResolver', function () {
   }
   for (const parameters of parametersStrings) {
     it(`parses and specifies component parameters: ${parameters.params} => ${JSON.stringify(parameters.result)}`, async function () {
-      const { router, tearDown } = await setup();
+      const { router, tearDown } = await createFixture();
 
       const instruction = router.createViewportInstruction('', '', parameters.params);
       const specified = instruction.toSpecifiedParameters(parameters.spec);
@@ -236,7 +236,7 @@ describe('InstructionResolver', function () {
   for (const outer of parametersStrings) {
     for (const inner of parametersStrings) {
       it(`compares component parameters: ${outer.params} == ${inner.params} [${outer.spec.join(',')}]`, async function () {
-        const { router, tearDown } = await setup();
+        const { router, tearDown } = await createFixture();
 
         const Test = CustomElement.define({ name: 'test', template: '' }, class {
           public static parameters = outer.spec;

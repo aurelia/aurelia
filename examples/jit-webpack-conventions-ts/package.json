@@ -1,6 +1,7 @@
 {
   "name": "jit-webpack-conventions-ts",
   "license": "MIT",
+  "private": true,
   "engines": {
     "node": ">=10.16.0",
     "npm": ">=6.1.0"
@@ -24,6 +25,6 @@
     "@aurelia/webpack-loader": "dev",
     "ts-loader": "^6.0.0",
     "@types/node": "^12.0.0",
-    "typescript": "^3.0.0"
+    "typescript": "^3.7.3"
   }
 }

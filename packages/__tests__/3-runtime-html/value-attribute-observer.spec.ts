@@ -19,7 +19,7 @@ describe.skip('ValueAttributeObserver', function () {
     { inputType: 'url',      nullValues: [null, undefined], validValues: ['', 'foo'] }
   ]) {
     describe(`setValue() - type="${inputType}"`, function () {
-      function setup(hasSubscriber: boolean) {
+      function createFixture(hasSubscriber: boolean) {
         const ctx = TestContext.createHTMLTestContext();
         const { container, lifecycle, observerLocator, scheduler } = ctx;
 
@@ -36,7 +36,7 @@ describe.skip('ValueAttributeObserver', function () {
         return { ctx, container, lifecycle, observerLocator, el, sut, subscriber, scheduler };
       }
 
-      function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof setup>>) {
+      function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
         ctx.doc.body.removeChild(el);
       }
 
@@ -46,7 +46,7 @@ describe.skip('ValueAttributeObserver', function () {
 
             it(_`hasSubscriber=${hasSubscriber}, valueBefore=${valueBefore}, valueAfter=${valueAfter}`, function () {
 
-              const { ctx, sut, lifecycle, el, subscriber, scheduler } = setup(hasSubscriber);
+              const { ctx, sut, lifecycle, el, subscriber, scheduler } = createFixture(hasSubscriber);
 
               const expectedValueBefore = nullValues.includes(valueBefore) ? '' : valueBefore;
               const expectedValueAfter = nullValues.includes(valueAfter) ? '' : valueAfter;
@@ -99,7 +99,7 @@ describe.skip('ValueAttributeObserver', function () {
     });
 
     describe(`handleEvent() - type="${inputType}"`, function () {
-      function setup() {
+      function createFixture() {
         const ctx = TestContext.createHTMLTestContext();
         const { container, observerLocator } = ctx;
 
@@ -114,7 +114,7 @@ describe.skip('ValueAttributeObserver', function () {
         return { ctx, container, observerLocator, el, sut, subscriber };
       }
 
-      function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof setup>>) {
+      function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
         ctx.doc.body.removeChild(el);
       }
 
@@ -124,7 +124,7 @@ describe.skip('ValueAttributeObserver', function () {
 
             it(_`valueBefore=${valueBefore}, valueAfter=${valueAfter}`, function () {
 
-              const { ctx, sut, el, subscriber } = setup();
+              const { ctx, sut, el, subscriber } = createFixture();
 
               const expectedValueBefore = valueBefore == null ? '' : `${valueBefore}`;
               const expectedValueAfter = valueAfter == null ? '' : `${valueAfter}`;

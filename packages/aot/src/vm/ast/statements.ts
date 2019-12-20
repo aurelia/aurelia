@@ -2192,7 +2192,7 @@ export class $TryStatement implements I$Node {
 
       // 4. For each element argName of the BoundNames of CatchParameter, do
       // 4. a. Perform ! catchEnvRec.CreateMutableBinding(argName, false).
-      // eslint-disable-next-line no-unused-expressions
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       catchClause?.CreateBinding(ctx, realm);
 
       // 5. Set the running execution context's LexicalEnvironment to catchEnv.

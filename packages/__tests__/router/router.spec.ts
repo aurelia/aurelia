@@ -14,7 +14,7 @@ describe('Router', function () {
     return router;
   }
 
-  async function setup(config?, App?) {
+  async function createFixture(config?, App?) {
     const ctx = TestContext.createHTMLTestContext();
     const { container, scheduler } = ctx;
 
@@ -121,7 +121,7 @@ describe('Router', function () {
   it('can be created', async function () {
     this.timeout(5000);
 
-    const { router, tearDown } = await setup();
+    const { router, tearDown } = await createFixture();
 
     await tearDown();
   });
@@ -129,7 +129,7 @@ describe('Router', function () {
   it('loads viewports left and right', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     assert.includes(host.textContent, 'left', `host.textContent`);
     assert.includes(host.textContent, 'right', `host.textContent`);
@@ -140,7 +140,7 @@ describe('Router', function () {
   it('navigates to foo in left', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     await $goto('foo@left', router, scheduler);
     assert.includes(host.textContent, 'foo', `host.textContent`);
@@ -151,7 +151,7 @@ describe('Router', function () {
   it('queues navigations', async function () {
     this.timeout(40000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     router.goto('uier@left').catch((error) => { throw error; });
     const last = router.goto('bar@left');
@@ -166,7 +166,7 @@ describe('Router', function () {
   it('clears viewport', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     await $goto('foo@left', router, scheduler);
     assert.includes(host.textContent, 'foo', `host.textContent`);
@@ -179,7 +179,7 @@ describe('Router', function () {
   it('clears all viewports', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     await $goto('foo@left', router, scheduler);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
@@ -195,7 +195,7 @@ describe('Router', function () {
   it('replaces foo in left', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     const historyLength = router.navigation.history.length;
     await $goto('foo@left', router, scheduler);
@@ -213,7 +213,7 @@ describe('Router', function () {
   it('navigates to bar in right', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     await $goto('bar@right', router, scheduler);
     assert.includes(host.textContent, 'bar', `host.textContent`);
@@ -224,7 +224,7 @@ describe('Router', function () {
   it('navigates to foo in left then bar in right', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     await $goto('foo@left', router, scheduler);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
@@ -240,7 +240,7 @@ describe('Router', function () {
   it('reloads state when refresh method is called', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     await $goto('foo@left', router, scheduler);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
@@ -260,7 +260,7 @@ describe('Router', function () {
   it('navigates back and forward with one viewport', async function () {
     this.timeout(40000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     await $goto('foo@left', router, scheduler);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
@@ -286,7 +286,7 @@ describe('Router', function () {
   it('navigates back and forward with two viewports', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     await $goto('foo@left', router, scheduler);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
@@ -312,7 +312,7 @@ describe('Router', function () {
   it('navigates to foo/bar in left/right', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     await $goto('foo@left+bar@right', router, scheduler);
     assert.includes(host.textContent, 'foo', `host.textContent`);
@@ -324,7 +324,7 @@ describe('Router', function () {
   it('cancels if not canLeave', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     quxCantLeave = 1;
 
@@ -344,7 +344,7 @@ describe('Router', function () {
   it('cancels if not child canLeave', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     quxCantLeave = 1;
 
@@ -366,7 +366,7 @@ describe('Router', function () {
   it('navigates to foo/bar in left/right containing baz/qux respectively', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     // await $goto('foo@left+bar@right+baz@foo+qux@bar', router, scheduler);
     await $goto('foo@left/baz@foo+bar@right/qux@bar', router, scheduler);
@@ -381,7 +381,7 @@ describe('Router', function () {
   it('handles anchor click', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup({ useHref: true });
+    const { scheduler, host, router, tearDown } = await createFixture({ useHref: true });
 
     await $goto('foo@left', router, scheduler);
     assert.includes(host.textContent, 'foo', `host.textContent`);
@@ -426,7 +426,7 @@ describe('Router', function () {
       public constructor() { this['IdName'] = IdName; }
     }
 
-    const { host, router, container, tearDown, scheduler } = await setup({ useHref: false }, App);
+    const { host, router, container, tearDown, scheduler } = await createFixture({ useHref: false }, App);
 
     container.register(IdName);
 
@@ -451,7 +451,7 @@ describe('Router', function () {
   it('understands used-by', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     await $goto('corge@left', router, scheduler);
     assert.includes(host.textContent, 'Viewport: corge', `host.textContent`);
@@ -465,7 +465,7 @@ describe('Router', function () {
   it('does not update fullStatePath on wrong history entry', async function () {
     this.timeout(40000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     await $goto('foo@left', router, scheduler);
     await $goto('bar@left', router, scheduler);
@@ -477,7 +477,7 @@ describe('Router', function () {
   it('parses parameters after component', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     await $goto('bar(123)@left', router, scheduler);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
@@ -493,7 +493,7 @@ describe('Router', function () {
   it('parses named parameters after component', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     await $goto('bar(id=123)@left', router, scheduler);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
@@ -509,7 +509,7 @@ describe('Router', function () {
   it('parses parameters after component individually', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     await $goto('bar(123)@left', router, scheduler);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
@@ -526,7 +526,7 @@ describe('Router', function () {
   it('parses parameters without viewport', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     await $goto('corge@left/baz(123)', router, scheduler);
     assert.includes(host.textContent, 'Viewport: corge', `host.textContent`);
@@ -539,7 +539,7 @@ describe('Router', function () {
   it('parses named parameters without viewport', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     await $goto('corge@left/baz(id=123)', router, scheduler);
 
@@ -553,7 +553,7 @@ describe('Router', function () {
   it('parses multiple parameters after component', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     await $goto('bar(123&OneTwoThree)@left', router, scheduler);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
@@ -571,7 +571,7 @@ describe('Router', function () {
   it('parses multiple name parameters after component', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     await $goto('bar(id=123&name=OneTwoThree)@left', router, scheduler);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
@@ -589,7 +589,7 @@ describe('Router', function () {
   it('parses querystring', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     await $goto('bar@left?id=123', router, scheduler);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
@@ -606,7 +606,7 @@ describe('Router', function () {
   it('overrides querystring with parameter', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     await $goto('bar(456)@left?id=123', router, scheduler);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
@@ -628,7 +628,7 @@ describe('Router', function () {
   it('uses default reentry behavior', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     await $goto('plugh(123)@left', router, scheduler);
     assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
@@ -652,7 +652,7 @@ describe('Router', function () {
   it('uses overriding reentry behavior', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     plughReentryBehavior = 'enter'; // Affects navigation AFTER this one
     await $goto('plugh(123)@left', router, scheduler);
@@ -690,7 +690,7 @@ describe('Router', function () {
   it('loads default when added by if condition becoming true', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     await $goto('grault@left', router, scheduler);
     assert.includes(host.textContent, 'toggle', `host.textContent`);
@@ -726,7 +726,7 @@ describe('Router', function () {
     it('keeps input when stateful', async function () {
       this.timeout(5000);
 
-      const { scheduler, host, router, tearDown } = await setup();
+      const { scheduler, host, router, tearDown } = await createFixture();
 
       await $goto('grault@left', router, scheduler);
       assert.includes(host.textContent, 'toggle', `host.textContent`);
@@ -760,7 +760,7 @@ describe('Router', function () {
   it.skip('keeps input when grandparent stateful', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     await $goto('waldo@left', router, scheduler);
     assert.includes(host.textContent, 'Viewport: waldo', `host.textContent`);
@@ -796,7 +796,7 @@ describe('Router', function () {
   it.skip('keeps children\'s custom element\'s input when navigation history stateful', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown, container } = await setup({ statefulHistoryLength: 2 });
+    const { scheduler, host, router, tearDown, container } = await createFixture({ statefulHistoryLength: 2 });
 
     const GrandGrandChild = CustomElement.define({ name: 'grandgrandchild', template: '|grandgrandchild|<input>' }, null);
     const GrandChild = CustomElement.define({ name: 'grandchild', template: '|grandchild|<input> <grandgrandchild></grandgrandchild>', dependencies: [GrandGrandChild] }, null);
@@ -856,7 +856,7 @@ describe('Router', function () {
   it.skip('loads scoped viewport', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await setup();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
     await $goto('quux@left', router, scheduler);
     assert.includes(host.textContent, 'Viewport: quux', `host.textContent`);

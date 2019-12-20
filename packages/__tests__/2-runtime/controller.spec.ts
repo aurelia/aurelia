@@ -151,7 +151,7 @@ describe.skip('controller', function () {
     return addTracingHooks($ViewModel);
   }
 
-  function setup() {
+  function createFixture() {
     resetId('au$component');
 
     const ctx = TestContext.createHTMLTestContext();
@@ -189,7 +189,7 @@ describe.skip('controller', function () {
         container,
         host,
         calls,
-      } = setup();
+      } = createFixture();
 
       const flags = LF.none;
 
@@ -317,7 +317,7 @@ describe.skip('controller', function () {
         container,
         host,
         calls,
-      } = setup();
+      } = createFixture();
 
       const flags = LF.none;
 
@@ -711,7 +711,7 @@ describe.skip('controller', function () {
         container,
         host,
         calls,
-      } = setup();
+      } = createFixture();
 
       const flags = LF.none;
 

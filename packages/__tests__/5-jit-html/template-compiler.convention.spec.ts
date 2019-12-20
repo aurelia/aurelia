@@ -99,8 +99,8 @@ describe('template-compiler.convention.spec.ts \n\thtml convention', function ()
 });
 
 interface IExpectedInstruction {
-  toVerify: string[];
   [prop: string]: any;
+  toVerify: string[];
 }
 
 function verifyInstructions(actual: readonly ITargetedInstruction[], expectation: IExpectedInstruction[], type?: string) {

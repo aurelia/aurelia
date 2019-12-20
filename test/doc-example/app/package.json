@@ -27,11 +27,11 @@
     "@aurelia/webpack-loader": "0.6.0",
     "ts-loader": "^6.2.1",
     "@types/node": "^12.12.7",
-    "typescript": "^3.7.2",
+    "typescript": "^3.7.3",
     "tslint": "^5.20.1",
     "cypress": "^3.6.1",
     "babel-eslint": "^10.0.3",
-    "eslint": "^6.6.0",
+    "eslint": "^6.7.2",
     "http-server": "0.9.0"
   },
   "scripts": {

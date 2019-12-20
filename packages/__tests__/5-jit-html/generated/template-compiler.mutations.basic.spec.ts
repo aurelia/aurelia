@@ -3,14 +3,14 @@
 // import { TestContext } from "@aurelia/testing";
 
 // describe("generated.template-compiler.mutations.basic", function () {
-//     function setup() {
+//     function createFixture() {
 //         const ctx = TestContext.createHTMLTestContext();
 //         const au = new Aurelia(ctx.container);
 //         const host = ctx.createElement("div");
 //         return { au, host, ctx };
 //     }
 //     it("works 1", function () {
-//         const { au, host } = setup();
+//         const { au, host } = createFixture();
 //         const App = CustomElement.define({ name: "app", template: "<template><foo></foo></template>" }, class {
 //         });
 //         const items = [];
@@ -78,7 +78,7 @@
 //         assert.deepStrictEqual(items, [1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8], `items`);
 //     });
 //     it("works 2", function () {
-//         const { au, host } = setup();
+//         const { au, host } = createFixture();
 //         const App = CustomElement.define({ name: "app", template: "<template><foo></foo></template>" }, class {
 //         });
 //         const items = [];
@@ -141,7 +141,7 @@
 //         assert.deepStrictEqual(items, [1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8], `items`);
 //     });
 //     it("works 3", function () {
-//         const { au, host } = setup();
+//         const { au, host } = createFixture();
 //         const App = CustomElement.define({ name: "app", template: "<template><foo></foo></template>" }, class {
 //         });
 //         const items = [];
@@ -211,7 +211,7 @@
 //         assert.deepStrictEqual(items, [1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8], `items`);
 //     });
 //     it("works 4", function () {
-//         const { au, host } = setup();
+//         const { au, host } = createFixture();
 //         const App = CustomElement.define({ name: "app", template: "<template><foo></foo></template>" }, class {
 //         });
 //         const items = [];

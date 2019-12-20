@@ -59,7 +59,7 @@ function elemNull(v: any) {
 
 function waitForCondition(driver: WebDriver) {
   return async function (text: string, fn: (driver: WebDriver) => Promise<boolean>, timeout: number): Promise<boolean> {
-    // eslint-disable-next-line no-return-await
+    // eslint-disable-next-line no-return-await, @typescript-eslint/return-await
     return await driver.wait(new Condition<Promise<boolean>>(text, fn), timeout);
   };
 }
@@ -171,7 +171,8 @@ export function testElementLocatedById(driver: WebDriver, id: string, timeout = 
 async function retry<T>(retryCount: number, driver: WebDriver, fun: (driver:  WebDriver, retryCount: number) => Promise<T>):  Promise<T> {
   for (let i=0; i<retryCount; i++) {
     try {
-      return fun(driver, i);
+      // eslint-disable-next-line no-await-in-loop
+      return await fun(driver, i);
     } catch (err) {
       console.log("retry failed");
     }

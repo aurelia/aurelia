@@ -354,6 +354,6 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
 });
 
 interface IExpectedInstruction {
-  toVerify: string[];
   [prop: string]: any;
+  toVerify: string[];
 }

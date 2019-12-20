@@ -10,7 +10,7 @@ import { SpySubscriber, assert, TestContext, ChangeSet } from '@aurelia/testing'
 const getName = (o: any) => Object.prototype.toString.call(o).slice(8, -1);
 
 describe('PrimitiveObserver', function () {
-  function setup(obj: Primitive, key: PropertyKey) {
+  function createFixture(obj: Primitive, key: PropertyKey) {
     const sut = new PrimitiveObserver(obj, key);
 
     return { sut };
@@ -27,7 +27,7 @@ describe('PrimitiveObserver', function () {
       for (const propertyName of propertyNameArr) {
         const propName = typeof propertyName === 'string' ? `'${propertyName}'` : typeof propertyName;
         it(`should correctly handle ${typeof primitive}[${propName}]`, function () {
-          const { sut } = setup(primitive, propertyName);
+          const { sut } = createFixture(primitive, propertyName);
           if (propertyName === 'length') {
             if (typeof primitive === 'string') {
               const actual = sut.getValue();
@@ -75,7 +75,7 @@ describe('PrimitiveObserver', function () {
 class Foo {}
 
 describe('SetterObserver', function () {
-  function setup(flags: LF, obj: IIndexable, key: string) {
+  function createFixture(flags: LF, obj: IIndexable, key: string) {
     const ctx = TestContext.createHTMLTestContext();
     const lifecycle = ctx.lifecycle;
     const sut = new SetterObserver(lifecycle, flags, obj, key);
@@ -89,7 +89,7 @@ describe('SetterObserver', function () {
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         it(`should correctly handle ${getName(object)}[${typeof propertyName}]`, function () {
-          const { sut } = setup(LF.none, object, propertyName as any);
+          const { sut } = createFixture(LF.none, object, propertyName as any);
           sut.subscribe(new SpySubscriber());
           const actual = sut.getValue();
           assert.strictEqual(actual, object[propertyName], `actual`);
@@ -107,7 +107,7 @@ describe('SetterObserver', function () {
       for (const propertyName of propertyNameArr) {
         for (const value of valueArr) {
           it(`should correctly handle ${getName(object)}[${typeof propertyName}]=${getName(value)}`, function () {
-            const { sut } = setup(LF.none, object, propertyName as any);
+            const { sut } = createFixture(LF.none, object, propertyName as any);
             sut.subscribe(new SpySubscriber());
             sut.setValue(value, flags);
             assert.strictEqual(object[propertyName], value, `object[propertyName]`);
@@ -124,7 +124,7 @@ describe('SetterObserver', function () {
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         it(`can handle ${getName(object)}[${typeof propertyName}]`, function () {
-          const { sut } = setup(LF.none, object, propertyName as any);
+          const { sut } = createFixture(LF.none, object, propertyName as any);
           sut.subscribe(new SpySubscriber());
         });
       }
@@ -143,7 +143,7 @@ describe('SetterObserver', function () {
           for (const subscribers of subscribersArr) {
             const object = {};
             it(`should notify ${subscribers.length} subscriber(s) for ${getName(object)}[${typeof propertyName}]=${getName(value)}`, function () {
-              const { sut } = setup(LF.none, object, propertyName as any);
+              const { sut } = createFixture(LF.none, object, propertyName as any);
               for (const subscriber of subscribers) {
                 sut.subscribe(subscriber);
               }
@@ -181,7 +181,7 @@ describe('SetterObserver', function () {
 });
 
 describe('BindableObserver', function () {
-  function setup(flags: LF, obj: IIndexable, key: string) {
+  function createFixture(flags: LF, obj: IIndexable, key: string) {
     const ctx = TestContext.createHTMLTestContext();
     const lifecycle = ctx.lifecycle;
     const sut = new BindableObserver(lifecycle, flags, obj, key, `${key ? key.toString() : `${key}`}Changed`, PLATFORM.noop);
@@ -192,7 +192,7 @@ describe('BindableObserver', function () {
   it('initializes the default callback to undefined', function () {
     const values = createObjectArr();
     values.forEach(value => {
-      const observer = setup(LF.none, {}, 'a');
+      const observer = createFixture(LF.none, {}, 'a');
       assert.strictEqual(observer['callback'], void 0, `observer['callback']`);
     });
   });
@@ -203,7 +203,7 @@ describe('BindableObserver', function () {
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         it(`should correctly handle ${getName(object)}[${typeof propertyName}]`, function () {
-          const { sut } = setup(LF.none, object, propertyName as any);
+          const { sut } = createFixture(LF.none, object, propertyName as any);
           sut.subscribe(new SpySubscriber());
           const actual = sut.getValue();
           assert.strictEqual(actual, object[propertyName], `actual`);
@@ -221,7 +221,7 @@ describe('BindableObserver', function () {
       for (const propertyName of propertyNameArr) {
         for (const value of valueArr) {
           it(`should correctly handle ${getName(object)}[${typeof propertyName}]=${getName(value)}`, function () {
-            const { sut } = setup(LF.none, object, propertyName as any);
+            const { sut } = createFixture(LF.none, object, propertyName as any);
             sut.subscribe(new SpySubscriber());
             sut.setValue(value, flags);
             assert.strictEqual(object[propertyName], value, `object[propertyName]`);
@@ -238,7 +238,7 @@ describe('BindableObserver', function () {
     for (const object of objectArr) {
       for (const propertyName of propertyNameArr) {
         it(`can handle ${getName(object)}[${typeof propertyName}]`, function () {
-          const { sut } = setup(LF.none, object, propertyName as any);
+          const { sut } = createFixture(LF.none, object, propertyName as any);
           sut.subscribe(new SpySubscriber());
         });
       }
@@ -257,7 +257,7 @@ describe('BindableObserver', function () {
           for (const subscribers of subscribersArr) {
             const object = {};
             it(`should notify ${subscribers.length} subscriber(s) for ${getName(object)}[${typeof propertyName}]=${getName(value)}`, function () {
-              const { sut } = setup(LF.none, object, propertyName as any);
+              const { sut } = createFixture(LF.none, object, propertyName as any);
               for (const subscriber of subscribers) {
                 sut.subscribe(subscriber);
               }

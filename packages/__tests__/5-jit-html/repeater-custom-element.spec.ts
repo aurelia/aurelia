@@ -103,7 +103,7 @@
 //   it('108.', function () {
 //     @customElement({ name: 'foo', template: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
 //     class Foo { @bindable public text; }
-//     const { au, lifecycle, host, component } = setup(ctx, `<template><foo repeat.for="i of count" text.bind="theText"></foo></template>`, null, Foo);
+//     const { au, lifecycle, host, component } = createFixture(ctx, `<template><foo repeat.for="i of count" text.bind="theText"></foo></template>`, null, Foo);
 //     component.theText = 'a';
 //     component.count = 3;
 
@@ -119,7 +119,7 @@
 //   it('109.', function () {
 //     @customElement({ name: 'foo', template: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
 //     class Foo { @bindable public text; }
-//     const { au, lifecycle, host, component } = setup(ctx, `<template><foo repeat.for="i of count" text.bind="theText"></foo></template>`, null, Foo);
+//     const { au, lifecycle, host, component } = createFixture(ctx, `<template><foo repeat.for="i of count" text.bind="theText"></foo></template>`, null, Foo);
 //     component.theText = 'a';
 //     component.count = 3;
 
@@ -135,7 +135,7 @@
 //   it('110.', function () {
 //     @customElement({ name: 'foo', template: '<template><div repeat.for="item of todos">${item}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
 //     class Foo { @bindable public todos: any[]; }
-//     const { au, lifecycle, host, component } = setup(ctx, `<template><foo repeat.for="i of count" todos.bind="todos"></foo></template>`, null, Foo);
+//     const { au, lifecycle, host, component } = createFixture(ctx, `<template><foo repeat.for="i of count" todos.bind="todos"></foo></template>`, null, Foo);
 //     component.todos = ['a', 'b', 'c'];
 //     component.count = 3;
 
@@ -158,7 +158,7 @@
 //   it('111.', function () {
 //     @customElement({ name: 'foo', template: '<template><div repeat.for="innerTodos of todos"><div repeat.for="item of innerTodos">${item}</div></div></template>', instructions: [], build: { required: true, compiler: 'default' } })
 //     class Foo { @bindable public todos: any[]; }
-//     const { au, lifecycle, host, component } = setup(ctx, `<template><foo repeat.for="i of count" todos.bind="todos"></foo></template>`, null, Foo);
+//     const { au, lifecycle, host, component } = createFixture(ctx, `<template><foo repeat.for="i of count" todos.bind="todos"></foo></template>`, null, Foo);
 //     component.todos = [['a', 'b', 'c'], ['a', 'b', 'c'], ['a', 'b', 'c']];
 //     component.count = 3;
 
@@ -326,7 +326,7 @@
 //   it('208.', function () {
 //     @customElement({ name: 'foo', template: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
 //     class Foo { @bindable public text; }
-//     const { au, lifecycle, host, component } = setup(ctx, `<template><foo repeat.for="i of count & keyed" text.bind="theText"></foo></template>`, null, Foo);
+//     const { au, lifecycle, host, component } = createFixture(ctx, `<template><foo repeat.for="i of count & keyed" text.bind="theText"></foo></template>`, null, Foo);
 //     component.theText = 'a';
 //     component.count = 3;
 
@@ -342,7 +342,7 @@
 //   it('209.', function () {
 //     @customElement({ name: 'foo', template: '<template><div>${text}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
 //     class Foo { @bindable public text; }
-//     const { au, lifecycle, host, component } = setup(ctx, `<template><foo repeat.for="i of count & keyed" text.bind="theText"></foo></template>`, null, Foo);
+//     const { au, lifecycle, host, component } = createFixture(ctx, `<template><foo repeat.for="i of count & keyed" text.bind="theText"></foo></template>`, null, Foo);
 //     component.theText = 'a';
 //     component.count = 3;
 
@@ -358,7 +358,7 @@
 //   it('210.', function () {
 //     @customElement({ name: 'foo', template: '<template><div repeat.for="item of todos & keyed">${item}</div></template>', instructions: [], build: { required: true, compiler: 'default' } })
 //     class Foo { @bindable public todos: any[]; }
-//     const { au, lifecycle, host, component } = setup(ctx, `<template><foo repeat.for="i of count & keyed" todos.bind="todos"></foo></template>`, null, Foo);
+//     const { au, lifecycle, host, component } = createFixture(ctx, `<template><foo repeat.for="i of count & keyed" todos.bind="todos"></foo></template>`, null, Foo);
 //     component.todos = ['a', 'b', 'c'];
 //     component.count = 3;
 
@@ -381,7 +381,7 @@
 //   it('211.', function () {
 //     @customElement({ name: 'foo', template: '<template><div repeat.for="innerTodos of todos & keyed"><div repeat.for="item of innerTodos & keyed">${item}</div></div></template>', instructions: [], build: { required: true, compiler: 'default' } })
 //     class Foo { @bindable public todos: any[]; }
-//     const { au, lifecycle, host, component } = setup(ctx, `<template><foo repeat.for="i of count & keyed" todos.bind="todos"></foo></template>`, null, Foo);
+//     const { au, lifecycle, host, component } = createFixture(ctx, `<template><foo repeat.for="i of count & keyed" todos.bind="todos"></foo></template>`, null, Foo);
 //     component.todos = [['a', 'b', 'c'], ['a', 'b', 'c'], ['a', 'b', 'c']];
 //     component.count = 3;
 

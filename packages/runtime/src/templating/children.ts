@@ -225,7 +225,7 @@ export class ChildrenObserver {
           enumerable: true,
           configurable: true,
           get: () => this.getValue(),
-          set: () => { },
+          set: () => { return; },
         }
       )
     ) {

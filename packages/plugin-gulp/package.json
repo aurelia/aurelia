@@ -42,6 +42,6 @@
     "@types/node": "^12.12.7",
     "@types/vinyl": "^2.0.4",
     "tslib": "^1.10.0",
-    "typescript": "^3.7.2"
+    "typescript": "^3.7.3"
   }
 }

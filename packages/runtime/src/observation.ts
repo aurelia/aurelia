@@ -51,6 +51,8 @@ export interface ICollectionSubscribable {
 }
 
 export interface ISubscriberCollection extends ISubscribable {
+  [key: number]: LifecycleFlags;
+
   /** @internal */_subscriberFlags: SubscriberFlags;
   /** @internal */_subscriber0?: ISubscriber;
   /** @internal */_subscriber1?: ISubscriber;
@@ -62,11 +64,11 @@ export interface ISubscriberCollection extends ISubscribable {
   hasSubscriber(subscriber: ISubscriber): boolean;
   removeSubscriber(subscriber: ISubscriber): boolean;
   addSubscriber(subscriber: ISubscriber): boolean;
-
-  [key: number]: LifecycleFlags;
 }
 
 export interface IProxySubscriberCollection extends IProxySubscribable {
+  [key: number]: LifecycleFlags;
+
   /** @internal */_proxySubscriberFlags: SubscriberFlags;
   /** @internal */_proxySubscriber0?: IProxySubscriber;
   /** @internal */_proxySubscriber1?: IProxySubscriber;
@@ -78,11 +80,11 @@ export interface IProxySubscriberCollection extends IProxySubscribable {
   hasProxySubscriber(subscriber: IProxySubscriber): boolean;
   removeProxySubscriber(subscriber: IProxySubscriber): boolean;
   addProxySubscriber(subscriber: IProxySubscriber): boolean;
-
-  [key: number]: LifecycleFlags;
 }
 
 export interface ICollectionSubscriberCollection extends ICollectionSubscribable {
+  [key: number]: LifecycleFlags;
+
   /** @internal */_collectionSubscriberFlags: SubscriberFlags;
   /** @internal */_collectionSubscriber0?: ICollectionSubscriber;
   /** @internal */_collectionSubscriber1?: ICollectionSubscriber;
@@ -94,8 +96,6 @@ export interface ICollectionSubscriberCollection extends ICollectionSubscribable
   hasCollectionSubscriber(subscriber: ICollectionSubscriber): boolean;
   removeCollectionSubscriber(subscriber: ICollectionSubscriber): boolean;
   addCollectionSubscriber(subscriber: ICollectionSubscriber): boolean;
-
-  [key: number]: LifecycleFlags;
 }
 
 /**

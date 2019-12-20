@@ -43,38 +43,12 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
     @ParentViewport private readonly parentViewport: ViewportCustomElement,
   ) {
     this.element = element as HTMLElement;
-    // console.log('>>> Viewport container', container);
-    // console.log('Viewport constructor', this.getAttribute('name', this.name), this.container, this.parentViewport, CustomElement.for(this.element), this);
-    // if (this.router.rootScope !== null && this.viewport === null) {
-    //   this.connect();
-    // }
   }
-
-  // public render(flags: LifecycleFlags, host: INode, parts: Record<string, CustomElementDefinition>, parentContext: IRenderContext | null): void {
-  //   // console.log('render', this);
-  //   // const Type: any = this.constructor as CustomElementType;
-  //   // if (!parentContext) {
-  //   //   parentContext = this.$controller.context as IRenderContext;
-  //   // }
-  //   // const dom = parentContext.get(IDOM);
-  //   // const template = parentContext.get(IRenderingEngine).getElementTemplate(dom, Type.description, parentContext, Type) as ITemplate;
-  //   // // (template as Writable<ITemplate>).renderContext = new RenderContext(dom, parentContext, Type.description.dependencies, Type);
-  //   // template.render(this, host, parts);
-  //   // this.connect();
-  // }
 
   public afterCompile(controller: ICompiledCustomElementController) {
     this.container = controller.context.get(IContainer);
     // console.log('Viewport creating', this.getAttribute('name', this.name), this.container, this.parentViewport, controller, this);
     // this.connect();
-  }
-  public created() {
-    // console.log('Viewport created', this.getAttribute('name', this.name), this.container, this.parentViewport, CustomElement.for(this.element), this);
-    // console.log('Viewport created', this);
-    // if (this.router.rootScope !== null && this.viewport === null) {
-    //   this.connect();
-    // }
-    // this.router.setClosestViewport(this);
   }
   // public created(...rest): void {
   //   console.log('Created', rest);

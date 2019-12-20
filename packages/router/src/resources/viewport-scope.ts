@@ -5,6 +5,7 @@ import {
   LifecycleFlags,
   customElement,
   CustomElement,
+  ICompiledCustomElementController,
 } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { IViewportScopeOptions, ViewportScope } from '../viewport-scope';
@@ -37,39 +38,13 @@ export class ViewportScopeCustomElement {
     @ParentViewportScope private readonly parent: ViewportScopeCustomElement,
   ) {
     this.element = element as HTMLElement;
-    // console.log('>>> ViewportScope container', container);
-    // console.log('ViewportScope constructor', this.container, this.parent, CustomElement.for(this.element), this);
-    // if (this.router.rootScope !== null && this.viewportScope === null) {
-    //   this.connect();
-    // }
   }
 
-  // public render(flags: LifecycleFlags, host: INode, parts: Record<string, CustomElementDefinition>, parentContext: IRenderContext | null): void {
-  //   // console.log('ViewportScope render', this);
-  //   // const Type: any = this.constructor as CustomElementType;
-  //   // if (!parentContext) {
-  //   //   parentContext = this.$controller.context as IRenderContext;
-  //   // }
-  //   // const dom = parentContext.get(IDOM);
-  //   // const template = parentContext.get(IRenderingEngine).getElementTemplate(dom, Type.description, parentContext, Type) as ITemplate;
-  //   // // (template as Writable<ITemplate>).renderContext = new RenderContext(dom, parentContext, Type.description.dependencies, Type);
-  //   // template.render(this, host, parts);
-  //   // this.connect();
-  // }
-  public creating(controller: any) {
-    this.container = controller.context.container;
+  public afterCompile(controller: ICompiledCustomElementController) {
+    this.container = controller.context.get(IContainer);
     // console.log('ViewportScope creating', this.getAttribute('name', this.name), this.container, this.parent, controller, this);
     // this.connect();
   }
-  public created() {
-    // console.log('ViewportScope created', this);
-    // if (this.router.rootScope !== null && this.viewportScope === null) {
-    //   this.connect();
-    // }
-  }
-  // public binding(): void {
-  //   this.connect();
-  // }
   public afterUnbound(): void {
     this.isBound = false;
   }
@@ -105,12 +80,12 @@ export class ViewportScopeCustomElement {
     this.isBound = true;
     this.connect();
     if (this.viewportScope !== null) {
-      this.viewportScope.binding();
+      this.viewportScope.beforeBind();
     }
   }
   public async beforeUnbind(flags: LifecycleFlags): Promise<void> {
     if (this.viewportScope !== null) {
-      this.viewportScope.unbinding();
+      this.viewportScope.beforeUnbind();
     }
     this.disconnect();
     return Promise.resolve();

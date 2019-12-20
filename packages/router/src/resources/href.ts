@@ -24,9 +24,6 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel<HTMLElemen
 
   public beforeBind(): void {
     if (this.router.options.useHref && !this.hasGoto()) {
-      // ((this as ICustomAttributeViewModel).$controller!.parent!.controllers!
-      //   .filter((c: IController) => c.vmKind === ViewModelKind.customAttribute &&
-      //     c.bindingContext instanceof GotoCustomAttribute).length === 0)) {
       this.eventListener = this.eventManager.addEventListener(
         this.dom, this.element, 'click', this.router.linkHandler.handler, DelegationStrategy.none);
     }

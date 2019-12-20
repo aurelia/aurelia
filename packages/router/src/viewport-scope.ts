@@ -196,13 +196,13 @@ export class ViewportScope implements IScopeOwner {
     return false;
   }
 
-  public binding(): void {
+  public beforeBind(): void {
     const source: unknown[] = this.source || [];
     if (source.length > 0 && this.sourceItem === null) {
       this.sourceItem = this.getAvailableSourceItem();
     }
   }
-  public unbinding(): void {
+  public beforeUnbind(): void {
     if (this.sourceItem !== null && this.source !== null) {
       arrayRemove(this.source!, (item: unknown) => item === this.sourceItem);
     }

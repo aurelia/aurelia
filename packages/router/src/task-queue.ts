@@ -11,11 +11,11 @@ export class QueueTask<T> implements ILifecycleTask {
   public done: boolean = false;
   private readonly promise: Promise<void>;
 
-  resolve!: ((value: void | PromiseLike<void>) => void);
-  reject!: ((value: unknown | PromiseLike<unknown>) => void);
+  public resolve!: ((value: void | PromiseLike<void>) => void);
+  public reject!: ((value: unknown | PromiseLike<unknown>) => void);
 
   public constructor(
-    private taskQueue: TaskQueue<T>,
+    private readonly taskQueue: TaskQueue<T>,
     public item: IQueueableItem<T> | QueueableFunction,
     public cost: number = 0,
   ) {
@@ -42,7 +42,7 @@ export class QueueTask<T> implements ILifecycleTask {
   public canCancel(): boolean {
     return false;
   }
-  public cancel(): void { }
+  public cancel(): void { return; }
 }
 
 export interface ITaskQueueOptions {

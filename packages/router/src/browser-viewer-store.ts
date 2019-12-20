@@ -1,4 +1,3 @@
-// tslint:disable:max-line-length
 import { IDOM, IScheduler } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
 import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions, INavigatorViewerState } from './navigator';
@@ -28,7 +27,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
   private isActive: boolean = false;
   private options: IBrowserViewerStoreOptions = {
     useUrlFragmentHash: true,
-    callback: () => { },
+    callback: () => { return; },
   };
 
   private forwardedState: IForwardedState = { eventTask: null, suppressPopstate: false };
@@ -62,7 +61,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
     }
     this.window.removeEventListener('popstate', this.handlePopstate as (ev: PopStateEvent) => void);
     this.pendingCalls.deactivate();
-    this.options = { useUrlFragmentHash: true, callback: () => { } };
+    this.options = { useUrlFragmentHash: true, callback: () => { return; } };
     this.isActive = false;
   }
 
@@ -167,7 +166,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
         store.popstate(ev, evTask, suppressPopstateEvent);
         task.resolve();
       }, 1).wait();
-  }
+  };
 
   public async popState(doneTask: QueueTask<IAction>): Promise<void> {
     await this.go(-1, true);

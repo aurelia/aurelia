@@ -499,7 +499,7 @@ export class Scope {
       params = result[0].params;
       if (params.remainingPath !== void 0 && (params.remainingPath as string).length > 0) {
         found.remaining = params.remainingPath as string;
-        delete params['remainingPath'];
+        Reflect.deleteProperty(params, 'remainingPath');
         found.matching = found.matching.slice(0, found.matching.indexOf(found.remaining));
       }
     }

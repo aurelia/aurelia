@@ -120,12 +120,8 @@ export class ViewportScope implements IScopeOwner {
       && Array.isArray(this.source);
 
     if (this.add) {
-      // this.addSourceItem();
       viewportInstruction.componentName = null;
     }
-    // if (this.remove && Array.isArray(this.source)) {
-    //   this.removeSourceItem();
-    // }
 
     if (this.default !== void 0 && viewportInstruction.componentName === null) {
       viewportInstruction.componentName = this.default;
@@ -162,9 +158,6 @@ export class ViewportScope implements IScopeOwner {
   }
   public abortContentChange(): Promise<void> {
     this.nextContent = null;
-    // if (this.remove) {
-    //   this.source!.splice(this.sourceItemIndex, 0, this.sourceItem);
-    // }
     if (this.add) {
       const index: number = this.source!.indexOf(this.sourceItem);
       this.source!.splice(index, 1);
@@ -222,8 +215,6 @@ export class ViewportScope implements IScopeOwner {
     return null;
   }
   public addSourceItem(): unknown {
-    // const maxId: number = Math.max(...this.source!.map(item => (item as unknown & { id: number }).id));
-    // const item: unknown = { id: maxId + 1 };
     const item: unknown = {};
     this.source!.push(item);
     return item;
@@ -231,7 +222,6 @@ export class ViewportScope implements IScopeOwner {
   public removeSourceItem(): void {
     this.sourceItemIndex = this.source!.indexOf(this.sourceItem);
     if (this.sourceItemIndex >= 0) {
-      // TODO: This sometimes causes a bug in repeater code. Investigate!
       this.source!.splice(this.sourceItemIndex, 1);
     }
   }

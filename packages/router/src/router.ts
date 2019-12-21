@@ -1,5 +1,4 @@
 /* eslint-disable max-lines-per-function */
-// tslint:disable:max-line-length
 import { DI, IContainer, Key, Reporter, Registration, Metadata } from '@aurelia/kernel';
 import { Aurelia, CustomElementType, CustomElement, INode, DOM, ICustomElementController, ICustomElementViewModel, isRenderContext } from '@aurelia/runtime';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
@@ -62,7 +61,6 @@ export interface IRouter {
 
   processNavigations(qInstruction: QueueItem<INavigatorInstruction>): Promise<void>;
 
-  // tslint:disable-next-line:comment-format
   // External API to get viewport by name
   getViewport(name: string): Viewport | null;
 
@@ -71,11 +69,11 @@ export interface IRouter {
   getClosestScope(viewModelOrElement: ICustomElementViewModel | Element | ICustomElementController | IContainer): Scope | null;
   unsetClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer): void;
 
-  // Called from the viewport custom element in attached()
+  // Called from the viewport custom element
   connectViewport(viewport: Viewport | null, container: IContainer, name: string, element: Element, options?: IViewportOptions): Viewport;
   // Called from the viewport custom element
   disconnectViewport(viewport: Viewport, container: IContainer, element: Element | null): void;
-  // Called from the viewport scope custom element in attached()
+  // Called from the viewport scope custom element
   connectViewportScope(viewportScope: ViewportScope | null, name: string, container: IContainer, element: Element, options?: IViewportScopeOptions): ViewportScope;
   // Called from the viewport scope custom element
   disconnectViewportScope(viewportScope: ViewportScope, container: IContainer): void;
@@ -320,21 +318,11 @@ export class Router implements IRouter {
       this.rootScope!.path = configuredRoutePath;
     }
     // TODO: Used to have an early exit if no instructions. Restore it?
-    const clearViewports: Viewport[] = [];
     const clearScopeOwners: IScopeOwner[] = [];
     let clearViewportScopes: ViewportScope[] = [];
     for (const clearInstruction of instructions.filter(instr => this.instructionResolver.isClearAllViewportsInstruction(instr))) {
-      // const scope: Scope = clearInstruction.scope || this.rootScope!.scope;
-      // clearViewports.push(...scope.allViewports().filter((viewport) => viewport.content.componentInstance !== null));
-      // if (scope.viewportScope !== null) {
-      //   clearViewportScopes.push(scope.viewportScope);
-      // }
       const scope: Scope = clearInstruction.scope || this.rootScope!.scope;
-      clearScopeOwners.push(...scope
-        .children
-        .filter(scope => !scope.owner!.isEmpty)
-        .map(scope => scope.owner!)
-      );
+      clearScopeOwners.push(...scope.children.filter(scope => !scope.owner!.isEmpty).map(scope => scope.owner!));
       if (scope.viewportScope !== null) {
         clearViewportScopes.push(scope.viewportScope);
       }
@@ -344,7 +332,6 @@ export class Router implements IRouter {
     for (const addInstruction of instructions.filter(instr => this.instructionResolver.isAddAllViewportsInstruction(instr))) {
       addInstruction.setViewport((addInstruction.scope || this.rootScope!.scope).viewportScope!.name);
       addInstruction.scope = addInstruction.scope!.owningScope!;
-      // addInstruction.viewportScope = (addInstruction.scope || this.rootScope!.scope).viewportScope;
     }
 
     const updatedScopeOwners: IScopeOwner[] = [];
@@ -372,7 +359,6 @@ export class Router implements IRouter {
           if (scopeOwner.setNextContent(viewportInstruction, instruction)) {
             changedScopeOwners.push(scopeOwner);
           }
-          // arrayRemove(clearViewports, value => value === scopeOwner);
           arrayRemove(clearScopeOwners, value => value === scopeOwner);
           if (!this.instructionResolver.isClearViewportInstruction(viewportInstruction)
             && viewportInstruction.scope !== null
@@ -437,7 +423,6 @@ export class Router implements IRouter {
         }
         this.appendInstructions(configured.instructions);
       }
-
       // Don't use defaults when it's a full state navigation
       if (fullStateInstruction) {
         this.appendedInstructions = this.appendedInstructions.filter(instruction => !instruction.default);
@@ -475,7 +460,6 @@ export class Router implements IRouter {
         }
       }
       if (viewportInstructions.length === 0 && remainingInstructions.length === 0) {
-        // viewportInstructions = clearViewports.map(viewport => this.createViewportInstruction(this.instructionResolver.clearViewportInstruction, viewport));
         viewportInstructions = clearScopeOwners.map(owner => {
           const instruction: ViewportInstruction =
             this.createViewportInstruction(this.instructionResolver.clearViewportInstruction, owner.isViewport ? owner as Viewport : void 0);
@@ -490,7 +474,6 @@ export class Router implements IRouter {
           return instr;
         }));
         clearViewportScopes = [];
-        // clearViewports = [];
       }
     } while (viewportInstructions.length > 0 || remainingInstructions.length > 0);
 
@@ -502,7 +485,6 @@ export class Router implements IRouter {
     if (instructionNavigation.new && !instructionNavigation.first && !instruction.repeating && updatedScopeOwners.every(viewport => viewport.options.noHistory)) {
       instruction.untracked = true;
     }
-
     updatedScopeOwners.forEach((viewport) => {
       viewport.finalizeContentChange();
     });

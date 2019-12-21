@@ -199,20 +199,6 @@ export class Scope {
                 .map(scope => scope.viewportScope!)
                 .find(viewportScope => viewportScope.sourceItem === item)!;
             }
-            // if (this.router.instructionResolver.isAddViewportInstruction(instruction)) {
-            //   const item: unknown = viewportScope.addSourceItem();
-            //   instruction.viewportScope = this.getOwnedScopes()
-            //     .filter(scope => scope.isViewportScope)
-            //     .map(scope => scope.viewportScope!)
-            //     .find(viewportScope => viewportScope.sourceItem === item)!;
-            //   break;
-            // } else {
-            //   const available: ViewportScope | undefined = availableViewportScopes.find(available => available.name === viewportScope.name);
-            //   if (available === void 0) {
-            //     viewportScope.addSourceItem();
-            //     instruction.viewportScope = null;
-            //     break;
-            //   }
             viewportScope = available;
           }
           remainingInstructions.push(...this.foundViewportScope(instruction, viewportScope));

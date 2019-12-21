@@ -1,5 +1,5 @@
 import { DI, ILogEvent, ISink, LogLevel, Metadata, Protocol, Registration } from '@aurelia/kernel';
-import { Interpolation, PrimitiveLiteralExpression, LifecycleFlags } from '@aurelia/runtime';
+import { Interpolation, PrimitiveLiteralExpression, LifecycleFlags, IExpressionParser, BindingType } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import {
   EqualsRule,
@@ -14,8 +14,9 @@ import {
   SizeRule,
   ValidationConfiguration,
   BaseValidationRule,
-  ICustomMessage
-} from "@aurelia/validation";
+  ICustomMessage,
+  parsePropertyName
+} from '@aurelia/validation';
 import { IPerson, Person } from './_test-resources';
 
 describe.only('ValidationRules', function () {
@@ -389,20 +390,20 @@ describe.only('ValidationMessageProvider', function () {
   }
 
   [
-    { message: "name is required", expectedType: PrimitiveLiteralExpression },
-    { message: "${$displayName} is required", expectedType: Interpolation },
+    { message: 'name is required', expectedType: PrimitiveLiteralExpression },
+    { message: '${$displayName} is required', expectedType: Interpolation },
   ].map(({ message, expectedType }) =>
     it(`#parseMessage parses message correctly - ${message}`, function () {
       const { sut } = setup();
       assert.instanceOf(sut.parseMessage(message), expectedType);
     }));
   [
-    "displayName",
-    "propertyName",
-    "value",
-    "object",
-    "config",
-    "getDisplayName",
+    'displayName',
+    'propertyName',
+    'value',
+    'object',
+    'config',
+    'getDisplayName',
   ].map((property) =>
     it(`#parseMessage logs warning if the message contains contextual property expression w/o preceeding '$' - ${property}`, function () {
       const { sut, eventLog } = setup();
@@ -411,16 +412,17 @@ describe.only('ValidationMessageProvider', function () {
       sut.parseMessage(message);
       const log = eventLog.log;
       assert.equal(log.length, 1);
-      assert.equal(log[0].severity, LogLevel.warn);
+      const entry = log[0];
+      assert.equal(entry.severity, LogLevel.warn);
       assert.equal(
-        log[0]
+        entry
           .toString()
           .endsWith(`[WRN ValidationMessageProvider] Did you mean to use "$${property}" instead of "${property}" in this validation message template: "${message}"?`),
         true
       );
     }));
 
-  ["${$parent} foo bar", "${$parent.prop} foo bar"].map((message) =>
+  ['${$parent} foo bar', '${$parent.prop} foo bar'].map((message) =>
     it(`#parseMessage throws error if the message contains '$parent' - ${message}`, function () {
       const { sut } = setup();
 
@@ -485,7 +487,7 @@ describe.only('ValidationMessageProvider', function () {
   rules.map(({ title, getRule }) =>
     it(`rule.message returns the registered message for a rule instance - ${title}`, function () {
       const { sut, container } = setup();
-      const message = "FooBar";
+      const message = 'FooBar';
       const $rule = getRule(sut);
       $rule.setMessage(message);
       const scope = { bindingContext: {}, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
@@ -520,13 +522,13 @@ describe.only('ValidationMessageProvider', function () {
     it(`rule.message returns the default message the registered key is not found - ${title}`, function () {
       const { sut, container } = setup();
       const $rule = getRule(sut);
-      $rule.messageKey = "foobar";
+      $rule.messageKey = 'foobar';
       const scope = { bindingContext: { $displayName: 'FooBar', $rule }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
       const actual = $rule.message.evaluate(LifecycleFlags.none, scope, container);
-      assert.equal(actual, "FooBar is invalid.");
+      assert.equal(actual, 'FooBar is invalid.');
     }));
 
-  it("default messages can be overwritten by registering custom messages", function () {
+  it('default messages can be overwritten by registering custom messages', function () {
 
     const customMessages: ICustomMessage[] = [
       {
@@ -599,7 +601,7 @@ describe.only('ValidationMessageProvider', function () {
     }));
 });
 
-describe.only("rule execution", function () {
+describe.only('rule execution', function () {
   [
     { value: null,      isValid: false  },
     { value: undefined, isValid: false  },
@@ -714,7 +716,7 @@ describe.only("rule execution", function () {
     { value: 42,                        range: { min: 39,        max: 42         },        isInclusive: true,    isValid: true,   key: 'range'    },
     { value: 43,                        range: { min: 39,        max: 42         },        isInclusive: true,    isValid: false,  key: 'range'    },
   ].map(({ value, range, isInclusive, isValid, key }) =>
-    it(`RangeRule#execute validates ${value} to be ${isValid} for range ${isInclusive?`[${range.min}, ${range.max}]`: `(${range.min}, ${range.max})`}`, function () {
+    it(`RangeRule#execute validates ${value} to be ${isValid} for range ${isInclusive ? `[${range.min}, ${range.max}]` : `(${range.min}, ${range.max})`}`, function () {
       const sut = new RangeRule((void 0)!, isInclusive, range);
       assert.equal(sut.messageKey, key);
       assert.equal(sut.execute(value), isValid);
@@ -733,4 +735,119 @@ describe.only("rule execution", function () {
       assert.equal(sut.execute(value), isValid);
     })
   );
+});
+
+describe.only('parsePropertyName', function () {
+
+  function setup() {
+    const container = TestContext.createHTMLTestContext().container;
+    container.register(ValidationConfiguration);
+    return {
+      parser: container.get(IExpressionParser),
+      container,
+    };
+  }
+
+  const a: string = 'foo';
+  [
+    { property: 'prop',                   expected: 'prop' },
+    { property: 'obj.prop',               expected: 'obj.prop' },
+    { property: 'obj.prop1.prop2',        expected: 'obj.prop1.prop2' },
+    { property: 'prop[0]',                expected: 'prop[0]' },
+    { property: 'prop[0].prop2',          expected: 'prop[0].prop2' },
+    { property: 'obj.prop[0]',            expected: 'obj.prop[0]' },
+    { property: 'obj.prop[0].prop2',      expected: 'obj.prop[0].prop2' },
+    { property: 'prop[a]',                expected: 'prop[a]' },
+    { property: 'prop[a].prop2',          expected: 'prop[a].prop2' },
+    { property: 'obj.prop[a]',            expected: 'obj.prop[a]' },
+    { property: 'obj.prop[a].prop2',      expected: 'obj.prop[a].prop2' },
+    { property: 'prop[\'a\']',            expected: 'prop[\'a\']' },
+    { property: 'prop[\'a\'].prop2',      expected: 'prop[\'a\'].prop2' },
+    { property: 'obj.prop[\'a\']',        expected: 'obj.prop[\'a\']' },
+    { property: 'obj.prop[\'a\'].prop2',  expected: 'obj.prop[\'a\'].prop2' },
+    { property: 'prop["a"]',              expected: 'prop["a"]' },
+    { property: 'prop["a"].prop2',        expected: 'prop["a"].prop2' },
+    { property: 'obj.prop["a"]',          expected: 'obj.prop["a"]' },
+    { property: 'obj.prop["a"].prop2',    expected: 'obj.prop["a"].prop2' },
+    { property: (o: any) => o.prop,                 expected: 'prop' },
+    { property: (o: any) => o.obj.prop,             expected: 'obj.prop' },
+    { property: (o: any) => o.obj.prop1.prop2,      expected: 'obj.prop1.prop2' },
+    { property: (o: any) => o.prop[0],              expected: 'prop[0]' },
+    { property: (o: any) => o.prop[0].prop2,        expected: 'prop[0].prop2' },
+    { property: (o: any) => o.obj.prop[0],          expected: 'obj.prop[0]' },
+    { property: (o: any) => o.obj.prop[0].prop2,    expected: 'obj.prop[0].prop2' },
+    { property: (o: any) => o.prop[a],              expected: 'prop[a]' },
+    { property: (o: any) => o.prop[a].prop2,        expected: 'prop[a].prop2' },
+    { property: (o: any) => o.obj.prop[a],          expected: 'obj.prop[a]' },
+    { property: (o: any) => o.obj.prop[a].prop2,    expected: 'obj.prop[a].prop2' },
+    { property: (o: any) => o.prop['a'],            expected: 'prop[\'a\']' },
+    { property: (o: any) => o.prop['a'].prop2,      expected: 'prop[\'a\'].prop2' },
+    { property: (o: any) => o.obj.prop['a'],        expected: 'obj.prop[\'a\']' },
+    { property: (o: any) => o.obj.prop['a'].prop2,  expected: 'obj.prop[\'a\'].prop2' },
+    { property: (o: any) => o.prop["a"],            expected: 'prop["a"]' },
+    { property: (o: any) => o.prop["a"].prop2,      expected: 'prop["a"].prop2' },
+    { property: (o: any) => o.obj.prop["a"],        expected: 'obj.prop["a"]' },
+    { property: (o: any) => o.obj.prop["a"].prop2,  expected: 'obj.prop["a"].prop2' },
+    { property: function (o: any) { return o.prop; },                 expected: 'prop' },
+    { property: function (o: any) { return o.obj.prop; },             expected: 'obj.prop' },
+    { property: function (o: any) { return o.obj.prop1.prop2; },      expected: 'obj.prop1.prop2' },
+    { property: function (o: any) { return o.prop[0]; },              expected: 'prop[0]' },
+    { property: function (o: any) { return o.prop[0].prop2; },        expected: 'prop[0].prop2' },
+    { property: function (o: any) { return o.obj.prop[0]; },          expected: 'obj.prop[0]' },
+    { property: function (o: any) { return o.obj.prop[0].prop2; },    expected: 'obj.prop[0].prop2' },
+    { property: function (o: any) { return o.prop[a]; },              expected: 'prop[a]' },
+    { property: function (o: any) { return o.prop[a].prop2; },        expected: 'prop[a].prop2' },
+    { property: function (o: any) { return o.obj.prop[a]; },          expected: 'obj.prop[a]' },
+    { property: function (o: any) { return o.obj.prop[a].prop2; },    expected: 'obj.prop[a].prop2' },
+    { property: function (o: any) { return o.prop['a']; },            expected: 'prop[\'a\']' },
+    { property: function (o: any) { return o.prop['a'].prop2; },      expected: 'prop[\'a\'].prop2' },
+    { property: function (o: any) { return o.obj.prop['a']; },        expected: 'obj.prop[\'a\']' },
+    { property: function (o: any) { return o.obj.prop['a'].prop2; },  expected: 'obj.prop[\'a\'].prop2' },
+    { property: function (o: any) { return o.prop["a"]; },            expected: 'prop["a"]' },
+    { property: function (o: any) { return o.prop["a"].prop2; },      expected: 'prop["a"].prop2' },
+    { property: function (o: any) { return o.obj.prop["a"]; },        expected: 'obj.prop["a"]' },
+    { property: function (o: any) { return o.obj.prop["a"].prop2; },  expected: 'obj.prop["a"].prop2' },
+    { property: function (o: any) { 'use strict'; return o.prop; },                 expected: 'prop' },
+    { property: function (o: any) { 'use strict'; return o.obj.prop; },             expected: 'obj.prop' },
+    { property: function (o: any) { 'use strict'; return o.obj.prop1.prop2; },      expected: 'obj.prop1.prop2' },
+    { property: function (o: any) { 'use strict'; return o.prop[0]; },              expected: 'prop[0]' },
+    { property: function (o: any) { 'use strict'; return o.prop[0].prop2; },        expected: 'prop[0].prop2' },
+    { property: function (o: any) { 'use strict'; return o.obj.prop[0]; },          expected: 'obj.prop[0]' },
+    { property: function (o: any) { 'use strict'; return o.obj.prop[0].prop2; },    expected: 'obj.prop[0].prop2' },
+    { property: function (o: any) { 'use strict'; return o.prop[a]; },              expected: 'prop[a]' },
+    { property: function (o: any) { 'use strict'; return o.prop[a].prop2; },        expected: 'prop[a].prop2' },
+    { property: function (o: any) { 'use strict'; return o.obj.prop[a]; },          expected: 'obj.prop[a]' },
+    { property: function (o: any) { 'use strict'; return o.obj.prop[a].prop2; },    expected: 'obj.prop[a].prop2' },
+    { property: function (o: any) { 'use strict'; return o.prop['a']; },            expected: 'prop[\'a\']' },
+    { property: function (o: any) { 'use strict'; return o.prop['a'].prop2; },      expected: 'prop[\'a\'].prop2' },
+    { property: function (o: any) { 'use strict'; return o.obj.prop['a']; },        expected: 'obj.prop[\'a\']' },
+    { property: function (o: any) { 'use strict'; return o.obj.prop['a'].prop2; },  expected: 'obj.prop[\'a\'].prop2' },
+    { property: function (o: any) { 'use strict'; return o.prop["a"]; },            expected: 'prop["a"]' },
+    { property: function (o: any) { 'use strict'; return o.prop["a"].prop2; },      expected: 'prop["a"].prop2' },
+    { property: function (o: any) { 'use strict'; return o.obj.prop["a"]; },        expected: 'obj.prop["a"]' },
+    { property: function (o: any) { 'use strict'; return o.obj.prop["a"].prop2; },  expected: 'obj.prop["a"].prop2' },
+    { property: function (o: any) { "use strict"; return o.prop; },                 expected: 'prop' },
+    { property: function (o: any) { "use strict"; return o.obj.prop; },             expected: 'obj.prop' },
+    { property: function (o: any) { "use strict"; return o.obj.prop1.prop2; },      expected: 'obj.prop1.prop2' },
+    { property: function (o: any) { "use strict"; return o.prop[0]; },              expected: 'prop[0]' },
+    { property: function (o: any) { "use strict"; return o.prop[0].prop2; },        expected: 'prop[0].prop2' },
+    { property: function (o: any) { "use strict"; return o.obj.prop[0]; },          expected: 'obj.prop[0]' },
+    { property: function (o: any) { "use strict"; return o.obj.prop[0].prop2; },    expected: 'obj.prop[0].prop2' },
+    { property: function (o: any) { "use strict"; return o.prop[a]; },              expected: 'prop[a]' },
+    { property: function (o: any) { "use strict"; return o.prop[a].prop2; },        expected: 'prop[a].prop2' },
+    { property: function (o: any) { "use strict"; return o.obj.prop[a]; },          expected: 'obj.prop[a]' },
+    { property: function (o: any) { "use strict"; return o.obj.prop[a].prop2; },    expected: 'obj.prop[a].prop2' },
+    { property: function (o: any) { "use strict"; return o.prop['a']; },            expected: 'prop[\'a\']' },
+    { property: function (o: any) { "use strict"; return o.prop['a'].prop2; },      expected: 'prop[\'a\'].prop2' },
+    { property: function (o: any) { "use strict"; return o.obj.prop['a']; },        expected: 'obj.prop[\'a\']' },
+    { property: function (o: any) { "use strict"; return o.obj.prop['a'].prop2; },  expected: 'obj.prop[\'a\'].prop2' },
+    { property: function (o: any) { "use strict"; return o.prop["a"]; },            expected: 'prop["a"]' },
+    { property: function (o: any) { "use strict"; return o.prop["a"].prop2; },      expected: 'prop["a"].prop2' },
+    { property: function (o: any) { "use strict"; return o.obj.prop["a"]; },        expected: 'obj.prop["a"]' },
+    { property: function (o: any) { "use strict"; return o.obj.prop["a"].prop2; },  expected: 'obj.prop["a"].prop2' },
+  ].map(({ property, expected }) =>
+    it(`parses ${property.toString()} to ${expected}`, function () {
+      const { parser } = setup();
+      assert.deepEqual(parsePropertyName(property, parser), [expected, parser.parse(expected, BindingType.None)]);
+    }));
 });

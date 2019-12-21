@@ -53,11 +53,11 @@
               ]">
                 <a goto="${link.link}" class="nav-link">${link.title}</a>
               </li>
-              <li if.bind="window === windows[windows.length - 1]" class="nav-item">
-                <a goto="+" class="nav-link"><i class="fa fa-plus"></i></a>
-              </li>
               <li if.bind="windows.length > 1" class="nav-item">
                 <a goto="-" class="nav-link"><i class="fa fa-minus"></i></a>
+              </li>
+              <li if.bind="window === windows[windows.length - 1]" class="nav-item">
+                <a goto="+" class="nav-link"><i class="fa fa-plus"></i></a>
               </li>
             </ul>
           </nav>

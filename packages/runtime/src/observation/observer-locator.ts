@@ -218,12 +218,12 @@ export class ObserverLocator implements IObserverLocator {
         if (propertyName === 'size') {
           return this.getMapObserver(flags, obj as IObservedMap).getLengthObserver();
         }
-        return this.dirtyChecker.createProperty(obj, propertyName);
+        break;
       case '[object Set]':
         if (propertyName === 'size') {
           return this.getSetObserver(flags, obj as IObservedSet).getLengthObserver();
         }
-        return this.dirtyChecker.createProperty(obj, propertyName);
+        break;
     }
 
     const descriptor = getPropertyDescriptor(obj, propertyName) as PropertyDescriptor & {

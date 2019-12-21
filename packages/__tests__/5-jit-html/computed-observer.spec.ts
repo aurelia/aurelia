@@ -25,6 +25,7 @@ describe('simple Computed Observer test case', function() {
     template: string;
     ViewModel?: Constructable<T>;
     assertFn: AssertionFn;
+    only?: boolean;
   }
 
   interface AssertionFn<T extends IApp = IApp> {
@@ -35,6 +36,7 @@ describe('simple Computed Observer test case', function() {
   interface IApp {
     items: any[];
     readonly total: number;
+    [key: string]: any;
   }
 
   const computedObserverTestCases: IComputedObserverTestCase[] = [
@@ -133,18 +135,65 @@ describe('simple Computed Observer test case', function() {
         });
 
         assert.strictEqual(host.textContent, '3');
-        component['itemMap'].set(`item - 4`, 10);
+        component.itemMap.set(`item - 4`, 10);
         assert.strictEqual(host.textContent, '3');
         ctx.container.get(IScheduler).getRenderTaskQueue().flush();
         assert.strictEqual(host.textContent, '4');
+      }
+    },
+    {
+      only: true,
+      title: 'works with multiple computed dependencies',
+      template: '${total}',
+      ViewModel: class App {
+        items = Array.from({ length: 10 }, (_, idx) => {
+          return { name: `i-${idx}`, value: idx + 1, isDone: idx % 2 === 0 };
+        });
+
+        get activeItems() {
+          return this.items.filter(i => !i.isDone);
+        }
+
+        get total() {
+          return this.activeItems.reduce((total, item) => total + item.value, 0);
+        }
+      },
+      assertFn: (ctx, host, component) => {
+        const observerLocator = ctx.container.get(IObserverLocator);
+        const totalPropObserver = observerLocator.getObserver(
+            LifecycleFlags.none,
+            component,
+            'total'
+          ) as GetterObserver;
+        // const activeItemsPropObserver = ct
+
+        assert.strictEqual(totalPropObserver['propertyDeps']?.length, 7);
+        assert.strictEqual(totalPropObserver['collectionDeps']?.length, 1);
+
+        totalPropObserver['propertyDeps'].every((observerDep: SetterObserver, idx: number) => {
+          if (idx === 0) {
+            assert.instanceOf(observerDep, GetterObserver);
+          } else {
+            assert.instanceOf(observerDep, SetterObserver);
+          }
+        });
+
+        assert.strictEqual(host.textContent, '30' /* idx 0, 2, 4, 6, 8 only*/);
+        component.items[0].isDone = false;
+        assert.strictEqual(component.activeItems.length, 6);
+        assert.strictEqual(host.textContent, '30');
+        ctx.container.get(IScheduler).getRenderTaskQueue().flush();
+        assert.strictEqual(host.textContent, '31');
+
       }
     }
   ];
 
   eachCartesianJoin(
     [computedObserverTestCases],
-    ({ title, template, ViewModel, assertFn }: IComputedObserverTestCase) => {
-      it(title, async function () {
+    ({ only, title, template, ViewModel, assertFn }: IComputedObserverTestCase) => {
+      const $it = (title: string, fn: Mocha.Func) => only ? it.only(title, fn) : it(title, fn);
+      $it(title, async function () {
         const { ctx, component, testHost, dispose } = await setup<any>(
           template,
           ViewModel

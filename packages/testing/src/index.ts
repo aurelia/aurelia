@@ -1,4 +1,10 @@
 export {
+  fact,
+} from './fixture/decorators';
+export {
+  TestRunner,
+} from './fixture/test-case';
+export {
   assert,
   fail
 } from './assert';

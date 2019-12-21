@@ -269,14 +269,14 @@ function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLoca
           }
           break;
         case '[object Map]':
-          observer.addCollectionDep(observerLocator.getMapObserver(flags, target as Map<unknown, unknown>));
           if (key === 'size') {
+            observer.addCollectionDep(observerLocator.getMapObserver(flags, target as Map<unknown, unknown>));
             return Reflect.get(target, key, target);
           }
           break;
         case '[object Set]':
-          observer.addCollectionDep(observerLocator.getSetObserver(flags, target as Set<unknown>));
           if (key === 'size') {
+            observer.addCollectionDep(observerLocator.getSetObserver(flags, target as Set<unknown>));
             return Reflect.get(target, key, target);
           }
           break;

@@ -6,7 +6,8 @@ import {
   Aurelia,
   BindingStrategy,
   GetterObserver,
-  SetterObserver
+  SetterObserver,
+  MapObserver
 } from '@aurelia/runtime';
 import {
   Constructable
@@ -132,6 +133,9 @@ describe('simple Computed Observer test case', function() {
 
         observer['propertyDeps'].every((observerDep: SetterObserver) => {
           assert.instanceOf(observerDep, SetterObserver);
+        });
+        observer['collectionDeps'].every((observerCollectionDep: MapObserver) => {
+          assert.instanceOf(observerCollectionDep, MapObserver);
         });
 
         assert.strictEqual(host.textContent, '3');

@@ -1,3 +1,4 @@
+/* eslint-disable no-constant-condition */
 import { DI, ILogEvent, ISink, LogLevel, Metadata, Protocol, Registration } from '@aurelia/kernel';
 import { Interpolation, PrimitiveLiteralExpression, LifecycleFlags, IExpressionParser, BindingType } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
@@ -849,5 +850,24 @@ describe.only('parsePropertyName', function () {
     it(`parses ${property.toString()} to ${expected}`, function () {
       const { parser } = setup();
       assert.deepEqual(parsePropertyName(property, parser), [expected, parser.parse(expected, BindingType.None)]);
+    }));
+
+  [
+    { property: 1 },
+    { property: true },
+    { property: false },
+    { property: {} },
+    { property: (o) => { while (true) { /* noop */ } } },
+    { property: (o) => { while (true) { /* noop */ } return o.prop; } },
+    { property: function (o) { while (true) { /* noop */ } } },
+    { property: function (o) { while (true) { /* noop */ } return o.prop; } },
+  ].map(({ property }) =>
+    it(`throws error when parsing ${property.toString()}`, function () {
+      const { parser } = setup();
+      assert.throws(
+        () => {
+          parsePropertyName(property as any, parser);
+        },
+        /Unable to parse accessor function/);
     }));
 });

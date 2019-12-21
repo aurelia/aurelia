@@ -6,7 +6,7 @@ import { DebugConfiguration } from '@aurelia/debug';
 describe('HookManager', function () {
   this.timeout(5000);
 
-  async function setup(config?, App?, dependencies: any[] = [], stateSpy?) {
+  async function createFixture(config?, App?, dependencies: any[] = [], stateSpy?) {
     const ctx = TestContext.createHTMLTestContext();
     const { container, scheduler, doc, wnd } = ctx;
 
@@ -81,7 +81,7 @@ describe('HookManager', function () {
   });
 
   it('uses a hook', async function () {
-    const { router, tearDown, navigationInstruction } = await setup();
+    const { router, tearDown, navigationInstruction } = await createFixture();
 
     const sut = new HookManager();
     sut.addHook((url: string, navigationInstruction: INavigatorInstruction): Promise<string | ViewportInstruction[]> => Promise.resolve(`hooked:${url}`),
@@ -93,7 +93,7 @@ describe('HookManager', function () {
   });
 
   it('uses consequtive hooks', async function () {
-    const { router, tearDown, navigationInstruction } = await setup();
+    const { router, tearDown, navigationInstruction } = await createFixture();
 
     const sut = new HookManager();
     sut.addHook((url: string, navigationInstruction: INavigatorInstruction) => Promise.resolve(`hooked:${url}`),
@@ -108,7 +108,7 @@ describe('HookManager', function () {
   });
 
   it('works with no hooks', async function () {
-    const { router, tearDown, navigationInstruction } = await setup();
+    const { router, tearDown, navigationInstruction } = await createFixture();
 
     const sut = new HookManager();
     const hooked = await sut.invokeTransformFromUrl('testing', navigationInstruction);
@@ -118,7 +118,7 @@ describe('HookManager', function () {
   });
 
   it('uses a TransformFromUrl hook returning string', async function () {
-    const { router, tearDown, navigationInstruction } = await setup();
+    const { router, tearDown, navigationInstruction } = await createFixture();
 
     const sut = new HookManager();
     sut.addHook((url: string, navigationInstruction: INavigatorInstruction) => Promise.resolve(`hooked:${url}`),
@@ -130,7 +130,7 @@ describe('HookManager', function () {
   });
 
   it('uses a TransformFromUrl hook returning viewport instructions', async function () {
-    const { router, tearDown, navigationInstruction } = await setup();
+    const { router, tearDown, navigationInstruction } = await createFixture();
 
     const sut = new HookManager();
     sut.addHook(
@@ -144,7 +144,7 @@ describe('HookManager', function () {
   });
 
   it('uses a TransformToUrl hook getting viewport instructions returning viewport instructions', async function () {
-    const { router, tearDown, navigationInstruction } = await setup();
+    const { router, tearDown, navigationInstruction } = await createFixture();
 
     const sut = new HookManager();
     sut.addHook(
@@ -160,7 +160,7 @@ describe('HookManager', function () {
   });
 
   it('uses a TransformToUrl hook getting viewport instructions returning string', async function () {
-    const { router, tearDown, navigationInstruction } = await setup();
+    const { router, tearDown, navigationInstruction } = await createFixture();
 
     const sut = new HookManager();
     sut.addHook(
@@ -176,7 +176,7 @@ describe('HookManager', function () {
   });
 
   it('uses a TransformToUrl hook getting string returning viewport instructions', async function () {
-    const { router, tearDown, navigationInstruction } = await setup();
+    const { router, tearDown, navigationInstruction } = await createFixture();
 
     const sut = new HookManager();
     sut.addHook(
@@ -191,7 +191,7 @@ describe('HookManager', function () {
   });
 
   it('uses a TransformToUrl hook getting string returning string', async function () {
-    const { router, tearDown, navigationInstruction } = await setup();
+    const { router, tearDown, navigationInstruction } = await createFixture();
 
     const sut = new HookManager();
     sut.addHook((url: string, navigationInstruction: INavigatorInstruction) => Promise.resolve(`hooked-${url}`),
@@ -204,7 +204,7 @@ describe('HookManager', function () {
   });
 
   it('uses a TransformToUrl hook with alternating types', async function () {
-    const { router, tearDown, navigationInstruction } = await setup();
+    const { router, tearDown, navigationInstruction } = await createFixture();
 
     const sut = new HookManager();
     const hook = (input: string | ViewportInstruction[], navigationInstruction: INavigatorInstruction): Promise<string | ViewportInstruction[]> =>
@@ -235,7 +235,7 @@ describe('HookManager', function () {
   });
 
   it('uses a BeforeNavigation hook returning viewport instructions', async function () {
-    const { router, tearDown, navigationInstruction } = await setup();
+    const { router, tearDown, navigationInstruction } = await createFixture();
 
     const sut = new HookManager();
     sut.addHook(
@@ -251,7 +251,7 @@ describe('HookManager', function () {
   });
 
   it('uses a BeforeNavigation hook returning true', async function () {
-    const { router, tearDown, navigationInstruction } = await setup();
+    const { router, tearDown, navigationInstruction } = await createFixture();
 
     const sut = new HookManager();
     sut.addHook((viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction) => Promise.resolve(true),
@@ -265,7 +265,7 @@ describe('HookManager', function () {
   });
 
   it('uses a BeforeNavigation hook returning false', async function () {
-    const { router, tearDown, navigationInstruction } = await setup();
+    const { router, tearDown, navigationInstruction } = await createFixture();
 
     const sut = new HookManager();
     sut.addHook((viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction) => Promise.resolve(false),
@@ -283,7 +283,7 @@ describe('HookManager', function () {
         ? typeof input === 'string' ? [router.createViewportInstruction(`hooked-${input}`)] : `hooked-${input[0].componentName}`
         : input;
     const hook = { hook: hookFunction, options: { type: HookTypes.TransformToUrl } };
-    const { router, tearDown, navigationInstruction } = await setup({
+    const { router, tearDown, navigationInstruction } = await createFixture({
       hooks: [hook, hook, hook],
     });
 
@@ -297,7 +297,7 @@ describe('HookManager', function () {
   });
 
   it('sets a TransformToUrl hook with alternating types through api', async function () {
-    const { router, tearDown, navigationInstruction } = await setup();
+    const { router, tearDown, navigationInstruction } = await createFixture();
 
     const str = 'testing';
 
@@ -320,7 +320,7 @@ describe('HookManager', function () {
   });
 
   it('can prevent navigation', async function () {
-    const { router, tearDown, scheduler, host } = await setup(undefined, undefined, ['one', 'two']);
+    const { router, tearDown, scheduler, host } = await createFixture(undefined, undefined, ['one', 'two']);
 
     await $goto('one', router, scheduler);
     assert.strictEqual(host.textContent, `!one!`, `one`);
@@ -341,7 +341,7 @@ describe('HookManager', function () {
   });
 
   it('can redirect navigation', async function () {
-    const { router, tearDown, scheduler, host } = await setup(undefined, undefined, ['one', 'two', 'three']);
+    const { router, tearDown, scheduler, host } = await createFixture(undefined, undefined, ['one', 'two', 'three']);
 
     await $goto('one', router, scheduler);
     assert.strictEqual(host.textContent, `!one!`, `one`);
@@ -364,7 +364,7 @@ describe('HookManager', function () {
   });
 
   it('can transform from url to string', async function () {
-    const { router, tearDown, scheduler, host } = await setup(undefined, undefined, ['one', 'two', 'three']);
+    const { router, tearDown, scheduler, host } = await createFixture(undefined, undefined, ['one', 'two', 'three']);
 
     await $goto('one', router, scheduler);
     assert.strictEqual(host.textContent, `!one!`, `one`);
@@ -386,7 +386,7 @@ describe('HookManager', function () {
   });
 
   it('can transform from url to viewport instructions', async function () {
-    const { router, tearDown, scheduler, host } = await setup(undefined, undefined, ['one', 'two', 'three']);
+    const { router, tearDown, scheduler, host } = await createFixture(undefined, undefined, ['one', 'two', 'three']);
 
     await $goto('one', router, scheduler);
     assert.strictEqual(host.textContent, `!one!`, `one`);
@@ -414,7 +414,7 @@ describe('HookManager', function () {
       // console.log(type, data, title, path);
       locationPath = path;
     };
-    const { router, tearDown, scheduler, host } = await setup(undefined, undefined, ['one', 'two', 'three'], locationCallback);
+    const { router, tearDown, scheduler, host } = await createFixture(undefined, undefined, ['one', 'two', 'three'], locationCallback);
 
     await $goto('one', router, scheduler);
     assert.strictEqual(host.textContent, `!one!`, `one`);
@@ -449,7 +449,7 @@ describe('HookManager', function () {
       // console.log(type, data, title, path);
       locationPath = path;
     };
-    const { router, tearDown, scheduler, host } = await setup(undefined, undefined, ['one', 'two', 'three'], locationCallback);
+    const { router, tearDown, scheduler, host } = await createFixture(undefined, undefined, ['one', 'two', 'three'], locationCallback);
 
     await $goto('one', router, scheduler);
     assert.strictEqual(host.textContent, `!one!`, `one`);
@@ -483,7 +483,7 @@ describe('HookManager', function () {
       // console.log(type, data, title, path);
       locationPath = path;
     };
-    const { router, tearDown, scheduler, host } = await setup(undefined, undefined, ['one', 'two', 'three'], locationCallback);
+    const { router, tearDown, scheduler, host } = await createFixture(undefined, undefined, ['one', 'two', 'three'], locationCallback);
 
     await $goto('one', router, scheduler);
     assert.strictEqual(host.textContent, `!one!`, `one`);

@@ -351,8 +351,8 @@ describe('ObserverLocator', function () {
     const { sut } = setup();
     const obj = [];
     const actual = sut.getObserver(LF.none, obj, 'foo');
-    assert.strictEqual(actual.constructor.name, DirtyCheckProperty.name, `actual.constructor.name`);
-    assert.instanceOf(actual, DirtyCheckProperty, `actual`);
+    assert.strictEqual(actual.constructor.name, SetterObserver.name, `actual.constructor.name`);
+    assert.instanceOf(actual, SetterObserver, `actual`);
   });
 
   it(_`getObserver() - Array.length - returns ArrayObserver`, function () {

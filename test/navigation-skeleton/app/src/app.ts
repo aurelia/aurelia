@@ -71,14 +71,13 @@ export class App {
         // { title: '/alternate/child-router', route: `/alternate/child-router@app-viewport` },
         // { title: '/alternate/child-router/users', route: `/alternate/child-router@app-viewport/users` },
         // { title: '/++alternate/child-router', route: `/++alternate/child-router` },
-      ],
-        {
-          nav: 'navbar navbar-expand-lg navbar-light bg-light',
-          ul: 'navbar-nav mr-auto',
-          li: 'nav-item',
-          a: 'nav-link',
-          liActive: 'active',
-        });
+      ], {
+        nav: 'navbar navbar-expand-lg navbar-light bg-light',
+        ul: 'navbar-nav mr-auto',
+        li: 'nav-item',
+        a: 'nav-link',
+        liActive: 'active',
+      });
       if (this.count > 1) {
         // this.router.addNav(`app-menu-${id}`, [
         this.router.addNav(`app-menu`, [

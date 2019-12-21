@@ -11,15 +11,14 @@ export class ChildRouter {
 
   public constructor(
     @IRouter public readonly router: IRouter,
-  ) {}
+  ) { }
 
   public beforeBind() {
     this.router.setNav('child-menu', [
       { title: 'Welcome', route: 'welcome' },
       { title: 'Users', route: 'users' },
       { title: 'Child router', route: 'child-router' },
-    ],
-    {
+    ], {
       ul: 'nav flex-column',
       li: 'nav-item align-left',
       a: 'nav-link',

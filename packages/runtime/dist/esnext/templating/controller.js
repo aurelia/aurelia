@@ -369,14 +369,14 @@ export class Controller {
         flags |= 4096 /* fromBind */;
         this.state |= 1 /* isBinding */;
         this.lifecycle.afterBind.begin();
-        this.bindBindings(flags, $scope);
         if (this.hooks.hasBeforeBind) {
             const ret = this.bindingContext.beforeBind(flags);
             if (hasAsyncWork(ret)) {
-                return new ContinuationTask(ret, this.bindControllers, this, flags, $scope);
+                // this.scope could be reassigned during beforeBind so reference that instead of $scope.
+                return new ContinuationTask(ret, this.bindBindings, this, flags, this.scope);
             }
         }
-        return this.bindControllers(flags, $scope);
+        return this.bindBindings(flags, this.scope);
     }
     bindCustomAttribute(flags, scope) {
         if ((this.state & 4 /* isBound */) > 0) {
@@ -427,8 +427,7 @@ export class Controller {
         }
         this.state |= 1 /* isBinding */;
         this.lifecycle.afterBind.begin();
-        this.bindBindings(flags, scope);
-        return this.bindControllers(flags, scope);
+        return this.bindBindings(flags, this.scope);
     }
     bindBindings(flags, scope) {
         const { bindings } = this;
@@ -441,6 +440,7 @@ export class Controller {
                 bindings[i].$bind(flags, scope, this.part);
             }
         }
+        return this.bindControllers(flags, this.scope);
     }
     bindControllers(flags, scope) {
         let tasks = void 0;

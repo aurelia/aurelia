@@ -142,7 +142,6 @@ describe('simple Computed Observer test case', function() {
       }
     },
     {
-      only: true,
       title: 'works with multiple computed dependencies',
       template: '${total}',
       ViewModel: class App {
@@ -165,7 +164,6 @@ describe('simple Computed Observer test case', function() {
             component,
             'total'
           ) as GetterObserver;
-        // const activeItemsPropObserver = ct
 
         assert.strictEqual(totalPropObserver['propertyDeps']?.length, 7);
         assert.strictEqual(totalPropObserver['collectionDeps']?.length, 1);
@@ -184,7 +182,51 @@ describe('simple Computed Observer test case', function() {
         assert.strictEqual(host.textContent, '30');
         ctx.container.get(IScheduler).getRenderTaskQueue().flush();
         assert.strictEqual(host.textContent, '31');
+      }
+    },
+    {
+      title: 'Works with <let/>',
+      template: '<let $total.bind="total * 2"></let>${$total}',
+      ViewModel: class App {
+        items = Array.from({ length: 10 }, (_, idx) => {
+          return { name: `i-${idx}`, value: idx + 1, isDone: idx % 2 === 0 };
+        });
 
+        get total() {
+          return this.items.reduce((total, item) => total + item.value, 0);
+        }
+      },
+      assertFn: (ctx, host, component) => {
+        assert.strictEqual(host.textContent, '40');
+        component.items[0].value = 100;
+        assert.strictEqual(host.textContent, '40');
+        ctx.container.get(IScheduler).getRenderTaskQueue().flush();
+        assert.strictEqual(host.textContent, '140');
+      }
+    },
+    {
+      // only: true,
+      title: 'Works with [repeat]',
+      template: '<div repeat.for="item of activeItems">${item.value}.</div>',
+      ViewModel: class App {
+        items = Array.from({ length: 10 }, (_, idx) => {
+          return { name: `i-${idx}`, value: idx + 1, isDone: idx % 2 === 0 };
+        });
+
+        get activeItems() {
+          return this.items.filter(i => !i.isDone);
+        }
+
+        get total() {
+          return this.activeItems.reduce((total, item) => total + item.value, 0);
+        }
+      },
+      assertFn: (ctx, host, component) => {
+        assert.strictEqual(host.textContent, '2.4.6.8.10');
+        component.items[1].isDone = true;
+        assert.strictEqual(host.textContent, '2.4.6.8.10');
+        ctx.container.get(IScheduler).getRenderTaskQueue().flush();
+        assert.strictEqual(host.textContent, '4.6.8.10');
       }
     }
   ];

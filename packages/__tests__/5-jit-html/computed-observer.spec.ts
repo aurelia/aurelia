@@ -7,7 +7,8 @@ import {
   BindingStrategy,
   GetterObserver,
   SetterObserver,
-  MapObserver
+  MapObserver,
+  CustomSetterObserver
 } from '@aurelia/runtime';
 import {
   Constructable
@@ -230,6 +231,46 @@ describe('simple Computed Observer test case', function() {
         // todo: why so eagerly?
         assert.strictEqual(host.textContent, '4.6.8.10.');
       }
+    },
+    {
+      title: 'Works with set/get',
+      template: '<input value.bind="nameProp.value">${nameProp.value}',
+      ViewModel: class App {
+        items = [];
+
+        get total() {
+          return 0;
+        }
+
+        nameProp = new Property('value', '');
+      },
+      assertFn: (ctx, host, component) => {
+        assert.strictEqual(host.textContent, '');
+        component.nameProp.value = '50';
+        assert.strictEqual(host.textContent, '');
+        ctx.container.get(IScheduler).getRenderTaskQueue().flush();
+        assert.strictEqual(host.textContent, '50');
+
+        const observerLocator = ctx.container.get(IObserverLocator);
+        const namePropValueObserver = observerLocator
+          .getObserver(
+            LifecycleFlags.none,
+            component.nameProp,
+            'value'
+          ) as CustomSetterObserver;
+
+        assert.instanceOf(namePropValueObserver, CustomSetterObserver);
+        assert.strictEqual(
+          namePropValueObserver['descriptor']?.get,
+          Object.getOwnPropertyDescriptor(Property.prototype, 'value').get,
+          'It should have kept information about the original descriptor [[get]]'
+        );
+        assert.strictEqual(
+          namePropValueObserver['descriptor']?.set,
+          Object.getOwnPropertyDescriptor(Property.prototype, 'value').set,
+          'It should have kept information about the original descriptor [[set]]'
+        );
+      }
     }
   ];
 
@@ -280,5 +321,28 @@ describe('simple Computed Observer test case', function() {
         testHost.remove();
       }
     };
+  }
+
+  class Property {
+    private _value: string;
+    public readonly valueChanged: any;
+
+    constructor(public readonly name: string, value: string) {
+      this._value = value;
+      this.valueChanged = {
+        publish: () => {
+          // todo
+        }
+      }
+    }
+
+    get value(): string {
+      return this._value;
+    }
+
+    set value(value: string) {
+      this._value = value;
+      this.valueChanged.publish();
+    }
   }
 });

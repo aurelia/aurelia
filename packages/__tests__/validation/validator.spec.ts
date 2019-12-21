@@ -301,4 +301,28 @@ describe.only('StandardValidator', function () {
       assert.equal(result[1].object, obj);
       assert.instanceOf(result[1].rule, EqualsRule);
     }));
+  [
+    { title: 'string property', getProperty1: () => 'subprop[\'a\']' as const },
+    { title: 'lambda property', getProperty1: () => ((o) => o.subprop['a']) as PropertyAccessor },
+  ].map(({ title, getProperty1 }) =>
+    it(`can validate indexed property - ${title}`, async function () {
+      const { sut, validationRules } = setup();
+      const message1 = 'message1';
+      const obj = { subprop: { a: 1 } };
+      validationRules
+        .on(obj)
+
+        .ensure(getProperty1() as any)
+        .equals(11)
+        .withMessage(message1);
+
+      const result = await sut.validateObject(obj);
+      assert.equal(result.length, 1);
+
+      assert.equal(result[0].valid, false);
+      assert.equal(result[0].propertyName, 'subprop[\'a\']');
+      assert.equal(result[0].message, message1);
+      assert.equal(result[0].object, obj);
+      assert.instanceOf(result[0].rule, EqualsRule);
+    }));
 });

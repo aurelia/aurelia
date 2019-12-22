@@ -1,19 +1,21 @@
 export const enumTemplate = `
+# {{ name | mdEscape }}
+<br/>
 {% if comment %}
-    # 🕮 Summary
+    ## ✦ Summary
     {{ comment | commentRenderer }}
 {% endif %}
 <br/>
-| Name       | Const                        |
-|------------|:----------------------------:|
-| {{ name }} | {{ isConst | print_symbol }} |
+| Const                        |
+|:----------------------------:|
+| {{ isConst | print_symbol }} |
 <br/>
 {% if members %}
-    # 🌟 Member(s)
-    | Name         | Value         |
-    |--------------|---------------|
+    ## ✦ Member(s)
+    | Name          | Value         |
+    |---------------|---------------|
     {% for m in members %}
-        | {{ m.name }} | {{ m.value }} |
+        | {{ m.name | mdEscape }} | {{ m.value }} |
     {% endfor %}
 {% endif %}
 `;

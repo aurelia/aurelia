@@ -18,7 +18,7 @@ const markdownTable = require('markdown-table')
 Nunjucks.addFilter('tagToMdTable', function (value: CommentGroupTagInfo[]): string {
     if (value && value.length > 0) {
         const hasName = value.filter(x => x.name !== void 0).length > 0;
-        const hasType = value.filter(x => x.type !== void 0).length > 0;
+        const hasType = value.filter(x => x.type !== void 0 && x.type.value != '').length > 0;
         const hasDescription = value.filter(x => x.description !== void 0).length > 0;
         let list: string[][] = [];
         let header: string[] = [];
@@ -31,7 +31,9 @@ Nunjucks.addFilter('tagToMdTable', function (value: CommentGroupTagInfo[]): stri
         if (hasDescription) {
             header.push('Description');
         }
-        list.push(header);
+        if (header.length !== 0) {
+            list.push(header);
+        }
         for (let index = 0; index < value.length; index++) {
             const element = value[index];
             let row: string[] = [];
@@ -52,7 +54,9 @@ Nunjucks.addFilter('tagToMdTable', function (value: CommentGroupTagInfo[]): stri
             if (hasDescription) {
                 row.push(element.description?.join('\n') || '');
             }
-            list.push(row);
+            if (row.length !== 0) {
+                list.push(row);
+            }
         }
         if (list.length >= 1) {
             const result: string = markdownTable(list);

@@ -1,64 +1,67 @@
 export const interfaceTemplate = `
+# {{ name | mdEscape | replaceWith }}
+<br/>
 {% if comment %}
-    # 🕮 Summary
+    ## ✦ Summary
     {{ comment | commentRenderer }}
 {% endif %}
 <br/>
-# {{ name | replaceWith }}
 | Modifier(s)                            | Extends                                    |
 |----------------------------------------|--------------------------------------------|
 | {{ modifiers | join(', ','declare') }} | {{ extends | typesRenderer | join(', ') }} |
 <br/>
 {% if typeParameters %}
-    # 🌟 Type Parameter(s)
+    ## ✦ Type Parameter(s)
     {% for tp in typeParameters %}
         {{ tp | typeParameterRenderer }}
         <br/>
     {% endfor %}
 {% endif %}
 {% if indexers %}
-    # 🌟 Indexer(s)
+    ## ✦ Indexer(s)
     {% for i in indexers %}
         {% if i.comment %}
-            **🕮 Summary**
-            {{ i.comment | commentRenderer}}
+            ### &nbsp;&nbsp; Summary
+            &nbsp;&nbsp; {{ i.comment | commentRenderer}}
         {% endif %}
         <br/>
         {% if i.returnType %}
-            **✦ Return Type**
-            {{ i.returnType | typeRenderer}}
+            | Return Type                      |
+            |----------------------------------|
+            | {{ i.returnType | typeRenderer}} |
         {% endif %}
         <br/>
-        | Key Name        | Key Type                       |
-        |-----------------|--------------------------------|
-        | {{ i.keyName }} | {{ i.keyType | typeRenderer }} |
+        | Key Name                   | Key Type                       |
+        |----------------------------|--------------------------------|
+        | {{ i.keyName | mdEscape }} | {{ i.keyType | typeRenderer }} |
         <br/>
     {% endfor %}
 {% endif %}
 {% if constructors %}
-    # 🌟 Constructor(s)
+    ## ✦ Constructor(s)
     {% for c in constructors %}
         {% if c.comment %}
-            ### 🕮 Summary
-            {{ c.comment | commentRenderer }}
+            ### &nbsp;&nbsp; ✦ Summary
+            &nbsp;&nbsp; {{ c.comment | commentRenderer }}
         {% endif %}
         <br/>
         {% if c.typeParameters %}
-            ### ✦ Type Parameter(s)
+            ### &nbsp;&nbsp; Type Parameter(s)
             {% for tp in c.typeParameters %}
                 {{ tp | typeParameterRenderer }}
                 <br/>
             {% endfor %}
         {% endif %}
         {% if c.returnType %}
-            ### ✦ Return Type
-            {{ c.returnType | typeRenderer}}
+            | Return Type                      |
+            |----------------------------------|
+            | {{ c.returnType | typeRenderer}} |
         {% endif %}
         <br/>
         {% if c.parameters %}
-            ### ✦ Parameter(s)
+            ### &nbsp;&nbsp; Parameter(s)
             {% for p in c.parameters %}
-                _**{{ p.name }}**_
+                &nbsp;&nbsp;&nbsp;&nbsp; _**{{ p.name | mdEscape }}**_
                 <br/>
                 | Modifier(s)                              | Optional                           | Rest                          | Parameter Property                          | Initializer                       |
                 |------------------------------------------|:----------------------------------:|:-----------------------------:|:-------------------------------------------:|-----------------------------------|
@@ -69,13 +72,14 @@ export const interfaceTemplate = `
     {% endfor %}
 {% endif %}
 {% if properties %}
-    # 🌟 Property(ies)
+    ## ✦ Property(ies)
     {% for pr in properties %}
+        ### &nbsp;&nbsp; {{ pr.name | mdEscape }}
+        <br/>
         {% if pr.comment %}
-            ### 🕮 Summary
-            {{ pr.comment | commentRenderer}}
+            ### &nbsp;&nbsp;&nbsp;&nbsp; Summary
+            &nbsp;&nbsp;&nbsp;&nbsp; {{ pr.comment | commentRenderer}}
         {% endif %}
-        ## {{ pr.name }}
         <br/>
         | Optional                           | Type                         |
         |:----------------------------------:|------------------------------|
@@ -84,30 +88,33 @@ export const interfaceTemplate = `
     {% endfor %}
 {% endif %}
 {% if methods %}
-    # 🌟 Method(s)
+    ## ✦ Method(s)
     {% for m in methods %}
+        ### &nbsp;&nbsp; {{ m.name | mdEscape }}
+        <br/>
         {% if m.comment %}
-            ### 🕮 Summary
-            {{ m.comment | commentRenderer }}
+            ### &nbsp;&nbsp;&nbsp;&nbsp; Summary
+            &nbsp;&nbsp;&nbsp;&nbsp; {{ m.comment | commentRenderer }}
         {% endif %}
         {% if m.typeParameters %}
-            ### ✦ Type Parameter(s)
+            ### &nbsp;&nbsp;&nbsp;&nbsp; Type Parameter(s)
             {% for tp in m.typeParameters %}
                 {{ tp | typeParameterRenderer}}
                 <br/>
             {% endfor %}
         {% endif %}
-        ## {{ m.name }}
         <br/>
-        | Return Type                       |
-        |-----------------------------------|
-        | {{ m.returnType | typeRenderer }} |        
+        {% if m.returnType %}
+            | Return Type                      |
+            |----------------------------------|
+            | {{ m.returnType | typeRenderer}} |           
+        {% endif %}       
         <br/>
         {% if m.parameters %}
-            **✦ Parameter(s)**
+            &nbsp;&nbsp;&nbsp;&nbsp;**Parameter(s)**
             <br/>
             {% for p in m.parameters %}
-                _**{{ p.name }}**_
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_**{{ p.name | mdEscape }}**_
                 <br/> 
                 | Modifier(s)                              | Optional                           | Rest                          | Parameter Property                          | Initializer                       |
                 |------------------------------------------|:----------------------------------:|:-----------------------------:|:-------------------------------------------:|-----------------------------------|
@@ -119,29 +126,31 @@ export const interfaceTemplate = `
 {% endif %}
 <br/>
 {% if callSignatures %}
-    # 🌟 Call Signature(s)
+    ## ✦ Call Signature(s)
     {% for cs in callSignatures %}
         {% if cs.comment %}
-            #### 🕮 Summary
-            {{ cs.comment | commentRenderer }}
+            ### &nbsp;&nbsp; Summary
+            &nbsp;&nbsp; {{ cs.comment | commentRenderer }}
+            <br/>
         {% endif %}
         {% if cs.typeParameters %}
-            #### ✦ Type Parameter(s)
+            ### &nbsp;&nbsp; Type Parameter(s)
             {% for tp in cs.typeParameters %}
                 {{ tp | typeParameterRenderer }}
                 <br/>
             {% endfor %}
         {% endif %}
         {% if cs.returnType %}
-            #### Return Type
-            {{ cs.returnType | typeRenderer }}
+            | Return Type                       |
+            |-----------------------------------|
+            | {{ cs.returnType | typeRenderer}} |
         {% endif %}
         <br/>
         {% if cs.parameters %}
-            **✦ Parameter(s)**
+            &nbsp;&nbsp; **Parameter(s)**
             <br/>
             {% for p in cs.parameters %}
-                _**{{ p.name }}**_
+                &nbsp;&nbsp;&nbsp;&nbsp; _**{{ p.name | mdEscape }}**_
                 <br/>   
                 | Modifier(s)                              | Optional                           | Rest                          | Parameter Property                          | Initializer                       |
                 |------------------------------------------|:----------------------------------:|:-----------------------------:|:-------------------------------------------:|-----------------------------------|

@@ -1,1 +1,1 @@
-export const decoratorArgumentTemplate = `{{ value }}`;
+export const decoratorArgumentTemplate = `{{ value  | mdEscape }}`;

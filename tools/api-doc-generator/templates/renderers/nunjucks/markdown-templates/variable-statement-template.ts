@@ -1,23 +1,22 @@
 export const variableStatementTemplate = `
 {% if comment %}
-    # 🕮 Summary
+    ## ✦ Summary
     {{ comment | commentRenderer }}
 {% endif %}
 <br/>
-# 🌟 Attribute(s)
+## ✦ Attribute(s)
 | Modifier(s)                            |
 |----------------------------------------|
 | {{ modifiers | join(', ','declare') }} |
 <br/>
 {% if variables %}
-    # 🌟 Variable(s)
     {% for v in variables %}
-        {% if v.comment %}
-            ### 🕮 Summary
-            {{ v.comment | commentRenderer }}
-        {% endif %}
+        # &nbsp;&nbsp; {{ v.name | mdEscape | replaceWith }}
         <br/>
-        # {{ v.name | replaceWith }}
+        {% if v.comment %}
+            ### &nbsp;&nbsp;&nbsp;&nbsp; Summary
+            &nbsp;&nbsp;&nbsp;&nbsp; {{ v.comment | commentRenderer }}
+        {% endif %}
         <br/>
         | Type                        | Initializer                       |
         |-----------------------------|-----------------------------------|
@@ -26,21 +25,19 @@ export const variableStatementTemplate = `
     {% endfor %}
 {% endif %}
 {% if literals %}
-    # 🌟 Literal(s)
     {% for l in literals %}
+        # &nbsp;&nbsp; {{ l.name | mdEscape | replaceWith }}
         {% if l.comment %}
-            ## 🕮 Summary
-            {{ l.comment | commentRenderer }}
+            ### &nbsp;&nbsp;&nbsp;&nbsp; Summary
+            &nbsp;&nbsp;&nbsp;&nbsp; {{ l.comment | commentRenderer }}
         {% endif %}
         <br/>
-        ## {{ l.name | replaceWith }}
-        <br/>        
         | Type                        | Array                           |
         |-----------------------------|---------------------------------|
         | {{ l.type | typeRenderer }} | {{ l.isArray | print_symbol  }} |
         <br/>
         {% if l.members %}
-            ## 🟆 Member(s)
+            ### &nbsp;&nbsp;&nbsp;&nbsp; Member(s)
             {% for m in l.members %}
                 {{ m | memberRenderer }}
             {% endfor %}
@@ -48,11 +45,10 @@ export const variableStatementTemplate = `
     {% endfor %}
 {% endif %}
 {% if destructuring %}
-    # 🌟 Destructuring(s)
     {% for de in destructuring %}
         {% if de.comment %}
-            ### 🕮 Summary
-            {{ de.comment | commentRenderer }}
+            ### &nbsp;&nbsp;&nbsp;&nbsp; Summary
+            &nbsp;&nbsp;&nbsp;&nbsp; {{ de.comment | commentRenderer }}
         {% endif %}
         <br/>
         | Initializer                        | Array                            |
@@ -60,7 +56,7 @@ export const variableStatementTemplate = `
         | {{ de.initializer | replaceWith }} | {{ de.isArray | print_symbol  }} |
         <br/>
         {% if de.members %}
-            ### 🟆 Member(s)
+            ### Member(s)
             {% for m in de.members %}
                 {{ m | memberRenderer }}
             {% endfor %}

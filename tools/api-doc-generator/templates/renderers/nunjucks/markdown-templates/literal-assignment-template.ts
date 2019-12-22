@@ -1,10 +1,10 @@
 export const literalAssignmentTemplate = `
+### {{ name | mdEscape }}
+<br/>
 {% if comment %}
-    ### 🕮 Summary
+    ### Summary
     {{ comment | commentRenderer}}
 {% endif %}
-<br/>
-### {{ name }}
 <br/>
 | Type                      | Shorthand                         | Spread                        |
 |---------------------------|:---------------------------------:|:-----------------------------:|

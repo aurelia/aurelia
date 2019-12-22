@@ -1,24 +1,24 @@
 export const functionTemplate = `
+# {{ name | mdEscape | replaceWith }}
+<br/>
 {% if comment %}
-    # 🕮 Summary
+    ## ✦ Summary
     {{ comment | commentRenderer }}
 {% endif %}
-<br/>
-# {{ name | replaceWith }}
 <br/>
 | Modifier(s)                            | Return Type                     | Generator                        | Overload                         | Implementation                        |
 |----------------------------------------|---------------------------------|:--------------------------------:|:--------------------------------:|:-------------------------------------:|
 | {{ modifiers | join(', ','declare') }} | {{ returnType | typeRenderer }} | {{ isGenerator | print_symbol }} | {{ isOverload | print_symbol }}  | {{ isImplementation | print_symbol }} |
 <br/>
 {% if typeGuard %}
-    # 🌟 Type Guard
+    ## ✦ Type Guard
     | On                             |
     |--------------------------------|
     | {{ typeGuard | typeRenderer }} |
 {% endif %}
 <br/>
 {% if typeParameters %}
-    # 🌟 Type Parameter(s)
+    ## ✦ Type Parameter(s)
     {% for tp in typeParameters %}
         {{ tp | typeParameterRenderer }}
         <br/>
@@ -27,7 +27,7 @@ export const functionTemplate = `
 {% if parameters %}
         ## ✦ Parameter(s)
         {% for p in parameters %}
-        _**{{ p.name }}**_
+        &nbsp;&nbsp; _**{{ p.name | mdEscape }}**_
         <br/>
         | Modifier(s)                              | Type                        | Optional                           | Rest                          | Parameter Property                          | Initializer                       |
         |------------------------------------------|-----------------------------|:----------------------------------:|:-----------------------------:|:-------------------------------------------:|-----------------------------------|

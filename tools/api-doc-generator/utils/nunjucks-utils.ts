@@ -16,7 +16,9 @@ Nunjucks.addFilter('mdEscape', function(value: string): string {
         value = value
             .replace(/\</g, '&lt;')
             .replace(/\>/g, '&gt;')
-            .replace(/\|/g, '&#124;');
+            .replace(/\|/g, '&#124;')
+            .replace(/\_/g, '&#95;');
+
         return value;
     }
     return '';
@@ -25,7 +27,7 @@ Nunjucks.addFilter('mdEscape', function(value: string): string {
 /* eslint-disable */
 Nunjucks.addFilter('replaceWith', function (value: any, replace?): string {
     /* eslint-disable */
-    if (value === void 0 || value === null) {
+    if (value === void 0 || value === null || value === '') {
         return replace || '-';
     } else {
         return value;

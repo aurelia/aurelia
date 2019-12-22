@@ -26,6 +26,7 @@ export function generateApiDoc(tsconfig: string, destination: string) {
         }
     }
     let toc: TableOfContent[] = [];
+    let uniqueTemplates: string[] = [];
     const source = getAureliaSources(tsconfig);
     const summary = generateSummary(source);
     fse.outputFile(`${destination}/SUMMARY.md`, summary);
@@ -44,14 +45,17 @@ export function generateApiDoc(tsconfig: string, destination: string) {
                 const item = classes[j];
                 const pkg = getSourcePathFolders(item.path)[0];
                 const template = classRenderer.render(item);
-                if (!templates.includes(template)) {
+                let name = item.name || '__default';
+                const unique = name + TypeCategory.Class.toLowerCase() + template;
+                if (!uniqueTemplates.includes(unique)) {
                     toc.push({
                         package: pkg,
-                        name: item.name || '__default',
+                        name: name,
                         url: '',
-                        link: `[${item.name || '__default'}]()`,
+                        link: `[${name}]()`,
                         category: TypeCategory.Class
                     });
+                    uniqueTemplates.push(unique);
                     templates.push(template);
                 }
             }
@@ -75,7 +79,9 @@ export function generateApiDoc(tsconfig: string, destination: string) {
                 const item = enums[j];
                 const pkg = getSourcePathFolders(item.path)[0];
                 const template = enumRenderer.render(item);
-                if (!templates.includes(template)) {
+                let name = item.name || '__default';
+                const unique = name + TypeCategory.Enum.toLowerCase() + template;
+                if (!uniqueTemplates.includes(unique)) {
                     toc.push({
                         package: pkg,
                         name: item.name || '__default',
@@ -83,6 +89,7 @@ export function generateApiDoc(tsconfig: string, destination: string) {
                         link: `[${item.name || '__default'}]()`,
                         category: TypeCategory.Enum
                     });
+                    uniqueTemplates.push(unique);
                     templates.push(template);
                 }
             }
@@ -104,9 +111,10 @@ export function generateApiDoc(tsconfig: string, destination: string) {
             const exp = groupedExportAssignments[i];
             for (let j = 0; j < exp.length; j++) {
                 const item = exp[j];
-                const pkg = getSourcePathFolders(item.path)[0];
                 const template = exportAssignmentRenderer.render(item);
-                if (!templates.includes(template)) {
+                const pkg = getSourcePathFolders(item.path)[0];
+                const unique = '__default' + TypeCategory.ExportAssignment.toLowerCase() + template;
+                if (!uniqueTemplates.includes(unique)) {
                     toc.push({
                         package: pkg,
                         name: '__default',
@@ -114,6 +122,7 @@ export function generateApiDoc(tsconfig: string, destination: string) {
                         link: `[__default]()`,
                         category: TypeCategory.ExportAssignment
                     });
+                    uniqueTemplates.push(unique);
                     templates.push(template);
                 }
             }
@@ -137,7 +146,9 @@ export function generateApiDoc(tsconfig: string, destination: string) {
                 const item = funcs[j];
                 const pkg = getSourcePathFolders(item.path)[0];
                 const template = functionRenderer.render(item);
-                if (!templates.includes(template)) {
+                let name = item.name || '__default';
+                const unique = name + TypeCategory.Function.toLowerCase() + template;
+                if (!uniqueTemplates.includes(unique)) {
                     toc.push({
                         package: pkg,
                         name: item.name || '__default',
@@ -145,6 +156,7 @@ export function generateApiDoc(tsconfig: string, destination: string) {
                         link: `[${item.name || '__default'}]()`,
                         category: TypeCategory.Function
                     });
+                    uniqueTemplates.push(unique);
                     templates.push(template);
                 }
             }
@@ -168,7 +180,9 @@ export function generateApiDoc(tsconfig: string, destination: string) {
                 const item = interfaces[j];
                 const pkg = getSourcePathFolders(item.path)[0];
                 const template = interfaceRenderer.render(item);
-                if (!templates.includes(template)) {
+                let name = item.name || '__default';
+                const unique = name + TypeCategory.Interface.toLowerCase() + template;
+                if (!uniqueTemplates.includes(unique)) {
                     toc.push({
                         package: pkg,
                         name: item.name || '__default',
@@ -176,6 +190,7 @@ export function generateApiDoc(tsconfig: string, destination: string) {
                         link: `[${item.name || '__default'}]()`,
                         category: TypeCategory.Interface
                     });
+                    uniqueTemplates.push(unique);
                     templates.push(template);
                 }
             }
@@ -199,7 +214,9 @@ export function generateApiDoc(tsconfig: string, destination: string) {
                 const item = typeAliases[j];
                 const pkg = getSourcePathFolders(item.path)[0];
                 const template = typeAliasRenderer.render(item);
-                if (!templates.includes(template)) {
+                let name = item.name || '__default';
+                const unique = name + TypeCategory.TypeAlias.toLowerCase() + template;
+                if (!uniqueTemplates.includes(unique)) {
                     toc.push({
                         package: pkg,
                         name: item.name || '__default',
@@ -207,6 +224,7 @@ export function generateApiDoc(tsconfig: string, destination: string) {
                         link: `[${item.name || '__default'}]()`,
                         category: TypeCategory.TypeAlias
                     });
+                    uniqueTemplates.push(unique);
                     templates.push(template);
                 }
             }
@@ -234,7 +252,9 @@ export function generateApiDoc(tsconfig: string, destination: string) {
                         const item = variable[j];
                         const pkg = getSourcePathFolders(p)[0];
                         const template = variableStatementRenderer.render(item);
-                        if (!templates.includes(template)) {
+                        let name = item.name || '__default';
+                        const unique = name + TypeCategory.Variable.toLowerCase() + template;
+                        if (!uniqueTemplates.includes(unique)) {
                             toc.push({
                                 package: pkg,
                                 name: item.name || '__default',
@@ -242,6 +262,7 @@ export function generateApiDoc(tsconfig: string, destination: string) {
                                 link: `[${item.name || '__default'}]()`,
                                 category: TypeCategory.Variable
                             });
+                            uniqueTemplates.push(unique);
                             templates.push(template);
                         }
                     }
@@ -264,7 +285,9 @@ export function generateApiDoc(tsconfig: string, destination: string) {
                         const item = lit[j];
                         const pkg = getSourcePathFolders(p)[0];
                         const template = variableStatementRenderer.render(item);
-                        if (!templates.includes(template)) {
+                        let name = item.name || '__default';
+                        const unique = name + TypeCategory.Literal.toLowerCase() + template;
+                        if (!uniqueTemplates.includes(unique)) {
                             toc.push({
                                 package: pkg,
                                 name: item.name || '__default',
@@ -272,6 +295,7 @@ export function generateApiDoc(tsconfig: string, destination: string) {
                                 link: `[${item.name || '__default'}]()`,
                                 category: TypeCategory.Literal
                             });
+                            uniqueTemplates.push(unique);
                             templates.push(template);
                         }
                     }
@@ -294,7 +318,8 @@ export function generateApiDoc(tsconfig: string, destination: string) {
                         const item = destructuring[j];
                         const pkg = getSourcePathFolders(p)[0];
                         const template = variableStatementRenderer.render(item);
-                        if (!templates.includes(template)) {
+                        const unique = '__default' + TypeCategory.Destructuring.toLowerCase() + template;
+                        if (!uniqueTemplates.includes(unique)) {
                             toc.push({
                                 package: pkg,
                                 name: '__default',
@@ -302,6 +327,7 @@ export function generateApiDoc(tsconfig: string, destination: string) {
                                 link: `['__default']()`,
                                 category: TypeCategory.Destructuring
                             });
+                            uniqueTemplates.push(unique);
                             templates.push(template);
                         }
                     }
@@ -331,7 +357,7 @@ export function generateApiDoc(tsconfig: string, destination: string) {
         let list: string[] = [];
         let template: string[] = [];
         for (let j = 0; j < tCatGrouped.length; j++) {
-            const threshold = 4;
+            const threshold = 3;
             const t = tCatGrouped[j];
             const cat = t[0].category;
             template.push(`# ${cat}`);

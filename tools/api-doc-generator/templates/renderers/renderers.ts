@@ -48,7 +48,7 @@ function postRender(text: string): string {
                 return '\n' + r + '\n';
             }
             else if (r[0] === '*' && r[1] === '*') {
-                return '\n' + r;
+                return '\n' + r + '\n';
             }
             else if (r === '<br>' || r === '<br/>') {
                 return '\n';

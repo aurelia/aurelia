@@ -14,6 +14,7 @@ export function getAureliaSources(tsconfig: string): SourceFileInfo {
         .filter(item => !item.getFilePath().includes('node_modules'))
         .filter(item => !item.getFilePath().includes('dist'))
         .filter(item => !item.getFilePath().includes('examples'))
+        .filter(item => !item.getFilePath().includes('aot/src/vm'))
         .filter(item => item.isDeclarationFile() === false);
     const extractor = new SourceFileExtractor();
     const result = extractor.extractAll(sources);

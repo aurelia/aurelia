@@ -1,7 +1,9 @@
+import { inject } from '@aurelia/kernel';
 import { IRouter } from '@aurelia/router';
-import { customElement } from '@aurelia/runtime';
+import { customElement, INode } from '@aurelia/runtime';
 import { AuthorsRepository } from './repositories/authors';
 import { State } from './state';
+import { arrayRemove } from '@aurelia/router/src/utils';
 
 @customElement({
   name: 'app',
@@ -10,20 +12,156 @@ import { State } from './state';
       <label><input data-test="timed-out-checkbox" type="checkbox" checked.two-way="state.timedOut">Timed out</label><br>
       <label><input data-test="special-timed-out-checkbox" type="checkbox" checked.two-way="state.specialTimedOut"><i>Special</i> timed out</label><br>
     </div>
-    <div><a href="login">login</a></div>
+    <div><a href="login" goto="login"><span>login</span></a></div>
+    <div><a href="\${link}"><span>A changing link</span></a></div>
+    <div><a goto="authors/4+about">Authors</a></div>
     <au-viewport no-scope name="gate" used-by="main,login" default="\${!state.loggedIn ? 'login' : 'main'}"></au-viewport>
   `
 })
 export class App {
+  public link: string = 'aLink';
   public constructor(
     @IRouter private readonly router: IRouter,
+    @INode private readonly element: INode,
     authorsRepository: AuthorsRepository,
     private readonly state: State,
   ) {
     authorsRepository.authors(); // Only here to initialize repositories
   }
 
+  // KEEP THIS!
+  public match(current) {
+    // const rootScope = this.router['rootScope'];
+
+    // const match = rootScope.routeTable.findMatchingRoute(current.path);
+    // console.log('matching route', match);
+
+    // let routes = rootScope.routeTable.routes;
+    // for (const route of routes) {
+    //   console.log(route, this.isWithin(route, current));
+    // }
+    // routes = routes.filter(route => this.isWithin(route, current));
+    // console.log('routes within', routes.slice());
+    // let length = routes.length + 1;
+    // while (length > routes.length) {
+    //   length = routes.length;
+    //   for (let i = 0; i < routes.length; i++) {
+    //     for (let j = 0; j < routes.length; j++) {
+    //       if (i !== j && this.isWithin(routes[i], routes[j])) {
+    //         routes.splice(i, 1);
+    //         i--;
+    //         break;
+    //       }
+    //     }
+    //   }
+    // }
+    // console.log('routes within not within', routes);
+
+    // const urlRoutes = [];
+    // const currentInstructions = this.router.instructionResolver.flattenViewportInstructions(current.instructions);
+    // while (currentInstructions.length > 0 && routes.length > 0) {
+    //   for (const route of routes) {
+    //     if (this.isWithin(route, { instructions: currentInstructions })) {
+    //       urlRoutes.push(route);
+    //       for (const part of route.instructions) {
+    //         const index = currentInstructions.findIndex(match => part.sameComponent(match) && part.sameViewport(match));
+    //         if (index > -1) {
+    //           currentInstructions.splice(index, 1);
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
+    // console.log('routes end', urlRoutes, routes, currentInstructions);
+
+  }
+  public isWithin(find, lookup) {
+    const parts = this.router.instructionResolver.flattenViewportInstructions(find.instructions);
+    const instructions = this.router.instructionResolver.flattenViewportInstructions(lookup.instructions);
+    for (const part of parts) {
+      const index = instructions.findIndex(match => part.sameComponent(match) && part.sameViewport(match));
+      if (index > -1) {
+        instructions.splice(index, 1);
+      } else {
+        return false;
+      }
+    }
+    return true;
+    // return !parts.some(part => !instructions.find(match => !part.sameComponent(match) || !part.sameViewport(match)));
+    // for (const part of parts) {
+    //   const index = instrs.findIndex(match => part.sameComponent(match) && part.sameViewport(match));
+    //   if (index > -1) {
+    //     instrs.splice(index, 1);
+    //     matches++;
+    //   }
+    // }
+  }
+
+  public matches(route, instructions) {
+    const parts = this.router.instructionResolver.flattenViewportInstructions(route);
+    const instrs = this.router.instructionResolver.flattenViewportInstructions(instructions);
+    let matches = 0;
+    for (const part of parts) {
+      const index = instrs.findIndex(match => part.sameComponent(match) && part.sameViewport(match));
+      if (index > -1) {
+        instrs.splice(index, 1);
+        matches++;
+      }
+    }
+    return { matches, match: matches === parts.length };
+  }
+
   public afterBind() {
+    setTimeout(() => { this.link = 'newLink'; }, 5000);
+    const paths = [
+      'authors',
+      'authors+books',
+      'authors+about',
+      'authors/author(1)',
+      'authors/author(1)+books',
+      'authors/author(1)+about',
+      'authors/author(1)+about+books',
+    ];
+    const states = paths.map(path => { return { path: path, instructions: this.router.instructionResolver.parseViewportInstructions(path) }; });
+    const viewports = {
+      'authors': 'left',
+      'about': 'middle',
+      'books': 'right',
+    };
+    for (const state of states) {
+      for (const instruction of state.instructions) {
+        if (viewports[instruction.componentName]) {
+          instruction.setViewport(viewports[instruction.componentName]);
+          if (instruction.nextScopeInstructions) {
+            instruction.nextScopeInstructions[0].setViewport('down');
+          }
+        }
+      }
+    }
+    // const routes = states.map(state => {
+    //   return {
+    //     path: state.path,
+    //     instructions:
+    //       [this.router.instructionResolver.stringifyViewportInstructions(this.router.instructionResolver.flattenViewportInstructions(state.instructions))]
+    //   };
+    // });
+    const routes = [
+      { path: 'authors', instructions: [{ component: 'authors', viewport: 'left' }] },
+      { path: 'authors+books', instructions: [{ component: 'authors', viewport: 'left' }, { component: 'books', viewport: 'right' }] },
+      { path: 'authors+about', instructions: [{ component: 'authors', viewport: 'left' }, { component: 'about', viewport: 'middle' }] },
+      { path: 'authors/:id', instructions: [{ component: 'authors', viewport: 'left' }, { component: 'author', viewport: 'down' }] },
+      { path: 'authors/:id+books', instructions: [{ component: 'authors', viewport: 'left' }, { component: 'author', viewport: 'down' }, { component: 'books', viewport: 'right' }] },
+      { path: 'authors/:id+about', instructions: [{ component: 'main', viewport: 'gate' }, { component: 'authors', viewport: 'lists' }, { component: 'author', viewport: 'content' }] },
+      { path: 'authors/:id+about+books', instructions: [{ component: 'authors', viewport: 'left' }, { component: 'author', viewport: 'down' }, { component: 'about', viewport: 'middle' }, { component: 'books', viewport: 'right' }] },
+    ];
+    this.router.addRoutes(routes);
+    console.log('routes', routes);
+
+    // for (const state of states) {
+    //   const matches = this.matches(route, state.instructions)
+    //   console.log('match', state.path, matches);
+    // }
+
     // this.router.activate({
     // transformFromUrl: (path, router) => {
     //   if (!path.length) {
@@ -64,37 +202,37 @@ export class App {
     // }
     // }).catch(error => { throw error; });
 
-    this.router.guardian.addGuard((instructions) => {
-      if (this.verifyLogin()) {
-        return true;
-      }
-      this.state.loginReturnTo = this.router.instructionResolver.mergeViewportInstructions([
-        ...this.state.loginReturnTo,
-        ...this.router.activeComponents,
-        ...instructions
-      ]);
-      // this.state.loginReturnTo.push(...this.router.activeComponents)
-      // this.state.loginReturnTo.push(this.router.instructionResolver.stringifyViewportInstructions(instructions));
-      alert("You've timed out!");
-      this.state.loggedIn = false;
-      this.router.goto('login').catch(err => { throw err; });
-      return false;
-    }, { exclude: ['', 'login'] });
+    // this.router.guardian.addGuard((instructions) => {
+    //   if (this.verifyLogin()) {
+    //     return true;
+    //   }
+    //   this.state.loginReturnTo = this.router.instructionResolver.mergeViewportInstructions([
+    //     ...this.state.loginReturnTo,
+    //     ...this.router.activeComponents,
+    //     ...instructions
+    //   ]);
+    //   // this.state.loginReturnTo.push(...this.router.activeComponents)
+    //   // this.state.loginReturnTo.push(this.router.instructionResolver.stringifyViewportInstructions(instructions));
+    //   alert("You've timed out!");
+    //   this.state.loggedIn = false;
+    //   this.router.goto('login');
+    //   return false;
+    // }, { exclude: ['', 'login'] });
 
-    this.router.guardian.addGuard((instructions) => {
-      if (this.verifyLogin(true)) { // true makes it separate and "special"
-        return true;
-      }
-      // this.state.loginReturnTo.push(this.router.instructionResolver.stringifyViewportInstructions(instructions));
-      this.state.loginReturnTo = this.router.instructionResolver.mergeViewportInstructions([
-        ...this.state.loginReturnTo,
-        ...this.router.activeComponents,
-        ...instructions
-      ]);
-      this.state.loggedInSpecial = false;
-      this.router.goto(`login-special`).catch(err => { throw err; });
-      return [];
-    }, { include: [{ viewport: 'author-tabs' }], exclude: ['', 'login-special'] });
+    // this.router.guardian.addGuard((instructions) => {
+    //   if (this.verifyLogin(true)) { // true makes it separate and "special"
+    //     return true;
+    //   }
+    //   // this.state.loginReturnTo.push(this.router.instructionResolver.stringifyViewportInstructions(instructions));
+    //   this.state.loginReturnTo = this.router.instructionResolver.mergeViewportInstructions([
+    //     ...this.state.loginReturnTo,
+    //     ...this.router.activeComponents,
+    //     ...instructions
+    //   ]);
+    //   this.state.loggedInSpecial = false;
+    //   this.router.goto(`login-special`);
+    //   return [];
+    // }, { include: [{ viewport: 'author-tabs' }], exclude: ['', 'login-special'] });
 
     // this.router.guardian.addGuard((instructions) => {
     //   return this.notify('Guarded (all)', instructions);
@@ -114,7 +252,7 @@ export class App {
     //   return false;
     // }, { include: [{ viewport: 'author-tabs' }] });
 
-    console.log('#### guardian', this.router.guardian.guards);
+    // console.log('#### guardian', this.router.guardian.guards);
     // console.log('#### passes', this.guardian.passes(GuardTypes.Before, { path: 'some-component', fullStatePath: null }));
   }
 

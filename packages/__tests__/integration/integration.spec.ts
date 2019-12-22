@@ -1,7 +1,7 @@
 /* eslint-disable mocha/no-skipped-tests, mocha/no-exclusive-tests, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/strict-boolean-expressions */
 import { toArray } from '@aurelia/kernel';
-import { CustomElement, DirtyCheckProperty, DirtyCheckSettings, IDirtyChecker } from '@aurelia/runtime';
-import { assert, Call, createSpy, fail, getVisibleText } from '@aurelia/testing';
+import { CustomElement, DirtyCheckProperty, IDirtyChecker } from '@aurelia/runtime';
+import { assert, Call, fail, getVisibleText } from '@aurelia/testing';
 import { App, Product } from './app/app';
 import { LetDemo } from './app/molecules/let-demo/let-demo';
 import { startup, StartupConfiguration, TestExecutionContext } from './app/startup';
@@ -185,12 +185,13 @@ describe('app', function () {
     console.log(specsViewer.outerHTML);
 
     const vm = getViewModel<App>(host);
-    const [camera, laptop] = vm.things;
+    const [camera, /* laptop */] = vm.things;
     assert.html.textContent('h2', `${camera.modelNumber} by ${camera.make}`, 'incorrect text', specsViewer);
   });
 
   $it("uses a user preference control that 'computes' the full name of the user correctly - static", function ({ host, ctx, callCollection: { calls } }) {
-    const { user } = getViewModel<App>(host);
+    const appVm = getViewModel<App>(host);
+    const { user } = appVm;
 
     const userPref = host.querySelector('user-preference');
 
@@ -213,7 +214,9 @@ describe('app', function () {
     assert.html.textContent(nonStatic, 'infant', 'incorrect text nonStatic - fname');
     assert.html.textContent(wrongStatic, 'infant', 'incorrect text wrongStatic - fname');
     assert.greaterThan(calls.length, index);
-    assertCalls(calls, index, user, ['get fullNameStatic'], ['get fullNameNonStatic', 'get fullNameWrongStatic']);
+    // commented test: if there's no setter, then it should be volatile by default
+    // todo: have ability to configure GetterObserver to be 1 time static deps collection
+    // assertCalls(calls, index, user, ['get fullNameStatic'], ['get fullNameNonStatic', 'get fullNameWrongStatic']);
 
     index = calls.length;
     user.age = 10;
@@ -222,7 +225,9 @@ describe('app', function () {
     assert.html.textContent(nonStatic, 'Jane Doe', 'incorrect text nonStatic - age');
     assert.html.textContent(wrongStatic, 'Jane Doe', 'incorrect text wrongStatic - age');
     assert.greaterThan(calls.length, index);
-    assertCalls(calls, index, user, ['get fullNameNonStatic', 'get fullNameWrongStatic'], ['get fullNameStatic']);
+    // commented test: if there's no setter, then it should be volatile by default
+    // todo: have ability to configure GetterObserver to be 1 time static deps collection
+    // assertCalls(calls, index, user, ['get fullNameNonStatic', 'get fullNameWrongStatic'], ['get fullNameStatic']);
 
     index = calls.length;
     user.lastName = 'Smith';
@@ -231,7 +236,9 @@ describe('app', function () {
     assert.html.textContent(nonStatic, 'Jane Smith', 'incorrect text nonStatic - lname');
     assert.html.textContent(wrongStatic, 'Jane Doe', 'incorrect text wrongStatic - lname');
     assert.greaterThan(calls.length, index);
-    assertCalls(calls, index, user, ['get fullNameStatic', 'get fullNameNonStatic'], ['get fullNameWrongStatic']);
+    // commented test: if there's no setter, then it should be volatile by default
+    // todo: have ability to configure GetterObserver to be 1 time static deps collection
+    // assertCalls(calls, index, user, ['get fullNameStatic', 'get fullNameNonStatic'], ['get fullNameWrongStatic']);
   });
 
   $it("uses a user preference control that 'computes' the organization of the user correctly - volatile", function ({ host, ctx, callCollection: { calls } }) {
@@ -256,7 +263,18 @@ describe('app', function () {
     assert.html.textContent(nonVolatile, 'Role2, Org1', 'incorrect text nonVolatile - role');
     assert.html.textContent(volatile, 'City1, Country2', 'incorrect text volatile - country');
     assert.greaterThan(calls.length, index);
-    assertCalls(calls, index, user, ['get roleNonVolatile', 'get locationVolatile'], []);
+    assertCalls(
+      calls,
+      index,
+      user,
+      [
+        'get roleNonVolatile',
+        // commented test: if there's no setter, then it should be volatile by default
+        // todo: have ability to configure GetterObserver to be 1 time static deps collection
+        // 'get locationVolatile'
+      ],
+      []
+    );
 
     index = calls.length;
     user.organization = 'Org2';
@@ -265,10 +283,20 @@ describe('app', function () {
     assert.html.textContent(nonVolatile, 'Role2, Org1', 'incorrect text nonVolatile - role');
     assert.html.textContent(volatile, 'City2, Country2', 'incorrect text volatile - country');
     assert.greaterThan(calls.length, index);
-    assertCalls(calls, index, user, ['get locationVolatile'], ['get roleNonVolatile']);
+    assertCalls(
+      calls,
+      index,
+      user,
+      [
+        // commented test: if there's no setter, then it should be volatile by default
+        // todo: have ability to configure GetterObserver to be 1 time static deps collection
+        // 'get locationVolatile'
+      ],
+      ['get roleNonVolatile']
+    );
   });
 
-  $it('uses a user preference control gets dirty checked for non-configurable property', async function ({ host, ctx: { scheduler, lifecycle, container } }) {
+  $it('uses a user preference control gets dirty checked for non-configurable property', function ({ host, ctx: { container } }) {
     const { user } = getViewModel<App>(host);
     const userPref = host.querySelector('user-preference');
     const indeterminate = userPref.querySelector('#indeterminate');
@@ -277,38 +305,44 @@ describe('app', function () {
     // assert that it is being dirty checked
     const dirtyChecker = container.get(IDirtyChecker);
     const dirtyCheckProperty = (dirtyChecker['tracked'] as DirtyCheckProperty[]).find(prop => Object.is(user.arr, prop.obj) && prop.propertyKey === 'indeterminate');
-    assert.notEqual(dirtyCheckProperty, undefined);
-    const isDirtySpy = createSpy(dirtyCheckProperty, 'isDirty', true);
+    assert.strictEqual(dirtyCheckProperty, undefined);
+    // todo: the following has been commented as it's not correct
+    // it's asserting that a property "intermediate" on an array should be dirty checked, but it shouldn't
+    // though still keeping the code here, as we need a todo for reminding us to add more tests for dirty checker
+    //
+    // =============================================
+    // assert.notEqual(dirtyCheckProperty, undefined);
+    // const isDirtySpy = createSpy(dirtyCheckProperty, 'isDirty', true);
 
-    // asser disable
-    DirtyCheckSettings.disabled = true;
-    isDirtySpy.reset();
+    // // asser disable
+    // DirtyCheckSettings.disabled = true;
+    // isDirtySpy.reset();
 
-    await scheduler.yieldAll();
-    assert.equal(isDirtySpy.calls.length, 0);
+    // await scheduler.yieldAll();
+    // assert.equal(isDirtySpy.calls.length, 0);
 
-    DirtyCheckSettings.disabled = false;
+    // DirtyCheckSettings.disabled = false;
 
-    // assert rate
-    await scheduler.yieldAll();
-    const prevCallCount = isDirtySpy.calls.length;
+    // // assert rate
+    // await scheduler.yieldAll();
+    // const prevCallCount = isDirtySpy.calls.length;
 
-    isDirtySpy.reset();
-    DirtyCheckSettings.framesPerCheck = 2;
+    // isDirtySpy.reset();
+    // DirtyCheckSettings.framesPerCheck = 2;
 
-    await scheduler.yieldAll();
-    assert.greaterThan(isDirtySpy.calls.length, prevCallCount);
-    DirtyCheckSettings.resetToDefault();
+    // await scheduler.yieldAll();
+    // assert.greaterThan(isDirtySpy.calls.length, prevCallCount);
+    // DirtyCheckSettings.resetToDefault();
 
-    // assert flush
-    const flushSpy = createSpy(dirtyCheckProperty, 'flush', true);
-    const newValue = 'foo';
-    user.arr.indeterminate = newValue;
+    // // assert flush
+    // const flushSpy = createSpy(dirtyCheckProperty, 'flush', true);
+    // const newValue = 'foo';
+    // user.arr.indeterminate = newValue;
 
-    // await `DirtyCheckSettings.framesPerCheck` frames (yieldAll only awaits one persistent loop)
-    await scheduler.yieldAll(DirtyCheckSettings.framesPerCheck);
-    assert.html.textContent(indeterminate, newValue, 'incorrect text indeterminate - after change');
-    assert.equal(flushSpy.calls.length, 1);
+    // // await `DirtyCheckSettings.framesPerCheck` frames (yieldAll only awaits one persistent loop)
+    // await scheduler.yieldAll(DirtyCheckSettings.framesPerCheck);
+    // assert.html.textContent(indeterminate, newValue, 'incorrect text indeterminate - after change');
+    // assert.equal(flushSpy.calls.length, 1);
   });
 
   $it(`uses a radio-button-list that renders a map as a list of radio buttons - rbl-checked-model`, function ({ host, ctx }) {
@@ -562,7 +596,7 @@ describe('app', function () {
     })
   );
   $it(`changes in array are reflected in checkbox-list`, function ({ host, ctx }) {
-    const getInputs = () => toArray(host.querySelectorAll(`checkbox-list #cbl-obj-array label input[type=checkbox]`)) as HTMLInputElement[];
+    const getInputs = () => toArray(host.querySelectorAll<HTMLInputElement>(`checkbox-list #cbl-obj-array label input[type=checkbox]`));
     const app = getViewModel<App>(host);
     const products = app.products1;
     assert.equal(getInputs().length, products.length);
@@ -625,7 +659,7 @@ describe('app', function () {
     const app = getViewModel<App>(host);
     assert.equal(app.somethingDone, false);
 
-    (host.querySelector('command button') as HTMLButtonElement).click();
+    (host.querySelector<HTMLButtonElement>('command button')).click();
     ctx.scheduler.getRenderTaskQueue().flush();
     assert.equal(app.somethingDone, true);
   });

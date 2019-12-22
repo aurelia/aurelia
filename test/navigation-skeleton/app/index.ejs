@@ -7,18 +7,29 @@
   <!-- imported CSS are concatenated and added automatically -->
 
   <style>
-    .window {
-      display: inline-block;
-      border: 1px solid blue;
-      margin: 10px;
-      padding: 10px;
-      max-width: 25%;
-      max-height: 80%;
-      overflow: auto;
-      vertical-align: top;
+    .window-container {
+      display: flex;
+      align-items: stretch;
     }
-    .viewport-header {
-      display: none;
+    .window {
+      border: 1px solid gray;
+      margin: 5px;
+      vertical-align: top;
+      flex-grow: 1;
+    }
+    .align-left {
+      text-align: left;
+    }
+    .url {
+      display: block;
+      padding: 5px;
+      width: calc(100% - 10px);
+      position: relative;
+      left: 5px;
+      margin-top: 5px;
+    }
+    a.goto-active {
+      font-weight: bold;
     }
   </style>
 </head>

@@ -249,6 +249,8 @@ export interface ICustomAttributeController<
    * The scope's `bindingContext` will be the same instance as this controller's `bindingContext` property.
    */
   readonly scope: Scope | undefined;
+  readonly controllers: undefined;
+  readonly bindings: undefined;
 }
 
 /**

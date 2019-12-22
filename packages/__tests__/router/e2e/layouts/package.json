@@ -12,7 +12,7 @@
     "@aurelia/runtime": "file:../../../../runtime"
   },
   "devDependencies": {
-    "@types/node": "^12.12.7",
+    "@types/node": "^12.12.21",
     "browser-sync": "latest",
     "browserify": "latest",
     "gulp": "^4.0.2",
@@ -20,7 +20,7 @@
     "rimraf": "^3.0.0",
     "stringify": "latest",
     "tsify": "latest",
-    "typescript": "^3.7.3",
+    "typescript": "^3.7.4",
     "vinyl-source-stream": "latest",
     "watchify": "latest"
   }

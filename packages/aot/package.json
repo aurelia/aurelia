@@ -48,7 +48,7 @@
 		"jsdom": "^15.2.1"
   },
   "devDependencies": {
-    "@types/node": "^12.12.7",
+    "@types/node": "^12.12.21",
     "tslib": "^1.10.0"
   }
 }

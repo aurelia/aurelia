@@ -35,9 +35,9 @@
     "access": "public"
   },
   "devDependencies": {
-    "@types/node": "^12.12.7",
+    "@types/node": "^12.12.21",
     "reflect-metadata": "^0.1.13",
     "tslib": "^1.10.0",
-    "typescript": "^3.7.3"
+    "typescript": "^3.7.4"
   }
 }

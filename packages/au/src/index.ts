@@ -9,19 +9,19 @@ import {
 } from 'child_process';
 import {
   DI,
-  LoggerConfiguration,
   LogLevel,
-  ColorOptions,
-  Registration,
   ILogger,
+  Registration,
 } from '@aurelia/kernel';
 import {
   IFileSystem,
-  NodeFileSystem,
   IProcess,
-  IProcessEnv,
   TempDir,
   ISystem,
+  RuntimeNodeConfiguration,
+  IHttpServer,
+  FileServer,
+  IRequestHandler,
 } from '@aurelia/runtime-node';
 
 export interface IBrowser {
@@ -190,17 +190,22 @@ export class BrowserHost {
 
   const container = DI.createContainer();
   container.register(
-    LoggerConfiguration.create(console, LogLevel.debug, ColorOptions.colors),
-    Registration.singleton(IFileSystem, NodeFileSystem),
+    RuntimeNodeConfiguration.create({
+      level: LogLevel.debug,
+      root: process.cwd(),
+    }),
+    Registration.singleton(IRequestHandler, FileServer),
   );
 
+  const server = container.get(IHttpServer);
+  await server.start();
   // const host = new ServiceHost(container);
 
   // await host.executeEntryFile(root);
 
-  const browser = container.get(ChromeBrowser);
-  const host = container.get(BrowserHost);
-  await host.open(browser, 'https://google.com');
+  // const browser = container.get(ChromeBrowser);
+  // const host = container.get(BrowserHost);
+  // await host.open(browser, 'https://google.com');
 
 })().catch(err => {
   console.error(err);

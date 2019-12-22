@@ -1,6 +1,5 @@
-import {
-  DI,
-} from '@aurelia/kernel';
+import { DI, LogLevel } from '@aurelia/kernel';
+import { IHttpContext } from './http-context';
 
 export const enum Encoding {
   utf8 = 'utf8',
@@ -108,7 +107,27 @@ export interface ISystem {
   generateName(): string;
 }
 
+export interface IHttpServerOptions {
+  readonly root: string;
+  readonly port: number;
+  readonly hostName: string;
+  readonly level: LogLevel;
+}
+
+export interface IHttpServer {
+  start(): Promise<void>;
+  stop(): Promise<void>;
+}
+
+export interface IRequestHandler {
+  handleRequest(context: IHttpContext): Promise<void>;
+}
+
 export const IFileSystem = DI.createInterface<IFileSystem>('IFileSystem').noDefault();
 export const IProcessEnv = DI.createInterface<IProcessEnv>('IProcessEnv').withDefault(x => x.instance(process.env));
 export const IProcess = DI.createInterface<IProcess>('IProcess').withDefault(x => x.instance(process));
 export const ISystem = DI.createInterface<ISystem>('ISystem').noDefault();
+export const IHttpServerOptions = DI.createInterface<IHttpServerOptions>('IHttpServerOptions').noDefault();
+export const IHttpServer = DI.createInterface<IHttpServer>('IHttpServer').noDefault();
+export const IRequestHandler = DI.createInterface<IRequestHandler>('IRequestHandler').noDefault();
+

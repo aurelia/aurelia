@@ -165,6 +165,11 @@ export function getRenderContext<T extends INode = INode>(
     parts = mergeParts(parentContainer.parts, parts);
   }
 
+  // injectable completely prevents caching, ensuring that each instance gets a new render context
+  if (definition.injectable !== null) {
+    return new RenderContext<T>(definition, parentContainer, parts);
+  }
+
   if (parts === void 0) {
     let containerLookup = definitionContainerLookup.get(definition);
     if (containerLookup === void 0) {

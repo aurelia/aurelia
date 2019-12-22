@@ -335,7 +335,7 @@ export class InstructionResolver {
       instructions = `${this.separators.scope}${instructions}`;
     }
     const viewportInstructions: ViewportInstruction[] = [];
-    let guard = 10;
+    let guard = 1000;
     while (instructions.length && guard) {
       guard--;
       if (instructions.startsWith(this.separators.scope)) {

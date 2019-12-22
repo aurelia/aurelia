@@ -2,10 +2,8 @@ import {
   ILogger,
   PLATFORM,
   IContainer,
-} from '@aurelia/kernel';
-import {
   Char,
-} from '@aurelia/jit';
+} from '@aurelia/kernel';
 import {
   IFileSystem,
   IFile,

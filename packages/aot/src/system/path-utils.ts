@@ -4,7 +4,7 @@ import {
 } from 'path';
 import {
   Char,
-} from '@aurelia/jit';
+} from '@aurelia/kernel';
 
 export const normalizePath = (function () {
   const cache: Record<string, string | undefined> = Object.create(null);

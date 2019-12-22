@@ -17,10 +17,8 @@ import {
   join,
 } from 'path';
 import {
-  Char,
-} from '@aurelia/jit';
-import {
   ILogger,
+  Char,
 } from '@aurelia/kernel';
 import {
   FileKind,

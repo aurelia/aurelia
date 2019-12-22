@@ -173,7 +173,7 @@ const tick = {
         setTimeout(function () {
           tick.current = void 0;
           resolve();
-        });
+        }, 0);
       });
     }
     return tick.current;

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/require-await */
-import { IFileSystem, Encoding, IFile, IDirent, IStats } from '@aurelia/aot';
+import { IFileSystem, Encoding, IFile, IDirent, IStats } from '@aurelia/runtime-node';
 
 function toParts(path: string): string[] {
   // eslint-disable-next-line no-useless-escape

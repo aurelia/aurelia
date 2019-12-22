@@ -17,10 +17,8 @@ import {
 } from '@aurelia/kernel';
 import {
   IFileSystem,
-} from './system/interfaces';
-import {
   NodeFileSystem,
-} from './system/file-system';
+} from '@aurelia/runtime-node';
 import {
   ServiceHost,
 } from './service-host';

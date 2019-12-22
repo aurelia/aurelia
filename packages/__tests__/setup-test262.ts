@@ -17,15 +17,17 @@ import {
   bound,
 } from '@aurelia/kernel';
 import {
-  IFileSystem,
-  NodeFileSystem,
   ServiceHost,
-  IFile,
   ExecutionContext,
   $$ESModuleOrScript,
   IServiceHost,
   $Any,
 } from '@aurelia/aot';
+import {
+  IFileSystem,
+  NodeFileSystem,
+  IFile,
+} from '@aurelia/runtime-node';
 import {
   resolve,
   join,

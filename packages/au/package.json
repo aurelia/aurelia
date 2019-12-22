@@ -45,6 +45,7 @@
     "@aurelia/jit": "0.6.0",
     "@aurelia/kernel": "0.6.0",
     "@aurelia/runtime": "0.6.0",
+    "@aurelia/runtime-node": "0.6.0",
     "@aurelia/testing": "0.6.0"
   },
   "devDependencies": {

@@ -19,24 +19,22 @@ import {
 } from 'jsdom';
 
 import {
-  IFileSystem,
-  IFile,
-  FileKind,
   $CompilerOptions,
 } from './system/interfaces';
 import {
+  IFileSystem,
+  IFile,
+  FileKind,
   normalizePath,
   isRelativeModulePath,
   joinPath,
   resolvePath,
-} from './system/path-utils';
+  File,
+} from '@aurelia/runtime-node';
 import {
   NPMPackage,
   NPMPackageLoader,
 } from './system/npm-package-loader';
-import {
-  File,
-} from './system/file-system';
 
 import {
   IModule,

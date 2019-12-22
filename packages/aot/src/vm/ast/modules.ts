@@ -26,9 +26,11 @@ import {
   Writable,
 } from '@aurelia/kernel';
 import {
-  IFile,
   $CompilerOptions,
 } from '../../system/interfaces';
+import {
+  IFile,
+} from '@aurelia/runtime-node';
 import {
   NPMPackage,
 } from '../../system/npm-package-loader';

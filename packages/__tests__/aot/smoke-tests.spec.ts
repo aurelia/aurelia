@@ -1,5 +1,6 @@
 import { DI, LoggerConfiguration, LogLevel, ColorOptions, Registration } from '@aurelia/kernel';
-import { IFileSystem, FileKind, ServiceHost, $Undefined, $ESModule } from '@aurelia/aot';
+import { ServiceHost, $Undefined, $ESModule } from '@aurelia/aot';
+import { IFileSystem, FileKind } from '@aurelia/runtime-node';
 import { VirtualFileSystem } from './virtual-file-system';
 import { assert } from '@aurelia/testing';
 

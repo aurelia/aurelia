@@ -7,18 +7,14 @@ import {
 import {
   IFileSystem,
   IFile,
-} from './interfaces';
-import {
   normalizePath,
   joinPath,
-} from './path-utils';
+  Package,
+} from '@aurelia/runtime-node';
 import {
   basename,
   dirname,
 } from 'path';
-import {
-  Package,
-} from './package-types';
 
 function countSlashes(path: string): number {
   let count = 0;

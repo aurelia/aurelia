@@ -3,11 +3,11 @@ import {
   IContainer,
 } from '@aurelia/kernel';
 import {
+  IFile,
   joinPath,
   resolvePath,
-} from './path-utils';
+} from '@aurelia/runtime-node';
 import {
-  IFile,
   $CompilerOptions,
 } from './interfaces';
 

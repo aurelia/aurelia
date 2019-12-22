@@ -2,7 +2,6 @@ import {
   DebugConfiguration,
 } from '@aurelia/debug';
 import {
-  resolve,
   join,
   delimiter,
   normalize,
@@ -19,15 +18,12 @@ import {
   LogLevel,
   ColorOptions,
   Registration,
-  PLATFORM,
   ILogger,
-  IDisposable,
 } from '@aurelia/kernel';
 import {
   IFileSystem,
   NodeFileSystem,
-  ServiceHost,
-} from '@aurelia/aot';
+} from '@aurelia/runtime-node';
 
 export type IProcessEnv = NodeJS.ProcessEnv;
 export const IProcessEnv = DI.createInterface<IProcessEnv>('IProcessEnv').withDefault(x => x.instance(process.env));
@@ -45,6 +41,7 @@ export interface ISystem {
 export const ISystem = DI.createInterface<ISystem>('ISystem').withDefault(x => x.singleton(System));
 
 function trimWrappingQuotes(value: string): string {
+  // eslint-disable-next-line @typescript-eslint/prefer-string-starts-ends-with
   if (value[0] === '"' && value[value.length - 1] === '"') {
     return value.slice(1, -1);
   }
@@ -95,6 +92,7 @@ export class System implements ISystem {
       let err: Error = (void 0)!;
       for (const c of cmd) {
         try {
+          // eslint-disable-next-line sonarjs/prefer-immediate-return,no-await-in-loop
           const result = await this.which(c);
           return result;
         } catch (e) {
@@ -165,10 +163,10 @@ export class System implements ISystem {
         }
       }
     }
-  
+
     const err = new Error(`not found: ${cmd}`);
     (err as Error & { code: string })['code'] = 'ENOENT';
-  
+
     throw err;
   }
 
@@ -188,10 +186,10 @@ export class System implements ISystem {
         const mode = stat.mode;
         const uid = stat.uid;
         const gid = stat.gid;
-    
+
         const myUid = process.getuid();
         const myGid = process.getgid();
-    
+
         return (
           (mode & 0o001) > 0 ||
           ((mode & 0o010) > 0 && gid === myGid) ||
@@ -306,7 +304,7 @@ export class ChromeBrowser implements IBrowser {
       // '--headless',
       // '--disable-gpu',
       // '--disable-dev-shm-usage'
-  
+
       // Debugging:
       // --remote-debugging-port=9222
       ...flags,
@@ -347,12 +345,13 @@ export class BrowserHost {
     childProc.stdout.on('data', chunk => proc.stdout.write(chunk));
     childProc.stderr.on('data', chunk => proc.stderr.write(chunk));
 
-    childProc.on('exit', async (code, signal) => {
+    childProc.on('exit', (code, signal) => {
       logger.debug(`Process ${session.path} [${url}] exited with code ${code} and signal ${signal}`);
 
-      setTimeout(async () => {
-        await session.dispose();
-        proc.exit(code!);
+      setTimeout(() => {
+        session.dispose().then(() => {
+          proc.exit(code!);
+        }).catch(console.error);
       }, 3000);
     });
 

@@ -6,7 +6,7 @@ import {
 } from '@aurelia/kernel';
 import {
   IFile,
-} from '../system/interfaces';
+} from '@aurelia/runtime-node';
 import {
   Intrinsics,
 } from './intrinsics';

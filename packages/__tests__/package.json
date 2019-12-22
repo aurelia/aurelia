@@ -51,6 +51,7 @@
     "@aurelia/runtime-html-browser": "0.6.0",
     "@aurelia/runtime-html-jsdom": "0.6.0",
     "@aurelia/runtime-html": "0.6.0",
+    "@aurelia/runtime-node": "0.6.0",
     "@aurelia/runtime": "0.6.0",
     "@aurelia/store": "0.6.0",
     "@aurelia/testing": "0.6.0",

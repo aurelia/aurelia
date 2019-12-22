@@ -1,16 +1,4 @@
 export {
-  NodeFileSystem,
-} from './system/file-system';
-export {
-  Encoding,
-  FileKind,
-  IFile,
-  IFileSystem,
-  IDirent,
-  IStats,
-} from './system/interfaces';
-
-export {
   CompletionTarget,
   AbruptCompletionType,
   PotentialEmptyCompletionType,

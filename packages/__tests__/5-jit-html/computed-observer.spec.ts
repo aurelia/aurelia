@@ -36,9 +36,9 @@ describe('simple Computed Observer test case', function () {
   }
 
   interface IApp {
+    [key: string]: any;
     items: IAppItem[];
     readonly total: number;
-    [key: string]: any;
   }
 
   interface IAppItem {
@@ -369,7 +369,7 @@ describe('simple Computed Observer test case', function () {
       const $it = (title_: string, fn: Mocha.Func) => only ? it.only(title_, fn) : it(title_, fn);
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       $it(title, async function () {
-        const { ctx, component, testHost, dispose } = await setup<any>(
+        const { ctx, component, testHost, dispose } = await setupApp<any>(
           template,
           ViewModel
         );
@@ -383,7 +383,7 @@ describe('simple Computed Observer test case', function () {
     }
   );
 
-  async function setup<T>(template: string | Node, $class: Constructable | null, ...registrations: any[]) {
+  async function setupApp<T>(template: string | Node, $class: Constructable | null, ...registrations: any[]) {
     const ctx = TestContext.createHTMLTestContext();
     const { container, lifecycle, observerLocator } = ctx;
     registrations = Array.from(new Set([...registrations]));

@@ -400,18 +400,21 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
         }
         isValid = isValid && isValidOrPromise;
         const { displayName, name } = this.property;
-        const scope = {
-          bindingContext: {
-            $object: object,
-            $displayName: displayName instanceof Function ? displayName() : displayName,
-            $propertyName: name,
-            $value: value,
-            $rule: rule,
-            $getDisplayName: this.messageProvider.getDisplayName
-          }, parentScope: null, scopeParts: [], overrideContext: (void 0)!
-        };
-        const message = rule.message.evaluate(LifecycleFlags.none, scope, null!) as string;
-        return new ValidationResult(rule, object, this.property.name, isValidOrPromise, message);
+        let message: string | undefined;
+        if (!isValidOrPromise) {
+          const scope = {
+            bindingContext: {
+              $object: object,
+              $displayName: displayName instanceof Function ? displayName() : displayName,
+              $propertyName: name,
+              $value: value,
+              $rule: rule,
+              $getDisplayName: this.messageProvider.getDisplayName
+            }, parentScope: null, scopeParts: [], overrideContext: (void 0)!
+          };
+          message = rule.message.evaluate(LifecycleFlags.none, scope, null!) as string;
+        }
+        return new ValidationResult(rule, object, name, isValidOrPromise, message);
       };
 
       const promises: Promise<ValidationResult>[] = [];

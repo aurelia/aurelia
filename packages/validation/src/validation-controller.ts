@@ -399,7 +399,7 @@ export class ValidationController implements IValidationController {
   private getAssociatedElements({ object, propertyName }: ValidationResult): Element[] {
     const elements: Element[] = [];
     for (const [binding, info] of this.bindings.entries()) {
-      const propertyInfo = this.getPropertyInfo(binding, info); // TODO fix this
+      const propertyInfo = this.getPropertyInfo(binding, info);
       if (propertyInfo && propertyInfo.object === object && propertyInfo.propertyName === propertyName) {
         elements.push(info.target);
       }

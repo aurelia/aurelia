@@ -12,7 +12,8 @@ import {
   RequiredRule,
   SizeRule,
   EqualsRule,
-  PropertyAccessor
+  PropertyAccessor,
+  BaseValidationRule
 } from '@aurelia/validation';
 import { assert } from '@aurelia/testing';
 import { Person, Address, Organization } from './_test-resources';
@@ -68,6 +69,21 @@ describe.only('StandardValidator', function () {
     };
   }
 
+  function assertValidationResult<T extends BaseValidationRule>(
+    result: ValidationResult,
+    isValid: boolean,
+    propertyName: string,
+    obj: any,
+    rule: Class<T>,
+    message?: string,
+  ) {
+    assert.equal(result.valid, isValid);
+    assert.equal(result.propertyName, propertyName);
+    assert.equal(result.message, isValid ? void 0 : message);
+    assert.equal(result.object, obj);
+    assert.instanceOf(result.rule, rule);
+  }
+
   [
     { title: 'string property', getProperty: () => 'name' as const },
     { title: 'lambda property', getProperty: () => ((o) => o.name) as PropertyAccessor },
@@ -84,20 +100,18 @@ describe.only('StandardValidator', function () {
         .minLength(42)
         .withMessage(message2);
 
-      const result = await sut.validateProperty(obj, 'name');
+      let result = await sut.validateProperty(obj, 'name');
       assert.equal(result.length, 2);
 
-      assert.equal(result[0].valid, false);
-      assert.equal(result[0].propertyName, 'name');
-      assert.equal(result[0].message, message1);
-      assert.equal(result[0].object, obj);
-      assert.instanceOf(result[0].rule, RegexRule);
+      assertValidationResult(result[0], false, 'name', obj, RegexRule, message1);
+      assertValidationResult(result[1], false, 'name', obj, LengthRule, message2);
 
-      assert.equal(result[1].valid, false);
-      assert.equal(result[1].propertyName, 'name');
-      assert.equal(result[1].message, message2);
-      assert.equal(result[1].object, obj);
-      assert.instanceOf(result[1].rule, LengthRule);
+      obj.name = 'foo'.repeat(15);
+      result = await sut.validateProperty(obj, 'name');
+      assert.equal(result.length, 2);
+
+      assertValidationResult(result[0], true, 'name', obj, RegexRule);
+      assertValidationResult(result[1], true, 'name', obj, LengthRule);
     }));
 
   [
@@ -122,14 +136,16 @@ describe.only('StandardValidator', function () {
         rules.property,
         [[rules.$rules[0][0]]]);
 
-      const result = await sut.validateProperty(obj, 'name', [rule]);
+      let result = await sut.validateProperty(obj, 'name', [rule]);
       assert.equal(result.length, 1);
 
-      assert.equal(result[0].valid, false);
-      assert.equal(result[0].propertyName, 'name');
-      assert.equal(result[0].message, message1);
-      assert.equal(result[0].object, obj);
-      assert.instanceOf(result[0].rule, RegexRule);
+      assertValidationResult(result[0], false, 'name', obj, RegexRule, message1);
+
+      obj.name = 'foo';
+      result = await sut.validateProperty(obj, 'name', [rule]);
+      assert.equal(result.length, 1);
+
+      assertValidationResult(result[0], true, 'name', obj, RegexRule);
     }));
 
   [
@@ -165,26 +181,22 @@ describe.only('StandardValidator', function () {
         .matches(/foo/)
         .withMessage("\${$value} does not match pattern");
 
-      const result = await sut.validateObject(obj);
+      let result = await sut.validateObject(obj);
       assert.equal(result.length, 3);
 
-      assert.equal(result[0].valid, false, 'expected name to be invalid');
-      assert.equal(result[0].propertyName, 'name');
-      assert.equal(result[0].message, message1);
-      assert.equal(result[0].object, obj);
-      assert.instanceOf(result[0].rule, RequiredRule);
+      assertValidationResult(result[0], false, 'name', obj, RequiredRule, message1);
+      assertValidationResult(result[1], false, 'age', obj, RequiredRule, message2);
+      assertValidationResult(result[2], false, 'address.line1', obj, RegexRule, 'invalid does not match pattern');
 
-      assert.equal(result[1].valid, false, 'expected age to be invalid');
-      assert.equal(result[1].propertyName, 'age');
-      assert.equal(result[1].message, message2);
-      assert.equal(result[1].object, obj);
-      assert.instanceOf(result[1].rule, RequiredRule);
+      obj.name = 'foo';
+      obj.age = 42;
+      obj.address.line1 = 'foo';
+      result = await sut.validateObject(obj);
+      assert.equal(result.length, 3);
 
-      assert.equal(result[2].valid, false, 'expected address.line1 to be invalid');
-      assert.equal(result[2].propertyName, 'address.line1');
-      assert.equal(result[2].message, "invalid does not match pattern");
-      assert.equal(result[2].object, obj);
-      assert.instanceOf(result[2].rule, RegexRule);
+      assertValidationResult(result[0], true, 'name', obj, RequiredRule);
+      assertValidationResult(result[1], true, 'age', obj, RequiredRule);
+      assertValidationResult(result[2], true, 'address.line1', obj, RegexRule);
     }));
 
   [
@@ -218,14 +230,16 @@ describe.only('StandardValidator', function () {
 
         .rules;
 
-      const result = await sut.validateObject(obj, [rules[0]]);
+      let result = await sut.validateObject(obj, [rules[0]]);
       assert.equal(result.length, 1);
 
-      assert.equal(result[0].valid, false);
-      assert.equal(result[0].propertyName, 'name');
-      assert.equal(result[0].message, message1);
-      assert.equal(result[0].object, obj);
-      assert.instanceOf(result[0].rule, RequiredRule);
+      assertValidationResult(result[0], false, 'name', obj, RequiredRule, message1);
+
+      obj.name = 'foo';
+      result = await sut.validateObject(obj, [rules[0]]);
+      assert.equal(result.length, 1);
+
+      assertValidationResult(result[0], true, 'name', obj, RequiredRule);
     }));
 
   [
@@ -249,14 +263,16 @@ describe.only('StandardValidator', function () {
         .minItems(1)
         .withMessage(message1);
 
-      const result = await sut.validateObject(obj);
+      let result = await sut.validateObject(obj);
       assert.equal(result.length, 1);
 
-      assert.equal(result[0].valid, false);
-      assert.equal(result[0].propertyName, 'employees');
-      assert.equal(result[0].message, message1);
-      assert.equal(result[0].object, obj);
-      assert.instanceOf(result[0].rule, SizeRule);
+      assertValidationResult(result[0], false, 'employees', obj, SizeRule, message1);
+
+      obj.employees.push(new Person((void 0)!, (void 0)!, (void 0)!));
+      result = await sut.validateObject(obj);
+      assert.equal(result.length, 1);
+
+      assertValidationResult(result[0], true, 'employees', obj, SizeRule);
     }));
 
   [
@@ -286,20 +302,19 @@ describe.only('StandardValidator', function () {
         .equals(11)
         .withMessage(message2);
 
-      const result = await sut.validateObject(obj);
+      let result = await sut.validateObject(obj);
       assert.equal(result.length, 2);
 
-      assert.equal(result[0].valid, false);
-      assert.equal(result[0].propertyName, 'coll[0].a');
-      assert.equal(result[0].message, message1);
-      assert.equal(result[0].object, obj);
-      assert.instanceOf(result[0].rule, EqualsRule);
+      assertValidationResult(result[0], false, 'coll[0].a', obj, EqualsRule, message1);
+      assertValidationResult(result[1], false, 'coll[1].a', obj, EqualsRule, message2);
 
-      assert.equal(result[1].valid, false);
-      assert.equal(result[1].propertyName, 'coll[1].a');
-      assert.equal(result[1].message, message2);
-      assert.equal(result[1].object, obj);
-      assert.instanceOf(result[1].rule, EqualsRule);
+      obj.coll[0].a = 11;
+      obj.coll[1].a = 11;
+      result = await sut.validateObject(obj);
+      assert.equal(result.length, 2);
+
+      assertValidationResult(result[0], true, 'coll[0].a', obj, EqualsRule);
+      assertValidationResult(result[1], true, 'coll[1].a', obj, EqualsRule);
     }));
   [
     { title: 'string property', getProperty1: () => 'subprop[\'a\']' as const },
@@ -316,13 +331,15 @@ describe.only('StandardValidator', function () {
         .equals(11)
         .withMessage(message1);
 
-      const result = await sut.validateObject(obj);
+      let result = await sut.validateObject(obj);
       assert.equal(result.length, 1);
 
-      assert.equal(result[0].valid, false);
-      assert.equal(result[0].propertyName, 'subprop[\'a\']');
-      assert.equal(result[0].message, message1);
-      assert.equal(result[0].object, obj);
-      assert.instanceOf(result[0].rule, EqualsRule);
+      assertValidationResult(result[0], false, 'subprop[\'a\']', obj, EqualsRule, message1);
+
+      obj.subprop.a = 11;
+      result = await sut.validateObject(obj);
+      assert.equal(result.length, 1);
+
+      assertValidationResult(result[0], true, 'subprop[\'a\']', obj, EqualsRule);
     }));
 });

@@ -106,6 +106,46 @@ describe('simple Computed Observer test case', function() {
       }
     },
     {
+      title: 'works with multiple layers of fn call',
+      template: '${total}',
+      ViewModel: class App {
+        items = Array.from({ length: 10 }, (_, idx) => {
+          return { name: `i-${idx}`, value: idx + 1, isDone: idx % 2 === 0 };
+        });
+    
+        get total() {
+          return this
+            .items
+            .filter(item => item.isDone)
+            .filter(item => item.value > 1)
+            .length;
+        }
+      },
+      assertFn: (ctx, host, component) => {
+        const observer = ctx
+          .container
+          .get(IObserverLocator)
+          .getObserver(
+            LifecycleFlags.none,
+            component,
+            'total'
+          ) as GetterObserver;
+
+        assert.strictEqual(observer['propertyDeps']?.length, 17);
+        assert.strictEqual(observer['collectionDeps']?.length, 1);
+
+        observer['propertyDeps'].every((observerDep: SetterObserver) => {
+          assert.instanceOf(observerDep, SetterObserver);
+        });
+
+        assert.html.textContent(host, '4');
+        component.items[1].isDone = true;
+        assert.html.textContent(host, '4');
+        ctx.container.get(IScheduler).getRenderTaskQueue().flush();
+        assert.html.textContent(host, '5');
+      }
+    },
+    {
       title: 'works with Map.size',
       template: '${total}',
       ViewModel: class App {
@@ -233,23 +273,23 @@ describe('simple Computed Observer test case', function() {
       }
     },
     {
-      title: 'Works with set/get',
+      title: 'Works with set/get (class property)',
       template: '<input value.bind="nameProp.value">${nameProp.value}',
       ViewModel: class App {
         items = [];
-
-        get total() {
-          return 0;
-        }
-
+        total = 0;
         nameProp = new Property('value', '');
       },
       assertFn: (ctx, host, component) => {
         assert.strictEqual(host.textContent, '');
-        component.nameProp.value = '50';
+        const inputEl = host.querySelector('input');
+        inputEl.value = '50';
+        inputEl.dispatchEvent(new ctx.CustomEvent('input'));
         assert.strictEqual(host.textContent, '');
         ctx.container.get(IScheduler).getRenderTaskQueue().flush();
         assert.strictEqual(host.textContent, '50');
+        assert.strictEqual(component.nameProp.value, '50');
+        assert.strictEqual(component.nameProp._value, '50');
 
         const observerLocator = ctx.container.get(IObserverLocator);
         const namePropValueObserver = observerLocator
@@ -270,6 +310,48 @@ describe('simple Computed Observer test case', function() {
           Object.getOwnPropertyDescriptor(Property.prototype, 'value').set,
           'It should have kept information about the original descriptor [[set]]'
         );
+      }
+    },
+    {
+      title: 'Works with set/get (object literal property)',
+      template: '<input value.bind="nameProp.value">${nameProp.value}',
+      ViewModel: class App {
+        items = [];
+        total = 0;
+        nameProp = {
+          _value: '',
+          get value() {
+            return this._value;
+          },
+          set value(v: string) {
+            this._value = v;
+            this.valueChanged.publish();
+          },
+          valueChanged: {
+            publish() {/*  */}
+          }
+        }
+      },
+      assertFn: (ctx, host, component) => {
+        assert.strictEqual(host.textContent, '');
+        const inputEl = host.querySelector('input');
+        inputEl.value = '50';
+        inputEl.dispatchEvent(new ctx.CustomEvent('input'));
+        assert.strictEqual(host.textContent, '');
+        ctx.container.get(IScheduler).getRenderTaskQueue().flush();
+        assert.strictEqual(host.textContent, '50');
+        assert.strictEqual(component.nameProp.value, '50');
+        assert.strictEqual(component.nameProp._value, '50');
+
+        const observerLocator = ctx.container.get(IObserverLocator);
+        const namePropValueObserver = observerLocator
+          .getObserver(
+            LifecycleFlags.none,
+            component.nameProp,
+            'value'
+          ) as CustomSetterObserver;
+
+        assert.instanceOf(namePropValueObserver, CustomSetterObserver);
       }
     }
   ];

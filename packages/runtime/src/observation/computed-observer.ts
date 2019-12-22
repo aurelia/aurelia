@@ -174,7 +174,7 @@ export class GetterObserver implements GetterObserver {
   }
 
   public getValue(): unknown {
-    if (this.subscriberCount !== 0 || this.isCollecting) {
+    if (this.subscriberCount > 0 || this.isCollecting) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       this.currentValue = Reflect.apply(this.descriptor.get!, this.proxy, PLATFORM.emptyArray); // Non-null is implied because descriptors without getters won't end up here
     } else {

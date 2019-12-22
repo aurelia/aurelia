@@ -96,4 +96,19 @@ export interface IFileSystem {
   getFilesSync(dir: string, loadContent?: boolean): readonly IFile[];
 }
 
+export type IProcessEnv = NodeJS.ProcessEnv;
+
+export type IProcess = NodeJS.Process;
+
+export interface ISystem {
+  readonly isWin: boolean;
+  readonly isMac: boolean;
+  readonly isLinux: boolean;
+  which(cmd: string | string[]): Promise<string>;
+  generateName(): string;
+}
+
 export const IFileSystem = DI.createInterface<IFileSystem>('IFileSystem').noDefault();
+export const IProcessEnv = DI.createInterface<IProcessEnv>('IProcessEnv').withDefault(x => x.instance(process.env));
+export const IProcess = DI.createInterface<IProcess>('IProcess').withDefault(x => x.instance(process));
+export const ISystem = DI.createInterface<ISystem>('ISystem').noDefault();

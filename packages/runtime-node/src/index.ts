@@ -9,6 +9,9 @@ export {
   IDirent,
   IFile,
   IFileSystem,
+  ISystem,
+  IProcessEnv,
+  IProcess,
 } from './interfaces';
 export {
   Package,
@@ -19,3 +22,7 @@ export {
   isRelativeModulePath,
   normalizePath,
 } from './path-utils';
+export {
+  TempDir,
+  System,
+} from './system';

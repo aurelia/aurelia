@@ -1,7 +1,9 @@
-import { GotoCustomAttribute } from './resources/goto';
 import { IContainer, IRegistry } from '@aurelia/kernel';
 import { NavCustomElement } from './resources/nav';
 import { ViewportCustomElement } from './resources/viewport';
+import { ViewportScopeCustomElement } from './resources/viewport-scope';
+import { GotoCustomAttribute } from './resources/goto';
+import { HrefCustomAttribute } from './resources/href';
 import { IRouter, IRouterOptions } from './router';
 export declare const RouterRegistration: IRegistry;
 /**
@@ -9,14 +11,16 @@ export declare const RouterRegistration: IRegistry;
  * - `IRouter`
  */
 export declare const DefaultComponents: IRegistry[];
-export { ViewportCustomElement, NavCustomElement, GotoCustomAttribute, };
+export { ViewportCustomElement, ViewportScopeCustomElement, NavCustomElement, GotoCustomAttribute, HrefCustomAttribute, };
 export declare const ViewportCustomElementRegistration: IRegistry;
+export declare const ViewportScopeCustomElementRegistration: IRegistry;
 export declare const NavCustomElementRegistration: IRegistry;
 export declare const GotoCustomAttributeRegistration: IRegistry;
+export declare const HrefCustomAttributeRegistration: IRegistry;
 /**
  * Default router resources:
  * - Custom Elements: `au-viewport`, `au-nav`
- * - Custom Attributes: `goto`
+ * - Custom Attributes: `goto`, `href`
  */
 export declare const DefaultResources: IRegistry[];
 export declare const RouterConfiguration: {

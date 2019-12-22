@@ -1,7 +1,8 @@
-import { INavigatorInstruction } from './interfaces';
+import { INavigatorInstruction, IRoute } from './interfaces';
 import { QueueItem } from './queue';
 import { IRouter } from './router';
 import { ViewportInstruction } from './viewport-instruction';
+import { Scope } from './scope';
 export interface INavigatorStore {
     length: number;
     state: Record<string, unknown>;
@@ -30,13 +31,14 @@ export interface INavigatorViewerEvent extends INavigatorViewerState {
 export interface IStoredNavigatorEntry {
     instruction: string | ViewportInstruction[];
     fullStateInstruction: string | ViewportInstruction[];
+    scope?: Scope | null;
     index?: number;
     firstEntry?: boolean;
+    route?: IRoute;
     path?: string;
     title?: string;
     query?: string;
-    parameters?: Record<string, string>;
-    parameterList?: string[];
+    parameters?: Record<string, unknown>;
     data?: Record<string, unknown>;
 }
 export interface INavigatorEntry extends IStoredNavigatorEntry {

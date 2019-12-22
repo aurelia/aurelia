@@ -4,91 +4,83 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/runtime", "../router"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "@aurelia/runtime", "../router"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const tslib_1 = require("tslib");
+    const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const router_1 = require("../router");
+    exports.ParentViewport = runtime_1.CustomElement.createInjectable();
     let ViewportCustomElement = class ViewportCustomElement {
-        constructor(router, element) {
+        constructor(router, element, container, parentViewport) {
             this.router = router;
+            this.container = container;
+            this.parentViewport = parentViewport;
             this.name = 'default';
             this.usedBy = '';
             this.default = '';
+            this.fallback = '';
             this.noScope = false;
             this.noLink = false;
             this.noHistory = false;
             this.stateful = false;
             this.viewport = null;
+            this.isBound = false;
             this.element = element;
         }
-        // public created(...rest): void {
-        //   console.log('Created', rest);
-        //   const booleanAttributes = {
-        //     'scope': 'scope',
-        //     'no-link': 'noLink',
-        //     'no-history': 'noHistory',
-        //   };
-        //   const valueAttributes = {
-        //     'used-by': 'usedBy',
-        //     'default': 'default',
-        //   };
-        //   const name = this.element.hasAttribute('name') ? this.element.getAttribute('name') : 'default';
-        //   const options: IViewportOptions = {};
-        //   for (const attribute in booleanAttributes) {
-        //     if (this.element.hasAttribute[attribute]) {
-        //       options[booleanAttributes[attribute]] = true;
-        //     }
-        //   }
-        //   for (const attribute in valueAttributes) {
-        //     if (this.element.hasAttribute(attribute)) {
-        //       const value = this.element.getAttribute(attribute);
-        //       if (value && value.length) {
-        //         options[valueAttributes[attribute]] = value;
-        //       }
-        //     }
-        //   }
-        //   this.viewport = this.router.addViewport(name, this.element, (this as any).$context.get(IContainer), options);
-        // }
-        afterBind() {
-            this.connect();
+        afterCompile(controller) {
+            this.container = controller.context.get(kernel_1.IContainer);
+            // console.log('Viewport creating', this.getAttribute('name', this.name), this.container, this.parentViewport, controller, this);
+            // this.connect();
         }
         afterUnbind() {
-            this.disconnect();
-        }
-        afterAttach() {
-            if (this.viewport) {
-                this.viewport.clearTaggedNodes();
-            }
+            this.isBound = false;
         }
         connect() {
-            const options = { scope: !this.element.hasAttribute('no-scope') };
-            if (this.usedBy && this.usedBy.length) {
-                options.usedBy = this.usedBy;
+            if (this.router.rootScope === null) {
+                return;
             }
-            if (this.default && this.default.length) {
-                options.default = this.default;
+            const name = this.getAttribute('name', this.name);
+            let value = this.getAttribute('no-scope', this.noScope);
+            const options = { scope: value === void 0 || !value ? true : false };
+            value = this.getAttribute('used-by', this.usedBy);
+            if (value !== void 0) {
+                options.usedBy = value;
             }
-            if (this.element.hasAttribute('no-link')) {
-                options.noLink = true;
+            value = this.getAttribute('default', this.default);
+            if (value !== void 0) {
+                options.default = value;
             }
-            if (this.element.hasAttribute('no-history')) {
-                options.noHistory = true;
+            value = this.getAttribute('fallback', this.fallback);
+            if (value !== void 0) {
+                options.fallback = value;
             }
-            if (this.element.hasAttribute('stateful')) {
-                options.stateful = true;
+            value = this.getAttribute('no-link', this.noLink, true);
+            if (value !== void 0) {
+                options.noLink = value;
             }
-            this.viewport = this.router.connectViewport(this.name, this.element, this.$controller.context, options);
+            value = this.getAttribute('no-history', this.noHistory, true);
+            if (value !== void 0) {
+                options.noHistory = value;
+            }
+            value = this.getAttribute('stateful', this.stateful, true);
+            if (value !== void 0) {
+                options.stateful = value;
+            }
+            this.viewport = this.router.connectViewport(this.viewport, this.container, name, this.element, options);
         }
         disconnect() {
             if (this.viewport) {
-                this.router.disconnectViewport(this.viewport, this.element, this.$controller.context);
+                this.router.disconnectViewport(this.viewport, this.container, this.element);
             }
+            this.viewport = null;
         }
         beforeBind(flags) {
+            this.isBound = true;
+            this.connect();
             if (this.viewport) {
                 this.viewport.beforeBind(flags);
             }
@@ -108,7 +100,28 @@
         async beforeUnbind(flags) {
             if (this.viewport) {
                 await this.viewport.beforeUnbind(flags);
+                this.disconnect();
             }
+        }
+        getAttribute(key, value, checkExists = false) {
+            const result = {};
+            if (this.isBound) {
+                return value;
+            }
+            else {
+                if (this.element.hasAttribute(key)) {
+                    if (checkExists) {
+                        return true;
+                    }
+                    else {
+                        value = this.element.getAttribute(key);
+                        if (value.length > 0) {
+                            return value;
+                        }
+                    }
+                }
+            }
+            return void 0;
         }
     };
     tslib_1.__decorate([
@@ -123,6 +136,10 @@
         runtime_1.bindable,
         tslib_1.__metadata("design:type", String)
     ], ViewportCustomElement.prototype, "default", void 0);
+    tslib_1.__decorate([
+        runtime_1.bindable,
+        tslib_1.__metadata("design:type", String)
+    ], ViewportCustomElement.prototype, "fallback", void 0);
     tslib_1.__decorate([
         runtime_1.bindable,
         tslib_1.__metadata("design:type", Boolean)
@@ -142,17 +159,13 @@
     ViewportCustomElement = tslib_1.__decorate([
         runtime_1.customElement({
             name: 'au-viewport',
-            template: `
-    <template>
-      <div class="viewport-header" style="display: none;">
-        Viewport: <b>\${name}</b> \${scope ? "[new scope]" : ""} : <b>\${viewport.content && viewport.content.toComponentName()}</b>
-      </div>
-    </template>
-  `.replace(/\s+/g, '')
+            injectable: exports.ParentViewport
         }),
         tslib_1.__param(0, router_1.IRouter),
         tslib_1.__param(1, runtime_1.INode),
-        tslib_1.__metadata("design:paramtypes", [Object, Object])
+        tslib_1.__param(2, kernel_1.IContainer),
+        tslib_1.__param(3, exports.ParentViewport),
+        tslib_1.__metadata("design:paramtypes", [Object, Object, Object, ViewportCustomElement])
     ], ViewportCustomElement);
     exports.ViewportCustomElement = ViewportCustomElement;
 });

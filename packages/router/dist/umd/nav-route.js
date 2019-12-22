@@ -27,8 +27,8 @@
                 this.instructions = this.parseRoute(route.route);
                 this.link = this.computeLink(this.instructions);
             }
-            this.linkActive = route.consideredActive ? route.consideredActive : this.link;
-            if (!(this.linkActive instanceof Function) || type_resolvers_1.ComponentAppellationResolver.isType(this.linkActive)) {
+            this.linkActive = route.consideredActive !== null && route.consideredActive !== void 0 ? route.consideredActive : this.link;
+            if (this.linkActive !== null && (!(this.linkActive instanceof Function) || type_resolvers_1.ComponentAppellationResolver.isType(this.linkActive))) {
                 this.linkActive = type_resolvers_1.NavigationInstructionResolver.toViewportInstructions(this.nav.router, this.linkActive);
             }
             this.execute = route.execute;
@@ -73,7 +73,7 @@
             const components = this.linkActive;
             const activeComponents = this.nav.router.instructionResolver.flattenViewportInstructions(this.nav.router.activeComponents);
             for (const component of components) {
-                if (activeComponents.every((active) => !active.sameComponent(component, this.compareParameters && !!component.parametersString))) {
+                if (activeComponents.every((active) => !active.sameComponent(component, this.compareParameters && component.typedParameters !== null))) {
                     return '';
                 }
             }

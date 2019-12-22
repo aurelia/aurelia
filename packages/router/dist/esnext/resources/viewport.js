@@ -1,83 +1,75 @@
 import { __decorate, __metadata, __param } from "tslib";
-import { bindable, INode, customElement, } from '@aurelia/runtime';
+import { IContainer } from '@aurelia/kernel';
+import { bindable, INode, customElement, CustomElement, } from '@aurelia/runtime';
 import { IRouter } from '../router';
+export const ParentViewport = CustomElement.createInjectable();
 let ViewportCustomElement = class ViewportCustomElement {
-    constructor(router, element) {
+    constructor(router, element, container, parentViewport) {
         this.router = router;
+        this.container = container;
+        this.parentViewport = parentViewport;
         this.name = 'default';
         this.usedBy = '';
         this.default = '';
+        this.fallback = '';
         this.noScope = false;
         this.noLink = false;
         this.noHistory = false;
         this.stateful = false;
         this.viewport = null;
+        this.isBound = false;
         this.element = element;
     }
-    // public created(...rest): void {
-    //   console.log('Created', rest);
-    //   const booleanAttributes = {
-    //     'scope': 'scope',
-    //     'no-link': 'noLink',
-    //     'no-history': 'noHistory',
-    //   };
-    //   const valueAttributes = {
-    //     'used-by': 'usedBy',
-    //     'default': 'default',
-    //   };
-    //   const name = this.element.hasAttribute('name') ? this.element.getAttribute('name') : 'default';
-    //   const options: IViewportOptions = {};
-    //   for (const attribute in booleanAttributes) {
-    //     if (this.element.hasAttribute[attribute]) {
-    //       options[booleanAttributes[attribute]] = true;
-    //     }
-    //   }
-    //   for (const attribute in valueAttributes) {
-    //     if (this.element.hasAttribute(attribute)) {
-    //       const value = this.element.getAttribute(attribute);
-    //       if (value && value.length) {
-    //         options[valueAttributes[attribute]] = value;
-    //       }
-    //     }
-    //   }
-    //   this.viewport = this.router.addViewport(name, this.element, (this as any).$context.get(IContainer), options);
-    // }
-    afterBind() {
-        this.connect();
+    afterCompile(controller) {
+        this.container = controller.context.get(IContainer);
+        // console.log('Viewport creating', this.getAttribute('name', this.name), this.container, this.parentViewport, controller, this);
+        // this.connect();
     }
     afterUnbind() {
-        this.disconnect();
-    }
-    afterAttach() {
-        if (this.viewport) {
-            this.viewport.clearTaggedNodes();
-        }
+        this.isBound = false;
     }
     connect() {
-        const options = { scope: !this.element.hasAttribute('no-scope') };
-        if (this.usedBy && this.usedBy.length) {
-            options.usedBy = this.usedBy;
+        if (this.router.rootScope === null) {
+            return;
         }
-        if (this.default && this.default.length) {
-            options.default = this.default;
+        const name = this.getAttribute('name', this.name);
+        let value = this.getAttribute('no-scope', this.noScope);
+        const options = { scope: value === void 0 || !value ? true : false };
+        value = this.getAttribute('used-by', this.usedBy);
+        if (value !== void 0) {
+            options.usedBy = value;
         }
-        if (this.element.hasAttribute('no-link')) {
-            options.noLink = true;
+        value = this.getAttribute('default', this.default);
+        if (value !== void 0) {
+            options.default = value;
         }
-        if (this.element.hasAttribute('no-history')) {
-            options.noHistory = true;
+        value = this.getAttribute('fallback', this.fallback);
+        if (value !== void 0) {
+            options.fallback = value;
         }
-        if (this.element.hasAttribute('stateful')) {
-            options.stateful = true;
+        value = this.getAttribute('no-link', this.noLink, true);
+        if (value !== void 0) {
+            options.noLink = value;
         }
-        this.viewport = this.router.connectViewport(this.name, this.element, this.$controller.context, options);
+        value = this.getAttribute('no-history', this.noHistory, true);
+        if (value !== void 0) {
+            options.noHistory = value;
+        }
+        value = this.getAttribute('stateful', this.stateful, true);
+        if (value !== void 0) {
+            options.stateful = value;
+        }
+        this.viewport = this.router.connectViewport(this.viewport, this.container, name, this.element, options);
     }
     disconnect() {
         if (this.viewport) {
-            this.router.disconnectViewport(this.viewport, this.element, this.$controller.context);
+            this.router.disconnectViewport(this.viewport, this.container, this.element);
         }
+        this.viewport = null;
     }
     beforeBind(flags) {
+        this.isBound = true;
+        this.connect();
         if (this.viewport) {
             this.viewport.beforeBind(flags);
         }
@@ -97,7 +89,28 @@ let ViewportCustomElement = class ViewportCustomElement {
     async beforeUnbind(flags) {
         if (this.viewport) {
             await this.viewport.beforeUnbind(flags);
+            this.disconnect();
         }
+    }
+    getAttribute(key, value, checkExists = false) {
+        const result = {};
+        if (this.isBound) {
+            return value;
+        }
+        else {
+            if (this.element.hasAttribute(key)) {
+                if (checkExists) {
+                    return true;
+                }
+                else {
+                    value = this.element.getAttribute(key);
+                    if (value.length > 0) {
+                        return value;
+                    }
+                }
+            }
+        }
+        return void 0;
     }
 };
 __decorate([
@@ -112,6 +125,10 @@ __decorate([
     bindable,
     __metadata("design:type", String)
 ], ViewportCustomElement.prototype, "default", void 0);
+__decorate([
+    bindable,
+    __metadata("design:type", String)
+], ViewportCustomElement.prototype, "fallback", void 0);
 __decorate([
     bindable,
     __metadata("design:type", Boolean)
@@ -131,17 +148,13 @@ __decorate([
 ViewportCustomElement = __decorate([
     customElement({
         name: 'au-viewport',
-        template: `
-    <template>
-      <div class="viewport-header" style="display: none;">
-        Viewport: <b>\${name}</b> \${scope ? "[new scope]" : ""} : <b>\${viewport.content && viewport.content.toComponentName()}</b>
-      </div>
-    </template>
-  `.replace(/\s+/g, '')
+        injectable: ParentViewport
     }),
     __param(0, IRouter),
     __param(1, INode),
-    __metadata("design:paramtypes", [Object, Object])
+    __param(2, IContainer),
+    __param(3, ParentViewport),
+    __metadata("design:paramtypes", [Object, Object, Object, ViewportCustomElement])
 ], ViewportCustomElement);
 export { ViewportCustomElement };
 //# sourceMappingURL=viewport.js.map

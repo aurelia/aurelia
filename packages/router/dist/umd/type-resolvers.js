@@ -78,6 +78,49 @@
         },
     };
     exports.NavigationInstructionResolver = {
+        createViewportInstructions: function (router, navigationInstructions, options) {
+            options = options || {};
+            let scope = null;
+            if (options.context) {
+                scope = router.findScope(options.context);
+                if (typeof navigationInstructions === 'string') {
+                    // If it's not from scope root, figure out which scope
+                    if (!navigationInstructions.startsWith('/')) {
+                        // Scope modifications
+                        if (navigationInstructions.startsWith('.')) {
+                            // The same as no scope modification
+                            if (navigationInstructions.startsWith('./')) {
+                                navigationInstructions = navigationInstructions.slice(2);
+                            }
+                            // Find out how many scopes upwards we should move
+                            while (navigationInstructions.startsWith('../')) {
+                                scope = scope.parent || scope;
+                                navigationInstructions = navigationInstructions.slice(3);
+                            }
+                        }
+                        if (scope.path !== null) {
+                            navigationInstructions = `${scope.path}/${navigationInstructions}`;
+                            scope = router.rootScope.scope;
+                        }
+                    }
+                    else { // Specified root scope with /
+                        scope = router.rootScope.scope;
+                    }
+                }
+                else {
+                    navigationInstructions = exports.NavigationInstructionResolver.toViewportInstructions(router, navigationInstructions);
+                    for (const instruction of navigationInstructions) {
+                        if (instruction.scope === null) {
+                            instruction.scope = scope;
+                        }
+                    }
+                }
+            }
+            return {
+                instructions: navigationInstructions,
+                scope,
+            };
+        },
         toViewportInstructions: function (router, navigationInstructions) {
             if (!Array.isArray(navigationInstructions)) {
                 return exports.NavigationInstructionResolver.toViewportInstructions(router, [navigationInstructions]);
@@ -92,10 +135,14 @@
                 }
                 else if (instruction.component) {
                     const viewportComponent = instruction;
-                    instructions.push(new viewport_instruction_1.ViewportInstruction(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters));
+                    const newInstruction = router.createViewportInstruction(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters);
+                    if (viewportComponent.children !== void 0 && viewportComponent.children !== null) {
+                        newInstruction.nextScopeInstructions = exports.NavigationInstructionResolver.toViewportInstructions(router, viewportComponent.children);
+                    }
+                    instructions.push(newInstruction);
                 }
                 else {
-                    instructions.push(new viewport_instruction_1.ViewportInstruction(instruction));
+                    instructions.push(router.createViewportInstruction(instruction));
                 }
             }
             return instructions;

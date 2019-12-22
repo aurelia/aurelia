@@ -263,7 +263,6 @@ export class MockBrowserHistoryLocation {
     }
     notifyChange() {
         if (this.changeCallback) {
-            console.log('MOCK: notifyChange', this.path, this.state);
             this.changeCallback(null).catch((error) => { throw error; });
         }
     }

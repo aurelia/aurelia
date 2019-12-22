@@ -1,6 +1,12 @@
-import { IContainer } from '@aurelia/kernel';
 import { CustomElement } from '@aurelia/runtime';
 import { ComponentAppellationResolver } from './type-resolvers';
+export var ParametersType;
+(function (ParametersType) {
+    ParametersType["none"] = "none";
+    ParametersType["string"] = "string";
+    ParametersType["array"] = "array";
+    ParametersType["object"] = "object";
+})(ParametersType || (ParametersType = {}));
 export class ViewportInstruction {
     constructor(component, viewport, parameters, ownsScope = true, nextScopeInstructions = null) {
         this.ownsScope = ownsScope;
@@ -11,13 +17,46 @@ export class ViewportInstruction {
         this.viewportName = null;
         this.viewport = null;
         this.parametersString = null;
-        this.parameters = null;
+        this.parametersRecord = null;
         this.parametersList = null;
+        this.parametersType = "none" /* none */;
         this.scope = null;
+        this.context = '';
+        this.viewportScope = null;
         this.needsViewportDescribed = false;
+        this.route = null;
+        this.default = false;
+        this.instructionResolver = null;
         this.setComponent(component);
         this.setViewport(viewport);
         this.setParameters(parameters);
+    }
+    get owner() {
+        return this.viewport || this.viewportScope || null;
+    }
+    get typedParameters() {
+        switch (this.parametersType) {
+            case "string" /* string */:
+                return this.parametersString;
+            case "array" /* array */:
+                return this.parametersList;
+            case "object" /* object */:
+                return this.parametersRecord;
+            default:
+                return null;
+        }
+    }
+    get parameters() {
+        if (this.instructionResolver !== null) {
+            return this.instructionResolver.parseComponentParameters(this.typedParameters);
+        }
+        return [];
+    }
+    get normalizedParameters() {
+        if (this.instructionResolver !== null && this.typedParameters !== null) {
+            return this.instructionResolver.stringifyComponentParameters(this.parameters);
+        }
+        return '';
     }
     setComponent(component) {
         if (ComponentAppellationResolver.isName(component)) {
@@ -53,19 +92,35 @@ export class ViewportInstruction {
         }
     }
     setParameters(parameters) {
-        if (parameters === undefined || parameters === '') {
+        if (parameters === undefined || parameters === null || parameters === '') {
+            this.parametersType = "none" /* none */;
             parameters = null;
         }
-        if (typeof parameters === 'string') {
+        else if (typeof parameters === 'string') {
+            this.parametersType = "string" /* string */;
             this.parametersString = parameters;
-            // TODO: Initialize parameters better and more of them and just fix this
-            this.parameters = { id: parameters };
+        }
+        else if (Array.isArray(parameters)) {
+            this.parametersType = "array" /* array */;
+            this.parametersList = parameters;
         }
         else {
-            this.parameters = parameters;
-            // TODO: Create parametersString
+            this.parametersType = "object" /* object */;
+            this.parametersRecord = parameters;
         }
-        // TODO: Deal with parametersList
+    }
+    // This only works with objects added to objects!
+    addParameters(parameters) {
+        if (this.parametersType === "none" /* none */) {
+            return this.setParameters(parameters);
+        }
+        if (this.parametersType !== "object" /* object */) {
+            throw new Error('Can\'t add object parameters to existing non-object parameters!');
+        }
+        this.setParameters({ ...this.parametersRecord, ...parameters });
+    }
+    setInstructionResolver(instructionResolver) {
+        this.instructionResolver = instructionResolver;
     }
     isEmpty() {
         return !this.isComponentName() && !this.isComponentType() && !this.isComponentInstance();
@@ -79,31 +134,28 @@ export class ViewportInstruction {
     isComponentInstance() {
         return this.componentInstance !== null;
     }
-    toComponentType(context) {
+    toComponentType(container) {
         if (this.componentType !== null) {
             return this.componentType;
         }
-        if (this.componentName !== null && typeof this.componentName === 'string') {
-            const container = context.get(IContainer);
-            if (container !== null && container.has(CustomElement.keyFrom(this.componentName), true)) {
-                const resolver = container.getResolver(CustomElement.keyFrom(this.componentName));
-                if (resolver !== null && resolver.getFactory !== void 0) {
-                    const factory = resolver.getFactory(container);
-                    if (factory) {
-                        return factory.Type;
-                    }
+        if (this.componentName !== null
+            && typeof this.componentName === 'string'
+            && container !== null
+            && container.has(CustomElement.keyFrom(this.componentName), true)) {
+            const resolver = container.getResolver(CustomElement.keyFrom(this.componentName));
+            if (resolver !== null && resolver.getFactory !== void 0) {
+                const factory = resolver.getFactory(container);
+                if (factory) {
+                    return factory.Type;
                 }
             }
         }
         return null;
     }
-    toComponentInstance(context) {
+    toComponentInstance(container) {
         if (this.componentInstance !== null) {
             return this.componentInstance;
         }
-        // TODO: Remove once "local registration is fixed"
-        // const component = this.toComponentName();
-        const container = context.get(IContainer);
         if (container !== void 0 && container !== null) {
             if (this.isComponentType()) {
                 return container.get(this.componentType);
@@ -120,18 +172,94 @@ export class ViewportInstruction {
         }
         return router.getViewport(this.viewportName);
     }
+    toSpecifiedParameters(specifications) {
+        specifications = specifications || [];
+        const parameters = this.parameters;
+        const specified = {};
+        for (const spec of specifications) {
+            // First get named if it exists
+            let index = parameters.findIndex(param => param.key === spec);
+            if (index >= 0) {
+                const [parameter] = parameters.splice(index, 1);
+                specified[spec] = parameter.value;
+            }
+            else {
+                // Otherwise get first unnamed
+                index = parameters.findIndex(param => param.key === void 0);
+                if (index >= 0) {
+                    const [parameter] = parameters.splice(index, 1);
+                    specified[spec] = parameter.value;
+                }
+            }
+        }
+        // Add all remaining named
+        for (const parameter of parameters.filter(param => param.key !== void 0)) {
+            specified[parameter.key] = parameter.value;
+        }
+        let index = specifications.length;
+        // Add all remaining unnamed...
+        for (const parameter of parameters.filter(param => param.key === void 0)) {
+            // ..with an index
+            specified[index++] = parameter.value;
+        }
+        return specified;
+    }
+    toSortedParameters(specifications) {
+        specifications = specifications || [];
+        const parameters = this.parameters;
+        const sorted = [];
+        for (const spec of specifications) {
+            // First get named if it exists
+            let index = parameters.findIndex(param => param.key === spec);
+            if (index >= 0) {
+                const parameter = { ...parameters.splice(index, 1)[0] };
+                parameter.key = void 0;
+                sorted.push(parameter);
+            }
+            else {
+                // Otherwise get first unnamed
+                index = parameters.findIndex(param => param.key === void 0);
+                if (index >= 0) {
+                    const parameter = { ...parameters.splice(index, 1)[0] };
+                    sorted.push(parameter);
+                }
+                else {
+                    // Or an empty
+                    sorted.push({ value: void 0 });
+                }
+            }
+        }
+        // Add all remaining named
+        const params = parameters.filter(param => param.key !== void 0);
+        params.sort((a, b) => (a.key || '') < (b.key || '') ? 1 : (b.key || '') < (a.key || '') ? -1 : 0);
+        sorted.push(...params);
+        // Add all remaining unnamed...
+        sorted.push(...parameters.filter(param => param.key === void 0));
+        return sorted;
+    }
     sameComponent(other, compareParameters = false, compareType = false) {
-        if (compareParameters && this.parametersString !== other.parametersString) {
+        if (compareParameters && !this.sameParameters(other, compareType)) {
             return false;
         }
         return compareType ? this.componentType === other.componentType : this.componentName === other.componentName;
     }
     // TODO: Somewhere we need to check for format such as spaces etc
-    sameParameters(other) {
-        return this.parametersString === other.parametersString;
+    sameParameters(other, compareType = false) {
+        if (!this.sameComponent(other, false, compareType)) {
+            return false;
+        }
+        const typeParameters = this.componentType ? this.componentType.parameters : [];
+        const mine = this.toSpecifiedParameters(typeParameters);
+        const others = other.toSpecifiedParameters(typeParameters);
+        return Object.keys(mine).every(key => mine[key] === others[key])
+            && Object.keys(others).every(key => others[key] === mine[key]);
     }
     sameViewport(other) {
-        return (this.viewport ? this.viewport.name : this.viewportName) === (other.viewport ? other.viewport.name : other.viewportName);
+        if (this.viewport !== null && other.viewport !== null) {
+            return this.viewport === other.viewport;
+        }
+        return this.scope === other.scope &&
+            (this.viewport ? this.viewport.name : this.viewportName) === (other.viewport ? other.viewport.name : other.viewportName);
     }
 }
 //# sourceMappingURL=viewport-instruction.js.map

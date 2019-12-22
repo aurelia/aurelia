@@ -1,6 +1,6 @@
 import { IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
-import { IBindingTargetObserver, ICollectionSubscribable, IObservable, ISubscribable, ISubscriber } from '../observation';
+import { IBindingContext, IBindingTargetObserver, ICollectionSubscribable, IObservable, ISubscribable, ISubscriber } from '../observation';
 import { IObserverLocator } from './observer-locator';
 export interface ComputedOverrides {
     static?: boolean;
@@ -48,7 +48,7 @@ export declare class GetterObserver implements GetterObserver {
     handleChange(): void;
     handleCollectionChange(): void;
     getValueAndCollectDependencies(requireCollect: boolean): unknown;
-    doNotCollect(key: PropertyKey): boolean;
+    doNotCollect(target: IObservable | IBindingContext, key: PropertyKey, receiver?: unknown): boolean;
     private unsubscribeAllDependencies;
 }
 //# sourceMappingURL=computed-observer.d.ts.map

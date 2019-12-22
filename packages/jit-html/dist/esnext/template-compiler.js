@@ -80,9 +80,9 @@ let TemplateCompiler = class TemplateCompiler {
     }
     compileChildNodes(parent, instructionRows, scopeParts) {
         if ((parent.flags & 8192 /* hasChildNodes */) > 0) {
-            const { childNodes } = parent;
-            let childNode;
+            const childNodes = parent.childNodes;
             const ii = childNodes.length;
+            let childNode;
             for (let i = 0; i < ii; ++i) {
                 childNode = childNodes[i];
                 if ((childNode.flags & 128 /* isText */) > 0) {

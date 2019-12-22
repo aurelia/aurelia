@@ -16,6 +16,10 @@ export function getRenderContext(partialDefinition, parentContainer, parts) {
     if (isRenderContext(parentContainer)) {
         parts = mergeParts(parentContainer.parts, parts);
     }
+    // injectable completely prevents caching, ensuring that each instance gets a new render context
+    if (definition.injectable !== null) {
+        return new RenderContext(definition, parentContainer, parts);
+    }
     if (parts === void 0) {
         let containerLookup = definitionContainerLookup.get(definition);
         if (containerLookup === void 0) {

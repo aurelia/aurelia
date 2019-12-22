@@ -1,8 +1,7 @@
 import { IContainer, Key } from '@aurelia/kernel';
-import { BrowserNavigator } from './browser-navigator';
-import { Guardian } from './guardian';
+import { ICustomElementController, ICustomElementViewModel } from '@aurelia/runtime';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
-import { INavigatorInstruction, IRouteableComponent, NavigationInstruction } from './interfaces';
+import { INavigatorInstruction, NavigationInstruction, IRoute, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
 import { INavigatorOptions, INavigatorViewerEvent, IStoredNavigatorEntry, Navigator } from './navigator';
@@ -10,34 +9,39 @@ import { QueueItem } from './queue';
 import { INavClasses } from './resources/nav';
 import { IViewportOptions, Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
-export interface IRouteTransformer {
-    transformFromUrl?(route: string, router: IRouter): string | ViewportInstruction[];
-    transformToUrl?(instructions: ViewportInstruction[], router: IRouter): string | ViewportInstruction[];
-}
-export declare const IRouteTransformer: import("@aurelia/kernel").InterfaceSymbol<IRouteTransformer>;
+import { HookManager, IHookDefinition, HookIdentity, HookFunction, IHookOptions, BeforeNavigationHookFunction, TransformFromUrlHookFunction, TransformToUrlHookFunction } from './hook-manager';
+import { Scope } from './scope';
+import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
+import { BrowserViewerStore } from './browser-viewer-store';
 export interface IGotoOptions {
     title?: string;
     query?: string;
     data?: Record<string, unknown>;
     replace?: boolean;
     append?: boolean;
-    origin?: IRouteableComponent | Element;
+    origin?: ICustomElementViewModel | Element;
 }
-export interface IRouterOptions extends INavigatorOptions, IRouteTransformer {
+export interface IRouterOptions extends INavigatorOptions {
     separators?: IRouteSeparators;
     useUrlFragmentHash?: boolean;
     useHref?: boolean;
     statefulHistoryLength?: number;
+    useDirectRoutes?: boolean;
+    useConfiguredRoutes?: boolean;
+    hooks?: IHookDefinition[];
     reportCallback?(instruction: INavigatorInstruction): void;
 }
 export interface IRouter {
     readonly isNavigating: boolean;
     activeComponents: ViewportInstruction[];
+    readonly rootScope: ViewportScope | null;
+    readonly activeRoute?: IRoute;
     readonly container: IContainer;
     readonly instructionResolver: InstructionResolver;
     navigator: Navigator;
-    readonly navigation: BrowserNavigator;
-    readonly guardian: Guardian;
+    readonly navigation: BrowserViewerStore;
+    readonly hookManager: HookManager;
+    readonly linkHandler: LinkHandler;
     readonly navs: Readonly<Record<string, Nav>>;
     readonly options: IRouterOptions;
     readonly statefulHistory: boolean;
@@ -47,40 +51,55 @@ export interface IRouter {
     linkCallback(info: AnchorEventInfo): void;
     processNavigations(qInstruction: QueueItem<INavigatorInstruction>): Promise<void>;
     getViewport(name: string): Viewport | null;
-    connectViewport(name: string, element: Element, context: IContainer, options?: IViewportOptions): Viewport;
-    disconnectViewport(viewport: Viewport, element: Element | null, context: IContainer | null): void;
+    setClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer, scope: Scope): void;
+    getClosestScope(viewModelOrElement: ICustomElementViewModel | Element | ICustomElementController | IContainer): Scope | null;
+    unsetClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer): void;
+    connectViewport(viewport: Viewport | null, container: IContainer, name: string, element: Element, options?: IViewportOptions): Viewport;
+    disconnectViewport(viewport: Viewport, container: IContainer, element: Element | null): void;
+    connectViewportScope(viewportScope: ViewportScope | null, name: string, container: IContainer, element: Element, options?: IViewportScopeOptions): ViewportScope;
+    disconnectViewportScope(viewportScope: ViewportScope, container: IContainer): void;
     allViewports(includeDisabled?: boolean): Viewport[];
-    findScope(element: Element | null): Viewport;
+    findScope(elementOrViewmodelOrviewport: Element | ICustomElementViewModel | Viewport | ICustomElementController | null): Scope;
     goto(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void>;
     refresh(): Promise<void>;
     back(): Promise<void>;
     forward(): Promise<void>;
+    checkActive(instructions: ViewportInstruction[]): boolean;
     setNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
     addNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
     updateNav(name?: string): void;
     findNav(name: string): Nav;
-    closestViewport(element: Element): Viewport | null;
+    addRoutes(routes: IRoute[], context?: ICustomElementViewModel | Element): IRoute[];
+    removeRoutes(routes: IRoute[] | string[], context?: ICustomElementViewModel | Element): void;
+    addHooks(hooks: IHookDefinition[]): HookIdentity[];
+    addHook(beforeNavigationHookFunction: BeforeNavigationHookFunction, options?: IHookOptions): HookIdentity;
+    addHook(transformFromUrlHookFunction: TransformFromUrlHookFunction, options?: IHookOptions): HookIdentity;
+    addHook(transformToUrlHookFunction: TransformToUrlHookFunction, options?: IHookOptions): HookIdentity;
+    addHook(hook: HookFunction, options: IHookOptions): HookIdentity;
+    removeHooks(hooks: HookIdentity[]): void;
+    createViewportInstruction(component: ComponentAppellation, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope?: boolean, nextScopeInstructions?: ViewportInstruction[] | null): ViewportInstruction;
 }
 export declare const IRouter: import("@aurelia/kernel").InterfaceSymbol<IRouter>;
 export declare class Router implements IRouter {
     readonly container: IContainer;
     navigator: Navigator;
-    navigation: BrowserNavigator;
-    private readonly routeTransformer;
+    navigation: BrowserViewerStore;
     linkHandler: LinkHandler;
     instructionResolver: InstructionResolver;
     static readonly inject: readonly Key[];
-    rootScope: Viewport | null;
-    guardian: Guardian;
+    rootScope: ViewportScope | null;
+    hookManager: HookManager;
     navs: Record<string, Nav>;
     activeComponents: ViewportInstruction[];
-    addedViewports: ViewportInstruction[];
+    activeRoute?: IRoute;
+    appendedInstructions: ViewportInstruction[];
     options: IRouterOptions;
     private isActive;
     private loadedFirst;
     private processingNavigation;
     private lastNavigation;
-    constructor(container: IContainer, navigator: Navigator, navigation: BrowserNavigator, routeTransformer: IRouteTransformer, linkHandler: LinkHandler, instructionResolver: InstructionResolver);
+    private staleChecks;
+    constructor(container: IContainer, navigator: Navigator, navigation: BrowserViewerStore, linkHandler: LinkHandler, instructionResolver: InstructionResolver);
     get isNavigating(): boolean;
     get statefulHistory(): boolean;
     activate(options?: IRouterOptions): void;
@@ -91,31 +110,47 @@ export declare class Router implements IRouter {
     navigatorSerializeCallback: (entry: IStoredNavigatorEntry, preservedEntries: IStoredNavigatorEntry[]) => Promise<IStoredNavigatorEntry>;
     browserNavigatorCallback: (browserNavigationEvent: INavigatorViewerEvent) => void;
     processNavigations: (qInstruction: QueueItem<INavigatorInstruction>) => Promise<void>;
-    findScope(element: Element): Viewport;
+    findScope(origin: Element | ICustomElementViewModel | Viewport | Scope | ICustomElementController | null): Scope;
+    findParentScope(container: IContainer | null): Scope;
     getViewport(name: string): Viewport | null;
-    connectViewport(name: string, element: Element, context: IContainer, options?: IViewportOptions): Viewport;
-    disconnectViewport(viewport: Viewport, element: Element | null, context: IContainer | null): void;
-    allViewports(includeDisabled?: boolean): Viewport[];
+    setClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer, scope: Scope): void;
+    getClosestScope(viewModelOrElement: ICustomElementViewModel | Element | ICustomElementController | IContainer): Scope | null;
+    unsetClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer): void;
+    connectViewport(viewport: Viewport | null, container: IContainer, name: string, element: Element, options?: IViewportOptions): Viewport;
+    disconnectViewport(viewport: Viewport, container: IContainer, element: Element | null): void;
+    connectViewportScope(viewportScope: ViewportScope | null, name: string, container: IContainer, element: Element, options?: IViewportScopeOptions): ViewportScope;
+    disconnectViewportScope(viewportScope: ViewportScope, container: IContainer): void;
+    allViewports(includeDisabled?: boolean, includeReplaced?: boolean): Viewport[];
     goto(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void>;
     refresh(): Promise<void>;
     back(): Promise<void>;
     forward(): Promise<void>;
+    checkActive(instructions: ViewportInstruction[]): boolean;
     setNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
     addNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
     updateNav(name?: string): void;
     findNav(name: string): Nav;
-    /**
-     * Finds the closest ancestor viewport.
-     *
-     * @param element - The element to search upward from. The element is not searched.
-     * @returns The Viewport that is the closest ancestor.
-     */
-    closestViewport(element: Element): Viewport | null;
+    addRoutes(routes: IRoute[], context?: ICustomElementViewModel | Element): IRoute[];
+    removeRoutes(routes: IRoute[] | string[], context?: ICustomElementViewModel | Element): void;
+    addHooks(hooks: IHookDefinition[]): HookIdentity[];
+    addHook(beforeNavigationHookFunction: BeforeNavigationHookFunction, options?: IHookOptions): HookIdentity;
+    addHook(transformFromUrlHookFunction: TransformFromUrlHookFunction, options?: IHookOptions): HookIdentity;
+    addHook(transformToUrlHookFunction: TransformToUrlHookFunction, options?: IHookOptions): HookIdentity;
+    addHook(hookFunction: HookFunction, options?: IHookOptions): HookIdentity;
+    removeHooks(hooks: HookIdentity[]): void;
+    createViewportInstruction(component: ComponentAppellation, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope?: boolean, nextScopeInstructions?: ViewportInstruction[] | null): ViewportInstruction;
+    private findInstructions;
+    private hasSiblingInstructions;
+    private appendInstructions;
+    private checkStale;
+    private unknownRoute;
     private findViewports;
     private cancelNavigation;
     private ensureRootScope;
-    private closestScope;
     private replacePaths;
     private freeComponents;
+    private getClosestContainer;
+    private getContainer;
+    private CustomElementFor;
 }
 //# sourceMappingURL=router.d.ts.map

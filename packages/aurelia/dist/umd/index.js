@@ -158,34 +158,6 @@
     var router_1 = require("@aurelia/router");
     // Nav,
     exports.NavRoute = router_1.NavRoute;
-    // IStoredNavigatorEntry,
-    // INavigatorEntry,
-    // INavigatorOptions,
-    // INavigatorFlags,
-    // INavigatorState,
-    // INavigatorStore,
-    // INavigatorViewer,
-    // INavigatorViewerEvent,
-    // Navigator,
-    // QueueItem,
-    // IQueueOptions,
-    // Queue,
-    // RouteHandler,
-    // ConfigurableRoute,
-    // HandlerEntry,
-    // RouteGenerator,
-    // TypesRecord,
-    // RecognizeResult,
-    // RecognizeResults,
-    // CharSpec,
-    // // State as RouterState, // duplicated in @aurelia/runtime
-    // StaticSegment,
-    // DynamicSegment,
-    // StarSegment,
-    // EpsilonSegment,
-    // Segment,
-    // RouteRecognizer,
-    exports.IRouteTransformer = router_1.IRouteTransformer;
     exports.IRouter = router_1.IRouter;
     exports.Router = router_1.Router;
     // IViewportOptions,

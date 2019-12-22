@@ -4,19 +4,23 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./resources/goto", "@aurelia/kernel", "@aurelia/runtime", "./resources/nav", "./resources/viewport", "./router"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./resources/nav", "./resources/viewport", "./resources/viewport-scope", "./resources/goto", "./resources/href", "./router"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const goto_1 = require("./resources/goto");
-    exports.GotoCustomAttribute = goto_1.GotoCustomAttribute;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const nav_1 = require("./resources/nav");
     exports.NavCustomElement = nav_1.NavCustomElement;
     const viewport_1 = require("./resources/viewport");
     exports.ViewportCustomElement = viewport_1.ViewportCustomElement;
+    const viewport_scope_1 = require("./resources/viewport-scope");
+    exports.ViewportScopeCustomElement = viewport_scope_1.ViewportScopeCustomElement;
+    const goto_1 = require("./resources/goto");
+    exports.GotoCustomAttribute = goto_1.GotoCustomAttribute;
+    const href_1 = require("./resources/href");
+    exports.HrefCustomAttribute = href_1.HrefCustomAttribute;
     const router_1 = require("./router");
     exports.RouterRegistration = router_1.IRouter;
     /**
@@ -27,17 +31,21 @@
         exports.RouterRegistration,
     ];
     exports.ViewportCustomElementRegistration = viewport_1.ViewportCustomElement;
+    exports.ViewportScopeCustomElementRegistration = viewport_scope_1.ViewportScopeCustomElement;
     exports.NavCustomElementRegistration = nav_1.NavCustomElement;
     exports.GotoCustomAttributeRegistration = goto_1.GotoCustomAttribute;
+    exports.HrefCustomAttributeRegistration = href_1.HrefCustomAttribute;
     /**
      * Default router resources:
      * - Custom Elements: `au-viewport`, `au-nav`
-     * - Custom Attributes: `goto`
+     * - Custom Attributes: `goto`, `href`
      */
     exports.DefaultResources = [
         viewport_1.ViewportCustomElement,
+        viewport_scope_1.ViewportScopeCustomElement,
         nav_1.NavCustomElement,
         goto_1.GotoCustomAttribute,
+        href_1.HrefCustomAttribute,
     ];
     let configurationOptions = {};
     let configurationCall = (router) => {

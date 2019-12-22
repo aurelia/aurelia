@@ -4,47 +4,55 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./browser-navigator", "./guardian", "./instruction-resolver", "./link-handler", "./nav", "./navigator", "./parser", "./route-table", "./type-resolvers", "./utils", "./viewport", "./viewport-instruction"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./instruction-resolver", "./link-handler", "./nav", "./navigator", "./type-resolvers", "./utils", "./viewport", "./found-route", "./hook-manager", "./scope", "./viewport-scope", "./browser-viewer-store"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    /* eslint-disable max-lines-per-function */
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
-    const browser_navigator_1 = require("./browser-navigator");
-    const guardian_1 = require("./guardian");
     const instruction_resolver_1 = require("./instruction-resolver");
     const link_handler_1 = require("./link-handler");
     const nav_1 = require("./nav");
     const navigator_1 = require("./navigator");
-    const parser_1 = require("./parser");
-    const route_table_1 = require("./route-table");
     const type_resolvers_1 = require("./type-resolvers");
     const utils_1 = require("./utils");
     const viewport_1 = require("./viewport");
-    const viewport_instruction_1 = require("./viewport-instruction");
-    exports.IRouteTransformer = kernel_1.DI.createInterface('IRouteTransformer').withDefault(x => x.singleton(route_table_1.RouteTable));
+    const found_route_1 = require("./found-route");
+    const hook_manager_1 = require("./hook-manager");
+    const scope_1 = require("./scope");
+    const viewport_scope_1 = require("./viewport-scope");
+    const browser_viewer_store_1 = require("./browser-viewer-store");
+    class ClosestViewportCustomElement {
+    }
+    class ClosestScope {
+    }
     exports.IRouter = kernel_1.DI.createInterface('IRouter').withDefault(x => x.singleton(Router));
     class Router {
-        constructor(container, navigator, navigation, routeTransformer, linkHandler, instructionResolver) {
+        constructor(container, navigator, navigation, linkHandler, instructionResolver) {
             this.container = container;
             this.navigator = navigator;
             this.navigation = navigation;
-            this.routeTransformer = routeTransformer;
             this.linkHandler = linkHandler;
             this.instructionResolver = instructionResolver;
             this.rootScope = null;
             this.navs = {};
             this.activeComponents = [];
-            this.addedViewports = [];
+            this.appendedInstructions = [];
             this.options = {
                 useHref: true,
                 statefulHistoryLength: 0,
+                useDirectRoutes: true,
+                useConfiguredRoutes: true,
             };
             this.isActive = false;
             this.loadedFirst = false;
             this.processingNavigation = null;
             this.lastNavigation = null;
+            this.staleChecks = {};
+            // TODO: use @bound and improve name (eslint-disable is temp)
+            // eslint-disable-next-line @typescript-eslint/typedef
             this.linkCallback = (info) => {
                 let instruction = info.instruction || '';
                 if (typeof instruction === 'string' && instruction.startsWith('#')) {
@@ -57,10 +65,14 @@
                 // Adds to Navigator's Queue, which makes sure it's serial
                 this.goto(instruction, { origin: info.anchor }).catch(error => { throw error; });
             };
+            // TODO: use @bound and improve name (eslint-disable is temp)
+            // eslint-disable-next-line @typescript-eslint/typedef
             this.navigatorCallback = (instruction) => {
                 // Instructions extracted from queue, one at a time
                 this.processNavigations(instruction).catch(error => { throw error; });
             };
+            // TODO: use @bound and improve name (eslint-disable is temp)
+            // eslint-disable-next-line @typescript-eslint/typedef
             this.navigatorSerializeCallback = async (entry, preservedEntries) => {
                 let excludeComponents = [];
                 for (const preservedEntry of preservedEntries) {
@@ -95,6 +107,8 @@
                 }
                 return serialized;
             };
+            // TODO: use @bound and improve name (eslint-disable is temp)
+            // eslint-disable-next-line @typescript-eslint/typedef
             this.browserNavigatorCallback = (browserNavigationEvent) => {
                 const entry = (browserNavigationEvent.state && browserNavigationEvent.state.currentEntry
                     ? browserNavigationEvent.state.currentEntry
@@ -103,6 +117,8 @@
                 entry.fromBrowser = true;
                 this.navigator.navigate(entry).catch(error => { throw error; });
             };
+            // TODO: use @bound and improve name (eslint-disable is temp)
+            // eslint-disable-next-line @typescript-eslint/typedef
             this.processNavigations = async (qInstruction) => {
                 const instruction = this.processingNavigation = qInstruction;
                 if (this.options.reportCallback) {
@@ -112,93 +128,75 @@
                 const instructionNavigation = instruction.navigation;
                 if ((instructionNavigation.back || instructionNavigation.forward) && instruction.fullStateInstruction) {
                     fullStateInstruction = true;
-                    // if (!confirm('Perform history navigation?')) {
-                    //   this.navigator.cancel(instruction);
-                    //   this.processingNavigation = null;
-                    //   return Promise.resolve();
-                    // }
+                    // if (!confirm('Perform history navigation?')) { this.navigator.cancel(instruction); this.processingNavigation = null; return Promise.resolve(); }
                 }
-                let instructions;
-                let clearUsedViewports = fullStateInstruction;
-                if (typeof instruction.instruction === 'string') {
-                    let path = instruction.instruction;
-                    let transformedInstruction = path;
-                    if (this.options.transformFromUrl && !fullStateInstruction) {
-                        transformedInstruction = this.options.transformFromUrl(path, this);
-                    }
-                    if (Array.isArray(transformedInstruction)) {
-                        instructions = transformedInstruction;
-                    }
-                    else {
-                        path = transformedInstruction;
-                        // TODO: Review this
-                        if (path === '/') {
-                            path = '';
-                        }
-                        instructions = this.instructionResolver.parseViewportInstructions(path);
-                        // TODO: Used to have an early exit if no instructions. Restore it?
+                let configuredRoute = await this.findInstructions(this.rootScope.scope, instruction.instruction, instruction.scope || this.rootScope.scope, !fullStateInstruction);
+                let instructions = configuredRoute.instructions;
+                let configuredRoutePath = null;
+                if (instruction.instruction.length > 0 && !configuredRoute.foundConfiguration && !configuredRoute.foundInstructions) {
+                    // TODO: Do something here!
+                    this.unknownRoute(configuredRoute.remaining);
+                }
+                if (configuredRoute.foundConfiguration) {
+                    instruction.path = instruction.instruction.startsWith('/')
+                        ? instruction.instruction.slice(1) : instruction.instruction;
+                    configuredRoutePath = `${configuredRoutePath || ''}${configuredRoute.matching}`;
+                    this.rootScope.path = configuredRoutePath;
+                }
+                // TODO: Used to have an early exit if no instructions. Restore it?
+                const clearScopeOwners = [];
+                let clearViewportScopes = [];
+                for (const clearInstruction of instructions.filter(instr => this.instructionResolver.isClearAllViewportsInstruction(instr))) {
+                    const scope = clearInstruction.scope || this.rootScope.scope;
+                    clearScopeOwners.push(...scope.children.filter(scope => !scope.owner.isEmpty).map(scope => scope.owner));
+                    if (scope.viewportScope !== null) {
+                        clearViewportScopes.push(scope.viewportScope);
                     }
                 }
-                else {
-                    instructions = instruction.instruction;
-                    // TODO: Used to have an early exit if no instructions. Restore it?
+                instructions = instructions.filter(instr => !this.instructionResolver.isClearAllViewportsInstruction(instr));
+                for (const addInstruction of instructions.filter(instr => this.instructionResolver.isAddAllViewportsInstruction(instr))) {
+                    addInstruction.setViewport((addInstruction.scope || this.rootScope.scope).viewportScope.name);
+                    addInstruction.scope = addInstruction.scope.owningScope;
                 }
-                if (instructions.some(instr => this.instructionResolver.isClearAllViewportsInstruction(instr))) {
-                    clearUsedViewports = true;
-                    instructions = instructions.filter(instr => !this.instructionResolver.isClearAllViewportsInstruction(instr));
-                }
-                const parsedQuery = parser_1.parseQuery(instruction.query);
-                instruction.parameters = parsedQuery.parameters;
-                instruction.parameterList = parsedQuery.list;
-                // TODO: Fetch title (probably when done)
-                let clearViewports = (clearUsedViewports ? this.allViewports().filter((value) => value.content.componentInstance !== null) : []);
-                const doneDefaultViewports = [];
-                let defaultViewports = this.allViewports().filter(viewport => viewport.options.default
-                    && viewport.content.componentInstance === null
-                    && doneDefaultViewports.every(done => done !== viewport));
-                const updatedViewports = [];
-                for (const instr of instructions) {
-                    if (instr.scope === null) {
-                        instr.scope = this.rootScope;
-                    }
-                }
+                const updatedScopeOwners = [];
                 const alreadyFoundInstructions = [];
                 // TODO: Take care of cancellations down in subsets/iterations
                 let { found: viewportInstructions, remaining: remainingInstructions } = this.findViewports(instructions, alreadyFoundInstructions);
                 let guard = 100;
-                while (viewportInstructions.length || remainingInstructions.length || defaultViewports.length || clearUsedViewports) {
-                    // Guard against endless loop
-                    if (!guard--) {
+                do {
+                    if (!guard--) { // Guard against endless loop
+                        console.log('remainingInstructions', remainingInstructions);
                         throw kernel_1.Reporter.error(2002);
                     }
-                    for (const defaultViewport of defaultViewports) {
-                        doneDefaultViewports.push(defaultViewport);
-                        if (viewportInstructions.every(value => value.viewport !== defaultViewport)) {
-                            const defaultInstruction = this.instructionResolver.parseViewportInstruction(defaultViewport.options.default);
-                            defaultInstruction.viewport = defaultViewport;
-                            viewportInstructions.push(defaultInstruction);
-                        }
+                    const changedScopeOwners = [];
+                    const hooked = await this.hookManager.invokeBeforeNavigation(viewportInstructions, instruction);
+                    if (hooked === false) {
+                        return this.cancelNavigation([...changedScopeOwners, ...updatedScopeOwners], instruction);
                     }
-                    const changedViewports = [];
-                    const outcome = this.guardian.passes("before" /* Before */, viewportInstructions, instruction);
-                    if (!outcome) {
-                        return this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
-                    }
-                    if (typeof outcome !== 'boolean') {
-                        viewportInstructions = outcome;
+                    else {
+                        viewportInstructions = hooked;
                     }
                     for (const viewportInstruction of viewportInstructions) {
-                        const viewport = viewportInstruction.viewport;
-                        if (viewport.setNextContent(viewportInstruction, instruction)) {
-                            changedViewports.push(viewport);
+                        const scopeOwner = viewportInstruction.owner;
+                        if (scopeOwner !== null) {
+                            scopeOwner.path = configuredRoutePath;
+                            if (scopeOwner.setNextContent(viewportInstruction, instruction)) {
+                                changedScopeOwners.push(scopeOwner);
+                            }
+                            utils_1.arrayRemove(clearScopeOwners, value => value === scopeOwner);
+                            if (!this.instructionResolver.isClearViewportInstruction(viewportInstruction)
+                                && viewportInstruction.scope !== null
+                                && viewportInstruction.scope.parent !== null
+                                && viewportInstruction.scope.parent.isViewportScope) {
+                                utils_1.arrayRemove(clearViewportScopes, value => value === viewportInstruction.scope.parent.viewportScope);
+                            }
                         }
-                        utils_1.arrayRemove(clearViewports, value => value === viewport);
                     }
-                    let results = await Promise.all(changedViewports.map((value) => value.canLeave()));
+                    let results = await Promise.all(changedScopeOwners.map((value) => value.canLeave()));
                     if (results.some(result => result === false)) {
-                        return this.cancelNavigation([...changedViewports, ...updatedViewports], instruction);
+                        return this.cancelNavigation([...changedScopeOwners, ...updatedScopeOwners], instruction);
                     }
-                    results = await Promise.all(changedViewports.map(async (value) => {
+                    results = await Promise.all(changedScopeOwners.map(async (value) => {
                         const canEnter = await value.canEnter();
                         if (typeof canEnter === 'boolean') {
                             if (canEnter) {
@@ -214,54 +212,102 @@
                         return true;
                     }));
                     if (results.some(result => result === false)) {
-                        return this.cancelNavigation([...changedViewports, ...updatedViewports], qInstruction);
+                        return this.cancelNavigation([...changedScopeOwners, ...updatedScopeOwners], qInstruction);
                     }
-                    for (const viewport of changedViewports) {
-                        if (updatedViewports.every(value => value !== viewport)) {
-                            updatedViewports.push(viewport);
+                    for (const viewport of changedScopeOwners) {
+                        if (updatedScopeOwners.every(value => value !== viewport)) {
+                            updatedScopeOwners.push(viewport);
                         }
                     }
                     // TODO: Fix multi level recursiveness!
                     alreadyFoundInstructions.push(...viewportInstructions);
-                    const remaining = this.findViewports(remainingInstructions, alreadyFoundInstructions);
-                    viewportInstructions = [];
-                    while (this.addedViewports.length > 0) {
-                        const addedViewport = this.addedViewports.shift();
-                        // TODO: Should this overwrite instead? I think so.
-                        if (remaining.found.every(value => value.viewport !== addedViewport.viewport)) {
-                            viewportInstructions.push(addedViewport);
+                    ({ found: viewportInstructions, remaining: remainingInstructions } = this.findViewports(remainingInstructions, alreadyFoundInstructions));
+                    // Look for configured child routes (once we've loaded everything so far?)
+                    if (configuredRoute.hasRemaining &&
+                        viewportInstructions.length === 0 &&
+                        remainingInstructions.length === 0) {
+                        let configured = new found_route_1.FoundRoute();
+                        const routeScopeOwners = alreadyFoundInstructions
+                            .filter(instr => instr.owner !== null && instr.owner.path === configuredRoutePath)
+                            .map(instr => instr.owner)
+                            .filter((value, index, arr) => arr.indexOf(value) === index);
+                        for (const owner of routeScopeOwners) {
+                            configured = await this.findInstructions(owner.scope, configuredRoute.remaining, owner.scope);
+                            if (configured.foundConfiguration) {
+                                break;
+                            }
+                        }
+                        if (configured.foundInstructions) {
+                            configuredRoute = configured;
+                            configuredRoutePath = `${configuredRoutePath || ''}/${configuredRoute.matching}`;
+                        }
+                        else {
+                            // TODO: Do something here!
+                            this.unknownRoute(configured.remaining);
+                        }
+                        this.appendInstructions(configured.instructions);
+                    }
+                    // Don't use defaults when it's a full state navigation
+                    if (fullStateInstruction) {
+                        this.appendedInstructions = this.appendedInstructions.filter(instruction => !instruction.default);
+                    }
+                    // Process non-defaults first
+                    let appendedInstructions = this.appendedInstructions.filter(instruction => !instruction.default);
+                    this.appendedInstructions = this.appendedInstructions.filter(instruction => instruction.default);
+                    if (appendedInstructions.length === 0) {
+                        const index = this.appendedInstructions.findIndex(instruction => instruction.default);
+                        if (index >= 0) {
+                            appendedInstructions = this.appendedInstructions.splice(index, 1);
                         }
                     }
-                    viewportInstructions = [...viewportInstructions, ...remaining.found];
-                    remainingInstructions = remaining.remaining;
-                    defaultViewports = this.allViewports().filter(viewport => viewport.options.default
-                        && viewport.content.componentInstance === null
-                        && doneDefaultViewports.every(done => done !== viewport)
-                        && updatedViewports.every(updated => updated !== viewport));
-                    // clearViewports is empty if we're not clearing viewports
-                    if (viewportInstructions.length === 0 &&
-                        remainingInstructions.length === 0 &&
-                        defaultViewports.length === 0) {
-                        viewportInstructions = [
-                            ...viewportInstructions,
-                            ...clearViewports.map(viewport => new viewport_instruction_1.ViewportInstruction(this.instructionResolver.clearViewportInstruction, viewport))
-                        ];
-                        clearViewports = [];
+                    while (appendedInstructions.length > 0) {
+                        const appendedInstruction = appendedInstructions.shift();
+                        const existingAlreadyFound = alreadyFoundInstructions.some(instruction => instruction.sameViewport(appendedInstruction));
+                        const existingFound = viewportInstructions.find(value => value.sameViewport(appendedInstruction));
+                        const existingRemaining = remainingInstructions.find(value => value.sameViewport(appendedInstruction));
+                        if (appendedInstruction.default &&
+                            (existingAlreadyFound ||
+                                (existingFound !== void 0 && !existingFound.default) ||
+                                (existingRemaining !== void 0 && !existingRemaining.default))) {
+                            continue;
+                        }
+                        if (existingFound !== void 0) {
+                            utils_1.arrayRemove(viewportInstructions, value => value === existingFound);
+                        }
+                        if (existingRemaining !== void 0) {
+                            utils_1.arrayRemove(remainingInstructions, value => value === existingRemaining);
+                        }
+                        if (appendedInstruction.viewport !== null) {
+                            viewportInstructions.push(appendedInstruction);
+                        }
+                        else {
+                            remainingInstructions.push(appendedInstruction);
+                        }
                     }
-                    // TODO: Do we still need this? What if no viewport at all?
-                    // if (!this.allViewports().length) {
-                    //   viewportsRemaining = false;
-                    // }
-                    clearUsedViewports = false;
-                }
-                await Promise.all(updatedViewports.map((value) => value.loadContent()));
+                    if (viewportInstructions.length === 0 && remainingInstructions.length === 0) {
+                        viewportInstructions = clearScopeOwners.map(owner => {
+                            const instruction = this.createViewportInstruction(this.instructionResolver.clearViewportInstruction, owner.isViewport ? owner : void 0);
+                            if (owner.isViewportScope) {
+                                instruction.viewportScope = owner;
+                            }
+                            return instruction;
+                        });
+                        viewportInstructions.push(...clearViewportScopes.map(viewportScope => {
+                            const instr = this.createViewportInstruction(this.instructionResolver.clearViewportInstruction);
+                            instr.viewportScope = viewportScope;
+                            return instr;
+                        }));
+                        clearViewportScopes = [];
+                    }
+                } while (viewportInstructions.length > 0 || remainingInstructions.length > 0);
+                await Promise.all(updatedScopeOwners.map((value) => value.loadContent()));
                 await this.replacePaths(instruction);
-                this.updateNav();
+                // this.updateNav();
                 // Remove history entry if no history viewports updated
-                if (instructionNavigation.new && !instructionNavigation.first && !instruction.repeating && updatedViewports.every(viewport => viewport.options.noHistory)) {
+                if (instructionNavigation.new && !instructionNavigation.first && !instruction.repeating && updatedScopeOwners.every(viewport => viewport.options.noHistory)) {
                     instruction.untracked = true;
                 }
-                updatedViewports.forEach((viewport) => {
+                updatedScopeOwners.forEach((viewport) => {
                     viewport.finalizeContentChange();
                 });
                 this.lastNavigation = this.processingNavigation;
@@ -271,7 +317,7 @@
                 this.processingNavigation = null;
                 await this.navigator.finalize(instruction);
             };
-            this.guardian = new guardian_1.Guardian();
+            this.hookManager = new hook_manager_1.HookManager();
         }
         get isNavigating() {
             return this.processingNavigation !== null;
@@ -286,11 +332,11 @@
             this.isActive = true;
             this.options = {
                 ...this.options,
-                ...{
-                    transformFromUrl: this.routeTransformer.transformFromUrl,
-                    transformToUrl: this.routeTransformer.transformToUrl,
-                }, ...options
+                ...options
             };
+            if (this.options.hooks !== void 0) {
+                this.addHooks(this.options.hooks);
+            }
             this.instructionResolver.activate({ separators: this.options.separators });
             this.navigator.activate(this, {
                 callback: this.navigatorCallback,
@@ -303,8 +349,9 @@
                 callback: this.browserNavigatorCallback,
                 useUrlFragmentHash: this.options.useUrlFragmentHash
             });
+            this.ensureRootScope();
         }
-        loadUrl() {
+        async loadUrl() {
             const entry = {
                 ...this.navigation.viewerState,
                 ...{
@@ -325,42 +372,93 @@
             this.navigator.deactivate();
             this.navigation.deactivate();
         }
-        findScope(element) {
-            this.ensureRootScope();
-            return this.closestScope(element);
+        findScope(origin) {
+            // this.ensureRootScope();
+            if (origin === void 0 || origin === null) {
+                return this.rootScope.scope;
+            }
+            if (origin instanceof scope_1.Scope || origin instanceof viewport_1.Viewport) {
+                return origin.scope;
+            }
+            return this.getClosestScope(origin) || this.rootScope.scope;
+        }
+        findParentScope(container) {
+            if (container === null) {
+                return this.rootScope.scope;
+            }
+            // Already (prematurely) set on this view model so get it from container's parent instead
+            if (container.has(ClosestScope, false)) {
+                container = container.parent;
+                if (container === null) {
+                    return this.rootScope.scope;
+                }
+            }
+            if (container.has(ClosestScope, true)) {
+                return container.get(ClosestScope);
+            }
+            return this.rootScope.scope;
         }
         // External API to get viewport by name
         getViewport(name) {
             return this.allViewports().find(viewport => viewport.name === name) || null;
         }
-        // Called from the viewport custom element in afterAttach()
-        connectViewport(name, element, context, options) {
-            kernel_1.Reporter.write(10000, 'Viewport added', name, element);
-            const parentScope = this.findScope(element);
-            const viewport = parentScope.addViewport(name, element, context, options);
-            let parent = this.closestViewport(element);
-            if (parent === viewport) {
-                if (element.parentElement !== null) {
-                    parent = this.closestViewport(element.parentElement);
-                }
-                else {
-                    parent = null;
-                }
+        // Called from the viewport scope custom element in created()
+        setClosestScope(viewModelOrContainer, scope) {
+            const container = this.getContainer(viewModelOrContainer);
+            kernel_1.Registration.instance(ClosestScope, scope).register(container);
+        }
+        getClosestScope(viewModelOrElement) {
+            const container = 'resourceResolvers' in viewModelOrElement
+                ? viewModelOrElement
+                : this.getClosestContainer(viewModelOrElement);
+            if (container === null) {
+                return null;
             }
-            if (parent !== null) {
-                parent.addChild(viewport);
+            if (!container.has(ClosestScope, true)) {
+                return null;
+            }
+            return container.get(ClosestScope) || null;
+        }
+        unsetClosestScope(viewModelOrContainer) {
+            const container = this.getContainer(viewModelOrContainer);
+            // TODO: Get an 'unregister' on container
+            container.resolvers.delete(ClosestScope);
+        }
+        // Called from the viewport custom element in attached()
+        connectViewport(viewport, container, name, element, options) {
+            const parentScope = this.findParentScope(container);
+            if (viewport === null) {
+                viewport = parentScope.addViewport(name, element, container, options);
+                this.setClosestScope(container, viewport.connectedScope);
             }
             return viewport;
         }
         // Called from the viewport custom element
-        disconnectViewport(viewport, element, context) {
-            if (!viewport.owningScope.removeViewport(viewport, element, context)) {
+        disconnectViewport(viewport, container, element) {
+            if (!viewport.connectedScope.parent.removeViewport(viewport, element, container)) {
                 throw new Error(`Failed to remove viewport: ${viewport.name}`);
             }
+            this.unsetClosestScope(container);
         }
-        allViewports(includeDisabled = false) {
-            this.ensureRootScope();
-            return this.rootScope.allViewports(includeDisabled);
+        // Called from the viewport scope custom element in attached()
+        connectViewportScope(viewportScope, name, container, element, options) {
+            const parentScope = this.findParentScope(container);
+            if (viewportScope === null) {
+                viewportScope = parentScope.addViewportScope(name, element, options);
+                this.setClosestScope(container, viewportScope.connectedScope);
+            }
+            return viewportScope;
+        }
+        // Called from the viewport scope custom element
+        disconnectViewportScope(viewportScope, container) {
+            if (!viewportScope.connectedScope.parent.removeViewportScope(viewportScope)) {
+                throw new Error(`Failed to remove viewport scope: ${viewportScope.path}`);
+            }
+            this.unsetClosestScope(container);
+        }
+        allViewports(includeDisabled = false, includeReplaced = false) {
+            // this.ensureRootScope();
+            return this.rootScope.scope.allViewports(includeDisabled, includeReplaced);
         }
         goto(instructions, options) {
             options = options || {};
@@ -370,58 +468,22 @@
                 instructions = path;
                 options.query = search;
             }
-            if (typeof instructions !== 'string' || instructions !== this.instructionResolver.clearViewportInstruction) {
-                let scope = null;
-                if (options.origin) {
-                    scope = this.closestScope(options.origin);
-                    if (typeof instructions === 'string') {
-                        // If it's not from scope root, figure out which scope
-                        if (!instructions.startsWith('/')) {
-                            // Scope modifications
-                            if (instructions.startsWith('.')) {
-                                // The same as no scope modification
-                                if (instructions.startsWith('./')) {
-                                    instructions = instructions.slice(2);
-                                }
-                                // Find out how many scopes upwards we should move
-                                while (instructions.startsWith('../')) {
-                                    scope = scope.parent || scope;
-                                    instructions = instructions.slice(3);
-                                }
-                            }
-                        }
-                        else { // Specified root scope with /
-                            scope = this.rootScope;
-                        }
-                    }
-                    // TODO: Maybe deal with non-strings?
-                }
-                instructions = type_resolvers_1.NavigationInstructionResolver.toViewportInstructions(this, instructions);
-                for (const instruction of instructions) {
-                    if (instruction.scope === null) {
-                        instruction.scope = scope;
-                    }
-                }
+            const toOptions = {};
+            if (options.origin) {
+                toOptions.context = options.origin;
             }
-            else {
+            let scope = null;
+            ({ instructions, scope } = type_resolvers_1.NavigationInstructionResolver.createViewportInstructions(this, instructions, toOptions));
+            if (options.append && this.processingNavigation) {
                 instructions = type_resolvers_1.NavigationInstructionResolver.toViewportInstructions(this, instructions);
-            }
-            if (options.append) {
-                if (this.processingNavigation) {
-                    this.addedViewports.push(...instructions);
-                    // Can't return current navigation promise since it can lead to deadlock in enter
-                    return Promise.resolve();
-                }
-                else {
-                    // Can only append after first load has happened (defaults can fire too early)
-                    if (!this.loadedFirst) {
-                        return Promise.resolve();
-                    }
-                }
+                this.appendInstructions(instructions, scope);
+                // Can't return current navigation promise since it can lead to deadlock in enter
+                return Promise.resolve();
             }
             const entry = {
                 instruction: instructions,
                 fullStateInstruction: '',
+                scope: scope,
                 title: options.title,
                 data: options.data,
                 query: options.query,
@@ -439,6 +501,21 @@
         }
         forward() {
             return this.navigator.go(1);
+        }
+        checkActive(instructions) {
+            for (const instruction of instructions) {
+                const scopeInstructions = this.instructionResolver.matchScope(this.activeComponents, instruction.scope);
+                const matching = scopeInstructions.filter(instr => instr.sameComponent(instruction));
+                if (matching.length === 0) {
+                    return false;
+                }
+                if (Array.isArray(instruction.nextScopeInstructions)
+                    && instruction.nextScopeInstructions.length > 0
+                    && this.instructionResolver.matchChildren(instruction.nextScopeInstructions, matching.map(instr => Array.isArray(instr.nextScopeInstructions) ? instr.nextScopeInstructions : []).flat()) === false) {
+                    return false;
+                }
+            }
+            return true;
         }
         setNav(name, routes, classes) {
             const nav = this.findNav(name);
@@ -468,55 +545,149 @@
         findNav(name) {
             return this.navs[name];
         }
-        /**
-         * Finds the closest ancestor viewport.
-         *
-         * @param element - The element to search upward from. The element is not searched.
-         * @returns The Viewport that is the closest ancestor.
-         */
-        closestViewport(element) {
-            let el = element;
-            let $viewport = el.$viewport;
-            while (!$viewport && el.parentElement) {
-                el = el.parentElement;
-                $viewport = el.$viewport;
-            }
-            // TODO: Always also check controllers and return the closest one
-            if (el.$viewport) {
-                return el.$viewport;
-            }
-            el = element;
-            let controller = runtime_1.CustomElement.for(el);
-            while (!controller && el.parentElement) {
-                el = el.parentElement;
-                runtime_1.CustomElement.for(el);
-            }
-            while (controller) {
-                if (controller.host) {
-                    const viewport = this.allViewports().find((item) => item.element === controller.host);
-                    if (viewport) {
-                        return viewport;
+        addRoutes(routes, context) {
+            // TODO: This should add to the context instead
+            // TODO: Add routes without context to rootScope content (which needs to be created)?
+            return [];
+            // const viewport = (context !== void 0 ? this.closestViewport(context) : this.rootScope) || this.rootScope as Viewport;
+            // return viewport.addRoutes(routes);
+        }
+        removeRoutes(routes, context) {
+            // TODO: This should remove from the context instead
+            // const viewport = (context !== void 0 ? this.closestViewport(context) : this.rootScope) || this.rootScope as Viewport;
+            // return viewport.removeRoutes(routes);
+        }
+        addHooks(hooks) {
+            return hooks.map(hook => this.addHook(hook.hook, hook.options));
+        }
+        addHook(hook, options) {
+            return this.hookManager.addHook(hook, options);
+        }
+        removeHooks(hooks) {
+            return;
+        }
+        createViewportInstruction(component, viewport, parameters, ownsScope = true, nextScopeInstructions = null) {
+            return this.instructionResolver.createViewportInstruction(component, viewport, parameters, ownsScope, nextScopeInstructions);
+        }
+        async findInstructions(scope, instruction, instructionScope, transformUrl = false) {
+            let route = new found_route_1.FoundRoute();
+            if (typeof instruction === 'string') {
+                instruction = transformUrl
+                    ? await this.hookManager.invokeTransformFromUrl(instruction, this.processingNavigation)
+                    : instruction;
+                if (Array.isArray(instruction)) {
+                    route.instructions = instruction;
+                }
+                else {
+                    // TODO: Review this
+                    if (instruction === '/') {
+                        instruction = '';
+                    }
+                    const instructions = this.instructionResolver.parseViewportInstructions(instruction);
+                    if (this.options.useConfiguredRoutes && !this.hasSiblingInstructions(instructions)) {
+                        const foundRoute = scope.findMatchingRoute(instruction);
+                        if (foundRoute !== null && foundRoute.foundConfiguration) {
+                            route = foundRoute;
+                        }
+                        else {
+                            if (this.options.useDirectRoutes) {
+                                route.instructions = instructions;
+                                if (route.instructions.length > 0) {
+                                    const nextInstructions = route.instructions[0].nextScopeInstructions || [];
+                                    route.remaining = this.instructionResolver.stringifyViewportInstructions(nextInstructions);
+                                    route.instructions[0].nextScopeInstructions = null;
+                                }
+                            }
+                        }
+                    }
+                    else if (this.options.useDirectRoutes) {
+                        route.instructions = instructions;
                     }
                 }
-                controller = controller.parent;
             }
-            return null;
+            else {
+                route.instructions = instruction;
+            }
+            for (const instr of route.instructions) {
+                if (instr.scope === null) {
+                    instr.scope = instructionScope;
+                }
+            }
+            return route;
+        }
+        hasSiblingInstructions(instructions) {
+            if (instructions === null) {
+                return false;
+            }
+            if (instructions.length > 1) {
+                return true;
+            }
+            return instructions.some(instruction => this.hasSiblingInstructions(instruction.nextScopeInstructions));
+        }
+        appendInstructions(instructions, scope = null) {
+            if (scope === null) {
+                scope = this.rootScope.scope;
+            }
+            for (const instruction of instructions) {
+                if (instruction.scope === null) {
+                    instruction.scope = scope;
+                }
+            }
+            this.appendedInstructions.push(...instructions);
+        }
+        checkStale(name, instructions) {
+            const staleCheck = this.staleChecks[name];
+            if (staleCheck === void 0) {
+                this.staleChecks[name] = instructions.slice();
+                return false;
+            }
+            if (staleCheck.length !== instructions.length) {
+                this.staleChecks[name] = instructions.slice();
+                return false;
+            }
+            for (let i = 0, ii = instructions.length; i < ii; i++) {
+                if (staleCheck[i] !== instructions[i]) {
+                    this.staleChecks[name] = instructions.slice();
+                    return false;
+                }
+            }
+            return true;
+        }
+        unknownRoute(route) {
+            if (typeof route !== 'string' || route.length === 0) {
+                return;
+            }
+            if (this.options.useConfiguredRoutes && this.options.useDirectRoutes) {
+                // TODO: Add missing/unknown route handling
+                throw new Error(`No matching configured route or component found for '${route}'`);
+            }
+            else if (this.options.useConfiguredRoutes) {
+                // TODO: Add missing/unknown route handling
+                throw new Error(`No matching configured route found for '${route}'`);
+            }
+            else {
+                // TODO: Add missing/unknown route handling
+                throw new Error(`No matching route/component found for '${route}'`);
+            }
         }
         findViewports(instructions, alreadyFound, withoutViewports = false) {
             const found = [];
             const remaining = [];
             while (instructions.length) {
+                if (instructions[0].scope === null) {
+                    instructions[0].scope = this.rootScope.scope;
+                }
                 const scope = instructions[0].scope;
                 const { foundViewports, remainingInstructions } = scope.findViewports(instructions.filter(instruction => instruction.scope === scope), alreadyFound, withoutViewports);
                 found.push(...foundViewports);
                 remaining.push(...remainingInstructions);
                 instructions = instructions.filter(instruction => instruction.scope !== scope);
             }
-            return { found, remaining };
+            return { found: found.slice(), remaining };
         }
-        async cancelNavigation(updatedViewports, qInstruction) {
+        async cancelNavigation(updatedScopeOwners, qInstruction) {
             // TODO: Take care of disabling viewports when cancelling and stateful!
-            updatedViewports.forEach((viewport) => {
+            updatedScopeOwners.forEach((viewport) => {
                 viewport.abortContentChange().catch(error => { throw error; });
             });
             await this.navigator.cancel(qInstruction);
@@ -526,22 +697,19 @@
         ensureRootScope() {
             if (!this.rootScope) {
                 const root = this.container.get(runtime_1.Aurelia).root;
-                this.rootScope = new viewport_1.Viewport(this, 'rootScope', root.host, root.controller.context, null, true);
-            }
-        }
-        closestScope(element) {
-            const viewport = this.closestViewport(element);
-            if (viewport && (viewport.scope || viewport.owningScope)) {
-                return viewport.scope || viewport.owningScope;
+                // root.config.component shouldn't be used in the end. Metadata will probably eliminate it
+                this.rootScope = new viewport_scope_1.ViewportScope('rootScope', this, root.config.host, null, true, root.config.component);
             }
             return this.rootScope;
         }
-        replacePaths(instruction) {
-            this.rootScope.reparentViewportInstructions();
-            const viewports = this.rootScope.children.filter((viewport) => viewport.enabled && !viewport.content.content.isEmpty());
-            let instructions = viewports.map(viewport => viewport.content.content);
-            // TODO: Check if this is really necessary
+        async replacePaths(instruction) {
+            this.rootScope.scope.reparentViewportInstructions();
+            let instructions = this.rootScope.scope.hoistedChildren
+                .filter(scope => scope.viewportInstruction !== null && !scope.viewportInstruction.isEmpty())
+                .map(scope => scope.viewportInstruction);
             instructions = this.instructionResolver.cloneViewportInstructions(instructions, true);
+            // The following makes sure right viewport/viewport scopes are set and update
+            // whether viewport name is necessary or not
             const alreadyFound = [];
             let { found, remaining } = this.findViewports(instructions, alreadyFound, true);
             let guard = 100;
@@ -554,17 +722,23 @@
                 ({ found, remaining } = this.findViewports(remaining, alreadyFound, true));
             }
             this.activeComponents = instructions;
-            let state = this.instructionResolver.stringifyViewportInstructions(instructions, false, true);
-            if (this.options.transformToUrl) {
-                // TODO: Review this. Also, should it perhaps get full state?
-                const routeOrInstructions = this.options.transformToUrl(this.instructionResolver.parseViewportInstructions(state), this);
-                state = Array.isArray(routeOrInstructions) ? this.instructionResolver.stringifyViewportInstructions(routeOrInstructions) : routeOrInstructions;
+            this.activeRoute = instruction.route;
+            // First invoke with viewport instructions (should it perhaps get full state?)
+            let state = await this.hookManager.invokeTransformToUrl(instructions, instruction);
+            if (typeof state !== 'string') {
+                // Convert to string if necessary
+                state = this.instructionResolver.stringifyViewportInstructions(state, false, true);
             }
+            // Invoke again with string
+            state = await this.hookManager.invokeTransformToUrl(state, instruction);
             const query = (instruction.query && instruction.query.length ? `?${instruction.query}` : '');
+            // if (instruction.path === void 0 || instruction.path.length === 0 || instruction.path === '/') {
             instruction.path = state + query;
-            const fullViewportStates = [new viewport_instruction_1.ViewportInstruction(this.instructionResolver.clearViewportInstruction)];
+            // }
+            const fullViewportStates = [this.createViewportInstruction(this.instructionResolver.clearViewportInstruction)];
             fullViewportStates.push(...this.instructionResolver.cloneViewportInstructions(instructions, this.statefulHistory));
             instruction.fullStateInstruction = fullViewportStates;
+            // TODO: Fetch and update title
             return Promise.resolve();
         }
         async freeComponents(instruction, excludeComponents, alreadyDone) {
@@ -584,8 +758,49 @@
                 }
             }
         }
+        getClosestContainer(viewModelOrElement) {
+            if ('context' in viewModelOrElement) {
+                return viewModelOrElement.context;
+            }
+            if ('$controller' in viewModelOrElement) {
+                return viewModelOrElement.$controller.context;
+            }
+            const controller = this.CustomElementFor(viewModelOrElement);
+            if (controller === void 0) {
+                return null;
+            }
+            return controller.context;
+        }
+        getContainer(viewModelOrContainer) {
+            if ('resourceResolvers' in viewModelOrContainer) {
+                return viewModelOrContainer;
+            }
+            if (runtime_1.isRenderContext(viewModelOrContainer)) {
+                return viewModelOrContainer.get(kernel_1.IContainer);
+            }
+            if ('$controller' in viewModelOrContainer) {
+                return viewModelOrContainer.$controller.context.get(kernel_1.IContainer);
+            }
+            return null;
+        }
+        // TODO: This is probably wrong since it caused test fails when in CustomElement.for
+        // Fred probably knows and will need to look at it
+        // This can most likely also be changed so that the node traversal isn't necessary
+        CustomElementFor(node) {
+            let cur = node;
+            while (cur !== null) {
+                const nodeResourceName = cur.nodeName.toLowerCase();
+                const controller = kernel_1.Metadata.getOwn(`${runtime_1.CustomElement.name}:${nodeResourceName}`, cur)
+                    || kernel_1.Metadata.getOwn(runtime_1.CustomElement.name, cur);
+                if (controller !== void 0) {
+                    return controller;
+                }
+                cur = runtime_1.DOM.getEffectiveParentNode(cur);
+            }
+            return (void 0);
+        }
     }
     exports.Router = Router;
-    Router.inject = [kernel_1.IContainer, navigator_1.Navigator, browser_navigator_1.BrowserNavigator, exports.IRouteTransformer, link_handler_1.LinkHandler, instruction_resolver_1.InstructionResolver];
+    Router.inject = [kernel_1.IContainer, navigator_1.Navigator, browser_viewer_store_1.BrowserViewerStore, link_handler_1.LinkHandler, instruction_resolver_1.InstructionResolver];
 });
 //# sourceMappingURL=router.js.map

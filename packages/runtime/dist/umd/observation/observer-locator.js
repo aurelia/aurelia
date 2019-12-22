@@ -135,26 +135,29 @@
                     if (propertyName === 'length') {
                         return this.getArrayObserver(flags, obj).getLengthObserver();
                     }
-                    return this.dirtyChecker.createProperty(obj, propertyName);
+                    if (kernel_1.isNumeric(propertyName)) {
+                        return this.dirtyChecker.createProperty(obj, propertyName);
+                    }
+                    break;
                 case '[object Map]':
                     if (propertyName === 'size') {
                         return this.getMapObserver(flags, obj).getLengthObserver();
                     }
-                    return this.dirtyChecker.createProperty(obj, propertyName);
+                    break;
                 case '[object Set]':
                     if (propertyName === 'size') {
                         return this.getSetObserver(flags, obj).getLengthObserver();
                     }
-                    return this.dirtyChecker.createProperty(obj, propertyName);
+                    break;
             }
             const descriptor = getPropertyDescriptor(obj, propertyName);
-            if (descriptor && (descriptor.get || descriptor.set)) {
-                if (descriptor.get && descriptor.get.getObserver) {
+            if (descriptor != null && (descriptor.get != null || descriptor.set != null)) {
+                if (descriptor.get != null && descriptor.get.getObserver != null) {
                     return descriptor.get.getObserver(obj);
                 }
                 // attempt to use an adapter before resorting to dirty checking.
                 const adapterObserver = this.getAdapterObserver(flags, obj, propertyName, descriptor);
-                if (adapterObserver) {
+                if (adapterObserver != null) {
                     return adapterObserver;
                 }
                 if (isNode) {

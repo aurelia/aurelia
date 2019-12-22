@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./browser-navigator", "./link-handler", "./guard", "./guardian", "./instruction-resolver", "./interfaces", "./lifecycle-logger", "./nav", "./nav-route", "./navigator", "./queue", "./route-recognizer", "./router", "./viewport", "./viewport-content", "./viewport-instruction", "./configuration"], factory);
+        define(["require", "exports", "./browser-navigator", "./link-handler", "./instruction-resolver", "./interfaces", "./lifecycle-logger", "./hook-manager", "./nav", "./nav-route", "./navigator", "./queue", "./route-recognizer", "./router", "./viewport", "./viewport-content", "./viewport-instruction", "./configuration"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -13,11 +13,6 @@
     exports.BrowserNavigator = browser_navigator_1.BrowserNavigator;
     var link_handler_1 = require("./link-handler");
     exports.LinkHandler = link_handler_1.LinkHandler;
-    var guard_1 = require("./guard");
-    exports.Guard = guard_1.Guard;
-    var guardian_1 = require("./guardian");
-    exports.GuardTypes = guardian_1.GuardTypes;
-    exports.Guardian = guardian_1.Guardian;
     var instruction_resolver_1 = require("./instruction-resolver");
     exports.InstructionResolver = instruction_resolver_1.InstructionResolver;
     var interfaces_1 = require("./interfaces");
@@ -25,6 +20,9 @@
     var lifecycle_logger_1 = require("./lifecycle-logger");
     exports.lifecycleLogger = lifecycle_logger_1.lifecycleLogger;
     exports.LifecycleClass = lifecycle_logger_1.LifecycleClass;
+    var hook_manager_1 = require("./hook-manager");
+    exports.HookManager = hook_manager_1.HookManager;
+    exports.HookTypes = hook_manager_1.HookTypes;
     var nav_1 = require("./nav");
     exports.Nav = nav_1.Nav;
     var nav_route_1 = require("./nav-route");
@@ -46,7 +44,6 @@
     exports.EpsilonSegment = route_recognizer_1.EpsilonSegment;
     exports.RouteRecognizer = route_recognizer_1.RouteRecognizer;
     var router_1 = require("./router");
-    exports.IRouteTransformer = router_1.IRouteTransformer;
     exports.IRouter = router_1.IRouter;
     exports.Router = router_1.Router;
     var viewport_1 = require("./viewport");
@@ -67,5 +64,7 @@
     exports.NavCustomElementRegistration = configuration_1.NavCustomElementRegistration;
     exports.GotoCustomAttribute = configuration_1.GotoCustomAttribute;
     exports.GotoCustomAttributeRegistration = configuration_1.GotoCustomAttributeRegistration;
+    exports.HrefCustomAttribute = configuration_1.HrefCustomAttribute;
+    exports.HrefCustomAttributeRegistration = configuration_1.HrefCustomAttributeRegistration;
 });
 //# sourceMappingURL=index.js.map

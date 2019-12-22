@@ -161,6 +161,8 @@ export interface ICustomAttributeController<T extends INode = INode, C extends I
      * The scope's `bindingContext` will be the same instance as this controller's `bindingContext` property.
      */
     readonly scope: Scope | undefined;
+    readonly controllers: undefined;
+    readonly bindings: undefined;
 }
 /**
  * A representation of `IController` specific to a custom element whose `create` hook is about to be invoked (if present).

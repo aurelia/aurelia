@@ -163,7 +163,7 @@
             }
         }
         toStoredEntry(entry) {
-            const { previous, fromBrowser, replacing, refreshing, untracked, historyMovement, navigation, resolve, reject, ...storableEntry } = entry;
+            const { previous, fromBrowser, replacing, refreshing, untracked, historyMovement, navigation, scope, resolve, reject, ...storableEntry } = entry;
             return storableEntry;
         }
         async finalize(instruction) {

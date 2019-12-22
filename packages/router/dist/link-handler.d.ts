@@ -53,7 +53,6 @@ export declare class LinkHandler {
      * @param el - The element to search upward from.
      * @returns The link element that is the closest ancestor.
      */
-    private static closestAnchor;
     /**
      * Gets a value indicating whether or not an anchor targets the current window.
      *
@@ -70,6 +69,6 @@ export declare class LinkHandler {
      * Deactivate the instance. Event handlers and other resources should be cleaned up here.
      */
     deactivate(): void;
-    private readonly handler;
+    readonly handler: EventListener;
 }
 //# sourceMappingURL=link-handler.d.ts.map

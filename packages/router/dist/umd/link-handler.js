@@ -14,9 +14,7 @@
      * Class responsible for handling interactions that should trigger navigation.
      */
     class LinkHandler {
-        // private handler: EventListener;
         constructor(dom) {
-            // tslint:disable-next-line:no-empty
             this.options = {
                 useHref: true,
                 callback: () => { return; }
@@ -43,7 +41,9 @@
                 instruction: null,
                 anchor: null
             };
-            const target = info.anchor = LinkHandler.closestAnchor(event.target);
+            const target = info.anchor = event.currentTarget;
+            // Switch to this for delegation:
+            // const target = info.anchor = LinkHandler.closestAnchor(event.target as Element);
             if (!target || !LinkHandler.targetIsThisWindow(target, win)) {
                 return info;
             }
@@ -71,15 +71,15 @@
          * @param el - The element to search upward from.
          * @returns The link element that is the closest ancestor.
          */
-        static closestAnchor(el) {
-            while (el !== null && el !== void 0) {
-                if (el.tagName === 'A') {
-                    return el;
-                }
-                el = el.parentNode;
-            }
-            return null;
-        }
+        // private static closestAnchor(el: Element): Element | null {
+        //   while (el !== null && el !== void 0) {
+        //     if (el.tagName === 'A') {
+        //       return el;
+        //     }
+        //     el = el.parentNode as Element;
+        //   }
+        //   return null;
+        // }
         /**
          * Gets a value indicating whether or not an anchor targets the current window.
          *
@@ -102,7 +102,6 @@
             }
             this.isActive = true;
             this.options = { ...options };
-            this.document.addEventListener('click', this.handler, true);
         }
         /**
          * Deactivate the instance. Event handlers and other resources should be cleaned up here.
@@ -111,7 +110,6 @@
             if (!this.isActive) {
                 throw new Error('Link handler has not been activated');
             }
-            this.document.removeEventListener('click', this.handler, true);
             this.isActive = false;
         }
     }

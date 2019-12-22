@@ -1,6 +1,6 @@
 import { Reporter } from '@aurelia/kernel';
-import { Controller, ILifecycle } from '@aurelia/runtime';
-import { mergeParameters } from './parser';
+import { Controller, ILifecycle, CustomElement } from '@aurelia/runtime';
+import { parseQuery } from './parser';
 import { ViewportInstruction } from './viewport-instruction';
 export var ContentStatus;
 (function (ContentStatus) {
@@ -16,7 +16,7 @@ export class ViewportContent {
     content = new ViewportInstruction(''), instruction = {
         instruction: '',
         fullStateInstruction: '',
-    }, context = null) {
+    }, container = null) {
         this.content = content;
         this.instruction = instruction;
         this.contentStatus = 0 /* none */;
@@ -24,14 +24,16 @@ export class ViewportContent {
         this.fromCache = false;
         this.fromHistory = false;
         this.reentry = false;
-        this.taggedNodes = [];
         // If we've got a container, we're good to resolve type
-        if (!this.content.isComponentType() && context !== null) {
-            this.content.componentType = this.toComponentType(context);
+        if (!this.content.isComponentType() && container !== null) {
+            this.content.componentType = this.toComponentType(container);
         }
     }
     get componentInstance() {
         return this.content.componentInstance;
+    }
+    get viewport() {
+        return this.content.viewport;
     }
     equalComponent(other) {
         return this.content.sameComponent(other.content);
@@ -51,13 +53,30 @@ export class ViewportContent {
     isCacheEqual(other) {
         return this.content.sameComponent(other.content, true);
     }
-    createComponent(context) {
+    createComponent(container, fallback) {
         if (this.contentStatus !== 0 /* none */) {
             return;
         }
         // Don't load cached content or instantiated history content
         if (!this.fromCache && !this.fromHistory) {
-            this.content.componentInstance = this.toComponentInstance(context);
+            try {
+                this.content.componentInstance = this.toComponentInstance(container);
+            }
+            catch (e) {
+                if (fallback !== void 0) {
+                    this.content.setParameters({ id: this.content.componentName });
+                    this.content.setComponent(fallback);
+                    try {
+                        this.content.componentInstance = this.toComponentInstance(container);
+                    }
+                    catch (ee) {
+                        throw e;
+                    }
+                }
+                else {
+                    throw e;
+                }
+            }
         }
         this.contentStatus = 1 /* created */;
     }
@@ -69,48 +88,47 @@ export class ViewportContent {
         // Don't destroy components when stateful
         this.contentStatus = 0 /* none */;
     }
-    canEnter(viewport, previousInstruction) {
+    async canEnter(viewport, previousInstruction) {
         if (!this.content.componentInstance) {
-            return Promise.resolve(false);
+            return false;
         }
         if (!this.content.componentInstance.canEnter) {
-            return Promise.resolve(true);
+            return true;
         }
         const typeParameters = this.content.componentType ? this.content.componentType.parameters : null;
-        const merged = mergeParameters(this.content.parametersString || '', this.instruction.query, typeParameters);
-        this.instruction.parameters = merged.namedParameters;
-        this.instruction.parameterList = merged.parameterList;
-        const result = this.content.componentInstance.canEnter(merged.merged, this.instruction, previousInstruction);
+        this.instruction.parameters = this.content.toSpecifiedParameters(typeParameters);
+        const merged = { ...parseQuery(this.instruction.query), ...this.instruction.parameters };
+        const result = this.content.componentInstance.canEnter(merged, this.instruction, previousInstruction);
         Reporter.write(10000, 'viewport canEnter', result);
         if (typeof result === 'boolean') {
-            return Promise.resolve(result);
+            return result;
         }
         if (typeof result === 'string') {
-            return Promise.resolve([new ViewportInstruction(result, viewport)]);
+            return [viewport.router.createViewportInstruction(result, viewport)];
         }
         return result;
     }
-    canLeave(nextInstruction) {
+    async canLeave(nextInstruction) {
         if (!this.content.componentInstance || !this.content.componentInstance.canLeave) {
-            return Promise.resolve(true);
+            return true;
         }
         const result = this.content.componentInstance.canLeave(nextInstruction, this.instruction);
         Reporter.write(10000, 'viewport canLeave', result);
         if (typeof result === 'boolean') {
-            return Promise.resolve(result);
+            return result;
         }
         return result;
     }
     async enter(previousInstruction) {
-        if (!this.reentry && (this.contentStatus !== 1 /* created */ || this.entered)) {
+        // if (!this.reentry && (this.contentStatus !== ContentStatus.created || this.entered)) {
+        if (!this.reentry && (this.contentStatus !== 2 /* loaded */ || this.entered)) {
             return;
         }
         if (this.content.componentInstance && this.content.componentInstance.enter) {
             const typeParameters = this.content.componentType ? this.content.componentType.parameters : null;
-            const merged = mergeParameters(this.content.parametersString || '', this.instruction.query, typeParameters);
-            this.instruction.parameters = merged.namedParameters;
-            this.instruction.parameterList = merged.parameterList;
-            await this.content.componentInstance.enter(merged.merged, this.instruction, previousInstruction);
+            this.instruction.parameters = this.content.toSpecifiedParameters(typeParameters);
+            const merged = { ...parseQuery(this.instruction.query), ...this.instruction.parameters };
+            await this.content.componentInstance.enter(merged, this.instruction, previousInstruction);
         }
         this.entered = true;
     }
@@ -123,34 +141,25 @@ export class ViewportContent {
         }
         this.entered = false;
     }
-    loadComponent(context, element, viewport) {
-        if (this.contentStatus !== 1 /* created */ || !this.entered || !this.content.componentInstance) {
-            return Promise.resolve();
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async loadComponent(container, element, viewport) {
+        // if (this.contentStatus !== ContentStatus.created || !this.entered || !this.content.componentInstance) {
+        if (this.contentStatus !== 1 /* created */ || this.entered || !this.content.componentInstance) {
+            return;
         }
         // Don't load cached content or instantiated history content
         if (!this.fromCache || !this.fromHistory) {
             const host = element;
-            const container = context;
-            Controller.forCustomElement(this.content.componentInstance, container.get(ILifecycle), host, container, void 0);
-        }
-        // Temporarily tag content so that it can find parent scope before viewport is afterAttach
-        const childNodes = this.content.componentInstance.$controller.nodes.childNodes;
-        for (let i = 0; i < childNodes.length; i++) {
-            const child = childNodes[i];
-            if (child.nodeType === 1) {
-                Reflect.set(child, '$viewport', viewport);
-                this.taggedNodes.push(child);
-            }
+            const controller = Controller.forCustomElement(this.content.componentInstance, container.get(ILifecycle), host, container, void 0, void 0);
+            controller.parent = CustomElement.for(element);
         }
         this.contentStatus = 2 /* loaded */;
-        return Promise.resolve();
     }
     unloadComponent(cache, stateful = false) {
         // TODO: We might want to do something here eventually, who knows?
         if (this.contentStatus !== 2 /* loaded */) {
             return;
         }
-        this.clearTaggedNodes();
         // Don't unload components when stateful
         if (!stateful) {
             this.contentStatus = 1 /* created */;
@@ -159,18 +168,13 @@ export class ViewportContent {
             cache.push(this);
         }
     }
-    clearTaggedNodes() {
-        for (const node of this.taggedNodes) {
-            Reflect.deleteProperty(node, '$viewport');
-        }
-        this.taggedNodes = [];
-    }
-    initializeComponent() {
+    initializeComponent(parent) {
         if (this.contentStatus !== 2 /* loaded */) {
             return;
         }
         // Don't initialize cached content or instantiated history content
         // if (!this.fromCache || !this.fromHistory) {
+        // ((this.content.componentInstance as IRouteableComponent).$controller as IController).parent = parent;
         this.content.componentInstance.$controller.bind(1024 /* fromStartTask */ | 4096 /* fromBind */);
         // }
         this.contentStatus = 3 /* initialized */;
@@ -182,6 +186,7 @@ export class ViewportContent {
         // Don't terminate cached content
         // if (!stateful) {
         await this.content.componentInstance.$controller.unbind(2048 /* fromStopTask */ | 8192 /* fromUnbind */).wait();
+        // ((this.content.componentInstance as IRouteableComponent).$controller as IController).parent = void 0;
         // }
         this.contentStatus = 2 /* loaded */;
     }
@@ -234,17 +239,17 @@ export class ViewportContent {
     toComponentName() {
         return this.content.componentName;
     }
-    toComponentType(context) {
+    toComponentType(container) {
         if (this.content.isEmpty()) {
             return null;
         }
-        return this.content.toComponentType(context);
+        return this.content.toComponentType(container);
     }
-    toComponentInstance(context) {
+    toComponentInstance(container) {
         if (this.content.isEmpty()) {
             return null;
         }
-        return this.content.toComponentInstance(context);
+        return this.content.toComponentInstance(container);
     }
 }
 //# sourceMappingURL=viewport-content.js.map

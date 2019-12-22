@@ -39,12 +39,11 @@
     "@aurelia/runtime": "0.7.0-dev.201912221355",
     "modify-code": "^1.0.1",
     "parse5": "^5.1.1",
-    "typescript": "^3.7.3"
+    "typescript": "^3.7.4"
   },
   "devDependencies": {
     "@types/node": "^12.12.21",
     "@types/parse5": "^5.0.2",
-    "tslib": "^1.10.0",
-    "typescript": "^3.7.4"
+    "tslib": "^1.10.0"
   }
 }

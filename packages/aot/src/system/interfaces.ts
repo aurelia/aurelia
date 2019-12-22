@@ -27,10 +27,16 @@ export interface IStats {
   isFile(): boolean;
   isDirectory(): boolean;
   isSymbolicLink(): boolean;
+  readonly mode: number;
+  readonly uid: number;
+  readonly gid: number;
 }
 
-export interface IDirent extends IStats {
-  name: string;
+export interface IDirent {
+  isFile(): boolean;
+  isDirectory(): boolean;
+  isSymbolicLink(): boolean;
+  readonly name: string;
 }
 
 export interface IFile {

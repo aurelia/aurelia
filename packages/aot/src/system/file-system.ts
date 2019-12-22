@@ -1,7 +1,6 @@
 import {
   accessSync,
   constants,
-  Dirent,
   exists,
   existsSync,
   lstatSync,
@@ -10,7 +9,6 @@ import {
   readdirSync,
   readFileSync,
   realpathSync,
-  Stats,
   statSync,
   writeFileSync,
 } from 'fs';
@@ -29,6 +27,8 @@ import {
   IFileSystem,
   IFile,
   Encoding,
+  IDirent,
+  IStats,
 } from './interfaces';
 import {
   normalizePath,
@@ -210,8 +210,8 @@ export class NodeFileSystem implements IFileSystem {
   }
 
   public async readdir(path: string): Promise<readonly string[]>;
-  public async readdir(path: string, withFileTypes: true): Promise<readonly Dirent[]>;
-  public async readdir(path: string, withFileTypes?: true): Promise<readonly string[] | readonly Dirent[]> {
+  public async readdir(path: string, withFileTypes: true): Promise<readonly IDirent[]>;
+  public async readdir(path: string, withFileTypes?: true): Promise<readonly string[] | readonly IDirent[]> {
     this.logger.trace(`readdir(path: ${path}, withFileTypes: ${withFileTypes})`);
 
     if (withFileTypes === true) {
@@ -222,8 +222,8 @@ export class NodeFileSystem implements IFileSystem {
   }
 
   public readdirSync(path: string): readonly string[];
-  public readdirSync(path: string, withFileTypes: true): readonly Dirent[];
-  public readdirSync(path: string, withFileTypes?: true): readonly string[] | readonly Dirent[] {
+  public readdirSync(path: string, withFileTypes: true): readonly IDirent[];
+  public readdirSync(path: string, withFileTypes?: true): readonly string[] | readonly IDirent[] {
     this.logger.trace(`readdirSync(path: ${path}, withFileTypes: ${withFileTypes})`);
 
     if (withFileTypes === true) {
@@ -287,25 +287,25 @@ export class NodeFileSystem implements IFileSystem {
     }
   }
 
-  public async stat(path: string): Promise<Stats> {
+  public async stat(path: string): Promise<IStats> {
     this.logger.trace(`stat(path: ${path})`);
 
     return stat(path);
   }
 
-  public statSync(path: string): Stats {
+  public statSync(path: string): IStats {
     this.logger.trace(`statSync(path: ${path})`);
 
     return statSync(path);
   }
 
-  public async lstat(path: string): Promise<Stats> {
+  public async lstat(path: string): Promise<IStats> {
     this.logger.trace(`lstat(path: ${path})`);
 
     return lstat(path);
   }
 
-  public lstatSync(path: string): Stats {
+  public lstatSync(path: string): IStats {
     this.logger.trace(`lstatSync(path: ${path})`);
 
     return lstatSync(path);

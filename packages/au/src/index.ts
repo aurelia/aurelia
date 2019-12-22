@@ -8,6 +8,9 @@ import {
   normalize,
 } from 'path';
 import {
+  tmpdir,
+} from 'os';
+import {
   spawn,
 } from 'child_process';
 import {
@@ -18,6 +21,7 @@ import {
   Registration,
   PLATFORM,
   ILogger,
+  IDisposable,
 } from '@aurelia/kernel';
 import {
   IFileSystem,
@@ -36,6 +40,7 @@ export interface ISystem {
   readonly isMac: boolean;
   readonly isLinux: boolean;
   which(cmd: string | string[]): Promise<string>;
+  generateName(): string;
 }
 export const ISystem = DI.createInterface<ISystem>('ISystem').withDefault(x => x.singleton(System));
 
@@ -46,7 +51,28 @@ function trimWrappingQuotes(value: string): string {
   return value;
 }
 
-export class System {
+export class TempDir {
+  public readonly dir: string;
+  public readonly path: string;
+
+  public constructor(
+    public readonly fs: IFileSystem,
+    public readonly name: string,
+  ) {
+    this.dir = tmpdir();
+    this.path = join(this.dir, name);
+  }
+
+  public async ensureExists(): Promise<void> {
+    await this.fs.ensureDir(this.path);
+  }
+
+  public async dispose(): Promise<void> {
+    await this.fs.rimraf(this.path);
+  }
+}
+
+export class System implements ISystem {
   public readonly isWin: boolean;
   public readonly isMac: boolean;
   public readonly isLinux: boolean;
@@ -146,6 +172,10 @@ export class System {
     throw err;
   }
 
+  public generateName(): string {
+    return `au-${Date.now()}`;
+  }
+
   private async isExe(path: string): Promise<boolean> {
     const fs = this.fs;
     if (await fs.isReadable(path)) {
@@ -175,40 +205,72 @@ export class System {
   }
 }
 
-export class ChromeBrowser {
+export interface IBrowser {
+  readonly name: string;
+  createSessionContext(
+    url: string,
+    flags: readonly string[],
+  ): Promise<IBrowserSession>;
+}
+
+export interface IBrowserSession {
+  readonly id: string;
+  readonly path: string;
+  readonly args: readonly string[];
+  init(): Promise<void>;
+  dispose(): Promise<void>;
+}
+
+export class ChromeBrowserSession implements IBrowserSession {
+  public constructor(
+    private readonly logger: ILogger,
+    private readonly tmp: TempDir,
+    public readonly id: string,
+    public readonly path: string,
+    public readonly args: string[],
+  ) {
+    this.logger = logger.root.scopeTo('ChromeBrowserSession');
+  }
+
+  public async init(): Promise<void> {
+    this.logger.debug(`Creating tempDir "${this.tmp.path}"`);
+
+    await this.tmp.ensureExists();
+  }
+
+  public async dispose(): Promise<void> {
+    this.logger.debug(`Removing tempDir "${this.tmp.path}"`);
+
+    await this.tmp.dispose();
+  }
+}
+
+export class ChromeBrowser implements IBrowser {
+  public readonly name = 'ChromeBrowser';
+
   public constructor(
     @ISystem
     private readonly sys: ISystem,
     @IProcess
     private readonly proc: IProcess,
+    @IFileSystem
+    private readonly fs: IFileSystem,
     @ILogger
     private readonly logger: ILogger,
-  ) {}
-
-  public async open(url: string): Promise<void> {
-    const proc = this.proc;
-    const logger = this.logger;
-    const path = await this.getPath();
-    const childProc = spawn(path, [url]);
-
-    childProc.stdout.on('data', chunk => proc.stdout.write(chunk));
-    childProc.stderr.on('data', chunk => proc.stderr.write(chunk));
-
-    childProc.on('exit', (code, signal) => {
-      logger.debug(`Process ${path} [${url}] exited with code ${code} and signal ${signal}`);
-
-      setTimeout(() => proc.exit(code!), 3000);
-    });
-
-    childProc.on('error', err => {
-      proc.stderr.write(err.toString());
-    });
+  ) {
+    this.logger = logger.root.scopeTo('ChromeBrowser');
   }
 
-  private async getPath(): Promise<string> {
+  public async createSessionContext(
+    url: string,
+    flags: readonly string[],
+  ): Promise<IBrowserSession> {
     const sys = this.sys;
     const proc = this.proc;
+    const fs = this.fs;
     const env = proc.env;
+
+    this.logger.debug(`createSessionContext(url=${url},flags=${flags})`);
 
     let paths: string[];
 
@@ -226,10 +288,79 @@ export class ChromeBrowser {
       paths = ['google-chrome', 'google-chrome-stable'];
     }
 
-    return sys.which(paths);
+    const name = sys.generateName();
+    const tmp = new TempDir(fs, name);
+    const path = await sys.which(paths);
+    const args = [
+      `--user-data-dir=${tmp.path}`,
+      `--enable-automation`,
+      `--no-default-browser-check`,
+      `--no-first-run`,
+      `--disable-default-apps`,
+      `--disable-popup-blocking`,
+      `--disable-translate`,
+      `--disable-background-timer-throttling`,
+      `--disable-renderer-backgrounding`,
+      `--disable-device-discovery-notifications`,
+      // Headless:
+      // '--headless',
+      // '--disable-gpu',
+      // '--disable-dev-shm-usage'
+  
+      // Debugging:
+      // --remote-debugging-port=9222
+      ...flags,
+      url,
+    ];
+
+    this.logger.debug(`Opening "${path}"`);
+
+    return new ChromeBrowserSession(this.logger, tmp, name, path, args);
   }
 }
 
+export class BrowserHost {
+  public constructor(
+    @ISystem
+    private readonly sys: ISystem,
+    @IProcess
+    private readonly proc: IProcess,
+    @ILogger
+    private readonly logger: ILogger,
+  ) {
+    this.logger = logger.root.scopeTo('BrowserHost');
+  }
+
+  public async open(
+    browser: IBrowser,
+    url: string,
+    ...flags: readonly string[]
+  ): Promise<void> {
+    const proc = this.proc;
+    const logger = this.logger;
+
+    const session = await browser.createSessionContext(url, flags);
+    await session.init();
+
+    const childProc = spawn(session.path, session.args);
+
+    childProc.stdout.on('data', chunk => proc.stdout.write(chunk));
+    childProc.stderr.on('data', chunk => proc.stderr.write(chunk));
+
+    childProc.on('exit', async (code, signal) => {
+      logger.debug(`Process ${session.path} [${url}] exited with code ${code} and signal ${signal}`);
+
+      setTimeout(async () => {
+        await session.dispose();
+        proc.exit(code!);
+      }, 3000);
+    });
+
+    childProc.on('error', err => {
+      proc.stderr.write(err.toString());
+    });
+  }
+}
 
 (async function () {
   DebugConfiguration.register();
@@ -248,7 +379,8 @@ export class ChromeBrowser {
   // await host.executeEntryFile(root);
 
   const browser = container.get(ChromeBrowser);
-  await browser.open('https://google.com');
+  const host = container.get(BrowserHost);
+  await host.open(browser, 'https://google.com');
 
 })().catch(err => {
   console.error(err);

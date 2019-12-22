@@ -306,6 +306,43 @@ describe('app', function () {
     const dirtyChecker = container.get(IDirtyChecker);
     const dirtyCheckProperty = (dirtyChecker['tracked'] as DirtyCheckProperty[]).find(prop => Object.is(user.arr, prop.obj) && prop.propertyKey === 'indeterminate');
     assert.strictEqual(dirtyCheckProperty, undefined);
+    // todo: the following has been commented as it's not correct
+    // it's asserting that a property "intermediate" on an array should be dirty checked, but it shouldn't
+    // though still keeping the code here, as we need a todo for reminding us to add more tests for dirty checker
+    //
+    // =============================================
+    // assert.notEqual(dirtyCheckProperty, undefined);
+    // const isDirtySpy = createSpy(dirtyCheckProperty, 'isDirty', true);
+
+    // // asser disable
+    // DirtyCheckSettings.disabled = true;
+    // isDirtySpy.reset();
+
+    // await scheduler.yieldAll();
+    // assert.equal(isDirtySpy.calls.length, 0);
+
+    // DirtyCheckSettings.disabled = false;
+
+    // // assert rate
+    // await scheduler.yieldAll();
+    // const prevCallCount = isDirtySpy.calls.length;
+
+    // isDirtySpy.reset();
+    // DirtyCheckSettings.framesPerCheck = 2;
+
+    // await scheduler.yieldAll();
+    // assert.greaterThan(isDirtySpy.calls.length, prevCallCount);
+    // DirtyCheckSettings.resetToDefault();
+
+    // // assert flush
+    // const flushSpy = createSpy(dirtyCheckProperty, 'flush', true);
+    // const newValue = 'foo';
+    // user.arr.indeterminate = newValue;
+
+    // // await `DirtyCheckSettings.framesPerCheck` frames (yieldAll only awaits one persistent loop)
+    // await scheduler.yieldAll(DirtyCheckSettings.framesPerCheck);
+    // assert.html.textContent(indeterminate, newValue, 'incorrect text indeterminate - after change');
+    // assert.equal(flushSpy.calls.length, 1);
   });
 
   $it(`uses a radio-button-list that renders a map as a list of radio buttons - rbl-checked-model`, function ({ host, ctx }) {

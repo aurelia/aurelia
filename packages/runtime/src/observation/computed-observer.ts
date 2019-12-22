@@ -1,3 +1,4 @@
+/* eslint-disable eqeqeq, compat/compat */
 import {
   Constructable,
   IIndexable,
@@ -40,7 +41,7 @@ export function computed(config: ComputedOverrides): PropertyDecorator {
      * property, including the `value` (in the descriptor of the property), when assigned `{}`. This might
      * lead to infinite recursion for the cases as mentioned above.
      */
-    if (!target.computed) {
+    if (target.computed == null) {
       Reflect.defineProperty(target, 'computed', {
         writable: true,
         configurable: true,
@@ -48,6 +49,7 @@ export function computed(config: ComputedOverrides): PropertyDecorator {
         value: Object.create(null)
       });
     }
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     target.computed![key] = config;
   } as PropertyDecorator;
 }
@@ -70,6 +72,7 @@ export function createComputedObserver(
 
   if (descriptor.get != null) {
     const { constructor: { prototype: { computed: givenOverrides } } }: IObservable & { constructor: { prototype: ComputedLookup } } = instance;
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-type-assertion
     const overrides: ComputedOverrides = givenOverrides && givenOverrides![propertyName] || computedOverrideDefaults;
 
     if (descriptor.set != null) {
@@ -100,7 +103,7 @@ export class CustomSetterObserver implements CustomSetterObserver {
   ) {}
 
   public setValue(newValue: unknown): void {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-unnecessary-type-assertion
     this.descriptor.set!.call(this.obj, newValue); // Non-null is implied because descriptors without setters won't end up here
     if (this.currentValue !== newValue) {
       this.oldValue = this.currentValue;
@@ -248,7 +251,7 @@ export class GetterObserver implements GetterObserver {
 const toStringTag = Object.prototype.toString;
 
 /**
- * @param observer The owning observer of current evaluation,
+ * _@param observer The owning observer of current evaluation,
  * will subscribe to all observers created via proxy should
  */
 function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
@@ -288,13 +291,12 @@ function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLoca
 }
 
 /**
- * @param observer The owning observer of current evaluation,
+ * _@param observer The owning observer of current evaluation,
  * will subscribe to all observers created via proxy should
  */
 function proxyOrValue(flags: LifecycleFlags, target: object, key: PropertyKey, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
   const value = Reflect.get(target, key, target);
   if (typeof value === 'function') {
-    // eslint-disable-next-line @typescript-eslint/ban-types
     return new Proxy(value, createCallerTrap(flags, observerLocator, observer));
   }
   if (typeof value !== 'object' || value === null) {
@@ -304,9 +306,10 @@ function proxyOrValue(flags: LifecycleFlags, target: object, key: PropertyKey, o
 }
 
 /**
- * @param observer The owning observer of current evaluation,
+ * _@param observer The owning observer of current evaluation,
  * will subscribe to all observers created via proxy should
  */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 function createCallerTrap(
   flags: LifecycleFlags,
   observerLocator: IObserverLocator,
@@ -315,8 +318,8 @@ function createCallerTrap(
   return {
     // target must be a function object
     // else error is thrown
-    apply(target: Function, thisArg: unknown, argArray: any[]) {
+    apply(target: (...args: unknown[]) => unknown, thisArg: unknown, argArray: unknown[]) {
       return target.apply(thisArg, argArray);
     }
-  }
+  };
 }

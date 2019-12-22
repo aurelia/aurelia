@@ -20,7 +20,7 @@ import {
   HTMLTestContext
 } from '@aurelia/testing';
 
-describe('simple Computed Observer test case', function() {
+describe('simple Computed Observer test case', function () {
 
   interface IComputedObserverTestCase<T extends IApp = IApp> {
     title: string;
@@ -34,23 +34,29 @@ describe('simple Computed Observer test case', function() {
     // eslint-disable-next-line @typescript-eslint/prefer-function-type
     (ctx: HTMLTestContext, testHost: HTMLElement, component: T): void | Promise<void>;
   }
-  
+
   interface IApp {
-    items: any[];
+    items: IAppItem[];
     readonly total: number;
     [key: string]: any;
+  }
+
+  interface IAppItem {
+    name: string;
+    value: number;
+    isDone?: boolean;
   }
 
   const computedObserverTestCases: IComputedObserverTestCase[] = [
     {
       title: 'works in basic scenario',
-      template: '${total}',
+      template: `\${total}`,
       ViewModel: class TestClass implements IApp {
-        items = Array.from({ length: 10 }, (_, idx) => {
+        public items: IAppItem[] = Array.from({ length: 10 }, (_, idx) => {
           return { name: `i-${idx}`, value: idx + 1 };
         });
 
-        get total() {
+        public get total(): number {
           return this.items.reduce((total, item) => total + (item.value > 5 ? item.value : 0), 0);
         }
       },
@@ -71,13 +77,13 @@ describe('simple Computed Observer test case', function() {
     },
     {
       title: 'works with [].filter https://github.com/aurelia/aurelia/issues/534',
-      template: '${total}',
+      template: `\${total}`,
       ViewModel: class App {
-        items = Array.from({ length: 10 }, (_, idx) => {
+        public items: IAppItem[] = Array.from({ length: 10 }, (_, idx) => {
           return { name: `i-${idx}`, value: idx + 1, isDone: idx % 2 === 0 };
         });
-    
-        get total() {
+
+        public get total(): number {
           return this.items.filter(item => item.isDone).length;
         }
       },
@@ -94,8 +100,8 @@ describe('simple Computed Observer test case', function() {
         assert.strictEqual(observer['propertyDeps']?.length, 12);
         assert.strictEqual(observer['collectionDeps']?.length, 1);
 
-        observer['propertyDeps'].every((observerDep: SetterObserver) => {
-          assert.instanceOf(observerDep, SetterObserver);
+        observer['propertyDeps'].forEach((observerDep: SetterObserver) => {
+          return assert.instanceOf(observerDep, SetterObserver);
         });
 
         assert.strictEqual(host.textContent, '5');
@@ -107,13 +113,13 @@ describe('simple Computed Observer test case', function() {
     },
     {
       title: 'works with multiple layers of fn call',
-      template: '${total}',
+      template: `\${total}`,
       ViewModel: class App {
-        items = Array.from({ length: 10 }, (_, idx) => {
+        public items: IAppItem[] = Array.from({ length: 10 }, (_, idx) => {
           return { name: `i-${idx}`, value: idx + 1, isDone: idx % 2 === 0 };
         });
-    
-        get total() {
+
+        public get total(): number {
           return this
             .items
             .filter(item => item.isDone)
@@ -134,7 +140,7 @@ describe('simple Computed Observer test case', function() {
         assert.strictEqual(observer['propertyDeps']?.length, 17);
         assert.strictEqual(observer['collectionDeps']?.length, 1);
 
-        observer['propertyDeps'].every((observerDep: SetterObserver) => {
+        observer['propertyDeps'].forEach((observerDep: SetterObserver) => {
           assert.instanceOf(observerDep, SetterObserver);
         });
 
@@ -147,15 +153,15 @@ describe('simple Computed Observer test case', function() {
     },
     {
       title: 'works with Map.size',
-      template: '${total}',
+      template: `\${total}`,
       ViewModel: class App {
-        items = Array.from({ length: 10 }, (_, idx) => {
+        public items: IAppItem[] = Array.from({ length: 10 }, (_, idx) => {
           return { name: `i-${idx}`, value: idx + 1, isDone: idx % 2 === 0 };
         });
 
-        itemMap = new Map([1,2,3].map(i => [`item - ${i}`, i]))
-    
-        get total() {
+        public itemMap: Map<any, any> = new Map([1,2,3].map(i => [`item - ${i}`, i]));
+
+        public get total(): number {
           return this.itemMap.size;
         }
       },
@@ -172,10 +178,10 @@ describe('simple Computed Observer test case', function() {
         assert.strictEqual(observer['propertyDeps']?.length, 1);
         assert.strictEqual(observer['collectionDeps']?.length, 1);
 
-        observer['propertyDeps'].every((observerDep: SetterObserver) => {
+        observer['propertyDeps'].forEach((observerDep: SetterObserver) => {
           assert.instanceOf(observerDep, SetterObserver);
         });
-        observer['collectionDeps'].every((observerCollectionDep: MapObserver) => {
+        observer['collectionDeps'].forEach((observerCollectionDep: MapObserver) => {
           assert.instanceOf(observerCollectionDep, MapObserver);
         });
 
@@ -188,32 +194,32 @@ describe('simple Computed Observer test case', function() {
     },
     {
       title: 'works with multiple computed dependencies',
-      template: '${total}',
+      template: `\${total}`,
       ViewModel: class App {
-        items = Array.from({ length: 10 }, (_, idx) => {
+        public items: IAppItem[] = Array.from({ length: 10 }, (_, idx) => {
           return { name: `i-${idx}`, value: idx + 1, isDone: idx % 2 === 0 };
         });
 
-        get activeItems() {
+        public get activeItems(): IAppItem[] {
           return this.items.filter(i => !i.isDone);
         }
 
-        get total() {
+        public get total(): number {
           return this.activeItems.reduce((total, item) => total + item.value, 0);
         }
       },
       assertFn: (ctx, host, component) => {
         const observerLocator = ctx.container.get(IObserverLocator);
         const totalPropObserver = observerLocator.getObserver(
-            LifecycleFlags.none,
-            component,
-            'total'
-          ) as GetterObserver;
+          LifecycleFlags.none,
+          component,
+          'total'
+        ) as GetterObserver;
 
         assert.strictEqual(totalPropObserver['propertyDeps']?.length, 7);
         assert.strictEqual(totalPropObserver['collectionDeps']?.length, 1);
 
-        totalPropObserver['propertyDeps'].every((observerDep: SetterObserver, idx: number) => {
+        totalPropObserver['propertyDeps'].forEach((observerDep: SetterObserver, idx: number) => {
           if (idx === 0) {
             assert.instanceOf(observerDep, GetterObserver);
           } else {
@@ -221,7 +227,7 @@ describe('simple Computed Observer test case', function() {
           }
         });
 
-        assert.strictEqual(host.textContent, '30' /* idx 0, 2, 4, 6, 8 only*/);
+        assert.strictEqual(host.textContent, '30' /* idx 0, 2, 4, 6, 8 only */);
         component.items[0].isDone = false;
         assert.strictEqual(component.activeItems.length, 6);
         assert.strictEqual(host.textContent, '30');
@@ -231,13 +237,13 @@ describe('simple Computed Observer test case', function() {
     },
     {
       title: 'Works with <let/>',
-      template: '<let real-total.bind="total * 2"></let>${realTotal}',
+      template: `<let real-total.bind="total * 2"></let>\${realTotal}`,
       ViewModel: class App {
-        items = Array.from({ length: 10 }, (_, idx) => {
+        public items: IAppItem[] = Array.from({ length: 10 }, (_, idx) => {
           return { name: `i-${idx}`, value: idx + 1, isDone: idx % 2 === 0 };
         });
 
-        get total() {
+        public get total(): number {
           return this.items.reduce((total, item) => total + item.value, 0);
         }
       },
@@ -251,17 +257,17 @@ describe('simple Computed Observer test case', function() {
     },
     {
       title: 'Works with [repeat]',
-      template: '<div repeat.for="item of activeItems">${item.value}.</div>',
+      template: `<div repeat.for="item of activeItems">\${item.value}.</div>`,
       ViewModel: class App {
-        items = Array.from({ length: 10 }, (_, idx) => {
+        public items: IAppItem[] = Array.from({ length: 10 }, (_, idx) => {
           return { name: `i-${idx}`, value: idx + 1, isDone: idx % 2 === 0 };
         });
 
-        get activeItems() {
+        public get activeItems(): IAppItem[] {
           return this.items.filter(i => !i.isDone);
         }
 
-        get total() {
+        public get total(): number {
           return this.activeItems.reduce((total, item) => total + item.value, 0);
         }
       },
@@ -274,11 +280,11 @@ describe('simple Computed Observer test case', function() {
     },
     {
       title: 'Works with set/get (class property)',
-      template: '<input value.bind="nameProp.value">${nameProp.value}',
+      template: `<input value.bind="nameProp.value">\${nameProp.value}`,
       ViewModel: class App {
-        items = [];
-        total = 0;
-        nameProp = new Property('value', '');
+        public items: IAppItem[] = [];
+        public total: number = 0;
+        public nameProp: Property = new Property('value', '');
       },
       assertFn: (ctx, host, component) => {
         assert.strictEqual(host.textContent, '');
@@ -314,11 +320,11 @@ describe('simple Computed Observer test case', function() {
     },
     {
       title: 'Works with set/get (object literal property)',
-      template: '<input value.bind="nameProp.value">${nameProp.value}',
+      template: `<input value.bind="nameProp.value">\${nameProp.value}`,
       ViewModel: class App {
-        items = [];
-        total = 0;
-        nameProp = {
+        public items: IAppItem[] = [];
+        public total: number = 0;
+        public nameProp: any = {
           _value: '',
           get value() {
             return this._value;
@@ -330,7 +336,7 @@ describe('simple Computed Observer test case', function() {
           valueChanged: {
             publish() {/*  */}
           }
-        }
+        };
       },
       assertFn: (ctx, host, component) => {
         assert.strictEqual(host.textContent, '');
@@ -359,7 +365,9 @@ describe('simple Computed Observer test case', function() {
   eachCartesianJoin(
     [computedObserverTestCases],
     ({ only, title, template, ViewModel, assertFn }: IComputedObserverTestCase) => {
-      const $it = (title: string, fn: Mocha.Func) => only ? it.only(title, fn) : it(title, fn);
+      // eslint-disable-next-line mocha/no-exclusive-tests
+      const $it = (title_: string, fn: Mocha.Func) => only ? it.only(title_, fn) : it(title_, fn);
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       $it(title, async function () {
         const { ctx, component, testHost, dispose } = await setup<any>(
           template,
@@ -409,20 +417,20 @@ describe('simple Computed Observer test case', function() {
     private _value: string;
     public readonly valueChanged: any;
 
-    constructor(public readonly name: string, value: string) {
+    public constructor(public readonly name: string, value: string) {
       this._value = value;
       this.valueChanged = {
         publish: () => {
           // todo
         }
-      }
+      };
     }
 
-    get value(): string {
+    public get value(): string {
       return this._value;
     }
 
-    set value(value: string) {
+    public set value(value: string) {
       this._value = value;
       this.valueChanged.publish();
     }

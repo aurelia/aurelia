@@ -1,7 +1,7 @@
 /* eslint-disable mocha/no-skipped-tests, mocha/no-exclusive-tests, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/strict-boolean-expressions */
 import { toArray } from '@aurelia/kernel';
-import { CustomElement, DirtyCheckProperty, DirtyCheckSettings, IDirtyChecker } from '@aurelia/runtime';
-import { assert, Call, createSpy, fail, getVisibleText } from '@aurelia/testing';
+import { CustomElement, DirtyCheckProperty, IDirtyChecker } from '@aurelia/runtime';
+import { assert, Call, fail, getVisibleText } from '@aurelia/testing';
 import { App, Product } from './app/app';
 import { LetDemo } from './app/molecules/let-demo/let-demo';
 import { startup, StartupConfiguration, TestExecutionContext } from './app/startup';
@@ -185,7 +185,7 @@ describe('app', function () {
     console.log(specsViewer.outerHTML);
 
     const vm = getViewModel<App>(host);
-    const [camera, laptop] = vm.things;
+    const [camera, /* laptop */] = vm.things;
     assert.html.textContent('h2', `${camera.modelNumber} by ${camera.make}`, 'incorrect text', specsViewer);
   });
 
@@ -263,7 +263,10 @@ describe('app', function () {
     assert.html.textContent(nonVolatile, 'Role2, Org1', 'incorrect text nonVolatile - role');
     assert.html.textContent(volatile, 'City1, Country2', 'incorrect text volatile - country');
     assert.greaterThan(calls.length, index);
-    assertCalls(calls, index, user,
+    assertCalls(
+      calls,
+      index,
+      user,
       [
         'get roleNonVolatile',
         // commented test: if there's no setter, then it should be volatile by default
@@ -280,7 +283,10 @@ describe('app', function () {
     assert.html.textContent(nonVolatile, 'Role2, Org1', 'incorrect text nonVolatile - role');
     assert.html.textContent(volatile, 'City2, Country2', 'incorrect text volatile - country');
     assert.greaterThan(calls.length, index);
-    assertCalls(calls, index, user,
+    assertCalls(
+      calls,
+      index,
+      user,
       [
         // commented test: if there's no setter, then it should be volatile by default
         // todo: have ability to configure GetterObserver to be 1 time static deps collection
@@ -290,7 +296,7 @@ describe('app', function () {
     );
   });
 
-  $it('uses a user preference control gets dirty checked for non-configurable property', async function ({ host, ctx: { scheduler, lifecycle, container } }) {
+  $it('uses a user preference control gets dirty checked for non-configurable property', function ({ host, ctx: { container } }) {
     const { user } = getViewModel<App>(host);
     const userPref = host.querySelector('user-preference');
     const indeterminate = userPref.querySelector('#indeterminate');
@@ -553,7 +559,7 @@ describe('app', function () {
     })
   );
   $it(`changes in array are reflected in checkbox-list`, function ({ host, ctx }) {
-    const getInputs = () => toArray(host.querySelectorAll(`checkbox-list #cbl-obj-array label input[type=checkbox]`)) as HTMLInputElement[];
+    const getInputs = () => toArray(host.querySelectorAll<HTMLInputElement>(`checkbox-list #cbl-obj-array label input[type=checkbox]`));
     const app = getViewModel<App>(host);
     const products = app.products1;
     assert.equal(getInputs().length, products.length);
@@ -616,7 +622,7 @@ describe('app', function () {
     const app = getViewModel<App>(host);
     assert.equal(app.somethingDone, false);
 
-    (host.querySelector('command button') as HTMLButtonElement).click();
+    (host.querySelector<HTMLButtonElement>('command button')).click();
     ctx.scheduler.getRenderTaskQueue().flush();
     assert.equal(app.somethingDone, true);
   });

@@ -351,8 +351,8 @@ describe('ObserverLocator', function () {
     const { sut } = createFixture();
     const obj = [];
     const actual = sut.getObserver(LF.none, obj, 'foo');
-    assert.strictEqual(actual.constructor.name, DirtyCheckProperty.name, `actual.constructor.name`);
-    assert.instanceOf(actual, DirtyCheckProperty, `actual`);
+    assert.strictEqual(actual.constructor.name, SetterObserver.name, `actual.constructor.name`);
+    assert.instanceOf(actual, SetterObserver, `actual`);
   });
 
   it(_`getObserver() - Array.length - returns ArrayObserver`, function () {
@@ -367,8 +367,8 @@ describe('ObserverLocator', function () {
     const { sut } = createFixture();
     const obj = new Set();
     const actual = sut.getObserver(LF.none, obj, 'foo');
-    assert.strictEqual(actual.constructor.name, DirtyCheckProperty.name, `actual.constructor.name`);
-    assert.instanceOf(actual, DirtyCheckProperty, `actual`);
+    assert.strictEqual(actual.constructor.name, SetterObserver.name, `actual.constructor.name`);
+    assert.instanceOf(actual, SetterObserver, `actual`);
   });
 
   it(_`getObserver() - Set.size - returns SetObserver`, function () {
@@ -383,8 +383,8 @@ describe('ObserverLocator', function () {
     const { sut } = createFixture();
     const obj = new Map();
     const actual = sut.getObserver(LF.none, obj, 'foo');
-    assert.strictEqual(actual.constructor.name, DirtyCheckProperty.name, `actual.constructor.name`);
-    assert.instanceOf(actual, DirtyCheckProperty, `actual`);
+    assert.strictEqual(actual.constructor.name, SetterObserver.name, `actual.constructor.name`);
+    assert.instanceOf(actual, SetterObserver, `actual`);
   });
 
   it(_`getObserver() - Map.size - returns MapObserver`, function () {

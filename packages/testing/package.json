@@ -54,10 +54,10 @@
   },
   "devDependencies": {
     "@types/mocha": "^5.2.7",
-    "@types/node": "^12.12.7",
+    "@types/node": "^12.12.21",
     "jsdom": "^15.2.1",
     "mocha": "~6.1.4",
     "tslib": "^1.10.0",
-    "typescript": "^3.7.3"
+    "typescript": "^3.7.4"
   }
 }

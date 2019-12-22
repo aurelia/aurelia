@@ -369,14 +369,14 @@ describe('simple Computed Observer test case', function () {
       const $it = (title_: string, fn: Mocha.Func) => only ? it.only(title_, fn) : it(title_, fn);
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       $it(title, async function () {
-        const { ctx, component, testHost, dispose } = await setupApp<any>(
+        const { ctx, component, testHost, tearDown } = await setupApp<any>(
           template,
           ViewModel
         );
         await assertFn(ctx, testHost, component);
         // test cases could be sharing the same context document
         // so wait a bit before running the next test
-        await dispose();
+        await tearDown();
 
         assert.isSchedulerEmpty();
       });
@@ -406,7 +406,7 @@ describe('simple Computed Observer test case', function () {
       appHost,
       component: component as T,
       observerLocator,
-      dispose: async () => {
+      tearDown: async () => {
         await au.stop().wait();
         testHost.remove();
       }

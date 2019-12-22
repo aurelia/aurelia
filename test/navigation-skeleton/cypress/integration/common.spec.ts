@@ -62,13 +62,9 @@ describe('doc-example / common elements', function () {
     it('displays the default viewports', function () {
       cy.get(ChatComponent.chatMainViewport)
         .should('exist');
-      cy.get(ChatComponent.chatMainViewportHeader)
-        .should('contain', 'Viewport: chat-main  : chat-users');
 
       cy.get(ChatComponent.chatDetailsViewport)
         .should('exist');
-      cy.get(ChatComponent.chatDetailsViewportHeader)
-        .should('contain', 'Viewport: chat-details  : null');
     });
 
     it('displays the correct chat users', function () {

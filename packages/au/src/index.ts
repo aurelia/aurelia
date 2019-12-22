@@ -22,6 +22,8 @@ import {
   IHttpServer,
   FileServer,
   IRequestHandler,
+  IHttpServerOptions,
+  Encoding,
 } from '@aurelia/runtime-node';
 
 export interface IBrowser {
@@ -182,6 +184,40 @@ export class BrowserHost {
   }
 }
 
+export class TestRunner {
+  public constructor(
+    @IHttpServerOptions
+    private readonly opts: IHttpServerOptions,
+    @IFileSystem
+    private readonly fs: IFileSystem,
+    @ILogger
+    private readonly logger: ILogger,
+  ) {
+    this.logger = logger.root.scopeTo('TestRunner');
+  }
+
+  public async prepare(): Promise<void> {
+    const fs = this.fs;
+    const outFile = join(this.opts.root, 'index.html');
+
+    const html = `
+    <!doctype html>
+    <html>
+      <head>
+      </head>
+      <body>
+        <script type="text/javascript">
+          fetch('/api');
+        </script>
+      </body>
+    </html>
+    `;
+
+    await fs.writeFile(outFile, html, Encoding.utf8);
+
+  }
+}
+
 (async function () {
   DebugConfiguration.register();
 
@@ -203,9 +239,12 @@ export class BrowserHost {
 
   // await host.executeEntryFile(root);
 
-  // const browser = container.get(ChromeBrowser);
-  // const host = container.get(BrowserHost);
-  // await host.open(browser, 'https://google.com');
+  const runner = container.get(TestRunner);
+  await runner.prepare();
+
+  const browser = container.get(ChromeBrowser);
+  const host = container.get(BrowserHost);
+  await host.open(browser, 'http://localhost:8080/index.html');
 
 })().catch(err => {
   console.error(err);

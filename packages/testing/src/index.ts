@@ -32,7 +32,7 @@ export {
   hJsx,
 } from './h';
 export {
-  setup
+  createFixture
 } from './startup';
 export {
   HTMLTestContext,

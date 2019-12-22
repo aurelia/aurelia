@@ -23,7 +23,7 @@ describe.skip('CheckedObserver', function () {
   });
 
   describe('setValue() - primitive - type="checkbox"', function () {
-    function setup(hasSubscriber: boolean) {
+    function createFixture(hasSubscriber: boolean) {
       const ctx = TestContext.createHTMLTestContext();
       const { container, lifecycle, observerLocator, scheduler } = ctx;
       const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as IInputElement;
@@ -40,7 +40,7 @@ describe.skip('CheckedObserver', function () {
       return { ctx, container, lifecycle, observerLocator, el, sut, subscriber, scheduler };
     }
 
-    function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof setup>>) {
+    function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
       ctx.doc.body.removeChild(el);
       sut.unbind(LF.none);
     }
@@ -62,7 +62,7 @@ describe.skip('CheckedObserver', function () {
                 const changeCountBefore = expectedPropValue !== null ? 1 : 0;
                 const changeCountAfter = expectedPropValue !== expectedNewValue ? 1 : 0;
 
-                const { ctx, sut, lifecycle, el, subscriber, scheduler } = setup(hasSubscriber);
+                const { ctx, sut, lifecycle, el, subscriber, scheduler } = createFixture(hasSubscriber);
 
                 sut.setValue(propValue, LF.none);
                 // assert.strictEqual(lifecycle.flushCount, changeCountBefore, 'lifecycle.flushCount 1');
@@ -93,7 +93,7 @@ describe.skip('CheckedObserver', function () {
   });
 
   describe('handleEvent() - primitive - type="checkbox"', function () {
-    function setup() {
+    function createFixture() {
       const ctx = TestContext.createHTMLTestContext();
       const { container, lifecycle, observerLocator, scheduler } = ctx;
       const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as IInputElement;
@@ -107,7 +107,7 @@ describe.skip('CheckedObserver', function () {
       return { ctx, container, lifecycle, observerLocator, el, sut, subscriber, scheduler };
     }
 
-    function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof setup>>) {
+    function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
       ctx.doc.body.removeChild(el);
       sut.unbind(LF.none);
     }
@@ -117,7 +117,7 @@ describe.skip('CheckedObserver', function () {
         for (const event of ['change', 'input']) {
           it(_`checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, function () {
 
-            const { ctx, sut, el, subscriber, scheduler } = setup();
+            const { ctx, sut, el, subscriber, scheduler } = createFixture();
 
             el.checked = checkedBefore;
             el.dispatchEvent(new ctx.Event(event, eventDefaults));
@@ -161,7 +161,7 @@ describe.skip('CheckedObserver', function () {
   });
 
   describe('setValue() - primitive - type="radio"', function () {
-    function setup(hasSubscriber: boolean) {
+    function createFixture(hasSubscriber: boolean) {
       const ctx = TestContext.createHTMLTestContext();
       const { container, lifecycle, observerLocator, scheduler } = ctx;
 
@@ -190,7 +190,7 @@ describe.skip('CheckedObserver', function () {
       return { ctx, container, lifecycle, observerLocator, scheduler, elA, elB, elC, sutA, sutB, sutC, subscriberA, subscriberB, subscriberC };
     }
 
-    function tearDown({ ctx, sutA, sutB, sutC, elA, elB, elC }: Partial<ReturnType<typeof setup>>) {
+    function tearDown({ ctx, sutA, sutB, sutC, elA, elB, elC }: Partial<ReturnType<typeof createFixture>>) {
       ctx.doc.body.removeChild(elA);
       ctx.doc.body.removeChild(elB);
       ctx.doc.body.removeChild(elC);
@@ -211,7 +211,7 @@ describe.skip('CheckedObserver', function () {
             const changeCountBefore = expectedPropValue != null ? 3 : 0;
             const changeCountAfter = expectedPropValue !== expectedNewValue ? 3 : 0;
 
-            const { ctx, sutA, sutB, sutC, elA, elB, elC, lifecycle, scheduler, subscriberA, subscriberB, subscriberC } = setup(hasSubscriber);
+            const { ctx, sutA, sutB, sutC, elA, elB, elC, lifecycle, scheduler, subscriberA, subscriberB, subscriberC } = createFixture(hasSubscriber);
 
             sutA.setValue(checkedBefore, LF.none);
             sutB.setValue(checkedBefore, LF.none);
@@ -265,7 +265,7 @@ describe.skip('CheckedObserver', function () {
   });
 
   describe('handleEvent() - primitive - type="radio"', function () {
-    function setup() {
+    function createFixture() {
       const ctx = TestContext.createHTMLTestContext();
       const { container, lifecycle, observerLocator, scheduler } = ctx;
 
@@ -288,7 +288,7 @@ describe.skip('CheckedObserver', function () {
       return { ctx, container, lifecycle, observerLocator, scheduler, elA, elB, elC, sutA, sutB, sutC, subscriberA, subscriberB, subscriberC };
     }
 
-    function tearDown({ ctx, sutA, sutB, sutC, elA, elB, elC }: Partial<ReturnType<typeof setup>>) {
+    function tearDown({ ctx, sutA, sutB, sutC, elA, elB, elC }: Partial<ReturnType<typeof createFixture>>) {
       ctx.doc.body.removeChild(elA);
       ctx.doc.body.removeChild(elB);
       ctx.doc.body.removeChild(elC);
@@ -303,7 +303,7 @@ describe.skip('CheckedObserver', function () {
 
           it(_`checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, function () {
 
-            const { ctx, scheduler, sutA, sutB, sutC, elA, elB, elC } = setup();
+            const { ctx, scheduler, sutA, sutB, sutC, elA, elB, elC } = createFixture();
 
             elA.checked = checkedBefore === 'A';
             elB.checked = checkedBefore === 'B';
@@ -339,7 +339,7 @@ describe.skip('CheckedObserver', function () {
   });
 
   describe('setValue() - array - type="checkbox"', function () {
-    function setup(hasSubscriber: boolean, value: any, prop: string) {
+    function createFixture(hasSubscriber: boolean, value: any, prop: string) {
       const ctx = TestContext.createHTMLTestContext();
       const { container, lifecycle, observerLocator, scheduler } = ctx;
 
@@ -358,7 +358,7 @@ describe.skip('CheckedObserver', function () {
       return { ctx, value, container, lifecycle, observerLocator, scheduler, el, sut, subscriber };
     }
 
-    function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof setup>>) {
+    function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
       ctx.doc.body.removeChild(el);
       sut.unbind(LF.none);
     }
@@ -382,7 +382,7 @@ describe.skip('CheckedObserver', function () {
                     const changeCountBefore = 1;
                     const changeCountAfter = checkedBefore !== checkedAfter ? 1 : 0;
 
-                    const { ctx, sut, lifecycle, el, subscriber, scheduler } = setup(hasSubscriber, value, prop);
+                    const { ctx, sut, lifecycle, el, subscriber, scheduler } = createFixture(hasSubscriber, value, prop);
 
                     sut.setValue(propValue, LF.none);
                     // assert.strictEqual(lifecycle.flushCount, changeCountBefore, 'lifecycle.flushCount 1');
@@ -415,7 +415,7 @@ describe.skip('CheckedObserver', function () {
   });
 
   describe('mutate collection - array - type="checkbox"', function () {
-    function setup(hasSubscriber: boolean, value: any, prop: string) {
+    function createFixture(hasSubscriber: boolean, value: any, prop: string) {
       const ctx = TestContext.createHTMLTestContext();
       const { container, lifecycle, observerLocator, scheduler } = ctx;
 
@@ -434,7 +434,7 @@ describe.skip('CheckedObserver', function () {
       return { ctx, value, container, lifecycle, observerLocator, scheduler, el, sut, subscriber };
     }
 
-    function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof setup>>) {
+    function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
       ctx.doc.body.removeChild(el);
       sut.unbind(LF.none);
     }
@@ -449,7 +449,7 @@ describe.skip('CheckedObserver', function () {
 
             const array = [];
 
-            const { ctx, sut, lifecycle, el, subscriber, scheduler } = setup(hasSubscriber, value, prop);
+            const { ctx, sut, lifecycle, el, subscriber, scheduler } = createFixture(hasSubscriber, value, prop);
 
             sut.setValue(array, LF.none);
             // assert.strictEqual(lifecycle.flushCount, 1, 'lifecycle.flushCount 1');
@@ -482,7 +482,7 @@ describe.skip('CheckedObserver', function () {
   });
 
   describe('handleEvent() - array - type="checkbox"', function () {
-    function setup(value: any, prop: string) {
+    function createFixture(value: any, prop: string) {
       const ctx = TestContext.createHTMLTestContext();
       const { container, observerLocator, scheduler } = ctx;
 
@@ -498,7 +498,7 @@ describe.skip('CheckedObserver', function () {
       return { ctx, value, container, observerLocator, el, sut, subscriber, scheduler };
     }
 
-    function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof setup>>) {
+    function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
       ctx.doc.body.removeChild(el);
       sut.unbind(LF.none);
     }
@@ -512,7 +512,7 @@ describe.skip('CheckedObserver', function () {
 
               it(_`${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, function () {
 
-                const { ctx, sut, el, subscriber, scheduler } = setup(value, prop);
+                const { ctx, sut, el, subscriber, scheduler } = createFixture(value, prop);
 
                 const array = [];
                 sut.setValue(array, LF.none);
@@ -549,7 +549,7 @@ describe.skip('CheckedObserver', function () {
   });
 
   describe('SelectValueObserver.setValue() - array - type="checkbox"', function () {
-    function setup(hasSubscriber: boolean, value: any, prop: string) {
+    function createFixture(hasSubscriber: boolean, value: any, prop: string) {
       const ctx = TestContext.createHTMLTestContext();
       const { container, lifecycle, observerLocator, scheduler } = ctx;
 
@@ -567,7 +567,7 @@ describe.skip('CheckedObserver', function () {
       return { ctx, value, container, observerLocator, scheduler, el, sut, subscriber, valueOrModelObserver, lifecycle };
     }
 
-    function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof setup>>) {
+    function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
       ctx.doc.body.removeChild(el);
       sut.unbind(LF.none);
     }
@@ -588,7 +588,7 @@ describe.skip('CheckedObserver', function () {
 
                   it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, function () {
 
-                    const { ctx, sut, el, subscriber, valueOrModelObserver, lifecycle, scheduler } = setup(hasSubscriber, value, prop);
+                    const { ctx, sut, el, subscriber, valueOrModelObserver, lifecycle, scheduler } = createFixture(hasSubscriber, value, prop);
 
                     sut.setValue(propValue, LF.none);
                     scheduler.getRenderTaskQueue().flush();

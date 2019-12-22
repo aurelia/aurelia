@@ -684,7 +684,7 @@ describe('app', function () {
     const linex = demo.querySelector('#linex');
 
     const { line, ec } = vm;
-    const getEcYSqNum = () => Math.pow(ec.x, 3) - ec.a * ec.x + ec.b;
+    const getEcYSqNum = () => ec.x ** 3 - ec.a * ec.x + ec.b;
     const getEcYsq = () => getEcYSqNum().toString();
     const getEcY = () => Math.sqrt(getEcYSqNum()).toString();
     const getLinex = () => ((line.y - line.intercept) / line.slope).toString();

@@ -25,7 +25,7 @@ import {
 import { _, TestContext, assert, createSpy } from '@aurelia/testing';
 
 describe('ObserverLocator', function () {
-  function setup() {
+  function createFixture() {
     const ctx = TestContext.createHTMLTestContext();
     const sut = ctx.observerLocator;
 
@@ -42,7 +42,7 @@ describe('ObserverLocator', function () {
     `<input model="foo"></input>`,
     `<div xlink:type="foo"></div>`,
   ]) {
-    const { ctx, sut } = setup();
+    const { ctx, sut } = createFixture();
     const el = ctx.createElementFromMarkup(markup);
     const attr = el.attributes[0];
     const expected = sut.getObserver(LF.none, el, attr.name);
@@ -70,7 +70,7 @@ describe('ObserverLocator', function () {
   //   it(_`getAccessor() - ${markup} - returns DataAttributeAccessor`, function () {
   //     const el = ctx.createElement(markup) as Element;
   //     const attr = el.attributes[0];
-  //     const { sut } = setup();
+  //     const { sut } = createFixture();
   //     const actual = sut.getAccessor(LF.none, el, attr.name);
   //     assert.strictEqual(actual.constructor.name, DataAttributeAccessor.name, `actual.constructor.name`);
   //     assert.instanceOf(actual, DataAttributeAccessor, `actual`);
@@ -85,7 +85,7 @@ describe('ObserverLocator', function () {
     `<div aria-a=""></div>`,
   ]) {
     it(_`getAccessor() - ${markup} - returns DataAttributeAccessor`, function () {
-      const { ctx, sut } = setup();
+      const { ctx, sut } = createFixture();
       const el = ctx.createElementFromMarkup(markup);
       const attr = el.attributes[0];
       const actual = sut.getAccessor(LF.none, el, attr.name);
@@ -102,7 +102,7 @@ describe('ObserverLocator', function () {
     `<div a:a=""></div>`
   ]) {
     it(_`getAccessor() - ${markup} - returns ElementPropertyAccessor`, function () {
-      const { ctx, sut } = setup();
+      const { ctx, sut } = createFixture();
       const el = ctx.createElementFromMarkup(markup);
       const attr = el.attributes[0];
       const actual = sut.getAccessor(LF.none, el, attr.name);
@@ -126,7 +126,7 @@ describe('ObserverLocator', function () {
     `<div ariaa=""></div>`,
   ]) {
     it(_`getAccessor() - ${markup} - returns ElementPropertyAccessor`, function () {
-      const { ctx, sut } = setup();
+      const { ctx, sut } = createFixture();
       const el = ctx.createElementFromMarkup(markup);
       const attr = el.attributes[0];
       const actual = sut.getAccessor(LF.none, el, attr.name);
@@ -136,7 +136,7 @@ describe('ObserverLocator', function () {
   }
 
   it(_`getAccessor() - {} - returns PropertyAccessor`, function () {
-    const { sut } = setup();
+    const { sut } = createFixture();
     const obj = {};
     const actual = sut.getAccessor(LF.none, obj, 'foo');
     assert.strictEqual(actual.constructor.name, PropertyAccessor.name, `actual.constructor.name`);
@@ -148,7 +148,7 @@ describe('ObserverLocator', function () {
     Number.MAX_VALUE, Number.MAX_SAFE_INTEGER, Number.MIN_VALUE, Number.MIN_SAFE_INTEGER, 0, +Infinity, -Infinity, NaN
   ] as any[]) {
     it(_`getObserver() - ${obj} - returns PrimitiveObserver`, function () {
-      const { sut } = setup();
+      const { sut } = createFixture();
       if (obj == null) {
         assert.throws(() => sut.getObserver(LF.none, obj, 'foo'));
       } else {
@@ -160,7 +160,7 @@ describe('ObserverLocator', function () {
   }
 
   it(_`getObserver() - {} - twice in a row - reuses existing observer`, function () {
-    const { sut } = setup();
+    const { sut } = createFixture();
     const obj = {};
     const expected = sut.getObserver(LF.none, obj, 'foo');
     const actual = sut.getObserver(LF.none, obj, 'foo');
@@ -168,7 +168,7 @@ describe('ObserverLocator', function () {
   });
 
   it(_`getObserver() - {} - twice in a row different property - returns different observer`, function () {
-    const { sut } = setup();
+    const { sut } = createFixture();
     const obj = {};
     const expected = sut.getObserver(LF.none, obj, 'foo');
     const actual = sut.getObserver(LF.none, obj, 'bar');
@@ -192,7 +192,7 @@ describe('ObserverLocator', function () {
     { markup: `<div aria-a=""></div>`, ctor: DataAttributeAccessor }
   ]) {
     it(_`getObserver() - ${markup} - returns ${ctor.name}`, function () {
-      const { ctx, sut } = setup();
+      const { ctx, sut } = createFixture();
       const el = ctx.createElementFromMarkup(markup);
       const attr = el.attributes[0];
       const actual = sut.getObserver(LF.none, el, attr.name);
@@ -211,7 +211,7 @@ describe('ObserverLocator', function () {
                 for (const hasAdapterObserver of [true, false]) {
                   for (const adapterIsDefined of hasAdapterObserver ? [true, false] : [false]) {
                     it(_`getObserver() - descriptor=${{ configurable, enumerable }}, hasGetter=${hasGetter}, hasSetter=${hasSetter}, hasOverrides=${hasOverrides}, isVolatile=${isVolatile}, hasAdapterObserver=${hasAdapterObserver}, adapterIsDefined=${adapterIsDefined}`, function () {
-                      const { sut } = setup();
+                      const { sut } = createFixture();
                       const obj = {};
                       const dummyObserver = {} as any;
                       if (hasAdapterObserver) {
@@ -294,7 +294,7 @@ describe('ObserverLocator', function () {
         };
         for (const property of Object.keys(descriptors)) {
           it(_`getObserver() - obj=<div></div>, property=${property}, hasAdapterObserver=${hasAdapterObserver}, adapterIsDefined=${adapterIsDefined}`, function () {
-            const { ctx, sut } = setup();
+            const { ctx, sut } = createFixture();
             const obj = ctx.createElement('div');
             const dummyObserver = {} as any;
             if (hasAdapterObserver) {
@@ -331,7 +331,7 @@ describe('ObserverLocator', function () {
   }
 
   it(_`getObserver() - throws if $observers is undefined`, function () {
-    const { sut } = setup();
+    const { sut } = createFixture();
     const obj = {};
     const writeSpy = createSpy(Reporter, 'write');
     Reflect.defineProperty(obj, '$observers', { value: undefined });
@@ -348,7 +348,7 @@ describe('ObserverLocator', function () {
   });
 
   it(_`getObserver() - Array.foo - returns ArrayObserver`, function () {
-    const { sut } = setup();
+    const { sut } = createFixture();
     const obj = [];
     const actual = sut.getObserver(LF.none, obj, 'foo');
     assert.strictEqual(actual.constructor.name, SetterObserver.name, `actual.constructor.name`);
@@ -356,7 +356,7 @@ describe('ObserverLocator', function () {
   });
 
   it(_`getObserver() - Array.length - returns ArrayObserver`, function () {
-    const { sut } = setup();
+    const { sut } = createFixture();
     const obj = [];
     const actual = sut.getObserver(LF.none, obj, 'length');
     assert.strictEqual(actual.constructor.name, CollectionLengthObserver.name, `actual.constructor.name`);
@@ -364,7 +364,7 @@ describe('ObserverLocator', function () {
   });
 
   it(_`getObserver() - Set.foo - returns SetObserver`, function () {
-    const { sut } = setup();
+    const { sut } = createFixture();
     const obj = new Set();
     const actual = sut.getObserver(LF.none, obj, 'foo');
     assert.strictEqual(actual.constructor.name, SetterObserver.name, `actual.constructor.name`);
@@ -372,7 +372,7 @@ describe('ObserverLocator', function () {
   });
 
   it(_`getObserver() - Set.size - returns SetObserver`, function () {
-    const { sut } = setup();
+    const { sut } = createFixture();
     const obj = new Set();
     const actual = sut.getObserver(LF.none, obj, 'size');
     assert.strictEqual(actual.constructor.name, CollectionSizeObserver.name, `actual.constructor.name`);
@@ -380,7 +380,7 @@ describe('ObserverLocator', function () {
   });
 
   it(_`getObserver() - Map.foo - returns MapObserver`, function () {
-    const { sut } = setup();
+    const { sut } = createFixture();
     const obj = new Map();
     const actual = sut.getObserver(LF.none, obj, 'foo');
     assert.strictEqual(actual.constructor.name, SetterObserver.name, `actual.constructor.name`);
@@ -388,7 +388,7 @@ describe('ObserverLocator', function () {
   });
 
   it(_`getObserver() - Map.size - returns MapObserver`, function () {
-    const { sut } = setup();
+    const { sut } = createFixture();
     const obj = new Map();
     const actual = sut.getObserver(LF.none, obj, 'size');
     assert.strictEqual(actual.constructor.name, CollectionSizeObserver.name, `actual.constructor.name`);

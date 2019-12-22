@@ -4,7 +4,7 @@ import { Writable, IRegistry, PLATFORM } from '@aurelia/kernel';
 import { CustomElement, Aurelia } from '@aurelia/runtime';
 
 describe('LinkHandler', function () {
-  function setup() {
+  function createFixture() {
     const ctx = TestContext.createHTMLTestContext();
     const { container } = ctx;
 
@@ -37,13 +37,13 @@ describe('LinkHandler', function () {
   }
 
   it('can be created', function () {
-    const { sut } = setup();
+    const { sut } = createFixture();
 
     assert.notStrictEqual(sut, null, `sut`);
   });
 
   it('can be activated', function () {
-    const { sut, ctx } = setup();
+    const { sut, ctx } = createFixture();
 
     const addEventListener = createSpy(ctx.doc, 'addEventListener');
 
@@ -65,7 +65,7 @@ describe('LinkHandler', function () {
   });
 
   it('can be deactivated', function () {
-    const { sut } = setup();
+    const { sut } = createFixture();
 
     sut.activate({ callback: info => console.log('can be deactivated', info) });
 
@@ -77,7 +77,7 @@ describe('LinkHandler', function () {
   });
 
   it('throws when activated while active', function () {
-    const { sut, ctx } = setup();
+    const { sut, ctx } = createFixture();
 
     const addEventListener = createSpy(ctx.doc, 'addEventListener');
 
@@ -107,7 +107,7 @@ describe('LinkHandler', function () {
   });
 
   it('throws when deactivated while not active', function () {
-    const { sut } = setup();
+    const { sut } = createFixture();
 
     let err;
     try {

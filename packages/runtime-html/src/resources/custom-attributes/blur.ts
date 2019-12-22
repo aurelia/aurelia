@@ -142,11 +142,7 @@ export class Blur implements ICustomAttributeViewModel<HTMLElement> {
 
   private readonly element: HTMLElement;
 
-  public constructor(
-    @INode element: INode,
-    @IDOM private readonly dom: HTMLDOM,
-    @IScheduler scheduler: IScheduler
-  ) {
+  public constructor(@INode element: INode, @IDOM private readonly dom: HTMLDOM, @IScheduler scheduler: IScheduler) {
     this.element = element as HTMLElement;
     /**
      * By default, the behavior should be least surprise possible, that:

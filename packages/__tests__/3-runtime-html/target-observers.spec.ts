@@ -21,7 +21,7 @@ function createSvgUseElement(ctx: HTMLTestContext, name: string, value: string) 
 </svg>`).lastElementChild;
 }
 
-function setup() {
+function createFixture() {
   const ctx = TestContext.createHTMLTestContext();
   const { container, scheduler, observerLocator } = ctx;
 
@@ -45,7 +45,7 @@ describe('AttributeNSAccessor', function () {
   describe('getValue()', function () {
     for (const { name, value } of tests) {
       it(`returns ${value} for xlink:${name}`, function () {
-        const { ctx, scheduler: $scheduler } = setup();
+        const { ctx, scheduler: $scheduler } = createFixture();
         scheduler = $scheduler;
         el = createSvgUseElement(ctx, name, value) as HTMLElement;
         sut = new AttributeNSAccessor(scheduler, LifecycleFlags.none, el, name, 'http://www.w3.org/1999/xlink');
@@ -67,7 +67,7 @@ describe('AttributeNSAccessor', function () {
       it(`sets xlink:${name} only after flushing RAF`, function () {
         const ctx = TestContext.createHTMLTestContext();
         el = createSvgUseElement(ctx, name, value) as HTMLElement;
-        const { scheduler: $scheduler } = setup();
+        const { scheduler: $scheduler } = createFixture();
         scheduler = $scheduler;
         sut = new AttributeNSAccessor(scheduler, LifecycleFlags.none, el, name, 'http://www.w3.org/1999/xlink');
 
@@ -89,7 +89,7 @@ describe('AttributeNSAccessor', function () {
       it(`sets xlink:${name} immediately`, function () {
         const ctx = TestContext.createHTMLTestContext();
         el = createSvgUseElement(ctx, name, value) as HTMLElement;
-        const { scheduler: $scheduler } = setup();
+        const { scheduler: $scheduler } = createFixture();
         scheduler = $scheduler;
         sut = new AttributeNSAccessor(scheduler, LifecycleFlags.none, el, name, 'http://www.w3.org/1999/xlink');
 
@@ -117,7 +117,7 @@ describe('DataAttributeAccessor', function () {
         it(`returns "${value}" for attribute "${name}"`, function () {
           const ctx = TestContext.createHTMLTestContext();
           el = ctx.createElementFromMarkup(`<div ${name}="${value}"></div>`);
-          const { scheduler: $scheduler } = setup();
+          const { scheduler: $scheduler } = createFixture();
           scheduler = $scheduler;
           sut = new DataAttributeAccessor(scheduler, LifecycleFlags.none, el, name);
 
@@ -140,7 +140,7 @@ describe('DataAttributeAccessor', function () {
         it(`sets attribute "${name}" to "${value}" only after flushing RAF`, function () {
           const ctx = TestContext.createHTMLTestContext();
           el = ctx.createElementFromMarkup(`<div></div>`);
-          const { scheduler: $scheduler } = setup();
+          const { scheduler: $scheduler } = createFixture();
           scheduler = $scheduler;
           const expected = value != null ? `<div ${name}="${value}"></div>` : '<div></div>';
           sut = new DataAttributeAccessor(scheduler, LifecycleFlags.none, el, name);
@@ -165,7 +165,7 @@ describe('DataAttributeAccessor', function () {
         it(`sets attribute "${name}" to "${value}" immediately`, function () {
           const ctx = TestContext.createHTMLTestContext();
           el = ctx.createElementFromMarkup(`<div></div>`);
-          const { scheduler: $scheduler } = setup();
+          const { scheduler: $scheduler } = createFixture();
           scheduler = $scheduler;
           const expected = value != null ? `<div ${name}="${value}"></div>` : '<div></div>';
           sut = new DataAttributeAccessor(scheduler, LifecycleFlags.none, el, name);
@@ -204,7 +204,7 @@ describe('StyleAccessor', function () {
     it(`setValue - style="${rule}" flags.none`, function () {
       const ctx = TestContext.createHTMLTestContext();
       el = ctx.createElementFromMarkup('<div></div>');
-      const { scheduler: $scheduler } = setup();
+      const { scheduler: $scheduler } = createFixture();
       scheduler = $scheduler;
       sut = new StyleAttributeAccessor(scheduler, LifecycleFlags.none, el);
       const setPropertySpy = createSpy(sut, 'setProperty', true);
@@ -237,7 +237,7 @@ describe('StyleAccessor', function () {
     it(`setValue - style="${rule}" flags.fromBind`, function () {
       const ctx = TestContext.createHTMLTestContext();
       el = ctx.createElementFromMarkup('<div></div>');
-      const { scheduler: $scheduler } = setup();
+      const { scheduler: $scheduler } = createFixture();
       scheduler = $scheduler;
       sut = new StyleAttributeAccessor(scheduler, LifecycleFlags.none, el);
       const setPropertySpy = createSpy(sut, 'setProperty', true);
@@ -441,7 +441,7 @@ describe('ClassAccessor', function () {
   for (const markup of markupArr) {
     for (const classList of classListArr) {
 
-      function setup() {
+      function createFixture() {
         const ctx = TestContext.createHTMLTestContext();
         const el = ctx.createElementFromMarkup(markup);
         const initialClassList = el.classList.toString();
@@ -460,7 +460,7 @@ describe('ClassAccessor', function () {
       describe('with flags.none', function () {
 
         it(`setValue("${classList}") updates ${markup} flags.none`, function () {
-          const { sut, el, initialClassList, scheduler, tearDown } = setup();
+          const { sut, el, initialClassList, scheduler, tearDown } = createFixture();
 
           sut.setValue(classList, LifecycleFlags.none);
 
@@ -481,7 +481,7 @@ describe('ClassAccessor', function () {
 
         for (const secondClassList of secondClassListArr) {
           it(`setValue("${secondClassList}") updates already-updated ${markup} flags.none`, function () {
-            const { sut, el, initialClassList, scheduler, tearDown } = setup();
+            const { sut, el, initialClassList, scheduler, tearDown } = createFixture();
 
             sut.setValue(classList, LifecycleFlags.none);
 
@@ -503,7 +503,7 @@ describe('ClassAccessor', function () {
 
       describe('with flags.fromBind', function () {
         it(`setValue("${classList}") updates ${markup} flags.fromBind`, function () {
-          const { sut, el, initialClassList, tearDown } = setup();
+          const { sut, el, initialClassList, tearDown } = createFixture();
 
           sut.setValue(classList, LifecycleFlags.fromBind);
 
@@ -520,7 +520,7 @@ describe('ClassAccessor', function () {
 
         for (const secondClassList of secondClassListArr) {
           it(`setValue("${secondClassList}") updates already-updated ${markup} flags.fromBind`, function () {
-            const { sut, el, initialClassList, tearDown } = setup();
+            const { sut, el, initialClassList, tearDown } = createFixture();
 
             sut.setValue(classList, LifecycleFlags.fromBind);
 

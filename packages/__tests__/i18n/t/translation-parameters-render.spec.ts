@@ -7,14 +7,14 @@ import { DOM } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
 describe('TranslationParametersAttributePattern', function () {
-  function setup() {
+  function createFixture() {
     const container = DI.createContainer();
     container.register(TranslationParametersAttributePattern);
     return container.get(IAttributePattern);
   }
 
   it('creates attribute syntax without `to`', function () {
-    const sut = setup();
+    const sut = createFixture();
     const pattern = 't-params.bind';
     const value = '{foo: "bar"}';
 
@@ -27,19 +27,19 @@ describe('TranslationParametersAttributePattern', function () {
 });
 
 describe('TranslationParametersBindingCommand', function () {
-  function setup() {
+  function createFixture() {
     const container = DI.createContainer();
     container.register(TranslationParametersBindingCommand);
     return container.get<BindingCommandInstance>(BindingCommand.keyFrom(`t-params.bind`));
   }
 
   it('registers the `t-params.bind` command', function () {
-    const sut = setup();
+    const sut = createFixture();
     assert.instanceOf(sut, TranslationParametersBindingCommand);
   });
 
   it('compiles the binding to a TranslationParametersBindingInstruction', function () {
-    const sut = setup();
+    const sut = createFixture();
     const syntax: AttrSyntax = { command: 't-params.bind', rawName: 't-params.bind', rawValue: '{foo: "bar"}', target: '' };
     const plainAttributesymbol: PlainAttributeSymbol = {
       command: new AttrBindingCommand(),
@@ -56,20 +56,20 @@ describe('TranslationParametersBindingCommand', function () {
 
 describe('TranslationParametersBindingRenderer', function () {
 
-  function setup() {
+  function createFixture() {
     const { container } = TestContext.createHTMLTestContext();
     container.register(RuntimeConfiguration, I18nConfiguration);
     return container;
   }
 
   it('instantiated with instruction type', function () {
-    const container = setup();
+    const container = createFixture();
     const sut: IInstructionRenderer = new TranslationParametersBindingRenderer(container.get(IExpressionParser), container.get(IObserverLocator));
     assert.equal(sut.instructionType, TranslationParametersInstructionType);
   });
 
   it('#render instantiates TranslationBinding if there are none existing', function () {
-    const container = setup();
+    const container = createFixture();
     const sut: IInstructionRenderer = new TranslationParametersBindingRenderer(container.get(IExpressionParser), container.get(IObserverLocator));
     const expressionParser = container.get(IExpressionParser);
     const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); }} as unknown as IRenderableController);
@@ -88,7 +88,7 @@ describe('TranslationParametersBindingRenderer', function () {
   });
 
   it('#render add the paramExpr to the existing TranslationBinding for the target element', function () {
-    const container = setup();
+    const container = createFixture();
     const sut: IInstructionRenderer = new TranslationParametersBindingRenderer(container.get(IExpressionParser), container.get(IObserverLocator));
     const expressionParser = container.get(IExpressionParser);
     const targetElement = DOM.createElement('span');

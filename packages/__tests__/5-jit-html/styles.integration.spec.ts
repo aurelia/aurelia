@@ -3,7 +3,7 @@ import { StyleConfiguration, styles } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
 describe('styles', function () {
-  function setup() {
+  function createFixture() {
     const ctx = TestContext.createHTMLTestContext();
     const au = new Aurelia(ctx.container);
     const host = ctx.createElement('div');
@@ -16,7 +16,7 @@ describe('styles', function () {
   }
 
   it(`CSS Modules don't inherit from parent`, async function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const cssClasses = { test: 'something-else' };
 
     const WithStyles = CustomElement.define({

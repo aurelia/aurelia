@@ -13,7 +13,7 @@ describe('Configuration', function () {
     return router;
   }
 
-  async function setup(config?) {
+  async function createFixture(config?) {
     const ctx = TestContext.createHTMLTestContext();
     const { container, lifecycle } = ctx;
 
@@ -44,7 +44,7 @@ describe('Configuration', function () {
   it('can be activated with defaults', async function () {
     this.timeout(5000);
 
-    const { router, tearDown } = await setup();
+    const { router, tearDown } = await createFixture();
     assert.strictEqual(router['isActive'], true, `router.isActive`);
     assert.strictEqual(router.instructionResolver.separators.viewport, '@', `router.instructionResolver.separators.viewport`);
 
@@ -54,7 +54,7 @@ describe('Configuration', function () {
   it('can be activated with config object', async function () {
     this.timeout(5000);
 
-    const { router, tearDown } = await setup({ separators: { viewport: '#' } });
+    const { router, tearDown } = await createFixture({ separators: { viewport: '#' } });
     assert.strictEqual(router['isActive'], true, `router.isActive`);
     assert.strictEqual(router.instructionResolver.separators.viewport, '#', `router.instructionResolver.separators.viewport`);
 
@@ -65,7 +65,7 @@ describe('Configuration', function () {
   it('can be activated with config function', async function () {
     this.timeout(5000);
 
-    const { router, tearDown } = await setup((router) => {
+    const { router, tearDown } = await createFixture((router) => {
       router.activate({ separators: { viewport: '%' } });
     });
     assert.strictEqual(router['isActive'], true, `router.isActive`);

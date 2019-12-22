@@ -369,7 +369,7 @@ describe('simple Computed Observer test case', function () {
       const $it = (title_: string, fn: Mocha.Func) => only ? it.only(title_, fn) : it(title_, fn);
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       $it(title, async function () {
-        const { ctx, component, testHost, tearDown } = await setupApp<any>(
+        const { ctx, component, testHost, tearDown } = await createFixture<any>(
           template,
           ViewModel
         );
@@ -383,7 +383,7 @@ describe('simple Computed Observer test case', function () {
     }
   );
 
-  async function setupApp<T>(template: string | Node, $class: Constructable | null, ...registrations: any[]) {
+  async function createFixture<T>(template: string | Node, $class: Constructable | null, ...registrations: any[]) {
     const ctx = TestContext.createHTMLTestContext();
     const { container, lifecycle, observerLocator } = ctx;
     registrations = Array.from(new Set([...registrations]));

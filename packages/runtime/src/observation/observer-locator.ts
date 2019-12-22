@@ -230,14 +230,14 @@ export class ObserverLocator implements IObserverLocator {
       get: PropertyDescriptor['get'] & { getObserver(obj: IObservable): IBindingTargetObserver };
     };
 
-    if (descriptor && (descriptor.get || descriptor.set)) {
-      if (descriptor.get && descriptor.get.getObserver) {
+    if (descriptor != null && (descriptor.get != null || descriptor.set != null)) {
+      if (descriptor.get != null && descriptor.get.getObserver != null) {
         return descriptor.get.getObserver(obj);
       }
 
       // attempt to use an adapter before resorting to dirty checking.
       const adapterObserver = this.getAdapterObserver(flags, obj, propertyName, descriptor);
-      if (adapterObserver) {
+      if (adapterObserver != null) {
         return adapterObserver;
       }
       if (isNode) {

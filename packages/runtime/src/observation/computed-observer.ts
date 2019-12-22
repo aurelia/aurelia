@@ -251,8 +251,7 @@ export class GetterObserver implements GetterObserver {
 const toStringTag = Object.prototype.toString;
 
 /**
- * _@param observer The owning observer of current evaluation,
- * will subscribe to all observers created via proxy should
+ * _@param observer The owning observer of current evaluation, will subscribe to all observers created via proxy
  */
 function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
   return {
@@ -291,35 +290,12 @@ function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLoca
 }
 
 /**
- * _@param observer The owning observer of current evaluation,
- * will subscribe to all observers created via proxy should
+ * _@param observer The owning observer of current evaluation, will subscribe to all observers created via proxy
  */
 function proxyOrValue(flags: LifecycleFlags, target: object, key: PropertyKey, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
   const value = Reflect.get(target, key, target);
-  if (typeof value === 'function') {
-    return new Proxy(value, createCallerTrap(flags, observerLocator, observer));
-  }
-  if (typeof value !== 'object' || value === null) {
+  if (typeof value !== 'object' || typeof value === 'function' || value === null) {
     return value;
   }
   return new Proxy(value, createGetterTraps(flags, observerLocator, observer));
-}
-
-/**
- * _@param observer The owning observer of current evaluation,
- * will subscribe to all observers created via proxy should
- */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-function createCallerTrap(
-  flags: LifecycleFlags,
-  observerLocator: IObserverLocator,
-  observer: GetterObserver
-): ProxyHandler<object> {
-  return {
-    // target must be a function object
-    // else error is thrown
-    apply(target: (...args: unknown[]) => unknown, thisArg: unknown, argArray: unknown[]) {
-      return target.apply(thisArg, argArray);
-    }
-  };
 }

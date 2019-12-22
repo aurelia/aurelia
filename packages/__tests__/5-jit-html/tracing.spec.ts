@@ -4,7 +4,7 @@ import { stringifyTemplateDefinition } from '@aurelia/jit-html';
 import { disableTracing, enableTracing, getVisibleText, TestContext, assert } from '@aurelia/testing';
 
 describe.skip('tracing', function () {
-  function setup() {
+  function createFixture() {
     enableTracing();
     Tracer.enableLiveLogging();
     const ctx = TestContext.createHTMLTestContext();
@@ -32,7 +32,7 @@ describe.skip('tracing', function () {
     disableTracing();
   }
   it('tag$01 text$01 _', function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define({ name: 'app', template: '<template><div>a</div></template>' }, class {
     });
     const component = new App();
@@ -40,7 +40,7 @@ describe.skip('tracing', function () {
     verify(au, host, 'a', CustomElement.getDefinition(App));
   });
   it('tag$01 text$03 _', function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define({ name: 'app', template: `<template><div>\${msg}</div></template>` }, class {
       public msg = 'a';
     });
@@ -49,7 +49,7 @@ describe.skip('tracing', function () {
     verify(au, host, 'a', CustomElement.getDefinition(App));
   });
   it('tag$02 text$01 _', function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define({ name: 'app', template: '<template>a</template>' }, class {
     });
     const component = new App();
@@ -57,7 +57,7 @@ describe.skip('tracing', function () {
     verify(au, host, 'a', CustomElement.getDefinition(App));
   });
   it('tag$02 text$03 _', function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define({ name: 'app', template: `<template>\${msg}</template>` }, class {
       public msg = 'a';
     });
@@ -66,7 +66,7 @@ describe.skip('tracing', function () {
     verify(au, host, 'a', CustomElement.getDefinition(App));
   });
   it('tag$03 text$03 _', function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const MyFoo = CustomElement.define({ name: 'my-foo', template: `<template>\${msg}</template>` }, class {
       public static bindables = { msg: { property: 'msg', attribute: 'msg' }, not: { property: 'not', attribute: 'not' }, item: { property: 'item', attribute: 'item' } };
       public msg = '';
@@ -82,7 +82,7 @@ describe.skip('tracing', function () {
     verify(au, host, 'a', CustomElement.getDefinition(App));
   });
   it('tag$04 text$03 _', function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const MyFoo = CustomElement.define({ name: 'my-foo', template: '<template><template replaceable="part1"></template><template replaceable="part2"></template></template>' }, class {
       public static bindables = { msg: { property: 'msg', attribute: 'msg' }, not: { property: 'not', attribute: 'not' }, item: { property: 'item', attribute: 'item' } };
       public msg = '';
@@ -98,7 +98,7 @@ describe.skip('tracing', function () {
     verify(au, host, 'a', CustomElement.getDefinition(App));
   });
   it('tag$05 text$03 _', function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const MyFoo = CustomElement.define({ name: 'my-foo', template: `<template>\${msg}</template>` }, class {
       public static bindables = { msg: { property: 'msg', attribute: 'msg' }, not: { property: 'not', attribute: 'not' }, item: { property: 'item', attribute: 'item' } };
       public static containerless = true;
@@ -115,7 +115,7 @@ describe.skip('tracing', function () {
     verify(au, host, 'a', CustomElement.getDefinition(App));
   });
   it('tag$06 text$03 _', function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const MyFoo = CustomElement.define({ name: 'my-foo', template: '<template><template replaceable="part1"></template><template replaceable="part2"></template></template>' }, class {
       public static bindables = { msg: { property: 'msg', attribute: 'msg' }, not: { property: 'not', attribute: 'not' }, item: { property: 'item', attribute: 'item' } };
       public static containerless = true;
@@ -132,7 +132,7 @@ describe.skip('tracing', function () {
     verify(au, host, 'a', CustomElement.getDefinition(App));
   });
   it('tag$07 text$03 _', function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const MyFoo = CustomElement.define({ name: 'my-foo', template: `<template>\${msg}</template>` }, class {
       public static bindables = { msg: { property: 'msg', attribute: 'msg' }, not: { property: 'not', attribute: 'not' }, item: { property: 'item', attribute: 'item' } };
       public static shadowOptions = { mode: 'open' };
@@ -149,7 +149,7 @@ describe.skip('tracing', function () {
     verify(au, host, 'a', CustomElement.getDefinition(App));
   });
   it('tag$08 text$03 _', function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const MyFoo = CustomElement.define({ name: 'my-foo', template: '<template><template replaceable="part1"></template><template replaceable="part2"></template></template>' }, class {
       public static bindables = { msg: { property: 'msg', attribute: 'msg' }, not: { property: 'not', attribute: 'not' }, item: { property: 'item', attribute: 'item' } };
       public static shadowOptions = { mode: 'open' };
@@ -166,7 +166,7 @@ describe.skip('tracing', function () {
     verify(au, host, 'a', CustomElement.getDefinition(App));
   });
   it('tag$09 text$03 _', function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const MyFoo = CustomElement.define({ name: 'my-foo', template: `<template>\${msg}</template>` }, class {
       public static bindables = { msg: { property: 'msg', attribute: 'msg' }, not: { property: 'not', attribute: 'not' }, item: { property: 'item', attribute: 'item' } };
       public static shadowOptions = { mode: 'closed' };
@@ -183,7 +183,7 @@ describe.skip('tracing', function () {
     verify(au, host, 'a', CustomElement.getDefinition(App));
   });
   it('tag$10 text$03 _', function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const MyFoo = CustomElement.define({ name: 'my-foo', template: '<template><template replaceable="part1"></template><template replaceable="part2"></template></template>' }, class {
       public static bindables = { msg: { property: 'msg', attribute: 'msg' }, not: { property: 'not', attribute: 'not' }, item: { property: 'item', attribute: 'item' } };
       public static shadowOptions = { mode: 'closed' };

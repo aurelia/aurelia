@@ -45,14 +45,11 @@ export class LinkHandler {
   public window: Window;
   public document: Document;
 
-  // tslint:disable-next-line:no-empty
   private options: ILinkHandlerOptions = {
     useHref: true,
-    callback: () => { }
+    callback: () => { return; }
   };
   private isActive: boolean = false;
-
-  // private handler: EventListener;
 
   public constructor(
     dom: HTMLDOM
@@ -72,7 +69,9 @@ export class LinkHandler {
       anchor: null
     };
 
-    const target = info.anchor = LinkHandler.closestAnchor(event.target as Element);
+    const target = info.anchor = event.currentTarget as Element;
+    // Switch to this for delegation:
+    // const target = info.anchor = LinkHandler.closestAnchor(event.target as Element);
     if (!target || !LinkHandler.targetIsThisWindow(target, win)) {
       return info;
     }
@@ -107,15 +106,15 @@ export class LinkHandler {
    * @param el - The element to search upward from.
    * @returns The link element that is the closest ancestor.
    */
-  private static closestAnchor(el: Element): Element | null {
-    while (el !== null && el !== void 0) {
-      if (el.tagName === 'A') {
-        return el;
-      }
-      el = el.parentNode as Element;
-    }
-    return null;
-  }
+  // private static closestAnchor(el: Element): Element | null {
+  //   while (el !== null && el !== void 0) {
+  //     if (el.tagName === 'A') {
+  //       return el;
+  //     }
+  //     el = el.parentNode as Element;
+  //   }
+  //   return null;
+  // }
 
   /**
    * Gets a value indicating whether or not an anchor targets the current window.
@@ -142,8 +141,6 @@ export class LinkHandler {
 
     this.isActive = true;
     this.options = { ...options };
-
-    this.document.addEventListener('click', this.handler, true);
   }
 
   /**
@@ -153,11 +150,10 @@ export class LinkHandler {
     if (!this.isActive) {
       throw new Error('Link handler has not been activated');
     }
-    this.document.removeEventListener('click', this.handler, true);
     this.isActive = false;
   }
 
-  private readonly handler: EventListener = (e: Event) => {
+  public readonly handler: EventListener = (e: Event) => {
     const info = LinkHandler.getEventInfo(e as MouseEvent, this.window, this.options);
 
     if (info.shouldHandleEvent) {

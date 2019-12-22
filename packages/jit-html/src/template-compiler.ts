@@ -152,9 +152,9 @@ export class TemplateCompiler implements ITemplateCompiler {
     scopeParts: string[],
   ): void {
     if ((parent.flags & SymbolFlags.hasChildNodes) > 0) {
-      const { childNodes } = parent;
-      let childNode: NodeSymbol;
+      const childNodes = parent.childNodes;
       const ii = childNodes.length;
+      let childNode: NodeSymbol;
       for (let i = 0; i < ii; ++i) {
         childNode = childNodes[i];
         if ((childNode.flags & SymbolFlags.isText) > 0) {

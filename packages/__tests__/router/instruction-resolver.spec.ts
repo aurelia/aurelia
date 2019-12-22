@@ -4,7 +4,7 @@ import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
 describe('InstructionResolver', function () {
-  async function setup() {
+  async function createFixture() {
     const ctx = TestContext.createHTMLTestContext();
     const container = ctx.container;
 
@@ -36,17 +36,17 @@ describe('InstructionResolver', function () {
 
   this.timeout(5000);
   it('can be created', async function () {
-    const { router, tearDown } = await setup();
+    const { router, tearDown } = await createFixture();
 
     await tearDown();
   });
 
   it('handles state strings', async function () {
-    const { host, router, tearDown } = await setup();
+    const { host, router, tearDown } = await createFixture();
 
     let instructions: ViewportInstruction[] = [
-      new ViewportInstruction('foo', 'left', '123'),
-      new ViewportInstruction('bar', 'right', '456'),
+      router.createViewportInstruction('foo', 'left', '123'),
+      router.createViewportInstruction('bar', 'right', '456'),
     ];
     let instructionsString = router.instructionResolver.stringifyViewportInstructions(instructions);
     assert.strictEqual(instructionsString, 'foo(123)@left+bar(456)@right', `instructionsString`);
@@ -54,9 +54,9 @@ describe('InstructionResolver', function () {
     assert.deepStrictEqual(newInstructions, instructions, `newInstructions`);
 
     instructions = [
-      new ViewportInstruction('foo', undefined, '123'),
-      new ViewportInstruction('bar', 'right'),
-      new ViewportInstruction('baz'),
+      router.createViewportInstruction('foo', undefined, '123'),
+      router.createViewportInstruction('bar', 'right'),
+      router.createViewportInstruction('baz'),
     ];
     instructionsString = router.instructionResolver.stringifyViewportInstructions(instructions);
     assert.strictEqual(instructionsString, 'foo(123)+bar@right+baz', `instructionsString`);
@@ -66,54 +66,79 @@ describe('InstructionResolver', function () {
     await tearDown();
   });
 
-  interface InstructionTest {
-    instruction: string;
-    viewportInstruction: ViewportInstruction;
-  }
+  describe('can handle viewport instructions', function () {
+    interface InstructionTest {
+      instruction: string;
+      viewportInstruction: ViewportInstruction;
+    }
 
-  const instructions: InstructionTest[] = [
-    { instruction: 'foo', viewportInstruction: new ViewportInstruction('foo') },
-    { instruction: 'foo@left', viewportInstruction: new ViewportInstruction('foo', 'left') },
-    { instruction: 'foo(123)@left', viewportInstruction: new ViewportInstruction('foo', 'left', '123') },
-    { instruction: 'foo(123)', viewportInstruction: new ViewportInstruction('foo', undefined, '123') },
-    { instruction: 'foo/bar', viewportInstruction: new ViewportInstruction('foo', undefined, undefined, true, [new ViewportInstruction('bar')]) },
-    { instruction: 'foo(123)/bar@left/baz', viewportInstruction: new ViewportInstruction('foo', undefined, '123', true, [new ViewportInstruction('bar', 'left', undefined, true, [new ViewportInstruction('baz')])]) },
-    { instruction: 'foo(123)/(bar@left+baz(456))', viewportInstruction: new ViewportInstruction('foo', undefined, '123', true, [new ViewportInstruction('bar', 'left'), new ViewportInstruction('baz', undefined, '456')]) },
-  ];
+    const ctx = TestContext.createHTMLTestContext();
+    const container = ctx.container;
+    const router = container.get(IRouter);
 
-  for (const instructionTest of instructions) {
-    const { instruction, viewportInstruction } = instructionTest;
+    const instructions: InstructionTest[] = [
+      { instruction: 'foo', viewportInstruction: router.createViewportInstruction('foo') },
+      { instruction: 'foo@left', viewportInstruction: router.createViewportInstruction('foo', 'left') },
+      { instruction: 'foo(123)@left', viewportInstruction: router.createViewportInstruction('foo', 'left', '123') },
+      { instruction: 'foo(123)', viewportInstruction: router.createViewportInstruction('foo', undefined, '123') },
+      { instruction: 'foo/bar', viewportInstruction: router.createViewportInstruction('foo', undefined, undefined, true, [router.createViewportInstruction('bar')]) },
+      { instruction: 'foo(123)/bar@left/baz', viewportInstruction: router.createViewportInstruction('foo', undefined, '123', true, [router.createViewportInstruction('bar', 'left', undefined, true, [router.createViewportInstruction('baz')])]) },
+      { instruction: 'foo(123)/(bar@left+baz(456))', viewportInstruction: router.createViewportInstruction('foo', undefined, '123', true, [router.createViewportInstruction('bar', 'left'), router.createViewportInstruction('baz', undefined, '456')]) },
+    ];
 
-    it(`parses viewport instruction: ${instruction}`, async function () {
-      const { host, router, tearDown } = await setup();
+    for (const instructionTest of instructions) {
+      const { instruction, viewportInstruction } = instructionTest;
 
-      const parsed = router.instructionResolver.parseViewportInstruction(instruction);
-      assert.deepStrictEqual(parsed, viewportInstruction, `parsed`);
-      const newInstruction = router.instructionResolver.stringifyViewportInstruction(parsed);
-      assert.strictEqual(newInstruction, instruction, `newInstruction`);
+      it(`parses viewport instruction: ${instruction}`, async function () {
+        const { host, router, tearDown } = await createFixture();
 
-      await tearDown();
-    });
-  }
+        viewportInstruction.context = '';
+        const parsed = router.instructionResolver.parseViewportInstruction(instruction);
+        assert.deepStrictEqual(parsed, viewportInstruction, `parsed`);
+        const newInstruction = router.instructionResolver.stringifyViewportInstruction(parsed);
+        assert.strictEqual(newInstruction, instruction, `newInstruction`);
 
-  for (const instructionTest of instructions) {
-    const { instruction, viewportInstruction } = instructionTest;
-    const prefixedInstruction = `/${instruction}`;
+        await tearDown();
+      });
+    }
 
-    it(`parses viewport instruction: ${prefixedInstruction}`, async function () {
-      const { host, router, tearDown } = await setup();
+    for (const instructionTest of instructions) {
+      const { instruction, viewportInstruction } = instructionTest;
+      const prefixedInstruction = `/${instruction}`;
 
-      const parsed = router.instructionResolver.parseViewportInstruction(prefixedInstruction);
-      assert.deepStrictEqual(parsed, viewportInstruction, `parsed`);
-      const newInstruction = router.instructionResolver.stringifyViewportInstruction(parsed);
-      assert.strictEqual(`/${newInstruction}`, prefixedInstruction, `newInstruction`);
+      it(`parses viewport instruction: ${prefixedInstruction}`, async function () {
+        const { host, router, tearDown } = await createFixture();
 
-      await tearDown();
-    });
-  }
+        viewportInstruction.context = '/';
+        const parsed = router.instructionResolver.parseViewportInstruction(prefixedInstruction);
+        assert.deepStrictEqual(parsed, viewportInstruction, `parsed`);
+        const newInstruction = router.instructionResolver.stringifyViewportInstruction(parsed);
+        assert.strictEqual(`${newInstruction}`, prefixedInstruction, `newInstruction`);
+
+        await tearDown();
+      });
+    }
+
+    for (const instructionTest of instructions) {
+      const { instruction, viewportInstruction } = instructionTest;
+      const prefixedInstruction = `../../${instruction}`;
+
+      it(`parses viewport instruction: ${prefixedInstruction}`, async function () {
+        const { host, router, tearDown } = await createFixture();
+
+        viewportInstruction.context = '../../';
+        const parsed = router.instructionResolver.parseViewportInstruction(prefixedInstruction);
+        assert.deepStrictEqual(parsed, viewportInstruction, `parsed`);
+        const newInstruction = router.instructionResolver.stringifyViewportInstruction(parsed);
+        assert.strictEqual(`${newInstruction}`, prefixedInstruction, `newInstruction`);
+
+        await tearDown();
+      });
+    }
+  });
 
   it('handles siblings within scope', async function () {
-    const { host, router, tearDown } = await setup();
+    const { host, router, tearDown } = await createFixture();
 
     // <a>
     //   <b>
@@ -131,14 +156,14 @@ describe('InstructionResolver', function () {
     // /(a/(b/(c+d)+e/(f/(g)))+h)
 
     const [a, b, c, d, e, f, g, h] = [
-      new ViewportInstruction('a'),
-      new ViewportInstruction('b'),
-      new ViewportInstruction('c'),
-      new ViewportInstruction('d'),
-      new ViewportInstruction('e'),
-      new ViewportInstruction('f'),
-      new ViewportInstruction('g'),
-      new ViewportInstruction('h'),
+      router.createViewportInstruction('a'),
+      router.createViewportInstruction('b'),
+      router.createViewportInstruction('c'),
+      router.createViewportInstruction('d'),
+      router.createViewportInstruction('e'),
+      router.createViewportInstruction('f'),
+      router.createViewportInstruction('g'),
+      router.createViewportInstruction('h'),
     ];
     a.nextScopeInstructions = [b, e];
     b.nextScopeInstructions = [c, d];
@@ -148,11 +173,8 @@ describe('InstructionResolver', function () {
     const instructions: ViewportInstruction[] = [a, h];
 
     const instructionsString = router.instructionResolver.stringifyViewportInstructions(instructions);
-    console.log('Instructions', instructionsString);
     const parsedInstructions = router.instructionResolver.parseViewportInstructions(instructionsString);
-    console.log('Parsed', parsedInstructions);
     const stringified = router.instructionResolver.stringifyViewportInstructions(parsedInstructions);
-    console.log('Stringified', stringified);
     assert.strictEqual(stringified, instructionsString, `stringified`);
 
     await tearDown();
@@ -164,7 +186,7 @@ describe('InstructionResolver', function () {
 
   for (const instruction of instructionStrings) {
     it(`parses and stringifies viewport instructions: ${instruction}`, async function () {
-      const { host, router, tearDown } = await setup();
+      const { host, router, tearDown } = await createFixture();
 
       const parsed = router.instructionResolver.parseViewportInstructions(instruction);
       const stringifiedInstructions = router.instructionResolver.stringifyViewportInstructions(parsed);
@@ -173,28 +195,63 @@ describe('InstructionResolver', function () {
       await tearDown();
     });
   }
+
+  const parametersStrings: any[] = [
+    { params: 'a=1,b=2,3,4,e=5', spec: ['a', 'b', 'c', 'd', 'e'], result: { a: '1', b: '2', c: '3', d: '4', e: '5', } },
+    { params: 'a=1,b=2,3,4,e=5', spec: ['e', 'd', 'c', 'b', 'a'], result: { a: '1', b: '2', c: '4', d: '3', e: '5', } },
+    { params: 'e=5,4,3,b=2,a=1', spec: ['a', 'b', 'c', 'd', 'e'], result: { a: '1', b: '2', c: '4', d: '3', e: '5', } },
+    { params: 'a=1,b=2,3,4,e=5', spec: [], result: { a: '1', b: '2', 0: '3', 1: '4', e: '5', } },
+    { params: 'a=1,b=2,4,3,e=5', spec: [], result: { a: '1', b: '2', 0: '4', 1: '3', e: '5', } },
+    { params: 'b=2,3', spec: ['a', 'b', 'c',], result: { a: '3', b: '2', } },
+    { params: 'f=6,b=2,3', spec: ['a', 'b', 'c',], result: { a: '3', b: '2', f: '6' } },
+    { params: 'c=3,b=2,5,1,4', spec: ['a', 'b', 'c', 'd', 'e'], result: { a: '5', b: '2', c: '3', d: '1', e: '4', } },
+  ];
+
+  function isEqual(one, other) {
+    return Object.keys(one).every(key => one[key] === other[key])
+      && Object.keys(other).every(key => other[key] === one[key]);
+  }
+
+  for (const parameters of parametersStrings) {
+    it(`parses and stringifies component parameters: ${parameters.params} => ${parameters.result}`, async function () {
+      const { router, tearDown } = await createFixture();
+
+      const parsed = router.instructionResolver.parseComponentParameters(parameters.params);
+      // console.log('parsed', parsed);
+      const stringified = router.instructionResolver.stringifyComponentParameters(parsed);
+      assert.deepStrictEqual(stringified, parameters.params, `stringified`);
+      await tearDown();
+    });
+  }
+  for (const parameters of parametersStrings) {
+    it(`parses and specifies component parameters: ${parameters.params} => ${JSON.stringify(parameters.result)}`, async function () {
+      const { router, tearDown } = await createFixture();
+
+      const instruction = router.createViewportInstruction('', '', parameters.params);
+      const specified = instruction.toSpecifiedParameters(parameters.spec);
+      assert.deepStrictEqual(specified, parameters.result, `specified`);
+      await tearDown();
+    });
+  }
+  for (const outer of parametersStrings) {
+    for (const inner of parametersStrings) {
+      it(`compares component parameters: ${outer.params} == ${inner.params} [${outer.spec.join(',')}]`, async function () {
+        const { router, tearDown } = await createFixture();
+
+        const Test = CustomElement.define({ name: 'test', template: '' }, class {
+          public static parameters = outer.spec;
+        });
+
+        const outerInstruction = router.createViewportInstruction(Test, '', outer.params);
+        const innerInstruction = router.createViewportInstruction(Test, '', inner.params);
+        const outerResult = outerInstruction.toSpecifiedParameters(outer.spec);
+        const innerResult = innerInstruction.toSpecifiedParameters(outer.spec);
+        // console.log(outer.params, inner.params, outerResult, innerResult, isEqual(outerResult, innerResult));
+        assert.strictEqual(outerInstruction.sameParameters(innerInstruction), isEqual(outerResult, innerResult), `outer.sameParameters`);
+        assert.strictEqual(innerInstruction.sameParameters(outerInstruction), isEqual(outerResult, innerResult), `inner.sameParameters`);
+
+        await tearDown();
+      });
+    }
+  }
 });
-
-async function setup() {
-  const ctx = TestContext.createHTMLTestContext();
-  const { container } = ctx;
-
-  const App = CustomElement.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
-
-  const host = ctx.createElement('div');
-  ctx.doc.body.appendChild(host);
-
-  const au = ctx.wnd['au'] = new Aurelia(container)
-    .register(DebugConfiguration, RouterConfiguration)
-    .app({ host: host, component: App });
-
-  const router = container.get(IRouter);
-  const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
-  mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate as any;
-  router.navigation.history = mockBrowserHistoryLocation as any;
-  router.navigation.location = mockBrowserHistoryLocation as any;
-
-  await au.start().wait();
-
-  return { au, container, host, router };
-}

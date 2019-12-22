@@ -1,18 +1,18 @@
-import { GuardIdentity, GuardTypes, IGuardOptions, } from './guardian';
-import { GuardFunction, GuardTarget, IComponentAndOrViewportOrNothing, INavigatorInstruction, RouteableComponentType } from './interfaces';
+import { HookFunction, HookTarget, HookIdentity, HookTypes, IHookOptions, HookResult, HookParameter, } from './hook-manager';
+import { IComponentAndOrViewportOrNothing, INavigatorInstruction, RouteableComponentType } from './interfaces';
 import { ComponentAppellationResolver, ViewportHandleResolver } from './type-resolvers';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 
-export class Guard {
-  public type: GuardTypes = GuardTypes.Before;
+export class Hook {
+  public type: HookTypes = HookTypes.BeforeNavigation;
   public includeTargets: Target[] = [];
   public excludeTargets: Target[] = [];
 
   public constructor(
-    public guard: GuardFunction,
-    options: IGuardOptions,
-    public id: GuardIdentity
+    public hook: HookFunction,
+    options: IHookOptions,
+    public id: HookIdentity
   ) {
     if (options.type !== void 0) {
       this.type = options.type;
@@ -26,18 +26,23 @@ export class Guard {
     }
   }
 
-  public matches(viewportInstructions: ViewportInstruction[]): boolean {
-    if (this.includeTargets.length && !this.includeTargets.some(target => target.matches(viewportInstructions))) {
+  public get wantsMatch(): boolean {
+    return this.includeTargets.length > 0 || this.excludeTargets.length > 0;
+  }
+
+  public matches(viewportInstructions: HookParameter): boolean {
+    if (this.includeTargets.length && !this.includeTargets.some(target => target.matches(viewportInstructions as ViewportInstruction[]))) {
       return false;
     }
-    if (this.excludeTargets.length && this.excludeTargets.some(target => target.matches(viewportInstructions))) {
+    if (this.excludeTargets.length && this.excludeTargets.some(target => target.matches(viewportInstructions as ViewportInstruction[]))) {
       return false;
     }
     return true;
   }
 
-  public check(viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction): boolean | ViewportInstruction[] {
-    return this.guard(viewportInstructions, navigationInstruction);
+  public invoke(navigationInstruction: INavigatorInstruction, arg: HookParameter): Promise<HookResult> {
+    // TODO: Fix the type here
+    return this.hook(arg as any, navigationInstruction);
   }
 }
 
@@ -47,7 +52,7 @@ class Target {
   public viewport: Viewport | null = null;
   public viewportName: string | null = null;
 
-  public constructor(target: GuardTarget) {
+  public constructor(target: HookTarget) {
     if (typeof target === 'string') {
       this.componentName = target;
     } else if (ComponentAppellationResolver.isType(target as RouteableComponentType)) {

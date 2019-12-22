@@ -3,7 +3,7 @@ import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 
 describe('local dependency inheritance', function () {
-  function setup() {
+  function createFixture() {
     const ctx = TestContext.createHTMLTestContext();
     const au = new Aurelia(ctx.container);
     const host = ctx.createElement('div');
@@ -43,7 +43,7 @@ describe('local dependency inheritance', function () {
   }
 
   it('only compiles resources that were registered in the root, but can still resolve all inherited ones directly', async function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
 
     const C7 = CustomElement.define(
       {

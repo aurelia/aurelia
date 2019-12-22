@@ -586,7 +586,7 @@ function getValueFactory(getNumber: (i: number) => unknown, type: string, types:
     case 'number':
       return getNumber;
     case 'object':
-      // eslint-disable-next-line no-unused-expressions
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       return (i) => {[getNumber(i)]; };
     case 'mixed':
       factories = [

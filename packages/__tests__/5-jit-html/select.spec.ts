@@ -20,7 +20,7 @@
 
 //     //works with multiple toView bindings
 //     it('01.', function () {
-//       const { au, lifecycle, host, observerLocator, component } = setup(
+//       const { au, lifecycle, host, observerLocator, component } = createFixture(
 //         ctx,
 //         `<template>
 //           <select id="select1" value.to-view="selectedValue">
@@ -70,7 +70,7 @@
 
 //     //works with mixed of multiple binding: twoWay + toView
 //     it('02.', function () {
-//       const { au, lifecycle, host, observerLocator, component } = setup(
+//       const { au, lifecycle, host, observerLocator, component } = createFixture(
 //         ctx,
 //         `<template>
 //           <select id="select1" value.to-view="selectedValue">

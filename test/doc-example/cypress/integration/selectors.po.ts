@@ -2,11 +2,8 @@ export const Shared = {
   appMenuNavItems: '[data-test=app-menu] li',
   appMenuNavItemsActive: '[data-test=app-menu] li.nav-active',
   listsViewport: 'au-viewport[name=lists]',
-  listsViewportHeader: 'au-viewport[name=lists] .viewport-header',
   contentViewport: 'au-viewport[name=content]',
-  contentViewportHeader: 'au-viewport[name=content] .viewport-header',
   chatViewport: 'au-viewport[name=chat]',
-  chatViewportHeader: 'au-viewport[name=chat] .viewport-header',
   noDelayCheckbox: '[data-test=no-delay-checkbox]',
   allowEnterAuthorDetailsCheckbox: '[data-test=allow-enter-author-details-checkbox]',
   infoBackgroundColor: '[data-test=info-background-color]'
@@ -25,8 +22,7 @@ export const AuthorComponent = {
   hideTabsCheckbox: '[data-test=author-element-hide-tabs-checkbox]',
   authorMenuNavItems: '[data-test=author-menu] li',
   authorMenuNavItemsActive: '[data-test=author-menu] li.nav-active',
-  authorTabsViewport: 'au-viewport[name=author-tabs]',
-  authorTabsViewportHeader: 'au-viewport[name=author-tabs] .viewport-header'
+  authorTabsViewport: 'au-viewport[name=author-tabs]'
 };
 
 export const AboutComponent = {
@@ -45,16 +41,13 @@ export const BookComponent = {
   publishYear: '[data-test=book-element-publish-year]',
   bookMenuNavItems: '[data-test=book-menu] li',
   bookMenuNavItemsActive: '[data-test=book-menu] li.nav-active',
-  bookTabsViewport: 'au-viewport[name=book-tabs]',
-  bookTabsViewportHeader: 'au-viewport[name=book-tabs] .viewport-header'
+  bookTabsViewport: 'au-viewport[name=book-tabs]'
 };
 
 export const ChatComponent = {
   close: '[data-test=chat-element-close]',
   chatMainViewport: 'au-viewport[name=chat-main]',
-  chatMainViewportHeader: 'au-viewport[name=chat-main] .viewport-header',
-  chatDetailsViewport: 'au-viewport[name=chat-details]',
-  chatDetailsViewportHeader: 'au-viewport[name=chat-details] .viewport-header'
+  chatDetailsViewport: 'au-viewport[name=chat-details]'
 };
 
 export const ChatUsersComponent = {

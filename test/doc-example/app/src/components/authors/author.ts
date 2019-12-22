@@ -1,5 +1,5 @@
 import { IRouter } from '@aurelia/router';
-import { customElement } from '@aurelia/runtime';
+import { customElement, INode } from '@aurelia/runtime';
 import { AuthorsRepository } from '../../repositories/authors';
 import { State } from '../../state';
 import { Information } from './information';
@@ -16,6 +16,9 @@ import { Information } from './information';
     </div>
     <div class="info">
       <label><input type="checkbox" data-test="author-element-hide-tabs-checkbox" checked.two-way="hideTabs">Hide author tabs (adds/removes with an <strong>if</strong>)</label><br>
+    </div>
+    <div class="info">
+      <a goto="authors">Authors</a>
     </div>
     <div if.bind="!hideTabs">
       <au-nav data-test="author-menu" name="author-menu"></au-nav>
@@ -42,6 +45,15 @@ export class Author {
   public created() {
     console.log('### created', this);
   }
+
+  // KEEP THIS!
+  public match(current) {
+    // const rootScope = this.router['rootScope'];
+
+    // const match = rootScope.routeTable.findMatchingRoute(current.path);
+    // console.log('matching route', match);
+  }
+
   public canEnter(parameters) {
     console.log('### canEnter', this, parameters);
     return true;
@@ -54,17 +66,32 @@ export class Author {
       { title: 'About authors', route: 'about-authors' },
       { title: 'Author information', route: 'information' },
     ]);
-    const vp = this.router.getViewport('author-tabs');
-    const component = vp && vp.content && vp.content.toComponentName();
-    if (component) {
-      this.router.goto(component + (component === 'author-details' ? `(${this.author.id})` : '')).catch(err => { throw err; });
-    }
+    // const vp = this.router.getViewport('author-tabs');
+    // const component = vp && vp.content && vp.content.toComponentName();
+    // if (component) {
+    //   this.router.goto(component + (component === 'author-details' ? `(${this.author.id})` : '')).catch(err => { throw err; });
+    // }
     if (!this.state.noDelay) {
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
   }
   public beforeBind() {
     console.log('### binding', this);
+    const newRoutes = this.router.addRoutes([
+      { path: 'awards', instructions: [{ component: 'awards', viewport: 'down' }] },
+      { path: '/new', instructions: [{ component: 'new', viewport: 'right' }] },
+      { path: 'authors', instructions: [{ component: 'about-authors', viewport: 'author-tabs' }] },
+    ], this);
+    console.log('routes', newRoutes);
+
+    // const instructions = 'authors@left/author(1)@down+about@middle+new@right/new@right';
+    // const path = 'authors/1+about+new/new';
+    // const route = {
+    //   path,
+    //   instructions: this.router.instructionResolver.parseViewportInstructions(instructions)
+    // };
+    // console.log('route', route);
+    // this.match(route);
   }
   public afterBind() {
     console.log('### bound', this);

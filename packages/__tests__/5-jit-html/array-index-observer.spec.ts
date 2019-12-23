@@ -49,7 +49,6 @@ describe('simple Computed Observer test case', function () {
     isDone?: boolean;
   }
 
-  
   class TestClass implements IApp {
     public items: IAppItem[] = Array.from({ length: 10 }, (_, idx) => {
       return { name: `i-${idx}`, value: idx + 1 };
@@ -110,7 +109,7 @@ describe('simple Computed Observer test case', function () {
     },
     {
       title: 'works in basic one way scenario without dirty checking',
-      template: '${itemNames[0]}',
+      template: `\${itemNames[0]}`,
       ViewModel: TestClass,
       assertFn: (ctx, host, component) => {
         assert.html.textContent(host, 'i-0');

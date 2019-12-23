@@ -1,6 +1,7 @@
-import { DI } from '@aurelia/kernel';
-import { ValidationConfiguration, IValidationControllerFactory, IValidator, ValidationController, IValidationController, ValidationControllerFactory } from '@aurelia/validation';
+import { DI, IContainer } from '@aurelia/kernel';
+import { ValidationConfiguration, IValidationControllerFactory, IValidator, ValidationController, IValidationController, ValidationControllerFactory, IValidationRules } from '@aurelia/validation';
 import { assert } from '@aurelia/testing';
+import { Person } from './_test-resources';
 
 describe.only('validation-controller-factory', function () {
   function setup() {
@@ -48,5 +49,42 @@ describe.only('validation-controller-factory', function () {
     const controller2 = container.get(IValidationController);
     assert.equal(controller1.validator, validator);
     assert.equal(controller2.validator, validator);
+  });
+});
+
+describe.only('validation-controller', function () {
+  interface TestContext {
+    sut: ValidationController;
+    container: IContainer;
+  }
+  type TestFunction = (ctx: TestContext) => void | Promise<void>;
+  async function runTest(testFunction: TestFunction) {
+    const container = DI.createContainer();
+    container.register(ValidationConfiguration);
+    const validationRules = container.get(IValidationRules);
+    validationRules
+      .on(Person)
+      .ensure((o) => o.name)
+      .required();
+
+    await testFunction({
+      sut: container.get(IValidationControllerFactory).create() as unknown as ValidationController,
+      container
+    });
+
+    validationRules.off(Person);
+  }
+
+  function $it(title: string, testFunction: TestFunction) {
+    it(title, async function () {
+      await runTest(testFunction);
+    });
+  }
+
+  $it('#addObject registers an object to controller', function ({sut}) {
+    const obj = new Person((void 0)!, (void 0)!);
+    assert.equal(sut['objects'].has(obj), false);
+    sut.addObject(obj);
+    assert.equal(sut['objects'].has(obj), true);
   });
 });

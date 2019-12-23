@@ -203,6 +203,7 @@ export const validationRules = Object.freeze({
 export type ValidationRuleExecutionPredicate = (object?: IValidateable) => boolean;
 
 export function validationRule(definition: ValidationRuleDefinition) {
+  // eslint-disable-next-line space-before-function-paren
   return function <TRule extends BaseValidationRule>(target: Constructable<TRule>) {
     return ValidationRule.define(target, definition);
   };
@@ -371,8 +372,8 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   private latestRule?: BaseValidationRule;
 
   public constructor(
-    private readonly validationRules: ValidationRules,
-    private readonly messageProvider: IValidationMessageProvider,
+    public readonly validationRules: ValidationRules,
+    public readonly messageProvider: IValidationMessageProvider,
     public property: RuleProperty,
     public $rules: BaseValidationRule[][] = [[]],
   ) { }
@@ -414,7 +415,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
           };
           message = rule.message.evaluate(LifecycleFlags.none, scope, null!) as string;
         }
-        return new ValidationResult(rule, object, name, isValidOrPromise, message);
+        return new ValidationResult(isValidOrPromise, message, name, object, rule, this);
       };
 
       const promises: Promise<ValidationResult>[] = [];
@@ -687,8 +688,8 @@ export interface IValidationRules<TObject extends IValidateable = IValidateable>
   ensure<TValue>(property: PropertyAccessor<TObject, TValue>): PropertyRule<TObject, TValue>;
   ensure(property: string): PropertyRule;
   ensureObject(): PropertyRule;
-  on<TAnotherObject extends IValidateable = IValidateable>(target: Class<TAnotherObject>): IValidationRules<TAnotherObject>;
-  on<TAnotherObject extends IValidateable = IValidateable>(target: TAnotherObject): IValidationRules<TAnotherObject>;
+  on<TAnotherObject extends IValidateable = IValidateable>(target: Class<TAnotherObject> | TAnotherObject): IValidationRules<TAnotherObject>;
+  off<TAnotherObject extends IValidateable = IValidateable>(target: Class<TAnotherObject> | TAnotherObject): void;
 }
 export const IValidationRules = DI.createInterface<IValidationRules>('IValidationRules').noDefault();
 
@@ -714,16 +715,6 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
   // public static untaggedRules(rules: PropertyRule[]): PropertyRule[][] {
   //   return rules.map(rule => rule.getTagedRules(void 0));
   // }
-
-  // /**
-  //  * Removes the rules from a class or object.
-  //  *
-  //  * @param target - A class or object.
-  //  */
-  // public static off(target: IValidateable): void {
-  //   Rules.unset(target);
-  // }
-
   public rules: PropertyRule[] = [];
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
@@ -767,6 +758,15 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
     validationRules.set(target, this.rules);
     return this;
   }
+
+  /**
+   * Removes the rules from a class or object.
+   *
+   * @param target - A class or object.
+   */
+  public off(target: IValidateable): void {
+    validationRules.unset(target);
+  }
 }
 
 export type PropertyAccessor<TObject extends IValidateable = IValidateable, TValue = unknown> = (object: TObject) => TValue;
@@ -796,7 +796,7 @@ export function parsePropertyName(property: string | PropertyAccessor, parser: I
 /**
  * The result of validating an individual validation rule.
  */
-export class ValidationResult {
+export class ValidationResult<TRule extends BaseValidationRule = BaseValidationRule> {
   private static nextId = 0;
 
   /**
@@ -811,11 +811,13 @@ export class ValidationResult {
    * @param error - The error, if the result is a validation error.
    */
   public constructor(
-    public rule: any,
-    public object: any,
-    public propertyName: string | number | undefined, // TODO recheck if we need propertyName at this level
     public valid: boolean,
-    public message: string | null = null
+    public message: string | undefined,
+    public propertyName: string | number | undefined, // TODO recheck if we need propertyName at this level
+    public object: IValidateable | undefined,
+    public rule: TRule | undefined,
+    public propertyRule: PropertyRule | undefined,
+    public isManual: boolean = false
   ) {
     this.id = ValidationResult.nextId++;
   }

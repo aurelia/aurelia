@@ -243,7 +243,7 @@ describe('simple Computed Observer test case', function () {
         public items: IAppItem[] = Array.from({ length: 10 }, (_, idx) => {
           return { name: `i-${idx}`, value: idx + 1, isDone: idx % 2 === 0 };
         });
-    
+
         public get total(): number {
           return this.items[0].value;
         }

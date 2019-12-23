@@ -210,8 +210,13 @@ export class ObserverLocator implements IObserverLocator {
         if (propertyName === 'length') {
           return this.getArrayObserver(flags, obj as IObservedArray).getLengthObserver();
         }
+        // is numer only returns true for integer
         if (isNumeric(propertyName)) {
-          return this.dirtyChecker.createProperty(obj, propertyName);
+          const index = parseInt(propertyName, 10);
+          // anything that is not integer will be treated like normal obj property
+          if (index.toString() === propertyName) {
+            return this.getArrayObserver(flags, obj as IObservedArray).getIndexObserver(index);
+          }
         }
         break;
       case '[object Map]':

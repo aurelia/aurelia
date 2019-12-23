@@ -5,10 +5,17 @@ import {
   createIndexMap,
   ICollectionObserver,
   IndexMap,
-  IObservedArray
+  IObservedArray,
+  ICollectionIndexObserver,
+  ISubscriber
 } from '../observation';
-import { CollectionLengthObserver } from './collection-length-observer';
-import { collectionSubscriberCollection } from './subscriber-collection';
+import {
+  CollectionLengthObserver
+} from './collection-length-observer';
+import {
+  collectionSubscriberCollection,
+  subscriberCollection
+} from './subscriber-collection';
 
 const observerLookup = new WeakMap<unknown[], ArrayObserver>();
 
@@ -381,6 +388,8 @@ export interface ArrayObserver extends ICollectionObserver<CollectionKind.array>
 export class ArrayObserver {
   public inBatch: boolean;
 
+  private indexObservers: Record<string | number, ArrayIndexObserver | undefined>;
+
   public constructor(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray) {
 
     if (!enableArrayObservationCalled) {
@@ -389,6 +398,7 @@ export class ArrayObserver {
     }
 
     this.inBatch = false;
+    this.indexObservers = {};
 
     this.collection = array;
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
@@ -417,6 +427,10 @@ export class ArrayObserver {
     return this.lengthObserver;
   }
 
+  public getIndexObserver(index: number): ICollectionIndexObserver {
+    return this.getOrCreateIndexObserver(index);
+  }
+
   public flushBatch(flags: LifecycleFlags): void {
     this.inBatch = false;
     const indexMap = this.indexMap;
@@ -425,6 +439,85 @@ export class ArrayObserver {
     this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTargetInstance | this.persistentFlags);
     if (this.lengthObserver !== void 0) {
       this.lengthObserver.setValue(length, LifecycleFlags.updateTargetInstance);
+    }
+  }
+
+  /**
+   * @internal used by friend class ArrayIndexObserver only
+   */
+  public addIndexObserver(indexObserver: ArrayIndexObserver): void {
+    this.addCollectionSubscriber(indexObserver);
+  }
+
+  /**
+   * @internal used by friend class ArrayIndexObserver only
+   */
+  public removeIndexObserver(indexObserver: ArrayIndexObserver): void {
+    this.removeCollectionSubscriber(indexObserver);
+  }
+
+  /**
+   * @internal
+   */
+  private getOrCreateIndexObserver(index: number): ICollectionIndexObserver {
+    const indexObservers = this.indexObservers;
+    let observer = indexObservers[index];
+    if (observer === void 0) {
+      observer = indexObservers[index] = new ArrayIndexObserver(this, index);
+    }
+    return observer;
+  }
+}
+
+export interface ArrayIndexObserver extends ICollectionIndexObserver {}
+
+@subscriberCollection()
+export class ArrayIndexObserver implements ICollectionIndexObserver {
+
+  private subscriberCount: number = 0;
+  public currentValue: unknown;
+
+  public constructor(
+    public readonly owner: ArrayObserver,
+    public readonly index: number
+  ) {
+    this.currentValue = this.getValue();
+  }
+
+  public getValue(): unknown {
+    return (this.owner.collection as IObservedArray)[this.index];
+  }
+
+  public setValue(newValue: unknown, flags: LifecycleFlags): void {
+    (this.owner.collection as IObservedArray).splice(this.index, 1, newValue);
+  }
+
+  /**
+   * From interface `ICollectionSubscriber`
+   */
+  public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
+    const index = this.index;
+    const noChange = indexMap[index] === index;
+    if (noChange) {
+      return;
+    }
+    const prevValue = this.currentValue;
+    const currValue = this.currentValue = this.getValue();
+    // hmm
+    if (prevValue !== currValue) {
+      this.callSubscribers(currValue, prevValue, flags);
+    }
+  }
+
+  public subscribe(subscriber: ISubscriber<unknown>): void {
+    if (this.addSubscriber(subscriber) && ++this.subscriberCount === 1) {
+      this.owner.addIndexObserver(this);
+    }
+  }
+
+  public unsubscribe(subscriber: ISubscriber<unknown>): void {
+    if (this.removeSubscriber(subscriber) && --this.subscriberCount === 0) {
+      this.owner.removeIndexObserver(this);
     }
   }
 }

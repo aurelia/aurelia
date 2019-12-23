@@ -1,6 +1,6 @@
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
-import { CollectionKind, createIndexMap, ICollectionObserver, IObservedSet } from '../observation';
+import { CollectionKind, createIndexMap, ICollectionObserver, IObservedSet, ICollectionIndexObserver } from '../observation';
 import { CollectionSizeObserver } from './collection-size-observer';
 import { collectionSubscriberCollection } from './subscriber-collection';
 
@@ -172,6 +172,10 @@ export class SetObserver {
       this.lengthObserver = new CollectionSizeObserver(this.collection);
     }
     return this.lengthObserver;
+  }
+
+  public getIndexObserver(index: number): ICollectionIndexObserver {
+    throw new Error('Set index observation not supported');
   }
 
   public flushBatch(flags: LifecycleFlags): void {

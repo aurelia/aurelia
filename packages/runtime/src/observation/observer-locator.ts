@@ -214,7 +214,7 @@ export class ObserverLocator implements IObserverLocator {
         if (isNumeric(propertyName)) {
           const index = parseInt(propertyName, 10);
           // anything that is not integer will be treated like normal obj property
-          if (index.toString() === propertyName) {
+          if (index.toString() === propertyName.toString()) {
             return this.getArrayObserver(flags, obj as IObservedArray).getIndexObserver(index);
           }
         }

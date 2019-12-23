@@ -1,14 +1,8 @@
 import {
-  IObserverLocator,
   IScheduler,
-  LifecycleFlags,
   CustomElement,
   Aurelia,
   BindingStrategy,
-  GetterObserver,
-  SetterObserver,
-  MapObserver,
-  CustomSetterObserver,
   IDirtyChecker
 } from '@aurelia/runtime';
 import {
@@ -173,28 +167,5 @@ describe('simple Computed Observer test case', function () {
         testHost.remove();
       }
     };
-  }
-
-  class Property {
-    private _value: string;
-    public readonly valueChanged: any;
-
-    public constructor(public readonly name: string, value: string) {
-      this._value = value;
-      this.valueChanged = {
-        publish: () => {
-          // todo
-        }
-      };
-    }
-
-    public get value(): string {
-      return this._value;
-    }
-
-    public set value(value: string) {
-      this._value = value;
-      this.valueChanged.publish();
-    }
   }
 });

@@ -1,7 +1,6 @@
 import {
   IIndexable,
   IServiceLocator,
-  isNumeric,
   PLATFORM,
   Reporter,
   StrictPrimitive,

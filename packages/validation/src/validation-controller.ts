@@ -38,6 +38,7 @@ export type BindingWithBehavior = IBinding & {
 type ValidatableExpression = AccessScopeExpression | AccessMemberExpression | AccessKeyedExpression;
 
 export interface IValidationController {
+  validator: IValidator;
   errors: ValidationResult[];
   validating: boolean;
   trigger: ValidationTrigger;
@@ -102,7 +103,7 @@ export class ValidationController implements IValidationController {
   private readonly eventCallbacks: ((event: ValidateEvent) => void)[] = [];
 
   public constructor(
-    @IValidator private readonly validator: IValidator,
+    @IValidator public readonly validator: IValidator,
     @IExpressionParser private readonly parser: IExpressionParser,
   ) { }
 
@@ -600,9 +601,6 @@ export const IValidationControllerFactory = DI.createInterface<IValidationContro
  * Creates ValidationController instances.
  */
 export class ValidationControllerFactory implements IValidationControllerFactory {
-  public static get(container: IContainer) {
-    return new ValidationControllerFactory(container);
-  }
 
   public constructor(
     @IContainer private readonly container: IContainer,

@@ -27,7 +27,6 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
         ValidateBindingBehavior,
         ValidationErrorsCustomAttribute,
         ValidationRendererCustomAttribute,
-        Registration.singleton(IValidationController, ValidationController),
         Registration.singleton(IValidationControllerFactory, ValidationControllerFactory)
       );
     },

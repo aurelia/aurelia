@@ -388,7 +388,7 @@ export interface ArrayObserver extends ICollectionObserver<CollectionKind.array>
 export class ArrayObserver {
   public inBatch: boolean;
 
-  private indexObservers: Record<string | number, ArrayIndexObserver | undefined>;
+  private readonly indexObservers: Record<string | number, ArrayIndexObserver | undefined>;
 
   public constructor(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray) {
 
@@ -509,13 +509,13 @@ export class ArrayIndexObserver implements ICollectionIndexObserver {
     }
   }
 
-  public subscribe(subscriber: ISubscriber<unknown>): void {
+  public subscribe(subscriber: ISubscriber): void {
     if (this.addSubscriber(subscriber) && ++this.subscriberCount === 1) {
       this.owner.addIndexObserver(this);
     }
   }
 
-  public unsubscribe(subscriber: ISubscriber<unknown>): void {
+  public unsubscribe(subscriber: ISubscriber): void {
     if (this.removeSubscriber(subscriber) && --this.subscriberCount === 0) {
       this.owner.removeIndexObserver(this);
     }

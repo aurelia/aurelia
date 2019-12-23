@@ -49,24 +49,27 @@ describe('simple Computed Observer test case', function () {
     isDone?: boolean;
   }
 
+  
+  class TestClass implements IApp {
+    public items: IAppItem[] = Array.from({ length: 10 }, (_, idx) => {
+      return { name: `i-${idx}`, value: idx + 1 };
+    });
+
+    public itemNames: string[] = this.items.map(i => i.name);
+
+    public get total(): number {
+      return this.items.reduce((total, item) => total + (item.value > 5 ? item.value : 0), 0);
+    }
+  }
+
   const computedObserverTestCases: IArrayIndexObserverTestCase[] = [
     {
       title: 'works in basic scenario',
       template: `<input value.bind="itemNames[0]" input.trigger="items[0].name = $event.target.value" />`,
-      ViewModel: class TestClass implements IApp {
-        public items: IAppItem[] = Array.from({ length: 10 }, (_, idx) => {
-          return { name: `i-${idx}`, value: idx + 1 };
-        });
-
-        public itemNames: string[] = this.items.map(i => i.name);
-
-        public get total(): number {
-          return this.items.reduce((total, item) => total + (item.value > 5 ? item.value : 0), 0);
-        }
-      },
+      ViewModel: TestClass,
       assertFn: (ctx, host, component) => {
         const inputEl = host.querySelector('input');
-        assert.html.value(inputEl, 'i-0');
+        assert.strictEqual(inputEl.value, 'i-0');
 
         inputEl.value = '00';
         inputEl.dispatchEvent(new ctx.CustomEvent('input'));
@@ -86,22 +89,12 @@ describe('simple Computed Observer test case', function () {
           value.bind="itemNames[$index]"
           input.trigger="items[$index].name = itemNames[$index]"
         />`,
-      ViewModel: class TestClass implements IApp {
-        public items: IAppItem[] = Array.from({ length: 10 }, (_, idx) => {
-          return { name: `i-${idx}`, value: idx + 1 };
-        });
-
-        public itemNames: string[] = this.items.map(i => i.name);
-
-        public get total(): number {
-          return this.items.reduce((total, item) => total + (item.value > 5 ? item.value : 0), 0);
-        }
-      },
+      ViewModel: TestClass,
       assertFn: (ctx, host, component) => {
         const inputEls = host.querySelectorAll('input');
 
         inputEls.forEach((inputEl, idx) => {
-          assert.html.value(inputEl, `i-${idx}`);
+          assert.strictEqual(inputEl.value, `i-${idx}`);
 
           const newValue = `00-${idx}`;
           inputEl.value = newValue;
@@ -115,6 +108,21 @@ describe('simple Computed Observer test case', function () {
         assert.strictEqual(dirtyChecker['tracked'].length, 0);
       }
     },
+    {
+      title: 'works in basic one way scenario without dirty checking',
+      template: '${itemNames[0]}',
+      ViewModel: TestClass,
+      assertFn: (ctx, host, component) => {
+        assert.html.textContent(host, 'i-0');
+        const dirtyChecker = ctx.container.get(IDirtyChecker) as any;
+        assert.strictEqual(dirtyChecker['tracked'].length, 0);
+
+        component.itemNames.splice(0, 1, '00');
+        assert.html.textContent(host, 'i-0');
+        ctx.container.get(IScheduler).getRenderTaskQueue().flush();
+        assert.html.textContent(host, '00');
+      }
+    }
   ];
 
   eachCartesianJoin(

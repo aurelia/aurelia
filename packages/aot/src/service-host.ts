@@ -56,6 +56,7 @@ import {
 import {
   ISourceFileProvider,
   Agent,
+  ExecutionResult,
 } from './vm/agent';
 import {
   $Any,
@@ -84,9 +85,9 @@ export interface IModuleResolver {
 }
 
 export interface IServiceHost extends IModuleResolver, IDisposable {
-  executeEntryFile(dir: string): Promise<$Any>;
-  executeSpecificFile(file: IFile, mode: 'script' | 'module'): Promise<$Any>;
-  executeProvider(provider: ISourceFileProvider): Promise<$Any>;
+  executeEntryFile(dir: string): Promise<ExecutionResult>;
+  executeSpecificFile(file: IFile, mode: 'script' | 'module'): Promise<ExecutionResult>;
+  executeProvider(provider: ISourceFileProvider): Promise<ExecutionResult>;
   loadEntryFile(ctx: ExecutionContext, dir: string): Promise<$ESModule>;
   loadSpecificFile(ctx: ExecutionContext, file: IFile, mode: 'script' | 'module'): Promise<$$ESModuleOrScript>;
 }
@@ -172,7 +173,7 @@ export class ServiceHost implements IServiceHost {
   public executeEntryFile(
     dir: string,
     evaluate: boolean = true,
-  ): Promise<$Any> {
+  ): Promise<ExecutionResult> {
     const container = this.container.createChild();
     container.register(Registration.instance(ISourceFileProvider, new EntrySourceFileProvider(this, dir)));
     container.register(Registration.instance(GlobalOptions, new GlobalOptions(true, evaluate, false)));
@@ -185,7 +186,7 @@ export class ServiceHost implements IServiceHost {
     mode: 'script' | 'module',
     evaluate: boolean = true,
     singleFile: boolean = false,
-  ): Promise<$Any> {
+  ): Promise<ExecutionResult> {
     const container = this.container.createChild();
     container.register(Registration.instance(ISourceFileProvider, new SpecificSourceFileProvider(this, file, mode)));
     container.register(Registration.instance(GlobalOptions, new GlobalOptions(true, evaluate, singleFile)));
@@ -193,7 +194,7 @@ export class ServiceHost implements IServiceHost {
     return this.agent.RunJobs(container);
   }
 
-  public executeProvider(provider: ISourceFileProvider): Promise<$Any> {
+  public executeProvider(provider: ISourceFileProvider): Promise<ExecutionResult> {
     const container = this.container.createChild();
     container.register(Registration.instance(ISourceFileProvider, provider));
 

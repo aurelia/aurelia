@@ -32,6 +32,13 @@ export interface ISourceFileProvider {
   GetSourceFiles(ctx: ExecutionContext): Promise<readonly $$ESModuleOrScript[]>;
 }
 
+export class ExecutionResult {
+  public constructor(
+    public readonly files: readonly $$ESModuleOrScript[],
+    public readonly result: $Any,
+  ) {}
+}
+
 // http://www.ecma-international.org/ecma-262/#sec-agents
 export class Agent implements IDisposable {
   public readonly ScriptJobs: JobQueue;
@@ -46,7 +53,7 @@ export class Agent implements IDisposable {
 
   // http://www.ecma-international.org/ecma-262/#sec-runjobs
   // 8.6 RunJobs ( )
-  public async RunJobs(container: IContainer): Promise<$Any> {
+  public async RunJobs(container: IContainer): Promise<ExecutionResult> {
     // 1. Perform ? InitializeHostDefinedRealm().
     const realm = Realm.Create(container, this.PromiseJobs);
     const intrinsics = realm['[[Intrinsics]]'];
@@ -89,7 +96,10 @@ export class Agent implements IDisposable {
       if (this.ScriptJobs.isEmpty) {
         if (this.PromiseJobs.isEmpty) {
           this.logger.debug(`Finished successfully`);
-          return new $Empty(realm, CompletionType.normal, intrinsics.empty, lastFile);
+          return new ExecutionResult(
+            files,
+            new $Empty(realm, CompletionType.normal, intrinsics.empty, lastFile),
+          );
         } else {
           // 3. d. Let nextPending be the PendingJob record at the front of nextQueue. Remove that record from nextQueue.
           nextPending = this.PromiseJobs.queue.shift()!;
@@ -119,7 +129,10 @@ export class Agent implements IDisposable {
       // 3. l. If result is an abrupt completion, perform HostReportErrors(« result.[[Value]] »).
       if (result.isAbrupt) {
         this.logger.debug(`Job completed with errors`);
-        return result;
+        return new ExecutionResult(
+          files,
+          result,
+        );
       }
     }
   }

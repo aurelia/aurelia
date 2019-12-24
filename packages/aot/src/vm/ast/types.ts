@@ -32,6 +32,7 @@ import {
   $AssignmentExpressionNode,
   $i,
   $$ESVarDeclaration,
+  TransformationContext,
 } from './_shared';
 import {
   ExportEntryRecord,
@@ -116,6 +117,10 @@ export class $InterfaceDeclaration implements I$Node {
       this.ExportEntries = emptyArray;
     }
   }
+
+  public transform(tctx: TransformationContext): undefined {
+    return void 0;
+  }
 }
 
 export class $TypeAliasDeclaration implements I$Node {
@@ -183,6 +188,10 @@ export class $TypeAliasDeclaration implements I$Node {
       this.ExportedNames = emptyArray;
       this.ExportEntries = emptyArray;
     }
+  }
+
+  public transform(tctx: TransformationContext): undefined {
+    return void 0;
   }
 }
 
@@ -268,6 +277,10 @@ export class $EnumDeclaration implements I$Node {
       this.ExportedNames = emptyArray;
       this.ExportEntries = emptyArray;
     }
+  }
+
+  public transform(tctx: TransformationContext): this | undefined {
+    return this;
   }
 }
 

@@ -105,6 +105,7 @@ import {
   $i,
   $ESStatementListItemNode,
   $$ESVarDeclaration,
+  TransformationContext,
 } from './_shared';
 import {
   $Identifier,
@@ -2163,6 +2164,10 @@ export class $ModuleDeclaration implements I$Node {
       }
     }
   }
+
+  public transform(tctx: TransformationContext): this | undefined {
+    return this;
+  }
 }
 
 // http://www.ecma-international.org/ecma-262/#importentry-record
@@ -2230,6 +2235,10 @@ export class $ImportEqualsDeclaration implements I$Node {
         throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as Node).kind]}.`);
     }
   }
+
+  public transform(tctx: TransformationContext): this | undefined {
+    return this;
+  }
 }
 
 // In case of:
@@ -2286,6 +2295,10 @@ export class $ImportDeclaration implements I$Node {
     }
 
     this.ModuleRequests = [moduleSpecifier];
+  }
+
+  public transform(tctx: TransformationContext): this | undefined {
+    return this;
   }
 }
 
@@ -2358,6 +2371,10 @@ export class $ImportClause implements I$Node {
       }
     }
   }
+
+  public transform(tctx: TransformationContext): this | undefined {
+    return this;
+  }
 }
 
 export class $NamedImports implements I$Node {
@@ -2390,6 +2407,10 @@ export class $NamedImports implements I$Node {
 
     this.BoundNames = $elements.flatMap(getBoundNames);
     this.ImportEntriesForModule = $elements.flatMap(getImportEntriesForModule);
+  }
+
+  public transform(tctx: TransformationContext): this | undefined {
+    return this;
   }
 }
 
@@ -2451,6 +2472,10 @@ export class $ImportSpecifier implements I$Node {
       ];
     }
   }
+
+  public transform(tctx: TransformationContext): this | undefined {
+    return this;
+  }
 }
 
 export class $NamespaceImport implements I$Node {
@@ -2492,6 +2517,10 @@ export class $NamespaceImport implements I$Node {
         /* LocalName */localName,
       ),
     ];
+  }
+
+  public transform(tctx: TransformationContext): this | undefined {
+    return this;
   }
 }
 
@@ -2545,6 +2574,10 @@ export class $ExportAssignment implements I$Node {
     this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
 
     this.BoundNames = [intrinsics['*default*']];
+  }
+
+  public transform(tctx: TransformationContext): this | undefined {
+    return this;
   }
 }
 
@@ -2631,6 +2664,10 @@ export class $ExportDeclaration implements I$Node {
       this.ExportEntries = $exportClause.ExportEntriesForModule;
     }
   }
+
+  public transform(tctx: TransformationContext): this | undefined {
+    return this;
+  }
 }
 
 export class $NamedExports implements I$Node {
@@ -2667,6 +2704,10 @@ export class $NamedExports implements I$Node {
     this.ExportedNames = $elements.flatMap(getExportedNames);
     this.ExportEntriesForModule = $elements.flatMap(getExportEntriesForModule);
     this.ReferencedBindings = $elements.flatMap(getReferencedBindings);
+  }
+
+  public transform(tctx: TransformationContext): this | undefined {
+    return this;
   }
 }
 
@@ -2764,6 +2805,10 @@ export class $ExportSpecifier implements I$Node {
         ];
       }
     }
+  }
+
+  public transform(tctx: TransformationContext): this | undefined {
+    return this;
   }
 }
 

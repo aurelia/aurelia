@@ -75,6 +75,7 @@ import {
   $i,
   $$ESVarDeclaration,
   FunctionKind,
+  TransformationContext,
 } from './_shared';
 import {
   ExportEntryRecord,
@@ -195,6 +196,10 @@ export class $FormalParameterList extends Array<$ParameterDeclaration> {
         this.ExpectedArgumentCount = nodes.length;
       }
     }
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -644,6 +649,10 @@ export class $FunctionExpression implements I$Node {
 
     // 3. Return closure.
     return closure;
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -1119,6 +1128,10 @@ export class $FunctionDeclaration implements I$Node {
 
     return new $Empty(realm, CompletionType.normal, intrinsics.empty, this);
   }
+
+  public transform(tctx: TransformationContext): this | undefined {
+    return this;
+  }
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
@@ -1593,6 +1606,10 @@ export class $ArrowFunction implements I$Node {
 
     return intrinsics.undefined; // TODO: implement this
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class MethodDefinitionRecord {
@@ -1711,6 +1728,10 @@ export class $ConstructorDeclaration implements I$Node {
     argumentsList: $List<$AnyNonEmpty>,
   ): $Any {
     return EvaluateBody(this, ctx, functionObject, argumentsList);
+  }
+
+  public transform(tctx: TransformationContext): this | undefined {
+    return this;
   }
 }
 
@@ -1883,5 +1904,9 @@ export class $ParameterDeclaration implements I$Node {
     // 10. Set the VariableEnvironment of currentContext to originalEnv.
     // 11. Set the LexicalEnvironment of currentContext to originalEnv.
     // 12. Return result.
+  }
+
+  public transform(tctx: TransformationContext): this | undefined {
+    return this;
   }
 }

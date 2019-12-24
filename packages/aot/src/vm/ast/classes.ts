@@ -90,6 +90,7 @@ import {
   $i,
   $$ESVarDeclaration,
   FunctionKind,
+  TransformationContext,
 } from './_shared';
 import {
   ExportEntryRecord,
@@ -156,6 +157,10 @@ export class $HeritageClause implements I$Node {
   ) {
     this.$types = $expressionWithTypeArgumentsList(node.types, this, ctx);
   }
+
+  public transform(tctx: TransformationContext): this | undefined {
+    return this;
+  }
 }
 
 export class $ExpressionWithTypeArguments implements I$Node {
@@ -175,6 +180,10 @@ export class $ExpressionWithTypeArguments implements I$Node {
     public readonly path: string = `${parent.path}${$i(idx)}.ExpressionWithTypeArguments`,
   ) {
     this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx, -1);
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -316,6 +325,10 @@ export class $ClassExpression implements I$Node {
 
     // 6. Return value.
     return value;
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -820,6 +833,13 @@ export class $ClassDeclaration implements I$Node {
 
     return this.ConstructorMethod!.EvaluateBody(ctx, functionObject, argumentsList);
   }
+
+  public transform(tctx: TransformationContext): this | undefined {
+    if (hasBit(this.modifierFlags, ModifierFlags.Ambient)) {
+      return void 0;
+    }
+    return this;
+  }
 }
 
 export class $PropertyDeclaration implements I$Node {
@@ -854,6 +874,10 @@ export class $PropertyDeclaration implements I$Node {
 
     this.IsStatic = hasBit(modifierFlags, ModifierFlags.Static);
   }
+
+  public transform(tctx: TransformationContext): this | undefined {
+    return this;
+  }
 }
 
 export class $SemicolonClassElement implements I$Node {
@@ -877,5 +901,9 @@ export class $SemicolonClassElement implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.SemicolonClassElement`,
   ) {}
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 

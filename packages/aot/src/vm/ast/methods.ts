@@ -48,6 +48,7 @@ import {
   $i,
   $$ESVarDeclaration,
   FunctionKind,
+  TransformationContext,
 } from './_shared';
 import {
   $$ESModuleOrScript,
@@ -248,6 +249,10 @@ export class $MethodDeclaration implements I$Node {
 
     return $FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
   }
+
+  public transform(tctx: TransformationContext): this | undefined {
+    return this;
+  }
 }
 
 export class $GetAccessorDeclaration implements I$Node {
@@ -374,6 +379,10 @@ export class $GetAccessorDeclaration implements I$Node {
 
     return $FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
   }
+
+  public transform(tctx: TransformationContext): this | undefined {
+    return this;
+  }
 }
 
 export class $SetAccessorDeclaration implements I$Node {
@@ -498,5 +507,9 @@ export class $SetAccessorDeclaration implements I$Node {
     ctx.checkTimeout();
 
     return $FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
+  }
+
+  public transform(tctx: TransformationContext): this | undefined {
+    return this;
   }
 }

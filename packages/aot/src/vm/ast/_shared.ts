@@ -1411,3 +1411,7 @@ export interface I$Node<
   readonly ctx: Context;
   readonly path: string;
 }
+
+export class TransformationContext {
+
+}

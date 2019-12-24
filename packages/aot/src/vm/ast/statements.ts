@@ -87,6 +87,7 @@ import {
   getLexicallyScopedDeclarations,
   $i,
   $$ESVarDeclaration,
+  TransformationContext,
 } from './_shared';
 import {
   ExportEntryRecord,
@@ -302,6 +303,13 @@ export class $VariableStatement implements I$Node {
     // 3. Return the result of performing BindingInitialization for BindingPattern passing rval and undefined as arguments.
 
     return intrinsics.empty; // TODO: implement this
+  }
+
+  public transform(tctx: TransformationContext): this | undefined {
+    if (hasBit(this.modifierFlags, ModifierFlags.Ambient)) {
+      return void 0;
+    }
+    return this;
   }
 }
 

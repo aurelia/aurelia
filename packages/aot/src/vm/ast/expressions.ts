@@ -131,6 +131,7 @@ import {
   $$UpdateExpressionOrHigher,
   $UpdateExpressionNode,
   $i,
+  TransformationContext,
 } from './_shared';
 import {
   $$ESModuleOrScript,
@@ -225,6 +226,10 @@ export class $ThisExpression implements I$Node {
     // 1. Return ? ResolveThisBinding().
     return realm.ResolveThisBinding().enrichWith(ctx, this);
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $SuperExpression implements I$Node {
@@ -283,6 +288,10 @@ export class $SuperExpression implements I$Node {
     // 8. Return ? thisER.BindThisValue(result).
 
     return intrinsics.undefined; // TODO: implement this
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -495,6 +504,10 @@ export class $ArrayLiteralExpression implements I$Node {
     // 6. NOTE: The above Set cannot fail because of the nature of the object returned by ArrayCreate.
     // 7. Return array.
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export type $$ObjectLiteralElementLike = (
@@ -608,6 +621,10 @@ export class $ObjectLiteralExpression implements I$Node {
     // 3. Return obj.
     return obj;
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $PropertyAssignment implements I$Node {
@@ -686,6 +703,10 @@ export class $PropertyAssignment implements I$Node {
     // 7. Return ! CreateDataPropertyOrThrow(object, propKey, propValue).
     return $CreateDataProperty(ctx, object, propKey, propValue);
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $ShorthandPropertyAssignment implements I$Node {
@@ -746,6 +767,10 @@ export class $ShorthandPropertyAssignment implements I$Node {
     // 6. Return ! CreateDataPropertyOrThrow(object, propName, propValue).
     return $CreateDataProperty(ctx, object, propName, propValue);
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $SpreadAssignment implements I$Node {
@@ -795,6 +820,10 @@ export class $SpreadAssignment implements I$Node {
 
     // 4. Return ? CopyDataProperties(object, fromValue, excludedNames).
     return $CopyDataProperties(ctx, object, fromValue, excludedNames);
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -850,6 +879,10 @@ export class $PropertyAccessExpression implements I$Node {
 
     // 6. Return a value of type Reference whose base value component is bv, whose referenced name component is propertyNameString, and whose strict reference flag is strict.
     return new $Reference(realm, baseValue, propertyNameString, strict, intrinsics.undefined);
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -913,6 +946,10 @@ export class $ElementAccessExpression implements I$Node {
 
     // 8. Return a value of type Reference whose base value component is bv, whose referenced name component is propertyKey, and whose strict reference flag is strict.
     return new $Reference(realm, baseValue, propertyKey, strict, intrinsics.undefined);
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -997,6 +1034,10 @@ export class $CallExpression implements I$Node {
     // 5. Return ? EvaluateCall(func, ref, Arguments, tailCall).
 
     return intrinsics.undefined; // TODO: implement this
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -1203,6 +1244,10 @@ export class $NewExpression implements I$Node {
     // 8. Return ? Construct(constructor, argList).
     return $Construct(ctx, constructor, argList, intrinsics.undefined).enrichWith(ctx, this);
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export type $$TemplateLiteral = (
@@ -1264,6 +1309,10 @@ export class $TaggedTemplateExpression implements I$Node {
     // 5. Return ? EvaluateCall(tagFunc, tagRef, TemplateLiteral, tailCall).
 
     return intrinsics.undefined; // TODO: implement this
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -1372,6 +1421,10 @@ export class $TemplateExpression implements I$Node {
     // 7. Return the sequence of code units consisting of the elements of rest followed by the code units of middle followed by the elements of last.
     return intrinsics['']; // TODO: implement this
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $ParenthesizedExpression implements I$Node {
@@ -1419,6 +1472,10 @@ export class $ParenthesizedExpression implements I$Node {
     // 1. Return the result of evaluating Expression. This may be of type Reference.
     return this.$expression.Evaluate(ctx).enrichWith(ctx, this);
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $NonNullExpression implements I$Node {
@@ -1447,6 +1504,10 @@ export class $NonNullExpression implements I$Node {
     ctx.checkTimeout();
 
     return this.$expression.Evaluate(ctx).enrichWith(ctx, this);
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -1485,6 +1546,10 @@ export class $MetaProperty implements I$Node {
     // 1. Return GetNewTarget().
 
     return intrinsics.undefined; // TODO: implement this
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -1539,6 +1604,10 @@ export class $DeleteExpression implements I$Node {
     // 6. b. Return ? bindings.DeleteBinding(GetReferencedName(ref)).
 
     return intrinsics.true; // TODO: implement this
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -1624,6 +1693,10 @@ export class $TypeOfExpression implements I$Node {
         return new $String(realm, "object");
     }
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $VoidExpression implements I$Node {
@@ -1668,6 +1741,10 @@ export class $VoidExpression implements I$Node {
     // 3. Return undefined.
     return intrinsics.undefined;
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $AwaitExpression implements I$Node {
@@ -1707,6 +1784,10 @@ export class $AwaitExpression implements I$Node {
     // 3. Return ? Await(value).
 
     return intrinsics.undefined; // TODO: implement this
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -1892,6 +1973,10 @@ export class $PrefixUnaryExpression implements I$Node {
       }
     }
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $PostfixUnaryExpression implements I$Node {
@@ -1986,6 +2071,10 @@ export class $PostfixUnaryExpression implements I$Node {
       }
     }
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $TypeAssertion implements I$Node {
@@ -2014,6 +2103,10 @@ export class $TypeAssertion implements I$Node {
     ctx.checkTimeout();
 
     return this.$expression.Evaluate(ctx);
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -3088,6 +3181,10 @@ export class $BinaryExpression implements I$Node {
       }
     }
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $ConditionalExpression implements I$Node {
@@ -3141,6 +3238,10 @@ export class $ConditionalExpression implements I$Node {
     // 4. b. Return ? GetValue(falseRef).
 
     return intrinsics.undefined; // TODO: implement this
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -3242,6 +3343,10 @@ export class $YieldExpression implements I$Node {
 
     return intrinsics.undefined; // TODO: implement this
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $AsExpression implements I$Node {
@@ -3270,6 +3375,10 @@ export class $AsExpression implements I$Node {
     ctx.checkTimeout();
 
     return this.$expression.Evaluate(ctx);
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -3543,5 +3652,9 @@ export class $Identifier implements I$Node {
 
     // 6. Return InitializeReferencedBinding(lhs, v).
     return lhs.InitializeReferencedBinding(ctx, v as $AnyNonEmpty).enrichWith(ctx, this);
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }

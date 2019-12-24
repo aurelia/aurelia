@@ -63,6 +63,7 @@ import {
   getHasInitializer,
   getIsSimpleParameterList,
   $i,
+  TransformationContext,
 } from './_shared';
 import {
   $$ESModuleOrScript,
@@ -173,6 +174,10 @@ export class $ComputedPropertyName implements I$Node {
 
     return this.Evaluate(ctx);
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $ObjectBindingPattern implements I$Node {
@@ -273,6 +278,10 @@ export class $ObjectBindingPattern implements I$Node {
     }
 
     return new $Empty(realm);
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -468,6 +477,10 @@ export class $ArrayBindingPattern implements I$Node {
 
     // 1. Return NormalCompletion(empty).
     return new $Empty(realm);
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -757,6 +770,10 @@ export class $BindingElement implements I$Node {
     // 4. Return the result of performing BindingInitialization of BindingPattern with v and environment as the arguments.
     return BindingElement.InitializeBinding(ctx, v as $Object, environment).enrichWith(ctx, this);
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $SpreadElement implements I$Node {
@@ -868,6 +885,10 @@ export class $SpreadElement implements I$Node {
       nextIndex = new $Number(realm, nextIndex['[[Value]]'] + 1);
     }
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $OmittedExpression implements I$Node {
@@ -942,6 +963,10 @@ export class $OmittedExpression implements I$Node {
     ctx.checkTimeout();
 
     return null as any; // TODO: implement this;
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 

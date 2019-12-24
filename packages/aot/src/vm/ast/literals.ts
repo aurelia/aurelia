@@ -45,6 +45,7 @@ import {
   $AssignmentExpressionNode,
   $AnyParentNode,
   $i,
+  TransformationContext,
 } from './_shared';
 import {
   $$ESModuleOrScript,
@@ -83,6 +84,10 @@ export class $TemplateHead implements I$Node {
 
     return intrinsics.undefined; // TODO: implement this
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $TemplateMiddle implements I$Node {
@@ -112,6 +117,10 @@ export class $TemplateMiddle implements I$Node {
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.undefined; // TODO: implement this
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -147,6 +156,10 @@ export class $TemplateTail implements I$Node {
     // 2. Return the String value consisting of the code units of tail.
 
     return intrinsics.undefined; // TODO: implement this
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -213,6 +226,10 @@ export class $TemplateSpan implements I$Node {
 
     return intrinsics.undefined; // TODO: implement this
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 // #endregion
@@ -277,6 +294,10 @@ export class $NumericLiteral implements I$Node {
 
     return this.PropName;
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $BigIntLiteral implements I$Node {
@@ -321,6 +342,10 @@ export class $BigIntLiteral implements I$Node {
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics['0']; // TODO: implement this
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -389,6 +414,10 @@ export class $StringLiteral implements I$Node {
 
     return this.PropName;
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $RegularExpressionLiteral implements I$Node {
@@ -445,6 +474,10 @@ export class $RegularExpressionLiteral implements I$Node {
     // 3. Return RegExpCreate(pattern, flags).
     return intrinsics['%ObjectPrototype%']; // TODO: implement this
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $NoSubstitutionTemplateLiteral implements I$Node {
@@ -492,6 +525,10 @@ export class $NoSubstitutionTemplateLiteral implements I$Node {
 
     // 1. Return the String value whose code units are the elements of the TV of NoSubstitutionTemplate as defined in 11.8.6.
     return intrinsics['']; // TODO: implement this
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -541,6 +578,10 @@ export class $NullLiteral implements I$Node {
 
     // 1. Return null.
     return this.Value;
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -593,5 +634,9 @@ export class $BooleanLiteral implements I$Node {
     // 1. If BooleanLiteral is the token false, return false.
     // 2. If BooleanLiteral is the token true, return true.
     return this.Value;
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }

@@ -485,11 +485,23 @@ export class ArrayIndexObserver implements ICollectionIndexObserver {
   }
 
   public getValue(): unknown {
-    return (this.owner.collection as IObservedArray)[this.index];
+    return this.owner.collection[this.index];
   }
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
-    (this.owner.collection as IObservedArray).splice(this.index, 1, newValue);
+    if (newValue === this.getValue()) {
+      return;
+    }
+    const arrayObserver = this.owner;
+    const index = this.index;
+    const indexMap = arrayObserver.indexMap;
+
+    if (indexMap[index] > -1) {
+      indexMap.deletedItems.push(indexMap[index]);
+    }
+    indexMap[index] = -2;
+    this.currentValue = arrayObserver.collection[index] = newValue;
+    arrayObserver.notify();
   }
 
   /**

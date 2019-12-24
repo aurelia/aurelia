@@ -20,6 +20,7 @@ import {
   SourceFile,
   StringLiteral,
   SyntaxKind,
+  createNamedExports,
 } from 'typescript';
 import {
   PLATFORM,
@@ -707,8 +708,8 @@ export class $ESScript implements I$Node {
     return result;
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -2056,8 +2057,8 @@ export class $ESModule implements I$Node, IModule {
     this.compilerOptions = void 0;
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -2195,8 +2196,8 @@ export class $ModuleDeclaration implements I$Node {
     }
   }
 
-  public transform(tctx: TransformationContext): this | undefined {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -2266,8 +2267,8 @@ export class $ImportEqualsDeclaration implements I$Node {
     }
   }
 
-  public transform(tctx: TransformationContext): this | undefined {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -2327,8 +2328,8 @@ export class $ImportDeclaration implements I$Node {
     this.ModuleRequests = [moduleSpecifier];
   }
 
-  public transform(tctx: TransformationContext): this | undefined {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -2402,8 +2403,8 @@ export class $ImportClause implements I$Node {
     }
   }
 
-  public transform(tctx: TransformationContext): this | undefined {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -2439,8 +2440,8 @@ export class $NamedImports implements I$Node {
     this.ImportEntriesForModule = $elements.flatMap(getImportEntriesForModule);
   }
 
-  public transform(tctx: TransformationContext): this | undefined {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -2503,8 +2504,8 @@ export class $ImportSpecifier implements I$Node {
     }
   }
 
-  public transform(tctx: TransformationContext): this | undefined {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -2549,8 +2550,8 @@ export class $NamespaceImport implements I$Node {
     ];
   }
 
-  public transform(tctx: TransformationContext): this | undefined {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -2610,8 +2611,8 @@ export class $ExportAssignment implements I$Node {
     return true;
   }
 
-  public transform(tctx: TransformationContext): this | undefined {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -2708,8 +2709,8 @@ export class $ExportDeclaration implements I$Node {
     return exportClause !== void 0 && exportClause.$elements.some(isValueAliasDeclaration);
   }
 
-  public transform(tctx: TransformationContext): this | undefined {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -2749,8 +2750,37 @@ export class $NamedExports implements I$Node {
     this.ReferencedBindings = $elements.flatMap(getReferencedBindings);
   }
 
-  public transform(tctx: TransformationContext): this | undefined {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] | undefined {
+    const elements = this.node.elements;
+    const $elements = this.$elements;
+    let transformedList: ExportSpecifier[] | undefined = void 0;
+    let $element: $ExportSpecifier;
+    let transformed: ExportSpecifier | undefined;
+
+    let x = 0;
+    for (let i = 0, ii = $elements.length; i < ii; ++i) {
+      transformed = ($element = $elements[i]).transform(tctx);
+      if (transformedList === void 0) {
+        if (transformed === void 0) {
+          transformedList = elements.slice(0, x = i);
+        } else if (transformed !== $element.node) {
+          transformedList = elements.slice(0, x = i);
+          transformedList[x++] = transformed;
+        }
+      } else if (transformed !== void 0) {
+        transformedList[x++] = transformed;
+      }
+    }
+
+    if (transformedList === void 0) {
+      return this.node;
+    }
+
+    if (transformedList.length === 0) {
+      return void 0;
+    }
+
+    return createNamedExports(transformedList);
   }
 }
 
@@ -2894,8 +2924,8 @@ export class $ExportSpecifier implements I$Node {
     }
   }
 
-  public transform(tctx: TransformationContext): this | undefined {
-    return this.isValueAliasDeclaration ? this : void 0;
+  public transform(tctx: TransformationContext): this['node'] | undefined {
+    return this.isValueAliasDeclaration ? this.node : void 0;
   }
 }
 
@@ -2922,8 +2952,8 @@ export class $NamespaceExportDeclaration implements I$Node {
     this.$name = $identifier(node.name, this, ctx, -1);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -2944,8 +2974,8 @@ export class $ModuleBlock implements I$Node {
     public readonly path: string = `${parent.path}.ModuleBlock`,
   ) {}
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -2967,8 +2997,8 @@ export class $ExternalModuleReference implements I$Node {
     this.$expression = new $StringLiteral(node.expression as StringLiteral, this, ctx, -1);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -3007,7 +3037,7 @@ export class $QualifiedName implements I$Node {
     this.$right = new $Identifier(node.right, this, ctx, -1);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }

@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 import {
   ExportAssignment,
   ExportDeclaration,
@@ -147,6 +148,10 @@ import {
 import {
   $StringSet,
 } from '../globals/string';
+import {
+  MaybePromise,
+  awaitIfPromise,
+} from '../util';
 
 const {
   emptyArray,
@@ -1124,9 +1129,9 @@ export class $ESModule implements I$Node, IModule {
 
   // http://www.ecma-international.org/ecma-262/#sec-moduledeclarationinstantiation
   // 15.2.1.16.1 Instantiate ( ) Concrete Method
-  public Instantiate(
+  public async Instantiate(
     ctx: ExecutionContext,
-  ): $Undefined | $Error {
+  ): Promise<$Undefined | $Error> {
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1144,7 +1149,7 @@ export class $ESModule implements I$Node, IModule {
     const stack = [] as $ESModule[];
 
     // 4. Let result be InnerModuleInstantiation(module, stack, 0).
-    const result = this._InnerModuleInstantiation(ctx, stack, new $Number(realm, 0));
+    const result = await this._InnerModuleInstantiation(ctx, stack, new $Number(realm, 0));
 
     // 5. If result is an abrupt completion, then
     if (result.isAbrupt) {
@@ -1182,11 +1187,11 @@ export class $ESModule implements I$Node, IModule {
   // http://www.ecma-international.org/ecma-262/#sec-innermoduleinstantiation
   // 15.2.1.16.1.1 InnerModuleInstantiation ( module , stack , idx )
   /** @internal */
-  public _InnerModuleInstantiation(
+  public async _InnerModuleInstantiation(
     ctx: ExecutionContext,
     stack: $ESModule[],
     idx: $Number,
-  ): $Number | $Error {
+  ): Promise<$Number | $Error> {
     ctx.checkTimeout();
 
     this.logger.debug(`${this.path}._InnerModuleInstantiation(#${ctx.id})`);
@@ -1225,11 +1230,11 @@ export class $ESModule implements I$Node, IModule {
     // 9. For each String required that is an element of module.[[RequestedModules]], do
     for (const required of this.RequestedModules) {
       // 9. a. Let requiredModule be ? HostResolveImportedModule(module, required).
-      const requiredModule = this.moduleResolver.ResolveImportedModule(ctx, this, required);
+      const requiredModule = await this.moduleResolver.ResolveImportedModule(ctx, this, required);
       if (requiredModule.isAbrupt) { return requiredModule.enrichWith(ctx, this); }
 
       // 9. b. Set idx to ? InnerModuleInstantiation(requiredModule, stack, idx).
-      const $idx = requiredModule._InnerModuleInstantiation(ctx, stack, idx);
+      const $idx = await requiredModule._InnerModuleInstantiation(ctx, stack, idx);
       if ($idx.isAbrupt) { return $idx.enrichWith(ctx, this); }
       idx = $idx;
 
@@ -1246,7 +1251,7 @@ export class $ESModule implements I$Node, IModule {
     }
 
     // 10. Perform ? module.InitializeEnvironment().
-    const $InitializeEnvironmentResult = this.InitializeEnvironment(ctx);
+    const $InitializeEnvironmentResult = await this.InitializeEnvironment(ctx);
     if ($InitializeEnvironmentResult.isAbrupt) { return $InitializeEnvironmentResult.enrichWith(ctx, this); }
 
     // 11. Assert: module occurs exactly once in stack.
@@ -1277,9 +1282,9 @@ export class $ESModule implements I$Node, IModule {
 
   // http://www.ecma-international.org/ecma-262/#sec-source-text-module-record-initialize-environment
   // 15.2.1.17.4 InitializeEnvironment ( ) Concrete Method
-  public InitializeEnvironment(
+  public async InitializeEnvironment(
     ctx: ExecutionContext,
-  ): $Any {
+  ): Promise<$Any> {
     ctx.checkTimeout();
 
     this.logger.debug(`${this.path}.InitializeEnvironment(#${ctx.id})`);
@@ -1291,7 +1296,7 @@ export class $ESModule implements I$Node, IModule {
     // 2. For each ExportEntry Record e in module.[[IndirectExportEntries]], do
     for (const e of this.IndirectExportEntries) {
       // 2. a. Let resolution be ? module.ResolveExport(e.[[ExportName]], « »).
-      const resolution = this.ResolveExport(ctx, e.ExportName as $String, new ResolveSet());
+      const resolution = await this.ResolveExport(ctx, e.ExportName as $String, new ResolveSet());
       if (resolution.isAbrupt) { return resolution.enrichWith(ctx, this); }
 
       // 2. b. If resolution is null or "ambiguous", throw a SyntaxError exception.
@@ -1316,13 +1321,13 @@ export class $ESModule implements I$Node, IModule {
     // 9. For each ImportEntry Record in in module.[[ImportEntries]], do
     for (const ie of this.ImportEntries) {
       // 9. a. Let importedModule be ! HostResolveImportedModule(module, in.[[ModuleRequest]]).
-      const importedModule = this.moduleResolver.ResolveImportedModule(ctx, this, ie.ModuleRequest) as IModule;
+      const importedModule = await this.moduleResolver.ResolveImportedModule(ctx, this, ie.ModuleRequest) as IModule;
 
       // 9. b. NOTE: The above call cannot fail because imported module requests are a subset of module.[[RequestedModules]], and these have been resolved earlier in this algorithm.
       // 9. c. If in.[[ImportName]] is "*", then
       if (ie.ImportName['[[Value]]'] === '*') {
         // 9. c. i. Let namespace be ? GetModuleNamespace(importedModule).
-        const namespace = (function (mod) {
+        const namespace = await (async function (mod) {
           // http://www.ecma-international.org/ecma-262/#sec-getmodulenamespace
           // 15.2.1.19 Runtime Semantics: GetModuleNamespace ( module )
 
@@ -1334,7 +1339,7 @@ export class $ESModule implements I$Node, IModule {
           // 4. If namespace is undefined, then
           if (namespace.isUndefined) {
             // 4. a. Let exportedNames be ? module.GetExportedNames(« »).
-            const exportedNames = mod.GetExportedNames(ctx, new Set());
+            const exportedNames = await mod.GetExportedNames(ctx, new Set());
             if (exportedNames.isAbrupt) { return exportedNames.enrichWith(ctx, mod as unknown as I$Node); }
 
             // 4. b. Let unambiguousNames be a new empty List.
@@ -1343,7 +1348,7 @@ export class $ESModule implements I$Node, IModule {
             // 4. c. For each name that is an element of exportedNames, do
             for (const name of exportedNames) {
               // 4. c. i. Let resolution be ? module.ResolveExport(name, « »).
-              const resolution = mod.ResolveExport(ctx, name, new ResolveSet());
+              const resolution = await mod.ResolveExport(ctx, name, new ResolveSet());
               if (resolution.isAbrupt) { return resolution.enrichWith(ctx, mod as unknown as I$Node); }
 
               // 4. c. ii. If resolution is a ResolvedBinding Record, append name to unambiguousNames.
@@ -1370,7 +1375,7 @@ export class $ESModule implements I$Node, IModule {
       // 9. d. Else,
       else {
         // 9. d. i. Let resolution be ? importedModule.ResolveExport(in.[[ImportName]], « »).
-        const resolution = importedModule.ResolveExport(ctx, ie.ImportName, new ResolveSet());
+        const resolution = await importedModule.ResolveExport(ctx, ie.ImportName, new ResolveSet());
         if (resolution.isAbrupt) { return resolution.enrichWith(ctx, this); }
 
         // 9. d. ii. If resolution is null or "ambiguous", throw a SyntaxError exception.
@@ -1444,10 +1449,10 @@ export class $ESModule implements I$Node, IModule {
 
   // http://www.ecma-international.org/ecma-262/#sec-getexportednames
   // 15.2.1.17.2 GetExportedNames ( exportStarSet ) Concrete Method
-  public GetExportedNames(
+  public async GetExportedNames(
     ctx: ExecutionContext,
     exportStarSet: Set<IModule>,
-  ): $List<$String> | $Error {
+  ): Promise<$List<$String> | $Error> {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;
@@ -1486,11 +1491,11 @@ export class $ESModule implements I$Node, IModule {
     // 7. For each ExportEntry Record e in module.[[StarExportEntries]], do
     for (const e of mod.StarExportEntries) {
       // 7. a. Let requestedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
-      const requestedModule = this.moduleResolver.ResolveImportedModule(ctx, mod, e.ModuleRequest as $String);
+      const requestedModule = await this.moduleResolver.ResolveImportedModule(ctx, mod, e.ModuleRequest as $String);
       if (requestedModule.isAbrupt) { return requestedModule.enrichWith(ctx, this); }
 
       // 7. b. Let starNames be ? requestedModule.GetExportedNames(exportStarSet).
-      const starNames = requestedModule.GetExportedNames(ctx, exportStarSet);
+      const starNames = await requestedModule.GetExportedNames(ctx, exportStarSet);
       if (starNames.isAbrupt) { return starNames.enrichWith(ctx, this); }
 
       // 7. c. For each element n of starNames, do
@@ -1516,7 +1521,7 @@ export class $ESModule implements I$Node, IModule {
     ctx: ExecutionContext,
     exportName: $String,
     resolveSet: ResolveSet,
-  ): ResolvedBindingRecord | $Null | $String<'ambiguous'> | $Error {
+  ): MaybePromise<ResolvedBindingRecord | $Null | $String<'ambiguous'> | $Error> {
     ctx.checkTimeout();
 
     const realm = ctx.Realm;
@@ -1555,11 +1560,18 @@ export class $ESModule implements I$Node, IModule {
         this.logger.debug(`${this.path}.[ResolveExport] found specific imported binding for ${exportName['[[Value]]']}`);
 
         // 5. a. ii. Let importedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
-        const importedModule = this.moduleResolver.ResolveImportedModule(ctx, this, e.ModuleRequest as $String);
-        if (importedModule.isAbrupt) { return importedModule.enrichWith(ctx, this); }
+        const $importedModule = this.moduleResolver.ResolveImportedModule(ctx, this, e.ModuleRequest as $String);
 
-        // 5. a. iii. Return importedModule.ResolveExport(e.[[ImportName]], resolveSet).
-        return importedModule.ResolveExport(ctx, e.ImportName as $String, resolveSet);
+        return awaitIfPromise(
+          $importedModule,
+          () => true,
+          importedModule => {
+            if (importedModule.isAbrupt) { return importedModule.enrichWith(ctx, this); }
+
+            // 5. a. iii. Return importedModule.ResolveExport(e.[[ImportName]], resolveSet).
+            return importedModule.ResolveExport(ctx, e.ImportName as $String, resolveSet);
+          },
+        );
       }
     }
 
@@ -1576,56 +1588,78 @@ export class $ESModule implements I$Node, IModule {
     // 7. Let starResolution be null.
     let starResolution: ResolvedBindingRecord | $Null = new $Null(realm);
 
+    let intermediate: MaybePromise<$String<'ambiguous'> | $Error> | undefined = void 0;
     // 8. For each ExportEntry Record e in module.[[StarExportEntries]], do
     for (const e of this.StarExportEntries) {
-      // 8. a. Let importedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
-      const importedModule = this.moduleResolver.ResolveImportedModule(ctx, this, e.ModuleRequest as $String);
-      if (importedModule.isAbrupt) { return importedModule.enrichWith(ctx, this); }
+      intermediate = awaitIfPromise(
+        intermediate as unknown as MaybePromise<$String<'ambiguous'> | $Error>,
+        value => value === void 0,
+        () => {
+          return awaitIfPromise(
+            // 8. a. Let importedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
+            this.moduleResolver.ResolveImportedModule(ctx, this, e.ModuleRequest as $String),
+            () => true,
+            importedModule => {
+              if (importedModule.isAbrupt) { return importedModule.enrichWith(ctx, this); }
+              return awaitIfPromise(
+                // 8. b. Let resolution be ? importedModule.ResolveExport(exportName, resolveSet).
+                importedModule.ResolveExport(ctx, exportName, resolveSet),
+                () => true,
+                resolution => {
+                  if (resolution.isAbrupt) { return resolution.enrichWith(ctx, this); }
 
-      // 8. b. Let resolution be ? importedModule.ResolveExport(exportName, resolveSet).
-      const resolution = importedModule.ResolveExport(ctx, exportName, resolveSet);
-      if (resolution.isAbrupt) { return resolution.enrichWith(ctx, this); }
+                  // 8. c. If resolution is "ambiguous", return "ambiguous".
+                  if (resolution.isAmbiguous) {
+                    this.logger.warn(`[ResolveExport] ambiguous resolution for ${exportName['[[Value]]']}`);
 
-      // 8. c. If resolution is "ambiguous", return "ambiguous".
-      if (resolution.isAmbiguous) {
-        this.logger.warn(`[ResolveExport] ambiguous resolution for ${exportName['[[Value]]']}`);
+                    return resolution;
+                  }
 
-        return resolution;
-      }
+                  // 8. d. If resolution is not null, then
+                  if (!resolution.isNull) {
+                    // 8. d. i. Assert: resolution is a ResolvedBinding Record.
+                    // 8. d. ii. If starResolution is null, set starResolution to resolution.
+                    if (starResolution.isNull) {
+                      starResolution = resolution;
+                    }
+                    // 8. d. iii. Else,
+                    else {
+                      // 8. d. iii. 1. Assert: There is more than one * import that includes the requested name.
+                      // 8. d. iii. 2. If resolution.[[Module]] and starResolution.[[Module]] are not the same Module Record or SameValue(resolution.[[BindingName]], starResolution.[[BindingName]]) is false, return "ambiguous".
+                      if (!(resolution.Module === starResolution.Module && resolution.BindingName.is(starResolution.BindingName))) {
+                        this.logger.warn(`[ResolveExport] ambiguous resolution for ${exportName['[[Value]]']}`);
 
-      // 8. d. If resolution is not null, then
-      if (!resolution.isNull) {
-        // 8. d. i. Assert: resolution is a ResolvedBinding Record.
-        // 8. d. ii. If starResolution is null, set starResolution to resolution.
+                        return new $String(realm, 'ambiguous');
+                      }
+                    }
+                  }
+                },
+              );
+            },
+          );
+        },
+      );
+    }
+
+    return awaitIfPromise(
+      intermediate,
+      value => value === void 0,
+      () => {
         if (starResolution.isNull) {
-          starResolution = resolution;
+          this.logger.warn(`[ResolveExport] starResolution is null for ${exportName['[[Value]]']}`);
         }
-        // 8. d. iii. Else,
-        else {
-          // 8. d. iii. 1. Assert: There is more than one * import that includes the requested name.
-          // 8. d. iii. 2. If resolution.[[Module]] and starResolution.[[Module]] are not the same Module Record or SameValue(resolution.[[BindingName]], starResolution.[[BindingName]]) is false, return "ambiguous".
-          if (!(resolution.Module === starResolution.Module && resolution.BindingName.is(starResolution.BindingName))) {
-            this.logger.warn(`[ResolveExport] ambiguous resolution for ${exportName['[[Value]]']}`);
 
-            return new $String(realm, 'ambiguous');
-          }
-        }
-      }
-    }
-
-    if (starResolution.isNull) {
-      this.logger.warn(`[ResolveExport] starResolution is null for ${exportName['[[Value]]']}`);
-    }
-
-    // 9. Return starResolution.
-    return starResolution;
+        // 9. Return starResolution.
+        return starResolution;
+      },
+    );
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-moduleevaluation
   // 15.2.1.16.2 Evaluate ( ) Concrete Method
-  public EvaluateModule(
+  public async EvaluateModule(
     ctx: ExecutionContext,
-  ): $Any {
+  ): Promise<$Any> {
     this.logger.debug(`${this.path}.EvaluateModule()`);
 
     const realm = ctx.Realm;
@@ -1637,7 +1671,7 @@ export class $ESModule implements I$Node, IModule {
     const stack: $ESModule[] = [];
 
     // 4. Let result be InnerModuleEvaluation(module, stack, 0).
-    const result = this.EvaluateModuleInner(ctx, stack, 0);
+    const result = await this.EvaluateModuleInner(ctx, stack, 0);
 
     // 5. If result is an abrupt completion, then
     if (result.isAbrupt) {
@@ -1664,11 +1698,11 @@ export class $ESModule implements I$Node, IModule {
 
   // http://www.ecma-international.org/ecma-262/#sec-innermoduleevaluation
   // 15.2.1.16.2.1 InnerModuleEvaluation ( module , stack , idx )
-  public EvaluateModuleInner(
+  public async EvaluateModuleInner(
     ctx: ExecutionContext,
     stack: $ESModule[],
     idx: number,
-  ): $Number | $Error {
+  ): Promise<$Number | $Error> {
     ctx.checkTimeout();
 
     this.logger.debug(`${this.path}.EvaluateModuleInner(#${ctx.id})`);
@@ -1711,11 +1745,11 @@ export class $ESModule implements I$Node, IModule {
     // 10. For each String required that is an element of module.[[RequestedModules]], do
     for (const required of this.RequestedModules) {
       // 10. a. Let requiredModule be ! HostResolveImportedModule(module, required).
-      const requiredModule = this.moduleResolver.ResolveImportedModule(ctx, this, required) as $ESModule; // TODO
+      const requiredModule = await this.moduleResolver.ResolveImportedModule(ctx, this, required) as $ESModule; // TODO
 
       // 10. b. NOTE: Instantiate must be completed successfully prior to invoking this method, so every requested module is guaranteed to resolve successfully.
       // 10. c. Set idx to ? InnerModuleEvaluation(requiredModule, stack, idx).
-      const $EvaluateModuleInnerResult = requiredModule.EvaluateModuleInner(ctx, stack, idx);
+      const $EvaluateModuleInnerResult = await requiredModule.EvaluateModuleInner(ctx, stack, idx);
       if ($EvaluateModuleInnerResult.isAbrupt) { return $EvaluateModuleInnerResult.enrichWith(ctx, this); }
 
       idx = $EvaluateModuleInnerResult['[[Value]]'];
@@ -2033,7 +2067,7 @@ export class $DocumentFragment implements I$Node, IModule {
     ctx: ExecutionContext,
     exportName: $String,
     resolveSet: ResolveSet,
-  ): ResolvedBindingRecord | $Null | $String<'ambiguous'> {
+  ): MaybePromise<ResolvedBindingRecord | $Null | $String<'ambiguous'>> {
     ctx.checkTimeout();
 
     this.logger.debug(`${this.path}.[ResolveExport] returning content as '${exportName['[[Value]]']}'`);
@@ -2041,29 +2075,29 @@ export class $DocumentFragment implements I$Node, IModule {
     return new ResolvedBindingRecord(this, exportName);
   }
 
-  public GetExportedNames(
+  public async GetExportedNames(
     ctx: ExecutionContext,
     exportStarSet: Set<IModule>,
-  ): $List<$String> | $Error {
+  ): Promise<$List<$String> | $Error> {
     ctx.checkTimeout();
 
     return new $List<$String>();
   }
 
-  public Instantiate(
+  public async Instantiate(
     ctx: ExecutionContext,
-  ): $Undefined | $Error {
+  ): Promise<$Undefined | $Error> {
     ctx.checkTimeout();
 
     return ctx.Realm['[[Intrinsics]]'].undefined;
   }
 
   /** @internal */
-  public _InnerModuleInstantiation(
+  public async _InnerModuleInstantiation(
     ctx: ExecutionContext,
     stack: IModule[],
     idx: $Number,
-  ): $Number | $Error {
+  ): Promise<$Number | $Error> {
     ctx.checkTimeout();
 
     return idx;

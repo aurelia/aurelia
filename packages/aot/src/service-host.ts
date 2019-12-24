@@ -63,6 +63,13 @@ import {
 import {
   $Error,
 } from './vm/types/error';
+import {
+  GlobalOptions,
+} from './vm/global-options';
+import {
+  MaybePromise,
+  awaitIfPromise,
+} from './vm/util';
 
 function comparePathLength(a: { path: { length: number } }, b: { path: { length: number } }): number {
   return a.path.length - b.path.length;
@@ -73,7 +80,7 @@ export interface IModuleResolver {
     ctx: ExecutionContext,
     referencingModule: $ESModule,
     $specifier: $String,
-  ): IModule | $Error;
+  ): MaybePromise<IModule | $Error>;
 }
 
 export interface IServiceHost extends IModuleResolver, IDisposable {
@@ -146,22 +153,42 @@ export class ServiceHost implements IServiceHost {
 
   public async loadSpecificFile(ctx: ExecutionContext, file: IFile, mode: 'script' | 'module'): Promise<$$ESModuleOrScript> {
     if (mode === 'module') {
-      return this.getESModule(ctx, file, null);
+      if (!ctx.Realm.options.singleFile) {
+        this.logger.info(`Loading package context for: ${file.path}`);
+
+        const pkg = await this.loadEntryPackage(file);
+
+        this.logger.info(`Finished loading package context`);
+
+        return this.getESModule(ctx, file, pkg);
+      } else {
+        return this.getESModule(ctx, file, null);
+      }
     } else {
       return this.getESScript(ctx, file);
     }
   }
 
-  public executeEntryFile(dir: string): Promise<$Any> {
+  public executeEntryFile(
+    dir: string,
+    evaluate: boolean = true,
+  ): Promise<$Any> {
     const container = this.container.createChild();
     container.register(Registration.instance(ISourceFileProvider, new EntrySourceFileProvider(this, dir)));
+    container.register(Registration.instance(GlobalOptions, new GlobalOptions(true, evaluate, false)));
 
     return this.agent.RunJobs(container);
   }
 
-  public executeSpecificFile(file: IFile, mode: 'script' | 'module'): Promise<$Any> {
+  public executeSpecificFile(
+    file: IFile,
+    mode: 'script' | 'module',
+    evaluate: boolean = true,
+    singleFile: boolean = false,
+  ): Promise<$Any> {
     const container = this.container.createChild();
     container.register(Registration.instance(ISourceFileProvider, new SpecificSourceFileProvider(this, file, mode)));
+    container.register(Registration.instance(GlobalOptions, new GlobalOptions(true, evaluate, singleFile)));
 
     return this.agent.RunJobs(container);
   }
@@ -178,7 +205,7 @@ export class ServiceHost implements IServiceHost {
     ctx: ExecutionContext,
     referencingModule: $ESModule,
     $specifier: $String,
-  ): IModule | $Error {
+  ): MaybePromise<IModule | $Error> {
     const specifier = normalizePath($specifier['[[Value]]']);
     const isRelative = isRelativeModulePath(specifier);
     const pkg = referencingModule.pkg;
@@ -241,29 +268,41 @@ export class ServiceHost implements IServiceHost {
       } else {
         this.logger.debug(`[ResolveImport] resolving external absolute module: '${$specifier['[[Value]]']}' for ${referencingModule.$file.name}`);
 
-        const externalPkg = pkg.loader.getCachedPackage(pkgDep.refName);
-        if (pkgDep.refName !== specifier) {
-          if (externalPkg.entryFile.shortName === specifier) {
-            return this.getESModule(ctx, externalPkg.entryFile, externalPkg);
-          }
-
-          let file = externalPkg.files.find(x => x.shortPath === externalPkg.dir && x.ext === '.js');
-          if (file === void 0) {
-            const indexModulePath = joinPath(externalPkg.dir, 'index');
-            file = externalPkg.files.find(f => f.shortPath === indexModulePath && f.ext === '.js');
-            if (file === void 0) {
-              const partialAbsolutePath = joinPath('node_modules', specifier);
-              file = externalPkg.files.find(f => f.shortPath.endsWith(partialAbsolutePath) && f.ext === '.js');
-              if (file === void 0) {
-                throw new Error(`Unable to resolve file "${externalPkg.dir}" or "${indexModulePath}" (refName="${pkgDep.refName}", entryFile="${externalPkg.entryFile.shortPath}", specifier=${specifier})`);
-              }
-            }
-          }
-
-          return this.getESModule(ctx, file, externalPkg);
+        let $externalPkg: MaybePromise<NPMPackage>;
+        if (pkg.loader.hasCachedPackage(pkgDep.refName)) {
+          $externalPkg = pkg.loader.getCachedPackage(pkgDep.refName);
         } else {
-          return this.getESModule(ctx, externalPkg.entryFile, externalPkg);
+          $externalPkg = pkg.loader.loadPackage(pkgDep);
         }
+
+        return awaitIfPromise(
+          $externalPkg,
+          () => true,
+          externalPkg => {
+            if (pkgDep.refName !== specifier) {
+              if (externalPkg.entryFile.shortName === specifier) {
+                return this.getESModule(ctx, externalPkg.entryFile, externalPkg);
+              }
+
+              let file = externalPkg.files.find(x => x.shortPath === externalPkg.dir && x.ext === '.js');
+              if (file === void 0) {
+                const indexModulePath = joinPath(externalPkg.dir, 'index');
+                file = externalPkg.files.find(f => f.shortPath === indexModulePath && f.ext === '.js');
+                if (file === void 0) {
+                  const partialAbsolutePath = joinPath('node_modules', specifier);
+                  file = externalPkg.files.find(f => f.shortPath.endsWith(partialAbsolutePath) && f.ext === '.js');
+                  if (file === void 0) {
+                    throw new Error(`Unable to resolve file "${externalPkg.dir}" or "${indexModulePath}" (refName="${pkgDep.refName}", entryFile="${externalPkg.entryFile.shortPath}", specifier=${specifier})`);
+                  }
+                }
+              }
+
+              return this.getESModule(ctx, file, externalPkg);
+            } else {
+              return this.getESModule(ctx, externalPkg.entryFile, externalPkg);
+            }
+          },
+        );
       }
     }
   }
@@ -281,12 +320,12 @@ export class ServiceHost implements IServiceHost {
     this.container = void 0;
   }
 
-  private loadEntryPackage(dir: string): Promise<NPMPackage> {
-    this.logger.trace(`loadEntryPackage(${dir})`);
+  private loadEntryPackage(pathOrFile: string | IFile): Promise<NPMPackage> {
+    this.logger.trace(`loadEntryPackage(path="${typeof pathOrFile === 'string' ? pathOrFile : pathOrFile.path}")`);
 
     const loader = this.container.get(NPMPackageLoader);
 
-    return loader.loadEntryPackage(dir);
+    return loader.loadEntryPackage(pathOrFile);
   }
 
   private getHTMLModule(ctx: ExecutionContext, file: IFile, pkg: NPMPackage): $DocumentFragment {

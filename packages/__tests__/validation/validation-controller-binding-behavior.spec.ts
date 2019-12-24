@@ -1,11 +1,11 @@
 import { DI, IContainer } from '@aurelia/kernel';
 import { ValidationConfiguration, IValidationControllerFactory, IValidator, ValidationController, IValidationController, ValidationControllerFactory, IValidationRules } from '@aurelia/validation';
-import { assert } from '@aurelia/testing';
+import { assert, TestContext } from '@aurelia/testing';
 import { Person } from './_test-resources';
 
 describe.only('validation-controller-factory', function () {
   function setup() {
-    const container = DI.createContainer();
+    const container = TestContext.createHTMLTestContext().container;
     container.register(ValidationConfiguration);
     return {
       sut: container.get(IValidationControllerFactory),
@@ -59,13 +59,14 @@ describe.only('validation-controller', function () {
   }
   type TestFunction = (ctx: TestContext) => void | Promise<void>;
   async function runTest(testFunction: TestFunction) {
-    const container = DI.createContainer();
+    const container = TestContext.createHTMLTestContext().container;
     container.register(ValidationConfiguration);
     const validationRules = container.get(IValidationRules);
     validationRules
       .on(Person)
       .ensure((o) => o.name)
-      .required();
+      .required()
+      .matches(/foo/);
 
     await testFunction({
       sut: container.get(IValidationControllerFactory).create() as unknown as ValidationController,

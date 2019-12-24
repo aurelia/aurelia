@@ -8,7 +8,8 @@ import {
   IExpressionParser,
   IScope,
   LifecycleFlags,
-  PrimitiveLiteralExpression
+  PrimitiveLiteralExpression,
+  IScheduler
 } from '@aurelia/runtime';
 import { IValidateable, parsePropertyName, PropertyAccessor, PropertyRule, ValidationResult, BaseValidationRule } from './rule';
 import { RenderInstruction, ValidationRenderer } from './validation-renderer';
@@ -108,13 +109,11 @@ export class ValidationController implements IValidationController {
    */
   public trigger: ValidationTrigger = ValidationTrigger.blur;
 
-  // Promise that resolves when validation has completed.
-  private finishValidating: Promise<any> = Promise.resolve();
-
   public constructor(
     @IValidator public readonly validator: IValidator,
     @IExpressionParser private readonly parser: IExpressionParser,
     @IEventAggregator private readonly ea: EventAggregator,
+    @IScheduler private readonly scheduler: IScheduler,
   ) { }
 
   /**
@@ -298,8 +297,6 @@ export class ValidationController implements IValidationController {
    * objects and bindings will be validated.
    */
   public async validate(instruction?: ValidateInstruction): Promise<ControllerValidateResult> {
-    console.log(`validating ${this.bindings.size} bindings`);
-    // Get a function that will process the validation instruction.
     let execute: () => Promise<ValidationResult[]>;
     if (instruction !== void 0) {
       // eslint-disable-next-line prefer-const
@@ -335,34 +332,26 @@ export class ValidationController implements IValidationController {
 
     // Wait for any existing validation to finish, execute the instruction, render the results.
     this.validating = true;
-    const returnPromise: Promise<ControllerValidateResult> = this.finishValidating
-      .then(execute)
-      .then((newResults) => {
+    const task = this.scheduler.getPostRenderTaskQueue().queueTask(async () => {
+      try {
+        const newResults = await execute();
         const predicate = this.getInstructionPredicate(instruction);
         const oldResults = this.results.filter(predicate);
         this.processResultDelta('validate', oldResults, newResults);
-        if (returnPromise === this.finishValidating) {
-          this.validating = false;
-        }
+
         const result: ControllerValidateResult = {
           instruction,
           valid: newResults.find(r => !r.valid) === void 0,
           results: newResults
         };
+
         this.publishEvent(instruction, result);
         return result;
-      })
-      .catch(async (exception) => {
-        // recover, to enable subsequent calls to validate()
+      } finally {
         this.validating = false;
-        this.finishValidating = Promise.resolve();
-
-        return Promise.reject(exception);
-      });
-
-    this.finishValidating = returnPromise;
-
-    return returnPromise;
+      }
+    });
+    return task.result;
   }
 
   /**
@@ -616,10 +605,12 @@ export class ValidationControllerFactory implements IValidationControllerFactory
    * Creates a new controller instance.
    */
   public create(validator?: IValidator): IValidationController {
+    const container = this.container;
     return new ValidationController(
-      validator ?? this.container.get<IValidator>(IValidator),
-      this.container.get(IExpressionParser),
-      this.container.get(IEventAggregator)
+      validator ?? container.get<IValidator>(IValidator),
+      container.get(IExpressionParser),
+      container.get(IEventAggregator),
+      container.get(IScheduler)
     );
   }
 

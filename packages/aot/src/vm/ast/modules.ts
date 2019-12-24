@@ -706,6 +706,10 @@ export class $ESScript implements I$Node {
     // 17. Return Completion(result).
     return result;
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export type ModuleStatus = 'uninstantiated' | 'instantiating' | 'instantiated' | 'evaluating' | 'evaluated';
@@ -2029,6 +2033,10 @@ export class $ESModule implements I$Node, IModule {
     this.moduleResolver = void 0;
     this.compilerOptions = void 0;
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $DocumentFragment implements I$Node, IModule {
@@ -2834,6 +2842,10 @@ export class $NamespaceExportDeclaration implements I$Node {
 
     this.$name = $identifier(node.name, this, ctx, -1);
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $ModuleBlock implements I$Node {
@@ -2852,6 +2864,10 @@ export class $ModuleBlock implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}.ModuleBlock`,
   ) {}
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $ExternalModuleReference implements I$Node {
@@ -2870,6 +2886,10 @@ export class $ExternalModuleReference implements I$Node {
     public readonly path: string = `${parent.path}.ExternalModuleReference`,
   ) {
     this.$expression = new $StringLiteral(node.expression as StringLiteral, this, ctx, -1);
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -2906,5 +2926,9 @@ export class $QualifiedName implements I$Node {
     }
 
     this.$right = new $Identifier(node.right, this, ctx, -1);
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }

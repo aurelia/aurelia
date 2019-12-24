@@ -115,7 +115,7 @@ export {
   IEventAggregator,
 } from './eventaggregator';
 export {
-  isNumeric,
+  isArrayIndex,
   camelCase,
   kebabCase,
   pascalCase,

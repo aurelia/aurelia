@@ -38,6 +38,7 @@ import {
   $AssignmentExpressionNode,
   $$JsxOpeningLikeElement,
   $i,
+  TransformationContext,
 } from './_shared';
 import {
   $$ESModuleOrScript,
@@ -136,6 +137,10 @@ export class $JsxElement implements I$Node {
 
     return intrinsics.undefined; // TODO: implement this
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export type $$JsxNamed = (
@@ -205,6 +210,10 @@ export class $JsxSelfClosingElement implements I$Node {
 
     return intrinsics.undefined; // TODO: implement this
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $JsxFragment implements I$Node {
@@ -242,6 +251,10 @@ export class $JsxFragment implements I$Node {
 
     return intrinsics.undefined; // TODO: implement this
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $JsxText implements I$Node {
@@ -270,6 +283,10 @@ export class $JsxText implements I$Node {
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -305,6 +322,10 @@ export class $JsxOpeningElement implements I$Node {
 
     return intrinsics.empty; // TODO: implement this
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $JsxClosingElement implements I$Node {
@@ -337,6 +358,10 @@ export class $JsxClosingElement implements I$Node {
 
     return intrinsics.empty; // TODO: implement this
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $JsxOpeningFragment implements I$Node {
@@ -365,6 +390,10 @@ export class $JsxOpeningFragment implements I$Node {
 
     return intrinsics.empty; // TODO: implement this
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $JsxClosingFragment implements I$Node {
@@ -392,6 +421,10 @@ export class $JsxClosingFragment implements I$Node {
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -422,6 +455,10 @@ export class $JsxAttribute implements I$Node {
         this.$initializer = new $JsxExpression(node.initializer, this, ctx, -1);
       }
     }
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -484,6 +521,10 @@ export class $JsxAttributes implements I$Node {
 
     return intrinsics.empty; // TODO: implement this
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $JsxSpreadAttribute implements I$Node {
@@ -517,6 +558,10 @@ export class $JsxSpreadAttribute implements I$Node {
 
     return intrinsics.empty; // TODO: implement this
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $JsxExpression implements I$Node {
@@ -549,5 +594,9 @@ export class $JsxExpression implements I$Node {
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }

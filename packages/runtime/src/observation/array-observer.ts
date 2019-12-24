@@ -500,7 +500,9 @@ export class ArrayIndexObserver implements ICollectionIndexObserver {
       indexMap.deletedItems.push(indexMap[index]);
     }
     indexMap[index] = -2;
-    this.currentValue = arrayObserver.collection[index] = newValue;
+    // do not need to update current value here
+    // as it will be updated inside handle collection change
+    arrayObserver.collection[index] = newValue;
     arrayObserver.notify();
   }
 

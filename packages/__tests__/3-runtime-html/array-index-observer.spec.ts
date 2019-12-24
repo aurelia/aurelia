@@ -15,7 +15,7 @@ describe('3-runtime-html/array-index-observer.spec.ts', function () {
       }
     };
     indexZeroObserver.subscribe(indexZeroSubscriber);
-    assert.instanceOf(indexZeroObserver, ArrayIndexObserver);
+    assert.strictEqual(indexZeroObserver instanceof ArrayIndexObserver, true, 'index zero observer is ArrayIndexObserver');
     arr[0] = 5;
     assert.strictEqual(indexZeroObserver.currentValue, 1);
     arr.splice(0, 1, 4);

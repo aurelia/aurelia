@@ -29,7 +29,7 @@ export function isArrayIndex(value: unknown): value is number | string {
       let ch = 0;
       for (let i = 0; i < length; ++i) {
         ch = value.charCodeAt(i);
-        if (i === 0 && ch === 0x30 /* must not start with 0 */ || ch < 0x30 /* 0 */ || ch > 0x39/* 9 */) {
+        if (i === 0 && ch === 0x30 && length > 1 /* must not start with 0 */ || ch < 0x30 /* 0 */ || ch > 0x39/* 9 */) {
           return isNumericLookup[value] = false;
         }
       }

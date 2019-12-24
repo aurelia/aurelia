@@ -527,5 +527,49 @@ export class NodeFileSystem implements IFileSystem {
 
     return files.sort(compareFilePath);
   }
+
+  public async getFile(path: string, loadContent: boolean = false): Promise<File> {
+    if (!(await this.isReadable(path))) {
+      throw new Error(`File does not exit: "${path}"`);
+    }
+
+    const stats = await stat(path);
+
+    if (!stats.isFile()) {
+      throw new Error(`Not a file: "${path}"`);
+    }
+
+    const ext = File.getExtension(path) ?? '';
+    const dir = dirname(path);
+    const name = path.slice(dir.length);
+    const shortName = name.slice(0, -ext.length);
+    const file = new File(this, path, dir, name, name, shortName, ext);
+    if (loadContent) {
+      await this.readFile(path, Encoding.utf8, true);
+    }
+    return file;
+  }
+
+  public getFileSync(path: string, loadContent: boolean = false): File {
+    if (!this.isReadableSync(path)) {
+      throw new Error(`File does not exit: "${path}"`);
+    }
+
+    const stats = statSync(path);
+
+    if (!stats.isFile()) {
+      throw new Error(`Not a file: "${path}"`);
+    }
+
+    const ext = File.getExtension(path) ?? '';
+    const dir = dirname(path);
+    const name = path.slice(dir.length);
+    const shortName = name.slice(0, -ext.length);
+    const file = new File(this, path, dir, name, name, shortName, ext);
+    if (loadContent) {
+      this.readFileSync(path, Encoding.utf8, true);
+    }
+    return file;
+  }
 }
 

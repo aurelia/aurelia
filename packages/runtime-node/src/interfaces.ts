@@ -93,6 +93,9 @@ export interface IFileSystem {
 
   getFiles(dir: string, loadContent?: boolean): Promise<readonly IFile[]>;
   getFilesSync(dir: string, loadContent?: boolean): readonly IFile[];
+
+  getFile(path: string, loadContent?: boolean): Promise<IFile>;
+  getFileSync(path: string, loadContent?: boolean): IFile;
 }
 
 export type IProcessEnv = NodeJS.ProcessEnv;

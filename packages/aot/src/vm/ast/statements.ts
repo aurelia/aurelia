@@ -429,6 +429,10 @@ export class $VariableDeclaration implements I$Node {
 
     return ctx.Realm['[[Intrinsics]]'].empty;
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export function $variableDeclarationList(
@@ -505,6 +509,10 @@ export class $VariableDeclarationList implements I$Node {
     this.BoundNames = $declarations.flatMap(getBoundNames);
     this.VarDeclaredNames = $declarations.flatMap(getVarDeclaredNames);
     this.VarScopedDeclarations = $declarations.flatMap(getVarScopedDeclarations);
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -670,6 +678,10 @@ export class $Block implements I$Node {
     // 7. Return blockValue.
     return blockValue;
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $EmptyStatement implements I$Node {
@@ -711,6 +723,10 @@ export class $EmptyStatement implements I$Node {
 
     // 1. Return NormalCompletion(empty).
     return intrinsics.empty;
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -764,6 +780,10 @@ export class $ExpressionStatement implements I$Node {
     // 2. Return ? GetValue(exprRef).
 
     return this.$expression.Evaluate(ctx).GetValue(ctx).enrichWith(ctx, this);
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -872,6 +892,10 @@ export class $IfStatement implements I$Node {
       }
     }
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $DoStatement implements I$Node {
@@ -957,6 +981,10 @@ export class $DoStatement implements I$Node {
       }
     }
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $WhileStatement implements I$Node {
@@ -1041,6 +1069,10 @@ export class $WhileStatement implements I$Node {
         V = stmtResult;
       }
     }
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -1158,6 +1190,10 @@ export class $ForStatement implements I$Node {
     // 13. Return Completion(bodyResult).
 
     return intrinsics.empty; // TODO: implement this
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -1295,6 +1331,10 @@ export class $ForInStatement implements I$Node {
 
     return intrinsics.empty; // TODO: implement this
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $ForOfStatement implements I$Node {
@@ -1427,6 +1467,10 @@ export class $ForOfStatement implements I$Node {
 
     return intrinsics.empty; // TODO: implement this
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $ContinueStatement implements I$Node {
@@ -1481,6 +1525,10 @@ export class $ContinueStatement implements I$Node {
     // 2. Return Completion { [[Type]]: continue, [[Value]]: empty, [[Target]]: label }.
     return new $Empty(realm, CompletionType.continue, this.$label.StringValue, this);
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $BreakStatement implements I$Node {
@@ -1534,6 +1582,10 @@ export class $BreakStatement implements I$Node {
     // 1. Let label be the StringValue of LabelIdentifier.
     // 2. Return Completion { [[Type]]: break, [[Value]]: empty, [[Target]]: label }.
     return new $Empty(realm, CompletionType.break, this.$label.StringValue, this);
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -1601,6 +1653,10 @@ export class $ReturnStatement implements I$Node {
     // 4. Return Completion { [[Type]]: return, [[Value]]: exprValue, [[Target]]: empty }.
     return exprValue.ToCompletion(CompletionType.return, intrinsics.empty);
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $WithStatement implements I$Node {
@@ -1660,6 +1716,10 @@ export class $WithStatement implements I$Node {
     // 9. Return Completion(UpdateEmpty(C, undefined)).
 
     return intrinsics.empty; // TODO: implement this
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -1874,6 +1934,10 @@ export class $SwitchStatement implements I$Node {
     // 4. Return the result of performing Strict Equality Comparison input === clauseSelector.
     return clause.$expression.Evaluate(ctx).GetValue(ctx)['[[Value]]'] === switchValue['[[Value]]'];
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $LabeledStatement implements I$Node {
@@ -1998,6 +2062,10 @@ export class $LabeledStatement implements I$Node {
 
     return intrinsics.undefined; // TODO: implement this
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $ThrowStatement implements I$Node {
@@ -2050,6 +2118,10 @@ export class $ThrowStatement implements I$Node {
 
     // 3. Return ThrowCompletion(exprValue).
     return exprValue.ToCompletion(CompletionType.throw, intrinsics.empty);
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -2231,6 +2303,10 @@ export class $TryStatement implements I$Node {
     // 10. Return Completion(B).
     return B as $AnyNonEmpty; // TODO fix typings
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $DebuggerStatement implements I$Node {
@@ -2278,6 +2354,10 @@ export class $DebuggerStatement implements I$Node {
     // 3. Return result.
 
     return intrinsics.empty; // TODO: implement this
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -2345,6 +2425,10 @@ export class $CaseBlock implements I$Node {
     this.VarDeclaredNames = $clauses.flatMap(getVarDeclaredNames);
     this.VarScopedDeclarations = $clauses.flatMap(getVarScopedDeclarations);
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $CaseClause implements I$Node {
@@ -2385,6 +2469,10 @@ export class $CaseClause implements I$Node {
     this.VarDeclaredNames = $statements.flatMap(getVarDeclaredNames);
     this.VarScopedDeclarations = $statements.flatMap(getVarScopedDeclarations);
   }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
+  }
 }
 
 export class $DefaultClause implements I$Node {
@@ -2422,6 +2510,10 @@ export class $DefaultClause implements I$Node {
     this.LexicallyScopedDeclarations = $statements.flatMap(getLexicallyScopedDeclarations);
     this.VarDeclaredNames = $statements.flatMap(getVarDeclaredNames);
     this.VarScopedDeclarations = $statements.flatMap(getVarScopedDeclarations);
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 
@@ -2466,6 +2558,10 @@ export class $CatchClause implements I$Node {
     for (const argName of this.$variableDeclaration?.BoundNames ?? []) {
       ctx.LexicalEnvironment.CreateMutableBinding(ctx, argName, realm['[[Intrinsics]]'].false);
     }
+  }
+
+  public transform(tctx: TransformationContext): this {
+    return this;
   }
 }
 

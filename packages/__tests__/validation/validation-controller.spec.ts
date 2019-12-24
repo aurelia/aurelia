@@ -1,6 +1,6 @@
-import { DI, IContainer } from '@aurelia/kernel';
-import { ValidationConfiguration, IValidationControllerFactory, IValidator, ValidationController, IValidationController, ValidationControllerFactory, IValidationRules } from '@aurelia/validation';
+import { IContainer } from '@aurelia/kernel';
 import { assert, TestContext } from '@aurelia/testing';
+import { IValidationController, IValidationControllerFactory, IValidationRules, IValidator, ValidationConfiguration, ValidationController, ValidationControllerFactory } from '@aurelia/validation';
 import { Person } from './_test-resources';
 
 describe.only('validation-controller-factory', function () {

@@ -65,6 +65,7 @@ import {
 } from './ast/expressions';
 import {
   $$ESModuleOrScript,
+  ExportEntryRecord,
 } from './ast/modules';
 import {
   $GeneratorInstance,
@@ -122,7 +123,8 @@ export class ResolvedBindingRecord {
 
   public constructor(
     public readonly Module: IModule,
-    public readonly BindingName: $String,
+    public readonly ExportEntry: ExportEntryRecord,
+    public readonly BindingName: $String = ExportEntry.LocalName as $String,
   ) { }
 }
 

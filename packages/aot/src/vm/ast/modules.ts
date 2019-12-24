@@ -1520,6 +1520,8 @@ export class $ESModule implements I$Node, IModule {
     return exportedNames;
   }
 
+  private readonly resolutionCache: Map<string, ResolvedBindingRecord | $Null | $String<'ambiguous'> | $Error> = new Map();
+
   // http://www.ecma-international.org/ecma-262/#sec-resolveexport
   // 15.2.1.17.3 ResolveExport ( exportName , resolveSet ) Concrete Method
   public ResolveExport(
@@ -1529,135 +1531,155 @@ export class $ESModule implements I$Node, IModule {
   ): MaybePromise<ResolvedBindingRecord | $Null | $String<'ambiguous'> | $Error> {
     ctx.checkTimeout();
 
-    const realm = ctx.Realm;
-    const intrinsics = realm['[[Intrinsics]]'];
+    const cache = this.resolutionCache;
+    let $resolution = cache.get(exportName['[[Value]]']);
+    if ($resolution === void 0) {
+      this.logger.trace(`ResolveExport(#${ctx.id},exportName=${exportName}) cache miss at ${this.$file.path}`);
+      const realm = ctx.Realm;
 
-    // 1. Let module be this Source Text Module Record.
-    // 2. For each Record { [[Module]], [[ExportName]] } r in resolveSet, do
-    // 2. a. If module and r.[[Module]] are the same Module Record and SameValue(exportName, r.[[ExportName]]) is true, then
-    if (resolveSet.has(this, exportName)) {
-      // 2. a. i. Assert: This is a circular import request.
-      // 2. a. ii. Return null.
-      this.logger.warn(`[ResolveExport] Circular import: ${exportName}`);
-      return new $Null(realm);
-    }
-
-    // 3. Append the Record { [[Module]]: module, [[ExportName]]: exportName } to resolveSet.
-    resolveSet.add(this, exportName);
-
-    // 4. For each ExportEntry Record e in module.[[LocalExportEntries]], do
-    for (const e of this.LocalExportEntries) {
-      // 4. a. If SameValue(exportName, e.[[ExportName]]) is true, then
-      if (exportName.is(e.ExportName)) {
-        // 4. a. i. Assert: module provides the direct binding for this export.
-        this.logger.debug(`${this.path}.[ResolveExport] found direct binding for ${exportName['[[Value]]']}`);
-
-        // 4. a. ii. Return ResolvedBinding Record { [[Module]]: module, [[BindingName]]: e.[[LocalName]] }.
-        return new ResolvedBindingRecord(this, e.LocalName as $String);
+      // 1. Let module be this Source Text Module Record.
+      // 2. For each Record { [[Module]], [[ExportName]] } r in resolveSet, do
+      // 2. a. If module and r.[[Module]] are the same Module Record and SameValue(exportName, r.[[ExportName]]) is true, then
+      if (resolveSet.has(this, exportName)) {
+        // 2. a. i. Assert: This is a circular import request.
+        // 2. a. ii. Return null.
+        this.logger.warn(`[ResolveExport] Circular import: ${exportName}`);
+        cache.set(exportName['[[Value]]'], $resolution = new $Null(realm));
+        return $resolution;
       }
-    }
 
-    // 5. For each ExportEntry Record e in module.[[IndirectExportEntries]], do
-    for (const e of this.IndirectExportEntries) {
-      // 5. a. If SameValue(exportName, e.[[ExportName]]) is true, then
-      if (exportName.is(e.ExportName)) {
-        // 5. a. i. Assert: module imports a specific binding for this export.
-        this.logger.debug(`${this.path}.[ResolveExport] found specific imported binding for ${exportName['[[Value]]']}`);
+      // 3. Append the Record { [[Module]]: module, [[ExportName]]: exportName } to resolveSet.
+      resolveSet.add(this, exportName);
 
-        // 5. a. ii. Let importedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
-        const $importedModule = this.moduleResolver.ResolveImportedModule(ctx, this, e.ModuleRequest as $String);
+      // 4. For each ExportEntry Record e in module.[[LocalExportEntries]], do
+      for (const e of this.LocalExportEntries) {
+        // 4. a. If SameValue(exportName, e.[[ExportName]]) is true, then
+        if (exportName.is(e.ExportName)) {
+          // 4. a. i. Assert: module provides the direct binding for this export.
+          this.logger.debug(`${this.path}.[ResolveExport] found direct binding for ${exportName['[[Value]]']}`);
 
-        return awaitIfPromise(
-          $importedModule,
-          () => true,
-          importedModule => {
-            if (importedModule.isAbrupt) { return importedModule.enrichWith(ctx, this); }
-
-            // 5. a. iii. Return importedModule.ResolveExport(e.[[ImportName]], resolveSet).
-            return importedModule.ResolveExport(ctx, e.ImportName as $String, resolveSet);
-          },
-        );
+          // 4. a. ii. Return ResolvedBinding Record { [[Module]]: module, [[BindingName]]: e.[[LocalName]] }.
+          cache.set(exportName['[[Value]]'], $resolution = new ResolvedBindingRecord(this, e));
+          return $resolution;
+        }
       }
-    }
 
-    // 6. If SameValue(exportName, "default") is true, then
-    if (exportName['[[Value]]'] === 'default') {
-      // 6. a. Assert: A default export was not explicitly defined by this module.
-      // 6. b. Return null.
-      this.logger.warn(`[ResolveExport] No default export defined`);
+      // 5. For each ExportEntry Record e in module.[[IndirectExportEntries]], do
+      for (const e of this.IndirectExportEntries) {
+        // 5. a. If SameValue(exportName, e.[[ExportName]]) is true, then
+        if (exportName.is(e.ExportName)) {
+          // 5. a. i. Assert: module imports a specific binding for this export.
+          this.logger.debug(`${this.path}.[ResolveExport] found specific imported binding for ${exportName['[[Value]]']}`);
 
-      return new $Null(realm);
-      // 6. c. NOTE: A default export cannot be provided by an export *.
-    }
+          // 5. a. ii. Let importedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
+          const $importedModule = this.moduleResolver.ResolveImportedModule(ctx, this, e.ModuleRequest as $String);
 
-    // 7. Let starResolution be null.
-    let starResolution: ResolvedBindingRecord | $Null = new $Null(realm);
-
-    let intermediate: MaybePromise<$String<'ambiguous'> | $Error> | undefined = void 0;
-    // 8. For each ExportEntry Record e in module.[[StarExportEntries]], do
-    for (const e of this.StarExportEntries) {
-      intermediate = awaitIfPromise(
-        intermediate as unknown as MaybePromise<$String<'ambiguous'> | $Error>,
-        value => value === void 0,
-        () => {
           return awaitIfPromise(
-            // 8. a. Let importedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
-            this.moduleResolver.ResolveImportedModule(ctx, this, e.ModuleRequest as $String),
+            $importedModule,
             () => true,
             importedModule => {
               if (importedModule.isAbrupt) { return importedModule.enrichWith(ctx, this); }
+
+              // 5. a. iii. Return importedModule.ResolveExport(e.[[ImportName]], resolveSet).
               return awaitIfPromise(
-                // 8. b. Let resolution be ? importedModule.ResolveExport(exportName, resolveSet).
-                importedModule.ResolveExport(ctx, exportName, resolveSet),
+                importedModule.ResolveExport(ctx, e.ImportName as $String, resolveSet),
                 () => true,
-                resolution => {
-                  if (resolution.isAbrupt) { return resolution.enrichWith(ctx, this); }
-
-                  // 8. c. If resolution is "ambiguous", return "ambiguous".
-                  if (resolution.isAmbiguous) {
-                    this.logger.warn(`[ResolveExport] ambiguous resolution for ${exportName['[[Value]]']}`);
-
-                    return resolution;
-                  }
-
-                  // 8. d. If resolution is not null, then
-                  if (!resolution.isNull) {
-                    // 8. d. i. Assert: resolution is a ResolvedBinding Record.
-                    // 8. d. ii. If starResolution is null, set starResolution to resolution.
-                    if (starResolution.isNull) {
-                      starResolution = resolution;
-                    }
-                    // 8. d. iii. Else,
-                    else {
-                      // 8. d. iii. 1. Assert: There is more than one * import that includes the requested name.
-                      // 8. d. iii. 2. If resolution.[[Module]] and starResolution.[[Module]] are not the same Module Record or SameValue(resolution.[[BindingName]], starResolution.[[BindingName]]) is false, return "ambiguous".
-                      if (!(resolution.Module === starResolution.Module && resolution.BindingName.is(starResolution.BindingName))) {
-                        this.logger.warn(`[ResolveExport] ambiguous resolution for ${exportName['[[Value]]']}`);
-
-                        return new $String(realm, 'ambiguous');
-                      }
-                    }
-                  }
+                resolvedExport => {
+                  cache.set(exportName['[[Value]]'], $resolution = resolvedExport);
+                  return $resolution;
                 },
               );
             },
           );
+        }
+      }
+
+      // 6. If SameValue(exportName, "default") is true, then
+      if (exportName['[[Value]]'] === 'default') {
+        // 6. a. Assert: A default export was not explicitly defined by this module.
+        // 6. b. Return null.
+        this.logger.warn(`[ResolveExport] No default export defined`);
+
+        cache.set(exportName['[[Value]]'], $resolution = new $Null(realm));
+        return $resolution;
+        // 6. c. NOTE: A default export cannot be provided by an export *.
+      }
+
+      // 7. Let starResolution be null.
+      let starResolution: ResolvedBindingRecord | $Null = new $Null(realm);
+
+      let intermediate: MaybePromise<$String<'ambiguous'> | $Error> | undefined = void 0;
+      // 8. For each ExportEntry Record e in module.[[StarExportEntries]], do
+      for (const e of this.StarExportEntries) {
+        intermediate = awaitIfPromise(
+          intermediate as unknown as MaybePromise<$String<'ambiguous'> | $Error>,
+          value => value === void 0,
+          () => {
+            return awaitIfPromise(
+              // 8. a. Let importedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
+              this.moduleResolver.ResolveImportedModule(ctx, this, e.ModuleRequest as $String),
+              () => true,
+              importedModule => {
+                if (importedModule.isAbrupt) { return importedModule.enrichWith(ctx, this); }
+                return awaitIfPromise(
+                  // 8. b. Let resolution be ? importedModule.ResolveExport(exportName, resolveSet).
+                  importedModule.ResolveExport(ctx, exportName, resolveSet),
+                  () => true,
+                  resolution => {
+                    if (resolution.isAbrupt) { return resolution.enrichWith(ctx, this); }
+
+                    // 8. c. If resolution is "ambiguous", return "ambiguous".
+                    if (resolution.isAmbiguous) {
+                      this.logger.warn(`[ResolveExport] ambiguous resolution for ${exportName['[[Value]]']}`);
+
+                      cache.set(exportName['[[Value]]'], $resolution = resolution);
+                      return $resolution;
+                    }
+
+                    // 8. d. If resolution is not null, then
+                    if (!resolution.isNull) {
+                      // 8. d. i. Assert: resolution is a ResolvedBinding Record.
+                      // 8. d. ii. If starResolution is null, set starResolution to resolution.
+                      if (starResolution.isNull) {
+                        starResolution = resolution;
+                      }
+                      // 8. d. iii. Else,
+                      else {
+                        // 8. d. iii. 1. Assert: There is more than one * import that includes the requested name.
+                        // 8. d. iii. 2. If resolution.[[Module]] and starResolution.[[Module]] are not the same Module Record or SameValue(resolution.[[BindingName]], starResolution.[[BindingName]]) is false, return "ambiguous".
+                        if (!(resolution.Module === starResolution.Module && resolution.BindingName.is(starResolution.BindingName))) {
+                          this.logger.warn(`[ResolveExport] ambiguous resolution for ${exportName['[[Value]]']}`);
+
+                          cache.set(exportName['[[Value]]'], $resolution = new $String(realm, 'ambiguous'));
+                          return $resolution;
+                        }
+                      }
+                    }
+                  },
+                );
+              },
+            );
+          },
+        );
+      }
+
+      return awaitIfPromise(
+        intermediate,
+        value => value === void 0,
+        () => {
+          if (starResolution.isNull) {
+            this.logger.warn(`[ResolveExport] starResolution is null for ${exportName['[[Value]]']}`);
+          }
+
+          // 9. Return starResolution.
+          cache.set(exportName['[[Value]]'], $resolution = starResolution);
+          return $resolution;
         },
       );
     }
 
-    return awaitIfPromise(
-      intermediate,
-      value => value === void 0,
-      () => {
-        if (starResolution.isNull) {
-          this.logger.warn(`[ResolveExport] starResolution is null for ${exportName['[[Value]]']}`);
-        }
-
-        // 9. Return starResolution.
-        return starResolution;
-      },
-    );
+    this.logger.trace(`ResolveExport(#${ctx.id},exportName=${exportName}) cache hit at ${this.$file.path}`);
+    return $resolution;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-moduleevaluation
@@ -2081,7 +2103,7 @@ export class $DocumentFragment implements I$Node, IModule {
 
     this.logger.debug(`${this.path}.[ResolveExport] returning content as '${exportName['[[Value]]']}'`);
 
-    return new ResolvedBindingRecord(this, exportName);
+    return new ResolvedBindingRecord(this, { LocalName: exportName } as any); // TODO: fixup
   }
 
   public async GetExportedNames(
@@ -2584,9 +2606,17 @@ export class $ExportAssignment implements I$Node {
     this.BoundNames = [intrinsics['*default*']];
   }
 
+  public get isValueAliasDeclaration(): boolean {
+    return true;
+  }
+
   public transform(tctx: TransformationContext): this | undefined {
     return this;
   }
+}
+
+function isValueAliasDeclaration(node: { readonly isValueAliasDeclaration: boolean }): boolean {
+  return node.isValueAliasDeclaration;
 }
 
 export class $ExportDeclaration implements I$Node {
@@ -2671,6 +2701,11 @@ export class $ExportDeclaration implements I$Node {
       this.ExportedNames = $exportClause.ExportedNames;
       this.ExportEntries = $exportClause.ExportEntriesForModule;
     }
+  }
+
+  public get isValueAliasDeclaration(): boolean {
+    const exportClause = this.$exportClause;
+    return exportClause !== void 0 && exportClause.$elements.some(isValueAliasDeclaration);
   }
 
   public transform(tctx: TransformationContext): this | undefined {
@@ -2815,8 +2850,52 @@ export class $ExportSpecifier implements I$Node {
     }
   }
 
+  private _valueDeclaration: ExportEntryRecord['source'] | undefined = void 0;
+  public get valueDeclaration(): ExportEntryRecord['source'] {
+    let valueDeclaration = this._valueDeclaration;
+    if (valueDeclaration === void 0) {
+      const mos = this.mos;
+      switch (mos.Status) {
+        case 'uninstantiated':
+        case 'instantiating':
+          throw new Error(`Module needs to be instantiated before valueDeclaration can be retrieved. Module is still ${mos.Status}`);
+        case 'instantiated':
+        case 'evaluating':
+        case 'evaluated': {
+          const binding = mos.ResolveExport(
+            /* ctx        */mos.realm.stack.top,
+            /* exportName */this.ExportedNames[0],
+            /* resolveSet */new ResolveSet(),
+          ) as ResolvedBindingRecord;
+          valueDeclaration = this._valueDeclaration = binding.ExportEntry.source;
+          break;
+        }
+      }
+    }
+
+    return valueDeclaration;
+  }
+
+  public get isValueAliasDeclaration(): boolean {
+    switch (this.valueDeclaration.$kind) {
+      case SyntaxKind.VariableStatement:
+      case SyntaxKind.FunctionDeclaration:
+      case SyntaxKind.ClassDeclaration:
+        return true; // TODO: elide ambient declarations
+      case SyntaxKind.InterfaceDeclaration:
+      case SyntaxKind.TypeAliasDeclaration:
+        return false;
+      case SyntaxKind.EnumDeclaration:
+        return true; // TODO: factor in const enum and settings
+      case SyntaxKind.ExportDeclaration:
+      case SyntaxKind.ExportSpecifier:
+      case SyntaxKind.SourceFile:
+        throw new Error(`Unexpected value declaration kind: ${this.valueDeclaration.$kind}`); // TODO: shouldn't be possible, probably need to fix typings a bit
+    }
+  }
+
   public transform(tctx: TransformationContext): this | undefined {
-    return this;
+    return this.isValueAliasDeclaration ? this : void 0;
   }
 }
 

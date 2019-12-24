@@ -175,8 +175,8 @@ export class $ComputedPropertyName implements I$Node {
     return this.Evaluate(ctx);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -280,8 +280,8 @@ export class $ObjectBindingPattern implements I$Node {
     return new $Empty(realm);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -479,8 +479,8 @@ export class $ArrayBindingPattern implements I$Node {
     return new $Empty(realm);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -771,8 +771,8 @@ export class $BindingElement implements I$Node {
     return BindingElement.InitializeBinding(ctx, v as $Object, environment).enrichWith(ctx, this);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -886,8 +886,8 @@ export class $SpreadElement implements I$Node {
     }
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -965,8 +965,8 @@ export class $OmittedExpression implements I$Node {
     return null as any; // TODO: implement this;
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 

@@ -250,8 +250,8 @@ export class $MethodDeclaration implements I$Node {
     return $FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
   }
 
-  public transform(tctx: TransformationContext): this | undefined {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -380,8 +380,8 @@ export class $GetAccessorDeclaration implements I$Node {
     return $FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
   }
 
-  public transform(tctx: TransformationContext): this | undefined {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -509,7 +509,7 @@ export class $SetAccessorDeclaration implements I$Node {
     return $FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
   }
 
-  public transform(tctx: TransformationContext): this | undefined {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }

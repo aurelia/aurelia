@@ -158,8 +158,8 @@ export class $HeritageClause implements I$Node {
     this.$types = $expressionWithTypeArgumentsList(node.types, this, ctx);
   }
 
-  public transform(tctx: TransformationContext): this | undefined {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -182,8 +182,8 @@ export class $ExpressionWithTypeArguments implements I$Node {
     this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx, -1);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -327,8 +327,8 @@ export class $ClassExpression implements I$Node {
     return value;
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -834,11 +834,11 @@ export class $ClassDeclaration implements I$Node {
     return this.ConstructorMethod!.EvaluateBody(ctx, functionObject, argumentsList);
   }
 
-  public transform(tctx: TransformationContext): this | undefined {
+  public transform(tctx: TransformationContext): this['node'] | undefined {
     if (hasBit(this.modifierFlags, ModifierFlags.Ambient)) {
       return void 0;
     }
-    return this;
+    return this.node;
   }
 }
 
@@ -875,8 +875,8 @@ export class $PropertyDeclaration implements I$Node {
     this.IsStatic = hasBit(modifierFlags, ModifierFlags.Static);
   }
 
-  public transform(tctx: TransformationContext): this | undefined {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -902,8 +902,8 @@ export class $SemicolonClassElement implements I$Node {
     public readonly path: string = `${parent.path}${$i(idx)}.SemicolonClassElement`,
   ) {}
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 

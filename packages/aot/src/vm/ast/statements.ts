@@ -305,11 +305,11 @@ export class $VariableStatement implements I$Node {
     return intrinsics.empty; // TODO: implement this
   }
 
-  public transform(tctx: TransformationContext): this | undefined {
+  public transform(tctx: TransformationContext): this['node'] | undefined {
     if (hasBit(this.modifierFlags, ModifierFlags.Ambient)) {
       return void 0;
     }
-    return this;
+    return this.node;
   }
 }
 
@@ -430,8 +430,8 @@ export class $VariableDeclaration implements I$Node {
     return ctx.Realm['[[Intrinsics]]'].empty;
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -511,8 +511,8 @@ export class $VariableDeclarationList implements I$Node {
     this.VarScopedDeclarations = $declarations.flatMap(getVarScopedDeclarations);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -679,8 +679,8 @@ export class $Block implements I$Node {
     return blockValue;
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -725,8 +725,8 @@ export class $EmptyStatement implements I$Node {
     return intrinsics.empty;
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -782,8 +782,8 @@ export class $ExpressionStatement implements I$Node {
     return this.$expression.Evaluate(ctx).GetValue(ctx).enrichWith(ctx, this);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -893,8 +893,8 @@ export class $IfStatement implements I$Node {
     }
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -982,8 +982,8 @@ export class $DoStatement implements I$Node {
     }
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -1071,8 +1071,8 @@ export class $WhileStatement implements I$Node {
     }
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -1192,8 +1192,8 @@ export class $ForStatement implements I$Node {
     return intrinsics.empty; // TODO: implement this
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -1332,8 +1332,8 @@ export class $ForInStatement implements I$Node {
     return intrinsics.empty; // TODO: implement this
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -1468,8 +1468,8 @@ export class $ForOfStatement implements I$Node {
     return intrinsics.empty; // TODO: implement this
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -1526,8 +1526,8 @@ export class $ContinueStatement implements I$Node {
     return new $Empty(realm, CompletionType.continue, this.$label.StringValue, this);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -1584,8 +1584,8 @@ export class $BreakStatement implements I$Node {
     return new $Empty(realm, CompletionType.break, this.$label.StringValue, this);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -1654,8 +1654,8 @@ export class $ReturnStatement implements I$Node {
     return exprValue.ToCompletion(CompletionType.return, intrinsics.empty);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -1718,8 +1718,8 @@ export class $WithStatement implements I$Node {
     return intrinsics.empty; // TODO: implement this
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -1935,8 +1935,8 @@ export class $SwitchStatement implements I$Node {
     return clause.$expression.Evaluate(ctx).GetValue(ctx)['[[Value]]'] === switchValue['[[Value]]'];
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -2063,8 +2063,8 @@ export class $LabeledStatement implements I$Node {
     return intrinsics.undefined; // TODO: implement this
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -2120,8 +2120,8 @@ export class $ThrowStatement implements I$Node {
     return exprValue.ToCompletion(CompletionType.throw, intrinsics.empty);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -2304,8 +2304,8 @@ export class $TryStatement implements I$Node {
     return B as $AnyNonEmpty; // TODO fix typings
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -2356,8 +2356,8 @@ export class $DebuggerStatement implements I$Node {
     return intrinsics.empty; // TODO: implement this
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -2426,8 +2426,8 @@ export class $CaseBlock implements I$Node {
     this.VarScopedDeclarations = $clauses.flatMap(getVarScopedDeclarations);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -2470,8 +2470,8 @@ export class $CaseClause implements I$Node {
     this.VarScopedDeclarations = $statements.flatMap(getVarScopedDeclarations);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -2512,8 +2512,8 @@ export class $DefaultClause implements I$Node {
     this.VarScopedDeclarations = $statements.flatMap(getVarScopedDeclarations);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -2560,8 +2560,8 @@ export class $CatchClause implements I$Node {
     }
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 

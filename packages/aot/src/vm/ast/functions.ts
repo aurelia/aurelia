@@ -197,10 +197,6 @@ export class $FormalParameterList extends Array<$ParameterDeclaration> {
       }
     }
   }
-
-  public transform(tctx: TransformationContext): this {
-    return this;
-  }
 }
 
 export class $FunctionExpression implements I$Node {
@@ -651,8 +647,8 @@ export class $FunctionExpression implements I$Node {
     return closure;
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -1129,8 +1125,8 @@ export class $FunctionDeclaration implements I$Node {
     return new $Empty(realm, CompletionType.normal, intrinsics.empty, this);
   }
 
-  public transform(tctx: TransformationContext): this | undefined {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -1607,8 +1603,8 @@ export class $ArrowFunction implements I$Node {
     return intrinsics.undefined; // TODO: implement this
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -1730,8 +1726,8 @@ export class $ConstructorDeclaration implements I$Node {
     return EvaluateBody(this, ctx, functionObject, argumentsList);
   }
 
-  public transform(tctx: TransformationContext): this | undefined {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -1906,7 +1902,7 @@ export class $ParameterDeclaration implements I$Node {
     // 12. Return result.
   }
 
-  public transform(tctx: TransformationContext): this | undefined {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }

@@ -85,8 +85,8 @@ export class $TemplateHead implements I$Node {
     return intrinsics.undefined; // TODO: implement this
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -119,8 +119,8 @@ export class $TemplateMiddle implements I$Node {
     return intrinsics.undefined; // TODO: implement this
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -158,8 +158,8 @@ export class $TemplateTail implements I$Node {
     return intrinsics.undefined; // TODO: implement this
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -227,8 +227,8 @@ export class $TemplateSpan implements I$Node {
     return intrinsics.undefined; // TODO: implement this
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -295,8 +295,8 @@ export class $NumericLiteral implements I$Node {
     return this.PropName;
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -344,8 +344,8 @@ export class $BigIntLiteral implements I$Node {
     return intrinsics['0']; // TODO: implement this
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -415,8 +415,8 @@ export class $StringLiteral implements I$Node {
     return this.PropName;
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -475,8 +475,8 @@ export class $RegularExpressionLiteral implements I$Node {
     return intrinsics['%ObjectPrototype%']; // TODO: implement this
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -527,8 +527,8 @@ export class $NoSubstitutionTemplateLiteral implements I$Node {
     return intrinsics['']; // TODO: implement this
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -580,8 +580,8 @@ export class $NullLiteral implements I$Node {
     return this.Value;
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -636,7 +636,7 @@ export class $BooleanLiteral implements I$Node {
     return this.Value;
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }

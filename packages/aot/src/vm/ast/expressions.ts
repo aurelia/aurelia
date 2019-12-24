@@ -227,8 +227,8 @@ export class $ThisExpression implements I$Node {
     return realm.ResolveThisBinding().enrichWith(ctx, this);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -290,8 +290,8 @@ export class $SuperExpression implements I$Node {
     return intrinsics.undefined; // TODO: implement this
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -505,8 +505,8 @@ export class $ArrayLiteralExpression implements I$Node {
     // 7. Return array.
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -622,8 +622,8 @@ export class $ObjectLiteralExpression implements I$Node {
     return obj;
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -704,8 +704,8 @@ export class $PropertyAssignment implements I$Node {
     return $CreateDataProperty(ctx, object, propKey, propValue);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -768,8 +768,8 @@ export class $ShorthandPropertyAssignment implements I$Node {
     return $CreateDataProperty(ctx, object, propName, propValue);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -822,8 +822,8 @@ export class $SpreadAssignment implements I$Node {
     return $CopyDataProperties(ctx, object, fromValue, excludedNames);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -881,8 +881,8 @@ export class $PropertyAccessExpression implements I$Node {
     return new $Reference(realm, baseValue, propertyNameString, strict, intrinsics.undefined);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -948,8 +948,8 @@ export class $ElementAccessExpression implements I$Node {
     return new $Reference(realm, baseValue, propertyKey, strict, intrinsics.undefined);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -1036,8 +1036,8 @@ export class $CallExpression implements I$Node {
     return intrinsics.undefined; // TODO: implement this
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -1245,8 +1245,8 @@ export class $NewExpression implements I$Node {
     return $Construct(ctx, constructor, argList, intrinsics.undefined).enrichWith(ctx, this);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -1311,8 +1311,8 @@ export class $TaggedTemplateExpression implements I$Node {
     return intrinsics.undefined; // TODO: implement this
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -1422,8 +1422,8 @@ export class $TemplateExpression implements I$Node {
     return intrinsics['']; // TODO: implement this
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -1473,8 +1473,8 @@ export class $ParenthesizedExpression implements I$Node {
     return this.$expression.Evaluate(ctx).enrichWith(ctx, this);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -1506,8 +1506,8 @@ export class $NonNullExpression implements I$Node {
     return this.$expression.Evaluate(ctx).enrichWith(ctx, this);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -1548,8 +1548,8 @@ export class $MetaProperty implements I$Node {
     return intrinsics.undefined; // TODO: implement this
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -1606,8 +1606,8 @@ export class $DeleteExpression implements I$Node {
     return intrinsics.true; // TODO: implement this
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -1694,8 +1694,8 @@ export class $TypeOfExpression implements I$Node {
     }
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -1742,8 +1742,8 @@ export class $VoidExpression implements I$Node {
     return intrinsics.undefined;
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -1786,8 +1786,8 @@ export class $AwaitExpression implements I$Node {
     return intrinsics.undefined; // TODO: implement this
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -1974,8 +1974,8 @@ export class $PrefixUnaryExpression implements I$Node {
     }
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -2072,8 +2072,8 @@ export class $PostfixUnaryExpression implements I$Node {
     }
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -2105,8 +2105,8 @@ export class $TypeAssertion implements I$Node {
     return this.$expression.Evaluate(ctx);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -3182,8 +3182,8 @@ export class $BinaryExpression implements I$Node {
     }
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -3240,8 +3240,8 @@ export class $ConditionalExpression implements I$Node {
     return intrinsics.undefined; // TODO: implement this
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -3344,8 +3344,8 @@ export class $YieldExpression implements I$Node {
     return intrinsics.undefined; // TODO: implement this
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -3377,8 +3377,8 @@ export class $AsExpression implements I$Node {
     return this.$expression.Evaluate(ctx);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 
@@ -3654,7 +3654,7 @@ export class $Identifier implements I$Node {
     return lhs.InitializeReferencedBinding(ctx, v as $AnyNonEmpty).enrichWith(ctx, this);
   }
 
-  public transform(tctx: TransformationContext): this {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }

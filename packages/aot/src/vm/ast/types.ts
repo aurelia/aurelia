@@ -279,8 +279,8 @@ export class $EnumDeclaration implements I$Node {
     }
   }
 
-  public transform(tctx: TransformationContext): this | undefined {
-    return this;
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }
 

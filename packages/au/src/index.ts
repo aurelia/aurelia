@@ -2,11 +2,16 @@ import {
   DebugConfiguration,
 } from '@aurelia/debug';
 import {
-  join,
+  join, resolve,
 } from 'path';
 import {
   spawn,
 } from 'child_process';
+import {
+  ServiceHost,
+  ExecutionContext,
+  TransformationContext,
+} from '@aurelia/aot';
 import {
   DI,
   LogLevel,
@@ -25,6 +30,7 @@ import {
   IHttpServerOptions,
   Encoding,
 } from '@aurelia/runtime-node';
+import { Printer, createPrinter, SourceFile } from 'typescript';
 
 export interface IBrowser {
   readonly name: string;
@@ -227,24 +233,33 @@ export class TestRunner {
   const container = DI.createContainer();
   container.register(
     RuntimeNodeConfiguration.create({
-      level: LogLevel.debug,
+      level: LogLevel.info,
       root: process.cwd(),
     }),
     Registration.singleton(IRequestHandler, FileServer),
   );
 
-  const server = container.get(IHttpServer);
-  await server.start();
-  // const host = new ServiceHost(container);
+  // const server = container.get(IHttpServer);
+  // await server.start();
+  const serviceHost = new ServiceHost(container);
 
-  // await host.executeEntryFile(root);
+  const fs = container.get(IFileSystem);
 
-  const runner = container.get(TestRunner);
-  await runner.prepare();
+  const entryFile = join(__dirname, '..', '..', '..', '__tests__', 'setup-au.ts');
+  const file = await fs.getFile(entryFile, true);
+  const result = await serviceHost.executeSpecificFile(file, 'module', false);
+  const [esmodule] = result.files;
+  const transformed = esmodule.transform(new TransformationContext());
+  const printer: Printer = createPrinter({ removeComments: false });
+  const content = printer.printFile(transformed);
+  await fs.writeFile(join(process.cwd(), 'setup-au.js'), content, Encoding.utf8);
 
-  const browser = container.get(ChromeBrowser);
-  const host = container.get(BrowserHost);
-  await host.open(browser, 'http://localhost:8080/index.html');
+  // const runner = container.get(TestRunner);
+  // await runner.prepare();
+
+  // const browser = container.get(ChromeBrowser);
+  // const browserHost = container.get(BrowserHost);
+  // await browserHost.open(browser, 'http://localhost:8080/index.html');
 
 })().catch(err => {
   console.error(err);

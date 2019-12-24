@@ -62,6 +62,7 @@ export {
 } from './vm/ast/modules';
 export {
   I$Node,
+  TransformationContext,
 } from './vm/ast/_shared';
 
 export {

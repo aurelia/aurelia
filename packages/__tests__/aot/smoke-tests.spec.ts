@@ -35,11 +35,11 @@ describe.skip('AOT (smoke tests)', function () {
       },
     }, 'module');
 
-    if (result.isAbrupt) {
+    if (result.result.isAbrupt) {
       assert.fail(`Evaluation error`);
     }
 
-    return ((result as $Undefined).sourceNode as $ESModule).ExecutionResult;
+    return ((result.result as $Undefined).sourceNode as $ESModule).ExecutionResult;
   }
 
   it('simple return statement with binary expression', async function () {

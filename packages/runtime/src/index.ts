@@ -300,6 +300,7 @@ export {
   PartialBindableDefinition,
   BindableDefinition,
   Bindable,
+  InterceptorFunc,
 } from './templating/bindable';
 
 export {

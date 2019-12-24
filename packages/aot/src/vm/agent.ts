@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 import {
   JobQueue,
   Job,
@@ -113,7 +114,7 @@ export class Agent implements IDisposable {
 
       // 3. j. Perform any implementation or host environment defined job initialization using nextPending.
       // 3. k. Let result be the result of performing the abstract operation named by nextPending.[[Job]] using the elements of nextPending.[[Arguments]] as its arguments.
-      const result = nextPending.Run(newContext);
+      const result = await nextPending.Run(newContext);
 
       // 3. l. If result is an abrupt completion, perform HostReportErrors(« result.[[Value]] »).
       if (result.isAbrupt) {
@@ -142,10 +143,13 @@ export class TopLevelModuleEvaluationJob extends Job<$ESModule> {
 
   // http://www.ecma-international.org/ecma-262/#sec-toplevelmoduleevaluationjob
   // 15.2.1.20 Runtime Semantics: TopLevelModuleEvaluationJob ( sourceText , hostDefined )
-  public Run(ctx: ExecutionContext): $Any {
+  public async Run(ctx: ExecutionContext): Promise<$Any> {
     this.logger.debug(`Run(#${ctx.id})`);
 
     const m = this['[[ScriptOrModule]]'];
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+    const options = realm.options;
 
     // 1. Assert: sourceText is an ECMAScript source text (see clause 10).
     // 2. Let realm be the current Realm Record.
@@ -155,14 +159,24 @@ export class TopLevelModuleEvaluationJob extends Job<$ESModule> {
       // 4. b. Return NormalCompletion(undefined).
 
     // 5. Perform ? m.Instantiate().
-    const result = m.Instantiate(ctx);
-    if (result.isAbrupt) {
-      return result;
-    }
+    if (options.instantiate) {
+      const result = await m.Instantiate(ctx);
+      if (result.isAbrupt) {
+        return result;
+      }
 
-    // 6. Assert: All dependencies of m have been transitively resolved and m is ready for evaluation.
-    // 7. Return ? m.Evaluate().
-    return m.EvaluateModule(ctx);
+      if (options.evaluate) {
+        // 6. Assert: All dependencies of m have been transitively resolved and m is ready for evaluation.
+        // 7. Return ? m.Evaluate().
+        return m.EvaluateModule(ctx);
+      } else {
+        this.logger.debug(`Skipping evaluate`);
+        return result;
+      }
+    } else {
+      this.logger.debug(`Skipping instantiate`);
+      return intrinsics.empty;
+    }
   }
 }
 
@@ -176,19 +190,33 @@ export class ScriptEvaluationJob extends Job<$ESScript> {
 
   // http://www.ecma-international.org/ecma-262/#sec-scriptevaluationjob
   // 15.1.12 Runtime Semantics: ScriptEvaluationJob ( sourceText , hostDefined )
-  public Run(ctx: ExecutionContext): $Any {
+  public async Run(ctx: ExecutionContext): Promise<$Any> {
     this.logger.debug(`Run(#${ctx.id})`);
 
     const m = this['[[ScriptOrModule]]'];
+    const realm = ctx.Realm;
+    const intrinsics = realm['[[Intrinsics]]'];
+    const options = realm.options;
 
     // 1. Assert: sourceText is an ECMAScript source text (see clause 10).
     // 2. Let realm be the current Realm Record.
 
-    // 3. Let s be ParseScript(sourceText, realm, hostDefined).
-    // 4. If s is a List of errors, then
-      // 4. a. Perform HostReportErrors(s).
-      // 4. b. Return NormalCompletion(undefined).
-    // 5. Return ? ScriptEvaluation(s).
-    return m.EvaluateScript(ctx);
+    if (options.instantiate) {
+      // 3. Let s be ParseScript(sourceText, realm, hostDefined).
+      // 4. If s is a List of errors, then
+        // 4. a. Perform HostReportErrors(s).
+        // 4. b. Return NormalCompletion(undefined).
+
+      if (options.evaluate) {
+        // 5. Return ? ScriptEvaluation(s).
+        return m.EvaluateScript(ctx);
+      } else {
+        this.logger.debug(`Skipping evaluate`);
+        return intrinsics.empty;
+      }
+    } else {
+      this.logger.debug(`Skipping instantiate`);
+      return intrinsics.empty;
+    }
   }
 }

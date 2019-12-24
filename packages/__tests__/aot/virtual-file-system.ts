@@ -157,6 +157,14 @@ export class VirtualFileSystem implements IFileSystem {
     throw new Error('Method not implemented.');
   }
 
+  public async getFile(dir: string, loadContent?: boolean): Promise<IFile> {
+    throw new Error('Method not implemented.');
+  }
+
+  public getFileSync(dir: string, loadContent?: boolean): IFile {
+    throw new Error('Method not implemented.');
+  }
+
   private getParentDir(path: string): Map<string, any> {
     // eslint-disable-next-line no-useless-escape
     const parts = path.split(/[\\\/]/);

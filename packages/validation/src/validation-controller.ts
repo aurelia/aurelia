@@ -16,32 +16,6 @@ import { RenderInstruction, ValidationRenderer } from './validation-renderer';
 import { IValidator } from './validator';
 
 export const VALIDATION_EVENT_CHANNEL = 'au:validation';
-/**
- * Validation triggers.
- */
-export const enum ValidationTrigger {
-  /**
-   * Manual validation.  Use the controller's `validate()` and  `reset()` methods
-   * to validate all bindings.
-   */
-  manual = "manual",
-
-  /**
-   * Validate the binding when the binding's target element fires a DOM "blur" event.
-   */
-  blur = "blur",
-
-  /**
-   * Validate the binding when it updates the model due to a change in the view.
-   */
-  change = "change",
-
-  /**
-   * Validate the binding when the binding's target element fires a DOM "blur" event and
-   * when it updates the model due to a change in the view.
-   */
-  changeOrBlur = "changeOrBlur"
-}
 
 export type BindingWithBehavior = IBinding & {
   sourceExpression: BindingBehaviorExpression;
@@ -53,7 +27,6 @@ export interface IValidationController {
   validator: IValidator;
   errors: ValidationResult[];
   validating: boolean;
-  trigger: ValidationTrigger;
   addObject(object: IValidateable, rules?: PropertyRule[]): void;
   removeObject(object: IValidateable): void;
   addError<TObject>(message: string, object: TObject, propertyName?: string | PropertyAccessor | null): ValidationResult;
@@ -65,7 +38,6 @@ export interface IValidationController {
   reset(instruction?: ValidateInstruction): void;
   validateBinding(binding: BindingWithBehavior): Promise<void>;
   resetBinding(binding: BindingWithBehavior): void;
-  changeTrigger(newTrigger: ValidationTrigger): void;
   revalidateErrors(): Promise<void>;
 }
 export const IValidationController = DI.createInterface<IValidationController>("IValidationController").noDefault();
@@ -103,11 +75,6 @@ export class ValidationController implements IValidationController {
 
   // Objects that have been added to the controller instance (entity-style validation).
   private readonly objects: Map<IValidateable, PropertyRule[] | undefined> = new Map<IValidateable, PropertyRule[] | undefined>();
-
-  /**
-   * The trigger that will invoke automatic validation of a property used in a binding.
-   */
-  public trigger: ValidationTrigger = ValidationTrigger.blur;
 
   public constructor(
     @IValidator public readonly validator: IValidator,
@@ -492,21 +459,6 @@ export class ValidationController implements IValidationController {
     bindingInfo.propertyInfo = void 0;
     const { object, propertyName } = propertyInfo;
     this.reset({ object, propertyName });
-  }
-
-  /**
-   * Changes the controller's validateTrigger.
-   *
-   * @param {ValidationTrigger} newTrigger - The new validateTrigger
-   */
-  public changeTrigger(newTrigger: ValidationTrigger) {
-    this.trigger = newTrigger;
-    for (const binding of this.bindings.keys()) {
-      // TODO fix this
-      const source = (binding as any).source;
-      (binding as any).unbind();
-      (binding as any).bind(source);
-    }
   }
 
   /**

@@ -11,7 +11,6 @@ import {
   BindingWithBehavior,
   IValidationController,
   ValidationController,
-  ValidationTrigger
 } from './validation-controller';
 import { IContainer } from '@aurelia/kernel';
 
@@ -91,7 +90,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
       controller = this.controller = this.container.get<IValidationController>(IValidationController);
     }
     if (trigger === void 0) {
-      trigger = controller.trigger;
+      trigger = ValidationTrigger.blur; // default trigger // TODO global configuration options
     }
     this.rules = rules;
     return trigger;
@@ -102,4 +101,31 @@ export class ValidateBindingBehavior extends BindingInterceptor {
       await this.controller.validateBinding(this.binding);
     });
   }
+}
+
+/**
+ * Validation triggers.
+ */
+export const enum ValidationTrigger {
+  /**
+   * Manual validation.  Use the controller's `validate()` and  `reset()` methods
+   * to validate all bindings.
+   */
+  manual = "manual",
+
+  /**
+   * Validate the binding when the binding's target element fires a DOM "blur" event.
+   */
+  blur = "blur",
+
+  /**
+   * Validate the binding when it updates the model due to a change in the view.
+   */
+  change = "change",
+
+  /**
+   * Validate the binding when the binding's target element fires a DOM "blur" event and
+   * when it updates the model due to a change in the view.
+   */
+  changeOrBlur = "changeOrBlur"
 }

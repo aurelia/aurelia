@@ -21,10 +21,13 @@ import { TypescriptCommentExtractor, ITypescriptCommentExtractor } from '../comm
 import { TypeParameterExtractor, ITypeParameterExtractor } from '../type-parameter/type-parameter-extractor';
 
 import { TypeCategory } from '../../../helpers';
+import { IComment } from '../../models/comment/comment';
+
+import { ApiConfiguration as extractorConfiguration } from '../../configurations';
 
 export interface IInterfaceExtractor {
-    extract(node: InterfaceDeclaration): InterfaceInfo;
-    extractAll(nodes: InterfaceDeclaration[]): InterfaceInfo[] | undefined;
+  extract(node: InterfaceDeclaration, filterElements?: (comment: IComment) => boolean): InterfaceInfo;
+  extractAll(nodes: InterfaceDeclaration[]): InterfaceInfo[] | undefined;
 }
 
 export class InterfaceExtractor implements IInterfaceExtractor {
@@ -33,8 +36,43 @@ export class InterfaceExtractor implements IInterfaceExtractor {
         private typeParameterExtractor: ITypeParameterExtractor = new TypeParameterExtractor(),
         private tsCommentExtractor: ITypescriptCommentExtractor = new TypescriptCommentExtractor(),
     ) {}
-    public extract(node: InterfaceDeclaration): InterfaceInfo {
+    public extract(node: InterfaceDeclaration, filterElements?: (comment: IComment) => boolean): InterfaceInfo {
         const comment = this.tsCommentExtractor.extract(node);
+
+        let properties =
+            node.getProperties().length === 0
+                ? void 0
+                : node.getProperties().map(item => this.getProperty(item));
+        let callSignatures =
+            node.getCallSignatures().length === 0
+                ? void 0
+                : node.getCallSignatures().map(item => this.getCallSignature(item));
+        let constructors =
+            node.getConstructSignatures().length === 0
+                ? void 0
+                : node.getConstructSignatures().map(item => this.getConstructor(item));
+        let extend =
+            node.getExtends().length === 0
+                ? void 0
+                : node.getExtends().map(item => this.typeExtractor.extract(node, item.getType()));
+        let indexers = node.getIndexSignatures().length === 0
+            ? void 0
+            : node.getIndexSignatures().map(item => this.getIndexer(item));
+
+        let methods = node.getMethods().length === 0 ? void 0 : node.getMethods().map(item => this.getMethod(item));
+
+        if (filterElements || extractorConfiguration.interfaces?.filterElements) {
+            /* eslint-disable */
+            const filter = filterElements || extractorConfiguration.interfaces!.filterElements;
+            /* eslint-disable */
+            constructors = constructors?.filter(filter);
+            properties = properties?.filter(filter);
+            callSignatures = callSignatures?.filter(filter);
+            // extend = extend?.filter(filter);
+            methods = methods?.filter(filter);
+            indexers = indexers?.filter(filter);
+        }
+
         return {
             path: node.getSourceFile().getFilePath(),
             name: node.getName(),
@@ -43,27 +81,12 @@ export class InterfaceExtractor implements IInterfaceExtractor {
             modifiers: node.getModifiers().length === 0 ? void 0 : node.getModifiers().map(item => item.getText()),
             comment: comment,
             typeCategory: TypeCategory.Interface,
-            properties:
-                node.getProperties().length === 0
-                    ? void 0
-                    : node.getProperties().map(item => this.getProperty(item)),
-            callSignatures:
-                node.getCallSignatures().length === 0
-                    ? void 0
-                    : node.getCallSignatures().map(item => this.getCallSignature(item)),
-            constructors:
-                node.getConstructSignatures().length === 0
-                    ? void 0
-                    : node.getConstructSignatures().map(item => this.getConstructor(item)),
-            extends:
-                node.getExtends().length === 0
-                    ? void 0
-                    : node.getExtends().map(item => this.typeExtractor.extract(node, item.getType())),
-            indexers:
-                node.getIndexSignatures().length === 0
-                    ? void 0
-                    : node.getIndexSignatures().map(item => this.getIndexer(item)),
-            methods: node.getMethods().length === 0 ? void 0 : node.getMethods().map(item => this.getMethod(item)),
+            properties: properties,
+            callSignatures: callSignatures,
+            constructors: constructors,
+            extends: extend,
+            indexers: indexers,
+            methods: methods,
         };
     }
 

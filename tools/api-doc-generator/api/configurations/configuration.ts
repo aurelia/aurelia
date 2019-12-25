@@ -17,6 +17,10 @@ export interface IApiConfiguration {
         filterElements: (element: IComment) => boolean;
     };
 
+    interfaces?: {
+        filterElements: (element: IComment) => boolean;
+    };
+
     source?: {
         ignore: ISourceFileIgnoreDeclarations;
     };

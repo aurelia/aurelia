@@ -75,6 +75,50 @@ describe('simple Computed Observer test case', function () {
       }
     },
     {
+      title: 'works in checkbox scenario',
+      template: '<input type="checkbox" checked.bind="itemNames[0]" >',
+      ViewModel: TestClass,
+      assertFn: (ctx, host, component) => {
+        const inputEl = host.querySelector('input');
+        // only care about true boolean
+        assert.strictEqual(inputEl.checked, false);
+
+        component.itemNames.splice(0, 1, true as any);
+        ctx.container.get(IScheduler).getRenderTaskQueue().flush();
+        assert.strictEqual(inputEl.checked, true, 'should have been checked');
+
+        inputEl.checked = false;
+        inputEl.dispatchEvent(new ctx.CustomEvent('change'));
+
+        assert.strictEqual(component.itemNames[0], false);
+
+        const dirtyChecker = ctx.container.get(IDirtyChecker) as any;
+        assert.strictEqual(dirtyChecker['tracked'].length, 0);
+      }
+    },
+    {
+      title: 'works in select scenario',
+      template:
+        `<select value.bind="itemNames[0]">
+          <option repeat.for="item of items">\${item.name}
+        `,
+      ViewModel: TestClass,
+      assertFn: (ctx, host, component) => {
+        const selectEl = host.querySelector('select');
+        assert.strictEqual(selectEl.value, 'i-0');
+        assert.strictEqual(selectEl.options[0].selected, true);
+
+        selectEl.options[1].selected = true;
+        selectEl.dispatchEvent(new ctx.CustomEvent('change'));
+        assert.strictEqual(component.itemNames[0], 'i-1');
+
+        component.itemNames.splice(0, 1, 'i-2');
+        assert.strictEqual(selectEl.value, 'i-1');
+        ctx.container.get(IScheduler).getRenderTaskQueue().flush();
+        assert.strictEqual(selectEl.value, 'i-2');
+      }
+    },
+    {
       title: 'works in repeat scenario',
       template:
         `<input

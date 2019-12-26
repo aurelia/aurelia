@@ -263,7 +263,7 @@ export class $MethodDeclaration implements I$Node {
     const transformedModifiers = node.modifiers === void 0 ? void 0 : transformModifiers(node.modifiers);
 
     if (
-      this.$decorators === void 0 &&
+      this.$decorators.length === 0 &&
       (node.modifiers === void 0 || transformedModifiers === void 0) &&
       node.name === transformedName &&
       node.questionToken === void 0 &&
@@ -422,7 +422,7 @@ export class $GetAccessorDeclaration implements I$Node {
     const transformedModifiers = node.modifiers === void 0 ? void 0 : transformModifiers(node.modifiers);
 
     if (
-      this.$decorators === void 0 &&
+      this.$decorators.length === 0 &&
       (node.modifiers === void 0 || transformedModifiers === void 0) &&
       node.name === transformedName &&
       transformedParameters === void 0 &&
@@ -575,7 +575,7 @@ export class $SetAccessorDeclaration implements I$Node {
     const transformedModifiers = node.modifiers === void 0 ? void 0 : transformModifiers(node.modifiers);
 
     if (
-      this.$decorators === void 0 &&
+      this.$decorators.length === 0 &&
       (node.modifiers === void 0 || transformedModifiers === void 0) &&
       node.name === transformedName &&
       transformedParameters === void 0 &&

@@ -1161,7 +1161,7 @@ export class $FunctionDeclaration implements I$Node {
     const transformedModifiers = node.modifiers === void 0 ? void 0 : transformModifiers(node.modifiers);
 
     if (
-      this.$decorators === void 0 &&
+      this.$decorators.length === 0 &&
       (node.modifiers === void 0 || transformedModifiers === void 0) &&
       node.typeParameters === void 0 &&
       transformedParameters === void 0 &&
@@ -1808,7 +1808,7 @@ export class $ConstructorDeclaration implements I$Node {
     const transformedBody = this.$body.transform(tctx);
 
     if (
-      this.$decorators === void 0 &&
+      this.$decorators.length === 0 &&
       node.modifiers === void 0 &&
       transformedParameters === void 0 &&
       node.body === transformedBody

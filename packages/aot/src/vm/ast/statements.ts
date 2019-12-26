@@ -39,6 +39,7 @@ import {
   createExpressionStatement,
   createIf,
   createDo,
+  createWhile,
 } from 'typescript';
 import {
   PLATFORM,
@@ -1161,6 +1162,20 @@ export class $WhileStatement implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const transformedExpression = this.$expression.transform(tctx);
+    const transformedStatement = this.$statement.transform(tctx);
+
+    const node = this.node;
+    if (
+      node.expression !== transformedExpression ||
+      node.statement !== transformedStatement
+    ) {
+      return createWhile(
+        transformedExpression,
+        transformedStatement === void 0 ? createBlock([]) : transformedStatement,
+      );
+    }
+
     return this.node;
   }
 }

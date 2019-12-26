@@ -42,6 +42,7 @@ import {
   createVoid,
   createTypeOf,
   createDelete,
+  createParen,
 } from 'typescript';
 import {
   PLATFORM,
@@ -1516,8 +1517,17 @@ export class $ParenthesizedExpression implements I$Node {
     return this.$expression.Evaluate(ctx).enrichWith(ctx, this);
   }
 
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+  public transform(tctx: TransformationContext): $$AssignmentExpressionOrHigher['node'] {
+    const transformed = this.$expression.transform(tctx);
+    if (transformed === this.node.expression) {
+      return this.node;
+    }
+    if (transformed.kind === SyntaxKind.Identifier) {
+      return transformed;
+    }
+    return createParen(
+      transformed,
+    );
   }
 }
 
@@ -1550,7 +1560,7 @@ export class $NonNullExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): $$LHSExpressionOrHigher['node'] {
-    return this.$expression.transform(tctx);
+    return this.$expression.transform(tctx) as $$LHSExpressionOrHigher['node']; // TODO(fkleuver): fix typing
   }
 }
 
@@ -3459,7 +3469,7 @@ export class $AsExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): $$UpdateExpressionOrHigher['node'] {
-    return this.$expression.transform(tctx);
+    return this.$expression.transform(tctx) as $$UpdateExpressionOrHigher['node']; // TODO(fkleuver): fix typing
   }
 }
 

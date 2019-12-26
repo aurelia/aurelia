@@ -4,6 +4,7 @@ import {
   ModifierFlags,
   SetAccessorDeclaration,
   SyntaxKind,
+  createMethod,
 } from 'typescript';
 import {
   ILogger,
@@ -49,6 +50,8 @@ import {
   $$ESVarDeclaration,
   FunctionKind,
   TransformationContext,
+  transformList,
+  transformModifiers,
 } from './_shared';
 import {
   $$ESModuleOrScript,
@@ -251,7 +254,36 @@ export class $MethodDeclaration implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const node = this.node;
+    const transformedName = this.$name.transform(tctx);
+    const transformedParameters = transformList(tctx, this.$parameters, node.parameters);
+    const transformedBody = this.$body.transform(tctx);
+    const transformedModifiers = node.modifiers === void 0 ? void 0 : transformModifiers(node.modifiers);
+
+    if (
+      this.$decorators === void 0 &&
+      (node.modifiers === void 0 || transformedModifiers === void 0) &&
+      node.name === transformedName &&
+      node.questionToken === void 0 &&
+      node.typeParameters === void 0 &&
+      transformedParameters === void 0 &&
+      node.type === void 0 &&
+      node.body === transformedBody
+    ) {
+      return this.node;
+    }
+
+    return createMethod(
+      void 0,
+      transformedModifiers === void 0 ? node.modifiers : transformedModifiers,
+      node.asteriskToken,
+      transformedName,
+      void 0,
+      void 0,
+      transformedParameters === void 0 ? node.parameters : transformedParameters,
+      void 0,
+      transformedBody,
+    );
   }
 }
 

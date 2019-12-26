@@ -1447,3 +1447,38 @@ export function transformList<T>(
 
   return transformedList;
 }
+
+export function transformModifiers(
+  modifiers: readonly Modifier[],
+): readonly Modifier[] | undefined {
+  let transformedList: Modifier[] | undefined = void 0;
+  let modifier: Modifier;
+
+  let x = 0;
+  for (let i = 0, ii = modifiers.length; i < ii; ++i) {
+    modifier = modifiers[i];
+    switch (modifier.kind) {
+      case SyntaxKind.ConstKeyword:
+      case SyntaxKind.DeclareKeyword:
+      case SyntaxKind.AbstractKeyword:
+      case SyntaxKind.PublicKeyword:
+      case SyntaxKind.PrivateKeyword:
+      case SyntaxKind.ProtectedKeyword:
+      case SyntaxKind.ReadonlyKeyword:
+        if (transformedList === void 0) {
+          transformedList = modifiers.slice(0, x = i);
+        }
+        break;
+      case SyntaxKind.AsyncKeyword:
+      case SyntaxKind.DefaultKeyword:
+      case SyntaxKind.ExportKeyword:
+      case SyntaxKind.StaticKeyword:
+        if (transformedList !== void 0) {
+          transformedList[x++] = modifier;
+        }
+        break;
+    }
+  }
+
+  return transformedList;
+}

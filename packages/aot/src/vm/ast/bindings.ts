@@ -8,6 +8,7 @@ import {
   OmittedExpression,
   SpreadElement,
   SyntaxKind,
+  createArrayBindingPattern,
 } from 'typescript';
 import {
   PLATFORM,
@@ -64,6 +65,7 @@ import {
   getIsSimpleParameterList,
   $i,
   TransformationContext,
+  transformList,
 } from './_shared';
 import {
   $$ESModuleOrScript,
@@ -480,7 +482,14 @@ export class $ArrayBindingPattern implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const node = this.node;
+    const transformedList = transformList(tctx, this.$elements, node.elements);
+    if (transformedList === void 0) {
+      return node;
+    }
+    return createArrayBindingPattern(
+      transformedList,
+    );
   }
 }
 

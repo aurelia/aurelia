@@ -9,6 +9,7 @@ import {
   SyntaxKind,
   createFunctionExpression,
   createFunctionDeclaration,
+  createArrowFunction,
 } from 'typescript';
 import {
   PLATFORM,
@@ -1656,7 +1657,29 @@ export class $ArrowFunction implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const node = this.node;
+    const transformedParameters = transformList(tctx, this.$parameters, node.parameters);
+    const transformedBody = this.$body.transform(tctx);
+    const transformedModifiers = node.modifiers === void 0 ? void 0 : transformModifiers(node.modifiers);
+
+    if (
+      (node.modifiers === void 0 || transformedModifiers === void 0) &&
+      node.typeParameters === void 0 &&
+      transformedParameters === void 0 &&
+      node.type === void 0 &&
+      node.body === transformedBody
+    ) {
+      return this.node;
+    }
+
+    return createArrowFunction(
+      transformedModifiers === void 0 ? node.modifiers : transformedModifiers,
+      void 0,
+      transformedParameters === void 0 ? node.parameters : transformedParameters,
+      void 0,
+      node.equalsGreaterThanToken,
+      transformedBody,
+    );
   }
 }
 

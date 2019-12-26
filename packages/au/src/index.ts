@@ -253,11 +253,9 @@ export class TestRunner {
       file: join(__dirname, '..', '..', '..', '__tests__', 'setup-au.ts')
     }]
   });
-  const [esmodule] = result.ws.modules;
-  const transformed = esmodule.transform(new TransformationContext());
-  const printer: Printer = createPrinter({ removeComments: false });
-  const content = printer.printFile(transformed);
-  await fs.writeFile(join(process.cwd(), 'setup-au.js'), content, Encoding.utf8);
+  const outDir = join(__dirname, '..', '..', '__dist');
+  await fs.rimraf(outDir);
+  await result.ws.emit({ outDir });
 
   // const runner = container.get(TestRunner);
   // await runner.prepare();

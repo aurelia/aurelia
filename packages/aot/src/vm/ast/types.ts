@@ -5,6 +5,23 @@ import {
   ModifierFlags,
   SyntaxKind,
   TypeAliasDeclaration,
+  VariableStatement,
+  createVariableStatement,
+  createVariableDeclarationList,
+  createVariableDeclaration,
+  createCall,
+  createFunctionExpression,
+  createToken,
+  createModifier,
+  createParameter,
+  createBlock,
+  createLogicalOr,
+  createAssignment,
+  createObjectLiteral,
+  createExpressionStatement,
+  createElementAccess,
+  createNumericLiteral,
+  Identifier,
 } from 'typescript';
 import {
   PLATFORM,
@@ -279,8 +296,64 @@ export class $EnumDeclaration implements I$Node {
     }
   }
 
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+  public transform(tctx: TransformationContext): VariableStatement {
+    const node = this.node;
+    // TODO: inline const enums instead
+    return createVariableStatement(
+      node.modifiers,
+      createVariableDeclarationList(
+        [
+          createVariableDeclaration(
+            node.name,
+            void 0,
+            createCall(
+              createFunctionExpression(
+                void 0,
+                void 0,
+                void 0,
+                void 0,
+                [
+                  createParameter(
+                    void 0,
+                    void 0,
+                    void 0,
+                    node.name,
+                  ),
+                ],
+                void 0,
+                createBlock(node.members.map((m, i) => createExpressionStatement(
+                  createAssignment(
+                    createElementAccess(
+                      node.name,
+                      createAssignment(
+                        createElementAccess(
+                          node.name,
+                          m.name as Identifier,
+                        ),
+                        m.initializer === void 0
+                          ? createNumericLiteral(i.toString())
+                          : m.initializer,
+                      ),
+                    ),
+                    m.name as Identifier,
+                  ),
+                ))),
+              ),
+              void 0,
+              [
+                createLogicalOr(
+                  node.name,
+                  createAssignment(
+                    node.name,
+                    createObjectLiteral(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

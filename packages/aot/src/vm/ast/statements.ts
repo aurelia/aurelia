@@ -47,6 +47,7 @@ import {
   createWith,
   createSwitch,
   createLabel,
+  createThrow,
 } from 'typescript';
 import {
   PLATFORM,
@@ -2337,6 +2338,17 @@ export class $ThrowStatement implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const transformedExpression = this.$expression.transform(tctx);
+
+    const node = this.node;
+    if (
+      node.expression !== transformedExpression
+    ) {
+      return createThrow(
+        transformedExpression,
+      );
+    }
+
     return this.node;
   }
 }

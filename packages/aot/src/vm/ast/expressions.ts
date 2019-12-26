@@ -45,6 +45,7 @@ import {
   createParen,
   createBinary,
   createConditional,
+  createYield,
 } from 'typescript';
 import {
   PLATFORM,
@@ -3470,7 +3471,15 @@ export class $YieldExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const transformed = this.$expression.transform(tctx);
+
+    const node = this.node;
+    if (transformed === node.expression) {
+      return node;
+    }
+    return createYield(
+      transformed,
+    );
   }
 }
 

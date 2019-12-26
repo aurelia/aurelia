@@ -48,6 +48,7 @@ import {
   createYield,
   createTemplateExpression,
   createTaggedTemplate,
+  createNew,
 } from 'typescript';
 import {
   PLATFORM,
@@ -1295,7 +1296,27 @@ export class $NewExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const node = this.node;
+    const transformedExpression = this.$expression.transform(tctx);
+    const transformedArguments = node.arguments === void 0 ? void 0 : transformList(tctx, this.$arguments, node.arguments);
+
+    if (
+      node.expression === transformedExpression &&
+      transformedArguments === void 0 &&
+      node.typeArguments === void 0
+    ) {
+      return this.node;
+    }
+
+    return createNew(
+      transformedExpression,
+      void 0,
+      node.arguments === void 0
+        ? void 0
+        : transformedArguments === void 0
+          ? node.arguments
+          : transformedArguments,
+    );
   }
 }
 

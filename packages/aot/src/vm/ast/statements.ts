@@ -42,6 +42,7 @@ import {
   createWhile,
   createFor,
   createForIn,
+  createForOf,
 } from 'typescript';
 import {
   PLATFORM,
@@ -1612,6 +1613,24 @@ export class $ForOfStatement implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const transformedInitializer = this.$initializer.transform(tctx);
+    const transformedExpression = this.$expression.transform(tctx);
+    const transformedStatement = this.$statement.transform(tctx);
+
+    const node = this.node;
+    if (
+      node.initializer !== transformedInitializer ||
+      node.expression !== transformedExpression ||
+      node.statement !== transformedStatement
+    ) {
+      return createForOf(
+        this.node.awaitModifier,
+        transformedInitializer,
+        transformedExpression,
+        transformedStatement === void 0 ? createBlock([]) : transformedStatement,
+      );
+    }
+
     return this.node;
   }
 }

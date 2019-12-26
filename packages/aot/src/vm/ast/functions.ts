@@ -10,6 +10,7 @@ import {
   createFunctionExpression,
   createFunctionDeclaration,
   createArrowFunction,
+  createConstructor,
 } from 'typescript';
 import {
   PLATFORM,
@@ -1802,7 +1803,25 @@ export class $ConstructorDeclaration implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const node = this.node;
+    const transformedParameters = transformList(tctx, this.$parameters, node.parameters);
+    const transformedBody = this.$body.transform(tctx);
+
+    if (
+      this.$decorators === void 0 &&
+      node.modifiers === void 0 &&
+      transformedParameters === void 0 &&
+      node.body === transformedBody
+    ) {
+      return this.node;
+    }
+
+    return createConstructor(
+      void 0,
+      void 0,
+      transformedParameters === void 0 ? node.parameters : transformedParameters,
+      transformedBody,
+    );
   }
 }
 

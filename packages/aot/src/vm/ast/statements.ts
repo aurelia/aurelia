@@ -36,6 +36,7 @@ import {
   createVariableDeclarationList,
   createBlock,
   Statement,
+  createExpressionStatement,
 } from 'typescript';
 import {
   PLATFORM,
@@ -832,7 +833,13 @@ export class $ExpressionStatement implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const transformed = this.$expression.transform(tctx);
+    if (transformed === this.node.expression) {
+      return this.node;
+    }
+    return createExpressionStatement(
+      transformed,
+    );
   }
 }
 

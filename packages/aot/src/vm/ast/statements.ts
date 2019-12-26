@@ -33,6 +33,7 @@ import {
   CaseOrDefaultClause,
   createVariableStatement,
   createVariableDeclaration,
+  createVariableDeclarationList,
 } from 'typescript';
 import {
   PLATFORM,
@@ -90,6 +91,7 @@ import {
   $i,
   $$ESVarDeclaration,
   TransformationContext,
+  transformList,
 } from './_shared';
 import {
   ExportEntryRecord,
@@ -542,7 +544,13 @@ export class $VariableDeclarationList implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const transformedList = transformList(tctx, this.$declarations, this.node.declarations);
+
+    if (transformedList === void 0) {
+      return this.node;
+    }
+
+    return createVariableDeclarationList(transformedList);
   }
 }
 

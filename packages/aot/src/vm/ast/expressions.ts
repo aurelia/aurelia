@@ -40,6 +40,7 @@ import {
   createPrefix,
   createPostfix,
   createVoid,
+  createTypeOf,
 } from 'typescript';
 import {
   PLATFORM,
@@ -1736,7 +1737,13 @@ export class $TypeOfExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const transformed = this.$expression.transform(tctx);
+    if (transformed === this.node.expression) {
+      return this.node;
+    }
+    return createTypeOf(
+      transformed,
+    );
   }
 }
 

@@ -18,9 +18,6 @@ import {
 } from '@aurelia/kernel';
 import {
   ServiceHost,
-  ExecutionContext,
-  $$ESModuleOrScript,
-  IServiceHost,
   $Any,
 } from '@aurelia/aot';
 import {
@@ -96,11 +93,11 @@ class TestCase implements IDisposable {
   public readonly meta: TestMetadata | null;
   public readonly files: readonly IFile[];
 
-  private _host: IServiceHost | null = null;
-  public get host(): IServiceHost {
+  private _host: ServiceHost | null = null;
+  public get host(): ServiceHost {
     let host = this._host;
     if (host === null) {
-      host = this._host = new ServiceHost(this.container);
+      host = this._host = this.container.get(ServiceHost);
     }
     return host;
   }
@@ -115,15 +112,12 @@ class TestCase implements IDisposable {
     this.files = [...prerequisites, file];
   }
 
-  public async GetSourceFiles(ctx: ExecutionContext): Promise<readonly $$ESModuleOrScript[]> {
-    const host = this.host;
-    // eslint-disable-next-line @typescript-eslint/promise-function-async
-    return Promise.all(this.files.map(x => host.loadSpecificFile(ctx, x, 'script'))); // TODO: decide this based on meta
-  }
-
   // eslint-disable-next-line @typescript-eslint/promise-function-async
-  public run(): Promise<$Any> {
-    return this.host.executeProvider(this);
+  public async run(): Promise<$Any> {
+    return (await this.host.execute({
+      evaluate: true,
+      entries: this.files.map(x => ({ file: x, mode: 'script' })),
+    })).result;
   }
 
   public dispose(

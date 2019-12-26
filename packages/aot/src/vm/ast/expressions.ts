@@ -35,6 +35,7 @@ import {
   YieldExpression,
   createArrayLiteral,
   createObjectLiteral,
+  createSpreadAssignment,
 } from 'typescript';
 import {
   PLATFORM,
@@ -852,7 +853,14 @@ export class $SpreadAssignment implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const transformed = this.$expression.transform(tctx);
+    if (transformed === this.node.expression) {
+      return this.node;
+    }
+
+    return createSpreadAssignment(
+      transformed,
+    );
   }
 }
 

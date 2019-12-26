@@ -47,6 +47,7 @@ import {
   createConditional,
   createYield,
   createTemplateExpression,
+  createTaggedTemplate,
 } from 'typescript';
 import {
   PLATFORM,
@@ -1360,7 +1361,21 @@ export class $TaggedTemplateExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const transformedTag = this.$tag.transform(tctx);
+    const transformedTemplate = this.$template.transform(tctx);
+
+    const node = this.node;
+    if (
+      node.tag === transformedTag &&
+      node.template === transformedTemplate
+    ) {
+      return node;
+    }
+
+    return createTaggedTemplate(
+      transformedTag,
+      transformedTemplate,
+    );
   }
 }
 

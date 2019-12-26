@@ -49,6 +49,7 @@ import {
   createTemplateExpression,
   createTaggedTemplate,
   createNew,
+  createCall,
 } from 'typescript';
 import {
   PLATFORM,
@@ -1087,7 +1088,25 @@ export class $CallExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const node = this.node;
+    const transformedExpression = this.$expression.transform(tctx);
+    const transformedArguments = transformList(tctx, this.$arguments, node.arguments);
+
+    if (
+      node.expression === transformedExpression &&
+      transformedArguments === void 0 &&
+      node.typeArguments === void 0
+    ) {
+      return this.node;
+    }
+
+    return createCall(
+      transformedExpression,
+      void 0,
+      transformedArguments === void 0
+        ? node.arguments
+        : transformedArguments,
+    );
   }
 }
 

@@ -11,6 +11,8 @@ import {
   createFunctionDeclaration,
   createArrowFunction,
   createConstructor,
+  Identifier,
+  createParameter,
 } from 'typescript';
 import {
   PLATFORM,
@@ -1996,7 +1998,37 @@ export class $ParameterDeclaration implements I$Node {
     // 12. Return result.
   }
 
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+  public transform(tctx: TransformationContext): this['node'] | undefined {
+    const node = this.node;
+    if (
+      node.name.kind === SyntaxKind.Identifier &&
+      node.name.originalKeywordKind === SyntaxKind.ThisKeyword
+    ) {
+      return void 0;
+    }
+
+    const transformedName = this.$name.transform(tctx);
+    const transformedInitializer = this.$initializer === void 0 ? void 0 : this.$initializer.transform(tctx);
+
+    if (
+      this.$decorators.length === 0 &&
+      node.modifiers === void 0 &&
+      node.name === transformedName &&
+      node.initializer === transformedInitializer &&
+      node.questionToken === void 0 &&
+      node.type === void 0
+    ) {
+      return this.node;
+    }
+
+    return createParameter(
+      void 0,
+      void 0,
+      node.dotDotDotToken,
+      transformedName,
+      void 0,
+      void 0,
+      transformedInitializer,
+    );
   }
 }

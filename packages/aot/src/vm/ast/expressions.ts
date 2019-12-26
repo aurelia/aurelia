@@ -38,6 +38,7 @@ import {
   createSpreadAssignment,
   createAwait,
   createPrefix,
+  createPostfix,
 } from 'typescript';
 import {
   PLATFORM,
@@ -2125,7 +2126,14 @@ export class $PostfixUnaryExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const transformed = this.$operand.transform(tctx);
+    if (transformed === this.node.operand) {
+      return this.node;
+    }
+    return createPostfix(
+      transformed,
+      this.node.operator,
+    );
   }
 }
 

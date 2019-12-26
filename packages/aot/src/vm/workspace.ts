@@ -344,8 +344,16 @@ export class Workspace implements IContainer {
     const commonRootDirLength = commonRootDir.length;
 
     this.logger.info(`Emitting ${inputs.length} files (with common root dir: "${commonRootDir}") to: "${outDir}"`);
-    const objects = inputs.map(x => EmitObject.create(x, transformContext, printer, outDir, commonRootDirLength));
-    await Promise.all(objects.map(x => fs.writeFile(x.outPath, x.outContent, Encoding.utf8)));
+
+    const emitObjs = inputs.map(input => EmitObject.create(
+      /* fs                  */fs,
+      /* input               */input,
+      /* transformContext    */transformContext,
+      /* printer             */printer,
+      /* outDir              */outDir,
+      /* commonRootDirLength */commonRootDirLength,
+    ));
+    await Promise.all(emitObjs.map(x => x.emit()));
 
     this.logger.info(`Emit finished`);
   }
@@ -563,12 +571,14 @@ function getDirFromFile(value: { $file: { dir: string }}): string {
 
 class EmitObject {
   public constructor(
+    private readonly fs: IFileSystem,
     public readonly input: $$ESModuleOrScript,
     public readonly outPath: string,
     public readonly outContent: string,
   ) {}
 
   public static create(
+    fs: IFileSystem,
     input: $$ESModuleOrScript,
     transformContext: TransformationContext,
     printer: Printer,
@@ -582,9 +592,14 @@ class EmitObject {
       outPath = `${outPath.slice(0, -2)}js`;
     }
     return new EmitObject(
+      fs,
       input,
       outPath,
       content,
     );
+  }
+
+  public emit(): Promise<void> {
+    return this.fs.writeFile(this.outPath, this.outContent, Encoding.utf8);
   }
 }

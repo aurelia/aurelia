@@ -9,6 +9,7 @@ import {
   SpreadElement,
   SyntaxKind,
   createArrayBindingPattern,
+  createObjectBindingPattern,
 } from 'typescript';
 import {
   PLATFORM,
@@ -283,7 +284,14 @@ export class $ObjectBindingPattern implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const node = this.node;
+    const transformedList = transformList(tctx, this.$elements, node.elements);
+    if (transformedList === void 0) {
+      return node;
+    }
+    return createObjectBindingPattern(
+      transformedList,
+    );
   }
 }
 

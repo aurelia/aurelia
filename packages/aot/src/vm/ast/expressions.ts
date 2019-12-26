@@ -39,6 +39,7 @@ import {
   createAwait,
   createPrefix,
   createPostfix,
+  createVoid,
 } from 'typescript';
 import {
   PLATFORM,
@@ -1783,7 +1784,13 @@ export class $VoidExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const transformed = this.$expression.transform(tctx);
+    if (transformed === this.node.expression) {
+      return this.node;
+    }
+    return createVoid(
+      transformed,
+    );
   }
 }
 

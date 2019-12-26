@@ -45,6 +45,7 @@ import {
   createForOf,
   createReturn,
   createWith,
+  createSwitch,
 } from 'typescript';
 import {
   PLATFORM,
@@ -2124,6 +2125,20 @@ export class $SwitchStatement implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const transformedExpression = this.$expression.transform(tctx);
+    const transformedCaseBlock = this.$caseBlock.transform(tctx);
+
+    const node = this.node;
+    if (
+      node.expression !== transformedExpression ||
+      node.caseBlock !== transformedCaseBlock
+    ) {
+      return createSwitch(
+        transformedExpression,
+        transformedCaseBlock,
+      );
+    }
+
     return this.node;
   }
 }

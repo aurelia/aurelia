@@ -50,6 +50,7 @@ import {
   createThrow,
   createTry,
   createCaseBlock,
+  createCaseClause,
 } from 'typescript';
 import {
   PLATFORM,
@@ -2675,7 +2676,7 @@ export class $CaseBlock implements I$Node {
 
   public transform(tctx: TransformationContext): this['node'] {
     const transformedList = transformList(tctx, this.$clauses, this.node.clauses);
-    if (transformList === void 0) {
+    if (transformedList === void 0) {
       return this.node;
     }
     return createCaseBlock(
@@ -2724,7 +2725,16 @@ export class $CaseClause implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const transformedExpression = this.$expression.transform(tctx);
+    const transformedStatements = transformList(tctx, this.$statements, this.node.statements as readonly $$TSStatementListItem['node'][]);
+
+    if (transformedStatements === void 0) {
+      return this.node;
+    }
+    return createCaseClause(
+      transformedExpression,
+      transformedStatements === void 0 ? [] : transformedStatements as NodeArray<Statement>,
+    );
   }
 }
 

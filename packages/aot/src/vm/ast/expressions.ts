@@ -43,6 +43,7 @@ import {
   createTypeOf,
   createDelete,
   createParen,
+  createBinary,
 } from 'typescript';
 import {
   PLATFORM,
@@ -3274,7 +3275,22 @@ export class $BinaryExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const transformedLeft = this.$left.transform(tctx);
+    const transformedRight = this.$right.transform(tctx);
+
+    const node = this.node;
+    if (
+      node.left === transformedLeft &&
+      node.right === transformedRight
+    ) {
+      return node;
+    }
+
+    return createBinary(
+      transformedLeft,
+      node.operatorToken,
+      transformedRight,
+    );
   }
 }
 

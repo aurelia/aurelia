@@ -10,7 +10,6 @@ import {
   Registration,
   ILogger,
   Writable,
-  Char,
 } from '@aurelia/kernel';
 import {
   IFile,
@@ -53,6 +52,7 @@ import {
 import {
   MaybePromise,
   awaitIfPromise,
+  computeCommonRootDirectory,
 } from './util';
 import {
   GlobalOptions,
@@ -559,33 +559,6 @@ function comparePathLength(a: { path: { length: number } }, b: { path: { length:
 
 function getDirFromFile(value: { $file: { dir: string }}): string {
   return value.$file.dir;
-}
-
-function computeCommonRootDirectory(dirs: readonly string[]): string {
-  let commonRootDir = dirs[0];
-  const initialLength = commonRootDir.length;
-  let currentLength = initialLength;
-  let prevSlashIndex = 0;
-  for (let i = 1, ii = dirs.length; i < ii; ++i) {
-    const dir = dirs[i];
-    for (let j = 0, jj = currentLength; j < jj; ++j) {
-      const ch = commonRootDir.charCodeAt(j);
-      if (ch === Char.Slash) {
-        prevSlashIndex = j;
-      }
-      if (ch !== dir.charCodeAt(j)) {
-        currentLength = prevSlashIndex + 1;
-        prevSlashIndex = 0;
-        break;
-      }
-    }
-  }
-
-  if (currentLength !== initialLength) {
-    commonRootDir = commonRootDir.slice(0, currentLength - 1);
-  }
-
-  return commonRootDir;
 }
 
 class EmitObject {

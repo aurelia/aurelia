@@ -10,6 +10,7 @@ import {
   SyntaxKind,
   createArrayBindingPattern,
   createObjectBindingPattern,
+  createComputedPropertyName,
 } from 'typescript';
 import {
   PLATFORM,
@@ -179,7 +180,15 @@ export class $ComputedPropertyName implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const node = this.node;
+    const transformed = this.$expression.transform(tctx);
+
+    if (transformed === void 0) {
+      return node;
+    }
+    return createComputedPropertyName(
+      transformed,
+    );
   }
 }
 

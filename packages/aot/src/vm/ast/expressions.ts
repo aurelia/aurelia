@@ -51,6 +51,7 @@ import {
   createNew,
   createCall,
   createElementAccess,
+  createPropertyAccess,
 } from 'typescript';
 import {
   PLATFORM,
@@ -934,7 +935,19 @@ export class $PropertyAccessExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const transformed = this.$expression.transform(tctx);
+
+    const node = this.node;
+    if (
+      node.expression === transformed
+    ) {
+      return node;
+    }
+
+    return createPropertyAccess(
+      transformed,
+      node.name,
+    );
   }
 }
 

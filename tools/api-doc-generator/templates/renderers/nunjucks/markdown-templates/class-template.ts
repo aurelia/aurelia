@@ -56,14 +56,14 @@ export const classTemplate = `
 {% if properties %}
     ## ✦ Property(ies)
     {% for pr in properties %}
-        ### &nbsp;&nbsp; {{ pr.name | mdEscape }}
+        &nbsp;&nbsp; **{{ pr.name | mdEscape }}**
         <br/>
         {% if pr.comment %}
-            ### &nbsp;&nbsp;&nbsp;&nbsp; Summary 
+            &nbsp;&nbsp;&nbsp;&nbsp; **Summary**
             &nbsp;&nbsp;&nbsp;&nbsp; {{ pr.comment | commentRenderer }}
         {% endif %}
         {% if pr.decorators %}
-            ### &nbsp;&nbsp;&nbsp;&nbsp; Decorator(s)
+            &nbsp;&nbsp;&nbsp;&nbsp; **Decorator(s)**
             {% for d in pr.decorators %}
                 {{ d | decoratorRenderer }}
                 <br/>
@@ -78,22 +78,22 @@ export const classTemplate = `
 {% if getAccessors %}
     ## ✦ Get Accessor(s)
     {% for g in getAccessors %}
-        ### &nbsp;&nbsp; {{ g.name | mdEscape }}
+        &nbsp;&nbsp; **{{ g.name | mdEscape }}**
         <br/>
         {% if g.comment %}
-            ### &nbsp;&nbsp;&nbsp;&nbsp; Summary
+            &nbsp;&nbsp;&nbsp;&nbsp; **Summary**
             &nbsp;&nbsp;&nbsp;&nbsp; {{ g.comment | commentRenderer }}            
             <br/>
         {% endif %}
         {% if g.typeParameters %}
-            ### &nbsp;&nbsp;&nbsp;&nbsp; Type Parameter(s)
+            &nbsp;&nbsp;&nbsp;&nbsp; **Type Parameter(s)**
             {% for tp in g.typeParameters %}
                 {{ tp | typeParameterRenderer }}
                 <br/>
             {% endfor %}
         {% endif %}
         {% if g.decorators %}
-            ### &nbsp;&nbsp;&nbsp;&nbsp; Decorator(s)
+            &nbsp;&nbsp;&nbsp;&nbsp; **Decorator(s)**
             {% for d in g.decorators %}
                 {{ d | decoratorRenderer }}
                 <br/>
@@ -108,22 +108,22 @@ export const classTemplate = `
 {% if setAccessors %}
     ## ✦ Set Accessor(s)
     {% for s in setAccessors %}
-        ### &nbsp;&nbsp; {{ s.name | mdEscape }}
+        &nbsp;&nbsp; **{{ s.name | mdEscape }}**
         <br/>
         {% if s.comment %}
-            ### &nbsp;&nbsp;&nbsp;&nbsp; Summary
+            &nbsp;&nbsp;&nbsp;&nbsp; **Summary**
             &nbsp;&nbsp;&nbsp;&nbsp; {{ s.comment | commentRenderer }}
             <br/>
         {% endif %}
         {% if s.typeParameters %}
-            ### &nbsp;&nbsp;&nbsp;&nbsp; Type Parameter(s)
+            &nbsp;&nbsp;&nbsp;&nbsp; **Type Parameter(s)**
             {% for tp in s.typeParameters %}
                 {{ tp | typeParameterRenderer }}
                 <br/>
             {% endfor %}
         {% endif %}
         {% if s.decorators %}
-            ### &nbsp;&nbsp;&nbsp;&nbsp; Decorator(s)
+            &nbsp;&nbsp;&nbsp;&nbsp; **Decorator(s)**
             {% for d in s.decorators %}
                 {{ d | decoratorRenderer }}
                 <br/>
@@ -135,7 +135,7 @@ export const classTemplate = `
         | {{ s.modifiers | join(', ','declare') }} | {{ p.returnType | typeRenderer }} |
         <br/>
         {% if s.parameters %}
-            ### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Parameter(s)
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **Parameter(s)**
             {% for p in s.parameters %}
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; _**{{ p.name | mdEscape }}**_
                 <br/>    
@@ -150,21 +150,21 @@ export const classTemplate = `
 {% if methods %}
     ## ✦ Method(s)
     {% for m in methods %}
-    ## &nbsp;&nbsp; {{ m.name | mdEscape }}
+    &nbsp;&nbsp; {{ m.name | mdEscape }}
         {% if m.comment %}
-            ### &nbsp;&nbsp;&nbsp;&nbsp; Summary
+            &nbsp;&nbsp;&nbsp;&nbsp; **Summary**
             &nbsp;&nbsp;&nbsp;&nbsp; {{ m.comment | commentRenderer }}
             <br/>
         {% endif %}
         {% if m.typeParameters %}
-            ### &nbsp;&nbsp;&nbsp;&nbsp; Type Parameter(s)
+            &nbsp;&nbsp;&nbsp;&nbsp; **Type Parameter(s)**
             {% for tp in m.typeParameters %}
                 {{ tp | typeParameterRenderer }}
                 <br/>
             {% endfor %}
         {% endif %}
         {% if m.decorators %}
-            ### &nbsp;&nbsp;&nbsp;&nbsp; Decorator(s)
+            &nbsp;&nbsp;&nbsp;&nbsp; **Decorator(s)**
             {% for d in m.decorators %}
                 {{ d | decoratorRenderer }}
                 <br/>

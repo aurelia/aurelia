@@ -21,7 +21,7 @@ export const interfaceTemplate = `
     ## ✦ Indexer(s)
     {% for i in indexers %}
         {% if i.comment %}
-            ### &nbsp;&nbsp; Summary
+            &nbsp;&nbsp; **Summary**
             &nbsp;&nbsp; {{ i.comment | commentRenderer}}
         {% endif %}
         <br/>
@@ -41,12 +41,12 @@ export const interfaceTemplate = `
     ## ✦ Constructor(s)
     {% for c in constructors %}
         {% if c.comment %}
-            ### &nbsp;&nbsp; ✦ Summary
+            &nbsp;&nbsp; **Summary**
             &nbsp;&nbsp; {{ c.comment | commentRenderer }}
         {% endif %}
         <br/>
         {% if c.typeParameters %}
-            ### &nbsp;&nbsp; Type Parameter(s)
+            &nbsp;&nbsp; **Type Parameter(s)**
             {% for tp in c.typeParameters %}
                 {{ tp | typeParameterRenderer }}
                 <br/>
@@ -59,7 +59,7 @@ export const interfaceTemplate = `
         {% endif %}
         <br/>
         {% if c.parameters %}
-            ### &nbsp;&nbsp; Parameter(s)
+            &nbsp;&nbsp; **Parameter(s)**
             {% for p in c.parameters %}
                 &nbsp;&nbsp;&nbsp;&nbsp; _**{{ p.name | mdEscape }}**_
                 <br/>
@@ -74,10 +74,10 @@ export const interfaceTemplate = `
 {% if properties %}
     ## ✦ Property(ies)
     {% for pr in properties %}
-        ### &nbsp;&nbsp; {{ pr.name | mdEscape }}
+        &nbsp;&nbsp; **{{ pr.name | mdEscape }}**
         <br/>
         {% if pr.comment %}
-            ### &nbsp;&nbsp;&nbsp;&nbsp; Summary
+            &nbsp;&nbsp;&nbsp;&nbsp; **Summary**
             &nbsp;&nbsp;&nbsp;&nbsp; {{ pr.comment | commentRenderer}}
         {% endif %}
         <br/>
@@ -90,14 +90,14 @@ export const interfaceTemplate = `
 {% if methods %}
     ## ✦ Method(s)
     {% for m in methods %}
-        ### &nbsp;&nbsp; {{ m.name | mdEscape }}
+        &nbsp;&nbsp; {{ m.name | mdEscape }}
         <br/>
         {% if m.comment %}
-            ### &nbsp;&nbsp;&nbsp;&nbsp; Summary
+            &nbsp;&nbsp;&nbsp;&nbsp; **Summary**
             &nbsp;&nbsp;&nbsp;&nbsp; {{ m.comment | commentRenderer }}
         {% endif %}
         {% if m.typeParameters %}
-            ### &nbsp;&nbsp;&nbsp;&nbsp; Type Parameter(s)
+            &nbsp;&nbsp;&nbsp;&nbsp; **Type Parameter(s)**
             {% for tp in m.typeParameters %}
                 {{ tp | typeParameterRenderer}}
                 <br/>
@@ -129,12 +129,12 @@ export const interfaceTemplate = `
     ## ✦ Call Signature(s)
     {% for cs in callSignatures %}
         {% if cs.comment %}
-            ### &nbsp;&nbsp; Summary
+            &nbsp;&nbsp; **Summary**
             &nbsp;&nbsp; {{ cs.comment | commentRenderer }}
             <br/>
         {% endif %}
         {% if cs.typeParameters %}
-            ### &nbsp;&nbsp; Type Parameter(s)
+            &nbsp;&nbsp; **Type Parameter(s)**
             {% for tp in cs.typeParameters %}
                 {{ tp | typeParameterRenderer }}
                 <br/>

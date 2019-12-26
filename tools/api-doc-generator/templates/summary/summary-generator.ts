@@ -2,7 +2,6 @@ import { SourceFileInfo } from '../../Api/models/source-file/source-file-info';
 import { SummaryMapInfo } from './summary-map-info';
 import * as _ from 'lodash';
 import { tab } from '../../utils';
-import { sourceFileLocator } from '../../helpers';
 
 function beautifyName(name: string): string {
     if (name.length <= 3) {
@@ -158,7 +157,7 @@ function getSummaryMapInfo(sourceFileInfo: SourceFileInfo): SummaryMapInfo[] {
     return result;
 }
 
-export function generateSummary_v1(sourceFileInfo: SourceFileInfo, ...prepend: string[]): string {
+export function generateSummary(sourceFileInfo: SourceFileInfo, ...prepend: string[]): string {
     const result: string[] = [];
     prepend = prepend || ['# Table of contents'];
     if (prepend) {
@@ -179,7 +178,7 @@ export function generateSummary_v1(sourceFileInfo: SourceFileInfo, ...prepend: s
         const element = summaryGroup[index];
         const parents = element[0].folders;
         const title = beautifyName(parents[parents.length - 1]);
-        const root = `${tab(parents.length - 1)}* [${title}]()`;
+        const root = `${tab(parents.length - 1)}* [${title}](${parents.join('/').toLowerCase()}/README.md)`;
         result.push(root);
         const catSummaryGroup = _(summaryGroup[index])
             .sortBy(
@@ -192,7 +191,7 @@ export function generateSummary_v1(sourceFileInfo: SourceFileInfo, ...prepend: s
         for (let index = 0; index < catSummaryGroup.length; index++) {
             const element = catSummaryGroup[index];
             const category = element[0].category;
-            const mid = `${tab(parents.length)}* [${category}]()`;
+            const mid = `${tab(parents.length)}* [${category}](${[...parents, category].join('/').toLowerCase()}/README.md)`;
             result.push(mid);
             for (let index = 0; index < element.length; index++) {
                 const item = element[index];
@@ -214,34 +213,4 @@ export function generateSummary_v1(sourceFileInfo: SourceFileInfo, ...prepend: s
         }
     }
     return output.join('\n');
-}
-
-export function generateSummary(sourceFileInfo: SourceFileInfo, ...prepend: string[]): string {
-    const result: string[] = [];
-    prepend = prepend || ['# Table of contents'];
-    if (prepend) {
-        for (let index = 0; index < prepend.length; index++) {
-            result.push(prepend[index]);
-        }
-    }
-    const summaryMapInfo = getSummaryMapInfo(sourceFileInfo);
-    const summaryGroup = _(summaryMapInfo)
-        .sortBy(
-            item => item.folders[0],
-        )
-        .groupBy(item => item.folders[0])
-        .values()
-        .value();
-    for (let i = 0; i < summaryGroup.length; i++) {
-        const root = summaryGroup[i];
-        result.push(`* [${beautifyName(root[0].folders[0])}](${root[0].folders[0].toLowerCase()}/README.md)`);
-        for (let j = 0; j < root.length; j++) {
-            const child = root[j];
-            const item = `   * [${child.category}](${root[0].folders[0].toLowerCase()}/${child.category.toUpperCase()}.md)`;
-            if (!result.includes(item))
-                result.push(item);
-        }
-    }
-    const output = result.join('\n');
-    return output;
 }

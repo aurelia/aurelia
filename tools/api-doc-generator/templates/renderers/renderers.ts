@@ -1,5 +1,5 @@
 import { VariableStatement } from 'ts-morph';
-import { Nunjucks } from '../../utils';
+import { Nunjucks, isEmptyOrWhitespace } from '../../utils';
 
 import { TemplateConfiguration, TemplateGenerator } from '../configurations';
 
@@ -38,11 +38,20 @@ const markdownTable = require('markdown-table')
 function postRender(text: string): string {
     let result = text.trim()
         .split(/\r?\n/)
-        .filter(item => item.trim() !== '')
-        .map(item => {
+        .filter(item => !isEmptyOrWhitespace(item.trim()))
+        .map((item, index, el) => {
             let r = item.trim();
             if (r[0] === '#') {
                 return '\n' + r;
+            }
+            else if (r[0] === '|') {
+                if (el[index + 1]) {
+                    var next = el[index + 1];
+                    if (next[0] === '|' && (next[1] === ':' || next[1] === '-') && next[2] === '-') {
+                        return '\n' + r;
+                    }
+                }
+                return r;
             }
             else if (r[0] === '_' && r[r.length - 1] === '_') {
                 return '\n' + r + '\n';
@@ -72,6 +81,20 @@ function postRender(text: string): string {
         }
         result = finalResult.join('```');
     }
+
+
+    var r = result
+        .split(/\r?\n/)
+        .map((item, index, el) => {
+            if (index >= 1) {
+                var prev = el[index - 1];
+                if (prev === '' && item === '') {
+                    return undefined;
+                }
+            }
+            return item;
+        });
+    result = r.filter(item => item !== undefined).join('\n');
     return result;
 }
 

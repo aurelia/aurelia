@@ -1,18 +1,18 @@
 export const literalExpressionTemplate = `
-### Attribute(s)
+## Attribute(s)
 | Object                        |
 |-------------------------------|
 | {{ isObject | print_symbol }} |
 <br/>
 {% if assignments %}
-    ### Assignment(s)
+    ## Assignment(s)
     {% for a in assignments %}
         {{ a | assignmentRenderer }}
         <br/>
     {% endfor %}
 {% endif %}
 {% if getAccessors %}
-    ### Get Accessor(s)
+    ## Get Accessor(s)
     {% for g in getAccessors %}
         &nbsp;&nbsp;_**{{ g.name | mdEscape }}**_
         {% if g.comment %}
@@ -41,7 +41,7 @@ export const literalExpressionTemplate = `
     {% endfor %}
 {% endif %}
 {% if setAccessors %}
-    ### Set Accessor(s)
+    ## Set Accessor(s)
     {% for s in setAccessors %}
         &nbsp;&nbsp;_**{{ s.name | mdEscape }}**_
         {% if s.comment %}
@@ -68,7 +68,7 @@ export const literalExpressionTemplate = `
         | {{ s.modifiers | join(', ','declare') }} | {{ p.returnType | typeRenderer }} |
         <br/>         
         {% if s.parameters %}
-            ### &nbsp;&nbsp; Parameter(s)
+            ## &nbsp;&nbsp; Parameter(s)
             <br/> 
             {% for p in s.parameters %}
                 &nbsp;&nbsp;&nbsp;&nbsp;_**{{ p.name | mdEscape }}**_
@@ -82,7 +82,7 @@ export const literalExpressionTemplate = `
     {% endfor %}
 {% endif %}
 {% if methods %}
-    ### Method(s)
+    ## Method(s)
     {% for m in methods %}
         &nbsp;&nbsp;_**{{ m.name | mdEscape }}**_
         {% if m.comment %}

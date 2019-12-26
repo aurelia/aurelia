@@ -26,8 +26,8 @@ import { IComment } from '../../models/comment/comment';
 import { ApiConfiguration as extractorConfiguration } from '../../configurations';
 
 export interface IInterfaceExtractor {
-  extract(node: InterfaceDeclaration, filterElements?: (comment: IComment) => boolean): InterfaceInfo;
-  extractAll(nodes: InterfaceDeclaration[]): InterfaceInfo[] | undefined;
+    extract(node: InterfaceDeclaration, filterElements?: (comment: IComment) => boolean): InterfaceInfo;
+    extractAll(nodes: InterfaceDeclaration[]): InterfaceInfo[] | undefined;
 }
 
 export class InterfaceExtractor implements IInterfaceExtractor {
@@ -35,7 +35,7 @@ export class InterfaceExtractor implements IInterfaceExtractor {
         private typeExtractor: ITypeExtractor = new TypeExtractor(),
         private typeParameterExtractor: ITypeParameterExtractor = new TypeParameterExtractor(),
         private tsCommentExtractor: ITypescriptCommentExtractor = new TypescriptCommentExtractor(),
-    ) {}
+    ) { }
     public extract(node: InterfaceDeclaration, filterElements?: (comment: IComment) => boolean): InterfaceInfo {
         const comment = this.tsCommentExtractor.extract(node);
 

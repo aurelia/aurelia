@@ -1,5 +1,5 @@
 function isEmptyOrWhitespace(text: string): boolean {
-    return text === null || text.match(/^ *$/) !== null;
+    return text === null || text === undefined || text === '' || text.match(/^ *$/) !== null;
 }
 
 function convertToOneWhitespace(text: string): string {

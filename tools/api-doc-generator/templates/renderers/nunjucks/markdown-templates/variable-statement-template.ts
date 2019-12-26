@@ -14,7 +14,7 @@ export const variableStatementTemplate = `
         # &nbsp;&nbsp; {{ v.name | mdEscape | replaceWith }}
         <br/>
         {% if v.comment %}
-            ### &nbsp;&nbsp;&nbsp;&nbsp; Summary
+            &nbsp;&nbsp;&nbsp;&nbsp; **Summary**
             &nbsp;&nbsp;&nbsp;&nbsp; {{ v.comment | commentRenderer }}
         {% endif %}
         <br/>
@@ -28,7 +28,7 @@ export const variableStatementTemplate = `
     {% for l in literals %}
         # &nbsp;&nbsp; {{ l.name | mdEscape | replaceWith }}
         {% if l.comment %}
-            ### &nbsp;&nbsp;&nbsp;&nbsp; Summary
+            &nbsp;&nbsp;&nbsp;&nbsp; **Summary**
             &nbsp;&nbsp;&nbsp;&nbsp; {{ l.comment | commentRenderer }}
         {% endif %}
         <br/>
@@ -37,7 +37,7 @@ export const variableStatementTemplate = `
         | {{ l.type | typeRenderer }} | {{ l.isArray | print_symbol  }} |
         <br/>
         {% if l.members %}
-            ### &nbsp;&nbsp;&nbsp;&nbsp; Member(s)
+            ## &nbsp;&nbsp;&nbsp;&nbsp; Member(s)
             {% for m in l.members %}
                 {{ m | memberRenderer }}
             {% endfor %}
@@ -47,7 +47,7 @@ export const variableStatementTemplate = `
 {% if destructuring %}
     {% for de in destructuring %}
         {% if de.comment %}
-            ### &nbsp;&nbsp;&nbsp;&nbsp; Summary
+            &nbsp;&nbsp;&nbsp;&nbsp; **Summary**
             &nbsp;&nbsp;&nbsp;&nbsp; {{ de.comment | commentRenderer }}
         {% endif %}
         <br/>
@@ -56,7 +56,7 @@ export const variableStatementTemplate = `
         | {{ de.initializer | replaceWith }} | {{ de.isArray | print_symbol  }} |
         <br/>
         {% if de.members %}
-            ### Member(s)
+            ## Member(s)
             {% for m in de.members %}
                 {{ m | memberRenderer }}
             {% endfor %}

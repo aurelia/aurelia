@@ -1,8 +1,8 @@
 export const literalAssignmentTemplate = `
-### {{ name | mdEscape }}
+## {{ name | mdEscape }}
 <br/>
 {% if comment %}
-    ### Summary
+    ## Summary
     {{ comment | commentRenderer}}
 {% endif %}
 <br/>
@@ -10,6 +10,6 @@ export const literalAssignmentTemplate = `
 |---------------------------|:---------------------------------:|:-----------------------------:|
 | {{ type | typeRenderer }} | {{ isShorthand | print_symbol }}  | {{ isSpread | print_symbol }} |
 <br/>
-### Value
+## Value
 {{ value | memberRenderer }}
 `;

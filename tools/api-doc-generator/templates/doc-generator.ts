@@ -5,19 +5,7 @@ import { TemplateGenerator } from './configurations';
 import { getAureliaSources } from '../helpers/aurelia/aurelia-source-utils';
 import { TemplateRendererType } from './renderers/template-renderer';
 import { generateSummary } from './summary/summary-generator';
-
-import { TypeCategory } from "../helpers";
-import { getSourcePathFolders } from '../helpers/get-source-path-folders';
-/* eslint-disable */
-const markdownTable = require('markdown-table')
-/* eslint-disable */
-interface TableOfContent {
-    package: string;
-    name: string;
-    url: string;
-    link: string;
-    category: TypeCategory;
-}
+import { TypeCategory, sourceFileLocator } from "../helpers";
 
 export function generateApiDoc(tsconfig: string, destination: string) {
     if (destination && destination.length > 0) {
@@ -25,353 +13,100 @@ export function generateApiDoc(tsconfig: string, destination: string) {
             destination = destination.substring(0, destination.length - 1);
         }
     }
-    let toc: TableOfContent[] = [];
-    let uniqueTemplates: string[] = [];
     const source = getAureliaSources(tsconfig);
     const summary = generateSummary(source);
     fse.outputFile(`${destination}/SUMMARY.md`, summary);
     if (source.classes) {
         const classRenderer = TemplateGenerator.getRenderer(TemplateRendererType.Class);
-        let templates: string[] = [];
-        const groupedClass = _(source.classes)
-            .sortBy(item => getSourcePathFolders(item.path)[0])
-            .groupBy(item => getSourcePathFolders(item.path)[0])
-            .values()
-            .value();
-        for (let i = 0; i < groupedClass.length; i++) {
-            templates = [];
-            const classes = groupedClass[i];
-            for (let j = 0; j < classes.length; j++) {
-                const item = classes[j];
-                const pkg = getSourcePathFolders(item.path)[0];
-                const template = classRenderer.render(item);
-                let name = item.name || '__default';
-                const unique = name + TypeCategory.Class.toLowerCase() + template;
-                if (!uniqueTemplates.includes(unique)) {
-                    toc.push({
-                        package: pkg,
-                        name: name,
-                        url: '',
-                        link: `[${name}]()`,
-                        category: TypeCategory.Class
-                    });
-                    uniqueTemplates.push(unique);
-                    templates.push(template);
-                }
-            }
-            const pkgName = getSourcePathFolders(classes[0].path)[0].toLowerCase();
-            const path = `${destination}/${pkgName}/${TypeCategory.Class.toUpperCase()}.md`;
-            fse.outputFileSync(path, templates.join('\n\n'));
+        for (let index = 0; index < source.classes.length; index++) {
+            const item = source.classes[index];
+            const url = sourceFileLocator(item.path, (item.name ?? '__default'), TypeCategory.Class, '', '.md');
+            const template = classRenderer.render(item);
+            const path = destination + url.toLowerCase();
+            fse.outputFileSync(path, template);
         }
     }
     if (source.enums) {
         const enumRenderer = TemplateGenerator.getRenderer(TemplateRendererType.Enum);
-        let templates: string[] = [];
-        const groupedEnum = _(source.enums)
-            .sortBy(item => getSourcePathFolders(item.path)[0])
-            .groupBy(item => getSourcePathFolders(item.path)[0])
-            .values()
-            .value();
-        for (let i = 0; i < groupedEnum.length; i++) {
-            templates = [];
-            const enums = groupedEnum[i];
-            for (let j = 0; j < enums.length; j++) {
-                const item = enums[j];
-                const pkg = getSourcePathFolders(item.path)[0];
-                const template = enumRenderer.render(item);
-                let name = item.name || '__default';
-                const unique = name + TypeCategory.Enum.toLowerCase() + template;
-                if (!uniqueTemplates.includes(unique)) {
-                    toc.push({
-                        package: pkg,
-                        name: item.name || '__default',
-                        url: '',
-                        link: `[${item.name || '__default'}]()`,
-                        category: TypeCategory.Enum
-                    });
-                    uniqueTemplates.push(unique);
-                    templates.push(template);
-                }
-            }
-            const pkgName = getSourcePathFolders(enums[0].path)[0].toLowerCase();
-            const path = `${destination}/${pkgName}/${TypeCategory.Enum.toUpperCase()}.md`;
-            fse.outputFileSync(path, templates.join('\n\n'));
+        for (let index = 0; index < source.enums.length; index++) {
+            const item = source.enums[index];
+            const url = sourceFileLocator(item.path, item.name, TypeCategory.Enum, '', '.md');
+            const template = enumRenderer.render(item);
+            const path = destination + url.toLowerCase();
+            fse.outputFileSync(path, template);
         }
     }
     if (source.exportAssignments) {
         const exportAssignmentRenderer = TemplateGenerator.getRenderer(TemplateRendererType.ExportAssignment);
-        let templates: string[] = [];
-        const groupedExportAssignments = _(source.exportAssignments)
-            .sortBy(item => getSourcePathFolders(item.path)[0])
-            .groupBy(item => getSourcePathFolders(item.path)[0])
-            .values()
-            .value();
-        for (let i = 0; i < groupedExportAssignments.length; i++) {
-            templates = [];
-            const exp = groupedExportAssignments[i];
-            for (let j = 0; j < exp.length; j++) {
-                const item = exp[j];
-                const template = exportAssignmentRenderer.render(item);
-                const pkg = getSourcePathFolders(item.path)[0];
-                const unique = '__default' + TypeCategory.ExportAssignment.toLowerCase() + template;
-                if (!uniqueTemplates.includes(unique)) {
-                    toc.push({
-                        package: pkg,
-                        name: '__default',
-                        url: '',
-                        link: `[__default]()`,
-                        category: TypeCategory.ExportAssignment
-                    });
-                    uniqueTemplates.push(unique);
-                    templates.push(template);
-                }
-            }
-            const pkgName = getSourcePathFolders(exp[0].path)[0].toLowerCase();
-            const path = `${destination}/${pkgName}/${TypeCategory.ExportAssignment.toUpperCase()}.md`;
-            fse.outputFileSync(path, templates.join('\n\n'));
+        for (let index = 0; index < source.exportAssignments.length; index++) {
+            const item = source.exportAssignments[index];
+            const url = sourceFileLocator(item.path, '__default', TypeCategory.ExportAssignment, '', '.md');
+            const template = exportAssignmentRenderer.render(item);
+            const path = destination + url.toLowerCase();
+            fse.outputFileSync(path, template);
         }
     }
     if (source.functions) {
         const functionRenderer = TemplateGenerator.getRenderer(TemplateRendererType.Function);
-        let templates: string[] = [];
-        const groupedFunctions = _(source.functions)
-            .sortBy(item => getSourcePathFolders(item.path)[0])
-            .groupBy(item => getSourcePathFolders(item.path)[0])
-            .values()
-            .value();
-        for (let i = 0; i < groupedFunctions.length; i++) {
-            templates = [];
-            const funcs = groupedFunctions[i];
-            for (let j = 0; j < funcs.length; j++) {
-                const item = funcs[j];
-                const pkg = getSourcePathFolders(item.path)[0];
-                const template = functionRenderer.render(item);
-                let name = item.name || '__default';
-                const unique = name + TypeCategory.Function.toLowerCase() + template;
-                if (!uniqueTemplates.includes(unique)) {
-                    toc.push({
-                        package: pkg,
-                        name: item.name || '__default',
-                        url: '',
-                        link: `[${item.name || '__default'}]()`,
-                        category: TypeCategory.Function
-                    });
-                    uniqueTemplates.push(unique);
-                    templates.push(template);
-                }
-            }
-            const pkgName = getSourcePathFolders(funcs[0].path)[0].toLowerCase();
-            const path = `${destination}/${pkgName}/${TypeCategory.Function.toUpperCase()}.md`;
-            fse.outputFileSync(path, templates.join('\n\n'));
+        for (let index = 0; index < source.functions.length; index++) {
+            const item = source.functions[index];
+            const url = sourceFileLocator(item.path, (item.name ?? '__default'), TypeCategory.Function, '', '.md');
+            const template = functionRenderer.render(item);
+            const path = destination + url.toLowerCase();
+            fse.outputFileSync(path, template);
         }
     }
     if (source.interfaces) {
         const interfaceRenderer = TemplateGenerator.getRenderer(TemplateRendererType.Interface);
-        let templates: string[] = [];
-        const groupedInterfaces = _(source.interfaces)
-            .sortBy(item => getSourcePathFolders(item.path)[0])
-            .groupBy(item => getSourcePathFolders(item.path)[0])
-            .values()
-            .value();
-        for (let i = 0; i < groupedInterfaces.length; i++) {
-            templates = [];
-            const interfaces = groupedInterfaces[i];
-            for (let j = 0; j < interfaces.length; j++) {
-                const item = interfaces[j];
-                const pkg = getSourcePathFolders(item.path)[0];
-                const template = interfaceRenderer.render(item);
-                let name = item.name || '__default';
-                const unique = name + TypeCategory.Interface.toLowerCase() + template;
-                if (!uniqueTemplates.includes(unique)) {
-                    toc.push({
-                        package: pkg,
-                        name: item.name || '__default',
-                        url: '',
-                        link: `[${item.name || '__default'}]()`,
-                        category: TypeCategory.Interface
-                    });
-                    uniqueTemplates.push(unique);
-                    templates.push(template);
-                }
-            }
-            const pkgName = getSourcePathFolders(interfaces[0].path)[0].toLowerCase();
-            const path = `${destination}/${pkgName}/${TypeCategory.Interface.toUpperCase()}.md`;
-            fse.outputFileSync(path, templates.join('\n\n'));
+        for (let index = 0; index < source.interfaces.length; index++) {
+            const item = source.interfaces[index];
+            const url = sourceFileLocator(item.path, item.name, TypeCategory.Interface, '', '.md');
+            const template = interfaceRenderer.render(item);
+            const path = destination + url.toLowerCase();
+            fse.outputFileSync(path, template);
         }
     }
     if (source.typeAliases) {
         const typeAliasRenderer = TemplateGenerator.getRenderer(TemplateRendererType.TypeAlias);
-        let templates: string[] = [];
-        const groupedTypeAliases = _(source.typeAliases)
-            .sortBy(item => getSourcePathFolders(item.path)[0])
-            .groupBy(item => getSourcePathFolders(item.path)[0])
-            .values()
-            .value();
-        for (let i = 0; i < groupedTypeAliases.length; i++) {
-            templates = [];
-            const typeAliases = groupedTypeAliases[i];
-            for (let j = 0; j < typeAliases.length; j++) {
-                const item = typeAliases[j];
-                const pkg = getSourcePathFolders(item.path)[0];
-                const template = typeAliasRenderer.render(item);
-                let name = item.name || '__default';
-                const unique = name + TypeCategory.TypeAlias.toLowerCase() + template;
-                if (!uniqueTemplates.includes(unique)) {
-                    toc.push({
-                        package: pkg,
-                        name: item.name || '__default',
-                        url: '',
-                        link: `[${item.name || '__default'}]()`,
-                        category: TypeCategory.TypeAlias
-                    });
-                    uniqueTemplates.push(unique);
-                    templates.push(template);
-                }
-            }
-            const pkgName = getSourcePathFolders(typeAliases[0].path)[0].toLowerCase();
-            const path = `${destination}/${pkgName}/${TypeCategory.TypeAlias.toUpperCase()}.md`;
-            fse.outputFileSync(path, templates.join('\n\n'));
+        for (let index = 0; index < source.typeAliases.length; index++) {
+            const item = source.typeAliases[index];
+            const url = sourceFileLocator(item.path, item.name, TypeCategory.TypeAlias, '', '.md');
+            const template = typeAliasRenderer.render(item);
+            const path = destination + url.toLowerCase();
+            fse.outputFileSync(path, template);
         }
     }
     if (source.variableStatements) {
         const variableStatementRenderer = TemplateGenerator.getRenderer(TemplateRendererType.VariableStatement);
         for (let index = 0; index < source.variableStatements.length; index++) {
             const item = source.variableStatements[index];
-            const p = item.path;
             if (item.variables) {
-                let templates: string[] = [];
-                const groupedVariables = _(item.variables)
-                    .sortBy(x => getSourcePathFolders(item.path)[0])
-                    .groupBy(x => getSourcePathFolders(item.path)[0])
-                    .values()
-                    .value();
-                for (let i = 0; i < groupedVariables.length; i++) {
-                    templates = [];
-                    const variable = groupedVariables[i];
-                    for (let j = 0; j < variable.length; j++) {
-                        const item = variable[j];
-                        const pkg = getSourcePathFolders(p)[0];
-                        const template = variableStatementRenderer.render(item);
-                        let name = item.name || '__default';
-                        const unique = name + TypeCategory.Variable.toLowerCase() + template;
-                        if (!uniqueTemplates.includes(unique)) {
-                            toc.push({
-                                package: pkg,
-                                name: item.name || '__default',
-                                url: '',
-                                link: `[${item.name || '__default'}]()`,
-                                category: TypeCategory.Variable
-                            });
-                            uniqueTemplates.push(unique);
-                            templates.push(template);
-                        }
-                    }
-                    const pkgName = getSourcePathFolders(item.path)[0].toLowerCase();
-                    const path = `${destination}/${pkgName}/${TypeCategory.Variable.toUpperCase()}.md`;
-                    fse.outputFileSync(path, templates.join('\n\n'));
+                for (let i = 0; i < item.variables.length; i++) {
+                    const variable = item.variables[i];
+                    const url = sourceFileLocator(item.path, variable.name, TypeCategory.Variable, '', '.md');
+                    const template = variableStatementRenderer.render(item);
+                    const path = destination + url.toLowerCase();
+                    fse.outputFileSync(path, template);
                 }
             }
             if (item.literals) {
-                let templates: string[] = [];
-                const groupedLiterals = _(item.literals)
-                    .sortBy(x => getSourcePathFolders(item.path)[0])
-                    .groupBy(x => getSourcePathFolders(item.path)[0])
-                    .values()
-                    .value();
-                for (let i = 0; i < groupedLiterals.length; i++) {
-                    templates = [];
-                    const lit = groupedLiterals[i];
-                    for (let j = 0; j < lit.length; j++) {
-                        const item = lit[j];
-                        const pkg = getSourcePathFolders(p)[0];
-                        const template = variableStatementRenderer.render(item);
-                        let name = item.name || '__default';
-                        const unique = name + TypeCategory.Literal.toLowerCase() + template;
-                        if (!uniqueTemplates.includes(unique)) {
-                            toc.push({
-                                package: pkg,
-                                name: item.name || '__default',
-                                url: '',
-                                link: `[${item.name || '__default'}]()`,
-                                category: TypeCategory.Literal
-                            });
-                            uniqueTemplates.push(unique);
-                            templates.push(template);
-                        }
-                    }
-                    const pkgName = getSourcePathFolders(item.path)[0].toLowerCase();
-                    const path = `${destination}/${pkgName}/${TypeCategory.Literal.toUpperCase()}.md`;
-                    fse.outputFileSync(path, templates.join('\n\n'));
+                for (let j = 0; j < item.literals.length; j++) {
+                    const literal = item.literals[j];
+                    const url = sourceFileLocator(item.path, literal.name, TypeCategory.Literal, '', '.md');
+                    const template = variableStatementRenderer.render(item);
+                    const path = destination + url.toLowerCase();
+                    fse.outputFileSync(path, template);
                 }
             }
             if (item.destructuring) {
-                let templates: string[] = [];
-                const groupedDestructuring = _(item.destructuring)
-                    .sortBy(x => getSourcePathFolders(item.path)[0])
-                    .groupBy(x => getSourcePathFolders(item.path)[0])
-                    .values()
-                    .value();
-                for (let i = 0; i < groupedDestructuring.length; i++) {
-                    templates = [];
-                    const destructuring = groupedDestructuring[i];
-                    for (let j = 0; j < destructuring.length; j++) {
-                        const item = destructuring[j];
-                        const pkg = getSourcePathFolders(p)[0];
-                        const template = variableStatementRenderer.render(item);
-                        const unique = '__default' + TypeCategory.Destructuring.toLowerCase() + template;
-                        if (!uniqueTemplates.includes(unique)) {
-                            toc.push({
-                                package: pkg,
-                                name: '__default',
-                                url: '',
-                                link: `['__default']()`,
-                                category: TypeCategory.Destructuring
-                            });
-                            uniqueTemplates.push(unique);
-                            templates.push(template);
-                        }
-                    }
-                    const pkgName = getSourcePathFolders(item.path)[0].toLowerCase();
-                    const path = `${destination}/${pkgName}/${TypeCategory.Destructuring.toUpperCase()}.md`;
-                    fse.outputFileSync(path, templates.join('\n\n'));
+                for (let k = 0; k < item.destructuring.length; k++) {
+                    // const destructure = item.destructuring[k];
+                    const url = sourceFileLocator(item.path, '__default', TypeCategory.Destructuring, '', '.md');
+                    const template = variableStatementRenderer.render(item);
+                    const path = destination + url.toLowerCase();
+                    fse.outputFileSync(path, template);
                 }
             }
         }
     }
-    const tocGrouped = _(toc)
-        .groupBy(x => x.package)
-        .values()
-        .value()
-        ;
-
-    for (let index = 0; index < tocGrouped.length; index++) {
-        const table = tocGrouped[index];
-        const pkgName = table[0].package.toLowerCase();
-        const path = `${destination}/${pkgName}/README.md`;
-        const tCatGrouped = _(table)
-            .sortBy(x => [x.category, x.name])
-            .groupBy(x => x.category)
-            .values()
-            .value()
-            ;
-        let list: string[] = [];
-        let template: string[] = [];
-        for (let j = 0; j < tCatGrouped.length; j++) {
-            const threshold = 3;
-            const t = tCatGrouped[j];
-            const cat = t[0].category;
-            template.push(`# ${cat}`);
-            template.push("\n\n");
-            const empty = new Array(threshold);
-            const l = _.chunk(empty.concat(t.map(x => x.link)), threshold);
-            const result = markdownTable(l);
-            template.push(result);
-            template.push("\n\n");
-            list.push(template.join(''));
-            template = [];
-        }
-        const result = list.join('\n\n');
-        fse.outputFileSync(path, result);
-    }
 }
-

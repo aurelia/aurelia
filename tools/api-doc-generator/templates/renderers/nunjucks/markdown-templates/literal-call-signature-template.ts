@@ -1,18 +1,18 @@
 export const literalCallSignatureTemplate = `
 {% if returnType %}
-### Return Type
+**Return Type**
 {{ returnType | typeRenderer}}
 {% endif %}
 <br/>
 {% if typeParameters %}
-    ### Type Parameter(s)
+    ## Type Parameter(s)
     {% for tp in typeParameters %}
         {{ tp | typeParameterRenderer }}
         <br/>
     {% endfor %}
 {% endif %}
 {% if parameters %}
-    ### Parameter(s)
+    ## Parameter(s)
     {% for p in parameters %}
         &nbsp;&nbsp; _**{{ p.name | mdEscape }}**_
         | Modifier(s)                              | Type                        | Optional                           | Rest                          | Parameter Property                          | Initializer                       |

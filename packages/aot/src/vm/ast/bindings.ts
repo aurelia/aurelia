@@ -11,6 +11,7 @@ import {
   createArrayBindingPattern,
   createObjectBindingPattern,
   createComputedPropertyName,
+  createBindingElement,
 } from 'typescript';
 import {
   PLATFORM,
@@ -68,6 +69,7 @@ import {
   $i,
   TransformationContext,
   transformList,
+  transformModifiers,
 } from './_shared';
 import {
   $$ESModuleOrScript,
@@ -798,7 +800,25 @@ export class $BindingElement implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const node = this.node;
+    const transformedPropertyName = this.$propertyName === void 0 ? void 0 : this.$propertyName.transform(tctx);
+    const transformedName = this.$name.transform(tctx);
+    const transformedInitializer = this.$initializer === void 0 ? void 0 : this.$initializer.transform(tctx);
+
+    if (
+      node.propertyName === transformedPropertyName &&
+      node.name === transformedName &&
+      node.initializer === transformedInitializer
+    ) {
+      return node;
+    }
+
+    return createBindingElement(
+      node.dotDotDotToken,
+      transformedPropertyName,
+      transformedName,
+      transformedInitializer,
+    );
   }
 }
 

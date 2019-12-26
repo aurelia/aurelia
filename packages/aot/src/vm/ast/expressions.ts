@@ -2142,8 +2142,8 @@ export class $TypeAssertion implements I$Node {
     return this.$expression.Evaluate(ctx);
   }
 
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+  public transform(tctx: TransformationContext): $$AssignmentExpressionOrHigher['node'] {
+    return this.$expression.transform(tctx);
   }
 }
 

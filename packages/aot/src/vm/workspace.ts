@@ -574,7 +574,7 @@ class EmitObject {
     private readonly fs: IFileSystem,
     public readonly input: $$ESModuleOrScript,
     public readonly outPath: string,
-    public readonly outContent: string,
+    public readonly outContent: string | null,
   ) {}
 
   public static create(
@@ -585,12 +585,22 @@ class EmitObject {
     outDir: string,
     commonRootDirLength: number,
   ): EmitObject {
-    const transformed = input.transform(transformContext);
-    const content = printer.printFile(transformed);
     let outPath = join(outDir, input.$file.path.slice(commonRootDirLength));
     if (outPath.endsWith('.ts')) {
       outPath = `${outPath.slice(0, -2)}js`;
     }
+
+    const transformed = input.transform(transformContext);
+    if (transformed === void 0) {
+      return new EmitObject(
+        fs,
+        input,
+        outPath,
+        null,
+      );
+    }
+
+    const content = printer.printFile(transformed);
     return new EmitObject(
       fs,
       input,
@@ -599,7 +609,9 @@ class EmitObject {
     );
   }
 
-  public emit(): Promise<void> {
-    return this.fs.writeFile(this.outPath, this.outContent, Encoding.utf8);
+  public async emit(): Promise<void> {
+    if (this.outContent !== null) {
+      return this.fs.writeFile(this.outPath, this.outContent, Encoding.utf8);
+    }
   }
 }

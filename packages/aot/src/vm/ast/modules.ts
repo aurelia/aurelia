@@ -21,6 +21,9 @@ import {
   StringLiteral,
   SyntaxKind,
   createNamedExports,
+  createNodeArray,
+  NodeArray,
+  Statement,
 } from 'typescript';
 import {
   PLATFORM,
@@ -710,8 +713,21 @@ export class $ESScript implements I$Node {
     return result;
   }
 
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+  public transform(tctx: TransformationContext): this['node'] | undefined {
+    const transformedStatements = transformList(tctx, this.$statements, this.node.statements as readonly $$TSModuleItem['node'][]);
+
+    if (transformedStatements === void 0) {
+      return this.node;
+    }
+
+    if (transformedStatements.length === 0) {
+      return void 0;
+    }
+
+    return {
+      ...this.node,
+      statements: createNodeArray(transformedStatements) as NodeArray<Statement>,
+    };
   }
 }
 
@@ -2059,8 +2075,21 @@ export class $ESModule implements I$Node, IModule {
     this.compilerOptions = void 0;
   }
 
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+  public transform(tctx: TransformationContext): this['node'] | undefined {
+    const transformedStatements = transformList(tctx, this.$statements, this.node.statements as readonly $$TSModuleItem['node'][]);
+
+    if (transformedStatements === void 0) {
+      return this.node;
+    }
+
+    if (transformedStatements.length === 0) {
+      return void 0;
+    }
+
+    return {
+      ...this.node,
+      statements: createNodeArray(transformedStatements) as NodeArray<Statement>,
+    };
   }
 }
 

@@ -32,6 +32,7 @@ import {
   Expression,
   CaseOrDefaultClause,
   createVariableStatement,
+  createVariableDeclaration,
 } from 'typescript';
 import {
   PLATFORM,
@@ -443,6 +444,23 @@ export class $VariableDeclaration implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformedName = this.$name.transform(tctx);
+    const transformedInitializer = this.$initializer === void 0 ? void 0 : this.$initializer.transform(tctx);
+
+    if (
+      node.name !== transformedName ||
+      node.initializer !== transformedInitializer ||
+      node.exclamationToken !== void 0 ||
+      node.type !== void 0
+    ) {
+      return createVariableDeclaration(
+        transformedName,
+        void 0,
+        transformedInitializer,
+      );
+    }
+
     return this.node;
   }
 }

@@ -37,6 +37,7 @@ import {
   createObjectLiteral,
   createSpreadAssignment,
   createAwait,
+  createPrefix,
 } from 'typescript';
 import {
   PLATFORM,
@@ -2019,7 +2020,14 @@ export class $PrefixUnaryExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const transformed = this.$operand.transform(tctx);
+    if (transformed === this.node.operand) {
+      return this.node;
+    }
+    return createPrefix(
+      this.node.operator,
+      transformed,
+    );
   }
 }
 

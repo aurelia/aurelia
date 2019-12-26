@@ -46,6 +46,7 @@ import {
   createBinary,
   createConditional,
   createYield,
+  createTemplateExpression,
 } from 'typescript';
 import {
   PLATFORM,
@@ -1470,7 +1471,21 @@ export class $TemplateExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const transformedHead = this.$head.transform(tctx);
+    const transformedTemplateSpans = transformList(tctx, this.$templateSpans, this.node.templateSpans);
+
+    const node = this.node;
+    if (
+      node.head === transformedHead &&
+      transformedTemplateSpans === void 0
+    ) {
+      return this.node;
+    }
+
+    return createTemplateExpression(
+      transformedHead,
+      transformedTemplateSpans!,
+    );
   }
 }
 

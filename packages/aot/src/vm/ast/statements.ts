@@ -51,6 +51,7 @@ import {
   createTry,
   createCaseBlock,
   createCaseClause,
+  createDefaultClause,
 } from 'typescript';
 import {
   PLATFORM,
@@ -2776,7 +2777,14 @@ export class $DefaultClause implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const transformedStatements = transformList(tctx, this.$statements, this.node.statements as readonly $$TSStatementListItem['node'][]);
+
+    if (transformedStatements === void 0) {
+      return this.node;
+    }
+    return createDefaultClause(
+      transformedStatements === void 0 ? [] : transformedStatements as NodeArray<Statement>,
+    );
   }
 }
 

@@ -34,6 +34,8 @@ import {
   createVariableStatement,
   createVariableDeclaration,
   createVariableDeclarationList,
+  createBlock,
+  Statement,
 } from 'typescript';
 import {
   PLATFORM,
@@ -718,7 +720,16 @@ export class $Block implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const transformedList = transformList(tctx, this.$statements, this.node.statements as readonly $$TSStatementListItem['node'][]);
+
+    if (transformedList === void 0) {
+      return this.node;
+    }
+
+    return createBlock(
+      transformedList as NodeArray<Statement>,
+      true,
+    );
   }
 }
 

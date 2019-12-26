@@ -17,6 +17,7 @@ import {
   createCall,
   createSuper,
   createSpread,
+  createHeritageClause,
 } from 'typescript';
 import {
   PLATFORM,
@@ -91,6 +92,7 @@ import {
   $$ESVarDeclaration,
   FunctionKind,
   TransformationContext,
+  transformList,
 } from './_shared';
 import {
   ExportEntryRecord,
@@ -158,8 +160,21 @@ export class $HeritageClause implements I$Node {
     this.$types = $expressionWithTypeArgumentsList(node.types, this, ctx);
   }
 
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+  public transform(tctx: TransformationContext): this['node'] | undefined {
+    const node = this.node;
+    if (node.token === SyntaxKind.ImplementsKeyword) {
+      return void 0;
+    }
+
+    const transformedList = transformList(tctx, this.$types, node.types);
+
+    if (transformedList === void 0) {
+      return node;
+    }
+    return createHeritageClause(
+      node.token,
+      transformedList,
+    );
   }
 }
 
@@ -838,6 +853,8 @@ export class $ClassDeclaration implements I$Node {
     if (hasBit(this.modifierFlags, ModifierFlags.Ambient)) {
       return void 0;
     }
+
+    const node = this.node;
     return this.node;
   }
 }

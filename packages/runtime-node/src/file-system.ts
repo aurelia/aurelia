@@ -110,6 +110,16 @@ export class File implements IFile {
      */
     public readonly ext: string,
   ) {
+    if (path.includes('\\')) {
+      path = this.path = normalizePath(path);
+    }
+    if (dir.includes('\\')) {
+      dir = this.dir = normalizePath(dir);
+    }
+    if (rootlessPath.includes('\\')) {
+      rootlessPath = this.rootlessPath = normalizePath(rootlessPath);
+    }
+
     this.shortPath = `${dir}/${shortName}`;
     switch (ext) {
       case '.js':

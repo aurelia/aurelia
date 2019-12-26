@@ -10,6 +10,7 @@ import {
   Registration,
   ILogger,
   Writable,
+  Char,
 } from '@aurelia/kernel';
 import {
   IFile,
@@ -20,6 +21,7 @@ import {
   FileKind,
   File,
   IFileSystem,
+  Encoding,
 } from '@aurelia/runtime-node';
 
 import {
@@ -28,10 +30,13 @@ import {
 import {
   createSourceFile,
   ScriptTarget,
+  Printer,
+  createPrinter,
 } from 'typescript';
 import {
   dirname,
   basename,
+  join,
 } from 'path';
 
 import {
@@ -72,6 +77,25 @@ import {
 import {
   PatternMatcher,
 } from '../system/pattern-matcher';
+import { TransformationContext } from './ast/_shared';
+
+export interface IEmitOptions {
+  readonly outDir: string;
+}
+
+export class EmitOptions implements IEmitOptions {
+  public constructor(
+    public readonly outDir: string,
+  ) {}
+
+  public static create({
+    outDir,
+  }: IEmitOptions): EmitOptions {
+    return new EmitOptions(
+      outDir,
+    );
+  }
+}
 
 export class Workspace implements IContainer {
   public readonly options: GlobalOptions;
@@ -301,6 +325,31 @@ export class Workspace implements IContainer {
     return this.getESModule(realm, pkg.entryFile, pkg);
   }
 
+  public async emit(
+    opts: IEmitOptions,
+  ): Promise<void> {
+    const options = EmitOptions.create(opts);
+    const outDir = options.outDir;
+    const fs = this.fs;
+
+    const transformContext = new TransformationContext();
+    const printer: Printer = createPrinter({ removeComments: false });
+
+    const inputs = [
+      ...this._modules,
+      ...this._scripts,
+    ];
+
+    const commonRootDir = computeCommonRootDirectory(inputs.map(getDirFromFile));
+    const commonRootDirLength = commonRootDir.length;
+
+    this.logger.info(`Emitting ${inputs.length} files (with common root dir: "${commonRootDir}") to: "${outDir}"`);
+    const objects = inputs.map(x => EmitObject.create(x, transformContext, printer, outDir, commonRootDirLength));
+    await Promise.all(objects.map(x => fs.writeFile(x.outPath, x.outContent, Encoding.utf8)));
+
+    this.logger.info(`Emit finished`);
+  }
+
   // #region IServiceLocator api
   public has<K extends Key>(key: K | Key, searchAncestors: boolean): boolean {
     return this.container.has(key, searchAncestors);
@@ -506,4 +555,63 @@ export class Workspace implements IContainer {
 
 function comparePathLength(a: { path: { length: number } }, b: { path: { length: number } }): number {
   return a.path.length - b.path.length;
+}
+
+function getDirFromFile(value: { $file: { dir: string }}): string {
+  return value.$file.dir;
+}
+
+function computeCommonRootDirectory(dirs: readonly string[]): string {
+  let commonRootDir = dirs[0];
+  const initialLength = commonRootDir.length;
+  let currentLength = initialLength;
+  let prevSlashIndex = 0;
+  for (let i = 1, ii = dirs.length; i < ii; ++i) {
+    const dir = dirs[i];
+    for (let j = 0, jj = currentLength; j < jj; ++j) {
+      const ch = commonRootDir.charCodeAt(j);
+      if (ch === Char.Slash) {
+        prevSlashIndex = j;
+      }
+      if (ch !== dir.charCodeAt(j)) {
+        currentLength = prevSlashIndex + 1;
+        prevSlashIndex = 0;
+        break;
+      }
+    }
+  }
+
+  if (currentLength !== initialLength) {
+    commonRootDir = commonRootDir.slice(0, currentLength - 1);
+  }
+
+  return commonRootDir;
+}
+
+class EmitObject {
+  public constructor(
+    public readonly input: $$ESModuleOrScript,
+    public readonly outPath: string,
+    public readonly outContent: string,
+  ) {}
+
+  public static create(
+    input: $$ESModuleOrScript,
+    transformContext: TransformationContext,
+    printer: Printer,
+    outDir: string,
+    commonRootDirLength: number,
+  ): EmitObject {
+    const transformed = input.transform(transformContext);
+    const content = printer.printFile(transformed);
+    let outPath = join(outDir, input.$file.path.slice(commonRootDirLength));
+    if (outPath.endsWith('.ts')) {
+      outPath = `${outPath.slice(0, -2)}js`;
+    }
+    return new EmitObject(
+      input,
+      outPath,
+      content,
+    );
+  }
 }

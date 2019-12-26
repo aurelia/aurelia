@@ -49,6 +49,7 @@ import {
   createLabel,
   createThrow,
   createTry,
+  createCaseBlock,
 } from 'typescript';
 import {
   PLATFORM,
@@ -2673,7 +2674,13 @@ export class $CaseBlock implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const transformedList = transformList(tctx, this.$clauses, this.node.clauses);
+    if (transformList === void 0) {
+      return this.node;
+    }
+    return createCaseBlock(
+      transformedList === void 0 ? [] : transformedList,
+    );
   }
 }
 

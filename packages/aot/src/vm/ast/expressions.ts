@@ -44,6 +44,7 @@ import {
   createDelete,
   createParen,
   createBinary,
+  createConditional,
 } from 'typescript';
 import {
   PLATFORM,
@@ -3348,7 +3349,24 @@ export class $ConditionalExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const transformedCondition = this.$condition.transform(tctx);
+    const transformedWhenTrue = this.$whenTrue.transform(tctx);
+    const transformedWhenFalse = this.$whenFalse.transform(tctx);
+
+    const node = this.node;
+    if (
+      node.condition === transformedCondition &&
+      node.whenTrue === transformedWhenTrue &&
+      node.whenFalse === transformedWhenFalse
+    ) {
+      return node;
+    }
+
+    return createConditional(
+      transformedCondition,
+      transformedWhenTrue,
+      transformedWhenFalse,
+    );
   }
 }
 

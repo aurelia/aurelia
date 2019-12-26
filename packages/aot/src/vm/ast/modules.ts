@@ -107,6 +107,7 @@ import {
   $ESStatementListItemNode,
   $$ESVarDeclaration,
   TransformationContext,
+  transformList,
 } from './_shared';
 import {
   $Identifier,
@@ -2752,26 +2753,7 @@ export class $NamedExports implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] | undefined {
-    const elements = this.node.elements;
-    const $elements = this.$elements;
-    let transformedList: ExportSpecifier[] | undefined = void 0;
-    let $element: $ExportSpecifier;
-    let transformed: ExportSpecifier | undefined;
-
-    let x = 0;
-    for (let i = 0, ii = $elements.length; i < ii; ++i) {
-      transformed = ($element = $elements[i]).transform(tctx);
-      if (transformedList === void 0) {
-        if (transformed === void 0) {
-          transformedList = elements.slice(0, x = i);
-        } else if (transformed !== $element.node) {
-          transformedList = elements.slice(0, x = i);
-          transformedList[x++] = transformed;
-        }
-      } else if (transformed !== void 0) {
-        transformedList[x++] = transformed;
-      }
-    }
+    const transformedList = transformList(tctx, this.$elements, this.node.elements);
 
     if (transformedList === void 0) {
       return this.node;

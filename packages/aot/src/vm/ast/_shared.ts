@@ -1415,3 +1415,35 @@ export interface I$Node<
 export class TransformationContext {
 
 }
+
+type Transformable<T> = {
+  transform(tctx: TransformationContext): T | undefined;
+  readonly node: T;
+};
+
+export function transformList<T>(
+  tctx: TransformationContext,
+  transformableList: readonly Transformable<T>[],
+  nodeList: readonly T[],
+): readonly T[] | undefined {
+  let transformedList: T[] | undefined = void 0;
+  let transformable: Transformable<T> | undefined;
+  let transformed: T | undefined;
+
+  let x = 0;
+  for (let i = 0, ii = transformableList.length; i < ii; ++i) {
+    transformed = (transformable = transformableList[i]).transform(tctx);
+    if (transformedList === void 0) {
+      if (transformed === void 0) {
+        transformedList = nodeList.slice(0, x = i);
+      } else if (transformed !== transformable.node) {
+        transformedList = nodeList.slice(0, x = i);
+        transformedList[x++] = transformed;
+      }
+    } else if (transformed !== void 0) {
+      transformedList[x++] = transformed;
+    }
+  }
+
+  return transformedList;
+}

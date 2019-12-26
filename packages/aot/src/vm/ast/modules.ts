@@ -2227,8 +2227,8 @@ export class $ModuleDeclaration implements I$Node {
     }
   }
 
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+  public transform(tctx: TransformationContext): this['node'] | undefined {
+    return void 0;
   }
 }
 

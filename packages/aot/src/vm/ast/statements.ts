@@ -43,6 +43,7 @@ import {
   createFor,
   createForIn,
   createForOf,
+  createReturn,
 } from 'typescript';
 import {
   PLATFORM,
@@ -1817,7 +1818,17 @@ export class $ReturnStatement implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    if (this.$expression === void 0) {
+      return this.node;
+    }
+
+    const transformed = this.$expression.transform(tctx);
+    if (transformed === this.node.expression) {
+      return this.node;
+    }
+    return createReturn(
+      transformed,
+    );
   }
 }
 

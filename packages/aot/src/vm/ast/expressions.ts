@@ -3414,8 +3414,8 @@ export class $AsExpression implements I$Node {
     return this.$expression.Evaluate(ctx);
   }
 
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+  public transform(tctx: TransformationContext): $$UpdateExpressionOrHigher['node'] {
+    return this.$expression.transform(tctx);
   }
 }
 

@@ -6,6 +6,7 @@ import {
   SyntaxKind,
   createMethod,
   createGetAccessor,
+  createSetAccessor,
 } from 'typescript';
 import {
   ILogger,
@@ -567,6 +568,28 @@ export class $SetAccessorDeclaration implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const node = this.node;
+    const transformedName = this.$name.transform(tctx);
+    const transformedParameters = transformList(tctx, this.$parameters, node.parameters);
+    const transformedBody = this.$body.transform(tctx);
+    const transformedModifiers = node.modifiers === void 0 ? void 0 : transformModifiers(node.modifiers);
+
+    if (
+      this.$decorators === void 0 &&
+      (node.modifiers === void 0 || transformedModifiers === void 0) &&
+      node.name === transformedName &&
+      transformedParameters === void 0 &&
+      node.body === transformedBody
+    ) {
+      return this.node;
+    }
+
+    return createSetAccessor(
+      void 0,
+      transformedModifiers === void 0 ? node.modifiers : transformedModifiers,
+      transformedName,
+      transformedParameters === void 0 ? node.parameters : transformedParameters,
+      transformedBody,
+    );
   }
 }

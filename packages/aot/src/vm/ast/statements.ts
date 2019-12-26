@@ -52,6 +52,7 @@ import {
   createCaseBlock,
   createCaseClause,
   createDefaultClause,
+  createCatchClause,
 } from 'typescript';
 import {
   PLATFORM,
@@ -2832,6 +2833,20 @@ export class $CatchClause implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const transformedVariableDeclaration = this.$variableDeclaration === void 0 ? void 0 : this.$variableDeclaration.transform(tctx);
+    const transformedBlock = this.$block.transform(tctx);
+
+    const node = this.node;
+    if (
+      node.variableDeclaration !== transformedVariableDeclaration ||
+      node.block !== transformedBlock
+    ) {
+      return createCatchClause(
+        transformedVariableDeclaration,
+        transformedBlock,
+      );
+    }
+
     return this.node;
   }
 }

@@ -34,6 +34,7 @@ import {
   VoidExpression,
   YieldExpression,
   createArrayLiteral,
+  createObjectLiteral,
 } from 'typescript';
 import {
   PLATFORM,
@@ -638,7 +639,20 @@ export class $ObjectLiteralExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    if (this.$properties.length === 0) {
+      return this.node;
+    }
+
+    const transformedList = transformList(tctx, this.$properties, this.node.properties);
+
+    if (transformedList === void 0) {
+      return this.node;
+    }
+
+    return createObjectLiteral(
+      transformedList,
+      true,
+    );
   }
 }
 

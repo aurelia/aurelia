@@ -4,11 +4,10 @@ import {
   Job,
 } from './job';
 import {
-  DI,
-  IContainer,
   ILogger,
   IDisposable,
   Writable,
+  DI,
 } from '@aurelia/kernel';
 import {
   Realm,
@@ -26,36 +25,45 @@ import {
   $$ESModuleOrScript,
   $ESScript,
 } from './ast/modules';
+import {
+  Workspace,
+} from './workspace';
 
-export const ISourceFileProvider = DI.createInterface<ISourceFileProvider>('ISourceFileProvider').noDefault();
-export interface ISourceFileProvider {
-  GetSourceFiles(ctx: ExecutionContext): Promise<readonly $$ESModuleOrScript[]>;
-}
-
-export class ExecutionResult {
+export class ExecutionResult implements IDisposable {
   public constructor(
-    public readonly files: readonly $$ESModuleOrScript[],
+    public readonly ws: Workspace,
     public readonly result: $Any,
   ) {}
+
+  public dispose(): void {
+    this.ws.dispose();
+  }
+}
+
+export const IAgent = DI.createInterface<IAgent>('IAgent').withDefault(x => x.singleton(Agent));
+export interface IAgent extends IDisposable {
+  RunJobs(ws: Workspace): Promise<ExecutionResult>;
 }
 
 // http://www.ecma-international.org/ecma-262/#sec-agents
-export class Agent implements IDisposable {
+export class Agent implements IAgent {
   public readonly ScriptJobs: JobQueue;
   public readonly PromiseJobs: JobQueue;
 
   public constructor(
+    @ILogger
     public readonly logger: ILogger,
   ) {
+    this.logger = logger.root.scopeTo('Agent');
     this.ScriptJobs = new JobQueue(logger, 'Script');
     this.PromiseJobs = new JobQueue(logger, 'Promise');
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runjobs
   // 8.6 RunJobs ( )
-  public async RunJobs(container: IContainer): Promise<ExecutionResult> {
+  public async RunJobs(ws: Workspace): Promise<ExecutionResult> {
     // 1. Perform ? InitializeHostDefinedRealm().
-    const realm = Realm.Create(container, this.PromiseJobs);
+    const realm = Realm.Create(ws, this.PromiseJobs);
     const intrinsics = realm['[[Intrinsics]]'];
     const stack = realm.stack;
     // We always have 1 synthetic root context which should not be considered to be a part of the stack.
@@ -63,8 +71,7 @@ export class Agent implements IDisposable {
     const rootCtx = stack.top;
 
     // 2. In an implementation-dependent manner, obtain the ECMAScript source texts (see clause 10) and any associated host-defined values for zero or more ECMAScript scripts and/or ECMAScript modules. For each such sourceText and hostDefined, do
-    const sfProvider = container.get(ISourceFileProvider);
-    const files = await sfProvider.GetSourceFiles(rootCtx);
+    const files = await ws.loadEntryFiles(realm);
     for (const file of files) {
       // 2. a. If sourceText is the source code of a script, then
       if (file.isScript) {
@@ -97,7 +104,7 @@ export class Agent implements IDisposable {
         if (this.PromiseJobs.isEmpty) {
           this.logger.debug(`Finished successfully`);
           return new ExecutionResult(
-            files,
+            ws,
             new $Empty(realm, CompletionType.normal, intrinsics.empty, lastFile),
           );
         } else {
@@ -130,7 +137,7 @@ export class Agent implements IDisposable {
       if (result.isAbrupt) {
         this.logger.debug(`Job completed with errors`);
         return new ExecutionResult(
-          files,
+          ws,
           result,
         );
       }

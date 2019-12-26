@@ -72,8 +72,8 @@ import {
   $Empty,
 } from '../types/empty';
 import {
-  IModuleResolver,
-} from '../../service-host';
+  Workspace,
+} from '../workspace';
 import {
   $Error,
   $SyntaxError,
@@ -226,6 +226,7 @@ export class $ESScript implements I$Node {
     public readonly $file: IFile,
     public readonly node: SourceFile,
     public readonly realm: Realm,
+    public readonly ws: Workspace,
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -791,8 +792,8 @@ export class $ESModule implements I$Node, IModule {
     public readonly node: SourceFile,
     public readonly realm: Realm,
     public readonly pkg: NPMPackage | null,
-    public readonly moduleResolver: IModuleResolver,
     public readonly compilerOptions: $CompilerOptions,
+    public readonly ws: Workspace,
   ) {
     const intrinsics = realm['[[Intrinsics]]'];
 
@@ -1236,7 +1237,7 @@ export class $ESModule implements I$Node, IModule {
     // 9. For each String required that is an element of module.[[RequestedModules]], do
     for (const required of this.RequestedModules) {
       // 9. a. Let requiredModule be ? HostResolveImportedModule(module, required).
-      const requiredModule = await this.moduleResolver.ResolveImportedModule(ctx, this, required);
+      const requiredModule = await this.ws.ResolveImportedModule(realm, this, required);
       if (requiredModule.isAbrupt) { return requiredModule.enrichWith(ctx, this); }
 
       // 9. b. Set idx to ? InnerModuleInstantiation(requiredModule, stack, idx).
@@ -1327,7 +1328,7 @@ export class $ESModule implements I$Node, IModule {
     // 9. For each ImportEntry Record in in module.[[ImportEntries]], do
     for (const ie of this.ImportEntries) {
       // 9. a. Let importedModule be ! HostResolveImportedModule(module, in.[[ModuleRequest]]).
-      const importedModule = await this.moduleResolver.ResolveImportedModule(ctx, this, ie.ModuleRequest) as IModule;
+      const importedModule = await this.ws.ResolveImportedModule(realm, this, ie.ModuleRequest) as IModule;
 
       // 9. b. NOTE: The above call cannot fail because imported module requests are a subset of module.[[RequestedModules]], and these have been resolved earlier in this algorithm.
       // 9. c. If in.[[ImportName]] is "*", then
@@ -1497,7 +1498,7 @@ export class $ESModule implements I$Node, IModule {
     // 7. For each ExportEntry Record e in module.[[StarExportEntries]], do
     for (const e of mod.StarExportEntries) {
       // 7. a. Let requestedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
-      const requestedModule = await this.moduleResolver.ResolveImportedModule(ctx, mod, e.ModuleRequest as $String);
+      const requestedModule = await this.ws.ResolveImportedModule(realm, mod, e.ModuleRequest as $String);
       if (requestedModule.isAbrupt) { return requestedModule.enrichWith(ctx, this); }
 
       // 7. b. Let starNames be ? requestedModule.GetExportedNames(exportStarSet).
@@ -1573,7 +1574,7 @@ export class $ESModule implements I$Node, IModule {
           this.logger.debug(`${this.path}.[ResolveExport] found specific imported binding for ${exportName['[[Value]]']}`);
 
           // 5. a. ii. Let importedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
-          const $importedModule = this.moduleResolver.ResolveImportedModule(ctx, this, e.ModuleRequest as $String);
+          const $importedModule = this.ws.ResolveImportedModule(realm, this, e.ModuleRequest as $String);
 
           return awaitIfPromise(
             $importedModule,
@@ -1618,7 +1619,7 @@ export class $ESModule implements I$Node, IModule {
           () => {
             return awaitIfPromise(
               // 8. a. Let importedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
-              this.moduleResolver.ResolveImportedModule(ctx, this, e.ModuleRequest as $String),
+              this.ws.ResolveImportedModule(realm, this, e.ModuleRequest as $String),
               () => true,
               importedModule => {
                 if (importedModule.isAbrupt) { return importedModule.enrichWith(ctx, this); }
@@ -1773,7 +1774,7 @@ export class $ESModule implements I$Node, IModule {
     // 10. For each String required that is an element of module.[[RequestedModules]], do
     for (const required of this.RequestedModules) {
       // 10. a. Let requiredModule be ! HostResolveImportedModule(module, required).
-      const requiredModule = await this.moduleResolver.ResolveImportedModule(ctx, this, required) as $ESModule; // TODO
+      const requiredModule = await this.ws.ResolveImportedModule(realm, this, required) as $ESModule; // TODO
 
       // 10. b. NOTE: Instantiate must be completed successfully prior to invoking this method, so every requested module is guaranteed to resolve successfully.
       // 10. c. Set idx to ? InnerModuleEvaluation(requiredModule, stack, idx).
@@ -2053,7 +2054,7 @@ export class $ESModule implements I$Node, IModule {
     this.node = void 0;
     this.realm = void 0;
     this.pkg = void 0;
-    this.moduleResolver = void 0;
+    this.ws = void 0;
     this.compilerOptions = void 0;
   }
 

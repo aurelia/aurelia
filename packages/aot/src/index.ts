@@ -51,8 +51,15 @@ export {
 } from './vm/types/undefined';
 
 export {
-  ISourceFileProvider,
+  IAgent,
+  Agent,
 } from './vm/agent';
+export {
+  GlobalOptions,
+} from './vm/global-options';
+export {
+  Workspace,
+} from './vm/workspace';
 
 export {
   $ESModule,
@@ -67,6 +74,7 @@ export {
 
 export {
   Job,
+  JobQueue,
 } from './vm/job';
 
 export {
@@ -77,7 +85,5 @@ export {
 } from './vm/realm';
 
 export {
-  IModuleResolver,
-  IServiceHost,
   ServiceHost,
 } from './service-host';

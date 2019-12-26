@@ -30,7 +30,10 @@ import {
   IHttpServerOptions,
   Encoding,
 } from '@aurelia/runtime-node';
-import { Printer, createPrinter, SourceFile } from 'typescript';
+import {
+  Printer,
+  createPrinter,
+} from 'typescript';
 
 export interface IBrowser {
   readonly name: string;
@@ -241,14 +244,16 @@ export class TestRunner {
 
   // const server = container.get(IHttpServer);
   // await server.start();
-  const serviceHost = new ServiceHost(container);
+  const serviceHost = container.get(ServiceHost);
 
   const fs = container.get(IFileSystem);
 
-  const entryFile = join(__dirname, '..', '..', '..', '__tests__', 'setup-au.ts');
-  const file = await fs.getFile(entryFile, true);
-  const result = await serviceHost.executeSpecificFile(file, 'module', false);
-  const [esmodule] = result.files;
+  const result = await serviceHost.execute({
+    entries: [{
+      file: join(__dirname, '..', '..', '..', '__tests__', 'setup-au.ts')
+    }]
+  });
+  const [esmodule] = result.ws.modules;
   const transformed = esmodule.transform(new TransformationContext());
   const printer: Printer = createPrinter({ removeComments: false });
   const content = printer.printFile(transformed);

@@ -33,6 +33,7 @@ import {
   TypeOfExpression,
   VoidExpression,
   YieldExpression,
+  createArrayLiteral,
 } from 'typescript';
 import {
   PLATFORM,
@@ -132,6 +133,7 @@ import {
   $UpdateExpressionNode,
   $i,
   TransformationContext,
+  transformList,
 } from './_shared';
 import {
   $$ESModuleOrScript,
@@ -506,7 +508,20 @@ export class $ArrayLiteralExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    if (this.$elements.length === 0) {
+      return this.node;
+    }
+
+    const transformedList = transformList(tctx, this.$elements, this.node.elements);
+
+    if (transformedList === void 0) {
+      return this.node;
+    }
+
+    return createArrayLiteral(
+      transformedList,
+      true,
+    );
   }
 }
 

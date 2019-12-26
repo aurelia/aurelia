@@ -526,14 +526,15 @@ export class $ArrayLiteralExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
     if (this.$elements.length === 0) {
-      return this.node;
+      return node;
     }
 
-    const transformedList = transformList(tctx, this.$elements, this.node.elements);
+    const transformedList = transformList(tctx, this.$elements, node.elements);
 
     if (transformedList === void 0) {
-      return this.node;
+      return node;
     }
 
     return createArrayLiteral(
@@ -656,14 +657,15 @@ export class $ObjectLiteralExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
     if (this.$properties.length === 0) {
-      return this.node;
+      return node;
     }
 
-    const transformedList = transformList(tctx, this.$properties, this.node.properties);
+    const transformedList = transformList(tctx, this.$properties, node.properties);
 
     if (transformedList === void 0) {
-      return this.node;
+      return node;
     }
 
     return createObjectLiteral(
@@ -869,9 +871,10 @@ export class $SpreadAssignment implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
     const transformed = this.$expression.transform(tctx);
-    if (transformed === this.node.expression) {
-      return this.node;
+    if (transformed === node.expression) {
+      return node;
     }
 
     return createSpreadAssignment(
@@ -935,9 +938,8 @@ export class $PropertyAccessExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    const transformed = this.$expression.transform(tctx);
-
     const node = this.node;
+    const transformed = this.$expression.transform(tctx);
     if (
       node.expression === transformed
     ) {
@@ -1014,10 +1016,9 @@ export class $ElementAccessExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
     const transformedExpression = this.$expression.transform(tctx);
     const transformedArgumentExpression = this.$argumentExpression.transform(tctx);
-
-    const node = this.node;
     if (
       node.expression === transformedExpression &&
       node.argumentExpression === transformedArgumentExpression
@@ -1119,7 +1120,6 @@ export class $CallExpression implements I$Node {
     const node = this.node;
     const transformedExpression = this.$expression.transform(tctx);
     const transformedArguments = transformList(tctx, this.$arguments, node.arguments);
-
     if (
       node.expression === transformedExpression &&
       transformedArguments === void 0 &&
@@ -1346,13 +1346,12 @@ export class $NewExpression implements I$Node {
     const node = this.node;
     const transformedExpression = this.$expression.transform(tctx);
     const transformedArguments = node.arguments === void 0 ? void 0 : transformList(tctx, this.$arguments, node.arguments);
-
     if (
       node.expression === transformedExpression &&
       transformedArguments === void 0 &&
       node.typeArguments === void 0
     ) {
-      return this.node;
+      return node;
     }
 
     return createNew(
@@ -1554,15 +1553,14 @@ export class $TemplateExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    const transformedHead = this.$head.transform(tctx);
-    const transformedTemplateSpans = transformList(tctx, this.$templateSpans, this.node.templateSpans);
-
     const node = this.node;
+    const transformedHead = this.$head.transform(tctx);
+    const transformedTemplateSpans = transformList(tctx, this.$templateSpans, node.templateSpans);
     if (
       node.head === transformedHead &&
       transformedTemplateSpans === void 0
     ) {
-      return this.node;
+      return node;
     }
 
     return createTemplateExpression(
@@ -1619,9 +1617,10 @@ export class $ParenthesizedExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): $$AssignmentExpressionOrHigher['node'] {
+    const node = this.node;
     const transformed = this.$expression.transform(tctx);
-    if (transformed === this.node.expression) {
-      return this.node;
+    if (transformed === node.expression) {
+      return node;
     }
     if (transformed.kind === SyntaxKind.Identifier) {
       return transformed;
@@ -1761,9 +1760,10 @@ export class $DeleteExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
     const transformed = this.$expression.transform(tctx);
-    if (transformed === this.node.expression) {
-      return this.node;
+    if (transformed === node.expression) {
+      return node;
     }
     return createDelete(
       transformed,
@@ -1855,9 +1855,10 @@ export class $TypeOfExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
     const transformed = this.$expression.transform(tctx);
-    if (transformed === this.node.expression) {
-      return this.node;
+    if (transformed === node.expression) {
+      return node;
     }
     return createTypeOf(
       transformed,
@@ -1909,9 +1910,10 @@ export class $VoidExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
     const transformed = this.$expression.transform(tctx);
-    if (transformed === this.node.expression) {
-      return this.node;
+    if (transformed === node.expression) {
+      return node;
     }
     return createVoid(
       transformed,
@@ -1959,9 +1961,10 @@ export class $AwaitExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
     const transformed = this.$expression.transform(tctx);
-    if (transformed === this.node.expression) {
-      return this.node;
+    if (transformed === node.expression) {
+      return node;
     }
     return createAwait(
       transformed,
@@ -2153,12 +2156,13 @@ export class $PrefixUnaryExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
     const transformed = this.$operand.transform(tctx);
-    if (transformed === this.node.operand) {
-      return this.node;
+    if (transformed === node.operand) {
+      return node;
     }
     return createPrefix(
-      this.node.operator,
+      node.operator,
       transformed,
     );
   }
@@ -2258,13 +2262,14 @@ export class $PostfixUnaryExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
     const transformed = this.$operand.transform(tctx);
-    if (transformed === this.node.operand) {
-      return this.node;
+    if (transformed === node.operand) {
+      return node;
     }
     return createPostfix(
       transformed,
-      this.node.operator,
+      node.operator,
     );
   }
 }
@@ -3375,10 +3380,9 @@ export class $BinaryExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
     const transformedLeft = this.$left.transform(tctx);
     const transformedRight = this.$right.transform(tctx);
-
-    const node = this.node;
     if (
       node.left === transformedLeft &&
       node.right === transformedRight
@@ -3448,11 +3452,10 @@ export class $ConditionalExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
     const transformedCondition = this.$condition.transform(tctx);
     const transformedWhenTrue = this.$whenTrue.transform(tctx);
     const transformedWhenFalse = this.$whenFalse.transform(tctx);
-
-    const node = this.node;
     if (
       node.condition === transformedCondition &&
       node.whenTrue === transformedWhenTrue &&
@@ -3569,9 +3572,8 @@ export class $YieldExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    const transformed = this.$expression.transform(tctx);
-
     const node = this.node;
+    const transformed = this.$expression.transform(tctx);
     if (transformed === node.expression) {
       return node;
     }

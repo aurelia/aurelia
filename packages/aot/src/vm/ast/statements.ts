@@ -333,11 +333,12 @@ export class $VariableStatement implements I$Node {
       return void 0;
     }
 
+    const node = this.node;
     const $declarationList = this.$declarationList;
     const declarationList = $declarationList.node;
     const transformed = $declarationList.transform(tctx);
     if (transformed === declarationList) {
-      return this.node;
+      return node;
     }
 
     return createVariableStatement(
@@ -468,7 +469,6 @@ export class $VariableDeclaration implements I$Node {
     const node = this.node;
     const transformedName = this.$name.transform(tctx);
     const transformedInitializer = this.$initializer === void 0 ? void 0 : this.$initializer.transform(tctx);
-
     if (
       node.name !== transformedName ||
       node.initializer !== transformedInitializer ||
@@ -482,7 +482,7 @@ export class $VariableDeclaration implements I$Node {
       );
     }
 
-    return this.node;
+    return node;
   }
 }
 
@@ -563,10 +563,11 @@ export class $VariableDeclarationList implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    const transformedList = transformList(tctx, this.$declarations, this.node.declarations);
+    const node = this.node;
+    const transformedList = transformList(tctx, this.$declarations, node.declarations);
 
     if (transformedList === void 0) {
-      return this.node;
+      return node;
     }
 
     return createVariableDeclarationList(transformedList);
@@ -737,10 +738,11 @@ export class $Block implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    const transformedList = transformList(tctx, this.$statements, this.node.statements as readonly $$TSStatementListItem['node'][]);
+    const node = this.node;
+    const transformedList = transformList(tctx, this.$statements, node.statements as readonly $$TSStatementListItem['node'][]);
 
     if (transformedList === void 0) {
-      return this.node;
+      return node;
     }
 
     return createBlock(
@@ -849,9 +851,10 @@ export class $ExpressionStatement implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
     const transformed = this.$expression.transform(tctx);
-    if (transformed === this.node.expression) {
-      return this.node;
+    if (transformed === node.expression) {
+      return node;
     }
     return createExpressionStatement(
       transformed,
@@ -966,11 +969,10 @@ export class $IfStatement implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
     const transformedExpression = this.$expression.transform(tctx);
     const transformedThenStatement = this.$thenStatement.transform(tctx);
     const transformedElseStatement = this.$elseStatement === void 0 ? void 0 : this.$elseStatement.transform(tctx);
-
-    const node = this.node;
     if (
       node.expression !== transformedExpression ||
       node.thenStatement !== transformedThenStatement ||
@@ -983,7 +985,7 @@ export class $IfStatement implements I$Node {
       );
     }
 
-    return this.node;
+    return node;
   }
 }
 
@@ -1072,10 +1074,9 @@ export class $DoStatement implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
     const transformedExpression = this.$expression.transform(tctx);
     const transformedStatement = this.$statement.transform(tctx);
-
-    const node = this.node;
     if (
       node.expression !== transformedExpression ||
       node.statement !== transformedStatement
@@ -1086,7 +1087,7 @@ export class $DoStatement implements I$Node {
       );
     }
 
-    return this.node;
+    return node;
   }
 }
 
@@ -1175,10 +1176,9 @@ export class $WhileStatement implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
     const transformedExpression = this.$expression.transform(tctx);
     const transformedStatement = this.$statement.transform(tctx);
-
-    const node = this.node;
     if (
       node.expression !== transformedExpression ||
       node.statement !== transformedStatement
@@ -1189,7 +1189,7 @@ export class $WhileStatement implements I$Node {
       );
     }
 
-    return this.node;
+    return node;
   }
 }
 
@@ -1310,12 +1310,11 @@ export class $ForStatement implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
     const transformedInitializer = this.$initializer === void 0 ? void 0 : this.$initializer.transform(tctx);
     const transformedCondition = this.$condition === void 0 ? void 0 : this.$condition.transform(tctx);
     const transformedIncrementor = this.$incrementor === void 0 ? void 0 : this.$incrementor.transform(tctx);
     const transformedStatement = this.$statement.transform(tctx);
-
-    const node = this.node;
     if (
       node.initializer !== transformedInitializer ||
       node.condition !== transformedCondition ||
@@ -1330,7 +1329,7 @@ export class $ForStatement implements I$Node {
       );
     }
 
-    return this.node;
+    return node;
   }
 }
 
@@ -1470,11 +1469,10 @@ export class $ForInStatement implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
     const transformedInitializer = this.$initializer.transform(tctx);
     const transformedExpression = this.$expression.transform(tctx);
     const transformedStatement = this.$statement.transform(tctx);
-
-    const node = this.node;
     if (
       node.initializer !== transformedInitializer ||
       node.expression !== transformedExpression ||
@@ -1487,7 +1485,7 @@ export class $ForInStatement implements I$Node {
       );
     }
 
-    return this.node;
+    return node;
   }
 }
 
@@ -1623,25 +1621,24 @@ export class $ForOfStatement implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
     const transformedInitializer = this.$initializer.transform(tctx);
     const transformedExpression = this.$expression.transform(tctx);
     const transformedStatement = this.$statement.transform(tctx);
-
-    const node = this.node;
     if (
       node.initializer !== transformedInitializer ||
       node.expression !== transformedExpression ||
       node.statement !== transformedStatement
     ) {
       return createForOf(
-        this.node.awaitModifier,
+        node.awaitModifier,
         transformedInitializer,
         transformedExpression,
         transformedStatement === void 0 ? createBlock([]) : transformedStatement,
       );
     }
 
-    return this.node;
+    return node;
   }
 }
 
@@ -1827,13 +1824,14 @@ export class $ReturnStatement implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
     if (this.$expression === void 0) {
-      return this.node;
+      return node;
     }
 
     const transformed = this.$expression.transform(tctx);
-    if (transformed === this.node.expression) {
-      return this.node;
+    if (transformed === node.expression) {
+      return node;
     }
     return createReturn(
       transformed,
@@ -1901,10 +1899,9 @@ export class $WithStatement implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
     const transformedExpression = this.$expression.transform(tctx);
     const transformedStatement = this.$statement.transform(tctx);
-
-    const node = this.node;
     if (
       node.expression !== transformedExpression ||
       node.statement !== transformedStatement
@@ -1915,7 +1912,7 @@ export class $WithStatement implements I$Node {
       );
     }
 
-    return this.node;
+    return node;
   }
 }
 
@@ -2132,10 +2129,9 @@ export class $SwitchStatement implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
     const transformedExpression = this.$expression.transform(tctx);
     const transformedCaseBlock = this.$caseBlock.transform(tctx);
-
-    const node = this.node;
     if (
       node.expression !== transformedExpression ||
       node.caseBlock !== transformedCaseBlock
@@ -2146,7 +2142,7 @@ export class $SwitchStatement implements I$Node {
       );
     }
 
-    return this.node;
+    return node;
   }
 }
 
@@ -2274,9 +2270,8 @@ export class $LabeledStatement implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    const transformedStatement = this.$statement.transform(tctx);
-
     const node = this.node;
+    const transformedStatement = this.$statement.transform(tctx);
     if (
       node.statement !== transformedStatement
     ) {
@@ -2286,7 +2281,7 @@ export class $LabeledStatement implements I$Node {
       );
     }
 
-    return this.node;
+    return node;
   }
 }
 
@@ -2343,9 +2338,8 @@ export class $ThrowStatement implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    const transformedExpression = this.$expression.transform(tctx);
-
     const node = this.node;
+    const transformedExpression = this.$expression.transform(tctx);
     if (
       node.expression !== transformedExpression
     ) {
@@ -2354,7 +2348,7 @@ export class $ThrowStatement implements I$Node {
       );
     }
 
-    return this.node;
+    return node;
   }
 }
 
@@ -2538,11 +2532,10 @@ export class $TryStatement implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
     const transformedTryBlock = this.$tryBlock.transform(tctx);
     const transformedCatchClause = this.$catchClause === void 0 ? void 0 : this.$catchClause.transform(tctx);
     const transformedFinallyBlock = this.$finallyBlock === void 0 ? void 0 : this.$finallyBlock.transform(tctx);
-
-    const node = this.node;
     if (
       node.tryBlock !== transformedTryBlock ||
       node.catchClause !== transformedCatchClause ||
@@ -2555,7 +2548,7 @@ export class $TryStatement implements I$Node {
       );
     }
 
-    return this.node;
+    return node;
   }
 }
 
@@ -2677,9 +2670,10 @@ export class $CaseBlock implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    const transformedList = transformList(tctx, this.$clauses, this.node.clauses);
+    const node = this.node;
+    const transformedList = transformList(tctx, this.$clauses, node.clauses);
     if (transformedList === void 0) {
-      return this.node;
+      return node;
     }
     return createCaseBlock(
       transformedList === void 0 ? [] : transformedList,
@@ -2727,11 +2721,12 @@ export class $CaseClause implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
     const transformedExpression = this.$expression.transform(tctx);
-    const transformedStatements = transformList(tctx, this.$statements, this.node.statements as readonly $$TSStatementListItem['node'][]);
+    const transformedStatements = transformList(tctx, this.$statements, node.statements as readonly $$TSStatementListItem['node'][]);
 
     if (transformedStatements === void 0) {
-      return this.node;
+      return node;
     }
     return createCaseClause(
       transformedExpression,
@@ -2778,10 +2773,11 @@ export class $DefaultClause implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    const transformedStatements = transformList(tctx, this.$statements, this.node.statements as readonly $$TSStatementListItem['node'][]);
+    const node = this.node;
+    const transformedStatements = transformList(tctx, this.$statements, node.statements as readonly $$TSStatementListItem['node'][]);
 
     if (transformedStatements === void 0) {
-      return this.node;
+      return node;
     }
     return createDefaultClause(
       transformedStatements === void 0 ? [] : transformedStatements as NodeArray<Statement>,
@@ -2833,10 +2829,9 @@ export class $CatchClause implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
     const transformedVariableDeclaration = this.$variableDeclaration === void 0 ? void 0 : this.$variableDeclaration.transform(tctx);
     const transformedBlock = this.$block.transform(tctx);
-
-    const node = this.node;
     if (
       node.variableDeclaration !== transformedVariableDeclaration ||
       node.block !== transformedBlock
@@ -2847,7 +2842,7 @@ export class $CatchClause implements I$Node {
       );
     }
 
-    return this.node;
+    return node;
   }
 }
 

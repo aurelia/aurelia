@@ -31,6 +31,7 @@ import {
   WithStatement,
   Expression,
   CaseOrDefaultClause,
+  createVariableStatement,
 } from 'typescript';
 import {
   PLATFORM,
@@ -309,7 +310,18 @@ export class $VariableStatement implements I$Node {
     if (hasBit(this.modifierFlags, ModifierFlags.Ambient)) {
       return void 0;
     }
-    return this.node;
+
+    const $declarationList = this.$declarationList;
+    const declarationList = $declarationList.node;
+    const transformed = $declarationList.transform(tctx);
+    if (transformed === declarationList) {
+      return this.node;
+    }
+
+    return createVariableStatement(
+      declarationList.modifiers,
+      transformed,
+    );
   }
 }
 

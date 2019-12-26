@@ -12,6 +12,7 @@ import {
   createObjectBindingPattern,
   createComputedPropertyName,
   createBindingElement,
+  createSpread,
 } from 'typescript';
 import {
   PLATFORM,
@@ -933,7 +934,15 @@ export class $SpreadElement implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const node = this.node;
+    const transformed = this.$expression.transform(tctx);
+
+    if (transformed === void 0) {
+      return node;
+    }
+    return createSpread(
+      transformed,
+    );
   }
 }
 

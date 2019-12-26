@@ -1,21 +1,27 @@
-import { IContainer, Class } from '@aurelia/kernel';
-import { INode, Aurelia, DOM, customElement, CustomElement, IBinding, PartialCustomElementDefinition } from '@aurelia/runtime';
-import { TestContext, assert } from '@aurelia/testing';
-import { IValidationRules, ValidationConfiguration, IValidationControllerFactory, ValidationController, BindingWithBehavior } from '@aurelia/validation';
-import { Person } from './_test-resources';
 import { Unparser } from '@aurelia/debug';
+import { IContainer, Registration } from '@aurelia/kernel';
+import { Aurelia, CustomElement, DOM, IBinding, INode, IScheduler } from '@aurelia/runtime';
+import { assert, TestContext } from '@aurelia/testing';
+import { BindingWithBehavior, IValidationControllerFactory, IValidationRules, ValidationConfiguration, ValidationController, IValidationController } from '@aurelia/validation';
+import { Person } from './_test-resources';
+import { Spy } from '../Spy';
 
 describe.only('validate-biniding-behavior', function () {
 
   class App {
     public person: Person = new Person((void 0)!, (void 0)!);
     public controller: ValidationController;
+    public controllerSpy: Spy;
 
     public constructor(
-      @IValidationRules validationRules: IValidationRules,
-      @IValidationControllerFactory factory: IValidationControllerFactory,
+      @IContainer container: IContainer,
     ) {
-      this.controller = factory.createForCurrentScope() as unknown as ValidationController;
+      const factory = container.get(IValidationControllerFactory);
+      this.controllerSpy = new Spy();
+      const controller = this.controller = this.controllerSpy.getMock(factory.create()) as unknown as ValidationController;
+      Registration.instance(IValidationController, controller).register(container);
+
+      const validationRules = container.get(IValidationRules);
       validationRules
         .on(this.person)
         .ensure('name')
@@ -36,22 +42,28 @@ describe.only('validate-biniding-behavior', function () {
     testFunction: TestFunction,
     { template }: TestSetupContext<any>
   ) {
-    const host = DOM.createElement('app');
-    const container = TestContext.createHTMLTestContext().container;
+    const ctx = TestContext.createHTMLTestContext();
+    const container = ctx.container;
+    const host = ctx.dom.createElement('app');
+    ctx.doc.body.appendChild(host);
     let app;
-    await new Aurelia(container)
+    const au = new Aurelia(container);
+    await au
       .register(ValidationConfiguration)
       .app({
         host,
         component: app = (() => {
           const ca = CustomElement.define({ name: 'app', isStrictBinding: true, template }, App);
-          return new ca(container.get(IValidationRules), container.get(IValidationControllerFactory));
+          return new ca(container);
         })()
       })
       .start()
       .wait();
 
     await testFunction({ app, container, host });
+
+    await au.stop().wait();
+    ctx.doc.body.removeChild(host);
   }
 
   function $it(title: string, testFunction: TestFunction, ctx: TestSetupContext<any>) {
@@ -60,15 +72,36 @@ describe.only('validate-biniding-behavior', function () {
     });
   }
 
-  $it('registers binding to the controller',
-    function ({ app, host }: TestContext<App>) {
+  $it('registers binding to the controller with default blur trigger',
+    async function ({ app, host, container }: TestContext<App>) {
+      const scheduler = container.get(IScheduler);
       const controller = app.controller;
+      const controllerSpy = app.controllerSpy;
+
       const bindings = Array.from((controller['bindings'] as Map<IBinding, any>).keys()) as BindingWithBehavior[];
       assert.equal(bindings.length, 1);
-      const target = (host as Element).querySelector("#target");
+
+      const target: HTMLInputElement = (host as Element).querySelector("#target");
       const binding = bindings[0];
-      assert.equal(binding.target, target);
+      assert.equal(binding.target, (host as Element).querySelector("#target"));
       assert.equal(Unparser.unparse(binding.sourceExpression.expression), 'person.name');
+
+      assert.equal(controller.errors.length, 0);
+      await controller.validate();
+      assert.equal(controller.errors.length, 1);
+
+      controllerSpy.clearCallRecords();
+      target.value = 'foo';
+
+      target.dispatchEvent(new Event('change'));
+      await scheduler.yieldAll();
+      controllerSpy.methodCalledTimes('validate', 0);
+
+      controllerSpy.clearCallRecords();
+      target.dispatchEvent(new Event('blur'));
+      await scheduler.yieldAll();
+      controllerSpy.methodCalledTimes('validate', 1);
+      assert.equal(controller.errors.length, 0);
     },
     { template: `<input id="target" type="text" value.bind="person.name & validate">` }
   );

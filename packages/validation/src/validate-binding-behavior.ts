@@ -12,7 +12,37 @@ import {
   IValidationController,
   ValidationController,
 } from './validation-controller';
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, DI } from '@aurelia/kernel';
+
+/**
+ * Validation triggers.
+ */
+export const enum ValidationTrigger {
+  /**
+   * Manual validation.  Use the controller's `validate()` and  `reset()` methods
+   * to validate all bindings.
+   */
+  manual = "manual",
+
+  /**
+   * Validate the binding when the binding's target element fires a DOM "blur" event.
+   */
+  blur = "blur",
+
+  /**
+   * Validate the binding when it updates the model due to a change in the view.
+   */
+  change = "change",
+
+  /**
+   * Validate the binding when the binding's target element fires a DOM "blur" event and
+   * when it updates the model due to a change in the view.
+   */
+  changeOrBlur = "changeOrBlur"
+}
+
+/* @internal */
+export const IDefaultTrigger = DI.createInterface<ValidationTrigger>('IDefaultTrigger').noDefault();
 
 /**
  * Binding behavior. Indicates the bound property should be validated.
@@ -23,14 +53,17 @@ export class ValidateBindingBehavior extends BindingInterceptor {
   private target: HTMLElement = (void 0)!;
   private controller!: IValidationController;
   private isChangeTrigger!: boolean;
+  private readonly scheduler: IScheduler;
+  private readonly defaultTrigger: ValidationTrigger;
 
   public constructor(
     @IContainer private readonly container: IContainer,
-    @IScheduler private readonly scheduler: IScheduler,
     public readonly binding: BindingWithBehavior,
     expr: IBindingBehaviorExpression,
   ) {
     super(binding, expr);
+    this.scheduler = container.get(IScheduler);
+    this.defaultTrigger = container.get(IDefaultTrigger);
   }
 
   public updateSource(value: unknown, flags: LifecycleFlags) {
@@ -90,7 +123,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
       controller = this.controller = this.container.get<IValidationController>(IValidationController);
     }
     if (trigger === void 0) {
-      trigger = ValidationTrigger.blur; // default trigger // TODO global configuration options
+      trigger = this.defaultTrigger;
     }
     this.rules = rules;
     return trigger;
@@ -101,31 +134,4 @@ export class ValidateBindingBehavior extends BindingInterceptor {
       await this.controller.validateBinding(this.binding);
     });
   }
-}
-
-/**
- * Validation triggers.
- */
-export const enum ValidationTrigger {
-  /**
-   * Manual validation.  Use the controller's `validate()` and  `reset()` methods
-   * to validate all bindings.
-   */
-  manual = "manual",
-
-  /**
-   * Validate the binding when the binding's target element fires a DOM "blur" event.
-   */
-  blur = "blur",
-
-  /**
-   * Validate the binding when it updates the model due to a change in the view.
-   */
-  change = "change",
-
-  /**
-   * Validate the binding when the binding's target element fires a DOM "blur" event and
-   * when it updates the model due to a change in the view.
-   */
-  changeOrBlur = "changeOrBlur"
 }

@@ -32,8 +32,12 @@ export class Spy {
 
   public methodCalledTimes(methodName: string, times: number) {
     const calls = this.callRecords.get(methodName);
-    assert.notEqual(calls, undefined);
-    assert.equal(calls.length, times);
+    if (times !== 0) {
+      assert.notEqual(calls, undefined);
+      assert.equal(calls.length, times);
+    } else {
+      assert.equal(calls, undefined);
+    }
   }
 
   public methodCalledOnceWith(methodName: string, expectedArgs: any[]) {

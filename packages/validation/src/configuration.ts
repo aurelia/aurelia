@@ -1,26 +1,24 @@
-import { IContainer, PLATFORM, Registration, Class } from '@aurelia/kernel';
-import { ValidationRules, IValidationRules, IValidationMessageProvider, ValidationMessageProvider, ICustomMessage, ICustomMessages } from './rule';
-import { ValidateBindingBehavior } from './validate-binding-behavior';
-import { IValidationController, ValidationController, ValidationControllerFactory, IValidationControllerFactory } from './validation-controller';
+import { IContainer, PLATFORM, Registration } from '@aurelia/kernel';
+import { ICustomMessages, IValidationMessageProvider, IValidationRules, ValidationMessageProvider, ValidationRules } from './rule';
+import { ValidateBindingBehavior, IDefaultTrigger, ValidationTrigger } from './validate-binding-behavior';
+import { IValidationControllerFactory, ValidationControllerFactory } from './validation-controller';
+import { ValidationCustomizationOpions } from './validation-customization-options';
 import { ValidationErrorsCustomAttribute } from './validation-errors-custom-attribute';
 import { ValidationRendererCustomAttribute } from './validation-renderer-custom-attribute';
 import { IValidator, StandardValidator } from './validator';
 
 export type ValidationConfigurationProvider = (options: ValidationCustomizationOpions) => void;
-export interface ValidationCustomizationOpions {
-  validator: Class<IValidator>;
-  customMessages: ICustomMessage[];
-}
 
 function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
   return {
     optionsProvider,
     register(container: IContainer) {
-      const options: ValidationCustomizationOpions = { validator: StandardValidator, customMessages: [] };
+      const options: ValidationCustomizationOpions = { validator: StandardValidator, customMessages: [], defaultTrigger: ValidationTrigger.blur };
       optionsProvider(options);
 
       return container.register(
         Registration.callback(ICustomMessages, () => options.customMessages),
+        Registration.callback(IDefaultTrigger, () => options.defaultTrigger),
         Registration.singleton(IValidator, options.validator),
         Registration.singleton(IValidationMessageProvider, ValidationMessageProvider), // TODO enable customization of messages and i18n
         Registration.transient(IValidationRules, ValidationRules),

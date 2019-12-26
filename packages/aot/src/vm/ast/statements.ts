@@ -48,6 +48,7 @@ import {
   createSwitch,
   createLabel,
   createThrow,
+  createTry,
 } from 'typescript';
 import {
   PLATFORM,
@@ -2533,6 +2534,23 @@ export class $TryStatement implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const transformedTryBlock = this.$tryBlock.transform(tctx);
+    const transformedCatchClause = this.$catchClause === void 0 ? void 0 : this.$catchClause.transform(tctx);
+    const transformedFinallyBlock = this.$finallyBlock === void 0 ? void 0 : this.$finallyBlock.transform(tctx);
+
+    const node = this.node;
+    if (
+      node.tryBlock !== transformedTryBlock ||
+      node.catchClause !== transformedCatchClause ||
+      node.finallyBlock !== transformedFinallyBlock
+    ) {
+      return createTry(
+        transformedTryBlock,
+        transformedCatchClause,
+        transformedFinallyBlock,
+      );
+    }
+
     return this.node;
   }
 }

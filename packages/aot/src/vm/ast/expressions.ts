@@ -50,6 +50,7 @@ import {
   createTaggedTemplate,
   createNew,
   createCall,
+  createElementAccess,
 } from 'typescript';
 import {
   PLATFORM,
@@ -1000,7 +1001,21 @@ export class $ElementAccessExpression implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const transformedExpression = this.$expression.transform(tctx);
+    const transformedArgumentExpression = this.$argumentExpression.transform(tctx);
+
+    const node = this.node;
+    if (
+      node.expression === transformedExpression &&
+      node.argumentExpression === transformedArgumentExpression
+    ) {
+      return node;
+    }
+
+    return createElementAccess(
+      transformedExpression,
+      transformedArgumentExpression,
+    );
   }
 }
 
@@ -1097,7 +1112,7 @@ export class $CallExpression implements I$Node {
       transformedArguments === void 0 &&
       node.typeArguments === void 0
     ) {
-      return this.node;
+      return node;
     }
 
     return createCall(

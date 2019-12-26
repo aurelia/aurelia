@@ -37,6 +37,7 @@ import {
   createBlock,
   Statement,
   createExpressionStatement,
+  createIf,
 } from 'typescript';
 import {
   PLATFORM,
@@ -950,6 +951,23 @@ export class $IfStatement implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const transformedExpression = this.$expression.transform(tctx);
+    const transformedThenStatement = this.$thenStatement.transform(tctx);
+    const transformedElseStatement = this.$elseStatement === void 0 ? void 0 : this.$elseStatement.transform(tctx);
+
+    const node = this.node;
+    if (
+      node.expression !== transformedExpression ||
+      node.thenStatement !== transformedThenStatement ||
+      node.elseStatement !== transformedElseStatement
+    ) {
+      return createIf(
+        transformedExpression,
+        transformedThenStatement === void 0 ? createBlock([]) : transformedThenStatement,
+        transformedElseStatement,
+      );
+    }
+
     return this.node;
   }
 }
@@ -1039,6 +1057,8 @@ export class $DoStatement implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const transformedExpression = this.$expression.transform(tctx);
+
     return this.node;
   }
 }

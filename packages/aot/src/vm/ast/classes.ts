@@ -18,6 +18,7 @@ import {
   createSuper,
   createSpread,
   createHeritageClause,
+  createExpressionWithTypeArguments,
 } from 'typescript';
 import {
   PLATFORM,
@@ -198,7 +199,20 @@ export class $ExpressionWithTypeArguments implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const node = this.node;
+    const transformed = this.$expression.transform(tctx);
+
+    if (
+      node.typeArguments === void 0 &&
+      node.expression === transformed
+    ) {
+      return node;
+    }
+
+    return createExpressionWithTypeArguments(
+      void 0,
+      transformed,
+    );
   }
 }
 

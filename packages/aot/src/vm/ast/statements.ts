@@ -46,6 +46,7 @@ import {
   createReturn,
   createWith,
   createSwitch,
+  createLabel,
 } from 'typescript';
 import {
   PLATFORM,
@@ -2267,6 +2268,18 @@ export class $LabeledStatement implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const transformedStatement = this.$statement.transform(tctx);
+
+    const node = this.node;
+    if (
+      node.statement !== transformedStatement
+    ) {
+      return createLabel(
+        node.label,
+        transformedStatement === void 0 ? createBlock([]) : transformedStatement,
+      );
+    }
+
     return this.node;
   }
 }

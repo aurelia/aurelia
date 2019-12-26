@@ -22,6 +22,9 @@ import {
   createElementAccess,
   createNumericLiteral,
   Identifier,
+  createStringLiteral,
+  createReturn,
+  createIdentifier,
 } from 'typescript';
 import {
   PLATFORM,
@@ -50,6 +53,7 @@ import {
   $i,
   $$ESVarDeclaration,
   TransformationContext,
+  transformModifiers,
 } from './_shared';
 import {
   ExportEntryRecord,
@@ -300,52 +304,60 @@ export class $EnumDeclaration implements I$Node {
     const node = this.node;
     // TODO: inline const enums instead
     return createVariableStatement(
-      node.modifiers,
-      createVariableDeclarationList(
-        [
+      /* modifiers       */node.modifiers === void 0 ? void 0 : transformModifiers(node.modifiers),
+      /* declarationList */createVariableDeclarationList(
+        /* declarations    */[
           createVariableDeclaration(
-            node.name,
-            void 0,
-            createCall(
-              createFunctionExpression(
-                void 0,
-                void 0,
-                void 0,
-                void 0,
-                [
+            /* name            */node.name,
+            /* type            */void 0,
+            /* initializer     */createCall(
+              /* expression      */createFunctionExpression(
+                /* modifiers       */void 0,
+                /* asteriskToken   */void 0,
+                /* name            */void 0,
+                /* typeParameters  */void 0,
+                /* parameters      */[
                   createParameter(
-                    void 0,
-                    void 0,
-                    void 0,
-                    node.name,
+                    /* decorators      */void 0,
+                    /* modifiers       */void 0,
+                    /* dotDotDotToken  */void 0,
+                    /* name            */node.name,
                   ),
                 ],
-                void 0,
-                createBlock(node.members.map((m, i) => createExpressionStatement(
-                  createAssignment(
-                    createElementAccess(
-                      node.name,
-                      createAssignment(
-                        createElementAccess(
-                          node.name,
-                          m.name as Identifier,
+                /* typeNode        */void 0,
+                /* body            */createBlock(
+                  /* statements      */[
+                    ...node.members.map(
+                      (m, i) => createExpressionStatement(
+                        /* expression      */createAssignment(
+                          /* left            */createElementAccess(
+                            /* expression      */node.name,
+                            /* index           */createAssignment(
+                              /* left            */createElementAccess(
+                                /* expression      */node.name,
+                                /* index           */createStringLiteral((m.name as Identifier).text),
+                              ),
+                              /* right           */m.initializer === void 0
+                                ? createNumericLiteral(i.toString())
+                                : m.initializer,
+                            ),
+                          ),
+                          /* right           */createStringLiteral((m.name as Identifier).text),
                         ),
-                        m.initializer === void 0
-                          ? createNumericLiteral(i.toString())
-                          : m.initializer,
                       ),
                     ),
-                    m.name as Identifier,
-                  ),
-                ))),
+                    createReturn(node.name),
+                  ],
+                  /* multiLine       */true,
+                ),
               ),
-              void 0,
-              [
+              /* typeArguments   */void 0,
+              /* argumentsArray  */[
                 createLogicalOr(
-                  node.name,
-                  createAssignment(
-                    node.name,
-                    createObjectLiteral(),
+                  /* left            */node.name,
+                  /* right           */createAssignment(
+                    /* left            */node.name,
+                    /* right           */createObjectLiteral(),
                   ),
                 ),
               ],

@@ -1549,8 +1549,8 @@ export class $NonNullExpression implements I$Node {
     return this.$expression.Evaluate(ctx).enrichWith(ctx, this);
   }
 
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+  public transform(tctx: TransformationContext): $$LHSExpressionOrHigher['node'] {
+    return this.$expression.transform(tctx);
   }
 }
 

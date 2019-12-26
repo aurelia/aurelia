@@ -40,6 +40,7 @@ import {
   createIf,
   createDo,
   createWhile,
+  createFor,
 } from 'typescript';
 import {
   PLATFORM,
@@ -1297,6 +1298,26 @@ export class $ForStatement implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const transformedInitializer = this.$initializer === void 0 ? void 0 : this.$initializer.transform(tctx);
+    const transformedCondition = this.$condition === void 0 ? void 0 : this.$condition.transform(tctx);
+    const transformedIncrementor = this.$incrementor === void 0 ? void 0 : this.$incrementor.transform(tctx);
+    const transformedStatement = this.$statement.transform(tctx);
+
+    const node = this.node;
+    if (
+      node.initializer !== transformedInitializer ||
+      node.condition !== transformedCondition ||
+      node.incrementor !== transformedIncrementor ||
+      node.statement !== transformedStatement
+    ) {
+      return createFor(
+        transformedInitializer,
+        transformedCondition,
+        transformedIncrementor,
+        transformedStatement === void 0 ? createBlock([]) : transformedStatement,
+      );
+    }
+
     return this.node;
   }
 }

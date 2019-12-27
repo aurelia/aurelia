@@ -250,7 +250,7 @@ export class ValidationController implements IValidationController {
       return (void 0);
     }
     propertyInfo = { object, propertyName };
-    console.log(propertyInfo);
+    // console.log(propertyInfo);
     if (toCachePropertyName) {
       info.propertyInfo = propertyInfo;
     }
@@ -350,7 +350,8 @@ export class ValidationController implements IValidationController {
 
   private processResultDelta(
     kind: 'validate' | 'reset',
-    oldResults: ValidationResult[], newResults: ValidationResult[]
+    oldResults: ValidationResult[],
+    newResults: ValidationResult[],
   ) {
     // prepare the instruction.
     const instruction: RenderInstruction = {
@@ -429,9 +430,7 @@ export class ValidationController implements IValidationController {
    * @internal
    */
   public async validateBinding(binding: BindingWithBehavior) {
-    // if (!binding.isBound) {
-    //   return;
-    // }
+    // if (!binding.isBound) { return; }
     const bindingInfo = this.bindings.get(binding);
     if (bindingInfo === void 0) {
       return;
@@ -442,8 +441,8 @@ export class ValidationController implements IValidationController {
       return;
     }
     const { object, propertyName } = propertyInfo;
-    const result = await this.validate({ object, propertyName, rules });
-    console.log(result);
+    /* const result =  */await this.validate({ object, propertyName, rules });
+    // console.log(result);
   }
 
   /**

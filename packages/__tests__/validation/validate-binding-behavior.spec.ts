@@ -1,10 +1,10 @@
 import { Unparser } from '@aurelia/debug';
 import { IContainer, Registration } from '@aurelia/kernel';
-import { Aurelia, CustomElement, DOM, IBinding, INode, IScheduler } from '@aurelia/runtime';
+import { Aurelia, CustomElement, IBinding, INode, IScheduler } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
-import { BindingWithBehavior, IValidationControllerFactory, IValidationRules, ValidationConfiguration, ValidationController, IValidationController } from '@aurelia/validation';
-import { Person } from './_test-resources';
+import { BindingWithBehavior, IValidationController, IValidationControllerFactory, IValidationRules, ValidationConfiguration, ValidationController } from '@aurelia/validation';
 import { Spy } from '../Spy';
+import { Person } from './_test-resources';
 
 describe.only('validate-biniding-behavior', function () {
 
@@ -86,23 +86,25 @@ describe.only('validate-biniding-behavior', function () {
       assert.equal(binding.target, (host as Element).querySelector("#target"));
       assert.equal(Unparser.unparse(binding.sourceExpression.expression), 'person.name');
 
-      assert.equal(controller.errors.length, 0);
+      assert.equal(controller.errors.length, 0, 'error1');
       await controller.validate();
-      assert.equal(controller.errors.length, 1);
+      assert.equal(controller.errors.length, 1, 'error2');
 
       controllerSpy.clearCallRecords();
       target.value = 'foo';
 
       target.dispatchEvent(new Event('change'));
-      await scheduler.yieldAll();
+      await scheduler.yieldAll(10);
+      controllerSpy.methodCalledTimes('validateBinding', 0);
       controllerSpy.methodCalledTimes('validate', 0);
 
       controllerSpy.clearCallRecords();
       target.dispatchEvent(new Event('blur'));
-      await scheduler.yieldAll();
+      await scheduler.yieldAll(10);
+      controllerSpy.methodCalledTimes('validateBinding', 1);
       controllerSpy.methodCalledTimes('validate', 1);
-      assert.equal(controller.errors.length, 0);
+      assert.equal(controller.errors.filter((e) => !e.valid).length, 0, 'error3');
     },
-    { template: `<input id="target" type="text" value.bind="person.name & validate">` }
+    { template: `<input id="target" type="text" value.two-way="person.name & validate">` }
   );
 });

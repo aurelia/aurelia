@@ -571,7 +571,7 @@ export class $VariableDeclarationList implements I$Node {
       return node;
     }
 
-    return createVariableDeclarationList(transformedList);
+    return createVariableDeclarationList(transformedList, node.flags);
   }
 }
 

@@ -1,33 +1,33 @@
 export const functionTemplate = `
-# {{ name | mdEscape | replaceWith }}
-<br/>
 {% if comment %}
-    ## ✦ Summary
+    # &#128366; Summary
     {{ comment | commentRenderer }}
 {% endif %}
 <br/>
-| Modifier(s)                            | Return Type                     | Generator                        | Overload                         | Implementation                        |
-|----------------------------------------|---------------------------------|:--------------------------------:|:--------------------------------:|:-------------------------------------:|
-| {{ modifiers | join(', ','declare') }} | {{ returnType | typeRenderer }} | {{ isGenerator | print_symbol }} | {{ isOverload | print_symbol }}  | {{ isImplementation | print_symbol }} |
+# {{ name | replaceWith }}
+<br/>
+| Modifier(s)                            | Return Type                    | Generator                        | Overload                         | Implementation                        |
+|----------------------------------------|--------------------------------|:--------------------------------:|:--------------------------------:|:-------------------------------------:|
+| {{ modifiers | join(', ','declare') }} | {{ returnType | typeRenderer}} | {{ isGenerator | print_symbol }} | {{ isOverload | print_symbol }}  | {{ isImplementation | print_symbol }} |
 <br/>
 {% if typeGuard %}
-    ## ✦ Type Guard
+    # &#128712; Type Guard
     | On                             |
     |--------------------------------|
     | {{ typeGuard | typeRenderer }} |
 {% endif %}
 <br/>
 {% if typeParameters %}
-    ## ✦ Type Parameter(s)
+    # &#128712; Type Parameter(s)
     {% for tp in typeParameters %}
         {{ tp | typeParameterRenderer }}
         <br/>
     {% endfor %}
 {% endif %}
 {% if parameters %}
-        ## ✦ Parameter(s)
+        ## &#128966; Parameter(s)
         {% for p in parameters %}
-        &nbsp;&nbsp; _**{{ p.name | mdEscape }}**_
+        _**{{ p.name }}**_
         <br/>
         | Modifier(s)                              | Type                        | Optional                           | Rest                          | Parameter Property                          | Initializer                       |
         |------------------------------------------|-----------------------------|:----------------------------------:|:-----------------------------:|:-------------------------------------------:|-----------------------------------|

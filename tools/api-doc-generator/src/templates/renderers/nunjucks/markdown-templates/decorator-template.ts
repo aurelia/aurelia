@@ -1,7 +1,7 @@
 export const decoratorTemplate = `
-| Name                  | Decorator Factory                        |
-|-----------------------|:----------------------------------------:|
-| {{ name | mdEscape }} | {{ isDecoratorFactory | print_symbol }}  |
+| Name       | Decorator Factory                        |
+|------------|:----------------------------------------:|
+| {{ name }} | {{ isDecoratorFactory | print_symbol }}  |
 <br/>
 {% if arguments %}
 | Argument(s)                                           |

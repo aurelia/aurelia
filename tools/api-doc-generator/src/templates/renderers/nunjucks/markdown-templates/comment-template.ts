@@ -7,8 +7,7 @@ export const commentTemplate = `
 
 {% if details %}
     {% for detail in details %}
-        **{{ detail.title | mdEscape }}** 
-        <br/>
+        **{{ detail.title }}**
         {% if detail.tags %}
             {{ detail.tags | tagToMdTable }}
         {% endif %}

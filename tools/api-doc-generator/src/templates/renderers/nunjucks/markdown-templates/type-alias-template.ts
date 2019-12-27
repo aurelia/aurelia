@@ -1,24 +1,23 @@
 export const typeAliasTemplate = `
-# {{ name | mdEscape | replaceWith }}
-<br/>
 {% if comment %}
-    ## ✦ Summary
+    # &#128366; Summary
     {{ comment | commentRenderer }}
 {% endif %}
 <br/>
+# {{ name | replaceWith }}
 | Modifier(s)                            | Type                     |
 |----------------------------------------|--------------------------|
 | {{ modifiers | join(', ','declare') }} | {{ type | typeRenderer}} |
 <br/>
 {% if typeParameters %}
-    ## ✦ Type Parameter(s)
+    # &#128712; Type Parameter(s)
     {% for tp in typeParameters %}
         {{ tp | typeParameterRenderer}}
         <br/>
     {% endfor %}
 {% endif %}
 {% if initializer %}
-    ## ✦ Initializer
+    # &#128712; Initializer
     {{ initializer }}
 {% endif %}
 `;

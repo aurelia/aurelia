@@ -52,7 +52,7 @@ Nunjucks.addFilter('tagToMdTable', function (value: CommentGroupTagInfo[]): stri
                 row.push(t);
             }
             if (hasDescription) {
-                row.push(element.description?.join('\n') || '');
+                row.push(element.description?.join(' ') || '');
             }
             if (row.length !== 0) {
                 list.push(row);

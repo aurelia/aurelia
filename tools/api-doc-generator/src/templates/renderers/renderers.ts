@@ -1,13 +1,9 @@
 import { VariableStatement } from 'ts-morph';
 import { Nunjucks, isEmptyOrWhitespace } from '../../utils';
-
 import { TemplateConfiguration, TemplateGenerator } from '../configurations';
-
 import { ITemplateRenderer, TemplateRendererType } from './template-renderer';
 import { getCommentGroupInfo } from '../../helpers';
-
 import './nunjucks/nunjucks-filters';
-
 import {
     ClassInfo, CommentInfo,
     DecoratorInfo, DecoratorArgumentInfo,
@@ -17,7 +13,6 @@ import {
     LiteralAssignmentInfo, LiteralCallSignatureInfo, LiteralExpressionInfo,
     TypeInfo, TypeAliasInfo, TypeParameterInfo,
 } from '../../api/models';
-
 import {
     classTemplate, commentTemplate,
     decoratorArgumentTemplate, decoratorTemplate,
@@ -30,9 +25,9 @@ import {
 } from './nunjucks/markdown-templates';
 import { typeMapper } from '../../helpers';
 
-
 /* eslint-disable */
-const markdownTable = require('markdown-table')
+const indent = require('indent.js');
+const markdownTable = require('markdown-table');
 /* eslint-disable */
 
 function postRender(text: string): string {
@@ -41,10 +36,7 @@ function postRender(text: string): string {
         .filter(item => !isEmptyOrWhitespace(item.trim()))
         .map((item, index, el) => {
             let r = item.trim();
-            if (r[0] === '#') {
-                return '\n' + r;
-            }
-            else if (r[0] === '|') {
+            if (r[0] === '|') {
                 if (el[index + 1]) {
                     var next = el[index + 1];
                     if (next[0] === '|' && (next[1] === ':' || next[1] === '-') && next[2] === '-') {
@@ -53,17 +45,17 @@ function postRender(text: string): string {
                 }
                 return r;
             }
-            else if (r[0] === '_' && r[r.length - 1] === '_') {
+            else if (r[0] === '#') {
                 return '\n' + r + '\n';
             }
-            else if (r[0] === '*' && r[1] === '*') {
+            else if (r.length >= 2 && r.substr(r.length - 2) === '**') {
+                return '\n' + r + '\n';
+            }
+            else if (r.length >= 3 && r.substr(r.length - 3) === '**_') {
                 return '\n' + r + '\n';
             }
             else if (r === '<br>' || r === '<br/>') {
                 return '\n';
-            }
-            else if (r === '<hr>' || r === '<hr/>') {
-                return '---';
             }
             else {
                 return r;
@@ -77,11 +69,11 @@ function postRender(text: string): string {
         if (finalResult.length > 0) {
             for (let index = 1; index < finalResult.length - 1; index++) {
                 finalResult[index] = finalResult[index].replace(/&#64;\s*/g, '@');
+                finalResult[index] = indent.ts(finalResult[index], { tabString: '  ' });
             }
         }
         result = finalResult.join('```');
     }
-
 
     var r = result
         .split(/\r?\n/)

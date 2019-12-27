@@ -1,7 +1,7 @@
 import { TypeCategory } from './common/category/type-category';
 import { getSourcePathFolders } from './get-source-path-folders';
 
-export function sourceFileLocator(path: string, name: string, category: TypeCategory, baseUrl?: string, extension?: string): string {
+export function sourceFileLocator(path: string, name: string, category: TypeCategory, baseUrl?: string, extension?: string, ignoreFileName?: boolean): string {
     let value = '';
     if (baseUrl && baseUrl.length > 0) {
         if (baseUrl[baseUrl.length - 1] === '/') {
@@ -11,8 +11,14 @@ export function sourceFileLocator(path: string, name: string, category: TypeCate
     const parts = getSourcePathFolders(path);
     if (parts.length > 0) {
         const mainParts = parts.slice(0, -1).join('/');
-        const fileName = parts.slice(-1)[0].substr(0, parts.slice(-1)[0].indexOf('.'));
-        value = `${baseUrl}/${mainParts}/${category.toLowerCase()}/${fileName}/${name}` + (extension ?? '');
+        name = name.replace(/\$/g, "usd");
+        if (!ignoreFileName) {
+            const fileName = parts.slice(-1)[0].substr(0, parts.slice(-1)[0].indexOf('.'));
+            value = `${baseUrl}/${mainParts}/${category.toLowerCase()}/${fileName}/${name}` + (extension ?? '');
+        }
+        else {
+            value = `${baseUrl}/${mainParts}/${category.toLowerCase()}/${name}` + (extension ?? '');
+        }
     }
     return value.toLowerCase();
 }

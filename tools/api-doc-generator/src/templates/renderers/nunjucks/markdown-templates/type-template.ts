@@ -1,1 +1,1 @@
-export const typeTemplate = `{{ value | mdEscape }}`;
+export const typeTemplate = `{{value | mdEscape }}`;

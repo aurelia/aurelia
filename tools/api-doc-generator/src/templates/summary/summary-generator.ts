@@ -170,15 +170,13 @@ export function generateSummary(sourceFileInfo: SourceFileInfo, ...prepend: stri
         .sortBy(
             item => item.folders,
             item => item.category,
+            item => item.name,
         )
         .groupBy(item => item.folders)
         .values()
         .value();
     for (let index = 0; index < summaryGroup.length; index++) {
         const element = summaryGroup[index];
-        if (element[0].path.includes('plugin-pixi/src/resources') || element[0].path.includes('debug/src/binding')) {
-            const a = 1;
-        }
         const parents = element[0].folders;
         const title = beautifyName(parents[parents.length - 1]);
         const root = `${tab(parents.length - 1)}* [${title}](${parents.join('/').toLowerCase()}/README.md)`;

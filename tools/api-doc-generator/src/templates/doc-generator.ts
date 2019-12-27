@@ -4,7 +4,7 @@ import { TemplateGenerator, TemplateConfiguration } from './configurations';
 import { getAureliaSources } from '../helpers/aurelia/aurelia-source-utils';
 import { TemplateRendererType } from './renderers/template-renderer';
 import { generateSummary } from './summary/summary-generator';
-import { TypeCategory, sourceFileLocator } from "../helpers";
+import { TypeCategory, sourceFileLocator, typeMapper } from "../helpers";
 /* eslint-disable */
 const markdownTable = require('markdown-table')
 /* eslint-disable */
@@ -34,8 +34,7 @@ export function generateApiDoc(tsconfig: string, destination: string) {
         for (let index = 0; index < element.length; index++) {
             const el = element[index];
             for (let index = 0; index < el.folders.length; index++) {
-                const link = `[${el.name ?? '__default'}](${sourceFileLocator(el.path, (el.name ?? '__default'), el.category, TemplateConfiguration.baseUrl ?? '', '.md')})`;
-
+                const link = `[${el.name ?? '__default'}](${sourceFileLocator(el.path, (el.name ?? '__default'), el.category, TemplateConfiguration.baseUrl ?? '', undefined, true)})`;
                 tocList.push({
                     name: el.name ?? '__default',
                     package: el.folders.slice(0, index + 1).join('/'),
@@ -48,7 +47,7 @@ export function generateApiDoc(tsconfig: string, destination: string) {
         }
     }
 
-    const threshold = 3;
+    const threshold = 2;
     let indexList: string[] = [];
     const tocGrouped = _(tocList)
         .sortBy(
@@ -59,7 +58,8 @@ export function generateApiDoc(tsconfig: string, destination: string) {
         .values()
         .value();
     for (let index = 0; index < tocGrouped.length; index++) {
-        const element = tocGrouped[index];
+        let element = tocGrouped[index];
+        element = _(element).uniqBy(x => x.link).value();
         const tocCategoryGrouped = _(element)
             .sortBy(
                 item => item.category,
@@ -69,7 +69,8 @@ export function generateApiDoc(tsconfig: string, destination: string) {
             .values()
             .value();
         for (let index = 0; index < tocCategoryGrouped.length; index++) {
-            const catElement = tocCategoryGrouped[index];
+            let catElement = tocCategoryGrouped[index];
+            catElement = _(catElement).uniqBy(x => x.link).value();
             const tocDomainGrouped = _(catElement)
                 .sortBy(
                     item => item.domain,
@@ -79,7 +80,8 @@ export function generateApiDoc(tsconfig: string, destination: string) {
                 .values()
                 .value();
             for (let index = 0; index < tocDomainGrouped.length; index++) {
-                const domainElement = tocDomainGrouped[index];
+                let domainElement = tocDomainGrouped[index];
+                domainElement = _(domainElement).uniqBy(x => x.link).value();
                 const dl = _.chunk(new Array(threshold).concat(domainElement.map(x => x.link)), threshold);
                 const dlResult = markdownTable(dl);
                 fse.outputFile(`${destination}/${domainElement[0].domain}/${catElement[0].category.toLowerCase()}/README.md`, dlResult);

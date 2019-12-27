@@ -1,23 +1,70 @@
 <template>
-  <!-- <require from="bootstrap/dist/css/bootstrap.min.css"></require>
-  <require from="font-awesome/css/font-awesome.min.css"></require>
-  <require from="./styles.css"></require> -->
-
-  <!-- <require from="./nav-bar.html"></require> -->
-
-  <nav-bar router.bind="router"></nav-bar>
-
   <div class="page-host">
-    <div>
-      Amount of "windows":
-      <!-- <select value.two-way="count">
-      <option repeat.for="index of maxWindows" model.one-time="index + 1">${index + 1}</option>
-    </select>  -->
-      ${count}
-    </div>
-    <div class="window" repeat.for="index of count">
-      <au-nav name="app-menu-${index + 1}"></au-nav>
-      <au-viewport name="app-viewport-${index + 1}" scope></au-viewport>
+    <input class="url" value.bind="url">
+    <!-- <au-viewport-scope catches="left">
+      <div>
+        <a goto="welcome">Welcome</a>
+        <au-viewport></au-viewport>
+      </div>
+    </au-viewport-scope>
+    <au-viewport-scope catches="right">
+      <div>
+        <a goto="welcome">Welcome</a>
+        <au-viewport></au-viewport>
+      </div>
+    </au-viewport-scope> -->
+    <!-- <a goto="/window/users+window/child-router+window+window/child-router/users">/window/users+window/child-router+window+window/child-router/users | </a>
+    <a goto.bind="[{ component: '+', viewport: 'default'}]">[{ component: '+', viewport: 'default'}] | </a>
+    <a goto="+@default">+@default | </a> -->
+    <div class="window-container">
+      <au-viewport-scope catches="window,alternate" class="window" source.bind="windows" repeat.for="window of windows">
+        <div>
+          <!-- id: ${window.id} ${name} ${sourceItem.id} -->
+          <!-- <a goto="users">users | </a>
+          <a goto="child-router/welcome">child-router/welcome | </a>
+          <a goto="child-router/users">child-router/users | </a>
+          <a goto="child-router/child-router">child-router/child-router | </a>
+          <a goto="child-router/child-router/users">child-router/child-router/users | </a>
+          <a goto="child-router+child-router/welcome">child-router+child-router/welcome | </a>
+          <a goto="/child-router/welcome">/child-router/welcome | </a>
+          <a goto="/window/child-router/welcome">/window/child-router/welcome | </a>
+          <a goto="/alternate/child-router/welcome">/alternate/child-router@app-viewport/welcome | </a>
+          <a goto="/window+window">/window+window | </a>
+          <a goto="/window+window/child-router">/window+window/child-router | </a>
+          <a goto="/window+alternate/child-router/welcome">/window+alternate/child-router@app-viewport/welcome | </a>
+          <a goto="/window">/window | </a>
+          <a goto="/+window">/+window | </a>
+          <a goto="/window/users">/window/users | </a>
+          <a goto="-">- | </a>
+          <a goto="+">+ | </a>
+          <a goto="++">++ | </a>
+          <a goto="+@default">+@default | </a> -->
+          <nav class="navbar-expand-lg navbar-light bg-light">
+            <ul class="navbar-nav mr-auto">
+              <li class="nav-item">
+                <a goto="welcome" class="nav-link">
+                  <span style="white-space: nowrap"><i class="fa fa-home"></i>Aurelia</span>
+                </a>
+              </li>
+              <li repeat.for="link of [
+              { link: 'welcome', title: 'Welcome'},
+              { link: 'users', title: 'Users'},
+              { link: 'child-router', title: 'Child router'},
+              ]">
+                <a goto="${link.link}" class="nav-link">${link.title}</a>
+              </li>
+              <li if.bind="windows.length > 1" class="nav-item">
+                <a goto="-" class="nav-link"><i class="fa fa-minus"></i></a>
+              </li>
+              <li if.bind="window === windows[windows.length - 1]" class="nav-item">
+                <a goto="+" class="nav-link"><i class="fa fa-plus"></i></a>
+              </li>
+            </ul>
+          </nav>
+          <au-nav name="app-menu-${window.id}"></au-nav>
+          <au-viewport name="app-viewport" default="welcome"></au-viewport>
+        </div>
+      </au-viewport-scope>
     </div>
   </div>
 </template>

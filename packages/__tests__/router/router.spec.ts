@@ -1,5 +1,5 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { PLATFORM } from '@aurelia/kernel';
+import { PLATFORM, inject, IContainer } from '@aurelia/kernel';
 import { IRouter, RouterConfiguration } from '@aurelia/router';
 import { Aurelia, CustomElement, customElement, IScheduler } from '@aurelia/runtime';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
@@ -14,22 +14,60 @@ describe('Router', function () {
     return router;
   }
 
-  async function createFixture(config?, App?) {
+  function spyNavigationStates(router, spy) {
+    let _pushState;
+    let _replaceState;
+    if (spy) {
+      _pushState = router.navigation.location.pushState;
+      router.navigation.location.pushState = function (data, title, path) {
+        spy('push', data, title, path);
+        _pushState.call(router.navigation.location, data, title, path);
+      };
+      _replaceState = router.navigation.location.replaceState;
+      router.navigation.location.replaceState = function (data, title, path) {
+        spy('replace', data, title, path);
+        _replaceState.call(router.navigation.location, data, title, path);
+      };
+    }
+    return { _pushState, _replaceState };
+  }
+  function unspyNavigationStates(router, _push, _replace) {
+    if (_push) {
+      router.navigation.location.pushState = _push;
+      router.navigation.location.replaceState = _replace;
+    }
+  }
+
+  async function createFixture(config?, App?, stateSpy?) {
     const ctx = TestContext.createHTMLTestContext();
     const { container, scheduler } = ctx;
 
     if (App === void 0) {
-      App = CustomElement.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
+      App = CustomElement.define({ name: 'app', template: '<template>left<au-viewport name="left"></au-viewport>right<au-viewport name="right"></au-viewport></template>' });
     }
     const Foo = CustomElement.define({ name: 'foo', template: '<template>Viewport: foo <a href="baz@foo"><span>baz</span></a><au-viewport name="foo"></au-viewport></template>' });
     const Bar = CustomElement.define({ name: 'bar', template: `<template>Viewport: bar Parameter id: [\${id}] Parameter name: [\${name}] <au-viewport name="bar"></au-viewport></template>` }, class {
       public static parameters = ['id', 'name'];
       public id = 'no id';
       public name = 'no name';
+
+      // public static inject = [IRouter];
+      // public constructor(private readonly router: IRouter) { }
+      // public created() {
+      //   console.log('created', 'closest viewport', this.router.getClosestViewport(this));
+      // }
+      // public canEnter() {
+      //   console.log('canEnter', 'closest viewport', this.router.getClosestViewport(this));
+      //   return true;
+      // }
       public enter(params) {
+        // console.log('enter', 'closest viewport', this.router.getClosestViewport(this));
         if (params.id) { this.id = params.id; }
         if (params.name) { this.name = params.name; }
       }
+      // public binding() {
+      //   console.log('binding', 'closest viewport', this.router.getClosestViewport(this));
+      // }
     });
     const Baz = CustomElement.define({ name: 'baz', template: `<template>Viewport: baz Parameter id: [\${id}] <au-viewport name="baz"></au-viewport></template>` }, class {
       public static parameters = ['id'];
@@ -104,12 +142,14 @@ describe('Router', function () {
       .app({ host: host, component: App });
 
     const router = getModifiedRouter(container);
+    const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
 
     container.register(Foo, Bar, Baz, Qux, Quux, Corge, Uier, Grault, Garply, Waldo, Plugh);
 
     await au.start().wait();
 
     async function tearDown() {
+      unspyNavigationStates(router, _pushState, _replaceState);
       router.deactivate();
       await au.stop().wait();
       ctx.doc.body.removeChild(host);
@@ -364,7 +404,7 @@ describe('Router', function () {
   });
 
   it('navigates to foo/bar in left/right containing baz/qux respectively', async function () {
-    this.timeout(5000);
+    this.timeout(15000);
 
     const { scheduler, host, router, tearDown } = await createFixture();
 
@@ -432,7 +472,6 @@ describe('Router', function () {
 
     for (let i = 0; i < tests.length; i++) {
       const test = tests[i];
-      console.log('link', test);
 
       (host.getElementsByTagName('A')[i] as HTMLElement).click();
 
@@ -555,12 +594,12 @@ describe('Router', function () {
 
     const { scheduler, host, router, tearDown } = await createFixture();
 
-    await $goto('bar(123&OneTwoThree)@left', router, scheduler);
+    await $goto('bar(123,OneTwoThree)@left', router, scheduler);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [OneTwoThree]', `host.textContent`);
 
-    await $goto('bar(456&FourFiveSix)@left', router, scheduler);
+    await $goto('bar(456,FourFiveSix)@left', router, scheduler);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [FourFiveSix]', `host.textContent`);
@@ -573,12 +612,12 @@ describe('Router', function () {
 
     const { scheduler, host, router, tearDown } = await createFixture();
 
-    await $goto('bar(id=123&name=OneTwoThree)@left', router, scheduler);
+    await $goto('bar(id=123,name=OneTwoThree)@left', router, scheduler);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [OneTwoThree]', `host.textContent`);
 
-    await $goto('bar(name=FourFiveSix&id=456)@left', router, scheduler);
+    await $goto('bar(name=FourFiveSix,id=456)@left', router, scheduler);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [FourFiveSix]', `host.textContent`);
@@ -612,12 +651,12 @@ describe('Router', function () {
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
 
-    await $goto('bar(456&FourFiveSix)@left?id=123&name=OneTwoThree', router, scheduler);
+    await $goto('bar(456,FourFiveSix)@left?id=123&name=OneTwoThree', router, scheduler);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [FourFiveSix]', `host.textContent`);
 
-    await $goto('bar(name=SevenEightNine&id=789)@left?id=123&name=OneTwoThree', router, scheduler);
+    await $goto('bar(name=SevenEightNine,id=789)@left?id=123&name=OneTwoThree', router, scheduler);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [789]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [SevenEightNine]', `host.textContent`);
@@ -640,11 +679,11 @@ describe('Router', function () {
 
     await $goto('plugh(456)@left', router, scheduler);
     assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
-    assert.includes(host.textContent, 'Entry: 2', `host.textContent`);
+    assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
 
     await $goto('plugh(456)@left', router, scheduler);
     assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
-    assert.includes(host.textContent, 'Entry: 2', `host.textContent`);
+    assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
 
     await tearDown();
   });
@@ -723,8 +762,8 @@ describe('Router', function () {
 
   if (PLATFORM.isBrowserLike) {
     // TODO: figure out why this works in nodejs locally but not in CI and fix it
-    it('keeps input when stateful', async function () {
-      this.timeout(5000);
+    it.skip('keeps input when stateful', async function () {
+      this.timeout(15000);
 
       const { scheduler, host, router, tearDown } = await createFixture();
 
@@ -742,6 +781,9 @@ describe('Router', function () {
 
       (host as any).getElementsByTagName('INPUT')[1].value = 'asdf';
 
+      await scheduler.yieldAll();
+
+      // NOT going to work since it loads non-stateful parent grault
       await $goto('grault@left/corge@grault', router, scheduler);
 
       assert.notIncludes(host.textContent, 'garply', `host.textContent`);
@@ -880,12 +922,10 @@ describe('Router', function () {
     await tearDown();
   });
 
-  // Fred's tests
-
   describe('local deps', function () {
     this.timeout(5000);
 
-    async function $setup(dependencies: any[] = []) {
+    async function $setup(dependencies: any[] = [], stateSpy?) {
       const ctx = TestContext.createHTMLTestContext();
 
       const { container, scheduler } = ctx;
@@ -1132,7 +1172,378 @@ describe('Router', function () {
       }
     });
   });
-  /*******************/
+
+  describe('can define fallback component', function () {
+    this.timeout(30000);
+
+    async function $setup(App, config?, stateSpy?) {
+      const ctx = TestContext.createHTMLTestContext();
+
+      const { container, scheduler } = ctx;
+
+      const host = ctx.doc.createElement('div');
+      ctx.doc.body.appendChild(host as any);
+
+      const au = new Aurelia(container)
+        .register(
+          DebugConfiguration,
+          !config ? RouterConfiguration : RouterConfiguration.customize(config),
+          App)
+        .app({ host: host, component: App });
+
+      const router = getModifiedRouter(container);
+      const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
+
+      await au.start().wait();
+
+      async function $teardown() {
+        unspyNavigationStates(router, _pushState, _replaceState);
+        router.deactivate();
+        await au.stop().wait();
+        ctx.doc.body.removeChild(host);
+      }
+
+      return { ctx, container, scheduler, host, au, router, $teardown };
+    }
+
+    const names = ['parent', 'child', 'grandchild'];
+    const dependencies = [];
+    for (let i = 0, ii = names.length; i < ii; i++) {
+      const name = names[i];
+      const fallback = i < ii - 1 ? names[i + 1] : null;
+      const viewport = fallback ? `<au-viewport name="${name}"${fallback ? ` fallback="${fallback}"` : ''}></au-viewport>` : '';
+      const template = `!${name}\${param ? ":" + param : ""}!${viewport}`;
+      dependencies.push(CustomElement.define({ name, template }, class {
+        public static parameters = ['id'];
+        public param: string;
+        public enter(params) {
+          if (params.id !== void 0) {
+            this.param = params.id;
+          }
+        }
+      }));
+    }
+
+    const App = CustomElement.define({
+      name: 'app',
+      template: '<au-viewport fallback="parent"></au-viewport>',
+      dependencies
+    });
+
+    const tests = [
+      { path: 'parent(a)@default', result: '!parent:a!', url: 'a' },
+      { path: 'b@default', result: '!parent:b!', url: 'b' },
+      { path: 'parent(c)@default/child(d)@parent', result: '!parent:c!!child:d!', url: 'c/d' },
+      { path: 'e@default/f@parent', result: '!parent:e!!child:f!', url: 'e/f' },
+      { path: 'parent(g)@default/child(h)@parent/grandchild(i)@child', result: '!parent:g!!child:h!!grandchild:i!', url: 'g/h/i' },
+      { path: 'j@default/k@parent/l@child', result: '!parent:j!!child:k!!grandchild:l!', url: 'j/k/l' },
+    ];
+
+    for (const test of tests) {
+      it(`to load route ${test.path} => ${test.url}`, async function () {
+        let locationPath: string;
+        const { scheduler, container, host, router, $teardown } = await $setup(App, void 0, (type, data, title, path) => {
+          locationPath = path;
+        });
+        await $goto(test.path, router, scheduler);
+        assert.strictEqual(host.textContent, test.result, `host.textContent`);
+        assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
+        await $teardown();
+      });
+    }
+    it(`to load above routes in sequence`, async function () {
+      let locationPath: string;
+      const { scheduler, container, host, router, $teardown } = await $setup(App, void 0, (type, data, title, path) => {
+        locationPath = path;
+      });
+      for (const test of tests) {
+        await $goto(test.path, router, scheduler);
+        assert.strictEqual(host.textContent, test.result, `host.textContent`);
+        assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
+      }
+      await $teardown();
+    });
+
+    for (const test of tests) {
+      const path = test.path.replace(/@\w+/g, '');
+      const url = test.url.replace(/@\w+/g, '');
+      it(`to load route ${path} => ${url}`, async function () {
+        let locationPath: string;
+        const { scheduler, container, host, router, $teardown } = await $setup(App, void 0, (type, data, title, path) => {
+          locationPath = path;
+        });
+        await $goto(path, router, scheduler);
+        assert.strictEqual(host.textContent, test.result, `host.textContent`);
+        assert.strictEqual(locationPath, `#/${url}`, 'location.path');
+        await $teardown();
+      });
+    }
+    it(`to load above routes in sequence`, async function () {
+      let locationPath: string;
+      const { scheduler, container, host, router, $teardown } = await $setup(App, void 0, (type, data, title, path) => {
+        locationPath = path;
+      });
+      for (const test of tests) {
+        const path = test.path.replace(/@\w+/g, '');
+        const url = test.url.replace(/@\w+/g, '');
+        await $goto(path, router, scheduler);
+        assert.strictEqual(host.textContent, test.result, `host.textContent`);
+        assert.strictEqual(locationPath, `#/${url}`, 'location.path');
+      }
+      await $teardown();
+    });
+  });
+
+  describe('can use configuration', function () {
+    this.timeout(30000);
+
+    async function $setup(config?, dependencies: any[] = [], routes = [], stateSpy?) {
+      const ctx = TestContext.createHTMLTestContext();
+
+      const { container, scheduler } = ctx;
+
+      const App = CustomElement.define({
+        name: 'app',
+        template: '<au-viewport></au-viewport>',
+        dependencies
+      }, class {
+        public static routes = routes;
+      });
+
+      const host = ctx.doc.createElement('div');
+      ctx.doc.body.appendChild(host as any);
+
+      const au = new Aurelia(container)
+        .register(
+          DebugConfiguration,
+          !config ? RouterConfiguration : RouterConfiguration.customize(config),
+          App)
+        .app({ host: host, component: App });
+
+      const router = getModifiedRouter(container);
+      const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
+
+      await au.start().wait();
+
+      async function $teardown() {
+        unspyNavigationStates(router, _pushState, _replaceState);
+        router.deactivate();
+        await au.stop().wait();
+        ctx.doc.body.removeChild(host);
+      }
+
+      return { ctx, container, scheduler, host, au, router, $teardown, App };
+    }
+
+    function $removeViewport(instructions) {
+      for (const instruction of instructions) {
+        instruction.viewport = null;
+        instruction.viewportName = null;
+        if (Array.isArray(instruction.nextScopeInstructions)) {
+          $removeViewport(instruction.nextScopeInstructions);
+        }
+      }
+    }
+
+    const Parent = CustomElement.define({ name: 'parent', template: '!parent!<au-viewport name="parent"></au-viewport>' }, class {
+      public static routes = [
+        { path: 'child-config', instructions: [{ component: 'child', viewport: 'parent' }] },
+      ];
+    });
+    const Parent2 = CustomElement.define({ name: 'parent2', template: '!parent2!<au-viewport name="parent2"></au-viewport>' }, class {
+      public static routes = [
+        { path: 'child-config', instructions: [{ component: 'child', viewport: 'parent2' }] },
+        // { path: ':id', instructions: [{ component: 'child', viewport: 'parent' }] },
+      ];
+    });
+    const Child = CustomElement.define({ name: 'child', template: `!child\${param ? ":" + param : ""}!<au-viewport name="child"></au-viewport>` }, class {
+      public static routes = [
+        { path: 'grandchild-config', instructions: [{ component: 'grandchild', viewport: 'child' }] },
+      ];
+      public param: string;
+      public enter(params) {
+        if (params.id !== void 0) {
+          this.param = params.id;
+        }
+      }
+    });
+    const Child2 = CustomElement.define({ name: 'child2', template: `!child2\${param ? ":" + param : ""}!<au-viewport name="child2"></au-viewport>` }, class {
+      public static routes = [
+        { path: 'grandchild-config', instructions: [{ component: 'grandchild', viewport: 'child2' }] },
+      ];
+      public static parameters = ['id'];
+      public param: string;
+      public enter(params) {
+        if (params.id !== void 0) {
+          this.param = params.id;
+        }
+      }
+    });
+
+    const Grandchild = CustomElement.define({ name: 'grandchild', template: '!grandchild!' });
+    const Grandchild2 = CustomElement.define({ name: 'grandchild2', template: '!grandchild2!' });
+
+    const tests = [
+      { path: '/parent-config', result: '!parent!', url: 'parent-config' },
+      { path: '/parent2@default', result: '!parent2!', url: 'parent2' },
+
+      { path: '/parent-config/child-config', result: '!parent!!child!', url: 'parent-config/child-config' },
+      { path: '/parent2@default/child2@parent2', result: '!parent2!!child2!', url: 'parent2/child2' },
+
+      { path: '/parent-config/child2@parent', result: '!parent!!child2!', url: 'parent-config/child2@parent' }, // Specific config
+      { path: '/parent2@default/child-config', result: '!parent2!!child!', url: 'parent2/child-config' },
+
+      { path: '/parent-config/child-config/grandchild-config', result: '!parent!!child!!grandchild!', url: 'parent-config/child-config/grandchild-config' },
+      { path: '/parent2@default/child2@parent2/grandchild2@child2', result: '!parent2!!child2!!grandchild2!', url: 'parent2/child2/grandchild2' },
+
+      { path: '/parent-config/child-config/grandchild2@child', result: '!parent!!child!!grandchild2!', url: 'parent-config/child-config/grandchild2' },
+      { path: '/parent2@default/child2@parent2/grandchild-config', result: '!parent2!!child2!!grandchild!', url: 'parent2/child2/grandchild-config' },
+
+      { path: '/parent-config/child2@parent/grandchild-config', result: '!parent!!child2!!grandchild!', url: 'parent-config/child2@parent/grandchild-config' }, // Specific config
+      { path: '/parent2@default/child-config/grandchild2@child', result: '!parent2!!child!!grandchild2!', url: 'parent2/child-config/grandchild2' },
+
+      { path: '/parent-config/child2@parent/grandchild2@child2', result: '!parent!!child2!!grandchild2!', url: 'parent-config/child2@parent/grandchild2' }, // Specific config
+      { path: '/parent2@default/child-config/grandchild-config', result: '!parent2!!child!!grandchild!', url: 'parent2/child-config/grandchild-config' },
+
+      { path: '/parent-config/abc', result: '!parent!!child:abc!', url: 'parent-config/abc' },
+      { path: '/parent2@default/child2(abc)@parent2', result: '!parent2!!child2:abc!', url: 'parent2/child2(abc)' },
+
+      // { path: '/parent-config/child2(abc)@parent', result: '!parent!!child2:abc!' },
+      // { path: '/parent2@default/abc', result: '!parent2!!child:abc!' },
+
+      { path: '/parent-config/abc/grandchild-config', result: '!parent!!child:abc!!grandchild!', url: 'parent-config/abc/grandchild-config' },
+      { path: '/parent2@default/child2(abc)@parent2/grandchild2@child2', result: '!parent2!!child2:abc!!grandchild2!', url: 'parent2/child2(abc)/grandchild2' },
+
+      { path: '/parent-config/abc/grandchild2@child', result: '!parent!!child:abc!!grandchild2!', url: 'parent-config/abc/grandchild2' },
+      { path: '/parent2@default/child2(abc)@parent2/grandchild-config', result: '!parent2!!child2:abc!!grandchild!', url: 'parent2/child2(abc)/grandchild-config' },
+
+      // { path: '/parent-config/child2(abc)@parent/grandchild-config', result: '!parent!!child2:abc!!grandchild!' },
+      // { path: '/parent2@default/abc/grandchild2@child', result: '!parent2!!child:abc!!grandchild2!' },
+
+      // { path: '/parent-config/child2(abc)@parent/grandchild2@child2', result: '!parent!!child2:abc!!grandchild2!' },
+      // { path: '/parent2@default/abc/grandchild-config', result: '!parent2!!child:abc!!grandchild!' },
+    ];
+    const appDependencies = [Parent, Parent2, Child, Child2, Grandchild, Grandchild2];
+    const appRoutes = [
+      { path: 'parent-config', instructions: [{ component: 'parent', viewport: 'default' }] },
+      { path: 'parent-config/:id', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child', viewport: 'parent' }] }] },
+      { path: 'parent-config/child-config', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child', viewport: 'parent' }] }] },
+      { path: 'parent-config/child2', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child2', viewport: 'parent' }] }] },
+      { path: 'parent-config/child2@parent', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child2', viewport: 'parent' }] }] },
+      // { path: 'parent-config/child2(abc)', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child2', viewport: 'parent', parameters: { id: '$id' } }] }] },
+      // { path: 'parent-config/child2(abc)@parent', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child2', viewport: 'parent', parameters: { id: '$id' } }] }] },
+    ];
+    let locationPath: string;
+    const locationCallback = (type, data, title, path) => {
+      // console.log(type, data, title, path);
+      locationPath = path;
+    };
+    for (const test of tests) {
+      it(`to load route ${test.path} => ${test.url}`, async function () {
+        const { scheduler, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+
+        await $goto(test.path, router, scheduler);
+        assert.strictEqual(host.textContent, test.result, `host.textContent`);
+        assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
+
+        await $teardown();
+      });
+    }
+    it(`to load above routes in sequence`, async function () {
+      const { scheduler, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+
+      for (const test of tests) {
+        await $goto(test.path, router, scheduler);
+        assert.strictEqual(host.textContent, test.result, `host.textContent`);
+        assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
+      }
+      await $teardown();
+    });
+
+    for (const test of tests) {
+      const path = test.path.replace(/@\w+/g, '');
+      const url = test.url.replace(/@\w+/g, '');
+      it(`to load route ${path} => ${url}`, async function () {
+        const { scheduler, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+
+        await $goto(path, router, scheduler);
+        assert.strictEqual(host.textContent, test.result, `host.textContent`);
+        assert.strictEqual(locationPath, `#/${url}`, 'location.path');
+
+        await $teardown();
+      });
+    }
+    it(`to load above routes in sequence`, async function () {
+      const { scheduler, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+
+      for (const test of tests) {
+        const path = test.path.replace(/@\w+/g, '');
+        const url = test.url.replace(/@\w+/g, '');
+        await $goto(path, router, scheduler);
+        assert.strictEqual(host.textContent, test.result, `host.textContent`);
+        assert.strictEqual(locationPath, `#/${url}`, 'location.path');
+      }
+      await $teardown();
+    });
+
+    let removedViewports = false;
+    for (const test of tests) {
+      it(`to load route (without viewports) ${test.path} => ${test.url}`, async function () {
+        const { scheduler, host, router, $teardown, App } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+
+        if (!removedViewports) {
+          removedViewports = true;
+          for (const type of [App, Parent, Parent2, Child, Child2]) {
+            for (const route of type.routes) {
+              $removeViewport(route.instructions);
+            }
+          }
+        }
+
+        await $goto(test.path, router, scheduler);
+        assert.strictEqual(host.textContent, test.result, `host.textContent`);
+        assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
+
+        await $teardown();
+      });
+    }
+    it(`to load above routes (without viewports) in sequence`, async function () {
+      const { scheduler, host, router, $teardown, App } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+
+      for (const test of tests) {
+        await $goto(test.path, router, scheduler);
+        assert.strictEqual(host.textContent, test.result, `host.textContent`);
+        assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
+      }
+      await $teardown();
+    });
+
+    for (const test of tests) {
+      const path = test.path.replace(/@\w+/g, '');
+      const url = test.url.replace(/@\w+/g, '');
+      it(`to load route (without viewports) ${path} => ${url}`, async function () {
+        const { scheduler, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+
+        await $goto(path, router, scheduler);
+        assert.strictEqual(host.textContent, test.result, `host.textContent`);
+        assert.strictEqual(locationPath, `#/${url}`, 'location.path');
+
+        await $teardown();
+      });
+    }
+    it(`to load above routes (without viewports) in sequence`, async function () {
+      const { scheduler, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+
+      for (const test of tests) {
+        const path = test.path.replace(/@\w+/g, '');
+        const url = test.url.replace(/@\w+/g, '');
+        await $goto(path, router, scheduler);
+        assert.strictEqual(host.textContent, test.result, `host.textContent`);
+        assert.strictEqual(locationPath, `#/${url}`, 'location.path');
+      }
+      await $teardown();
+    });
+  });
 });
 
 let quxCantLeave = 0;

@@ -47,7 +47,7 @@ import { State } from './state';
       Main,
 
       JitHtmlBrowserConfiguration,
-      RouterConfiguration,
+      RouterConfiguration.customize({ useHref: true }),
       DebugConfiguration,
     )
     .app({

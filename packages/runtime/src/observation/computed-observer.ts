@@ -1,4 +1,11 @@
-import { Constructable, IIndexable, PLATFORM, Reporter } from '@aurelia/kernel';
+/* eslint-disable eqeqeq, compat/compat */
+import {
+  Constructable,
+  IIndexable,
+  PLATFORM,
+  Reporter,
+  isNumeric
+} from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import {
@@ -34,7 +41,7 @@ export function computed(config: ComputedOverrides): PropertyDecorator {
      * property, including the `value` (in the descriptor of the property), when assigned `{}`. This might
      * lead to infinite recursion for the cases as mentioned above.
      */
-    if (!target.computed) {
+    if (target.computed == null) {
       Reflect.defineProperty(target, 'computed', {
         writable: true,
         configurable: true,
@@ -42,6 +49,7 @@ export function computed(config: ComputedOverrides): PropertyDecorator {
         value: Object.create(null)
       });
     }
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     target.computed![key] = config;
   } as PropertyDecorator;
 }
@@ -62,11 +70,12 @@ export function createComputedObserver(
     return dirtyChecker.createProperty(instance, propertyName);
   }
 
-  if (descriptor.get) {
+  if (descriptor.get != null) {
     const { constructor: { prototype: { computed: givenOverrides } } }: IObservable & { constructor: { prototype: ComputedLookup } } = instance;
-    const overrides = givenOverrides && givenOverrides![propertyName] || computedOverrideDefaults;
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-type-assertion
+    const overrides: ComputedOverrides = givenOverrides && givenOverrides![propertyName] || computedOverrideDefaults;
 
-    if (descriptor.set) {
+    if (descriptor.set != null) {
       if (overrides.volatile) {
         return new GetterObserver(flags, overrides, instance, propertyName, descriptor, observerLocator);
       }
@@ -94,7 +103,7 @@ export class CustomSetterObserver implements CustomSetterObserver {
   ) {}
 
   public setValue(newValue: unknown): void {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-unnecessary-type-assertion
     this.descriptor.set!.call(this.obj, newValue); // Non-null is implied because descriptors without setters won't end up here
     if (this.currentValue !== newValue) {
       this.oldValue = this.currentValue;
@@ -165,7 +174,7 @@ export class GetterObserver implements GetterObserver {
   }
 
   public getValue(): unknown {
-    if (this.subscriberCount === 0 || this.isCollecting) {
+    if (this.subscriberCount > 0 || this.isCollecting) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       this.currentValue = Reflect.apply(this.descriptor.get!, this.proxy, PLATFORM.emptyArray); // Non-null is implied because descriptors without getters won't end up here
     } else {
@@ -224,8 +233,11 @@ export class GetterObserver implements GetterObserver {
     return this.currentValue;
   }
 
-  public doNotCollect(key: PropertyKey): boolean {
-    return !this.isCollecting || key === '$observers';
+  public doNotCollect(target: IObservable | IBindingContext, key: PropertyKey, receiver?: unknown): boolean {
+    return !this.isCollecting
+      || key === '$observers'
+      || key === '$synthetic'
+      || key === 'constructor';
   }
 
   private unsubscribeAllDependencies(): void {
@@ -238,47 +250,51 @@ export class GetterObserver implements GetterObserver {
 
 const toStringTag = Object.prototype.toString;
 
+/**
+ * _@param observer The owning observer of current evaluation, will subscribe to all observers created via proxy
+ */
 function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
   return {
     get: function (target: IObservable | IBindingContext, key: PropertyKey, receiver?: unknown): unknown {
-      if (observer.doNotCollect(key)) {
+      if (observer.doNotCollect(target, key, receiver)) {
         return Reflect.get(target, key, receiver);
       }
 
-      // The length and iterator properties need to be invoked on the original object (for Map and Set
-      // at least) or they will throw.
+      // The length and iterator properties need to be invoked on the original object
+      // (for Map and Set at least) or they will throw.
       switch (toStringTag.call(target)) {
         case '[object Array]':
-          observer.addCollectionDep(observerLocator.getArrayObserver(flags, target as unknown[]));
-          if (key === 'length') {
-            return Reflect.get(target, key, target);
+          if (key === 'length' || isNumeric(key)) {
+            observer.addCollectionDep(observerLocator.getArrayObserver(flags, target as unknown[]));
+            return proxyOrValue(flags, target, key, observerLocator, observer);
           }
+          break;
         case '[object Map]':
-          observer.addCollectionDep(observerLocator.getMapObserver(flags, target as Map<unknown, unknown>));
           if (key === 'size') {
+            observer.addCollectionDep(observerLocator.getMapObserver(flags, target as Map<unknown, unknown>));
             return Reflect.get(target, key, target);
           }
+          break;
         case '[object Set]':
-          observer.addCollectionDep(observerLocator.getSetObserver(flags, target as Set<unknown>));
           if (key === 'size') {
+            observer.addCollectionDep(observerLocator.getSetObserver(flags, target as Set<unknown>));
             return Reflect.get(target, key, target);
           }
-        default:
-          observer.addPropertyDep(observerLocator.getObserver(flags, target, key as string) as IBindingTargetObserver);
+          break;
       }
+      observer.addPropertyDep(observerLocator.getObserver(flags, target, key as string) as IBindingTargetObserver);
 
       return proxyOrValue(flags, target, key, observerLocator, observer);
     }
   };
 }
 
+/**
+ * _@param observer The owning observer of current evaluation, will subscribe to all observers created via proxy
+ */
 function proxyOrValue(flags: LifecycleFlags, target: object, key: PropertyKey, observerLocator: IObserverLocator, observer: GetterObserver): ProxyHandler<object> {
   const value = Reflect.get(target, key, target);
-  if (typeof value === 'function') {
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    return (target as { [key: string]: Function })[key as string].bind(target); // We need Function's bind() method here
-  }
-  if (typeof value !== 'object' || value === null) {
+  if (typeof value !== 'object' || typeof value === 'function' || value === null) {
     return value;
   }
   return new Proxy(value, createGetterTraps(flags, observerLocator, observer));

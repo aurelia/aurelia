@@ -25,6 +25,7 @@ import {
   createStringLiteral,
   createReturn,
   createIdentifier,
+  NodeFlags,
 } from 'typescript';
 import {
   PLATFORM,
@@ -364,6 +365,7 @@ export class $EnumDeclaration implements I$Node {
             ),
           ),
         ],
+        /* flags           */NodeFlags.Const,
       ),
     );
   }

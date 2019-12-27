@@ -157,9 +157,9 @@ function getSummaryMapInfo(sourceFileInfo: SourceFileInfo): SummaryMapInfo[] {
     return result;
 }
 
-export function generateSummary(sourceFileInfo: SourceFileInfo, ...prepend: string[]): string {
+export function generateSummary(sourceFileInfo: SourceFileInfo, ...prepend: string[]): [string, SummaryMapInfo[][]] {
     const result: string[] = [];
-    prepend = prepend || ['# Table of contents'];
+    prepend = prepend || ['# Table of contents', "---", ""];
     if (prepend) {
         for (let index = 0; index < prepend.length; index++) {
             result.push(prepend[index]);
@@ -176,9 +176,25 @@ export function generateSummary(sourceFileInfo: SourceFileInfo, ...prepend: stri
         .value();
     for (let index = 0; index < summaryGroup.length; index++) {
         const element = summaryGroup[index];
+        if (element[0].path.includes('plugin-pixi/src/resources') || element[0].path.includes('debug/src/binding')) {
+            const a = 1;
+        }
         const parents = element[0].folders;
         const title = beautifyName(parents[parents.length - 1]);
         const root = `${tab(parents.length - 1)}* [${title}](${parents.join('/').toLowerCase()}/README.md)`;
+
+        // Detect parent folders with no file inside. They should be added just before their child's folders.
+        if (parents.length > 1) {
+            for (let index = 0; index < parents.length; index++) {
+                const parent = parents[index];
+                const info = `${tab(index)}* [${beautifyName(parent)}](${parents.slice(0, index + 1).join('/').toLowerCase()}/README.md)`;
+                let exists = result.filter(item => item === info).length > 0;
+                if (!exists && root !== info) {
+                    result.push(info);
+                }
+            }
+        }
+
         result.push(root);
         const catSummaryGroup = _(summaryGroup[index])
             .sortBy(
@@ -201,16 +217,6 @@ export function generateSummary(sourceFileInfo: SourceFileInfo, ...prepend: stri
             }
         }
     }
-    let output: string[] = [];
-    for (let index = 0; index < result.length; index++) {
-        const item = result[index];
-        const condition = /\(.+\.md\)/g.test(item);
-        if (!condition) {
-            output.push(item);
-        }
-        else if (condition && !output.includes(item)) {
-            output.push(item);
-        }
-    }
-    return output.join('\n');
+    const output = [...new Set(result)].join('\n');
+    return [output, summaryGroup];
 }

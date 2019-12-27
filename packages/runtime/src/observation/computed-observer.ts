@@ -4,7 +4,7 @@ import {
   IIndexable,
   PLATFORM,
   Reporter,
-  isNumeric
+  isArrayIndex
 } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
@@ -264,7 +264,7 @@ function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLoca
       // (for Map and Set at least) or they will throw.
       switch (toStringTag.call(target)) {
         case '[object Array]':
-          if (key === 'length' || isNumeric(key)) {
+          if (key === 'length' || isArrayIndex(key)) {
             observer.addCollectionDep(observerLocator.getArrayObserver(flags, target as unknown[]));
             return proxyOrValue(flags, target, key, observerLocator, observer);
           }

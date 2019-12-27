@@ -272,7 +272,7 @@ export {
   EventAggregatorCallback,
   IEventAggregator,
 
-  isNumeric,
+  isArrayIndex,
   camelCase,
   kebabCase,
   pascalCase,

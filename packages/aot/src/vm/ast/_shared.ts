@@ -193,7 +193,6 @@ import {
   $VariableStatement,
   $EmptyStatement,
   $DebuggerStatement,
-  DirectivePrologue,
   ExpressionStatement_T,
 } from './statements';
 import {
@@ -1014,8 +1013,24 @@ export function $$esLabelledItem(
 
 // #region AST helpers
 
+export type DirectivePrologue = readonly ExpressionStatement_T<StringLiteral>[] & {
+  readonly ContainsUseStrict: boolean;
+  readonly lastIndex: number;
+};
+type MutableDirectivePrologue = ExpressionStatement_T<StringLiteral>[] & {
+  ContainsUseStrict?: boolean;
+  lastIndex?: number;
+};
+
+export const NoDirectiveProgue = (function () {
+  const value = [] as MutableDirectivePrologue;
+  value.ContainsUseStrict = false;
+  value.lastIndex = -1;
+  return Object.freeze(value) as DirectivePrologue;
+})();
+
 export function GetDirectivePrologue(statements: readonly Statement[]): DirectivePrologue {
-  let directivePrologue: ExpressionStatement_T<StringLiteral>[] = emptyArray;
+  let directivePrologue = NoDirectiveProgue as MutableDirectivePrologue;
 
   let statement: ExpressionStatement_T<StringLiteral>;
   const len = statements.length;
@@ -1025,20 +1040,22 @@ export function GetDirectivePrologue(statements: readonly Statement[]): Directiv
       statement.kind === SyntaxKind.ExpressionStatement
       && statement.expression.kind === SyntaxKind.StringLiteral
     ) {
-      if (directivePrologue === emptyArray) {
+      if (directivePrologue === NoDirectiveProgue) {
         directivePrologue = [statement];
+        directivePrologue.ContainsUseStrict = false;
       } else {
         directivePrologue.push(statement);
       }
       if (statement.expression.text === 'use strict') {
-        (directivePrologue as Writable<DirectivePrologue>).ContainsUseStrict = true;
+        directivePrologue.ContainsUseStrict = true;
       }
+      directivePrologue.lastIndex = i;
     } else {
       break;
     }
   }
 
-  return directivePrologue;
+  return directivePrologue as DirectivePrologue;
 }
 
 export function GetExpectedArgumentCount(params: readonly $ParameterDeclaration[]): number {
@@ -1267,11 +1284,21 @@ export function $$classElementList(
   let node: $ClassElementNode;
   for (let i = 0; i < len; ++i) {
     node = nodes[i];
-    if ((node as { body?: Block }).body !== void 0) {
-      $node = $$classElement(nodes[i], parent, ctx, i);
-      if ($node !== void 0) {
-        $nodes.push($node);
-      }
+    switch (node.kind) {
+      case SyntaxKind.Constructor:
+      case SyntaxKind.MethodDeclaration:
+        if (node.body !== void 0) {
+          $node = $$classElement(node, parent, ctx, i);
+          if ($node !== void 0) {
+            $nodes.push($node);
+          }
+        }
+        break;
+      default:
+        $node = $$classElement(node, parent, ctx, i);
+        if ($node !== void 0) {
+          $nodes.push($node);
+        }
     }
   }
   return $nodes;
@@ -1413,11 +1440,11 @@ export interface I$Node<
 }
 
 export class TransformationContext {
-
+  public propertyAssignments: ExpressionStatement[] | undefined = void 0;
 }
 
 type Transformable<T> = {
-  transform(tctx: TransformationContext): T | undefined;
+  transform(tctx: TransformationContext): T | readonly T[] | undefined;
   readonly node: T;
 };
 
@@ -1428,7 +1455,7 @@ export function transformList<T>(
 ): readonly T[] | undefined {
   let transformedList: T[] | undefined = void 0;
   let transformable: Transformable<T> | undefined;
-  let transformed: T | undefined;
+  let transformed: T | readonly T[] | undefined;
 
   let x = 0;
   for (let i = 0, ii = transformableList.length; i < ii; ++i) {
@@ -1438,10 +1465,22 @@ export function transformList<T>(
         transformedList = nodeList.slice(0, x = i);
       } else if (transformed !== transformable.node) {
         transformedList = nodeList.slice(0, x = i);
-        transformedList[x++] = transformed;
+        if (transformed instanceof Array) {
+          for (let j = 0, jj = transformed.length; j < jj; ++j) {
+            transformedList[x++] = transformed[j];
+          }
+        } else {
+          transformedList[x++] = transformed as T;
+        }
       }
     } else if (transformed !== void 0) {
-      transformedList[x++] = transformed;
+      if (transformed instanceof Array) {
+        for (let j = 0, jj = transformed.length; j < jj; ++j) {
+          transformedList[x++] = transformed[j];
+        }
+      } else {
+        transformedList[x++] = transformed as T;
+      }
     }
   }
 

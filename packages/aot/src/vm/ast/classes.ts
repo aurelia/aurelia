@@ -19,11 +19,25 @@ import {
   createSpread,
   createHeritageClause,
   createExpressionWithTypeArguments,
+  createVariableStatement,
+  createClassDeclaration,
+  createClassExpression,
+  createVariableDeclarationList,
+  createVariableDeclaration,
+  NodeFlags,
+  VariableStatement,
+  ExpressionStatement,
+  ConstructorDeclaration,
+  createThis,
+  createAssignment,
+  createPropertyAccess,
+  Identifier,
+  createElementAccess,
+  ClassElement,
 } from 'typescript';
 import {
   PLATFORM,
   ILogger,
-  Writable,
 } from '@aurelia/kernel';
 import {
   Realm,
@@ -94,6 +108,7 @@ import {
   FunctionKind,
   TransformationContext,
   transformList,
+  transformModifiers,
 } from './_shared';
 import {
   ExportEntryRecord,
@@ -234,7 +249,7 @@ export class $ClassExpression implements I$Node {
   public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-constructormethod
   // 14.6.3 Static Semantics: ConstructorMethod
-  public readonly ConstructorMethod: $ConstructorDeclaration | undefined = void 0;
+  public readonly ConstructorMethod: $ConstructorDeclaration = (void 0)!;
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-hasname
   // 14.6.6 Static Semantics: HasName
   public readonly HasName: boolean;
@@ -306,6 +321,12 @@ export class $ClassExpression implements I$Node {
       }
     }
 
+    // NOTE: this comes from EvaluateClassDefinition
+    // 10. If constructor is empty, then
+    if (this.ConstructorMethod === void 0) {
+      this.ConstructorMethod = createSyntheticConstructor(this);
+    }
+
     this.HasName = $name !== void 0;
   }
 
@@ -372,13 +393,15 @@ export class $ClassDeclaration implements I$Node {
   public readonly $members: readonly $$ClassElement[];
 
   public readonly ClassHeritage: $HeritageClause | undefined;
+  public readonly staticProperties: readonly $PropertyDeclaration[];
+  public readonly instanceProperties: readonly $PropertyDeclaration[];
 
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-boundnames
   // 14.6.2 Static Semantics: BoundNames
   public readonly BoundNames: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-constructormethod
   // 14.6.3 Static Semantics: ConstructorMethod
-  public readonly ConstructorMethod: $ConstructorDeclaration | undefined;
+  public readonly ConstructorMethod: $ConstructorDeclaration = (void 0)!;
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-hasname
   // 14.6.6 Static Semantics: HasName
   public readonly HasName: boolean;
@@ -452,12 +475,21 @@ export class $ClassDeclaration implements I$Node {
 
     const NonConstructorMethodDefinitions = this.NonConstructorMethodDefinitions = [] as $$MethodDefinition[];
     const PrototypePropertyNameList = this.PrototypePropertyNameList = [] as $String[];
+    const staticProperties = this.staticProperties = [] as $PropertyDeclaration[];
+    const instanceProperties = this.instanceProperties = [] as $PropertyDeclaration[];
 
     let $member: $$ClassElement;
     for (let i = 0, ii = $members.length; i < ii; ++i) {
       $member = $members[i];
       switch ($member.$kind) {
         case SyntaxKind.PropertyDeclaration:
+          if ($member.$initializer !== void 0) {
+            if ($member.IsStatic) {
+              staticProperties.push($member);
+            } else {
+              instanceProperties.push($member);
+            }
+          }
           break;
         case SyntaxKind.Constructor:
           this.ConstructorMethod = $member;
@@ -472,6 +504,12 @@ export class $ClassDeclaration implements I$Node {
           break;
         case SyntaxKind.SemicolonClassElement:
       }
+    }
+
+    // NOTE: this comes from EvaluateClassDefinition
+    // 10. If constructor is empty, then
+    if (this.ConstructorMethod === void 0) {
+      this.ConstructorMethod = createSyntheticConstructor(this);
     }
 
     const HasName = this.HasName = !$name.isUndefined;
@@ -642,58 +680,9 @@ export class $ClassDeclaration implements I$Node {
     }
 
     // 10. If constructor is empty, then
+    // NOTE: the logic for this sits in the constructor so it can effectively be reused for transformations etc.
     if (constructor instanceof $Empty) {
-      // 10. a. If ClassHeritageopt is present, then
-      if (this.ClassHeritage !== void 0) {
-        // 10. a. i. Set constructor to the result of parsing the source text constructor(... args){ super (...args);} using the syntactic grammar with the goal symbol MethodDefinition[~Yield, ~Await].
-        constructor = (this as Writable<$ClassDeclaration>).ConstructorMethod = new $ConstructorDeclaration(
-          createConstructor(
-            void 0,
-            void 0,
-            [
-              createParameter(
-                void 0,
-                void 0,
-                createToken(SyntaxKind.DotDotDotToken),
-                createIdentifier('args'),
-              ),
-            ],
-            createBlock(
-              [
-                createExpressionStatement(
-                  createCall(
-                    createSuper(),
-                    void 0,
-                    [
-                      createSpread(
-                        createIdentifier('args'),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          this,
-          this.ctx,
-          -1,
-        );
-      }
-      // 10. b. Else,
-      else {
-        // 10. b. i. Set constructor to the result of parsing the source text constructor(){ } using the syntactic grammar with the goal symbol MethodDefinition[~Yield, ~Await].
-        constructor = (this as Writable<$ClassDeclaration>).ConstructorMethod = new $ConstructorDeclaration(
-          createConstructor(
-            void 0,
-            void 0,
-            [],
-            createBlock([]),
-          ),
-          this,
-          this.ctx,
-          -1,
-        );
-      }
+      throw new Error(`Constructor is empty, but should have been created by $ClassDeclaration's constructor`);
     }
 
     // 11. Set the running execution context's LexicalEnvironment to classScope.
@@ -860,17 +849,193 @@ export class $ClassDeclaration implements I$Node {
   ): $Any {
     ctx.checkTimeout();
 
-    return this.ConstructorMethod!.EvaluateBody(ctx, functionObject, argumentsList);
+    return this.ConstructorMethod.EvaluateBody(ctx, functionObject, argumentsList);
   }
 
-  public transform(tctx: TransformationContext): this['node'] | undefined {
+  public transform(tctx: TransformationContext): this['node'] | VariableStatement | readonly (VariableStatement | ClassDeclaration | ExpressionStatement)[] | undefined {
     if (hasBit(this.modifierFlags, ModifierFlags.Ambient)) {
       return void 0;
     }
 
     const node = this.node;
-    return this.node;
+    const name = node.name === void 0 ? createIdentifier('TEMP') /* TODO: safely generate collision free name */ : node.name;
+    const ctor = this.ConstructorMethod;
+
+    const hasDecorators = this.$decorators.length > 0 || ctor.$decorators.length > 0;
+
+    const transformedModifiers = node.modifiers === void 0 ? void 0 : transformModifiers(node.modifiers);
+    const transformedHeritageClauses = node.heritageClauses === void 0 ? void 0 : transformList(tctx, this.$heritageClauses, node.heritageClauses);
+    let transformedMembers = transformList(tctx, this.$members, node.members);
+
+    const staticProperties = this.staticProperties;
+
+    const parameterProperties = ctor.parameterProperties;
+    const instanceProperties = this.instanceProperties;
+    if (parameterProperties.length > 0 || instanceProperties.length > 0) {
+      const receiver = createThis();
+      const propertyAssignments: ExpressionStatement[] = [];
+
+      for (const prop of parameterProperties) {
+        propertyAssignments.push(
+          createExpressionStatement(
+            createAssignment(
+              /* left       */createPropertyAccess(
+                /* expression */receiver,
+                /* name       */prop.$name.node as Identifier,
+              ),
+              /* right      */prop.$name.node as Identifier,
+            ),
+          ),
+        );
+      }
+
+      for (const prop of instanceProperties) {
+        propertyAssignments.push(
+          createExpressionStatement(
+            createAssignment(
+              /* left       */createPropertyAccess(
+                /* expression */receiver,
+                /* name       */prop.$name.node as Identifier,
+              ),
+              /* right      */prop.$initializer!.node, // $initializer presence guaranteed by constructor of this class
+            ),
+          ),
+        );
+      }
+
+      const transformedCtor = ctor.transform(tctx);
+      transformedCtor.body = ctor.$body.addStatements(...propertyAssignments);
+      if (transformedMembers === void 0) {
+        transformedMembers = node.members;
+      }
+
+      (transformedMembers as ClassElement[]).splice(
+        transformedMembers.findIndex(x => x.kind === SyntaxKind.Constructor),
+        1,
+        transformedCtor,
+      );
+    }
+
+    let staticPropertyInitializers: ExpressionStatement[];
+    if (staticProperties.length === 0) {
+      staticPropertyInitializers = emptyArray;
+    } else {
+      staticPropertyInitializers = staticProperties.map(p => createExpressionStatement(
+        createAssignment(
+          /* left */p.$name.$kind === SyntaxKind.Identifier
+            ? createPropertyAccess(
+              /* expression */name,
+              /* name */p.$name.node,
+            )
+            : createElementAccess(
+              /* expression */name,
+              /* index */p.$name.$kind === SyntaxKind.ComputedPropertyName ? p.$name.$expression.node : p.$name.node,
+            ),
+          /* right */p.$initializer!.node,
+        )
+      ));
+    }
+
+    if (hasDecorators) {
+      const classExpr = createClassExpression(
+        /* modifiers       */void 0,
+        /* name            */name,
+        /* typeParameters  */void 0,
+        /* heritageClauses */node.heritageClauses === void 0
+          ? void 0
+          : transformedHeritageClauses === void 0
+            ? node.heritageClauses
+            : transformedHeritageClauses,
+        /* members         */transformedMembers === void 0 ? node.members : transformedMembers,
+      );
+
+      const classExprDecl = createVariableStatement(
+        /* modifiers       */void 0,
+        /* declarationList */createVariableDeclarationList(
+          /* declarations    */[
+            createVariableDeclaration(
+              /* name            */name,
+              /* type            */void 0,
+              /* initializer     */classExpr,
+            )
+          ],
+          /* flags */NodeFlags.Let,
+        ),
+      );
+
+      return [
+        classExprDecl,
+        ...staticPropertyInitializers,
+      ];
+    }
+
+    const classDecl = createClassDeclaration(
+      /* decorators      */void 0,
+      /* modifiers       */transformedModifiers,
+      /* name            */name,
+      /* typeParameters  */void 0,
+      /* heritageClauses */node.heritageClauses === void 0
+        ? void 0
+        : transformedHeritageClauses === void 0
+          ? node.heritageClauses
+          : transformedHeritageClauses,
+          /* members         */transformedMembers === void 0 ? node.members : transformedMembers,
+    );
+
+    return staticPropertyInitializers.length === 0
+      ? classDecl
+      : [
+        classDecl,
+        ...staticPropertyInitializers,
+      ];
   }
+}
+
+function createSyntheticConstructor($class: $ClassExpression | $ClassDeclaration): $ConstructorDeclaration {
+  let node: ConstructorDeclaration;
+
+  // 10. a. If ClassHeritageopt is present, then
+  if ($class.ClassHeritage !== void 0) {
+    // 10. a. i. Set constructor to the result of parsing the source text constructor(... args){ super (...args);} using the syntactic grammar with the goal symbol MethodDefinition[~Yield, ~Await].
+    node = createConstructor(
+      /* decorators     */void 0,
+      /* modifiers      */void 0,
+      /* parameters     */[
+        createParameter(
+          /* decorators     */void 0,
+          /* modifiers      */void 0,
+          /* dotDotDotToken */createToken(SyntaxKind.DotDotDotToken),
+          /* name           */createIdentifier('args'),
+        ),
+      ],
+      /* body           */createBlock(
+        /* statements     */[
+          createExpressionStatement(
+            /* expression     */createCall(
+              /* expression     */createSuper(),
+              /* typeArguments  */void 0,
+              /* argumentsArray */[
+                createSpread(createIdentifier('args')),
+              ],
+            ),
+          ),
+        ],
+        /* multiLine      */true,
+      ),
+    );
+  }
+  // 10. b. Else,
+  else {
+    // 10. b. i. Set constructor to the result of parsing the source text constructor(){ } using the syntactic grammar with the goal symbol MethodDefinition[~Yield, ~Await].
+    node = createConstructor(
+      /* decorators */void 0,
+      /* modifiers  */void 0,
+      /* parameters */[],
+      /* body       */createBlock([]),
+    );
+  }
+
+  return new $ConstructorDeclaration(node, $class, $class.ctx, -1);
 }
 
 export class $PropertyDeclaration implements I$Node {
@@ -906,8 +1071,8 @@ export class $PropertyDeclaration implements I$Node {
     this.IsStatic = hasBit(modifierFlags, ModifierFlags.Static);
   }
 
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+  public transform(tctx: TransformationContext): undefined {
+    return void 0;
   }
 }
 
@@ -931,7 +1096,7 @@ export class $SemicolonClassElement implements I$Node {
     public readonly depth: number = parent.depth + 1,
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.SemicolonClassElement`,
-  ) {}
+  ) { }
 
   public transform(tctx: TransformationContext): this['node'] {
     return this.node;

@@ -111,6 +111,7 @@ import {
   $$ESVarDeclaration,
   TransformationContext,
   transformList,
+  DirectivePrologue,
 } from './_shared';
 import {
   $Identifier,
@@ -119,7 +120,6 @@ import {
   $ClassDeclaration,
 } from './classes';
 import {
-  DirectivePrologue,
   $VariableStatement,
   $Block,
   $EmptyStatement,

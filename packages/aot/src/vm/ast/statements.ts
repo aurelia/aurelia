@@ -19,7 +19,6 @@ import {
   NodeArray,
   NodeFlags,
   ReturnStatement,
-  StringLiteral,
   SwitchStatement,
   SyntaxKind,
   ThrowStatement,
@@ -111,6 +110,8 @@ import {
   $$ESVarDeclaration,
   TransformationContext,
   transformList,
+  GetDirectivePrologue,
+  DirectivePrologue,
 } from './_shared';
 import {
   ExportEntryRecord,
@@ -606,8 +607,12 @@ export class $Block implements I$Node {
   // 13.2.12 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
 
+  public readonly DirectivePrologue: DirectivePrologue;
+  public readonly SuperCall: $ExpressionStatement | undefined = void 0;
   public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
   public readonly IsType: false = false;
+
+  private transformedNode: Block | undefined = void 0;
 
   public constructor(
     public readonly node: Block,
@@ -620,6 +625,10 @@ export class $Block implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.Block`,
   ) {
+    const DirectivePrologue = this.DirectivePrologue = GetDirectivePrologue(node.statements);
+    if (DirectivePrologue.ContainsUseStrict) {
+      ctx |= Context.InStrictMode;
+    }
     const $statements = this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
 
     const LexicallyDeclaredNames = this.LexicallyDeclaredNames = [] as $String[];
@@ -690,6 +699,14 @@ export class $Block implements I$Node {
 
           VarDeclaredNames.push(...$statement.VarDeclaredNames);
           VarScopedDeclarations.push(...$statement.VarScopedDeclarations);
+          break;
+        case SyntaxKind.ExpressionStatement:
+          if (
+            $statement.$expression.$kind === SyntaxKind.CallExpression &&
+            $statement.$expression.$expression.$kind === SyntaxKind.SuperKeyword
+          ) {
+            this.SuperCall = $statement;
+          }
       }
     }
   }
@@ -742,11 +759,30 @@ export class $Block implements I$Node {
     const transformedList = transformList(tctx, this.$statements, node.statements as readonly $$TSStatementListItem['node'][]);
 
     if (transformedList === void 0) {
+      return this.transformedNode = node;
+    }
+
+    return this.transformedNode = createBlock(
+      transformedList as NodeArray<Statement>,
+      true,
+    );
+  }
+
+  public addStatements(...statements: readonly $$TSStatementListItem['node'][]): this['node'] {
+    let index = this.SuperCall === void 0 ? this.DirectivePrologue.lastIndex : this.SuperCall.idx;
+    if (index === -1) {
+      index = 0;
+    }
+
+    const node = this.transformedNode === void 0 ? this.node : this.transformedNode;
+    if (statements.length === 0) {
       return node;
     }
 
-    return createBlock(
-      transformedList as NodeArray<Statement>,
+    const newStatements = node.statements.slice();
+    newStatements.splice(index, 0, ...statements as Statement[]);
+    return this.transformedNode = createBlock(
+      newStatements,
       true,
     );
   }
@@ -800,10 +836,6 @@ export class $EmptyStatement implements I$Node {
 
 export type ExpressionStatement_T<T extends Expression> = ExpressionStatement & {
   readonly expression: T;
-};
-
-export type DirectivePrologue = readonly ExpressionStatement_T<StringLiteral>[] & {
-  readonly ContainsUseStrict?: true;
 };
 
 export class $ExpressionStatement implements I$Node {

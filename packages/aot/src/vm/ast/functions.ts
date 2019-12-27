@@ -11,7 +11,6 @@ import {
   createFunctionDeclaration,
   createArrowFunction,
   createConstructor,
-  Identifier,
   createParameter,
 } from 'typescript';
 import {
@@ -76,7 +75,6 @@ import {
   $$BindingName,
   $$bindingName,
   $AnyParentNode,
-  GetDirectivePrologue,
   $decoratorList,
   $i,
   $$ESVarDeclaration,
@@ -84,6 +82,8 @@ import {
   TransformationContext,
   transformList,
   transformModifiers,
+  DirectivePrologue,
+  NoDirectiveProgue,
 } from './_shared';
 import {
   ExportEntryRecord,
@@ -99,7 +99,6 @@ import {
 } from './classes';
 import {
   $Block,
-  DirectivePrologue,
 } from './statements';
 import {
   $MethodDeclaration,
@@ -265,17 +264,13 @@ export class $FunctionExpression implements I$Node {
   ) {
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    const DirectivePrologue = this.DirectivePrologue = GetDirectivePrologue(node.body!.statements);
-    if (DirectivePrologue.ContainsUseStrict) {
-      ctx |= Context.InStrictMode;
-    }
-
     const $name = this.$name = $identifier(node.name, this, ctx, -1);
     this.$parameters = new $FormalParameterList(node.parameters, this, ctx);
     const $body = this.$body = new $Block(node.body, this, ctx, -1);
+    const DirectivePrologue = this.DirectivePrologue = $body.DirectivePrologue;
 
     this.BoundNames = emptyArray;
-    this.ContainsUseStrict = DirectivePrologue.ContainsUseStrict === true;
+    this.ContainsUseStrict = DirectivePrologue.ContainsUseStrict;
     this.HasName = $name !== void 0;
 
     this.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
@@ -793,17 +788,13 @@ export class $FunctionDeclaration implements I$Node {
       ctx |= Context.InExport;
     }
 
-    const DirectivePrologue = this.DirectivePrologue = GetDirectivePrologue(node.body!.statements);
-    if (this.DirectivePrologue.ContainsUseStrict) {
-      ctx |= Context.InStrictMode;
-    }
-
     this.$decorators = $decoratorList(node.decorators, this, ctx);
     const $name = this.$name = $identifier(node.name, this, ctx, -1);
     this.$parameters = new $FormalParameterList(node.parameters, this, ctx);
     const $body = this.$body = new $Block(node.body!, this, ctx, -1);
+    this.DirectivePrologue = $body.DirectivePrologue;
 
-    this.ContainsUseStrict = DirectivePrologue.ContainsUseStrict === true;
+    this.ContainsUseStrict = this.DirectivePrologue.ContainsUseStrict === true;
     const HasName = this.HasName = $name !== void 0;
 
     this.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
@@ -1588,22 +1579,17 @@ export class $ArrowFunction implements I$Node {
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     if (node.body.kind === SyntaxKind.Block) {
-      const DirectivePrologue = this.DirectivePrologue = GetDirectivePrologue((node.body as Block).statements);
-      if (DirectivePrologue.ContainsUseStrict) {
-        ctx |= Context.InStrictMode;
-        this.ContainsUseStrict = true;
-      } else {
-        this.ContainsUseStrict = false;
-      }
-
       this.$parameters = this.CoveredFormalsList = new $FormalParameterList(node.parameters, this as $ArrowFunction, ctx);
-      this.$body = new $Block(node.body as Block, this, ctx, -1);
-    } else {
-      this.DirectivePrologue = emptyArray;
-      this.ContainsUseStrict = false;
+      const $body = this.$body = new $Block(node.body as Block, this, ctx, -1);
 
+      this.DirectivePrologue = $body.DirectivePrologue;
+      this.ContainsUseStrict = this.DirectivePrologue.ContainsUseStrict === true;
+    } else {
       this.$parameters = this.CoveredFormalsList = new $FormalParameterList(node.parameters, this, ctx);
       this.$body = $assignmentExpression(node.body as $AssignmentExpressionNode, this, ctx, -1);
+
+      this.DirectivePrologue = NoDirectiveProgue;
+      this.ContainsUseStrict = false;
     }
 
     this.functionKind = hasBit(modifierFlags, ModifierFlags.Async) ? FunctionKind.async : FunctionKind.normal;
@@ -1710,6 +1696,8 @@ export class $ConstructorDeclaration implements I$Node {
   public readonly $parameters: $FormalParameterList;
   public readonly $body: $Block;
 
+  public readonly parameterProperties: readonly $ParameterDeclaration[];
+
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallydeclarednames
   // 14.1.14 Static Semantics: LexicallyDeclaredNames
   public readonly LexicallyDeclaredNames: readonly $String[];
@@ -1725,6 +1713,8 @@ export class $ConstructorDeclaration implements I$Node {
 
   public readonly functionKind: FunctionKind.normal = FunctionKind.normal;
 
+  public get isSynthetic(): boolean { return this.idx === -1; }
+
   public constructor(
     public readonly node: ConstructorDeclaration,
     public readonly parent: $ClassDeclaration | $ClassExpression,
@@ -1739,7 +1729,12 @@ export class $ConstructorDeclaration implements I$Node {
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     this.$decorators = $decoratorList(node.decorators, this, ctx);
-    this.$parameters = new $FormalParameterList(node.parameters, this, ctx);
+    const $parameters = this.$parameters = new $FormalParameterList(node.parameters, this, ctx);
+    if ($parameters.length === 0) {
+      this.parameterProperties = emptyArray;
+    } else {
+      this.parameterProperties = $parameters.filter(p => hasBit(p.modifierFlags, ModifierFlags.ParameterPropertyModifier));
+    }
 
     const $body = this.$body = new $Block(node.body!, this, ctx, -1);
 

@@ -111,7 +111,7 @@ declare function transientDecorator<T extends Constructable>(target: T & Partial
  * a new instance will be created.
  *
  * @example ```ts
- * @transient()
+ * &#64;transient()
  * class Foo { }
  * ```
  */
@@ -123,7 +123,7 @@ export declare function transient<T extends Constructable>(): typeof transientDe
  * @param target - The class / constructor function to register as transient.
  *
  * @example ```ts
- * @transient()
+ * &#64;transient()
  * class Foo { }
  * ```
  */
@@ -134,7 +134,7 @@ declare function singletonDecorator<T extends Constructable>(target: T & Partial
  * consecutive time the dependency is resolved, the same instance will be returned.
  *
  * @example ```ts
- * @singleton()
+ * &#64;singleton()
  * class Foo { }
  * ```
  */
@@ -146,7 +146,7 @@ export declare function singleton<T extends Constructable>(): typeof singletonDe
  * @param target - The class / constructor function to register as a singleton.
  *
  * @example ```ts
- * @singleton()
+ * &#64;singleton()
  * class Foo { }
  * ```
  */

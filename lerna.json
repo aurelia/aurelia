@@ -8,6 +8,7 @@
     "packages/__e2e__",
     "packages/__tests__",
     "packages/aot",
+    "packages/au",
     "packages/aurelia",
     "packages/debug",
     "packages/dialog",
@@ -46,5 +47,5 @@
     "test/sierpinski-triangle",
     "tools/api-doc-generator"
   ],
-  "version": "0.5.0"
+  "version": "0.6.0"
 }

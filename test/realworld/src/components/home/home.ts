@@ -26,7 +26,7 @@ export class Home {
     private readonly tagService: TagService,
   ) {}
 
-  public attached() {
+  public afterAttach() {
     this.getArticles().catch((error: Error) => { throw error; });
     this.getTags().catch((error: Error) => { throw error; });
     this.setupNav();

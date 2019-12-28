@@ -58,5 +58,5 @@
     "statusBar.foreground": "#e7e7e7"
   },
   "workbench.tree.indent": 16,
-  "peacock.color": "#3f2e5e"
+  "git.pullTags": false
 }

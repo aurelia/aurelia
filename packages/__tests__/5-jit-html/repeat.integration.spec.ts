@@ -3,14 +3,14 @@ import { Aurelia, CustomElement } from "@aurelia/runtime";
 import { TestContext, assert } from "@aurelia/testing";
 
 describe("generated.template-compiler.repeat", function () {
-  function setup() {
+  function createFixture() {
     const ctx = TestContext.createHTMLTestContext();
     const au = new Aurelia(ctx.container);
     const host = ctx.createElement("div");
     return { au, host };
   }
   it("10 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -28,7 +28,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '01');
   });
   it("01 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -47,7 +47,7 @@ describe("generated.template-compiler.repeat", function () {
   });
 
   it("012 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -65,7 +65,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '012');
   });
   it("021 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -83,7 +83,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '012');
   });
   it("102 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -101,7 +101,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '012');
   });
   it("120 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -119,7 +119,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '012');
   });
   it("201 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -137,7 +137,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '012');
   });
   it("210 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -156,7 +156,7 @@ describe("generated.template-compiler.repeat", function () {
   });
 
   it("0123 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -174,7 +174,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '0123');
   });
   it("0132 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -192,7 +192,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '0123');
   });
   it("0213 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -210,7 +210,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '0123');
   });
   it("0231 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -228,7 +228,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '0123');
   });
   it("0312 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -246,7 +246,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '0123');
   });
   it("0321 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -264,7 +264,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '0123');
   });
   it("1023 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -282,7 +282,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '0123');
   });
   it("1032 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -300,7 +300,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '0123');
   });
   it("1203 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -318,7 +318,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '0123');
   });
   it("1230 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -336,7 +336,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '0123');
   });
   it("1302 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -354,7 +354,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '0123');
   });
   it("1320 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -372,7 +372,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '0123');
   });
   it("2013 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -390,7 +390,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '0123');
   });
   it("2031 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -408,7 +408,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '0123');
   });
   it("2103 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -426,7 +426,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '0123');
   });
   it("2130 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -444,7 +444,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '0123');
   });
   it("2301 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -462,7 +462,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '0123');
   });
   it("2310 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -480,7 +480,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '0123');
   });
   it("3012 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -498,7 +498,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '0123');
   });
   it("3021 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -516,7 +516,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '0123');
   });
   it("3102 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -534,7 +534,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '0123');
   });
   it("3120 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -552,7 +552,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '0123');
   });
   it("3201 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",
@@ -570,7 +570,7 @@ describe("generated.template-compiler.repeat", function () {
     assert.strictEqual(host.textContent, '0123');
   });
   it("3210 _", function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
     const App = CustomElement.define(
       {
         name: "app",

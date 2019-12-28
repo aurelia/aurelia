@@ -441,7 +441,7 @@ function DecorateProperty(
  * Define a unique metadata entry on the target.
  *
  * @param metadataKey - A key used to store and retrieve metadata.
- * @param metadataValue - A value that contains attached metadata.
+ * @param metadataValue - A value that contains afterAttach metadata.
  * @param target - The target object on which to define metadata.
  * @example
  *
@@ -462,7 +462,7 @@ function $define(metadataKey: any, metadataValue: any, target: any): void;
  * Define a unique metadata entry on the target.
  *
  * @param metadataKey - A key used to store and retrieve metadata.
- * @param metadataValue - A value that contains attached metadata.
+ * @param metadataValue - A value that contains afterAttach metadata.
  * @param target - The target object on which to define metadata.
  * @param propertyKey - The property key for the target.
  * @example

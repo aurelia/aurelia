@@ -20,8 +20,7 @@ One of Aurelia's strengths is its powerful, performant, and extensible templatin
 
 As you learned in [Building Components](components.md), a component typically involves two pieces: a _view-model_ and a _view_. The view-model is a vanilla JS class or object that provides basic state and actions through properties and methods. View-models don't require inheriting from a special base class, construction with a special factory function, or any other intrusive framework behavior. The view is a standards-based HTML template that renders the current state of the view-model. Aurelia joins these two pieces together through binding, allowing your view to efficiently update in response to view-model changes. Let's start by reviewing a class that's very similar to our `say-hello` view-model from earlier.
 
-{% code-tabs %}
-{% code-tabs-item title="say-hello.js" %}
+{% code title="say-hello.js" %}
 ```javascript
 export class SayHello {
   constructor() { 
@@ -29,35 +28,32 @@ export class SayHello {
   } 
 }
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 Now, we'll create its view, binding the two together with our templating language:
 
-{% code-tabs %}
-{% code-tabs-item title="say-hello.html" %}
+{% code title="say-hello.html" %}
 ```markup
 <p>
   Hello, ${to}!
 </p>
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 One of the key features of Aurelia's templating system is its help to reduce context switching between your JavaScript code and your template markup. String interpolation using the `${}` operator is a feature of ES2015 that makes it simple to insert values into a string. Thus, Aurelia uses this standard syntax in templates as well.
 
 When this template is run, Aurelia will insert the value of the `to` property into the template where `${to}` appears. Pretty simple, right? But what if we want logic in our string interpolation? Can we add our own expressions? Absolutely!
 
-{% code-tabs %}
-{% code-tabs-item title="my-app.html" %}
+{% tabs %}
+{% tab title="my-app.html" %}
 ```markup
 <p>
   ${arriving ? 'Hello' : 'Goodbye'}, ${name}!
 </p>
 ```
-{% endcode-tabs-item %}
+{% endtab %}
 
-{% code-tabs-item title="my-app.js" %}
+{% tab title="my-app.js" %}
 ```javascript
 export class MyApp { 
   constructor() { 
@@ -67,8 +63,8 @@ export class MyApp {
   }
 }
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endtab %}
+{% endtabs %}
 
 In our template, when `arriving` is true, the ternary operator makes our result `'Hello'`, but when it's false, it makes our result `'Goodbye'`. Our view-model code initializes `arriving` to `true` and changes it to `false` after 5 seconds \(5000 milliseconds\). So when we run the template, it will say "Hello, John Doe!" and after 5 seconds, it will say "Goodbye, John Doe!". Aurelia re-evaluates the string interpolation when the value of `arriving` changes!
 
@@ -102,8 +98,7 @@ Here's a brief explanation of each of these parts:
 
 Typically you'll use the `bind` command since it does what you intend most of the time. Consider using `one-time` in performance critical situations where the data never changes because it skips the overhead of observing the view-model for changes. Below are a few examples.
 
-{% code-tabs %}
-{% code-tabs-item title="HTML Attribute Binding Examples" %}
+{% code title="HTML Attribute Binding Examples" %}
 ```markup
 <input type="text" value.bind="firstName">
 <input type="text" value.two-way="lastName">
@@ -113,8 +108,7 @@ Typically you'll use the `bind` command since it does what you intend most of th
 <a class="external-link" href.to-view="profile.twitterUrl">Twitter</a>
 <a class="external-link" href.one-time="profile.linkedInUrl">LinkedIn</a>
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 The first input uses the `bind` command which will automatically create `two-way` bindings for input value attribute bindings. The second and third inputs use the `two-way` / `from-view` commands which explicitly set the binding modes. For the first and second inputs, their value will be updated whenever the bound view-model `firstName` / `lastName` properties are updated, and then those properties will also be updated whenever the inputs change. For the third input, changes in the bound view-model `middleName` property will not update the input value, however, changes in the input will update the view-model. The first anchor element uses the `bind` command which will automatically create a `to-view` binding for anchor href attributes. The other two anchor elements use the `to-view` and `one-time` commands to explicitly set the binding's mode.
 
@@ -130,27 +124,23 @@ String interpolation expressions enable interpolating \(surprise!\) the result o
 
 The best way to understand how interpolation works is with an example. Below are two span elements with data-bound textcontent:
 
-{% code-tabs %}
-{% code-tabs-item title="String Interpolation Binding in Content" %}
+{% code title="String Interpolation Binding in Content" %}
 ```markup
 <span textcontent.bind="'Hello' + firstName"></span>
 <span>Hello ${firstName}</span>
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 The first span uses the `bind` command. The second uses string interpolation. The interpolated version is much easier to read and easy to remember because the syntax matches the [template literal](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) syntax standardized in ES2015.
 
 String interpolation can also be used within HTML attributes as an alternative to the `to-view` binding.
 
-{% code-tabs %}
-{% code-tabs-item title="String Interpolation Binding in Attributes" %}
+{% code title="String Interpolation Binding in Attributes" %}
 ```markup
 <a class="external-link" href.to-view="profile.twitterUrl">Twitter</a>
 <a class="external-link" href="${profile.twitterUrl}">Twitter</a>
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 By default, the mode of an interpolation binding is `to-view` and the result of the expression is always coerced to a string. Results that are `null` or `undefined` will result in an empty string.
 
@@ -162,25 +152,21 @@ While Aurelia's attribute and string interpolation binding can work with any HTM
 
 The previous example compared string interpolation binding with `textcontent.bind`. Interpolation is easier to read but `textcontent.bind` can come in handy when you need to two-bind a `contenteditable` element:
 
-{% code-tabs %}
-{% code-tabs-item title="TwoWay textContent Binding" %}
+{% code title="TwoWay textContent Binding" %}
 ```markup
 <div contenteditable textcontent.bind="firstName"></div>
 <div contenteditable textcontent.bind="lastName"></div>
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 You may also need to bind HTML text to an element's `innerHTML` property:
 
-{% code-tabs %}
-{% code-tabs-item title="HTML Binding innerHTML" %}
+{% code title="HTML Binding innerHTML" %}
 ```markup
 <div innerhtml.bind="htmlProperty | sanitizeHTML"></div>
 <div innerhtml="${htmlProperty | sanitizeHTML}"></div>
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 {% hint style="danger" %}
 **Warning**
@@ -198,15 +184,13 @@ Binding using the `innerhtml` attribute simply sets the element's `innerHTML` pr
 
 You can bind an element's `class` attribute using string interpolation or with `.bind`/`.to-view`.
 
-{% code-tabs %}
-{% code-tabs-item title="Class Bindings" %}
+{% code title="Class Bindings" %}
 ```markup
 <div class="foo ${isActive ? 'active' : ''} bar"></div>
 <div class.bind="isActive ? 'active' : ''"></div>
 <div class.one-time="isActive ? 'active' : ''"></div>
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 This binding will accept not only a string, but also an array or a single object. It will coerce them into a class string that can be applied to the element.
 
@@ -245,25 +229,23 @@ To ensure maximum interoperability with other JavaScript libraries, the binding 
 
 You can bind a css string to an element's `style` attribute.
 
-{% code-tabs %}
-{% code-tabs-item title="Interpolation Binding with Styles" %}
+{% code title="Interpolation Binding with Styles" %}
 ```markup
 <div style="width: ${width}px; height: ${height}px;"></div>
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 You can also bind an object:
 
-{% code-tabs %}
-{% code-tabs-item title="my-app.html" %}
+{% tabs %}
+{% tab title="my-app.html" %}
 ```markup
 <div style.bind="styleString"></div>
 <div style.bind="styleObject"></div>
 ```
-{% endcode-tabs-item %}
+{% endtab %}
 
-{% code-tabs-item title="my-app.js" %}
+{% tab title="my-app.js" %}
 ```javascript
 export class MyApp {
   constructor() {
@@ -276,20 +258,18 @@ export class MyApp {
   }
 }
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endtab %}
+{% endtabs %}
 
 ## Referencing DOM Elements
 
 Use the `ref` binding command to create a reference to a DOM element. The `ref` command's most basic syntax is `ref="expression"`. When the view is data-bound the specified expression will be assigned the DOM element.
 
-{% code-tabs %}
-{% code-tabs-item title="Ref Bindings" %}
+{% code title="Ref Bindings" %}
 ```markup
 <input type="text" ref="nameInput"> ${nameInput.value}
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 The `ref` command has several qualifiers you can use in conjunction with custom elements and attributes:
 
@@ -303,26 +283,22 @@ The `ref` command has several qualifiers you can use in conjunction with custom 
 
 While developing custom elements or custom attributes you may encounter a situation where you have a property that expects a reference to a function. Use the `call` binding command to declare and pass a function to the property. The `call` command is superior to the `bind` command for this use-case because it will execute the function in the correct context, ensuring `this` is what you expect it to be.
 
-{% code-tabs %}
-{% code-tabs-item title="Call Bindings" %}
+{% code title="Call Bindings" %}
 ```markup
 <my-element go.call="doSomething()"></my-element>
 
 <input type="text" value.bind="taskName">
 <my-element go.call="doSomething(taskName)"></my-element>
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 Your custom element or attribute can invoke the function that was passed to the property using standard call syntax: `this.go();`. If you need to invoke the function with arguments, create an object whose keys are the argument names and whose values are the argument values, then invoke the function with this "arguments object". The object's properties will be available for data-binding in the `call` binding expression. For example, invoking the function with `this.go({ x: 5, y: -22, z: 11})`\) will make `x`, `y` and `z` available for binding:
 
-{% code-tabs %}
-{% code-tabs-item title="Call Bindings with Contextual Properties" %}
+{% code title="Call Bindings with Contextual Properties" %}
 ```markup
 <my-element go.call="doSomething(x, y)"></my-element>
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 ## Contextual Properties
 

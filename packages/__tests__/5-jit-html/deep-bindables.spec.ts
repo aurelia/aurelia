@@ -12,7 +12,7 @@
 // const spec = 'deep-bindables';
 
 // describe(spec, function () {
-//   function setup() {
+//   function createFixture() {
 //     const ctx = TestContext.createHTMLTestContext();
 //     const container = ctx.container;
 //     const lifecycle = ctx.lifecycle;
@@ -32,7 +32,7 @@
 //       const bb = (strategy & BindingStrategy.keyed) > 0 ? ' & keyed' : '';
 //       this.timeout(30000);
 //       let num = 0;
-//       const { lifecycle, au, host } = setup();
+//       const { lifecycle, au, host } = createFixture();
 
 //       const bindables = {
 //         max: { property: 'max', attribute: 'max' },
@@ -158,7 +158,7 @@
 //     it(`profile, strategy=${stringifyLifecycleFlags(strategy)}`, function () {
 //       const bb = (strategy & BindingStrategy.keyed) > 0 ? ' & keyed' : '';
 //       this.timeout(30000);
-//       const { au, host } = setup();
+//       const { au, host } = createFixture();
 
 //       const bindingCount = 3;
 //       const elementCount = 5000;
@@ -220,7 +220,7 @@
 //   // it('works 2', function () {
 //   //   this.timeout(30000);
 //   //   let count = 100000;
-//   //   const { ctx, container, lifecycle, au, host } = setup();
+//   //   const { ctx, container, lifecycle, au, host } = createFixture();
 //   //   let proxyStrategy = true;
 
 //   //   const Foo = CustomElement.define(

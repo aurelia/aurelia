@@ -141,7 +141,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
                 this.el = el as HTMLElement;
               }
 
-              public binding() {
+              public beforeBind() {
                 this.el.setAttribute('lvl', `lvl-${this.lvl}`);
               }
             }
@@ -205,7 +205,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
           public constructor(element: INode) {
             this.element = element as Element;
           }
-          public binding(): void {
+          public beforeBind(): void {
             this.valueChanged();
           }
 
@@ -282,7 +282,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
             public constructor(element: INode) {
               this.element = element as Element;
             }
-            public binding(): void {
+            public beforeBind(): void {
               this.valueChanged();
             }
             public valueChanged(): void {
@@ -354,6 +354,6 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
 });
 
 interface IExpectedInstruction {
-  toVerify: string[];
   [prop: string]: any;
+  toVerify: string[];
 }

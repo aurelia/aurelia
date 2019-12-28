@@ -11,7 +11,6 @@ import {
   IConnectableBinding,
   IndexMap,
   IObserverLocator,
-  IRenderContext,
   IScope,
   ISignaler,
   ISubscribable,
@@ -206,7 +205,7 @@ export class MockValueConverter {
 export class MockContext {
   public log: any[] = [];
 }
-export type ExposedContext = IRenderContext & IDisposable & IContainer;
+export type ExposedContext = IContainer & IDisposable & IContainer;
 
 export class MockBrowserHistoryLocation {
   public changeCallback?: (ev: PopStateEvent) => Promise<void>;
@@ -329,7 +328,6 @@ export class MockBrowserHistoryLocation {
 
   private notifyChange() {
     if (this.changeCallback) {
-      console.log('MOCK: notifyChange', this.path, this.state);
       this.changeCallback(null as any).catch((error: Error) => { throw error; });
     }
   }

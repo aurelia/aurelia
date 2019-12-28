@@ -7,9 +7,7 @@ class Animal {
 
 describe('Queue', function () {
   it('can be created', function () {
-    const q = new Queue<Animal>((animal: QueueItem<Animal>) => {
-      console.log('Animal', animal);
-    });
+    const q = new Queue<Animal>((animal: QueueItem<Animal>) => { return; });
   });
 
   it('adds to queue', async function () {

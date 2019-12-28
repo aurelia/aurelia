@@ -1,56 +1,48 @@
 import {
-  Writable
-} from '@aurelia/kernel';
-import {
   AccessScopeExpression,
-  addBinding,
-  PropertyBinding,
   BindingContext,
-  BindingMode,
   BindingStrategy,
   Else,
-  IDOM,
   If,
   ILifecycle,
-  IObserverLocator,
   IScope,
-  ITemplate,
   LifecycleFlags,
   ProxyObserver,
   Scope,
   ViewFactory,
   Controller,
-  IController
+  CustomElementDefinition,
+  ToViewBindingInstruction,
+  getRenderContext,
 } from '@aurelia/runtime';
 import {
-  AuDOM,
   AuDOMConfiguration,
   AuNode,
-  AuNodeSequence,
   eachCartesianJoin,
   assert,
 } from '@aurelia/testing';
+import { Writable } from '@aurelia/kernel';
 
 describe(`If/Else`, function () {
   function runBindLifecycle(lifecycle: ILifecycle, sut: If<AuNode>, flags: LifecycleFlags, scope: IScope): void {
-    lifecycle.bound.begin();
+    lifecycle.afterBind.begin();
     sut.$controller.bind(flags, scope);
-    lifecycle.bound.end(flags);
+    lifecycle.afterBind.end(flags);
   }
   function runUnbindLifecycle(lifecycle: ILifecycle, sut: If<AuNode>, flags: LifecycleFlags): void {
-    lifecycle.unbound.begin();
+    lifecycle.afterUnbind.begin();
     sut.$controller.unbind(flags);
-    lifecycle.unbound.end(flags);
+    lifecycle.afterUnbind.end(flags);
   }
   function runAttachLifecycle(lifecycle: ILifecycle, sut: If<AuNode>, flags: LifecycleFlags): void {
-    lifecycle.attached.begin();
+    lifecycle.afterAttach.begin();
     sut.$controller.attach(flags);
-    lifecycle.attached.end(flags);
+    lifecycle.afterAttach.end(flags);
   }
   function runDetachLifecycle(lifecycle: ILifecycle, sut: If<AuNode>, flags: LifecycleFlags): void {
-    lifecycle.detached.begin();
+    lifecycle.afterDetach.begin();
     sut.$controller.detach(flags);
-    lifecycle.detached.end(flags);
+    lifecycle.afterDetach.end(flags);
   }
 
   interface Spec {
@@ -160,50 +152,43 @@ describe(`If/Else`, function () {
         const baseFlags: LifecycleFlags = strategy as unknown as LifecycleFlags;
         const proxies = (strategy & BindingStrategy.proxies) > 0;
         const container = AuDOMConfiguration.createContainer();
-        const dom = container.get<AuDOM>(IDOM);
-        const observerLocator = container.get(IObserverLocator);
         const lifecycle = container.get(ILifecycle);
 
         const location = AuNode.createRenderLocation();
         const location2 = AuNode.createRenderLocation();
         const host = AuNode.createHost().appendChild(location.$start).appendChild(location).appendChild(location2.$start).appendChild(location2);
 
-        const ifTemplate: ITemplate<AuNode> = {
-          renderContext: null as any,
-          dom: null as any,
-          definition: null as any,
-          render(controller: IController<AuNode>) {
-            const text = AuNode.createText();
-            const wrapper = AuNode.createTemplate().appendChild(text);
+        const ifContext = getRenderContext<AuNode>(
+          CustomElementDefinition.create({
+            name: void 0,
+            template: AuNode.createText().makeTarget(),
+            instructions: [
+              [
+                new ToViewBindingInstruction(new AccessScopeExpression(ifPropName), 'textContent'),
+              ],
+            ],
+            needsCompile: false,
+          }),
+          container,
+          void 0,
+        );
+        const elseContext = getRenderContext<AuNode>(
+          CustomElementDefinition.create({
+            name: void 0,
+            template: AuNode.createText().makeTarget(),
+            instructions: [
+              [
+                new ToViewBindingInstruction(new AccessScopeExpression(elsePropName), 'textContent'),
+              ],
+            ],
+            needsCompile: false,
+          }),
+          container,
+          void 0,
+        );
 
-            const nodes = new AuNodeSequence(dom, wrapper);
-            const binding = new PropertyBinding(new AccessScopeExpression(ifPropName), text, 'textContent', BindingMode.toView, observerLocator, container);
-            binding.persistentFlags |= baseFlags;
-
-            (controller as Writable<typeof controller>).nodes = nodes;
-            addBinding(controller, binding);
-          }
-        };
-
-        const elseTemplate: ITemplate<AuNode> = {
-          renderContext: null as any,
-          dom: null as any,
-          definition: null as any,
-          render(controller: IController<AuNode>) {
-            const text = AuNode.createText();
-            const wrapper = AuNode.createTemplate().appendChild(text);
-
-            const nodes = new AuNodeSequence(dom, wrapper);
-            const binding = new PropertyBinding(new AccessScopeExpression(elsePropName), text, 'textContent', BindingMode.toView, observerLocator, container);
-            binding.persistentFlags |= baseFlags;
-
-            (controller as Writable<typeof controller>).nodes = nodes;
-            addBinding(controller, binding);
-          }
-        };
-
-        const ifFactory = new ViewFactory<AuNode>('if-view', ifTemplate, lifecycle);
-        const elseFactory = new ViewFactory<AuNode>('else-view', elseTemplate, lifecycle);
+        const ifFactory = new ViewFactory<AuNode>('if-view', ifContext, lifecycle, void 0);
+        const elseFactory = new ViewFactory<AuNode>('else-view', elseContext, lifecycle, void 0);
         let sut: If<AuNode>;
         let elseSut: Else<AuNode>;
         if (proxies) {
@@ -214,7 +199,7 @@ describe(`If/Else`, function () {
           elseSut = new Else<AuNode>(elseFactory);
         }
         elseSut.link(sut);
-        sut.$controller = Controller.forCustomAttribute(sut, container);
+        (sut as Writable<If>).$controller = Controller.forCustomAttribute(sut, lifecycle);
 
         let firstBindFinalNodesText: string;
         let secondBindFinalNodesText: string;

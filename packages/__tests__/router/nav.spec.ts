@@ -4,7 +4,7 @@ import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
 describe('Nav', function () {
-  async function setup(component) {
+  async function createFixture(component) {
     const ctx = TestContext.createHTMLTestContext();
     const container = ctx.container;
 
@@ -58,7 +58,7 @@ describe('Nav', function () {
 
   it('generates nav with a link', async function () {
     this.timeout(5000);
-    const { host, router, tearDown, scheduler } = await setup('foo');
+    const { host, router, tearDown, scheduler } = await createFixture('foo');
 
     await scheduler.yieldAll();
 
@@ -71,8 +71,8 @@ describe('Nav', function () {
 
   it('generates nav with an active link', async function () {
     this.timeout(5000);
-    const { host, router, tearDown, scheduler } = await setup('bar');
-    router.activeComponents = [new ViewportInstruction('baz', 'main-viewport')];
+    const { host, router, tearDown, scheduler } = await createFixture('bar');
+    router.activeComponents = [router.createViewportInstruction('baz', 'main-viewport')];
 
     await scheduler.yieldAll();
 
@@ -83,8 +83,8 @@ describe('Nav', function () {
 
   it('generates nav with child links', async function () {
     this.timeout(5000);
-    const { host, router, tearDown, scheduler } = await setup('qux');
-    router.activeComponents =[new ViewportInstruction('baz', 'main-viewport')];
+    const { host, router, tearDown, scheduler } = await createFixture('qux');
+    router.activeComponents =[router.createViewportInstruction('baz', 'main-viewport')];
 
     await scheduler.yieldAll();
 

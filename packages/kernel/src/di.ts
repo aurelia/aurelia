@@ -5,7 +5,7 @@ import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
 import { ResourceType, Protocol } from './resource';
 import { Metadata } from './metadata';
-import { isNumeric, isNativeFunction, isObject } from './functions';
+import { isArrayIndex, isNativeFunction, isObject } from './functions';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -54,8 +54,6 @@ export interface IRegistry {
 }
 
 export interface IContainer extends IServiceLocator {
-  readonly id: number;
-  readonly path: string;
   register(...params: any[]): IContainer;
   registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>): IResolver<T>;
   registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
@@ -101,7 +99,7 @@ function cloneArrayWithPossibleProps<T>(source: readonly T[]): T[] {
   let key: string;
   for (let i = 0; i < len; ++i) {
     key = keys[i];
-    if (!isNumeric(key)) {
+    if (!isArrayIndex(key)) {
       clone[key] = source[key];
     }
   }
@@ -192,7 +190,7 @@ export class DI {
           let key: string;
           for (let i = 0; i < len; ++i) {
             key = keys[i];
-            if (!isNumeric(key)) {
+            if (!isArrayIndex(key)) {
               dependencies[key] = annotationParamtypes[key];
             }
           }
@@ -675,22 +673,12 @@ function isClass<T extends { prototype?: any }>(obj: T): obj is Class<any, T> {
   return obj.prototype !== void 0;
 }
 
-const nextContainerId = (function () {
-  let id = 0;
-  return function () {
-    return ++id;
-  };
-})();
-
 function isResourceKey(key: Key): key is string {
   return typeof key === 'string' && key.indexOf(':') > 0;
 }
 
 /** @internal */
 export class Container implements IContainer {
-  public readonly id: number = nextContainerId();
-  public readonly path: string;
-
   private registerDepth: number = 0;
 
   private readonly root: Container;
@@ -703,14 +691,12 @@ export class Container implements IContainer {
     private readonly parent: Container | null,
   ) {
     if (parent === null) {
-      this.path = this.id.toString();
       this.root = this;
 
       this.resolvers = new Map();
 
       this.resourceResolvers = Object.create(null);
     } else {
-      this.path = `${parent.path}.${this.id}`;
       this.root = parent.root;
 
       this.resolvers = new Map();

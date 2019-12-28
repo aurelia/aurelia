@@ -264,7 +264,6 @@ export {
   // IResourceType,
   // ResourceDescription,
   // ResourcePartDescription,
-  RuntimeCompilationResources,
   // fromAnnotationOrDefinitionOrTypeOrDefault,
   // fromAnnotationOrTypeOrDefault,
   // fromDefinitionOrDefault,
@@ -273,7 +272,7 @@ export {
   EventAggregatorCallback,
   IEventAggregator,
 
-  isNumeric,
+  isArrayIndex,
   camelCase,
   kebabCase,
   pascalCase,
@@ -355,7 +354,6 @@ export {
   // Segment,
   // RouteRecognizer,
 
-  IRouteTransformer,
   IRouterOptions,
   IRouter,
   Router,
@@ -746,7 +744,7 @@ export {
   ILifecycle,
   IViewModel,
   // IController,
-  // IRenderContext,
+  // IContainer,
   // IViewCache,
   // IViewFactory,
   // MountStrategy,
@@ -807,8 +805,6 @@ export {
 
   instructionRenderer,
   ensureExpression,
-  addComponent,
-  addBinding,
 
   // CompiledTemplate,
   // ChildrenObserver,
@@ -819,7 +815,6 @@ export {
   // ITemplate,
   // ITemplateCompiler,
   // ITemplateFactory,
-  // ViewCompileFlags,
 
   // RenderContext
 } from '@aurelia/runtime';

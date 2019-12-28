@@ -334,6 +334,33 @@ export class $FunctionExpression implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformedParameters = transformList(tctx, this.$parameters, node.parameters);
+    const transformedBody = this.$body.transform(tctx);
+    const transformedModifiers = node.modifiers === void 0 ? void 0 : transformModifiers(node.modifiers);
+
+    if (
+      (node.modifiers === void 0 || transformedModifiers === void 0) &&
+      node.typeParameters === void 0 &&
+      transformedParameters === void 0 &&
+      node.type === void 0 &&
+      node.body === transformedBody
+    ) {
+      return this.node;
+    }
+
+    return createFunctionExpression(
+      transformedModifiers === void 0 ? node.modifiers : transformedModifiers,
+      node.asteriskToken,
+      node.name,
+      void 0,
+      transformedParameters === void 0 ? node.parameters : transformedParameters,
+      void 0,
+      transformedBody,
+    );
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
   // 14.1.18 Runtime Semantics: EvaluateBody
   public EvaluateBody(
@@ -692,33 +719,6 @@ export class $FunctionExpression implements I$Node {
     // 3. Return closure.
     return closure;
   }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    const transformedParameters = transformList(tctx, this.$parameters, node.parameters);
-    const transformedBody = this.$body.transform(tctx);
-    const transformedModifiers = node.modifiers === void 0 ? void 0 : transformModifiers(node.modifiers);
-
-    if (
-      (node.modifiers === void 0 || transformedModifiers === void 0) &&
-      node.typeParameters === void 0 &&
-      transformedParameters === void 0 &&
-      node.type === void 0 &&
-      node.body === transformedBody
-    ) {
-      return this.node;
-    }
-
-    return createFunctionExpression(
-      transformedModifiers === void 0 ? node.modifiers : transformedModifiers,
-      node.asteriskToken,
-      node.name,
-      void 0,
-      transformedParameters === void 0 ? node.parameters : transformedParameters,
-      void 0,
-      transformedBody,
-    );
-  }
 }
 
 export class $FunctionDeclaration implements I$Node {
@@ -944,6 +944,35 @@ export class $FunctionDeclaration implements I$Node {
     }
 
     return this;
+  }
+
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformedParameters = transformList(tctx, this.$parameters, node.parameters);
+    const transformedBody = this.$body.transform(tctx);
+    const transformedModifiers = node.modifiers === void 0 ? void 0 : transformModifiers(node.modifiers);
+
+    if (
+      this.$decorators.length === 0 &&
+      (node.modifiers === void 0 || transformedModifiers === void 0) &&
+      node.typeParameters === void 0 &&
+      transformedParameters === void 0 &&
+      node.type === void 0 &&
+      node.body === transformedBody
+    ) {
+      return this.node;
+    }
+
+    return createFunctionDeclaration(
+      void 0,
+      transformedModifiers === void 0 ? node.modifiers : transformedModifiers,
+      node.asteriskToken,
+      node.name,
+      void 0,
+      transformedParameters === void 0 ? node.parameters : transformedParameters,
+      void 0,
+      transformedBody,
+    );
   }
 
   public InstantiateFunctionObject(
@@ -1212,35 +1241,6 @@ export class $FunctionDeclaration implements I$Node {
     // 1. Return NormalCompletion(empty).
 
     return new $Empty(realm, CompletionType.normal, intrinsics.empty, this);
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    const transformedParameters = transformList(tctx, this.$parameters, node.parameters);
-    const transformedBody = this.$body.transform(tctx);
-    const transformedModifiers = node.modifiers === void 0 ? void 0 : transformModifiers(node.modifiers);
-
-    if (
-      this.$decorators.length === 0 &&
-      (node.modifiers === void 0 || transformedModifiers === void 0) &&
-      node.typeParameters === void 0 &&
-      transformedParameters === void 0 &&
-      node.type === void 0 &&
-      node.body === transformedBody
-    ) {
-      return this.node;
-    }
-
-    return createFunctionDeclaration(
-      void 0,
-      transformedModifiers === void 0 ? node.modifiers : transformedModifiers,
-      node.asteriskToken,
-      node.name,
-      void 0,
-      transformedParameters === void 0 ? node.parameters : transformedParameters,
-      void 0,
-      transformedBody,
-    );
   }
 }
 
@@ -1691,6 +1691,32 @@ export class $ArrowFunction implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformedParameters = transformList(tctx, this.$parameters, node.parameters);
+    const transformedBody = this.$body.transform(tctx);
+    const transformedModifiers = node.modifiers === void 0 ? void 0 : transformModifiers(node.modifiers);
+
+    if (
+      (node.modifiers === void 0 || transformedModifiers === void 0) &&
+      node.typeParameters === void 0 &&
+      transformedParameters === void 0 &&
+      node.type === void 0 &&
+      node.body === transformedBody
+    ) {
+      return this.node;
+    }
+
+    return createArrowFunction(
+      transformedModifiers === void 0 ? node.modifiers : transformedModifiers,
+      void 0,
+      transformedParameters === void 0 ? node.parameters : transformedParameters,
+      void 0,
+      node.equalsGreaterThanToken,
+      transformedBody,
+    );
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-runtime-semantics-evaluation
   // 14.2.17 Runtime Semantics: Evaluation
   public Evaluate(
@@ -1739,32 +1765,6 @@ export class $ArrowFunction implements I$Node {
     const intrinsics = realm['[[Intrinsics]]'];
 
     return intrinsics.undefined; // TODO: implement this
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    const transformedParameters = transformList(tctx, this.$parameters, node.parameters);
-    const transformedBody = this.$body.transform(tctx);
-    const transformedModifiers = node.modifiers === void 0 ? void 0 : transformModifiers(node.modifiers);
-
-    if (
-      (node.modifiers === void 0 || transformedModifiers === void 0) &&
-      node.typeParameters === void 0 &&
-      transformedParameters === void 0 &&
-      node.type === void 0 &&
-      node.body === transformedBody
-    ) {
-      return this.node;
-    }
-
-    return createArrowFunction(
-      transformedModifiers === void 0 ? node.modifiers : transformedModifiers,
-      void 0,
-      transformedParameters === void 0 ? node.parameters : transformedParameters,
-      void 0,
-      node.equalsGreaterThanToken,
-      transformedBody,
-    );
   }
 }
 
@@ -1867,6 +1867,28 @@ export class $ConstructorDeclaration implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformedParameters = transformList(tctx, this.$parameters, node.parameters);
+    const transformedBody = this.$body.transform(tctx);
+
+    if (
+      this.$decorators.length === 0 &&
+      node.modifiers === void 0 &&
+      transformedParameters === void 0 &&
+      node.body === transformedBody
+    ) {
+      return this.node;
+    }
+
+    return createConstructor(
+      void 0,
+      void 0,
+      transformedParameters === void 0 ? node.parameters : transformedParameters,
+      transformedBody,
+    );
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-definemethod
   // 14.3.7 Runtime Semantics: DefineMethod
   public DefineMethod(
@@ -1920,28 +1942,6 @@ export class $ConstructorDeclaration implements I$Node {
     argumentsList: $List<$AnyNonEmpty>,
   ): $Any {
     return EvaluateBody(this, ctx, functionObject, argumentsList);
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    const transformedParameters = transformList(tctx, this.$parameters, node.parameters);
-    const transformedBody = this.$body.transform(tctx);
-
-    if (
-      this.$decorators.length === 0 &&
-      node.modifiers === void 0 &&
-      transformedParameters === void 0 &&
-      node.body === transformedBody
-    ) {
-      return this.node;
-    }
-
-    return createConstructor(
-      void 0,
-      void 0,
-      transformedParameters === void 0 ? node.parameters : transformedParameters,
-      transformedBody,
-    );
   }
 }
 
@@ -2025,6 +2025,40 @@ export class $ParameterDeclaration implements I$Node {
     }
 
     return this;
+  }
+
+  public transform(tctx: TransformationContext): this['node'] | undefined {
+    const node = this.node;
+    if (
+      node.name.kind === SyntaxKind.Identifier &&
+      node.name.originalKeywordKind === SyntaxKind.ThisKeyword
+    ) {
+      return void 0;
+    }
+
+    const transformedName = this.$name.transform(tctx);
+    const transformedInitializer = this.$initializer === void 0 ? void 0 : this.$initializer.transform(tctx);
+
+    if (
+      this.$decorators.length === 0 &&
+      node.modifiers === void 0 &&
+      node.name === transformedName &&
+      node.initializer === transformedInitializer &&
+      node.questionToken === void 0 &&
+      node.type === void 0
+    ) {
+      return this.node;
+    }
+
+    return createParameter(
+      void 0,
+      void 0,
+      node.dotDotDotToken,
+      transformedName,
+      void 0,
+      void 0,
+      transformedInitializer,
+    );
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-iteratorbindinginitialization
@@ -2141,39 +2175,5 @@ export class $ParameterDeclaration implements I$Node {
     // 10. Set the VariableEnvironment of currentContext to originalEnv.
     // 11. Set the LexicalEnvironment of currentContext to originalEnv.
     // 12. Return result.
-  }
-
-  public transform(tctx: TransformationContext): this['node'] | undefined {
-    const node = this.node;
-    if (
-      node.name.kind === SyntaxKind.Identifier &&
-      node.name.originalKeywordKind === SyntaxKind.ThisKeyword
-    ) {
-      return void 0;
-    }
-
-    const transformedName = this.$name.transform(tctx);
-    const transformedInitializer = this.$initializer === void 0 ? void 0 : this.$initializer.transform(tctx);
-
-    if (
-      this.$decorators.length === 0 &&
-      node.modifiers === void 0 &&
-      node.name === transformedName &&
-      node.initializer === transformedInitializer &&
-      node.questionToken === void 0 &&
-      node.type === void 0
-    ) {
-      return this.node;
-    }
-
-    return createParameter(
-      void 0,
-      void 0,
-      node.dotDotDotToken,
-      transformedName,
-      void 0,
-      void 0,
-      transformedInitializer,
-    );
   }
 }

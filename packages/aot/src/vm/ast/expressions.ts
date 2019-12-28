@@ -276,6 +276,10 @@ export class $ThisExpression implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-this-keyword-runtime-semantics-evaluation
   // 12.2.2.1 Runtime Semantics: Evaluation
   public Evaluate(
@@ -290,10 +294,6 @@ export class $ThisExpression implements I$Node {
 
     // 1. Return ? ResolveThisBinding().
     return realm.ResolveThisBinding().enrichWith(ctx, this);
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }
 
@@ -331,6 +331,10 @@ export class $SuperExpression implements I$Node {
   public hydrate(ctx: HydrateContext): this {
     this.logger.trace(`${this.path}.hydrate()`);
     return this;
+  }
+
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-super-keyword-runtime-semantics-evaluation
@@ -374,10 +378,6 @@ export class $SuperExpression implements I$Node {
     // 8. Return ? thisER.BindThisValue(result).
 
     return intrinsics.undefined; // TODO: implement this
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }
 
@@ -489,6 +489,24 @@ export class $ArrayLiteralExpression implements I$Node {
     this.$elements.forEach(x => x.hydrate(ctx));
 
     return this;
+  }
+
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    if (this.$elements.length === 0) {
+      return node;
+    }
+
+    const transformedList = transformList(tctx, this.$elements, node.elements);
+
+    if (transformedList === void 0) {
+      return node;
+    }
+
+    return createArrayLiteral(
+      transformedList,
+      true,
+    );
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-arrayaccumulation
@@ -620,24 +638,6 @@ export class $ArrayLiteralExpression implements I$Node {
     // 6. NOTE: The above Set cannot fail because of the nature of the object returned by ArrayCreate.
     // 7. Return array.
   }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    if (this.$elements.length === 0) {
-      return node;
-    }
-
-    const transformedList = transformList(tctx, this.$elements, node.elements);
-
-    if (transformedList === void 0) {
-      return node;
-    }
-
-    return createArrayLiteral(
-      transformedList,
-      true,
-    );
-  }
 }
 
 export type $$ObjectLiteralElementLike = (
@@ -750,6 +750,24 @@ export class $ObjectLiteralExpression implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    if (this.$properties.length === 0) {
+      return node;
+    }
+
+    const transformedList = transformList(tctx, this.$properties, node.properties);
+
+    if (transformedList === void 0) {
+      return node;
+    }
+
+    return createObjectLiteral(
+      transformedList,
+      true,
+    );
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-evaluation
   // 12.2.6.7 Runtime Semantics: Evaluation
   public Evaluate(
@@ -777,24 +795,6 @@ export class $ObjectLiteralExpression implements I$Node {
 
     // 3. Return obj.
     return obj;
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    if (this.$properties.length === 0) {
-      return node;
-    }
-
-    const transformedList = transformList(tctx, this.$properties, node.properties);
-
-    if (transformedList === void 0) {
-      return node;
-    }
-
-    return createObjectLiteral(
-      transformedList,
-      true,
-    );
   }
 }
 
@@ -854,6 +854,10 @@ export class $PropertyAssignment implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-propertydefinitionevaluation
   // 12.2.6.8 Runtime Semantics: PropertyDefinitionEvaluation
   public EvaluatePropertyDefinition(
@@ -898,10 +902,6 @@ export class $PropertyAssignment implements I$Node {
     // 6. Assert: object is an ordinary, extensible object with no non-configurable properties.
     // 7. Return ! CreateDataPropertyOrThrow(object, propKey, propValue).
     return $CreateDataProperty(ctx, object, propKey, propValue);
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }
 
@@ -962,6 +962,10 @@ export class $ShorthandPropertyAssignment implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-propertydefinitionevaluation
   // 12.2.6.8 Runtime Semantics: PropertyDefinitionEvaluation
   public EvaluatePropertyDefinition(
@@ -988,10 +992,6 @@ export class $ShorthandPropertyAssignment implements I$Node {
     // 5. Assert: object is an ordinary, extensible object with no non-configurable properties.
     // 6. Return ! CreateDataPropertyOrThrow(object, propName, propValue).
     return $CreateDataProperty(ctx, object, propName, propValue);
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }
 
@@ -1042,6 +1042,18 @@ export class $SpreadAssignment implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformed = this.$expression.transform(tctx);
+    if (transformed === node.expression) {
+      return node;
+    }
+
+    return createSpreadAssignment(
+      transformed,
+    );
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-propertydefinitionevaluation
   // 12.2.6.8 Runtime Semantics: PropertyDefinitionEvaluation
   public EvaluatePropertyDefinition<T extends $AnyObject>(
@@ -1066,18 +1078,6 @@ export class $SpreadAssignment implements I$Node {
 
     // 4. Return ? CopyDataProperties(object, fromValue, excludedNames).
     return $CopyDataProperties(ctx, object, fromValue, excludedNames);
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    const transformed = this.$expression.transform(tctx);
-    if (transformed === node.expression) {
-      return node;
-    }
-
-    return createSpreadAssignment(
-      transformed,
-    );
   }
 }
 
@@ -1127,6 +1127,21 @@ export class $PropertyAccessExpression implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformed = this.$expression.transform(tctx);
+    if (
+      node.expression === transformed
+    ) {
+      return node;
+    }
+
+    return createPropertyAccess(
+      transformed,
+      node.name,
+    );
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-property-accessors-runtime-semantics-evaluation
   // 12.3.2.1 Runtime Semantics: Evaluation
   public Evaluate(
@@ -1158,21 +1173,6 @@ export class $PropertyAccessExpression implements I$Node {
 
     // 6. Return a value of type Reference whose base value component is bv, whose referenced name component is propertyNameString, and whose strict reference flag is strict.
     return new $Reference(realm, baseValue, propertyNameString, strict, intrinsics.undefined);
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    const transformed = this.$expression.transform(tctx);
-    if (
-      node.expression === transformed
-    ) {
-      return node;
-    }
-
-    return createPropertyAccess(
-      transformed,
-      node.name,
-    );
   }
 }
 
@@ -1222,6 +1222,23 @@ export class $ElementAccessExpression implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformedExpression = this.$expression.transform(tctx);
+    const transformedArgumentExpression = this.$argumentExpression.transform(tctx);
+    if (
+      node.expression === transformedExpression &&
+      node.argumentExpression === transformedArgumentExpression
+    ) {
+      return node;
+    }
+
+    return createElementAccess(
+      transformedExpression,
+      transformedArgumentExpression,
+    );
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-property-accessors-runtime-semantics-evaluation
   // 12.3.2.1 Runtime Semantics: Evaluation
   public Evaluate(
@@ -1261,23 +1278,6 @@ export class $ElementAccessExpression implements I$Node {
 
     // 8. Return a value of type Reference whose base value component is bv, whose referenced name component is propertyKey, and whose strict reference flag is strict.
     return new $Reference(realm, baseValue, propertyKey, strict, intrinsics.undefined);
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    const transformedExpression = this.$expression.transform(tctx);
-    const transformedArgumentExpression = this.$argumentExpression.transform(tctx);
-    if (
-      node.expression === transformedExpression &&
-      node.argumentExpression === transformedArgumentExpression
-    ) {
-      return node;
-    }
-
-    return createElementAccess(
-      transformedExpression,
-      transformedArgumentExpression,
-    );
   }
 }
 
@@ -1325,6 +1325,27 @@ export class $CallExpression implements I$Node {
     this.$expression.hydrate(ctx);
 
     return this;
+  }
+
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformedExpression = this.$expression.transform(tctx);
+    const transformedArguments = transformList(tctx, this.$arguments, node.arguments);
+    if (
+      node.expression === transformedExpression &&
+      transformedArguments === void 0 &&
+      node.typeArguments === void 0
+    ) {
+      return node;
+    }
+
+    return createCall(
+      transformedExpression,
+      void 0,
+      transformedArguments === void 0
+        ? node.arguments
+        : transformedArguments,
+    );
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-calls-runtime-semantics-evaluation
@@ -1387,27 +1408,6 @@ export class $CallExpression implements I$Node {
     // 5. Return ? EvaluateCall(func, ref, Arguments, tailCall).
 
     return intrinsics.undefined; // TODO: implement this
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    const transformedExpression = this.$expression.transform(tctx);
-    const transformedArguments = transformList(tctx, this.$arguments, node.arguments);
-    if (
-      node.expression === transformedExpression &&
-      transformedArguments === void 0 &&
-      node.typeArguments === void 0
-    ) {
-      return node;
-    }
-
-    return createCall(
-      transformedExpression,
-      void 0,
-      transformedArguments === void 0
-        ? node.arguments
-        : transformedArguments,
-    );
   }
 }
 
@@ -1587,6 +1587,29 @@ export class $NewExpression implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformedExpression = this.$expression.transform(tctx);
+    const transformedArguments = node.arguments === void 0 ? void 0 : transformList(tctx, this.$arguments, node.arguments);
+    if (
+      node.expression === transformedExpression &&
+      transformedArguments === void 0 &&
+      node.typeArguments === void 0
+    ) {
+      return node;
+    }
+
+    return createNew(
+      transformedExpression,
+      void 0,
+      node.arguments === void 0
+        ? void 0
+        : transformedArguments === void 0
+          ? node.arguments
+          : transformedArguments,
+    );
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-new-operator-runtime-semantics-evaluation
   // 12.3.3.1 Runtime Semantics: Evaluation
   public Evaluate(
@@ -1638,29 +1661,6 @@ export class $NewExpression implements I$Node {
     }
     // 8. Return ? Construct(constructor, argList).
     return $Construct(ctx, constructor, argList, intrinsics.undefined).enrichWith(ctx, this);
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    const transformedExpression = this.$expression.transform(tctx);
-    const transformedArguments = node.arguments === void 0 ? void 0 : transformList(tctx, this.$arguments, node.arguments);
-    if (
-      node.expression === transformedExpression &&
-      transformedArguments === void 0 &&
-      node.typeArguments === void 0
-    ) {
-      return node;
-    }
-
-    return createNew(
-      transformedExpression,
-      void 0,
-      node.arguments === void 0
-        ? void 0
-        : transformedArguments === void 0
-          ? node.arguments
-          : transformedArguments,
-    );
   }
 }
 
@@ -1720,6 +1720,24 @@ export class $TaggedTemplateExpression implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    const transformedTag = this.$tag.transform(tctx);
+    const transformedTemplate = this.$template.transform(tctx);
+
+    const node = this.node;
+    if (
+      node.tag === transformedTag &&
+      node.template === transformedTemplate
+    ) {
+      return node;
+    }
+
+    return createTaggedTemplate(
+      transformedTag,
+      transformedTemplate,
+    );
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-tagged-templates-runtime-semantics-evaluation
   // 12.3.7.1 Runtime Semantics: Evaluation
   public Evaluate(
@@ -1748,24 +1766,6 @@ export class $TaggedTemplateExpression implements I$Node {
     // 5. Return ? EvaluateCall(tagFunc, tagRef, TemplateLiteral, tailCall).
 
     return intrinsics.undefined; // TODO: implement this
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const transformedTag = this.$tag.transform(tctx);
-    const transformedTemplate = this.$template.transform(tctx);
-
-    const node = this.node;
-    if (
-      node.tag === transformedTag &&
-      node.template === transformedTemplate
-    ) {
-      return node;
-    }
-
-    return createTaggedTemplate(
-      transformedTag,
-      transformedTemplate,
-    );
   }
 }
 
@@ -1851,6 +1851,23 @@ export class $TemplateExpression implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformedHead = this.$head.transform(tctx);
+    const transformedTemplateSpans = transformList(tctx, this.$templateSpans, node.templateSpans);
+    if (
+      node.head === transformedHead &&
+      transformedTemplateSpans === void 0
+    ) {
+      return node;
+    }
+
+    return createTemplateExpression(
+      transformedHead,
+      transformedTemplateSpans!,
+    );
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
   // 12.2.9.6 Runtime Semantics: Evaluation
   public Evaluate(
@@ -1901,23 +1918,6 @@ export class $TemplateExpression implements I$Node {
     // 6. Let last be ? ToString(sub).
     // 7. Return the sequence of code units consisting of the elements of rest followed by the code units of middle followed by the elements of last.
     return intrinsics['']; // TODO: implement this
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    const transformedHead = this.$head.transform(tctx);
-    const transformedTemplateSpans = transformList(tctx, this.$templateSpans, node.templateSpans);
-    if (
-      node.head === transformedHead &&
-      transformedTemplateSpans === void 0
-    ) {
-      return node;
-    }
-
-    return createTemplateExpression(
-      transformedHead,
-      transformedTemplateSpans!,
-    );
   }
 }
 
@@ -1970,6 +1970,20 @@ export class $ParenthesizedExpression implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): $$AssignmentExpressionOrHigher['node'] {
+    const node = this.node;
+    const transformed = this.$expression.transform(tctx);
+    if (transformed === node.expression) {
+      return node;
+    }
+    if (transformed.kind === SyntaxKind.Identifier) {
+      return transformed;
+    }
+    return createParen(
+      transformed,
+    );
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-grouping-operator-runtime-semantics-evaluation
   // 12.2.10.5 Runtime Semantics: Evaluation
   public Evaluate(
@@ -1989,20 +2003,6 @@ export class $ParenthesizedExpression implements I$Node {
 
     // 1. Return the result of evaluating Expression. This may be of type Reference.
     return this.$expression.Evaluate(ctx).enrichWith(ctx, this);
-  }
-
-  public transform(tctx: TransformationContext): $$AssignmentExpressionOrHigher['node'] {
-    const node = this.node;
-    const transformed = this.$expression.transform(tctx);
-    if (transformed === node.expression) {
-      return node;
-    }
-    if (transformed.kind === SyntaxKind.Identifier) {
-      return transformed;
-    }
-    return createParen(
-      transformed,
-    );
   }
 }
 
@@ -2049,6 +2049,10 @@ export class $NonNullExpression implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): $$LHSExpressionOrHigher['node'] {
+    return this.$expression.transform(tctx) as $$LHSExpressionOrHigher['node']; // TODO(fkleuver): fix typing
+  }
+
   // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
   public Evaluate(
     ctx: ExecutionContext,
@@ -2056,10 +2060,6 @@ export class $NonNullExpression implements I$Node {
     ctx.checkTimeout();
 
     return this.$expression.Evaluate(ctx).enrichWith(ctx, this);
-  }
-
-  public transform(tctx: TransformationContext): $$LHSExpressionOrHigher['node'] {
-    return this.$expression.transform(tctx) as $$LHSExpressionOrHigher['node']; // TODO(fkleuver): fix typing
   }
 }
 
@@ -2106,6 +2106,10 @@ export class $MetaProperty implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-meta-properties-runtime-semantics-evaluation
   // 12.3.8.1 Runtime Semantics: Evaluation
   public Evaluate(
@@ -2122,10 +2126,6 @@ export class $MetaProperty implements I$Node {
     // 1. Return GetNewTarget().
 
     return intrinsics.undefined; // TODO: implement this
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }
 
@@ -2176,6 +2176,17 @@ export class $DeleteExpression implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformed = this.$expression.transform(tctx);
+    if (transformed === node.expression) {
+      return node;
+    }
+    return createDelete(
+      transformed,
+    );
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-delete-operator-runtime-semantics-evaluation
   // 12.5.3.2 Runtime Semantics: Evaluation
   public Evaluate(
@@ -2204,17 +2215,6 @@ export class $DeleteExpression implements I$Node {
     // 6. b. Return ? bindings.DeleteBinding(GetReferencedName(ref)).
 
     return intrinsics.true; // TODO: implement this
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    const transformed = this.$expression.transform(tctx);
-    if (transformed === node.expression) {
-      return node;
-    }
-    return createDelete(
-      transformed,
-    );
   }
 }
 
@@ -2259,6 +2259,17 @@ export class $TypeOfExpression implements I$Node {
     this.$expression.hydrate(ctx);
 
     return this;
+  }
+
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformed = this.$expression.transform(tctx);
+    if (transformed === node.expression) {
+      return node;
+    }
+    return createTypeOf(
+      transformed,
+    );
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-typeof-operator-runtime-semantics-evaluation
@@ -2324,17 +2335,6 @@ export class $TypeOfExpression implements I$Node {
         return new $String(realm, "object");
     }
   }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    const transformed = this.$expression.transform(tctx);
-    if (transformed === node.expression) {
-      return node;
-    }
-    return createTypeOf(
-      transformed,
-    );
-  }
 }
 
 export class $VoidExpression implements I$Node {
@@ -2380,6 +2380,17 @@ export class $VoidExpression implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformed = this.$expression.transform(tctx);
+    if (transformed === node.expression) {
+      return node;
+    }
+    return createVoid(
+      transformed,
+    );
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-void-operator
   // 12.5.4 The void Operator
   public Evaluate(
@@ -2402,17 +2413,6 @@ export class $VoidExpression implements I$Node {
 
     // 3. Return undefined.
     return intrinsics.undefined;
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    const transformed = this.$expression.transform(tctx);
-    if (transformed === node.expression) {
-      return node;
-    }
-    return createVoid(
-      transformed,
-    );
   }
 }
 
@@ -2459,6 +2459,17 @@ export class $AwaitExpression implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformed = this.$expression.transform(tctx);
+    if (transformed === node.expression) {
+      return node;
+    }
+    return createAwait(
+      transformed,
+    );
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-runtime-semantics-evaluation
   // 14.7.14 Runtime Semantics: Evaluation
   public Evaluate(
@@ -2477,17 +2488,6 @@ export class $AwaitExpression implements I$Node {
     // 3. Return ? Await(value).
 
     return intrinsics.undefined; // TODO: implement this
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    const transformed = this.$expression.transform(tctx);
-    if (transformed === node.expression) {
-      return node;
-    }
-    return createAwait(
-      transformed,
-    );
   }
 }
 
@@ -2532,6 +2532,18 @@ export class $PrefixUnaryExpression implements I$Node {
     this.$operand.hydrate(ctx);
 
     return this;
+  }
+
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformed = this.$operand.transform(tctx);
+    if (transformed === node.operand) {
+      return node;
+    }
+    return createPrefix(
+      node.operator,
+      transformed,
+    );
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-prefix-increment-operator-runtime-semantics-evaluation
@@ -2697,18 +2709,6 @@ export class $PrefixUnaryExpression implements I$Node {
       }
     }
   }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    const transformed = this.$operand.transform(tctx);
-    if (transformed === node.operand) {
-      return node;
-    }
-    return createPrefix(
-      node.operator,
-      transformed,
-    );
-  }
 }
 
 export class $PostfixUnaryExpression implements I$Node {
@@ -2752,6 +2752,18 @@ export class $PostfixUnaryExpression implements I$Node {
     this.$operand.hydrate(ctx);
 
     return this;
+  }
+
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformed = this.$operand.transform(tctx);
+    if (transformed === node.operand) {
+      return node;
+    }
+    return createPostfix(
+      transformed,
+      node.operator,
+    );
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-postfix-increment-operator-runtime-semantics-evaluation
@@ -2827,18 +2839,6 @@ export class $PostfixUnaryExpression implements I$Node {
       }
     }
   }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    const transformed = this.$operand.transform(tctx);
-    if (transformed === node.operand) {
-      return node;
-    }
-    return createPostfix(
-      transformed,
-      node.operator,
-    );
-  }
 }
 
 export class $TypeAssertion implements I$Node {
@@ -2884,6 +2884,10 @@ export class $TypeAssertion implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): $$AssignmentExpressionOrHigher['node'] {
+    return this.$expression.transform(tctx);
+  }
+
   // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
   public Evaluate(
     ctx: ExecutionContext,
@@ -2891,10 +2895,6 @@ export class $TypeAssertion implements I$Node {
     ctx.checkTimeout();
 
     return this.$expression.Evaluate(ctx);
-  }
-
-  public transform(tctx: TransformationContext): $$AssignmentExpressionOrHigher['node'] {
-    return this.$expression.transform(tctx);
   }
 }
 
@@ -2946,6 +2946,24 @@ export class $BinaryExpression implements I$Node {
     this.$right.hydrate(ctx);
 
     return this;
+  }
+
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformedLeft = this.$left.transform(tctx);
+    const transformedRight = this.$right.transform(tctx);
+    if (
+      node.left === transformedLeft &&
+      node.right === transformedRight
+    ) {
+      return node;
+    }
+
+    return createBinary(
+      transformedLeft,
+      node.operatorToken,
+      transformedRight,
+    );
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-exp-operator-runtime-semantics-evaluation
@@ -3994,24 +4012,6 @@ export class $BinaryExpression implements I$Node {
       }
     }
   }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    const transformedLeft = this.$left.transform(tctx);
-    const transformedRight = this.$right.transform(tctx);
-    if (
-      node.left === transformedLeft &&
-      node.right === transformedRight
-    ) {
-      return node;
-    }
-
-    return createBinary(
-      transformedLeft,
-      node.operatorToken,
-      transformedRight,
-    );
-  }
 }
 
 export class $ConditionalExpression implements I$Node {
@@ -4068,6 +4068,26 @@ export class $ConditionalExpression implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformedCondition = this.$condition.transform(tctx);
+    const transformedWhenTrue = this.$whenTrue.transform(tctx);
+    const transformedWhenFalse = this.$whenFalse.transform(tctx);
+    if (
+      node.condition === transformedCondition &&
+      node.whenTrue === transformedWhenTrue &&
+      node.whenFalse === transformedWhenFalse
+    ) {
+      return node;
+    }
+
+    return createConditional(
+      transformedCondition,
+      transformedWhenTrue,
+      transformedWhenFalse,
+    );
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-conditional-operator-runtime-semantics-evaluation
   // 12.14.3 Runtime Semantics: Evaluation
   public Evaluate(
@@ -4091,26 +4111,6 @@ export class $ConditionalExpression implements I$Node {
     // 4. b. Return ? GetValue(falseRef).
 
     return intrinsics.undefined; // TODO: implement this
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    const transformedCondition = this.$condition.transform(tctx);
-    const transformedWhenTrue = this.$whenTrue.transform(tctx);
-    const transformedWhenFalse = this.$whenFalse.transform(tctx);
-    if (
-      node.condition === transformedCondition &&
-      node.whenTrue === transformedWhenTrue &&
-      node.whenFalse === transformedWhenFalse
-    ) {
-      return node;
-    }
-
-    return createConditional(
-      transformedCondition,
-      transformedWhenTrue,
-      transformedWhenFalse,
-    );
   }
 }
 
@@ -4156,6 +4156,18 @@ export class $YieldExpression implements I$Node {
 
     return this;
   }
+
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformed = this.$expression.transform(tctx);
+    if (transformed === node.expression) {
+      return node;
+    }
+    return createYield(
+      transformed,
+    );
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
   // 14.4.14 Runtime Semantics: Evaluation
   public Evaluate(
@@ -4236,17 +4248,6 @@ export class $YieldExpression implements I$Node {
 
     return intrinsics.undefined; // TODO: implement this
   }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    const transformed = this.$expression.transform(tctx);
-    if (transformed === node.expression) {
-      return node;
-    }
-    return createYield(
-      transformed,
-    );
-  }
 }
 
 export class $AsExpression implements I$Node {
@@ -4293,6 +4294,10 @@ export class $AsExpression implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): $$UpdateExpressionOrHigher['node'] {
+    return this.$expression.transform(tctx) as $$UpdateExpressionOrHigher['node']; // TODO(fkleuver): fix typing
+  }
+
   // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
   public Evaluate(
     ctx: ExecutionContext,
@@ -4300,10 +4305,6 @@ export class $AsExpression implements I$Node {
     ctx.checkTimeout();
 
     return this.$expression.Evaluate(ctx);
-  }
-
-  public transform(tctx: TransformationContext): $$UpdateExpressionOrHigher['node'] {
-    return this.$expression.transform(tctx) as $$UpdateExpressionOrHigher['node']; // TODO(fkleuver): fix typing
   }
 }
 
@@ -4394,6 +4395,10 @@ export class $Identifier implements I$Node {
     }
 
     return this;
+  }
+
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-identifiers-runtime-semantics-evaluation
@@ -4599,9 +4604,5 @@ export class $Identifier implements I$Node {
 
     // 6. Return InitializeReferencedBinding(lhs, v).
     return lhs.InitializeReferencedBinding(ctx, v as $AnyNonEmpty).enrichWith(ctx, this);
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }

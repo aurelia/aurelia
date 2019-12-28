@@ -183,6 +183,39 @@ export class $MethodDeclaration implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformedName = this.$name.transform(tctx);
+    const transformedParameters = transformList(tctx, this.$parameters, node.parameters);
+    const transformedBody = this.$body.transform(tctx);
+    const transformedModifiers = node.modifiers === void 0 ? void 0 : transformModifiers(node.modifiers);
+
+    if (
+      this.$decorators.length === 0 &&
+      (node.modifiers === void 0 || transformedModifiers === void 0) &&
+      node.name === transformedName &&
+      node.questionToken === void 0 &&
+      node.typeParameters === void 0 &&
+      transformedParameters === void 0 &&
+      node.type === void 0 &&
+      node.body === transformedBody
+    ) {
+      return this.node;
+    }
+
+    return createMethod(
+      void 0,
+      transformedModifiers === void 0 ? node.modifiers : transformedModifiers,
+      node.asteriskToken,
+      transformedName,
+      void 0,
+      void 0,
+      transformedParameters === void 0 ? node.parameters : transformedParameters,
+      void 0,
+      transformedBody,
+    );
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-definemethod
   // 14.3.7 Runtime Semantics: DefineMethod
   public DefineMethod(
@@ -281,39 +314,6 @@ export class $MethodDeclaration implements I$Node {
 
     return $FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
   }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    const transformedName = this.$name.transform(tctx);
-    const transformedParameters = transformList(tctx, this.$parameters, node.parameters);
-    const transformedBody = this.$body.transform(tctx);
-    const transformedModifiers = node.modifiers === void 0 ? void 0 : transformModifiers(node.modifiers);
-
-    if (
-      this.$decorators.length === 0 &&
-      (node.modifiers === void 0 || transformedModifiers === void 0) &&
-      node.name === transformedName &&
-      node.questionToken === void 0 &&
-      node.typeParameters === void 0 &&
-      transformedParameters === void 0 &&
-      node.type === void 0 &&
-      node.body === transformedBody
-    ) {
-      return this.node;
-    }
-
-    return createMethod(
-      void 0,
-      transformedModifiers === void 0 ? node.modifiers : transformedModifiers,
-      node.asteriskToken,
-      transformedName,
-      void 0,
-      void 0,
-      transformedParameters === void 0 ? node.parameters : transformedParameters,
-      void 0,
-      transformedBody,
-    );
-  }
 }
 
 export class $GetAccessorDeclaration implements I$Node {
@@ -402,6 +402,34 @@ export class $GetAccessorDeclaration implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformedName = this.$name.transform(tctx);
+    const transformedParameters = transformList(tctx, this.$parameters, node.parameters);
+    const transformedBody = this.$body.transform(tctx);
+    const transformedModifiers = node.modifiers === void 0 ? void 0 : transformModifiers(node.modifiers);
+
+    if (
+      this.$decorators.length === 0 &&
+      (node.modifiers === void 0 || transformedModifiers === void 0) &&
+      node.name === transformedName &&
+      transformedParameters === void 0 &&
+      node.type === void 0 &&
+      node.body === transformedBody
+    ) {
+      return this.node;
+    }
+
+    return createGetAccessor(
+      void 0,
+      transformedModifiers === void 0 ? node.modifiers : transformedModifiers,
+      transformedName,
+      transformedParameters === void 0 ? node.parameters : transformedParameters,
+      void 0,
+      transformedBody,
+    );
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-runtime-semantics-propertydefinitionevaluation
   // 14.3.8 Runtime Semantics: PropertyDefinitionEvaluation
   public EvaluatePropertyDefinition(
@@ -466,34 +494,6 @@ export class $GetAccessorDeclaration implements I$Node {
     ctx.checkTimeout();
 
     return $FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    const transformedName = this.$name.transform(tctx);
-    const transformedParameters = transformList(tctx, this.$parameters, node.parameters);
-    const transformedBody = this.$body.transform(tctx);
-    const transformedModifiers = node.modifiers === void 0 ? void 0 : transformModifiers(node.modifiers);
-
-    if (
-      this.$decorators.length === 0 &&
-      (node.modifiers === void 0 || transformedModifiers === void 0) &&
-      node.name === transformedName &&
-      transformedParameters === void 0 &&
-      node.type === void 0 &&
-      node.body === transformedBody
-    ) {
-      return this.node;
-    }
-
-    return createGetAccessor(
-      void 0,
-      transformedModifiers === void 0 ? node.modifiers : transformedModifiers,
-      transformedName,
-      transformedParameters === void 0 ? node.parameters : transformedParameters,
-      void 0,
-      transformedBody,
-    );
   }
 }
 
@@ -583,6 +583,32 @@ export class $SetAccessorDeclaration implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformedName = this.$name.transform(tctx);
+    const transformedParameters = transformList(tctx, this.$parameters, node.parameters);
+    const transformedBody = this.$body.transform(tctx);
+    const transformedModifiers = node.modifiers === void 0 ? void 0 : transformModifiers(node.modifiers);
+
+    if (
+      this.$decorators.length === 0 &&
+      (node.modifiers === void 0 || transformedModifiers === void 0) &&
+      node.name === transformedName &&
+      transformedParameters === void 0 &&
+      node.body === transformedBody
+    ) {
+      return this.node;
+    }
+
+    return createSetAccessor(
+      void 0,
+      transformedModifiers === void 0 ? node.modifiers : transformedModifiers,
+      transformedName,
+      transformedParameters === void 0 ? node.parameters : transformedParameters,
+      transformedBody,
+    );
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-runtime-semantics-propertydefinitionevaluation
   // 14.3.8 Runtime Semantics: PropertyDefinitionEvaluation
   public EvaluatePropertyDefinition(
@@ -646,31 +672,5 @@ export class $SetAccessorDeclaration implements I$Node {
     ctx.checkTimeout();
 
     return $FunctionDeclaration.prototype.EvaluateBody.call(this, ctx, functionObject, argumentsList);
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    const transformedName = this.$name.transform(tctx);
-    const transformedParameters = transformList(tctx, this.$parameters, node.parameters);
-    const transformedBody = this.$body.transform(tctx);
-    const transformedModifiers = node.modifiers === void 0 ? void 0 : transformModifiers(node.modifiers);
-
-    if (
-      this.$decorators.length === 0 &&
-      (node.modifiers === void 0 || transformedModifiers === void 0) &&
-      node.name === transformedName &&
-      transformedParameters === void 0 &&
-      node.body === transformedBody
-    ) {
-      return this.node;
-    }
-
-    return createSetAccessor(
-      void 0,
-      transformedModifiers === void 0 ? node.modifiers : transformedModifiers,
-      transformedName,
-      transformedParameters === void 0 ? node.parameters : transformedParameters,
-      transformedBody,
-    );
   }
 }

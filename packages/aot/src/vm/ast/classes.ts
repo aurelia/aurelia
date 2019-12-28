@@ -408,6 +408,10 @@ export class $ClassExpression implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-runtime-semantics-namedevaluation
   // 14.6.15 Runtime Semantics: NamedEvaluation
   public EvaluateNamed(
@@ -453,10 +457,6 @@ export class $ClassExpression implements I$Node {
 
     // 6. Return value.
     return value;
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }
 
@@ -681,6 +681,144 @@ export class $ClassDeclaration implements I$Node {
     this.ModuleRequests = emptyArray;
 
     return this;
+  }
+
+  public transform(tctx: TransformationContext): this['node'] | VariableStatement | readonly (VariableStatement | ClassDeclaration | ExpressionStatement)[] | undefined {
+    if (hasBit(this.modifierFlags, ModifierFlags.Ambient)) {
+      return void 0;
+    }
+
+    const node = this.node;
+    const name = node.name === void 0 ? createIdentifier('TEMP') /* TODO: safely generate collision free name */ : node.name;
+    const ctor = this.ConstructorMethod;
+
+    const hasDecorators = this.$decorators.length > 0 || ctor.$decorators.length > 0;
+
+    const transformedModifiers = node.modifiers === void 0 ? void 0 : transformModifiers(node.modifiers);
+    const transformedHeritageClauses = node.heritageClauses === void 0 ? void 0 : transformList(tctx, this.$heritageClauses, node.heritageClauses);
+    let transformedMembers = transformList(tctx, this.$members, node.members);
+
+    const staticProperties = this.staticProperties;
+
+    const parameterProperties = ctor.parameterProperties;
+    const instanceProperties = this.instanceProperties;
+    if (parameterProperties.length > 0 || instanceProperties.length > 0) {
+      const receiver = createThis();
+      const propertyAssignments: ExpressionStatement[] = [];
+
+      for (const prop of parameterProperties) {
+        propertyAssignments.push(
+          createExpressionStatement(
+            createAssignment(
+              /* left       */createPropertyAccess(
+                /* expression */receiver,
+                /* name       */prop.$name.node as Identifier,
+              ),
+              /* right      */prop.$name.node as Identifier,
+            ),
+          ),
+        );
+      }
+
+      for (const prop of instanceProperties) {
+        propertyAssignments.push(
+          createExpressionStatement(
+            createAssignment(
+              /* left       */createPropertyAccess(
+                /* expression */receiver,
+                /* name       */prop.$name.node as Identifier,
+              ),
+              /* right      */prop.$initializer!.node, // $initializer presence guaranteed by constructor of this class
+            ),
+          ),
+        );
+      }
+
+      const transformedCtor = ctor.transform(tctx);
+      transformedCtor.body = ctor.$body.addStatements(...propertyAssignments);
+      if (transformedMembers === void 0) {
+        transformedMembers = node.members;
+      }
+
+      (transformedMembers as ClassElement[]).splice(
+        transformedMembers.findIndex(x => x.kind === SyntaxKind.Constructor),
+        1,
+        transformedCtor,
+      );
+    }
+
+    let staticPropertyInitializers: ExpressionStatement[];
+    if (staticProperties.length === 0) {
+      staticPropertyInitializers = emptyArray;
+    } else {
+      staticPropertyInitializers = staticProperties.map(p => createExpressionStatement(
+        createAssignment(
+          /* left */p.$name.$kind === SyntaxKind.Identifier
+            ? createPropertyAccess(
+              /* expression */name,
+              /* name */p.$name.node,
+            )
+            : createElementAccess(
+              /* expression */name,
+              /* index */p.$name.$kind === SyntaxKind.ComputedPropertyName ? p.$name.$expression.node : p.$name.node,
+            ),
+          /* right */p.$initializer!.node,
+        )
+      ));
+    }
+
+    if (hasDecorators) {
+      const classExpr = createClassExpression(
+        /* modifiers       */void 0,
+        /* name            */name,
+        /* typeParameters  */void 0,
+        /* heritageClauses */node.heritageClauses === void 0
+          ? void 0
+          : transformedHeritageClauses === void 0
+            ? node.heritageClauses
+            : transformedHeritageClauses,
+        /* members         */transformedMembers === void 0 ? node.members : transformedMembers,
+      );
+
+      const classExprDecl = createVariableStatement(
+        /* modifiers       */void 0,
+        /* declarationList */createVariableDeclarationList(
+          /* declarations    */[
+            createVariableDeclaration(
+              /* name            */name,
+              /* type            */void 0,
+              /* initializer     */classExpr,
+            )
+          ],
+          /* flags */NodeFlags.Let,
+        ),
+      );
+
+      return [
+        classExprDecl,
+        ...staticPropertyInitializers,
+      ];
+    }
+
+    const classDecl = createClassDeclaration(
+      /* decorators      */void 0,
+      /* modifiers       */transformedModifiers,
+      /* name            */name,
+      /* typeParameters  */void 0,
+      /* heritageClauses */node.heritageClauses === void 0
+        ? void 0
+        : transformedHeritageClauses === void 0
+          ? node.heritageClauses
+          : transformedHeritageClauses,
+          /* members         */transformedMembers === void 0 ? node.members : transformedMembers,
+    );
+
+    return staticPropertyInitializers.length === 0
+      ? classDecl
+      : [
+        classDecl,
+        ...staticPropertyInitializers,
+      ];
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-classdefinitionevaluation
@@ -952,144 +1090,6 @@ export class $ClassDeclaration implements I$Node {
     ctx.checkTimeout();
 
     return this.ConstructorMethod.EvaluateBody(ctx, functionObject, argumentsList);
-  }
-
-  public transform(tctx: TransformationContext): this['node'] | VariableStatement | readonly (VariableStatement | ClassDeclaration | ExpressionStatement)[] | undefined {
-    if (hasBit(this.modifierFlags, ModifierFlags.Ambient)) {
-      return void 0;
-    }
-
-    const node = this.node;
-    const name = node.name === void 0 ? createIdentifier('TEMP') /* TODO: safely generate collision free name */ : node.name;
-    const ctor = this.ConstructorMethod;
-
-    const hasDecorators = this.$decorators.length > 0 || ctor.$decorators.length > 0;
-
-    const transformedModifiers = node.modifiers === void 0 ? void 0 : transformModifiers(node.modifiers);
-    const transformedHeritageClauses = node.heritageClauses === void 0 ? void 0 : transformList(tctx, this.$heritageClauses, node.heritageClauses);
-    let transformedMembers = transformList(tctx, this.$members, node.members);
-
-    const staticProperties = this.staticProperties;
-
-    const parameterProperties = ctor.parameterProperties;
-    const instanceProperties = this.instanceProperties;
-    if (parameterProperties.length > 0 || instanceProperties.length > 0) {
-      const receiver = createThis();
-      const propertyAssignments: ExpressionStatement[] = [];
-
-      for (const prop of parameterProperties) {
-        propertyAssignments.push(
-          createExpressionStatement(
-            createAssignment(
-              /* left       */createPropertyAccess(
-                /* expression */receiver,
-                /* name       */prop.$name.node as Identifier,
-              ),
-              /* right      */prop.$name.node as Identifier,
-            ),
-          ),
-        );
-      }
-
-      for (const prop of instanceProperties) {
-        propertyAssignments.push(
-          createExpressionStatement(
-            createAssignment(
-              /* left       */createPropertyAccess(
-                /* expression */receiver,
-                /* name       */prop.$name.node as Identifier,
-              ),
-              /* right      */prop.$initializer!.node, // $initializer presence guaranteed by constructor of this class
-            ),
-          ),
-        );
-      }
-
-      const transformedCtor = ctor.transform(tctx);
-      transformedCtor.body = ctor.$body.addStatements(...propertyAssignments);
-      if (transformedMembers === void 0) {
-        transformedMembers = node.members;
-      }
-
-      (transformedMembers as ClassElement[]).splice(
-        transformedMembers.findIndex(x => x.kind === SyntaxKind.Constructor),
-        1,
-        transformedCtor,
-      );
-    }
-
-    let staticPropertyInitializers: ExpressionStatement[];
-    if (staticProperties.length === 0) {
-      staticPropertyInitializers = emptyArray;
-    } else {
-      staticPropertyInitializers = staticProperties.map(p => createExpressionStatement(
-        createAssignment(
-          /* left */p.$name.$kind === SyntaxKind.Identifier
-            ? createPropertyAccess(
-              /* expression */name,
-              /* name */p.$name.node,
-            )
-            : createElementAccess(
-              /* expression */name,
-              /* index */p.$name.$kind === SyntaxKind.ComputedPropertyName ? p.$name.$expression.node : p.$name.node,
-            ),
-          /* right */p.$initializer!.node,
-        )
-      ));
-    }
-
-    if (hasDecorators) {
-      const classExpr = createClassExpression(
-        /* modifiers       */void 0,
-        /* name            */name,
-        /* typeParameters  */void 0,
-        /* heritageClauses */node.heritageClauses === void 0
-          ? void 0
-          : transformedHeritageClauses === void 0
-            ? node.heritageClauses
-            : transformedHeritageClauses,
-        /* members         */transformedMembers === void 0 ? node.members : transformedMembers,
-      );
-
-      const classExprDecl = createVariableStatement(
-        /* modifiers       */void 0,
-        /* declarationList */createVariableDeclarationList(
-          /* declarations    */[
-            createVariableDeclaration(
-              /* name            */name,
-              /* type            */void 0,
-              /* initializer     */classExpr,
-            )
-          ],
-          /* flags */NodeFlags.Let,
-        ),
-      );
-
-      return [
-        classExprDecl,
-        ...staticPropertyInitializers,
-      ];
-    }
-
-    const classDecl = createClassDeclaration(
-      /* decorators      */void 0,
-      /* modifiers       */transformedModifiers,
-      /* name            */name,
-      /* typeParameters  */void 0,
-      /* heritageClauses */node.heritageClauses === void 0
-        ? void 0
-        : transformedHeritageClauses === void 0
-          ? node.heritageClauses
-          : transformedHeritageClauses,
-          /* members         */transformedMembers === void 0 ? node.members : transformedMembers,
-    );
-
-    return staticPropertyInitializers.length === 0
-      ? classDecl
-      : [
-        classDecl,
-        ...staticPropertyInitializers,
-      ];
   }
 }
 

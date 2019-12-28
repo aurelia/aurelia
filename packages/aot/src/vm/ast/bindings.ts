@@ -175,6 +175,18 @@ export class $ComputedPropertyName implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformed = this.$expression.transform(tctx);
+
+    if (transformed === void 0) {
+      return node;
+    }
+    return createComputedPropertyName(
+      transformed,
+    );
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-evaluation
   // 12.2.6.7 Runtime Semantics: Evaluation
   public Evaluate(
@@ -202,18 +214,6 @@ export class $ComputedPropertyName implements I$Node {
     ctx.checkTimeout();
 
     return this.Evaluate(ctx);
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    const transformed = this.$expression.transform(tctx);
-
-    if (transformed === void 0) {
-      return node;
-    }
-    return createComputedPropertyName(
-      transformed,
-    );
   }
 }
 
@@ -278,6 +278,17 @@ export class $ObjectBindingPattern implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformedList = transformList(tctx, this.$elements, node.elements);
+    if (transformedList === void 0) {
+      return node;
+    }
+    return createObjectBindingPattern(
+      transformedList,
+    );
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-bindinginitialization
   // 13.3.3.5 Runtime Semantics: BindingInitialization
   public InitializeBinding(
@@ -333,17 +344,6 @@ export class $ObjectBindingPattern implements I$Node {
     }
 
     return new $Empty(realm);
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    const transformedList = transformList(tctx, this.$elements, node.elements);
-    if (transformedList === void 0) {
-      return node;
-    }
-    return createObjectBindingPattern(
-      transformedList,
-    );
   }
 }
 
@@ -466,6 +466,17 @@ export class $ArrayBindingPattern implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformedList = transformList(tctx, this.$elements, node.elements);
+    if (transformedList === void 0) {
+      return node;
+    }
+    return createArrayBindingPattern(
+      transformedList,
+    );
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-bindinginitialization
   // 13.3.3.5 Runtime Semantics: BindingInitialization
   public InitializeBinding(
@@ -566,17 +577,6 @@ export class $ArrayBindingPattern implements I$Node {
 
     // 1. Return NormalCompletion(empty).
     return new $Empty(realm);
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    const transformedList = transformList(tctx, this.$elements, node.elements);
-    if (transformedList === void 0) {
-      return node;
-    }
-    return createArrayBindingPattern(
-      transformedList,
-    );
   }
 }
 
@@ -697,6 +697,28 @@ export class $BindingElement implements I$Node {
     }
 
     return this;
+  }
+
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformedPropertyName = this.$propertyName === void 0 ? void 0 : this.$propertyName.transform(tctx);
+    const transformedName = this.$name.transform(tctx);
+    const transformedInitializer = this.$initializer === void 0 ? void 0 : this.$initializer.transform(tctx);
+
+    if (
+      node.propertyName === transformedPropertyName &&
+      node.name === transformedName &&
+      node.initializer === transformedInitializer
+    ) {
+      return node;
+    }
+
+    return createBindingElement(
+      node.dotDotDotToken,
+      transformedPropertyName,
+      transformedName,
+      transformedInitializer,
+    );
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-propertybindinginitialization
@@ -899,28 +921,6 @@ export class $BindingElement implements I$Node {
     // 4. Return the result of performing BindingInitialization of BindingPattern with v and environment as the arguments.
     return BindingElement.InitializeBinding(ctx, v as $Object, environment).enrichWith(ctx, this);
   }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    const transformedPropertyName = this.$propertyName === void 0 ? void 0 : this.$propertyName.transform(tctx);
-    const transformedName = this.$name.transform(tctx);
-    const transformedInitializer = this.$initializer === void 0 ? void 0 : this.$initializer.transform(tctx);
-
-    if (
-      node.propertyName === transformedPropertyName &&
-      node.name === transformedName &&
-      node.initializer === transformedInitializer
-    ) {
-      return node;
-    }
-
-    return createBindingElement(
-      node.dotDotDotToken,
-      transformedPropertyName,
-      transformedName,
-      transformedInitializer,
-    );
-  }
 }
 
 export class $SpreadElement implements I$Node {
@@ -964,6 +964,18 @@ export class $SpreadElement implements I$Node {
     this.$expression.hydrate(ctx);
 
     return this;
+  }
+
+  public transform(tctx: TransformationContext): this['node'] {
+    const node = this.node;
+    const transformed = this.$expression.transform(tctx);
+
+    if (transformed === void 0) {
+      return node;
+    }
+    return createSpread(
+      transformed,
+    );
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-argument-lists-runtime-semantics-argumentlistevaluation
@@ -1055,18 +1067,6 @@ export class $SpreadElement implements I$Node {
       // 4. f. Increase nextIndex by 1.
       nextIndex = new $Number(realm, nextIndex['[[Value]]'] + 1);
     }
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    const node = this.node;
-    const transformed = this.$expression.transform(tctx);
-
-    if (transformed === void 0) {
-      return node;
-    }
-    return createSpread(
-      transformed,
-    );
   }
 }
 

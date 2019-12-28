@@ -90,6 +90,10 @@ export class $TemplateHead implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
   // 12.2.9.6 Runtime Semantics: Evaluation
   public Evaluate(
@@ -103,10 +107,6 @@ export class $TemplateHead implements I$Node {
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.undefined; // TODO: implement this
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }
 
@@ -144,6 +144,10 @@ export class $TemplateMiddle implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
   // 12.2.9.6 Runtime Semantics: Evaluation
   public Evaluate(
@@ -157,10 +161,6 @@ export class $TemplateMiddle implements I$Node {
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.undefined; // TODO: implement this
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }
 
@@ -198,6 +198,10 @@ export class $TemplateTail implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
   // 12.2.9.6 Runtime Semantics: Evaluation
   public Evaluate(
@@ -216,10 +220,6 @@ export class $TemplateTail implements I$Node {
     // 2. Return the String value consisting of the code units of tail.
 
     return intrinsics.undefined; // TODO: implement this
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }
 
@@ -273,6 +273,10 @@ export class $TemplateSpan implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
   // 12.2.9.6 Runtime Semantics: Evaluation
   public Evaluate(
@@ -310,10 +314,6 @@ export class $TemplateSpan implements I$Node {
     // 7. Return the sequence of code units consisting of the elements of rest followed by the code units of middle followed by the elements of last.
 
     return intrinsics.undefined; // TODO: implement this
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }
 
@@ -382,6 +382,10 @@ export class $NumericLiteral implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-literals-runtime-semantics-evaluation
   // 12.2.4.1 Runtime Semantics: Evaluation
   public Evaluate(
@@ -400,10 +404,6 @@ export class $NumericLiteral implements I$Node {
     ctx.checkTimeout();
 
     return this.PropName;
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }
 
@@ -459,6 +459,10 @@ export class $BigIntLiteral implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   public Evaluate(
     ctx: ExecutionContext,
   ): $Number {
@@ -470,10 +474,6 @@ export class $BigIntLiteral implements I$Node {
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics['0']; // TODO: implement this
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }
 
@@ -543,6 +543,10 @@ export class $StringLiteral implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-literals-runtime-semantics-evaluation
   // 12.2.4.1 Runtime Semantics: Evaluation
   public Evaluate(
@@ -563,10 +567,6 @@ export class $StringLiteral implements I$Node {
     ctx.checkTimeout();
 
     return this.PropName;
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }
 
@@ -629,6 +629,10 @@ export class $RegularExpressionLiteral implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-regular-expression-literals-runtime-semantics-evaluation
   // 12.2.8.2 Runtime Semantics: Evaluation
   public Evaluate(
@@ -645,10 +649,6 @@ export class $RegularExpressionLiteral implements I$Node {
     // 2. Let flags be the String value consisting of the UTF16Encoding of each code point of FlagText of RegularExpressionLiteral.
     // 3. Return RegExpCreate(pattern, flags).
     return intrinsics['%ObjectPrototype%']; // TODO: implement this
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }
 
@@ -704,6 +704,10 @@ export class $NoSubstitutionTemplateLiteral implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
   // 12.2.9.6 Runtime Semantics: Evaluation
   public Evaluate(
@@ -718,10 +722,6 @@ export class $NoSubstitutionTemplateLiteral implements I$Node {
 
     // 1. Return the String value whose code units are the elements of the TV of NoSubstitutionTemplate as defined in 11.8.6.
     return intrinsics['']; // TODO: implement this
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }
 
@@ -782,6 +782,10 @@ export class $NullLiteral implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-literals-runtime-semantics-evaluation
   // 12.2.4.1 Runtime Semantics: Evaluation
   public Evaluate(
@@ -793,10 +797,6 @@ export class $NullLiteral implements I$Node {
 
     // 1. Return null.
     return this.Value;
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }
 
@@ -859,6 +859,10 @@ export class $BooleanLiteral implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-literals-runtime-semantics-evaluation
   // 12.2.4.1 Runtime Semantics: Evaluation
   public Evaluate(
@@ -871,9 +875,5 @@ export class $BooleanLiteral implements I$Node {
     // 1. If BooleanLiteral is the token false, return false.
     // 2. If BooleanLiteral is the token true, return true.
     return this.Value;
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }

@@ -392,6 +392,23 @@ export class $ESScript implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] | undefined {
+    const transformedStatements = transformList(tctx, this.$statements, this.node.statements as readonly $$TSModuleItem['node'][]);
+
+    if (transformedStatements === void 0) {
+      return this.node;
+    }
+
+    if (transformedStatements.length === 0) {
+      return void 0;
+    }
+
+    return {
+      ...this.node,
+      statements: createNodeArray(transformedStatements) as NodeArray<Statement>,
+    };
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-globaldeclarationinstantiation
   // 15.1.11 Runtime Semantics: GlobalDeclarationInstantiation ( script , env )
   public InstantiateGlobalDeclaration(
@@ -704,23 +721,6 @@ export class $ESScript implements I$Node {
 
     // 17. Return Completion(result).
     return result;
-  }
-
-  public transform(tctx: TransformationContext): this['node'] | undefined {
-    const transformedStatements = transformList(tctx, this.$statements, this.node.statements as readonly $$TSModuleItem['node'][]);
-
-    if (transformedStatements === void 0) {
-      return this.node;
-    }
-
-    if (transformedStatements.length === 0) {
-      return void 0;
-    }
-
-    return {
-      ...this.node,
-      statements: createNodeArray(transformedStatements) as NodeArray<Statement>,
-    };
   }
 }
 
@@ -1118,6 +1118,23 @@ export class $ESModule implements I$Node, IModule {
     this.logger.trace(`StarExportEntries: `, starExportEntries);
 
     return this;
+  }
+
+  public transform(tctx: TransformationContext): this['node'] | undefined {
+    const transformedStatements = transformList(tctx, this.$statements, this.node.statements as readonly $$TSModuleItem['node'][]);
+
+    if (transformedStatements === void 0) {
+      return this.node;
+    }
+
+    if (transformedStatements.length === 0) {
+      return void 0;
+    }
+
+    return {
+      ...this.node,
+      statements: createNodeArray(transformedStatements) as NodeArray<Statement>,
+    };
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-moduledeclarationinstantiation
@@ -2043,23 +2060,6 @@ export class $ESModule implements I$Node, IModule {
     this.ws = void 0;
     this.compilerOptions = void 0;
   }
-
-  public transform(tctx: TransformationContext): this['node'] | undefined {
-    const transformedStatements = transformList(tctx, this.$statements, this.node.statements as readonly $$TSModuleItem['node'][]);
-
-    if (transformedStatements === void 0) {
-      return this.node;
-    }
-
-    if (transformedStatements.length === 0) {
-      return void 0;
-    }
-
-    return {
-      ...this.node,
-      statements: createNodeArray(transformedStatements) as NodeArray<Statement>,
-    };
-  }
 }
 
 export class $DocumentFragment implements I$Node, IModule {
@@ -2910,13 +2910,13 @@ export class $ExportDeclaration implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   public get isValueAliasDeclaration(): boolean {
     const exportClause = this.$exportClause;
     return exportClause !== void 0 && exportClause.$elements.some(isValueAliasDeclaration);
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }
 
@@ -3109,6 +3109,10 @@ export class $ExportSpecifier implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] | undefined {
+    return this.isValueAliasDeclaration ? this.node : void 0;
+  }
+
   private _valueDeclaration: ExportEntryRecord['source'] | undefined = void 0;
   public get valueDeclaration(): ExportEntryRecord['source'] {
     let valueDeclaration = this._valueDeclaration;
@@ -3151,10 +3155,6 @@ export class $ExportSpecifier implements I$Node {
       case SyntaxKind.SourceFile:
         throw new Error(`Unexpected value declaration kind: ${this.valueDeclaration.$kind}`); // TODO: shouldn't be possible, probably need to fix typings a bit
     }
-  }
-
-  public transform(tctx: TransformationContext): this['node'] | undefined {
-    return this.isValueAliasDeclaration ? this.node : void 0;
   }
 }
 

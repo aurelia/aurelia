@@ -154,6 +154,10 @@ export class $JsxElement implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty  {
@@ -165,10 +169,6 @@ export class $JsxElement implements I$Node {
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.undefined; // TODO: implement this
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }
 
@@ -255,6 +255,10 @@ export class $JsxSelfClosingElement implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty  {
@@ -266,10 +270,6 @@ export class $JsxSelfClosingElement implements I$Node {
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.undefined; // TODO: implement this
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }
 
@@ -322,6 +322,10 @@ export class $JsxFragment implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   public Evaluate(
     ctx: ExecutionContext,
   ): $AnyNonEmpty  {
@@ -333,10 +337,6 @@ export class $JsxFragment implements I$Node {
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.undefined; // TODO: implement this
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }
 
@@ -376,6 +376,10 @@ export class $JsxText implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
@@ -387,10 +391,6 @@ export class $JsxText implements I$Node {
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }
 
@@ -438,6 +438,10 @@ export class $JsxOpeningElement implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
@@ -449,10 +453,6 @@ export class $JsxOpeningElement implements I$Node {
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }
 
@@ -497,6 +497,10 @@ export class $JsxClosingElement implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
@@ -508,10 +512,6 @@ export class $JsxClosingElement implements I$Node {
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }
 
@@ -549,6 +549,10 @@ export class $JsxOpeningFragment implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
@@ -560,10 +564,6 @@ export class $JsxOpeningFragment implements I$Node {
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }
 
@@ -601,6 +601,10 @@ export class $JsxClosingFragment implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
@@ -612,10 +616,6 @@ export class $JsxClosingFragment implements I$Node {
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }
 
@@ -751,6 +751,10 @@ export class $JsxAttributes implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
@@ -762,10 +766,6 @@ export class $JsxAttributes implements I$Node {
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }
 
@@ -812,6 +812,10 @@ export class $JsxSpreadAttribute implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
@@ -823,10 +827,6 @@ export class $JsxSpreadAttribute implements I$Node {
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }
 
@@ -874,6 +874,10 @@ export class $JsxExpression implements I$Node {
     return this;
   }
 
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
+  }
+
   public Evaluate(
     ctx: ExecutionContext,
   ): $Any {
@@ -885,9 +889,5 @@ export class $JsxExpression implements I$Node {
     this.logger.debug(`${this.path}.Evaluate(#${ctx.id})`);
 
     return intrinsics.empty; // TODO: implement this
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
   }
 }

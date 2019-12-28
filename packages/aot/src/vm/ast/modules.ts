@@ -27,6 +27,7 @@ import {
   createImportDeclaration,
   createStringLiteral,
   createExportDeclaration,
+  createNamedImports,
 } from 'typescript';
 import {
   PLATFORM,
@@ -2596,8 +2597,18 @@ export class $NamedImports implements I$Node {
     return this;
   }
 
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+  public transform(tctx: TransformationContext): this['node'] | undefined {
+    const transformedList = transformList(tctx, this.$elements, this.node.elements);
+
+    if (transformedList === void 0) {
+      return this.node;
+    }
+
+    if (transformedList.length === 0) {
+      return void 0;
+    }
+
+    return createNamedImports(transformedList);
   }
 }
 

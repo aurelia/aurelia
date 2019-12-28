@@ -802,7 +802,7 @@ export class $ClassDeclaration implements I$Node {
 
     const classDecl = createClassDeclaration(
       /* decorators      */void 0,
-      /* modifiers       */transformedModifiers,
+      /* modifiers       */transformedModifiers === void 0 ? node.modifiers : transformedModifiers,
       /* name            */name,
       /* typeParameters  */void 0,
       /* heritageClauses */node.heritageClauses === void 0

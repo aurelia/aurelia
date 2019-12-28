@@ -1273,7 +1273,7 @@ export class $ESModule implements I$Node, IModule {
       // 9. e. If requiredModule.[[Status]] is "instantiating", then
       if (requiredModule instanceof $ESModule && requiredModule.Status === 'instantiating') {
         // 9. e. i. Assert: requiredModule is a Cyclic Module Record.
-        this.logger.warn(`[_InnerModuleInstantiation] ${requiredModule.$file.name} is a cyclic module record`);
+        this.logger.debug(`[_InnerModuleInstantiation] ${requiredModule.$file.name} is a cyclic module record`);
 
         // 9. e. ii. Set module.[[DFSAncestorIndex]] to min(module.[[DFSAncestorIndex]], requiredModule.[[DFSAncestorIndex]]).
         this.DFSAncestorIndex = Math.min(this.DFSAncestorIndex, requiredModule.DFSAncestorIndex!);
@@ -2734,7 +2734,7 @@ export class $ImportSpecifier implements I$Node {
       case SyntaxKind.ExportDeclaration:
       case SyntaxKind.ExportSpecifier:
       case SyntaxKind.SourceFile:
-        throw new Error(`Unexpected value declaration kind: ${this.valueDeclaration.$kind}`); // TODO: shouldn't be possible, probably need to fix typings a bit
+        throw new Error(`Unexpected value declaration kind: ${SyntaxKind[this.valueDeclaration.$kind]}`); // TODO: shouldn't be possible, probably need to fix typings a bit
     }
   }
 }
@@ -3260,12 +3260,19 @@ export class $ExportSpecifier implements I$Node {
             /* resolveSet */new ResolveSet(),
           ) as ResolvedBindingRecord;
           valueDeclaration = this._valueDeclaration = binding.ExportEntry.source;
+          // TODO: this is very flaky and only temporary. We need to use env rec binding resolution
+          if (valueDeclaration.$kind === SyntaxKind.ExportSpecifier) {
+            const source = valueDeclaration.mos.LexicallyScopedDeclarations.find(x => x.BoundNames.some(b => b.is(binding.ExportEntry.LocalName)));
+            if (source !== void 0) {
+              valueDeclaration = this._valueDeclaration = source as any;
+            }
+          }
           break;
         }
       }
     }
 
-    return valueDeclaration;
+    return valueDeclaration as any;
   }
 
   public get isValueAliasDeclaration(): boolean {
@@ -3282,7 +3289,7 @@ export class $ExportSpecifier implements I$Node {
       case SyntaxKind.ExportDeclaration:
       case SyntaxKind.ExportSpecifier:
       case SyntaxKind.SourceFile:
-        throw new Error(`Unexpected value declaration kind: ${this.valueDeclaration.$kind}`); // TODO: shouldn't be possible, probably need to fix typings a bit
+        throw new Error(`Unexpected value declaration kind: ${SyntaxKind[this.valueDeclaration.$kind]}`); // TODO: shouldn't be possible, probably need to fix typings a bit
     }
   }
 }

@@ -210,13 +210,13 @@ export class TestRunner {
     const outFile = join(this.opts.root, 'index.html');
 
     const html = `
-    <!doctype html>
+    <!DOCTYPE html>
     <html>
       <head>
       </head>
       <body>
-        <script type="text/javascript">
-          fetch('/api');
+        <script type="module">
+          import './__dist/__tests__/setup-au.js';
         </script>
       </body>
     </html>
@@ -236,14 +236,14 @@ export class TestRunner {
   const container = DI.createContainer();
   container.register(
     RuntimeNodeConfiguration.create({
-      level: LogLevel.debug,
+      level: LogLevel.info,
       root: process.cwd(),
     }),
     Registration.singleton(IRequestHandler, FileServer),
   );
 
-  // const server = container.get(IHttpServer);
-  // await server.start();
+  const server = container.get(IHttpServer);
+  await server.start();
   const serviceHost = container.get(ServiceHost);
 
   const fs = container.get(IFileSystem);
@@ -257,12 +257,12 @@ export class TestRunner {
   await fs.rimraf(outDir);
   await result.ws.emit({ outDir });
 
-  // const runner = container.get(TestRunner);
-  // await runner.prepare();
+  const runner = container.get(TestRunner);
+  await runner.prepare();
 
-  // const browser = container.get(ChromeBrowser);
-  // const browserHost = container.get(BrowserHost);
-  // await browserHost.open(browser, 'http://localhost:8080/index.html');
+  const browser = container.get(ChromeBrowser);
+  const browserHost = container.get(BrowserHost);
+  await browserHost.open(browser, 'http://localhost:8080/index.html');
 
 })().catch(err => {
   console.error(err);

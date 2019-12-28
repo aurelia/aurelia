@@ -181,12 +181,12 @@ const {
 export class $Decorator implements I$Node {
   public get $kind(): SyntaxKind.Decorator { return SyntaxKind.Decorator; }
 
-  public readonly $expression: $$LHSExpressionOrHigher;
+  public $expression!: $$LHSExpressionOrHigher;
 
   public parent!: $NodeWithDecorators;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: Decorator,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -197,9 +197,24 @@ export class $Decorator implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.Decorator`;
+  }
 
-    const $expression = this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = this;
+  public static create(
+    node: Decorator,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $Decorator {
+    const $node = new $Decorator(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $expression = $node.$expression = $LHSExpression(node.expression as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = $node;
+
+    return $node;
   }
 }
 
@@ -210,24 +225,24 @@ export class $ThisExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
   // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
-  public readonly CoveredParenthesizedExpression: $ThisExpression = this;
+  public CoveredParenthesizedExpression: $ThisExpression = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   // 12.2.1.2 Static Semantics: HasName
-  public readonly HasName: false = false;
+  public HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
   // 12.2.1.3 Static Semantics: IsFunctionDefinition
-  public readonly IsFunctionDefinition: false = false;
+  public IsFunctionDefinition: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isidentifierref
   // 12.2.1.4 Static Semantics: IsIdentifierRef
-  public readonly IsIdentifierRef: false = false;
+  public IsIdentifierRef: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-assignmenttargettype
   // 12.2.1.5 Static Semantics: AssignmentTargetType
-  public readonly AssignmentTargetType: 'invalid' = 'invalid';
+  public AssignmentTargetType: 'invalid' = 'invalid';
 
   public parent!: $AnyParentNode;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: ThisExpression,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -238,7 +253,21 @@ export class $ThisExpression implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.ThisExpression`;
-}
+  }
+
+  public static create(
+    node: ThisExpression,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $ThisExpression {
+    const $node = new $ThisExpression(node, ctx, idx, depth, mos, realm, logger, path);
+    return $node;
+  }
 
   // http://www.ecma-international.org/ecma-262/#sec-this-keyword-runtime-semantics-evaluation
   // 12.2.2.1 Runtime Semantics: Evaluation
@@ -267,7 +296,7 @@ export class $SuperExpression implements I$Node {
   public parent!: $AnyParentNode;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: SuperExpression,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -278,7 +307,21 @@ export class $SuperExpression implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.SuperExpression`;
-}
+  }
+
+  public static create(
+    node: SuperExpression,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $SuperExpression {
+    const $node = new $SuperExpression(node, ctx, idx, depth, mos, realm, logger, path);
+    return $node;
+  }
 
   // http://www.ecma-international.org/ecma-262/#sec-super-keyword-runtime-semantics-evaluation
   // 12.3.5.1 Runtime Semantics: Evaluation
@@ -352,9 +395,9 @@ export function $argumentOrArrayLiteralElement(
 ): $$ArgumentOrArrayLiteralElement {
   switch (node.kind) {
     case SyntaxKind.SpreadElement:
-      return new $SpreadElement(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $SpreadElement.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.OmittedExpression:
-      return new $OmittedExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $OmittedExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     default:
       return $assignmentExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
   }
@@ -384,28 +427,28 @@ export function $argumentOrArrayLiteralElementList(
 export class $ArrayLiteralExpression implements I$Node {
   public get $kind(): SyntaxKind.ArrayLiteralExpression { return SyntaxKind.ArrayLiteralExpression; }
 
-  public readonly $elements: readonly $$ArgumentOrArrayLiteralElement[];
+  public $elements!: readonly $$ArgumentOrArrayLiteralElement[];
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
   // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
-  public readonly CoveredParenthesizedExpression: $ArrayLiteralExpression = this;
+  public CoveredParenthesizedExpression: $ArrayLiteralExpression = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   // 12.2.1.2 Static Semantics: HasName
-  public readonly HasName: false = false;
+  public HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
   // 12.2.1.3 Static Semantics: IsFunctionDefinition
-  public readonly IsFunctionDefinition: false = false;
+  public IsFunctionDefinition: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isidentifierref
   // 12.2.1.4 Static Semantics: IsIdentifierRef
-  public readonly IsIdentifierRef: false = false;
+  public IsIdentifierRef: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-assignmenttargettype
   // 12.2.1.5 Static Semantics: AssignmentTargetType
-  public readonly AssignmentTargetType: 'invalid' = 'invalid';
+  public AssignmentTargetType: 'invalid' = 'invalid';
 
   public parent!: $AnyParentNode;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: ArrayLiteralExpression,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -416,9 +459,24 @@ export class $ArrayLiteralExpression implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.ArrayLiteralExpression`;
+  }
 
-    const $elements = this.$elements = $argumentOrArrayLiteralElementList(node.elements as NodeArray<$ArgumentOrArrayLiteralElementNode>, ctx, depth + 1, mos, realm, logger, path);
-    $elements.forEach(x => x.parent = this);
+  public static create(
+    node: ArrayLiteralExpression,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $ArrayLiteralExpression {
+    const $node = new $ArrayLiteralExpression(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $elements = $node.$elements = $argumentOrArrayLiteralElementList(node.elements as NodeArray<$ArgumentOrArrayLiteralElementNode>, ctx, depth + 1, mos, realm, logger, path);
+    $elements.forEach(x => x.parent = $node);
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-arrayaccumulation
@@ -600,22 +658,22 @@ export function $$objectLiteralElementLikeList(
     el = nodes[i];
     switch (el.kind) {
       case SyntaxKind.PropertyAssignment:
-        $nodes[i] = new $PropertyAssignment(el, ctx, i, depth + 1, mos, realm, logger, path);
+        $nodes[i] = $PropertyAssignment.create(el, ctx, i, depth + 1, mos, realm, logger, path);
         break;
       case SyntaxKind.ShorthandPropertyAssignment:
-        $nodes[i] = new $ShorthandPropertyAssignment(el, ctx, i, depth + 1, mos, realm, logger, path);
+        $nodes[i] = $ShorthandPropertyAssignment.create(el, ctx, i, depth + 1, mos, realm, logger, path);
         break;
       case SyntaxKind.SpreadAssignment:
-        $nodes[i] = new $SpreadAssignment(el, ctx, i, depth + 1, mos, realm, logger, path);
+        $nodes[i] = $SpreadAssignment.create(el, ctx, i, depth + 1, mos, realm, logger, path);
         break;
       case SyntaxKind.MethodDeclaration:
-        $nodes[i] = new $MethodDeclaration(el, ctx, i, depth + 1, mos, realm, logger, path);
+        $nodes[i] = $MethodDeclaration.create(el, ctx, i, depth + 1, mos, realm, logger, path);
         break;
       case SyntaxKind.GetAccessor:
-        $nodes[i] = new $GetAccessorDeclaration(el, ctx, i, depth + 1, mos, realm, logger, path);
+        $nodes[i] = $GetAccessorDeclaration.create(el, ctx, i, depth + 1, mos, realm, logger, path);
         break;
       case SyntaxKind.SetAccessor:
-        $nodes[i] = new $SetAccessorDeclaration(el, ctx, i, depth + 1, mos, realm, logger, path);
+        $nodes[i] = $SetAccessorDeclaration.create(el, ctx, i, depth + 1, mos, realm, logger, path);
         break;
     }
   }
@@ -625,28 +683,28 @@ export function $$objectLiteralElementLikeList(
 export class $ObjectLiteralExpression implements I$Node {
   public get $kind(): SyntaxKind.ObjectLiteralExpression { return SyntaxKind.ObjectLiteralExpression; }
 
-  public readonly $properties: readonly $$ObjectLiteralElementLike[];
+  public $properties!: readonly $$ObjectLiteralElementLike[];
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
   // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
-  public readonly CoveredParenthesizedExpression: $ObjectLiteralExpression = this;
+  public CoveredParenthesizedExpression: $ObjectLiteralExpression = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   // 12.2.1.2 Static Semantics: HasName
-  public readonly HasName: false = false;
+  public HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
   // 12.2.1.3 Static Semantics: IsFunctionDefinition
-  public readonly IsFunctionDefinition: false = false;
+  public IsFunctionDefinition: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isidentifierref
   // 12.2.1.4 Static Semantics: IsIdentifierRef
-  public readonly IsIdentifierRef: false = false;
+  public IsIdentifierRef: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-assignmenttargettype
   // 12.2.1.5 Static Semantics: AssignmentTargetType
-  public readonly AssignmentTargetType: 'invalid' = 'invalid';
+  public AssignmentTargetType: 'invalid' = 'invalid';
 
   public parent!: $AnyParentNode;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: ObjectLiteralExpression,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -657,9 +715,24 @@ export class $ObjectLiteralExpression implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.ObjectLiteralExpression`;
+  }
 
-    const $properties = this.$properties = $$objectLiteralElementLikeList(node.properties, ctx, depth + 1, mos, realm, logger, path);
-    $properties.forEach(x => x.parent = this);
+  public static create(
+    node: ObjectLiteralExpression,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $ObjectLiteralExpression {
+    const $node = new $ObjectLiteralExpression(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $properties = $node.$properties = $$objectLiteralElementLikeList(node.properties, ctx, depth + 1, mos, realm, logger, path);
+    $properties.forEach(x => x.parent = $node);
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-evaluation
@@ -713,19 +786,19 @@ export class $ObjectLiteralExpression implements I$Node {
 export class $PropertyAssignment implements I$Node {
   public get $kind(): SyntaxKind.PropertyAssignment { return SyntaxKind.PropertyAssignment; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public modifierFlags!: ModifierFlags;
 
-  public readonly $name: $$PropertyName;
-  public readonly $initializer: $$AssignmentExpressionOrHigher;
+  public $name!: $$PropertyName;
+  public $initializer!: $$AssignmentExpressionOrHigher;
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
   // 12.2.6.5 Static Semantics: PropName
-  public readonly PropName: $String | $Empty;
+  public PropName!: $String | $Empty;
 
   public parent!: $ObjectLiteralExpression;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: PropertyAssignment,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -736,15 +809,30 @@ export class $PropertyAssignment implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.PropertyAssignment`;
+  }
 
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+  public static create(
+    node: PropertyAssignment,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $PropertyAssignment {
+    const $node = new $PropertyAssignment(node, ctx, idx, depth, mos, realm, logger, path);
 
-    const $name = this.$name = $$propertyName(node.name, ctx | Context.IsMemberName, -1, depth + 1, mos, realm, logger, path);
-    $name.parent = this;
-    const $initializer = this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $initializer.parent = this;
+    $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    this.PropName = $name.PropName;
+    const $name = $node.$name = $$propertyName(node.name, ctx | Context.IsMemberName, -1, depth + 1, mos, realm, logger, path);
+    $name.parent = $node;
+    const $initializer = $node.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $initializer.parent = $node;
+
+    $node.PropName = $name.PropName;
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-propertydefinitionevaluation
@@ -801,19 +889,19 @@ export class $PropertyAssignment implements I$Node {
 export class $ShorthandPropertyAssignment implements I$Node {
   public get $kind(): SyntaxKind.ShorthandPropertyAssignment { return SyntaxKind.ShorthandPropertyAssignment; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public modifierFlags!: ModifierFlags;
 
-  public readonly $name: $Identifier;
-  public readonly $objectAssignmentInitializer: $$AssignmentExpressionOrHigher | undefined;
+  public $name!: $Identifier;
+  public $objectAssignmentInitializer!: $$AssignmentExpressionOrHigher | undefined;
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
   // 12.2.6.5 Static Semantics: PropName
-  public readonly PropName: $String;
+  public PropName!: $String;
 
   public parent!: $ObjectLiteralExpression;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: ShorthandPropertyAssignment,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -824,15 +912,30 @@ export class $ShorthandPropertyAssignment implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.ShorthandPropertyAssignment`;
+  }
 
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+  public static create(
+    node: ShorthandPropertyAssignment,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $ShorthandPropertyAssignment {
+    const $node = new $ShorthandPropertyAssignment(node, ctx, idx, depth, mos, realm, logger, path);
 
-    const $name = this.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
-    $name.parent = this;
-    const $objectAssignmentInitializer = this.$objectAssignmentInitializer = $assignmentExpression(node.objectAssignmentInitializer as $AssignmentExpressionNode | undefined, ctx, -1, depth + 1, mos, realm, logger, path);
-    if ($objectAssignmentInitializer !== void 0) { $objectAssignmentInitializer.parent = this; }
+    $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    this.PropName = $name.PropName;
+    const $name = $node.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
+    $name.parent = $node;
+    const $objectAssignmentInitializer = $node.$objectAssignmentInitializer = $assignmentExpression(node.objectAssignmentInitializer as $AssignmentExpressionNode | undefined, ctx, -1, depth + 1, mos, realm, logger, path);
+    if ($objectAssignmentInitializer !== void 0) { $objectAssignmentInitializer.parent = $node; }
+
+    $node.PropName = $name.PropName;
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-propertydefinitionevaluation
@@ -871,16 +974,16 @@ export class $ShorthandPropertyAssignment implements I$Node {
 export class $SpreadAssignment implements I$Node {
   public get $kind(): SyntaxKind.SpreadAssignment { return SyntaxKind.SpreadAssignment; }
 
-  public readonly $expression: $$AssignmentExpressionOrHigher;
+  public $expression!: $$AssignmentExpressionOrHigher;
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
   // 12.2.6.5 Static Semantics: PropName
-  public readonly PropName: empty = empty;
+  public PropName: empty = empty;
 
   public parent!: $ObjectLiteralExpression;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: SpreadAssignment,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -891,9 +994,24 @@ export class $SpreadAssignment implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.SpreadAssignment`;
+  }
 
-    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = this;
+  public static create(
+    node: SpreadAssignment,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $SpreadAssignment {
+    const $node = new $SpreadAssignment(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $expression = $node.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = $node;
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-propertydefinitionevaluation
@@ -938,13 +1056,13 @@ export class $SpreadAssignment implements I$Node {
 export class $PropertyAccessExpression implements I$Node {
   public get $kind(): SyntaxKind.PropertyAccessExpression { return SyntaxKind.PropertyAccessExpression; }
 
-  public readonly $expression: $$LHSExpressionOrHigher;
-  public readonly $name: $Identifier;
+  public $expression!: $$LHSExpressionOrHigher;
+  public $name!: $Identifier;
 
   public parent!: $AnyParentNode;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: PropertyAccessExpression,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -955,11 +1073,26 @@ export class $PropertyAccessExpression implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.PropertyAccessExpression`;
+  }
 
-    const $expression = this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = this;
-    const $name = this.$name = $identifier(node.name, ctx | Context.IsPropertyAccessName, -1, depth + 1, mos, realm, logger, path);
-    $name.parent = this;
+  public static create(
+    node: PropertyAccessExpression,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $PropertyAccessExpression {
+    const $node = new $PropertyAccessExpression(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $expression = $node.$expression = $LHSExpression(node.expression as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = $node;
+    const $name = $node.$name = $identifier(node.name, ctx | Context.IsPropertyAccessName, -1, depth + 1, mos, realm, logger, path);
+    $name.parent = $node;
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-property-accessors-runtime-semantics-evaluation
@@ -1014,13 +1147,13 @@ export class $PropertyAccessExpression implements I$Node {
 export class $ElementAccessExpression implements I$Node {
   public get $kind(): SyntaxKind.ElementAccessExpression { return SyntaxKind.ElementAccessExpression; }
 
-  public readonly $expression: $$LHSExpressionOrHigher;
-  public readonly $argumentExpression: $$AssignmentExpressionOrHigher;
+  public $expression!: $$LHSExpressionOrHigher;
+  public $argumentExpression!: $$AssignmentExpressionOrHigher;
 
   public parent!: $AnyParentNode;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: ElementAccessExpression,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -1031,11 +1164,26 @@ export class $ElementAccessExpression implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.ElementAccessExpression`;
+  }
 
-    const $expression = this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = this;
-    const $argumentExpression = this.$argumentExpression = $assignmentExpression(node.argumentExpression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $argumentExpression.parent = this;
+  public static create(
+    node: ElementAccessExpression,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $ElementAccessExpression {
+    const $node = new $ElementAccessExpression(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $expression = $node.$expression = $LHSExpression(node.expression as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = $node;
+    const $argumentExpression = $node.$argumentExpression = $assignmentExpression(node.argumentExpression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $argumentExpression.parent = $node;
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-property-accessors-runtime-semantics-evaluation
@@ -1100,13 +1248,13 @@ export class $ElementAccessExpression implements I$Node {
 export class $CallExpression implements I$Node {
   public get $kind(): SyntaxKind.CallExpression { return SyntaxKind.CallExpression; }
 
-  public readonly $expression: $$LHSExpressionOrHigher;
-  public readonly $arguments: readonly $$ArgumentOrArrayLiteralElement[];
+  public $expression!: $$LHSExpressionOrHigher;
+  public $arguments!: readonly $$ArgumentOrArrayLiteralElement[];
 
   public parent!: $AnyParentNode;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: CallExpression,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -1117,11 +1265,26 @@ export class $CallExpression implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.CallExpression`;
+  }
 
-    const $expression = this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = this;
-    const $arguments = this.$arguments = $argumentOrArrayLiteralElementList(node.arguments as NodeArray<$ArgumentOrArrayLiteralElementNode>, ctx, depth + 1, mos, realm, logger, path);
-    $arguments.forEach(x => x.parent = this);
+  public static create(
+    node: CallExpression,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $CallExpression {
+    const $node = new $CallExpression(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $expression = $node.$expression = $LHSExpression(node.expression as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = $node;
+    const $arguments = $node.$arguments = $argumentOrArrayLiteralElementList(node.arguments as NodeArray<$ArgumentOrArrayLiteralElementNode>, ctx, depth + 1, mos, realm, logger, path);
+    $arguments.forEach(x => x.parent = $node);
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-calls-runtime-semantics-evaluation
@@ -1341,13 +1504,13 @@ export function $ArgumentListEvaluation(
 export class $NewExpression implements I$Node {
   public get $kind(): SyntaxKind.NewExpression { return SyntaxKind.NewExpression; }
 
-  public readonly $expression: $$LHSExpressionOrHigher;
-  public readonly $arguments: readonly $$ArgumentOrArrayLiteralElement[];
+  public $expression!: $$LHSExpressionOrHigher;
+  public $arguments!: readonly $$ArgumentOrArrayLiteralElement[];
 
   public parent!: $AnyParentNode;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: NewExpression,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -1358,11 +1521,26 @@ export class $NewExpression implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.NewExpression`;
+  }
 
-    const $expression = this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = this;
-    const $arguments = this.$arguments = $argumentOrArrayLiteralElementList(node.arguments as NodeArray<$ArgumentOrArrayLiteralElementNode>, ctx, depth + 1, mos, realm, logger, path);
-    $arguments.forEach(x => x.parent = this);
+  public static create(
+    node: NewExpression,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $NewExpression {
+    const $node = new $NewExpression(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $expression = $node.$expression = $LHSExpression(node.expression as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = $node;
+    const $arguments = $node.$arguments = $argumentOrArrayLiteralElementList(node.arguments as NodeArray<$ArgumentOrArrayLiteralElementNode>, ctx, depth + 1, mos, realm, logger, path);
+    $arguments.forEach(x => x.parent = $node);
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-new-operator-runtime-semantics-evaluation
@@ -1450,13 +1628,13 @@ export type $$TemplateLiteral = (
 export class $TaggedTemplateExpression implements I$Node {
   public get $kind(): SyntaxKind.TaggedTemplateExpression { return SyntaxKind.TaggedTemplateExpression; }
 
-  public readonly $tag: $$LHSExpressionOrHigher;
-  public readonly $template: $$TemplateLiteral;
+  public $tag!: $$LHSExpressionOrHigher;
+  public $template!: $$TemplateLiteral;
 
   public parent!: $AnyParentNode;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: TaggedTemplateExpression,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -1467,16 +1645,31 @@ export class $TaggedTemplateExpression implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.TaggedTemplateExpression`;
+  }
 
-    const $tag = this.$tag = $LHSExpression(node.tag as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $tag.parent = this;
+  public static create(
+    node: TaggedTemplateExpression,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $TaggedTemplateExpression {
+    const $node = new $TaggedTemplateExpression(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $tag = $node.$tag = $LHSExpression(node.tag as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $tag.parent = $node;
 
     if (node.template.kind === SyntaxKind.NoSubstitutionTemplateLiteral) {
-      this.$template = new $NoSubstitutionTemplateLiteral(node.template, ctx, -1, depth + 1, mos, realm, logger, path);
+      $node.$template = $NoSubstitutionTemplateLiteral.create(node.template, ctx, -1, depth + 1, mos, realm, logger, path);
     } else {
-      this.$template = new $TemplateExpression(node.template, ctx, -1, depth + 1, mos, realm, logger, path);
+      $node.$template = $TemplateExpression.create(node.template, ctx, -1, depth + 1, mos, realm, logger, path);
     }
-    this.$template.parent = this;
+    $node.$template.parent = $node;
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-tagged-templates-runtime-semantics-evaluation
@@ -1544,7 +1737,7 @@ export function $$templateSpanList(
   const len = nodes.length;
   const $nodes: $TemplateSpan[] = Array(len);
   for (let i = 0; i < len; ++i) {
-    $nodes[i] = new $TemplateSpan(nodes[i], ctx, i, depth + 1, mos, realm, logger, path);
+    $nodes[i] = $TemplateSpan.create(nodes[i], ctx, i, depth + 1, mos, realm, logger, path);
   }
   return $nodes;
 }
@@ -1552,29 +1745,29 @@ export function $$templateSpanList(
 export class $TemplateExpression implements I$Node {
   public get $kind(): SyntaxKind.TemplateExpression { return SyntaxKind.TemplateExpression; }
 
-  public readonly $head: $TemplateHead;
-  public readonly $templateSpans: readonly $TemplateSpan[];
+  public $head!: $TemplateHead;
+  public $templateSpans!: readonly $TemplateSpan[];
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
   // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
-  public readonly CoveredParenthesizedExpression: $TemplateExpression = this;
+  public CoveredParenthesizedExpression: $TemplateExpression = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   // 12.2.1.2 Static Semantics: HasName
-  public readonly HasName: false = false;
+  public HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
   // 12.2.1.3 Static Semantics: IsFunctionDefinition
-  public readonly IsFunctionDefinition: false = false;
+  public IsFunctionDefinition: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isidentifierref
   // 12.2.1.4 Static Semantics: IsIdentifierRef
-  public readonly IsIdentifierRef: false = false;
+  public IsIdentifierRef: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-assignmenttargettype
   // 12.2.1.5 Static Semantics: AssignmentTargetType
-  public readonly AssignmentTargetType: 'invalid' = 'invalid';
+  public AssignmentTargetType: 'invalid' = 'invalid';
 
   public parent!: $AnyParentNode;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: TemplateExpression,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -1585,11 +1778,26 @@ export class $TemplateExpression implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.TemplateExpression`;
+  }
 
-    const $head = this.$head = new $TemplateHead(node.head, ctx, depth + 1, mos, realm, logger, path);
-    $head.parent = this;
-    const $templateSpans = this.$templateSpans = $$templateSpanList(node.templateSpans, ctx, depth + 1, mos, realm, logger, path);
-    $templateSpans.forEach(x => x.parent = this);
+  public static create(
+    node: TemplateExpression,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $TemplateExpression {
+    const $node = new $TemplateExpression(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $head = $node.$head = $TemplateHead.create(node.head, ctx, depth + 1, mos, realm, logger, path);
+    $head.parent = $node;
+    const $templateSpans = $node.$templateSpans = $$templateSpanList(node.templateSpans, ctx, depth + 1, mos, realm, logger, path);
+    $templateSpans.forEach(x => x.parent = $node);
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
@@ -1665,16 +1873,16 @@ export class $TemplateExpression implements I$Node {
 export class $ParenthesizedExpression implements I$Node {
   public get $kind(): SyntaxKind.ParenthesizedExpression { return SyntaxKind.ParenthesizedExpression; }
 
-  public readonly $expression: $$AssignmentExpressionOrHigher;
+  public $expression!: $$AssignmentExpressionOrHigher;
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
   // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
-  public readonly CoveredParenthesizedExpression: $$AssignmentExpressionOrHigher;
+  public CoveredParenthesizedExpression!: $$AssignmentExpressionOrHigher;
 
   public parent!: $AnyParentNode;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: ParenthesizedExpression,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -1685,11 +1893,26 @@ export class $ParenthesizedExpression implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.ParenthesizedExpression`;
+  }
 
-    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = this;
+  public static create(
+    node: ParenthesizedExpression,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $ParenthesizedExpression {
+    const $node = new $ParenthesizedExpression(node, ctx, idx, depth, mos, realm, logger, path);
 
-    this.CoveredParenthesizedExpression = $expression;
+    const $expression = $node.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = $node;
+
+    $node.CoveredParenthesizedExpression = $expression;
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-grouping-operator-runtime-semantics-evaluation
@@ -1731,12 +1954,12 @@ export class $ParenthesizedExpression implements I$Node {
 export class $NonNullExpression implements I$Node {
   public get $kind(): SyntaxKind.NonNullExpression { return SyntaxKind.NonNullExpression; }
 
-  public readonly $expression: $$LHSExpressionOrHigher;
+  public $expression!: $$LHSExpressionOrHigher;
 
   public parent!: $AnyParentNode;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: NonNullExpression,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -1747,9 +1970,24 @@ export class $NonNullExpression implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.NonNullExpression`;
+  }
 
-    const $expression = this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = this;
+  public static create(
+    node: NonNullExpression,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $NonNullExpression {
+    const $node = new $NonNullExpression(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $expression = $node.$expression = $LHSExpression(node.expression as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = $node;
+
+    return $node;
   }
 
   // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
@@ -1769,12 +2007,12 @@ export class $NonNullExpression implements I$Node {
 export class $MetaProperty implements I$Node {
   public get $kind(): SyntaxKind.MetaProperty { return SyntaxKind.MetaProperty; }
 
-  public readonly $name: $Identifier;
+  public $name!: $Identifier;
 
   public parent!: $AnyParentNode;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: MetaProperty,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -1785,9 +2023,24 @@ export class $MetaProperty implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.MetaProperty`;
+  }
 
-    const $name = this.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
-    $name.parent = this;
+  public static create(
+    node: MetaProperty,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $MetaProperty {
+    const $node = new $MetaProperty(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $name = $node.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
+    $name.parent = $node;
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-meta-properties-runtime-semantics-evaluation
@@ -1820,12 +2073,12 @@ export class $MetaProperty implements I$Node {
 export class $DeleteExpression implements I$Node {
   public get $kind(): SyntaxKind.DeleteExpression { return SyntaxKind.DeleteExpression; }
 
-  public readonly $expression: $$UnaryExpressionOrHigher;
+  public $expression!: $$UnaryExpressionOrHigher;
 
   public parent!: $AnyParentNode;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: DeleteExpression,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -1836,9 +2089,24 @@ export class $DeleteExpression implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.DeleteExpression`;
+  }
 
-    const $expression = this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = this;
+  public static create(
+    node: DeleteExpression,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $DeleteExpression {
+    const $node = new $DeleteExpression(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $expression = $node.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = $node;
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-delete-operator-runtime-semantics-evaluation
@@ -1886,12 +2154,12 @@ export class $DeleteExpression implements I$Node {
 export class $TypeOfExpression implements I$Node {
   public get $kind(): SyntaxKind.TypeOfExpression { return SyntaxKind.TypeOfExpression; }
 
-  public readonly $expression: $$UnaryExpressionOrHigher;
+  public $expression!: $$UnaryExpressionOrHigher;
 
   public parent!: $AnyParentNode;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: TypeOfExpression,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -1902,9 +2170,24 @@ export class $TypeOfExpression implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.TypeOfExpression`;
+  }
 
-    const $expression = this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = this;
+  public static create(
+    node: TypeOfExpression,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $TypeOfExpression {
+    const $node = new $TypeOfExpression(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $expression = $node.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = $node;
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-typeof-operator-runtime-semantics-evaluation
@@ -1986,12 +2269,12 @@ export class $TypeOfExpression implements I$Node {
 export class $VoidExpression implements I$Node {
   public get $kind(): SyntaxKind.VoidExpression { return SyntaxKind.VoidExpression; }
 
-  public readonly $expression: $$UnaryExpressionOrHigher;
+  public $expression!: $$UnaryExpressionOrHigher;
 
   public parent!: $AnyParentNode;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: VoidExpression,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -2002,9 +2285,24 @@ export class $VoidExpression implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.VoidExpression`;
+  }
 
-    const $expression = this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = this;
+  public static create(
+    node: VoidExpression,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $VoidExpression {
+    const $node = new $VoidExpression(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $expression = $node.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = $node;
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-void-operator
@@ -2046,12 +2344,12 @@ export class $VoidExpression implements I$Node {
 export class $AwaitExpression implements I$Node {
   public get $kind(): SyntaxKind.AwaitExpression { return SyntaxKind.AwaitExpression; }
 
-  public readonly $expression: $$UnaryExpressionOrHigher;
+  public $expression!: $$UnaryExpressionOrHigher;
 
   public parent!: $AnyParentNode;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: AwaitExpression,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -2062,9 +2360,24 @@ export class $AwaitExpression implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.AwaitExpression`;
+  }
 
-    const $expression = this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = this;
+  public static create(
+    node: AwaitExpression,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $AwaitExpression {
+    const $node = new $AwaitExpression(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $expression = $node.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = $node;
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-runtime-semantics-evaluation
@@ -2102,12 +2415,12 @@ export class $AwaitExpression implements I$Node {
 export class $PrefixUnaryExpression implements I$Node {
   public get $kind(): SyntaxKind.PrefixUnaryExpression { return SyntaxKind.PrefixUnaryExpression; }
 
-  public readonly $operand: $$UnaryExpressionOrHigher;
+  public $operand!: $$UnaryExpressionOrHigher;
 
   public parent!: $AnyParentNode;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: PrefixUnaryExpression,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -2118,9 +2431,24 @@ export class $PrefixUnaryExpression implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.PrefixUnaryExpression`;
+  }
 
-    const $operand = this.$operand = $unaryExpression(node.operand as $UnaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $operand.parent = this;
+  public static create(
+    node: PrefixUnaryExpression,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $PrefixUnaryExpression {
+    const $node = new $PrefixUnaryExpression(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $operand = $node.$operand = $unaryExpression(node.operand as $UnaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $operand.parent = $node;
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-prefix-increment-operator-runtime-semantics-evaluation
@@ -2303,12 +2631,12 @@ export class $PrefixUnaryExpression implements I$Node {
 export class $PostfixUnaryExpression implements I$Node {
   public get $kind(): SyntaxKind.PostfixUnaryExpression { return SyntaxKind.PostfixUnaryExpression; }
 
-  public readonly $operand: $$LHSExpressionOrHigher;
+  public $operand!: $$LHSExpressionOrHigher;
 
   public parent!: $AnyParentNode;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: PostfixUnaryExpression,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -2319,9 +2647,24 @@ export class $PostfixUnaryExpression implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.PostfixUnaryExpression`;
+  }
 
-    const $operand = this.$operand = $LHSExpression(node.operand as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $operand.parent = this;
+  public static create(
+    node: PostfixUnaryExpression,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $PostfixUnaryExpression {
+    const $node = new $PostfixUnaryExpression(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $operand = $node.$operand = $LHSExpression(node.operand as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $operand.parent = $node;
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-postfix-increment-operator-runtime-semantics-evaluation
@@ -2414,12 +2757,12 @@ export class $PostfixUnaryExpression implements I$Node {
 export class $TypeAssertion implements I$Node {
   public get $kind(): SyntaxKind.TypeAssertionExpression { return SyntaxKind.TypeAssertionExpression; }
 
-  public readonly $expression: $$AssignmentExpressionOrHigher;
+  public $expression!: $$AssignmentExpressionOrHigher;
 
   public parent!: $AnyParentNode;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: TypeAssertion,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -2430,9 +2773,24 @@ export class $TypeAssertion implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.TypeAssertion`;
+  }
 
-    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = this;
+  public static create(
+    node: TypeAssertion,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $TypeAssertion {
+    const $node = new $TypeAssertion(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $expression = $node.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = $node;
+
+    return $node;
   }
 
   // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
@@ -2456,13 +2814,13 @@ export class $TypeAssertion implements I$Node {
 export class $BinaryExpression implements I$Node {
   public get $kind(): SyntaxKind.BinaryExpression { return SyntaxKind.BinaryExpression; }
 
-  public readonly $left: $$BinaryExpressionOrHigher;
-  public readonly $right: $$BinaryExpressionOrHigher;
+  public $left!: $$BinaryExpressionOrHigher;
+  public $right!: $$BinaryExpressionOrHigher;
 
   public parent!: $AnyParentNode;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: BinaryExpression,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -2473,11 +2831,26 @@ export class $BinaryExpression implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.BinaryExpression`;
+  }
 
-    const $left = this.$left = $assignmentExpression(node.left as $BinaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path) as $$BinaryExpressionOrHigher;
-    $left.parent = this;
-    const $right = this.$right = $assignmentExpression(node.right as $BinaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path) as $$BinaryExpressionOrHigher;
-    $right.parent = this;
+  public static create(
+    node: BinaryExpression,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $BinaryExpression {
+    const $node = new $BinaryExpression(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $left = $node.$left = $assignmentExpression(node.left as $BinaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path) as $$BinaryExpressionOrHigher;
+    $left.parent = $node;
+    const $right = $node.$right = $assignmentExpression(node.right as $BinaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path) as $$BinaryExpressionOrHigher;
+    $right.parent = $node;
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-exp-operator-runtime-semantics-evaluation
@@ -3549,14 +3922,14 @@ export class $BinaryExpression implements I$Node {
 export class $ConditionalExpression implements I$Node {
   public get $kind(): SyntaxKind.ConditionalExpression { return SyntaxKind.ConditionalExpression; }
 
-  public readonly $condition: $$BinaryExpressionOrHigher;
-  public readonly $whenTrue: $$AssignmentExpressionOrHigher;
-  public readonly $whenFalse: $$AssignmentExpressionOrHigher;
+  public $condition!: $$BinaryExpressionOrHigher;
+  public $whenTrue!: $$AssignmentExpressionOrHigher;
+  public $whenFalse!: $$AssignmentExpressionOrHigher;
 
   public parent!: $AnyParentNode;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: ConditionalExpression,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -3567,19 +3940,34 @@ export class $ConditionalExpression implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.ConditionalExpression`;
+  }
+
+  public static create(
+    node: ConditionalExpression,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $ConditionalExpression {
+    const $node = new $ConditionalExpression(node, ctx, idx, depth, mos, realm, logger, path);
 
     if (node.condition.kind === SyntaxKind.BinaryExpression) {
-      const $condition = this.$condition = new $BinaryExpression(node.condition as BinaryExpression, ctx, -1, depth + 1, mos, realm, logger, path);
-      $condition.parent = this;
+      const $condition = $node.$condition = $BinaryExpression.create(node.condition as BinaryExpression, ctx, -1, depth + 1, mos, realm, logger, path);
+      $condition.parent = $node;
     } else {
-      const $condition = this.$condition = $unaryExpression(node.condition as $UnaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-      $condition.parent = this;
+      const $condition = $node.$condition = $unaryExpression(node.condition as $UnaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+      $condition.parent = $node;
     }
 
-    const $whenTrue = this.$whenTrue = $assignmentExpression(node.whenTrue as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $whenTrue.parent = this;
-    const $whenFalse = this.$whenFalse = $assignmentExpression(node.whenFalse as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $whenFalse.parent = this;
+    const $whenTrue = $node.$whenTrue = $assignmentExpression(node.whenTrue as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $whenTrue.parent = $node;
+    const $whenFalse = $node.$whenFalse = $assignmentExpression(node.whenFalse as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $whenFalse.parent = $node;
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-conditional-operator-runtime-semantics-evaluation
@@ -3631,12 +4019,12 @@ export class $ConditionalExpression implements I$Node {
 export class $YieldExpression implements I$Node {
   public get $kind(): SyntaxKind.YieldExpression { return SyntaxKind.YieldExpression; }
 
-  public readonly $expression: $$AssignmentExpressionOrHigher;
+  public $expression!: $$AssignmentExpressionOrHigher;
 
   public parent!: $AnyParentNode;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: YieldExpression,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -3647,9 +4035,24 @@ export class $YieldExpression implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.YieldExpression`;
+  }
 
-    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = this;
+  public static create(
+    node: YieldExpression,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $YieldExpression {
+    const $node = new $YieldExpression(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $expression = $node.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = $node;
+
+    return $node;
   }
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
   // 14.4.14 Runtime Semantics: Evaluation
@@ -3747,12 +4150,12 @@ export class $YieldExpression implements I$Node {
 export class $AsExpression implements I$Node {
   public get $kind(): SyntaxKind.AsExpression { return SyntaxKind.AsExpression; }
 
-  public readonly $expression: $$UpdateExpressionOrHigher;
+  public $expression!: $$UpdateExpressionOrHigher;
 
   public parent!: $AnyParentNode;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: AsExpression,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -3763,9 +4166,24 @@ export class $AsExpression implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.AsExpression`;
+  }
 
-    const $expression = this.$expression = $assignmentExpression(node.expression as $UpdateExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path) as $$UpdateExpressionOrHigher;
-    $expression.parent = this;
+  public static create(
+    node: AsExpression,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $AsExpression {
+    const $node = new $AsExpression(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $expression = $node.$expression = $assignmentExpression(node.expression as $UpdateExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path) as $$UpdateExpressionOrHigher;
+    $expression.parent = $node;
+
+    return $node;
   }
 
   // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
@@ -3789,40 +4207,40 @@ export class $Identifier implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-identifiers-static-semantics-stringvalue
   // 12.1.4 Static Semantics: StringValue
-  public readonly StringValue: $String;
+  public StringValue!: $String;
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
   // 12.2.6.5 Static Semantics: PropName
-  public readonly PropName: $String;
+  public PropName!: $String;
 
   // http://www.ecma-international.org/ecma-262/#sec-identifiers-static-semantics-boundnames
   // 12.1.2 Static Semantics: BoundNames
-  public readonly BoundNames: readonly [$String];
+  public BoundNames!: readonly [$String];
   // http://www.ecma-international.org/ecma-262/#sec-identifiers-static-semantics-assignmenttargettype
   // 12.1.3 Static Semantics: AssignmentTargetType
-  public readonly AssignmentTargetType: 'strict' | 'simple';
+  public AssignmentTargetType!: 'strict' | 'simple';
 
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredparenthesizedexpression
   // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
-  public readonly CoveredParenthesizedExpression: $Identifier = this;
+  public CoveredParenthesizedExpression: $Identifier = this;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-hasname
   // 12.2.1.2 Static Semantics: HasName
-  public readonly HasName: false = false;
+  public HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isfunctiondefinition
   // 12.2.1.3 Static Semantics: IsFunctionDefinition
-  public readonly IsFunctionDefinition: false = false;
+  public IsFunctionDefinition: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-semantics-static-semantics-isidentifierref
   // 12.2.1.4 Static Semantics: IsIdentifierRef
-  public readonly IsIdentifierRef: true = true;
+  public IsIdentifierRef: true = true;
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-containsexpression
   // 13.3.3.2 Static Semantics: ContainsExpression
-  public readonly ContainsExpression: false = false;
+  public ContainsExpression: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-hasinitializer
   // 13.3.3.3 Static Semantics: HasInitializer
-  public readonly HasInitializer: false = false;
+  public HasInitializer: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-issimpleparameterlist
   // 13.3.3.4 Static Semantics: IsSimpleParameterList
-  public readonly IsSimpleParameterList: true = true;
+  public IsSimpleParameterList: true = true;
 
   public get isUndefined(): false { return false; }
   public get isNull(): false { return false; }
@@ -3830,7 +4248,7 @@ export class $Identifier implements I$Node {
   public parent!: $AnyParentNode;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: Identifier,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -3841,16 +4259,31 @@ export class $Identifier implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.Identifier(${node.text})`;
+  }
 
-    const StringValue = this.StringValue = new $String(realm, node.text, void 0, void 0, this);
-    this.PropName = StringValue;
-    this.BoundNames = [StringValue] as const;
+  public static create(
+    node: Identifier,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $Identifier {
+    const $node = new $Identifier(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const StringValue = $node.StringValue = new $String(realm, node.text, void 0, void 0, $node);
+    $node.PropName = StringValue;
+    $node.BoundNames = [StringValue] as const;
 
     if (hasBit(ctx, Context.InStrictMode) && (StringValue['[[Value]]'] === 'eval' || StringValue['[[Value]]'] === 'arguments')) {
-      this.AssignmentTargetType = 'strict';
+      $node.AssignmentTargetType = 'strict';
     } else {
-      this.AssignmentTargetType = 'simple';
+      $node.AssignmentTargetType = 'simple';
     }
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-identifiers-runtime-semantics-evaluation

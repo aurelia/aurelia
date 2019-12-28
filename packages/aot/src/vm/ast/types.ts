@@ -71,28 +71,28 @@ const {
 export class $InterfaceDeclaration implements I$Node {
   public get $kind(): SyntaxKind.InterfaceDeclaration { return SyntaxKind.InterfaceDeclaration; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public modifierFlags!: ModifierFlags;
 
-  public readonly BoundNames: readonly [$String];
-  public readonly VarDeclaredNames: readonly $String[] = emptyArray;
-  public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[] = emptyArray;
-  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
-  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  public BoundNames!: readonly [$String];
+  public VarDeclaredNames: readonly $String[] = emptyArray;
+  public VarScopedDeclarations: readonly $$ESVarDeclaration[] = emptyArray;
+  public LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
-  public readonly ExportedBindings: readonly $String[];
-  public readonly ExportedNames: readonly $String[];
-  public readonly ExportEntries: readonly ExportEntryRecord[];
+  public ExportedBindings!: readonly $String[];
+  public ExportedNames!: readonly $String[];
+  public ExportEntries!: readonly ExportEntryRecord[];
 
-  public readonly TypeDeclarations: readonly [$InterfaceDeclaration];
-  public readonly IsType: true = true;
+  public TypeDeclarations!: readonly [$InterfaceDeclaration];
+  public IsType: true = true;
 
-  public readonly $name: $Identifier;
-  public readonly $heritageClauses: readonly $HeritageClause[];
+  public $name!: $Identifier;
+  public $heritageClauses!: readonly $HeritageClause[];
 
   public parent!: $NodeWithStatements;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: InterfaceDeclaration,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -103,33 +103,46 @@ export class $InterfaceDeclaration implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.InterfaceDeclaration`;
+  }
+
+  public static create(
+    node: InterfaceDeclaration,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $InterfaceDeclaration {
+    const $node = new $InterfaceDeclaration(node, ctx, idx, depth, mos, realm, logger, path);
 
     const intrinsics = realm['[[Intrinsics]]'];
 
     ctx |= Context.InTypeElement;
 
-    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     if (hasBit(modifierFlags, ModifierFlags.Export)) {
       ctx |= Context.InExport;
     }
 
-    const $name = this.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
-    $name.parent = this;
-    const $heritageClauses = this.$heritageClauses = $heritageClauseList(node.heritageClauses, ctx, depth + 1, mos, realm, logger, path);
-    $heritageClauses.forEach(x => x.parent = this);
+    const $name = $node.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
+    $name.parent = $node;
+    const $heritageClauses = $node.$heritageClauses = $heritageClauseList(node.heritageClauses, ctx, depth + 1, mos, realm, logger, path);
+    $heritageClauses.forEach(x => x.parent = $node);
 
-    const BoundNames = this.BoundNames = $name.BoundNames;
-    this.TypeDeclarations = [this];
+    const BoundNames = $node.BoundNames = $name.BoundNames;
+    $node.TypeDeclarations = [$node];
 
     if (hasBit(ctx, Context.InExport)) {
       const [localName] = BoundNames;
 
-      this.ExportedBindings = BoundNames;
-      this.ExportedNames = BoundNames;
-      this.ExportEntries = [
+      $node.ExportedBindings = BoundNames;
+      $node.ExportedNames = BoundNames;
+      $node.ExportEntries = [
         new ExportEntryRecord(
-          /* source */this,
+          /* source */$node,
           /* ExportName */localName,
           /* ModuleRequest */intrinsics.null,
           /* ImportName */intrinsics.null,
@@ -137,10 +150,12 @@ export class $InterfaceDeclaration implements I$Node {
         ),
       ];
     } else {
-      this.ExportedBindings = emptyArray;
-      this.ExportedNames = emptyArray;
-      this.ExportEntries = emptyArray;
+      $node.ExportedBindings = emptyArray;
+      $node.ExportedNames = emptyArray;
+      $node.ExportEntries = emptyArray;
     }
+
+    return $node;
   }
 
   public transform(tctx: TransformationContext): undefined {
@@ -151,27 +166,27 @@ export class $InterfaceDeclaration implements I$Node {
 export class $TypeAliasDeclaration implements I$Node {
   public get $kind(): SyntaxKind.TypeAliasDeclaration { return SyntaxKind.TypeAliasDeclaration; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public modifierFlags!: ModifierFlags;
 
-  public readonly BoundNames: readonly [$String];
-  public readonly VarDeclaredNames: readonly $String[] = emptyArray;
-  public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[] = emptyArray;
-  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
-  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  public BoundNames!: readonly [$String];
+  public VarDeclaredNames: readonly $String[] = emptyArray;
+  public VarScopedDeclarations: readonly $$ESVarDeclaration[] = emptyArray;
+  public LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
-  public readonly ExportedBindings: readonly $String[];
-  public readonly ExportedNames: readonly $String[];
-  public readonly ExportEntries: readonly ExportEntryRecord[];
+  public ExportedBindings!: readonly $String[];
+  public ExportedNames!: readonly $String[];
+  public ExportEntries!: readonly ExportEntryRecord[];
 
-  public readonly TypeDeclarations: readonly [$TypeAliasDeclaration];
-  public readonly IsType: true = true;
+  public TypeDeclarations!: readonly [$TypeAliasDeclaration];
+  public IsType: true = true;
 
-  public readonly $name: $Identifier;
+  public $name!: $Identifier;
 
   public parent!: $NodeWithStatements;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: TypeAliasDeclaration,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -182,31 +197,44 @@ export class $TypeAliasDeclaration implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.TypeAliasDeclaration`;
+  }
+
+  public static create(
+    node: TypeAliasDeclaration,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $TypeAliasDeclaration {
+    const $node = new $TypeAliasDeclaration(node, ctx, idx, depth, mos, realm, logger, path);
 
     const intrinsics = realm['[[Intrinsics]]'];
 
     ctx |= Context.InTypeElement;
 
-    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     if (hasBit(modifierFlags, ModifierFlags.Export)) {
       ctx |= Context.InExport;
     }
 
-    const $name = this.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
-    $name.parent = this;
+    const $name = $node.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
+    $name.parent = $node;
 
-    const BoundNames = this.BoundNames = $name.BoundNames;
-    this.TypeDeclarations = [this];
+    const BoundNames = $node.BoundNames = $name.BoundNames;
+    $node.TypeDeclarations = [$node];
 
     if (hasBit(ctx, Context.InExport)) {
       const [localName] = BoundNames;
 
-      this.ExportedBindings = BoundNames;
-      this.ExportedNames = BoundNames;
-      this.ExportEntries = [
+      $node.ExportedBindings = BoundNames;
+      $node.ExportedNames = BoundNames;
+      $node.ExportEntries = [
         new ExportEntryRecord(
-          /* source */this,
+          /* source */$node,
           /* ExportName */localName,
           /* ModuleRequest */intrinsics.null,
           /* ImportName */intrinsics.null,
@@ -214,10 +242,12 @@ export class $TypeAliasDeclaration implements I$Node {
         ),
       ];
     } else {
-      this.ExportedBindings = emptyArray;
-      this.ExportedNames = emptyArray;
-      this.ExportEntries = emptyArray;
+      $node.ExportedBindings = emptyArray;
+      $node.ExportedNames = emptyArray;
+      $node.ExportEntries = emptyArray;
     }
+
+    return $node;
   }
 
   public transform(tctx: TransformationContext): undefined {
@@ -241,7 +271,7 @@ export function $enumMemberList(
   const len = nodes.length;
   const $nodes: $EnumMember[] = Array(len);
   for (let i = 0; i < len; ++i) {
-    $nodes[i] = new $EnumMember(nodes[i], ctx, i, depth + 1, mos, realm, logger, path);
+    $nodes[i] = $EnumMember.create(nodes[i], ctx, i, depth + 1, mos, realm, logger, path);
   }
   return $nodes;
 }
@@ -249,28 +279,28 @@ export function $enumMemberList(
 export class $EnumDeclaration implements I$Node {
   public get $kind(): SyntaxKind.EnumDeclaration { return SyntaxKind.EnumDeclaration; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public modifierFlags!: ModifierFlags;
 
-  public readonly BoundNames: readonly [$String];
-  public readonly VarDeclaredNames: readonly $String[] = emptyArray;
-  public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[] = emptyArray;
-  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
-  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  public BoundNames!: readonly [$String];
+  public VarDeclaredNames: readonly $String[] = emptyArray;
+  public VarScopedDeclarations: readonly $$ESVarDeclaration[] = emptyArray;
+  public LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
 
-  public readonly ExportedBindings: readonly $String[];
-  public readonly ExportedNames: readonly $String[];
-  public readonly ExportEntries: readonly ExportEntryRecord[];
+  public ExportedBindings!: readonly $String[];
+  public ExportedNames!: readonly $String[];
+  public ExportEntries!: readonly ExportEntryRecord[];
 
-  public readonly TypeDeclarations: readonly [$EnumDeclaration];
-  public readonly IsType: true = true;
+  public TypeDeclarations!: readonly [$EnumDeclaration];
+  public IsType: true = true;
 
-  public readonly $name: $Identifier;
-  public readonly $members: readonly $EnumMember[];
+  public $name!: $Identifier;
+  public $members!: readonly $EnumMember[];
 
   public parent!: $NodeWithStatements;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: EnumDeclaration,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -281,31 +311,44 @@ export class $EnumDeclaration implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.EnumDeclaration`;
+  }
+
+  public static create(
+    node: EnumDeclaration,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $EnumDeclaration {
+    const $node = new $EnumDeclaration(node, ctx, idx, depth, mos, realm, logger, path);
 
     const intrinsics = realm['[[Intrinsics]]'];
 
-    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     if (hasBit(modifierFlags, ModifierFlags.Export)) {
       ctx |= Context.InExport;
     }
 
-    const $name = this.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
-    $name.parent = this;
-    const $members = this.$members = $enumMemberList(node.members, ctx, depth + 1, mos, realm, logger, path);
-    $members.forEach(x => x.parent = this);
+    const $name = $node.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
+    $name.parent = $node;
+    const $members = $node.$members = $enumMemberList(node.members, ctx, depth + 1, mos, realm, logger, path);
+    $members.forEach(x => x.parent = $node);
 
-    const BoundNames = this.BoundNames = $name.BoundNames;
-    this.TypeDeclarations = [this];
+    const BoundNames = $node.BoundNames = $name.BoundNames;
+    $node.TypeDeclarations = [$node];
 
     if (hasBit(ctx, Context.InExport)) {
       const [localName] = BoundNames;
 
-      this.ExportedBindings = BoundNames;
-      this.ExportedNames = BoundNames;
-      this.ExportEntries = [
+      $node.ExportedBindings = BoundNames;
+      $node.ExportedNames = BoundNames;
+      $node.ExportEntries = [
         new ExportEntryRecord(
-          /* source */this,
+          /* source */$node,
           /* ExportName */localName,
           /* ModuleRequest */intrinsics.null,
           /* ImportName */intrinsics.null,
@@ -313,10 +356,12 @@ export class $EnumDeclaration implements I$Node {
         ),
       ];
     } else {
-      this.ExportedBindings = emptyArray;
-      this.ExportedNames = emptyArray;
-      this.ExportEntries = emptyArray;
+      $node.ExportedBindings = emptyArray;
+      $node.ExportedNames = emptyArray;
+      $node.ExportEntries = emptyArray;
     }
+
+    return $node;
   }
 
   public transform(tctx: TransformationContext): VariableStatement {
@@ -392,13 +437,13 @@ export class $EnumDeclaration implements I$Node {
 export class $EnumMember implements I$Node {
   public get $kind(): SyntaxKind.EnumMember { return SyntaxKind.EnumMember; }
 
-  public readonly $name: $$PropertyName;
-  public readonly $initializer: $$AssignmentExpressionOrHigher | undefined;
+  public $name!: $$PropertyName;
+  public $initializer!: $$AssignmentExpressionOrHigher | undefined;
 
   public parent!: $EnumDeclaration;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: EnumMember,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -409,9 +454,24 @@ export class $EnumMember implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.EnumMember`;
+  }
 
-    this.$name = $$propertyName(node.name, ctx | Context.IsMemberName, -1, depth + 1, mos, realm, logger, path);
-    const $initializer = this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode | undefined, ctx, -1, depth + 1, mos, realm, logger, path);
-    if ($initializer !== void 0) { $initializer.parent = this; }
+  public static create(
+    node: EnumMember,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $EnumMember {
+    const $node = new $EnumMember(node, ctx, idx, depth, mos, realm, logger, path);
+
+    $node.$name = $$propertyName(node.name, ctx | Context.IsMemberName, -1, depth + 1, mos, realm, logger, path);
+    const $initializer = $node.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode | undefined, ctx, -1, depth + 1, mos, realm, logger, path);
+    if ($initializer !== void 0) { $initializer.parent = $node; }
+
+    return $node;
   }
 }

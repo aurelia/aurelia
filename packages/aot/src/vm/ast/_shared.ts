@@ -554,15 +554,15 @@ export function $assignmentExpression(
 
   switch (node.kind) {
     case SyntaxKind.AsExpression:
-      return new $AsExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $AsExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.BinaryExpression:
-      return new $BinaryExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $BinaryExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.ArrowFunction:
-      return new $ArrowFunction(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $ArrowFunction.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.ConditionalExpression:
-      return new $ConditionalExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $ConditionalExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.YieldExpression:
-      return new $YieldExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $YieldExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     default:
       return $unaryExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
   }
@@ -607,25 +607,25 @@ export function $unaryExpression(
 ): $$UnaryExpressionOrHigher {
   switch (node.kind) {
     case SyntaxKind.JsxElement:
-      return new $JsxElement(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $JsxElement.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.JsxFragment:
-      return new $JsxFragment(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $JsxFragment.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.JsxSelfClosingElement:
-      return new $JsxSelfClosingElement(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $JsxSelfClosingElement.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.PostfixUnaryExpression:
-      return new $PostfixUnaryExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $PostfixUnaryExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.PrefixUnaryExpression:
-      return new $PrefixUnaryExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $PrefixUnaryExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.AwaitExpression:
-      return new $AwaitExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $AwaitExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.DeleteExpression:
-      return new $DeleteExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $DeleteExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.TypeAssertionExpression:
-      return new $TypeAssertion(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $TypeAssertion.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.TypeOfExpression:
-      return new $TypeOfExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $TypeOfExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.VoidExpression:
-      return new $VoidExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $VoidExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     default:
       return $LHSExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
   }
@@ -697,52 +697,52 @@ export function $LHSExpression(
 ): $$LHSExpressionOrHigher {
   switch (node.kind) {
     case SyntaxKind.ArrayLiteralExpression:
-      return new $ArrayLiteralExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $ArrayLiteralExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.ClassExpression:
-      return new $ClassExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $ClassExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.FunctionExpression:
-      return new $FunctionExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $FunctionExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.Identifier:
-      return new $Identifier(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $Identifier.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.NewExpression:
-      return new $NewExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $NewExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.ObjectLiteralExpression:
-      return new $ObjectLiteralExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $ObjectLiteralExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.ParenthesizedExpression:
-      return new $ParenthesizedExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $ParenthesizedExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.TemplateExpression:
-      return new $TemplateExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $TemplateExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.ElementAccessExpression:
-      return new $ElementAccessExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $ElementAccessExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.NonNullExpression:
-      return new $NonNullExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $NonNullExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.PropertyAccessExpression:
-      return new $PropertyAccessExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $PropertyAccessExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.TaggedTemplateExpression:
-      return new $TaggedTemplateExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $TaggedTemplateExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.CallExpression:
-      return new $CallExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $CallExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.MetaProperty:
-      return new $MetaProperty(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $MetaProperty.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.ThisKeyword:
-      return new $ThisExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $ThisExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.SuperKeyword:
-      return new $SuperExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $SuperExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.NumericLiteral:
-      return new $NumericLiteral(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $NumericLiteral.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.BigIntLiteral:
-      return new $BigIntLiteral(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $BigIntLiteral.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.StringLiteral:
-      return new $StringLiteral(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $StringLiteral.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.RegularExpressionLiteral:
-      return new $RegularExpressionLiteral(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $RegularExpressionLiteral.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.NoSubstitutionTemplateLiteral:
-      return new $NoSubstitutionTemplateLiteral(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $NoSubstitutionTemplateLiteral.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.NullKeyword:
-      return new $NullLiteral(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $NullLiteral.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.TrueKeyword:
     case SyntaxKind.FalseKeyword:
-      return new $BooleanLiteral(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $BooleanLiteral.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     default:
       throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as any).kind]}.`);
   }
@@ -791,7 +791,7 @@ export function $identifier(
   if (node === void 0) {
     return void 0;
   }
-  return new $Identifier(node, ctx, idx, depth + 1, mos, realm, logger, path);
+  return $Identifier.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
 }
 
 export type $$PropertyName = (
@@ -813,13 +813,13 @@ export function $$propertyName(
 ): $$PropertyName {
   switch (node.kind) {
     case SyntaxKind.Identifier:
-      return new $Identifier(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $Identifier.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.StringLiteral:
-      return new $StringLiteral(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $StringLiteral.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.NumericLiteral:
-      return new $NumericLiteral(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $NumericLiteral.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.ComputedPropertyName:
-      return new $ComputedPropertyName(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $ComputedPropertyName.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
   }
 }
 
@@ -847,11 +847,11 @@ export function $$bindingName(
 ): $$BindingName {
   switch (node.kind) {
     case SyntaxKind.Identifier:
-      return new $Identifier(node, ctx | Context.IsBindingName, idx, depth + 1, mos, realm, logger, path);
+      return $Identifier.create(node, ctx | Context.IsBindingName, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.ObjectBindingPattern:
-      return new $ObjectBindingPattern(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $ObjectBindingPattern.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.ArrayBindingPattern:
-      return new $ArrayBindingPattern(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $ArrayBindingPattern.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
   }
 }
 
@@ -926,41 +926,41 @@ export function $$esStatement(
 ): $$ESStatement {
   switch (node.kind) {
     case SyntaxKind.Block:
-      return new $Block(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $Block.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.EmptyStatement:
-      return new $EmptyStatement(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $EmptyStatement.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.ExpressionStatement:
-      return new $ExpressionStatement(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $ExpressionStatement.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.IfStatement:
-      return new $IfStatement(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $IfStatement.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.DoStatement:
-      return new $DoStatement(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $DoStatement.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.WhileStatement:
-      return new $WhileStatement(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $WhileStatement.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.ForStatement:
-      return new $ForStatement(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $ForStatement.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.ForInStatement:
-      return new $ForInStatement(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $ForInStatement.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.ForOfStatement:
-      return new $ForOfStatement(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $ForOfStatement.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.ContinueStatement:
-      return new $ContinueStatement(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $ContinueStatement.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.BreakStatement:
-      return new $BreakStatement(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $BreakStatement.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.ReturnStatement:
-      return new $ReturnStatement(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $ReturnStatement.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.WithStatement:
-      return new $WithStatement(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $WithStatement.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.SwitchStatement:
-      return new $SwitchStatement(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $SwitchStatement.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.LabeledStatement:
-      return new $LabeledStatement(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $LabeledStatement.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.ThrowStatement:
-      return new $ThrowStatement(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $ThrowStatement.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.TryStatement:
-      return new $TryStatement(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $TryStatement.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.DebuggerStatement:
-      return new $DebuggerStatement(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $DebuggerStatement.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     default:
       throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as Node).kind]}.`);
   }
@@ -1005,17 +1005,17 @@ export function $$tsStatementListItem(
 ): $$TSStatementListItem {
   switch (node.kind) {
     case SyntaxKind.VariableStatement:
-      return new $VariableStatement(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $VariableStatement.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.FunctionDeclaration:
-      return new $FunctionDeclaration(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $FunctionDeclaration.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.ClassDeclaration:
-      return new $ClassDeclaration(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $ClassDeclaration.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.InterfaceDeclaration:
-      return new $InterfaceDeclaration(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $InterfaceDeclaration.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.TypeAliasDeclaration:
-      return new $TypeAliasDeclaration(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $TypeAliasDeclaration.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.EnumDeclaration:
-      return new $EnumDeclaration(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $EnumDeclaration.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     default:
       return $$esStatement(node, ctx, idx, depth + 1, mos, realm, logger, path);
   }
@@ -1063,9 +1063,9 @@ export function $$esLabelledItem(
 ): $$ESLabelledItem {
   switch (node.kind) {
     case SyntaxKind.VariableStatement:
-      return new $VariableStatement(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $VariableStatement.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.FunctionDeclaration:
-      return new $FunctionDeclaration(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $FunctionDeclaration.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     default:
       return $$esStatement(node, ctx, idx, depth + 1, mos, realm, logger, path);
   }
@@ -1291,13 +1291,13 @@ export function $decoratorList(
   }
 
   if (nodes.length === 1) {
-    return [new $Decorator(nodes[0], ctx, 0, depth + 1, mos, realm, logger, path)];
+    return [$Decorator.create(nodes[0], ctx, 0, depth + 1, mos, realm, logger, path)];
   }
 
   const len = nodes.length;
   const $nodes: $Decorator[] = Array(len);
   for (let i = 0; i < len; ++i) {
-    $nodes[i] = new $Decorator(nodes[i], ctx, i, depth + 1, mos, realm, logger, path);
+    $nodes[i] = $Decorator.create(nodes[i], ctx, i, depth + 1, mos, realm, logger, path);
   }
   return $nodes;
 }
@@ -1334,7 +1334,7 @@ export function $heritageClauseList(
   const len = nodes.length;
   const $nodes: $HeritageClause[] = Array(len);
   for (let i = 0; i < len; ++i) {
-    $nodes[i] = new $HeritageClause(nodes[i], ctx, i, depth + 1, mos, realm, logger, path);
+    $nodes[i] = $HeritageClause.create(nodes[i], ctx, i, depth + 1, mos, realm, logger, path);
   }
   return $nodes;
 }
@@ -1399,17 +1399,17 @@ export function $$classElement(
 ): $$ClassElement | undefined {
   switch (node.kind) {
     case SyntaxKind.PropertyDeclaration:
-      return new $PropertyDeclaration(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $PropertyDeclaration.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.SemicolonClassElement:
-      return new $SemicolonClassElement(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $SemicolonClassElement.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.MethodDeclaration:
-      return new $MethodDeclaration(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $MethodDeclaration.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.Constructor:
-      return new $ConstructorDeclaration(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $ConstructorDeclaration.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.GetAccessor:
-      return new $GetAccessorDeclaration(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $GetAccessorDeclaration.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.SetAccessor:
-      return new $SetAccessorDeclaration(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $SetAccessorDeclaration.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     default:
       return void 0;
   }

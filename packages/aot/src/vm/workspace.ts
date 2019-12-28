@@ -438,7 +438,7 @@ export class Workspace implements IContainer {
     if (script === void 0) {
       const sourceText = file.getContentSync();
       const sf = createSourceFile(file.path, sourceText, ScriptTarget.Latest, false);
-      script = new $ESScript(
+      script = $ESScript.create(
         /* logger */this.logger,
         /* $file  */file,
         /* node   */sf,
@@ -463,7 +463,7 @@ export class Workspace implements IContainer {
       const compilerOptions = this.getCompilerOptions(file.path, pkg);
       const sourceText = file.getContentSync();
       const sf = createSourceFile(file.path, sourceText, ScriptTarget.Latest, false);
-      esm = new $ESModule(
+      esm = $ESModule.create(
         /* logger          */this.logger,
         /* $file           */file,
         /* node            */sf,

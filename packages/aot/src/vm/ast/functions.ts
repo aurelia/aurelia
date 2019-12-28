@@ -137,20 +137,20 @@ export class $FormalParameterList extends Array<$ParameterDeclaration> {
   // 13.3.3.1 Static Semantics: BoundNames
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-boundnames
   // 14.1.3 Static Semantics: BoundNames
-  public readonly BoundNames: readonly $String[];
+  public BoundNames!: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-containsexpression
   // 14.1.5 Static Semantics: ContainsExpression
-  public readonly ContainsExpression: boolean = false;
+  public ContainsExpression: boolean = false;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-expectedargumentcount
   // 14.1.7 Static Semantics: ExpectedArgumentCount
-  public readonly ExpectedArgumentCount: number = 0;
+  public ExpectedArgumentCount: number = 0;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-hasinitializer
   // 14.1.8 Static Semantics: HasInitializer
-  public readonly HasInitializer: boolean = false;
+  public HasInitializer: boolean = false;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-issimpleparameterlist
   // 14.1.13 Static Semantics: IsSimpleParameterList
-  public readonly IsSimpleParameterList: boolean = true;
-  public readonly hasDuplicates: boolean = false;
+  public IsSimpleParameterList: boolean = true;
+  public hasDuplicates: boolean = false;
 
   public constructor(
     nodes: readonly ParameterDeclaration[] | undefined,
@@ -175,7 +175,7 @@ export class $FormalParameterList extends Array<$ParameterDeclaration> {
       let curBoundNames: readonly $String[];
       let curBoundName: $String;
       for (let i = 0, ii = nodes.length; i < ii; ++i) {
-        cur = super[i] = new $ParameterDeclaration(nodes[i], ctx, i, depth + 1, mos, realm, logger, path);
+        cur = super[i] = $ParameterDeclaration.create(nodes[i], ctx, i, depth + 1, mos, realm, logger, path);
 
         curBoundNames = cur.BoundNames;
         for (let j = 0, jj = curBoundNames.length; j < jj; ++j) {
@@ -213,52 +213,52 @@ export class $FormalParameterList extends Array<$ParameterDeclaration> {
 export class $FunctionExpression implements I$Node {
   public get $kind(): SyntaxKind.FunctionExpression { return SyntaxKind.FunctionExpression; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public modifierFlags!: ModifierFlags;
 
-  public readonly $name: $Identifier | undefined;
-  public readonly $parameters: $FormalParameterList;
-  public readonly $body: $Block;
+  public $name!: $Identifier | undefined;
+  public $parameters!: $FormalParameterList;
+  public $body!: $Block;
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-boundnames
   // 14.1.3 Static Semantics: BoundNames
-  public readonly BoundNames: readonly $String[];
+  public BoundNames!: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-containsusestrict
   // 14.1.6 Static Semantics: ContainsUseStrict
-  public readonly ContainsUseStrict: boolean;
+  public ContainsUseStrict!: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-hasname
   // 14.1.9 Static Semantics: HasName
-  public readonly HasName: boolean;
+  public HasName!: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-isconstantdeclaration
   // 14.1.11 Static Semantics: IsConstantDeclaration
-  public readonly IsConstantDeclaration: false = false;
+  public IsConstantDeclaration: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-isfunctiondefinition
   // 14.1.12 Static Semantics: IsFunctionDefinition
-  public readonly IsFunctionDefinition: true = true;
+  public IsFunctionDefinition: true = true;
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallydeclarednames
   // 14.1.14 Static Semantics: LexicallyDeclaredNames
-  public readonly LexicallyDeclaredNames: readonly $String[];
+  public LexicallyDeclaredNames!: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallyscopeddeclarations
   // 14.1.15 Static Semantics: LexicallyScopedDeclarations
-  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  public LexicallyScopedDeclarations!: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-vardeclarednames
   // 14.1.16 Static Semantics: VarDeclaredNames
-  public readonly VarDeclaredNames: readonly $String[];
+  public VarDeclaredNames!: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
   // 14.1.17 Static Semantics: VarScopedDeclarations
-  public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
+  public VarScopedDeclarations!: readonly $$ESVarDeclaration[];
 
-  public readonly DirectivePrologue: DirectivePrologue;
+  public DirectivePrologue!: DirectivePrologue;
 
-  public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
-  public readonly IsType: false = false;
+  public TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
+  public IsType: false = false;
 
-  public readonly functionKind: FunctionKind.normal | FunctionKind.generator | FunctionKind.async | FunctionKind.asyncGenerator;
+  public functionKind!: FunctionKind.normal | FunctionKind.generator | FunctionKind.async | FunctionKind.asyncGenerator;
 
   public parent!: $AnyParentNode;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: FunctionExpression,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -269,37 +269,52 @@ export class $FunctionExpression implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.FunctionExpression`;
+  }
 
-    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+  public static create(
+    node: FunctionExpression,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $FunctionExpression {
+    const $node = new $FunctionExpression(node, ctx, idx, depth, mos, realm, logger, path);
 
-    const $name = this.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
-    if ($name !== void 0) { $name.parent = this; }
-    const $parameters = this.$parameters = new $FormalParameterList(node.parameters, ctx, depth + 1, mos, realm, logger, path);
-    $parameters.forEach(x => x.parent = this);
-    const $body = this.$body = new $Block(node.body, ctx, -1, depth + 1, mos, realm, logger, path);
-    $body.parent = this;
-    const DirectivePrologue = this.DirectivePrologue = $body.DirectivePrologue;
+    const modifierFlags = $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    this.BoundNames = emptyArray;
-    this.ContainsUseStrict = DirectivePrologue.ContainsUseStrict;
-    this.HasName = $name !== void 0;
+    const $name = $node.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
+    if ($name !== void 0) { $name.parent = $node; }
+    const $parameters = $node.$parameters = new $FormalParameterList(node.parameters, ctx, depth + 1, mos, realm, logger, path);
+    $parameters.forEach(x => x.parent = $node);
+    const $body = $node.$body = $Block.create(node.body, ctx, -1, depth + 1, mos, realm, logger, path);
+    $body.parent = $node;
+    const DirectivePrologue = $node.DirectivePrologue = $body.DirectivePrologue;
 
-    this.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
-    this.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
-    this.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
-    this.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
+    $node.BoundNames = emptyArray;
+    $node.ContainsUseStrict = DirectivePrologue.ContainsUseStrict;
+    $node.HasName = $name !== void 0;
+
+    $node.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
+    $node.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
+    $node.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
+    $node.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
 
     if (!hasBit(modifierFlags, ModifierFlags.Async)) {
       if (node.asteriskToken === void 0) {
-        this.functionKind = FunctionKind.normal;
+        $node.functionKind = FunctionKind.normal;
       } else {
-        this.functionKind = FunctionKind.generator;
+        $node.functionKind = FunctionKind.generator;
       }
     } else if (node.asteriskToken === void 0) {
-      this.functionKind = FunctionKind.async;
+      $node.functionKind = FunctionKind.async;
     } else {
-      this.functionKind = FunctionKind.asyncGenerator;
+      $node.functionKind = FunctionKind.asyncGenerator;
     }
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
@@ -692,12 +707,12 @@ export class $FunctionExpression implements I$Node {
 export class $FunctionDeclaration implements I$Node {
   public get $kind(): SyntaxKind.FunctionDeclaration { return SyntaxKind.FunctionDeclaration; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public modifierFlags!: ModifierFlags;
 
-  public readonly $decorators: readonly $Decorator[];
-  public readonly $name: $Identifier | undefined;
-  public readonly $parameters: $FormalParameterList;
-  public readonly $body: $Block;
+  public $decorators!: readonly $Decorator[];
+  public $name!: $Identifier | undefined;
+  public $parameters!: $FormalParameterList;
+  public $body!: $Block;
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-boundnames
   // 14.1.3 Static Semantics: BoundNames
@@ -707,10 +722,10 @@ export class $FunctionDeclaration implements I$Node {
   // 14.5.2 Static Semantics: BoundNames
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-static-semantics-BoundNames
   // 14.7.2 Static Semantics: BoundNames
-  public readonly BoundNames: readonly [$String | $String<'*default*'>] | readonly $String[];
+  public BoundNames!: readonly [$String | $String<'*default*'>] | readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-containsusestrict
   // 14.1.6 Static Semantics: ContainsUseStrict
-  public readonly ContainsUseStrict: boolean;
+  public ContainsUseStrict!: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-hasname
   // 14.1.9 Static Semantics: HasName
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-static-semantics-hasname
@@ -719,7 +734,7 @@ export class $FunctionDeclaration implements I$Node {
   // 14.5.6 Static Semantics: HasName
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-static-semantics-HasName
   // 14.7.6 Static Semantics: HasName
-  public readonly HasName: boolean;
+  public HasName!: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-isconstantdeclaration
   // 14.1.11 Static Semantics: IsConstantDeclaration
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-static-semantics-isconstantdeclaration
@@ -728,7 +743,7 @@ export class $FunctionDeclaration implements I$Node {
   // 14.5.7 Static Semantics: IsConstantDeclaration
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-static-semantics-IsConstantDeclaration
   // 14.7.7 Static Semantics: IsConstantDeclaration
-  public readonly IsConstantDeclaration: false = false;
+  public IsConstantDeclaration: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-isfunctiondefinition
   // 14.1.12 Static Semantics: IsFunctionDefinition
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-static-semantics-isfunctiondefinition
@@ -737,20 +752,20 @@ export class $FunctionDeclaration implements I$Node {
   // 14.5.8 Static Semantics: IsFunctionDefinition
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-static-semantics-IsFunctionDefinition
   // 14.7.8 Static Semantics: IsFunctionDefinition
-  public readonly IsFunctionDefinition: true = true;
+  public IsFunctionDefinition: true = true;
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallydeclarednames
   // 14.1.14 Static Semantics: LexicallyDeclaredNames
-  public readonly LexicallyDeclaredNames: readonly $String[];
+  public LexicallyDeclaredNames!: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallyscopeddeclarations
   // 14.1.15 Static Semantics: LexicallyScopedDeclarations
-  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  public LexicallyScopedDeclarations!: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-vardeclarednames
   // 14.1.16 Static Semantics: VarDeclaredNames
-  public readonly VarDeclaredNames: readonly $String[];
+  public VarDeclaredNames!: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
   // 14.1.17 Static Semantics: VarScopedDeclarations
-  public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
+  public VarScopedDeclarations!: readonly $$ESVarDeclaration[];
 
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-static-semantics-propname
   // 14.4.9 Static Semantics: PropName
@@ -758,32 +773,32 @@ export class $FunctionDeclaration implements I$Node {
   // 14.5.9 Static Semantics: PropName
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-static-semantics-PropName
   // 14.7.9 Static Semantics: PropName
-  public readonly PropName: $String | $Undefined;
+  public PropName!: $String | $Undefined;
 
-  public readonly DirectivePrologue: DirectivePrologue;
+  public DirectivePrologue!: DirectivePrologue;
 
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportedbindings
   // 15.2.3.3 Static Semantics: ExportedBindings
-  public readonly ExportedBindings: readonly $String[];
+  public ExportedBindings!: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportednames
   // 15.2.3.4 Static Semantics: ExportedNames
-  public readonly ExportedNames: readonly $String[];
+  public ExportedNames!: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-exportentries
   // 15.2.3.5 Static Semantics: ExportEntries
-  public readonly ExportEntries: readonly ExportEntryRecord[];
+  public ExportEntries!: readonly ExportEntryRecord[];
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-modulerequests
   // 15.2.3.9 Static Semantics: ModuleRequests
-  public readonly ModuleRequests: readonly $String[] = emptyArray;
+  public ModuleRequests: readonly $String[] = emptyArray;
 
-  public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
-  public readonly IsType: false = false;
+  public TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
+  public IsType: false = false;
 
-  public readonly functionKind: FunctionKind.normal | FunctionKind.generator | FunctionKind.async | FunctionKind.asyncGenerator;
+  public functionKind!: FunctionKind.normal | FunctionKind.generator | FunctionKind.async | FunctionKind.asyncGenerator;
 
   public parent!: $NodeWithStatements;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: FunctionDeclaration,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -794,50 +809,63 @@ export class $FunctionDeclaration implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.FunctionDeclaration`;
+  }
+
+  public static create(
+    node: FunctionDeclaration,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $FunctionDeclaration {
+    const $node = new $FunctionDeclaration(node, ctx, idx, depth, mos, realm, logger, path);
 
     const intrinsics = realm['[[Intrinsics]]'];
 
-    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    const modifierFlags = $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     if (hasBit(modifierFlags, ModifierFlags.Export)) {
       ctx |= Context.InExport;
     }
 
-    const $decorators = this.$decorators = $decoratorList(node.decorators, ctx, depth + 1, mos, realm, logger, path);
-    $decorators.forEach(x => x.parent = this);
-    const $name = this.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
-    if ($name !== void 0) { $name.parent = this; }
-    const $parameters = this.$parameters = new $FormalParameterList(node.parameters, ctx, depth + 1, mos, realm, logger, path);
-    $parameters.forEach(x => x.parent = this);
-    const $body = this.$body = new $Block(node.body!, ctx, -1, depth + 1, mos, realm, logger, path);
-    $body.parent = this;
-    this.DirectivePrologue = $body.DirectivePrologue;
+    const $decorators = $node.$decorators = $decoratorList(node.decorators, ctx, depth + 1, mos, realm, logger, path);
+    $decorators.forEach(x => x.parent = $node);
+    const $name = $node.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
+    if ($name !== void 0) { $name.parent = $node; }
+    const $parameters = $node.$parameters = new $FormalParameterList(node.parameters, ctx, depth + 1, mos, realm, logger, path);
+    $parameters.forEach(x => x.parent = $node);
+    const $body = $node.$body = $Block.create(node.body!, ctx, -1, depth + 1, mos, realm, logger, path);
+    $body.parent = $node;
+    $node.DirectivePrologue = $body.DirectivePrologue;
 
-    this.ContainsUseStrict = this.DirectivePrologue.ContainsUseStrict === true;
-    const HasName = this.HasName = $name !== void 0;
+    $node.ContainsUseStrict = $node.DirectivePrologue.ContainsUseStrict === true;
+    const HasName = $node.HasName = $name !== void 0;
 
-    this.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
-    this.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
-    this.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
-    this.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
+    $node.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
+    $node.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
+    $node.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
+    $node.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
 
     if ($name === void 0) {
-      this.PropName = new $Undefined(realm);
+      $node.PropName = new $Undefined(realm);
     } else {
-      this.PropName = $name.PropName;
+      $node.PropName = $name.PropName;
     }
 
     if (hasBit(ctx, Context.InExport)) {
-      if (hasBit(this.modifierFlags, ModifierFlags.Default)) {
+      if (hasBit($node.modifierFlags, ModifierFlags.Default)) {
         if (HasName) {
           const [localName] = $name!.BoundNames;
-          const BoundNames = this.BoundNames = [localName, intrinsics['*default*']];
+          const BoundNames = $node.BoundNames = [localName, intrinsics['*default*']];
 
-          this.ExportedBindings = BoundNames;
-          this.ExportedNames = [intrinsics['default']];
-          this.ExportEntries = [
+          $node.ExportedBindings = BoundNames;
+          $node.ExportedNames = [intrinsics['default']];
+          $node.ExportEntries = [
             new ExportEntryRecord(
-              /* source */this,
+              /* source */$node,
               /* ExportName */intrinsics['default'],
               /* ModuleRequest */intrinsics.null,
               /* ImportName */intrinsics.null,
@@ -845,13 +873,13 @@ export class $FunctionDeclaration implements I$Node {
             ),
           ];
         } else {
-          const BoundNames = this.BoundNames = [intrinsics['*default*']];
+          const BoundNames = $node.BoundNames = [intrinsics['*default*']];
 
-          this.ExportedBindings = BoundNames;
-          this.ExportedNames = [intrinsics['default']];
-          this.ExportEntries = [
+          $node.ExportedBindings = BoundNames;
+          $node.ExportedNames = [intrinsics['default']];
+          $node.ExportEntries = [
             new ExportEntryRecord(
-              /* source */this,
+              /* source */$node,
               /* ExportName */intrinsics['default'],
               /* ModuleRequest */intrinsics.null,
               /* ImportName */intrinsics.null,
@@ -861,14 +889,14 @@ export class $FunctionDeclaration implements I$Node {
         }
       } else {
         // Must have a name, so we assume it does
-        const BoundNames = this.BoundNames = $name!.BoundNames;
+        const BoundNames = $node.BoundNames = $name!.BoundNames;
         const [localName] = BoundNames;
 
-        this.ExportedBindings = BoundNames;
-        this.ExportedNames = BoundNames;
-        this.ExportEntries = [
+        $node.ExportedBindings = BoundNames;
+        $node.ExportedNames = BoundNames;
+        $node.ExportEntries = [
           new ExportEntryRecord(
-            /* source */this,
+            /* source */$node,
             /* ExportName */localName,
             /* ModuleRequest */intrinsics.null,
             /* ImportName */intrinsics.null,
@@ -878,24 +906,26 @@ export class $FunctionDeclaration implements I$Node {
       }
     } else {
       // Must have a name, so we assume it does
-      this.BoundNames = $name!.BoundNames;
+      $node.BoundNames = $name!.BoundNames;
 
-      this.ExportedBindings = emptyArray;
-      this.ExportedNames = emptyArray;
-      this.ExportEntries = emptyArray;
+      $node.ExportedBindings = emptyArray;
+      $node.ExportedNames = emptyArray;
+      $node.ExportEntries = emptyArray;
     }
 
     if (!hasBit(modifierFlags, ModifierFlags.Async)) {
       if (node.asteriskToken === void 0) {
-        this.functionKind = FunctionKind.normal;
+        $node.functionKind = FunctionKind.normal;
       } else {
-        this.functionKind = FunctionKind.generator;
+        $node.functionKind = FunctionKind.generator;
       }
     } else if (node.asteriskToken === void 0) {
-      this.functionKind = FunctionKind.async;
+      $node.functionKind = FunctionKind.async;
     } else {
-      this.functionKind = FunctionKind.asyncGenerator;
+      $node.functionKind = FunctionKind.asyncGenerator;
     }
+
+    return $node;
   }
 
   public InstantiateFunctionObject(
@@ -1534,60 +1564,60 @@ export function $FunctionDeclarationInstantiation(
 export class $ArrowFunction implements I$Node {
   public get $kind(): SyntaxKind.ArrowFunction { return SyntaxKind.ArrowFunction; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public modifierFlags!: ModifierFlags;
 
-  public readonly $parameters: $FormalParameterList;
-  public readonly $body: $Block | $$AssignmentExpressionOrHigher;
+  public $parameters!: $FormalParameterList;
+  public $body!: $Block | $$AssignmentExpressionOrHigher;
 
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-boundnames
   // 14.2.2 Static Semantics: BoundNames
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-BoundNames
   // 14.8.3 Static Semantics: BoundNames
-  public readonly BoundNames: readonly $String[] = emptyArray;
+  public BoundNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-containsusestrict
   // 14.2.5 Static Semantics: ContainsUseStrict
-  public readonly ContainsUseStrict: boolean;
+  public ContainsUseStrict!: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-hasname
   // 14.2.7 Static Semantics: HasName
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-HasName
   // 14.8.7 Static Semantics: HasName
-  public readonly HasName: false = false;
+  public HasName: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-coveredformalslist
   // 14.2.9 Static Semantics: CoveredFormalsList
-  public readonly CoveredFormalsList: $FormalParameterList;
+  public CoveredFormalsList!: $FormalParameterList;
 
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-lexicallydeclarednames
   // 14.2.10 Static Semantics: LexicallyDeclaredNames
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-LexicallyDeclaredNames
   // 14.8.9 Static Semantics: LexicallyDeclaredNames
-  public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public LexicallyDeclaredNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-lexicallyscopeddeclarations
   // 14.2.11 Static Semantics: LexicallyScopedDeclarations
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-LexicallyScopedDeclarations
   // 14.8.10 Static Semantics: LexicallyScopedDeclarations
-  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+  public LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-vardeclarednames
   // 14.2.12 Static Semantics: VarDeclaredNames
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-VarDeclaredNames
   // 14.8.11 Static Semantics: VarDeclaredNames
-  public readonly VarDeclaredNames: readonly $String[] = emptyArray;
+  public VarDeclaredNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-static-semantics-varscopeddeclarations
   // 14.2.13 Static Semantics: VarScopedDeclarations
   // http://www.ecma-international.org/ecma-262/#sec-async-arrow-function-definitions-static-semantics-VarScopedDeclarations
   // 14.8.12 Static Semantics: VarScopedDeclarations
-  public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[] = emptyArray;
+  public VarScopedDeclarations: readonly $$ESVarDeclaration[] = emptyArray;
 
-  public readonly DirectivePrologue: DirectivePrologue;
+  public DirectivePrologue!: DirectivePrologue;
 
-  public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
-  public readonly IsType: false = false;
+  public TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
+  public IsType: false = false;
 
-  public readonly functionKind: FunctionKind.normal | FunctionKind.async;
+  public functionKind!: FunctionKind.normal | FunctionKind.async;
 
   public parent!: $AnyParentNode;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: ArrowFunction,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -1598,28 +1628,43 @@ export class $ArrowFunction implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.ArrowFunction`;
+  }
 
-    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+  public static create(
+    node: ArrowFunction,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $ArrowFunction {
+    const $node = new $ArrowFunction(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const modifierFlags = $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     if (node.body.kind === SyntaxKind.Block) {
-      const $parameters = this.$parameters = this.CoveredFormalsList = new $FormalParameterList(node.parameters, ctx, depth + 1, mos, realm, logger, path);
-      $parameters.forEach(x => x.parent = this);
-      const $body = this.$body = new $Block(node.body as Block, ctx, -1, depth + 1, mos, realm, logger, path);
-      $body.parent = this;
+      const $parameters = $node.$parameters = $node.CoveredFormalsList = new $FormalParameterList(node.parameters, ctx, depth + 1, mos, realm, logger, path);
+      $parameters.forEach(x => x.parent = $node);
+      const $body = $node.$body = $Block.create(node.body as Block, ctx, -1, depth + 1, mos, realm, logger, path);
+      $body.parent = $node;
 
-      this.DirectivePrologue = $body.DirectivePrologue;
-      this.ContainsUseStrict = this.DirectivePrologue.ContainsUseStrict === true;
+      $node.DirectivePrologue = $body.DirectivePrologue;
+      $node.ContainsUseStrict = $node.DirectivePrologue.ContainsUseStrict === true;
     } else {
-      const $parameters = this.$parameters = this.CoveredFormalsList = new $FormalParameterList(node.parameters, ctx, depth + 1, mos, realm, logger, path);
-      $parameters.forEach(x => x.parent = this);
-      const $body = this.$body = $assignmentExpression(node.body as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-      $body.parent = this;
+      const $parameters = $node.$parameters = $node.CoveredFormalsList = new $FormalParameterList(node.parameters, ctx, depth + 1, mos, realm, logger, path);
+      $parameters.forEach(x => x.parent = $node);
+      const $body = $node.$body = $assignmentExpression(node.body as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+      $body.parent = $node;
 
-      this.DirectivePrologue = NoDirectiveProgue;
-      this.ContainsUseStrict = false;
+      $node.DirectivePrologue = NoDirectiveProgue;
+      $node.ContainsUseStrict = false;
     }
 
-    this.functionKind = hasBit(modifierFlags, ModifierFlags.Async) ? FunctionKind.async : FunctionKind.normal;
+    $node.functionKind = hasBit(modifierFlags, ModifierFlags.Async) ? FunctionKind.async : FunctionKind.normal;
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-runtime-semantics-evaluation
@@ -1717,35 +1762,35 @@ export class MethodDefinitionRecord {
 export class $ConstructorDeclaration implements I$Node {
   public get $kind(): SyntaxKind.Constructor { return SyntaxKind.Constructor; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public modifierFlags!: ModifierFlags;
 
-  public readonly $decorators: readonly $Decorator[];
-  public readonly $parameters: $FormalParameterList;
-  public readonly $body: $Block;
+  public $decorators!: readonly $Decorator[];
+  public $parameters!: $FormalParameterList;
+  public $body!: $Block;
 
-  public readonly parameterProperties: readonly $ParameterDeclaration[];
+  public parameterProperties!: readonly $ParameterDeclaration[];
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallydeclarednames
   // 14.1.14 Static Semantics: LexicallyDeclaredNames
-  public readonly LexicallyDeclaredNames: readonly $String[];
+  public LexicallyDeclaredNames!: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-lexicallyscopeddeclarations
   // 14.1.15 Static Semantics: LexicallyScopedDeclarations
-  public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
+  public LexicallyScopedDeclarations!: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-vardeclarednames
   // 14.1.16 Static Semantics: VarDeclaredNames
-  public readonly VarDeclaredNames: readonly $String[];
+  public VarDeclaredNames!: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
   // 14.1.17 Static Semantics: VarScopedDeclarations
-  public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
+  public VarScopedDeclarations!: readonly $$ESVarDeclaration[];
 
-  public readonly functionKind: FunctionKind.normal = FunctionKind.normal;
+  public functionKind: FunctionKind.normal = FunctionKind.normal;
 
   public get isSynthetic(): boolean { return this.idx === -1; }
 
   public parent!: $ClassDeclaration | $ClassExpression;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: ConstructorDeclaration,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -1756,26 +1801,41 @@ export class $ConstructorDeclaration implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.ConstructorDeclaration`;
+  }
 
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+  public static create(
+    node: ConstructorDeclaration,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $ConstructorDeclaration {
+    const $node = new $ConstructorDeclaration(node, ctx, idx, depth, mos, realm, logger, path);
 
-    const $decorators = this.$decorators = $decoratorList(node.decorators, ctx, depth + 1, mos, realm, logger, path);
-    $decorators.forEach(x => x.parent = this);
-    const $parameters = this.$parameters = new $FormalParameterList(node.parameters, ctx, depth + 1, mos, realm, logger, path);
-    $parameters.forEach(x => x.parent = this);
+    $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
+
+    const $decorators = $node.$decorators = $decoratorList(node.decorators, ctx, depth + 1, mos, realm, logger, path);
+    $decorators.forEach(x => x.parent = $node);
+    const $parameters = $node.$parameters = new $FormalParameterList(node.parameters, ctx, depth + 1, mos, realm, logger, path);
+    $parameters.forEach(x => x.parent = $node);
     if ($parameters.length === 0) {
-      this.parameterProperties = emptyArray;
+      $node.parameterProperties = emptyArray;
     } else {
-      this.parameterProperties = $parameters.filter(p => hasBit(p.modifierFlags, ModifierFlags.ParameterPropertyModifier));
+      $node.parameterProperties = $parameters.filter(p => hasBit(p.modifierFlags, ModifierFlags.ParameterPropertyModifier));
     }
 
-    const $body = this.$body = new $Block(node.body!, ctx, -1, depth + 1, mos, realm, logger, path);
-    $body.parent = this;
+    const $body = $node.$body = $Block.create(node.body!, ctx, -1, depth + 1, mos, realm, logger, path);
+    $body.parent = $node;
 
-    this.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
-    this.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
-    this.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
-    this.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
+    $node.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
+    $node.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
+    $node.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
+    $node.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-definemethod
@@ -1859,29 +1919,29 @@ export class $ConstructorDeclaration implements I$Node {
 export class $ParameterDeclaration implements I$Node {
   public get $kind(): SyntaxKind.Parameter { return SyntaxKind.Parameter; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public modifierFlags!: ModifierFlags;
 
-  public readonly $decorators: readonly $Decorator[];
-  public readonly $name: $$BindingName;
-  public readonly $initializer: $$AssignmentExpressionOrHigher | undefined;
+  public $decorators!: readonly $Decorator[];
+  public $name!: $$BindingName;
+  public $initializer!: $$AssignmentExpressionOrHigher | undefined;
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-boundnames
   // 13.3.3.1 Static Semantics: BoundNames
-  public readonly BoundNames: readonly $String[] | readonly [$String];
+  public BoundNames!: readonly $String[] | readonly [$String];
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-containsexpression
   // 13.3.3.2 Static Semantics: ContainsExpression
-  public readonly ContainsExpression: boolean;
+  public ContainsExpression!: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-hasinitializer
   // 13.3.3.3 Static Semantics: HasInitializer
-  public readonly HasInitializer: boolean;
+  public HasInitializer!: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-issimpleparameterlist
   // 13.3.3.4 Static Semantics: IsSimpleParameterList
-  public readonly IsSimpleParameterList: boolean;
+  public IsSimpleParameterList!: boolean;
 
   public parent!: $$Function;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: ParameterDeclaration,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -1892,28 +1952,43 @@ export class $ParameterDeclaration implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.ParameterDeclaration`;
+  }
 
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+  public static create(
+    node: ParameterDeclaration,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $ParameterDeclaration {
+    const $node = new $ParameterDeclaration(node, ctx, idx, depth, mos, realm, logger, path);
+
+    $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
     ctx |= Context.InParameterDeclaration;
 
-    const $decorators = this.$decorators = $decoratorList(node.decorators, ctx, depth + 1, mos, realm, logger, path);
-    $decorators.forEach(x => x.parent = this);
-    const $name = this.$name = $$bindingName(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
-    $name.parent = this;
+    const $decorators = $node.$decorators = $decoratorList(node.decorators, ctx, depth + 1, mos, realm, logger, path);
+    $decorators.forEach(x => x.parent = $node);
+    const $name = $node.$name = $$bindingName(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
+    $name.parent = $node;
 
-    this.BoundNames = $name.BoundNames;
+    $node.BoundNames = $name.BoundNames;
     if (node.initializer === void 0) {
-      this.$initializer = void 0;
-      this.ContainsExpression = $name.ContainsExpression;
-      this.HasInitializer = false;
-      this.IsSimpleParameterList = $name.IsSimpleParameterList;
+      $node.$initializer = void 0;
+      $node.ContainsExpression = $name.ContainsExpression;
+      $node.HasInitializer = false;
+      $node.IsSimpleParameterList = $name.IsSimpleParameterList;
     } else {
-      const $initializer = this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-      $initializer.parent = this;
-      this.ContainsExpression = true;
-      this.HasInitializer = true;
-      this.IsSimpleParameterList = false;
+      const $initializer = $node.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+      $initializer.parent = $node;
+      $node.ContainsExpression = true;
+      $node.HasInitializer = true;
+      $node.IsSimpleParameterList = false;
     }
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-iteratorbindinginitialization

@@ -130,16 +130,16 @@ export type $$NamedDeclaration = (
 export class $ComputedPropertyName implements I$Node {
   public get $kind(): SyntaxKind.ComputedPropertyName { return SyntaxKind.ComputedPropertyName; }
 
-  public readonly $expression: $$AssignmentExpressionOrHigher;
+  public $expression!: $$AssignmentExpressionOrHigher;
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-static-semantics-propname
   // 12.2.6.5 Static Semantics: PropName
-  public readonly PropName: $String | $Empty;
+  public PropName!: $String | $Empty;
 
   public parent!: $$NamedDeclaration;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: ComputedPropertyName,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -150,11 +150,26 @@ export class $ComputedPropertyName implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.ComputedPropertyName`;
+  }
 
-    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = this;
+  public static create(
+    node: ComputedPropertyName,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $ComputedPropertyName {
+    const $node = new $ComputedPropertyName(node, ctx, idx, depth, mos, realm, logger, path);
 
-    this.PropName = new $Empty(realm, void 0, void 0, this);
+    const $expression = $node.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = $node;
+
+    $node.PropName = new $Empty(realm, void 0, void 0, $node);
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-evaluation
@@ -202,25 +217,25 @@ export class $ComputedPropertyName implements I$Node {
 export class $ObjectBindingPattern implements I$Node {
   public get $kind(): SyntaxKind.ObjectBindingPattern { return SyntaxKind.ObjectBindingPattern; }
 
-  public readonly $elements: readonly $BindingElement[];
+  public $elements!: readonly $BindingElement[];
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-boundnames
   // 13.3.3.1 Static Semantics: BoundNames
-  public readonly BoundNames: readonly $String[];
+  public BoundNames!: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-containsexpression
   // 13.3.3.2 Static Semantics: ContainsExpression
-  public readonly ContainsExpression: boolean;
+  public ContainsExpression!: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-hasinitializer
   // 13.3.3.3 Static Semantics: HasInitializer
-  public readonly HasInitializer: boolean;
+  public HasInitializer!: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-issimpleparameterlist
   // 13.3.3.4 Static Semantics: IsSimpleParameterList
-  public readonly IsSimpleParameterList: boolean;
+  public IsSimpleParameterList!: boolean;
 
   public parent!: $$DestructurableBinding;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: ObjectBindingPattern,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -231,16 +246,31 @@ export class $ObjectBindingPattern implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.ObjectBindingPattern`;
+  }
+
+  public static create(
+    node: ObjectBindingPattern,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $ObjectBindingPattern {
+    const $node = new $ObjectBindingPattern(node, ctx, idx, depth, mos, realm, logger, path);
 
     ctx |= Context.InBindingPattern;
 
-    const $elements = this.$elements = $bindingElementList(node.elements, ctx, depth + 1, mos, realm, logger, path);
-    $elements.forEach(x => x.parent = this);
+    const $elements = $node.$elements = $bindingElementList(node.elements, ctx, depth + 1, mos, realm, logger, path);
+    $elements.forEach(x => x.parent = $node);
 
-    this.BoundNames = $elements.flatMap(getBoundNames);
-    this.ContainsExpression = $elements.some(getContainsExpression);
-    this.HasInitializer = $elements.some(getHasInitializer);
-    this.IsSimpleParameterList = $elements.every(getIsSimpleParameterList);
+    $node.BoundNames = $elements.flatMap(getBoundNames);
+    $node.ContainsExpression = $elements.some(getContainsExpression);
+    $node.HasInitializer = $elements.some(getHasInitializer);
+    $node.IsSimpleParameterList = $elements.every(getIsSimpleParameterList);
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-bindinginitialization
@@ -329,9 +359,9 @@ export function $$arrayBindingElement(
 ): $$ArrayBindingElement {
   switch (node.kind) {
     case SyntaxKind.BindingElement:
-      return new $BindingElement(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $BindingElement.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.OmittedExpression:
-      return new $OmittedExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $OmittedExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
   }
 }
 
@@ -367,7 +397,7 @@ export function $bindingElementList(
   const $nodes: $BindingElement[] = Array(len);
 
   for (let i = 0; i < len; ++i) {
-    $nodes[i] = new $BindingElement(nodes[i], ctx, i, depth + 1, mos, realm, logger, path);
+    $nodes[i] = $BindingElement.create(nodes[i], ctx, i, depth + 1, mos, realm, logger, path);
   }
 
   return $nodes;
@@ -376,25 +406,25 @@ export function $bindingElementList(
 export class $ArrayBindingPattern implements I$Node {
   public get $kind(): SyntaxKind.ArrayBindingPattern { return SyntaxKind.ArrayBindingPattern; }
 
-  public readonly $elements: readonly $$ArrayBindingElement[];
+  public $elements!: readonly $$ArrayBindingElement[];
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-boundnames
   // 13.3.3.1 Static Semantics: BoundNames
-  public readonly BoundNames: readonly $String[];
+  public BoundNames!: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-containsexpression
   // 13.3.3.2 Static Semantics: ContainsExpression
-  public readonly ContainsExpression: boolean;
+  public ContainsExpression!: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-hasinitializer
   // 13.3.3.3 Static Semantics: HasInitializer
-  public readonly HasInitializer: boolean;
+  public HasInitializer!: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-issimpleparameterlist
   // 13.3.3.4 Static Semantics: IsSimpleParameterList
-  public readonly IsSimpleParameterList: boolean;
+  public IsSimpleParameterList!: boolean;
 
   public parent!: $$DestructurableBinding;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: ArrayBindingPattern,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -405,16 +435,31 @@ export class $ArrayBindingPattern implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.ArrayBindingPattern`;
+  }
+
+  public static create(
+    node: ArrayBindingPattern,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $ArrayBindingPattern {
+    const $node = new $ArrayBindingPattern(node, ctx, idx, depth, mos, realm, logger, path);
 
     ctx |= Context.InBindingPattern;
 
-    const $elements = this.$elements = $$arrayBindingElementList(node.elements, ctx, depth + 1, mos, realm, logger, path);
-    $elements.forEach(x => x.parent = this);
+    const $elements = $node.$elements = $$arrayBindingElementList(node.elements, ctx, depth + 1, mos, realm, logger, path);
+    $elements.forEach(x => x.parent = $node);
 
-    this.BoundNames = $elements.flatMap(getBoundNames);
-    this.ContainsExpression = $elements.some(getContainsExpression);
-    this.HasInitializer = $elements.some(getHasInitializer);
-    this.IsSimpleParameterList = $elements.every(getIsSimpleParameterList);
+    $node.BoundNames = $elements.flatMap(getBoundNames);
+    $node.ContainsExpression = $elements.some(getContainsExpression);
+    $node.HasInitializer = $elements.some(getHasInitializer);
+    $node.IsSimpleParameterList = $elements.every(getIsSimpleParameterList);
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-bindinginitialization
@@ -539,29 +584,29 @@ export type $$BindingPattern = (
 export class $BindingElement implements I$Node {
   public get $kind(): SyntaxKind.BindingElement { return SyntaxKind.BindingElement; }
 
-  public readonly modifierFlags: ModifierFlags;
+  public modifierFlags!: ModifierFlags;
 
-  public readonly $propertyName: $$PropertyName | undefined;
-  public readonly $name: $$BindingName;
-  public readonly $initializer: $$AssignmentExpressionOrHigher | undefined;
+  public $propertyName!: $$PropertyName | undefined;
+  public $name!: $$BindingName;
+  public $initializer!: $$AssignmentExpressionOrHigher | undefined;
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-boundnames
   // 13.3.3.1 Static Semantics: BoundNames
-  public readonly BoundNames: readonly $String[];
+  public BoundNames!: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-containsexpression
   // 13.3.3.2 Static Semantics: ContainsExpression
-  public readonly ContainsExpression: boolean;
+  public ContainsExpression!: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-hasinitializer
   // 13.3.3.3 Static Semantics: HasInitializer
-  public readonly HasInitializer: boolean;
+  public HasInitializer!: boolean;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-issimpleparameterlist
   // 13.3.3.4 Static Semantics: IsSimpleParameterList
-  public readonly IsSimpleParameterList: boolean;
+  public IsSimpleParameterList!: boolean;
 
   public parent!: $$BindingPattern;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: BindingElement,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -572,56 +617,71 @@ export class $BindingElement implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.BindingElement`;
+  }
 
-    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
+  public static create(
+    node: BindingElement,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $BindingElement {
+    const $node = new $BindingElement(node, ctx, idx, depth, mos, realm, logger, path);
+
+    $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     ctx = clearBit(ctx, Context.IsBindingName);
 
     if (node.propertyName === void 0) {
-      this.$propertyName = void 0;
-      const $name = this.$name = $$bindingName(node.name, ctx | Context.IsBindingName, -1, depth + 1, mos, realm, logger, path);
-      $name.parent = this;
+      $node.$propertyName = void 0;
+      const $name = $node.$name = $$bindingName(node.name, ctx | Context.IsBindingName, -1, depth + 1, mos, realm, logger, path);
+      $name.parent = $node;
 
-      this.BoundNames = $name.BoundNames;
+      $node.BoundNames = $name.BoundNames;
 
       if (node.initializer === void 0) {
-        this.$initializer = void 0;
+        $node.$initializer = void 0;
 
-        this.ContainsExpression = $name.ContainsExpression;
-        this.HasInitializer = false;
-        this.IsSimpleParameterList = $name.$kind === SyntaxKind.Identifier;
+        $node.ContainsExpression = $name.ContainsExpression;
+        $node.HasInitializer = false;
+        $node.IsSimpleParameterList = $name.$kind === SyntaxKind.Identifier;
       } else {
-        const $initializer = this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-        $initializer.parent = this;
+        const $initializer = $node.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+        $initializer.parent = $node;
 
-        this.ContainsExpression = true;
-        this.HasInitializer = true;
-        this.IsSimpleParameterList = false;
+        $node.ContainsExpression = true;
+        $node.HasInitializer = true;
+        $node.IsSimpleParameterList = false;
       }
 
     } else {
-      const $propertyName = this.$propertyName = $$propertyName(node.propertyName, ctx, -1, depth + 1, mos, realm, logger, path);
-      $propertyName.parent = this;
-      const $name = this.$name = $$bindingName(node.name, ctx | Context.IsBindingName, -1, depth + 1, mos, realm, logger, path);
-      $name.parent = this;
+      const $propertyName = $node.$propertyName = $$propertyName(node.propertyName, ctx, -1, depth + 1, mos, realm, logger, path);
+      $propertyName.parent = $node;
+      const $name = $node.$name = $$bindingName(node.name, ctx | Context.IsBindingName, -1, depth + 1, mos, realm, logger, path);
+      $name.parent = $node;
 
-      this.BoundNames = $name.BoundNames;
+      $node.BoundNames = $name.BoundNames;
 
       if (node.initializer === void 0) {
-        this.$initializer = void 0;
+        $node.$initializer = void 0;
 
-        this.ContainsExpression = $propertyName.$kind === SyntaxKind.ComputedPropertyName || $name.ContainsExpression;
-        this.HasInitializer = false;
-        this.IsSimpleParameterList = $name.$kind === SyntaxKind.Identifier;
+        $node.ContainsExpression = $propertyName.$kind === SyntaxKind.ComputedPropertyName || $name.ContainsExpression;
+        $node.HasInitializer = false;
+        $node.IsSimpleParameterList = $name.$kind === SyntaxKind.Identifier;
       } else {
-        const $initializer = this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-        $initializer.parent = this;
+        const $initializer = $node.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+        $initializer.parent = $node;
 
-        this.ContainsExpression = true;
-        this.HasInitializer = true;
-        this.IsSimpleParameterList = false;
+        $node.ContainsExpression = true;
+        $node.HasInitializer = true;
+        $node.IsSimpleParameterList = false;
       }
     }
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-propertybindinginitialization
@@ -851,12 +911,12 @@ export class $BindingElement implements I$Node {
 export class $SpreadElement implements I$Node {
   public get $kind(): SyntaxKind.SpreadElement { return SyntaxKind.SpreadElement; }
 
-  public readonly $expression: $$AssignmentExpressionOrHigher;
+  public $expression!: $$AssignmentExpressionOrHigher;
 
   public parent!: $NodeWithSpreadElements;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: SpreadElement,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -867,9 +927,24 @@ export class $SpreadElement implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.SpreadElement`;
+  }
 
-    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = this;
+  public static create(
+    node: SpreadElement,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $SpreadElement {
+    const $node = new $SpreadElement(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $expression = $node.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = $node;
+
+    return $node;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-argument-lists-runtime-semantics-argumentlistevaluation
@@ -981,21 +1056,21 @@ export class $OmittedExpression implements I$Node {
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-boundnames
   // 13.3.3.1 Static Semantics: BoundNames
-  public readonly BoundNames: readonly $String[] = emptyArray;
+  public BoundNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-containsexpression
   // 13.3.3.2 Static Semantics: ContainsExpression
-  public readonly ContainsExpression: false = false;
+  public ContainsExpression: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-hasinitializer
   // 13.3.3.3 Static Semantics: HasInitializer
-  public readonly HasInitializer: false = false;
+  public HasInitializer: false = false;
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-issimpleparameterlist
   // 13.3.3.4 Static Semantics: IsSimpleParameterList
-  public readonly IsSimpleParameterList: false = false;
+  public IsSimpleParameterList: false = false;
 
   public parent!: $ArrayBindingPattern | $ArrayLiteralExpression | $NewExpression | $CallExpression;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: OmittedExpression,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -1006,7 +1081,21 @@ export class $OmittedExpression implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.OmittedExpression`;
-}
+  }
+
+  public static create(
+    node: OmittedExpression,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $OmittedExpression {
+    const $node = new $OmittedExpression(node, ctx, idx, depth, mos, realm, logger, path);
+    return $node;
+  }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-iteratordestructuringassignmentevaluation
   // 12.15.5.5 Runtime Semantics: IteratorDestructuringAssignmentEvaluation

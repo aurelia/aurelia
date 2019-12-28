@@ -503,7 +503,7 @@ export function $CreateDynamicFunction(
   ).statements[0] as FunctionDeclaration;
   const ScriptOrModule = callerContext.ScriptOrModule as $ESModule;
 
-  const $functionDeclaration = new $FunctionDeclaration(
+  const $functionDeclaration = $FunctionDeclaration.create(
     node,
     Context.Dynamic,
     -1,

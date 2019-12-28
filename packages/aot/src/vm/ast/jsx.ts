@@ -87,19 +87,19 @@ export function $$jsxChildList(
   for (let i = 0; i < len; ++i) {
     switch (nodes[i].kind) {
       case SyntaxKind.JsxText:
-        $nodes[i] = new $JsxText(nodes[i] as JsxText, ctx, i, depth + 1, mos, realm, logger, path);
+        $nodes[i] = $JsxText.create(nodes[i] as JsxText, ctx, i, depth + 1, mos, realm, logger, path);
         break;
       case SyntaxKind.JsxExpression:
-        $nodes[i] = new $JsxExpression(nodes[i] as JsxExpression, ctx, i, depth + 1, mos, realm, logger, path);
+        $nodes[i] = $JsxExpression.create(nodes[i] as JsxExpression, ctx, i, depth + 1, mos, realm, logger, path);
         break;
       case SyntaxKind.JsxElement:
-        $nodes[i] = new $JsxElement(nodes[i] as JsxElement, ctx, i, depth + 1, mos, realm, logger, path);
+        $nodes[i] = $JsxElement.create(nodes[i] as JsxElement, ctx, i, depth + 1, mos, realm, logger, path);
         break;
       case SyntaxKind.JsxSelfClosingElement:
-        $nodes[i] = new $JsxSelfClosingElement(nodes[i] as JsxSelfClosingElement, ctx, i, depth + 1, mos, realm, logger, path);
+        $nodes[i] = $JsxSelfClosingElement.create(nodes[i] as JsxSelfClosingElement, ctx, i, depth + 1, mos, realm, logger, path);
         break;
       case SyntaxKind.JsxFragment:
-        $nodes[i] = new $JsxFragment(nodes[i] as JsxFragment, ctx, i, depth + 1, mos, realm, logger, path);
+        $nodes[i] = $JsxFragment.create(nodes[i] as JsxFragment, ctx, i, depth + 1, mos, realm, logger, path);
         break;
     }
   }
@@ -109,14 +109,14 @@ export function $$jsxChildList(
 export class $JsxElement implements I$Node {
   public get $kind(): SyntaxKind.JsxElement { return SyntaxKind.JsxElement; }
 
-  public readonly $openingElement: $JsxOpeningElement;
-  public readonly $children: readonly $$JsxChild[];
-  public readonly $closingElement: $JsxClosingElement;
+  public $openingElement!: $JsxOpeningElement;
+  public $children!: readonly $$JsxChild[];
+  public $closingElement!: $JsxClosingElement;
 
   public parent!: $$JsxParent;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: JsxElement,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -127,13 +127,28 @@ export class $JsxElement implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.JsxElement`;
+  }
 
-    const $openingElement = this.$openingElement = new $JsxOpeningElement(node.openingElement, ctx, depth + 1, mos, realm, logger, path);
-    $openingElement.parent = this;
-    const $children = this.$children = $$jsxChildList(node.children, ctx, depth + 1, mos, realm, logger, path);
-    $children.forEach(x => x.parent = this);
-    const $closingElement = this.$closingElement = new $JsxClosingElement(node.closingElement, ctx, depth + 1, mos, realm, logger, path);
-    $closingElement.parent = this;
+  public static create(
+    node: JsxElement,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $JsxElement {
+    const $node = new $JsxElement(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $openingElement = $node.$openingElement = $JsxOpeningElement.create(node.openingElement, ctx, depth + 1, mos, realm, logger, path);
+    $openingElement.parent = $node;
+    const $children = $node.$children = $$jsxChildList(node.children, ctx, depth + 1, mos, realm, logger, path);
+    $children.forEach(x => x.parent = $node);
+    const $closingElement = $node.$closingElement = $JsxClosingElement.create(node.closingElement, ctx, depth + 1, mos, realm, logger, path);
+    $closingElement.parent = $node;
+
+    return $node;
   }
 
   public Evaluate(
@@ -182,11 +197,11 @@ export function $$jsxTagNameExpression(
 ): $$JsxTagNameExpression {
   switch (node.kind) {
     case SyntaxKind.Identifier:
-      return new $Identifier(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $Identifier.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.ThisKeyword:
-      return new $ThisExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $ThisExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.PropertyAccessExpression:
-      return new $PropertyAccessExpression(node, ctx, idx, depth + 1, mos, realm, logger, path) as $$JsxTagNamePropertyAccess;
+      return $PropertyAccessExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path) as $$JsxTagNamePropertyAccess;
     default:
       throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as Node).kind]}.`);
   }
@@ -195,13 +210,13 @@ export function $$jsxTagNameExpression(
 export class $JsxSelfClosingElement implements I$Node {
   public get $kind(): SyntaxKind.JsxSelfClosingElement { return SyntaxKind.JsxSelfClosingElement; }
 
-  public readonly $tagName: $$JsxTagNameExpression;
-  public readonly $attributes: $JsxAttributes;
+  public $tagName!: $$JsxTagNameExpression;
+  public $attributes!: $JsxAttributes;
 
   public parent!: $$JsxParent;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: JsxSelfClosingElement,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -212,11 +227,26 @@ export class $JsxSelfClosingElement implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.JsxSelfClosingElement`;
+  }
 
-    const $tagName = this.$tagName = $$jsxTagNameExpression(node.tagName, ctx, -1, depth + 1, mos, realm, logger, path);
-    $tagName.parent = this;
-    const $attributes = this.$attributes = new $JsxAttributes(node.attributes, ctx, depth + 1, mos, realm, logger, path);
-    $attributes.parent = this;
+  public static create(
+    node: JsxSelfClosingElement,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $JsxSelfClosingElement {
+    const $node = new $JsxSelfClosingElement(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $tagName = $node.$tagName = $$jsxTagNameExpression(node.tagName, ctx, -1, depth + 1, mos, realm, logger, path);
+    $tagName.parent = $node;
+    const $attributes = $node.$attributes = $JsxAttributes.create(node.attributes, ctx, depth + 1, mos, realm, logger, path);
+    $attributes.parent = $node;
+
+    return $node;
   }
 
   public Evaluate(
@@ -240,14 +270,14 @@ export class $JsxSelfClosingElement implements I$Node {
 export class $JsxFragment implements I$Node {
   public get $kind(): SyntaxKind.JsxFragment { return SyntaxKind.JsxFragment; }
 
-  public readonly $openingFragment: $JsxOpeningFragment;
-  public readonly $children: readonly $$JsxChild[];
-  public readonly $closingFragment: $JsxClosingFragment;
+  public $openingFragment!: $JsxOpeningFragment;
+  public $children!: readonly $$JsxChild[];
+  public $closingFragment!: $JsxClosingFragment;
 
   public parent!: $$JsxParent;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: JsxFragment,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -258,13 +288,28 @@ export class $JsxFragment implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.JsxFragment`;
+  }
 
-    const $openingFragment = this.$openingFragment = new $JsxOpeningFragment(node.openingFragment, ctx, depth + 1, mos, realm, logger, path);
-    $openingFragment.parent = this;
-    const $children = this.$children = $$jsxChildList(node.children, ctx, depth + 1, mos, realm, logger, path);
-    $children.forEach(x => x.parent = this);
-    const $closingFragment = this.$closingFragment = new $JsxClosingFragment(node.closingFragment, ctx, depth + 1, mos, realm, logger, path);
-    $closingFragment.parent = this;
+  public static create(
+    node: JsxFragment,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $JsxFragment {
+    const $node = new $JsxFragment(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $openingFragment = $node.$openingFragment = $JsxOpeningFragment.create(node.openingFragment, ctx, depth + 1, mos, realm, logger, path);
+    $openingFragment.parent = $node;
+    const $children = $node.$children = $$jsxChildList(node.children, ctx, depth + 1, mos, realm, logger, path);
+    $children.forEach(x => x.parent = $node);
+    const $closingFragment = $node.$closingFragment = $JsxClosingFragment.create(node.closingFragment, ctx, depth + 1, mos, realm, logger, path);
+    $closingFragment.parent = $node;
+
+    return $node;
   }
 
   public Evaluate(
@@ -291,7 +336,7 @@ export class $JsxText implements I$Node {
   public parent!: $$JsxParent;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: JsxText,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -302,7 +347,21 @@ export class $JsxText implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.JsxText`;
-}
+  }
+
+  public static create(
+    node: JsxText,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $JsxText {
+    const $node = new $JsxText(node, ctx, idx, depth, mos, realm, logger, path);
+    return $node;
+  }
 
   public Evaluate(
     ctx: ExecutionContext,
@@ -325,13 +384,13 @@ export class $JsxText implements I$Node {
 export class $JsxOpeningElement implements I$Node {
   public get $kind(): SyntaxKind.JsxOpeningElement { return SyntaxKind.JsxOpeningElement; }
 
-  public readonly $tagName: $$JsxTagNameExpression;
-  public readonly $attributes: $JsxAttributes;
+  public $tagName!: $$JsxTagNameExpression;
+  public $attributes!: $JsxAttributes;
 
   public parent!: $JsxElement;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: JsxOpeningElement,
     public readonly ctx: Context,
     public readonly depth: number,
@@ -341,11 +400,25 @@ export class $JsxOpeningElement implements I$Node {
     path: string,
   ) {
     this.path = `${path}.JsxOpeningElement`;
+  }
 
-    const $tagName = this.$tagName = $$jsxTagNameExpression(node.tagName, ctx, -1, depth + 1, mos, realm, logger, path);
-    $tagName.parent = this;
-    const $attributes = this.$attributes = new $JsxAttributes(node.attributes, ctx, depth + 1, mos, realm, logger, path);
-    $attributes.parent = this;
+  public static create(
+    node: JsxOpeningElement,
+    ctx: Context,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $JsxOpeningElement {
+    const $node = new $JsxOpeningElement(node, ctx, depth, mos, realm, logger, path);
+
+    const $tagName = $node.$tagName = $$jsxTagNameExpression(node.tagName, ctx, -1, depth + 1, mos, realm, logger, path);
+    $tagName.parent = $node;
+    const $attributes = $node.$attributes = $JsxAttributes.create(node.attributes, ctx, depth + 1, mos, realm, logger, path);
+    $attributes.parent = $node;
+
+    return $node;
   }
 
   public Evaluate(
@@ -369,12 +442,12 @@ export class $JsxOpeningElement implements I$Node {
 export class $JsxClosingElement implements I$Node {
   public get $kind(): SyntaxKind.JsxClosingElement { return SyntaxKind.JsxClosingElement; }
 
-  public readonly $tagName: $$JsxTagNameExpression;
+  public $tagName!: $$JsxTagNameExpression;
 
   public parent!: $JsxElement;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: JsxClosingElement,
     public readonly ctx: Context,
     public readonly depth: number,
@@ -384,9 +457,23 @@ export class $JsxClosingElement implements I$Node {
     path: string,
   ) {
     this.path = `${path}.JsxClosingElement`;
+  }
 
-    const $tagName = this.$tagName = $$jsxTagNameExpression(node.tagName, ctx, -1, depth + 1, mos, realm, logger, path);
-    $tagName.parent = this;
+  public static create(
+    node: JsxClosingElement,
+    ctx: Context,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $JsxClosingElement {
+    const $node = new $JsxClosingElement(node, ctx, depth, mos, realm, logger, path);
+
+    const $tagName = $node.$tagName = $$jsxTagNameExpression(node.tagName, ctx, -1, depth + 1, mos, realm, logger, path);
+    $tagName.parent = $node;
+
+    return $node;
   }
 
   public Evaluate(
@@ -413,7 +500,7 @@ export class $JsxOpeningFragment implements I$Node {
   public parent!: $JsxFragment;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: JsxOpeningFragment,
     public readonly ctx: Context,
     public readonly depth: number,
@@ -423,7 +510,20 @@ export class $JsxOpeningFragment implements I$Node {
     path: string,
   ) {
     this.path = `${path}.JsxOpeningFragment`;
-}
+  }
+
+  public static create(
+    node: JsxOpeningFragment,
+    ctx: Context,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $JsxOpeningFragment {
+    const $node = new $JsxOpeningFragment(node, ctx, depth, mos, realm, logger, path);
+    return $node;
+  }
 
   public Evaluate(
     ctx: ExecutionContext,
@@ -449,7 +549,7 @@ export class $JsxClosingFragment implements I$Node {
   public parent!: $JsxFragment;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: JsxClosingFragment,
     public readonly ctx: Context,
     public readonly depth: number,
@@ -459,7 +559,20 @@ export class $JsxClosingFragment implements I$Node {
     path: string,
   ) {
     this.path = `${path}.JsxClosingFragment`;
-}
+  }
+
+  public static create(
+    node: JsxClosingFragment,
+    ctx: Context,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $JsxClosingFragment {
+    const $node = new $JsxClosingFragment(node, ctx, depth, mos, realm, logger, path);
+    return $node;
+  }
 
   public Evaluate(
     ctx: ExecutionContext,
@@ -482,13 +595,13 @@ export class $JsxClosingFragment implements I$Node {
 export class $JsxAttribute implements I$Node {
   public get $kind(): SyntaxKind.JsxAttribute { return SyntaxKind.JsxAttribute; }
 
-  public readonly $name: $Identifier;
-  public readonly $initializer: $StringLiteral | $JsxExpression | undefined;
+  public $name!: $Identifier;
+  public $initializer!: $StringLiteral | $JsxExpression | undefined;
 
   public parent!: $JsxAttributes;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: JsxAttribute,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -499,20 +612,35 @@ export class $JsxAttribute implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.JsxAttribute`;
+  }
 
-    const $name = this.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
-    $name.parent = this;
+  public static create(
+    node: JsxAttribute,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $JsxAttribute {
+    const $node = new $JsxAttribute(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $name = $node.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
+    $name.parent = $node;
     if (node.initializer === void 0) {
-      this.$initializer = void 0;
+      $node.$initializer = void 0;
     } else {
       if (node.initializer.kind === SyntaxKind.StringLiteral) {
-        const $initializer = this.$initializer = new $StringLiteral(node.initializer, ctx, -1, depth + 1, mos, realm, logger, path);
-        $initializer.parent = this;
+        const $initializer = $node.$initializer = $StringLiteral.create(node.initializer, ctx, -1, depth + 1, mos, realm, logger, path);
+        $initializer.parent = $node;
       } else {
-        const $initializer = this.$initializer = new $JsxExpression(node.initializer, ctx, -1, depth + 1, mos, realm, logger, path);
-        $initializer.parent = this;
+        const $initializer = $node.$initializer = $JsxExpression.create(node.initializer, ctx, -1, depth + 1, mos, realm, logger, path);
+        $initializer.parent = $node;
       }
     }
+
+    return $node;
   }
 
   public transform(tctx: TransformationContext): this['node'] {
@@ -543,10 +671,10 @@ export function $$jsxAttributeLikeList(
   for (let i = 0; i < len; ++i) {
     switch (nodes[i].kind) {
       case SyntaxKind.JsxAttribute:
-        $nodes[i] = new $JsxAttribute(nodes[i] as JsxAttribute, ctx, i, depth + 1, mos, realm, logger, path);
+        $nodes[i] = $JsxAttribute.create(nodes[i] as JsxAttribute, ctx, i, depth + 1, mos, realm, logger, path);
         break;
       case SyntaxKind.JsxSpreadAttribute:
-        $nodes[i] = new $JsxSpreadAttribute(nodes[i] as JsxSpreadAttribute, ctx, i, depth + 1, mos, realm, logger, path);
+        $nodes[i] = $JsxSpreadAttribute.create(nodes[i] as JsxSpreadAttribute, ctx, i, depth + 1, mos, realm, logger, path);
         break;
     }
   }
@@ -556,12 +684,12 @@ export function $$jsxAttributeLikeList(
 export class $JsxAttributes implements I$Node {
   public get $kind(): SyntaxKind.JsxAttributes { return SyntaxKind.JsxAttributes; }
 
-  public readonly $properties: readonly $$JsxAttributeLike[];
+  public $properties!: readonly $$JsxAttributeLike[];
 
   public parent!: $$JsxOpeningLikeElement;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: JsxAttributes,
     public readonly ctx: Context,
     public readonly depth: number,
@@ -571,9 +699,23 @@ export class $JsxAttributes implements I$Node {
     path: string,
   ) {
     this.path = `${path}.JsxAttributes`;
+  }
 
-    const $properties = this.$properties = $$jsxAttributeLikeList(node.properties, ctx, depth + 1, mos, realm, logger, path);
-    $properties.forEach(x => x.parent = this);
+  public static create(
+    node: JsxAttributes,
+    ctx: Context,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $JsxAttributes {
+    const $node = new $JsxAttributes(node, ctx, depth, mos, realm, logger, path);
+
+    const $properties = $node.$properties = $$jsxAttributeLikeList(node.properties, ctx, depth + 1, mos, realm, logger, path);
+    $properties.forEach(x => x.parent = $node);
+
+    return $node;
   }
 
   public Evaluate(
@@ -597,12 +739,12 @@ export class $JsxAttributes implements I$Node {
 export class $JsxSpreadAttribute implements I$Node {
   public get $kind(): SyntaxKind.JsxSpreadAttribute { return SyntaxKind.JsxSpreadAttribute; }
 
-  public readonly $expression: $$AssignmentExpressionOrHigher;
+  public $expression!: $$AssignmentExpressionOrHigher;
 
   public parent!: $JsxAttributes;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: JsxSpreadAttribute,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -613,9 +755,24 @@ export class $JsxSpreadAttribute implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.JsxSpreadAttribute`;
+  }
 
-    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = this;
+  public static create(
+    node: JsxSpreadAttribute,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $JsxSpreadAttribute {
+    const $node = new $JsxSpreadAttribute(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $expression = $node.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = $node;
+
+    return $node;
   }
 
   public Evaluate(
@@ -639,12 +796,12 @@ export class $JsxSpreadAttribute implements I$Node {
 export class $JsxExpression implements I$Node {
   public get $kind(): SyntaxKind.JsxExpression { return SyntaxKind.JsxExpression; }
 
-  public readonly $expression: $$AssignmentExpressionOrHigher | undefined;
+  public $expression!: $$AssignmentExpressionOrHigher | undefined;
 
   public parent!: $$JsxParent | $$JsxAttributeLike;
   public readonly path: string;
 
-  public constructor(
+  private constructor(
     public readonly node: JsxExpression,
     public readonly ctx: Context,
     public readonly idx: number,
@@ -655,9 +812,24 @@ export class $JsxExpression implements I$Node {
     path: string,
   ) {
     this.path = `${path}${$i(idx)}.JsxExpression`;
+  }
 
-    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode | undefined, ctx, -1, depth + 1, mos, realm, logger, path);
-    if ($expression !== void 0) { $expression.parent = this; }
+  public static create(
+    node: JsxExpression,
+    ctx: Context,
+    idx: number,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $JsxExpression {
+    const $node = new $JsxExpression(node, ctx, idx, depth, mos, realm, logger, path);
+
+    const $expression = $node.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode | undefined, ctx, -1, depth + 1, mos, realm, logger, path);
+    if ($expression !== void 0) { $expression.parent = $node; }
+
+    return $node;
   }
 
   public Evaluate(

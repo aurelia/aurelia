@@ -34,6 +34,7 @@ import {
   Identifier,
   createElementAccess,
   ClassElement,
+  ParenthesizedExpression,
 } from 'typescript';
 import {
   PLATFORM,
@@ -294,6 +295,8 @@ export class $ClassExpression implements I$Node {
   public $members!: readonly $$ClassElement[];
 
   public ClassHeritage!: $HeritageClause | undefined;
+  public staticProperties!: readonly $PropertyDeclaration[];
+  public instanceProperties!: readonly $PropertyDeclaration[];
 
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-static-semantics-boundnames
   // 14.6.2 Static Semantics: BoundNames
@@ -408,8 +411,97 @@ export class $ClassExpression implements I$Node {
     return this;
   }
 
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+  public transform(tctx: TransformationContext): this['node'] | ParenthesizedExpression {
+    const node = this.node;
+    const name = node.name === void 0 ? createIdentifier('TEMP') /* TODO: safely generate collision free name */ : node.name;
+    const ctor = this.ConstructorMethod;
+
+    const transformedModifiers = node.modifiers === void 0 ? void 0 : transformModifiers(node.modifiers);
+    const transformedHeritageClauses = node.heritageClauses === void 0 ? void 0 : transformList(tctx, this.$heritageClauses, node.heritageClauses);
+    let transformedMembers = transformList(tctx, this.$members, node.members);
+
+    const staticProperties = this.staticProperties;
+
+    const parameterProperties = ctor.parameterProperties;
+    const instanceProperties = this.instanceProperties;
+    if (parameterProperties.length > 0 || instanceProperties.length > 0) {
+      const receiver = createThis();
+      const propertyAssignments: ExpressionStatement[] = [];
+
+      for (const prop of parameterProperties) {
+        propertyAssignments.push(
+          createExpressionStatement(
+            createAssignment(
+              /* left       */createPropertyAccess(
+                /* expression */receiver,
+                /* name       */prop.$name.node as Identifier,
+              ),
+              /* right      */prop.$name.node as Identifier,
+            ),
+          ),
+        );
+      }
+
+      for (const prop of instanceProperties) {
+        propertyAssignments.push(
+          createExpressionStatement(
+            createAssignment(
+              /* left       */createPropertyAccess(
+                /* expression */receiver,
+                /* name       */prop.$name.node as Identifier,
+              ),
+              /* right      */prop.$initializer!.transform(tctx), // $initializer presence guaranteed by constructor of this class
+            ),
+          ),
+        );
+      }
+
+      const transformedCtor = ctor.transform(tctx);
+      transformedCtor.body = ctor.$body.addStatements(...propertyAssignments);
+      if (transformedMembers === void 0) {
+        transformedMembers = node.members;
+      }
+
+      (transformedMembers as ClassElement[]).splice(
+        transformedMembers.findIndex(x => x.kind === SyntaxKind.Constructor),
+        1,
+        transformedCtor,
+      );
+    }
+
+    let staticPropertyInitializers: ExpressionStatement[];
+    if (staticProperties.length === 0) {
+      staticPropertyInitializers = emptyArray;
+    } else {
+      staticPropertyInitializers = staticProperties.map(p => createExpressionStatement(
+        createAssignment(
+          /* left */p.$name.$kind === SyntaxKind.Identifier
+            ? createPropertyAccess(
+              /* expression */name,
+              /* name */p.$name.node,
+            )
+            : createElementAccess(
+              /* expression */name,
+              /* index */p.$name.$kind === SyntaxKind.ComputedPropertyName ? p.$name.$expression.transform(tctx) : p.$name.node,
+            ),
+          /* right */p.$initializer!.transform(tctx),
+        )
+      ));
+    }
+
+    const classExpr = createClassExpression(
+      /* modifiers       */transformedModifiers === void 0 ? node.modifiers : transformedModifiers,
+      /* name            */name,
+      /* typeParameters  */void 0,
+      /* heritageClauses */node.heritageClauses === void 0
+        ? void 0
+        : transformedHeritageClauses === void 0
+          ? node.heritageClauses
+          : transformedHeritageClauses,
+          /* members         */transformedMembers === void 0 ? node.members : transformedMembers,
+    );
+
+    return classExpr;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-class-definitions-runtime-semantics-namedevaluation

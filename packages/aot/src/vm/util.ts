@@ -50,3 +50,30 @@ export function computeCommonRootDirectory(dirs: readonly string[]): string {
 
   return commonRootDir;
 }
+
+export function computeRelativeDirectory(source: string, target: string): string {
+  let prevSlashIndex = 0;
+  let slashCount = 0;
+  let ch = 0;
+  for (let i = 0, ii = source.length; i < ii; ++i) {
+    ch = source.charCodeAt(i);
+    if (ch === Char.Slash) {
+      prevSlashIndex = i;
+    }
+    if (ch !== target.charCodeAt(i)) {
+      for (; i < ii; ++i) {
+        if (source.charCodeAt(i) === Char.Slash) {
+          ++slashCount;
+        }
+      }
+
+      break;
+    }
+  }
+
+  if (ch !== Char.Slash) {
+    ++slashCount;
+  }
+  const prefix = slashCount === 0 ? './' : '../'.repeat(slashCount);
+  return `${prefix}${target.slice(prevSlashIndex + 1)}`;
+}

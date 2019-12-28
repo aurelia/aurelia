@@ -24,6 +24,8 @@ import {
   createNodeArray,
   NodeArray,
   Statement,
+  createImportDeclaration,
+  createStringLiteral,
 } from 'typescript';
 import {
   PLATFORM,
@@ -157,6 +159,7 @@ import {
 import {
   MaybePromise,
   awaitIfPromise,
+  computeRelativeDirectory,
 } from '../util';
 
 const {
@@ -726,6 +729,20 @@ export class $ESScript implements I$Node {
 
 export type ModuleStatus = 'uninstantiated' | 'instantiating' | 'instantiated' | 'evaluating' | 'evaluated';
 
+export class ModuleRequest {
+  public resolvedModule: $ESModule | undefined = void 0;
+
+  public constructor(
+    public readonly declaration: $ImportDeclaration | $ExportDeclaration,
+    public readonly specifier: $String,
+  ) {}
+
+  public resolveWith(mod: $ESModule): this {
+    this.resolvedModule = mod;
+    return this;
+  }
+}
+
 // http://www.ecma-international.org/ecma-262/#sec-abstract-module-records
 // http://www.ecma-international.org/ecma-262/#sec-cyclic-module-records
 // http://www.ecma-international.org/ecma-262/#sec-source-text-module-records
@@ -771,7 +788,7 @@ export class $ESModule implements I$Node, IModule {
   public ImportedLocalNames!: readonly $String[];
   // http://www.ecma-international.org/ecma-262/#sec-module-semantics-static-semantics-modulerequests
   // 15.2.1.10 Static Semantics: ModuleRequests
-  public ModuleRequests!: readonly $String[];
+  public ModuleRequests!: readonly ModuleRequest[];
   // http://www.ecma-international.org/ecma-262/#sec-module-semantics-static-semantics-lexicallyscopeddeclarations
   // 15.2.1.12 Static Semantics: LexicallyScopedDeclarations
   public LexicallyScopedDeclarations!: readonly $$ESDeclaration[];
@@ -785,7 +802,7 @@ export class $ESModule implements I$Node, IModule {
   public Status!: ModuleStatus;
   public DFSIndex!: number | undefined;
   public DFSAncestorIndex!: number | undefined;
-  public RequestedModules!: $String[];
+  public RequestedModules!: ModuleRequest[];
 
   public LocalExportEntries!: readonly ExportEntryRecord[];
   public IndirectExportEntries!: readonly ExportEntryRecord[];
@@ -950,7 +967,7 @@ export class $ESModule implements I$Node, IModule {
     const ExportEntries = this.ExportEntries = [] as ExportEntryRecord[];
     const ImportEntries = this.ImportEntries = [] as ImportEntryRecord[];
     const ImportedLocalNames = this.ImportedLocalNames = [] as $String[];
-    const ModuleRequests = this.ModuleRequests = [] as $String[];
+    const ModuleRequests = this.ModuleRequests = [] as ModuleRequest[];
     const LexicallyScopedDeclarations = this.LexicallyScopedDeclarations = [] as $$ESDeclaration[];
     const VarScopedDeclarations = this.VarScopedDeclarations = [] as $$ESVarDeclaration[];
 
@@ -1240,8 +1257,9 @@ export class $ESModule implements I$Node, IModule {
     // 9. For each String required that is an element of module.[[RequestedModules]], do
     for (const required of this.RequestedModules) {
       // 9. a. Let requiredModule be ? HostResolveImportedModule(module, required).
-      const requiredModule = await this.ws.ResolveImportedModule(realm, this, required);
+      const requiredModule = await this.ws.ResolveImportedModule(realm, this, required.specifier);
       if (requiredModule.isAbrupt) { return requiredModule.enrichWith(ctx, this); }
+      required.resolvedModule = requiredModule as $ESModule;
 
       // 9. b. Set idx to ? InnerModuleInstantiation(requiredModule, stack, idx).
       const $idx = await requiredModule._InnerModuleInstantiation(ctx, stack, idx);
@@ -1777,7 +1795,8 @@ export class $ESModule implements I$Node, IModule {
     // 10. For each String required that is an element of module.[[RequestedModules]], do
     for (const required of this.RequestedModules) {
       // 10. a. Let requiredModule be ! HostResolveImportedModule(module, required).
-      const requiredModule = await this.ws.ResolveImportedModule(realm, this, required) as $ESModule; // TODO
+      const requiredModule = await this.ws.ResolveImportedModule(realm, this, required.specifier) as $ESModule; // TODO
+      required.resolveWith(requiredModule);
 
       // 10. b. NOTE: Instantiate must be completed successfully prior to invoking this method, so every requested module is guaranteed to resolve successfully.
       // 10. c. Set idx to ? InnerModuleEvaluation(requiredModule, stack, idx).
@@ -2343,7 +2362,7 @@ export class $ImportDeclaration implements I$Node {
   public ImportEntries!: readonly ImportEntryRecord[];
   // http://www.ecma-international.org/ecma-262/#sec-imports-static-semantics-modulerequests
   // 15.2.2.5 Static Semantics: ModuleRequests
-  public ModuleRequests!: readonly $String[];
+  public ModuleRequests!: readonly ModuleRequest[];
 
   public parent!: $ESModule | $ModuleBlock;
   public readonly path: string;
@@ -2398,12 +2417,36 @@ export class $ImportDeclaration implements I$Node {
       this.ImportEntries = this.$importClause.ImportEntriesForModule;
     }
 
-    this.ModuleRequests = [moduleSpecifier];
+    this.ModuleRequests = [new ModuleRequest(this, moduleSpecifier)];
 
     return this;
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    const sourceMos = this.mos;
+    const targetMos = this.ModuleRequests[0].resolvedModule!;
+    if (sourceMos.pkg !== targetMos.pkg) {
+      const relativePath = computeRelativeDirectory(sourceMos.$file.dir, targetMos.$file.path);
+      const $importClause = this.$importClause instanceof $Undefined ? void 0 : this.$importClause.transform(tctx);
+      return createImportDeclaration(
+        /* decorators      */void 0,
+        /* modifiers       */void 0,
+        /* importClause    */$importClause,
+        /* moduleSpecifier */createStringLiteral(relativePath),
+      );
+    }
+
+    if (!(this.$importClause instanceof $Undefined)) {
+      const $importClause = this.$importClause.transform(tctx);
+      if ($importClause !== this.$importClause.node) {
+        return createImportDeclaration(
+          /* decorators      */void 0,
+          /* modifiers       */void 0,
+          /* importClause    */$importClause,
+          /* moduleSpecifier */this.$moduleSpecifier.node,
+        );
+      }
+    }
     return this.node;
   }
 }
@@ -2828,7 +2871,7 @@ export class $ExportDeclaration implements I$Node {
   public LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-exports-static-semantics-modulerequests
   // 15.2.3.9 Static Semantics: ModuleRequests
-  public ModuleRequests!: readonly $String[];
+  public ModuleRequests!: readonly ModuleRequest[];
 
   public TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
   public IsType: false = false;
@@ -2887,7 +2930,7 @@ export class $ExportDeclaration implements I$Node {
     } else {
       this.$moduleSpecifier.hydrate(ctx);
       moduleSpecifier = this.moduleSpecifier = this.$moduleSpecifier!.StringValue;
-      this.ModuleRequests = [moduleSpecifier];
+      this.ModuleRequests = [new ModuleRequest(this, moduleSpecifier)];
     }
 
     if (this.$exportClause === void 0) {

@@ -4,7 +4,8 @@ import {
   CollectionKind,
   createIndexMap,
   ICollectionObserver,
-  IObservedMap
+  IObservedMap,
+  ICollectionIndexObserver
 } from '../observation';
 import { CollectionSizeObserver } from './collection-size-observer';
 import { collectionSubscriberCollection } from './subscriber-collection';
@@ -190,6 +191,10 @@ export class MapObserver {
       this.lengthObserver = new CollectionSizeObserver(this.collection);
     }
     return this.lengthObserver;
+  }
+
+  public getIndexObserver(index: number): ICollectionIndexObserver {
+    throw new Error('Map index observation not supported');
   }
 
   public flushBatch(flags: LifecycleFlags): void {

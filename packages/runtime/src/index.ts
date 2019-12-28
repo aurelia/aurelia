@@ -117,6 +117,7 @@ export {
 
 export {
   ArrayObserver,
+  ArrayIndexObserver,
   enableArrayObservation,
   disableArrayObservation,
   applyMutationsToIndices,
@@ -479,6 +480,7 @@ export {
   IBindingTargetObserver,
   ICollectionChangeTracker,
   ICollectionObserver,
+  ICollectionIndexObserver,
   ICollectionSubscriber,
   IndexMap,
   IObservable,

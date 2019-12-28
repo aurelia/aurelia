@@ -28,7 +28,7 @@ import {
 } from '@aurelia/debug';
 import {
   Constructable,
-  isNumeric,
+  isArrayIndex,
   Primitive,
   Char,
 } from '@aurelia/kernel';
@@ -1064,7 +1064,7 @@ export function formatSpecialArray(
       break;
     }
     if (`${index}` !== key) {
-      if (!isNumeric(key)) {
+      if (!isArrayIndex(key)) {
         break;
       }
       const emptyItems = tmp - index;

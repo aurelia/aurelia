@@ -75,7 +75,7 @@ export class CheckedObserver implements IAccessor {
   public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
-      const { currentValue } = this;
+      const currentValue = this.currentValue;
       this.oldValue = currentValue;
 
       if (this.valueObserver === void 0) {
@@ -135,7 +135,8 @@ export class CheckedObserver implements IAccessor {
   }
 
   public synchronizeElement(): void {
-    const { currentValue, obj } = this;
+    const currentValue = this.currentValue;
+    const obj = this.obj;
     const elementValue = Object.prototype.hasOwnProperty.call(obj, 'model') ? obj.model : obj.value;
     const isRadio = obj.type === 'radio';
     const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;

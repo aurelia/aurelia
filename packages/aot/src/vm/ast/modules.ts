@@ -2426,7 +2426,7 @@ export class $ImportDeclaration implements I$Node {
     const sourceMos = this.mos;
     const targetMos = this.ModuleRequests[0].resolvedModule!;
     if (sourceMos.pkg !== targetMos.pkg) {
-      const relativePath = computeRelativeDirectory(sourceMos.$file.dir, targetMos.$file.path);
+      const relativePath = `${computeRelativeDirectory(sourceMos.$file.dir, targetMos.$file.shortPath)}.js`;
       const $importClause = this.$importClause instanceof $Undefined ? void 0 : this.$importClause.transform(tctx);
       return createImportDeclaration(
         /* decorators      */void 0,
@@ -2436,18 +2436,14 @@ export class $ImportDeclaration implements I$Node {
       );
     }
 
-    if (!(this.$importClause instanceof $Undefined)) {
-      const $importClause = this.$importClause.transform(tctx);
-      if ($importClause !== this.$importClause.node) {
-        return createImportDeclaration(
-          /* decorators      */void 0,
-          /* modifiers       */void 0,
-          /* importClause    */$importClause,
-          /* moduleSpecifier */this.$moduleSpecifier.node,
-        );
-      }
-    }
-    return this.node;
+    const jsPath = `${this.$moduleSpecifier.StringValue['[[Value]]']}.js`;
+    const $importClause = this.$importClause instanceof $Undefined ? void 0 : this.$importClause.transform(tctx);
+    return createImportDeclaration(
+      /* decorators      */void 0,
+      /* modifiers       */void 0,
+      /* importClause    */$importClause,
+      /* moduleSpecifier */createStringLiteral(jsPath),
+    );
   }
 }
 

@@ -728,7 +728,7 @@ export class $ClassDeclaration implements I$Node {
                 /* expression */receiver,
                 /* name       */prop.$name.node as Identifier,
               ),
-              /* right      */prop.$initializer!.node, // $initializer presence guaranteed by constructor of this class
+              /* right      */prop.$initializer!.transform(tctx), // $initializer presence guaranteed by constructor of this class
             ),
           ),
         );
@@ -760,9 +760,9 @@ export class $ClassDeclaration implements I$Node {
             )
             : createElementAccess(
               /* expression */name,
-              /* index */p.$name.$kind === SyntaxKind.ComputedPropertyName ? p.$name.$expression.node : p.$name.node,
+              /* index */p.$name.$kind === SyntaxKind.ComputedPropertyName ? p.$name.$expression.transform(tctx) : p.$name.node,
             ),
-          /* right */p.$initializer!.node,
+          /* right */p.$initializer!.transform(tctx),
         )
       ));
     }

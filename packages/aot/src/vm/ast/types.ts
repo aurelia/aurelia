@@ -36,7 +36,6 @@ import {
 } from '../types/string';
 import {
   I$Node,
-  Context,
   $$ESDeclaration,
   $NodeWithStatements,
   modifiersToModifierFlags,
@@ -52,6 +51,7 @@ import {
   $$ESVarDeclaration,
   TransformationContext,
   transformModifiers,
+  HydrateContext,
 } from './_shared';
 import {
   ExportEntryRecord,
@@ -94,7 +94,6 @@ export class $InterfaceDeclaration implements I$Node {
 
   private constructor(
     public readonly node: InterfaceDeclaration,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -107,7 +106,6 @@ export class $InterfaceDeclaration implements I$Node {
 
   public static create(
     node: InterfaceDeclaration,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -115,34 +113,34 @@ export class $InterfaceDeclaration implements I$Node {
     logger: ILogger,
     path: string,
   ): $InterfaceDeclaration {
-    const $node = new $InterfaceDeclaration(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $InterfaceDeclaration(node, idx, depth, mos, realm, logger, path);
 
-    const intrinsics = realm['[[Intrinsics]]'];
+    $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    ctx |= Context.InTypeElement;
+    ($node.$name = $identifier(node.name, -1, depth + 1, mos, realm, logger, path)).parent = $node;
+    ($node.$heritageClauses = $heritageClauseList(node.heritageClauses, depth + 1, mos, realm, logger, path)).forEach(x => x.parent = $node);
 
-    const modifierFlags = $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    return $node;
+  }
 
-    if (hasBit(modifierFlags, ModifierFlags.Export)) {
-      ctx |= Context.InExport;
-    }
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$name.hydrate(ctx);
+    this.$heritageClauses.forEach(x => x.hydrate(ctx));
 
-    const $name = $node.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
-    $name.parent = $node;
-    const $heritageClauses = $node.$heritageClauses = $heritageClauseList(node.heritageClauses, ctx, depth + 1, mos, realm, logger, path);
-    $heritageClauses.forEach(x => x.parent = $node);
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
-    const BoundNames = $node.BoundNames = $name.BoundNames;
-    $node.TypeDeclarations = [$node];
+    const BoundNames = this.BoundNames = this.$name.BoundNames;
+    this.TypeDeclarations = [this];
 
-    if (hasBit(ctx, Context.InExport)) {
+    if (hasBit(this.modifierFlags, ModifierFlags.Export)) {
       const [localName] = BoundNames;
 
-      $node.ExportedBindings = BoundNames;
-      $node.ExportedNames = BoundNames;
-      $node.ExportEntries = [
+      this.ExportedBindings = BoundNames;
+      this.ExportedNames = BoundNames;
+      this.ExportEntries = [
         new ExportEntryRecord(
-          /* source */$node,
+          /* source */this,
           /* ExportName */localName,
           /* ModuleRequest */intrinsics.null,
           /* ImportName */intrinsics.null,
@@ -150,12 +148,12 @@ export class $InterfaceDeclaration implements I$Node {
         ),
       ];
     } else {
-      $node.ExportedBindings = emptyArray;
-      $node.ExportedNames = emptyArray;
-      $node.ExportEntries = emptyArray;
+      this.ExportedBindings = emptyArray;
+      this.ExportedNames = emptyArray;
+      this.ExportEntries = emptyArray;
     }
 
-    return $node;
+    return this;
   }
 
   public transform(tctx: TransformationContext): undefined {
@@ -188,7 +186,6 @@ export class $TypeAliasDeclaration implements I$Node {
 
   private constructor(
     public readonly node: TypeAliasDeclaration,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -201,7 +198,6 @@ export class $TypeAliasDeclaration implements I$Node {
 
   public static create(
     node: TypeAliasDeclaration,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -209,32 +205,32 @@ export class $TypeAliasDeclaration implements I$Node {
     logger: ILogger,
     path: string,
   ): $TypeAliasDeclaration {
-    const $node = new $TypeAliasDeclaration(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $TypeAliasDeclaration(node, idx, depth, mos, realm, logger, path);
 
-    const intrinsics = realm['[[Intrinsics]]'];
+    $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    ctx |= Context.InTypeElement;
+    ($node.$name = $identifier(node.name, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
-    const modifierFlags = $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    return $node;
+  }
 
-    if (hasBit(modifierFlags, ModifierFlags.Export)) {
-      ctx |= Context.InExport;
-    }
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$name.hydrate(ctx);
 
-    const $name = $node.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
-    $name.parent = $node;
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
-    const BoundNames = $node.BoundNames = $name.BoundNames;
-    $node.TypeDeclarations = [$node];
+    const BoundNames = this.BoundNames = this.$name.BoundNames;
+    this.TypeDeclarations = [this];
 
-    if (hasBit(ctx, Context.InExport)) {
+    if (hasBit(this.modifierFlags, ModifierFlags.Export)) {
       const [localName] = BoundNames;
 
-      $node.ExportedBindings = BoundNames;
-      $node.ExportedNames = BoundNames;
-      $node.ExportEntries = [
+      this.ExportedBindings = BoundNames;
+      this.ExportedNames = BoundNames;
+      this.ExportEntries = [
         new ExportEntryRecord(
-          /* source */$node,
+          /* source */this,
           /* ExportName */localName,
           /* ModuleRequest */intrinsics.null,
           /* ImportName */intrinsics.null,
@@ -242,12 +238,12 @@ export class $TypeAliasDeclaration implements I$Node {
         ),
       ];
     } else {
-      $node.ExportedBindings = emptyArray;
-      $node.ExportedNames = emptyArray;
-      $node.ExportEntries = emptyArray;
+      this.ExportedBindings = emptyArray;
+      this.ExportedNames = emptyArray;
+      this.ExportEntries = emptyArray;
     }
 
-    return $node;
+    return this;
   }
 
   public transform(tctx: TransformationContext): undefined {
@@ -257,7 +253,6 @@ export class $TypeAliasDeclaration implements I$Node {
 
 export function $enumMemberList(
   nodes: readonly EnumMember[],
-  ctx: Context,
   depth: number,
   mos: $$ESModuleOrScript,
   realm: Realm,
@@ -271,7 +266,7 @@ export function $enumMemberList(
   const len = nodes.length;
   const $nodes: $EnumMember[] = Array(len);
   for (let i = 0; i < len; ++i) {
-    $nodes[i] = $EnumMember.create(nodes[i], ctx, i, depth + 1, mos, realm, logger, path);
+    $nodes[i] = $EnumMember.create(nodes[i], i, depth + 1, mos, realm, logger, path);
   }
   return $nodes;
 }
@@ -302,7 +297,6 @@ export class $EnumDeclaration implements I$Node {
 
   private constructor(
     public readonly node: EnumDeclaration,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -315,7 +309,6 @@ export class $EnumDeclaration implements I$Node {
 
   public static create(
     node: EnumDeclaration,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -323,32 +316,34 @@ export class $EnumDeclaration implements I$Node {
     logger: ILogger,
     path: string,
   ): $EnumDeclaration {
-    const $node = new $EnumDeclaration(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $EnumDeclaration(node, idx, depth, mos, realm, logger, path);
 
-    const intrinsics = realm['[[Intrinsics]]'];
+    $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    const modifierFlags = $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    ($node.$name = $identifier(node.name, -1, depth + 1, mos, realm, logger, path)).parent = $node;
+    ($node.$members = $enumMemberList(node.members, depth + 1, mos, realm, logger, path)).forEach(x => x.parent = $node);
 
-    if (hasBit(modifierFlags, ModifierFlags.Export)) {
-      ctx |= Context.InExport;
-    }
+    return $node;
+  }
 
-    const $name = $node.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
-    $name.parent = $node;
-    const $members = $node.$members = $enumMemberList(node.members, ctx, depth + 1, mos, realm, logger, path);
-    $members.forEach(x => x.parent = $node);
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$name.hydrate(ctx);
+    this.$members.forEach(x => x.hydrate(ctx));
 
-    const BoundNames = $node.BoundNames = $name.BoundNames;
-    $node.TypeDeclarations = [$node];
+    const intrinsics = this.realm['[[Intrinsics]]'];
 
-    if (hasBit(ctx, Context.InExport)) {
+    const BoundNames = this.BoundNames = this.$name.BoundNames;
+    this.TypeDeclarations = [this];
+
+    if (hasBit(this.modifierFlags, ModifierFlags.Export)) {
       const [localName] = BoundNames;
 
-      $node.ExportedBindings = BoundNames;
-      $node.ExportedNames = BoundNames;
-      $node.ExportEntries = [
+      this.ExportedBindings = BoundNames;
+      this.ExportedNames = BoundNames;
+      this.ExportEntries = [
         new ExportEntryRecord(
-          /* source */$node,
+          /* source */this,
           /* ExportName */localName,
           /* ModuleRequest */intrinsics.null,
           /* ImportName */intrinsics.null,
@@ -356,12 +351,12 @@ export class $EnumDeclaration implements I$Node {
         ),
       ];
     } else {
-      $node.ExportedBindings = emptyArray;
-      $node.ExportedNames = emptyArray;
-      $node.ExportEntries = emptyArray;
+      this.ExportedBindings = emptyArray;
+      this.ExportedNames = emptyArray;
+      this.ExportEntries = emptyArray;
     }
 
-    return $node;
+    return this;
   }
 
   public transform(tctx: TransformationContext): VariableStatement {
@@ -445,7 +440,6 @@ export class $EnumMember implements I$Node {
 
   private constructor(
     public readonly node: EnumMember,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -458,7 +452,6 @@ export class $EnumMember implements I$Node {
 
   public static create(
     node: EnumMember,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -466,12 +459,20 @@ export class $EnumMember implements I$Node {
     logger: ILogger,
     path: string,
   ): $EnumMember {
-    const $node = new $EnumMember(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $EnumMember(node, idx, depth, mos, realm, logger, path);
 
-    $node.$name = $$propertyName(node.name, ctx | Context.IsMemberName, -1, depth + 1, mos, realm, logger, path);
-    const $initializer = $node.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode | undefined, ctx, -1, depth + 1, mos, realm, logger, path);
+    $node.$name = $$propertyName(node.name, -1, depth + 1, mos, realm, logger, path);
+    const $initializer = $node.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode | undefined, -1, depth + 1, mos, realm, logger, path);
     if ($initializer !== void 0) { $initializer.parent = $node; }
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$name.hydrate(ctx);
+    this.$initializer?.hydrate(ctx);
+
+    return this;
   }
 }

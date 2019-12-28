@@ -236,7 +236,7 @@ export class TestRunner {
   const container = DI.createContainer();
   container.register(
     RuntimeNodeConfiguration.create({
-      level: LogLevel.info,
+      level: LogLevel.debug,
       root: process.cwd(),
     }),
     Registration.singleton(IRequestHandler, FileServer),

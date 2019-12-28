@@ -135,7 +135,7 @@ export class Agent implements IAgent {
 
       // 3. l. If result is an abrupt completion, perform HostReportErrors(« result.[[Value]] »).
       if (result.isAbrupt) {
-        this.logger.debug(`Job completed with errors`);
+        this.logger.warn(`Job completed with errors`);
         return new ExecutionResult(
           ws,
           result,

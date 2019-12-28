@@ -52,8 +52,6 @@ import {
 } from '../types/error';
 import {
   I$Node,
-  Context,
-  clearBit,
   modifiersToModifierFlags,
   $$PropertyName,
   $$AssignmentExpressionOrHigher,
@@ -70,6 +68,7 @@ import {
   $i,
   TransformationContext,
   transformList,
+  HydrateContext,
 } from './_shared';
 import {
   $$ESModuleOrScript,
@@ -141,7 +140,6 @@ export class $ComputedPropertyName implements I$Node {
 
   private constructor(
     public readonly node: ComputedPropertyName,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -154,7 +152,6 @@ export class $ComputedPropertyName implements I$Node {
 
   public static create(
     node: ComputedPropertyName,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -162,14 +159,20 @@ export class $ComputedPropertyName implements I$Node {
     logger: ILogger,
     path: string,
   ): $ComputedPropertyName {
-    const $node = new $ComputedPropertyName(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $ComputedPropertyName(node, idx, depth, mos, realm, logger, path);
 
-    const $expression = $node.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = $node;
-
-    $node.PropName = new $Empty(realm, void 0, void 0, $node);
+    ($node.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$expression.hydrate(ctx);
+
+    this.PropName = new $Empty(this.realm, void 0, void 0, this);
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-evaluation
@@ -237,7 +240,6 @@ export class $ObjectBindingPattern implements I$Node {
 
   private constructor(
     public readonly node: ObjectBindingPattern,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -250,7 +252,6 @@ export class $ObjectBindingPattern implements I$Node {
 
   public static create(
     node: ObjectBindingPattern,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -258,19 +259,23 @@ export class $ObjectBindingPattern implements I$Node {
     logger: ILogger,
     path: string,
   ): $ObjectBindingPattern {
-    const $node = new $ObjectBindingPattern(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $ObjectBindingPattern(node, idx, depth, mos, realm, logger, path);
 
-    ctx |= Context.InBindingPattern;
-
-    const $elements = $node.$elements = $bindingElementList(node.elements, ctx, depth + 1, mos, realm, logger, path);
-    $elements.forEach(x => x.parent = $node);
-
-    $node.BoundNames = $elements.flatMap(getBoundNames);
-    $node.ContainsExpression = $elements.some(getContainsExpression);
-    $node.HasInitializer = $elements.some(getHasInitializer);
-    $node.IsSimpleParameterList = $elements.every(getIsSimpleParameterList);
+    ($node.$elements = $bindingElementList(node.elements, depth + 1, mos, realm, logger, path)).forEach(x => x.parent = $node);
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$elements.forEach(x => x.hydrate(ctx));
+
+    this.BoundNames = this.$elements.flatMap(getBoundNames);
+    this.ContainsExpression = this.$elements.some(getContainsExpression);
+    this.HasInitializer = this.$elements.some(getHasInitializer);
+    this.IsSimpleParameterList = this.$elements.every(getIsSimpleParameterList);
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-bindinginitialization
@@ -349,7 +354,6 @@ export type $$ArrayBindingElement = (
 
 export function $$arrayBindingElement(
   node: ArrayBindingElement,
-  ctx: Context,
   idx: number,
   depth: number,
   mos: $$ESModuleOrScript,
@@ -359,15 +363,14 @@ export function $$arrayBindingElement(
 ): $$ArrayBindingElement {
   switch (node.kind) {
     case SyntaxKind.BindingElement:
-      return $BindingElement.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $BindingElement.create(node, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.OmittedExpression:
-      return $OmittedExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $OmittedExpression.create(node, idx, depth + 1, mos, realm, logger, path);
   }
 }
 
 export function $$arrayBindingElementList(
   nodes: readonly ArrayBindingElement[],
-  ctx: Context,
   depth: number,
   mos: $$ESModuleOrScript,
   realm: Realm,
@@ -378,7 +381,7 @@ export function $$arrayBindingElementList(
   const $nodes: $$ArrayBindingElement[] = Array(len);
 
   for (let i = 0; i < len; ++i) {
-    $nodes[i] = $$arrayBindingElement(nodes[i], ctx, i, depth + 1, mos, realm, logger, path);
+    $nodes[i] = $$arrayBindingElement(nodes[i], i, depth + 1, mos, realm, logger, path);
   }
 
   return $nodes;
@@ -386,7 +389,6 @@ export function $$arrayBindingElementList(
 
 export function $bindingElementList(
   nodes: readonly BindingElement[],
-  ctx: Context,
   depth: number,
   mos: $$ESModuleOrScript,
   realm: Realm,
@@ -397,7 +399,7 @@ export function $bindingElementList(
   const $nodes: $BindingElement[] = Array(len);
 
   for (let i = 0; i < len; ++i) {
-    $nodes[i] = $BindingElement.create(nodes[i], ctx, i, depth + 1, mos, realm, logger, path);
+    $nodes[i] = $BindingElement.create(nodes[i], i, depth + 1, mos, realm, logger, path);
   }
 
   return $nodes;
@@ -426,7 +428,6 @@ export class $ArrayBindingPattern implements I$Node {
 
   private constructor(
     public readonly node: ArrayBindingPattern,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -439,7 +440,6 @@ export class $ArrayBindingPattern implements I$Node {
 
   public static create(
     node: ArrayBindingPattern,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -447,19 +447,23 @@ export class $ArrayBindingPattern implements I$Node {
     logger: ILogger,
     path: string,
   ): $ArrayBindingPattern {
-    const $node = new $ArrayBindingPattern(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $ArrayBindingPattern(node, idx, depth, mos, realm, logger, path);
 
-    ctx |= Context.InBindingPattern;
-
-    const $elements = $node.$elements = $$arrayBindingElementList(node.elements, ctx, depth + 1, mos, realm, logger, path);
-    $elements.forEach(x => x.parent = $node);
-
-    $node.BoundNames = $elements.flatMap(getBoundNames);
-    $node.ContainsExpression = $elements.some(getContainsExpression);
-    $node.HasInitializer = $elements.some(getHasInitializer);
-    $node.IsSimpleParameterList = $elements.every(getIsSimpleParameterList);
+    ($node.$elements = $$arrayBindingElementList(node.elements, depth + 1, mos, realm, logger, path)).forEach(x => x.parent = $node);
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$elements.forEach(x => x.hydrate(ctx));
+
+    this.BoundNames = this.$elements.flatMap(getBoundNames);
+    this.ContainsExpression = this.$elements.some(getContainsExpression);
+    this.HasInitializer = this.$elements.some(getHasInitializer);
+    this.IsSimpleParameterList = this.$elements.every(getIsSimpleParameterList);
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-bindinginitialization
@@ -608,7 +612,6 @@ export class $BindingElement implements I$Node {
 
   private constructor(
     public readonly node: BindingElement,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -621,7 +624,6 @@ export class $BindingElement implements I$Node {
 
   public static create(
     node: BindingElement,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -629,59 +631,72 @@ export class $BindingElement implements I$Node {
     logger: ILogger,
     path: string,
   ): $BindingElement {
-    const $node = new $BindingElement(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $BindingElement(node, idx, depth, mos, realm, logger, path);
 
     $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    ctx = clearBit(ctx, Context.IsBindingName);
-
     if (node.propertyName === void 0) {
       $node.$propertyName = void 0;
-      const $name = $node.$name = $$bindingName(node.name, ctx | Context.IsBindingName, -1, depth + 1, mos, realm, logger, path);
-      $name.parent = $node;
-
-      $node.BoundNames = $name.BoundNames;
+      ($node.$name = $$bindingName(node.name, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
       if (node.initializer === void 0) {
         $node.$initializer = void 0;
-
-        $node.ContainsExpression = $name.ContainsExpression;
-        $node.HasInitializer = false;
-        $node.IsSimpleParameterList = $name.$kind === SyntaxKind.Identifier;
       } else {
-        const $initializer = $node.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-        $initializer.parent = $node;
-
-        $node.ContainsExpression = true;
-        $node.HasInitializer = true;
-        $node.IsSimpleParameterList = false;
+        ($node.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
       }
 
     } else {
-      const $propertyName = $node.$propertyName = $$propertyName(node.propertyName, ctx, -1, depth + 1, mos, realm, logger, path);
-      $propertyName.parent = $node;
-      const $name = $node.$name = $$bindingName(node.name, ctx | Context.IsBindingName, -1, depth + 1, mos, realm, logger, path);
-      $name.parent = $node;
-
-      $node.BoundNames = $name.BoundNames;
+      ($node.$propertyName = $$propertyName(node.propertyName, -1, depth + 1, mos, realm, logger, path)).parent = $node;
+      ($node.$name = $$bindingName(node.name, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
       if (node.initializer === void 0) {
         $node.$initializer = void 0;
-
-        $node.ContainsExpression = $propertyName.$kind === SyntaxKind.ComputedPropertyName || $name.ContainsExpression;
-        $node.HasInitializer = false;
-        $node.IsSimpleParameterList = $name.$kind === SyntaxKind.Identifier;
       } else {
-        const $initializer = $node.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-        $initializer.parent = $node;
-
-        $node.ContainsExpression = true;
-        $node.HasInitializer = true;
-        $node.IsSimpleParameterList = false;
+        ($node.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
       }
     }
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$name.hydrate(ctx);
+
+    if (this.$propertyName === void 0) {
+      this.BoundNames = this.$name.BoundNames;
+
+      if (this.$initializer === void 0) {
+        this.ContainsExpression = this.$name.ContainsExpression;
+        this.HasInitializer = false;
+        this.IsSimpleParameterList = this.$name.$kind === SyntaxKind.Identifier;
+      } else {
+        this.$initializer.hydrate(ctx);
+
+        this.ContainsExpression = true;
+        this.HasInitializer = true;
+        this.IsSimpleParameterList = false;
+      }
+
+    } else {
+      this.$propertyName.hydrate(ctx);
+
+      this.BoundNames = this.$name.BoundNames;
+
+      if (this.$initializer === void 0) {
+        this.ContainsExpression = this.$propertyName.$kind === SyntaxKind.ComputedPropertyName || this.$name.ContainsExpression;
+        this.HasInitializer = false;
+        this.IsSimpleParameterList = this.$name.$kind === SyntaxKind.Identifier;
+      } else {
+        this.$initializer.hydrate(ctx);
+
+        this.ContainsExpression = true;
+        this.HasInitializer = true;
+        this.IsSimpleParameterList = false;
+      }
+    }
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-runtime-semantics-propertybindinginitialization
@@ -918,7 +933,6 @@ export class $SpreadElement implements I$Node {
 
   private constructor(
     public readonly node: SpreadElement,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -931,7 +945,6 @@ export class $SpreadElement implements I$Node {
 
   public static create(
     node: SpreadElement,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -939,12 +952,18 @@ export class $SpreadElement implements I$Node {
     logger: ILogger,
     path: string,
   ): $SpreadElement {
-    const $node = new $SpreadElement(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $SpreadElement(node, idx, depth, mos, realm, logger, path);
 
-    const $expression = $node.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = $node;
+    ($node.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$expression.hydrate(ctx);
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-argument-lists-runtime-semantics-argumentlistevaluation
@@ -1072,7 +1091,6 @@ export class $OmittedExpression implements I$Node {
 
   private constructor(
     public readonly node: OmittedExpression,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -1085,7 +1103,6 @@ export class $OmittedExpression implements I$Node {
 
   public static create(
     node: OmittedExpression,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -1093,8 +1110,13 @@ export class $OmittedExpression implements I$Node {
     logger: ILogger,
     path: string,
   ): $OmittedExpression {
-    const $node = new $OmittedExpression(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $OmittedExpression(node, idx, depth, mos, realm, logger, path);
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-iteratordestructuringassignmentevaluation

@@ -62,7 +62,6 @@ import {
 } from '../types/error';
 import {
   I$Node,
-  Context,
   $$ESDeclaration,
   $NodeWithStatements,
   modifiersToModifierFlags,
@@ -84,6 +83,7 @@ import {
   transformModifiers,
   DirectivePrologue,
   NoDirectiveProgue,
+  HydrateContext,
 } from './_shared';
 import {
   ExportEntryRecord,
@@ -154,8 +154,7 @@ export class $FormalParameterList extends Array<$ParameterDeclaration> {
 
   public constructor(
     nodes: readonly ParameterDeclaration[] | undefined,
-    ctx: Context,
-    depth: number,
+      depth: number,
     mos: $$ESModuleOrScript,
     realm: Realm,
     logger: ILogger,
@@ -163,6 +162,15 @@ export class $FormalParameterList extends Array<$ParameterDeclaration> {
   ) {
     super();
 
+    if (nodes !== void 0) {
+      for (let i = 0, ii = nodes.length; i < ii; ++i) {
+        super[i] = $ParameterDeclaration.create(nodes[i], i, depth + 1, mos, realm, logger, path);
+      }
+    }
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    const nodes = this.BoundNames;
     if (nodes === void 0) {
       this.BoundNames = emptyArray;
     } else {
@@ -174,8 +182,9 @@ export class $FormalParameterList extends Array<$ParameterDeclaration> {
       let cur: $ParameterDeclaration;
       let curBoundNames: readonly $String[];
       let curBoundName: $String;
-      for (let i = 0, ii = nodes.length; i < ii; ++i) {
-        cur = super[i] = $ParameterDeclaration.create(nodes[i], ctx, i, depth + 1, mos, realm, logger, path);
+      for (let i = 0, ii = super.length; i < ii; ++i) {
+        cur = super[i];
+        cur.hydrate(ctx);
 
         curBoundNames = cur.BoundNames;
         for (let j = 0, jj = curBoundNames.length; j < jj; ++j) {
@@ -207,6 +216,8 @@ export class $FormalParameterList extends Array<$ParameterDeclaration> {
         this.ExpectedArgumentCount = nodes.length;
       }
     }
+
+    return this;
   }
 }
 
@@ -260,7 +271,6 @@ export class $FunctionExpression implements I$Node {
 
   private constructor(
     public readonly node: FunctionExpression,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -273,7 +283,6 @@ export class $FunctionExpression implements I$Node {
 
   public static create(
     node: FunctionExpression,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -281,40 +290,48 @@ export class $FunctionExpression implements I$Node {
     logger: ILogger,
     path: string,
   ): $FunctionExpression {
-    const $node = new $FunctionExpression(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $FunctionExpression(node, idx, depth, mos, realm, logger, path);
 
-    const modifierFlags = $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    const $name = $node.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
+    const $name = $node.$name = $identifier(node.name, -1, depth + 1, mos, realm, logger, path);
     if ($name !== void 0) { $name.parent = $node; }
-    const $parameters = $node.$parameters = new $FormalParameterList(node.parameters, ctx, depth + 1, mos, realm, logger, path);
-    $parameters.forEach(x => x.parent = $node);
-    const $body = $node.$body = $Block.create(node.body, ctx, -1, depth + 1, mos, realm, logger, path);
-    $body.parent = $node;
-    const DirectivePrologue = $node.DirectivePrologue = $body.DirectivePrologue;
-
-    $node.BoundNames = emptyArray;
-    $node.ContainsUseStrict = DirectivePrologue.ContainsUseStrict;
-    $node.HasName = $name !== void 0;
-
-    $node.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
-    $node.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
-    $node.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
-    $node.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
-
-    if (!hasBit(modifierFlags, ModifierFlags.Async)) {
-      if (node.asteriskToken === void 0) {
-        $node.functionKind = FunctionKind.normal;
-      } else {
-        $node.functionKind = FunctionKind.generator;
-      }
-    } else if (node.asteriskToken === void 0) {
-      $node.functionKind = FunctionKind.async;
-    } else {
-      $node.functionKind = FunctionKind.asyncGenerator;
-    }
+    ($node.$parameters = new $FormalParameterList(node.parameters, depth + 1, mos, realm, logger, path)).forEach(x => x.parent = $node);
+    ($node.$body = $Block.create(node.body, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$name?.hydrate(ctx);
+    this.$parameters.hydrate(ctx);
+    this.$body.hydrate(ctx);
+
+    const DirectivePrologue = this.DirectivePrologue = this.$body.DirectivePrologue;
+
+    this.BoundNames = emptyArray;
+    this.ContainsUseStrict = DirectivePrologue.ContainsUseStrict;
+    this.HasName = this.$name !== void 0;
+
+    this.LexicallyDeclaredNames = this.$body.TopLevelLexicallyDeclaredNames;
+    this.LexicallyScopedDeclarations = this.$body.TopLevelLexicallyScopedDeclarations;
+    this.VarDeclaredNames = this.$body.TopLevelVarDeclaredNames;
+    this.VarScopedDeclarations =this.$body.TopLevelVarScopedDeclarations;
+
+    if (!hasBit(this.modifierFlags, ModifierFlags.Async)) {
+      if (this.node.asteriskToken === void 0) {
+        this.functionKind = FunctionKind.normal;
+      } else {
+        this.functionKind = FunctionKind.generator;
+      }
+    } else if (this.node.asteriskToken === void 0) {
+      this.functionKind = FunctionKind.async;
+    } else {
+      this.functionKind = FunctionKind.asyncGenerator;
+    }
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-evaluatebody
@@ -800,7 +817,6 @@ export class $FunctionDeclaration implements I$Node {
 
   private constructor(
     public readonly node: FunctionDeclaration,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -813,7 +829,6 @@ export class $FunctionDeclaration implements I$Node {
 
   public static create(
     node: FunctionDeclaration,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -821,51 +836,54 @@ export class $FunctionDeclaration implements I$Node {
     logger: ILogger,
     path: string,
   ): $FunctionDeclaration {
-    const $node = new $FunctionDeclaration(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $FunctionDeclaration(node, idx, depth, mos, realm, logger, path);
 
-    const intrinsics = realm['[[Intrinsics]]'];
+    $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    const modifierFlags = $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
-
-    if (hasBit(modifierFlags, ModifierFlags.Export)) {
-      ctx |= Context.InExport;
-    }
-
-    const $decorators = $node.$decorators = $decoratorList(node.decorators, ctx, depth + 1, mos, realm, logger, path);
-    $decorators.forEach(x => x.parent = $node);
-    const $name = $node.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
+    ($node.$decorators = $decoratorList(node.decorators, depth + 1, mos, realm, logger, path)).forEach(x => x.parent = $node);
+    const $name = $node.$name = $identifier(node.name, -1, depth + 1, mos, realm, logger, path);
     if ($name !== void 0) { $name.parent = $node; }
-    const $parameters = $node.$parameters = new $FormalParameterList(node.parameters, ctx, depth + 1, mos, realm, logger, path);
-    $parameters.forEach(x => x.parent = $node);
-    const $body = $node.$body = $Block.create(node.body!, ctx, -1, depth + 1, mos, realm, logger, path);
-    $body.parent = $node;
-    $node.DirectivePrologue = $body.DirectivePrologue;
+    ($node.$parameters = new $FormalParameterList(node.parameters, depth + 1, mos, realm, logger, path)).forEach(x => x.parent = $node);
+    ($node.$body = $Block.create(node.body!, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
-    $node.ContainsUseStrict = $node.DirectivePrologue.ContainsUseStrict === true;
-    const HasName = $node.HasName = $name !== void 0;
+    return $node;
+  }
 
-    $node.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
-    $node.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
-    $node.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
-    $node.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$decorators.forEach(x => x.hydrate(ctx));
+    this.$name?.hydrate(ctx);
+    this.$parameters.hydrate(ctx);
+    this.$body.hydrate(ctx);
 
-    if ($name === void 0) {
-      $node.PropName = new $Undefined(realm);
+    const intrinsics = this.realm['[[Intrinsics]]'];
+    this.DirectivePrologue = this.$body.DirectivePrologue;
+
+    this.ContainsUseStrict = this.DirectivePrologue.ContainsUseStrict === true;
+    const HasName = this.HasName = this.$name !== void 0;
+
+    this.LexicallyDeclaredNames = this.$body.TopLevelLexicallyDeclaredNames;
+    this.LexicallyScopedDeclarations = this.$body.TopLevelLexicallyScopedDeclarations;
+    this.VarDeclaredNames = this.$body.TopLevelVarDeclaredNames;
+    this.VarScopedDeclarations = this.$body.TopLevelVarScopedDeclarations;
+
+    if (this.$name === void 0) {
+      this.PropName = new $Undefined(this.realm);
     } else {
-      $node.PropName = $name.PropName;
+      this.PropName = this.$name.PropName;
     }
 
-    if (hasBit(ctx, Context.InExport)) {
-      if (hasBit($node.modifierFlags, ModifierFlags.Default)) {
+    if (hasBit(this.modifierFlags, ModifierFlags.Export)) {
+      if (hasBit(this.modifierFlags, ModifierFlags.Default)) {
         if (HasName) {
-          const [localName] = $name!.BoundNames;
-          const BoundNames = $node.BoundNames = [localName, intrinsics['*default*']];
+          const [localName] = this.$name!.BoundNames;
+          const BoundNames = this.BoundNames = [localName, intrinsics['*default*']];
 
-          $node.ExportedBindings = BoundNames;
-          $node.ExportedNames = [intrinsics['default']];
-          $node.ExportEntries = [
+          this.ExportedBindings = BoundNames;
+          this.ExportedNames = [intrinsics['default']];
+          this.ExportEntries = [
             new ExportEntryRecord(
-              /* source */$node,
+              /* source */this,
               /* ExportName */intrinsics['default'],
               /* ModuleRequest */intrinsics.null,
               /* ImportName */intrinsics.null,
@@ -873,13 +891,13 @@ export class $FunctionDeclaration implements I$Node {
             ),
           ];
         } else {
-          const BoundNames = $node.BoundNames = [intrinsics['*default*']];
+          const BoundNames = this.BoundNames = [intrinsics['*default*']];
 
-          $node.ExportedBindings = BoundNames;
-          $node.ExportedNames = [intrinsics['default']];
-          $node.ExportEntries = [
+          this.ExportedBindings = BoundNames;
+          this.ExportedNames = [intrinsics['default']];
+          this.ExportEntries = [
             new ExportEntryRecord(
-              /* source */$node,
+              /* source */this,
               /* ExportName */intrinsics['default'],
               /* ModuleRequest */intrinsics.null,
               /* ImportName */intrinsics.null,
@@ -889,14 +907,14 @@ export class $FunctionDeclaration implements I$Node {
         }
       } else {
         // Must have a name, so we assume it does
-        const BoundNames = $node.BoundNames = $name!.BoundNames;
+        const BoundNames = this.BoundNames = this.$name!.BoundNames;
         const [localName] = BoundNames;
 
-        $node.ExportedBindings = BoundNames;
-        $node.ExportedNames = BoundNames;
-        $node.ExportEntries = [
+        this.ExportedBindings = BoundNames;
+        this.ExportedNames = BoundNames;
+        this.ExportEntries = [
           new ExportEntryRecord(
-            /* source */$node,
+            /* source */this,
             /* ExportName */localName,
             /* ModuleRequest */intrinsics.null,
             /* ImportName */intrinsics.null,
@@ -906,26 +924,26 @@ export class $FunctionDeclaration implements I$Node {
       }
     } else {
       // Must have a name, so we assume it does
-      $node.BoundNames = $name!.BoundNames;
+      this.BoundNames = this.$name!.BoundNames;
 
-      $node.ExportedBindings = emptyArray;
-      $node.ExportedNames = emptyArray;
-      $node.ExportEntries = emptyArray;
+      this.ExportedBindings = emptyArray;
+      this.ExportedNames = emptyArray;
+      this.ExportEntries = emptyArray;
     }
 
-    if (!hasBit(modifierFlags, ModifierFlags.Async)) {
-      if (node.asteriskToken === void 0) {
-        $node.functionKind = FunctionKind.normal;
+    if (!hasBit(this.modifierFlags, ModifierFlags.Async)) {
+      if (this.node.asteriskToken === void 0) {
+        this.functionKind = FunctionKind.normal;
       } else {
-        $node.functionKind = FunctionKind.generator;
+        this.functionKind = FunctionKind.generator;
       }
-    } else if (node.asteriskToken === void 0) {
-      $node.functionKind = FunctionKind.async;
+    } else if (this.node.asteriskToken === void 0) {
+      this.functionKind = FunctionKind.async;
     } else {
-      $node.functionKind = FunctionKind.asyncGenerator;
+      this.functionKind = FunctionKind.asyncGenerator;
     }
 
-    return $node;
+    return this;
   }
 
   public InstantiateFunctionObject(
@@ -1619,7 +1637,6 @@ export class $ArrowFunction implements I$Node {
 
   private constructor(
     public readonly node: ArrowFunction,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -1632,7 +1649,6 @@ export class $ArrowFunction implements I$Node {
 
   public static create(
     node: ArrowFunction,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -1640,31 +1656,39 @@ export class $ArrowFunction implements I$Node {
     logger: ILogger,
     path: string,
   ): $ArrowFunction {
-    const $node = new $ArrowFunction(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $ArrowFunction(node, idx, depth, mos, realm, logger, path);
 
     const modifierFlags = $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     if (node.body.kind === SyntaxKind.Block) {
-      const $parameters = $node.$parameters = $node.CoveredFormalsList = new $FormalParameterList(node.parameters, ctx, depth + 1, mos, realm, logger, path);
-      $parameters.forEach(x => x.parent = $node);
-      const $body = $node.$body = $Block.create(node.body as Block, ctx, -1, depth + 1, mos, realm, logger, path);
-      $body.parent = $node;
-
-      $node.DirectivePrologue = $body.DirectivePrologue;
-      $node.ContainsUseStrict = $node.DirectivePrologue.ContainsUseStrict === true;
+      ($node.$parameters = $node.CoveredFormalsList = new $FormalParameterList(node.parameters, depth + 1, mos, realm, logger, path)).forEach(x => x.parent = $node);
+      ($node.$body = $Block.create(node.body as Block, -1, depth + 1, mos, realm, logger, path)).parent = $node;
     } else {
-      const $parameters = $node.$parameters = $node.CoveredFormalsList = new $FormalParameterList(node.parameters, ctx, depth + 1, mos, realm, logger, path);
-      $parameters.forEach(x => x.parent = $node);
-      const $body = $node.$body = $assignmentExpression(node.body as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-      $body.parent = $node;
-
-      $node.DirectivePrologue = NoDirectiveProgue;
-      $node.ContainsUseStrict = false;
+      ($node.$parameters = $node.CoveredFormalsList = new $FormalParameterList(node.parameters, depth + 1, mos, realm, logger, path)).forEach(x => x.parent = $node);
+      ($node.$body = $assignmentExpression(node.body as $AssignmentExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
     }
 
     $node.functionKind = hasBit(modifierFlags, ModifierFlags.Async) ? FunctionKind.async : FunctionKind.normal;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$parameters.hydrate(ctx);
+    this.$body.hydrate(ctx);
+
+    if (this.$body.$kind === SyntaxKind.Block) {
+      this.DirectivePrologue = this.$body.DirectivePrologue;
+      this.ContainsUseStrict = this.DirectivePrologue.ContainsUseStrict === true;
+    } else {
+      this.DirectivePrologue = NoDirectiveProgue;
+      this.ContainsUseStrict = false;
+    }
+
+    this.functionKind = hasBit(this.modifierFlags, ModifierFlags.Async) ? FunctionKind.async : FunctionKind.normal;
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-arrow-function-definitions-runtime-semantics-evaluation
@@ -1792,7 +1816,6 @@ export class $ConstructorDeclaration implements I$Node {
 
   private constructor(
     public readonly node: ConstructorDeclaration,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -1805,7 +1828,6 @@ export class $ConstructorDeclaration implements I$Node {
 
   public static create(
     node: ConstructorDeclaration,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -1813,29 +1835,36 @@ export class $ConstructorDeclaration implements I$Node {
     logger: ILogger,
     path: string,
   ): $ConstructorDeclaration {
-    const $node = new $ConstructorDeclaration(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $ConstructorDeclaration(node, idx, depth, mos, realm, logger, path);
 
     $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    const $decorators = $node.$decorators = $decoratorList(node.decorators, ctx, depth + 1, mos, realm, logger, path);
-    $decorators.forEach(x => x.parent = $node);
-    const $parameters = $node.$parameters = new $FormalParameterList(node.parameters, ctx, depth + 1, mos, realm, logger, path);
-    $parameters.forEach(x => x.parent = $node);
-    if ($parameters.length === 0) {
-      $node.parameterProperties = emptyArray;
-    } else {
-      $node.parameterProperties = $parameters.filter(p => hasBit(p.modifierFlags, ModifierFlags.ParameterPropertyModifier));
-    }
+    ($node.$decorators = $decoratorList(node.decorators, depth + 1, mos, realm, logger, path)).forEach(x => x.parent = $node);
+    ($node.$parameters = new $FormalParameterList(node.parameters, depth + 1, mos, realm, logger, path)).forEach(x => x.parent = $node);
 
-    const $body = $node.$body = $Block.create(node.body!, ctx, -1, depth + 1, mos, realm, logger, path);
-    $body.parent = $node;
-
-    $node.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
-    $node.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
-    $node.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
-    $node.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
+    ($node.$body = $Block.create(node.body!, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$decorators.forEach(x => x.hydrate(ctx));
+    this.$parameters.hydrate(ctx);
+    this.$body.hydrate(ctx);
+
+    if (this.$parameters.length === 0) {
+      this.parameterProperties = emptyArray;
+    } else {
+      this.parameterProperties = this.$parameters.filter(p => hasBit(p.modifierFlags, ModifierFlags.ParameterPropertyModifier));
+    }
+
+    this.LexicallyDeclaredNames = this.$body.TopLevelLexicallyDeclaredNames;
+    this.LexicallyScopedDeclarations = this.$body.TopLevelLexicallyScopedDeclarations;
+    this.VarDeclaredNames = this.$body.TopLevelVarDeclaredNames;
+    this.VarScopedDeclarations = this.$body.TopLevelVarScopedDeclarations;
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-definemethod
@@ -1943,7 +1972,6 @@ export class $ParameterDeclaration implements I$Node {
 
   private constructor(
     public readonly node: ParameterDeclaration,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -1956,7 +1984,6 @@ export class $ParameterDeclaration implements I$Node {
 
   public static create(
     node: ParameterDeclaration,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -1964,31 +1991,40 @@ export class $ParameterDeclaration implements I$Node {
     logger: ILogger,
     path: string,
   ): $ParameterDeclaration {
-    const $node = new $ParameterDeclaration(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $ParameterDeclaration(node, idx, depth, mos, realm, logger, path);
 
     $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
-    ctx |= Context.InParameterDeclaration;
 
-    const $decorators = $node.$decorators = $decoratorList(node.decorators, ctx, depth + 1, mos, realm, logger, path);
-    $decorators.forEach(x => x.parent = $node);
-    const $name = $node.$name = $$bindingName(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
-    $name.parent = $node;
+    ($node.$decorators = $decoratorList(node.decorators, depth + 1, mos, realm, logger, path)).forEach(x => x.parent = $node);
+    ($node.$name = $$bindingName(node.name, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
-    $node.BoundNames = $name.BoundNames;
     if (node.initializer === void 0) {
       $node.$initializer = void 0;
-      $node.ContainsExpression = $name.ContainsExpression;
-      $node.HasInitializer = false;
-      $node.IsSimpleParameterList = $name.IsSimpleParameterList;
     } else {
-      const $initializer = $node.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-      $initializer.parent = $node;
-      $node.ContainsExpression = true;
-      $node.HasInitializer = true;
-      $node.IsSimpleParameterList = false;
+      ($node.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
     }
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$decorators.forEach(x => x.hydrate(ctx));
+    this.$name.hydrate(ctx);
+    this.$initializer?.hydrate(ctx);
+
+    this.BoundNames = this.$name.BoundNames;
+    if (this.$initializer === void 0) {
+      this.ContainsExpression = this.$name.ContainsExpression;
+      this.HasInitializer = false;
+      this.IsSimpleParameterList = this.$name.IsSimpleParameterList;
+    } else {
+      this.ContainsExpression = true;
+      this.HasInitializer = true;
+      this.IsSimpleParameterList = false;
+    }
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-runtime-semantics-iteratorbindinginitialization

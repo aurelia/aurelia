@@ -77,7 +77,7 @@ import {
 import {
   PatternMatcher,
 } from '../system/pattern-matcher';
-import { TransformationContext } from './ast/_shared';
+import { TransformationContext, HydrateContext } from './ast/_shared';
 
 export interface IEmitOptions {
   readonly outDir: string;
@@ -444,7 +444,7 @@ export class Workspace implements IContainer {
         /* node   */sf,
         /* realm  */realm,
         /* ws     */this,
-      );
+      ).hydrate(HydrateContext.None);
 
       this._scripts.push(script);
       this.scriptCache.set(file.path, script);
@@ -471,7 +471,7 @@ export class Workspace implements IContainer {
         /* pkg             */pkg,
         /* compilerOptions */compilerOptions,
         /* ws              */this,
-      );
+      ).hydrate(HydrateContext.None);
 
       this._modules.push(esm as $ESModule);
       this.moduleCache.set(file.path, esm);

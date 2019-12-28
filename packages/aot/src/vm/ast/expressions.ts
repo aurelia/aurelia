@@ -126,7 +126,6 @@ import {
 } from '../types/list';
 import {
   I$Node,
-  Context,
   modifiersToModifierFlags,
   hasBit,
   $identifier,
@@ -152,6 +151,7 @@ import {
   $i,
   TransformationContext,
   transformList,
+  HydrateContext,
 } from './_shared';
 import {
   $$ESModuleOrScript,
@@ -188,7 +188,6 @@ export class $Decorator implements I$Node {
 
   private constructor(
     public readonly node: Decorator,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -201,7 +200,6 @@ export class $Decorator implements I$Node {
 
   public static create(
     node: Decorator,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -209,12 +207,18 @@ export class $Decorator implements I$Node {
     logger: ILogger,
     path: string,
   ): $Decorator {
-    const $node = new $Decorator(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $Decorator(node, idx, depth, mos, realm, logger, path);
 
-    const $expression = $node.$expression = $LHSExpression(node.expression as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = $node;
+    ($node.$expression = $LHSExpression(node.expression as $LHSExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$expression.hydrate(ctx);
+
+    return this;
   }
 }
 
@@ -244,7 +248,6 @@ export class $ThisExpression implements I$Node {
 
   private constructor(
     public readonly node: ThisExpression,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -257,7 +260,6 @@ export class $ThisExpression implements I$Node {
 
   public static create(
     node: ThisExpression,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -265,8 +267,13 @@ export class $ThisExpression implements I$Node {
     logger: ILogger,
     path: string,
   ): $ThisExpression {
-    const $node = new $ThisExpression(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $ThisExpression(node, idx, depth, mos, realm, logger, path);
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-this-keyword-runtime-semantics-evaluation
@@ -298,7 +305,6 @@ export class $SuperExpression implements I$Node {
 
   private constructor(
     public readonly node: SuperExpression,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -311,7 +317,6 @@ export class $SuperExpression implements I$Node {
 
   public static create(
     node: SuperExpression,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -319,8 +324,13 @@ export class $SuperExpression implements I$Node {
     logger: ILogger,
     path: string,
   ): $SuperExpression {
-    const $node = new $SuperExpression(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $SuperExpression(node, idx, depth, mos, realm, logger, path);
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-super-keyword-runtime-semantics-evaluation
@@ -385,7 +395,6 @@ export type $$ArgumentOrArrayLiteralElement = (
 
 export function $argumentOrArrayLiteralElement(
   node: $ArgumentOrArrayLiteralElementNode,
-  ctx: Context,
   idx: number,
   depth: number,
   mos: $$ESModuleOrScript,
@@ -395,17 +404,16 @@ export function $argumentOrArrayLiteralElement(
 ): $$ArgumentOrArrayLiteralElement {
   switch (node.kind) {
     case SyntaxKind.SpreadElement:
-      return $SpreadElement.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $SpreadElement.create(node, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.OmittedExpression:
-      return $OmittedExpression.create(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $OmittedExpression.create(node, idx, depth + 1, mos, realm, logger, path);
     default:
-      return $assignmentExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
+      return $assignmentExpression(node, idx, depth + 1, mos, realm, logger, path);
   }
 }
 
 export function $argumentOrArrayLiteralElementList(
   nodes: readonly $ArgumentOrArrayLiteralElementNode[] | undefined,
-  ctx: Context,
   depth: number,
   mos: $$ESModuleOrScript,
   realm: Realm,
@@ -419,7 +427,7 @@ export function $argumentOrArrayLiteralElementList(
   const len = nodes.length;
   const $nodes: $$ArgumentOrArrayLiteralElement[] = Array(len);
   for (let i = 0; i < len; ++i) {
-    $nodes[i] = $argumentOrArrayLiteralElement(nodes[i], ctx, i, depth + 1, mos, realm, logger, path);
+    $nodes[i] = $argumentOrArrayLiteralElement(nodes[i], i, depth + 1, mos, realm, logger, path);
   }
   return $nodes;
 }
@@ -450,7 +458,6 @@ export class $ArrayLiteralExpression implements I$Node {
 
   private constructor(
     public readonly node: ArrayLiteralExpression,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -463,7 +470,6 @@ export class $ArrayLiteralExpression implements I$Node {
 
   public static create(
     node: ArrayLiteralExpression,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -471,12 +477,18 @@ export class $ArrayLiteralExpression implements I$Node {
     logger: ILogger,
     path: string,
   ): $ArrayLiteralExpression {
-    const $node = new $ArrayLiteralExpression(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $ArrayLiteralExpression(node, idx, depth, mos, realm, logger, path);
 
-    const $elements = $node.$elements = $argumentOrArrayLiteralElementList(node.elements as NodeArray<$ArgumentOrArrayLiteralElementNode>, ctx, depth + 1, mos, realm, logger, path);
-    $elements.forEach(x => x.parent = $node);
+    ($node.$elements = $argumentOrArrayLiteralElementList(node.elements as NodeArray<$ArgumentOrArrayLiteralElementNode>, depth + 1, mos, realm, logger, path)).forEach(x => x.parent = $node);
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$elements.forEach(x => x.hydrate(ctx));
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-arrayaccumulation
@@ -639,7 +651,6 @@ export type $$ObjectLiteralElementLike = (
 
 export function $$objectLiteralElementLikeList(
   nodes: readonly ObjectLiteralElementLike[],
-  ctx: Context,
   depth: number,
   mos: $$ESModuleOrScript,
   realm: Realm,
@@ -658,22 +669,22 @@ export function $$objectLiteralElementLikeList(
     el = nodes[i];
     switch (el.kind) {
       case SyntaxKind.PropertyAssignment:
-        $nodes[i] = $PropertyAssignment.create(el, ctx, i, depth + 1, mos, realm, logger, path);
+        $nodes[i] = $PropertyAssignment.create(el, i, depth + 1, mos, realm, logger, path);
         break;
       case SyntaxKind.ShorthandPropertyAssignment:
-        $nodes[i] = $ShorthandPropertyAssignment.create(el, ctx, i, depth + 1, mos, realm, logger, path);
+        $nodes[i] = $ShorthandPropertyAssignment.create(el, i, depth + 1, mos, realm, logger, path);
         break;
       case SyntaxKind.SpreadAssignment:
-        $nodes[i] = $SpreadAssignment.create(el, ctx, i, depth + 1, mos, realm, logger, path);
+        $nodes[i] = $SpreadAssignment.create(el, i, depth + 1, mos, realm, logger, path);
         break;
       case SyntaxKind.MethodDeclaration:
-        $nodes[i] = $MethodDeclaration.create(el, ctx, i, depth + 1, mos, realm, logger, path);
+        $nodes[i] = $MethodDeclaration.create(el, i, depth + 1, mos, realm, logger, path);
         break;
       case SyntaxKind.GetAccessor:
-        $nodes[i] = $GetAccessorDeclaration.create(el, ctx, i, depth + 1, mos, realm, logger, path);
+        $nodes[i] = $GetAccessorDeclaration.create(el, i, depth + 1, mos, realm, logger, path);
         break;
       case SyntaxKind.SetAccessor:
-        $nodes[i] = $SetAccessorDeclaration.create(el, ctx, i, depth + 1, mos, realm, logger, path);
+        $nodes[i] = $SetAccessorDeclaration.create(el, i, depth + 1, mos, realm, logger, path);
         break;
     }
   }
@@ -706,7 +717,6 @@ export class $ObjectLiteralExpression implements I$Node {
 
   private constructor(
     public readonly node: ObjectLiteralExpression,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -719,7 +729,6 @@ export class $ObjectLiteralExpression implements I$Node {
 
   public static create(
     node: ObjectLiteralExpression,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -727,12 +736,18 @@ export class $ObjectLiteralExpression implements I$Node {
     logger: ILogger,
     path: string,
   ): $ObjectLiteralExpression {
-    const $node = new $ObjectLiteralExpression(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $ObjectLiteralExpression(node, idx, depth, mos, realm, logger, path);
 
-    const $properties = $node.$properties = $$objectLiteralElementLikeList(node.properties, ctx, depth + 1, mos, realm, logger, path);
-    $properties.forEach(x => x.parent = $node);
+    ($node.$properties = $$objectLiteralElementLikeList(node.properties, depth + 1, mos, realm, logger, path)).forEach(x => x.parent = $node);
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$properties.forEach(x => x.hydrate(ctx));
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-evaluation
@@ -800,7 +815,6 @@ export class $PropertyAssignment implements I$Node {
 
   private constructor(
     public readonly node: PropertyAssignment,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -813,7 +827,6 @@ export class $PropertyAssignment implements I$Node {
 
   public static create(
     node: PropertyAssignment,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -821,18 +834,24 @@ export class $PropertyAssignment implements I$Node {
     logger: ILogger,
     path: string,
   ): $PropertyAssignment {
-    const $node = new $PropertyAssignment(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $PropertyAssignment(node, idx, depth, mos, realm, logger, path);
 
     $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    const $name = $node.$name = $$propertyName(node.name, ctx | Context.IsMemberName, -1, depth + 1, mos, realm, logger, path);
-    $name.parent = $node;
-    const $initializer = $node.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $initializer.parent = $node;
-
-    $node.PropName = $name.PropName;
+    ($node.$name = $$propertyName(node.name, -1, depth + 1, mos, realm, logger, path)).parent = $node;
+    ($node.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$name.hydrate(ctx);
+    this.$initializer.hydrate(ctx);
+
+    this.PropName = this.$name.PropName;
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-propertydefinitionevaluation
@@ -903,7 +922,6 @@ export class $ShorthandPropertyAssignment implements I$Node {
 
   private constructor(
     public readonly node: ShorthandPropertyAssignment,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -916,7 +934,6 @@ export class $ShorthandPropertyAssignment implements I$Node {
 
   public static create(
     node: ShorthandPropertyAssignment,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -924,18 +941,25 @@ export class $ShorthandPropertyAssignment implements I$Node {
     logger: ILogger,
     path: string,
   ): $ShorthandPropertyAssignment {
-    const $node = new $ShorthandPropertyAssignment(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $ShorthandPropertyAssignment(node, idx, depth, mos, realm, logger, path);
 
     $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    const $name = $node.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
-    $name.parent = $node;
-    const $objectAssignmentInitializer = $node.$objectAssignmentInitializer = $assignmentExpression(node.objectAssignmentInitializer as $AssignmentExpressionNode | undefined, ctx, -1, depth + 1, mos, realm, logger, path);
+    ($node.$name = $identifier(node.name, -1, depth + 1, mos, realm, logger, path)).parent = $node;
+    const $objectAssignmentInitializer = $node.$objectAssignmentInitializer = $assignmentExpression(node.objectAssignmentInitializer as $AssignmentExpressionNode | undefined, -1, depth + 1, mos, realm, logger, path);
     if ($objectAssignmentInitializer !== void 0) { $objectAssignmentInitializer.parent = $node; }
 
-    $node.PropName = $name.PropName;
-
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$name.hydrate(ctx);
+    this.$objectAssignmentInitializer?.hydrate(ctx);
+
+    this.PropName = this.$name.PropName;
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-propertydefinitionevaluation
@@ -985,7 +1009,6 @@ export class $SpreadAssignment implements I$Node {
 
   private constructor(
     public readonly node: SpreadAssignment,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -998,7 +1021,6 @@ export class $SpreadAssignment implements I$Node {
 
   public static create(
     node: SpreadAssignment,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -1006,12 +1028,18 @@ export class $SpreadAssignment implements I$Node {
     logger: ILogger,
     path: string,
   ): $SpreadAssignment {
-    const $node = new $SpreadAssignment(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $SpreadAssignment(node, idx, depth, mos, realm, logger, path);
 
-    const $expression = $node.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = $node;
+    ($node.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$expression.hydrate(ctx);
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-propertydefinitionevaluation
@@ -1064,7 +1092,6 @@ export class $PropertyAccessExpression implements I$Node {
 
   private constructor(
     public readonly node: PropertyAccessExpression,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -1077,7 +1104,6 @@ export class $PropertyAccessExpression implements I$Node {
 
   public static create(
     node: PropertyAccessExpression,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -1085,14 +1111,20 @@ export class $PropertyAccessExpression implements I$Node {
     logger: ILogger,
     path: string,
   ): $PropertyAccessExpression {
-    const $node = new $PropertyAccessExpression(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $PropertyAccessExpression(node, idx, depth, mos, realm, logger, path);
 
-    const $expression = $node.$expression = $LHSExpression(node.expression as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = $node;
-    const $name = $node.$name = $identifier(node.name, ctx | Context.IsPropertyAccessName, -1, depth + 1, mos, realm, logger, path);
-    $name.parent = $node;
+    ($node.$expression = $LHSExpression(node.expression as $LHSExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
+    ($node.$name = $identifier(node.name, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$name.hydrate(ctx);
+    this.$expression.hydrate(ctx);
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-property-accessors-runtime-semantics-evaluation
@@ -1155,7 +1187,6 @@ export class $ElementAccessExpression implements I$Node {
 
   private constructor(
     public readonly node: ElementAccessExpression,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -1168,7 +1199,6 @@ export class $ElementAccessExpression implements I$Node {
 
   public static create(
     node: ElementAccessExpression,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -1176,14 +1206,20 @@ export class $ElementAccessExpression implements I$Node {
     logger: ILogger,
     path: string,
   ): $ElementAccessExpression {
-    const $node = new $ElementAccessExpression(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $ElementAccessExpression(node, idx, depth, mos, realm, logger, path);
 
-    const $expression = $node.$expression = $LHSExpression(node.expression as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = $node;
-    const $argumentExpression = $node.$argumentExpression = $assignmentExpression(node.argumentExpression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $argumentExpression.parent = $node;
+    ($node.$expression = $LHSExpression(node.expression as $LHSExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
+    ($node.$argumentExpression = $assignmentExpression(node.argumentExpression as $AssignmentExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$expression.hydrate(ctx);
+    this.$argumentExpression.hydrate(ctx);
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-property-accessors-runtime-semantics-evaluation
@@ -1256,7 +1292,6 @@ export class $CallExpression implements I$Node {
 
   private constructor(
     public readonly node: CallExpression,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -1269,7 +1304,6 @@ export class $CallExpression implements I$Node {
 
   public static create(
     node: CallExpression,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -1277,14 +1311,20 @@ export class $CallExpression implements I$Node {
     logger: ILogger,
     path: string,
   ): $CallExpression {
-    const $node = new $CallExpression(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $CallExpression(node, idx, depth, mos, realm, logger, path);
 
-    const $expression = $node.$expression = $LHSExpression(node.expression as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = $node;
-    const $arguments = $node.$arguments = $argumentOrArrayLiteralElementList(node.arguments as NodeArray<$ArgumentOrArrayLiteralElementNode>, ctx, depth + 1, mos, realm, logger, path);
-    $arguments.forEach(x => x.parent = $node);
+    ($node.$expression = $LHSExpression(node.expression as $LHSExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
+    ($node.$arguments = $argumentOrArrayLiteralElementList(node.arguments as NodeArray<$ArgumentOrArrayLiteralElementNode>, depth + 1, mos, realm, logger, path)).forEach(x => x.parent = $node);
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$arguments.forEach(x => x.hydrate(ctx));
+    this.$expression.hydrate(ctx);
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-calls-runtime-semantics-evaluation
@@ -1512,7 +1552,6 @@ export class $NewExpression implements I$Node {
 
   private constructor(
     public readonly node: NewExpression,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -1525,7 +1564,6 @@ export class $NewExpression implements I$Node {
 
   public static create(
     node: NewExpression,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -1533,14 +1571,20 @@ export class $NewExpression implements I$Node {
     logger: ILogger,
     path: string,
   ): $NewExpression {
-    const $node = new $NewExpression(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $NewExpression(node, idx, depth, mos, realm, logger, path);
 
-    const $expression = $node.$expression = $LHSExpression(node.expression as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = $node;
-    const $arguments = $node.$arguments = $argumentOrArrayLiteralElementList(node.arguments as NodeArray<$ArgumentOrArrayLiteralElementNode>, ctx, depth + 1, mos, realm, logger, path);
-    $arguments.forEach(x => x.parent = $node);
+    ($node.$expression = $LHSExpression(node.expression as $LHSExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
+    ($node.$arguments = $argumentOrArrayLiteralElementList(node.arguments as NodeArray<$ArgumentOrArrayLiteralElementNode>, depth + 1, mos, realm, logger, path)).forEach(x => x.parent = $node);
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$arguments.forEach(x => x.hydrate(ctx));
+    this.$expression.hydrate(ctx);
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-new-operator-runtime-semantics-evaluation
@@ -1636,7 +1680,6 @@ export class $TaggedTemplateExpression implements I$Node {
 
   private constructor(
     public readonly node: TaggedTemplateExpression,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -1649,7 +1692,6 @@ export class $TaggedTemplateExpression implements I$Node {
 
   public static create(
     node: TaggedTemplateExpression,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -1657,19 +1699,25 @@ export class $TaggedTemplateExpression implements I$Node {
     logger: ILogger,
     path: string,
   ): $TaggedTemplateExpression {
-    const $node = new $TaggedTemplateExpression(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $TaggedTemplateExpression(node, idx, depth, mos, realm, logger, path);
 
-    const $tag = $node.$tag = $LHSExpression(node.tag as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $tag.parent = $node;
+    ($node.$tag = $LHSExpression(node.tag as $LHSExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
     if (node.template.kind === SyntaxKind.NoSubstitutionTemplateLiteral) {
-      $node.$template = $NoSubstitutionTemplateLiteral.create(node.template, ctx, -1, depth + 1, mos, realm, logger, path);
+      ($node.$template = $NoSubstitutionTemplateLiteral.create(node.template, -1, depth + 1, mos, realm, logger, path)).parent = $node;
     } else {
-      $node.$template = $TemplateExpression.create(node.template, ctx, -1, depth + 1, mos, realm, logger, path);
+      ($node.$template = $TemplateExpression.create(node.template, -1, depth + 1, mos, realm, logger, path)).parent = $node;
     }
-    $node.$template.parent = $node;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$tag.hydrate(ctx);
+    this.$template.hydrate(ctx);
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-tagged-templates-runtime-semantics-evaluation
@@ -1723,7 +1771,6 @@ export class $TaggedTemplateExpression implements I$Node {
 
 export function $$templateSpanList(
   nodes: readonly TemplateSpan[],
-  ctx: Context,
   depth: number,
   mos: $$ESModuleOrScript,
   realm: Realm,
@@ -1737,7 +1784,7 @@ export function $$templateSpanList(
   const len = nodes.length;
   const $nodes: $TemplateSpan[] = Array(len);
   for (let i = 0; i < len; ++i) {
-    $nodes[i] = $TemplateSpan.create(nodes[i], ctx, i, depth + 1, mos, realm, logger, path);
+    $nodes[i] = $TemplateSpan.create(nodes[i], i, depth + 1, mos, realm, logger, path);
   }
   return $nodes;
 }
@@ -1769,7 +1816,6 @@ export class $TemplateExpression implements I$Node {
 
   private constructor(
     public readonly node: TemplateExpression,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -1782,7 +1828,6 @@ export class $TemplateExpression implements I$Node {
 
   public static create(
     node: TemplateExpression,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -1790,14 +1835,20 @@ export class $TemplateExpression implements I$Node {
     logger: ILogger,
     path: string,
   ): $TemplateExpression {
-    const $node = new $TemplateExpression(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $TemplateExpression(node, idx, depth, mos, realm, logger, path);
 
-    const $head = $node.$head = $TemplateHead.create(node.head, ctx, depth + 1, mos, realm, logger, path);
-    $head.parent = $node;
-    const $templateSpans = $node.$templateSpans = $$templateSpanList(node.templateSpans, ctx, depth + 1, mos, realm, logger, path);
-    $templateSpans.forEach(x => x.parent = $node);
+    ($node.$head = $TemplateHead.create(node.head, depth + 1, mos, realm, logger, path)).parent = $node;
+    ($node.$templateSpans = $$templateSpanList(node.templateSpans, depth + 1, mos, realm, logger, path)).forEach(x => x.parent = $node);
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$head.hydrate(ctx);
+    this.$templateSpans.forEach(x => x.hydrate(ctx));
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
@@ -1884,7 +1935,6 @@ export class $ParenthesizedExpression implements I$Node {
 
   private constructor(
     public readonly node: ParenthesizedExpression,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -1897,7 +1947,6 @@ export class $ParenthesizedExpression implements I$Node {
 
   public static create(
     node: ParenthesizedExpression,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -1905,14 +1954,20 @@ export class $ParenthesizedExpression implements I$Node {
     logger: ILogger,
     path: string,
   ): $ParenthesizedExpression {
-    const $node = new $ParenthesizedExpression(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $ParenthesizedExpression(node, idx, depth, mos, realm, logger, path);
 
-    const $expression = $node.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = $node;
-
-    $node.CoveredParenthesizedExpression = $expression;
+    ($node.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$expression.hydrate(ctx);
+
+    this.CoveredParenthesizedExpression = this.$expression;
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-grouping-operator-runtime-semantics-evaluation
@@ -1961,7 +2016,6 @@ export class $NonNullExpression implements I$Node {
 
   private constructor(
     public readonly node: NonNullExpression,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -1974,7 +2028,6 @@ export class $NonNullExpression implements I$Node {
 
   public static create(
     node: NonNullExpression,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -1982,12 +2035,18 @@ export class $NonNullExpression implements I$Node {
     logger: ILogger,
     path: string,
   ): $NonNullExpression {
-    const $node = new $NonNullExpression(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $NonNullExpression(node, idx, depth, mos, realm, logger, path);
 
-    const $expression = $node.$expression = $LHSExpression(node.expression as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = $node;
+    ($node.$expression = $LHSExpression(node.expression as $LHSExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$expression.hydrate(ctx);
+
+    return this;
   }
 
   // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
@@ -2014,7 +2073,6 @@ export class $MetaProperty implements I$Node {
 
   private constructor(
     public readonly node: MetaProperty,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -2027,7 +2085,6 @@ export class $MetaProperty implements I$Node {
 
   public static create(
     node: MetaProperty,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -2035,12 +2092,18 @@ export class $MetaProperty implements I$Node {
     logger: ILogger,
     path: string,
   ): $MetaProperty {
-    const $node = new $MetaProperty(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $MetaProperty(node, idx, depth, mos, realm, logger, path);
 
-    const $name = $node.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
-    $name.parent = $node;
+    ($node.$name = $identifier(node.name, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$name.hydrate(ctx);
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-meta-properties-runtime-semantics-evaluation
@@ -2080,7 +2143,6 @@ export class $DeleteExpression implements I$Node {
 
   private constructor(
     public readonly node: DeleteExpression,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -2093,7 +2155,6 @@ export class $DeleteExpression implements I$Node {
 
   public static create(
     node: DeleteExpression,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -2101,12 +2162,18 @@ export class $DeleteExpression implements I$Node {
     logger: ILogger,
     path: string,
   ): $DeleteExpression {
-    const $node = new $DeleteExpression(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $DeleteExpression(node, idx, depth, mos, realm, logger, path);
 
-    const $expression = $node.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = $node;
+    ($node.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$expression.hydrate(ctx);
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-delete-operator-runtime-semantics-evaluation
@@ -2161,7 +2228,6 @@ export class $TypeOfExpression implements I$Node {
 
   private constructor(
     public readonly node: TypeOfExpression,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -2174,7 +2240,6 @@ export class $TypeOfExpression implements I$Node {
 
   public static create(
     node: TypeOfExpression,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -2182,12 +2247,18 @@ export class $TypeOfExpression implements I$Node {
     logger: ILogger,
     path: string,
   ): $TypeOfExpression {
-    const $node = new $TypeOfExpression(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $TypeOfExpression(node, idx, depth, mos, realm, logger, path);
 
-    const $expression = $node.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = $node;
+    ($node.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$expression.hydrate(ctx);
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-typeof-operator-runtime-semantics-evaluation
@@ -2276,7 +2347,6 @@ export class $VoidExpression implements I$Node {
 
   private constructor(
     public readonly node: VoidExpression,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -2289,7 +2359,6 @@ export class $VoidExpression implements I$Node {
 
   public static create(
     node: VoidExpression,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -2297,12 +2366,18 @@ export class $VoidExpression implements I$Node {
     logger: ILogger,
     path: string,
   ): $VoidExpression {
-    const $node = new $VoidExpression(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $VoidExpression(node, idx, depth, mos, realm, logger, path);
 
-    const $expression = $node.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = $node;
+    ($node.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$expression.hydrate(ctx);
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-void-operator
@@ -2351,7 +2426,6 @@ export class $AwaitExpression implements I$Node {
 
   private constructor(
     public readonly node: AwaitExpression,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -2364,7 +2438,6 @@ export class $AwaitExpression implements I$Node {
 
   public static create(
     node: AwaitExpression,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -2372,12 +2445,18 @@ export class $AwaitExpression implements I$Node {
     logger: ILogger,
     path: string,
   ): $AwaitExpression {
-    const $node = new $AwaitExpression(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $AwaitExpression(node, idx, depth, mos, realm, logger, path);
 
-    const $expression = $node.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = $node;
+    ($node.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$expression.hydrate(ctx);
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-runtime-semantics-evaluation
@@ -2422,7 +2501,6 @@ export class $PrefixUnaryExpression implements I$Node {
 
   private constructor(
     public readonly node: PrefixUnaryExpression,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -2435,7 +2513,6 @@ export class $PrefixUnaryExpression implements I$Node {
 
   public static create(
     node: PrefixUnaryExpression,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -2443,12 +2520,18 @@ export class $PrefixUnaryExpression implements I$Node {
     logger: ILogger,
     path: string,
   ): $PrefixUnaryExpression {
-    const $node = new $PrefixUnaryExpression(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $PrefixUnaryExpression(node, idx, depth, mos, realm, logger, path);
 
-    const $operand = $node.$operand = $unaryExpression(node.operand as $UnaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $operand.parent = $node;
+    ($node.$operand = $unaryExpression(node.operand as $UnaryExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$operand.hydrate(ctx);
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-prefix-increment-operator-runtime-semantics-evaluation
@@ -2638,7 +2721,6 @@ export class $PostfixUnaryExpression implements I$Node {
 
   private constructor(
     public readonly node: PostfixUnaryExpression,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -2651,7 +2733,6 @@ export class $PostfixUnaryExpression implements I$Node {
 
   public static create(
     node: PostfixUnaryExpression,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -2659,12 +2740,18 @@ export class $PostfixUnaryExpression implements I$Node {
     logger: ILogger,
     path: string,
   ): $PostfixUnaryExpression {
-    const $node = new $PostfixUnaryExpression(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $PostfixUnaryExpression(node, idx, depth, mos, realm, logger, path);
 
-    const $operand = $node.$operand = $LHSExpression(node.operand as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $operand.parent = $node;
+    ($node.$operand = $LHSExpression(node.operand as $LHSExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$operand.hydrate(ctx);
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-postfix-increment-operator-runtime-semantics-evaluation
@@ -2764,7 +2851,6 @@ export class $TypeAssertion implements I$Node {
 
   private constructor(
     public readonly node: TypeAssertion,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -2777,7 +2863,6 @@ export class $TypeAssertion implements I$Node {
 
   public static create(
     node: TypeAssertion,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -2785,12 +2870,18 @@ export class $TypeAssertion implements I$Node {
     logger: ILogger,
     path: string,
   ): $TypeAssertion {
-    const $node = new $TypeAssertion(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $TypeAssertion(node, idx, depth, mos, realm, logger, path);
 
-    const $expression = $node.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = $node;
+    ($node.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$expression.hydrate(ctx);
+
+    return this;
   }
 
   // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
@@ -2822,7 +2913,6 @@ export class $BinaryExpression implements I$Node {
 
   private constructor(
     public readonly node: BinaryExpression,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -2835,7 +2925,6 @@ export class $BinaryExpression implements I$Node {
 
   public static create(
     node: BinaryExpression,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -2843,14 +2932,20 @@ export class $BinaryExpression implements I$Node {
     logger: ILogger,
     path: string,
   ): $BinaryExpression {
-    const $node = new $BinaryExpression(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $BinaryExpression(node, idx, depth, mos, realm, logger, path);
 
-    const $left = $node.$left = $assignmentExpression(node.left as $BinaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path) as $$BinaryExpressionOrHigher;
-    $left.parent = $node;
-    const $right = $node.$right = $assignmentExpression(node.right as $BinaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path) as $$BinaryExpressionOrHigher;
-    $right.parent = $node;
+    ($node.$left = $assignmentExpression(node.left as $BinaryExpressionNode, -1, depth + 1, mos, realm, logger, path) as $$BinaryExpressionOrHigher).parent = $node;
+    ($node.$right = $assignmentExpression(node.right as $BinaryExpressionNode, -1, depth + 1, mos, realm, logger, path) as $$BinaryExpressionOrHigher).parent = $node;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$left.hydrate(ctx);
+    this.$right.hydrate(ctx);
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-exp-operator-runtime-semantics-evaluation
@@ -3931,7 +4026,6 @@ export class $ConditionalExpression implements I$Node {
 
   private constructor(
     public readonly node: ConditionalExpression,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -3944,7 +4038,6 @@ export class $ConditionalExpression implements I$Node {
 
   public static create(
     node: ConditionalExpression,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -3952,22 +4045,27 @@ export class $ConditionalExpression implements I$Node {
     logger: ILogger,
     path: string,
   ): $ConditionalExpression {
-    const $node = new $ConditionalExpression(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $ConditionalExpression(node, idx, depth, mos, realm, logger, path);
 
     if (node.condition.kind === SyntaxKind.BinaryExpression) {
-      const $condition = $node.$condition = $BinaryExpression.create(node.condition as BinaryExpression, ctx, -1, depth + 1, mos, realm, logger, path);
-      $condition.parent = $node;
+      ($node.$condition = $BinaryExpression.create(node.condition as BinaryExpression, -1, depth + 1, mos, realm, logger, path)).parent = $node;
     } else {
-      const $condition = $node.$condition = $unaryExpression(node.condition as $UnaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-      $condition.parent = $node;
+      ($node.$condition = $unaryExpression(node.condition as $UnaryExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
     }
 
-    const $whenTrue = $node.$whenTrue = $assignmentExpression(node.whenTrue as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $whenTrue.parent = $node;
-    const $whenFalse = $node.$whenFalse = $assignmentExpression(node.whenFalse as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $whenFalse.parent = $node;
+    ($node.$whenTrue = $assignmentExpression(node.whenTrue as $AssignmentExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
+    ($node.$whenFalse = $assignmentExpression(node.whenFalse as $AssignmentExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$condition.hydrate(ctx);
+    this.$whenTrue.hydrate(ctx);
+    this.$whenFalse.hydrate(ctx);
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-conditional-operator-runtime-semantics-evaluation
@@ -4026,7 +4124,6 @@ export class $YieldExpression implements I$Node {
 
   private constructor(
     public readonly node: YieldExpression,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -4039,7 +4136,6 @@ export class $YieldExpression implements I$Node {
 
   public static create(
     node: YieldExpression,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -4047,12 +4143,18 @@ export class $YieldExpression implements I$Node {
     logger: ILogger,
     path: string,
   ): $YieldExpression {
-    const $node = new $YieldExpression(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $YieldExpression(node, idx, depth, mos, realm, logger, path);
 
-    const $expression = $node.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = $node;
+    ($node.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$expression.hydrate(ctx);
+
+    return this;
   }
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
   // 14.4.14 Runtime Semantics: Evaluation
@@ -4157,7 +4259,6 @@ export class $AsExpression implements I$Node {
 
   private constructor(
     public readonly node: AsExpression,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -4170,7 +4271,6 @@ export class $AsExpression implements I$Node {
 
   public static create(
     node: AsExpression,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -4178,12 +4278,19 @@ export class $AsExpression implements I$Node {
     logger: ILogger,
     path: string,
   ): $AsExpression {
-    const $node = new $AsExpression(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $AsExpression(node, idx, depth, mos, realm, logger, path);
 
-    const $expression = $node.$expression = $assignmentExpression(node.expression as $UpdateExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path) as $$UpdateExpressionOrHigher;
+    const $expression = $node.$expression = $assignmentExpression(node.expression as $UpdateExpressionNode, -1, depth + 1, mos, realm, logger, path) as $$UpdateExpressionOrHigher;
     $expression.parent = $node;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$expression.hydrate(ctx);
+
+    return this;
   }
 
   // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
@@ -4250,7 +4357,6 @@ export class $Identifier implements I$Node {
 
   private constructor(
     public readonly node: Identifier,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -4263,7 +4369,6 @@ export class $Identifier implements I$Node {
 
   public static create(
     node: Identifier,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -4271,19 +4376,24 @@ export class $Identifier implements I$Node {
     logger: ILogger,
     path: string,
   ): $Identifier {
-    const $node = new $Identifier(node, ctx, idx, depth, mos, realm, logger, path);
-
-    const StringValue = $node.StringValue = new $String(realm, node.text, void 0, void 0, $node);
-    $node.PropName = StringValue;
-    $node.BoundNames = [StringValue] as const;
-
-    if (hasBit(ctx, Context.InStrictMode) && (StringValue['[[Value]]'] === 'eval' || StringValue['[[Value]]'] === 'arguments')) {
-      $node.AssignmentTargetType = 'strict';
-    } else {
-      $node.AssignmentTargetType = 'simple';
-    }
+    const $node = new $Identifier(node, idx, depth, mos, realm, logger, path);
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    const StringValue = this.StringValue = new $String(this.realm, this.node.text, void 0, void 0, this);
+    this.PropName = StringValue;
+    this.BoundNames = [StringValue] as const;
+
+    if (hasBit(ctx, HydrateContext.ContainsUseStrict) && (StringValue['[[Value]]'] === 'eval' || StringValue['[[Value]]'] === 'arguments')) {
+      this.AssignmentTargetType = 'strict';
+    } else {
+      this.AssignmentTargetType = 'simple';
+    }
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-identifiers-runtime-semantics-evaluation

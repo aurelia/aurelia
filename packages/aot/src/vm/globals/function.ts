@@ -47,8 +47,8 @@ import {
   $ESModule,
 } from '../ast/modules';
 import {
-  Context,
   FunctionKind,
+  HydrateContext,
 } from '../ast/_shared';
 import {
   $Boolean,
@@ -505,7 +505,6 @@ export function $CreateDynamicFunction(
 
   const $functionDeclaration = $FunctionDeclaration.create(
     node,
-    Context.Dynamic,
     -1,
     1,
     ScriptOrModule,
@@ -514,6 +513,7 @@ export function $CreateDynamicFunction(
     `${ScriptOrModule.path}[Dynamic].FunctionDeclaration`,
   );
   $functionDeclaration.parent = ScriptOrModule;
+  $functionDeclaration.hydrate(HydrateContext.None);
 
   // 19. Let strict be ContainsUseStrict of body.
   const strict = $functionDeclaration.ContainsUseStrict;

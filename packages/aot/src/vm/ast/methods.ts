@@ -41,7 +41,6 @@ import {
 } from '../types/property-descriptor';
 import {
   I$Node,
-  Context,
   modifiersToModifierFlags,
   hasBit,
   $$PropertyName,
@@ -54,6 +53,7 @@ import {
   TransformationContext,
   transformList,
   transformModifiers,
+  HydrateContext,
 } from './_shared';
 import {
   $$ESModuleOrScript,
@@ -122,7 +122,6 @@ export class $MethodDeclaration implements I$Node {
 
   private constructor(
     public readonly node: MethodDeclaration,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -135,7 +134,6 @@ export class $MethodDeclaration implements I$Node {
 
   public static create(
     node: MethodDeclaration,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -143,40 +141,46 @@ export class $MethodDeclaration implements I$Node {
     logger: ILogger,
     path: string,
   ): $MethodDeclaration {
-    const $node = new $MethodDeclaration(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $MethodDeclaration(node, idx, depth, mos, realm, logger, path);
 
-    const modifierFlags = $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    const $decorators = $node.$decorators = $decoratorList(node.decorators, ctx, depth + 1, mos, realm, logger, path);
-    $decorators.forEach(x => x.parent = $node);
-    const $name = $node.$name = $$propertyName(node.name, ctx | Context.IsMemberName, -1, depth + 1, mos, realm, logger, path);
-    $name.parent = $node;
-    const $parameters = $node.$parameters = new $FormalParameterList(node.parameters, ctx, depth + 1, mos, realm, logger, path);
-    $parameters.forEach(x => x.parent = $node);
-    const $body = $node.$body = $Block.create(node.body!, ctx, -1, depth + 1, mos, realm, logger, path);
-    $body.parent = $node;
-
-    $node.PropName = $name.PropName;
-    $node.IsStatic = hasBit(modifierFlags, ModifierFlags.Static);
-
-    $node.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
-    $node.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
-    $node.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
-    $node.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
-
-    if (!hasBit(modifierFlags, ModifierFlags.Async)) {
-      if (node.asteriskToken === void 0) {
-        $node.functionKind = FunctionKind.normal;
-      } else {
-        $node.functionKind = FunctionKind.generator;
-      }
-    } else if (node.asteriskToken === void 0) {
-      $node.functionKind = FunctionKind.async;
-    } else {
-      $node.functionKind = FunctionKind.asyncGenerator;
-    }
+    ($node.$decorators = $decoratorList(node.decorators, depth + 1, mos, realm, logger, path)).forEach(x => x.parent = $node);
+    ($node.$name = $$propertyName(node.name, -1, depth + 1, mos, realm, logger, path)).parent = $node;
+    ($node.$parameters = new $FormalParameterList(node.parameters, depth + 1, mos, realm, logger, path)).forEach(x => x.parent = $node);
+    ($node.$body = $Block.create(node.body!, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$decorators.forEach(x => x.hydrate(ctx));
+    this.$name.hydrate(ctx);
+    this.$parameters.hydrate(ctx);
+    this.$body.hydrate(ctx);
+
+    this.PropName = this.$name.PropName;
+    this.IsStatic = hasBit(this.modifierFlags, ModifierFlags.Static);
+
+    this.LexicallyDeclaredNames = this.$body.TopLevelLexicallyDeclaredNames;
+    this.LexicallyScopedDeclarations = this.$body.TopLevelLexicallyScopedDeclarations;
+    this.VarDeclaredNames = this.$body.TopLevelVarDeclaredNames;
+    this.VarScopedDeclarations = this.$body.TopLevelVarScopedDeclarations;
+
+    if (!hasBit(this.modifierFlags, ModifierFlags.Async)) {
+      if (this.node.asteriskToken === void 0) {
+        this.functionKind = FunctionKind.normal;
+      } else {
+        this.functionKind = FunctionKind.generator;
+      }
+    } else if (this.node.asteriskToken === void 0) {
+      this.functionKind = FunctionKind.async;
+    } else {
+      this.functionKind = FunctionKind.asyncGenerator;
+    }
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-definemethod
@@ -349,7 +353,6 @@ export class $GetAccessorDeclaration implements I$Node {
 
   private constructor(
     public readonly node: GetAccessorDeclaration,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -362,7 +365,6 @@ export class $GetAccessorDeclaration implements I$Node {
 
   public static create(
     node: GetAccessorDeclaration,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -370,28 +372,34 @@ export class $GetAccessorDeclaration implements I$Node {
     logger: ILogger,
     path: string,
   ): $GetAccessorDeclaration {
-    const $node = new $GetAccessorDeclaration(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $GetAccessorDeclaration(node, idx, depth, mos, realm, logger, path);
 
-    const modifierFlags = $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    const $decorators = $node.$decorators = $decoratorList(node.decorators, ctx, depth + 1, mos, realm, logger, path);
-    $decorators.forEach(x => x.parent = $node);
-    const $name = $node.$name = $$propertyName(node.name, ctx | Context.IsMemberName, -1, depth + 1, mos, realm, logger, path);
-    $name.parent = $node;
-    const $parameters = $node.$parameters = new $FormalParameterList(node.parameters, ctx, depth + 1, mos, realm, logger, path);
-    $parameters.forEach(x => x.parent = $node);
-    const $body = $node.$body = $Block.create(node.body!, ctx, -1, depth + 1, mos, realm, logger, path);
-    $body.parent = $node;
-
-    $node.PropName = $name.PropName;
-    $node.IsStatic = hasBit(modifierFlags, ModifierFlags.Static);
-
-    $node.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
-    $node.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
-    $node.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
-    $node.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
+    ($node.$decorators = $decoratorList(node.decorators, depth + 1, mos, realm, logger, path)).forEach(x => x.parent = $node);
+    ($node.$name = $$propertyName(node.name, -1, depth + 1, mos, realm, logger, path)).parent = $node;
+    ($node.$parameters = new $FormalParameterList(node.parameters, depth + 1, mos, realm, logger, path)).forEach(x => x.parent = $node);
+    ($node.$body = $Block.create(node.body!, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$decorators.forEach(x => x.hydrate(ctx));
+    this.$name.hydrate(ctx);
+    this.$parameters.hydrate(ctx);
+    this.$body.hydrate(ctx);
+
+    this.PropName = this.$name.PropName;
+    this.IsStatic = hasBit(this.modifierFlags, ModifierFlags.Static);
+
+    this.LexicallyDeclaredNames = this.$body.TopLevelLexicallyDeclaredNames;
+    this.LexicallyScopedDeclarations = this.$body.TopLevelLexicallyScopedDeclarations;
+    this.VarDeclaredNames = this.$body.TopLevelVarDeclaredNames;
+    this.VarScopedDeclarations = this.$body.TopLevelVarScopedDeclarations;
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-runtime-semantics-propertydefinitionevaluation
@@ -526,7 +534,6 @@ export class $SetAccessorDeclaration implements I$Node {
 
   private constructor(
     public readonly node: SetAccessorDeclaration,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -539,7 +546,6 @@ export class $SetAccessorDeclaration implements I$Node {
 
   public static create(
     node: SetAccessorDeclaration,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -547,28 +553,34 @@ export class $SetAccessorDeclaration implements I$Node {
     logger: ILogger,
     path: string,
   ): $SetAccessorDeclaration {
-    const $node = new $SetAccessorDeclaration(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $SetAccessorDeclaration(node, idx, depth, mos, realm, logger, path);
 
-    const modifierFlags = $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
+    $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    const $decorators = $node.$decorators = $decoratorList(node.decorators, ctx, depth + 1, mos, realm, logger, path);
-    $decorators.forEach(x => x.parent = $node);
-    const $name = $node.$name = $$propertyName(node.name, ctx | Context.IsMemberName, -1, depth + 1, mos, realm, logger, path);
-    $name.parent = $node;
-    const $parameters = $node.$parameters = new $FormalParameterList(node.parameters, ctx, depth + 1, mos, realm, logger, path);
-    $parameters.forEach(x => x.parent = $node);
-    const $body = $node.$body = $Block.create(node.body!, ctx, -1, depth + 1, mos, realm, logger, path);
-    $body.parent = $node;
-
-    $node.PropName = $name.PropName;
-    $node.IsStatic = hasBit(modifierFlags, ModifierFlags.Static);
-
-    $node.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
-    $node.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
-    $node.VarDeclaredNames = $body.TopLevelVarDeclaredNames;
-    $node.VarScopedDeclarations = $body.TopLevelVarScopedDeclarations;
+    ($node.$decorators = $decoratorList(node.decorators, depth + 1, mos, realm, logger, path)).forEach(x => x.parent = $node);
+    ($node.$name = $$propertyName(node.name, -1, depth + 1, mos, realm, logger, path)).parent = $node;
+    ($node.$parameters = new $FormalParameterList(node.parameters, depth + 1, mos, realm, logger, path)).forEach(x => x.parent = $node);
+    ($node.$body = $Block.create(node.body!, -1, depth + 1, mos, realm, logger, path)).parent = $node;
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$decorators.forEach(x => x.hydrate(ctx));
+    this.$name.hydrate(ctx);
+    this.$parameters.hydrate(ctx);
+    this.$body.hydrate(ctx);
+
+    this.PropName = this.$name.PropName;
+    this.IsStatic = hasBit(this.modifierFlags, ModifierFlags.Static);
+
+    this.LexicallyDeclaredNames = this.$body.TopLevelLexicallyDeclaredNames;
+    this.LexicallyScopedDeclarations = this.$body.TopLevelLexicallyScopedDeclarations;
+    this.VarDeclaredNames = this.$body.TopLevelVarDeclaredNames;
+    this.VarScopedDeclarations = this.$body.TopLevelVarScopedDeclarations;
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-runtime-semantics-propertydefinitionevaluation

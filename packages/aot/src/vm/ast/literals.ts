@@ -39,13 +39,13 @@ import {
 } from '../types/boolean';
 import {
   I$Node,
-  Context,
   $$AssignmentExpressionOrHigher,
   $assignmentExpression,
   $AssignmentExpressionNode,
   $AnyParentNode,
   $i,
   TransformationContext,
+  HydrateContext,
 } from './_shared';
 import {
   $$ESModuleOrScript,
@@ -64,7 +64,6 @@ export class $TemplateHead implements I$Node {
 
   private constructor(
     public readonly node: TemplateHead,
-    public readonly ctx: Context,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
     public readonly realm: Realm,
@@ -76,15 +75,19 @@ export class $TemplateHead implements I$Node {
 
   public static create(
     node: TemplateHead,
-    ctx: Context,
     depth: number,
     mos: $$ESModuleOrScript,
     realm: Realm,
     logger: ILogger,
     path: string,
   ): $TemplateHead {
-    const $node = new $TemplateHead(node, ctx, depth, mos, realm, logger, path);
+    const $node = new $TemplateHead(node, depth, mos, realm, logger, path);
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
@@ -115,7 +118,6 @@ export class $TemplateMiddle implements I$Node {
 
   private constructor(
     public readonly node: TemplateMiddle,
-    public readonly ctx: Context,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
     public readonly realm: Realm,
@@ -127,15 +129,19 @@ export class $TemplateMiddle implements I$Node {
 
   public static create(
     node: TemplateMiddle,
-    ctx: Context,
     depth: number,
     mos: $$ESModuleOrScript,
     realm: Realm,
     logger: ILogger,
     path: string,
   ): $TemplateMiddle {
-    const $node = new $TemplateMiddle(node, ctx, depth, mos, realm, logger, path);
+    const $node = new $TemplateMiddle(node, depth, mos, realm, logger, path);
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
@@ -166,7 +172,6 @@ export class $TemplateTail implements I$Node {
 
   private constructor(
     public readonly node: TemplateTail,
-    public readonly ctx: Context,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
     public readonly realm: Realm,
@@ -178,15 +183,19 @@ export class $TemplateTail implements I$Node {
 
   public static create(
     node: TemplateTail,
-    ctx: Context,
     depth: number,
     mos: $$ESModuleOrScript,
     realm: Realm,
     logger: ILogger,
     path: string,
   ): $TemplateTail {
-    const $node = new $TemplateTail(node, ctx, depth, mos, realm, logger, path);
+    const $node = new $TemplateTail(node, depth, mos, realm, logger, path);
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
@@ -225,7 +234,6 @@ export class $TemplateSpan implements I$Node {
 
   private constructor(
     public readonly node: TemplateSpan,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -238,7 +246,6 @@ export class $TemplateSpan implements I$Node {
 
   public static create(
     node: TemplateSpan,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -246,19 +253,24 @@ export class $TemplateSpan implements I$Node {
     logger: ILogger,
     path: string,
   ): $TemplateSpan {
-    const $node = new $TemplateSpan(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $TemplateSpan(node, idx, depth, mos, realm, logger, path);
 
-    const $expression = $node.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
-    $expression.parent = $node;
+    ($node.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, -1, depth + 1, mos, realm, logger, path)).parent = $node;
     if (node.literal.kind === SyntaxKind.TemplateMiddle) {
-      const $literal = $node.$literal = $TemplateMiddle.create(node.literal, ctx, depth + 1, mos, realm, logger, path);
-      $literal.parent = $node;
+      ($node.$literal = $TemplateMiddle.create(node.literal, depth + 1, mos, realm, logger, path)).parent = $node;
     } else {
-      const $literal = $node.$literal = $TemplateTail.create(node.literal, ctx, depth + 1, mos, realm, logger, path);
-      $literal.parent = $node;
+      ($node.$literal = $TemplateTail.create(node.literal, depth + 1, mos, realm, logger, path)).parent = $node;
     }
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$expression.hydrate(ctx);
+    this.$literal.hydrate(ctx);
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
@@ -337,7 +349,6 @@ export class $NumericLiteral implements I$Node {
 
   private constructor(
     public readonly node: NumericLiteral,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -350,7 +361,6 @@ export class $NumericLiteral implements I$Node {
 
   public static create(
     node: NumericLiteral,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -358,13 +368,18 @@ export class $NumericLiteral implements I$Node {
     logger: ILogger,
     path: string,
   ): $NumericLiteral {
-    const $node = new $NumericLiteral(node, ctx, idx, depth, mos, realm, logger, path);
-
-    const num = Number(node.text);
-    $node.PropName = new $String(realm, num.toString(), void 0, void 0, $node);
-    $node.Value = new $Number(realm, num, void 0, void 0, $node);
+    const $node = new $NumericLiteral(node, idx, depth, mos, realm, logger, path);
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    const num = Number(this.node.text);
+    this.PropName = new $String(this.realm, num.toString(), void 0, void 0, this);
+    this.Value = new $Number(this.realm, num, void 0, void 0, this);
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-literals-runtime-semantics-evaluation
@@ -416,7 +431,6 @@ export class $BigIntLiteral implements I$Node {
 
   private constructor(
     public readonly node: BigIntLiteral,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -429,7 +443,6 @@ export class $BigIntLiteral implements I$Node {
 
   public static create(
     node: BigIntLiteral,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -437,8 +450,13 @@ export class $BigIntLiteral implements I$Node {
     logger: ILogger,
     path: string,
   ): $BigIntLiteral {
-    const $node = new $BigIntLiteral(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $BigIntLiteral(node, idx, depth, mos, realm, logger, path);
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    return this;
   }
 
   public Evaluate(
@@ -492,7 +510,6 @@ export class $StringLiteral implements I$Node {
 
   private constructor(
     public readonly node: StringLiteral,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -505,7 +522,6 @@ export class $StringLiteral implements I$Node {
 
   public static create(
     node: StringLiteral,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -513,13 +529,18 @@ export class $StringLiteral implements I$Node {
     logger: ILogger,
     path: string,
   ): $StringLiteral {
-    const $node = new $StringLiteral(node, ctx, idx, depth, mos, realm, logger, path);
-
-    const StringValue = $node.StringValue = new $String(realm, node.text, void 0, void 0, $node);
-    $node.PropName = StringValue;
-    $node.Value = StringValue;
+    const $node = new $StringLiteral(node, idx, depth, mos, realm, logger, path);
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    const StringValue = this.StringValue = new $String(this.realm, this.node.text, void 0, void 0, this);
+    this.PropName = StringValue;
+    this.Value = StringValue;
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-literals-runtime-semantics-evaluation
@@ -577,7 +598,6 @@ export class $RegularExpressionLiteral implements I$Node {
 
   private constructor(
     public readonly node: RegularExpressionLiteral,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -590,7 +610,6 @@ export class $RegularExpressionLiteral implements I$Node {
 
   public static create(
     node: RegularExpressionLiteral,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -598,11 +617,16 @@ export class $RegularExpressionLiteral implements I$Node {
     logger: ILogger,
     path: string,
   ): $RegularExpressionLiteral {
-    const $node = new $RegularExpressionLiteral(node, ctx, idx, depth, mos, realm, logger, path);
-
-    $node.StringValue = node.text;
+    const $node = new $RegularExpressionLiteral(node, idx, depth, mos, realm, logger, path);
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.StringValue = this.node.text;
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-regular-expression-literals-runtime-semantics-evaluation
@@ -652,7 +676,6 @@ export class $NoSubstitutionTemplateLiteral implements I$Node {
 
   private constructor(
     public readonly node: NoSubstitutionTemplateLiteral,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -665,7 +688,6 @@ export class $NoSubstitutionTemplateLiteral implements I$Node {
 
   public static create(
     node: NoSubstitutionTemplateLiteral,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -673,8 +695,13 @@ export class $NoSubstitutionTemplateLiteral implements I$Node {
     logger: ILogger,
     path: string,
   ): $NoSubstitutionTemplateLiteral {
-    const $node = new $NoSubstitutionTemplateLiteral(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $NoSubstitutionTemplateLiteral(node, idx, depth, mos, realm, logger, path);
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
@@ -724,7 +751,6 @@ export class $NullLiteral implements I$Node {
 
   private constructor(
     public readonly node: NullLiteral,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -737,7 +763,6 @@ export class $NullLiteral implements I$Node {
 
   public static create(
     node: NullLiteral,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -745,11 +770,16 @@ export class $NullLiteral implements I$Node {
     logger: ILogger,
     path: string,
   ): $NullLiteral {
-    const $node = new $NullLiteral(node, ctx, idx, depth, mos, realm, logger, path);
-
-    $node.Value = new $Null(realm, void 0, void 0, $node);
+    const $node = new $NullLiteral(node, idx, depth, mos, realm, logger, path);
 
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.Value = new $Null(this.realm, void 0, void 0, this);
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-literals-runtime-semantics-evaluation
@@ -796,7 +826,6 @@ export class $BooleanLiteral implements I$Node {
 
   private constructor(
     public readonly node: BooleanLiteral,
-    public readonly ctx: Context,
     public readonly idx: number,
     public readonly depth: number,
     public readonly mos: $$ESModuleOrScript,
@@ -809,7 +838,6 @@ export class $BooleanLiteral implements I$Node {
 
   public static create(
     node: BooleanLiteral,
-    ctx: Context,
     idx: number,
     depth: number,
     mos: $$ESModuleOrScript,
@@ -817,13 +845,18 @@ export class $BooleanLiteral implements I$Node {
     logger: ILogger,
     path: string,
   ): $BooleanLiteral {
-    const $node = new $BooleanLiteral(node, ctx, idx, depth, mos, realm, logger, path);
+    const $node = new $BooleanLiteral(node, idx, depth, mos, realm, logger, path);
 
     $node.$kind = node.kind;
 
-    $node.Value = new $Boolean(realm, node.kind === SyntaxKind.TrueKeyword, void 0, void 0, $node);
-
     return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.Value = new $Boolean(this.realm, this.node.kind === SyntaxKind.TrueKeyword, void 0, void 0, this);
+
+    return this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-literals-runtime-semantics-evaluation

@@ -353,7 +353,6 @@ export class $VariableDeclaration implements I$Node {
   public get $kind(): SyntaxKind.VariableDeclaration { return SyntaxKind.VariableDeclaration; }
 
   public readonly modifierFlags: ModifierFlags;
-  public readonly combinedModifierFlags: ModifierFlags;
 
   public readonly $name: $$BindingName;
   public readonly $initializer: $$AssignmentExpressionOrHigher | undefined;
@@ -387,13 +386,7 @@ export class $VariableDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.VariableDeclaration`,
   ) {
-    const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
-
-    if (hasBit(ctx, Context.InVariableStatement)) {
-      this.combinedModifierFlags = modifierFlags | (parent as $VariableDeclarationList).combinedModifierFlags;
-    } else {
-      this.combinedModifierFlags = modifierFlags;
-    }
+    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     const $name = this.$name = $$bindingName(node.name, this, ctx, -1);
 
@@ -507,8 +500,6 @@ export function $variableDeclarationList(
 export class $VariableDeclarationList implements I$Node {
   public get $kind(): SyntaxKind.VariableDeclarationList { return SyntaxKind.VariableDeclarationList; }
 
-  public readonly combinedModifierFlags: ModifierFlags;
-
   public readonly $declarations: readonly $VariableDeclaration[];
 
   public readonly isLexical: boolean;
@@ -541,12 +532,6 @@ export class $VariableDeclarationList implements I$Node {
   ) {
     this.isLexical = (node.flags & (NodeFlags.Const | NodeFlags.Let)) > 0;
     this.IsConstantDeclaration = (node.flags & NodeFlags.Const) > 0;
-
-    if (hasBit(ctx, Context.InVariableStatement)) {
-      this.combinedModifierFlags = (parent as $VariableStatement).modifierFlags;
-    } else {
-      this.combinedModifierFlags = ModifierFlags.None;
-    }
 
     if (hasBit(node.flags, NodeFlags.Const)) {
       ctx |= Context.IsConst;

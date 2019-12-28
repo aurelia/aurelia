@@ -198,8 +198,6 @@ export class $ComputedPropertyName implements I$Node {
 export class $ObjectBindingPattern implements I$Node {
   public get $kind(): SyntaxKind.ObjectBindingPattern { return SyntaxKind.ObjectBindingPattern; }
 
-  public readonly combinedModifierFlags: ModifierFlags;
-
   public readonly $elements: readonly $BindingElement[];
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-boundnames
@@ -226,8 +224,6 @@ export class $ObjectBindingPattern implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.ObjectBindingPattern`,
   ) {
-    this.combinedModifierFlags = parent.combinedModifierFlags;
-
     ctx |= Context.InBindingPattern;
 
     const $elements = this.$elements = $bindingElementList(node.elements, this, ctx);
@@ -359,8 +355,6 @@ export function $bindingElementList(
 export class $ArrayBindingPattern implements I$Node {
   public get $kind(): SyntaxKind.ArrayBindingPattern { return SyntaxKind.ArrayBindingPattern; }
 
-  public readonly combinedModifierFlags: ModifierFlags;
-
   public readonly $elements: readonly $$ArrayBindingElement[];
 
   // http://www.ecma-international.org/ecma-262/#sec-destructuring-binding-patterns-static-semantics-boundnames
@@ -387,8 +381,6 @@ export class $ArrayBindingPattern implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.ArrayBindingPattern`,
   ) {
-    this.combinedModifierFlags = parent.combinedModifierFlags;
-
     ctx |= Context.InBindingPattern;
 
     const $elements = this.$elements = $$arrayBindingElementList(node.elements, this, ctx);
@@ -522,7 +514,6 @@ export class $BindingElement implements I$Node {
   public get $kind(): SyntaxKind.BindingElement { return SyntaxKind.BindingElement; }
 
   public readonly modifierFlags: ModifierFlags;
-  public readonly combinedModifierFlags: ModifierFlags;
 
   public readonly $propertyName: $$PropertyName | undefined;
   public readonly $name: $$BindingName;
@@ -553,7 +544,6 @@ export class $BindingElement implements I$Node {
     public readonly path: string = `${parent.path}${$i(idx)}.BindingElement`,
   ) {
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
-    this.combinedModifierFlags = this.modifierFlags | parent.combinedModifierFlags;
 
     ctx = clearBit(ctx, Context.IsBindingName);
 

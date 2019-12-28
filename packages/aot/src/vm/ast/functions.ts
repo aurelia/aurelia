@@ -1826,7 +1826,6 @@ export class $ParameterDeclaration implements I$Node {
   public get $kind(): SyntaxKind.Parameter { return SyntaxKind.Parameter; }
 
   public readonly modifierFlags: ModifierFlags;
-  public readonly combinedModifierFlags: ModifierFlags;
 
   public readonly $decorators: readonly $Decorator[];
   public readonly $name: $$BindingName;
@@ -1856,8 +1855,7 @@ export class $ParameterDeclaration implements I$Node {
     public readonly logger: ILogger = parent.logger,
     public readonly path: string = `${parent.path}${$i(idx)}.ParameterDeclaration`,
   ) {
-    this.modifierFlags = this.combinedModifierFlags = modifiersToModifierFlags(node.modifiers);
-
+    this.modifierFlags = modifiersToModifierFlags(node.modifiers);
     ctx |= Context.InParameterDeclaration;
 
     this.$decorators = $decoratorList(node.decorators, this, ctx);

@@ -2690,8 +2690,52 @@ export class $ImportSpecifier implements I$Node {
     return this;
   }
 
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+  public transform(tctx: TransformationContext): this['node'] | undefined {
+    return this.isValueAliasDeclaration ? this.node : void 0;
+  }
+
+  private _valueDeclaration: ExportEntryRecord['source'] | undefined = void 0;
+  public get valueDeclaration(): ExportEntryRecord['source'] {
+    let valueDeclaration = this._valueDeclaration;
+    if (valueDeclaration === void 0) {
+      const mos = this.mos;
+      switch (mos.Status) {
+        case 'uninstantiated':
+        case 'instantiating':
+          throw new Error(`Module needs to be instantiated before valueDeclaration can be retrieved. Module is still ${mos.Status}`);
+        case 'instantiated':
+        case 'evaluating':
+        case 'evaluated': {
+          const binding = mos.ResolveExport(
+            /* ctx        */mos.realm.stack.top,
+            /* exportName */this.$propertyName instanceof $Undefined ? this.$name.StringValue : this.$propertyName.StringValue,
+            /* resolveSet */new ResolveSet(),
+          ) as ResolvedBindingRecord;
+          valueDeclaration = this._valueDeclaration = binding.ExportEntry.source;
+          break;
+        }
+      }
+    }
+
+    return valueDeclaration;
+  }
+
+  public get isValueAliasDeclaration(): boolean {
+    switch (this.valueDeclaration.$kind) {
+      case SyntaxKind.VariableStatement:
+      case SyntaxKind.FunctionDeclaration:
+      case SyntaxKind.ClassDeclaration:
+        return true; // TODO: elide ambient declarations
+      case SyntaxKind.InterfaceDeclaration:
+      case SyntaxKind.TypeAliasDeclaration:
+        return false;
+      case SyntaxKind.EnumDeclaration:
+        return true; // TODO: factor in const enum and settings
+      case SyntaxKind.ExportDeclaration:
+      case SyntaxKind.ExportSpecifier:
+      case SyntaxKind.SourceFile:
+        throw new Error(`Unexpected value declaration kind: ${this.valueDeclaration.$kind}`); // TODO: shouldn't be possible, probably need to fix typings a bit
+    }
   }
 }
 

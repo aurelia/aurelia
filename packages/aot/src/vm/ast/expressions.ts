@@ -53,6 +53,7 @@ import {
   createElementAccess,
   createPropertyAccess,
   createShorthandPropertyAssignment,
+  createPropertyAssignment,
 } from 'typescript';
 import {
   PLATFORM,
@@ -856,7 +857,21 @@ export class $PropertyAssignment implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const node = this.node;
+    const $name = this.$name.transform(tctx);
+    const $initializer = this.$initializer.transform(tctx);
+
+    if (
+      $name === node.name &&
+      $initializer === node.initializer
+    ) {
+      return node;
+    }
+
+    return createPropertyAssignment(
+      $name,
+      $initializer,
+    );
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-propertydefinitionevaluation

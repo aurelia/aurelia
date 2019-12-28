@@ -11,6 +11,7 @@ import {
   TemplateMiddle,
   TemplateSpan,
   TemplateTail,
+  createTemplateSpan,
 } from 'typescript';
 import {
   ILogger,
@@ -274,7 +275,21 @@ export class $TemplateSpan implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const node = this.node;
+    const $expression = this.$expression.transform(tctx);
+    const $literal = this.$literal.transform(tctx);
+
+    if (
+      $expression === node.expression &&
+      $literal === node.literal
+    ) {
+      return node;
+    }
+
+    return createTemplateSpan(
+      $expression,
+      $literal,
+    );
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation

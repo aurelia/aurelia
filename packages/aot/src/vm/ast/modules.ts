@@ -26,6 +26,7 @@ import {
   Statement,
   createImportDeclaration,
   createStringLiteral,
+  createExportDeclaration,
 } from 'typescript';
 import {
   PLATFORM,
@@ -2950,6 +2951,40 @@ export class $ExportDeclaration implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
+    if (this.$moduleSpecifier !== void 0) {
+      const sourceMos = this.mos;
+      const targetMos = this.ModuleRequests[0].resolvedModule!;
+      if (sourceMos.pkg !== targetMos.pkg) {
+        const relativePath = `${computeRelativeDirectory(sourceMos.$file.dir, targetMos.$file.shortPath)}.js`;
+        const $exportClause = this.$exportClause === void 0 ? void 0 : this.$exportClause.transform(tctx);
+        return createExportDeclaration(
+          /* decorators      */void 0,
+          /* modifiers       */void 0,
+          /* exportClause    */$exportClause,
+          /* moduleSpecifier */createStringLiteral(relativePath),
+        );
+      }
+
+      const jsPath = `${this.$moduleSpecifier.StringValue['[[Value]]']}.js`;
+      const $exportClause = this.$exportClause === void 0 ? void 0 : this.$exportClause.transform(tctx);
+      return createExportDeclaration(
+        /* decorators      */void 0,
+        /* modifiers       */void 0,
+        /* exportClause    */$exportClause,
+        /* moduleSpecifier */createStringLiteral(jsPath),
+      );
+    }
+
+    const $exportClause = this.$exportClause === void 0 ? void 0 : this.$exportClause.transform(tctx);
+    if ($exportClause !== this.$exportClause?.node) {
+      return createExportDeclaration(
+        /* decorators      */void 0,
+        /* modifiers       */void 0,
+        /* exportClause    */$exportClause,
+        /* moduleSpecifier */void 0,
+      );
+    }
+
     return this.node;
   }
 

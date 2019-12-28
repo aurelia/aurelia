@@ -154,8 +154,12 @@ export class $FormalParameterList extends Array<$ParameterDeclaration> {
 
   public constructor(
     nodes: readonly ParameterDeclaration[] | undefined,
-    parent: $$Function,
     ctx: Context,
+    depth: number,
+    mos: $$ESModuleOrScript,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
   ) {
     super();
 
@@ -171,7 +175,7 @@ export class $FormalParameterList extends Array<$ParameterDeclaration> {
       let curBoundNames: readonly $String[];
       let curBoundName: $String;
       for (let i = 0, ii = nodes.length; i < ii; ++i) {
-        cur = super[i] = new $ParameterDeclaration(nodes[i], parent, ctx, i);
+        cur = super[i] = new $ParameterDeclaration(nodes[i], ctx, i, depth + 1, mos, realm, logger, path);
 
         curBoundNames = cur.BoundNames;
         for (let j = 0, jj = curBoundNames.length; j < jj; ++j) {
@@ -251,22 +255,29 @@ export class $FunctionExpression implements I$Node {
 
   public readonly functionKind: FunctionKind.normal | FunctionKind.generator | FunctionKind.async | FunctionKind.asyncGenerator;
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: FunctionExpression,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.FunctionExpression`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.FunctionExpression`;
+
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    const $name = this.$name = $identifier(node.name, this, ctx, -1);
-    this.$parameters = new $FormalParameterList(node.parameters, this, ctx);
-    const $body = this.$body = new $Block(node.body, this, ctx, -1);
+    const $name = this.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
+    if ($name !== void 0) { $name.parent = this; }
+    const $parameters = this.$parameters = new $FormalParameterList(node.parameters, ctx, depth + 1, mos, realm, logger, path);
+    $parameters.forEach(x => x.parent = this);
+    const $body = this.$body = new $Block(node.body, ctx, -1, depth + 1, mos, realm, logger, path);
+    $body.parent = this;
     const DirectivePrologue = this.DirectivePrologue = $body.DirectivePrologue;
 
     this.BoundNames = emptyArray;
@@ -769,17 +780,21 @@ export class $FunctionDeclaration implements I$Node {
 
   public readonly functionKind: FunctionKind.normal | FunctionKind.generator | FunctionKind.async | FunctionKind.asyncGenerator;
 
+  public parent!: $NodeWithStatements;
+  public readonly path: string;
+
   public constructor(
     public readonly node: FunctionDeclaration,
-    public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.FunctionDeclaration`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.FunctionDeclaration`;
+
     const intrinsics = realm['[[Intrinsics]]'];
 
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
@@ -788,10 +803,14 @@ export class $FunctionDeclaration implements I$Node {
       ctx |= Context.InExport;
     }
 
-    this.$decorators = $decoratorList(node.decorators, this, ctx);
-    const $name = this.$name = $identifier(node.name, this, ctx, -1);
-    this.$parameters = new $FormalParameterList(node.parameters, this, ctx);
-    const $body = this.$body = new $Block(node.body!, this, ctx, -1);
+    const $decorators = this.$decorators = $decoratorList(node.decorators, ctx, depth + 1, mos, realm, logger, path);
+    $decorators.forEach(x => x.parent = this);
+    const $name = this.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
+    if ($name !== void 0) { $name.parent = this; }
+    const $parameters = this.$parameters = new $FormalParameterList(node.parameters, ctx, depth + 1, mos, realm, logger, path);
+    $parameters.forEach(x => x.parent = this);
+    const $body = this.$body = new $Block(node.body!, ctx, -1, depth + 1, mos, realm, logger, path);
+    $body.parent = this;
     this.DirectivePrologue = $body.DirectivePrologue;
 
     this.ContainsUseStrict = this.DirectivePrologue.ContainsUseStrict === true;
@@ -1565,28 +1584,36 @@ export class $ArrowFunction implements I$Node {
 
   public readonly functionKind: FunctionKind.normal | FunctionKind.async;
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: ArrowFunction,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.ArrowFunction`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.ArrowFunction`;
+
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     if (node.body.kind === SyntaxKind.Block) {
-      this.$parameters = this.CoveredFormalsList = new $FormalParameterList(node.parameters, this as $ArrowFunction, ctx);
-      const $body = this.$body = new $Block(node.body as Block, this, ctx, -1);
+      const $parameters = this.$parameters = this.CoveredFormalsList = new $FormalParameterList(node.parameters, ctx, depth + 1, mos, realm, logger, path);
+      $parameters.forEach(x => x.parent = this);
+      const $body = this.$body = new $Block(node.body as Block, ctx, -1, depth + 1, mos, realm, logger, path);
+      $body.parent = this;
 
       this.DirectivePrologue = $body.DirectivePrologue;
       this.ContainsUseStrict = this.DirectivePrologue.ContainsUseStrict === true;
     } else {
-      this.$parameters = this.CoveredFormalsList = new $FormalParameterList(node.parameters, this, ctx);
-      this.$body = $assignmentExpression(node.body as $AssignmentExpressionNode, this, ctx, -1);
+      const $parameters = this.$parameters = this.CoveredFormalsList = new $FormalParameterList(node.parameters, ctx, depth + 1, mos, realm, logger, path);
+      $parameters.forEach(x => x.parent = this);
+      const $body = this.$body = $assignmentExpression(node.body as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+      $body.parent = this;
 
       this.DirectivePrologue = NoDirectiveProgue;
       this.ContainsUseStrict = false;
@@ -1715,28 +1742,35 @@ export class $ConstructorDeclaration implements I$Node {
 
   public get isSynthetic(): boolean { return this.idx === -1; }
 
+  public parent!: $ClassDeclaration | $ClassExpression;
+  public readonly path: string;
+
   public constructor(
     public readonly node: ConstructorDeclaration,
-    public readonly parent: $ClassDeclaration | $ClassExpression,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.ConstructorDeclaration`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.ConstructorDeclaration`;
+
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    this.$decorators = $decoratorList(node.decorators, this, ctx);
-    const $parameters = this.$parameters = new $FormalParameterList(node.parameters, this, ctx);
+    const $decorators = this.$decorators = $decoratorList(node.decorators, ctx, depth + 1, mos, realm, logger, path);
+    $decorators.forEach(x => x.parent = this);
+    const $parameters = this.$parameters = new $FormalParameterList(node.parameters, ctx, depth + 1, mos, realm, logger, path);
+    $parameters.forEach(x => x.parent = this);
     if ($parameters.length === 0) {
       this.parameterProperties = emptyArray;
     } else {
       this.parameterProperties = $parameters.filter(p => hasBit(p.modifierFlags, ModifierFlags.ParameterPropertyModifier));
     }
 
-    const $body = this.$body = new $Block(node.body!, this, ctx, -1);
+    const $body = this.$body = new $Block(node.body!, ctx, -1, depth + 1, mos, realm, logger, path);
+    $body.parent = this;
 
     this.LexicallyDeclaredNames = $body.TopLevelLexicallyDeclaredNames;
     this.LexicallyScopedDeclarations = $body.TopLevelLexicallyScopedDeclarations;
@@ -1844,22 +1878,28 @@ export class $ParameterDeclaration implements I$Node {
   // 13.3.3.4 Static Semantics: IsSimpleParameterList
   public readonly IsSimpleParameterList: boolean;
 
+  public parent!: $$Function;
+  public readonly path: string;
+
   public constructor(
     public readonly node: ParameterDeclaration,
-    public readonly parent: $$Function,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.ParameterDeclaration`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.ParameterDeclaration`;
+
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
     ctx |= Context.InParameterDeclaration;
 
-    this.$decorators = $decoratorList(node.decorators, this, ctx);
-    const $name = this.$name = $$bindingName(node.name, this, ctx, -1);
+    const $decorators = this.$decorators = $decoratorList(node.decorators, ctx, depth + 1, mos, realm, logger, path);
+    $decorators.forEach(x => x.parent = this);
+    const $name = this.$name = $$bindingName(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
+    $name.parent = this;
 
     this.BoundNames = $name.BoundNames;
     if (node.initializer === void 0) {
@@ -1868,7 +1908,8 @@ export class $ParameterDeclaration implements I$Node {
       this.HasInitializer = false;
       this.IsSimpleParameterList = $name.IsSimpleParameterList;
     } else {
-      this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx, -1);
+      const $initializer = this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+      $initializer.parent = this;
       this.ContainsExpression = true;
       this.HasInitializer = true;
       this.IsSimpleParameterList = false;

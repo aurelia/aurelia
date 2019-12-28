@@ -142,8 +142,12 @@ export type $$NodeWithHeritageClauses = (
 
 export function $expressionWithTypeArgumentsList(
   nodes: readonly ExpressionWithTypeArguments[],
-  parent: $HeritageClause,
   ctx: Context,
+  depth: number,
+  mos: $$ESModuleOrScript,
+  realm: Realm,
+  logger: ILogger,
+  path: string,
 ): readonly $ExpressionWithTypeArguments[] {
   if (nodes.length === 0) {
     return emptyArray;
@@ -152,7 +156,7 @@ export function $expressionWithTypeArgumentsList(
   const len = nodes.length;
   const $nodes: $ExpressionWithTypeArguments[] = Array(len);
   for (let i = 0; i < len; ++i) {
-    $nodes[i] = new $ExpressionWithTypeArguments(nodes[i], parent, ctx, i);
+    $nodes[i] = new $ExpressionWithTypeArguments(nodes[i], ctx, i, depth + 1, mos, realm, logger, path);
   }
   return $nodes;
 }
@@ -162,18 +166,23 @@ export class $HeritageClause implements I$Node {
 
   public readonly $types: readonly $ExpressionWithTypeArguments[];
 
+  public parent!: $$NodeWithHeritageClauses;
+  public readonly path: string;
+
   public constructor(
     public readonly node: HeritageClause,
-    public readonly parent: $$NodeWithHeritageClauses,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.HeritageClause`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$types = $expressionWithTypeArgumentsList(node.types, this, ctx);
+    this.path = `${path}${$i(idx)}.HeritageClause`;
+
+    const $types = this.$types = $expressionWithTypeArgumentsList(node.types, ctx, depth + 1, mos, realm, logger, path);
+    $types.forEach(x => x.parent = this);
   }
 
   public transform(tctx: TransformationContext): this['node'] | undefined {
@@ -199,18 +208,23 @@ export class $ExpressionWithTypeArguments implements I$Node {
 
   public readonly $expression: $$LHSExpressionOrHigher;
 
+  public parent!: $HeritageClause;
+  public readonly path: string;
+
   public constructor(
     public readonly node: ExpressionWithTypeArguments,
-    public readonly parent: $HeritageClause,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.ExpressionWithTypeArguments`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.ExpressionWithTypeArguments`;
+
+    const $expression = this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = this;
   }
 
   public transform(tctx: TransformationContext): this['node'] {
@@ -266,24 +280,31 @@ export class $ClassExpression implements I$Node {
   // 14.6.11 Static Semantics: PrototypePropertyNameList
   public readonly PrototypePropertyNameList: readonly $String[];
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: ClassExpression,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.ClassExpression`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.ClassExpression`;
+
     const intrinsics = realm['[[Intrinsics]]'];
 
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    const $name = this.$name = $identifier(node.name, this, ctx, -1);
-    const $heritageClauses = this.$heritageClauses = $heritageClauseList(node.heritageClauses, this, ctx);
-    const $members = this.$members = $$classElementList(node.members as NodeArray<$ClassElementNode>, this, ctx);
+    const $name = this.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
+    if ($name !== void 0) { $name.parent = this; }
+    const $heritageClauses = this.$heritageClauses = $heritageClauseList(node.heritageClauses, ctx, depth + 1, mos, realm, logger, path);
+    $heritageClauses.forEach(x => x.parent = this);
+    const $members = this.$members = $$classElementList(node.members as NodeArray<$ClassElementNode>, ctx, depth + 1, mos, realm, logger, path);
+    $members.forEach(x => x.parent = this);
 
     this.ClassHeritage = $heritageClauses.find(h => h.node.token === SyntaxKind.ExtendsKeyword);
 
@@ -442,17 +463,21 @@ export class $ClassDeclaration implements I$Node {
   public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
   public readonly IsType: false = false;
 
+  public parent!: $NodeWithStatements;
+  public readonly path: string;
+
   public constructor(
     public readonly node: ClassDeclaration,
-    public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.ClassDeclaration`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.ClassDeclaration`;
+
     const intrinsics = realm['[[Intrinsics]]'];
 
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
@@ -461,15 +486,19 @@ export class $ClassDeclaration implements I$Node {
       ctx |= Context.InExport;
     }
 
-    this.$decorators = $decoratorList(node.decorators, this, ctx);
+    const $decorators = this.$decorators = $decoratorList(node.decorators, ctx, depth + 1, mos, realm, logger, path);
+    $decorators.forEach(x => x.parent = this);
     let $name: $Identifier | $Undefined;
     if (node.name === void 0) {
       $name = this.$name = new $Undefined(realm, void 0, void 0, this);
     } else {
-      $name = this.$name = new $Identifier(node.name, this, ctx, -1);
+      $name = this.$name = new $Identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
+      $name.parent = this;
     }
-    const $heritageClauses = this.$heritageClauses = $heritageClauseList(node.heritageClauses, this, ctx);
-    const $members = this.$members = $$classElementList(node.members as NodeArray<$ClassElementNode>, this, ctx);
+    const $heritageClauses = this.$heritageClauses = $heritageClauseList(node.heritageClauses, ctx, depth + 1, mos, realm, logger, path);
+    $heritageClauses.forEach(x => x.parent = this);
+    const $members = this.$members = $$classElementList(node.members as NodeArray<$ClassElementNode>, ctx, depth + 1, mos, realm, logger, path);
+    $members.forEach(x => x.parent = this);
 
     this.ClassHeritage = $heritageClauses.find(h => h.node.token === SyntaxKind.ExtendsKeyword);
 
@@ -1035,7 +1064,7 @@ function createSyntheticConstructor($class: $ClassExpression | $ClassDeclaration
     );
   }
 
-  return new $ConstructorDeclaration(node, $class, $class.ctx, -1);
+  return new $ConstructorDeclaration(node, $class.ctx, -1, $class.depth + 1, $class.mos, $class.realm, $class.logger, $class.path);
 }
 
 export class $PropertyDeclaration implements I$Node {
@@ -1051,22 +1080,29 @@ export class $PropertyDeclaration implements I$Node {
   // 14.6.9 Static Semantics: IsStatic
   public readonly IsStatic: boolean;
 
+  public parent!: $ClassDeclaration | $ClassExpression;
+  public readonly path: string;
+
   public constructor(
     public readonly node: PropertyDeclaration,
-    public readonly parent: $ClassDeclaration | $ClassExpression,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.PropertyDeclaration`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.PropertyDeclaration`;
+
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    this.$decorators = $decoratorList(node.decorators, this, ctx);
-    this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName, -1);
-    this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx, -1);
+    const $decorators = this.$decorators = $decoratorList(node.decorators, ctx, depth + 1, mos, realm, logger, path);
+    $decorators.forEach(x => x.parent = this);
+    const $name = this.$name = $$propertyName(node.name, ctx | Context.IsMemberName, -1, depth + 1, mos, realm, logger, path);
+    $name.parent = this;
+    const $initializer = this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode | undefined, ctx, -1, depth + 1, mos, realm, logger, path);
+    if ($initializer !== void 0) { $initializer.parent = this; }
 
     this.IsStatic = hasBit(modifierFlags, ModifierFlags.Static);
   }
@@ -1086,17 +1122,21 @@ export class $SemicolonClassElement implements I$Node {
   // 14.3.5 Static Semantics: PropName
   public readonly PropName: empty = empty;
 
+  public parent!: $ClassDeclaration | $ClassExpression;
+  public readonly path: string;
+
   public constructor(
     public readonly node: SemicolonClassElement,
-    public readonly parent: $ClassDeclaration | $ClassExpression,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.SemicolonClassElement`,
-  ) { }
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
+  ) {
+    this.path = `${path}${$i(idx)}.SemicolonClassElement`;
+ }
 
   public transform(tctx: TransformationContext): this['node'] {
     return this.node;

@@ -117,23 +117,31 @@ export class $MethodDeclaration implements I$Node {
 
   public readonly functionKind: FunctionKind;
 
+  public parent!: $ClassDeclaration | $ClassExpression | $ObjectLiteralExpression;
+  public readonly path: string;
+
   public constructor(
     public readonly node: MethodDeclaration,
-    public readonly parent: $ClassDeclaration | $ClassExpression | $ObjectLiteralExpression,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.MethodDeclaration`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.MethodDeclaration`;
+
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    this.$decorators = $decoratorList(node.decorators, this, ctx);
-    const $name = this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName, -1);
-    this.$parameters = new $FormalParameterList(node.parameters, this, ctx);
-    const $body = this.$body = new $Block(node.body!, this, ctx, -1);
+    const $decorators = this.$decorators = $decoratorList(node.decorators, ctx, depth + 1, mos, realm, logger, path);
+    $decorators.forEach(x => x.parent = this);
+    const $name = this.$name = $$propertyName(node.name, ctx | Context.IsMemberName, -1, depth + 1, mos, realm, logger, path);
+    $name.parent = this;
+    const $parameters = this.$parameters = new $FormalParameterList(node.parameters, ctx, depth + 1, mos, realm, logger, path);
+    $parameters.forEach(x => x.parent = this);
+    const $body = this.$body = new $Block(node.body!, ctx, -1, depth + 1, mos, realm, logger, path);
+    $body.parent = this;
 
     this.PropName = $name.PropName;
     this.IsStatic = hasBit(modifierFlags, ModifierFlags.Static);
@@ -321,23 +329,31 @@ export class $GetAccessorDeclaration implements I$Node {
 
   public readonly functionKind: FunctionKind.normal = FunctionKind.normal;
 
+  public parent!: $ClassDeclaration | $ClassExpression | $ObjectLiteralExpression;
+  public readonly path: string;
+
   public constructor(
     public readonly node: GetAccessorDeclaration,
-    public readonly parent: $ClassDeclaration | $ClassExpression | $ObjectLiteralExpression,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.GetAccessorDeclaration`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.GetAccessorDeclaration`;
+
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    this.$decorators = $decoratorList(node.decorators, this, ctx);
-    const $name = this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName, -1);
-    this.$parameters = new $FormalParameterList(node.parameters, this, ctx);
-    const $body = this.$body = new $Block(node.body!, this, ctx, -1);
+    const $decorators = this.$decorators = $decoratorList(node.decorators, ctx, depth + 1, mos, realm, logger, path);
+    $decorators.forEach(x => x.parent = this);
+    const $name = this.$name = $$propertyName(node.name, ctx | Context.IsMemberName, -1, depth + 1, mos, realm, logger, path);
+    $name.parent = this;
+    const $parameters = this.$parameters = new $FormalParameterList(node.parameters, ctx, depth + 1, mos, realm, logger, path);
+    $parameters.forEach(x => x.parent = this);
+    const $body = this.$body = new $Block(node.body!, ctx, -1, depth + 1, mos, realm, logger, path);
+    $body.parent = this;
 
     this.PropName = $name.PropName;
     this.IsStatic = hasBit(modifierFlags, ModifierFlags.Static);
@@ -475,23 +491,31 @@ export class $SetAccessorDeclaration implements I$Node {
 
   public readonly functionKind: FunctionKind.normal = FunctionKind.normal;
 
+  public parent!: $ClassDeclaration | $ClassExpression | $ObjectLiteralExpression;
+  public readonly path: string;
+
   public constructor(
     public readonly node: SetAccessorDeclaration,
-    public readonly parent: $ClassDeclaration | $ClassExpression | $ObjectLiteralExpression,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.SetAccessorDeclaration`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.SetAccessorDeclaration`;
+
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    this.$decorators = $decoratorList(node.decorators, this, ctx);
-    const $name = this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName, -1);
-    this.$parameters = new $FormalParameterList(node.parameters, this, ctx);
-    const $body = this.$body = new $Block(node.body!, this, ctx, -1);
+    const $decorators = this.$decorators = $decoratorList(node.decorators, ctx, depth + 1, mos, realm, logger, path);
+    $decorators.forEach(x => x.parent = this);
+    const $name = this.$name = $$propertyName(node.name, ctx | Context.IsMemberName, -1, depth + 1, mos, realm, logger, path);
+    $name.parent = this;
+    const $parameters = this.$parameters = new $FormalParameterList(node.parameters, ctx, depth + 1, mos, realm, logger, path);
+    $parameters.forEach(x => x.parent = this);
+    const $body = this.$body = new $Block(node.body!, ctx, -1, depth + 1, mos, realm, logger, path);
+    $body.parent = this;
 
     this.PropName = $name.PropName;
     this.IsStatic = hasBit(modifierFlags, ModifierFlags.Static);

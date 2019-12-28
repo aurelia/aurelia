@@ -176,17 +176,21 @@ export class $VariableStatement implements I$Node {
   public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
   public readonly IsType: false = false;
 
+  public parent!: $NodeWithStatements;
+  public readonly path: string;
+
   public constructor(
     public readonly node: VariableStatement,
-    public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.VariableStatement`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.VariableStatement`;
+
     const intrinsics = realm['[[Intrinsics]]'];
 
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
@@ -197,11 +201,8 @@ export class $VariableStatement implements I$Node {
       ctx |= Context.InExport;
     }
 
-    const $declarationList = this.$declarationList = new $VariableDeclarationList(
-      node.declarationList,
-      this,
-      ctx,
-    );
+    const $declarationList = this.$declarationList = new $VariableDeclarationList(node.declarationList, ctx, depth + 1, mos, realm, logger, path);
+    $declarationList.parent = this;
 
     const isLexical = this.isLexical = $declarationList.isLexical;
     this.IsConstantDeclaration = $declarationList.IsConstantDeclaration;
@@ -375,26 +376,32 @@ export class $VariableDeclaration implements I$Node {
   // 13.3.1.3 Static Semantics: IsConstantDeclaration
   public readonly IsConstantDeclaration: boolean;
 
+  public parent!: $VariableDeclarationList | $CatchClause;
+  public readonly path: string;
+
   public constructor(
     public readonly node: VariableDeclaration,
-    public readonly parent: $VariableDeclarationList | $CatchClause,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.VariableDeclaration`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.VariableDeclaration`;
+
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    const $name = this.$name = $$bindingName(node.name, this, ctx, -1);
+    const $name = this.$name = $$bindingName(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
+    $name.parent = this;
 
     // Clear this flag because it's used inside $Identifier to declare locals/exports
     // and we don't want to do that on the identifiers in types/initializers.
     ctx = clearBit(ctx, Context.InVariableStatement);
 
-    this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx, -1);
+    const $initializer = this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode | undefined, ctx, -1, depth + 1, mos, realm, logger, path);
+    if ($initializer !== void 0) { $initializer.parent = this; }
 
     this.BoundNames = $name.BoundNames;
     if (hasBit(ctx, Context.IsVar)) { // TODO: what about parameter and for declarations?
@@ -482,8 +489,12 @@ export class $VariableDeclaration implements I$Node {
 
 export function $variableDeclarationList(
   nodes: readonly VariableDeclaration[],
-  parent: $VariableDeclarationList,
   ctx: Context,
+  depth: number,
+  mos: $$ESModuleOrScript,
+  realm: Realm,
+  logger: ILogger,
+  path: string,
 ): readonly $VariableDeclaration[] {
   if (nodes === void 0 || nodes.length === 0) {
     return emptyArray;
@@ -492,7 +503,7 @@ export function $variableDeclarationList(
   const len = nodes.length;
   const $nodes: $VariableDeclaration[] = Array(len);
   for (let i = 0; i < len; ++i) {
-    $nodes[i] = new $VariableDeclaration(nodes[i], parent, ctx, i);
+    $nodes[i] = new $VariableDeclaration(nodes[i], ctx, i, depth + 1, mos, realm, logger, path);
   }
   return $nodes;
 }
@@ -520,16 +531,20 @@ export class $VariableDeclarationList implements I$Node {
   // 13.3.1.3 Static Semantics: IsConstantDeclaration
   public readonly IsConstantDeclaration: boolean;
 
+  public parent!: $VariableStatement | $ForStatement | $ForOfStatement | $ForInStatement;
+  public readonly path: string;
+
   public constructor(
     public readonly node: VariableDeclarationList,
-    public readonly parent: $VariableStatement | $ForStatement | $ForOfStatement | $ForInStatement,
     public readonly ctx: Context,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.VariableDeclarationList`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}.VariableDeclarationList`;
+
     this.isLexical = (node.flags & (NodeFlags.Const | NodeFlags.Let)) > 0;
     this.IsConstantDeclaration = (node.flags & NodeFlags.Const) > 0;
 
@@ -541,7 +556,8 @@ export class $VariableDeclarationList implements I$Node {
       ctx |= Context.IsVar;
     }
 
-    const $declarations = this.$declarations = $variableDeclarationList(node.declarations, this, ctx);
+    const $declarations = this.$declarations = $variableDeclarationList(node.declarations, ctx, depth + 1, mos, realm, logger, path);
+    $declarations.forEach(x => x.parent = this);
 
     this.BoundNames = $declarations.flatMap(getBoundNames);
     this.VarDeclaredNames = $declarations.flatMap(getVarDeclaredNames);
@@ -599,22 +615,27 @@ export class $Block implements I$Node {
 
   private transformedNode: Block | undefined = void 0;
 
+  public parent!: $NodeWithStatements;
+  public readonly path: string;
+
   public constructor(
     public readonly node: Block,
-    public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.Block`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.Block`;
+
     const DirectivePrologue = this.DirectivePrologue = GetDirectivePrologue(node.statements);
     if (DirectivePrologue.ContainsUseStrict) {
       ctx |= Context.InStrictMode;
     }
-    const $statements = this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
+    const $statements = this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, ctx, depth + 1, mos, realm, logger, path);
+    $statements.forEach(x => x.parent = this);
 
     const LexicallyDeclaredNames = this.LexicallyDeclaredNames = [] as $String[];
     const LexicallyScopedDeclarations = this.LexicallyScopedDeclarations = [] as transformedStatement[];
@@ -785,17 +806,21 @@ export class $EmptyStatement implements I$Node {
   // 13.1.6 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[] = emptyArray;
 
+  public parent!: $NodeWithStatements;
+  public readonly path: string;
+
   public constructor(
     public readonly node: EmptyStatement,
-    public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.EmptyStatement`,
-  ) {}
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
+  ) {
+    this.path = `${path}${$i(idx)}.EmptyStatement`;
+}
 
   // http://www.ecma-international.org/ecma-262/#sec-empty-statement-runtime-semantics-evaluation
   // 13.4.1 Runtime Semantics: Evaluation
@@ -837,18 +862,23 @@ export class $ExpressionStatement implements I$Node {
   // 13.1.6 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[] = emptyArray;
 
+  public parent!: $NodeWithStatements;
+  public readonly path: string;
+
   public constructor(
     public readonly node: ExpressionStatement,
-    public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.ExpressionStatement`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.ExpressionStatement`;
+
+    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-expression-statement-runtime-semantics-evaluation
@@ -895,19 +925,25 @@ export class $IfStatement implements I$Node {
   // 13.6.6 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
 
+  public parent!: $NodeWithStatements;
+  public readonly path: string;
+
   public constructor(
     public readonly node: IfStatement,
-    public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.IfStatement`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
-    const $thenStatement = this.$thenStatement = $$esLabelledItem(node.thenStatement as $StatementNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.IfStatement`;
+
+    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = this;
+    const $thenStatement = this.$thenStatement = $$esLabelledItem(node.thenStatement as $StatementNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $thenStatement.parent = this;
 
     if (node.elseStatement === void 0) {
       this.$elseStatement = void 0;
@@ -915,7 +951,8 @@ export class $IfStatement implements I$Node {
       this.VarDeclaredNames = $thenStatement.VarDeclaredNames;
       this.VarScopedDeclarations = $thenStatement.VarScopedDeclarations;
     } else {
-      const $elseStatement = this.$elseStatement = $$esLabelledItem(node.elseStatement as $StatementNode, this, ctx, -1);
+      const $elseStatement = this.$elseStatement = $$esLabelledItem(node.elseStatement as $StatementNode, ctx, -1, depth + 1, mos, realm, logger, path);
+      $elseStatement.parent = this;
 
       this.VarDeclaredNames = [
         ...$thenStatement.VarDeclaredNames,
@@ -1021,19 +1058,25 @@ export class $DoStatement implements I$Node {
   // 13.7.2.5 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
 
+  public parent!: $NodeWithStatements;
+  public readonly path: string;
+
   public constructor(
     public readonly node: DoStatement,
-    public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.DoStatement`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx, -1);
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.DoStatement`;
+
+    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $statement.parent = this;
+    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = this;
 
     this.VarDeclaredNames = $statement.VarDeclaredNames;
     this.VarScopedDeclarations = $statement.VarScopedDeclarations;
@@ -1123,19 +1166,25 @@ export class $WhileStatement implements I$Node {
   // 13.7.3.5 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
 
+  public parent!: $NodeWithStatements;
+  public readonly path: string;
+
   public constructor(
     public readonly node: WhileStatement,
-    public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.WhileStatement`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx, -1);
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.WhileStatement`;
+
+    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $statement.parent = this;
+    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = this;
 
     this.VarDeclaredNames = $statement.VarDeclaredNames;
     this.VarScopedDeclarations = $statement.VarScopedDeclarations;
@@ -1232,20 +1281,27 @@ export class $ForStatement implements I$Node {
   // 13.7.4.6 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
 
+  public parent!: $NodeWithStatements;
+  public readonly path: string;
+
   public constructor(
     public readonly node: ForStatement,
-    public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.ForStatement`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$condition = $assignmentExpression(node.condition as $AssignmentExpressionNode, this, ctx, -1);
-    this.$incrementor = $assignmentExpression(node.incrementor as $AssignmentExpressionNode, this, ctx, -1);
-    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.ForStatement`;
+
+    const $condition = this.$condition = $assignmentExpression(node.condition as $AssignmentExpressionNode | undefined, ctx, -1, depth + 1, mos, realm, logger, path);
+    if ($condition !== void 0) { $condition.parent = this; }
+    const $incrementor = this.$incrementor = $assignmentExpression(node.incrementor as $AssignmentExpressionNode | undefined, ctx, -1, depth + 1, mos, realm, logger, path);
+    if ($incrementor !== void 0) { $incrementor.parent = this; }
+    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $statement.parent = this;
 
     if (node.initializer === void 0) {
       this.$initializer = void 0;
@@ -1254,7 +1310,8 @@ export class $ForStatement implements I$Node {
       this.VarScopedDeclarations = $statement.VarScopedDeclarations;
     } else {
       if (node.initializer.kind === SyntaxKind.VariableDeclarationList) {
-        const $initializer = this.$initializer = new $VariableDeclarationList(node.initializer as VariableDeclarationList, this, ctx);
+        const $initializer = this.$initializer = new $VariableDeclarationList(node.initializer as VariableDeclarationList, ctx, depth + 1, mos, realm, logger, path);
+        $initializer.parent = this;
         if ($initializer.isLexical) {
           this.VarDeclaredNames = $statement.VarDeclaredNames;
           this.VarScopedDeclarations = $statement.VarScopedDeclarations;
@@ -1269,7 +1326,8 @@ export class $ForStatement implements I$Node {
           ];
         }
       } else {
-        this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx, -1);
+        const $initializer = this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+        $initializer.parent = this;
 
         this.VarDeclaredNames = $statement.VarDeclaredNames;
         this.VarScopedDeclarations = $statement.VarScopedDeclarations;
@@ -1367,22 +1425,29 @@ export class $ForInStatement implements I$Node {
   // 13.7.5.8 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
 
+  public parent!: $NodeWithStatements;
+  public readonly path: string;
+
   public constructor(
     public readonly node: ForInStatement,
-    public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.ForInStatement`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
-    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.ForInStatement`;
+
+    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = this;
+    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $statement.parent = this;
 
     if (node.initializer.kind === SyntaxKind.VariableDeclarationList) {
-      const $initializer = this.$initializer = new $VariableDeclarationList(node.initializer as VariableDeclarationList, this, ctx);
+      const $initializer = this.$initializer = new $VariableDeclarationList(node.initializer as VariableDeclarationList, ctx, depth + 1, mos, realm, logger, path);
+      $initializer.parent = this;
       if ($initializer.isLexical) {
         this.BoundNames = $initializer.BoundNames;
         this.VarDeclaredNames = $statement.VarDeclaredNames;
@@ -1399,7 +1464,8 @@ export class $ForInStatement implements I$Node {
         ];
       }
     } else {
-      this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx, -1);
+      const $initializer = this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+      $initializer.parent = this;
 
       this.BoundNames = emptyArray;
       this.VarDeclaredNames = $statement.VarDeclaredNames;
@@ -1523,22 +1589,29 @@ export class $ForOfStatement implements I$Node {
   // 13.7.5.8 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
 
+  public parent!: $NodeWithStatements;
+  public readonly path: string;
+
   public constructor(
     public readonly node: ForOfStatement,
-    public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.ForOfStatement`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
-    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.ForOfStatement`;
+
+    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = this;
+    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $statement.parent = this;
 
     if (node.initializer.kind === SyntaxKind.VariableDeclarationList) {
-      const $initializer = this.$initializer = new $VariableDeclarationList(node.initializer as VariableDeclarationList, this, ctx);
+      const $initializer = this.$initializer = new $VariableDeclarationList(node.initializer as VariableDeclarationList, ctx, depth + 1, mos, realm, logger, path);
+      $initializer.parent = this;
       if ($initializer.isLexical) {
         this.BoundNames = $initializer.BoundNames;
         this.VarDeclaredNames = $statement.VarDeclaredNames;
@@ -1555,7 +1628,8 @@ export class $ForOfStatement implements I$Node {
         ];
       }
     } else {
-      this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx, -1);
+      const $initializer = this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+      $initializer.parent = this;
 
       this.BoundNames = emptyArray;
       this.VarDeclaredNames = $statement.VarDeclaredNames;
@@ -1673,18 +1747,23 @@ export class $ContinueStatement implements I$Node {
   // 13.1.6 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[] = emptyArray;
 
+  public parent!: $NodeWithStatements;
+  public readonly path: string;
+
   public constructor(
     public readonly node: ContinueStatement,
-    public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.ContinueStatement`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$label = $identifier(node.label, this, ctx | Context.IsLabelReference, -1);
+    this.path = `${path}${$i(idx)}.ContinueStatement`;
+
+    const $label = this.$label = $identifier(node.label, ctx | Context.IsLabelReference, -1, depth + 1, mos, realm, logger, path);
+    if ($label !== void 0) { $label.parent = this; }
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-continue-statement-runtime-semantics-evaluation
@@ -1731,18 +1810,23 @@ export class $BreakStatement implements I$Node {
   // 13.1.6 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[] = emptyArray;
 
+  public parent!: $NodeWithStatements;
+  public readonly path: string;
+
   public constructor(
     public readonly node: BreakStatement,
-    public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.BreakStatement`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$label = $identifier(node.label, this, ctx | Context.IsLabelReference, -1);
+    this.path = `${path}${$i(idx)}.BreakStatement`;
+
+    const $label = this.$label = $identifier(node.label, ctx | Context.IsLabelReference, -1, depth + 1, mos, realm, logger, path);
+    if ($label !== void 0) { $label.parent = this; }
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-break-statement-runtime-semantics-evaluation
@@ -1789,21 +1873,26 @@ export class $ReturnStatement implements I$Node {
   // 13.1.6 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[] = emptyArray;
 
+  public parent!: $NodeWithStatements;
+  public readonly path: string;
+
   public constructor(
     public readonly node: ReturnStatement,
-    public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.ReturnStatement`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.ReturnStatement`;
+
     if (node.expression === void 0) {
       this.$expression = void 0;
     } else {
-      this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
+      const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+      $expression.parent = this;
     }
   }
 
@@ -1871,19 +1960,25 @@ export class $WithStatement implements I$Node {
   // 13.11.6 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
 
+  public parent!: $NodeWithStatements;
+  public readonly path: string;
+
   public constructor(
     public readonly node: WithStatement,
-    public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.WithStatement`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
-    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.WithStatement`;
+
+    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = this;
+    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $statement.parent = this;
 
     this.VarDeclaredNames = $statement.VarDeclaredNames;
     this.VarScopedDeclarations = $statement.VarScopedDeclarations;
@@ -1952,19 +2047,25 @@ export class $SwitchStatement implements I$Node {
   // 13.12.8 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
 
+  public parent!: $NodeWithStatements;
+  public readonly path: string;
+
   public constructor(
     public readonly node: SwitchStatement,
-    public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.SwitchStatement`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
-    const $caseBlock = this.$caseBlock = new $CaseBlock(node.caseBlock, this, ctx);
+    this.path = `${path}${$i(idx)}.SwitchStatement`;
+
+    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = this;
+    const $caseBlock = this.$caseBlock = new $CaseBlock(node.caseBlock, ctx, depth + 1, mos, realm, logger, path);
+    $caseBlock.parent = this;
 
     this.LexicallyDeclaredNames = $caseBlock.LexicallyDeclaredNames;
     this.LexicallyScopedDeclarations = $caseBlock.LexicallyScopedDeclarations;
@@ -2197,19 +2298,25 @@ export class $LabeledStatement implements I$Node {
   public readonly TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
   public readonly IsType: false = false;
 
+  public parent!: $NodeWithStatements;
+  public readonly path: string;
+
   public constructor(
     public readonly node: LabeledStatement,
-    public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.LabeledStatement`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$label = $identifier(node.label, this, ctx | Context.IsLabel, -1);
-    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.LabeledStatement`;
+
+    const $label = this.$label = $identifier(node.label, ctx | Context.IsLabel, -1, depth + 1, mos, realm, logger, path);
+    $label.parent = this;
+    const $statement = this.$statement = $$esLabelledItem(node.statement as $StatementNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $statement.parent = this;
 
     if ($statement.$kind === SyntaxKind.FunctionDeclaration) {
       this.LexicallyDeclaredNames = $statement.BoundNames;
@@ -2305,7 +2412,7 @@ export class $LabeledStatement implements I$Node {
 export class $ThrowStatement implements I$Node {
   public get $kind(): SyntaxKind.ThrowStatement { return SyntaxKind.ThrowStatement; }
 
-  public readonly $expression: $$AssignmentExpressionOrHigher;
+  public readonly $expression: $$AssignmentExpressionOrHigher | undefined;
 
   public readonly LexicallyDeclaredNames: readonly $String[] = emptyArray;
   public readonly LexicallyScopedDeclarations: readonly transformedStatement[] = emptyArray;
@@ -2316,18 +2423,23 @@ export class $ThrowStatement implements I$Node {
   // 13.1.6 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[] = emptyArray;
 
+  public parent!: $NodeWithStatements;
+  public readonly path: string;
+
   public constructor(
     public readonly node: ThrowStatement,
-    public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.ThrowStatement`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.ThrowStatement`;
+
+    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode | undefined, ctx, -1, depth + 1, mos, realm, logger, path);
+    if ($expression !== void 0) { $expression.parent = this; }
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-throw-statement-runtime-semantics-evaluation
@@ -2344,7 +2456,7 @@ export class $ThrowStatement implements I$Node {
     // ThrowStatement : throw Expression ;
 
     // 1. Let exprRef be the result of evaluating Expression.
-    const exprRef = this.$expression.Evaluate(ctx);
+    const exprRef = this.$expression!.Evaluate(ctx);
 
     // 2. Let exprValue be ? GetValue(exprRef).
     const exprValue = exprRef.GetValue(ctx);
@@ -2356,7 +2468,7 @@ export class $ThrowStatement implements I$Node {
 
   public transform(tctx: TransformationContext): this['node'] {
     const node = this.node;
-    const transformedExpression = this.$expression.transform(tctx);
+    const transformedExpression = this.$expression!.transform(tctx);
     if (
       node.expression !== transformedExpression
     ) {
@@ -2385,22 +2497,27 @@ export class $TryStatement implements I$Node {
   // 13.15.6 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[];
 
+  public parent!: $NodeWithStatements;
+  public readonly path: string;
+
   public constructor(
     public readonly node: TryStatement,
-    public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.TryStatement`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    const $tryBlock = this.$tryBlock = new $Block(node.tryBlock, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.TryStatement`;
+
+    const $tryBlock = this.$tryBlock = new $Block(node.tryBlock, ctx, -1, depth + 1, mos, realm, logger, path);
+    $tryBlock.parent = this;
     if (node.catchClause === void 0) {
       // finallyBlock must be defined
       this.$catchClause = void 0;
-      const $finallyBlock = this.$finallyBlock = new $Block(node.finallyBlock!, this, ctx, -1);
+      const $finallyBlock = this.$finallyBlock = new $Block(node.finallyBlock!, ctx, -1, depth + 1, mos, realm, logger, path);
 
       this.VarDeclaredNames = [
         ...$tryBlock.VarDeclaredNames,
@@ -2412,7 +2529,8 @@ export class $TryStatement implements I$Node {
       ];
     } else if (node.finallyBlock === void 0) {
       // catchClause must be defined
-      const $catchClause = this.$catchClause = new $CatchClause(node.catchClause!, this, ctx);
+      const $catchClause = this.$catchClause = new $CatchClause(node.catchClause!, ctx, depth + 1, mos, realm, logger, path);
+      $catchClause.parent = this;
       this.$finallyBlock = void 0;
 
       this.VarDeclaredNames = [
@@ -2424,8 +2542,10 @@ export class $TryStatement implements I$Node {
         ...$catchClause.VarScopedDeclarations,
       ];
     } else {
-      const $catchClause = this.$catchClause = new $CatchClause(node.catchClause!, this, ctx);
-      const $finallyBlock = this.$finallyBlock = new $Block(node.finallyBlock!, this, ctx, -1);
+      const $catchClause = this.$catchClause = new $CatchClause(node.catchClause!, ctx, depth + 1, mos, realm, logger, path);
+      $catchClause.parent = this;
+      const $finallyBlock = this.$finallyBlock = new $Block(node.finallyBlock!, ctx, -1, depth + 1, mos, realm, logger, path);
+      $finallyBlock.parent = this;
 
       this.VarDeclaredNames = [
         ...$tryBlock.VarDeclaredNames,
@@ -2581,17 +2701,21 @@ export class $DebuggerStatement implements I$Node {
   // 13.1.6 Static Semantics: VarScopedDeclarations
   public readonly VarScopedDeclarations: readonly $$ESVarDeclaration[] = emptyArray;
 
+  public parent!: $NodeWithStatements;
+  public readonly path: string;
+
   public constructor(
     public readonly node: DebuggerStatement,
-    public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.DebuggerStatement`,
-  ) {}
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
+  ) {
+    this.path = `${path}${$i(idx)}.DebuggerStatement`;
+}
 
   // http://www.ecma-international.org/ecma-262/#sec-debugger-statement-runtime-semantics-evaluation
   // 13.16.1 Runtime Semantics: Evaluation
@@ -2629,8 +2753,12 @@ export type $$CaseOrDefaultClause = $CaseClause | $DefaultClause;
 
 export function $$clauseList(
   nodes: readonly CaseOrDefaultClause[],
-  parent: $CaseBlock,
   ctx: Context,
+  depth: number,
+  mos: $$ESModuleOrScript,
+  realm: Realm,
+  logger: ILogger,
+  path: string,
 ): readonly $$CaseOrDefaultClause[] {
   const len = nodes.length;
   let node: CaseOrDefaultClause;
@@ -2640,10 +2768,10 @@ export function $$clauseList(
     node = nodes[i];
     switch (node.kind) {
       case SyntaxKind.CaseClause:
-        $nodes[i] = new $CaseClause(node, parent, ctx, i);
+        $nodes[i] = new $CaseClause(node, ctx, i, depth + 1, mos, realm, logger, path);
         break;
       case SyntaxKind.DefaultClause:
-        $nodes[i] = new $DefaultClause(node, parent, ctx, i);
+        $nodes[i] = new $DefaultClause(node, ctx, i, depth + 1, mos, realm, logger, path);
         break;
     }
   }
@@ -2668,17 +2796,22 @@ export class $CaseBlock implements I$Node {
 
   public readonly $clauses: readonly $$CaseOrDefaultClause[];
 
+  public parent!: $SwitchStatement;
+  public readonly path: string;
+
   public constructor(
     public readonly node: CaseBlock,
-    public readonly parent: $SwitchStatement,
     public readonly ctx: Context,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.CaseBlock`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    const $clauses = this.$clauses = $$clauseList(node.clauses, this, ctx);
+    this.path = `${path}.CaseBlock`;
+
+    const $clauses = this.$clauses = $$clauseList(node.clauses, ctx, depth + 1, mos, realm, logger, path);
+    $clauses.forEach(x => x.parent = this);
 
     this.LexicallyDeclaredNames = $clauses.flatMap(getLexicallyDeclaredNames);
     this.LexicallyScopedDeclarations = $clauses.flatMap(getLexicallyScopedDeclarations);
@@ -2717,19 +2850,24 @@ export class $CaseClause implements I$Node {
   public readonly $expression: $$AssignmentExpressionOrHigher;
   public readonly $statements: readonly $$TSStatementListItem[];
 
+  public parent!: $CaseBlock;
+  public readonly path: string;
+
   public constructor(
     public readonly node: CaseClause,
-    public readonly parent: $CaseBlock,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.CaseClause`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
-    const $statements = this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
+    this.path = `${path}${$i(idx)}.CaseClause`;
+
+    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = this;
+    const $statements = this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, ctx, depth + 1, mos, realm, logger, path);
 
     this.LexicallyDeclaredNames = $statements.flatMap(getLexicallyDeclaredNames);
     this.LexicallyScopedDeclarations = $statements.flatMap(getLexicallyScopedDeclarations);
@@ -2770,18 +2908,23 @@ export class $DefaultClause implements I$Node {
 
   public readonly $statements: readonly $$TSStatementListItem[];
 
+  public parent!: $CaseBlock;
+  public readonly path: string;
+
   public constructor(
     public readonly node: DefaultClause,
-    public readonly parent: $CaseBlock,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.DefaultClause`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    const $statements = this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, this, ctx);
+    this.path = `${path}${$i(idx)}.DefaultClause`;
+
+    const $statements = this.$statements = $$tsStatementList(node.statements as NodeArray<$StatementNode>, ctx, depth + 1, mos, realm, logger, path);
+    $statements.forEach(x => x.parent = this);
 
     this.LexicallyDeclaredNames = $statements.flatMap(getLexicallyDeclaredNames);
     this.LexicallyScopedDeclarations = $statements.flatMap(getLexicallyScopedDeclarations);
@@ -2815,24 +2958,30 @@ export class $CatchClause implements I$Node {
   public readonly $variableDeclaration: $VariableDeclaration | undefined;
   public readonly $block: $Block;
 
+  public parent!: $TryStatement;
+  public readonly path: string;
+
   public constructor(
     public readonly node: CatchClause,
-    public readonly parent: $TryStatement,
     public readonly ctx: Context,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.CatchClause`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}.CatchClause`;
+
     ctx |= Context.InCatchClause;
 
     if (node.variableDeclaration === void 0) {
       this.$variableDeclaration = void 0;
     } else {
-      this.$variableDeclaration = new $VariableDeclaration(node.variableDeclaration, this, ctx, -1);
+      const $variableDeclaration = this.$variableDeclaration = new $VariableDeclaration(node.variableDeclaration, ctx, -1, depth + 1, mos, realm, logger, path);
+      $variableDeclaration.parent = this;
     }
-    const $block = this.$block = new $Block(node.block, this, ctx, -1);
+    const $block = this.$block = new $Block(node.block, ctx, -1, depth + 1, mos, realm, logger, path);
+    $block.parent = this;
 
     this.VarDeclaredNames = $block.VarDeclaredNames;
     this.VarScopedDeclarations = $block.VarScopedDeclarations;

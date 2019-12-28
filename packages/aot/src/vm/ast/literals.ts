@@ -59,16 +59,20 @@ import {
 export class $TemplateHead implements I$Node {
   public get $kind(): SyntaxKind.TemplateHead { return SyntaxKind.TemplateHead; }
 
+  public parent!: $TemplateExpression;
+  public readonly path: string;
+
   public constructor(
     public readonly node: TemplateHead,
-    public readonly parent: $TemplateExpression,
     public readonly ctx: Context,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.TemplateHead`,
-  ) {}
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
+  ) {
+    this.path = `${path}.TemplateHead`;
+}
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
   // 12.2.9.6 Runtime Semantics: Evaluation
@@ -93,16 +97,20 @@ export class $TemplateHead implements I$Node {
 export class $TemplateMiddle implements I$Node {
   public get $kind(): SyntaxKind.TemplateMiddle { return SyntaxKind.TemplateMiddle; }
 
+  public parent!: $TemplateExpression | $TemplateSpan;
+  public readonly path: string;
+
   public constructor(
     public readonly node: TemplateMiddle,
-    public readonly parent: $TemplateExpression | $TemplateSpan,
     public readonly ctx: Context,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.TemplateMiddle`,
-  ) {}
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
+  ) {
+    this.path = `${path}.TemplateMiddle`;
+}
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
   // 12.2.9.6 Runtime Semantics: Evaluation
@@ -127,16 +135,20 @@ export class $TemplateMiddle implements I$Node {
 export class $TemplateTail implements I$Node {
   public get $kind(): SyntaxKind.TemplateTail { return SyntaxKind.TemplateTail; }
 
+  public parent!: $TemplateExpression | $TemplateSpan;
+  public readonly path: string;
+
   public constructor(
     public readonly node: TemplateTail,
-    public readonly parent: $TemplateExpression | $TemplateSpan,
     public readonly ctx: Context,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}.TemplateTail`,
-  ) {}
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
+  ) {
+    this.path = `${path}.TemplateTail`;
+}
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
   // 12.2.9.6 Runtime Semantics: Evaluation
@@ -169,22 +181,29 @@ export class $TemplateSpan implements I$Node {
   public readonly $expression: $$AssignmentExpressionOrHigher;
   public readonly $literal: $TemplateMiddle | $TemplateTail;
 
+  public parent!: $TemplateExpression;
+  public readonly path: string;
+
   public constructor(
     public readonly node: TemplateSpan,
-    public readonly parent: $TemplateExpression,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.TemplateSpan`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.TemplateSpan`;
+
+    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = this;
     if (node.literal.kind === SyntaxKind.TemplateMiddle) {
-      this.$literal = new $TemplateMiddle(node.literal, this, ctx);
+      const $literal = this.$literal = new $TemplateMiddle(node.literal, ctx, depth + 1, mos, realm, logger, path);
+      $literal.parent = this;
     } else {
-      this.$literal = new $TemplateTail(node.literal, this, ctx);
+      const $literal = this.$literal = new $TemplateTail(node.literal, ctx, depth + 1, mos, realm, logger, path);
+      $literal.parent = this;
     }
   }
 
@@ -259,17 +278,21 @@ export class $NumericLiteral implements I$Node {
   // 12.2.1.5 Static Semantics: AssignmentTargetType
   public readonly AssignmentTargetType: 'invalid' = 'invalid';
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: NumericLiteral,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.NumericLiteral`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.NumericLiteral`;
+
     const num = Number(node.text);
     this.PropName = new $String(realm, num.toString(), void 0, void 0, this);
     this.Value = new $Number(realm, num, void 0, void 0, this);
@@ -319,17 +342,21 @@ export class $BigIntLiteral implements I$Node {
   // 12.2.1.5 Static Semantics: AssignmentTargetType
   public readonly AssignmentTargetType: 'invalid' = 'invalid';
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: BigIntLiteral,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.BigIntLiteral`,
-  ) {}
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
+  ) {
+    this.path = `${path}${$i(idx)}.BigIntLiteral`;
+}
 
   public Evaluate(
     ctx: ExecutionContext,
@@ -377,17 +404,21 @@ export class $StringLiteral implements I$Node {
   // 12.2.1.5 Static Semantics: AssignmentTargetType
   public readonly AssignmentTargetType: 'invalid' = 'invalid';
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: StringLiteral,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.StringLiteral`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.StringLiteral`;
+
     const StringValue = this.StringValue = new $String(realm, node.text, void 0, void 0, this);
     this.PropName = StringValue;
     this.Value = StringValue;
@@ -443,17 +474,21 @@ export class $RegularExpressionLiteral implements I$Node {
   // 12.2.1.5 Static Semantics: AssignmentTargetType
   public readonly AssignmentTargetType: 'invalid' = 'invalid';
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: RegularExpressionLiteral,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.RegularExpressionLiteral`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.RegularExpressionLiteral`;
+
     this.StringValue = node.text;
   }
 
@@ -499,17 +534,21 @@ export class $NoSubstitutionTemplateLiteral implements I$Node {
   // 12.2.1.5 Static Semantics: AssignmentTargetType
   public readonly AssignmentTargetType: 'invalid' = 'invalid';
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: NoSubstitutionTemplateLiteral,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.NoSubstitutionTemplateLiteral`,
-  ) {}
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
+  ) {
+    this.path = `${path}${$i(idx)}.NoSubstitutionTemplateLiteral`;
+}
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
   // 12.2.9.6 Runtime Semantics: Evaluation
@@ -553,17 +592,21 @@ export class $NullLiteral implements I$Node {
   // 12.2.1.5 Static Semantics: AssignmentTargetType
   public readonly AssignmentTargetType: 'invalid' = 'invalid';
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: NullLiteral,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.NullLiteral`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.NullLiteral`;
+
     this.Value = new $Null(realm, void 0, void 0, this);
   }
 
@@ -606,17 +649,21 @@ export class $BooleanLiteral implements I$Node {
   // 12.2.1.5 Static Semantics: AssignmentTargetType
   public readonly AssignmentTargetType: 'invalid' = 'invalid';
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: BooleanLiteral,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.BooleanLiteral`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.BooleanLiteral`;
+
     this.$kind = node.kind;
 
     this.Value = new $Boolean(realm, node.kind === SyntaxKind.TrueKeyword, void 0, void 0, this);

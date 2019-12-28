@@ -183,18 +183,23 @@ export class $Decorator implements I$Node {
 
   public readonly $expression: $$LHSExpressionOrHigher;
 
+  public parent!: $NodeWithDecorators;
+  public readonly path: string;
+
   public constructor(
     public readonly node: Decorator,
-    public readonly parent: $NodeWithDecorators,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.Decorator`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.Decorator`;
+
+    const $expression = this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = this;
   }
 }
 
@@ -219,17 +224,21 @@ export class $ThisExpression implements I$Node {
   // 12.2.1.5 Static Semantics: AssignmentTargetType
   public readonly AssignmentTargetType: 'invalid' = 'invalid';
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: ThisExpression,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.ThisExpression`,
-  ) {}
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
+  ) {
+    this.path = `${path}${$i(idx)}.ThisExpression`;
+}
 
   // http://www.ecma-international.org/ecma-262/#sec-this-keyword-runtime-semantics-evaluation
   // 12.2.2.1 Runtime Semantics: Evaluation
@@ -255,17 +264,21 @@ export class $ThisExpression implements I$Node {
 export class $SuperExpression implements I$Node {
   public get $kind(): SyntaxKind.SuperKeyword { return SyntaxKind.SuperKeyword; }
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: SuperExpression,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.SuperExpression`,
-  ) {}
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
+  ) {
+    this.path = `${path}${$i(idx)}.SuperExpression`;
+}
 
   // http://www.ecma-international.org/ecma-262/#sec-super-keyword-runtime-semantics-evaluation
   // 12.3.5.1 Runtime Semantics: Evaluation
@@ -329,24 +342,32 @@ export type $$ArgumentOrArrayLiteralElement = (
 
 export function $argumentOrArrayLiteralElement(
   node: $ArgumentOrArrayLiteralElementNode,
-  parent: $NodeWithSpreadElements,
   ctx: Context,
   idx: number,
+  depth: number,
+  mos: $$ESModuleOrScript,
+  realm: Realm,
+  logger: ILogger,
+  path: string,
 ): $$ArgumentOrArrayLiteralElement {
   switch (node.kind) {
     case SyntaxKind.SpreadElement:
-      return new $SpreadElement(node, parent, ctx, idx);
+      return new $SpreadElement(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.OmittedExpression:
-      return new $OmittedExpression(node, parent, ctx, idx);
+      return new $OmittedExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
     default:
-      return $assignmentExpression(node, parent, ctx, idx);
+      return $assignmentExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
   }
 }
 
 export function $argumentOrArrayLiteralElementList(
   nodes: readonly $ArgumentOrArrayLiteralElementNode[] | undefined,
-  parent: $NodeWithSpreadElements,
   ctx: Context,
+  depth: number,
+  mos: $$ESModuleOrScript,
+  realm: Realm,
+  logger: ILogger,
+  path: string,
 ): readonly $$ArgumentOrArrayLiteralElement[] {
   if (nodes === void 0 || nodes.length === 0) {
     return emptyArray;
@@ -355,7 +376,7 @@ export function $argumentOrArrayLiteralElementList(
   const len = nodes.length;
   const $nodes: $$ArgumentOrArrayLiteralElement[] = Array(len);
   for (let i = 0; i < len; ++i) {
-    $nodes[i] = $argumentOrArrayLiteralElement(nodes[i], parent, ctx, i);
+    $nodes[i] = $argumentOrArrayLiteralElement(nodes[i], ctx, i, depth + 1, mos, realm, logger, path);
   }
   return $nodes;
 }
@@ -381,18 +402,23 @@ export class $ArrayLiteralExpression implements I$Node {
   // 12.2.1.5 Static Semantics: AssignmentTargetType
   public readonly AssignmentTargetType: 'invalid' = 'invalid';
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: ArrayLiteralExpression,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.ArrayLiteralExpression`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$elements = $argumentOrArrayLiteralElementList(node.elements as NodeArray<$ArgumentOrArrayLiteralElementNode>, this, ctx);
+    this.path = `${path}${$i(idx)}.ArrayLiteralExpression`;
+
+    const $elements = this.$elements = $argumentOrArrayLiteralElementList(node.elements as NodeArray<$ArgumentOrArrayLiteralElementNode>, ctx, depth + 1, mos, realm, logger, path);
+    $elements.forEach(x => x.parent = this);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-arrayaccumulation
@@ -555,8 +581,12 @@ export type $$ObjectLiteralElementLike = (
 
 export function $$objectLiteralElementLikeList(
   nodes: readonly ObjectLiteralElementLike[],
-  parent: $ObjectLiteralExpression,
   ctx: Context,
+  depth: number,
+  mos: $$ESModuleOrScript,
+  realm: Realm,
+  logger: ILogger,
+  path: string,
 ): readonly $$ObjectLiteralElementLike[] {
   if (nodes === void 0 || nodes.length === 0) {
     return emptyArray;
@@ -570,22 +600,22 @@ export function $$objectLiteralElementLikeList(
     el = nodes[i];
     switch (el.kind) {
       case SyntaxKind.PropertyAssignment:
-        $nodes[i] = new $PropertyAssignment(el, parent, ctx, i);
+        $nodes[i] = new $PropertyAssignment(el, ctx, i, depth + 1, mos, realm, logger, path);
         break;
       case SyntaxKind.ShorthandPropertyAssignment:
-        $nodes[i] = new $ShorthandPropertyAssignment(el, parent, ctx, i);
+        $nodes[i] = new $ShorthandPropertyAssignment(el, ctx, i, depth + 1, mos, realm, logger, path);
         break;
       case SyntaxKind.SpreadAssignment:
-        $nodes[i] = new $SpreadAssignment(el, parent, ctx, i);
+        $nodes[i] = new $SpreadAssignment(el, ctx, i, depth + 1, mos, realm, logger, path);
         break;
       case SyntaxKind.MethodDeclaration:
-        $nodes[i] = new $MethodDeclaration(el, parent, ctx, i);
+        $nodes[i] = new $MethodDeclaration(el, ctx, i, depth + 1, mos, realm, logger, path);
         break;
       case SyntaxKind.GetAccessor:
-        $nodes[i] = new $GetAccessorDeclaration(el, parent, ctx, i);
+        $nodes[i] = new $GetAccessorDeclaration(el, ctx, i, depth + 1, mos, realm, logger, path);
         break;
       case SyntaxKind.SetAccessor:
-        $nodes[i] = new $SetAccessorDeclaration(el, parent, ctx, i);
+        $nodes[i] = new $SetAccessorDeclaration(el, ctx, i, depth + 1, mos, realm, logger, path);
         break;
     }
   }
@@ -613,18 +643,23 @@ export class $ObjectLiteralExpression implements I$Node {
   // 12.2.1.5 Static Semantics: AssignmentTargetType
   public readonly AssignmentTargetType: 'invalid' = 'invalid';
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: ObjectLiteralExpression,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.ObjectLiteralExpression`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$properties = $$objectLiteralElementLikeList(node.properties, this, ctx);
+    this.path = `${path}${$i(idx)}.ObjectLiteralExpression`;
+
+    const $properties = this.$properties = $$objectLiteralElementLikeList(node.properties, ctx, depth + 1, mos, realm, logger, path);
+    $properties.forEach(x => x.parent = this);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-evaluation
@@ -687,21 +722,27 @@ export class $PropertyAssignment implements I$Node {
   // 12.2.6.5 Static Semantics: PropName
   public readonly PropName: $String | $Empty;
 
+  public parent!: $ObjectLiteralExpression;
+  public readonly path: string;
+
   public constructor(
     public readonly node: PropertyAssignment,
-    public readonly parent: $ObjectLiteralExpression,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.PropertyAssignment`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.PropertyAssignment`;
+
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    const $name = this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName, -1);
-    this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx, -1);
+    const $name = this.$name = $$propertyName(node.name, ctx | Context.IsMemberName, -1, depth + 1, mos, realm, logger, path);
+    $name.parent = this;
+    const $initializer = this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $initializer.parent = this;
 
     this.PropName = $name.PropName;
   }
@@ -769,21 +810,27 @@ export class $ShorthandPropertyAssignment implements I$Node {
   // 12.2.6.5 Static Semantics: PropName
   public readonly PropName: $String;
 
+  public parent!: $ObjectLiteralExpression;
+  public readonly path: string;
+
   public constructor(
     public readonly node: ShorthandPropertyAssignment,
-    public readonly parent: $ObjectLiteralExpression,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.ShorthandPropertyAssignment`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.ShorthandPropertyAssignment`;
+
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
-    const $name = this.$name = $identifier(node.name, this, ctx, -1);
-    this.$objectAssignmentInitializer = $assignmentExpression(node.objectAssignmentInitializer as $AssignmentExpressionNode, this, ctx, -1);
+    const $name = this.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
+    $name.parent = this;
+    const $objectAssignmentInitializer = this.$objectAssignmentInitializer = $assignmentExpression(node.objectAssignmentInitializer as $AssignmentExpressionNode | undefined, ctx, -1, depth + 1, mos, realm, logger, path);
+    if ($objectAssignmentInitializer !== void 0) { $objectAssignmentInitializer.parent = this; }
 
     this.PropName = $name.PropName;
   }
@@ -830,18 +877,23 @@ export class $SpreadAssignment implements I$Node {
   // 12.2.6.5 Static Semantics: PropName
   public readonly PropName: empty = empty;
 
+  public parent!: $ObjectLiteralExpression;
+  public readonly path: string;
+
   public constructor(
     public readonly node: SpreadAssignment,
-    public readonly parent: $ObjectLiteralExpression,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.SpreadAssignment`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.SpreadAssignment`;
+
+    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-object-initializer-runtime-semantics-propertydefinitionevaluation
@@ -889,19 +941,25 @@ export class $PropertyAccessExpression implements I$Node {
   public readonly $expression: $$LHSExpressionOrHigher;
   public readonly $name: $Identifier;
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: PropertyAccessExpression,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.PropertyAccessExpression`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx, -1);
-    this.$name = $identifier(node.name, this, ctx | Context.IsPropertyAccessName, -1);
+    this.path = `${path}${$i(idx)}.PropertyAccessExpression`;
+
+    const $expression = this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = this;
+    const $name = this.$name = $identifier(node.name, ctx | Context.IsPropertyAccessName, -1, depth + 1, mos, realm, logger, path);
+    $name.parent = this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-property-accessors-runtime-semantics-evaluation
@@ -959,19 +1017,25 @@ export class $ElementAccessExpression implements I$Node {
   public readonly $expression: $$LHSExpressionOrHigher;
   public readonly $argumentExpression: $$AssignmentExpressionOrHigher;
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: ElementAccessExpression,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.ElementAccessExpression`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx, -1);
-    this.$argumentExpression = $assignmentExpression(node.argumentExpression as $AssignmentExpressionNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.ElementAccessExpression`;
+
+    const $expression = this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = this;
+    const $argumentExpression = this.$argumentExpression = $assignmentExpression(node.argumentExpression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $argumentExpression.parent = this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-property-accessors-runtime-semantics-evaluation
@@ -1039,19 +1103,25 @@ export class $CallExpression implements I$Node {
   public readonly $expression: $$LHSExpressionOrHigher;
   public readonly $arguments: readonly $$ArgumentOrArrayLiteralElement[];
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: CallExpression,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.CallExpression`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx, -1);
-    this.$arguments = $argumentOrArrayLiteralElementList(node.arguments as NodeArray<$ArgumentOrArrayLiteralElementNode>, this, ctx);
+    this.path = `${path}${$i(idx)}.CallExpression`;
+
+    const $expression = this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = this;
+    const $arguments = this.$arguments = $argumentOrArrayLiteralElementList(node.arguments as NodeArray<$ArgumentOrArrayLiteralElementNode>, ctx, depth + 1, mos, realm, logger, path);
+    $arguments.forEach(x => x.parent = this);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-function-calls-runtime-semantics-evaluation
@@ -1274,19 +1344,25 @@ export class $NewExpression implements I$Node {
   public readonly $expression: $$LHSExpressionOrHigher;
   public readonly $arguments: readonly $$ArgumentOrArrayLiteralElement[];
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: NewExpression,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.NewExpression`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx, -1);
-    this.$arguments = $argumentOrArrayLiteralElementList(node.arguments as NodeArray<$ArgumentOrArrayLiteralElementNode>, this, ctx);
+    this.path = `${path}${$i(idx)}.NewExpression`;
+
+    const $expression = this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = this;
+    const $arguments = this.$arguments = $argumentOrArrayLiteralElementList(node.arguments as NodeArray<$ArgumentOrArrayLiteralElementNode>, ctx, depth + 1, mos, realm, logger, path);
+    $arguments.forEach(x => x.parent = this);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-new-operator-runtime-semantics-evaluation
@@ -1377,24 +1453,30 @@ export class $TaggedTemplateExpression implements I$Node {
   public readonly $tag: $$LHSExpressionOrHigher;
   public readonly $template: $$TemplateLiteral;
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: TaggedTemplateExpression,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.TaggedTemplateExpression`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$tag = $LHSExpression(node.tag as $LHSExpressionNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.TaggedTemplateExpression`;
+
+    const $tag = this.$tag = $LHSExpression(node.tag as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $tag.parent = this;
 
     if (node.template.kind === SyntaxKind.NoSubstitutionTemplateLiteral) {
-      this.$template = new $NoSubstitutionTemplateLiteral(node.template, this, ctx, -1);
+      this.$template = new $NoSubstitutionTemplateLiteral(node.template, ctx, -1, depth + 1, mos, realm, logger, path);
     } else {
-      this.$template = new $TemplateExpression(node.template, this, ctx, -1);
+      this.$template = new $TemplateExpression(node.template, ctx, -1, depth + 1, mos, realm, logger, path);
     }
+    this.$template.parent = this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-tagged-templates-runtime-semantics-evaluation
@@ -1448,8 +1530,12 @@ export class $TaggedTemplateExpression implements I$Node {
 
 export function $$templateSpanList(
   nodes: readonly TemplateSpan[],
-  parent: $TemplateExpression,
   ctx: Context,
+  depth: number,
+  mos: $$ESModuleOrScript,
+  realm: Realm,
+  logger: ILogger,
+  path: string,
 ): readonly $TemplateSpan[] {
   if (nodes.length === 0) {
     return emptyArray;
@@ -1458,7 +1544,7 @@ export function $$templateSpanList(
   const len = nodes.length;
   const $nodes: $TemplateSpan[] = Array(len);
   for (let i = 0; i < len; ++i) {
-    $nodes[i] = new $TemplateSpan(nodes[i], parent, ctx, i);
+    $nodes[i] = new $TemplateSpan(nodes[i], ctx, i, depth + 1, mos, realm, logger, path);
   }
   return $nodes;
 }
@@ -1485,19 +1571,25 @@ export class $TemplateExpression implements I$Node {
   // 12.2.1.5 Static Semantics: AssignmentTargetType
   public readonly AssignmentTargetType: 'invalid' = 'invalid';
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: TemplateExpression,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.TemplateExpression`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$head = new $TemplateHead(node.head, this, ctx);
-    this.$templateSpans = $$templateSpanList(node.templateSpans, this, ctx);
+    this.path = `${path}${$i(idx)}.TemplateExpression`;
+
+    const $head = this.$head = new $TemplateHead(node.head, ctx, depth + 1, mos, realm, logger, path);
+    $head.parent = this;
+    const $templateSpans = this.$templateSpans = $$templateSpanList(node.templateSpans, ctx, depth + 1, mos, realm, logger, path);
+    $templateSpans.forEach(x => x.parent = this);
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-template-literals-runtime-semantics-evaluation
@@ -1579,18 +1671,23 @@ export class $ParenthesizedExpression implements I$Node {
   // 12.2.1.1 Static Semantics: CoveredParenthesizedExpression
   public readonly CoveredParenthesizedExpression: $$AssignmentExpressionOrHigher;
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: ParenthesizedExpression,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.ParenthesizedExpression`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.ParenthesizedExpression`;
+
+    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = this;
 
     this.CoveredParenthesizedExpression = $expression;
   }
@@ -1636,18 +1733,23 @@ export class $NonNullExpression implements I$Node {
 
   public readonly $expression: $$LHSExpressionOrHigher;
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: NonNullExpression,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.NonNullExpression`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.NonNullExpression`;
+
+    const $expression = this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = this;
   }
 
   // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
@@ -1669,18 +1771,23 @@ export class $MetaProperty implements I$Node {
 
   public readonly $name: $Identifier;
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: MetaProperty,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.MetaProperty`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$name = $identifier(node.name, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.MetaProperty`;
+
+    const $name = this.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
+    $name.parent = this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-meta-properties-runtime-semantics-evaluation
@@ -1715,18 +1822,23 @@ export class $DeleteExpression implements I$Node {
 
   public readonly $expression: $$UnaryExpressionOrHigher;
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: DeleteExpression,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.DeleteExpression`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.DeleteExpression`;
+
+    const $expression = this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-delete-operator-runtime-semantics-evaluation
@@ -1776,18 +1888,23 @@ export class $TypeOfExpression implements I$Node {
 
   public readonly $expression: $$UnaryExpressionOrHigher;
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: TypeOfExpression,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.TypeOfExpression`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.TypeOfExpression`;
+
+    const $expression = this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-typeof-operator-runtime-semantics-evaluation
@@ -1871,18 +1988,23 @@ export class $VoidExpression implements I$Node {
 
   public readonly $expression: $$UnaryExpressionOrHigher;
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: VoidExpression,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.VoidExpression`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.VoidExpression`;
+
+    const $expression = this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-void-operator
@@ -1926,18 +2048,23 @@ export class $AwaitExpression implements I$Node {
 
   public readonly $expression: $$UnaryExpressionOrHigher;
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: AwaitExpression,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.AwaitExpression`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.AwaitExpression`;
+
+    const $expression = this.$expression = $unaryExpression(node.expression as $UnaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-async-function-definitions-runtime-semantics-evaluation
@@ -1977,18 +2104,23 @@ export class $PrefixUnaryExpression implements I$Node {
 
   public readonly $operand: $$UnaryExpressionOrHigher;
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: PrefixUnaryExpression,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.PrefixUnaryExpression`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$operand = $unaryExpression(node.operand as $UnaryExpressionNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.PrefixUnaryExpression`;
+
+    const $operand = this.$operand = $unaryExpression(node.operand as $UnaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $operand.parent = this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-prefix-increment-operator-runtime-semantics-evaluation
@@ -2173,18 +2305,23 @@ export class $PostfixUnaryExpression implements I$Node {
 
   public readonly $operand: $$LHSExpressionOrHigher;
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: PostfixUnaryExpression,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.PostfixUnaryExpression`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$operand = $LHSExpression(node.operand as $LHSExpressionNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.PostfixUnaryExpression`;
+
+    const $operand = this.$operand = $LHSExpression(node.operand as $LHSExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $operand.parent = this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-postfix-increment-operator-runtime-semantics-evaluation
@@ -2279,18 +2416,23 @@ export class $TypeAssertion implements I$Node {
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: TypeAssertion,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.TypeAssertion`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.TypeAssertion`;
+
+    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = this;
   }
 
   // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
@@ -2317,19 +2459,25 @@ export class $BinaryExpression implements I$Node {
   public readonly $left: $$BinaryExpressionOrHigher;
   public readonly $right: $$BinaryExpressionOrHigher;
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: BinaryExpression,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.BinaryExpression`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$left = $assignmentExpression(node.left as $BinaryExpressionNode, this, ctx, -1) as $$BinaryExpressionOrHigher;
-    this.$right = $assignmentExpression(node.right as $BinaryExpressionNode, this, ctx, -1) as $$BinaryExpressionOrHigher;
+    this.path = `${path}${$i(idx)}.BinaryExpression`;
+
+    const $left = this.$left = $assignmentExpression(node.left as $BinaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path) as $$BinaryExpressionOrHigher;
+    $left.parent = this;
+    const $right = this.$right = $assignmentExpression(node.right as $BinaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path) as $$BinaryExpressionOrHigher;
+    $right.parent = this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-exp-operator-runtime-semantics-evaluation
@@ -3405,25 +3553,33 @@ export class $ConditionalExpression implements I$Node {
   public readonly $whenTrue: $$AssignmentExpressionOrHigher;
   public readonly $whenFalse: $$AssignmentExpressionOrHigher;
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: ConditionalExpression,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.ConditionalExpression`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.ConditionalExpression`;
+
     if (node.condition.kind === SyntaxKind.BinaryExpression) {
-      this.$condition = new $BinaryExpression(node.condition as BinaryExpression, this, ctx, -1);
+      const $condition = this.$condition = new $BinaryExpression(node.condition as BinaryExpression, ctx, -1, depth + 1, mos, realm, logger, path);
+      $condition.parent = this;
     } else {
-      this.$condition = $unaryExpression(node.condition as $UnaryExpressionNode, this, ctx, -1);
+      const $condition = this.$condition = $unaryExpression(node.condition as $UnaryExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+      $condition.parent = this;
     }
 
-    this.$whenTrue = $assignmentExpression(node.whenTrue as $AssignmentExpressionNode, this, ctx, -1);
-    this.$whenFalse = $assignmentExpression(node.whenFalse as $AssignmentExpressionNode, this, ctx, -1);
+    const $whenTrue = this.$whenTrue = $assignmentExpression(node.whenTrue as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $whenTrue.parent = this;
+    const $whenFalse = this.$whenFalse = $assignmentExpression(node.whenFalse as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $whenFalse.parent = this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-conditional-operator-runtime-semantics-evaluation
@@ -3477,18 +3633,23 @@ export class $YieldExpression implements I$Node {
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: YieldExpression,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.YieldExpression`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.YieldExpression`;
+
+    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = this;
   }
   // http://www.ecma-international.org/ecma-262/#sec-generator-function-definitions-runtime-semantics-evaluation
   // 14.4.14 Runtime Semantics: Evaluation
@@ -3588,18 +3749,23 @@ export class $AsExpression implements I$Node {
 
   public readonly $expression: $$UpdateExpressionOrHigher;
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: AsExpression,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.AsExpression`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $UpdateExpressionNode, this, ctx, -1) as $$UpdateExpressionOrHigher;
+    this.path = `${path}${$i(idx)}.AsExpression`;
+
+    const $expression = this.$expression = $assignmentExpression(node.expression as $UpdateExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path) as $$UpdateExpressionOrHigher;
+    $expression.parent = this;
   }
 
   // This is a TS expression that wraps an ordinary expression. Just return the evaluate result.
@@ -3661,17 +3827,21 @@ export class $Identifier implements I$Node {
   public get isUndefined(): false { return false; }
   public get isNull(): false { return false; }
 
+  public parent!: $AnyParentNode;
+  public readonly path: string;
+
   public constructor(
     public readonly node: Identifier,
-    public readonly parent: $AnyParentNode,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.Identifier(${node.text})`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.Identifier(${node.text})`;
+
     const StringValue = this.StringValue = new $String(realm, node.text, void 0, void 0, this);
     this.PropName = StringValue;
     this.BoundNames = [StringValue] as const;

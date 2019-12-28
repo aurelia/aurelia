@@ -11,8 +11,6 @@ import {
   createVariableDeclaration,
   createCall,
   createFunctionExpression,
-  createToken,
-  createModifier,
   createParameter,
   createBlock,
   createLogicalOr,
@@ -24,7 +22,6 @@ import {
   Identifier,
   createStringLiteral,
   createReturn,
-  createIdentifier,
   NodeFlags,
 } from 'typescript';
 import {
@@ -92,17 +89,21 @@ export class $InterfaceDeclaration implements I$Node {
   public readonly $name: $Identifier;
   public readonly $heritageClauses: readonly $HeritageClause[];
 
+  public parent!: $NodeWithStatements;
+  public readonly path: string;
+
   public constructor(
     public readonly node: InterfaceDeclaration,
-    public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.InterfaceDeclaration`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.InterfaceDeclaration`;
+
     const intrinsics = realm['[[Intrinsics]]'];
 
     ctx |= Context.InTypeElement;
@@ -113,8 +114,10 @@ export class $InterfaceDeclaration implements I$Node {
       ctx |= Context.InExport;
     }
 
-    const $name = this.$name = $identifier(node.name, this, ctx, -1);
-    this.$heritageClauses = $heritageClauseList(node.heritageClauses, this, ctx);
+    const $name = this.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
+    $name.parent = this;
+    const $heritageClauses = this.$heritageClauses = $heritageClauseList(node.heritageClauses, ctx, depth + 1, mos, realm, logger, path);
+    $heritageClauses.forEach(x => x.parent = this);
 
     const BoundNames = this.BoundNames = $name.BoundNames;
     this.TypeDeclarations = [this];
@@ -165,17 +168,21 @@ export class $TypeAliasDeclaration implements I$Node {
 
   public readonly $name: $Identifier;
 
+  public parent!: $NodeWithStatements;
+  public readonly path: string;
+
   public constructor(
     public readonly node: TypeAliasDeclaration,
-    public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.TypeAliasDeclaration`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.TypeAliasDeclaration`;
+
     const intrinsics = realm['[[Intrinsics]]'];
 
     ctx |= Context.InTypeElement;
@@ -186,7 +193,8 @@ export class $TypeAliasDeclaration implements I$Node {
       ctx |= Context.InExport;
     }
 
-    const $name = this.$name = $identifier(node.name, this, ctx, -1);
+    const $name = this.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
+    $name.parent = this;
 
     const BoundNames = this.BoundNames = $name.BoundNames;
     this.TypeDeclarations = [this];
@@ -219,8 +227,12 @@ export class $TypeAliasDeclaration implements I$Node {
 
 export function $enumMemberList(
   nodes: readonly EnumMember[],
-  parent: $EnumDeclaration,
   ctx: Context,
+  depth: number,
+  mos: $$ESModuleOrScript,
+  realm: Realm,
+  logger: ILogger,
+  path: string,
 ): readonly $EnumMember[] {
   if (nodes === void 0 || nodes.length === 0) {
     return emptyArray;
@@ -229,7 +241,7 @@ export function $enumMemberList(
   const len = nodes.length;
   const $nodes: $EnumMember[] = Array(len);
   for (let i = 0; i < len; ++i) {
-    $nodes[i] = new $EnumMember(nodes[i], parent, ctx, i);
+    $nodes[i] = new $EnumMember(nodes[i], ctx, i, depth + 1, mos, realm, logger, path);
   }
   return $nodes;
 }
@@ -255,17 +267,21 @@ export class $EnumDeclaration implements I$Node {
   public readonly $name: $Identifier;
   public readonly $members: readonly $EnumMember[];
 
+  public parent!: $NodeWithStatements;
+  public readonly path: string;
+
   public constructor(
     public readonly node: EnumDeclaration,
-    public readonly parent: $NodeWithStatements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.EnumDeclaration`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.EnumDeclaration`;
+
     const intrinsics = realm['[[Intrinsics]]'];
 
     const modifierFlags = this.modifierFlags = modifiersToModifierFlags(node.modifiers);
@@ -274,8 +290,10 @@ export class $EnumDeclaration implements I$Node {
       ctx |= Context.InExport;
     }
 
-    const $name = this.$name = $identifier(node.name, this, ctx, -1);
-    this.$members = $enumMemberList(node.members, this, ctx);
+    const $name = this.$name = $identifier(node.name, ctx, -1, depth + 1, mos, realm, logger, path);
+    $name.parent = this;
+    const $members = this.$members = $enumMemberList(node.members, ctx, depth + 1, mos, realm, logger, path);
+    $members.forEach(x => x.parent = this);
 
     const BoundNames = this.BoundNames = $name.BoundNames;
     this.TypeDeclarations = [this];
@@ -377,18 +395,23 @@ export class $EnumMember implements I$Node {
   public readonly $name: $$PropertyName;
   public readonly $initializer: $$AssignmentExpressionOrHigher | undefined;
 
+  public parent!: $EnumDeclaration;
+  public readonly path: string;
+
   public constructor(
     public readonly node: EnumMember,
-    public readonly parent: $EnumDeclaration,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.EnumMember`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$name = $$propertyName(node.name, this, ctx | Context.IsMemberName, -1);
-    this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.EnumMember`;
+
+    this.$name = $$propertyName(node.name, ctx | Context.IsMemberName, -1, depth + 1, mos, realm, logger, path);
+    const $initializer = this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode | undefined, ctx, -1, depth + 1, mos, realm, logger, path);
+    if ($initializer !== void 0) { $initializer.parent = this; }
   }
 }

@@ -505,15 +505,15 @@ export function $CreateDynamicFunction(
 
   const $functionDeclaration = new $FunctionDeclaration(
     node,
-    ScriptOrModule,
     Context.Dynamic,
     -1,
+    1,
     ScriptOrModule,
     calleeRealm,
-    1,
     ScriptOrModule.logger,
     `${ScriptOrModule.path}[Dynamic].FunctionDeclaration`,
   );
+  $functionDeclaration.parent = ScriptOrModule;
 
   // 19. Let strict be ContainsUseStrict of body.
   const strict = $functionDeclaration.ContainsUseStrict;

@@ -70,7 +70,6 @@ import {
   $i,
   TransformationContext,
   transformList,
-  transformModifiers,
 } from './_shared';
 import {
   $$ESModuleOrScript,
@@ -137,18 +136,23 @@ export class $ComputedPropertyName implements I$Node {
   // 12.2.6.5 Static Semantics: PropName
   public readonly PropName: $String | $Empty;
 
+  public parent!: $$NamedDeclaration;
+  public readonly path: string;
+
   public constructor(
     public readonly node: ComputedPropertyName,
-    public readonly parent: $$NamedDeclaration,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.ComputedPropertyName`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.ComputedPropertyName`;
+
+    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = this;
 
     this.PropName = new $Empty(realm, void 0, void 0, this);
   }
@@ -213,20 +217,25 @@ export class $ObjectBindingPattern implements I$Node {
   // 13.3.3.4 Static Semantics: IsSimpleParameterList
   public readonly IsSimpleParameterList: boolean;
 
+  public parent!: $$DestructurableBinding;
+  public readonly path: string;
+
   public constructor(
     public readonly node: ObjectBindingPattern,
-    public readonly parent: $$DestructurableBinding,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.ObjectBindingPattern`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.ObjectBindingPattern`;
+
     ctx |= Context.InBindingPattern;
 
-    const $elements = this.$elements = $bindingElementList(node.elements, this, ctx);
+    const $elements = this.$elements = $bindingElementList(node.elements, ctx, depth + 1, mos, realm, logger, path);
+    $elements.forEach(x => x.parent = this);
 
     this.BoundNames = $elements.flatMap(getBoundNames);
     this.ContainsExpression = $elements.some(getContainsExpression);
@@ -310,28 +319,36 @@ export type $$ArrayBindingElement = (
 
 export function $$arrayBindingElement(
   node: ArrayBindingElement,
-  parent: $ArrayBindingPattern,
   ctx: Context,
   idx: number,
+  depth: number,
+  mos: $$ESModuleOrScript,
+  realm: Realm,
+  logger: ILogger,
+  path: string,
 ): $$ArrayBindingElement {
   switch (node.kind) {
     case SyntaxKind.BindingElement:
-      return new $BindingElement(node, parent, ctx, idx);
+      return new $BindingElement(node, ctx, idx, depth + 1, mos, realm, logger, path);
     case SyntaxKind.OmittedExpression:
-      return new $OmittedExpression(node, parent, ctx, idx);
+      return new $OmittedExpression(node, ctx, idx, depth + 1, mos, realm, logger, path);
   }
 }
 
 export function $$arrayBindingElementList(
   nodes: readonly ArrayBindingElement[],
-  parent: $ArrayBindingPattern,
   ctx: Context,
+  depth: number,
+  mos: $$ESModuleOrScript,
+  realm: Realm,
+  logger: ILogger,
+  path: string,
 ): readonly $$ArrayBindingElement[] {
   const len = nodes.length;
   const $nodes: $$ArrayBindingElement[] = Array(len);
 
   for (let i = 0; i < len; ++i) {
-    $nodes[i] = $$arrayBindingElement(nodes[i], parent, ctx, i);
+    $nodes[i] = $$arrayBindingElement(nodes[i], ctx, i, depth + 1, mos, realm, logger, path);
   }
 
   return $nodes;
@@ -339,14 +356,18 @@ export function $$arrayBindingElementList(
 
 export function $bindingElementList(
   nodes: readonly BindingElement[],
-  parent: $$BindingPattern,
   ctx: Context,
+  depth: number,
+  mos: $$ESModuleOrScript,
+  realm: Realm,
+  logger: ILogger,
+  path: string,
 ): readonly $BindingElement[] {
   const len = nodes.length;
   const $nodes: $BindingElement[] = Array(len);
 
   for (let i = 0; i < len; ++i) {
-    $nodes[i] = new $BindingElement(nodes[i], parent, ctx, i);
+    $nodes[i] = new $BindingElement(nodes[i], ctx, i, depth + 1, mos, realm, logger, path);
   }
 
   return $nodes;
@@ -370,20 +391,25 @@ export class $ArrayBindingPattern implements I$Node {
   // 13.3.3.4 Static Semantics: IsSimpleParameterList
   public readonly IsSimpleParameterList: boolean;
 
+  public parent!: $$DestructurableBinding;
+  public readonly path: string;
+
   public constructor(
     public readonly node: ArrayBindingPattern,
-    public readonly parent: $$DestructurableBinding,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.ArrayBindingPattern`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.ArrayBindingPattern`;
+
     ctx |= Context.InBindingPattern;
 
-    const $elements = this.$elements = $$arrayBindingElementList(node.elements, this, ctx);
+    const $elements = this.$elements = $$arrayBindingElementList(node.elements, ctx, depth + 1, mos, realm, logger, path);
+    $elements.forEach(x => x.parent = this);
 
     this.BoundNames = $elements.flatMap(getBoundNames);
     this.ContainsExpression = $elements.some(getContainsExpression);
@@ -532,24 +558,29 @@ export class $BindingElement implements I$Node {
   // 13.3.3.4 Static Semantics: IsSimpleParameterList
   public readonly IsSimpleParameterList: boolean;
 
+  public parent!: $$BindingPattern;
+  public readonly path: string;
+
   public constructor(
     public readonly node: BindingElement,
-    public readonly parent: $$BindingPattern,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.BindingElement`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
+    this.path = `${path}${$i(idx)}.BindingElement`;
+
     this.modifierFlags = modifiersToModifierFlags(node.modifiers);
 
     ctx = clearBit(ctx, Context.IsBindingName);
 
     if (node.propertyName === void 0) {
       this.$propertyName = void 0;
-      const $name = this.$name = $$bindingName(node.name, this, ctx | Context.IsBindingName, -1);
+      const $name = this.$name = $$bindingName(node.name, ctx | Context.IsBindingName, -1, depth + 1, mos, realm, logger, path);
+      $name.parent = this;
 
       this.BoundNames = $name.BoundNames;
 
@@ -560,7 +591,8 @@ export class $BindingElement implements I$Node {
         this.HasInitializer = false;
         this.IsSimpleParameterList = $name.$kind === SyntaxKind.Identifier;
       } else {
-        this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx, -1);
+        const $initializer = this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+        $initializer.parent = this;
 
         this.ContainsExpression = true;
         this.HasInitializer = true;
@@ -568,8 +600,10 @@ export class $BindingElement implements I$Node {
       }
 
     } else {
-      const $propertyName = this.$propertyName = $$propertyName(node.propertyName, this, ctx, -1);
-      const $name = this.$name = $$bindingName(node.name, this, ctx | Context.IsBindingName, -1);
+      const $propertyName = this.$propertyName = $$propertyName(node.propertyName, ctx, -1, depth + 1, mos, realm, logger, path);
+      $propertyName.parent = this;
+      const $name = this.$name = $$bindingName(node.name, ctx | Context.IsBindingName, -1, depth + 1, mos, realm, logger, path);
+      $name.parent = this;
 
       this.BoundNames = $name.BoundNames;
 
@@ -580,7 +614,8 @@ export class $BindingElement implements I$Node {
         this.HasInitializer = false;
         this.IsSimpleParameterList = $name.$kind === SyntaxKind.Identifier;
       } else {
-        this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, this, ctx, -1);
+        const $initializer = this.$initializer = $assignmentExpression(node.initializer as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+        $initializer.parent = this;
 
         this.ContainsExpression = true;
         this.HasInitializer = true;
@@ -818,18 +853,23 @@ export class $SpreadElement implements I$Node {
 
   public readonly $expression: $$AssignmentExpressionOrHigher;
 
+  public parent!: $NodeWithSpreadElements;
+  public readonly path: string;
+
   public constructor(
     public readonly node: SpreadElement,
-    public readonly parent: $NodeWithSpreadElements,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.SpreadElement`,
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
   ) {
-    this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, this, ctx, -1);
+    this.path = `${path}${$i(idx)}.SpreadElement`;
+
+    const $expression = this.$expression = $assignmentExpression(node.expression as $AssignmentExpressionNode, ctx, -1, depth + 1, mos, realm, logger, path);
+    $expression.parent = this;
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-argument-lists-runtime-semantics-argumentlistevaluation
@@ -952,17 +992,21 @@ export class $OmittedExpression implements I$Node {
   // 13.3.3.4 Static Semantics: IsSimpleParameterList
   public readonly IsSimpleParameterList: false = false;
 
+  public parent!: $ArrayBindingPattern | $ArrayLiteralExpression | $NewExpression | $CallExpression;
+  public readonly path: string;
+
   public constructor(
     public readonly node: OmittedExpression,
-    public readonly parent: $ArrayBindingPattern | $ArrayLiteralExpression | $NewExpression | $CallExpression,
     public readonly ctx: Context,
     public readonly idx: number,
-    public readonly mos: $$ESModuleOrScript = parent.mos,
-    public readonly realm: Realm = parent.realm,
-    public readonly depth: number = parent.depth + 1,
-    public readonly logger: ILogger = parent.logger,
-    public readonly path: string = `${parent.path}${$i(idx)}.OmittedExpression`,
-  ) {}
+    public readonly depth: number,
+    public readonly mos: $$ESModuleOrScript,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
+  ) {
+    this.path = `${path}${$i(idx)}.OmittedExpression`;
+}
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-iteratordestructuringassignmentevaluation
   // 12.15.5.5 Runtime Semantics: IteratorDestructuringAssignmentEvaluation

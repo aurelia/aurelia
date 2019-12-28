@@ -28,6 +28,7 @@ import {
   createStringLiteral,
   createExportDeclaration,
   createNamedImports,
+  createImportClause,
 } from 'typescript';
 import {
   PLATFORM,
@@ -2541,7 +2542,21 @@ export class $ImportClause implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
+    const node = this.node;
+    const $name = this.$name instanceof $Undefined ? void 0 : this.$name.transform(tctx);
+    const $namedBindings = this.$namedBindings === void 0 ? void 0 : this.$namedBindings.transform(tctx);
+
+    if (
+      $name === node.name &&
+      $namedBindings === node.namedBindings
+    ) {
+      return node;
+    }
+
+    return createImportClause(
+      $name,
+      $namedBindings,
+    );
   }
 }
 

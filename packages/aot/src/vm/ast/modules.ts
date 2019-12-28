@@ -2443,7 +2443,7 @@ export class $ImportClause implements I$Node {
 
   public static create(
     node: ImportClause,
-      depth: number,
+    depth: number,
     mos: $ESModule,
     realm: Realm,
     logger: ILogger,
@@ -2534,7 +2534,7 @@ export class $NamedImports implements I$Node {
 
   public static create(
     node: NamedImports,
-      depth: number,
+    depth: number,
     mos: $ESModule,
     realm: Realm,
     logger: ILogger,
@@ -2590,7 +2590,7 @@ export class $ImportSpecifier implements I$Node {
 
   public static create(
     node: ImportSpecifier,
-      depth: number,
+    depth: number,
     mos: $ESModule,
     realm: Realm,
     logger: ILogger,
@@ -2672,7 +2672,7 @@ export class $NamespaceImport implements I$Node {
 
   public static create(
     node: NamespaceImport,
-      depth: number,
+    depth: number,
     mos: $ESModule,
     realm: Realm,
     logger: ILogger,
@@ -2953,7 +2953,7 @@ export class $NamedExports implements I$Node {
 
   public static create(
     node: NamedExports,
-      depth: number,
+    depth: number,
     mos: $ESModule,
     realm: Realm,
     logger: ILogger,
@@ -3024,7 +3024,7 @@ export class $ExportSpecifier implements I$Node {
 
   public static create(
     node: ExportSpecifier,
-      depth: number,
+    depth: number,
     mos: $ESModule,
     realm: Realm,
     logger: ILogger,
@@ -3232,7 +3232,7 @@ export class $ModuleBlock implements I$Node {
 
   public static create(
     node: ModuleBlock,
-      depth: number,
+    depth: number,
     mos: $ESModule,
     realm: Realm,
     logger: ILogger,
@@ -3275,7 +3275,7 @@ export class $ExternalModuleReference implements I$Node {
 
   public static create(
     node: ExternalModuleReference,
-      depth: number,
+    depth: number,
     mos: $ESModule,
     realm: Realm,
     logger: ILogger,
@@ -3332,7 +3332,7 @@ export class $QualifiedName implements I$Node {
 
   public static create(
     node: QualifiedName,
-      depth: number,
+    depth: number,
     mos: $ESModule,
     realm: Realm,
     logger: ILogger,

@@ -154,7 +154,7 @@ export class $FormalParameterList extends Array<$ParameterDeclaration> {
 
   public constructor(
     nodes: readonly ParameterDeclaration[] | undefined,
-      depth: number,
+    depth: number,
     mos: $$ESModuleOrScript,
     realm: Realm,
     logger: ILogger,

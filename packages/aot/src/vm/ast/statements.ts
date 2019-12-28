@@ -577,7 +577,7 @@ export class $VariableDeclarationList implements I$Node {
 
   public static create(
     node: VariableDeclarationList,
-      depth: number,
+    depth: number,
     mos: $$ESModuleOrScript,
     realm: Realm,
     logger: ILogger,
@@ -3207,7 +3207,7 @@ export class $CaseBlock implements I$Node {
 
   public static create(
     node: CaseBlock,
-      depth: number,
+    depth: number,
     mos: $$ESModuleOrScript,
     realm: Realm,
     logger: ILogger,
@@ -3426,7 +3426,7 @@ export class $CatchClause implements I$Node {
 
   public static create(
     node: CatchClause,
-      depth: number,
+    depth: number,
     mos: $$ESModuleOrScript,
     realm: Realm,
     logger: ILogger,

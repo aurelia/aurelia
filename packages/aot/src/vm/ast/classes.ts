@@ -378,12 +378,21 @@ export class $ClassExpression implements I$Node {
 
     const NonConstructorMethodDefinitions = this.NonConstructorMethodDefinitions = [] as $$MethodDefinition[];
     const PrototypePropertyNameList = this.PrototypePropertyNameList = [] as $String[];
+    const staticProperties = this.staticProperties = [] as $PropertyDeclaration[];
+    const instanceProperties = this.instanceProperties = [] as $PropertyDeclaration[];
 
     let $member: $$ClassElement;
     for (let i = 0, ii = this.$members.length; i < ii; ++i) {
       $member = this.$members[i];
       switch ($member.$kind) {
         case SyntaxKind.PropertyDeclaration:
+          if ($member.$initializer !== void 0) {
+            if ($member.IsStatic) {
+              staticProperties.push($member);
+            } else {
+              instanceProperties.push($member);
+            }
+          }
           break;
         case SyntaxKind.Constructor:
           this.ConstructorMethod = $member;

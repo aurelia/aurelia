@@ -98,7 +98,9 @@ export {
 export {
   IPartialConnectableBinding,
   IConnectableBinding,
-  connectable
+  connectable,
+  BindingMediator,
+  MediatedBinding
 } from './binding/connectable';
 export {
   IExpressionParser,

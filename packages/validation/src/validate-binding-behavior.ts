@@ -1,21 +1,16 @@
+import { DI, IContainer } from '@aurelia/kernel';
 import {
   bindingBehavior,
-  IScheduler,
-  IScope,
-  LifecycleFlags,
   BindingInterceptor,
+  BindingMediator,
   IBindingBehaviorExpression,
   IsAssign,
-  IProxySubscribable,
-  ISubscribable,
+  IScheduler,
+  IScope,
+  LifecycleFlags
 } from '@aurelia/runtime';
-import { PropertyRule, IValidateable } from './rule';
-import {
-  BindingWithBehavior,
-  IValidationController,
-  ValidationController,
-} from './validation-controller';
-import { IContainer, DI } from '@aurelia/kernel';
+import { PropertyRule } from './rule';
+import { BindingWithBehavior, IValidationController, ValidationController } from './validation-controller';
 
 /**
  * Validation triggers.
@@ -60,6 +55,9 @@ export class ValidateBindingBehavior extends BindingInterceptor {
   private readonly defaultTrigger: ValidationTrigger;
   private readonly connectedExpressions: IsAssign[] = [];
   private scope!: IScope;
+  private readonly triggerMediator: BindingMediator<'handleTriggerChange'> = new BindingMediator('handleTriggerChange', this, this.observerLocator, this.locator);
+  private readonly controllerMediator: BindingMediator<'handleControllerChange'> = new BindingMediator('handleControllerChange', this, this.observerLocator, this.locator);
+  private readonly rulesMediator: BindingMediator<'handleRulesChange'> = new BindingMediator('handleRulesChange', this, this.observerLocator, this.locator);
 
   public constructor(
     @IContainer private readonly container: IContainer,
@@ -121,14 +119,16 @@ export class ValidateBindingBehavior extends BindingInterceptor {
       const temp = arg.evaluate(flags, scope, locator);
       if (typeof temp === 'string') {
         trigger = temp as ValidationTrigger;
+        arg.connect(flags, scope, this.triggerMediator);
       } else if (temp instanceof ValidationController) {
         controller = temp;
+        arg.connect(flags, scope, this.controllerMediator);
       } else if (Array.isArray(temp) && temp.every((item) => item instanceof PropertyRule)) {
         rules = temp;
+        arg.connect(flags, scope, this.rulesMediator);
       } else {
         throw new Error(`Unsupported argument type for binding behavior: ${temp}`);
       }
-      arg.connect(flags, scope, this);
       this.connectedExpressions.push(arg);
     }
     if (controller !== void 0) {
@@ -149,12 +149,18 @@ export class ValidateBindingBehavior extends BindingInterceptor {
     });
   }
 
-  public handleChange(newValue: string | ValidationController | PropertyRule[], _previousValue: string | ValidationController | PropertyRule[], flags: LifecycleFlags): void {
-    console.log('handle change', newValue, _previousValue);
+  public handleTriggerChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
+    console.log('trigger changed', newValue, _previousValue);
     // TODO handle individual changes
   }
 
-  public addObserver(observer: ISubscribable | IProxySubscribable) {
-    super.addObserver(observer);
+  public handleControllerChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
+    console.log('controller changed', newValue, _previousValue);
+    // TODO handle individual changes
+  }
+
+  public handleRulesChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
+    console.log('rules changed', newValue, _previousValue);
+    // TODO handle individual changes
   }
 }

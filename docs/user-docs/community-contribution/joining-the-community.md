@@ -6,7 +6,7 @@ description: Find out where our community hangs out and how to get connected.
 
 **Welcome to the Aurelia community!** 🎊 
 
-If you are looking to ask basic questions, [please visit our Discourse forum](https://discourse.aurelia.io/). For a more chat-like experience, our Aurelia 2 community also [hangs out on Discord](https://discordapp.com/channels/448698263508615178/448698263508615180).
+If you are looking to ask basic questions, [please visit our Discourse forum](https://discourse.aurelia.io/). For a more chat-like experience, our Aurelia 2 community also [hangs out on Discord](https://discord.gg/fh72aCn).
 
 This documentation on Aurelia 2 is still preliminary, but that doesn't mean you can't jump in and join us in building the world's most-loved JavaScript framework.
 

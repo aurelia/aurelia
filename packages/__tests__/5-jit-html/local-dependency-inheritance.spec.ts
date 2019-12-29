@@ -3,7 +3,7 @@ import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 
 describe('local dependency inheritance', function () {
-  function setup() {
+  function createFixture() {
     const ctx = TestContext.createHTMLTestContext();
     const au = new Aurelia(ctx.container);
     const host = ctx.createElement('div');
@@ -43,7 +43,7 @@ describe('local dependency inheritance', function () {
   }
 
   it('only compiles resources that were registered in the root, but can still resolve all inherited ones directly', async function () {
-    const { au, host } = setup();
+    const { au, host } = createFixture();
 
     const C7 = CustomElement.define(
       {
@@ -54,7 +54,7 @@ describe('local dependency inheritance', function () {
         public static get inject() { return [IContainer]; }
         public constructor(private readonly container: IContainer) {}
 
-        public binding() {
+        public beforeBind() {
           verifyResourceRegistrations(this.container, C1, C2, C3, C4, C5, C6, C7, C8, C9);
         }
       },
@@ -68,7 +68,7 @@ describe('local dependency inheritance', function () {
         public static get inject() { return [IContainer]; }
         public constructor(private readonly container: IContainer) {}
 
-        public binding() {
+        public beforeBind() {
           verifyResourceRegistrations(this.container, C1, C2, C3, C4, C5, C6, C7, C8, C9);
         }
       },
@@ -82,7 +82,7 @@ describe('local dependency inheritance', function () {
         public static get inject() { return [IContainer]; }
         public constructor(private readonly container: IContainer) {}
 
-        public binding() {
+        public beforeBind() {
           verifyResourceRegistrations(this.container, C1, C2, C3, C4, C5, C6, C7, C8, C9);
         }
       },
@@ -97,7 +97,7 @@ describe('local dependency inheritance', function () {
         public static get inject() { return [IContainer]; }
         public constructor(private readonly container: IContainer) {}
 
-        public binding() {
+        public beforeBind() {
           verifyResourceRegistrations(this.container, C1, C2, C3, C4, C5, C6, C7, C8, C9);
         }
       },
@@ -111,7 +111,7 @@ describe('local dependency inheritance', function () {
         public static get inject() { return [IContainer]; }
         public constructor(private readonly container: IContainer) {}
 
-        public binding() {
+        public beforeBind() {
           verifyResourceRegistrations(this.container, C1, C2, C3, C4, C5, C6, C7, C8, C9);
         }
       },
@@ -125,7 +125,7 @@ describe('local dependency inheritance', function () {
         public static get inject() { return [IContainer]; }
         public constructor(private readonly container: IContainer) {}
 
-        public binding() {
+        public beforeBind() {
           verifyResourceRegistrations(this.container, C1, C2, C3, C4, C5, C6, C7, C8, C9);
         }
       },
@@ -141,7 +141,7 @@ describe('local dependency inheritance', function () {
         public static get inject() { return [IContainer]; }
         public constructor(private readonly container: IContainer) {}
 
-        public binding() {
+        public beforeBind() {
           verifyResourceRegistrations(this.container, C1, C2, C3, C4, C5, C6, C7, C8, C9);
         }
       },
@@ -156,7 +156,7 @@ describe('local dependency inheritance', function () {
         public static get inject() { return [IContainer]; }
         public constructor(private readonly container: IContainer) {}
 
-        public binding() {
+        public beforeBind() {
           verifyResourceRegistrations(this.container, C1, C2, C3, C4, C5, C6, C7, C8, C9);
         }
       },
@@ -171,7 +171,7 @@ describe('local dependency inheritance', function () {
         public static get inject() { return [IContainer]; }
         public constructor(private readonly container: IContainer) {}
 
-        public binding() {
+        public beforeBind() {
           verifyResourceRegistrations(this.container, C1, C2, C3, C4, C5, C6, C7, C8, C9);
         }
       },

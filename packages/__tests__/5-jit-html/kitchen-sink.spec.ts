@@ -3,15 +3,12 @@ import {
   IAttrSyntaxTransformer,
   TemplateBinder
 } from '@aurelia/jit-html';
-import { RuntimeCompilationResources } from '@aurelia/kernel';
 import {
   Aurelia,
   CustomElement,
   IExpressionParser,
-  INodeSequence,
   ISignaler,
   LifecycleFlags } from '@aurelia/runtime';
-import { NodeSequenceFactory } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
 const spec = 'kitchen-sink';
@@ -107,32 +104,6 @@ describe(spec, function () {
     assert.strictEqual(host.textContent, '212', `host.textContent`);
 
   });
-
-  it.skip('render hook', function () {
-
-    const ctx = TestContext.createHTMLTestContext();
-    const App = CustomElement.define({
-      name: 'app',
-      template: `<template></template>`
-    },                                       class {
-      public $nodes: INodeSequence;
-      public render() {
-        this.$nodes = new NodeSequenceFactory(ctx.dom, 'foo').createNodeSequence();
-      }
-    });
-
-    const au = new Aurelia(ctx.container);
-
-    const host = ctx.createElement('div');
-    const component = new App();
-
-    au.app({ host, component });
-
-    au.start();
-
-    assert.strictEqual(host.textContent, 'foo', `host.textContent`);
-
-  });
 });
 
 describe('xml node compiler tests', function () {
@@ -171,7 +142,7 @@ describe('xml node compiler tests', function () {
 
       const binder = new TemplateBinder(
         ctx.dom,
-        new ResourceModel(new RuntimeCompilationResources(ctx.container)),
+        new ResourceModel(ctx.container),
         ctx.container.get(IAttributeParser),
         ctx.container.get(IExpressionParser),
         ctx.container.get(IAttrSyntaxTransformer)

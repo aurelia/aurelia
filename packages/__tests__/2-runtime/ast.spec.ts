@@ -904,14 +904,14 @@ describe('AccessKeyedExpression', function () {
     assert.strictEqual(binding.calls.length, 2, 'binding.calls.length');
   });
 
-  it('does not observe property in keyed array access when key is number', function () {
+  it('observes property in keyed array access when key is number', function () {
     const scope = createScopeForTest({ foo: ['hello world'] });
     const expression3 = new AccessKeyedExpression(new AccessScopeExpression('foo', 0), new PrimitiveLiteralExpression(0));
     assert.strictEqual(expression3.evaluate(LF.none, scope, null), 'hello world', `expression3.evaluate(LF.none, scope, null)`);
     const binding = new MockBinding();
     expression3.connect(LF.none, scope, binding);
     assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, scope.bindingContext, 'foo'], 'binding.calls[0]');
-    assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
+    assert.strictEqual(binding.calls.length, 2, 'binding.calls.length');
   });
 
   describe('does not attempt to observe property when object is primitive', function () {

@@ -9,7 +9,7 @@ describe('translation-integration', function () {
     @bindable public message: string;
   }
 
-  async function setup(host: INode, component: unknown, aliases?: string[], skipTranslationOnMissingKey = false) {
+  async function createFixture(host: INode, component: unknown, aliases?: string[], skipTranslationOnMissingKey = false) {
     /* eslint-disable @typescript-eslint/camelcase */
     const translation = {
       simple: {
@@ -96,7 +96,7 @@ describe('translation-integration', function () {
     class App { }
 
     const host = DOM.createElement('app');
-    await setup(host, new App());
+    await createFixture(host, new App());
     assertTextContent(host, 'span', 'The Intouchables');
   });
 
@@ -106,7 +106,7 @@ describe('translation-integration', function () {
     class App { }
 
     const host = DOM.createElement('app');
-    const { en: translation } = await setup(host, new App());
+    const { en: translation } = await createFixture(host, new App());
     assertTextContent(host, 'span', translation.simple.text);
   });
 
@@ -116,7 +116,7 @@ describe('translation-integration', function () {
     class App { }
 
     const host = DOM.createElement('app');
-    const { en: translation } = await setup(host, new App());
+    const { en: translation } = await createFixture(host, new App());
     assertTextContent(host, 'span', translation.simple.text);
   });
 
@@ -131,7 +131,7 @@ describe('translation-integration', function () {
     class App { private readonly key = 'simple.text'; }
 
     const host = DOM.createElement('app');
-    const { en: translation } = await setup(host, new App(), ['t', 'i18n']);
+    const { en: translation } = await createFixture(host, new App(), ['t', 'i18n']);
     assertTextContent(host, 'span#t', translation.simple.text);
     assertTextContent(host, 'span#i18n', translation.simple.text);
     assertTextContent(host, 'span#i18n-bind', translation.simple.text);
@@ -145,7 +145,7 @@ describe('translation-integration', function () {
     }
 
     const host = DOM.createElement('app');
-    const { en: translation } = await setup(host, new App());
+    const { en: translation } = await createFixture(host, new App());
     assertTextContent(host, 'span', translation.simple.text);
   });
 
@@ -157,13 +157,13 @@ describe('translation-integration', function () {
 
       const host = DOM.createElement('app');
       try {
-        await setup(host, new App());
+        await createFixture(host, new App());
       } catch (e) {
         assert.equal(e.message, 'key expression is missing');
       }
     });
 
-    async function suiteSetup() {
+    async function createSuite() {
       @customElement({
         name: 'app', template: `
       <span id="i18n-ctx-vm" t="status" t-params.bind="tParams"></span><br>
@@ -190,44 +190,44 @@ describe('translation-integration', function () {
       }
       const host = DOM.createElement('app');
       const app = new App();
-      const { en: translation } = await setup(host, app);
+      const { en: translation } = await createFixture(host, app);
       return { host, translation, app };
     }
 
     it('works when a vm property is bound as t-params', async function () {
-      const { host, translation, app } = await suiteSetup();
+      const { host, translation, app } = await createSuite();
       assertTextContent(host, '#i18n-ctx-vm', translation.status_dispatched.replace('{{date}}', app.dispatchedOn.toString()));
     });
 
     it('works when a vm property is bound as t-params and changes', async function () {
-      const { host, translation, app } = await suiteSetup();
+      const { host, translation, app } = await createSuite();
       assertTextContent(host, '#i18n-ctx-vm', translation.status_dispatched.replace('{{date}}', app.dispatchedOn.toString()));
       app.tParams = { context: 'dispatched', date: new Date(2020, 2, 10, 5, 15) };
       assertTextContent(host, '#i18n-ctx-vm', translation.status_dispatched.replace('{{date}}', app.tParams.date.toString()));
     });
 
     it('works for context-sensitive translations', async function () {
-      const { host, translation, app } = await suiteSetup();
+      const { host, translation, app } = await createSuite();
       assertTextContent(host, '#i18n-ctx-dispatched', translation.status_dispatched.replace('{{date}}', app.dispatchedOn.toString()));
       assertTextContent(host, '#i18n-ctx-delivered', translation.status_delivered.replace('{{date}}', app.deliveredOn.toString()));
     });
 
     it('works for interpolation, including custom marker for interpolation placeholder', async function () {
-      const { host, translation, app } = await suiteSetup();
+      const { host, translation, app } = await createSuite();
       assertTextContent(host, '#i18n-interpolation', translation.status_delivered.replace('{{date}}', app.deliveredOn.toString()));
       assertTextContent(host, '#i18n-interpolation-custom', translation.custom_interpolation_brace.replace('{date}', app.deliveredOn.toString()));
       assertTextContent(host, '#i18n-interpolation-es6', translation.custom_interpolation_es6_syntax.replace(`\${date}`, app.deliveredOn.toString()));
     });
 
     it('works for interpolation when the interpolation changes', async function () {
-      const { host, translation, app } = await suiteSetup();
+      const { host, translation, app } = await createSuite();
       assertTextContent(host, '#i18n-interpolation', translation.status_delivered.replace('{{date}}', app.deliveredOn.toString()));
       app.deliveredOn = new Date(2022, 1, 10, 5, 15);
       assertTextContent(host, '#i18n-interpolation', translation.status_delivered.replace('{{date}}', app.deliveredOn.toString()));
     });
 
     it('works for interpolation when a string changes', async function () {
-      const { host, translation, app } = await suiteSetup();
+      const { host, translation, app } = await createSuite();
       assertTextContent(host, '#i18n-interpolation-string-direct', translation.interpolation_greeting.replace('{{name}}', app.name));
       assertTextContent(host, '#i18n-interpolation-string-obj', translation.interpolation_greeting.replace('{{name}}', app.name));
       app.name = 'Jane';
@@ -237,7 +237,7 @@ describe('translation-integration', function () {
     });
 
     it('works for pluralization', async function () {
-      const { host } = await suiteSetup();
+      const { host } = await createSuite();
       assertTextContent(host, '#i18n-items-plural-0', '0 items');
       assertTextContent(host, '#i18n-items-plural-1', '1 item');
       assertTextContent(host, '#i18n-items-plural-10', '10 items');
@@ -250,7 +250,7 @@ describe('translation-integration', function () {
     class App { }
 
     const host = DOM.createElement('app');
-    const { en: translation } = await setup(host, new App());
+    const { en: translation } = await createFixture(host, new App());
     assert.equal((host as Element).querySelector('img').src.endsWith(translation.imgPath), true);
   });
 
@@ -260,7 +260,7 @@ describe('translation-integration', function () {
     class App { }
 
     const host = DOM.createElement('app');
-    const { en: translation } = await setup(host, new App());
+    const { en: translation } = await createFixture(host, new App());
     assertTextContent(host, `span[title='${translation.simple.attr}']`, '');
   });
 
@@ -270,7 +270,7 @@ describe('translation-integration', function () {
     class App { }
 
     const host = DOM.createElement('app');
-    const { en: translation } = await setup(host, new App());
+    const { en: translation } = await createFixture(host, new App());
     assertTextContent(host, `span[title='${translation.simple.text}']`, '');
   });
 
@@ -280,7 +280,7 @@ describe('translation-integration', function () {
     class App { }
 
     const host = DOM.createElement('app');
-    const { en: translation } = await setup(host, new App());
+    const { en: translation } = await createFixture(host, new App());
     assertTextContent(host, `span[title='${translation.simple.attr}']`, translation.simple.text);
   });
 
@@ -290,7 +290,7 @@ describe('translation-integration', function () {
     class App { }
 
     const host = DOM.createElement('app');
-    const { en: translation } = await setup(host, new App());
+    const { en: translation } = await createFixture(host, new App());
     assertTextContent(host, `span[title='${translation.simple.attr}'][data-foo='${translation.simple.attr}']`, translation.simple.text);
   });
 
@@ -309,7 +309,7 @@ describe('translation-integration', function () {
     }
 
     const host = DOM.createElement('app');
-    const { en: translation } = await setup(host, new App());
+    const { en: translation } = await createFixture(host, new App());
     assertTextContent(host, `span#a`, translation.simple.text);
     assertTextContent(host, `span#b[title='${translation.simple.attr}']`, translation.simple.text);
     assertTextContent(host, `span#c[title='${translation.simple.attr}']`, translation.simple.text);
@@ -322,7 +322,7 @@ describe('translation-integration', function () {
     class App { }
 
     const host = DOM.createElement('app');
-    const { en: translation } = await setup(host, new App());
+    const { en: translation } = await createFixture(host, new App());
     assertTextContent(host, `span`, `${translation.simple.text} ${translation.simple.attr}`);
   });
 
@@ -338,7 +338,7 @@ describe('translation-integration', function () {
     }
 
     const host = DOM.createElement('app');
-    const { en: translation } = await setup(host, new App());
+    const { en: translation } = await createFixture(host, new App());
     assertTextContent(host, `span#a`, translation.simple.text);
     assertTextContent(host, `span#b`, translation.simple.text);
   });
@@ -351,7 +351,7 @@ describe('translation-integration', function () {
     class App { }
 
     const host = DOM.createElement('app');
-    const { en } = await setup(host, new App());
+    const { en } = await createFixture(host, new App());
 
     assertTextContent(host, 'span', en.simple.text);
   });
@@ -364,7 +364,7 @@ describe('translation-integration', function () {
     class App { }
 
     const host = DOM.createElement('app');
-    const { en: translation } = await setup(host, new App());
+    const { en: translation } = await createFixture(host, new App());
 
     assert.equal((host as Element).querySelector('span').innerHTML, translation.html);
   });
@@ -378,7 +378,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
 
       assertTextContent(host, 'span', 'tic tac');
     });
@@ -390,7 +390,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
 
       assertTextContent(host, 'span', 'tic tac');
     });
@@ -402,7 +402,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
 
       assert.equal((host as Element).querySelector('span').innerHTML, 'tic <i>tac</i>');
     });
@@ -414,7 +414,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
 
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac');
     });
@@ -426,7 +426,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
 
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> <i>tac</i>');
     });
@@ -439,7 +439,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
 
       assertTextContent(host, 'span', 'tac toe');
     });
@@ -451,7 +451,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
 
       assertTextContent(host, 'span', 'tac toe');
     });
@@ -463,7 +463,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
 
       assert.equal((host as Element).querySelector('span').innerHTML, '<i>tac</i> toe');
     });
@@ -475,7 +475,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
 
       assert.equal((host as Element).querySelector('span').innerHTML, 'tac <b>toe</b><span>bar</span>');
     });
@@ -487,7 +487,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
 
       assert.equal((host as Element).querySelector('span').innerHTML, '<i>tac</i> <b>toe</b><span>bar</span>');
     });
@@ -500,7 +500,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
 
       assertTextContent(host, 'span', 'tic tac toe');
     });
@@ -512,7 +512,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
 
       assertTextContent(host, 'span', 'tic tac toe');
     });
@@ -524,7 +524,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
 
       assert.equal((host as Element).querySelector('span').innerHTML, 'tic <i>tac</i> toe');
     });
@@ -536,7 +536,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
 
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
     });
@@ -548,7 +548,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
 
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> <i>tac</i> <b>toe</b><span>bar</span>');
     });
@@ -564,7 +564,7 @@ describe('translation-integration', function () {
 
       const host = DOM.createElement('app');
       const app = new App();
-      const { ctx } = await setup(host, app);
+      const { ctx } = await createFixture(host, app);
 
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
       app.keyExpr = '[prepend]pre;[append]post';
@@ -584,7 +584,7 @@ describe('translation-integration', function () {
 
       const host = DOM.createElement('app');
       const app = new App();
-      const { ctx } = await setup(host, app);
+      const { ctx } = await createFixture(host, app);
 
       assert.equal((host as Element).querySelector('span').innerHTML, 'tic tac toe');
       app.keyExpr = '[prepend]preHtml;[append]postHtml';
@@ -604,7 +604,7 @@ describe('translation-integration', function () {
 
       const host = DOM.createElement('app');
       const app = new App();
-      const { ctx } = await setup(host, app);
+      const { ctx } = await createFixture(host, app);
 
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
       app.keyExpr = '[prepend]preHtml';
@@ -624,7 +624,7 @@ describe('translation-integration', function () {
 
       const host = DOM.createElement('app');
       const app = new App();
-      const { ctx } = await setup(host, app);
+      const { ctx } = await createFixture(host, app);
 
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
       app.keyExpr = '[append]postHtml';
@@ -644,7 +644,7 @@ describe('translation-integration', function () {
 
       const host = DOM.createElement('app');
       const app = new App();
-      const { ctx } = await setup(host, app);
+      const { ctx } = await createFixture(host, app);
 
       assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
       app.keyExpr = '[html]midHtml';
@@ -668,7 +668,7 @@ describe('translation-integration', function () {
 
       const host = DOM.createElement('app');
       const app = new App();
-      const { en: translation } = await setup(host, app);
+      const { en: translation } = await createFixture(host, app);
       app.obj.key = 'simple.attr';
       assertTextContent(host, `span`, translation.simple.attr);
     });
@@ -684,7 +684,7 @@ describe('translation-integration', function () {
 
       const host = DOM.createElement('app');
       const app = new App();
-      const { en: translation } = await setup(host, app);
+      const { en: translation } = await createFixture(host, app);
       assertTextContent(host, `span`, translation.simple.text);
       app.obj.base = 'simple';
       app.obj.key = '.attr';
@@ -702,7 +702,7 @@ describe('translation-integration', function () {
 
       const host = DOM.createElement('app');
       const app = new App();
-      const { en: translation } = await setup(host, app);
+      const { en: translation } = await createFixture(host, app);
       app.obj.key = 'simple.attr';
       assertTextContent(host, `span`, translation.simple.attr);
     });
@@ -719,7 +719,7 @@ describe('translation-integration', function () {
 
       const host = DOM.createElement('app');
       const app = new App();
-      const { en: translation } = await setup(host, app);
+      const { en: translation } = await createFixture(host, app);
       app.params = { ...app.params, context: 'dispatched' };
       assertTextContent(host, `span`, translation.status_dispatched.replace('{{date}}', app.deliveredOn.toString()));
     });
@@ -732,7 +732,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      const { de, container } = await setup(host, new App());
+      const { de, container } = await createFixture(host, new App());
       const i18n = container.get(I18N);
       await i18n.setLocale('de');
       assertTextContent(host, 'span', de.simple.text);
@@ -747,7 +747,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      const { en } = await setup(host, new App());
+      const { en } = await createFixture(host, new App());
       assertTextContent(host, 'custom-message div', en.simple.text);
     });
 
@@ -758,7 +758,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      const { en } = await setup(host, new App());
+      const { en } = await createFixture(host, new App());
       assertTextContent(host, 'custom-message div', en.itemWithCount_plural.replace('{{count}}', '0'));
     });
 
@@ -769,7 +769,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      const { de, container, ctx } = await setup(host, new App());
+      const { de, container, ctx } = await createFixture(host, new App());
       const i18n = container.get(I18N);
       await i18n.setLocale('de');
       ctx.scheduler.getRenderTaskQueue().flush();
@@ -785,7 +785,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      const { en: translation } = await setup(host, new App());
+      const { en: translation } = await createFixture(host, new App());
       assertTextContent(host, 'span', translation.simple.text);
     });
     it('key bound from vm property', async function () {
@@ -794,7 +794,7 @@ describe('translation-integration', function () {
       class App { public key = 'simple.text'; }
 
       const host = DOM.createElement('app');
-      const { en: translation } = await setup(host, new App());
+      const { en: translation } = await createFixture(host, new App());
       assertTextContent(host, 'span', translation.simple.text);
     });
     it('with `t-params`', async function () {
@@ -803,7 +803,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      const { en: translation } = await setup(host, new App());
+      const { en: translation } = await createFixture(host, new App());
       assertTextContent(host, 'span', translation.itemWithCount_plural.replace('{{count}}', '10'));
     });
     it('attribute translation', async function () {
@@ -817,7 +817,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      const { en: translation } = await setup(host, new App());
+      const { en: translation } = await createFixture(host, new App());
       assertTextContent(host, `span#a[title='${translation.simple.text}']`, 't-vc-attr-target');
       assertTextContent(host, `span#b[title='${translation.simple.text}']`, 't-vc-attr-target');
       assertTextContent(host, `span#c[title='${translation.itemWithCount_plural.replace('{{count}}', '10')}']`, 't-vc-attr-target');
@@ -828,7 +828,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      const { i18n, de, ctx } = await setup(host, new App());
+      const { i18n, de, ctx } = await createFixture(host, new App());
 
       await i18n.setLocale('de');
       ctx.scheduler.getRenderTaskQueue().flush();
@@ -843,7 +843,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      const { en: translation } = await setup(host, new App());
+      const { en: translation } = await createFixture(host, new App());
       assertTextContent(host, 'span', translation.simple.text);
     });
     it('key bound from vm property', async function () {
@@ -852,7 +852,7 @@ describe('translation-integration', function () {
       class App { public key = 'simple.text'; }
 
       const host = DOM.createElement('app');
-      const { en: translation } = await setup(host, new App());
+      const { en: translation } = await createFixture(host, new App());
       assertTextContent(host, 'span', translation.simple.text);
     });
     it('with `t-params`', async function () {
@@ -861,7 +861,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      const { en: translation } = await setup(host, new App());
+      const { en: translation } = await createFixture(host, new App());
       assertTextContent(host, 'span', translation.itemWithCount_plural.replace('{{count}}', '10'));
     });
     it('attribute translation', async function () {
@@ -875,7 +875,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      const { en: translation } = await setup(host, new App());
+      const { en: translation } = await createFixture(host, new App());
       assertTextContent(host, `span#a[title='${translation.simple.text}']`, 't-vc-attr-target');
       assertTextContent(host, `span#b[title='${translation.simple.text}']`, 't-vc-attr-target');
       assertTextContent(host, `span#c[title='${translation.itemWithCount_plural.replace('{{count}}', '10')}']`, 't-vc-attr-target');
@@ -886,7 +886,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      const { i18n, de, ctx } = await setup(host, new App());
+      const { i18n, de, ctx } = await createFixture(host, new App());
 
       await i18n.setLocale('de');
       ctx.scheduler.getRenderTaskQueue().flush();
@@ -913,7 +913,7 @@ describe('translation-integration', function () {
         class App { private readonly dt = input; }
 
         const host = DOM.createElement('app');
-        await setup(host, new App());
+        await createFixture(host, new App());
         assertTextContent(host, 'span', `${output}`);
       });
 
@@ -922,7 +922,7 @@ describe('translation-integration', function () {
         class App { private readonly dt = input; }
 
         const host = DOM.createElement('app');
-        await setup(host, new App());
+        await createFixture(host, new App());
         assertTextContent(host, 'span', (output || '').toString());
       });
     }
@@ -932,7 +932,7 @@ describe('translation-integration', function () {
       class App { private readonly dt = new Date(2019, 7, 20); }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
       assertTextContent(host, 'span', '20.08.19');
     });
 
@@ -942,7 +942,7 @@ describe('translation-integration', function () {
       class App { private readonly dt = new Date(2019, 7, 20); }
 
       const host = DOM.createElement('app');
-      const { i18n, ctx } = await setup(host, new App());
+      const { i18n, ctx } = await createFixture(host, new App());
 
       await i18n.setLocale('de');
       ctx.scheduler.getRenderTaskQueue().flush();
@@ -956,7 +956,7 @@ describe('translation-integration', function () {
 
       const host = DOM.createElement('app');
       const app = new App();
-      const { ctx } = await setup(host, app);
+      const { ctx } = await createFixture(host, app);
 
       app.dt = new Date(2019, 7, 21);
       ctx.scheduler.getRenderTaskQueue().flush();
@@ -982,7 +982,7 @@ describe('translation-integration', function () {
         class App { private readonly dt = input; }
 
         const host = DOM.createElement('app');
-        await setup(host, new App());
+        await createFixture(host, new App());
         assertTextContent(host, 'span', `${output}`);
       });
 
@@ -991,7 +991,7 @@ describe('translation-integration', function () {
         class App { private readonly dt = input; }
 
         const host = DOM.createElement('app');
-        await setup(host, new App());
+        await createFixture(host, new App());
         assertTextContent(host, 'span', (output || '').toString());
       });
     }
@@ -1001,7 +1001,7 @@ describe('translation-integration', function () {
       class App { private readonly dt = new Date(2019, 7, 20); }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
       assertTextContent(host, 'span', '20.08.19');
     });
 
@@ -1011,7 +1011,7 @@ describe('translation-integration', function () {
       class App { private readonly dt = new Date(2019, 7, 20); }
 
       const host = DOM.createElement('app');
-      const { i18n, ctx } = await setup(host, new App());
+      const { i18n, ctx } = await createFixture(host, new App());
 
       await i18n.setLocale('de');
       ctx.scheduler.getRenderTaskQueue().flush();
@@ -1025,7 +1025,7 @@ describe('translation-integration', function () {
 
       const host = DOM.createElement('app');
       const app = new App();
-      const { ctx } = await setup(host, app);
+      const { ctx } = await createFixture(host, app);
 
       app.dt = new Date(2019, 7, 21);
       ctx.scheduler.getRenderTaskQueue().flush();
@@ -1041,7 +1041,7 @@ describe('translation-integration', function () {
         class App { private readonly num = value; }
 
         const host = DOM.createElement('app');
-        await setup(host, new App());
+        await createFixture(host, new App());
         assertTextContent(host, 'span', `${value}`);
       });
 
@@ -1050,7 +1050,7 @@ describe('translation-integration', function () {
         class App { private readonly num = value; }
 
         const host = DOM.createElement('app');
-        await setup(host, new App());
+        await createFixture(host, new App());
         assertTextContent(host, 'span', `${value || ''}`);
       });
     }
@@ -1060,7 +1060,7 @@ describe('translation-integration', function () {
       class App { private readonly num = 123456789.12; }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
       assertTextContent(host, 'span', '123,456,789.12');
     });
 
@@ -1069,7 +1069,7 @@ describe('translation-integration', function () {
       class App { private readonly num = 123456789.12; }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
       assertTextContent(host, 'span', '€123,456,789.12');
     });
 
@@ -1078,7 +1078,7 @@ describe('translation-integration', function () {
       class App { private readonly num = 123456789.12; }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
       assertTextContent(host, 'span', '123.456.789,12');
     });
 
@@ -1087,7 +1087,7 @@ describe('translation-integration', function () {
       class App { private readonly num = 123456789.12; }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
       assertTextContent(host, 'span', '123.456.789,12\u00A0€');
     });
 
@@ -1096,7 +1096,7 @@ describe('translation-integration', function () {
       class App { private readonly num = 123456789.12; }
 
       const host = DOM.createElement('app');
-      const { ctx, i18n } = await setup(host, new App());
+      const { ctx, i18n } = await createFixture(host, new App());
       await i18n.setLocale('de');
       ctx.scheduler.getRenderTaskQueue().flush();
 
@@ -1109,7 +1109,7 @@ describe('translation-integration', function () {
 
       const host = DOM.createElement('app');
       const app = new App();
-      const { ctx } = await setup(host, app);
+      const { ctx } = await createFixture(host, app);
       app.num = 123456789.21;
       ctx.scheduler.getRenderTaskQueue().flush();
 
@@ -1125,7 +1125,7 @@ describe('translation-integration', function () {
         class App { private readonly num = value; }
 
         const host = DOM.createElement('app');
-        await setup(host, new App());
+        await createFixture(host, new App());
         assertTextContent(host, 'span', `${value}`);
       });
 
@@ -1134,7 +1134,7 @@ describe('translation-integration', function () {
         class App { private readonly num = value; }
 
         const host = DOM.createElement('app');
-        await setup(host, new App());
+        await createFixture(host, new App());
         assertTextContent(host, 'span', `${value || ''}`);
       });
     }
@@ -1144,7 +1144,7 @@ describe('translation-integration', function () {
       class App { private readonly num = 123456789.12; }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
       assertTextContent(host, 'span', '123,456,789.12');
     });
 
@@ -1153,7 +1153,7 @@ describe('translation-integration', function () {
       class App { private readonly num = 123456789.12; }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
       assertTextContent(host, 'span', '€123,456,789.12');
     });
 
@@ -1162,7 +1162,7 @@ describe('translation-integration', function () {
       class App { private readonly num = 123456789.12; }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
       assertTextContent(host, 'span', '123.456.789,12');
     });
 
@@ -1171,7 +1171,7 @@ describe('translation-integration', function () {
       class App { private readonly num = 123456789.12; }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
       assertTextContent(host, 'span', '123.456.789,12\u00A0€');
     });
 
@@ -1180,7 +1180,7 @@ describe('translation-integration', function () {
       class App { private readonly num = 123456789.12; }
 
       const host = DOM.createElement('app');
-      const { ctx, i18n } = await setup(host, new App());
+      const { ctx, i18n } = await createFixture(host, new App());
       await i18n.setLocale('de');
       ctx.scheduler.getRenderTaskQueue().flush();
 
@@ -1193,7 +1193,7 @@ describe('translation-integration', function () {
 
       const host = DOM.createElement('app');
       const app = new App();
-      const { ctx } = await setup(host, app);
+      const { ctx } = await createFixture(host, app);
       app.num = 123456789.21;
       ctx.scheduler.getRenderTaskQueue().flush();
 
@@ -1209,7 +1209,7 @@ describe('translation-integration', function () {
         class App { private readonly dt = value; }
 
         const host = DOM.createElement('app');
-        await setup(host, new App());
+        await createFixture(host, new App());
         assertTextContent(host, 'span', `${value}`);
       });
 
@@ -1218,7 +1218,7 @@ describe('translation-integration', function () {
         class App { private readonly dt = value; }
 
         const host = DOM.createElement('app');
-        await setup(host, new App());
+        await createFixture(host, new App());
         assertTextContent(host, 'span', `${value || ''}`);
       });
     }
@@ -1234,7 +1234,7 @@ describe('translation-integration', function () {
       }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
       assertTextContent(host, 'span', '2 hours ago');
     });
 
@@ -1249,7 +1249,7 @@ describe('translation-integration', function () {
       }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
       assertTextContent(host, 'span', 'vor 2 Stunden');
     });
 
@@ -1264,7 +1264,7 @@ describe('translation-integration', function () {
       }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
       assertTextContent(host, 'span', 'vor 2 Std.');
     });
 
@@ -1279,7 +1279,7 @@ describe('translation-integration', function () {
       }
 
       const host = DOM.createElement('app');
-      const { i18n, ctx } = await setup(host, new App());
+      const { i18n, ctx } = await createFixture(host, new App());
       await i18n.setLocale('de');
       ctx.scheduler.getRenderTaskQueue().flush();
 
@@ -1298,7 +1298,7 @@ describe('translation-integration', function () {
 
       const host = DOM.createElement('app');
       const app = new App();
-      const { ctx } = await setup(host, app);
+      const { ctx } = await createFixture(host, app);
       app.dt = new Date(app.dt.setHours(app.dt.getHours() - 3));
 
       ctx.scheduler.getRenderTaskQueue().flush();
@@ -1316,7 +1316,7 @@ describe('translation-integration', function () {
 
       const host = DOM.createElement('app');
       const app = new App();
-      const { ctx } = await setup(host, app);
+      const { ctx } = await createFixture(host, app);
 
       await ctx.scheduler.queueMacroTask(delta => {
         ctx.container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
@@ -1332,13 +1332,13 @@ describe('translation-integration', function () {
       it(`returns the value itself if the value is not a number STRICT binding, for example: ${value}`, async function () {
         const App = CustomElement.define({ name: 'app', template: `<span>\${ dt & rt }</span>`, isStrictBinding: true }, class App { private readonly dt = value; });
         const host = DOM.createElement('app');
-        await setup(host, new App());
+        await createFixture(host, new App());
         assertTextContent(host, 'span', `${value}`);
       });
       it(`returns the value itself if the value is not a number, for example: ${value}`, async function () {
         const App = CustomElement.define({ name: 'app', template: `<span>\${ dt & rt }</span>` }, class App { private readonly dt = value; });
         const host = DOM.createElement('app');
-        await setup(host, new App());
+        await createFixture(host, new App());
         assertTextContent(host, 'span', `${value || ''}`);
       });
     }
@@ -1354,7 +1354,7 @@ describe('translation-integration', function () {
       }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
       assertTextContent(host, 'span', '2 hours ago');
     });
 
@@ -1369,7 +1369,7 @@ describe('translation-integration', function () {
       }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
       assertTextContent(host, 'span', 'vor 2 Stunden');
     });
 
@@ -1384,7 +1384,7 @@ describe('translation-integration', function () {
       }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
       assertTextContent(host, 'span', 'vor 2 Std.');
     });
 
@@ -1399,7 +1399,7 @@ describe('translation-integration', function () {
       }
 
       const host = DOM.createElement('app');
-      const { i18n, ctx } = await setup(host, new App());
+      const { i18n, ctx } = await createFixture(host, new App());
       await i18n.setLocale('de');
       ctx.scheduler.getRenderTaskQueue().flush();
 
@@ -1418,7 +1418,7 @@ describe('translation-integration', function () {
 
       const host = DOM.createElement('app');
       const app = new App();
-      const { ctx } = await setup(host, app);
+      const { ctx } = await createFixture(host, app);
       app.dt = new Date(app.dt.setHours(app.dt.getHours() - 3));
 
       ctx.scheduler.getRenderTaskQueue().flush();
@@ -1436,7 +1436,7 @@ describe('translation-integration', function () {
 
       const host = DOM.createElement('app');
       const app = new App();
-      const { ctx } = await setup(host, app);
+      const { ctx } = await createFixture(host, app);
 
       await ctx.scheduler.queueMacroTask(delta => {
         ctx.container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
@@ -1453,7 +1453,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      await setup(host, new App());
+      await createFixture(host, new App());
       assertTextContent(host, 'span', key);
     });
 
@@ -1463,7 +1463,7 @@ describe('translation-integration', function () {
       class App { }
 
       const host = DOM.createElement('app');
-      await setup(host, new App(), undefined, true);
+      await createFixture(host, new App(), undefined, true);
       assertTextContent(host, 'span', text);
     });
   });

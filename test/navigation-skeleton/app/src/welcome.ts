@@ -4,7 +4,7 @@ import * as template from './welcome.html';
 
 @customElement({ name: 'welcome', template })
 export class Welcome {
-  public heading: string = 'Welcome to the Aurelia Navigation App!';
+  public heading: string = 'Welcome to the Aurelia 2 Navigation App!';
   public firstName: string = 'John';
   public lastName: string = 'Doe';
   private previousValue: string = this.fullName;

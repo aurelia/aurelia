@@ -37,11 +37,11 @@ export abstract class Benchmark {
 }
 
 export interface LighthouseData {
+  [propName: string]: number;
   TimeToConsistentlyInteractive: number;
   ScriptBootUpTtime: number;
   MainThreadWorkCost: number;
   TotalKiloByteWeight: number;
-  [propName: string]: number;
 }
 
 export interface StartupBenchmarkResult extends BenchmarkInfo {

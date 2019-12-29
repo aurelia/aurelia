@@ -52,7 +52,7 @@ describe('PropertyBinding', function () {
   let dummyTargetProperty: string;
   let dummyMode: BindingMode;
 
-  function setup(sourceExpression: any = dummySourceExpression, target: any = dummyTarget, targetProperty: string = dummyTargetProperty, mode: BindingMode = dummyMode) {
+  function createFixture(sourceExpression: any = dummySourceExpression, target: any = dummyTarget, targetProperty: string = dummyTargetProperty, mode: BindingMode = dummyMode) {
     const container = RuntimeConfiguration.createContainer();
     const scheduler = TestContext.createHTMLTestContext().scheduler;
     Registration.instance(IScheduler, scheduler).register(container);
@@ -177,7 +177,7 @@ describe('PropertyBinding', function () {
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [expr, $3], [flags, $4], [scope, $5]) => {
       it(`$bind() [one-time]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, function () {
         // - Arrange -
-        const { sut, lifecycle, container, observerLocator } = setup(expr, target, prop, BindingMode.oneTime);
+        const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.oneTime);
         const srcVal = expr.evaluate(LF.none, scope, container);
         const targetObserver = observerLocator.getAccessor(LF.none, target, prop);
         // const $stub = stub(observerLocator, 'getAccessor').returns(targetObserver);
@@ -250,7 +250,7 @@ describe('PropertyBinding', function () {
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [expr, $3], [flags, $4], [scope, $5]) => {
       it(`$bind() [to-view]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, function () {
         // - Arrange - Part 1
-        const { sut, lifecycle, container, observerLocator } = setup(expr, target, prop, BindingMode.toView);
+        const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.toView);
         const srcVal = expr.evaluate(LF.none, scope, container);
         const targetObserver = observerLocator.getAccessor(LF.none, target, prop);
 
@@ -476,7 +476,7 @@ describe('PropertyBinding', function () {
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [newValue, $3], [expr, $4], [flags, $5], [scope, $6]) => {
       it(`$bind() [from-view]  target=${$1} prop=${$2} newValue=${$3} expr=${$4} flags=${$5} scope=${$6}`, function () {
         // - Arrange - Part 1
-        const { sut, lifecycle, container, observerLocator } = setup(expr, target, prop, BindingMode.fromView);
+        const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.fromView);
         const targetObserver = observerLocator.getObserver(LF.none, target, prop) as IBindingTargetObserver;
         // massSpy(targetObserver, 'subscribe');
 
@@ -598,7 +598,7 @@ describe('PropertyBinding', function () {
       it(`$bind() [two-way]  target=${$1} prop=${$2} newValue1,newValue2=${$3} expr=${$4} flags=${$5} scope=${$6}`, function () {
         const originalScope = JSON.parse(JSON.stringify(scope));
         // - Arrange - Part 1
-        const { sut, lifecycle, container, observerLocator } = setup(expr, target, prop, BindingMode.twoWay);
+        const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.twoWay);
         const srcVal = expr.evaluate(LF.none, scope, container);
         const targetObserver = observerLocator.getObserver(LF.none, target, prop) as IBindingTargetObserver;
 
@@ -865,7 +865,7 @@ describe('PropertyBinding', function () {
 
   describe('$unbind()', function () {
     it('should not unbind if it is not already bound', function () {
-      const { sut } = setup();
+      const { sut } = createFixture();
       const scope: any = {};
       sut['$scope'] = scope;
       sut.$unbind(LF.fromUnbind);
@@ -873,7 +873,7 @@ describe('PropertyBinding', function () {
     });
 
     xit('should unbind if it is bound', function () {
-      const { sut } = setup();
+      const { sut } = createFixture();
       const scope: any = {};
       sut['$scope'] = scope;
       sut.$state = State.isBound;
@@ -894,7 +894,7 @@ describe('PropertyBinding', function () {
 
     for (const count of countArr) {
       it(`adds ${count} observers`, function () {
-        const { sut } = setup();
+        const { sut } = createFixture();
         let i = 0;
         while (i < count) {
           const observer = new MockObserver();
@@ -906,7 +906,7 @@ describe('PropertyBinding', function () {
       });
 
       it(`calls subscribe() on ${count} observers`, function () {
-        const { sut } = setup();
+        const { sut } = createFixture();
         let i = 0;
         while (i < count) {
           const observer = new MockObserver();
@@ -923,7 +923,7 @@ describe('PropertyBinding', function () {
       });
 
       it(`does nothing when ${count} observers already exist`, function () {
-        const { sut } = setup();
+        const { sut } = createFixture();
         let i = 0;
         while (i < count) {
           const observer = new MockObserver();
@@ -941,7 +941,7 @@ describe('PropertyBinding', function () {
       });
 
       it(`updates the version for ${count} observers`, function () {
-        const { sut } = setup();
+        const { sut } = createFixture();
         let i = 0;
         while (i < count) {
           const observer = new MockObserver();
@@ -959,7 +959,7 @@ describe('PropertyBinding', function () {
       });
 
       it(`only updates the version for for added observers`, function () {
-        const { sut } = setup();
+        const { sut } = createFixture();
         let i = 0;
         while (i < count) {
           const observer = new MockObserver();

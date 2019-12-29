@@ -117,6 +117,7 @@ export {
 
 export {
   ArrayObserver,
+  ArrayIndexObserver,
   enableArrayObservation,
   disableArrayObservation,
   applyMutationsToIndices,
@@ -309,6 +310,7 @@ export {
   ChildrenDefinition,
   Children,
   children,
+  ChildrenObserver,
 } from './templating/children';
 
 // These exports are temporary until we have a proper way to unit test them
@@ -401,7 +403,6 @@ export {
   BindingMode,
   BindingStrategy,
   ExpressionKind,
-  Hooks,
   LifecycleFlags,
   State
 } from './flags';
@@ -427,11 +428,32 @@ export {
   ILifecycle,
   IViewModel,
   IController,
-  IRenderContext,
+  IComponentController,
+  IContextualCustomElementController,
+  IRenderableController,
+  IDryCustomElementController,
+  ICustomAttributeController,
+  IHydratedController,
+  IHydratedComponentController,
+  IHydratedRenderableController,
+  ICompiledCustomElementController,
+  ICustomElementController,
   IViewCache,
   IViewFactory,
   MountStrategy,
+  ICustomElementViewModel,
+  ICustomAttributeViewModel,
+  IHydratedCustomElementViewModel,
+  IHydratedCustomAttributeViewModel,
+  ISyntheticView,
 } from './lifecycle';
+export {
+  getRenderContext,
+  isRenderContext,
+  IRenderContext,
+  ICompiledRenderContext,
+  IComponentFactory,
+} from './templating/render-context';
 export {
   PromiseOrTask,
   MaybePromiseOrTask,
@@ -459,6 +481,7 @@ export {
   IBindingTargetObserver,
   ICollectionChangeTracker,
   ICollectionObserver,
+  ICollectionIndexObserver,
   ICollectionSubscriber,
   IndexMap,
   IObservable,
@@ -489,24 +512,11 @@ export {
   createIndexMap,
 } from './observation';
 export {
-  instructionRenderer,
-  ensureExpression,
-  addComponent,
-  addBinding,
   applyBindingBehavior,
-} from './renderer';
-export {
-  CompiledTemplate,
-  ChildrenObserver,
   IInstructionRenderer,
   IInstructionTypeClassifier,
   IRenderer,
-  IRenderingEngine,
-  ITemplate,
   ITemplateCompiler,
-  ITemplateFactory,
-  ViewCompileFlags,
-} from './rendering-engine';
-export {
-  RenderContext,
-} from './render-context';
+  instructionRenderer,
+  ensureExpression,
+} from './renderer';

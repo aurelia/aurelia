@@ -12,7 +12,7 @@ const translation = {
 };
 
 describe('I18N', function () {
-  async function setup(options: I18nInitOptions = {}) {
+  async function createFixture(options: I18nInitOptions = {}) {
     const i18nextSpy = new Spy();
     const eaSpy: Spy = new Spy();
     const mockSignaler = new MockSignaler();
@@ -27,7 +27,7 @@ describe('I18N', function () {
   }
 
   it('initializes i18next with default options on instantiation', async function () {
-    const { i18nextSpy } = await setup();
+    const { i18nextSpy } = await createFixture();
 
     i18nextSpy.methodCalledOnceWith('init', [{
       lng: 'en',
@@ -41,7 +41,7 @@ describe('I18N', function () {
 
   it('respects user-defined config options', async function () {
     const customization = { lng: 'de', rtEpsilon: 0.001 };
-    const { i18nextSpy } = await setup(customization);
+    const { i18nextSpy } = await createFixture(customization);
 
     i18nextSpy.methodCalledOnceWith('init', [{
       lng: customization.lng,
@@ -68,7 +68,7 @@ describe('I18N', function () {
         }
       ] as I18nModule[]
     };
-    const { i18nextSpy } = await setup(customization);
+    const { i18nextSpy } = await createFixture(customization);
 
     i18nextSpy.methodCalledNthTimeWith('use', 1, [customization.plugins[0]]);
     i18nextSpy.methodCalledNthTimeWith('use', 2, [customization.plugins[1]]);
@@ -90,19 +90,19 @@ describe('I18N', function () {
         },
         skipTranslationOnMissingKey
       };
-      const { sut } = await setup(customization);
+      const { sut } = await createFixture(customization);
 
       const result = sut.evaluate(input);
       assert.deepEqual(result, output);
     }));
 
   it('getLocale returns the active language of i18next', async function () {
-    const { sut } = await setup();
+    const { sut } = await createFixture();
     assert.equal(sut.getLocale(), 'en');
   });
 
   it('setLocale changes the active language of i18next', async function () {
-    const { sut, eaSpy, mockSignaler } = await setup();
+    const { sut, eaSpy, mockSignaler } = await createFixture();
 
     await sut.setLocale('de');
 
@@ -116,21 +116,21 @@ describe('I18N', function () {
 
   describe('createNumberFormat', function () {
     it('returns Intl.NumberFormat with the active locale', async function () {
-      const { sut } = await setup();
+      const { sut } = await createFixture();
 
       const nf = sut.createNumberFormat();
       assert.instanceOf(nf, Intl.NumberFormat);
       assert.equal(nf.resolvedOptions().locale, 'en');
     });
     it('returns Intl.NumberFormat with the given locale', async function () {
-      const { sut } = await setup();
+      const { sut } = await createFixture();
 
       const nf = sut.createNumberFormat(undefined, 'de');
       assert.instanceOf(nf, Intl.NumberFormat);
       assert.equal(nf.resolvedOptions().locale, 'de');
     });
     it('returns Intl.NumberFormat with the given NumberFormatOptions', async function () {
-      const { sut } = await setup();
+      const { sut } = await createFixture();
 
       const nf = sut.createNumberFormat({ currency: 'EUR', style: 'currency' });
       assert.instanceOf(nf, Intl.NumberFormat);
@@ -142,25 +142,25 @@ describe('I18N', function () {
 
   describe('nf', function () {
     it('formats a given number as per default formatting options', async function () {
-      const { sut } = await setup();
+      const { sut } = await createFixture();
 
       assert.equal(sut.nf(123456789.12), '123,456,789.12');
     });
 
     it('formats a given number as per given formatting options', async function () {
-      const { sut } = await setup();
+      const { sut } = await createFixture();
 
       assert.equal(sut.nf(123456789.12, { style: 'currency', currency: 'EUR' }), '€123,456,789.12');
     });
 
     it('formats a given number as per given locale', async function () {
-      const { sut } = await setup();
+      const { sut } = await createFixture();
 
       assert.equal(sut.nf(123456789.12, undefined, 'de'), '123.456.789,12');
     });
 
     it('formats a given number as per given locale and formating options', async function () {
-      const { sut } = await setup();
+      const { sut } = await createFixture();
 
       assert.equal(sut.nf(123456789.12, { style: 'currency', currency: 'EUR' }, 'de'), '123.456.789,12\u00A0€');
     });
@@ -168,21 +168,21 @@ describe('I18N', function () {
 
   describe('createDateTimeFormat', function () {
     it('returns Intl.DateTimeFormat with the active locale', async function () {
-      const { sut } = await setup();
+      const { sut } = await createFixture();
 
       const nf = sut.createDateTimeFormat();
       assert.instanceOf(nf, Intl.DateTimeFormat);
       assert.equal(nf.resolvedOptions().locale, 'en');
     });
     it('returns Intl.DateTimeFormat with the given locale', async function () {
-      const { sut } = await setup();
+      const { sut } = await createFixture();
 
       const nf = sut.createDateTimeFormat(undefined, 'de');
       assert.instanceOf(nf, Intl.DateTimeFormat);
       assert.equal(nf.resolvedOptions().locale, 'de');
     });
     it('returns Intl.DateTimeFormat with the given DateTimeFormatOptions', async function () {
-      const { sut } = await setup();
+      const { sut } = await createFixture();
 
       const nf = sut.createDateTimeFormat({ month: 'short', timeZoneName: 'long' });
       assert.instanceOf(nf, Intl.DateTimeFormat);
@@ -194,31 +194,31 @@ describe('I18N', function () {
 
   describe('df', function () {
     it('formats a given date as per default formatting options', async function () {
-      const { sut } = await setup();
+      const { sut } = await createFixture();
 
       assert.equal(sut.df(new Date(2020, 1, 10)), '2/10/2020');
     });
 
     it('formats a given date as per given formatting options', async function () {
-      const { sut } = await setup();
+      const { sut } = await createFixture();
 
       assert.equal(sut.df(new Date(2020, 1, 10), { month: '2-digit', day: 'numeric', year: 'numeric' }), '02/10/2020');
     });
 
     it('formats a given date as per given locale', async function () {
-      const { sut } = await setup();
+      const { sut } = await createFixture();
 
       assert.equal(sut.df(new Date(2020, 1, 10), undefined, 'de'), '10.2.2020');
     });
 
     it('formats a given date as per given locale and formating options', async function () {
-      const { sut } = await setup();
+      const { sut } = await createFixture();
 
       assert.equal(sut.df(new Date(2020, 1, 10), { month: '2-digit', day: 'numeric', year: 'numeric' }, 'de'), '10.02.2020');
     });
 
     it('formats a given number considering it as UNIX timestamp', async function () {
-      const { sut } = await setup();
+      const { sut } = await createFixture();
 
       assert.equal(sut.df(0), new Date(0).toLocaleDateString());
     });
@@ -229,7 +229,7 @@ describe('I18N', function () {
     for (const multiplier of [1, -1]) {
       for (const value of [1, 5]) {
         it(`works for time difference in seconds - ${multiplier > 0 ? 'future' : 'past'} - ${value > 1 ? 'plural' : 'singular'}`, async function () {
-          const { sut } = await setup();
+          const { sut } = await createFixture();
           const input = new Date();
           input.setSeconds(input.getSeconds() + multiplier * value);
           assert.equal(
@@ -241,7 +241,7 @@ describe('I18N', function () {
         });
 
         it(`works for time difference in minutes - ${multiplier > 0 ? 'future' : 'past'} - ${value > 1 ? 'plural' : 'singular'}`, async function () {
-          const { sut } = await setup();
+          const { sut } = await createFixture();
           const input = new Date();
           input.setMinutes(input.getMinutes() + multiplier * value);
           assert.equal(
@@ -253,7 +253,7 @@ describe('I18N', function () {
         });
 
         it(`works for time difference in hours - ${multiplier > 0 ? 'future' : 'past'} - ${value > 1 ? 'plural' : 'singular'}`, async function () {
-          const { sut } = await setup();
+          const { sut } = await createFixture();
           const input = new Date();
           input.setHours(input.getHours() + multiplier * value);
           assert.equal(
@@ -265,7 +265,7 @@ describe('I18N', function () {
         });
 
         it(`works for time difference in days - ${multiplier > 0 ? 'future' : 'past'} - ${value > 1 ? 'plural' : 'singular'}`, async function () {
-          const { sut } = await setup();
+          const { sut } = await createFixture();
           const input = new Date();
           input.setDate(input.getDate() + multiplier * value);
           assert.equal(
@@ -277,7 +277,7 @@ describe('I18N', function () {
         });
 
         it(`works for time difference in months - ${multiplier > 0 ? 'future' : 'past'} - ${value > 1 ? 'plural' : 'singular'}`, async function () {
-          const { sut } = await setup();
+          const { sut } = await createFixture();
           const input = new Date();
           input.setMonth(input.getMonth() + multiplier * value);
           assert.equal(
@@ -289,7 +289,7 @@ describe('I18N', function () {
         });
 
         it(`works for time difference in years - ${multiplier > 0 ? 'future' : 'past'} - ${value > 1 ? 'plural' : 'singular'}`, async function () {
-          const { sut } = await setup();
+          const { sut } = await createFixture();
           const input = new Date();
           input.setFullYear(input.getFullYear() + multiplier * value);
           assert.equal(
@@ -305,7 +305,7 @@ describe('I18N', function () {
     for (const multiplier of [1, -1]) {
       for (const value of [7, 14]) {
         it(`works for time difference in weeks - ${multiplier > 0 ? 'future' : 'past'} - ${value > 7 ? 'plural' : 'singular'}`, async function () {
-          const { sut } = await setup();
+          const { sut } = await createFixture();
           const input = new Date();
           input.setDate(input.getDate() + multiplier * value);
           assert.equal(
@@ -319,14 +319,14 @@ describe('I18N', function () {
     }
 
     it(`respects given locale`, async function () {
-      const { sut } = await setup();
+      const { sut } = await createFixture();
       const input = new Date();
       input.setSeconds(input.getSeconds() - 5);
       assert.equal(sut.rt(input, undefined, 'de'), 'vor 5 Sekunden');
     });
 
     it(`respects given options`, async function () {
-      const { sut } = await setup();
+      const { sut } = await createFixture();
       const input = new Date();
       input.setSeconds(input.getSeconds() - 5);
       assert.equal(sut.rt(input, { style: 'short' }, 'de'), 'vor 5 Sek.');
@@ -343,7 +343,7 @@ describe('I18N', function () {
     ];
     for (const { input, locale } of cases) {
       it(`returns 123456789.12 given ${input}${locale ? ` - ${locale}` : ''}`, async function () {
-        const { sut } = await setup();
+        const { sut } = await createFixture();
         assert.equal(
           sut.uf(input, locale),
           input.startsWith('-') ? -123456789.12 : 123456789.12);

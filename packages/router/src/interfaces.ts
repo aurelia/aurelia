@@ -1,5 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import { CustomElementType, INode, IViewModel } from '@aurelia/runtime';
+import { CustomElementType, INode, ICustomElementViewModel } from '@aurelia/runtime';
 import { INavigatorEntry, INavigatorFlags, IStoredNavigatorEntry } from './navigator';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
@@ -14,10 +14,10 @@ export type RouteableComponentType<C extends Constructable = Constructable> = Cu
   parameters?: string[];
 };
 
-export interface IRouteableComponent<T extends INode = INode> extends IViewModel<T> {
+export interface IRouteableComponent<T extends INode = INode> extends ICustomElementViewModel<T> {
   reentryBehavior?: ReentryBehavior;
-  canEnter?(parameters: string[] | Record<string, string>, nextInstruction: INavigatorInstruction, instruction: INavigatorInstruction): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]>;
-  enter?(parameters: string[] | Record<string, string>, nextInstruction: INavigatorInstruction, instruction: INavigatorInstruction): void | Promise<void>;
+  canEnter?(parameters: Record<string, unknown>, nextInstruction: INavigatorInstruction, instruction: INavigatorInstruction): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]>;
+  enter?(parameters: Record<string, unknown>, nextInstruction: INavigatorInstruction, instruction: INavigatorInstruction): void | Promise<void>;
   canLeave?(nextInstruction: INavigatorInstruction | null, instruction: INavigatorInstruction): boolean | Promise<boolean>;
   leave?(nextInstruction: INavigatorInstruction | null, instruction: INavigatorInstruction): void | Promise<void>;
 }
@@ -39,6 +39,13 @@ export interface IViewportInstruction {
   component: ComponentAppellation;
   viewport?: ViewportHandle;
   parameters?: ComponentParameters;
+  children?: NavigationInstruction[];
+}
+
+export interface IRoute {
+  path: string;
+  id?: string;
+  instructions: NavigationInstruction[] | ViewportInstruction[];
 }
 
 export interface IComponentAndOrViewportOrNothing {
@@ -48,9 +55,6 @@ export interface IComponentAndOrViewportOrNothing {
 
 export type NavigationInstruction = ComponentAppellation | IViewportInstruction | ViewportInstruction;
 
-export type GuardFunction = (viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction) => boolean | ViewportInstruction[];
-export type GuardTarget = ComponentAppellation | IComponentAndOrViewportOrNothing;
-
-export type ComponentAppellation = string | RouteableComponentType | IRouteableComponent | Constructable; // TODO: | IRouteableComponent;
+export type ComponentAppellation = string | RouteableComponentType | IRouteableComponent | Constructable;
 export type ViewportHandle = string | Viewport;
-export type ComponentParameters = string | Record<string, unknown>; // TODO: | unknown[];
+export type ComponentParameters = string | Record<string, unknown> | unknown[];

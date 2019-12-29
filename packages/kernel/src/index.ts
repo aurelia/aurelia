@@ -78,6 +78,7 @@ export {
   DefaultLogger,
   ConsoleSink,
   LoggerConfiguration,
+  format,
 } from './logger';
 export {
   relativeToFile,
@@ -99,13 +100,11 @@ export {
   Profiler
 } from './profiler';
 export {
-  IResourceDescriptions,
   IResourceKind,
   PartialResourceDefinition,
   Protocol,
   ResourceDefinition,
   ResourceType,
-  RuntimeCompilationResources,
   fromAnnotationOrDefinitionOrTypeOrDefault,
   fromAnnotationOrTypeOrDefault,
   fromDefinitionOrDefault,
@@ -116,7 +115,7 @@ export {
   IEventAggregator,
 } from './eventaggregator';
 export {
-  isNumeric,
+  isArrayIndex,
   camelCase,
   kebabCase,
   pascalCase,

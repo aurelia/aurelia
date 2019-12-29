@@ -1,0 +1,30 @@
+{
+  "name": "jit-webpack-conventions-ts",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=10.16.0",
+    "npm": ">=6.1.0"
+  },
+  "version": "0.3.0",
+  "scripts": {
+    "watch": "webpack-dev-server --no-inline",
+    "build": "rimraf dist && webpack",
+    "serve": "http-server -c-1 -p 9000 dist"
+  },
+  "dependencies": {
+    "aurelia": "dev"
+  },
+  "devDependencies": {
+    "rimraf": "^3.0.0",
+    "webpack": "^4.41.4",
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.10.1",
+    "html-webpack-plugin": "^3.2.0",
+    "http-server": "0.9.0",
+    "@aurelia/webpack-loader": "dev",
+    "ts-loader": "^6.2.1",
+    "@types/node": "^12.12.21",
+    "typescript": "^3.7.4"
+  }
+}

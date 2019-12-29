@@ -11,7 +11,7 @@
 // import { TestContext } from '@aurelia/testing';
 
 // describe('DI', function () {
-//   function setup() {
+//   function createFixture() {
 //     const ctx = TestContext.createHTMLTestContext();
 //     const container = ctx.container;
 //     const au = new Aurelia(container);
@@ -23,7 +23,7 @@
 //   describe('can render locally registered types', function () {
 
 //     it('from within the type in which it was registered', function () {
-//       const { au, host } = setup();
+//       const { au, host } = createFixture();
 
 //       const Foo = CustomElement.define(
 //         {
@@ -50,7 +50,7 @@
 //     });
 
 //     it('from within a child type of the type in which is was registered', function () {
-//       const { au, host } = setup();
+//       const { au, host } = createFixture();
 
 //       const Bar = CustomElement.define(
 //         {
@@ -85,7 +85,7 @@
 //     });
 
 //     it('from within a grandchild type of the type in which is was registered', function () {
-//       const { au, host } = setup();
+//       const { au, host } = createFixture();
 
 //       const Baz = CustomElement.define(
 //         {
@@ -128,7 +128,7 @@
 //     });
 
 //     it('from within a type whose child has registered it, which is a parent via recursion', function () {
-//       const { au, host } = setup();
+//       const { au, host } = createFixture();
 
 //       const Bar = CustomElement.define(
 //         {
@@ -177,7 +177,7 @@
 //   describe('can resolve locally registered types', function () {
 
 //     it('from within the type in which it was registered', function () {
-//       const { au, host } = setup();
+//       const { au, host } = createFixture();
 
 //       const Foo = CustomElement.define(
 //         {
@@ -200,13 +200,13 @@
 //             this.node = node;
 //           }
 
-//           public binding(this: IViewModel & this): void {
+//           public beforeBind(this: IViewModel & this): void {
 //             this.child = this.$context.get<IViewModel>('au:resource:custom-element:foo');
 //             this.child.$hydrate(LF.none, this.$context, this.node);
 //             this.child.$bind(LF.none, Scope.create(LF.none, BindingContext.create(LF.none)));
 //           }
 
-//           public attaching(): void {
+//           public beforeAttach(): void {
 //             this.child.$attach(LF.none);
 //           }
 //         }
@@ -220,7 +220,7 @@
 //     });
 
 //     it('from within a child type of the type in which is was registered', function () {
-//       const { au, host } = setup();
+//       const { au, host } = createFixture();
 
 //       const Bar = CustomElement.define(
 //         {
@@ -243,13 +243,13 @@
 //             this.node = node;
 //           }
 
-//           public binding(this: IViewModel & this): void {
+//           public beforeBind(this: IViewModel & this): void {
 //             this.child = this.$context.get<IViewModel>('au:resource:custom-element:bar');
 //             this.child.$hydrate(LF.none, this.$context, this.node);
 //             this.child.$bind(LF.none, Scope.create(LF.none, BindingContext.create(LF.none)));
 //           }
 
-//           public attaching(): void {
+//           public beforeAttach(): void {
 //             this.child.$attach(LF.none);
 //           }
 //         }
@@ -272,7 +272,7 @@
 //     });
 
 //     it('from within a grandchild type of the type in which is was registered', function () {
-//       const { au, host } = setup();
+//       const { au, host } = createFixture();
 
 //       const Baz = CustomElement.define(
 //         {
@@ -295,13 +295,13 @@
 //             this.node = node;
 //           }
 
-//           public binding(this: IViewModel & this): void {
+//           public beforeBind(this: IViewModel & this): void {
 //             this.child = this.$context.get<IViewModel>('au:resource:custom-element:baz');
 //             this.child.$hydrate(LF.none, this.$context, this.node);
 //             this.child.$bind(LF.none, Scope.create(LF.none, BindingContext.create(LF.none)));
 //           }
 
-//           public attaching(): void {
+//           public beforeAttach(): void {
 //             this.child.$attach(LF.none);
 //           }
 //         }

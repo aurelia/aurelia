@@ -27,14 +27,12 @@ Then we can use `detailFormFocused` value to determine further actions.
 
 We can also use two-way data binding to communicate whether or not an element has focus:
 
-{% code-tabs %}
-{% code-tabs-item title="Binding Focus" %}
+{% code title="Binding Focus" %}
 ```markup
 <input focus.bind="hasFocus">
 ${hasFocus}
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 When we click the input field, we see "true" printed. When we click elsewhere, it changes to "false".
 
@@ -42,8 +40,8 @@ When we click the input field, we see "true" printed. When we click elsewhere, i
 
 Aurelia provides a special attribute, `with`, that can be used to declare certain parts of our markup to reference properties in a child object of the view-model.
 
-{% code-tabs %}
-{% code-tabs-item title="my-app.html" %}
+{% tabs %}
+{% tab title="my-app.html" %}
 ```markup
 <p with.bind="first">
   <input type="text" value.bind="message">
@@ -52,9 +50,9 @@ Aurelia provides a special attribute, `with`, that can be used to declare certai
   <input type="text" value.bind="message">
 </p>
 ```
-{% endcode-tabs-item %}
+{% endtab %}
 
-{% code-tabs-item title="my-app.js" %}
+{% tab title="my-app.js" %}
 ```javascript
 export class MyApp {
   constructor() {
@@ -67,8 +65,8 @@ export class MyApp {
   }
 }
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endtab %}
+{% endtabs %}
 
 Using `with` is basically shorthand for "I'm working with properties of this object", which lets you reuse code as necessary. If you are familiar with `with` keyword of JavaScript, you should be able to see some familiarities here too.
 

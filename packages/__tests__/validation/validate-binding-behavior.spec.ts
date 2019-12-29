@@ -22,6 +22,7 @@ describe.only('validate-biniding-behavior', function () {
     public controller2: ValidationController;
     public controllerSpy: Spy;
     public controller2Spy: Spy;
+    public trigger: ValidationTrigger = ValidationTrigger.change;
 
     public constructor(
       @IContainer container: IContainer,
@@ -44,7 +45,8 @@ describe.only('validate-biniding-behavior', function () {
         .required()
 
         .ensure('age')
-        .required();
+        .required()
+        .min(42);
     }
   }
 
@@ -97,6 +99,11 @@ describe.only('validate-biniding-behavior', function () {
       await runTest(testFunction, ctx);
     });
   }
+  $it.only = function (title: string, testFunction: TestFunction, ctx: TestSetupContext<any>) {
+    it.only(title, async function () {
+      await runTest(testFunction, ctx);
+    });
+  };
 
   function assertControllerBinding(controller: ValidationController, rawExpression: string, target: INode) {
     const bindings = Array.from((controller['bindings'] as Map<IBinding, any>).keys()) as BindingWithBehavior[];
@@ -202,7 +209,37 @@ describe.only('validate-biniding-behavior', function () {
     { template: `<input id="target" type="text" value.two-way="person.name & validate:'manual'">` }
   );
 
-  // TODO test with dynamically bound trigger
+  $it('respects dynamically bound trigger',
+    async function ({ app, host, container }: TestContext<App>) {
+      const scheduler = container.get(IScheduler);
+      const controller = app.controller;
+      const controllerSpy = app.controllerSpy;
+
+      const target: HTMLInputElement = (host as Element).querySelector("#target");
+      assertControllerBinding(controller, 'person.name', target);
+
+      assert.equal(app.trigger, ValidationTrigger.change);
+      target.value = 'foo';
+      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy);
+      await assertEventHandler(target, 'blur', 0, scheduler, controllerSpy);
+
+      app.trigger = ValidationTrigger.blur;
+      await assertEventHandler(target, 'blur', 1, scheduler, controllerSpy);
+      target.value = 'bar';
+      await assertEventHandler(target, 'change', 0, scheduler, controllerSpy);
+
+      app.trigger = ValidationTrigger.changeOrBlur;
+      await assertEventHandler(target, 'blur', 1, scheduler, controllerSpy);
+      target.value = 'foo';
+      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy);
+
+      app.trigger = ValidationTrigger.manual;
+      await assertEventHandler(target, 'blur', 0, scheduler, controllerSpy);
+      target.value = 'bar';
+      await assertEventHandler(target, 'change', 0, scheduler, controllerSpy);
+    },
+    { template: `<input id="target" type="text" value.two-way="person.name & validate:trigger">` }
+  );
 
   $it('respects bound controller',
     async function ({ app, host, container }: TestContext<App>) {

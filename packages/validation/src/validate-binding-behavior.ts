@@ -5,8 +5,11 @@ import {
   LifecycleFlags,
   BindingInterceptor,
   IBindingBehaviorExpression,
+  IsAssign,
+  IProxySubscribable,
+  ISubscribable,
 } from '@aurelia/runtime';
-import { PropertyRule } from './rule';
+import { PropertyRule, IValidateable } from './rule';
 import {
   BindingWithBehavior,
   IValidationController,
@@ -55,6 +58,8 @@ export class ValidateBindingBehavior extends BindingInterceptor {
   private isChangeTrigger!: boolean;
   private readonly scheduler: IScheduler;
   private readonly defaultTrigger: ValidationTrigger;
+  private readonly connectedExpressions: IsAssign[] = [];
+  private scope!: IScope;
 
   public constructor(
     @IContainer private readonly container: IContainer,
@@ -78,11 +83,12 @@ export class ValidateBindingBehavior extends BindingInterceptor {
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined) {
+    this.scope = scope;
     this.binding.$bind(flags, scope, part);
 
     // identify the target element.
     const target = this.target = this.binding.target as HTMLElement; // TODO need additional processing for CE, and CA.
-    const trigger = this.processBindingExpressionArgs(flags, scope);
+    const trigger = this.processBindingExpressionArgs(flags);
     this.isChangeTrigger = trigger === ValidationTrigger.change || trigger === ValidationTrigger.changeOrBlur;
 
     this.controller.registerBinding(this.binding, target, scope, this.rules);
@@ -95,10 +101,16 @@ export class ValidateBindingBehavior extends BindingInterceptor {
     this.target.removeEventListener('blur', this);
     this.controller.deregisterBinding(this.binding);
     this.binding.$unbind(flags);
+    for (const expr of this.connectedExpressions) {
+      if (expr.unbind !== void 0) {
+        expr.unbind(flags, this.scope, this);
+      }
+    }
   }
 
-  private processBindingExpressionArgs(flags: LifecycleFlags, scope: IScope): ValidationTrigger {
+  private processBindingExpressionArgs(flags: LifecycleFlags): ValidationTrigger {
     const binding = this.binding;
+    const scope: IScope = this.scope;
     const locator = binding.locator;
     let trigger: ValidationTrigger = (void 0)!;
     let controller: IValidationController = (void 0)!;
@@ -116,6 +128,8 @@ export class ValidateBindingBehavior extends BindingInterceptor {
       } else {
         throw new Error(`Unsupported argument type for binding behavior: ${temp}`);
       }
+      arg.connect(flags, scope, this);
+      this.connectedExpressions.push(arg);
     }
     if (controller !== void 0) {
       this.controller = controller;
@@ -133,5 +147,14 @@ export class ValidateBindingBehavior extends BindingInterceptor {
     this.scheduler.getPostRenderTaskQueue().queueTask(async () => {
       await this.controller.validateBinding(this.binding);
     });
+  }
+
+  public handleChange(newValue: string | ValidationController | PropertyRule[], _previousValue: string | ValidationController | PropertyRule[], flags: LifecycleFlags): void {
+    console.log('handle change', newValue, _previousValue);
+    // TODO handle individual changes
+  }
+
+  public addObserver(observer: ISubscribable | IProxySubscribable) {
+    super.addObserver(observer);
   }
 }

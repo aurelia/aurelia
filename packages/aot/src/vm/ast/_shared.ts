@@ -84,6 +84,26 @@ import {
   WithStatement,
   YieldExpression,
   Statement,
+  createIdentifier,
+  createVoidZero,
+  TypeNode,
+  LiteralTypeNode,
+  ParameterDeclaration,
+  ParenthesizedTypeNode,
+  TypeReferenceNode,
+  TypeOperatorNode,
+  EntityName,
+  QualifiedName,
+  createPropertyAccess,
+  Expression,
+  createCall,
+  createLiteral,
+  createArrayLiteral,
+  createFunctionExpression,
+  createParameter,
+  createBlock,
+  createExpressionStatement,
+  createNumericLiteral,
 } from 'typescript';
 import {
   PLATFORM,
@@ -244,6 +264,7 @@ import {
 import {
   $Error,
 } from '../types/error';
+import { $String } from '../types/string';
 
 const {
   emptyArray,
@@ -1393,6 +1414,10 @@ export type $$ClassElement = (
   $PropertyDeclaration
 );
 
+export function isDecorated<T extends { readonly isDecorated: boolean }>(value: T): value is (T extends { readonly isDecorated: false } ? never : T) {
+  return value.isDecorated;
+}
+
 export function $$classElement(
   node: $ClassElementNode,
   idx: number,
@@ -1585,4 +1610,278 @@ export function transformModifiers(
   }
 
   return transformedList;
+}
+
+type SerializedTypeNode = Identifier | PropertyAccessExpression | VoidExpression;
+
+export function createReflectDecorateCall(
+  decorators: Expression[],
+  target: Expression,
+  memberName?: Expression,
+  descriptor?: Expression,
+): CallExpression {
+  const argumentsArray = [
+    createArrayLiteral(
+      /* elements */decorators,
+      /* multiLine */true,
+    ),
+    target,
+  ];
+  if (memberName !== void 0) {
+    argumentsArray.push(memberName);
+    if (descriptor !== void 0) {
+      argumentsArray.push(descriptor);
+    }
+  }
+
+  return createCall(
+    /* expression */createPropertyAccess(
+      /* expression */createIdentifier('Reflect'),
+      /* name */createIdentifier('decorate'),
+    ),
+    /* typeArguments */void 0,
+    /* argumentsArray */argumentsArray,
+  );
+}
+
+export function createGetOwnPropertyDescriptorCall(
+  obj: Expression,
+  prop: Expression,
+): CallExpression {
+  return createCall(
+    /* expression */createPropertyAccess(
+      /* expression */createIdentifier('Object'),
+      /* name */createIdentifier('getOwnPropertyDescriptor'),
+    ),
+    /* typeArguments */void 0,
+    /* argumentsArray */[obj, prop],
+  );
+}
+
+export function createReflectMetadataCall(
+  key: string,
+  value: Expression,
+): CallExpression {
+  return createCall(
+    /* expression */createPropertyAccess(
+      /* expression */createIdentifier('Reflect'),
+      /* name */createIdentifier('metadata'),
+    ),
+    /* typeArguments */void 0,
+    /* argumentsArray */[
+      createLiteral(key),
+      value,
+    ],
+  );
+}
+
+export function createParamHelper(
+  expression: Expression,
+  parameterOffset: number,
+): FunctionExpression {
+  return createFunctionExpression(
+    /* modifiers */void 0,
+    /* asteriskToken */void 0,
+    /* name */void 0,
+    /* typeParameters */void 0,
+    /* parameters */[
+      createParameter(
+        /* decorators */void 0,
+        /* modifiers */void 0,
+        /* dotDotDotToken */void 0,
+        /* name */createIdentifier('target'),
+      ),
+      createParameter(
+        /* decorators */void 0,
+        /* modifiers */void 0,
+        /* dotDotDotToken */void 0,
+        /* name */createIdentifier('key'),
+      ),
+    ],
+    /* type */void 0,
+    /* body */createBlock(
+      [
+        createExpressionStatement(
+          createCall(
+            /* expression */expression,
+            /* typeArguments */void 0,
+            /* argumentsArray */[
+              createIdentifier('target'),
+              createIdentifier('key'),
+              createNumericLiteral(parameterOffset.toString()),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+export function serializeTypeOfNode(
+  mos: $ESModule,
+  node: Node,
+): SerializedTypeNode {
+  switch (node.kind) {
+    case SyntaxKind.PropertyDeclaration:
+    case SyntaxKind.Parameter:
+      return serializeTypeNode(mos, (node as PropertyDeclaration | ParameterDeclaration | GetAccessorDeclaration).type);
+    case SyntaxKind.SetAccessor:
+      return serializeTypeNode(
+        mos,
+        (node as SetAccessorDeclaration).parameters.length > 0
+          ? (node as SetAccessorDeclaration).parameters[0].type
+          : void 0
+      );
+    case SyntaxKind.GetAccessor:
+      return serializeTypeNode(mos, (node as GetAccessorDeclaration).type);
+    case SyntaxKind.ClassDeclaration:
+    case SyntaxKind.ClassExpression:
+    case SyntaxKind.MethodDeclaration:
+      return createIdentifier("Function");
+    default:
+      return createVoidZero();
+  }
+}
+
+export function serializeTypeNode(
+  mos: $ESModule,
+  node: TypeNode | undefined,
+): SerializedTypeNode {
+  if (node === undefined) {
+    return createIdentifier("Object");
+  }
+
+  switch (node.kind) {
+    case SyntaxKind.VoidKeyword:
+    case SyntaxKind.UndefinedKeyword:
+    case SyntaxKind.NullKeyword:
+    case SyntaxKind.NeverKeyword:
+      return createVoidZero();
+    case SyntaxKind.ParenthesizedType:
+      return serializeTypeNode(mos, (node as ParenthesizedTypeNode).type);
+    case SyntaxKind.FunctionType:
+    case SyntaxKind.ConstructorType:
+      return createIdentifier("Function");
+    case SyntaxKind.ArrayType:
+    case SyntaxKind.TupleType:
+      return createIdentifier("Array");
+    case SyntaxKind.TypePredicate:
+    case SyntaxKind.BooleanKeyword:
+      return createIdentifier("Boolean");
+    case SyntaxKind.StringKeyword:
+      return createIdentifier("String");
+    case SyntaxKind.ObjectKeyword:
+      return createIdentifier("Object");
+    case SyntaxKind.LiteralType:
+      switch ((node as LiteralTypeNode).literal.kind) {
+        case SyntaxKind.StringLiteral:
+          return createIdentifier("String");
+        case SyntaxKind.PrefixUnaryExpression:
+        case SyntaxKind.NumericLiteral:
+          return createIdentifier("Number");
+        case SyntaxKind.BigIntLiteral:
+          return createIdentifier("BigInt");
+        case SyntaxKind.TrueKeyword:
+        case SyntaxKind.FalseKeyword:
+          return createIdentifier("Boolean");
+        default:
+          throw new Error(`Unexpected node type: ${SyntaxKind[(node as LiteralTypeNode).literal.kind]}`);
+      }
+    case SyntaxKind.NumberKeyword:
+      return createIdentifier("Number");
+    case SyntaxKind.BigIntKeyword:
+      return createIdentifier("BigInt");
+    case SyntaxKind.SymbolKeyword:
+      return createIdentifier("Symbol");
+    case SyntaxKind.TypeReference:
+      return serializeEntityName(mos, (node as TypeReferenceNode).typeName);
+    case SyntaxKind.IntersectionType:
+    case SyntaxKind.UnionType:
+    case SyntaxKind.ConditionalType:
+      return createIdentifier("Object");
+    case SyntaxKind.TypeOperator:
+      if ((node as TypeOperatorNode).operator === SyntaxKind.ReadonlyKeyword) {
+        return serializeTypeNode(mos, (node as TypeOperatorNode).type);
+      }
+      break;
+    case SyntaxKind.TypeQuery:
+    case SyntaxKind.IndexedAccessType:
+    case SyntaxKind.MappedType:
+    case SyntaxKind.TypeLiteral:
+    case SyntaxKind.AnyKeyword:
+    case SyntaxKind.UnknownKeyword:
+    case SyntaxKind.ThisType:
+    case SyntaxKind.ImportType:
+      break;
+    default:
+      throw new Error(`Unexpected node type: ${SyntaxKind[node.kind]}`);
+  }
+
+  return createIdentifier("Object");
+}
+
+function serializeEntityName(
+  mos: $ESModule,
+  node: EntityName,
+): PropertyAccessExpression | Identifier {
+  switch (node.kind) {
+    case SyntaxKind.Identifier: {
+      const localImport = mos.ImportedLocalNames.find(x => x['[[Value]]'] === node.text);
+      if (localImport !== void 0) {
+        const imports = mos.$statements.filter(x => x.$kind === SyntaxKind.ImportDeclaration) as $ImportDeclaration[];
+        const theImport = imports.find(x => x.ImportEntries.some(i => i.LocalName['[[Value]]'] === node.text));
+        mos = mos.ws.ResolveImportedModule(mos.realm, mos, theImport!.$moduleSpecifier.Value) as $ESModule;
+      }
+      const decl = mos.getDeclaringNode(new $String(mos.realm, node.text));
+      if (decl === null) {
+        return createIdentifier('Object');
+      }
+      return createIdentifier(node.text);
+    }
+    case SyntaxKind.QualifiedName:
+      return serializeQualifiedName(mos, node);
+  }
+}
+
+function serializeQualifiedName(
+  mos: $ESModule,
+  node: QualifiedName,
+): PropertyAccessExpression {
+  return createPropertyAccess(serializeEntityName(mos, node.left), node.right);
+}
+
+export function serializeParameterTypesOfNode(
+  mos: $ESModule,
+  node: $ClassExpression | $ClassDeclaration | $MethodDeclaration | $ConstructorDeclaration | $SetAccessorDeclaration | $GetAccessorDeclaration,
+): ArrayLiteralExpression {
+  let valueDeclaration: $ConstructorDeclaration | $MethodDeclaration | $SetAccessorDeclaration | $GetAccessorDeclaration | undefined;
+  switch (node.$kind) {
+    case SyntaxKind.ClassExpression:
+    case SyntaxKind.ClassDeclaration:
+      valueDeclaration = node.ConstructorMethod;
+      break;
+    case SyntaxKind.MethodDeclaration:
+    case SyntaxKind.Constructor:
+    case SyntaxKind.SetAccessor:
+    case SyntaxKind.GetAccessor:
+      valueDeclaration = node;
+      break;
+  }
+
+  return createArrayLiteral(
+    valueDeclaration.$parameters.skipThisKeyword().map(x => serializeTypeOfNode(mos, x.node)),
+  );
+}
+
+export function serializeReturnTypeOfNode(
+  mos: $ESModule,
+  $node: $MethodDeclaration,
+): SerializedTypeNode {
+  if ($node.node.type !== void 0) {
+    return serializeTypeNode(mos, $node.node.type);
+  } else if (hasBit($node.modifierFlags, ModifierFlags.Async) && $node.node.asteriskToken === void 0) {
+    return createIdentifier("Promise");
+  }
+
+  return createVoidZero();
 }

@@ -84,6 +84,7 @@ import {
   DirectivePrologue,
   NoDirectiveProgue,
   HydrateContext,
+  isDecorated,
 } from './_shared';
 import {
   ExportEntryRecord,
@@ -152,6 +153,10 @@ export class $FormalParameterList extends Array<$ParameterDeclaration> {
   public IsSimpleParameterList: boolean = true;
   public hasDuplicates: boolean = false;
 
+  public get hasDecorators(): boolean {
+    return super.some(isDecorated);
+  }
+
   public constructor(
     nodes: readonly ParameterDeclaration[] | undefined,
     depth: number,
@@ -218,6 +223,19 @@ export class $FormalParameterList extends Array<$ParameterDeclaration> {
     }
 
     return this;
+  }
+
+  public skipThisKeyword(): readonly $ParameterDeclaration[] {
+    if (this.length > 0) {
+      if (this[0].isThisKeyword) {
+        if (this.length > 1) {
+          return this.slice(1);
+        }
+        return emptyArray;
+      }
+      return this;
+    }
+    return emptyArray;
   }
 }
 
@@ -1807,6 +1825,10 @@ export class $ConstructorDeclaration implements I$Node {
   // 14.1.17 Static Semantics: VarScopedDeclarations
   public VarScopedDeclarations!: readonly $$ESVarDeclaration[];
 
+  public get isDecorated(): boolean {
+    return this.$decorators.length > 0 || this.$parameters.hasDecorators;
+  }
+
   public functionKind: FunctionKind.normal = FunctionKind.normal;
 
   public get isSynthetic(): boolean { return this.idx === -1; }
@@ -1967,6 +1989,14 @@ export class $ParameterDeclaration implements I$Node {
   // 13.3.3.4 Static Semantics: IsSimpleParameterList
   public IsSimpleParameterList!: boolean;
 
+  public get isDecorated(): boolean {
+    return this.$decorators.length > 0;
+  }
+
+  public get isThisKeyword(): boolean {
+    return this.node.name.kind === SyntaxKind.Identifier && this.node.name.originalKeywordKind === SyntaxKind.ThisKeyword;
+  }
+
   public parent!: $$Function;
   public readonly path: string;
 
@@ -2028,14 +2058,11 @@ export class $ParameterDeclaration implements I$Node {
   }
 
   public transform(tctx: TransformationContext): this['node'] | undefined {
-    const node = this.node;
-    if (
-      node.name.kind === SyntaxKind.Identifier &&
-      node.name.originalKeywordKind === SyntaxKind.ThisKeyword
-    ) {
+    if (this.isThisKeyword) {
       return void 0;
     }
 
+    const node = this.node;
     const transformedName = this.$name.transform(tctx);
     const transformedInitializer = this.$initializer === void 0 ? void 0 : this.$initializer.transform(tctx);
 

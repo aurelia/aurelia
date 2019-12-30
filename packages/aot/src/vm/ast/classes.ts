@@ -35,6 +35,8 @@ import {
   createElementAccess,
   ClassElement,
   ParenthesizedExpression,
+  createLiteral,
+  Expression,
 } from 'typescript';
 import {
   PLATFORM,
@@ -110,10 +112,19 @@ import {
   transformList,
   transformModifiers,
   HydrateContext,
+  createParamHelper,
+  createReflectMetadataCall,
+  serializeTypeOfNode,
+  serializeParameterTypesOfNode,
+  serializeReturnTypeOfNode,
+  isDecorated,
+  createReflectDecorateCall,
+  createGetOwnPropertyDescriptorCall,
 } from './_shared';
 import {
   ExportEntryRecord,
   $$ESModuleOrScript,
+  $ESModule,
 } from './modules';
 import {
   $Identifier,
@@ -868,6 +879,94 @@ export class $ClassDeclaration implements I$Node {
       ));
     }
 
+    const staticDecorateExpressions = [] as ExpressionStatement[];
+    const instanceDecorateExpressions = [] as ExpressionStatement[];
+    const ctorDecorateExpression = [] as ExpressionStatement[];
+    const $members = this.$members;
+    if ($members.some(isDecorated)) {
+      for (const member of $members) {
+        if (member.isDecorated) {
+          const isStatic = hasBit(member.modifierFlags, ModifierFlags.Static);
+          const obj = isStatic ? name : createPropertyAccess(name, 'prototype');
+          const prop = member.$kind === SyntaxKind.Constructor
+            ? createLiteral('constructor')
+            : createLiteral(String(member.$name.PropName['[[Value]]']));
+          switch (member.$kind) {
+            case SyntaxKind.Constructor: {
+              const decorateCall = createReflectDecorateCall(
+                /* decorators */[
+                  ...member.$decorators.map(x => x.$expression.transform(tctx)),
+                  ...member.$parameters.flatMap((p, i) => p.$decorators.map(x => createParamHelper(x.$expression.transform(tctx), i))),
+                  createReflectMetadataCall('design:type', serializeTypeOfNode(this.mos as $ESModule, this.node)),
+                  createReflectMetadataCall('design:paramtypes', serializeParameterTypesOfNode(this.mos as $ESModule, this)),
+                ],
+                /* target */name,
+              );
+              ctorDecorateExpression.push(createExpressionStatement(decorateCall));
+              break;
+            }
+            case SyntaxKind.GetAccessor:
+            case SyntaxKind.SetAccessor: {
+              const decorateCall = createReflectDecorateCall(
+                /* decorators */[
+                  ...member.$decorators.map(x => x.$expression.transform(tctx)),
+                  ...member.$parameters.flatMap((p, i) => p.$decorators.map(x => createParamHelper(x.$expression.transform(tctx), i))),
+                  createReflectMetadataCall('design:type', serializeTypeOfNode(this.mos as $ESModule, member.node)),
+                  createReflectMetadataCall('design:paramtypes', serializeParameterTypesOfNode(this.mos as $ESModule, member)),
+                ],
+                /* target */obj,
+                /* memberName */prop,
+                /* descriptor */createGetOwnPropertyDescriptorCall(obj, prop),
+              );
+              if (isStatic) {
+                staticDecorateExpressions.push(createExpressionStatement(decorateCall));
+              } else {
+                instanceDecorateExpressions.push(createExpressionStatement(decorateCall));
+              }
+              break;
+            }
+            case SyntaxKind.MethodDeclaration: {
+              const decorateCall = createReflectDecorateCall(
+                /* decorators */[
+                  ...member.$decorators.map(x => x.$expression.transform(tctx)),
+                  ...member.$parameters.flatMap((p, i) => p.$decorators.map(x => createParamHelper(x.$expression.transform(tctx), i))),
+                  createReflectMetadataCall('design:type', serializeTypeOfNode(this.mos as $ESModule, member.node)),
+                  createReflectMetadataCall('design:paramtypes', serializeParameterTypesOfNode(this.mos as $ESModule, member)),
+                  createReflectMetadataCall('design:returntype', serializeReturnTypeOfNode(this.mos as $ESModule, member)),
+                ],
+                /* target */obj,
+                /* memberName */prop,
+                /* descriptor */createGetOwnPropertyDescriptorCall(obj, prop),
+              );
+              if (isStatic) {
+                staticDecorateExpressions.push(createExpressionStatement(decorateCall));
+              } else {
+                instanceDecorateExpressions.push(createExpressionStatement(decorateCall));
+              }
+              break;
+            }
+            case SyntaxKind.PropertyDeclaration: {
+              const decorateCall = createReflectDecorateCall(
+                /* decorators */[
+                  ...member.$decorators.map(x => x.$expression.transform(tctx)),
+                  createReflectMetadataCall('design:type', serializeTypeOfNode(this.mos as $ESModule, member.node)),
+                ],
+                /* target */obj,
+                /* memberName */prop,
+                /* descriptor */createGetOwnPropertyDescriptorCall(obj, prop),
+              );
+              if (isStatic) {
+                staticDecorateExpressions.push(createExpressionStatement(decorateCall));
+              } else {
+                instanceDecorateExpressions.push(createExpressionStatement(decorateCall));
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
+
     if (hasDecorators) {
       const classExpr = createClassExpression(
         /* modifiers       */void 0,
@@ -898,6 +997,9 @@ export class $ClassDeclaration implements I$Node {
       return [
         classExprDecl,
         ...staticPropertyInitializers,
+        ...instanceDecorateExpressions,
+        ...staticDecorateExpressions,
+        ...ctorDecorateExpression,
       ];
     }
 
@@ -914,12 +1016,13 @@ export class $ClassDeclaration implements I$Node {
           /* members         */transformedMembers === void 0 ? node.members : transformedMembers,
     );
 
-    return staticPropertyInitializers.length === 0
-      ? classDecl
-      : [
-        classDecl,
-        ...staticPropertyInitializers,
-      ];
+    return [
+      classDecl,
+      ...staticPropertyInitializers,
+      ...instanceDecorateExpressions,
+      ...staticDecorateExpressions,
+      ...ctorDecorateExpression,
+    ];
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-classdefinitionevaluation
@@ -1250,6 +1353,10 @@ export class $PropertyDeclaration implements I$Node {
   public $name!: $$PropertyName;
   public $initializer!: $$AssignmentExpressionOrHigher | undefined;
 
+  public get isDecorated(): boolean {
+    return this.$decorators.length > 0;
+  }
+
   // http://www.ecma-international.org/ecma-262/#sec-static-semantics-isstatic
   // 14.6.9 Static Semantics: IsStatic
   public IsStatic!: boolean;
@@ -1315,6 +1422,8 @@ export class $SemicolonClassElement implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-method-definitions-static-semantics-propname
   // 14.3.5 Static Semantics: PropName
   public PropName: empty = empty;
+
+  public get isDecorated(): false { return false; }
 
   public parent!: $ClassDeclaration | $ClassExpression;
   public readonly path: string;

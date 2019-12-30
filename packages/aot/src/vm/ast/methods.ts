@@ -115,6 +115,10 @@ export class $MethodDeclaration implements I$Node {
   // 14.1.17 Static Semantics: VarScopedDeclarations
   public VarScopedDeclarations!: readonly $$ESVarDeclaration[];
 
+  public get isDecorated(): boolean {
+    return this.$decorators.length > 0 || this.$parameters.hasDecorators;
+  }
+
   public functionKind!: FunctionKind;
 
   public parent!: $ClassDeclaration | $ClassExpression | $ObjectLiteralExpression;
@@ -346,6 +350,10 @@ export class $GetAccessorDeclaration implements I$Node {
   // 14.1.17 Static Semantics: VarScopedDeclarations
   public VarScopedDeclarations!: readonly $$ESVarDeclaration[];
 
+  public get isDecorated(): boolean {
+    return this.$decorators.length > 0 || this.$parameters.hasDecorators;
+  }
+
   public functionKind: FunctionKind.normal = FunctionKind.normal;
 
   public parent!: $ClassDeclaration | $ClassExpression | $ObjectLiteralExpression;
@@ -526,6 +534,10 @@ export class $SetAccessorDeclaration implements I$Node {
   // http://www.ecma-international.org/ecma-262/#sec-function-definitions-static-semantics-varscopeddeclarations
   // 14.1.17 Static Semantics: VarScopedDeclarations
   public VarScopedDeclarations!: readonly $$ESVarDeclaration[];
+
+  public get isDecorated(): boolean {
+    return this.$decorators.length > 0 || this.$parameters.hasDecorators;
+  }
 
   public functionKind: FunctionKind.normal = FunctionKind.normal;
 

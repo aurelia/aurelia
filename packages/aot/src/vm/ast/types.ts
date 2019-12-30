@@ -370,9 +370,10 @@ export class $EnumDeclaration implements I$Node {
 
   public transform(tctx: TransformationContext): VariableStatement {
     const node = this.node;
+    const transformedModifiers = node.modifiers === void 0 ? void 0 : transformModifiers(node.modifiers);
     // TODO: inline const enums instead
     return createVariableStatement(
-      /* modifiers       */node.modifiers === void 0 ? void 0 : transformModifiers(node.modifiers),
+      /* modifiers       */transformedModifiers === void 0 ? node.modifiers : transformedModifiers,
       /* declarationList */createVariableDeclarationList(
         /* declarations    */[
           createVariableDeclaration(
@@ -432,7 +433,7 @@ export class $EnumDeclaration implements I$Node {
             ),
           ),
         ],
-        /* flags           */NodeFlags.Const,
+        /* flags           */NodeFlags.None,
       ),
     );
   }

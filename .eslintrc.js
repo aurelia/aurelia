@@ -122,7 +122,7 @@ module.exports = {
     'import/no-unassigned-import': 'error',
     'import/no-useless-path-segments': ['error'],
     'import/order': ['error', { 'groups': [], 'newlines-between': 'ignore' }],
-    'import/no-deprecated': 'error',
+    'import/no-deprecated': 'off',
     'jsdoc/check-alignment': 'error',
     'jsdoc/check-indentation': 'error',
     'jsdoc/check-tag-names': ['error', {

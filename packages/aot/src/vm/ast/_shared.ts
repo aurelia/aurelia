@@ -109,11 +109,9 @@ import {
   $ExternalModuleReference,
   $ImportClause,
   $ImportSpecifier,
-  $ModuleBlock,
   $NamedImports,
   $NamespaceImport,
   $QualifiedName,
-  $ModuleDeclaration,
   $ExportAssignment,
   $ExportDeclaration,
   $ImportDeclaration,
@@ -208,6 +206,8 @@ import {
   $InterfaceDeclaration,
   $TypeAliasDeclaration,
   $EnumDeclaration,
+  $ModuleBlock,
+  $ModuleDeclaration,
 } from './types';
 import {
   $GetAccessorDeclaration,
@@ -955,14 +955,39 @@ export function $$esStatement(
 
 export type $$ESVarDeclaration = (
   $FunctionDeclaration |
-  $VariableStatement |
   $VariableDeclaration
+);
+
+export type $$TSNamespaceDeclaration = (
+  $EnumDeclaration |
+  $ModuleDeclaration
 );
 
 export type $$ESDeclaration = (
   $$ESVarDeclaration |
   $ClassDeclaration
 );
+
+export type $$ValueDeclaration = (
+  $FunctionDeclaration |
+  $ClassDeclaration |
+  $VariableDeclaration |
+  $NamespaceImport |
+  $EnumDeclaration |
+  $ModuleDeclaration
+);
+
+export function isValueDeclaration(value: I$Node & { readonly $kind: SyntaxKind }): value is $$ValueDeclaration {
+  switch (value.$kind) {
+    case SyntaxKind.FunctionDeclaration:
+    case SyntaxKind.ClassDeclaration:
+    case SyntaxKind.VariableDeclaration:
+    case SyntaxKind.NamespaceImport:
+      return true;
+  }
+
+  return false;
+}
 
 export type $$TSDeclaration = (
   $InterfaceDeclaration |
@@ -1198,11 +1223,11 @@ export function BlockDeclarationInstantiation(
       // 4. a. i. If IsConstantDeclaration of d is true, then
       if (d.IsConstantDeclaration) {
         // 4. a. i. 1. Perform ! envRec.CreateImmutableBinding(dn, true).
-        envRec.CreateImmutableBinding(ctx, dn, intrinsics.true);
+        envRec.CreateImmutableBinding(ctx, dn, intrinsics.true, null);
       } else {
         // 4. a. ii. Else,
         // 4. a. ii. 1. Perform ! envRec.CreateMutableBinding(dn, false).
-        envRec.CreateImmutableBinding(ctx, dn, intrinsics.false);
+        envRec.CreateImmutableBinding(ctx, dn, intrinsics.false, null);
       }
     }
 

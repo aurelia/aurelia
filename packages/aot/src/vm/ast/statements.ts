@@ -235,7 +235,7 @@ export class $VariableStatement implements I$Node {
       );
 
       if (isLexical) {
-        this.LexicallyScopedDeclarations = [this];
+        this.LexicallyScopedDeclarations = this.$declarationList.$declarations;
       } else {
         this.LexicallyScopedDeclarations = emptyArray;
       }
@@ -266,7 +266,7 @@ export class $VariableStatement implements I$Node {
     }
 
     return createVariableStatement(
-      declarationList.modifiers,
+      node.modifiers,
       transformed,
     );
   }
@@ -499,7 +499,7 @@ export class $VariableDeclaration implements I$Node {
             if (lhs.isAbrupt) { return lhs.enrichWith(ctx, this); } // TODO: is this correct? spec doesn't say it
 
             // 3. b. Return ? PutValue(lhs, value).
-            return lhs.PutValue(ctx, value).enrichWith(ctx, this);
+            return lhs.PutValue(ctx, value, this).enrichWith(ctx, this);
           }
         }
         case SyntaxKind.ObjectBindingPattern:
@@ -727,10 +727,10 @@ export class $Block implements I$Node {
         case SyntaxKind.VariableStatement:
           if ($statement.isLexical) {
             LexicallyDeclaredNames.push(...$statement.BoundNames);
-            LexicallyScopedDeclarations.push($statement);
+            LexicallyScopedDeclarations.push(...$statement.$declarationList.$declarations);
 
             TopLevelLexicallyDeclaredNames.push(...$statement.BoundNames);
-            TopLevelLexicallyScopedDeclarations.push($statement);
+            TopLevelLexicallyScopedDeclarations.push(...$statement.$declarationList.$declarations);
           } else {
             TopLevelVarDeclaredNames.push(...$statement.VarDeclaredNames);
             TopLevelVarScopedDeclarations.push(...$statement.VarScopedDeclarations);
@@ -3476,7 +3476,7 @@ export class $CatchClause implements I$Node {
     ctx.checkTimeout();
 
     for (const argName of this.$variableDeclaration?.BoundNames ?? []) {
-      ctx.LexicalEnvironment.CreateMutableBinding(ctx, argName, realm['[[Intrinsics]]'].false);
+      ctx.LexicalEnvironment.CreateMutableBinding(ctx, argName, realm['[[Intrinsics]]'].false, this.$variableDeclaration!);
     }
   }
 }

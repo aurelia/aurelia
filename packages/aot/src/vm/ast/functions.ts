@@ -426,7 +426,7 @@ export class $FunctionExpression implements I$Node {
     if (name !== void 0) {
 
       // 6. Perform envRec.CreateImmutableBinding(name, false).
-      funcEnv.CreateImmutableBinding(ctx, name, intrinsics.false);
+      funcEnv.CreateImmutableBinding(ctx, name, intrinsics.false, null);
     }
 
     // 7. Let closure be FunctionCreate(Normal, FormalParameters, FunctionBody, funcEnv, strict).
@@ -493,7 +493,7 @@ export class $FunctionExpression implements I$Node {
     if (name !== void 0) {
 
       // 6. Perform envRec.CreateImmutableBinding(name, false).
-      funcEnv.CreateImmutableBinding(ctx, name, intrinsics.false);
+      funcEnv.CreateImmutableBinding(ctx, name, intrinsics.false, null);
     }
 
     // 7. Let closure be GeneratorFunctionCreate(Normal, FormalParameters, GeneratorBody, funcEnv, strict).
@@ -576,7 +576,7 @@ export class $FunctionExpression implements I$Node {
     if (name !== void 0) {
 
       // 6. Perform ! envRec.CreateImmutableBinding(name).
-      funcEnv.CreateImmutableBinding(ctx, name, intrinsics.false); // TODO: we sure about this?
+      funcEnv.CreateImmutableBinding(ctx, name, intrinsics.false, null); // TODO: we sure about this?
     }
 
     // 7. Let closure be ! AsyncGeneratorFunctionCreate(Normal, FormalParameters, AsyncGeneratorBody, funcEnv, strict).
@@ -657,7 +657,7 @@ export class $FunctionExpression implements I$Node {
     if (name !== void 0) {
 
       // 6. Perform ! envRec.CreateImmutableBinding(name).
-      funcEnv.CreateImmutableBinding(ctx, name, intrinsics.false); // TODO: we sure about this?
+      funcEnv.CreateImmutableBinding(ctx, name, intrinsics.false, null); // TODO: we sure about this?
     }
 
     // 7. Let closure be ! AsyncFunctionCreate(Normal, FormalParameters, AsyncFunctionBody, funcEnv, strict).
@@ -1378,7 +1378,7 @@ export function $FunctionDeclarationInstantiation(
     // 21. c. If alreadyDeclared is false, then
     if (alreadyDeclared.isFalsey) {
       // 21. c. i. Perform ! envRec.CreateMutableBinding(paramName, false).
-      envRec.CreateMutableBinding(ctx, paramName, intrinsics.false);
+      envRec.CreateMutableBinding(ctx, paramName, intrinsics.false, null);
 
       // 21. c. ii. If hasDuplicates is true, then
       if (hasDuplicates) {
@@ -1408,12 +1408,12 @@ export function $FunctionDeclarationInstantiation(
     // 22. c. If strict is true, then
     if (strict.isTruthy) {
       // 22. c. i. Perform ! envRec.CreateImmutableBinding("arguments", false).
-      envRec.CreateImmutableBinding(ctx, intrinsics.$arguments, intrinsics.false);
+      envRec.CreateImmutableBinding(ctx, intrinsics.$arguments, intrinsics.false, null);
     }
     // 22. d. Else,
     else {
       // 22. d. i. Perform ! envRec.CreateMutableBinding("arguments", false).
-      envRec.CreateMutableBinding(ctx, intrinsics.$arguments, intrinsics.false);
+      envRec.CreateMutableBinding(ctx, intrinsics.$arguments, intrinsics.false, null);
     }
 
     // 22. e. Call envRec.InitializeBinding("arguments", ao).
@@ -1464,7 +1464,7 @@ export function $FunctionDeclarationInstantiation(
         instantiatedVarNames.push(n);
 
         // 27. c. i. 2. Perform ! envRec.CreateMutableBinding(n, false).
-        envRec.CreateMutableBinding(ctx, n, intrinsics.false);
+        envRec.CreateMutableBinding(ctx, n, intrinsics.false, null);
 
         // 27. c. i. 3. Call envRec.InitializeBinding(n, undefined).
         envRec.InitializeBinding(ctx, n, intrinsics.undefined);
@@ -1496,7 +1496,7 @@ export function $FunctionDeclarationInstantiation(
         instantiatedVarNames.push(n);
 
         // 28. f. i. 2. Perform ! varEnvRec.CreateMutableBinding(n, false).
-        varEnvRec.CreateMutableBinding(ctx, n, intrinsics.false);
+        varEnvRec.CreateMutableBinding(ctx, n, intrinsics.false, null);
 
         let initialValue: $Any;
 
@@ -1549,12 +1549,12 @@ export function $FunctionDeclarationInstantiation(
       // 35. b. i. If IsConstantDeclaration of d is true, then
       if (d.IsConstantDeclaration) {
         // 35. b. i. 1. Perform ! lexEnvRec.CreateImmutableBinding(dn, true).
-        lexEnvRec.CreateImmutableBinding(ctx, dn, intrinsics.true);
+        lexEnvRec.CreateImmutableBinding(ctx, dn, intrinsics.true, null);
       }
       // 35. b. ii. Else,
       else {
         // 35. b. ii. 1. Perform ! lexEnvRec.CreateMutableBinding(dn, false).
-        lexEnvRec.CreateMutableBinding(ctx, dn, intrinsics.false);
+        lexEnvRec.CreateMutableBinding(ctx, dn, intrinsics.false, null);
       }
     }
   }
@@ -1571,7 +1571,7 @@ export function $FunctionDeclarationInstantiation(
       if (fo.isAbrupt) { return fo; }
 
       // 36. c. Perform ! varEnvRec.SetMutableBinding(fn, fo, false).
-      varEnvRec.SetMutableBinding(ctx, fn, fo, intrinsics.false);
+      varEnvRec.SetMutableBinding(ctx, fn, fo, intrinsics.false, null);
     }
   }
 

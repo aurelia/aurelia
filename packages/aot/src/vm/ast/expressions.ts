@@ -2618,7 +2618,7 @@ export class $PrefixUnaryExpression implements I$Node {
         if (!(expr instanceof $Reference)) {
           return new $ReferenceError(realm, `Value is not assignable: ${expr}`).enrichWith(ctx, this);
         }
-        const $PutValueResult = expr.PutValue(ctx, newValue);
+        const $PutValueResult = expr.PutValue(ctx, newValue, null);
         if ($PutValueResult.isAbrupt) { return $PutValueResult.enrichWith(ctx, this); }
 
         // 5. Return newValue.
@@ -2647,7 +2647,7 @@ export class $PrefixUnaryExpression implements I$Node {
         if (!(expr instanceof $Reference)) {
           return new $ReferenceError(realm, `Value is not assignable: ${expr}`).enrichWith(ctx, this);
         }
-        const $PutValueResult = expr.PutValue(ctx, newValue);
+        const $PutValueResult = expr.PutValue(ctx, newValue, null);
         if ($PutValueResult.isAbrupt) { return $PutValueResult.enrichWith(ctx, this); }
 
         // 5. Return newValue.
@@ -2833,7 +2833,7 @@ export class $PostfixUnaryExpression implements I$Node {
         if (!(lhs instanceof $Reference)) {
           return new $ReferenceError(realm, `Value is not assignable: ${lhs}`).enrichWith(ctx, this);
         }
-        const $PutValueResult = lhs.PutValue(ctx, newValue);
+        const $PutValueResult = lhs.PutValue(ctx, newValue, null);
         if ($PutValueResult.isAbrupt) { return $PutValueResult.enrichWith(ctx, this); }
 
         // 5. Return oldValue.
@@ -2861,7 +2861,7 @@ export class $PostfixUnaryExpression implements I$Node {
         if (!(lhs instanceof $Reference)) {
           return new $ReferenceError(realm, `Value is not assignable: ${lhs}`).enrichWith(ctx, this);
         }
-        const $PutValueResult = lhs.PutValue(ctx, newValue);
+        const $PutValueResult = lhs.PutValue(ctx, newValue, null);
         if ($PutValueResult.isAbrupt) { return $PutValueResult.enrichWith(ctx, this); }
 
         // 5. Return oldValue.
@@ -3758,7 +3758,7 @@ export class $BinaryExpression implements I$Node {
           if (!(lref instanceof $Reference)) {
             return new $ReferenceError(realm, `Value is not assignable: ${lref}`).enrichWith(ctx, this);
           }
-          const $PutValueResult = lref.PutValue(ctx, rval);
+          const $PutValueResult = lref.PutValue(ctx, rval, null);
           if ($PutValueResult.isAbrupt) { return $PutValueResult.enrichWith(ctx, this); }
 
           // 1. f. Return rval.
@@ -4034,7 +4034,7 @@ export class $BinaryExpression implements I$Node {
         if (!(lref instanceof $Reference)) {
           return new $ReferenceError(realm, `Value is not assignable: ${lref}`).enrichWith(ctx, this);
         }
-        const $PutValueResult = lref.PutValue(ctx, r);
+        const $PutValueResult = lref.PutValue(ctx, r, null);
         if ($PutValueResult.isAbrupt) { return $PutValueResult.enrichWith(ctx, this); }
 
         // 8. Return r.
@@ -4572,7 +4572,7 @@ export class $Identifier implements I$Node {
 
     // 6. If environment is undefined, return ? PutValue(lhs, v).
     if (environment === void 0) {
-      return lhs.PutValue(ctx, v as $AnyNonEmpty).enrichWith(ctx, this);
+      return lhs.PutValue(ctx, v as $AnyNonEmpty, null).enrichWith(ctx, this);
     }
 
     // 7. Return InitializeReferencedBinding(lhs, v).
@@ -4629,7 +4629,7 @@ export class $Identifier implements I$Node {
 
     // 5. If environment is undefined, return ? PutValue(lhs, v).
     if (environment === void 0) {
-      return lhs.PutValue(ctx, v as $AnyNonEmpty).enrichWith(ctx, this);
+      return lhs.PutValue(ctx, v as $AnyNonEmpty, null).enrichWith(ctx, this);
     }
 
     // 6. Return InitializeReferencedBinding(lhs, v).

@@ -23,6 +23,9 @@ import {
   createStringLiteral,
   createReturn,
   NodeFlags,
+  ModuleDeclaration,
+  ModuleBlock,
+  Node,
 } from 'typescript';
 import {
   PLATFORM,
@@ -56,6 +59,9 @@ import {
 import {
   ExportEntryRecord,
   $$ESModuleOrScript,
+  $$ModuleName,
+  $ESModule,
+  $$TSModuleItem,
 } from './modules';
 import {
   $Identifier,
@@ -63,6 +69,9 @@ import {
 import {
   $HeritageClause,
 } from './classes';
+import {
+  $StringLiteral,
+} from './literals';
 
 const {
   emptyArray,
@@ -474,5 +483,172 @@ export class $EnumMember implements I$Node {
     this.$initializer?.hydrate(ctx);
 
     return this;
+  }
+}
+
+export type $$ModuleBody = (
+  $ModuleBlock |
+  $ModuleDeclaration
+);
+
+export class $ModuleDeclaration implements I$Node {
+  public get $kind(): SyntaxKind.ModuleDeclaration { return SyntaxKind.ModuleDeclaration; }
+
+  public modifierFlags!: ModifierFlags;
+
+  public BoundNames!: readonly [$String];
+  public VarDeclaredNames: readonly $String[] = emptyArray;
+  public VarScopedDeclarations: readonly $$ESVarDeclaration[] = emptyArray;
+  public LexicallyDeclaredNames: readonly $String[] = emptyArray;
+  public LexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;
+
+  public ExportedBindings!: readonly $String[];
+  public ExportedNames!: readonly $String[];
+  public ExportEntries!: readonly ExportEntryRecord[];
+
+  public TypeDeclarations!: readonly [$ModuleDeclaration];
+  public IsType: true = true;
+
+  public $name!: $$ModuleName;
+  public $body!: $Identifier | $ModuleBlock | $ModuleDeclaration | undefined;
+
+  public parent!: $ESModule | $$ModuleBody;
+  public readonly path: string;
+
+  private constructor(
+    public readonly node: ModuleDeclaration,
+    public readonly idx: number,
+    public readonly depth: number,
+    public readonly mos: $ESModule,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
+  ) {
+    this.path = `${path}${$i(idx)}.ModuleDeclaration`;
+  }
+
+  public static create(
+    node: ModuleDeclaration,
+    idx: number,
+    depth: number,
+    mos: $ESModule,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $ModuleDeclaration {
+    const $node = new $ModuleDeclaration(node, idx, depth, mos, realm, logger, path);
+
+    $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
+
+    if (node.name.kind === SyntaxKind.Identifier) {
+      ($node.$name = $Identifier.create(node.name, -1, depth + 1, mos, realm, logger, path)).parent = $node;
+    } else {
+      ($node.$name = $StringLiteral.create(node.name, -1, depth + 1, mos, realm, logger, path)).parent = $node;
+    }
+
+    if (node.body === void 0) {
+      $node.$body = void 0;
+    } else {
+      switch (node.body.kind) {
+        case SyntaxKind.Identifier:
+          $node.$body = $Identifier.create(node.body, -1, depth + 1, mos, realm, logger, path);
+          break;
+        case SyntaxKind.ModuleBlock:
+          $node.$body = $ModuleBlock.create(node.body, depth + 1, mos, realm, logger, path);
+          break;
+        case SyntaxKind.ModuleDeclaration:
+          $node.$body = $ModuleDeclaration.create(node.body, -1, depth + 1, mos, realm, logger, path);
+          break;
+        default:
+          throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as Node).kind]}.`);
+      }
+      $node.$body.parent = $node;
+    }
+
+    return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$name.hydrate(ctx);
+    this.$body?.hydrate(ctx);
+
+    const intrinsics = this.realm['[[Intrinsics]]'];
+
+    const BoundNames = this.BoundNames = this.$name.$kind === SyntaxKind.StringLiteral
+      ? [this.$name.StringValue]
+      : this.$name.BoundNames;
+
+    this.TypeDeclarations = [this];
+
+    if (hasBit(this.modifierFlags, ModifierFlags.Export)) {
+      const [localName] = BoundNames;
+
+      this.ExportedBindings = BoundNames;
+      this.ExportedNames = BoundNames;
+      this.ExportEntries = [
+        new ExportEntryRecord(
+          /* source */this,
+          /* ExportName */localName,
+          /* ModuleRequest */intrinsics.null,
+          /* ImportName */intrinsics.null,
+          /* LocalName */localName,
+        ),
+      ];
+    } else {
+      this.ExportedBindings = emptyArray;
+      this.ExportedNames = emptyArray;
+      this.ExportEntries = emptyArray;
+    }
+
+    return this;
+  }
+
+  public transform(tctx: TransformationContext): this['node'] | undefined {
+    return void 0;
+  }
+}
+
+export class $ModuleBlock implements I$Node {
+  public get $kind(): SyntaxKind.ModuleBlock { return SyntaxKind.ModuleBlock; }
+
+  // TODO: ModuleBlock shares a lot in common with SourceFile, so we implement this last to try to maximize code reuse / reduce refactoring overhead and/or see if the two can be consolidated.
+  public $statements: readonly $$TSModuleItem[] = emptyArray;
+
+  public parent!: $ModuleDeclaration;
+  public readonly path: string;
+
+  private constructor(
+    public readonly node: ModuleBlock,
+    public readonly depth: number,
+    public readonly mos: $ESModule,
+    public readonly realm: Realm,
+    public readonly logger: ILogger,
+    path: string,
+  ) {
+    this.path = `${path}.ModuleBlock`;
+  }
+
+  public static create(
+    node: ModuleBlock,
+    depth: number,
+    mos: $ESModule,
+    realm: Realm,
+    logger: ILogger,
+    path: string,
+  ): $ModuleBlock {
+    const $node = new $ModuleBlock(node, depth, mos, realm, logger, path);
+    return $node;
+  }
+
+  public hydrate(ctx: HydrateContext): this {
+    this.logger.trace(`${this.path}.hydrate()`);
+    this.$statements.forEach(x => x.hydrate(ctx));
+
+    return this;
+  }
+
+  public transform(tctx: TransformationContext): this['node'] {
+    return this.node;
   }
 }

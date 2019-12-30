@@ -189,7 +189,7 @@ export class DeferredModule implements IModule {
 
 // http://www.ecma-international.org/ecma-262/#sec-code-realms
 export class Realm implements IDisposable {
-  public timeout: number = 30000;
+  public timeout: number = 300000;
   public contextId: number = 0;
 
   public readonly stack: ExecutionContextStack;

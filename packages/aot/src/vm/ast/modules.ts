@@ -56,6 +56,7 @@ import {
   $EnvRec,
   $FunctionEnvRec,
   $GlobalEnvRec,
+  $Binding,
 } from '../types/environment-record';
 import {
   $NamespaceExoticObject,
@@ -117,6 +118,9 @@ import {
   transformList,
   DirectivePrologue,
   HydrateContext,
+  $$ValueDeclaration,
+  isValueDeclaration,
+  $$TSNamespaceDeclaration,
 } from './_shared';
 import {
   $Identifier,
@@ -152,6 +156,8 @@ import {
   $InterfaceDeclaration,
   $TypeAliasDeclaration,
   $EnumDeclaration,
+  $ModuleBlock,
+  $ModuleDeclaration,
 } from './types';
 import {
   $StringLiteral,
@@ -358,10 +364,10 @@ export class $ESScript implements I$Node {
         case SyntaxKind.VariableStatement:
           if ($stmt.isLexical) {
             LexicallyDeclaredNames.push(...$stmt.BoundNames);
-            LexicallyScopedDeclarations.push($stmt);
+            LexicallyScopedDeclarations.push(...$stmt.$declarationList.$declarations);
           } else {
             VarDeclaredNames.push(...$stmt.VarDeclaredNames);
-            VarScopedDeclarations.push($stmt);
+            VarScopedDeclarations.push(...$stmt.$declarationList.$declarations);
           }
 
           break;
@@ -530,6 +536,7 @@ export class $ESScript implements I$Node {
             if (!declaredVarNames.has(vn)) {
               // 12. a. i. 1. c. i. Append vn to declaredVarNames.
               declaredVarNames.add(vn);
+              vn.declaringNode = d;
             }
           }
         }
@@ -549,13 +556,13 @@ export class $ESScript implements I$Node {
         // 16. b. i. If IsConstantDeclaration of d is true, then
         if (d.IsConstantDeclaration) {
           // 16. b. i. 1. Perform ? envRec.CreateImmutableBinding(dn, true).
-          const $CreateImmutableBindingResult = envRec.CreateImmutableBinding(ctx, dn, intrinsics.true);
+          const $CreateImmutableBindingResult = envRec.CreateImmutableBinding(ctx, dn, intrinsics.true, d);
           if ($CreateImmutableBindingResult.isAbrupt) { return $CreateImmutableBindingResult.enrichWith(ctx, this); }
         }
         // 16. b. ii. Else,
         else {
           // 16. b. ii. 1. Perform ? envRec.CreateMutableBinding(dn, false).
-          const $CreateImmutableBindingResult = envRec.CreateImmutableBinding(ctx, dn, intrinsics.false);
+          const $CreateImmutableBindingResult = envRec.CreateImmutableBinding(ctx, dn, intrinsics.false, d);
           if ($CreateImmutableBindingResult.isAbrupt) { return $CreateImmutableBindingResult.enrichWith(ctx, this); }
         }
       }
@@ -571,14 +578,14 @@ export class $ESScript implements I$Node {
       if (fo.isAbrupt) { return fo.enrichWith(ctx, this); }
 
       // 17. c. Perform ? envRec.CreateGlobalFunctionBinding(fn, fo, false).
-      const $CreateGlobalFunctionBindingResult = envRec.CreateGlobalFunctionBinding(ctx, fn, fo, intrinsics.false);
+      const $CreateGlobalFunctionBindingResult = envRec.CreateGlobalFunctionBinding(ctx, fn, fo, intrinsics.false, f);
       if ($CreateGlobalFunctionBindingResult.isAbrupt) { return $CreateGlobalFunctionBindingResult.enrichWith(ctx, this); }
     }
 
     // 18. For each String vn in declaredVarNames, in list order, do
     for (const vn of declaredVarNames) {
       // 18. a. Perform ? envRec.CreateGlobalVarBinding(vn, false).
-      const $CreateGlobalVarBindingResult = envRec.CreateGlobalVarBinding(ctx, vn, intrinsics.false);
+      const $CreateGlobalVarBindingResult = envRec.CreateGlobalVarBinding(ctx, vn, intrinsics.false, vn.declaringNode);
       if ($CreateGlobalVarBindingResult.isAbrupt) { return $CreateGlobalVarBindingResult.enrichWith(ctx, this); }
     }
 
@@ -799,6 +806,8 @@ export class $ESModule implements I$Node, IModule {
   // 15.2.1.14 Static Semantics: VarScopedDeclarations
   public VarScopedDeclarations!: readonly $$ESVarDeclaration[];
 
+  public NamespaceDeclarations!: readonly $$TSNamespaceDeclaration[];
+
   public TypeDeclarations: readonly $$TSDeclaration[] = emptyArray;
   public IsType: false = false;
 
@@ -973,6 +982,7 @@ export class $ESModule implements I$Node, IModule {
     const ModuleRequests = this.ModuleRequests = [] as ModuleRequest[];
     const LexicallyScopedDeclarations = this.LexicallyScopedDeclarations = [] as $$ESDeclaration[];
     const VarScopedDeclarations = this.VarScopedDeclarations = [] as $$ESVarDeclaration[];
+    const NamespaceDeclarations = this.NamespaceDeclarations = [] as $$TSNamespaceDeclaration[];
 
     const $statements = this.$statements;
     let $stmt: $$TSModuleItem;
@@ -997,9 +1007,9 @@ export class $ESModule implements I$Node, IModule {
           break;
         case SyntaxKind.VariableStatement:
           if ($stmt.isLexical) {
-            LexicallyScopedDeclarations.push($stmt);
+            LexicallyScopedDeclarations.push(...$stmt.$declarationList.$declarations);
           } else {
-            VarScopedDeclarations.push($stmt);
+            VarScopedDeclarations.push(...$stmt.$declarationList.$declarations);
           }
 
           if (hasBit($stmt.modifierFlags, ModifierFlags.Export)) {
@@ -1021,12 +1031,21 @@ export class $ESModule implements I$Node, IModule {
           break;
         case SyntaxKind.InterfaceDeclaration:
         case SyntaxKind.TypeAliasDeclaration:
-        case SyntaxKind.EnumDeclaration:
           if (hasBit($stmt.modifierFlags, ModifierFlags.Export)) {
             ExportedBindings.push(...$stmt.ExportedBindings);
             ExportedNames.push(...$stmt.ExportedNames);
             ExportEntries.push(...$stmt.ExportEntries);
           }
+          break;
+        case SyntaxKind.EnumDeclaration:
+        case SyntaxKind.ModuleDeclaration:
+          if (hasBit($stmt.modifierFlags, ModifierFlags.Export)) {
+            ExportedBindings.push(...$stmt.ExportedBindings);
+            ExportedNames.push(...$stmt.ExportedNames);
+            ExportEntries.push(...$stmt.ExportEntries);
+          }
+
+          NamespaceDeclarations.push($stmt);
           break;
         case SyntaxKind.Block:
         case SyntaxKind.IfStatement:
@@ -1155,6 +1174,53 @@ export class $ESModule implements I$Node, IModule {
       ...this.node,
       statements: createNodeArray(transformedStatements) as NodeArray<Statement>,
     };
+  }
+
+  public getDeclaringNode(
+    N: $String,
+    resolveSet: ResolveSet = new ResolveSet(),
+  ): $$ValueDeclaration | null {
+    switch (this.Status) {
+      case 'uninstantiated':
+      case 'instantiating':
+        throw new Error(`Module "${this.$file.path}" needs to be instantiated before valueDeclaration can be retrieved. Module is still ${this.Status}`);
+      case 'instantiated':
+      case 'evaluating':
+      case 'evaluated': {
+        if (this['[[Environment]]'].isUndefined) {
+          throw new Error(`Module "${this.$file.path}" has no environment record`);
+        }
+        const binding = this['[[Environment]]'].getBinding(N);
+        if (binding === void 0) {
+          // The export could be resolved but there is no binding, so it's probably a type alias or interface
+          if (resolveSet.has(this, N)) {
+            return null;
+          }
+          const resolved = this.ResolveExport(this.realm.stack.top, N, resolveSet);
+          if (!(resolved instanceof ResolvedBindingRecord || resolved instanceof $Null)) {
+            const chain: string[] = [];
+            resolveSet.forEach(mod => {
+              chain.push(`  "${(mod as $ESModule).$file.path}"`);
+            });
+            if (resolved instanceof Promise) {
+              throw new Error(`Module "${this.$file.path}" for some reason returned a promise when resolving the binding named ${N['[[Value]]']}. Module chain searched:\n${chain.join('\n')}`);
+            }
+            if (resolved.isAbrupt) {
+              throw new Error(`Module "${this.$file.path}" threw an error (${resolved['[[Value]]'].message}) when resolving the binding named ${N['[[Value]]']}. Module chain searched:\n${chain.join('\n')}`);
+            }
+            if (resolved.isAmbiguous) {
+              throw new Error(`Module "${this.$file.path}" has an ambiguous export for the binding named ${N['[[Value]]']}. Module chain searched:\n${chain.join('\n')}`);
+            }
+          }
+          if (resolved.isNull) {
+            return null;
+          }
+          resolveSet.add(this, N);
+          return (resolved.Module as $ESModule).getDeclaringNode(N, resolveSet);
+        }
+        return binding.declaringNode;
+      }
+    }
   }
 
   // http://www.ecma-international.org/ecma-262/#sec-moduledeclarationinstantiation
@@ -1396,11 +1462,12 @@ export class $ESModule implements I$Node, IModule {
           return namespace;
         })(importedModule);
 
+        if (namespace.isAbrupt) { return namespace.enrichWith(ctx, this); } // TODO: sure about this? Spec doesn't say it
+
         // 9. c. ii. Perform ! envRec.CreateImmutableBinding(in.[[LocalName]], true).
-        envRec.CreateImmutableBinding(ctx, ie.LocalName, intrinsics.true);
+        envRec.CreateImmutableBinding(ctx, ie.LocalName, intrinsics.true, ie.source as $NamespaceImport);
 
         // 9. c. iii. Call envRec.InitializeBinding(in.[[LocalName]], namespace).
-        if (namespace.isAbrupt) { return namespace.enrichWith(ctx, this); } // TODO: sure about this? Spec doesn't say it
         envRec.InitializeBinding(ctx, ie.LocalName, namespace);
       }
       // 9. d. Else,
@@ -1414,8 +1481,10 @@ export class $ESModule implements I$Node, IModule {
           return new $SyntaxError(realm, `ResolveExport(${ie.ImportName}) returned ${resolution}`);
         }
 
+        const source = resolution.ExportEntry.source;
+
         // 9. d. iii. Call envRec.CreateImportBinding(in.[[LocalName]], resolution.[[Module]], resolution.[[BindingName]]).
-        envRec.CreateImportBinding(ctx, ie.LocalName, resolution.Module, resolution.BindingName);
+        envRec.CreateImportBinding(ctx, ie.LocalName, resolution.Module, resolution.BindingName, isValueDeclaration(source) ? source : null);
       }
     }
 
@@ -1433,7 +1502,7 @@ export class $ESModule implements I$Node, IModule {
         // 13. a. i. If dn is not an element of declaredVarNames, then
         if (!declaredVarNames.$contains(dn)) {
           // 13. a. i. 1. Perform ! envRec.CreateMutableBinding(dn, false).
-          envRec.CreateMutableBinding(ctx, dn, intrinsics.false);
+          envRec.CreateMutableBinding(ctx, dn, intrinsics.false, d);
 
           // 13. a. i. 2. Call envRec.InitializeBinding(dn, undefined).
           envRec.InitializeBinding(ctx, dn, intrinsics.undefined);
@@ -1454,12 +1523,12 @@ export class $ESModule implements I$Node, IModule {
         // 15. a. i. If IsConstantDeclaration of d is true, then
         if (d.IsConstantDeclaration) {
           // 15. a. i. 1. Perform ! envRec.CreateImmutableBinding(dn, true).
-          envRec.CreateImmutableBinding(ctx, dn, intrinsics.true);
+          envRec.CreateImmutableBinding(ctx, dn, intrinsics.true, d);
         }
         // 15. a. ii. Else,
         else {
           // 15. a. ii. 1. Perform ! envRec.CreateMutableBinding(dn, false).
-          envRec.CreateMutableBinding(ctx, dn, intrinsics.false);
+          envRec.CreateMutableBinding(ctx, dn, intrinsics.false, d);
 
           // 15. a. iii. If d is a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration, then
           if (d.$kind === SyntaxKind.FunctionDeclaration) {
@@ -1471,6 +1540,14 @@ export class $ESModule implements I$Node, IModule {
             envRec.InitializeBinding(ctx, dn, fo);
           }
         }
+      }
+    }
+
+    // custom TS stuff (experimental)
+    const namespaces = this.NamespaceDeclarations;
+    for (const d of namespaces) {
+      for (const dn of d.BoundNames) {
+        envRec.CreateImmutableBinding(ctx, dn, intrinsics.true, d);
       }
     }
 
@@ -1637,6 +1714,8 @@ export class $ESModule implements I$Node, IModule {
       let intermediate: MaybePromise<$String<'ambiguous'> | $Error> | undefined = void 0;
       // 8. For each ExportEntry Record e in module.[[StarExportEntries]], do
       for (const e of this.StarExportEntries) {
+        this.logger.debug(`Trying star export of "${e.ModuleRequest['[[Value]]']}"`);
+
         intermediate = awaitIfPromise(
           intermediate as unknown as MaybePromise<$String<'ambiguous'> | $Error>,
           value => value === void 0,
@@ -1694,7 +1773,23 @@ export class $ESModule implements I$Node, IModule {
         value => value === void 0,
         () => {
           if (starResolution.isNull) {
-            this.logger.warn(`[ResolveExport] starResolution is null for ${exportName['[[Value]]']}`);
+            this.logger.warn(() => {
+              let msg = `These were the exports available from "${this.$file.path}":`;
+
+              for (const e of this.LocalExportEntries) {
+                msg = `${msg}\n  local:    { ${e.LocalName} as ${e.ExportName} }`;
+              }
+
+              for (const e of this.IndirectExportEntries) {
+                msg = `${msg}\n  indirect: { ${e.LocalName} as ${e.ExportName} } from "${e.ModuleRequest}:`;
+              }
+
+              for (const e of this.StarExportEntries) {
+                msg = `${msg}\n  star:     * from "${e.ModuleRequest}"`;
+              }
+
+              return `[ResolveExport] starResolution is null for ${exportName['[[Value]]']}\n${msg}`;
+            });
           }
 
           // 9. Return starResolution.
@@ -2161,91 +2256,10 @@ export class $DocumentFragment implements I$Node, IModule {
   }
 }
 
-export type $$ModuleBody = (
-  $ModuleBlock |
-  $ModuleDeclaration
-);
-
 export type $$ModuleName = (
   $Identifier |
   $StringLiteral
 );
-
-export class $ModuleDeclaration implements I$Node {
-  public get $kind(): SyntaxKind.ModuleDeclaration { return SyntaxKind.ModuleDeclaration; }
-
-  public modifierFlags!: ModifierFlags;
-
-  public $name!: $$ModuleName;
-  public $body!: $Identifier | $ModuleBlock | $ModuleDeclaration | undefined;
-
-  public parent!: $ESModule | $$ModuleBody;
-  public readonly path: string;
-
-  private constructor(
-    public readonly node: ModuleDeclaration,
-    public readonly idx: number,
-    public readonly depth: number,
-    public readonly mos: $ESModule,
-    public readonly realm: Realm,
-    public readonly logger: ILogger,
-    path: string,
-  ) {
-    this.path = `${path}${$i(idx)}.ModuleDeclaration`;
-  }
-
-  public static create(
-    node: ModuleDeclaration,
-    idx: number,
-    depth: number,
-    mos: $ESModule,
-    realm: Realm,
-    logger: ILogger,
-    path: string,
-  ): $ModuleDeclaration {
-    const $node = new $ModuleDeclaration(node, idx, depth, mos, realm, logger, path);
-
-    $node.modifierFlags = modifiersToModifierFlags(node.modifiers);
-
-    if (node.name.kind === SyntaxKind.Identifier) {
-      ($node.$name = $Identifier.create(node.name, -1, depth + 1, mos, realm, logger, path)).parent = $node;
-    } else {
-      ($node.$name = $StringLiteral.create(node.name, -1, depth + 1, mos, realm, logger, path)).parent = $node;
-    }
-
-    if (node.body === void 0) {
-      $node.$body = void 0;
-    } else {
-      switch (node.body.kind) {
-        case SyntaxKind.Identifier:
-          $node.$body = $Identifier.create(node.body, -1, depth + 1, mos, realm, logger, path);
-          break;
-        case SyntaxKind.ModuleBlock:
-          $node.$body = $ModuleBlock.create(node.body, depth + 1, mos, realm, logger, path);
-          break;
-        case SyntaxKind.ModuleDeclaration:
-          $node.$body = $ModuleDeclaration.create(node.body, -1, depth + 1, mos, realm, logger, path);
-          break;
-        default:
-          throw new Error(`Unexpected syntax node: ${SyntaxKind[(node as Node).kind]}.`);
-      }
-      $node.$body.parent = $node;
-    }
-
-    return $node;
-  }
-
-  public hydrate(ctx: HydrateContext): this {
-    this.logger.trace(`${this.path}.hydrate()`);
-    this.$name.hydrate(ctx);
-    this.$body?.hydrate(ctx);
-    return this;
-  }
-
-  public transform(tctx: TransformationContext): this['node'] | undefined {
-    return void 0;
-  }
-}
 
 // http://www.ecma-international.org/ecma-262/#importentry-record
 /**
@@ -2425,12 +2439,23 @@ export class $ImportDeclaration implements I$Node {
     return this;
   }
 
-  public transform(tctx: TransformationContext): this['node'] {
+  public transform(tctx: TransformationContext): this['node'] | undefined {
     const sourceMos = this.mos;
     const targetMos = this.ModuleRequests[0].resolvedModule!;
     if (sourceMos.pkg !== targetMos.pkg) {
       const relativePath = `${computeRelativeDirectory(sourceMos.$file.dir, targetMos.$file.shortPath)}.js`;
-      const $importClause = this.$importClause instanceof $Undefined ? void 0 : this.$importClause.transform(tctx);
+      if (this.$importClause instanceof $Undefined) {
+        return createImportDeclaration(
+          /* decorators      */void 0,
+          /* modifiers       */void 0,
+          /* importClause    */void 0,
+          /* moduleSpecifier */createStringLiteral(relativePath),
+        );
+      }
+      const $importClause = this.$importClause.transform(tctx);
+      if ($importClause === void 0) {
+        return void 0;
+      }
       return createImportDeclaration(
         /* decorators      */void 0,
         /* modifiers       */void 0,
@@ -2440,7 +2465,18 @@ export class $ImportDeclaration implements I$Node {
     }
 
     const jsPath = `${this.$moduleSpecifier.StringValue['[[Value]]']}.js`;
-    const $importClause = this.$importClause instanceof $Undefined ? void 0 : this.$importClause.transform(tctx);
+    if (this.$importClause instanceof $Undefined) {
+      return createImportDeclaration(
+        /* decorators      */void 0,
+        /* modifiers       */void 0,
+        /* importClause    */void 0,
+        /* moduleSpecifier */createStringLiteral(jsPath),
+      );
+    }
+    const $importClause = this.$importClause.transform(tctx);
+    if ($importClause === void 0) {
+      return void 0;
+    }
     return createImportDeclaration(
       /* decorators      */void 0,
       /* modifiers       */void 0,
@@ -2541,7 +2577,7 @@ export class $ImportClause implements I$Node {
     return this;
   }
 
-  public transform(tctx: TransformationContext): this['node'] {
+  public transform(tctx: TransformationContext): this['node'] | undefined {
     const node = this.node;
     const $name = this.$name instanceof $Undefined ? void 0 : this.$name.transform(tctx);
     const $namedBindings = this.$namedBindings === void 0 ? void 0 : this.$namedBindings.transform(tctx);
@@ -2551,6 +2587,10 @@ export class $ImportClause implements I$Node {
       $namedBindings === node.namedBindings
     ) {
       return node;
+    }
+
+    if ($name === void 0 && $namedBindings === void 0) {
+      return void 0;
     }
 
     return createImportClause(
@@ -2605,6 +2645,7 @@ export class $NamedImports implements I$Node {
   }
 
   public hydrate(ctx: HydrateContext, moduleSpecifier: $String): this {
+    this.moduleSpecifier = moduleSpecifier;
     this.$elements.forEach(x => x.hydrate(ctx, moduleSpecifier));
     this.BoundNames = this.$elements.flatMap(getBoundNames);
     this.ImportEntriesForModule = this.$elements.flatMap(getImportEntriesForModule);
@@ -2709,48 +2750,20 @@ export class $ImportSpecifier implements I$Node {
     return this.isValueAliasDeclaration ? this.node : void 0;
   }
 
-  private _valueDeclaration: ExportEntryRecord['source'] | undefined = void 0;
-  public get valueDeclaration(): ExportEntryRecord['source'] {
+  private _valueDeclaration: $$ValueDeclaration | undefined | null = void 0;
+  public get valueDeclaration(): $$ValueDeclaration | null {
     let valueDeclaration = this._valueDeclaration;
     if (valueDeclaration === void 0) {
-      const mos = this.mos;
-      switch (mos.Status) {
-        case 'uninstantiated':
-        case 'instantiating':
-          throw new Error(`Module needs to be instantiated before valueDeclaration can be retrieved. Module is still ${mos.Status}`);
-        case 'instantiated':
-        case 'evaluating':
-        case 'evaluated': {
-          const binding = mos.ResolveExport(
-            /* ctx        */mos.realm.stack.top,
-            /* exportName */this.$propertyName instanceof $Undefined ? this.$name.StringValue : this.$propertyName.StringValue,
-            /* resolveSet */new ResolveSet(),
-          ) as ResolvedBindingRecord;
-          valueDeclaration = this._valueDeclaration = binding.ExportEntry.source;
-          break;
-        }
-      }
+      const name = this.$propertyName instanceof $Undefined ? this.$name.StringValue : this.$propertyName.StringValue;
+      const mos = this.mos.ws.ResolveImportedModule(this.realm, this.mos, this.parent.moduleSpecifier) as $ESModule;
+      valueDeclaration = this._valueDeclaration = mos.getDeclaringNode(name);
     }
 
     return valueDeclaration;
   }
 
   public get isValueAliasDeclaration(): boolean {
-    switch (this.valueDeclaration.$kind) {
-      case SyntaxKind.VariableStatement:
-      case SyntaxKind.FunctionDeclaration:
-      case SyntaxKind.ClassDeclaration:
-        return true; // TODO: elide ambient declarations
-      case SyntaxKind.InterfaceDeclaration:
-      case SyntaxKind.TypeAliasDeclaration:
-        return false;
-      case SyntaxKind.EnumDeclaration:
-        return true; // TODO: factor in const enum and settings
-      case SyntaxKind.ExportDeclaration:
-      case SyntaxKind.ExportSpecifier:
-      case SyntaxKind.SourceFile:
-        throw new Error(`Unexpected value declaration kind: ${SyntaxKind[this.valueDeclaration.$kind]}`); // TODO: shouldn't be possible, probably need to fix typings a bit
-    }
+    return this.valueDeclaration !== null;
   }
 }
 
@@ -2834,7 +2847,7 @@ export class $NamespaceImport implements I$Node {
  */
 export class ExportEntryRecord {
   public constructor(
-    public readonly source: $FunctionDeclaration | $ClassDeclaration | $VariableStatement | $ExportDeclaration | $ExportSpecifier | $ESModule | $TypeAliasDeclaration | $InterfaceDeclaration | $EnumDeclaration,
+    public readonly source: $FunctionDeclaration | $ClassDeclaration | $VariableStatement | $ExportDeclaration | $ExportSpecifier | $ESModule | $TypeAliasDeclaration | $InterfaceDeclaration | $EnumDeclaration | $ModuleDeclaration,
     public readonly ExportName: $String | $Null,
     public readonly ModuleRequest: $String | $Null,
     public readonly ImportName: $String | $Null,
@@ -3257,55 +3270,19 @@ export class $ExportSpecifier implements I$Node {
     return this.isValueAliasDeclaration ? this.node : void 0;
   }
 
-  private _valueDeclaration: ExportEntryRecord['source'] | undefined = void 0;
-  public get valueDeclaration(): ExportEntryRecord['source'] {
+  private _valueDeclaration: $$ValueDeclaration | undefined | null = void 0;
+  public get valueDeclaration(): $$ValueDeclaration | null {
     let valueDeclaration = this._valueDeclaration;
     if (valueDeclaration === void 0) {
-      const mos = this.mos;
-      switch (mos.Status) {
-        case 'uninstantiated':
-        case 'instantiating':
-          throw new Error(`Module needs to be instantiated before valueDeclaration can be retrieved. Module is still ${mos.Status}`);
-        case 'instantiated':
-        case 'evaluating':
-        case 'evaluated': {
-          const binding = mos.ResolveExport(
-            /* ctx        */mos.realm.stack.top,
-            /* exportName */this.ExportedNames[0],
-            /* resolveSet */new ResolveSet(),
-          ) as ResolvedBindingRecord;
-          valueDeclaration = this._valueDeclaration = binding.ExportEntry.source;
-          // TODO: this is very flaky and only temporary. We need to use env rec binding resolution
-          if (valueDeclaration.$kind === SyntaxKind.ExportSpecifier) {
-            const source = valueDeclaration.mos.LexicallyScopedDeclarations.find(x => x.BoundNames.some(b => b.is(binding.ExportEntry.LocalName)));
-            if (source !== void 0) {
-              valueDeclaration = this._valueDeclaration = source as any;
-            }
-          }
-          break;
-        }
-      }
+      const name = this.$propertyName instanceof $Undefined ? this.$name.StringValue : this.$propertyName.StringValue;
+      valueDeclaration = this._valueDeclaration = this.mos.getDeclaringNode(name);
     }
 
-    return valueDeclaration as any;
+    return valueDeclaration;
   }
 
   public get isValueAliasDeclaration(): boolean {
-    switch (this.valueDeclaration.$kind) {
-      case SyntaxKind.VariableStatement:
-      case SyntaxKind.FunctionDeclaration:
-      case SyntaxKind.ClassDeclaration:
-        return true; // TODO: elide ambient declarations
-      case SyntaxKind.InterfaceDeclaration:
-      case SyntaxKind.TypeAliasDeclaration:
-        return false;
-      case SyntaxKind.EnumDeclaration:
-        return true; // TODO: factor in const enum and settings
-      case SyntaxKind.ExportDeclaration:
-      case SyntaxKind.ExportSpecifier:
-      case SyntaxKind.SourceFile:
-        throw new Error(`Unexpected value declaration kind: ${SyntaxKind[this.valueDeclaration.$kind]}`); // TODO: shouldn't be possible, probably need to fix typings a bit
-    }
+    return this.valueDeclaration !== null;
   }
 }
 
@@ -3352,50 +3329,6 @@ export class $NamespaceExportDeclaration implements I$Node {
   public hydrate(ctx: HydrateContext): this {
     this.logger.trace(`${this.path}.hydrate()`);
     this.$name.hydrate(ctx);
-
-    return this;
-  }
-
-  public transform(tctx: TransformationContext): this['node'] {
-    return this.node;
-  }
-}
-
-export class $ModuleBlock implements I$Node {
-  public get $kind(): SyntaxKind.ModuleBlock { return SyntaxKind.ModuleBlock; }
-
-  // TODO: ModuleBlock shares a lot in common with SourceFile, so we implement this last to try to maximize code reuse / reduce refactoring overhead and/or see if the two can be consolidated.
-  public $statements: readonly $$TSModuleItem[] = emptyArray;
-
-  public parent!: $ModuleDeclaration;
-  public readonly path: string;
-
-  private constructor(
-    public readonly node: ModuleBlock,
-    public readonly depth: number,
-    public readonly mos: $ESModule,
-    public readonly realm: Realm,
-    public readonly logger: ILogger,
-    path: string,
-  ) {
-    this.path = `${path}.ModuleBlock`;
-  }
-
-  public static create(
-    node: ModuleBlock,
-    depth: number,
-    mos: $ESModule,
-    realm: Realm,
-    logger: ILogger,
-    path: string,
-  ): $ModuleBlock {
-    const $node = new $ModuleBlock(node, depth, mos, realm, logger, path);
-    return $node;
-  }
-
-  public hydrate(ctx: HydrateContext): this {
-    this.logger.trace(`${this.path}.hydrate()`);
-    this.$statements.forEach(x => x.hydrate(ctx));
 
     return this;
   }

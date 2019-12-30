@@ -882,7 +882,7 @@ export class $ClassDeclaration implements I$Node {
       );
 
       const classExprDecl = createVariableStatement(
-        /* modifiers       */void 0,
+        /* modifiers       */transformedModifiers === void 0 ? node.modifiers : transformedModifiers,
         /* declarationList */createVariableDeclarationList(
           /* declarations    */[
             createVariableDeclaration(
@@ -947,7 +947,7 @@ export class $ClassDeclaration implements I$Node {
     // 4. If classBinding is not undefined, then
     if (!classBinding.isUndefined) {
       // 4. a. Perform classScopeEnvRec.CreateImmutableBinding(classBinding, true).
-      classScope.CreateImmutableBinding(ctx, classBinding, intrinsics.true);
+      classScope.CreateImmutableBinding(ctx, classBinding, intrinsics.true, null);
     }
 
     let protoParent: $Object | $Null;

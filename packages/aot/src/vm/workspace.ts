@@ -124,6 +124,8 @@ export class Workspace implements IContainer {
     return this._files;
   }
 
+  public lastCommonRootDir: string = '';
+
   private readonly logger: ILogger;
   private readonly fs: IFileSystem;
   private readonly loader: NPMPackageLoader;
@@ -340,7 +342,7 @@ export class Workspace implements IContainer {
       ...this._scripts,
     ];
 
-    const commonRootDir = computeCommonRootDirectory(inputs.map(getDirFromFile));
+    const commonRootDir = this.lastCommonRootDir = computeCommonRootDirectory(inputs.map(getDirFromFile));
     const commonRootDirLength = commonRootDir.length;
 
     this.logger.info(`Emitting ${inputs.length} files (with common root dir: "${commonRootDir}") to: "${outDir}"`);

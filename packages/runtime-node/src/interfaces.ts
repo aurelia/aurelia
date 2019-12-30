@@ -117,8 +117,14 @@ export interface IHttpServerOptions {
   readonly level: LogLevel;
 }
 
+export class StartOutput {
+  public constructor(
+    public readonly realPort: number,
+  ) {}
+}
+
 export interface IHttpServer {
-  start(): Promise<void>;
+  start(): Promise<StartOutput>;
   stop(): Promise<void>;
 }
 

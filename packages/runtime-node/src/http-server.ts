@@ -1,7 +1,7 @@
 import * as http from 'http';
 
 import { ILogger, bound, all, IContainer } from '@aurelia/kernel';
-import { IHttpServer, IHttpServerOptions, IRequestHandler } from './interfaces';
+import { IHttpServer, IHttpServerOptions, IRequestHandler, StartOutput } from './interfaces';
 import { AddressInfo } from 'net';
 import { HTTPStatusCode, readBuffer } from './http-utils';
 import { HttpContext } from './http-context';
@@ -22,7 +22,7 @@ export class HttpServer implements IHttpServer {
     this.logger = logger.root.scopeTo('HttpServer');
   }
 
-  public async start(): Promise<void> {
+  public async start(): Promise<StartOutput> {
     this.logger.debug(`start()`);
 
     const { hostName, port } = this.opts;
@@ -33,6 +33,8 @@ export class HttpServer implements IHttpServer {
 
     const { address, port: realPort } = this.server.address() as AddressInfo;
     this.logger.info(`Now listening on ${address}:${realPort} (configured: ${hostName}:${port})`);
+
+    return new StartOutput(realPort);
   }
 
   public async stop(): Promise<void> {

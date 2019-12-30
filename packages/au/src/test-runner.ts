@@ -85,6 +85,9 @@ export class TestRunner {
     const fs = container.get(IFileSystem);
     const serviceHost = container.get(ServiceHost);
 
+    const logger = container.get(ILogger);
+    logger.info(`Starting test runner with scratchDir ${scratchDir} and entryFile ${entryFile}`);
+
     // compile/bundle
     const result = await serviceHost.execute({ entries: [{ file: entryFile }] });
     if (await fs.isReadable(scratchDir) && wipeScratchDir) {

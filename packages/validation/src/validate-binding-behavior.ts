@@ -47,7 +47,6 @@ export const IDefaultTrigger = DI.createInterface<ValidationTrigger>('IDefaultTr
  */
 @bindingBehavior('validate')
 export class ValidateBindingBehavior extends BindingInterceptor {
-  private rules: PropertyRule[] = [];
   private target: HTMLElement = (void 0)!;
   private controller!: IValidationController;
   private isChangeTrigger!: boolean;
@@ -85,19 +84,13 @@ export class ValidateBindingBehavior extends BindingInterceptor {
     this.binding.$bind(flags, scope, part);
 
     // identify the target element.
-    const target = this.target = this.binding.target as HTMLElement; // TODO need additional processing for CE, and CA.
-    const trigger = this.processBindingExpressionArgs(flags);
-    this.isChangeTrigger = trigger === ValidationTrigger.change || trigger === ValidationTrigger.changeOrBlur;
-
-    this.controller.registerBinding(this.binding, target, scope, this.rules);
-    if (trigger === ValidationTrigger.blur || trigger === ValidationTrigger.changeOrBlur) {
-      target.addEventListener('blur', this);
-    }
+    this.target = this.binding.target as HTMLElement; // TODO need additional processing for CE, and CA.
+    const [trigger, rules] = this.processBindingExpressionArgs(flags);
+    this.processDelta(new Delta(void 0, trigger, rules));
   }
 
   public $unbind(flags: LifecycleFlags) {
-    this.target.removeEventListener('blur', this);
-    this.controller.deregisterBinding(this.binding);
+    this.processDelta(void 0);
     this.binding.$unbind(flags);
     for (const expr of this.connectedExpressions) {
       if (expr.unbind !== void 0) {
@@ -106,13 +99,27 @@ export class ValidateBindingBehavior extends BindingInterceptor {
     }
   }
 
-  private processBindingExpressionArgs(flags: LifecycleFlags): ValidationTrigger {
+  public handleTriggerChange(newValue: unknown, _previousValue: unknown, _flags: LifecycleFlags): void {
+    this.processDelta(new Delta(void 0, newValue as ValidationTrigger, void 0));
+  }
+
+  public handleControllerChange(newValue: unknown, _previousValue: unknown, _flags: LifecycleFlags): void {
+    console.log('controller changed', newValue, _previousValue);
+    this.processDelta(new Delta(newValue as ValidationController, void 0, void 0));
+  }
+
+  public handleRulesChange(newValue: unknown, _previousValue: unknown, _flags: LifecycleFlags): void {
+    console.log('rules changed', newValue, _previousValue);
+    this.processDelta(new Delta(void 0, void 0, newValue as PropertyRule[]));
+  }
+
+  private processBindingExpressionArgs(flags: LifecycleFlags): [ValidationTrigger, PropertyRule[]?] {
     const binding = this.binding;
     const scope: IScope = this.scope;
     const locator = binding.locator;
     let trigger: ValidationTrigger = (void 0)!;
     let controller: IValidationController = (void 0)!;
-    let rules: PropertyRule[] = (void 0)!;
+    let rules: PropertyRule[] | undefined;
 
     const args = binding.sourceExpression.args;
     for (const arg of args) {
@@ -139,8 +146,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
     if (trigger === void 0) {
       trigger = this.defaultTrigger;
     }
-    this.rules = rules;
-    return trigger;
+    return [trigger, rules];
   }
 
   private validateBinding() {
@@ -149,18 +155,36 @@ export class ValidateBindingBehavior extends BindingInterceptor {
     });
   }
 
-  public handleTriggerChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
-    console.log('trigger changed', newValue, _previousValue);
-    // TODO handle individual changes
-  }
+  private processDelta(delta?: Delta) {
+    if (this.target !== void 0) {
+      this.target.removeEventListener('blur', this);
+    }
+    if (this.controller !== void 0) {
+      this.controller.deregisterBinding(this.binding);
+    }
+    if (delta === void 0) { return; }
 
-  public handleControllerChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
-    console.log('controller changed', newValue, _previousValue);
-    // TODO handle individual changes
-  }
+    const trigger = delta.trigger;
+    const rules = delta.rules;
+    const controller = delta.controller;
+    if (trigger !== void 0) {
+      this.isChangeTrigger = trigger === ValidationTrigger.change || trigger === ValidationTrigger.changeOrBlur;
+    }
+    if (controller !== void 0) {
+      this.controller = controller;
+    }
 
-  public handleRulesChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
-    console.log('rules changed', newValue, _previousValue);
-    // TODO handle individual changes
+    this.controller.registerBinding(this.binding, this.target, this.scope, rules);
+    if (trigger === ValidationTrigger.blur || trigger === ValidationTrigger.changeOrBlur) {
+      this.target.addEventListener('blur', this);
+    }
   }
+}
+
+class Delta {
+  public constructor(
+    public controller?: ValidationController,
+    public trigger?: ValidationTrigger,
+    public rules?: PropertyRule[]
+  ) { }
 }

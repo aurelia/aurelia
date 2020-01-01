@@ -158,20 +158,17 @@ export class ValidateBindingBehavior extends BindingInterceptor {
     const trigger = delta?.trigger ?? this.trigger;
     const controller = delta?.controller ?? this.controller;
     const rules = delta?.rules;
-    // console.log(`processDelta, trigger: ${trigger}`);
     if (this.trigger !== trigger) {
       if (this.trigger === ValidationTrigger.blur || this.trigger === ValidationTrigger.changeOrBlur) {
         this.target.removeEventListener('blur', this);
       }
       this.trigger = trigger;
-      // console.log(`reacting on trigger change`);
       this.isChangeTrigger = trigger === ValidationTrigger.change || trigger === ValidationTrigger.changeOrBlur;
       if (trigger === ValidationTrigger.blur || trigger === ValidationTrigger.changeOrBlur) {
-        // console.log('adding blur event handler');
         this.target.addEventListener('blur', this);
       }
     }
-    if (this.controller !== controller) {
+    if (this.controller !== controller || rules !== void 0) {
       this.controller?.deregisterBinding(this.binding);
       this.controller = controller;
       controller.registerBinding(this.binding, this.target, this.scope, rules);

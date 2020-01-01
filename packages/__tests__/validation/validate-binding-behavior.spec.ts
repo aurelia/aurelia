@@ -9,7 +9,10 @@ import {
   IValidationRules,
   ValidationConfiguration,
   ValidationController,
-  ValidationTrigger
+  ValidationTrigger,
+  PropertyRule,
+  RangeRule,
+  RequiredRule
 } from '@aurelia/validation';
 import { Spy } from '../Spy';
 import { Person } from './_test-resources';
@@ -24,6 +27,8 @@ describe.only('validate-biniding-behavior', function () {
     public controllerSpy: Spy;
     public controller2Spy: Spy;
     public trigger: ValidationTrigger = ValidationTrigger.change;
+    public ageMinRule: PropertyRule;
+    public tempAgeRule: PropertyRule[] = (void 0)!;
 
     public constructor(
       @IContainer container: IContainer,
@@ -39,7 +44,7 @@ describe.only('validate-biniding-behavior', function () {
       this.controller2 = this.controller2Spy.getMock(factory.create()) as unknown as ValidationController;
 
       const validationRules = container.get(IValidationRules);
-      validationRules
+      const rules = validationRules
         .on(this.person)
 
         .ensure('name')
@@ -47,7 +52,11 @@ describe.only('validate-biniding-behavior', function () {
 
         .ensure('age')
         .required()
-        .min(42);
+        .min(42)
+        .rules;
+
+      const ageRule = rules.find((rule) => rule.property.name === 'age')!;
+      this.ageMinRule = new PropertyRule(ageRule.validationRules, ageRule.messageProvider, ageRule.property, [[ageRule.$rules[0].find((rule) => rule instanceof RangeRule)]]);
     }
   }
 
@@ -302,7 +311,98 @@ describe.only('validate-biniding-behavior', function () {
     ` }
   );
 
-  // TODO test with 2 different triggers with bound controller
-  // TODO test with bound rules set
+  $it('handles the trigger-controller combo correctly',
+    async function ({ app, host, container }: TestContext<App>) {
+      const scheduler = container.get(IScheduler);
+      const controller = app.controller;
+      const controllerSpy = app.controllerSpy;
+      const controller2 = app.controller2;
+      const controller2Spy = app.controller2Spy;
+
+      const target1: HTMLInputElement = (host as Element).querySelector("#target1");
+      const target2: HTMLInputElement = (host as Element).querySelector("#target2");
+      assertControllerBinding(controller, 'person.name', target1, controllerSpy);
+      assertControllerBinding(controller2, 'person.age', target2, controller2Spy);
+
+      await assertEventHandler(target1, 'blur', 1, scheduler, controllerSpy);
+      await assertEventHandler(target2, 'blur', 0, scheduler, controller2Spy);
+      assert.equal(controller.errors.filter((e) => !e.valid && e.propertyName === 'name').length, 1, 'error1');
+      assert.equal(controller2.errors.filter((e) => !e.valid && e.propertyName === 'age').length, 0, 'error2');
+
+      target1.value = 'foo';
+      target2.value = '41';
+      await assertEventHandler(target1, 'change', 0, scheduler, controllerSpy);
+      await assertEventHandler(target2, 'change', 1, scheduler, controller2Spy);
+      assert.equal(controller.errors.filter((e) => !e.valid && e.propertyName === 'name').length, 1, 'error3');
+      assert.equal(controller2.errors.filter((e) => !e.valid && e.propertyName === 'age').length, 1, 'error4');
+    },
+    {
+      template: `
+    <input id="target1" type="text" value.two-way="person.name & validate:'blur':controller">
+    <input id="target2" type="text" value.two-way="person.age & validate:'change':controller2">
+    ` }
+  );
+
+  $it('respects bound rules',
+    async function ({ app, host, container }: TestContext<App>) {
+      const scheduler = container.get(IScheduler);
+      const controller = app.controller;
+      const controllerSpy = app.controllerSpy;
+
+      const target2: HTMLInputElement = (host as Element).querySelector("#target2");
+      assertControllerBinding(controller, 'person.age', target2, controllerSpy);
+
+      target2.value = '41';
+      await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy);
+      assert.equal(controller.errors.filter((e) => e.propertyName === 'age').length, 1, 'error2');
+
+      target2.value = '42';
+      await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy);
+      assert.equal(controller.errors.filter((e) => e.propertyName === 'age').length, 0, 'error3');
+    },
+    {
+      template: `
+    <input id="target2" type="text" value.two-way="person.age & validate:'change':controller1:[ageMinRule]">
+    ` }
+  );
+
+  $it('respects change in value of bound rules',
+    async function ({ app, host, container }: TestContext<App>) {
+      const scheduler = container.get(IScheduler);
+      const controller = app.controller;
+      const controllerSpy = app.controllerSpy;
+
+      const target2: HTMLInputElement = (host as Element).querySelector("#target2");
+      assertControllerBinding(controller, 'person.age', target2, controllerSpy);
+
+      target2.value = '41';
+      await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy);
+      assert.equal(controller.errors.filter((e) => e.propertyName === 'age' && e.rule instanceof RangeRule).length, 1, 'error2');
+      assert.equal(controller.errors.filter((e) => e.propertyName === 'age' && e.rule instanceof RequiredRule).length, 0, 'error3');
+
+      target2.value = '42';
+      await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy);
+      assert.equal(controller.errors.filter((e) => e.propertyName === 'age').length, 0, 'error4');
+
+      app.tempAgeRule = [app.ageMinRule];
+      await scheduler.yieldAll();
+
+      target2.value = '';
+      await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy);
+      assert.equal(controller.errors.filter((e) => e.propertyName === 'age' && e.rule instanceof RequiredRule).length, 0, 'error4');
+
+      target2.value = '41';
+      await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy);
+      assert.equal(controller.errors.filter((e) => e.propertyName === 'age' && e.rule instanceof RangeRule).length, 1, 'error5');
+
+      target2.value = '42';
+      await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy);
+      assert.equal(controller.errors.filter((e) => e.propertyName === 'age').length, 0, 'error6');
+    },
+    {
+      template: `
+    <input id="target2" type="text" value.two-way="person.age & validate:'change':controller1:tempAgeRule">
+    ` }
+  );
   // TODO test for argument parsing
 });

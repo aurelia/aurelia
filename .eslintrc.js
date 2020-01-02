@@ -33,7 +33,7 @@ module.exports = {
   rules: {
     // Opinionated overrides of the default recommended rules:
     '@typescript-eslint/ban-ts-ignore': 'warn',
-    '@typescript-eslint/indent': ['error', 2],
+    '@typescript-eslint/indent': 'off', // Disabled until typescript-eslint properly fixes indentation (see https://github.com/typescript-eslint/typescript-eslint/issues/1232) - there are recurring issues and breaking changes, and this rule usually isn't violated due to autoformatting anyway.
     '@typescript-eslint/interface-name-prefix': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/no-empty-interface': 'off',
@@ -54,7 +54,7 @@ module.exports = {
     '@typescript-eslint/array-type': 'error',
     '@typescript-eslint/ban-types': ['error', {
       'types': {
-        '{}': 'Avoid using the `{}` type. Prefer a specific lookup type, like `Record<string, unknown>`, or use `object` (lowercase) when referring simply to non-primitives.',
+        // '{}': 'Avoid using the `{}` type. Prefer a specific lookup type, like `Record<string, unknown>`, or use `object` (lowercase) when referring simply to non-primitives.',
         Function: 'Avoid using the `Function` type. Prefer a specific function type, like `() => void`, or use `Constructable` / `Class<TProto, TStatic>` when referring to a constructor function.',
         Boolean: { message: 'Use boolean instead', fixWith: 'boolean' },
         Number: { message: 'Use number instead', fixWith: 'number' },
@@ -122,7 +122,7 @@ module.exports = {
     'import/no-unassigned-import': 'error',
     'import/no-useless-path-segments': ['error'],
     'import/order': ['error', { 'groups': [], 'newlines-between': 'ignore' }],
-    'import/no-deprecated': 'off',
+    'import/no-deprecated': 'off', // this rule is extremely slow (takes 95% of the time of the full lint operation) so we disable it for that reason only
     'jsdoc/check-alignment': 'error',
     'jsdoc/check-indentation': 'error',
     'jsdoc/check-tag-names': ['error', {

@@ -54,7 +54,7 @@ module.exports = {
     '@typescript-eslint/array-type': 'error',
     '@typescript-eslint/ban-types': ['error', {
       'types': {
-        '{}': 'Avoid using the `{}` type. Prefer a specific lookup type, like `Record<string, unknown>`, or use `object` (lowercase) when referring simply to non-primitives.',
+        // '{}': 'Avoid using the `{}` type. Prefer a specific lookup type, like `Record<string, unknown>`, or use `object` (lowercase) when referring simply to non-primitives.',
         Function: 'Avoid using the `Function` type. Prefer a specific function type, like `() => void`, or use `Constructable` / `Class<TProto, TStatic>` when referring to a constructor function.',
         Boolean: { message: 'Use boolean instead', fixWith: 'boolean' },
         Number: { message: 'Use number instead', fixWith: 'number' },

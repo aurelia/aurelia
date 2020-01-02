@@ -5,7 +5,7 @@ import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
 import { ResourceType, Protocol } from './resource';
 import { Metadata } from './metadata';
-import { isNumeric, isNativeFunction, isObject } from './functions';
+import { isArrayIndex, isNativeFunction, isObject } from './functions';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -99,7 +99,7 @@ function cloneArrayWithPossibleProps<T>(source: readonly T[]): T[] {
   let key: string;
   for (let i = 0; i < len; ++i) {
     key = keys[i];
-    if (!isNumeric(key)) {
+    if (!isArrayIndex(key)) {
       clone[key] = source[key];
     }
   }
@@ -190,7 +190,7 @@ export class DI {
           let key: string;
           for (let i = 0; i < len; ++i) {
             key = keys[i];
-            if (!isNumeric(key)) {
+            if (!isArrayIndex(key)) {
               dependencies[key] = annotationParamtypes[key];
             }
           }

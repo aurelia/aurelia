@@ -8,7 +8,8 @@ import {
   GetterObserver,
   SetterObserver,
   MapObserver,
-  CustomSetterObserver
+  CustomSetterObserver,
+  IDirtyChecker
 } from '@aurelia/runtime';
 import {
   Constructable
@@ -233,6 +234,28 @@ describe('simple Computed Observer test case', function () {
         assert.strictEqual(host.textContent, '30');
         ctx.container.get(IScheduler).getRenderTaskQueue().flush();
         assert.strictEqual(host.textContent, '31');
+      }
+    },
+    {
+      title: 'works with array index',
+      template: `\${total}`,
+      ViewModel: class AppBase implements IApp {
+        public items: IAppItem[] = Array.from({ length: 10 }, (_, idx) => {
+          return { name: `i-${idx}`, value: idx + 1, isDone: idx % 2 === 0 };
+        });
+
+        public get total(): number {
+          return this.items[0].value;
+        }
+      },
+      assertFn: (ctx, host, component) => {
+        const dirtyChecker = ctx.container.get(IDirtyChecker) as any;
+        assert.strictEqual((dirtyChecker.tracked as any[]).length, 0, 'Should have had no dirty checking');
+        assert.html.textContent(host, '1');
+        component.items.splice(0, 1, { name: 'mock', value: 1000 });
+        assert.html.textContent(host, '1');
+        ctx.container.get(IScheduler).getRenderTaskQueue().flush();
+        assert.html.textContent(host, '1000');
       }
     },
     {

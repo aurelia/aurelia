@@ -1,4 +1,4 @@
-import { isNumeric, PLATFORM, Reporter, isNumberOrBigInt, isStringOrDate, } from '@aurelia/kernel';
+import { PLATFORM, Reporter, isNumberOrBigInt, isStringOrDate, } from '@aurelia/kernel';
 import { BindingContext } from '../observation/binding-context';
 import { ProxyObserver } from '../observation/proxy-observer';
 import { ISignaler } from '../observation/signaler';
@@ -420,17 +420,8 @@ export class AccessKeyedExpression {
         if (obj instanceof Object) {
             this.key.connect(flags, scope, binding, part);
             const key = this.key.evaluate(flags, scope, null, part);
-            if (Array.isArray(obj) && isNumeric(key)) {
-                // Only observe array indexers in proxy mode
-                if (flags & 2 /* proxyStrategy */) {
-                    binding.observeProperty(flags, obj, key);
-                }
-            }
-            else {
-                // observe the property represented by the key as long as it's not an array indexer
-                // (note: string indexers behave the same way as numeric indexers as long as they represent numbers)
-                binding.observeProperty(flags, obj, key);
-            }
+            // (note: string indexers behave the same way as numeric indexers as long as they represent numbers)
+            binding.observeProperty(flags, obj, key);
         }
     }
     accept(visitor) {

@@ -21,7 +21,7 @@
         let key;
         for (let i = 0; i < len; ++i) {
             key = keys[i];
-            if (!functions_1.isNumeric(key)) {
+            if (!functions_1.isArrayIndex(key)) {
                 clone[key] = source[key];
             }
         }
@@ -107,7 +107,7 @@
                         let key;
                         for (let i = 0; i < len; ++i) {
                             key = keys[i];
-                            if (!functions_1.isNumeric(key)) {
+                            if (!functions_1.isArrayIndex(key)) {
                                 dependencies[key] = annotationParamtypes[key];
                             }
                         }

@@ -21,7 +21,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
-import { isNumeric, PLATFORM, } from '@aurelia/kernel';
+import { isArrayIndex, PLATFORM, } from '@aurelia/kernel';
 export const { getPrototypeOf, getOwnPropertyDescriptor, getOwnPropertyDescriptors, getOwnPropertyNames, getOwnPropertySymbols, defineProperty, defineProperties, } = Object;
 export const Object_keys = Object.keys;
 export const Object_is = Object.is;
@@ -181,10 +181,10 @@ export function isWeakMap(value) {
 }
 export function getOwnNonIndexProperties(val, showHidden) {
     if (showHidden) {
-        return getOwnPropertyNames(val).filter(k => !isNumeric(k));
+        return getOwnPropertyNames(val).filter(k => !isArrayIndex(k));
     }
     else {
-        return Object_keys(val).filter(k => !isNumeric(k));
+        return Object_keys(val).filter(k => !isArrayIndex(k));
     }
 }
 export function getEnumerables(val, keys) {

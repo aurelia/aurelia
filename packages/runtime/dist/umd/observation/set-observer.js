@@ -162,6 +162,9 @@
             }
             return this.lengthObserver;
         }
+        getIndexObserver(index) {
+            throw new Error('Set index observation not supported');
+        }
         flushBatch(flags) {
             this.inBatch = false;
             const { indexMap, collection } = this;

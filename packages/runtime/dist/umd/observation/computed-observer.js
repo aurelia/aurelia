@@ -210,7 +210,7 @@
                 // (for Map and Set at least) or they will throw.
                 switch (toStringTag.call(target)) {
                     case '[object Array]':
-                        if (key === 'length' || kernel_1.isNumeric(key)) {
+                        if (key === 'length' || kernel_1.isArrayIndex(key)) {
                             observer.addCollectionDep(observerLocator.getArrayObserver(flags, target));
                             return proxyOrValue(flags, target, key, observerLocator, observer);
                         }

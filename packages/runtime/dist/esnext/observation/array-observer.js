@@ -2,7 +2,7 @@ import { __decorate, __metadata } from "tslib";
 import { ILifecycle } from '../lifecycle';
 import { createIndexMap } from '../observation';
 import { CollectionLengthObserver } from './collection-length-observer';
-import { collectionSubscriberCollection } from './subscriber-collection';
+import { collectionSubscriberCollection, subscriberCollection } from './subscriber-collection';
 const observerLookup = new WeakMap();
 // https://tc39.github.io/ecma262/#sec-sortcompare
 function sortCompare(x, y) {
@@ -393,6 +393,7 @@ let ArrayObserver = class ArrayObserver {
             enableArrayObservation();
         }
         this.inBatch = false;
+        this.indexObservers = {};
         this.collection = array;
         this.persistentFlags = flags & 2080374799 /* persistentBindingFlags */;
         this.indexMap = createIndexMap(array.length);
@@ -417,6 +418,9 @@ let ArrayObserver = class ArrayObserver {
         }
         return this.lengthObserver;
     }
+    getIndexObserver(index) {
+        return this.getOrCreateIndexObserver(index);
+    }
     flushBatch(flags) {
         this.inBatch = false;
         const indexMap = this.indexMap;
@@ -427,12 +431,93 @@ let ArrayObserver = class ArrayObserver {
             this.lengthObserver.setValue(length, 16 /* updateTargetInstance */);
         }
     }
+    /**
+     * @internal used by friend class ArrayIndexObserver only
+     */
+    addIndexObserver(indexObserver) {
+        this.addCollectionSubscriber(indexObserver);
+    }
+    /**
+     * @internal used by friend class ArrayIndexObserver only
+     */
+    removeIndexObserver(indexObserver) {
+        this.removeCollectionSubscriber(indexObserver);
+    }
+    /**
+     * @internal
+     */
+    getOrCreateIndexObserver(index) {
+        const indexObservers = this.indexObservers;
+        let observer = indexObservers[index];
+        if (observer === void 0) {
+            observer = indexObservers[index] = new ArrayIndexObserver(this, index);
+        }
+        return observer;
+    }
 };
 ArrayObserver = __decorate([
     collectionSubscriberCollection(),
     __metadata("design:paramtypes", [Number, Object, Object])
 ], ArrayObserver);
 export { ArrayObserver };
+let ArrayIndexObserver = class ArrayIndexObserver {
+    constructor(owner, index) {
+        this.owner = owner;
+        this.index = index;
+        this.subscriberCount = 0;
+        this.currentValue = this.getValue();
+    }
+    getValue() {
+        return this.owner.collection[this.index];
+    }
+    setValue(newValue, flags) {
+        if (newValue === this.getValue()) {
+            return;
+        }
+        const arrayObserver = this.owner;
+        const index = this.index;
+        const indexMap = arrayObserver.indexMap;
+        if (indexMap[index] > -1) {
+            indexMap.deletedItems.push(indexMap[index]);
+        }
+        indexMap[index] = -2;
+        // do not need to update current value here
+        // as it will be updated inside handle collection change
+        arrayObserver.collection[index] = newValue;
+        arrayObserver.notify();
+    }
+    /**
+     * From interface `ICollectionSubscriber`
+     */
+    handleCollectionChange(indexMap, flags) {
+        const index = this.index;
+        const noChange = indexMap[index] === index;
+        if (noChange) {
+            return;
+        }
+        const prevValue = this.currentValue;
+        const currValue = this.currentValue = this.getValue();
+        // hmm
+        if (prevValue !== currValue) {
+            this.callSubscribers(currValue, prevValue, flags);
+        }
+    }
+    subscribe(subscriber) {
+        if (this.addSubscriber(subscriber) && ++this.subscriberCount === 1) {
+            this.owner.addIndexObserver(this);
+        }
+    }
+    unsubscribe(subscriber) {
+        if (this.removeSubscriber(subscriber) && --this.subscriberCount === 0) {
+            this.owner.removeIndexObserver(this);
+        }
+    }
+};
+ArrayIndexObserver = __decorate([
+    subscriberCollection(),
+    __metadata("design:paramtypes", [ArrayObserver, Number])
+], ArrayIndexObserver);
+export { ArrayIndexObserver };
 export function getArrayObserver(flags, lifecycle, array) {
     const observer = observerLookup.get(array);
     if (observer === void 0) {

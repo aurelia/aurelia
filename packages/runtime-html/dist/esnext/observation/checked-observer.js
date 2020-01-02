@@ -36,7 +36,7 @@ let CheckedObserver = class CheckedObserver {
     flushChanges(flags) {
         if (this.hasChanges) {
             this.hasChanges = false;
-            const { currentValue } = this;
+            const currentValue = this.currentValue;
             this.oldValue = currentValue;
             if (this.valueObserver === void 0) {
                 if (this.obj.$observers !== void 0) {
@@ -92,7 +92,8 @@ let CheckedObserver = class CheckedObserver {
         this.callSubscribers(newValue, previousValue, flags);
     }
     synchronizeElement() {
-        const { currentValue, obj } = this;
+        const currentValue = this.currentValue;
+        const obj = this.obj;
         const elementValue = Object.prototype.hasOwnProperty.call(obj, 'model') ? obj.model : obj.value;
         const isRadio = obj.type === 'radio';
         const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;

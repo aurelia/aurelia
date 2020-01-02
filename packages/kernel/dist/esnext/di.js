@@ -2,7 +2,7 @@ import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
 import { Protocol } from './resource';
 import { Metadata } from './metadata';
-import { isNumeric, isNativeFunction, isObject } from './functions';
+import { isArrayIndex, isNativeFunction, isObject } from './functions';
 function cloneArrayWithPossibleProps(source) {
     const clone = source.slice();
     const keys = Object.keys(source);
@@ -10,7 +10,7 @@ function cloneArrayWithPossibleProps(source) {
     let key;
     for (let i = 0; i < len; ++i) {
         key = keys[i];
-        if (!isNumeric(key)) {
+        if (!isArrayIndex(key)) {
             clone[key] = source[key];
         }
     }
@@ -96,7 +96,7 @@ export class DI {
                     let key;
                     for (let i = 0; i < len; ++i) {
                         key = keys[i];
-                        if (!isNumeric(key)) {
+                        if (!isArrayIndex(key)) {
                             dependencies[key] = annotationParamtypes[key];
                         }
                     }

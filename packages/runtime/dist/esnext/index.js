@@ -6,7 +6,7 @@ export { IExpressionParser, BindingType } from './binding/expression-parser';
 export { MultiInterpolationBinding, InterpolationBinding } from './binding/interpolation-binding';
 export { LetBinding } from './binding/let-binding';
 export { RefBinding } from './binding/ref-binding';
-export { ArrayObserver, enableArrayObservation, disableArrayObservation, applyMutationsToIndices, synchronizeIndices, } from './observation/array-observer';
+export { ArrayObserver, ArrayIndexObserver, enableArrayObservation, disableArrayObservation, applyMutationsToIndices, synchronizeIndices, } from './observation/array-observer';
 export { MapObserver, enableMapObservation, disableMapObservation } from './observation/map-observer';
 export { SetObserver, enableSetObservation, disableSetObservation } from './observation/set-observer';
 export { BindingContext, Scope, OverrideContext } from './observation/binding-context';

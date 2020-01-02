@@ -762,7 +762,7 @@
                 break;
             }
             if (`${index}` !== key) {
-                if (!kernel_1.isNumeric(key)) {
+                if (!kernel_1.isArrayIndex(key)) {
                     break;
                 }
                 const emptyItems = tmp - index;

@@ -235,10 +235,10 @@
     exports.isWeakMap = isWeakMap;
     function getOwnNonIndexProperties(val, showHidden) {
         if (showHidden) {
-            return exports.getOwnPropertyNames(val).filter(k => !kernel_1.isNumeric(k));
+            return exports.getOwnPropertyNames(val).filter(k => !kernel_1.isArrayIndex(k));
         }
         else {
-            return exports.Object_keys(val).filter(k => !kernel_1.isNumeric(k));
+            return exports.Object_keys(val).filter(k => !kernel_1.isArrayIndex(k));
         }
     }
     exports.getOwnNonIndexProperties = getOwnNonIndexProperties;

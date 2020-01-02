@@ -1,6 +1,6 @@
 import { __decorate, __metadata } from "tslib";
 /* eslint-disable eqeqeq, compat/compat */
-import { PLATFORM, Reporter, isNumeric } from '@aurelia/kernel';
+import { PLATFORM, Reporter, isArrayIndex } from '@aurelia/kernel';
 import { IObserverLocator } from './observer-locator';
 import { subscriberCollection } from './subscriber-collection';
 export function computed(config) {
@@ -197,7 +197,7 @@ function createGetterTraps(flags, observerLocator, observer) {
             // (for Map and Set at least) or they will throw.
             switch (toStringTag.call(target)) {
                 case '[object Array]':
-                    if (key === 'length' || isNumeric(key)) {
+                    if (key === 'length' || isArrayIndex(key)) {
                         observer.addCollectionDep(observerLocator.getArrayObserver(flags, target));
                         return proxyOrValue(flags, target, key, observerLocator, observer);
                     }

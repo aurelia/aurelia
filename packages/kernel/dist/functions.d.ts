@@ -9,7 +9,7 @@ import { Constructable, Overwrite } from './interfaces';
  *
  * Results are cached.
  */
-export declare function isNumeric(value: unknown): value is number | string;
+export declare function isArrayIndex(value: unknown): value is number | string;
 /**
  * Determines if the value passed is a number or bigint for parsing purposes
  *

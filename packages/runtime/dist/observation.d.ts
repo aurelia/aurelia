@@ -159,6 +159,9 @@ export interface ICollectionLengthObserver extends IAccessor<number>, IPropertyC
 export interface ICollectionSizeObserver extends IAccessor<number>, IPropertyChangeTracker<Set<unknown> | Map<unknown, unknown>, 'size', number>, ISubscriberCollection {
     currentValue: number;
 }
+export interface ICollectionIndexObserver extends ICollectionSubscriber, IPropertyObserver<IIndexable, string> {
+    owner: ICollectionObserver<CollectionKind.array>;
+}
 /**
  * Describes a type that specifically tracks changes in a collection (map, set or array)
  */
@@ -176,6 +179,7 @@ export interface ICollectionObserver<T extends CollectionKind> extends ICollecti
     collection: ObservedCollectionKindToType<T>;
     lengthObserver: T extends CollectionKind.array ? ICollectionLengthObserver : ICollectionSizeObserver;
     getLengthObserver(): T extends CollectionKind.array ? ICollectionLengthObserver : ICollectionSizeObserver;
+    getIndexObserver(index: number): ICollectionIndexObserver;
     notify(): void;
 }
 export declare type CollectionObserver = ICollectionObserver<CollectionKind>;

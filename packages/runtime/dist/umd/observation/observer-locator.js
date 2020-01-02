@@ -135,8 +135,9 @@
                     if (propertyName === 'length') {
                         return this.getArrayObserver(flags, obj).getLengthObserver();
                     }
-                    if (kernel_1.isNumeric(propertyName)) {
-                        return this.dirtyChecker.createProperty(obj, propertyName);
+                    // is numer only returns true for integer
+                    if (kernel_1.isArrayIndex(propertyName)) {
+                        return this.getArrayObserver(flags, obj).getIndexObserver(Number(propertyName));
                     }
                     break;
                 case '[object Map]':

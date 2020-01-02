@@ -143,7 +143,7 @@
     // fromDefinitionOrDefault,
     exports.EventAggregator = kernel_1.EventAggregator;
     exports.IEventAggregator = kernel_1.IEventAggregator;
-    exports.isNumeric = kernel_1.isNumeric;
+    exports.isArrayIndex = kernel_1.isArrayIndex;
     exports.camelCase = kernel_1.camelCase;
     exports.kebabCase = kernel_1.kebabCase;
     exports.pascalCase = kernel_1.pascalCase;

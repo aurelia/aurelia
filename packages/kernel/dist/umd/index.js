@@ -59,7 +59,7 @@
     exports.EventAggregator = eventaggregator_1.EventAggregator;
     exports.IEventAggregator = eventaggregator_1.IEventAggregator;
     var functions_1 = require("./functions");
-    exports.isNumeric = functions_1.isNumeric;
+    exports.isArrayIndex = functions_1.isArrayIndex;
     exports.camelCase = functions_1.camelCase;
     exports.kebabCase = functions_1.kebabCase;
     exports.pascalCase = functions_1.pascalCase;

@@ -66,6 +66,7 @@
     exports.RefBinding = ref_binding_1.RefBinding;
     var array_observer_1 = require("./observation/array-observer");
     exports.ArrayObserver = array_observer_1.ArrayObserver;
+    exports.ArrayIndexObserver = array_observer_1.ArrayIndexObserver;
     exports.enableArrayObservation = array_observer_1.enableArrayObservation;
     exports.disableArrayObservation = array_observer_1.disableArrayObservation;
     exports.applyMutationsToIndices = array_observer_1.applyMutationsToIndices;

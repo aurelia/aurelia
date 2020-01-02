@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 import { stringifyLifecycleFlags, } from '@aurelia/debug';
-import { isNumeric, } from '@aurelia/kernel';
+import { isArrayIndex, } from '@aurelia/kernel';
 import { DOM, } from '@aurelia/runtime-html';
 import { Call } from './tracing';
 import { Boolean_valueOf, colors, Date_getTime, Date_toISOString, Date_toString, defineProperties, defineProperty, Error_toString, escapeAndQuoteString, escapeString, getOwnNonIndexProperties, getOwnPropertyDescriptor, getOwnPropertyDescriptors, getOwnPropertyNames, getOwnPropertySymbols, getPrototypeOf, hasOwnProperty, isAnyArrayBuffer, isArgumentsObject, isArrayBuffer, isBooleanObject, isBoxedPrimitive, isDataView, isDate, isError, isFloat32Array, isFloat64Array, isFunction, isInt16Array, isInt32Array, isInt8Array, isMap, isMapIterator, isNumber, isNumberObject, isObject, isPromise, isRegExp, isSet, isSetIterator, isString, isStringObject, isSymbol, isTypedArray, isUint16Array, isUint32Array, isUint8Array, isUint8ClampedArray, isUndefined, isWeakMap, isWeakSet, join, Map_entries, Number_valueOf, Object_assign, Object_freeze, Object_is, Object_keys, Object_toString, propertyIsEnumerable, RegExp_toString, removeColors, Set_values, String_valueOf, Symbol_valueOf, truncate, } from './util';
@@ -747,7 +747,7 @@ export function formatSpecialArray(ctx, value, recurseTimes, maxLength, output, 
             break;
         }
         if (`${index}` !== key) {
-            if (!isNumeric(key)) {
+            if (!isArrayIndex(key)) {
                 break;
             }
             const emptyItems = tmp - index;

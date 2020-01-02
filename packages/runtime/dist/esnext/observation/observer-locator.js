@@ -1,5 +1,5 @@
 import { __decorate, __metadata, __param } from "tslib";
-import { DI, Registration, Reporter, isNumeric, } from '@aurelia/kernel';
+import { DI, Registration, Reporter, isArrayIndex, } from '@aurelia/kernel';
 import { ILifecycle } from '../lifecycle';
 import { getArrayObserver } from './array-observer';
 import { createComputedObserver } from './computed-observer';
@@ -124,8 +124,9 @@ let ObserverLocator = class ObserverLocator {
                 if (propertyName === 'length') {
                     return this.getArrayObserver(flags, obj).getLengthObserver();
                 }
-                if (isNumeric(propertyName)) {
-                    return this.dirtyChecker.createProperty(obj, propertyName);
+                // is numer only returns true for integer
+                if (isArrayIndex(propertyName)) {
+                    return this.getArrayObserver(flags, obj).getIndexObserver(Number(propertyName));
                 }
                 break;
             case '[object Map]':

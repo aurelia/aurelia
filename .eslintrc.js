@@ -33,7 +33,7 @@ module.exports = {
   rules: {
     // Opinionated overrides of the default recommended rules:
     '@typescript-eslint/ban-ts-ignore': 'warn',
-    '@typescript-eslint/indent': ['error', 2],
+    '@typescript-eslint/indent': 'off', // Disabled until typescript-eslint properly fixes indentation (see https://github.com/typescript-eslint/typescript-eslint/issues/1232) - there are recurring issues and breaking changes, and this rule usually isn't violated due to autoformatting anyway.
     '@typescript-eslint/interface-name-prefix': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/no-empty-interface': 'off',

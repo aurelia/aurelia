@@ -1,4 +1,4 @@
-import { ClassDeclaration } from 'ts-morph';
+import { ClassDeclaration, IndexSignatureDeclaration, TypeGuards, SyntaxKind } from 'ts-morph';
 
 import { IComment } from '../../models/comment/comment';
 import { ClassInfo } from '../../models/class/class-info';
@@ -15,6 +15,8 @@ import { TypescriptCommentExtractor, ITypescriptCommentExtractor } from '../comm
 import { ApiConfiguration as extractorConfiguration } from '../../configurations';
 
 import { TypeCategory } from '../../../helpers';
+import { IndexerInfo } from '../../models/indexer/indexer-info';
+import { IIndexExtractor, IndexExtractor } from '../indexer/index-extractor';
 
 export interface IClassExtractor {
     extract(node: ClassDeclaration, filterElements?: (comment: IComment) => boolean): ClassInfo;
@@ -22,6 +24,7 @@ export interface IClassExtractor {
 }
 export class ClassExtractor implements IClassExtractor {
     constructor(
+        private indexExtractor: IIndexExtractor = new IndexExtractor(),
         private decoratorExtractor: IDecoratorExtractor = new DecoratorExtractor(),
         private typeParameterExtractor: ITypeParameterExtractor = new TypeParameterExtractor(),
         private tsCommentExtractor: ITypescriptCommentExtractor = new TypescriptCommentExtractor(),
@@ -31,16 +34,17 @@ export class ClassExtractor implements IClassExtractor {
         private setAccessorExtractor: ISetAccessorExtractor = new SetAccessorExtractor(),
         private methodExtractor: IMethodExtractor = new MethodExtractor(),
         private typeExtractor: ITypeExtractor = new TypeExtractor(),
-    ) {}
+    ) { }
 
     public extract(node: ClassDeclaration, filterElements?: (comment: IComment) => boolean): ClassInfo {
         const comment = this.tsCommentExtractor.extract(node);
-
+        const markedAsInternal = comment?.description?.join(' ').includes('@internal') || false;
         let constructors = this.constructorExtractor.extractFromClass(node);
         let properties = this.propertyExtractor.extractFromClass(node);
         let getAccessors = this.getAccessorExtractor.extractFromClass(node);
         let setAccessors = this.setAccessorExtractor.extractFromClass(node);
         let methods = this.methodExtractor.extractFromClass(node);
+        let indexers = this.indexExtractor.extractAll(node.getChildrenOfKind(SyntaxKind.IndexSignature));
 
         if (filterElements || extractorConfiguration.classes?.filterElements) {
             /* eslint-disable */
@@ -51,11 +55,13 @@ export class ClassExtractor implements IClassExtractor {
             getAccessors = getAccessors?.filter(filter);
             setAccessors = setAccessors?.filter(filter);
             methods = methods?.filter(filter);
+            indexers = indexers?.filter(filter);
         }
 
         const result: ClassInfo = {
             name: node.getName(),
             text: node.getText(),
+            indexers: indexers,
             extends:
                 node.getExtends() === void 0
                     ? void 0
@@ -68,6 +74,7 @@ export class ClassExtractor implements IClassExtractor {
             modifiers: node.getModifiers().length === 0 ? void 0 : node.getModifiers().map(item => item.getText()),
             decorators: this.decoratorExtractor.extract(node),
             comment: comment,
+            markedAsInternal: markedAsInternal,
             path: node.getSourceFile().getFilePath(),
             typeCategory: TypeCategory.Class,
             constructors: constructors ? constructors : void 0,
@@ -76,7 +83,6 @@ export class ClassExtractor implements IClassExtractor {
             setAccessors: setAccessors ? setAccessors : void 0,
             methods: methods ? methods : void 0,
         };
-
         return result;
     }
     public extractAll(

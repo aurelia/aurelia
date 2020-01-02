@@ -15,12 +15,14 @@ export class VariableExtractor {
     constructor(
         private typeExtractor: ITypeExtractor = new TypeExtractor(),
         private tsCommentExtractor: ITypescriptCommentExtractor = new TypescriptCommentExtractor(),
-    ) {}
+    ) { }
     public extract(node: VariableDeclaration): VariableInfo {
         const comment = this.tsCommentExtractor.extract(node);
+        const markedAsInternal = comment?.description?.join(' ').includes('@internal') || false;
         return {
             typeCategory: TypeCategory.Variable,
             comment: comment,
+            markedAsInternal: markedAsInternal,
             initializer: node.getInitializer() === void 0 ? void 0 : node.getInitializerOrThrow().getText(),
             name: node.getName(),
             text: node.getText(),

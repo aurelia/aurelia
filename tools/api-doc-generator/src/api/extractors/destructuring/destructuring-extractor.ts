@@ -29,15 +29,17 @@ export interface IDestructuringExtractor {
 }
 
 export class DestructuringExtractor implements IDestructuringExtractor {
-    constructor(private tsCommentExtractor: ITypescriptCommentExtractor = new TypescriptCommentExtractor()) {}
+    constructor(private tsCommentExtractor: ITypescriptCommentExtractor = new TypescriptCommentExtractor()) { }
     public extract(node: VariableDeclaration): DestructuringInfo | undefined {
         if (this.isDestructuring(node)) {
             const bindingElements = node.getDescendantsOfKind(SyntaxKind.BindingElement);
             const comment = this.tsCommentExtractor.extract(node);
+            const markedAsInternal = comment?.description?.join(' ').includes('@internal') || false;
             const isArray = this.isDestructuringArray(node);
             const result: DestructuringInfo = {
                 isArray: isArray,
                 comment: comment,
+                markedAsInternal: markedAsInternal,
                 initializer: node.getInitializer() === void 0 ? void 0 : node.getInitializerOrThrow().getText(),
                 text: node.getText(),
                 typeCategory: TypeCategory.Destructuring,

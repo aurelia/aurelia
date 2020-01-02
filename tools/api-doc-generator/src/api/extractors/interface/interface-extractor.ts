@@ -9,7 +9,6 @@ import {
 } from 'ts-morph';
 
 import { InterfaceMethodInfo } from '../../models/interface/interface-method-info';
-import { InterfaceIndexerInfo } from '../../models/interface/interface-indexer-info';
 import { InterfaceParameterInfo } from '../../models/interface/interface-parameter-info';
 import { InterfaceConstructorInfo } from '../../models/interface/interface-constructor-info';
 import { InterfaceCallSignatureInfo } from '../../models/interface/interface-call-signature-info';
@@ -24,6 +23,7 @@ import { TypeCategory } from '../../../helpers';
 import { IComment } from '../../models/comment/comment';
 
 import { ApiConfiguration as extractorConfiguration } from '../../configurations';
+import { IIndexExtractor, IndexExtractor } from '../indexer/index-extractor';
 
 export interface IInterfaceExtractor {
     extract(node: InterfaceDeclaration, filterElements?: (comment: IComment) => boolean): InterfaceInfo;
@@ -32,13 +32,14 @@ export interface IInterfaceExtractor {
 
 export class InterfaceExtractor implements IInterfaceExtractor {
     constructor(
+        private indexExtractor: IIndexExtractor = new IndexExtractor(),
         private typeExtractor: ITypeExtractor = new TypeExtractor(),
         private typeParameterExtractor: ITypeParameterExtractor = new TypeParameterExtractor(),
         private tsCommentExtractor: ITypescriptCommentExtractor = new TypescriptCommentExtractor(),
     ) { }
     public extract(node: InterfaceDeclaration, filterElements?: (comment: IComment) => boolean): InterfaceInfo {
         const comment = this.tsCommentExtractor.extract(node);
-
+        const markedAsInternal = comment?.description?.join(' ').includes('@internal') || false;
         let properties =
             node.getProperties().length === 0
                 ? void 0
@@ -57,7 +58,7 @@ export class InterfaceExtractor implements IInterfaceExtractor {
                 : node.getExtends().map(item => this.typeExtractor.extract(node, item.getType()));
         let indexers = node.getIndexSignatures().length === 0
             ? void 0
-            : node.getIndexSignatures().map(item => this.getIndexer(item));
+            : this.indexExtractor.extractAll(node.getIndexSignatures());
 
         let methods = node.getMethods().length === 0 ? void 0 : node.getMethods().map(item => this.getMethod(item));
 
@@ -80,6 +81,7 @@ export class InterfaceExtractor implements IInterfaceExtractor {
             typeParameters: this.typeParameterExtractor.extract(node),
             modifiers: node.getModifiers().length === 0 ? void 0 : node.getModifiers().map(item => item.getText()),
             comment: comment,
+            markedAsInternal: markedAsInternal,
             typeCategory: TypeCategory.Interface,
             properties: properties,
             callSignatures: callSignatures,
@@ -98,8 +100,10 @@ export class InterfaceExtractor implements IInterfaceExtractor {
 
     private getProperty(node: PropertySignature): InterfacePropertyInfo {
         const comment = this.tsCommentExtractor.extract(node);
+        const markedAsInternal = comment?.description?.join(' ').includes('@internal') || false;
         return {
             comment: comment,
+            markedAsInternal: markedAsInternal,
             isOptional: node.hasQuestionToken(),
             name: node.getName(),
             text: node.getText(),
@@ -109,8 +113,10 @@ export class InterfaceExtractor implements IInterfaceExtractor {
 
     private getCallSignature(node: CallSignatureDeclaration): InterfaceCallSignatureInfo {
         const comment = this.tsCommentExtractor.extract(node);
+        const markedAsInternal = comment?.description?.join(' ').includes('@internal') || false;
         return {
             comment: comment,
+            markedAsInternal: markedAsInternal,
             text: node.getText(),
             returnType: this.typeExtractor.extract(node, node.getReturnType()),
             typeParameters: this.typeParameterExtractor.extract(node),
@@ -123,8 +129,10 @@ export class InterfaceExtractor implements IInterfaceExtractor {
 
     private getMethod(node: MethodSignature): InterfaceMethodInfo {
         const comment = this.tsCommentExtractor.extract(node);
+        const markedAsInternal = comment?.description?.join(' ').includes('@internal') || false;
         return {
             comment: comment,
+            markedAsInternal: markedAsInternal,
             name: node.getName(),
             text: node.getText(),
             returnType: this.typeExtractor.extract(node, node.getReturnType()),
@@ -138,8 +146,10 @@ export class InterfaceExtractor implements IInterfaceExtractor {
 
     private getConstructor(node: ConstructSignatureDeclaration): InterfaceConstructorInfo {
         const comment = this.tsCommentExtractor.extract(node);
+        const markedAsInternal = comment?.description?.join(' ').includes('@internal') || false;
         return {
             comment: comment,
+            markedAsInternal: markedAsInternal,
             text: node.getText(),
             returnType: this.typeExtractor.extract(node, node.getReturnType()),
             typeParameters: this.typeParameterExtractor.extract(node),
@@ -147,17 +157,6 @@ export class InterfaceExtractor implements IInterfaceExtractor {
                 node.getParameters().length === 0
                     ? void 0
                     : node.getParameters().map(item => this.getParameter(item)),
-        };
-    }
-
-    private getIndexer(node: IndexSignatureDeclaration): InterfaceIndexerInfo {
-        const comment = this.tsCommentExtractor.extract(node);
-        return {
-            comment: comment,
-            text: node.getText(),
-            returnType: this.typeExtractor.extract(node, node.getReturnType()),
-            keyName: node.getKeyName(),
-            keyType: this.typeExtractor.extract(node, node.getKeyType()),
         };
     }
 

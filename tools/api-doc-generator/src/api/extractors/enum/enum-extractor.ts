@@ -12,15 +12,17 @@ export interface IEnumExtractor {
 }
 
 export class EnumExtractor implements IEnumExtractor {
-    constructor(private tsCommentExtractor: ITypescriptCommentExtractor = new TypescriptCommentExtractor()) {}
+    constructor(private tsCommentExtractor: ITypescriptCommentExtractor = new TypescriptCommentExtractor()) { }
 
     public extract(node: EnumDeclaration): EnumInfo {
         const comment = this.tsCommentExtractor.extract(node);
+        const markedAsInternal = comment?.description?.join(' ').includes('@internal') || false;
         const result: EnumInfo = {
             name: node.getName(),
             modifiers: node.getModifiers().length === 0 ? void 0 : node.getModifiers().map(item => item.getText()),
             isConst: node.isConstEnum(),
             comment: comment,
+            markedAsInternal: markedAsInternal,
             text: node.getText(),
             path: node.getSourceFile().getFilePath(),
             typeCategory: TypeCategory.Enum,
@@ -37,11 +39,13 @@ export class EnumExtractor implements IEnumExtractor {
 
     private getMember(node: EnumMember): EnumMemberInfo {
         const comment = this.tsCommentExtractor.extract(node);
+        const markedAsInternal = comment?.description?.join(' ').includes('@internal') || false;
         const result: EnumMemberInfo = {
             name: node.getName(),
             value: node.getValue(),
             text: node.getText(),
             comment: comment,
+            markedAsInternal: markedAsInternal
         };
         return result;
     }

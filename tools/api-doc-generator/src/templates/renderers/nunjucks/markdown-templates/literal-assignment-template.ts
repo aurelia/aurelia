@@ -1,15 +1,15 @@
 export const literalAssignmentTemplate = `
+**&#10148; {{ name | replaceWith | mdEscape }}**
+<br/>
 {% if comment %}
-    ### &#128366; Summary
+    &nbsp;&nbsp; **&#9733; Summary**
     {{ comment | commentRenderer}}
+    <br/>
 {% endif %}
-<br/>
-### {{ name }}
-<br/>
 | Type                      | Shorthand                         | Spread                        |
 |---------------------------|:---------------------------------:|:-----------------------------:|
 | {{ type | typeRenderer }} | {{ isShorthand | print_symbol }}  | {{ isSpread | print_symbol }} |
 <br/>
-### Value
+**&#9733; Value**
 {{ value | memberRenderer }}
 `;

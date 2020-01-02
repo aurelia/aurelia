@@ -155,7 +155,7 @@ export class TypescriptCommentExtractor implements ITypescriptCommentExtractor {
             /* eslint-disable */
             for (let index = 0; index < jsDocs.length; index++) {
                 const jsdoc = jsDocs[index] as JSDoc;
-                const globalComment = jsdoc.getComment();
+                const globalComment = jsdoc.getDescription();
                 if (globalComment) {
                     const globalDescription = globalComment.split(/\r?\n/);
                     for (let index = 0; index < globalDescription.length; index++) {

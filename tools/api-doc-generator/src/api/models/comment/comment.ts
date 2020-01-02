@@ -5,4 +5,5 @@ export interface IComment {
     leadingComments: CommentInfo[] | undefined;
     jsDocs: JSDoc[] | undefined;*/
     comment: CommentInfo | undefined;
+    markedAsInternal: boolean;
 }

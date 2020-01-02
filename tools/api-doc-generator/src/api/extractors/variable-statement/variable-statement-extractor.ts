@@ -23,9 +23,10 @@ export class VariableStatementExtractor {
         private variableExtractor: IVariableExtractor = new VariableExtractor(),
         private literalExtractor: ILiteralExtractor = new LiteralExtractor(),
         private destructuringExtractor: IDestructuringExtractor = new DestructuringExtractor(),
-    ) {}
+    ) { }
     public extract(node: VariableStatement): VariableStatementInfo {
         const comment = this.tsCommentExtractor.extract(node);
+        const markedAsInternal = comment?.description?.join(' ').includes('@internal') || false;
         const kind = getVariableKind(node.getDeclarationKind());
         const declarations = node.getDeclarations();
         const literals: LiteralInfo[] = [];
@@ -52,6 +53,7 @@ export class VariableStatementExtractor {
             text: node.getText(),
             modifiers: node.getModifiers().length === 0 ? void 0 : node.getModifiers().map(item => item.getText()),
             comment: comment,
+            markedAsInternal: markedAsInternal,
             literals: literals.length === 0 ? void 0 : literals,
             destructuring: destructuring.length === 0 ? void 0 : destructuring,
             variables: variables.length === 0 ? void 0 : variables,

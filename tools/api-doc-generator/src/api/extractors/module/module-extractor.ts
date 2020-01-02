@@ -38,7 +38,7 @@ export class ModuleExtractor implements IModuleExtractor {
     /* eslint-disable */
     private getModule(node: NamespaceDeclaration): ModuleInfo {
         const comment = this.tsCommentExtractor.extract(node);
-
+        const markedAsInternal = comment?.description?.join(' ').includes('@internal') || false;
         node.getExportAssignments;
         const result: ModuleInfo = {
             name: node.getName(),
@@ -47,6 +47,7 @@ export class ModuleExtractor implements IModuleExtractor {
             typeCategory: TypeCategory.Module,
             modifiers: node.getModifiers().length === 0 ? void 0 : node.getModifiers().map(item => item.getText()),
             comment: comment,
+            markedAsInternal: markedAsInternal,
             classes: this.classExtractor.extractAll(node.getClasses()),
             enums: this.enumExtractor.extractAll(node.getEnums()),
             functions: this.functionExtractor.extractAll(node.getFunctions()),

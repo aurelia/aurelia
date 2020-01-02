@@ -1,46 +1,54 @@
 export const variableStatementTemplate = `
 {% if comment %}
-    # &#128366; Summary
+    # &#9733; Summary
     {{ comment | commentRenderer }}
 {% endif %}
 <br/>
-# &#128712; Attribute(s)
 | Modifier(s)                            |
 |----------------------------------------|
 | {{ modifiers | join(', ','declare') }} |
 <br/>
 {% if variables %}
-    # &#128712; Variable(s)
+    # &#9733; Variable(s)
     {% for v in variables %}
+        &nbsp;&nbsp; **&#10148; {{ v.name | replaceWith | mdEscape }}**
+        <br/>
         {% if v.comment %}
-            ### &#128366; Summary
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **&#9733; Summary**
             {{ v.comment | commentRenderer }}
+            <br/>
         {% endif %}
+        | Type                        |
+        |-----------------------------|
+        | {{ v.type | typeRenderer }} |
         <br/>
-        # {{ v.name | replaceWith }}
-        <br/>
-        | Type                        | Initializer                       |
-        |-----------------------------|-----------------------------------|
-        | {{ v.type | typeRenderer }} | {{ v.initializer | replaceWith }} |
+        {% if v.initializer %}
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **&#9733; Initializer**
+            <br/>
+            \`\`\`ts
+            {{ v.initializer | replaceWith }}
+            \`\`\`
+            <br/>
+        {% endif %}
         <br/>
     {% endfor %}
 {% endif %}
 {% if literals %}
-    # &#128712; Literal(s)
+    # &#9733; Literal(s)
     {% for l in literals %}
-        {% if l.comment %}
-            ## &#128366; Summary
-            {{ l.comment | commentRenderer }}
-        {% endif %}
+        &nbsp;&nbsp; **&#10148; {{ l.name | replaceWith | mdEscape }}**
         <br/>
-        ## {{ l.name | replaceWith }}
-        <br/>        
+        {% if l.comment %}
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **&#9733; Summary**
+            {{ l.comment | commentRenderer }}
+            <br/>
+        {% endif %}
         | Type                        | Array                           |
         |-----------------------------|---------------------------------|
         | {{ l.type | typeRenderer }} | {{ l.isArray | print_symbol  }} |
-        <br/>
+        <br/>        
         {% if l.members %}
-            ## 🟆 Member(s)
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **&#9733; Member(s)**
             {% for m in l.members %}
                 {{ m | memberRenderer }}
             {% endfor %}
@@ -48,19 +56,26 @@ export const variableStatementTemplate = `
     {% endfor %}
 {% endif %}
 {% if destructuring %}
-    # &#128712; Destructuring(s)
+    # &#9733; Destructuring(s)
     {% for de in destructuring %}
         {% if de.comment %}
-            ### &#128366; Summary
+            &nbsp;&nbsp; **&#9733; Summary**
             {{ de.comment | commentRenderer }}
         {% endif %}
         <br/>
-        | Initializer                        | Array                            |
-        |------------------------------------|----------------------------------|
-        | {{ de.initializer | replaceWith }} | {{ de.isArray | print_symbol  }} |
+        | Array                            |
+        |----------------------------------|
+        | {{ de.isArray | print_symbol  }} |
+        <br/>
+        {% if de.initializer %}
+            &nbsp;&nbsp; **&#9733; Initializer**
+            <br/>
+            {{ de.initializer | replaceWith }}
+            <br/>
+        {% endif %}
         <br/>
         {% if de.members %}
-            ### 🟆 Member(s)
+            &nbsp;&nbsp; **&#9733; Member(s)**
             {% for m in de.members %}
                 {{ m | memberRenderer }}
             {% endfor %}

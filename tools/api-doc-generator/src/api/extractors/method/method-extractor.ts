@@ -17,10 +17,11 @@ export class MethodExtractor implements IMethodExtractor {
         private decoratorExtractor: IDecoratorExtractor = new DecoratorExtractor(),
         private typeParameterExtractor: ITypeParameterExtractor = new TypeParameterExtractor(),
         private tsCommentExtractor: ITypescriptCommentExtractor = new TypescriptCommentExtractor(),
-    ) {}
+    ) { }
 
     public extract(node: MethodDeclaration): MethodInfo {
         const comment = this.tsCommentExtractor.extract(node);
+        const markedAsInternal = comment?.description?.join(' ').includes('@internal') || false;
         return {
             name: node.getName(),
             text: node.getText(),
@@ -34,6 +35,7 @@ export class MethodExtractor implements IMethodExtractor {
             modifiers: node.getModifiers().length === 0 ? void 0 : node.getModifiers().map(item => item.getText()),
             decorators: this.decoratorExtractor.extract(node),
             comment: comment,
+            markedAsInternal: markedAsInternal,
         };
     }
 

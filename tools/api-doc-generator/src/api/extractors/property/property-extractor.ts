@@ -14,10 +14,11 @@ export class PropertyExtractor implements IPropertyExtractor {
         private typeExtractor: ITypeExtractor = new TypeExtractor(),
         private decoratorExtractor: IDecoratorExtractor = new DecoratorExtractor(),
         private tsCommentExtractor: ITypescriptCommentExtractor = new TypescriptCommentExtractor(),
-    ) {}
+    ) { }
 
     public extract(node: PropertyDeclaration): PropertyInfo {
         const comment = this.tsCommentExtractor.extract(node);
+        const markedAsInternal = comment?.description?.join(' ').includes('@internal') || false;
         return {
             name: node.getName(),
             text: node.getText(),
@@ -27,6 +28,7 @@ export class PropertyExtractor implements IPropertyExtractor {
             modifiers: node.getModifiers().length === 0 ? void 0 : node.getModifiers().map(item => item.getText()),
             decorators: this.decoratorExtractor.extract(node),
             comment: comment,
+            markedAsInternal: markedAsInternal,
         };
     }
     public extractFromClass(node: ClassDeclaration): PropertyInfo[] | undefined {

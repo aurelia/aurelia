@@ -1,5 +1,5 @@
 import { VariableStatement } from 'ts-morph';
-import { Nunjucks, isEmptyOrWhitespace } from '../../utils';
+import { Nunjucks } from '../../utils';
 import { TemplateConfiguration, TemplateGenerator } from '../configurations';
 import { ITemplateRenderer, TemplateRendererType } from './template-renderer';
 import { getCommentGroupInfo } from '../../helpers';
@@ -33,7 +33,8 @@ const markdownTable = require('markdown-table');
 function postRender(text: string): string {
     let result = text.trim()
         .split(/\r?\n/)
-        .filter(item => !isEmptyOrWhitespace(item.trim()))
+        .map(item => item.trim())
+        .filter(item => item !== '')
         .map((item, index, el) => {
             let r = item.trim();
             if (r[0] === '|') {
@@ -64,6 +65,7 @@ function postRender(text: string): string {
         .join('\n')
         .trim()
         ;
+
     if (result.includes('```')) {
         let finalResult = result.split('```');
         if (finalResult.length > 0) {
@@ -80,13 +82,31 @@ function postRender(text: string): string {
         .map((item, index, el) => {
             if (index >= 1) {
                 var prev = el[index - 1];
-                if (prev === '' && item === '') {
+                if (prev.trim() === '' && item.trim() === '') {
                     return undefined;
                 }
             }
             return item;
         });
-    result = r.filter(item => item !== undefined).join('\n');
+
+    result = r
+        .map(item => {
+            const i = item?.trim();
+            if (i && i[0] === '|') {
+                return i;
+            }
+            if (i && i[0] === '`' && i[1] === '`' && i[2] === '`') {
+                return i;
+            }
+            if (i && i[0] === '&' && i[1] === 'n' && i[2] === 'b' && i[3] === 's' && i[4] === 'p' && i[5] === ';') {
+                return i;
+            }
+            else {
+                return item;
+            }
+        })
+        .filter(item => item !== undefined)
+        .join('\n');
     return result;
 }
 

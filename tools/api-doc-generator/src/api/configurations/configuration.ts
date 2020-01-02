@@ -7,7 +7,6 @@ import { TypeAliasInfo } from '../models/type-parameter/type-alias-info';
 import { InterfaceInfo } from '../models/interface/interface-info';
 import { VariableStatementInfo } from '../models/variable-statement/variable-statement-info';
 import { ExportAssignmentInfo } from '../models/export-assignment/export-assignment-info';
-
 export interface IApiConfiguration {
     decorators?: {
         filterStrategy: (decorator: DecoratorInfo) => boolean;
@@ -24,6 +23,7 @@ export interface IApiConfiguration {
     source?: {
         ignore: ISourceFileIgnoreDeclarations;
     };
+    ignoreInternals?: boolean;
 }
 
 export interface ISourceFileIgnoreDeclarations {

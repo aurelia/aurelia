@@ -9,9 +9,10 @@ import {
     VariableStatement,
     VariableDeclaration,
     TypeGuards,
+    Node,
 } from 'ts-morph';
-import { TypescriptCommentExtractor, ITypescriptCommentExtractor } from '../comment/ts-comment-extractor';
-import { CommentInfo } from '../../models/comment/comment-info';
+// import { TypescriptCommentExtractor, ITypescriptCommentExtractor } from '../comment/ts-comment-extractor';
+// import { CommentInfo } from '../../models/comment/comment-info';
 import { SourceFileInfo } from '../../models/source-file/source-file-info';
 import { ClassExtractor, IClassExtractor } from '../class/class-extractor';
 import { EnumExtractor, IEnumExtractor } from '../enum/enum-extractor';
@@ -36,7 +37,7 @@ export interface ISourceFileExtractor {
 
 export class SourceFileExtractor implements ISourceFileExtractor {
     constructor(
-        private tsCommentExtractor: ITypescriptCommentExtractor = new TypescriptCommentExtractor(),
+        // private tsCommentExtractor: ITypescriptCommentExtractor = new TypescriptCommentExtractor(),
         private classExtractor: IClassExtractor = new ClassExtractor(),
         private enumExtractor: IEnumExtractor = new EnumExtractor(),
         private functionExtractor: IFunctionExtractor = new FunctionExtractor(),
@@ -44,7 +45,7 @@ export class SourceFileExtractor implements ISourceFileExtractor {
         private interfaceExtractor: IInterfaceExtractor = new InterfaceExtractor(),
         private variableStatementExtractor: IVariableStatementExtractor = new VariableStatementExtractor(),
         private exportAssignmentExtractor: IExportAssignmentExtractor = new ExportAssignmentExtractor(),
-    ) {}
+    ) { }
     public extract(sourceFile: SourceFile, ignoreFilters?: ISourceFileIgnoreDeclarations): SourceFileInfo {
         let exportAssignments = this.exportAssignmentExtractor.extract(sourceFile);
 
@@ -72,14 +73,46 @@ export class SourceFileExtractor implements ISourceFileExtractor {
         for (const [name, declarations] of exportedDeclarations) {
             /* eslint-disable */
             declarations.forEach(declaration => {
-                const comment = this.tsCommentExtractor.extract(declaration);
-                let status = comment ? this.hasInternalTag(comment) : false;
+                const path = declaration.compilerNode.getSourceFile().fileName;
+                const ignoreInternals = extractorConfiguration.ignoreInternals || true;
                 let ignoreDeclaration = false;
-                if (!status) {
+                // Should be a config here!
+                if (!path.includes('aot/src/vm')) {
                     switch (declaration.getKind()) {
                         case SyntaxKind.ClassDeclaration:
                             const classNode = declaration as ClassDeclaration;
                             let cls = this.classExtractor.extract(classNode);
+
+                            if (ignoreInternals && cls.markedAsInternal) {
+                                break;
+                            }
+                            if (ignoreInternals && !cls.markedAsInternal) {
+                                const ctors = cls.constructors?.filter(item => !item.markedAsInternal);
+                                const getAccessors = cls.getAccessors?.filter(item => !item.markedAsInternal);
+                                const setAccessors = cls.setAccessors?.filter(item => !item.markedAsInternal);
+                                const methods = cls.methods?.filter(item => !item.markedAsInternal);
+                                const props = cls.properties?.filter(item => !item.markedAsInternal);
+                                const indexers = cls.indexers?.filter(item => !item.markedAsInternal);
+                                cls = {
+                                    comment: cls.comment,
+                                    constructors: ctors?.length === 0 ? void 0 : ctors,
+                                    decorators: cls.decorators,
+                                    extends: cls.extends,
+                                    getAccessors: getAccessors?.length === 0 ? void 0 : getAccessors,
+                                    implements: cls.implements,
+                                    indexers: indexers?.length === 0 ? void 0 : indexers,
+                                    setAccessors: setAccessors?.length === 0 ? void 0 : setAccessors,
+                                    methods: methods?.length === 0 ? void 0 : methods,
+                                    properties: props?.length === 0 ? void 0 : props,
+                                    markedAsInternal: cls.markedAsInternal,
+                                    modifiers: cls.modifiers,
+                                    name: cls.name,
+                                    path: cls.path,
+                                    text: cls.text,
+                                    typeCategory: cls.typeCategory,
+                                    typeParameters: cls.typeParameters
+                                }
+                            }
                             if (!result.classes) {
                                 result.classes = [];
                             }
@@ -96,6 +129,9 @@ export class SourceFileExtractor implements ISourceFileExtractor {
                         case SyntaxKind.EnumDeclaration:
                             const enumNode = declaration as EnumDeclaration;
                             const em = this.enumExtractor.extract(enumNode);
+                            if (ignoreInternals && em.markedAsInternal) {
+                                break;
+                            }
                             if (!result.enums) {
                                 result.enums = [];
                             }
@@ -112,6 +148,9 @@ export class SourceFileExtractor implements ISourceFileExtractor {
                         case SyntaxKind.FunctionDeclaration:
                             const funcNode = declaration as FunctionDeclaration;
                             const func = this.functionExtractor.extract(funcNode);
+                            if (ignoreInternals && func.markedAsInternal) {
+                                break;
+                            }
                             if (!result.functions) {
                                 result.functions = [];
                             }
@@ -128,6 +167,9 @@ export class SourceFileExtractor implements ISourceFileExtractor {
                         case SyntaxKind.TypeAliasDeclaration:
                             const taNode = declaration as TypeAliasDeclaration;
                             const ta = this.typeAliasExtractor.extract(taNode);
+                            if (ignoreInternals && ta.markedAsInternal) {
+                                break;
+                            }
                             if (!result.typeAliases) {
                                 result.typeAliases = [];
                             }
@@ -144,6 +186,9 @@ export class SourceFileExtractor implements ISourceFileExtractor {
                         case SyntaxKind.InterfaceDeclaration:
                             const interfaceNode = declaration as InterfaceDeclaration;
                             const inf = this.interfaceExtractor.extract(interfaceNode);
+                            if (ignoreInternals && inf.markedAsInternal) {
+                                break;
+                            }
                             if (!result.interfaces) {
                                 result.interfaces = [];
                             }
@@ -162,7 +207,27 @@ export class SourceFileExtractor implements ISourceFileExtractor {
                             const variableStatement = this.getVariableStatement(variableNode);
                             if (variableStatement) {
                                 if (this.isVariableStatementInSourceOrModule(variableStatement)) {
-                                    const variable = this.variableStatementExtractor.extract(variableStatement);
+                                    let variable = this.variableStatementExtractor.extract(variableStatement);
+                                    if (ignoreInternals && variable.markedAsInternal) {
+                                        break;
+                                    }
+                                    if (ignoreInternals && !variable.markedAsInternal) {
+                                        const d = variable.destructuring?.filter(item => !item.markedAsInternal);
+                                        const l = variable.literals?.filter(item => !item.markedAsInternal);
+                                        const v = variable.variables?.filter(item => !item.markedAsInternal);
+                                        variable = {
+                                            comment: variable.comment,
+                                            destructuring: d?.length === 0 ? void 0 : d,
+                                            variables: v?.length === 0 ? void 0 : v,
+                                            literals: l?.length === 0 ? void 0 : l,
+                                            kind: variable.kind,
+                                            markedAsInternal: variable.markedAsInternal,
+                                            modifiers: variable.modifiers,
+                                            path: variable.path,
+                                            text: variable.text,
+                                            typeCategory: variable.typeCategory
+                                        }
+                                    }
                                     if (!result.variableStatements) {
                                         result.variableStatements = [];
                                     }
@@ -275,21 +340,22 @@ export class SourceFileExtractor implements ISourceFileExtractor {
         }
         return false;
     }
-
-    private hasInternalTag(comment: CommentInfo): boolean {
-        let isInternal = comment.description?.join(' ').includes('@internal');
-        if (isInternal) {
-            return true;
-        }
-        if (comment.tags) {
-            for (let index = 0; index < comment.tags.length; index++) {
-                const tag = comment.tags[index];
-                let status = tag.tagName === '@internal';
-                if (status) {
-                    return true;
+    /*
+        private hasInternalTag(comment: CommentInfo): boolean {
+            let isInternal = comment.description?.join(' ').includes('@internal');
+            if (isInternal) {
+                return true;
+            }
+            if (comment.tags) {
+                for (let index = 0; index < comment.tags.length; index++) {
+                    const tag = comment.tags[index];
+                    let status = tag.tagName === '@internal';
+                    if (status) {
+                        return true;
+                    }
                 }
             }
+            return false;
         }
-        return false;
-    }
+        */
 }

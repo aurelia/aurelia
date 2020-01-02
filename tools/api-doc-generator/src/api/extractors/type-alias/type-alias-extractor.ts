@@ -18,9 +18,10 @@ export class TypeAliasExtractor implements ITypeAliasExtractor {
         private typeExtractor: ITypeExtractor = new TypeExtractor(),
         private typeParameterExtractor: ITypeParameterExtractor = new TypeParameterExtractor(),
         private tsCommentExtractor: ITypescriptCommentExtractor = new TypescriptCommentExtractor(),
-    ) {}
+    ) { }
     public extract(node: TypeAliasDeclaration): TypeAliasInfo {
         const comment = this.tsCommentExtractor.extract(node);
+        const markedAsInternal = comment?.description?.join(' ').includes('@internal') || false;
         return {
             name: node.getName(),
             text: node.getText(),
@@ -30,6 +31,7 @@ export class TypeAliasExtractor implements ITypeAliasExtractor {
             initializer: node.getTypeNode() === void 0 ? void 0 : node.getTypeNodeOrThrow().getText(),
             type: this.typeExtractor.extract(node, node.getType()),
             comment: comment,
+            markedAsInternal: markedAsInternal,
             typeParameters: this.typeParameterExtractor.extract(node),
         };
     }

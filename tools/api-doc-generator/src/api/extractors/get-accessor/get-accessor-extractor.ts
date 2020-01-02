@@ -16,10 +16,11 @@ export class GetAccessorExtractor implements IGetAccessorExtractor {
         private decoratorExtractor: IDecoratorExtractor = new DecoratorExtractor(),
         private typeParameterExtractor: ITypeParameterExtractor = new TypeParameterExtractor(),
         private tsCommentExtractor: ITypescriptCommentExtractor = new TypescriptCommentExtractor(),
-    ) {}
+    ) { }
 
     public extract(node: GetAccessorDeclaration): GetAccessorInfo {
         const comment = this.tsCommentExtractor.extract(node);
+        const markedAsInternal = comment?.description?.join(' ').includes('@internal') || false;
         const result: GetAccessorInfo = {
             name: node.getName(),
             text: node.getText(),
@@ -28,6 +29,7 @@ export class GetAccessorExtractor implements IGetAccessorExtractor {
             modifiers: node.getModifiers().length === 0 ? void 0 : node.getModifiers().map(item => item.getText()),
             decorators: this.decoratorExtractor.extract(node),
             comment: comment,
+            markedAsInternal: markedAsInternal
         };
         return result;
     }

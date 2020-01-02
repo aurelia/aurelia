@@ -1,23 +1,23 @@
 export const exportAssignmentTemplate = `
 {% if comment %}
-    # &#128366; Summary
+    # &#10025; Summary
     {{ comment | commentRenderer }}
 {% endif %}
 <br/>
-# &#128712; Attribute(s)
-| Default                        | Array                         |
-|--------------------------------|-------------------------------|
-| {{ isDefault | print_symbol }} | {{ isArray | print_symbol  }} |
+| Default                          | Array                         |
+|:--------------------------------:|:-----------------------------:|
+| {{ isDefault | print_symbol }}   | {{ isArray | print_symbol  }} |
 <br/>
 {% if newExpression %}
-    # &#128712; New Expression
-    | Name                     | Type                                    |
-    |--------------------------|-----------------------------------------|
-    | {{ newExpression.name }} | {{ newExpression.type | typeRenderer }} |
+    # &#10025; New Expression
+    <br/>
+    | Name                                              | Type                                    |
+    |---------------------------------------------------|-----------------------------------------|
+    | {{ newExpression.name | replaceWith | mdEscape }} | {{ newExpression.type | typeRenderer }} |
     <br/>
 {% endif %}
 {% if members %}
-    # 🟆 Member(s)
+    # &#10025; Member(s)
     {% for m in members %}
         {{ m | memberRenderer }}
     {% endfor %}

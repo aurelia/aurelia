@@ -15,13 +15,15 @@ export class ConstructorExtractor implements IConstructorExtractor {
         private typeExtractor: ITypeExtractor = new TypeExtractor(),
         private decoratorExtractor: IDecoratorExtractor = new DecoratorExtractor(),
         private tsCommentExtractor: ITypescriptCommentExtractor = new TypescriptCommentExtractor(),
-    ) {}
+    ) { }
     public extract(node: ConstructorDeclaration): ConstructorInfo {
         const comment = this.tsCommentExtractor.extract(node);
+        const markedAsInternal = comment?.description?.join(' ').includes('@internal') || false;
         const parameters = node.getParameters().map(item => this.getParameter(item));
         return {
             modifiers: node.getModifiers().length === 0 ? void 0 : node.getModifiers().map(item => item.getText()),
             comment: comment,
+            markedAsInternal: markedAsInternal,
             isParameterLess: parameters.length === 0,
             isImplementation: node.isImplementation(),
             isOverload: node.isOverload(),

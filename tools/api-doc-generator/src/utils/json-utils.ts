@@ -1,5 +1,4 @@
 import * as fs from 'fs';
-import * as traverse from 'traverse';
 
 function parseText(text: string, func?: (key: string, value: unknown) => unknown): object {
     const obj = JSON.parse(text, func);
@@ -39,8 +38,4 @@ function isJsonLike(text: string): boolean {
     return convertJsObjectToJson(text) !== void 0;
 }
 
-function traverseOnObject(object: unknown, func: (node: unknown) => void): void {
-    traverse(object).forEach(func);
-}
-
-export { parseText, parseFile, isJson, isJsonLike, convertJsObjectToJson, traverseOnObject };
+export { parseText, parseFile, isJson, isJsonLike, convertJsObjectToJson };

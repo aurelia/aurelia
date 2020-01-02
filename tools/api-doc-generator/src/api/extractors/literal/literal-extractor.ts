@@ -133,6 +133,7 @@ export class LiteralExtractor {
     public extract(node: VariableDeclaration): LiteralInfo | undefined {
         if (this.isLiteral(node)) {
             const comment = this.tsCommentExtractor.extract(node);
+            const markedAsInternal = comment?.description?.join(' ').includes('@internal') || false;
             const objectLiteral = this.getObjectLiteral(node);
             if (objectLiteral !== void 0) {
                 const member = this.extractExpression(objectLiteral);
@@ -141,6 +142,7 @@ export class LiteralExtractor {
                     isArray: false,
                     type: this.typeExtractor.extract(node, node.getType()),
                     comment: comment,
+                    markedAsInternal: markedAsInternal,
                     name: node.getName(),
                     text: node.getText(),
                     members: [member],
@@ -164,6 +166,7 @@ export class LiteralExtractor {
                         isArray: true,
                         type: this.typeExtractor.extract(node, node.getType()),
                         comment: comment,
+                        markedAsInternal: markedAsInternal,
                         name: node.getName(),
                         text: node.getText(),
                         members: arrayLiteralMembers,
@@ -187,12 +190,14 @@ export class LiteralExtractor {
             const objectLiteral = node as ObjectLiteralExpression;
             objectLiteral.getProperties().map(item => {
                 const comment = this.tsCommentExtractor.extract(node);
+                const markedAsInternal = comment?.description?.join(' ').includes('@internal') || false;
                 if (TypeGuards.isPropertyAssignment(item)) {
                     const pa = item as PropertyAssignment;
                     assignments.push({
                         isShorthand: false,
                         isSpread: false,
                         comment: comment,
+                        markedAsInternal: markedAsInternal,
                         name: pa.getName(),
                         text: pa.getText(),
                         type: this.typeExtractor.extract(node, node.getType()),
@@ -207,6 +212,7 @@ export class LiteralExtractor {
                         isShorthand: true,
                         isSpread: false,
                         comment: comment,
+                        markedAsInternal: markedAsInternal,
                         name: spa.getName(),
                         text: spa.getText(),
                         type: this.typeExtractor.extract(node, node.getType()),
@@ -222,6 +228,7 @@ export class LiteralExtractor {
                         isShorthand: false,
                         isSpread: true,
                         comment: comment,
+                        markedAsInternal: markedAsInternal,
                         name: sp.getExpression().getText(),
                         text: sp.getText(),
                         type: this.typeExtractor.extract(node, node.getType()),

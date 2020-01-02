@@ -1,77 +1,78 @@
 export const literalExpressionTemplate = `
-### &#128712; Attribute(s)
 | Object                        |
-|-------------------------------|
+|:-----------------------------:|
 | {{ isObject | print_symbol }} |
 <br/>
 {% if assignments %}
-    ### &#128712; Assignment(s)
+    **&#9733; Assignment(s)**
     {% for a in assignments %}
         {{ a | assignmentRenderer }}
         <br/>
     {% endfor %}
 {% endif %}
 {% if getAccessors %}
-    ### &#128712; Get Accessor(s)
+    **&#9733; Get Accessor(s)**
     {% for g in getAccessors %}
+        &nbsp;&nbsp; **&#10148; {{ g.name | replaceWith | mdEscape }}**
+        <br/>
         {% if g.comment %}
-            ### &#128366; Summary
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **&#9733; Summary**
             {{ g.comment | commentRenderer }}
+            <br/>
         {% endif %}
+        | Modifier(s)                              | Return Type                       |
+        |------------------------------------------|-----------------------------------|
+        | {{ g.modifiers | join(', ','declare') }} | {{ g.returnType | typeRenderer }} |
+        <br/>   
         {% if g.typeParameters %}
-            ### &#128966; Type Parameter(s)
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **&#9733; Type Parameter(s)**
             {% for tp in g.typeParameters %}
                 {{ tp | typeParameterRenderer }}
                 <br/>
             {% endfor %}
         {% endif %}
         {% if g.decorators %}
-            ### &#128966; Decorators(s)
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **&#9733; Decorators(s)**
             {% for d in g.decorators %}
                 {{ d | decoratorRenderer }}
                 <br/>
             {% endfor %}
         {% endif %}
-        ### {{ g.name }}
-        <br/>
-        | Modifier(s)                              | Return Type                       |
-        |------------------------------------------|-----------------------------------|
-        | {{ g.modifiers | join(', ','declare') }} | {{ p.returnType | typeRenderer }} |
-        <br/>   
     {% endfor %}
 {% endif %}
 {% if setAccessors %}
-    ### &#128712; Set Accessor(s)
+    **&#9733; Set Accessor(s)**
     {% for s in setAccessors %}
+        &nbsp;&nbsp; **&#10148; {{ s.name | replaceWith | mdEscape }}**
+        <br/> 
         {% if s.comment %}
-            ### &#128366; Summary
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **&#9733; Summary**
             {{ s.comment | commentRenderer }}
+            <br/>
         {% endif %}
+        | Modifier(s)                              | Return Type                       |
+        |------------------------------------------|-----------------------------------|
+        | {{ s.modifiers | join(', ','declare') }} | {{ s.returnType | typeRenderer }} |
+        <br/>         
         {% if s.typeParameters %}
-            ### &#128966; Type Parameter(s)
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **&#9733; Type Parameter(s)**
             {% for tp in s.typeParameters %}
                 {{ tp | typeParameterRenderer }}
                 <br/>
             {% endfor %}
         {% endif %}
         {% if s.decorators %}
-            ### &#128966; Decorators(s)
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **&#9733; Decorators(s)**
             {% for d in s.decorators %}
                 {{ d | decoratorRenderer }}
                 <br/>
             {% endfor %}
         {% endif %}
-        ### {{ s.name }}
-        <br/> 
-        | Modifier(s)                              | Return Type                       |
-        |------------------------------------------|-----------------------------------|
-        | {{ s.modifiers | join(', ','declare') }} | {{ p.returnType | typeRenderer }} |
-        <br/>         
         {% if s.parameters %}
-            ### &#128966; Parameter(s)
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **&#9733; Parameter(s)**
             <br/> 
             {% for p in s.parameters %}
-                _**{{ p.name }}**_
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; _**&#10149; {{ p.name | replaceWith | mdEscape }}**_
                 <br/> 
                 | Modifier(s)                              | Type                        |
                 |------------------------------------------|-----------------------------|
@@ -82,53 +83,51 @@ export const literalExpressionTemplate = `
     {% endfor %}
 {% endif %}
 {% if methods %}
-    ### &#128712; Method(s)
+    **&#9733; Method(s)**
     {% for m in methods %}
+        &nbsp;&nbsp; **&#10148; {{ m.name | replaceWith | mdEscape }}**
+        <br/>
         {% if m.comment %}
-            ### &#128366; Summary
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **&#9733; Summary**;
             {{ m.comment | commentRenderer }}
+            <br/>
         {% endif %}
+        | Modifier(s)                              | Generator                          | Return Type                       |
+        |------------------------------------------|:----------------------------------:|-----------------------------------|
+        | {{ m.modifiers | join(', ','declare') }} | {{ m.isGenerator | print_symbol }} | {{ m.returnType | typeRenderer }} |        
+        <br/>
         {% if m.typeParameters %}
-            ### &#128966; Type Parameter(s)
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **Type Parameter(s)**
             {% for tp in m.typeParameters %}
                 {{ tp | typeParameterRenderer }}
                 <br/>
             {% endfor %}
         {% endif %}
         {% if m.decorators %}
-            ### &#128966; Decorators(s)
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **&#9733; Decorators(s)**
             {% for d in m.decorators %}
                 {{ d | decoratorRenderer }}
                 <br/>
             {% endfor %}
         {% endif %}
-        ## {{ m.name }}
-        <br/>
-        | Modifier(s)                              | Generator                          | Return Type                       |
-        |------------------------------------------|:----------------------------------:|-----------------------------------|
-        | {{ m.modifiers | join(', ','declare') }} | {{ m.isGenerator | print_symbol }} | {{ m.returnType | typeRenderer }} |        
-        <br/>
         {% if m.parameters %}
-            **&#128966; Parameter(s)** 
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **&#9733; Parameter(s)** 
             <br/>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; _**&#10149; {{ p.name | replaceWith | mdEscape }}**_
+            <br/>
+            | Modifier(s)                              | Type                        | Optional                           | Rest                          | Parameter Property                          | Initializer                       |
+            |------------------------------------------|-----------------------------|:----------------------------------:|:-----------------------------:|:-------------------------------------------:|-----------------------------------|
+            | {{ p.modifiers | join(', ','declare') }} | {{ p.type | typeRenderer }} | {{ p.isOptional | print_symbol }}  | {{ p.isRest | print_symbol }} | {{ p.isParameterProperty  | print_symbol }} | {{ p.initializer | replaceWith }} |
             <br/>
             {% for p in m.parameters %}
                 {% if p.decorators %}
-                    **Decorator(s)**
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **&#9733; Decorator(s)**
                     <br/>
                     {% for d in p.decorators %}
                         {{ d | decoratorRenderer }}
                         <br/>
                     {% endfor %}
                 {% endif %}
-                <br/>
-                _**{{ p.name }}**_
-                <br/>    
-                <br/>   
-                | Modifier(s)                              | Type                        | Optional                           | Rest                          | Parameter Property                          | Initializer                       |
-                |------------------------------------------|-----------------------------|:----------------------------------:|:-----------------------------:|:-------------------------------------------:|-----------------------------------|
-                | {{ p.modifiers | join(', ','declare') }} | {{ p.type | typeRenderer }} | {{ p.isOptional | print_symbol }}  | {{ p.isRest | print_symbol }} | {{ p.isParameterProperty  | print_symbol }} | {{ p.initializer | replaceWith }} |
-                <br/>
             {% endfor %}
         {% endif %}
     {% endfor %}

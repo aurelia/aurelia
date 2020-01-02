@@ -19,11 +19,12 @@ export class FunctionExtractor implements IFunctionExtractor {
         private typeExtractor: ITypeExtractor = new TypeExtractor(),
         private typeParameterExtractor: ITypeParameterExtractor = new TypeParameterExtractor(),
         private tsCommentExtractor: ITypescriptCommentExtractor = new TypescriptCommentExtractor(),
-    ) {}
+    ) { }
 
     public extract(node: FunctionDeclaration | FunctionExpression): FunctionInfo {
         const isFunctionDeclaration = TypeGuards.isFunctionDeclaration(node);
         const comment = this.tsCommentExtractor.extract(node);
+        const markedAsInternal = comment?.description?.join(' ').includes('@internal') || false;
         const result: FunctionInfo = {
             name: node.getName(),
             text: node.getText(),
@@ -34,6 +35,7 @@ export class FunctionExtractor implements IFunctionExtractor {
             typeParameters: this.typeParameterExtractor.extract(node),
             modifiers: node.getModifiers().length === 0 ? void 0 : node.getModifiers().map(item => item.getText()),
             comment: comment,
+            markedAsInternal: markedAsInternal,
             returnType: this.typeExtractor.extract(node, node.getReturnType()),
             typeGuard: this.typeExtractor.extractTypeGuard(node),
             typeCategory: TypeCategory.Function,

@@ -22,12 +22,13 @@ export class ExportAssignmentExtractor implements IExportAssignmentExtractor {
         private literalExtractor: ILiteralExtractor = new LiteralExtractor(),
         private typeExtractor: ITypeExtractor = new TypeExtractor(),
         private tsCommentExtractor: ITypescriptCommentExtractor = new TypescriptCommentExtractor(),
-    ) {}
+    ) { }
 
     public extractFromExportAssignment(node: ExportAssignment): ExportAssignmentInfo {
         const members: (LiteralExpressionInfo | FunctionInfo | LiteralCallSignatureInfo | string)[] = [];
         let isArray = false;
         const comment = this.tsCommentExtractor.extract(node);
+        const markedAsInternal = comment?.description?.join(' ').includes('@internal') || false;
         const newExpression = node.getChildrenOfKind(SyntaxKind.NewExpression);
         if (newExpression.length > 0) {
             const arrayLiteral = newExpression[0].getChildrenOfKind(SyntaxKind.ArrayLiteralExpression);
@@ -56,15 +57,16 @@ export class ExportAssignmentExtractor implements IExportAssignmentExtractor {
             isDefault: !node.isExportEquals(),
             members: members.length === 0 ? void 0 : members,
             comment: comment,
+            markedAsInternal: markedAsInternal,
             text: node.getText(),
             path: node.getSourceFile().getFilePath(),
             newExpression:
                 newExpression.length > 0
                     ? {
-                          name: newExpression[0].getExpression().getText(),
-                          type: this.typeExtractor.extract(node, newExpression[0].getType()),
-                          text: newExpression[0].getText(),
-                      }
+                        name: newExpression[0].getExpression().getText(),
+                        type: this.typeExtractor.extract(node, newExpression[0].getType()),
+                        text: newExpression[0].getText(),
+                    }
                     : void 0,
             typeCategory: TypeCategory.ExportAssignment,
             isArray: isArray,

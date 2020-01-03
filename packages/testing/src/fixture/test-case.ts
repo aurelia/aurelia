@@ -4,11 +4,12 @@ import {
   Constructable,
   Registration,
   PLATFORM,
+  LogLevel,
 } from '@aurelia/kernel';
 import {
   TestClass,
-  TestClassDefinition,
-  FactDefinition,
+  TestMethod,
+  TestMethodDataStrategy,
 } from './decorators';
 
 export type TestInvocation = (...args: readonly unknown[]) => unknown;
@@ -51,25 +52,42 @@ export class TestCase {
 
   public constructor(
     private readonly logger: ILogger,
-    public readonly $fact: FactDefinition,
+    private readonly disposable: boolean,
+    private readonly testMethod: TestMethod,
+    public params: undefined | readonly unknown[],
   ) {}
 
-  public async run(instance: { [key: string]: TestInvocation }): Promise<void> {
+  public async run(instance: InvocableInstance): Promise<void> {
     if (this.state !== TestState.pending) {
       throw new Error(`Cannot run test in ${$TestState[this.state]} state`);
     }
 
     this._state = TestState.running;
     this._startTime = PLATFORM.now();
+    const testMethod = this.testMethod;
+    const key = testMethod.key;
+    const params = this.params;
 
     try {
-      await instance[this.$fact.methodName as string]();
+      if (params === void 0) {
+        await instance[key as string]();
+      } else {
+        await instance[key as string](...params);
+      }
+
+      if (this.disposable) {
+        instance.dispose();
+      }
+
       this._state = TestState.passed;
-      this.logger.info(`${String(this.$fact.methodName)} PASS`);
+      if (this.logger.config.level <= LogLevel.debug) {
+        this.logger.debug(`${String(key)} PASS`);
+      }
     } catch (err) {
       this._error = err;
       this._state = TestState.failed;
-      this.logger.error(`${String(this.$fact.methodName)} FAIL`);
+      this.logger.error(err);
+      this.logger.info(`${String(key)} FAIL`);
     }
 
     this._endTime = PLATFORM.now();
@@ -96,15 +114,8 @@ export class TestSuite {
   public constructor(
     private readonly logger: ILogger,
     private readonly container: IContainer,
-    public readonly $class: TestClassDefinition,
-  ) {
-    Registration.transient($class.Type, $class.Type).register(container);
-    const cases = this.cases;
-    const facts = $class.facts;
-    for (let i = 0, ii = facts.length; i < ii; ++i) {
-      cases[cases.length++] = new TestCase(this.logger, facts[i]);
-    }
-  }
+    private readonly testClass: TestClass,
+  ) {}
 
   public async run(): Promise<void> {
     if (this.state !== TestState.pending) {
@@ -114,12 +125,13 @@ export class TestSuite {
     this._state = TestState.running;
     this._startTime = PLATFORM.now();
 
-    const Type = this.$class.Type;
+    const Type = this.testClass.Type;
     const container = this.container;
     const cases = this.cases;
     for (let i = 0, ii = cases.length; i < ii; ++i) {
+      const instance = container.get<InvocableInstance>(Type);
       // eslint-disable-next-line no-await-in-loop
-      await cases[i].run(container.get<InvocableInstance>(Type));
+      await cases[i].run(instance);
     }
 
     this._endTime = PLATFORM.now();
@@ -128,6 +140,7 @@ export class TestSuite {
 
 export class TestRunner {
   public readonly suites: TestSuite[] = [];
+  public caseCount: number = 0;
   private length: number = 0;
 
   public constructor(
@@ -141,8 +154,57 @@ export class TestRunner {
     const suites = this.suites;
     const container = this.container;
     const logger = this.logger;
-    for (let i = 0, ii = classes.length; i < ii; ++i) {
-      suites[this.length++] = new TestSuite(logger, container, TestClass.get(classes[i]));
+    for (let iClass = 0, iiClass = classes.length; iClass < iiClass; ++iClass) {
+      const Type = classes[iClass];
+      const disposable = 'dispose' in Type.prototype;
+      Registration.transient(Type, Type).register(container);
+
+      const testClass = TestClass.getOrCreate(Type);
+      const suite = suites[this.length++] = new TestSuite(logger, container, testClass);
+      const cases = suite.cases;
+      const methods = testClass.methods;
+
+      for (let iMethod = 0, iiMethod = methods.length; iMethod < iiMethod; ++iMethod) {
+        const testMethod = methods[iMethod];
+        const parameters = testMethod.parameters;
+
+        if (parameters.length > 0) {
+          switch (testMethod.dataStrategy) {
+            case TestMethodDataStrategy.inline: {
+              const firstParam = parameters[0];
+              const data = firstParam.data;
+
+              if (data !== void 0 && data.length > 0) {
+                for (let iData = 0, iiData = data.length; iData < iiData; ++iData) {
+                  const paramData = Array(parameters.length);
+                  for (let iParam = 0, iiParam = parameters.length; iParam < iiParam; ++iParam) {
+                    paramData[iParam] = parameters[iParam].data![iData];
+                  }
+                  cases[cases.length++] = new TestCase(logger, disposable, testMethod, paramData);
+                  ++this.caseCount;
+                }
+
+                continue;
+              }
+
+              break;
+            }
+            case TestMethodDataStrategy.combi: {
+              const paramDataLists = parameters.reduce((a, b) => a.flatMap(x => b.data!.map(y => [...x, y])), [[]] as unknown[][]);
+              for (let iList = 0, iiList = paramDataLists.length; iList < iiList; ++iList) {
+                const paramData = paramDataLists[iList];
+                cases[cases.length++] = new TestCase(logger, disposable, testMethod, paramData);
+                ++this.caseCount;
+              }
+
+              continue;
+            }
+          }
+        }
+
+        cases[cases.length++] = new TestCase(logger, disposable, testMethod, void 0);
+        ++this.caseCount;
+      }
     }
     return this;
   }
@@ -152,10 +214,14 @@ export class TestRunner {
       throw new Error(`No test cases registered`);
     }
 
+    const startTime = PLATFORM.now();
+    this.logger.info(`Starting to run ${this.caseCount} test cases`);
     const suites = this.suites;
     for (let i = 0, ii = suites.length; i < ii; ++i) {
       // eslint-disable-next-line no-await-in-loop
       await suites[i].run();
     }
+    const endTime = PLATFORM.now();
+    this.logger.info(`Finished running ${this.caseCount} test cases in ${Math.round((endTime - startTime) * 10) / 10}ms`);
   }
 }

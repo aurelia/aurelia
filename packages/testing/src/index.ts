@@ -1,5 +1,7 @@
 export {
   fact,
+  inlineData,
+  combiData,
 } from './fixture/decorators';
 export {
   TestRunner,

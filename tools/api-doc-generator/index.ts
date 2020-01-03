@@ -5,7 +5,8 @@ import { environment } from './environment';
 
 TemplateGenerator.configure(configuration => {
     configuration.baseUrl = 'https://docs.aurelia.io/';
+    configuration.files.tsConfig = environment.tsConfigFile;
     return configuration;
 });
 
-generateApiDoc(environment.tsConfigFile, "./result");
+generateApiDoc("./result");

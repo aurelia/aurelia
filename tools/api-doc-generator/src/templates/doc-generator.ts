@@ -17,7 +17,7 @@ interface ITOC {
     domain: string;
 }
 
-export function generateApiDoc(tsconfig: string, destination: string) {
+export function generateApiDoc( destination: string , tsconfig?: string) {
     if (destination && destination.length > 0) {
         if (destination[destination.length - 1] === '/') {
             destination = destination.substring(0, destination.length - 1);

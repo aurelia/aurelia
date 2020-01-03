@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-member-accessibility */
 import {
   DI,
   LoggerConfiguration,
@@ -11,16 +12,20 @@ import {
   JoinTests,
   QueryStringTests,
 } from './1-kernel/path.spec';
+import {
+  ExpressionParserTests,
+} from './4-jit/expression-parser.spec';
 
 (async function () {
   const container = DI.createContainer();
-  container.register(LoggerConfiguration.create(console, LogLevel.debug));
+  container.register(LoggerConfiguration.create(console, LogLevel.info));
 
   const runner = container.get(TestRunner);
   runner.register(
     RelativeToFileTests,
     JoinTests,
     QueryStringTests,
+    ExpressionParserTests,
   );
   await runner.start();
 })().catch(console.error);

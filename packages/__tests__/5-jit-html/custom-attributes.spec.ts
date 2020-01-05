@@ -230,6 +230,12 @@ describe('custom-attributes', function () {
         assert.strictEqual(options.appHost.firstElementChild.textContent, 'a: undefined, b: http://google.com');
         await options.tearDown();
       });
+
+      it('works with escaped colon', async function () {
+        const options = createFixture('<template> <div multi3="http\\://google.com">Initial</div> </template>', app, [Multi3]);
+        assert.strictEqual(options.appHost.firstElementChild.textContent, 'a: undefined, b: http\\://google.com');
+        await options.tearDown();
+      });
     });
   });
 

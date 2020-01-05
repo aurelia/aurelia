@@ -8,6 +8,7 @@ import {
 import { assert, eachCartesianJoin, createFixture } from '@aurelia/testing';
 
 describe('custom-attributes', function () {
+  this.afterEach(assert.isSchedulerEmpty);
   // custom elements
   describe('01. Aliases', function () {
 
@@ -209,6 +210,26 @@ describe('custom-attributes', function () {
       const options = createFixture('<template> <div multi2.bind="value">Initial</div> </template>', app, [Multi2]);
       assert.strictEqual(options.appHost.firstElementChild.textContent, 'a: undefined, b: afterBind');
       await options.tearDown();
+    });
+
+    describe('with noMultiBindings: true', function () {
+      @customAttribute({
+        name: 'multi3',
+        noMultiBindings: true,
+      })
+      class Multi3 extends Multi2 {}
+      it('works with multi binding syntax', async function () {
+
+        const options = createFixture('<template> <div multi3="a.bind: 5; b.bind: 6">Initial</div> </template>', app, [Multi3]);
+        assert.strictEqual(options.appHost.firstElementChild.textContent, 'a: undefined, b: a.bind: 5; b.bind: 6');
+        await options.tearDown();
+      });
+
+      it('works with URL value', async function () {
+        const options = createFixture('<template> <div multi3="http://google.com">Initial</div> </template>', app, [Multi3]);
+        assert.strictEqual(options.appHost.firstElementChild.textContent, 'a: undefined, b: http://google.com');
+        await options.tearDown();
+      });
     });
   });
 
@@ -454,7 +475,6 @@ describe('custom-attributes', function () {
   });
 
   describe('05. with setter/getter', function () {
-    this.afterEach(assert.isSchedulerEmpty);
 
     /**
      * Specs:

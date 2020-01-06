@@ -16,6 +16,7 @@ import {
 } from '@aurelia/validation';
 import { Spy } from '../Spy';
 import { Person } from './_test-resources';
+import { createSpecFunction, TestFunction, TestExecutionContext } from '../util';
 
 describe.only('validate-biniding-behavior', function () {
 
@@ -30,9 +31,7 @@ describe.only('validate-biniding-behavior', function () {
     public ageMinRule: PropertyRule;
     public tempAgeRule: PropertyRule[] = (void 0)!;
 
-    public constructor(
-      @IContainer container: IContainer,
-    ) {
+    public constructor(@IContainer container: IContainer) {
       const factory = container.get(IValidationControllerFactory);
       this.controllerSpy = new Spy();
       this.controller2Spy = new Spy();
@@ -59,20 +58,13 @@ describe.only('validate-biniding-behavior', function () {
       this.ageMinRule = new PropertyRule(ageRule.validationRules, ageRule.messageProvider, ageRule.property, [[ageRule.$rules[0].find((rule) => rule instanceof RangeRule)]]);
     }
   }
-
-  interface TestContext<TApp extends any> {
-    container: IContainer;
-    host: INode;
-    app: TApp;
-  }
-  interface TestSetupContext<TApp> {
+  interface TestSetupContext {
     template: string;
     customDefaultTrigger?: ValidationTrigger;
   }
-  type TestFunction = (ctx: TestContext<any>) => void | Promise<void>;
   async function runTest(
-    testFunction: TestFunction,
-    { template, customDefaultTrigger }: TestSetupContext<any>
+    testFunction: TestFunction<TestExecutionContext<App>>,
+    { template, customDefaultTrigger }: TestSetupContext
   ) {
     const ctx = TestContext.createHTMLTestContext();
     const container = ctx.container;
@@ -104,16 +96,7 @@ describe.only('validate-biniding-behavior', function () {
     ctx.doc.body.removeChild(host);
   }
 
-  function $it(title: string, testFunction: TestFunction, ctx: TestSetupContext<any>) {
-    it(title, async function () {
-      await runTest(testFunction, ctx);
-    });
-  }
-  $it.only = function (title: string, testFunction: TestFunction, ctx: TestSetupContext<any>) {
-    it.only(title, async function () {
-      await runTest(testFunction, ctx);
-    });
-  };
+  const $it = createSpecFunction(runTest);
 
   function assertControllerBinding(controller: ValidationController, rawExpression: string, target: INode, controllerSpy: Spy) {
     controllerSpy.methodCalledTimes('registerBinding', 1);
@@ -134,7 +117,7 @@ describe.only('validate-biniding-behavior', function () {
   }
 
   $it('registers binding to the controller with default **blur** trigger',
-    async function ({ app, host, container }: TestContext<App>) {
+    async function ({ app, host, container }: TestExecutionContext<App>) {
       const scheduler = container.get(IScheduler);
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
@@ -155,7 +138,7 @@ describe.only('validate-biniding-behavior', function () {
   );
 
   $it('a default trigger can be registered - **change**',
-    async function ({ app, host, container }: TestContext<App>) {
+    async function ({ app, host, container }: TestExecutionContext<App>) {
       const scheduler = container.get(IScheduler);
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
@@ -176,7 +159,7 @@ describe.only('validate-biniding-behavior', function () {
   );
 
   $it('supports **changeOrBlur** validation trigger',
-    async function ({ app, host, container }: TestContext<App>) {
+    async function ({ app, host, container }: TestExecutionContext<App>) {
       const scheduler = container.get(IScheduler);
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
@@ -195,7 +178,7 @@ describe.only('validate-biniding-behavior', function () {
   );
 
   $it('supports **manual** validation trigger',
-    async function ({ app, host, container }: TestContext<App>) {
+    async function ({ app, host, container }: TestExecutionContext<App>) {
       const scheduler = container.get(IScheduler);
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
@@ -221,7 +204,7 @@ describe.only('validate-biniding-behavior', function () {
   );
 
   $it('handles changes in dynamically bound trigger value',
-    async function ({ app, host, container }: TestContext<App>) {
+    async function ({ app, host, container }: TestExecutionContext<App>) {
       const scheduler = container.get(IScheduler);
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
@@ -253,7 +236,7 @@ describe.only('validate-biniding-behavior', function () {
   );
 
   $it('respects bound controller',
-    async function ({ app, host, container }: TestContext<App>) {
+    async function ({ app, host, container }: TestExecutionContext<App>) {
       const scheduler = container.get(IScheduler);
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
@@ -282,7 +265,7 @@ describe.only('validate-biniding-behavior', function () {
   );
 
   $it('handles value change of the bound controller',
-    async function ({ app, host, container }: TestContext<App>) {
+    async function ({ app, host, container }: TestExecutionContext<App>) {
       const scheduler = container.get(IScheduler);
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
@@ -312,7 +295,7 @@ describe.only('validate-biniding-behavior', function () {
   );
 
   $it('handles the trigger-controller combo correctly',
-    async function ({ app, host, container }: TestContext<App>) {
+    async function ({ app, host, container }: TestExecutionContext<App>) {
       const scheduler = container.get(IScheduler);
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
@@ -344,7 +327,7 @@ describe.only('validate-biniding-behavior', function () {
   );
 
   $it('respects bound rules',
-    async function ({ app, host, container }: TestContext<App>) {
+    async function ({ app, host, container }: TestExecutionContext<App>) {
       const scheduler = container.get(IScheduler);
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
@@ -367,7 +350,7 @@ describe.only('validate-biniding-behavior', function () {
   );
 
   $it('respects change in value of bound rules',
-    async function ({ app, host, container }: TestContext<App>) {
+    async function ({ app, host, container }: TestExecutionContext<App>) {
       const scheduler = container.get(IScheduler);
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;

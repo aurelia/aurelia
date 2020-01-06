@@ -404,5 +404,39 @@ describe.only('validate-biniding-behavior', function () {
     <input id="target2" type="text" value.two-way="person.age & validate:'change':controller1:tempAgeRule">
     ` }
   );
-  // TODO test for argument parsing
+  [
+    { args: `'chaos'`, expectedError: 'is not a supported validation trigger' },
+    { args: `controller`, expectedError: 'is not a supported validation trigger' },
+    { args: `ageMinRule`, expectedError: 'is not a supported validation trigger' },
+    { args: `controller:'change'`, expectedError: 'is not a supported validation trigger' },
+    { args: `'change':'foo'`, expectedError: 'foo is not of type ValidationController' },
+    { args: `'change':{}`, expectedError: 'is not of type ValidationController' },
+    { args: `'change':ageMinRule`, expectedError: 'is not of type ValidationController' },
+    { args: `'change':controller:ageMinRule:'foo'`, expectedError: 'Unconsumed argument#4 for validate binding behavior: foo' },
+  ].map(({ args, expectedError }) =>
+    it(`throws error if the arguments are not provided in correct order - ${args}`, async function () {
+      const ctx = TestContext.createHTMLTestContext();
+      const container = ctx.container;
+      const host = ctx.dom.createElement('app');
+      const template = `<input id="target2" type="text" value.two-way="person.age & validate:${args}">`;
+      ctx.doc.body.appendChild(host);
+      const au = new Aurelia(container);
+      try {
+        await au
+          .register(ValidationConfiguration)
+          .app({
+            host,
+            component: (() => {
+              const ca = CustomElement.define({ name: 'app', isStrictBinding: true, template }, App);
+              return new ca(container);
+            })()
+          })
+          .start()
+          .wait();
+      } catch (e) {
+        assert.equal(e.message.endsWith(expectedError), true);
+      }
+      await au.stop().wait();
+      ctx.doc.body.removeChild(host);
+    }));
 });

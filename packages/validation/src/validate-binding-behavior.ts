@@ -110,7 +110,6 @@ export class ValidateBindingBehavior extends BindingInterceptor {
   }
 
   public handleRulesChange(newValue: unknown, _previousValue: unknown, _flags: LifecycleFlags): void {
-    console.log('rules changed', newValue, _previousValue);
     this.processDelta(new Delta(void 0, void 0, this.ensureRules(newValue)));
   }
 
@@ -154,10 +153,10 @@ export class ValidateBindingBehavior extends BindingInterceptor {
     });
   }
 
-  private processDelta(delta?: Delta) {
-    const trigger = delta?.trigger ?? this.trigger;
-    const controller = delta?.controller ?? this.controller;
-    const rules = delta?.rules;
+  private processDelta(delta: Delta) {
+    const trigger = delta.trigger ?? this.trigger;
+    const controller = delta.controller ?? this.controller;
+    const rules = delta.rules;
     if (this.trigger !== trigger) {
       if (this.trigger === ValidationTrigger.blur || this.trigger === ValidationTrigger.changeOrBlur) {
         this.target.removeEventListener('blur', this);

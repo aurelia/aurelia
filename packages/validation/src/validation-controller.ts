@@ -441,7 +441,7 @@ export class ValidationController implements IValidationController {
       return;
     }
     const { object, propertyName } = propertyInfo;
-    /* const result =  */await this.validate({ object, propertyName, rules });
+    /* const result =  */await this.validate(new ValidateInstruction(object, propertyName, rules));
     // console.log(result);
   }
 
@@ -457,7 +457,7 @@ export class ValidationController implements IValidationController {
 
     bindingInfo.propertyInfo = void 0;
     const { object, propertyName } = propertyInfo;
-    this.reset({ object, propertyName });
+    this.reset(new ValidateInstruction(object, propertyName));
   }
 
   /**
@@ -649,11 +649,11 @@ export class ValidateInstruction {
     /**
      * The property to validate. Optional.
      */
-    public propertyName?: string,
+    public propertyName: string = (void 0)!,
 
     /**
      * The rules to validate. Optional.
      */
-    public rules?: PropertyRule[],
+    public rules: PropertyRule[] = (void 0)!,
   ) { }
 }

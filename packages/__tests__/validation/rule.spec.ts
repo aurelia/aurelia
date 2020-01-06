@@ -361,6 +361,8 @@ describe.only('ValidationRules', function () {
     assert.equal(rules3.property.name, 'address.line1');
     assert.instanceOf(rules3.$rules[0][0], RequiredRule);
   });
+
+  // TODO define rules on 2 different objects using the same instance of ValidationRules
 });
 
 describe.only('ValidationMessageProvider', function () {

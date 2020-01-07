@@ -5,6 +5,9 @@ import { IRouter } from './router';
 import { ViewportInstruction } from './viewport-instruction';
 import { Scope } from './scope';
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export interface INavigatorStore {
   length: number;
   state: Record<string, unknown>;
@@ -14,14 +17,23 @@ export interface INavigatorStore {
   popNavigatorState(): Promise<void>;
 }
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export interface INavigatorViewer {
   activate(options: INavigatorViewerOptions): void;
   deactivate(): void;
 }
+/**
+ * @internal - Shouldn't be used directly
+ */
 export interface INavigatorViewerOptions {
   callback(ev: INavigatorViewerEvent): void;
 }
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export interface INavigatorViewerState {
   path: string;
   query: string;
@@ -29,11 +41,17 @@ export interface INavigatorViewerState {
   instruction: string;
 }
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export interface INavigatorViewerEvent extends INavigatorViewerState {
   event: PopStateEvent;
   state?: INavigatorState;
 }
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export interface IStoredNavigatorEntry {
   instruction: string | ViewportInstruction[];
   fullStateInstruction: string | ViewportInstruction[];
@@ -48,6 +66,9 @@ export interface IStoredNavigatorEntry {
   data?: Record<string, unknown>;
 }
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export interface INavigatorEntry extends IStoredNavigatorEntry {
   fromBrowser?: boolean;
   replacing?: boolean;
@@ -59,6 +80,9 @@ export interface INavigatorEntry extends IStoredNavigatorEntry {
   reject?: ((value?: void | PromiseLike<void>) => void);
 }
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export interface INavigatorOptions {
   viewer?: INavigatorViewer;
   store?: INavigatorStore;
@@ -67,6 +91,9 @@ export interface INavigatorOptions {
   serializeCallback?(entry: IStoredNavigatorEntry, entries: IStoredNavigatorEntry[]): Promise<IStoredNavigatorEntry>;
 }
 
+/**
+ * Public API - part of INavigationInstruction
+ */
 export interface INavigatorFlags {
   first?: boolean;
   new?: boolean;
@@ -76,12 +103,18 @@ export interface INavigatorFlags {
   replace?: boolean;
 }
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export interface INavigatorState {
   state?: Record<string, unknown>;
   entries: IStoredNavigatorEntry[];
   currentEntry: IStoredNavigatorEntry;
 }
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export class Navigator {
   public currentEntry: INavigatorInstruction;
   public entries: IStoredNavigatorEntry[] = [];

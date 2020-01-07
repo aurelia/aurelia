@@ -25,7 +25,7 @@ type ValidatableExpression = AccessScopeExpression | AccessMemberExpression | Ac
 
 export interface IValidationController {
   validator: IValidator;
-  errors: ValidationResult[];
+  readonly results: ValidationResult[];
   validating: boolean;
   addObject(object: IValidateable, rules?: PropertyRule[]): void;
   removeObject(object: IValidateable): void;
@@ -58,12 +58,7 @@ export class ValidationController implements IValidationController {
   /**
    * Validation results that have been rendered by the controller.
    */
-  private readonly results: ValidationResult[] = [];
-
-  /**
-   * Validation errors that have been rendered by the controller.
-   */
-  public errors: ValidationResult[] = [];
+  public readonly results: ValidationResult[] = [];
 
   /**
    * Whether the controller is currently validating.
@@ -380,9 +375,6 @@ export class ValidationController implements IValidationController {
       if (newResultIndex === -1) {
         // no corresponding new result... simple remove.
         this.results.splice(this.results.indexOf(oldResult), 1);
-        if (!oldResult.valid) {
-          this.errors.splice(this.errors.indexOf(oldResult), 1);
-        }
       } else {
         // there is a corresponding new result...
         const newResult = newResults.splice(newResultIndex, 1)[0];
@@ -397,13 +389,6 @@ export class ValidationController implements IValidationController {
         // do an in-place replacement of the old result with the new result.
         // this ensures any repeats bound to this.results will not thrash.
         this.results.splice(this.results.indexOf(oldResult), 1, newResult);
-        if (!oldResult.valid && newResult.valid) {
-          this.errors.splice(this.errors.indexOf(oldResult), 1);
-        } else if (!oldResult.valid && !newResult.valid) {
-          this.errors.splice(this.errors.indexOf(oldResult), 1, newResult);
-        } else if (!newResult.valid) {
-          this.errors.push(newResult);
-        }
       }
     }
 
@@ -413,9 +398,6 @@ export class ValidationController implements IValidationController {
       instruction.render.push({ result, elements });
       this.elements.set(result, elements);
       this.results.push(result);
-      if (!result.valid) {
-        this.errors.push(result);
-      }
     }
 
     // render.
@@ -441,8 +423,7 @@ export class ValidationController implements IValidationController {
       return;
     }
     const { object, propertyName } = propertyInfo;
-    /* const result =  */await this.validate(new ValidateInstruction(object, propertyName, rules));
-    // console.log(result);
+    await this.validate(new ValidateInstruction(object, propertyName, rules));
   }
 
   /**
@@ -464,10 +445,10 @@ export class ValidationController implements IValidationController {
    * Revalidates the controller's current set of errors.
    */
   public async revalidateErrors() {
-    const map = this.errors
+    const map = this.results
       .reduce(
-        (acc, { isManual, object, propertyRule, rule }) => {
-          if (!isManual && propertyRule !== void 0 && object !== void 0 && rule !== void 0) {
+        (acc, { isManual, object, propertyRule, rule, valid }) => {
+          if (!valid && !isManual && propertyRule !== void 0 && object !== void 0 && rule !== void 0) {
             let value = acc.get(object);
             if (value === void 0) {
               value = new Map();
@@ -504,7 +485,6 @@ export class ValidationController implements IValidationController {
   private publishEvent(instruction: ValidateInstruction | undefined, result?: ControllerValidateResult) {
     const event = new ValidateEvent(
       result !== void 0 ? 'validate' : 'reset',
-      this.errors,
       this.results,
       instruction,
       result);
@@ -582,12 +562,6 @@ export class ValidateEvent {
      * The type of validate event. Either "validate" or "reset".
      */
     public readonly type: 'validate' | 'reset',
-
-    /**
-     * The controller's current array of errors. For an array containing both
-     * failed rules and passed rules, use the "results" property.
-     */
-    public readonly errors: ValidationResult[],
 
     /**
      * The controller's current array of validate results. This

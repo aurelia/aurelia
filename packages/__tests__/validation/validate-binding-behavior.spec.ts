@@ -125,14 +125,14 @@ describe.only('validate-biniding-behavior', function () {
       const target: HTMLInputElement = (host as Element).querySelector("#target");
       assertControllerBinding(controller, 'person.name', target, controllerSpy);
 
-      assert.equal(controller.errors.length, 0, 'error1');
+      assert.equal(controller.results.filter((r) => !r.valid).length, 0, 'error1');
       await controller.validate();
-      assert.equal(controller.errors.length, 1, 'error2');
+      assert.equal(controller.results.filter((r) => !r.valid).length, 1, 'error2');
 
       target.value = 'foo';
       await assertEventHandler(target, 'change', 0, scheduler, controllerSpy);
       await assertEventHandler(target, 'blur', 1, scheduler, controllerSpy);
-      assert.equal(controller.errors.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error3');
+      assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error3');
     },
     { template: `<input id="target" type="text" value.two-way="person.name & validate">` }
   );
@@ -146,14 +146,14 @@ describe.only('validate-biniding-behavior', function () {
       const target: HTMLInputElement = (host as Element).querySelector("#target");
       assertControllerBinding(controller, 'person.name', target, controllerSpy);
 
-      assert.equal(controller.errors.length, 0, 'error1');
+      assert.equal(controller.results.filter((r) => !r.valid).length, 0, 'error1');
       await controller.validate();
-      assert.equal(controller.errors.length, 1, 'error2');
+      assert.equal(controller.results.filter((r) => !r.valid).length, 1, 'error2');
 
       target.value = 'foo';
       await assertEventHandler(target, 'blur', 0, scheduler, controllerSpy);
       await assertEventHandler(target, 'change', 1, scheduler, controllerSpy);
-      assert.equal(controller.errors.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error3');
+      assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error3');
     },
     { template: `<input id="target" type="text" value.two-way="person.name & validate:'change'">`, customDefaultTrigger: ValidationTrigger.change }
   );
@@ -168,11 +168,11 @@ describe.only('validate-biniding-behavior', function () {
       assertControllerBinding(controller, 'person.name', target, controllerSpy);
 
       await assertEventHandler(target, 'blur', 1, scheduler, controllerSpy);
-      assert.equal(controller.errors.filter((e) => !e.valid && e.propertyName === 'name').length, 1, 'error3');
+      assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 1, 'error3');
 
       target.value = 'foo';
       await assertEventHandler(target, 'change', 1, scheduler, controllerSpy);
-      assert.equal(controller.errors.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error4');
+      assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error4');
     },
     { template: `<input id="target" type="text" value.two-way="person.name & validate:'changeOrBlur'">` }
   );
@@ -187,18 +187,18 @@ describe.only('validate-biniding-behavior', function () {
       assertControllerBinding(controller, 'person.name', target, controllerSpy);
 
       controllerSpy.clearCallRecords();
-      assert.equal(controller.errors.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error1');
+      assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error1');
       await controller.validate();
-      assert.equal(controller.errors.filter((e) => !e.valid && e.propertyName === 'name').length, 1, 'error2');
+      assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 1, 'error2');
 
       await assertEventHandler(target, 'blur', 0, scheduler, controllerSpy);
       target.value = 'foo';
       await assertEventHandler(target, 'change', 0, scheduler, controllerSpy);
 
       controllerSpy.clearCallRecords();
-      assert.equal(controller.errors.filter((e) => !e.valid && e.propertyName === 'name').length, 1, 'error3');
+      assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 1, 'error3');
       await controller.validate();
-      assert.equal(controller.errors.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error4');
+      assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error4');
     },
     { template: `<input id="target" type="text" value.two-way="person.name & validate:'manual'">` }
   );
@@ -252,10 +252,10 @@ describe.only('validate-biniding-behavior', function () {
       target2.value = '42';
       await assertEventHandler(target1, 'change', 1, scheduler, controllerSpy);
       await assertEventHandler(target2, 'change', 1, scheduler, controller2Spy);
-      assert.equal(controller.errors.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error5');
-      assert.equal(controller.errors.filter((e) => e.propertyName === 'age').length, 0, 'error6');
-      assert.equal(controller2.errors.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error7');
-      assert.equal(controller2.errors.filter((e) => e.propertyName === 'name').length, 0, 'error8');
+      assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error5');
+      assert.equal(controller.results.filter((e) => e.propertyName === 'age').length, 0, 'error6');
+      assert.equal(controller2.results.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error7');
+      assert.equal(controller2.results.filter((e) => e.propertyName === 'name').length, 0, 'error8');
     },
     {
       template: `
@@ -276,8 +276,8 @@ describe.only('validate-biniding-behavior', function () {
       assertControllerBinding(controller, 'person.name', target1, controllerSpy);
 
       await assertEventHandler(target1, 'blur', 1, scheduler, controllerSpy);
-      assert.equal(controller.errors.filter((e) => !e.valid && e.propertyName === 'name').length, 1, 'error1');
-      assert.equal(controller2.errors.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error2');
+      assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 1, 'error1');
+      assert.equal(controller2.results.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error2');
 
       app.tempController = controller2;
       await scheduler.yieldAll(10);
@@ -285,8 +285,8 @@ describe.only('validate-biniding-behavior', function () {
       assertControllerBinding(controller2, 'person.name', target1, controller2Spy);
 
       await assertEventHandler(target1, 'blur', 1, scheduler, controller2Spy);
-      assert.equal(controller.errors.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error1');
-      assert.equal(controller2.errors.filter((e) => !e.valid && e.propertyName === 'name').length, 1, 'error2');
+      assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error1');
+      assert.equal(controller2.results.filter((e) => !e.valid && e.propertyName === 'name').length, 1, 'error2');
     },
     {
       template: `
@@ -309,15 +309,15 @@ describe.only('validate-biniding-behavior', function () {
 
       await assertEventHandler(target1, 'blur', 1, scheduler, controllerSpy);
       await assertEventHandler(target2, 'blur', 0, scheduler, controller2Spy);
-      assert.equal(controller.errors.filter((e) => !e.valid && e.propertyName === 'name').length, 1, 'error1');
-      assert.equal(controller2.errors.filter((e) => !e.valid && e.propertyName === 'age').length, 0, 'error2');
+      assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 1, 'error1');
+      assert.equal(controller2.results.filter((e) => !e.valid && e.propertyName === 'age').length, 0, 'error2');
 
       target1.value = 'foo';
       target2.value = '41';
       await assertEventHandler(target1, 'change', 0, scheduler, controllerSpy);
       await assertEventHandler(target2, 'change', 1, scheduler, controller2Spy);
-      assert.equal(controller.errors.filter((e) => !e.valid && e.propertyName === 'name').length, 1, 'error3');
-      assert.equal(controller2.errors.filter((e) => !e.valid && e.propertyName === 'age').length, 1, 'error4');
+      assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 1, 'error3');
+      assert.equal(controller2.results.filter((e) => !e.valid && e.propertyName === 'age').length, 1, 'error4');
     },
     {
       template: `
@@ -337,11 +337,11 @@ describe.only('validate-biniding-behavior', function () {
 
       target2.value = '41';
       await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy);
-      assert.equal(controller.errors.filter((e) => e.propertyName === 'age').length, 1, 'error2');
+      assert.equal(controller.results.filter((e) => e.propertyName === 'age').length, 1, 'error2');
 
       target2.value = '42';
       await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy);
-      assert.equal(controller.errors.filter((e) => e.propertyName === 'age').length, 0, 'error3');
+      assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'age').length, 0, 'error3');
     },
     {
       template: `
@@ -360,27 +360,27 @@ describe.only('validate-biniding-behavior', function () {
 
       target2.value = '41';
       await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy);
-      assert.equal(controller.errors.filter((e) => e.propertyName === 'age' && e.rule instanceof RangeRule).length, 1, 'error2');
-      assert.equal(controller.errors.filter((e) => e.propertyName === 'age' && e.rule instanceof RequiredRule).length, 0, 'error3');
+      assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'age' && e.rule instanceof RangeRule).length, 1, 'error2');
+      assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'age' && e.rule instanceof RequiredRule).length, 0, 'error3');
 
       target2.value = '42';
       await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy);
-      assert.equal(controller.errors.filter((e) => e.propertyName === 'age').length, 0, 'error4');
+      assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'age').length, 0, 'error4');
 
       app.tempAgeRule = [app.ageMinRule];
       await scheduler.yieldAll();
 
       target2.value = '';
       await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy);
-      assert.equal(controller.errors.filter((e) => e.propertyName === 'age' && e.rule instanceof RequiredRule).length, 0, 'error4');
+      assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'age' && e.rule instanceof RequiredRule).length, 0, 'error5');
 
       target2.value = '41';
       await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy);
-      assert.equal(controller.errors.filter((e) => e.propertyName === 'age' && e.rule instanceof RangeRule).length, 1, 'error5');
+      assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'age' && e.rule instanceof RangeRule).length, 1, 'error6');
 
       target2.value = '42';
       await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy);
-      assert.equal(controller.errors.filter((e) => e.propertyName === 'age').length, 0, 'error6');
+      assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'age').length, 0, 'error7');
     },
     {
       template: `

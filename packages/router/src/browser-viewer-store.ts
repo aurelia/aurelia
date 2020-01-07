@@ -3,19 +3,31 @@ import { HTMLDOM } from '@aurelia/runtime-html';
 import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions, INavigatorViewerState } from './navigator';
 import { QueueTask, TaskQueue } from './task-queue';
 
+/**
+ * @internal
+ */
 interface IAction {
   execute(task: QueueTask<IAction>, resolve?: ((value?: void | PromiseLike<void>) => void) | null | undefined, suppressEvent?: boolean): void;
 }
 
+/**
+ * @internal
+ */
 interface IForwardedState {
   eventTask: QueueTask<IAction> | null;
   suppressPopstate: boolean;
 }
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export interface IBrowserViewerStoreOptions extends INavigatorViewerOptions {
   useUrlFragmentHash?: boolean;
 }
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
   public window: Window;
   public history: History;

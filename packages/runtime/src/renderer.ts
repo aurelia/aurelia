@@ -348,6 +348,7 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
     const childController = Controller.forCustomAttribute(
       /* viewModel */component,
       /* lifecycle */lifecycle,
+      /* host      */target,
       /* flags     */flags,
     );
 
@@ -398,6 +399,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     const childController = Controller.forCustomAttribute(
       /* viewModel */component,
       /* lifecycle */lifecycle,
+      /* host      */target,
       /* flags     */flags,
     );
 

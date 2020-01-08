@@ -7,7 +7,9 @@ import {
   IsAssign,
   IScheduler,
   IScope,
-  LifecycleFlags
+  LifecycleFlags,
+  CustomElementHost,
+  DOM,
 } from '@aurelia/runtime';
 import { PropertyRule } from './rule';
 import { BindingWithBehavior, IValidationController, ValidationController } from './validation-controller';
@@ -60,13 +62,12 @@ export class ValidateBindingBehavior extends BindingInterceptor {
   private readonly rulesMediator: BindingMediator<'handleRulesChange'> = new BindingMediator('handleRulesChange', this, this.observerLocator, this.locator);
 
   public constructor(
-    @IContainer private readonly container: IContainer,
     public readonly binding: BindingWithBehavior,
     expr: IBindingBehaviorExpression,
   ) {
     super(binding, expr);
-    this.scheduler = container.get(IScheduler);
-    this.defaultTrigger = container.get(IDefaultTrigger);
+    this.scheduler = this.locator.get(IScheduler);
+    this.defaultTrigger = this.locator.get(IDefaultTrigger);
   }
 
   public updateSource(value: unknown, flags: LifecycleFlags) {
@@ -83,9 +84,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined) {
     this.scope = scope;
     this.binding.$bind(flags, scope, part);
-
-    // identify the target element.
-    this.target = this.binding.target as HTMLElement; // TODO need additional processing for CE, and CA.
+    this.setTarget();
     const delta = this.processBindingExpressionArgs(flags);
     this.processDelta(delta);
   }
@@ -185,7 +184,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
 
   private ensureController(controller: unknown): ValidationController {
     if (controller === (void 0) || controller === null) {
-      controller = this.container.get(IValidationController);
+      controller = this.locator.get(IValidationController);
     } else if (!(controller instanceof ValidationController)) {
       throw new Error(`${controller} is not of type ValidationController`); // TODO use reporter
     }
@@ -196,6 +195,20 @@ export class ValidateBindingBehavior extends BindingInterceptor {
     if (Array.isArray(rules) && rules.every((item) => item instanceof PropertyRule)) {
       return rules;
     }
+  }
+
+  private setTarget() {
+    const target = this.binding.target;
+    if (DOM.isNodeInstance(target)) {
+      this.target = target as HTMLElement;
+    } else {
+      const controller = (target as CustomElementHost)?.$controller;
+      if (controller === void 0) {
+        throw new Error('Invalid binding target'); // TODO use reporter
+      }
+      this.target = controller.host as HTMLElement;
+    }
+    console.log(this.target);
   }
 }
 

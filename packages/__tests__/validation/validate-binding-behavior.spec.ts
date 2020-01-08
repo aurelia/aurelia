@@ -1,6 +1,6 @@
 import { Unparser } from '@aurelia/debug';
 import { IContainer, Registration } from '@aurelia/kernel';
-import { Aurelia, CustomElement, IBinding, INode, IScheduler } from '@aurelia/runtime';
+import { Aurelia, CustomElement, IBinding, INode, IScheduler, bindable, customElement } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import {
   BindingWithBehavior,
@@ -15,7 +15,7 @@ import {
   RequiredRule
 } from '@aurelia/validation';
 import { Spy } from '../Spy';
-import { Person } from './_test-resources';
+import { Person, Organization } from './_test-resources';
 import { createSpecFunction, TestFunction, TestExecutionContext } from '../util';
 
 describe.only('validate-biniding-behavior', function () {
@@ -30,20 +30,20 @@ describe.only('validate-biniding-behavior', function () {
     public trigger: ValidationTrigger = ValidationTrigger.change;
     public ageMinRule: PropertyRule;
     public tempAgeRule: PropertyRule[] = (void 0)!;
+    public org: Organization = new Organization([], void 0);
 
     public constructor(@IContainer container: IContainer) {
       const factory = container.get(IValidationControllerFactory);
       this.controllerSpy = new Spy();
       this.controller2Spy = new Spy();
 
-      // mocks ValidationCOntrollerFactory#createForCurrentScope
+      // mocks ValidationControllerFactory#createForCurrentScope
       const controller = this.controller = this.controllerSpy.getMock(factory.create()) as unknown as ValidationController;
       Registration.instance(IValidationController, controller).register(container);
 
       this.controller2 = this.controller2Spy.getMock(factory.create()) as unknown as ValidationController;
 
-      const validationRules = container.get(IValidationRules);
-      const rules = validationRules
+      const rules = container.get(IValidationRules)
         .on(this.person)
 
         .ensure('name')
@@ -54,9 +54,23 @@ describe.only('validate-biniding-behavior', function () {
         .min(42)
         .rules;
 
-      const ageRule = rules.find((rule) => rule.property.name === 'age')!;
-      this.ageMinRule = new PropertyRule(ageRule.validationRules, ageRule.messageProvider, ageRule.property, [[ageRule.$rules[0].find((rule) => rule instanceof RangeRule)]]);
+      const { validationRules: vrs, messageProvider, property, $rules } = rules.find((rule) => rule.property.name === 'age')!;
+      this.ageMinRule = new PropertyRule(vrs, messageProvider, property, [[$rules[0].find((rule) => rule instanceof RangeRule)]]);
+
+      container.get(IValidationRules)
+        .on(this.org)
+        .ensure('employees')
+        .minItems(1);
     }
+  }
+
+  @customElement({ name: 'text-box', template: `<input value.two-way="value"/>` })
+  class TextBox {
+    @bindable public value: unknown;
+  }
+  @customElement({ name: 'employee-list', template: `\${employees.length}` })
+  class EmployeeList {
+    @bindable public employees: Person[];
   }
   interface TestSetupContext {
     template: string;
@@ -78,7 +92,9 @@ describe.only('validate-biniding-behavior', function () {
           ? ValidationConfiguration.customize((options) => {
             options.defaultTrigger = customDefaultTrigger;
           })
-          : ValidationConfiguration
+          : ValidationConfiguration,
+        TextBox,
+        EmployeeList
       )
       .app({
         host,
@@ -116,6 +132,7 @@ describe.only('validate-biniding-behavior', function () {
     controllerSpy.methodCalledTimes('validate', callCount);
   }
 
+  // #region trigger
   $it('registers binding to the controller with default **blur** trigger',
     async function ({ app, host, container }: TestExecutionContext<App>) {
       const scheduler = container.get(IScheduler);
@@ -234,7 +251,9 @@ describe.only('validate-biniding-behavior', function () {
     },
     { template: `<input id="target" type="text" value.two-way="person.name & validate:trigger">` }
   );
+  // #endregion
 
+  // #region controller
   $it('respects bound controller',
     async function ({ app, host, container }: TestExecutionContext<App>) {
       const scheduler = container.get(IScheduler);
@@ -325,7 +344,9 @@ describe.only('validate-biniding-behavior', function () {
     <input id="target2" type="text" value.two-way="person.age & validate:'change':controller2">
     ` }
   );
+  // #endregion
 
+  // #region rules
   $it('respects bound rules',
     async function ({ app, host, container }: TestExecutionContext<App>) {
       const scheduler = container.get(IScheduler);
@@ -387,6 +408,9 @@ describe.only('validate-biniding-behavior', function () {
     <input id="target2" type="text" value.two-way="person.age & validate:'change':controller1:tempAgeRule">
     ` }
   );
+  // #endregion
+
+  // #region argument parsing
   [
     { args: `'chaos'`, expectedError: 'is not a supported validation trigger' },
     { args: `controller`, expectedError: 'is not a supported validation trigger' },
@@ -422,4 +446,54 @@ describe.only('validate-biniding-behavior', function () {
       await au.stop().wait();
       ctx.doc.body.removeChild(host);
     }));
+
+  // #endregion
+
+  // #region custom element
+  $it('can be used with custom element',
+    async function ({ app, host, container }: TestExecutionContext<App>) {
+      const scheduler = container.get(IScheduler);
+      const controller = app.controller;
+      const controllerSpy = app.controllerSpy;
+      const person = app.person;
+
+      const caHost: HTMLElement = (host as Element).querySelector("#target");
+      const input: HTMLInputElement = caHost.querySelector("input");
+
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
+      await controller.validate();
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 1, 'error2');
+
+      input.value = 'foo';
+      await assertEventHandler(input, 'change', 1, scheduler, controllerSpy);
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error3');
+    },
+    { template: `<text-box id="target" value.two-way="person.name & validate:'change'"></text-box>` }
+  );
+  // #endregion
+
+  $it.skip('can be used to validate collection',
+    async function ({ app, host, container }: TestExecutionContext<App>) {
+      const scheduler = container.get(IScheduler);
+      const controller = app.controller;
+      const controllerSpy = app.controllerSpy;
+
+      const target: HTMLInputElement = (host as Element).querySelector("#target");
+      // assertControllerBinding(controller, 'org.employees', target, controllerSpy);
+
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'org.employees').length, 0, 'error1');
+      await controller.validate();
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'org.employees').length, 1, 'error2');
+
+      controllerSpy.clearCallRecords();
+      app.org.employees.push(app.person);
+      await scheduler.yieldAll(10);
+      controllerSpy.methodCalledTimes('validateBinding', 1);
+      controllerSpy.methodCalledTimes('validate', 1);
+
+      // await controller.validate();
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'org.employees').length, 0, 'error3');
+    },
+    { template: `<employee-list id="target" employees.bind="org.employees & validate:'change'"></employee-list>` }
+  );
 });

@@ -200,4 +200,24 @@ describe.only('validation-controller', function () {
       },
       { template: `<input id="target" type="text" value.two-way="person1.name & validate">` }
     ));
+
+  $it('does not validate objects if it is removed',
+    async function ({ app: { controller: sut, person2 } }) {
+
+      assert.equal(sut['objects'].has(person2), false);
+
+      sut.addObject(person2);
+      assert.equal(sut['objects'].has(person2), true);
+
+      let result = await sut.validate();
+      assert.greaterThan(result.results.findIndex((r) => Object.is(person2, r.object)), -1);
+
+      sut.removeObject(person2);
+      assert.equal(sut['objects'].has(person2), false);
+
+      result = await sut.validate();
+      assert.equal(result.results.findIndex((r) => Object.is(person2, r.object)), -1);
+    },
+    { template: `<input id="target" type="text" value.two-way="person1.name & validate">` }
+  );
 });

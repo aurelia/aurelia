@@ -612,10 +612,10 @@ describe(`Repeat`, function () {
         if (proxies) {
           const raw = new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory);
           sut = new ProxyObserver(raw).proxy;
-          (raw as Writable<Repeat>).$controller = Controller.forCustomAttribute(sut, lifecycle);
+          (raw as Writable<Repeat>).$controller = Controller.forCustomAttribute(sut, lifecycle, (void 0)!);
         } else {
           sut = new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory);
-          (sut as Writable<Repeat>).$controller = Controller.forCustomAttribute(sut, lifecycle);
+          (sut as Writable<Repeat>).$controller = Controller.forCustomAttribute(sut, lifecycle, (void 0)!);
         }
         binding.target = sut as any;
 

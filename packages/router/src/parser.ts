@@ -1,14 +1,23 @@
+/**
+ * @internal - Shouldn't be used directly
+ */
 export interface IParsedQuery {
   parameters: Record<Exclude<string, '-unnamed'>, string> | (Record<Exclude<string, '-unnamed'>, string> & Record<'-unnamed', string[]>);
   list: string[];
 }
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export interface IMergedParameters {
   namedParameters: Record<string, string>;
   parameterList: string[];
   merged: string[] | Record<string, string>;
 }
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export function parseQuery(query: string | null | undefined): Record<string, string> {
   if (!query || !query.length) {
     return {};

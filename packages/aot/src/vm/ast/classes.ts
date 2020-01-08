@@ -852,11 +852,12 @@ export class $ClassDeclaration implements I$Node {
         transformedMembers = node.members;
       }
 
-      (transformedMembers as ClassElement[]).splice(
-        transformedMembers.findIndex(x => x.kind === SyntaxKind.Constructor),
-        1,
-        transformedCtor,
-      );
+      const ctorIdx = transformedMembers.findIndex(x => x.kind === SyntaxKind.Constructor);
+      if (ctorIdx >= 0) {
+        (transformedMembers as ClassElement[]).splice(ctorIdx, 1, transformedCtor);
+      } else {
+        (transformedMembers as ClassElement[]).push(transformedCtor);
+      }
     }
 
     let staticPropertyInitializers: ExpressionStatement[];
@@ -965,6 +966,19 @@ export class $ClassDeclaration implements I$Node {
           }
         }
       }
+    }
+
+    const syntheticCtor = this.ConstructorMethod;
+    if (syntheticCtor.isSynthetic && this.$decorators.length > 0) {
+      const decorateCall = createReflectDecorateCall(
+        /* decorators */[
+          ...this.$decorators.map(x => x.$expression.transform(tctx)),
+          createReflectMetadataCall('design:type', serializeTypeOfNode(this.mos as $ESModule, this.node)),
+          createReflectMetadataCall('design:paramtypes', serializeParameterTypesOfNode(this.mos as $ESModule, this)),
+        ],
+        /* target */name,
+      );
+      ctorDecorateExpression.push(createExpressionStatement(decorateCall));
     }
 
     if (hasDecorators) {

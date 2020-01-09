@@ -1,6 +1,6 @@
 import { Unparser } from '@aurelia/debug';
 import { IContainer, Registration } from '@aurelia/kernel';
-import { Aurelia, CustomElement, IBinding, INode, IScheduler, bindable, customElement } from '@aurelia/runtime';
+import { Aurelia, CustomElement, IBinding, INode, IScheduler, bindable, customElement, customAttribute } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import {
   BindingWithBehavior,
@@ -72,6 +72,24 @@ describe.only('validate-biniding-behavior', function () {
   class EmployeeList {
     @bindable public employees: Person[];
   }
+  @customAttribute({ name: 'foo-bar' })
+  class FooBar {
+    public static staticText: string = 'from foo-bar ca';
+    @bindable public value: unknown;
+    @bindable public triggeringEvents: string[];
+
+    public constructor(@INode private readonly node: HTMLElement) { }
+
+    public beforeBind() {
+      for (const event of this.triggeringEvents) {
+        this.node.addEventListener(event, this);
+      }
+    }
+
+    public handleEvent(_event: Event) {
+      this.value = FooBar.staticText;
+    }
+  }
   interface TestSetupContext {
     template: string;
     customDefaultTrigger?: ValidationTrigger;
@@ -94,7 +112,8 @@ describe.only('validate-biniding-behavior', function () {
           })
           : ValidationConfiguration,
         TextBox,
-        EmployeeList
+        EmployeeList,
+        FooBar
       )
       .app({
         host,
@@ -450,15 +469,15 @@ describe.only('validate-biniding-behavior', function () {
   // #endregion
 
   // #region custom element
-  $it('can be used with custom element',
+  $it('can be used with custom element - change trigger',
     async function ({ app, host, container }: TestExecutionContext<App>) {
       const scheduler = container.get(IScheduler);
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
       const person = app.person;
 
-      const caHost: HTMLElement = (host as Element).querySelector("#target");
-      const input: HTMLInputElement = caHost.querySelector("input");
+      const ceHost: HTMLElement = (host as Element).querySelector("#target");
+      const input: HTMLInputElement = ceHost.querySelector("input");
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
       await controller.validate();
@@ -469,6 +488,188 @@ describe.only('validate-biniding-behavior', function () {
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error3');
     },
     { template: `<text-box id="target" value.two-way="person.name & validate:'change'"></text-box>` }
+  );
+  $it('can be used with custom element - blur trigger',
+    async function ({ app, host, container }: TestExecutionContext<App>) {
+      const scheduler = container.get(IScheduler);
+      const controller = app.controller;
+      const controllerSpy = app.controllerSpy;
+      const person = app.person;
+
+      const ceHost: HTMLElement = (host as Element).querySelector("#target");
+
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
+      await controller.validate();
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 1, 'error2');
+
+      controllerSpy.clearCallRecords();
+      person.name = 'foo';
+      await scheduler.yieldAll(10);
+      controllerSpy.methodCalledTimes('validateBinding', 0);
+      controllerSpy.methodCalledTimes('validate', 0);
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 1, 'error3');
+
+      controllerSpy.clearCallRecords();
+      ceHost.focus();
+      await scheduler.yieldAll();
+      await assertEventHandler(ceHost, 'blur', 1, scheduler, controllerSpy);
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error4');
+    },
+    { template: `<text-box tabindex="-1" id="target" value.two-way="person.name & validate:'blur'"></text-box>` }
+  );
+  $it('can be used with custom element - changeOrBlur trigger',
+    async function ({ app, host, container }: TestExecutionContext<App>) {
+      const scheduler = container.get(IScheduler);
+      const controller = app.controller;
+      const controllerSpy = app.controllerSpy;
+      const person = app.person;
+
+      const ceHost: HTMLElement = (host as Element).querySelector("#target");
+      const input: HTMLInputElement = ceHost.querySelector("input");
+
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
+      await controller.validate();
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 1, 'error2');
+
+      input.value = 'foo';
+      await assertEventHandler(input, 'change', 1, scheduler, controllerSpy);
+
+      controllerSpy.clearCallRecords();
+      ceHost.focus();
+      await scheduler.yieldAll();
+      await assertEventHandler(ceHost, 'blur', 1, scheduler, controllerSpy);
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error4');
+    },
+    { template: `<text-box tabindex="-1" id="target" value.two-way="person.name & validate:'changeOrBlur'"></text-box>` }
+  );
+  $it('can be used with custom element - manual trigger',
+    async function ({ app, host, container }: TestExecutionContext<App>) {
+      const scheduler = container.get(IScheduler);
+      const controller = app.controller;
+      const controllerSpy = app.controllerSpy;
+      const person = app.person;
+
+      const ceHost: HTMLElement = (host as Element).querySelector("#target");
+      const input: HTMLInputElement = ceHost.querySelector("input");
+
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
+      await controller.validate();
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 1, 'error2');
+
+      input.value = 'foo';
+      await assertEventHandler(input, 'change', 0, scheduler, controllerSpy);
+
+      controllerSpy.clearCallRecords();
+      ceHost.focus();
+      await scheduler.yieldAll();
+      await assertEventHandler(ceHost, 'blur', 0, scheduler, controllerSpy);
+      await controller.validate();
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error4');
+    },
+    { template: `<text-box tabindex="-1" id="target" value.two-way="person.name & validate:'manual'"></text-box>` }
+  );
+  // #endregion
+
+  // #region custom attribute
+  $it('can be used with custom attribute - change trigger',
+    async function ({ app, host, container }: TestExecutionContext<App>) {
+      const scheduler = container.get(IScheduler);
+      const controller = app.controller;
+      const controllerSpy = app.controllerSpy;
+      const person = app.person;
+
+      const caHost: HTMLDivElement = (host as Element).querySelector("#target");
+
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
+      await controller.validate();
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 1, 'error2');
+
+      controllerSpy.clearCallRecords();
+      caHost.click();
+      await scheduler.yieldAll(10);
+      controllerSpy.methodCalledTimes('validateBinding', 1);
+      controllerSpy.methodCalledTimes('validate', 1);
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error3');
+    },
+    { template: `<div id="target" foo-bar="value.two-way:person.name & validate:'change'; triggering-events.bind:['click']"></div>` }
+  );
+  $it('can be used with custom attribute - blur trigger',
+    async function ({ app, host, container }: TestExecutionContext<App>) {
+      const scheduler = container.get(IScheduler);
+      const controller = app.controller;
+      const controllerSpy = app.controllerSpy;
+      const person = app.person;
+
+      const caHost: HTMLDivElement = (host as Element).querySelector("#target");
+
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
+      await controller.validate();
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 1, 'error2');
+
+      controllerSpy.clearCallRecords();
+      caHost.focus();
+      await scheduler.yieldAll();
+      await assertEventHandler(caHost, 'blur', 1, scheduler, controllerSpy);
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error3');
+    },
+    { template: `<div id="target" tabindex="-1" foo-bar="value.two-way:person.name & validate:'blur'; triggering-events.bind:['blur']"></div>` }
+  );
+  $it('can be used with custom attribute - changeOrBlur trigger',
+    async function ({ app, host, container }: TestExecutionContext<App>) {
+      const scheduler = container.get(IScheduler);
+      const controller = app.controller;
+      const controllerSpy = app.controllerSpy;
+      const person = app.person;
+
+      const caHost: HTMLDivElement = (host as Element).querySelector("#target");
+
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
+      await controller.validate();
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 1, 'error2');
+
+      controllerSpy.clearCallRecords();
+      caHost.click();
+      await scheduler.yieldAll(10);
+      controllerSpy.methodCalledTimes('validateBinding', 1);
+      controllerSpy.methodCalledTimes('validate', 1);
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error3');
+
+      controllerSpy.clearCallRecords();
+      caHost.focus();
+      await scheduler.yieldAll();
+      await assertEventHandler(caHost, 'blur', 1, scheduler, controllerSpy);
+    },
+    { template: `<div id="target" tabindex="-1" foo-bar="value.two-way:person.name & validate:'changeOrBlur'; triggering-events.bind:['click']"></div>` }
+  );
+  $it('can be used with custom attribute - manual trigger',
+    async function ({ app, host, container }: TestExecutionContext<App>) {
+      const scheduler = container.get(IScheduler);
+      const controller = app.controller;
+      const controllerSpy = app.controllerSpy;
+      const person = app.person;
+
+      const caHost: HTMLDivElement = (host as Element).querySelector("#target");
+
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
+      await controller.validate();
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 1, 'error2');
+
+      controllerSpy.clearCallRecords();
+      caHost.click();
+      await scheduler.yieldAll(10);
+      controllerSpy.methodCalledTimes('validateBinding', 0);
+      controllerSpy.methodCalledTimes('validate', 0);
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 1, 'error3');
+
+      controllerSpy.clearCallRecords();
+      caHost.focus();
+      await scheduler.yieldAll();
+      await assertEventHandler(caHost, 'blur', 0, scheduler, controllerSpy);
+
+      await controller.validate();
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error5');
+    },
+    { template: `<div id="target" tabindex="-1" foo-bar="value.two-way:person.name & validate:'manual'; triggering-events.bind:['click', 'blur']"></div>` }
   );
   // #endregion
 

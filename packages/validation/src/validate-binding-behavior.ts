@@ -1,4 +1,4 @@
-import { DI, IContainer } from '@aurelia/kernel';
+import { DI } from '@aurelia/kernel';
 import {
   bindingBehavior,
   BindingInterceptor,
@@ -208,7 +208,6 @@ export class ValidateBindingBehavior extends BindingInterceptor {
       }
       this.target = controller.host as HTMLElement;
     }
-    console.log(this.target);
   }
 }
 

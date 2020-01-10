@@ -5,6 +5,7 @@ import { IHttpServer, IHttpServerOptions, IRequestHandler, StartOutput } from '.
 import { AddressInfo } from 'net';
 import { HTTPStatusCode, readBuffer } from './http-utils';
 import { HttpContext } from './http-context';
+import { WebSocket } from './websocket';
 
 export class HttpServer implements IHttpServer {
   private server: http.Server | null = null;
@@ -33,6 +34,13 @@ export class HttpServer implements IHttpServer {
 
     const { address, port: realPort } = this.server.address() as AddressInfo;
     this.logger.info(`Now listening on ${address}:${realPort} (configured: ${hostName}:${port})`);
+
+    this.server.on('upgrade', (req, socket, head) => {
+      const ws = new WebSocket(req, socket, head);
+      ws.on('message', msg => {
+        this.logger.info(msg.toString());
+      });
+    });
 
     return new StartOutput(realPort);
   }

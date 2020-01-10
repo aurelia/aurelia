@@ -1,6 +1,6 @@
 import { Unparser } from '@aurelia/debug';
 import { IContainer, Registration } from '@aurelia/kernel';
-import { Aurelia, CustomElement, IBinding, INode, IScheduler, bindable, customElement, customAttribute } from '@aurelia/runtime';
+import { Aurelia, CustomElement, IBinding, INode, IScheduler, bindable, customElement, customAttribute, valueConverter } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import {
   BindingWithBehavior,
@@ -90,6 +90,14 @@ describe.only('validate-biniding-behavior', function () {
       this.value = FooBar.staticText;
     }
   }
+  @valueConverter('toNumber')
+  class ToNumberValueConverter {
+    public fromView(value: string): number { return Number(value) || void 0; }
+  }
+  @valueConverter('b64ToPlainText')
+  class B64ToPlainTextValueConverter {
+    public fromView(b64: string): string { return atob(b64); }
+  }
   interface TestSetupContext {
     template: string;
     customDefaultTrigger?: ValidationTrigger;
@@ -113,7 +121,9 @@ describe.only('validate-biniding-behavior', function () {
           : ValidationConfiguration,
         TextBox,
         EmployeeList,
-        FooBar
+        FooBar,
+        ToNumberValueConverter,
+        B64ToPlainTextValueConverter
       )
       .app({
         host,
@@ -672,6 +682,59 @@ describe.only('validate-biniding-behavior', function () {
     { template: `<div id="target" tabindex="-1" foo-bar="value.two-way:person.name & validate:'manual'; triggering-events.bind:['click', 'blur']"></div>` }
   );
   // #endregion
+
+  $it('can be used with value converter',
+    async function ({ app, host, container }: TestExecutionContext<App>) {
+      const scheduler = container.get(IScheduler);
+      const controller = app.controller;
+      const controllerSpy = app.controllerSpy;
+      const person = app.person;
+
+      const target: HTMLInputElement = (host as Element).querySelector("#target");
+      assertControllerBinding(controller, 'person.age|toNumber', target, controllerSpy);
+
+      assert.equal(controller.results.filter((r) => !r.valid).length, 0, 'error1');
+      await controller.validate();
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'age').length, 2, 'error2');
+
+      target.value = '123';
+      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy);
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'age').length, 0, 'error3');
+      assert.equal(person.age, 123);
+
+      target.value = 'foo';
+      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy);
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'age').length, 2, 'error4');
+      assert.equal(person.age, undefined);
+    },
+    { template: `<input id="target" value.two-way="person.age | toNumber & validate:'change'"></employee-list>` }
+  );
+  $it('can be used with multiple value converters',
+    async function ({ app, host, container }: TestExecutionContext<App>) {
+      const scheduler = container.get(IScheduler);
+      const controller = app.controller;
+      const controllerSpy = app.controllerSpy;
+      const person = app.person;
+
+      const target: HTMLInputElement = (host as Element).querySelector("#target");
+      assertControllerBinding(controller, 'person.age|toNumber|b64ToPlainText', target, controllerSpy);
+
+      assert.equal(controller.results.filter((r) => !r.valid).length, 0, 'error1');
+      await controller.validate();
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'age').length, 2, 'error2');
+
+      target.value = btoa('1234');
+      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy);
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'age').length, 0, 'error3');
+      assert.equal(person.age, 1234);
+
+      target.value = btoa('foobar');
+      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy);
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'age').length, 2, 'error4');
+      assert.equal(person.age, undefined);
+    },
+    { template: `<input id="target" value.two-way="person.age | toNumber | b64ToPlainText  & validate:'change'"></employee-list>` }
+  );
 
   $it.skip('can be used to validate collection',
     async function ({ app, host, container }: TestExecutionContext<App>) {

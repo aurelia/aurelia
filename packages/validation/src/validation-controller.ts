@@ -9,7 +9,8 @@ import {
   IScope,
   LifecycleFlags,
   PrimitiveLiteralExpression,
-  IScheduler
+  IScheduler,
+  ValueConverterExpression
 } from '@aurelia/runtime';
 import { IValidateable, parsePropertyName, PropertyAccessor, PropertyRule, ValidationResult, BaseValidationRule } from './rule';
 import { RenderInstruction, ValidationRenderer } from './validation-renderer';
@@ -203,10 +204,6 @@ export class ValidationController implements IValidationController {
     if (propertyInfo !== void 0) {
       return propertyInfo;
     }
-    // const originalExpression = expression;
-    // while (expression instanceof BindingBehavior || expression instanceof ValueConverter) {
-    //   expression = expression.expression;
-    // }
 
     const scope = info.scope;
     let expression = binding.sourceExpression.expression as ValidatableExpression;
@@ -216,6 +213,9 @@ export class ValidationController implements IValidationController {
     while (expression !== void 0 && !(expression instanceof AccessScopeExpression)) {
       let memberName: string;
       switch (true) {
+        case expression instanceof BindingBehaviorExpression || expression instanceof ValueConverterExpression:
+          expression = (expression as unknown as (BindingBehaviorExpression | ValueConverterExpression)).expression as ValidatableExpression;
+          continue;
         case expression instanceof AccessMemberExpression: {
           memberName = (expression as AccessMemberExpression).name;
           break;
@@ -229,7 +229,7 @@ export class ValidationController implements IValidationController {
           break;
         }
         default:
-          throw new Error(`Unknown expression of type ${Object.getPrototypeOf(expression)}`); // TODO use reporter/logger
+          throw new Error(`Unknown expression of type ${expression?.constructor.name}`); // TODO use reporter/logger
       }
       propertyName = propertyName.length === 0 ? memberName : `${memberName}.${propertyName}`;
       expression = expression.object as ValidatableExpression;

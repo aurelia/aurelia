@@ -23,7 +23,8 @@ const enum State {
   GET_INFO = 0,
   GET_PAYLOAD_LENGTH_16 = 1,
   GET_PAYLOAD_LENGTH_64 = 2,
-  GET_DATA = 3,
+  GET_MASK = 3,
+  GET_DATA = 4,
 }
 
 class Receiver extends Writable {
@@ -33,6 +34,8 @@ class Receiver extends Writable {
   private _payloadLength: number = 0;
   private _opcode: number = 0;
 
+  private _mask: Buffer = (void 0)!;
+  private _masked: boolean = false;
   private _state: State = State.GET_INFO;
   private _loop: boolean = false;
 
@@ -126,12 +129,14 @@ class Receiver extends Writable {
             break;
           }
 
+          this._masked = (buf[1] & 0x80) === 0x80;
+
           if (this._payloadLength === 126) {
             this._state = State.GET_PAYLOAD_LENGTH_16;
           } else if (this._payloadLength === 127) {
             this._state = State.GET_PAYLOAD_LENGTH_64;
           } else {
-            this._state = State.GET_DATA;
+            this._state = this._masked ? State.GET_MASK : State.GET_DATA;
           }
           break;
         }
@@ -158,6 +163,16 @@ class Receiver extends Writable {
           this._state = State.GET_DATA;
           break;
         }
+        case State.GET_MASK: {
+          if (this._bufferedBytes < 4) {
+            this._loop = false;
+            break;
+          }
+
+          this._mask = this.consume(4);
+          this._state = State.GET_DATA;
+          break;
+        }
         case State.GET_DATA: {
           let data = EMPTY_BUFFER;
 
@@ -168,6 +183,12 @@ class Receiver extends Writable {
             }
 
             data = this.consume(this._payloadLength);
+            if (this._masked) {
+              const mask = this._mask;
+              for (let i = 0, ii = data.length; i < ii; ++i) {
+                data[i] ^= mask[i & 3];
+              }
+            }
           }
 
           if (this._opcode > 0x07) {
@@ -356,19 +377,7 @@ export class WebSocket extends EventEmitter {
     const payload = `${(req.headers['sec-websocket-key'] as string).trim()}258EAFA5-E914-47DA-95CA-C5AB0DC85B11`;
     const digest = createHash('sha1').update(payload).digest('base64');
 
-    let header = `HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ${digest}`;
-    let protocol = req.headers['sec-websocket-protocol'];
-
-    if (protocol !== void 0 && protocol.length > 0) {
-      [protocol] = (protocol as string).trim().split(/ *, */);
-
-      if (protocol.length > 0) {
-        header = `${header}\r\nSec-WebSocket-Protocol: ${protocol}`;
-        this.protocol = protocol;
-      }
-    }
-
-    socket.write(`${header}\r\n\r\n`);
+    socket.write(`HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ${digest}\r\n\r\n`);
     socket.removeListener('error', socketOnError);
 
     const receiver = new Receiver(this);

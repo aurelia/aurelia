@@ -7,6 +7,8 @@ import { HTTPStatusCode, readBuffer } from './http-utils';
 import { HttpContext } from './http-context';
 import { WebSocket } from './websocket';
 
+// import * as ws from 'ws';
+
 export class HttpServer implements IHttpServer {
   private server: http.Server | null = null;
 
@@ -36,9 +38,18 @@ export class HttpServer implements IHttpServer {
     this.logger.info(`Now listening on ${address}:${realPort} (configured: ${hostName}:${port})`);
 
     this.server.on('upgrade', (req, socket, head) => {
+      this.logger.info(`Opening WebSocket`);
+
+      // const wss = new ws.Server({ noServer: true, perMessageDeflate: false });
+      // wss.handleUpgrade(req, socket, head, client => {
+      //   client.on('message', data => {
+      //     client.send(data);
+      //   });
+      // });
       const ws = new WebSocket(req, socket, head);
       ws.on('message', msg => {
-        this.logger.info(msg.toString());
+        // this.logger.info(`Message from WebSocket: ${msg}`);
+        ws.send(typeof msg === 'string' ? Buffer.from(msg) : msg);
       });
     });
 

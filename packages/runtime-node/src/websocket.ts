@@ -1,286 +1,225 @@
 import { EventEmitter } from 'events';
 
 import { Socket } from 'net';
-import { Writable } from 'stream';
 import { createHash } from 'crypto';
 import { IncomingMessage } from 'http';
 import { PLATFORM } from '@aurelia/kernel';
 
 const EMPTY_BUFFER = Buffer.alloc(0);
 
-function isValidStatusCode(code: number): boolean {
-  return (
-    (code >= 1000 &&
-      code <= 1013 &&
-      code !== 1004 &&
-      code !== 1005 &&
-      code !== 1006) ||
-    (code >= 3000 && code <= 4999)
-  );
+const enum ReadyState {
+  CONNECTING = 0,
+  OPEN = 1,
+  CLOSING = 2,
+  CLOSED = 3,
 }
 
-const enum State {
-  GET_INFO = 0,
-  GET_PAYLOAD_LENGTH_16 = 1,
-  GET_PAYLOAD_LENGTH_64 = 2,
-  GET_MASK = 3,
-  GET_DATA = 4,
-}
+export class WebSocket extends EventEmitter {
+  public readyState: ReadyState = ReadyState.CONNECTING;
+  public protocol: string = '';
 
-class Receiver extends Writable {
-  private _bufferedBytes: number = 0;
-  private _buffers: Buffer[] = [];
+  public closeTimer: NodeJS.Timeout | null = null;
 
-  private _payloadLength: number = 0;
-  private _opcode: number = 0;
-
-  private _mask: Buffer = (void 0)!;
-  private _masked: boolean = false;
-  private _state: State = State.GET_INFO;
-  private _loop: boolean = false;
+  private closeFrameReceived: boolean = false;
+  private closeFrameSent: boolean = false;
+  private closeMessage: string = '';
+  private closeCode: number = 1006;
 
   public constructor(
-    public ws: WebSocket,
+    req: IncomingMessage,
+    public readonly socket: Socket,
+    head: Buffer,
   ) {
     super();
-  }
 
-  public _write(chunk: Buffer, encoding: string, cb: (err?: Error) => void): void {
-    if (this._opcode === 0x08 && this._state === State.GET_INFO) {
-      return cb();
-    }
+    const socketOnData = (buffer: Buffer) => {
+      let cursor = 0;
 
-    this._bufferedBytes += chunk.length;
-    this._buffers.push(chunk);
-    this.startLoop(cb);
-  }
+      const opcode = buffer[cursor] & 0x0f;
+      let payloadLength = buffer[cursor + 1] & 0x7f;
+      const masked = (buffer[cursor + 1] & 0x80) === 0x80;
 
-  public consume(n: number): Buffer {
-    this._bufferedBytes -= n;
+      cursor += 2;
 
-    if (n === this._buffers[0].length) {
-      return this._buffers.shift()!;
-    }
-
-    if (n < this._buffers[0].length) {
-      const buf = this._buffers[0];
-      this._buffers[0] = buf.slice(n);
-      return buf.slice(0, n);
-    }
-
-    const dst = Buffer.allocUnsafe(n);
-
-    do {
-      const buf = this._buffers[0];
-      const offset = dst.length - n;
-
-      if (n >= buf.length) {
-        dst.set(this._buffers.shift()!, offset);
-      } else {
-        // eslint-disable-next-line compat/compat
-        dst.set(new Uint8Array(buf.buffer, buf.byteOffset, n), offset);
-        this._buffers[0] = buf.slice(n);
+      switch (payloadLength) {
+        case 126:
+          payloadLength = buffer.readUInt16BE(cursor);
+          cursor += 2;
+          break;
+        case 127:
+          payloadLength = buffer.readUInt32BE(cursor) * 0x100000000 + buffer.readUInt32BE(cursor + 4);
+          cursor += 8;
+          break;
       }
 
-      n -= buf.length;
-    } while (n > 0);
+      let data = EMPTY_BUFFER;
 
-    return dst;
-  }
+      if (payloadLength > 0) {
+        if (masked) {
+          data = buffer.slice(cursor + 4, cursor + 4 + payloadLength);
 
-  public startLoop(cb: (err?: Error) => void): void {
-    let err: WSRangeError | void;
-    this._loop = true;
-
-    do {
-      switch (this._state) {
-        case State.GET_INFO: {
-          if (this._bufferedBytes < 2) {
-            this._loop = false;
-            break;
-          }
-
-          const buf = this.consume(2);
-
-          if ((buf[0] & 0x30) !== 0x00) {
-            this._loop = false;
-            err = new WSRangeError('RSV2 and RSV3 must be clear', 1002);
-            break;
-          }
-
-          this._opcode = buf[0] & 0x0f;
-          this._payloadLength = buf[1] & 0x7f;
-
-          if (this._opcode === 0x00) {
-            this._loop = false;
-            err = new WSRangeError('invalid opcode 0', 1002);
-            break;
-          } else if (this._opcode === 0x01 || this._opcode === 0x02) {
-            // do nothing
-          } else if (this._opcode > 0x07 && this._opcode < 0x0b) {
-            if (this._payloadLength > 0x7d) {
-              this._loop = false;
-              err = new WSRangeError(`invalid payload length ${this._payloadLength}`, 1002);
+          switch (payloadLength) {
+            case 4:
+              data[3] ^= buffer[cursor + 3];
+              // falls through
+            case 3:
+              data[2] ^= buffer[cursor + 2];
+              // falls through
+            case 2:
+              data[1] ^= buffer[cursor + 1];
+              // falls through
+            case 1:
+              data[0] ^= buffer[cursor];
               break;
-            }
-          } else {
-            this._loop = false;
-            err = new WSRangeError(`invalid opcode ${this._opcode}`, 1002);
-            break;
-          }
+            default: {
+              const m0 = buffer[cursor];
+              const m1 = buffer[cursor + 1];
+              const m2 = buffer[cursor + 2];
+              const m3 = buffer[cursor + 3];
 
-          this._masked = (buf[1] & 0x80) === 0x80;
-
-          if (this._payloadLength === 126) {
-            this._state = State.GET_PAYLOAD_LENGTH_16;
-          } else if (this._payloadLength === 127) {
-            this._state = State.GET_PAYLOAD_LENGTH_64;
-          } else {
-            this._state = this._masked ? State.GET_MASK : State.GET_DATA;
-          }
-          break;
-        }
-        case State.GET_PAYLOAD_LENGTH_16: {
-          if (this._bufferedBytes < 2) {
-            this._loop = false;
-            break;
-          }
-
-          this._payloadLength = this.consume(2).readUInt16BE(0);
-          this._state = State.GET_DATA;
-          break;
-        }
-        case State.GET_PAYLOAD_LENGTH_64: {
-          if (this._bufferedBytes < 8) {
-            this._loop = false;
-            break;
-          }
-
-          const buf = this.consume(8);
-          const num = buf.readUInt32BE(0);
-
-          this._payloadLength = num * 2 ** 32 + buf.readUInt32BE(4);
-          this._state = State.GET_DATA;
-          break;
-        }
-        case State.GET_MASK: {
-          if (this._bufferedBytes < 4) {
-            this._loop = false;
-            break;
-          }
-
-          this._mask = this.consume(4);
-          this._state = State.GET_DATA;
-          break;
-        }
-        case State.GET_DATA: {
-          let data = EMPTY_BUFFER;
-
-          if (this._payloadLength > 0) {
-            if (this._bufferedBytes < this._payloadLength) {
-              this._loop = false;
-              return;
-            }
-
-            data = this.consume(this._payloadLength);
-            if (this._masked) {
-              const mask = this._mask;
-              for (let i = 0, ii = data.length; i < ii; ++i) {
-                data[i] ^= mask[i & 3];
+              const len3 = payloadLength % 4;
+              const len4 = payloadLength - len3;
+              let i = 0;
+              for (; i < len4; i += 4) {
+                data[i] ^= m0;
+                data[i + 1] ^= m1;
+                data[i + 2] ^= m2;
+                data[i + 3] ^= m3;
               }
-            }
-          }
 
-          if (this._opcode > 0x07) {
-            if (this._opcode === 0x08) {
-              this._loop = false;
-
-              if (data.length === 0) {
-                this.conclude(1005, '');
-              } else if (data.length === 1) {
-                err = new WSRangeError('invalid payload length 1', 1002);
-                break;
-              } else {
-                const code = data.readUInt16BE(0);
-
-                if (!isValidStatusCode(code)) {
-                  err = new WSRangeError(`invalid status code ${code}`, 1002);
+              switch (len3) {
+                case 3:
+                  data[i + 2] ^= m2;
+                  // falls through
+                case 2:
+                  data[i + 1] ^= m1;
+                  // falls through
+                case 1:
+                  data[i] ^= m0;
                   break;
-                }
-
-                this.conclude(code, data.slice(2).toString());
               }
-            } else if (this._opcode === 0x09) {
-              console.log('ping', data);
-            } else {
-              console.log('pong', data);
             }
-
-            this._state = State.GET_INFO;
-            break;
           }
+        } else {
+          data = buffer.slice(cursor, cursor + payloadLength);
+        }
+      }
 
-          if (this._opcode === 2) {
-            this.ws.emit('message', data);
+      switch (opcode) {
+        case 1:
+          this.emit('message', data.toString());
+          break;
+        case 2:
+          this.emit('message', data);
+          break;
+        case 8: {
+          let code: number;
+          let reason: string;
+          if (data.length === 0) {
+            code = 1005;
+            reason = '';
           } else {
-            this.ws.emit('message', data.toString());
+            code = data.readUInt16BE(0);
+            reason = data.slice(2).toString();
           }
 
-          this._state = State.GET_INFO;
+          this.socket.removeListener('data', socketOnData);
+          this.socket.resume();
+
+          this.closeFrameReceived = true;
+          this.closeMessage = reason;
+          this.closeCode = code;
+
+          if (code === 1005) {
+            this.close();
+          } else {
+            this.close(code, reason);
+          }
           break;
         }
       }
-    } while (this._loop);
+    };
 
-    cb(err as Error | undefined);
-  }
+    const socketOnError = () => {
+      this.readyState = ReadyState.CLOSING;
 
-  public conclude(
-    code: number,
-    reason: string,
-  ): void {
-    const ws = this.ws;
+      socket.removeListener('error', socketOnError);
+      socket.on('error', PLATFORM.noop);
 
-    ws.conclude(code, reason);
+      socket.destroy();
+    };
 
-    if (code === 1005) {
-      ws.close();
-    } else {
-      ws.close(code, reason);
+    const socketOnEnd = () => {
+      this.readyState = ReadyState.CLOSING;
+
+      socket.end();
+    };
+
+    const socketOnClose = () => {
+      this.readyState = ReadyState.CLOSING;
+
+      socket.removeListener('close', socketOnClose);
+      socket.removeListener('end', socketOnEnd);
+
+      socket.read();
+
+      socket.removeListener('data', socketOnData);
+
+      clearTimeout(this.closeTimer!);
+
+      this.emitClose();
+    };
+
+    socket.on('error', socketOnError);
+
+    const digest = createHash('sha1').update(`${(req.headers['sec-websocket-key'] as string).trim()}258EAFA5-E914-47DA-95CA-C5AB0DC85B11`).digest('base64');
+
+    socket.write(`HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ${digest}\r\n\r\n`);
+    socket.removeListener('error', socketOnError);
+
+    socket.setTimeout(0);
+    socket.setNoDelay();
+
+    if (head.length > 0) {
+      socket.unshift(head);
     }
 
-    this.end();
+    socket.on('close', socketOnClose);
+    socket.on('data', socketOnData);
+    socket.on('end', socketOnEnd);
+    socket.on('error', socketOnError);
+
+    this.readyState = ReadyState.OPEN;
   }
-}
 
-class WSRangeError extends RangeError {
-  public constructor(
-    message: string,
-    public readonly statusCode: number,
-  ) {
-    super(`Invalid WebSocket frame: ${message}`);
-    Error.captureStackTrace(this, WSRangeError);
+  public emitClose(): void {
+    this.readyState = ReadyState.CLOSING;
+
+    this.emit('close', this.closeCode, this.closeMessage);
   }
-}
-
-class Sender {
-  public _bufferedBytes: number = 0;
-
-  public constructor(
-    private readonly _socket: Socket,
-  ) {}
 
   public close(
-    code: number | undefined,
-    data: string | undefined,
-    cb?: (err?: Error) => void,
+    code?: number,
+    data?: string,
   ): void {
+    switch (this.readyState) {
+      case ReadyState.CLOSED:
+        return;
+      case ReadyState.CONNECTING:
+        throw new Error('WebSocket was closed before the connection was established');
+      case ReadyState.CLOSING:
+        if (this.closeFrameSent && this.closeFrameReceived) {
+          this.socket.end();
+        }
+        return;
+    }
+
+    this.readyState = ReadyState.CLOSING;
+
     let buf: Buffer;
 
     if (code === void 0) {
       buf = EMPTY_BUFFER;
-    } else if (typeof code !== 'number' || !isValidStatusCode(code)) {
-      throw new TypeError('First argument must be a valid error code number');
     } else if (data === void 0 || data === '') {
       buf = Buffer.allocUnsafe(2);
       buf.writeUInt16BE(code, 0);
@@ -290,10 +229,24 @@ class Sender {
       buf.write(data, 2);
     }
 
-    this.sendFrame(buf, 0x08, cb);
+    this.sendFrame(buf, 8, (err) => {
+      if (err !== void 0) {
+        return;
+      }
+
+      this.closeFrameSent = true;
+      if (this.closeFrameReceived) {
+        this.socket.end();
+      }
+    });
+
+    this.closeTimer = setTimeout(
+      () => this.socket.destroy(),
+      30000,
+    );
   }
 
-  public send(data: Buffer) {
+  public send(data: Buffer): void {
     this.sendFrame(data, 2);
   }
 
@@ -326,241 +279,9 @@ class Sender {
       target.writeUInt32BE(data.length, 6);
     }
 
-    this._socket.cork();
-    this._socket.write(target);
-    this._socket.write(data, cb);
-    this._socket.uncork();
-  }
-}
-
-export class WebSocket extends EventEmitter {
-  public static CONNECTING: 0 = 0;
-  public static OPEN: 1 = 1;
-  public static CLOSING: 2 = 2;
-  public static CLOSED: 3 = 3;
-
-  public readyState: number = WebSocket.CONNECTING;
-  public protocol: string = '';
-
-  public _receiver: Receiver = null!;
-  public _closeTimer: NodeJS.Timeout | null = null;
-  public _socket: Socket = null!;
-
-  private _closeFrameReceived: boolean = false;
-  private _closeFrameSent: boolean = false;
-  private _closeMessage: string = '';
-  private _closeCode: number = 1006;
-  private readonly _sender: Sender;
-
-  public get CONNECTING(): number {
-    return WebSocket.CONNECTING;
-  }
-  public get CLOSING(): number {
-    return WebSocket.CLOSING;
-  }
-  public get CLOSED(): number {
-    return WebSocket.CLOSED;
-  }
-  public get OPEN(): number {
-    return WebSocket.OPEN;
-  }
-
-  public constructor(
-    req: IncomingMessage,
-    socket: Socket,
-    head: Buffer,
-  ) {
-    super();
-
-    socket.on('error', socketOnError);
-
-    const payload = `${(req.headers['sec-websocket-key'] as string).trim()}258EAFA5-E914-47DA-95CA-C5AB0DC85B11`;
-    const digest = createHash('sha1').update(payload).digest('base64');
-
-    socket.write(`HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ${digest}\r\n\r\n`);
-    socket.removeListener('error', socketOnError);
-
-    const receiver = new Receiver(this);
-
-    this._sender = new Sender(socket);
-    this._receiver = receiver;
-    this._socket = socket;
-
-    wsLookup.set(socket, this);
-
-    receiver.on('drain', () => socket.resume());
-    receiver.on('error', (err: WSRangeError) => {
-      socket.removeListener('data', socketOnData);
-      this.readyState = WebSocket.CLOSING;
-      this._closeCode = err.statusCode;
-      this.emit('error', err);
-      socket.destroy();
-    });
-
-    socket.setTimeout(0);
-    socket.setNoDelay();
-
-    if (head.length > 0) {
-      socket.unshift(head);
-    }
-
-    socket.on('close', socketOnClose);
-    socket.on('data', socketOnData);
-    socket.on('end', socketOnEnd);
-    socket.on('error', socketOnError);
-
-    this.readyState = WebSocket.OPEN;
-  }
-
-  public emitClose(): void {
-    this.readyState = WebSocket.CLOSED;
-
-    if (this._socket === void 0) {
-      this.emit('close', this._closeCode, this._closeMessage);
-      return;
-    }
-
-    this._receiver.removeAllListeners();
-    this.emit('close', this._closeCode, this._closeMessage);
-  }
-
-  public close(
-    code?: number,
-    data?: string,
-  ): void {
-    switch (this.readyState) {
-      case WebSocket.CLOSED:
-        return;
-      case WebSocket.CONNECTING:
-        throw new Error('WebSocket was closed before the connection was established');
-      case WebSocket.CLOSING:
-        if (this._closeFrameSent && this._closeFrameReceived) {
-          this._socket.end();
-        }
-        return;
-    }
-
-    this.readyState = WebSocket.CLOSING;
-    this._sender.close(code, data, (err) => {
-      if (err !== void 0) {
-        return;
-      }
-
-      this._closeFrameSent = true;
-      if (this._closeFrameReceived) {
-        this._socket.end();
-      }
-    });
-
-    this._closeTimer = setTimeout(
-      this._socket.destroy.bind(this._socket),
-      30000,
-    );
-  }
-
-  public send(data: Buffer): void {
-    if (this.readyState === WebSocket.CONNECTING) {
-      throw new Error('WebSocket is not open: readyState 0 (CONNECTING)');
-    }
-
-    if (this.readyState !== WebSocket.OPEN) {
-      if (this._socket !== void 0) {
-        this._sender._bufferedBytes += data.length;
-      }
-      return;
-    }
-
-    this._sender.send(data);
-  }
-
-  public terminate(): void {
-    if (this.readyState === WebSocket.CLOSED) {
-      return;
-    }
-
-    if (this.readyState === WebSocket.CONNECTING) {
-      throw new Error('WebSocket was closed before the connection was established');
-    }
-
-    if (this._socket !== void 0) {
-      this.readyState = WebSocket.CLOSING;
-      this._socket.destroy();
-    }
-  }
-
-  public conclude(code: number, reason: string): void {
-    this._socket.removeListener('data', socketOnData);
-    this._socket.resume();
-
-    this._closeFrameReceived = true;
-    this._closeMessage = reason;
-    this._closeCode = code;
-  }
-}
-
-const wsLookup = new Map<Socket, WebSocket>();
-
-function socketOnClose(
-  this: Socket,
-): void {
-  const ws = wsLookup.get(this)!;
-
-  this.removeListener('close', socketOnClose);
-  this.removeListener('end', socketOnEnd);
-
-  ws.readyState = WebSocket.CLOSING;
-
-  ws._socket.read();
-  ws._receiver.end();
-
-  this.removeListener('data', socketOnData);
-
-  wsLookup.delete(this);
-
-  clearTimeout(ws._closeTimer!);
-
-  if (
-    Boolean((ws._receiver as any)._writableState.finished) ||
-    Boolean((ws._receiver as any)._writableState.errorEmitted)
-  ) {
-    ws.emitClose();
-  } else {
-    ws._receiver.on('error', () => ws.emitClose());
-    ws._receiver.on('finish', () => ws.emitClose());
-  }
-}
-
-function socketOnData(
-  this: Socket,
-  chunk: Buffer,
-): void {
-  const ws = wsLookup.get(this)!;
-
-  if (!ws._receiver.write(chunk)) {
-    this.pause();
-  }
-}
-
-function socketOnEnd(
-  this: Socket,
-): void {
-  const ws = wsLookup.get(this)!;
-
-  ws.readyState = WebSocket.CLOSING;
-  ws._receiver.end();
-  this.end();
-}
-
-function socketOnError(
-  this: Socket,
-): void {
-  const ws = wsLookup.get(this);
-
-  this.removeListener('error', socketOnError);
-  this.on('error', PLATFORM.noop);
-
-  if (ws !== void 0) {
-    ws.readyState = WebSocket.CLOSING;
-    this.destroy();
+    this.socket.cork();
+    this.socket.write(target);
+    this.socket.write(data, cb);
+    this.socket.uncork();
   }
 }

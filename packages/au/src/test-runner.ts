@@ -95,6 +95,10 @@ export class TestRunner {
     }
     await result.ws.emit({ outDir: scratchDir });
 
+    // start the http/file/websocket server
+    const server = container.get(IHttpServer);
+    const { realPort } = await server.start();
+
     // generate html file to run
     const outFile = join(scratchDir, 'index.html');
 
@@ -112,10 +116,6 @@ export class TestRunner {
     `;
 
     await fs.writeFile(outFile, html, Encoding.utf8);
-
-    // serve the files
-    const server = container.get(IHttpServer);
-    const { realPort } = await server.start();
 
     // navigate to the html file
     const browser = container.get(ChromeBrowser);

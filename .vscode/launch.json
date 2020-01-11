@@ -105,7 +105,8 @@
         "${workspaceFolder}\\packages\\__tests__\\dist\\__au"
       ],
       "skipFiles": [
-        "<node_internals>/**"
+        "<node_internals>/**",
+        "**/esm.js"
       ]
     }
   ]

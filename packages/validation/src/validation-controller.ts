@@ -10,7 +10,8 @@ import {
   LifecycleFlags,
   PrimitiveLiteralExpression,
   IScheduler,
-  ValueConverterExpression
+  ValueConverterExpression,
+  PropertyBinding
 } from '@aurelia/runtime';
 import { IValidateable, parsePropertyName, PropertyAccessor, PropertyRule, ValidationResult, BaseValidationRule } from './rule';
 import { RenderInstruction, ValidationRenderer } from './validation-renderer';
@@ -18,7 +19,7 @@ import { IValidator } from './validator';
 
 export const VALIDATION_EVENT_CHANNEL = 'au:validation';
 
-export type BindingWithBehavior = IBinding & {
+export type BindingWithBehavior = PropertyBinding & {
   sourceExpression: BindingBehaviorExpression;
   target: Element | object;
 };

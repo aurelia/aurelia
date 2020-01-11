@@ -1,6 +1,21 @@
 import { Unparser } from '@aurelia/debug';
 import { IContainer, Registration } from '@aurelia/kernel';
-import { Aurelia, CustomElement, IBinding, INode, IScheduler, bindable, customElement, customAttribute, valueConverter } from '@aurelia/runtime';
+import {
+  Aurelia,
+  CustomElement,
+  IBinding,
+  INode,
+  IScheduler,
+  bindable,
+  customElement,
+  customAttribute,
+  valueConverter,
+  bindingBehavior,
+  BindingInterceptor,
+  BindingBehaviorInstance,
+  IScope,
+  LifecycleFlags
+} from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import {
   BindingWithBehavior,
@@ -98,6 +113,29 @@ describe.only('validate-biniding-behavior', function () {
   class B64ToPlainTextValueConverter {
     public fromView(b64: string): string { return atob(b64); }
   }
+  @bindingBehavior('interceptor')
+  class InterceptorBindingBehavior extends BindingInterceptor {
+    public updateSource(value: unknown, flags: LifecycleFlags) {
+      if (this.interceptor !== this) {
+        this.interceptor.updateSource(value, flags);
+      } else {
+        let binding = this as BindingInterceptor;
+        while (binding.binding !== void 0) {
+          binding = binding.binding as BindingInterceptor;
+        }
+        binding.updateSource(value, flags);
+      }
+    }
+  }
+  @bindingBehavior('vanilla')
+  class VanillaBindingBehavior implements BindingBehaviorInstance {
+    public bind(flags: LifecycleFlags, scope: IScope, binding: IBinding): void {
+      return;
+    }
+    public unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding): void {
+      return;
+    }
+  }
   interface TestSetupContext {
     template: string;
     customDefaultTrigger?: ValidationTrigger;
@@ -123,7 +161,9 @@ describe.only('validate-biniding-behavior', function () {
         EmployeeList,
         FooBar,
         ToNumberValueConverter,
-        B64ToPlainTextValueConverter
+        B64ToPlainTextValueConverter,
+        InterceptorBindingBehavior,
+        VanillaBindingBehavior
       )
       .app({
         host,
@@ -707,7 +747,7 @@ describe.only('validate-biniding-behavior', function () {
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'age').length, 2, 'error4');
       assert.equal(person.age, undefined);
     },
-    { template: `<input id="target" value.two-way="person.age | toNumber & validate:'change'"></employee-list>` }
+    { template: `<input id="target" value.two-way="person.age | toNumber & validate:'change'">` }
   );
   $it('can be used with multiple value converters',
     async function ({ app, host, container }: TestExecutionContext<App>) {
@@ -733,8 +773,39 @@ describe.only('validate-biniding-behavior', function () {
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'age').length, 2, 'error4');
       assert.equal(person.age, undefined);
     },
-    { template: `<input id="target" value.two-way="person.age | toNumber | b64ToPlainText  & validate:'change'"></employee-list>` }
+    { template: `<input id="target" value.two-way="person.age | toNumber | b64ToPlainText & validate:'change'">` }
   );
+  [
+    { expr: `person.name & validate:'change' & vanilla`, rawExpr: 'person.name&validate:(\'change\')' },
+    { expr: `person.name & vanilla & validate:'change'`, rawExpr: 'person.name&vanilla' },
+    { expr: `person.name & validate:'change' & interceptor`, rawExpr: 'person.name&validate:(\'change\')' },
+    { expr: `person.name & interceptor & validate:'change'`, rawExpr: 'person.name&interceptor' },
+    { expr: `person.name & validate:'change' & vanilla & interceptor`, rawExpr: 'person.name&validate:(\'change\')&vanilla' },
+    { expr: `person.name & validate:'change' & interceptor & vanilla`, rawExpr: 'person.name&validate:(\'change\')&interceptor' },
+    { expr: `person.name & vanilla & validate:'change' & interceptor`, rawExpr: 'person.name&vanilla&validate:(\'change\')' },
+    { expr: `person.name & interceptor & validate:'change' & vanilla`, rawExpr: 'person.name&interceptor&validate:(\'change\')' },
+    { expr: `person.name & vanilla & interceptor & validate:'change'`, rawExpr: 'person.name&vanilla&interceptor' },
+    { expr: `person.name & interceptor & vanilla & validate:'change'`, rawExpr: 'person.name&interceptor&vanilla' },
+  ].map(({ expr, rawExpr }) =>
+    $it(`can be used with other binding behavior - ${expr}`,
+      async function ({ app, host, container }: TestExecutionContext<App>) {
+        const scheduler = container.get(IScheduler);
+        const controller = app.controller;
+        const controllerSpy = app.controllerSpy;
+
+        const target: HTMLInputElement = (host as Element).querySelector("#target");
+        assertControllerBinding(controller, rawExpr, target, controllerSpy);
+
+        assert.equal(controller.results.filter((r) => !r.valid).length, 0, 'error1');
+        await controller.validate();
+        assert.equal(controller.results.filter((r) => !r.valid).length, 1, 'error2');
+
+        target.value = 'foo';
+        await assertEventHandler(target, 'change', 1, scheduler, controllerSpy);
+        assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error3');
+      },
+      { template: `<input id="target" value.two-way="${expr}">` }
+    ));
 
   $it.skip('can be used to validate collection',
     async function ({ app, host, container }: TestExecutionContext<App>) {

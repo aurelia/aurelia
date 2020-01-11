@@ -10,6 +10,9 @@ import {
   LifecycleFlags,
   CustomElementHost,
   DOM,
+  PropertyBinding,
+  IBinding,
+  BindingBehaviorExpression,
 } from '@aurelia/runtime';
 import { PropertyRule } from './rule';
 import { BindingWithBehavior, IValidationController, ValidationController } from './validation-controller';
@@ -49,6 +52,7 @@ export const IDefaultTrigger = DI.createInterface<ValidationTrigger>('IDefaultTr
  */
 @bindingBehavior('validate')
 export class ValidateBindingBehavior extends BindingInterceptor {
+  private propertyBinding: BindingWithBehavior = (void 0)!;
   private target: HTMLElement = (void 0)!;
   private trigger!: ValidationTrigger;
   private controller!: IValidationController;
@@ -71,7 +75,17 @@ export class ValidateBindingBehavior extends BindingInterceptor {
   }
 
   public updateSource(value: unknown, flags: LifecycleFlags) {
-    super.updateSource(value, flags);
+    // TODO need better approach. If done icorrectly may cause infinite loop, stack overflow 💣
+    if (this.interceptor !== this) {
+      this.interceptor.updateSource(value, flags);
+    } else {
+      let binding = this as BindingInterceptor;
+      while (binding.binding !== void 0) {
+        binding = binding.binding as unknown as BindingInterceptor;
+      }
+      binding.updateSource(value, flags);
+    }
+
     if (this.isChangeTrigger) {
       this.validateBinding();
     }
@@ -84,6 +98,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined) {
     this.scope = scope;
     this.binding.$bind(flags, scope, part);
+    this.setPropertyBinding();
     this.setTarget();
     const delta = this.processBindingExpressionArgs(flags);
     this.processDelta(delta);
@@ -91,7 +106,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
 
   public $unbind(flags: LifecycleFlags) {
     this.target?.removeEventListener('blur', this);
-    this.controller?.deregisterBinding(this.binding);
+    this.controller?.deregisterBinding(this.propertyBinding);
     this.binding.$unbind(flags);
     for (const expr of this.connectedExpressions) {
       if (expr.unbind !== void 0) {
@@ -113,14 +128,17 @@ export class ValidateBindingBehavior extends BindingInterceptor {
   }
 
   private processBindingExpressionArgs(flags: LifecycleFlags): Delta {
-    const binding = this.binding;
     const scope: IScope = this.scope;
-    const locator = binding.locator;
+    const locator = this.locator;
     let rules: PropertyRule[] | undefined;
     let trigger: ValidationTrigger | undefined;
     let controller: ValidationController | undefined;
 
-    const args = binding.sourceExpression.args;
+    let expression = this.propertyBinding.sourceExpression;
+    while (expression.name !== 'validate' && expression !== void 0) {
+      expression = expression.expression as BindingBehaviorExpression;
+    }
+    const args = expression.args;
     for (let i = 0, ii = args.length; i < ii; i++) {
       const arg = args[i];
       const temp = arg.evaluate(flags, scope, locator);
@@ -148,7 +166,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
 
   private validateBinding() {
     this.scheduler.getPostRenderTaskQueue().queueTask(async () => {
-      await this.controller.validateBinding(this.binding);
+      await this.controller.validateBinding(this.propertyBinding);
     });
   }
 
@@ -167,9 +185,9 @@ export class ValidateBindingBehavior extends BindingInterceptor {
       }
     }
     if (this.controller !== controller || rules !== void 0) {
-      this.controller?.deregisterBinding(this.binding);
+      this.controller?.deregisterBinding(this.propertyBinding);
       this.controller = controller;
-      controller.registerBinding(this.binding, this.target, this.scope, rules);
+      controller.registerBinding(this.propertyBinding, this.target, this.scope, rules);
     }
   }
 
@@ -197,8 +215,19 @@ export class ValidateBindingBehavior extends BindingInterceptor {
     }
   }
 
+  private setPropertyBinding() {
+    let binding: IBinding = this.binding;
+    while (!(binding instanceof PropertyBinding) && binding !== void 0) {
+      binding = (binding as unknown as BindingInterceptor).binding;
+    }
+    if (binding === void 0) {
+      throw new Error('Unable to set property binding');
+    }
+    this.propertyBinding = binding as BindingWithBehavior;
+  }
+
   private setTarget() {
-    const target = this.binding.target;
+    const target = this.propertyBinding.target;
     if (DOM.isNodeInstance(target)) {
       this.target = target as HTMLElement;
     } else {

@@ -36,10 +36,12 @@
   "dependencies": {
     "@aurelia/debug": "0.6.0",
     "@aurelia/kernel": "0.6.0",
-    "@aurelia/runtime": "0.6.0"
+    "@aurelia/runtime": "0.6.0",
+    "ws": "^7.2.1"
   },
   "devDependencies": {
     "@types/node": "^12.12.21",
+    "@types/ws": "^6.0.4",
     "tslib": "^1.10.0",
     "typescript": "^3.7.4"
   }

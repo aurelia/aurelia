@@ -123,7 +123,7 @@ describe.only('validation-controller', function () {
       .start()
       .wait();
 
-    await testFunction({ app, container, host });
+    await testFunction({ app, container, host, scheduler: void 0  });
 
     await au.stop().wait();
     ctx.doc.body.removeChild(host);

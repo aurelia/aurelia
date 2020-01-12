@@ -75,18 +75,23 @@ export class ValidateBindingBehavior extends BindingInterceptor {
   }
 
   public updateSource(value: unknown, flags: LifecycleFlags) {
+    // console.log('validate bb updateSource');
     // TODO need better approach. If done icorrectly may cause infinite loop, stack overflow 💣
     if (this.interceptor !== this) {
       this.interceptor.updateSource(value, flags);
     } else {
-      let binding = this as BindingInterceptor;
-      while (binding.binding !== void 0) {
-        binding = binding.binding as unknown as BindingInterceptor;
-      }
-      binding.updateSource(value, flags);
+      // let binding = this as BindingInterceptor;
+      // while (binding.binding !== void 0) {
+      //   binding = binding.binding as unknown as BindingInterceptor;
+      // }
+      // binding.updateSource(value, flags);
+
+      // this is a shortcut of the above code
+      this.propertyBinding.updateSource(value, flags);
     }
 
     if (this.isChangeTrigger) {
+      // console.log('triggering validation by change');
       this.validateBinding();
     }
   }
@@ -102,6 +107,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
     this.setTarget();
     const delta = this.processBindingExpressionArgs(flags);
     this.processDelta(delta);
+    // console.log(this.propertyBinding);
   }
 
   public $unbind(flags: LifecycleFlags) {

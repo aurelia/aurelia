@@ -1,10 +1,11 @@
 import { IContainer } from '@aurelia/kernel';
-import { INode } from '@aurelia/runtime';
+import { INode, IScheduler } from '@aurelia/runtime';
 
 export interface TestExecutionContext<TApp extends any> {
   container: IContainer;
   host: INode;
   app: TApp;
+  scheduler: IScheduler;
 }
 
 export type TestFunction<TTestContext extends TestExecutionContext<any>> = (ctx: TTestContext) => void | Promise<void>;

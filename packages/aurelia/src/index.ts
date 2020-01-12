@@ -948,8 +948,11 @@ export {
   IShadowDOMConfiguration,
 
   // CSSModulesProcessorRegistry,
+  cssModules,
 
   // ShadowDOMRegistry,
+  // IShadowDOMStyleFactory,
+  shadowCSS,
 
   // AdoptedStyleSheetsStyles,
   // StyleElementStyles,

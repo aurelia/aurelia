@@ -75,7 +75,6 @@ export class ValidateBindingBehavior extends BindingInterceptor {
   }
 
   public updateSource(value: unknown, flags: LifecycleFlags) {
-    // console.log('validate bb updateSource');
     // TODO need better approach. If done icorrectly may cause infinite loop, stack overflow 💣
     if (this.interceptor !== this) {
       this.interceptor.updateSource(value, flags);
@@ -107,7 +106,6 @@ export class ValidateBindingBehavior extends BindingInterceptor {
     this.setTarget();
     const delta = this.processBindingExpressionArgs(flags);
     this.processDelta(delta);
-    // console.log(this.propertyBinding);
   }
 
   public $unbind(flags: LifecycleFlags) {

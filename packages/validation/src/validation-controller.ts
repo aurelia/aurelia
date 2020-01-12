@@ -232,7 +232,8 @@ export class ValidationController implements IValidationController {
         default:
           throw new Error(`Unknown expression of type ${expression?.constructor.name}`); // TODO use reporter/logger
       }
-      propertyName = propertyName.length === 0 ? memberName : `${memberName}.${propertyName}`;
+      const separator = propertyName.startsWith('[') ? '' : '.';
+      propertyName = propertyName.length === 0 ? memberName : `${memberName}${separator}${propertyName}`;
       expression = expression.object as ValidatableExpression;
     }
     if (expression === void 0) {

@@ -15,7 +15,6 @@ import {
   BindingBehaviorInstance,
   IScope,
   LifecycleFlags,
-  CollectionLengthObserver,
   BindingMediator,
   IObserverLocator,
   ILifecycle,
@@ -54,6 +53,7 @@ describe.only('validate-biniding-behavior', function () {
     public employeesMediator: BindingMediator<'handleEmployeesChange'>;
     public employeeObserver: ArrayObserver;
     public readonly scheduler: IScheduler;
+    private readonly obj: any;
 
     public constructor(
       @IContainer private readonly container: IContainer,
@@ -94,6 +94,16 @@ describe.only('validate-biniding-behavior', function () {
         this.employeeObserver = new ArrayObserver(LifecycleFlags.none, this.container.get(ILifecycle), this.org.employees);
         this.employeeObserver.getLengthObserver().addSubscriber(this.employeesMediator);
       }
+
+      this.obj = { coll: [{ a: 1 }, { a: 2 }] };
+      container.get(IValidationRules)
+        .on(this.obj)
+
+        .ensure((o) => o.coll[0].a)
+        .equals(11)
+
+        .ensure('coll[1].a')
+        .equals(11);
     }
 
     public async handleEmployeesChange() {
@@ -925,6 +935,45 @@ describe.only('validate-biniding-behavior', function () {
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'employees').length, 1, 'error4');
     },
     { template: `<employee-list id="target" employees.two-way="org.employees & validate:'change'"></employee-list>`, observeCollection: true }
+  );
+  $it('can be used to validate collection by index',
+    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+      const controller = app.controller;
+      const controllerSpy = app.controllerSpy;
+
+      const target1: HTMLInputElement = (host as Element).querySelector("#target1");
+      const target2: HTMLInputElement = (host as Element).querySelector("#target2");
+
+      controllerSpy.methodCalledTimes('registerBinding', 2);
+      const bindings = Array.from((controller['bindings'] as Map<IBinding, any>).keys()) as BindingWithBehavior[];
+      assert.equal(bindings.length, 2);
+      assert.equal(bindings[0].target, target1);
+      assert.equal(Unparser.unparse(bindings[0].sourceExpression.expression), 'obj.coll[(0)].a|toNumber');
+      assert.equal(bindings[1].target, target2);
+      assert.equal(Unparser.unparse(bindings[1].sourceExpression.expression), 'obj.coll[(1)].a|toNumber');
+
+      assert.equal(controller.results.filter((r) => !r.valid && (r.propertyName === 'coll[0].a' || r.propertyName === 'coll[1].a')).length, 0, 'error1');
+      await controller.validate();
+      assert.equal(controller.results.filter((r) => !r.valid && (r.propertyName === 'coll[0].a' || r.propertyName === 'coll[1].a')).length, 2, 'error2');
+
+      target1.value = '42';
+      await assertEventHandler(target1, 'change', 1, scheduler, controllerSpy);
+      target2.value = '42';
+      await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy);
+      assert.equal(controller.results.filter((r) => !r.valid && (r.propertyName === 'coll[0].a' || r.propertyName === 'coll[1].a')).length, 2, 'error3');
+
+      target1.value = '11';
+      await assertEventHandler(target1, 'change', 1, scheduler, controllerSpy);
+      target2.value = '11';
+      await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy);
+      assert.equal(controller.results.filter((r) => !r.valid && (r.propertyName === 'coll[0].a' || r.propertyName === 'coll[1].a')).length, 0, 'error4');
+    },
+    {
+      template: `
+    <input id="target1" value.two-way="obj.coll[0].a | toNumber & validate:'change'">
+    <input id="target2" value.two-way="obj.coll[1].a | toNumber & validate:'change'">
+    `
+    }
   );
   // #endregion
 });

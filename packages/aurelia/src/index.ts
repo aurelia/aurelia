@@ -944,7 +944,7 @@ export {
   // ShadowDOMProjector,
 
   StyleConfiguration,
-  styles,
+  // styles,
   IShadowDOMConfiguration,
 
   // CSSModulesProcessorRegistry,

@@ -14,7 +14,6 @@ Aurelia.app(MyRootComponent).start();
 // Or load additional aurelia features
 Aurelia
   .register(
-    StyleConfiguration.shadowDOM(),
     RouterConfiguration.customize({ useUrlFragmentHash: false })
   )
   .app(MyRootComponent)
@@ -23,7 +22,6 @@ Aurelia
 // Or host to <my-start-tag>
 Aurelia
   .register(
-    StyleConfiguration.shadowDOM(),
     RouterConfiguration.customize({ useUrlFragmentHash: false })
   )
   .app({

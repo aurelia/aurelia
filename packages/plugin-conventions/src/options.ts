@@ -43,6 +43,7 @@ export interface IPreprocessOptions {
   jsExtensions: string[]; // .js, .jsx, .ts, .tsx, .coffee
   templateExtensions: string[]; // .html, .md, .pug, .haml, .jade, .slim, .slm
   useProcessedFilePairFilename?: boolean;
+  useCSSModule: boolean;
 }
 
 export const defaultCssExtensions = ['.css', '.scss', '.sass', '.less', '.styl'];
@@ -55,7 +56,6 @@ export function preprocessOptions(options: IOptionalPreprocessOptions = {}): IPr
     jsExtensions = [],
     templateExtensions = [],
     useCSSModule = false,
-    stringModuleWrap,
     ...others
   } = options;
 
@@ -63,7 +63,7 @@ export function preprocessOptions(options: IOptionalPreprocessOptions = {}): IPr
     cssExtensions: Array.from(new Set([...defaultCssExtensions, ...cssExtensions])).sort(),
     jsExtensions: Array.from(new Set([...defaultJsExtensions, ...jsExtensions])).sort(),
     templateExtensions: Array.from(new Set([...defaultTemplateExtensions, ...templateExtensions])).sort(),
-    stringModuleWrap: useCSSModule ? undefined : stringModuleWrap,
+    useCSSModule,
     ...others
   };
 }

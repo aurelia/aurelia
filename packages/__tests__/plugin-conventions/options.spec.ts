@@ -9,7 +9,7 @@ describe('preprocessOptions', function () {
         cssExtensions: ['.css', '.less', '.sass', '.scss', '.styl'],
         jsExtensions: ['.coffee', '.js', '.jsx', '.ts', '.tsx'],
         templateExtensions: ['.haml', '.html', '.jade', '.md', '.pug', '.slim', '.slm'],
-        stringModuleWrap: undefined
+        useCSSModule: false
       }
     );
   });
@@ -25,7 +25,7 @@ describe('preprocessOptions', function () {
         cssExtensions: ['.css', '.less', '.sass', '.scss', '.some', '.styl'],
         jsExtensions: ['.coffee', '.js', '.jsx', '.mjs', '.ts', '.tsx'],
         templateExtensions: ['.haml', '.html', '.jade', '.markdown', '.md', '.pug', '.slim', '.slm'],
-        stringModuleWrap: undefined
+        useCSSModule: false
       }
     );
   });
@@ -47,12 +47,13 @@ describe('preprocessOptions', function () {
         jsExtensions: ['.coffee', '.js', '.jsx', '.ts', '.tsx'],
         templateExtensions: ['.haml', '.html', '.jade','.markdown', '.md', '.pug', '.slim', '.slm'],
         stringModuleWrap: wrap,
-        useProcessedFilePairFilename: true
+        useProcessedFilePairFilename: true,
+        useCSSModule: false
       }
     );
   });
 
-  it('merges optional options, turn off stringModuleWrap if uses CSSModule', function () {
+  it('merges optional options with useCSSModule', function () {
     const wrap = (id: string) => `text!${id}`;
 
     assert.deepEqual(
@@ -68,7 +69,8 @@ describe('preprocessOptions', function () {
         cssExtensions: ['.css', '.less', '.sass', '.scss', '.some', '.styl'],
         jsExtensions: ['.coffee', '.js', '.jsx', '.ts', '.tsx'],
         templateExtensions: ['.haml', '.html', '.jade', '.md', '.pug', '.slim', '.slm'],
-        stringModuleWrap: undefined,
+        stringModuleWrap: wrap,
+        useCSSModule: true,
         useProcessedFilePairFilename: true
       }
     );

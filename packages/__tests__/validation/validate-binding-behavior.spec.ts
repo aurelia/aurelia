@@ -79,6 +79,9 @@ describe.only('validate-biniding-behavior', function () {
         .ensure('age')
         .required()
         .min(42)
+
+        .ensure((p) => p.address.pin)
+        .satisfies((pin, _) => !Number.isNaN(Number(pin)))
         .rules;
 
       const { validationRules: vrs, messageProvider, property, $rules } = rules.find((rule) => rule.property.name === 'age')!;
@@ -86,8 +89,12 @@ describe.only('validate-biniding-behavior', function () {
 
       container.get(IValidationRules)
         .on(this.org)
+
         .ensure('employees')
-        .minItems(1);
+        .minItems(1)
+
+        .ensure((o) => o.employees[0].address.pin)
+        .satisfies((pin, _) => !Number.isNaN(Number(pin)));
 
       if (observeCollection) {
         this.employeesMediator = new BindingMediator('handleEmployeesChange', this, this.container.get(IObserverLocator), this.container);
@@ -867,7 +874,7 @@ describe.only('validate-biniding-behavior', function () {
     ));
   // #endregion
 
-  // #region collection
+  // #region collection and nested properties
   $it('can be used to validate nested collection - collection replace',
     async function ({ app, host, scheduler }: TestExecutionContext<App>) {
       const controller = app.controller;
@@ -936,7 +943,7 @@ describe.only('validate-biniding-behavior', function () {
     },
     { template: `<employee-list id="target" employees.two-way="org.employees & validate:'change'"></employee-list>`, observeCollection: true }
   );
-  $it('can be used to validate collection by index',
+  $it('can be used to validate nested collection property by index',
     async function ({ app, host, scheduler }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
@@ -973,6 +980,72 @@ describe.only('validate-biniding-behavior', function () {
     <input id="target1" value.two-way="obj.coll[0].a | toNumber & validate:'change'">
     <input id="target2" value.two-way="obj.coll[1].a | toNumber & validate:'change'">
     `
+    }
+  );
+  $it('can be used to validate nested property - intial non-undefined',
+    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+      const controller = app.controller;
+      const controllerSpy = app.controllerSpy;
+      const person = app.person;
+      person.address = { pin: 'foobar' as unknown as number, city: 'foobar', line1: 'foobar' };
+      await scheduler.yieldAll();
+
+      const target: HTMLInputElement = (host as Element).querySelector("#target");
+      assertControllerBinding(controller, 'person.address.pin|toNumber', target, controllerSpy);
+
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'address.pin').length, 0, 'error1');
+      await controller.validate();
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'address.pin').length, 1, 'error2');
+
+      target.value = '123456';
+      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy);
+      assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'address.pin').length, 0, 'error3');
+    },
+    {
+      template: `<input id="target" value.two-way="person.address.pin | toNumber & validate:'change'">`
+    }
+  );
+  $it('can be used to validate nested property - intial undefined',
+    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+      const controller = app.controller;
+      const controllerSpy = app.controllerSpy;
+
+      const target: HTMLInputElement = (host as Element).querySelector("#target");
+      assertControllerBinding(controller, 'person.address.pin|toNumber', target, controllerSpy);
+
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'address.pin').length, 0, 'error1');
+      await controller.validate();
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'address.pin').length, 0, 'error2');
+
+      target.value = '123456';
+      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy);
+      assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'address.pin').length, 0, 'error3');
+    },
+    {
+      template: `<input id="target" value.two-way="person.address.pin | toNumber & validate:'change'">`
+    }
+  );
+  $it('can be used to validate multi-level nested property',
+    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+      const controller = app.controller;
+      const controllerSpy = app.controllerSpy;
+      const org = app.org;
+      org.employees.push(new Person((void 0)!, (void 0)!, { pin: 'foobar' as unknown as number, city: 'foobar', line1: 'foobar' }));
+      await scheduler.yieldAll();
+
+      const target: HTMLInputElement = (host as Element).querySelector("#target");
+      assertControllerBinding(controller, 'org.employees[(0)].address.pin|toNumber', target, controllerSpy);
+
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'employees[0].address.pin').length, 0, 'error1');
+      await controller.validate();
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'employees[0].address.pin').length, 1, 'error2');
+
+      target.value = '123456';
+      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy);
+      assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'employees[0].address.pin').length, 0, 'error3');
+    },
+    {
+      template: `<input id="target" value.two-way="org.employees[0].address.pin | toNumber & validate:'change'">`
     }
   );
   // #endregion

@@ -171,6 +171,7 @@ export const enum Char {
   Space          = 0x20,
   Exclamation    = 0x21,
   DoubleQuote    = 0x22,
+  Hash           = 0x23,
   Dollar         = 0x24,
   Percent        = 0x25,
   Ampersand      = 0x26,

@@ -6,6 +6,8 @@ import { AddressInfo } from 'net';
 import { HTTPStatusCode, readBuffer } from './http-utils';
 import { HttpContext } from './http-context';
 
+import * as ws from 'ws';
+
 export class HttpServer implements IHttpServer {
   private server: http.Server | null = null;
 
@@ -22,7 +24,7 @@ export class HttpServer implements IHttpServer {
     this.logger = logger.root.scopeTo('HttpServer');
   }
 
-  public async start(): Promise<StartOutput> {
+  public async start(configureWsClient?: (client: ws) => void): Promise<StartOutput> {
     this.logger.debug(`start()`);
 
     const { hostName, port } = this.opts;
@@ -33,6 +35,16 @@ export class HttpServer implements IHttpServer {
 
     const { address, port: realPort } = this.server.address() as AddressInfo;
     this.logger.info(`Now listening on ${address}:${realPort} (configured: ${hostName}:${port})`);
+
+    if (configureWsClient !== void 0) {
+      this.server.on('upgrade', (req, socket, head) => {
+        this.logger.info(`Opening WebSocket`);
+
+        const wss = new ws.Server({ noServer: true, perMessageDeflate: false });
+        wss.handleUpgrade(req, socket, head, configureWsClient);
+      });
+
+    }
 
     return new StartOutput(realPort);
   }

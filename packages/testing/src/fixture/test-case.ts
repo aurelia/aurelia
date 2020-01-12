@@ -51,9 +51,10 @@ export class TestCase {
   }
 
   public constructor(
+    private readonly runner: TestRunner,
     private readonly logger: ILogger,
     private readonly disposable: boolean,
-    private readonly testMethod: TestMethod,
+    public readonly testMethod: TestMethod,
     public params: undefined | readonly unknown[],
   ) {}
 
@@ -83,11 +84,13 @@ export class TestCase {
       if (this.logger.config.level <= LogLevel.debug) {
         this.logger.debug(`${String(key)} PASS`);
       }
+      this.runner.pass(this);
     } catch (err) {
       this._error = err;
       this._state = TestState.failed;
       this.logger.error(err);
       this.logger.info(`${String(key)} FAIL`);
+      this.runner.fail(this);
     }
 
     this._endTime = PLATFORM.now();
@@ -138,10 +141,24 @@ export class TestSuite {
   }
 }
 
+export class TestResult {
+  public constructor(
+    public readonly code: number,
+    public readonly key: string,
+    public readonly data: unknown,
+  ) {}
+
+  public static parse(json: string): TestResult {
+    const { code, key, data } = JSON.parse(json) as TestResult;
+    return new TestResult(code, key, data);
+  }
+}
+
 export class TestRunner {
   public readonly suites: TestSuite[] = [];
   public caseCount: number = 0;
   private length: number = 0;
+  private ws!: WebSocket;
 
   public constructor(
     @ILogger
@@ -180,7 +197,7 @@ export class TestRunner {
                   for (let iParam = 0, iiParam = parameters.length; iParam < iiParam; ++iParam) {
                     paramData[iParam] = parameters[iParam].data![iData];
                   }
-                  cases[cases.length++] = new TestCase(logger, disposable, testMethod, paramData);
+                  cases[cases.length++] = new TestCase(this, logger, disposable, testMethod, paramData);
                   ++this.caseCount;
                 }
 
@@ -193,7 +210,7 @@ export class TestRunner {
               const paramDataLists = parameters.reduce((a, b) => a.flatMap(x => b.data!.map(y => [...x, y])), [[]] as unknown[][]);
               for (let iList = 0, iiList = paramDataLists.length; iList < iiList; ++iList) {
                 const paramData = paramDataLists[iList];
-                cases[cases.length++] = new TestCase(logger, disposable, testMethod, paramData);
+                cases[cases.length++] = new TestCase(this, logger, disposable, testMethod, paramData);
                 ++this.caseCount;
               }
 
@@ -202,7 +219,7 @@ export class TestRunner {
           }
         }
 
-        cases[cases.length++] = new TestCase(logger, disposable, testMethod, void 0);
+        cases[cases.length++] = new TestCase(this, logger, disposable, testMethod, void 0);
         ++this.caseCount;
       }
     }
@@ -214,6 +231,17 @@ export class TestRunner {
       throw new Error(`No test cases registered`);
     }
 
+    this.ws = new WebSocket(`ws://${window.location.host}`);
+    return new Promise(resolve => {
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      this.ws.addEventListener('open', async () => {
+        await this.runTests();
+        resolve();
+      });
+    });
+  }
+
+  private async runTests(): Promise<void> {
     const startTime = PLATFORM.now();
     this.logger.info(`Starting to run ${this.caseCount} test cases`);
     const suites = this.suites;
@@ -223,5 +251,18 @@ export class TestRunner {
     }
     const endTime = PLATFORM.now();
     this.logger.info(`Finished running ${this.caseCount} test cases in ${Math.round((endTime - startTime) * 10) / 10}ms`);
+  }
+
+  public pass(tc: TestCase): void {
+    this.send(new TestResult(0, String(tc.testMethod.key), ''));
+  }
+
+  public fail(tc: TestCase): void {
+    this.send(new TestResult(1, String(tc.testMethod.key), tc.error));
+  }
+
+  private send(res: TestResult): void {
+    const msg = JSON.stringify(res);
+    this.ws.send(msg);
   }
 }

@@ -115,7 +115,12 @@ export class TestRunner {
 
     // serve the files
     const server = container.get(IHttpServer);
-    const { realPort } = await server.start();
+    const { realPort } = await server.start(ws => {
+      ws.on('message', (msg: string) => {
+
+        logger.info(msg);
+      });
+    });
 
     // navigate to the html file
     const browser = container.get(ChromeBrowser);

@@ -1,5 +1,6 @@
 import { DI, LogLevel } from '@aurelia/kernel';
 import { IHttpContext } from './http-context';
+import * as ws from 'ws';
 
 export const enum Encoding {
   utf8 = 'utf8',
@@ -124,7 +125,7 @@ export class StartOutput {
 }
 
 export interface IHttpServer {
-  start(): Promise<StartOutput>;
+  start(configureWsClient?: (client: ws) => void): Promise<StartOutput>;
   stop(): Promise<void>;
 }
 

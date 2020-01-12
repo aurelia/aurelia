@@ -1,6 +1,7 @@
 import { ServiceHost } from '@aurelia/aot';
-import { IHttpServerOptions, IFileSystem, Encoding, RuntimeNodeConfiguration, IRequestHandler, FileServer, normalizePath, IHttpServer } from '@aurelia/runtime-node';
+import { IFileSystem, Encoding, RuntimeNodeConfiguration, IRequestHandler, FileServer, normalizePath, IHttpServer } from '@aurelia/runtime-node';
 import { ILogger, IContainer, LogLevel, Registration, Char, DI } from '@aurelia/kernel';
+import { TAPOutput, TAPParser } from '@aurelia/testing';
 import { join } from 'path';
 import { ChromeBrowser } from './browser/chrome';
 import { BrowserHost } from './browser/host';
@@ -113,12 +114,17 @@ export class TestRunner {
 
     await fs.writeFile(outFile, html, Encoding.utf8);
 
+    const output = new TAPOutput({
+      send(item) {
+        logger.info(item.toString());
+      },
+    });
+
     // serve the files
     const server = container.get(IHttpServer);
     const { realPort } = await server.start(ws => {
       ws.on('message', (msg: string) => {
-
-        logger.info(msg);
+        TAPParser.parse(msg, output).flush();
       });
     });
 

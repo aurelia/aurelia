@@ -1,8 +1,28 @@
 /* eslint-disable compat/compat */
 /* eslint-disable no-fallthrough */
-import { Char } from '@aurelia/kernel';
+import { Char, PLATFORM } from '@aurelia/kernel';
 
 /** @internal */
+export const enum Token {
+  EOF            = 0b0_00000,
+  Hash           = 0b0_00001,
+  Exclamation    = 0b0_00010,
+  Hyphen         = 0b0_00011,
+  DotDot         = 0b0_00100,
+  Newline        = 0b0_00101,
+  OneSpace       = 0b0_00110,
+  WhiteSpace     = 0b0_00111,
+  Number         = 0b0_01000,
+  TodoKeyword    = 0b0_01001,
+  SkipKeyword    = 0b0_01010,
+  OkKeyword      = 0b0_01011,
+  NotKeyword     = 0b0_01100,
+  TapKeyword     = 0b0_01101,
+  VersionKeyword = 0b0_01110,
+  BailKeyword    = 0b0_01111,
+  OutKeyword     = 0b0_10000,
+}
+
 export class TAPParser {
   private static readonly instance: TAPParser = new TAPParser('');
 
@@ -24,19 +44,15 @@ export class TAPParser {
     this.currentChar = input.charCodeAt(0);
   }
 
-  public static parse(input: string): TAPOutput {
-    return TAPParser.instance.parse(input);
+  public static parse(input: string, output: TAPOutput): TAPOutput {
+    return TAPParser.instance.parse(input, output);
   }
 
-  private parse(input: string, output?: TAPOutput): TAPOutput {
+  private parse(input: string, output: TAPOutput): TAPOutput {
     this.input = input;
     this.length = input.length;
     this.index = 0;
     this.currentChar = input.charCodeAt(0);
-
-    if (output === void 0) {
-      output = new TAPOutput();
-    }
 
     if (this.nextToken() === Token.TapKeyword) {
       output.setVersion(this.parseVersion());
@@ -77,6 +93,9 @@ export class TAPParser {
           break;
       }
 
+      if (this.index + 1 === this.length) {
+        return output;
+      }
       if (this.nextToken() !== Token.Newline) {
         this.unexpectedToken();
       }
@@ -92,7 +111,7 @@ export class TAPParser {
       this.nextToken() === Token.OneSpace &&
       this.nextToken() === Token.Number
     ) {
-      return new TAPVersion(this.tokenValue as number, this.input.slice(startIndex, this.index));
+      return new TAPVersion(this.tokenValue as number, this.input.slice(startIndex, this.index + 1));
     }
     this.unexpectedToken();
   }
@@ -121,7 +140,7 @@ export class TAPParser {
           start,
           end,
           directive,
-          this.input.slice(startIndex, this.index),
+          this.input.slice(startIndex, this.index + 1),
         );
       }
     }
@@ -140,10 +159,10 @@ export class TAPParser {
         this.nextChar();
       }
 
-      const reason = reasonIndex === this.index ? void 0 : this.input.slice(reasonIndex, this.index);
+      const reason = reasonIndex === this.index ? void 0 : this.input.slice(reasonIndex, this.index + 1);
       return new TAPBailOut(
         reason,
-        this.input.slice(startIndex, this.index),
+        this.input.slice(startIndex, this.index + 1),
       );
     }
     this.unexpectedToken();
@@ -214,7 +233,7 @@ export class TAPParser {
         number,
         description,
         directive,
-        this.input.slice(startIndex, this.index),
+        this.input.slice(startIndex, this.index + 1),
       );
     }
     this.unexpectedToken();
@@ -231,8 +250,8 @@ export class TAPParser {
       }
 
       return new TAPComment(
-        this.input.slice(commentStart, this.index),
-        this.input.slice(startIndex, this.index),
+        this.input.slice(commentStart, this.index + 1),
+        this.input.slice(startIndex, this.index + 1),
       );
     }
     this.unexpectedToken();
@@ -266,8 +285,8 @@ export class TAPParser {
         this.nextChar();
       }
 
-      const reason = reasonStart === this.index ? void 0 : this.input.slice(reasonStart, this.index);
-      return new TAPDirective(type, reason, this.input.slice(startIndex, this.index));
+      const reason = reasonStart === this.index ? void 0 : this.input.slice(reasonStart, this.index + 1);
+      return new TAPDirective(type, reason, this.input.slice(startIndex, this.index + 1));
     }
 
     this.unexpectedToken();
@@ -462,27 +481,6 @@ export class TAPParser {
   }
 }
 
-/** @internal */
-export const enum Token {
-  EOF            = 0b0_00000,
-  Hash           = 0b0_00001,
-  Exclamation    = 0b0_00010,
-  Hyphen         = 0b0_00011,
-  DotDot         = 0b0_00100,
-  Newline        = 0b0_00101,
-  OneSpace       = 0b0_00110,
-  WhiteSpace     = 0b0_00111,
-  Number         = 0b0_01000,
-  TodoKeyword    = 0b0_01001,
-  SkipKeyword    = 0b0_01010,
-  OkKeyword      = 0b0_01011,
-  NotKeyword     = 0b0_01100,
-  TapKeyword     = 0b0_01101,
-  VersionKeyword = 0b0_01110,
-  BailKeyword    = 0b0_01111,
-  OutKeyword     = 0b0_10000,
-}
-
 function tokenToString(token: Token): string {
   switch (token) {
     case Token.EOF: return 'EOF';
@@ -505,76 +503,116 @@ function tokenToString(token: Token): string {
   }
 }
 
-export class TAPOutput {
-  public lineNumber: number = 0;
-  public pointNumber: number = 0;
-  public isLazyPlan: boolean = false;
+export interface ITAPChannel {
+  send(item: TAPLine): void;
+}
 
-  private lastObject: TAPTestPoint | TAPVersion | TAPPlan | TAPBailOut | undefined = void 0;
+export type TAPItem = TAPTestPoint | TAPVersion | TAPPlan | TAPBailOut;
+export type TAPLine = TAPItem | TAPComment;
+
+const noopChannel = { send: PLATFORM.noop };
+
+export class TAPOutput {
+  private lineNumber: number = 0;
+  private pointNumber: number = 0;
+  private isLazyPlan: boolean = false;
+
+  private lastObject: TAPItem | undefined = void 0;
+  private readonly buffer: TAPLine[] = [];
+  private cursor: number = 0;
 
   public constructor(
-    public testPoints: TAPTestPoint[] = [],
-    public version?: TAPVersion,
-    public plan?: TAPPlan,
-    public bailOut?: TAPBailOut,
+    private readonly channel: ITAPChannel = noopChannel,
+    private readonly testPoints: TAPTestPoint[] = [],
+    private version?: TAPVersion,
+    private plan?: TAPPlan,
+    private bailOut?: TAPBailOut,
   ) {}
 
-  public setVersion(version: TAPVersion): void {
+  public setVersion(version: TAPVersion): this {
     if (this.version !== void 0) {
       throw new Error(`The TAP version can only be set once`);
     }
     if (this.lineNumber > 0) {
       throw new Error(`The TAP version line must be the first line`);
     }
-    this.version = this.lastObject = version;
+    this.buffer.push(this.version = this.lastObject = version);
     ++this.lineNumber;
+
+    return this;
   }
 
-  public setPlan(plan: TAPPlan): void {
+  public setPlan(plan: TAPPlan): this {
     if (this.plan !== void 0) {
       throw new Error(`The TAP plan can only be set once`);
     }
     if (this.pointNumber > 0) {
       this.isLazyPlan = true;
     }
-    this.plan = this.lastObject = plan;
+    this.buffer.push(this.plan = this.lastObject = plan);
     ++this.lineNumber;
+
+    return this;
   }
 
-  public setBailOut(bailOut: TAPBailOut): void {
+  public setBailOut(bailOut: TAPBailOut): this {
     if (this.bailOut !== void 0) {
       throw new Error(`The TAP bailOut can only be set once`);
     }
-    this.bailOut = this.lastObject = bailOut;
+    this.buffer.push(this.bailOut = this.lastObject = bailOut);
     ++this.lineNumber;
+
+    return this;
   }
 
-  public addTestPoint(testPoint: TAPTestPoint): void {
+  public addTestPoint(testPoint: TAPTestPoint): this {
     if (this.isLazyPlan) {
       throw new Error(`The TAP plan must come at either the start or the end of the run, and it was determined that it came at the end of the run, so no more test points can be added.`);
     }
-    this.testPoints.push(this.lastObject = testPoint);
+    this.buffer.push(this.lastObject = testPoint);
+    this.testPoints.push(testPoint);
     if (testPoint.number === void 0) {
       testPoint.number = ++this.pointNumber;
     } else {
       this.pointNumber = testPoint.number;
     }
     ++this.lineNumber;
+
+    return this;
   }
 
-  public addComment(comment: TAPComment): void {
+  public addComment(comment: TAPComment): this {
     if (this.lastObject === void 0) {
       throw new Error(`TAP output cannot start with a comment`);
     }
+    this.buffer.push(comment);
     this.lastObject.addComment(comment);
+
+    return this;
   }
 
+  public flush(): this {
+    while (this.cursor + 1 < this.buffer.length) {
+      this.channel.send(this.buffer[this.cursor]);
+      ++this.cursor;
+    }
+
+    return this;
+  }
+
+  public toString(): string {
+    return this.buffer.join('\n');
+  }
+
+  public [Symbol.toPrimitive](): string {
+    return this.toString();
+  }
 }
 
 export class TAPVersion {
   public comments: TAPComment[] | undefined = void 0;
 
-  private readonly s: string;
+  private s: string;
 
   public constructor(
     public readonly version: number,
@@ -592,6 +630,8 @@ export class TAPVersion {
     } else {
       this.comments.push(comment);
     }
+
+    this.s = `${this.s}\n${comment.toString()}`;
   }
 
   public toString(): string { return this.s; }
@@ -601,7 +641,7 @@ export class TAPVersion {
 export class TAPPlan {
   public comments: TAPComment[] | undefined = void 0;
 
-  private readonly s: string;
+  private s: string;
 
   public constructor(
     public readonly start: number,
@@ -624,6 +664,8 @@ export class TAPPlan {
     } else {
       this.comments.push(comment);
     }
+
+    this.s = `${this.s}\n${comment.toString()}`;
   }
 
   public toString(): string { return this.s; }
@@ -654,7 +696,7 @@ export class TAPDirective {
 export class TAPTestPoint {
   public comments: TAPComment[] | undefined = void 0;
 
-  private readonly s: string;
+  private s: string;
 
   public constructor(
     public readonly ok: boolean,
@@ -684,6 +726,8 @@ export class TAPTestPoint {
     } else {
       this.comments.push(comment);
     }
+
+    this.s = `${this.s}\n${comment.toString()}`;
   }
 
   public toString(): string { return this.s; }
@@ -693,7 +737,7 @@ export class TAPTestPoint {
 export class TAPBailOut {
   public comments: TAPComment[] | undefined = void 0;
 
-  private readonly s: string;
+  private s: string;
 
   public constructor(
     public readonly reason?: string,
@@ -714,6 +758,8 @@ export class TAPBailOut {
     } else {
       this.comments.push(comment);
     }
+
+    this.s = `${this.s}\n${comment.toString()}`;
   }
 
   public toString(): string { return this.s; }

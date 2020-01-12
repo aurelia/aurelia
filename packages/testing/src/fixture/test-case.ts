@@ -11,6 +11,14 @@ import {
   TestMethod,
   TestMethodDataStrategy,
 } from './decorators';
+import {
+  ITAPChannel,
+  TAPLine,
+  TAPOutput,
+  TAPBailOut,
+  TAPPlan,
+  TAPTestPoint,
+} from '../tap';
 
 export type TestInvocation = (...args: readonly unknown[]) => unknown;
 export type InvocableInstance = { [key: string]: TestInvocation };
@@ -51,14 +59,13 @@ export class TestCase {
   }
 
   public constructor(
-    private readonly runner: TestRunner,
     private readonly logger: ILogger,
     private readonly disposable: boolean,
     public readonly testMethod: TestMethod,
     public params: undefined | readonly unknown[],
   ) {}
 
-  public async run(instance: InvocableInstance): Promise<void> {
+  public async run(instance: InvocableInstance, output: TAPOutput): Promise<void> {
     if (this.state !== TestState.pending) {
       throw new Error(`Cannot run test in ${$TestState[this.state]} state`);
     }
@@ -84,13 +91,13 @@ export class TestCase {
       if (this.logger.config.level <= LogLevel.debug) {
         this.logger.debug(`${String(key)} PASS`);
       }
-      this.runner.pass(this);
+      output.addTestPoint(new TAPTestPoint(true, void 0, String(key))).flush();
     } catch (err) {
       this._error = err;
       this._state = TestState.failed;
       this.logger.error(err);
       this.logger.info(`${String(key)} FAIL`);
-      this.runner.fail(this);
+      output.addTestPoint(new TAPTestPoint(false, void 0, String(key))).addComment(err.message).flush();
     }
 
     this._endTime = PLATFORM.now();
@@ -120,8 +127,10 @@ export class TestSuite {
     private readonly testClass: TestClass,
   ) {}
 
-  public async run(): Promise<void> {
+  public async run(output: TAPOutput): Promise<void> {
     if (this.state !== TestState.pending) {
+      const msg = `Cannot run suite in ${$TestState[this.state]} state`;
+      output.setBailOut(new TAPBailOut(msg)).flush();
       throw new Error(`Cannot run suite in ${$TestState[this.state]} state`);
     }
 
@@ -134,7 +143,7 @@ export class TestSuite {
     for (let i = 0, ii = cases.length; i < ii; ++i) {
       const instance = container.get<InvocableInstance>(Type);
       // eslint-disable-next-line no-await-in-loop
-      await cases[i].run(instance);
+      await cases[i].run(instance, output);
     }
 
     this._endTime = PLATFORM.now();
@@ -151,6 +160,16 @@ export class TestResult {
   public static parse(json: string): TestResult {
     const { code, key, data } = JSON.parse(json) as TestResult;
     return new TestResult(code, key, data);
+  }
+}
+
+export class WebSocketTAPChannel implements ITAPChannel {
+  public constructor(
+    private readonly ws: WebSocket,
+  ) {}
+
+  public send(item: TAPLine): void {
+    this.ws.send(item.toString());
   }
 }
 
@@ -197,7 +216,7 @@ export class TestRunner {
                   for (let iParam = 0, iiParam = parameters.length; iParam < iiParam; ++iParam) {
                     paramData[iParam] = parameters[iParam].data![iData];
                   }
-                  cases[cases.length++] = new TestCase(this, logger, disposable, testMethod, paramData);
+                  cases[cases.length++] = new TestCase(logger, disposable, testMethod, paramData);
                   ++this.caseCount;
                 }
 
@@ -210,7 +229,7 @@ export class TestRunner {
               const paramDataLists = parameters.reduce((a, b) => a.flatMap(x => b.data!.map(y => [...x, y])), [[]] as unknown[][]);
               for (let iList = 0, iiList = paramDataLists.length; iList < iiList; ++iList) {
                 const paramData = paramDataLists[iList];
-                cases[cases.length++] = new TestCase(this, logger, disposable, testMethod, paramData);
+                cases[cases.length++] = new TestCase(logger, disposable, testMethod, paramData);
                 ++this.caseCount;
               }
 
@@ -219,7 +238,7 @@ export class TestRunner {
           }
         }
 
-        cases[cases.length++] = new TestCase(this, logger, disposable, testMethod, void 0);
+        cases[cases.length++] = new TestCase(logger, disposable, testMethod, void 0);
         ++this.caseCount;
       }
     }
@@ -244,25 +263,14 @@ export class TestRunner {
   private async runTests(): Promise<void> {
     const startTime = PLATFORM.now();
     this.logger.info(`Starting to run ${this.caseCount} test cases`);
+    const channel = new WebSocketTAPChannel(this.ws);
+    const output = new TAPOutput(channel).setPlan(new TAPPlan(1, this.caseCount)).flush();
     const suites = this.suites;
     for (let i = 0, ii = suites.length; i < ii; ++i) {
       // eslint-disable-next-line no-await-in-loop
-      await suites[i].run();
+      await suites[i].run(output);
     }
     const endTime = PLATFORM.now();
     this.logger.info(`Finished running ${this.caseCount} test cases in ${Math.round((endTime - startTime) * 10) / 10}ms`);
-  }
-
-  public pass(tc: TestCase): void {
-    this.send(new TestResult(0, String(tc.testMethod.key), ''));
-  }
-
-  public fail(tc: TestCase): void {
-    this.send(new TestResult(1, String(tc.testMethod.key), tc.error));
-  }
-
-  private send(res: TestResult): void {
-    const msg = JSON.stringify(res);
-    this.ws.send(msg);
   }
 }

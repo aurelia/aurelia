@@ -88,6 +88,18 @@ export {
   padRight,
 } from './string-manipulation';
 export {
+  TAPPlan,
+  TAPOutput,
+  TAPTestPoint,
+  TAPVersion,
+  TAPBailOut,
+  TAPLine,
+  TAPComment,
+  TAPItem,
+  TAPDirective,
+  TAPParser,
+} from './tap';
+export {
   // DefinitionBuilder,
   // InstructionBuilder,
   // TemplateBuilder,

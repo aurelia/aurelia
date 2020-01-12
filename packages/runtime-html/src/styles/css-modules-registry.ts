@@ -2,19 +2,21 @@ import { IContainer, IRegistry } from '@aurelia/kernel';
 import { bindable, customAttribute, INode } from '@aurelia/runtime';
 import { getClassesToAdd } from '../observation/class-attribute-accessor';
 
+export function cssModules(...cssModules: (Record<string, string>)[]) {
+  return new CSSModulesProcessorRegistry(cssModules);
+}
+
 export class CSSModulesProcessorRegistry implements IRegistry {
-  public register(container: IContainer, ...params: (Record<string, string>)[]) {
-    const classLookup = Object.assign({}, ...params) as Record<string, string>;
+  constructor(private cssModules: (Record<string, string>)[]) {}
+
+  public register(container: IContainer) {
+    const classLookup = Object.assign({}, ...this.cssModules) as Record<string, string>;
 
     @customAttribute('class')
     class ClassCustomAttribute {
       @bindable public value!: string;
 
-      private element: HTMLElement;
-
-      public constructor(@INode element: INode) {
-        this.element = element as HTMLElement;
-      }
+      public constructor(@INode private element: HTMLElement) {}
 
       public beforeBind() {
         this.valueChanged();

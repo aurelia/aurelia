@@ -1,5 +1,5 @@
 import { bindable, CustomElement, PartialCustomElementDefinition } from '@aurelia/runtime';
-import { styles } from '@aurelia/runtime-html';
+import { cssModules } from '@aurelia/runtime-html';
 import * as css from './cards.css';
 import * as template from './cards.html';
 
@@ -24,7 +24,7 @@ export class Cards {
      * Note that this is done only for testing.
      * Normally, this goes like this: `@customElement({ name: 'cards', template, dependencies: [styles(css)] })`.
      */
-    const defn: PartialCustomElementDefinition = { name: 'cards', template, dependencies: useCSSModule ? [styles(css)] : undefined };
+    const defn: PartialCustomElementDefinition = { name: 'cards', template, dependencies: useCSSModule ? [cssModules(css)] : undefined };
     return CustomElement.define(defn, Cards);
   }
 

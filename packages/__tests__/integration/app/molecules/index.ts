@@ -23,9 +23,6 @@ function createMolecularConfiguration(customizeConfiguration: MolecularConfigCus
       customizeConfiguration(config);
 
       const useCSSModule = config.useCSSModule;
-      if (useCSSModule) {
-        container.register(StyleConfiguration.cssModulesProcessor());
-      }
 
       return container.register(
         SpecsViewer,

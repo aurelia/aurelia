@@ -1,13 +1,13 @@
 import { DI, Registration } from '@aurelia/kernel';
-import { Aurelia, CustomAttribute, CustomElement, INode } from '@aurelia/runtime';
+import { Aurelia, CustomAttribute, CustomElement, INode, CustomAttributeType, Controller, ICustomElementViewModel, ILifecycle } from '@aurelia/runtime';
 import {
   AdoptedStyleSheetsStyles,
   CSSModulesProcessorRegistry,
-  ShadowDOMRegistry,
   StyleConfiguration,
   StyleElementStyles,
-  styles,
-  IShadowDOMGlobalStyles
+  cssModules,
+  IShadowDOMGlobalStyles,
+  IShadowDOMStyles
 } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { ResourceModel } from '@aurelia/jit';
@@ -26,25 +26,18 @@ describe('Styles', function () {
   }
 
   describe('CSS Modules Processor', function () {
-    it('config adds correct registry for css', async function () {
-      const { container } = await startApp(au => {
-        au.register(StyleConfiguration.cssModulesProcessor());
-      });
-
-      const registry = container.get('.css');
-      assert.instanceOf(registry, CSSModulesProcessorRegistry);
-    });
-
     it('registry overrides class attribute', function () {
       const element = { className: '' };
       const container = DI.createContainer();
       container.register(Registration.instance(INode, element));
-      const registry = new CSSModulesProcessorRegistry();
       const cssModulesLookup = {};
+      const registry = new CSSModulesProcessorRegistry([cssModulesLookup]);
 
-      registry.register(container, cssModulesLookup);
+      registry.register(container);
 
-      const attr = container.get(CustomAttribute.keyFrom('class'));
+      const attr = container.get<CustomAttributeType>(
+        CustomAttribute.keyFrom('class')
+      );
 
       assert.equal(CustomAttribute.isType(attr.constructor), true);
     });
@@ -58,8 +51,8 @@ describe('Styles', function () {
         'baz': 'qux'
       };
 
-      const registry = new CSSModulesProcessorRegistry();
-      registry.register(container, cssModulesLookup);
+      const registry = new CSSModulesProcessorRegistry([cssModulesLookup]);
+      registry.register(container);
 
       const attr = container.get(CustomAttribute.keyFrom('class')) as any;
       attr.value = 'foo baz';
@@ -69,19 +62,16 @@ describe('Styles', function () {
     });
 
     it('style function uses correct registry', function () {
+      const element = { className: '' };
       const container = DI.createContainer();
       const childContainer = container.createChild();
-
-      container.register(StyleConfiguration.cssModulesProcessor());
-
-      const element = { className: '' };
       const cssModulesLookup = {
         'foo': 'bar',
         'baz': 'qux'
       };
 
       childContainer.register(Registration.instance(INode, element));
-      styles(cssModulesLookup).register(childContainer);
+      cssModules(cssModulesLookup).register(childContainer);
 
       const attr = childContainer.get(CustomAttribute.keyFrom('class')) as any;
       attr.value = 'foo baz';
@@ -93,9 +83,9 @@ describe('Styles', function () {
     it('components do not inherit parent component styles', function () {
       const rootContainer = DI.createContainer();
       const parentContainer = rootContainer.createChild();
-
-      const registry = new CSSModulesProcessorRegistry();
-      registry.register(parentContainer, {});
+      const cssModulesLookup = {};
+      const registry = new CSSModulesProcessorRegistry([cssModulesLookup]);
+      registry.register(parentContainer);
 
       const childContainer = parentContainer.createChild();
 
@@ -111,18 +101,12 @@ describe('Styles', function () {
   });
 
   describe('Shadow DOM', function () {
-    it('config adds correct registry for css', async function () {
-      const { container } = await startApp(au => {
-        au.register(StyleConfiguration.shadowDOM());
-      });
-
-      const registry = container.get('.css');
-      assert.instanceOf(registry, ShadowDOMRegistry);
-    });
-
     it('registry provides root shadow dom styles', async function () {
+      const rootStyles = '.my-class { color: red }';
       const { container } = await startApp(au => {
-        au.register(StyleConfiguration.shadowDOM());
+        au.register(StyleConfiguration.shadowDOM({
+          sharedStyles: [rootStyles]
+        }));
       });
 
       const childContainer = container.createChild();
@@ -197,35 +181,41 @@ describe('Styles', function () {
       assert.equal(fake.wasCalled, true);
     });
 
-    // it('projector applies styles during projection', function () {
-    //   const ctx = TestContext.createHTMLTestContext();
-    //   const host = ctx.createElement('foo-bar');
-    //   const FooBar = CustomElement.define(
-    //     {
-    //       name: 'foo-bar',
-    //       shadowOptions: { mode: 'open' }
-    //     }
-    //   );
-    //   const css = '.my-class { color: red }';
-    //   const context = ctx.container.createChild();
-    //   context.register(
-    //     Registration.instance(
-    //       IShadowDOMStyles,
-    //       new StyleElementStyles(ctx.dom, [css], null)
-    //     )
-    //   );
+    it.skip('projector applies styles during projection', function () {
+      const ctx = TestContext.createHTMLTestContext();
+      const host = ctx.createElement('foo-bar');
+      const FooBar = CustomElement.define(
+        {
+          name: 'foo-bar',
+          shadowOptions: { mode: 'open' }
+        }
+      );
+      const css = '.my-class { color: red }';
+      const context = ctx.container.createChild();
+      context.register(
+        Registration.instance(
+          IShadowDOMStyles,
+          new StyleElementStyles(ctx.dom, [css], null)
+        )
+      );
 
-    //   const component = new FooBar();
-    //   const controller = Controller.forCustomElement(component as ICustomElementViewModel<HTMLElement>, ctx.container.get(ILifecycle), host, ctx.container, void 0);
+      const component = new FooBar();
+      const controller = Controller.forCustomElement(
+        component as ICustomElementViewModel<HTMLElement>,
+        ctx.container.get(ILifecycle),
+        host,
+        ctx.container, void 0
+      );
 
-    //   const seq = { appendTo() { return; } };
-    //   const projector = controller.projector;
+      const seq = { appendTo() { return; } };
+      const projector = controller.projector as any;
 
-    //   projector.project(seq as any);
+      projector.project(seq as any);
 
-    //   const root = projector.provideEncapsulationSource() as unknown as ShadowRoot;
-    //   assert.strictEqual(root.firstElementChild.innerHTML, css);
-    // });
+      const root = projector.provideEncapsulationSource();
+
+      assert.strictEqual(root.firstElementChild.innerHTML, css);
+    });
 
     if (!AdoptedStyleSheetsStyles.supported(TestContext.createHTMLTestContext().dom)) {
       return;

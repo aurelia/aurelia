@@ -9,7 +9,7 @@ import { isArrayIndex, isNativeFunction, isObject } from './functions';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-export type ResolveCallback<T = any> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
+export type ResolveCallback<T = any> = (handler: IContainer, requestor: IContainer, resolver: IResolver<T>) => T;
 
 export type InterfaceSymbol<K = any> = (target: Injectable<K>, property: string, index: number) => void;
 

@@ -79,9 +79,10 @@ export class ElementInfo {
  * for consumption by the template compiler.
  */
 export class AttrInfo {
-    constructor(name, isTemplateController) {
+    constructor(name, isTemplateController, noMultiBindings) {
         this.name = name;
         this.isTemplateController = isTemplateController;
+        this.noMultiBindings = noMultiBindings;
         /**
          * A lookup of the bindables of this attribute, indexed by the (pre-processed)
          * bindable names as they would be found in the attribute value.
@@ -99,7 +100,7 @@ export class AttrInfo {
         this.bindable = null;
     }
     static from(def) {
-        const info = new AttrInfo(def.name, def.isTemplateController);
+        const info = new AttrInfo(def.name, def.isTemplateController, def.noMultiBindings);
         const bindables = def.bindables;
         const defaultBindingMode = def.defaultBindingMode !== void 0 && def.defaultBindingMode !== BindingMode.default
             ? def.defaultBindingMode

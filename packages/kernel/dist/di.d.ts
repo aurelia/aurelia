@@ -1,8 +1,8 @@
 import { Constructable } from './interfaces';
-export declare type ResolveCallback<T = any> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
+export declare type ResolveCallback<T = any> = (handler: IContainer, requestor: IContainer, resolver: IResolver<T>) => T;
 export declare type InterfaceSymbol<K = any> = (target: Injectable<K>, property: string, index: number) => void;
 export interface IDefaultableInterfaceSymbol<K> extends InterfaceSymbol<K> {
-    withDefault(configure: (builder: IResolverBuilder<K>) => IResolver<K>): InterfaceSymbol<K>;
+    withDefault(configure: (builder: ResolverBuilder<K>) => IResolver<K>): InterfaceSymbol<K>;
     noDefault(): InterfaceSymbol<K>;
 }
 interface IResolverLike<C, K = any> {
@@ -40,12 +40,16 @@ export interface IContainer extends IServiceLocator {
     getFactory<T extends Constructable>(key: T): IFactory<T> | null;
     createChild(): IContainer;
 }
-export interface IResolverBuilder<K> {
+export declare class ResolverBuilder<K> {
+    private container;
+    private key;
+    constructor(container: IContainer, key: Key);
     instance(value: K): IResolver<K>;
     singleton(value: Constructable): IResolver<K>;
     transient(value: Constructable): IResolver<K>;
     callback(value: ResolveCallback<K>): IResolver<K>;
     aliasTo(destinationKey: Key): IResolver<K>;
+    private registerResolver;
 }
 export declare type RegisterSelf<T extends Constructable> = {
     register(container: IContainer): IResolver<InstanceType<T>>;
@@ -55,15 +59,14 @@ export declare type Resolved<K> = (K extends InterfaceSymbol<infer T> ? T : K ex
 export declare type Injectable<T = {}> = Constructable<T> & {
     inject?: Key[];
 };
-export declare class DI {
-    private constructor();
-    static createContainer(...params: any[]): IContainer;
-    static getDesignParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined;
-    static getAnnotationParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined;
-    static getOrCreateAnnotationParamTypes(Type: Constructable | Injectable): Key[];
-    static getDependencies(Type: Constructable | Injectable): Key[];
-    static createInterface<K extends Key>(friendlyName?: string): IDefaultableInterfaceSymbol<K>;
-    static inject(...dependencies: Key[]): (target: Injectable, key?: string | number, descriptor?: PropertyDescriptor | number) => void;
+export declare const DI: {
+    createContainer(...params: any[]): IContainer;
+    getDesignParamtypes(Type: Constructable<{}> | Injectable<{}>): readonly Key[] | undefined;
+    getAnnotationParamtypes(Type: Constructable<{}> | Injectable<{}>): readonly Key[] | undefined;
+    getOrCreateAnnotationParamTypes(Type: Constructable<{}> | Injectable<{}>): Key[];
+    getDependencies(Type: Constructable<{}> | Injectable<{}>): Key[];
+    createInterface<K extends Key>(friendlyName?: string | undefined): IDefaultableInterfaceSymbol<K>;
+    inject(...dependencies: Key[]): (target: Injectable<{}>, key?: string | number | undefined, descriptor?: number | PropertyDescriptor | undefined) => void;
     /**
      * Registers the `target` class as a transient dependency; each time the dependency is resolved
      * a new instance will be created.
@@ -82,7 +85,7 @@ export declare class DI {
      * Foo.register(container);
      * ```
      */
-    static transient<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
+    transient<T extends Constructable<{}>>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
     /**
      * Registers the `target` class as a singleton dependency; the class will only be created once. Each
      * consecutive time the dependency is resolved, the same instance will be returned.
@@ -100,11 +103,11 @@ export declare class DI {
      * Foo.register(container);
      * ```
      */
-    static singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
-}
+    singleton<T_1 extends Constructable<{}>>(target: T_1 & Partial<RegisterSelf<T_1>>): T_1 & RegisterSelf<T_1>;
+};
 export declare const IContainer: InterfaceSymbol<IContainer>;
 export declare const IServiceLocator: InterfaceSymbol<IServiceLocator>;
-export declare const inject: typeof DI.inject;
+export declare const inject: (...dependencies: Key[]) => (target: Injectable<{}>, key?: string | number | undefined, descriptor?: number | PropertyDescriptor | undefined) => void;
 declare function transientDecorator<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
 /**
  * Registers the decorated class as a transient dependency; each time the dependency is resolved

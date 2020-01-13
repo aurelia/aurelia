@@ -92,9 +92,10 @@
      * for consumption by the template compiler.
      */
     class AttrInfo {
-        constructor(name, isTemplateController) {
+        constructor(name, isTemplateController, noMultiBindings) {
             this.name = name;
             this.isTemplateController = isTemplateController;
+            this.noMultiBindings = noMultiBindings;
             /**
              * A lookup of the bindables of this attribute, indexed by the (pre-processed)
              * bindable names as they would be found in the attribute value.
@@ -112,7 +113,7 @@
             this.bindable = null;
         }
         static from(def) {
-            const info = new AttrInfo(def.name, def.isTemplateController);
+            const info = new AttrInfo(def.name, def.isTemplateController, def.noMultiBindings);
             const bindables = def.bindables;
             const defaultBindingMode = def.defaultBindingMode !== void 0 && def.defaultBindingMode !== runtime_1.BindingMode.default
                 ? def.defaultBindingMode

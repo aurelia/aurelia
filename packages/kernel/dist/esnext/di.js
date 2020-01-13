@@ -3,6 +3,32 @@ import { Reporter } from './reporter';
 import { Protocol } from './resource';
 import { Metadata } from './metadata';
 import { isArrayIndex, isNativeFunction, isObject } from './functions';
+export class ResolverBuilder {
+    constructor(container, key) {
+        this.container = container;
+        this.key = key;
+    }
+    instance(value) {
+        return this.registerResolver(0 /* instance */, value);
+    }
+    singleton(value) {
+        return this.registerResolver(1 /* singleton */, value);
+    }
+    transient(value) {
+        return this.registerResolver(2 /* transient */, value);
+    }
+    callback(value) {
+        return this.registerResolver(3 /* callback */, value);
+    }
+    aliasTo(destinationKey) {
+        return this.registerResolver(5 /* alias */, destinationKey);
+    }
+    registerResolver(strategy, state) {
+        const { container, key } = this;
+        this.container = this.key = (void 0);
+        return container.registerResolver(key, new Resolver(key, strategy, state));
+    }
+}
 function cloneArrayWithPossibleProps(source) {
     const clone = source.slice();
     const keys = Object.keys(source);
@@ -16,24 +42,23 @@ function cloneArrayWithPossibleProps(source) {
     }
     return clone;
 }
-export class DI {
-    constructor() { return; }
-    static createContainer(...params) {
+export const DI = {
+    createContainer(...params) {
         if (params.length === 0) {
             return new Container(null);
         }
         else {
             return new Container(null).register(...params);
         }
-    }
-    static getDesignParamtypes(Type) {
+    },
+    getDesignParamtypes(Type) {
         return Metadata.getOwn('design:paramtypes', Type);
-    }
-    static getAnnotationParamtypes(Type) {
+    },
+    getAnnotationParamtypes(Type) {
         const key = Protocol.annotation.keyFor('di:paramtypes');
         return Metadata.getOwn(key, Type);
-    }
-    static getOrCreateAnnotationParamTypes(Type) {
+    },
+    getOrCreateAnnotationParamTypes(Type) {
         const key = Protocol.annotation.keyFor('di:paramtypes');
         let annotationParamtypes = Metadata.getOwn(key, Type);
         if (annotationParamtypes === void 0) {
@@ -41,8 +66,8 @@ export class DI {
             Protocol.annotation.appendTo(Type, key);
         }
         return annotationParamtypes;
-    }
-    static getDependencies(Type) {
+    },
+    getDependencies(Type) {
         // Note: Every detail of this getDependencies method is pretty deliberate at the moment, and probably not yet 100% tested from every possible angle,
         // so be careful with making changes here as it can have a huge impact on complex end user apps.
         // Preferably, only make changes to the dependency resolution process via a RFC.
@@ -110,8 +135,8 @@ export class DI {
             Protocol.annotation.appendTo(Type, key);
         }
         return dependencies;
-    }
-    static createInterface(friendlyName) {
+    },
+    createInterface(friendlyName) {
         const Interface = function (target, property, index) {
             if (target == null) {
                 throw Reporter.error(16, Interface.friendlyName, Interface); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
@@ -129,30 +154,13 @@ export class DI {
                 throw Reporter.error(17, Interface);
             };
             Interface.register = function (container, key) {
-                const trueKey = key == null ? Interface : key;
-                return configure({
-                    instance(value) {
-                        return container.registerResolver(trueKey, new Resolver(trueKey, 0 /* instance */, value));
-                    },
-                    singleton(value) {
-                        return container.registerResolver(trueKey, new Resolver(trueKey, 1 /* singleton */, value));
-                    },
-                    transient(value) {
-                        return container.registerResolver(trueKey, new Resolver(trueKey, 2 /* transient */, value));
-                    },
-                    callback(value) {
-                        return container.registerResolver(trueKey, new Resolver(trueKey, 3 /* callback */, value));
-                    },
-                    aliasTo(destinationKey) {
-                        return container.registerResolver(trueKey, new Resolver(trueKey, 5 /* alias */, destinationKey));
-                    },
-                });
+                return configure(new ResolverBuilder(container, (key !== null && key !== void 0 ? key : Interface)));
             };
             return Interface;
         };
         return Interface;
-    }
-    static inject(...dependencies) {
+    },
+    inject(...dependencies) {
         return function (target, key, descriptor) {
             if (typeof descriptor === 'number') { // It's a parameter decorator.
                 const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
@@ -190,7 +198,7 @@ export class DI {
                 }
             }
         };
-    }
+    },
     /**
      * Registers the `target` class as a transient dependency; each time the dependency is resolved
      * a new instance will be created.
@@ -209,13 +217,13 @@ export class DI {
      * Foo.register(container);
      * ```
      */
-    static transient(target) {
+    transient(target) {
         target.register = function register(container) {
             const registration = Registration.transient(target, target);
             return registration.register(container, target);
         };
         return target;
-    }
+    },
     /**
      * Registers the `target` class as a singleton dependency; the class will only be created once. Each
      * consecutive time the dependency is resolved, the same instance will be returned.
@@ -233,14 +241,14 @@ export class DI {
      * Foo.register(container);
      * ```
      */
-    static singleton(target) {
+    singleton(target) {
         target.register = function register(container) {
             const registration = Registration.singleton(target, target);
             return registration.register(container, target);
         };
         return target;
-    }
-}
+    },
+};
 export const IContainer = DI.createInterface('IContainer').noDefault();
 export const IServiceLocator = IContainer;
 function createResolver(getter) {

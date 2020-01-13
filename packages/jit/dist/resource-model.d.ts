@@ -63,6 +63,7 @@ export declare class ElementInfo {
 export declare class AttrInfo {
     name: string;
     isTemplateController: boolean;
+    noMultiBindings: boolean;
     /**
      * A lookup of the bindables of this attribute, indexed by the (pre-processed)
      * bindable names as they would be found in the attribute value.
@@ -78,7 +79,7 @@ export declare class AttrInfo {
      * contains no semicolons)
      */
     bindable: BindableInfo | null;
-    constructor(name: string, isTemplateController: boolean);
+    constructor(name: string, isTemplateController: boolean, noMultiBindings: boolean);
     static from(def: CustomAttributeDefinition): AttrInfo;
 }
 /**

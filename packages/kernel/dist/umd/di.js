@@ -14,6 +14,33 @@
     const resource_1 = require("./resource");
     const metadata_1 = require("./metadata");
     const functions_1 = require("./functions");
+    class ResolverBuilder {
+        constructor(container, key) {
+            this.container = container;
+            this.key = key;
+        }
+        instance(value) {
+            return this.registerResolver(0 /* instance */, value);
+        }
+        singleton(value) {
+            return this.registerResolver(1 /* singleton */, value);
+        }
+        transient(value) {
+            return this.registerResolver(2 /* transient */, value);
+        }
+        callback(value) {
+            return this.registerResolver(3 /* callback */, value);
+        }
+        aliasTo(destinationKey) {
+            return this.registerResolver(5 /* alias */, destinationKey);
+        }
+        registerResolver(strategy, state) {
+            const { container, key } = this;
+            this.container = this.key = (void 0);
+            return container.registerResolver(key, new Resolver(key, strategy, state));
+        }
+    }
+    exports.ResolverBuilder = ResolverBuilder;
     function cloneArrayWithPossibleProps(source) {
         const clone = source.slice();
         const keys = Object.keys(source);
@@ -27,24 +54,23 @@
         }
         return clone;
     }
-    class DI {
-        constructor() { return; }
-        static createContainer(...params) {
+    exports.DI = {
+        createContainer(...params) {
             if (params.length === 0) {
                 return new Container(null);
             }
             else {
                 return new Container(null).register(...params);
             }
-        }
-        static getDesignParamtypes(Type) {
+        },
+        getDesignParamtypes(Type) {
             return metadata_1.Metadata.getOwn('design:paramtypes', Type);
-        }
-        static getAnnotationParamtypes(Type) {
+        },
+        getAnnotationParamtypes(Type) {
             const key = resource_1.Protocol.annotation.keyFor('di:paramtypes');
             return metadata_1.Metadata.getOwn(key, Type);
-        }
-        static getOrCreateAnnotationParamTypes(Type) {
+        },
+        getOrCreateAnnotationParamTypes(Type) {
             const key = resource_1.Protocol.annotation.keyFor('di:paramtypes');
             let annotationParamtypes = metadata_1.Metadata.getOwn(key, Type);
             if (annotationParamtypes === void 0) {
@@ -52,8 +78,8 @@
                 resource_1.Protocol.annotation.appendTo(Type, key);
             }
             return annotationParamtypes;
-        }
-        static getDependencies(Type) {
+        },
+        getDependencies(Type) {
             // Note: Every detail of this getDependencies method is pretty deliberate at the moment, and probably not yet 100% tested from every possible angle,
             // so be careful with making changes here as it can have a huge impact on complex end user apps.
             // Preferably, only make changes to the dependency resolution process via a RFC.
@@ -67,16 +93,16 @@
                 const inject = Type.inject;
                 if (inject === void 0) {
                     // design:paramtypes is set by tsc when emitDecoratorMetadata is enabled.
-                    const designParamtypes = DI.getDesignParamtypes(Type);
+                    const designParamtypes = exports.DI.getDesignParamtypes(Type);
                     // au:annotation:di:paramtypes is set by the parameter decorator from DI.createInterface or by @inject
-                    const annotationParamtypes = DI.getAnnotationParamtypes(Type);
+                    const annotationParamtypes = exports.DI.getAnnotationParamtypes(Type);
                     if (designParamtypes === void 0) {
                         if (annotationParamtypes === void 0) {
                             // Only go up the prototype if neither static inject nor any of the paramtypes is defined, as
                             // there is no sound way to merge a type's deps with its prototype's deps
                             const Proto = Object.getPrototypeOf(Type);
                             if (typeof Proto === 'function' && Proto !== Function.prototype) {
-                                dependencies = cloneArrayWithPossibleProps(DI.getDependencies(Proto));
+                                dependencies = cloneArrayWithPossibleProps(exports.DI.getDependencies(Proto));
                             }
                             else {
                                 dependencies = [];
@@ -121,13 +147,13 @@
                 resource_1.Protocol.annotation.appendTo(Type, key);
             }
             return dependencies;
-        }
-        static createInterface(friendlyName) {
+        },
+        createInterface(friendlyName) {
             const Interface = function (target, property, index) {
                 if (target == null) {
                     throw reporter_1.Reporter.error(16, Interface.friendlyName, Interface); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
                 }
-                const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
+                const annotationParamtypes = exports.DI.getOrCreateAnnotationParamTypes(target);
                 annotationParamtypes[index] = Interface;
                 return target;
             };
@@ -140,40 +166,23 @@
                     throw reporter_1.Reporter.error(17, Interface);
                 };
                 Interface.register = function (container, key) {
-                    const trueKey = key == null ? Interface : key;
-                    return configure({
-                        instance(value) {
-                            return container.registerResolver(trueKey, new Resolver(trueKey, 0 /* instance */, value));
-                        },
-                        singleton(value) {
-                            return container.registerResolver(trueKey, new Resolver(trueKey, 1 /* singleton */, value));
-                        },
-                        transient(value) {
-                            return container.registerResolver(trueKey, new Resolver(trueKey, 2 /* transient */, value));
-                        },
-                        callback(value) {
-                            return container.registerResolver(trueKey, new Resolver(trueKey, 3 /* callback */, value));
-                        },
-                        aliasTo(destinationKey) {
-                            return container.registerResolver(trueKey, new Resolver(trueKey, 5 /* alias */, destinationKey));
-                        },
-                    });
+                    return configure(new ResolverBuilder(container, (key !== null && key !== void 0 ? key : Interface)));
                 };
                 return Interface;
             };
             return Interface;
-        }
-        static inject(...dependencies) {
+        },
+        inject(...dependencies) {
             return function (target, key, descriptor) {
                 if (typeof descriptor === 'number') { // It's a parameter decorator.
-                    const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
+                    const annotationParamtypes = exports.DI.getOrCreateAnnotationParamTypes(target);
                     const dep = dependencies[0];
                     if (dep !== void 0) {
                         annotationParamtypes[descriptor] = dep;
                     }
                 }
                 else if (key) { // It's a property decorator. Not supported by the container without plugins.
-                    const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target.constructor);
+                    const annotationParamtypes = exports.DI.getOrCreateAnnotationParamTypes(target.constructor);
                     const dep = dependencies[0];
                     if (dep !== void 0) {
                         annotationParamtypes[key] = dep;
@@ -181,7 +190,7 @@
                 }
                 else if (descriptor) { // It's a function decorator (not a Class constructor)
                     const fn = descriptor.value;
-                    const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(fn);
+                    const annotationParamtypes = exports.DI.getOrCreateAnnotationParamTypes(fn);
                     let dep;
                     for (let i = 0; i < dependencies.length; ++i) {
                         dep = dependencies[i];
@@ -191,7 +200,7 @@
                     }
                 }
                 else { // It's a class decorator.
-                    const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
+                    const annotationParamtypes = exports.DI.getOrCreateAnnotationParamTypes(target);
                     let dep;
                     for (let i = 0; i < dependencies.length; ++i) {
                         dep = dependencies[i];
@@ -201,7 +210,7 @@
                     }
                 }
             };
-        }
+        },
         /**
          * Registers the `target` class as a transient dependency; each time the dependency is resolved
          * a new instance will be created.
@@ -220,13 +229,13 @@
          * Foo.register(container);
          * ```
          */
-        static transient(target) {
+        transient(target) {
             target.register = function register(container) {
                 const registration = exports.Registration.transient(target, target);
                 return registration.register(container, target);
             };
             return target;
-        }
+        },
         /**
          * Registers the `target` class as a singleton dependency; the class will only be created once. Each
          * consecutive time the dependency is resolved, the same instance will be returned.
@@ -244,21 +253,20 @@
          * Foo.register(container);
          * ```
          */
-        static singleton(target) {
+        singleton(target) {
             target.register = function register(container) {
                 const registration = exports.Registration.singleton(target, target);
                 return registration.register(container, target);
             };
             return target;
-        }
-    }
-    exports.DI = DI;
-    exports.IContainer = DI.createInterface('IContainer').noDefault();
+        },
+    };
+    exports.IContainer = exports.DI.createInterface('IContainer').noDefault();
     exports.IServiceLocator = exports.IContainer;
     function createResolver(getter) {
         return function (key) {
             const resolver = function (target, property, descriptor) {
-                DI.inject(resolver)(target, property, descriptor);
+                exports.DI.inject(resolver)(target, property, descriptor);
             };
             resolver.resolve = function (handler, requestor) {
                 return getter(key, handler, requestor);
@@ -266,16 +274,16 @@
             return resolver;
         };
     }
-    exports.inject = DI.inject;
+    exports.inject = exports.DI.inject;
     function transientDecorator(target) {
-        return DI.transient(target);
+        return exports.DI.transient(target);
     }
     function transient(target) {
         return target == null ? transientDecorator : transientDecorator(target);
     }
     exports.transient = transient;
     function singletonDecorator(target) {
-        return DI.singleton(target);
+        return exports.DI.singleton(target);
     }
     function singleton(target) {
         return target == null ? singletonDecorator : singletonDecorator(target);
@@ -462,7 +470,7 @@
             if (functions_1.isNativeFunction(Type)) {
                 reporter_1.Reporter.write(5, Type.name);
             }
-            const dependencies = DI.getDependencies(Type);
+            const dependencies = exports.DI.getDependencies(Type);
             const invoker = classInvokers.length > dependencies.length ? classInvokers[dependencies.length] : fallbackInvoker;
             return new Factory(Type, invoker, dependencies);
         };

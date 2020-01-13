@@ -10,6 +10,20 @@ export declare type PartialCustomAttributeDefinition = PartialResourceDefinition
     readonly bindables?: Record<string, PartialBindableDefinition> | readonly string[];
     readonly strategy?: BindingStrategy;
     readonly hooks?: HooksDefinition;
+    /**
+     * A config that can be used by template compliler to change attr value parsing mode
+     * `true` to always parse as a single value, mostly will be string in URL scenario
+     * Example:
+     * ```html
+     * <div goto="http://bla.bla.com">
+     * ```
+     * With `noMultiBinding: true`, user does not need to escape the `:` with `\`
+     * or use binding command to escape it.
+     *
+     * With `noMultiBinding: false (default)`, the above will be parsed as it's binding
+     * to a property name `http`, with value equal to literal string `//bla.bla.com`
+     */
+    readonly noMultiBindings?: boolean;
 }>;
 export declare type CustomAttributeType<T extends Constructable = Constructable> = ResourceType<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition>;
 export declare type CustomAttributeKind = IResourceKind<CustomAttributeType, CustomAttributeDefinition> & {
@@ -47,6 +61,7 @@ export declare class CustomAttributeDefinition<T extends Constructable = Constru
     readonly bindables: Record<string, BindableDefinition>;
     readonly strategy: BindingStrategy;
     readonly hooks: HooksDefinition;
+    readonly noMultiBindings: boolean;
     private constructor();
     static create<T extends Constructable = Constructable>(nameOrDef: string | PartialCustomAttributeDefinition, Type: CustomAttributeType<T>): CustomAttributeDefinition<T>;
     register(container: IContainer): void;

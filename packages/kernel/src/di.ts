@@ -14,7 +14,7 @@ export type ResolveCallback<T = any> = (handler?: IContainer, requestor?: IConta
 export type InterfaceSymbol<K = any> = (target: Injectable<K>, property: string, index: number) => void;
 
 export interface IDefaultableInterfaceSymbol<K> extends InterfaceSymbol<K> {
-  withDefault(configure: (builder: IResolverBuilder<K>) => IResolver<K>): InterfaceSymbol<K>;
+  withDefault(configure: (builder: ResolverBuilder<K>) => IResolver<K>): InterfaceSymbol<K>;
   noDefault(): InterfaceSymbol<K>;
 }
 
@@ -62,12 +62,37 @@ export interface IContainer extends IServiceLocator {
   createChild(): IContainer;
 }
 
-export interface IResolverBuilder<K> {
-  instance(value: K): IResolver<K>;
-  singleton(value: Constructable): IResolver<K>;
-  transient(value: Constructable): IResolver<K>;
-  callback(value: ResolveCallback<K>): IResolver<K>;
-  aliasTo(destinationKey: Key): IResolver<K>;
+export class ResolverBuilder<K> {
+  public constructor(
+    private container: IContainer,
+    private key: Key,
+  ) {}
+
+  public instance(value: K): IResolver<K> {
+    return this.registerResolver(ResolverStrategy.instance, value);
+  }
+
+  public singleton(value: Constructable): IResolver<K> {
+    return this.registerResolver(ResolverStrategy.singleton, value);
+  }
+
+  public transient(value: Constructable): IResolver<K> {
+    return this.registerResolver(ResolverStrategy.transient, value);
+  }
+
+  public callback(value: ResolveCallback<K>): IResolver<K> {
+    return this.registerResolver(ResolverStrategy.callback, value);
+  }
+
+  public aliasTo(destinationKey: Key): IResolver<K> {
+    return this.registerResolver(ResolverStrategy.alias, destinationKey);
+  }
+
+  private registerResolver(strategy: ResolverStrategy, state: unknown): IResolver<K> {
+    const { container, key } = this;
+    this.container = this.key = (void 0)!;
+    return container.registerResolver(key, new Resolver(key, strategy, state));
+  }
 }
 
 export type RegisterSelf<T extends Constructable> = {
@@ -215,30 +240,13 @@ export const DI = {
       return Interface;
     };
 
-    Interface.withDefault = function (configure: (builder: IResolverBuilder<K>) => IResolver<K>): InterfaceSymbol<K> {
+    Interface.withDefault = function (configure: (builder: ResolverBuilder<K>) => IResolver<K>): InterfaceSymbol<K> {
       Interface.withDefault = function (): InterfaceSymbol<K> {
         throw Reporter.error(17, Interface);
       };
 
       Interface.register = function (container: IContainer, key?: Key): IResolver<K> {
-        const trueKey = key == null ? Interface : key;
-        return configure({
-          instance(value: K): IResolver<K> {
-            return container.registerResolver(trueKey, new Resolver(trueKey, ResolverStrategy.instance, value));
-          },
-          singleton(value: Constructable): IResolver<K> {
-            return container.registerResolver(trueKey, new Resolver(trueKey, ResolverStrategy.singleton, value));
-          },
-          transient(value: Constructable): IResolver<K> {
-            return container.registerResolver(trueKey, new Resolver(trueKey, ResolverStrategy.transient, value));
-          },
-          callback(value: ResolveCallback<K>): IResolver<K> {
-            return container.registerResolver(trueKey, new Resolver(trueKey, ResolverStrategy.callback, value));
-          },
-          aliasTo(destinationKey: Key): IResolver<K> {
-            return container.registerResolver(trueKey, new Resolver(trueKey, ResolverStrategy.alias, destinationKey));
-          },
-        });
+        return configure(new ResolverBuilder(container, key ?? Interface));
       };
 
       return Interface;

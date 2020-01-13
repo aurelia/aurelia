@@ -106,27 +106,22 @@ function cloneArrayWithPossibleProps<T>(source: readonly T[]): T[] {
   return clone;
 }
 
-export class DI {
-  private constructor() { return; }
-
-  public static createContainer(...params: any[]): IContainer {
+export const DI = {
+  createContainer(...params: any[]): IContainer {
     if (params.length === 0) {
       return new Container(null);
     } else {
       return new Container(null).register(...params);
     }
-  }
-
-  public static getDesignParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined {
+  },
+  getDesignParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined {
     return Metadata.getOwn('design:paramtypes', Type);
-  }
-
-  public static getAnnotationParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined {
+  },
+  getAnnotationParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined {
     const key = Protocol.annotation.keyFor('di:paramtypes');
     return Metadata.getOwn(key, Type);
-  }
-
-  public static getOrCreateAnnotationParamTypes(Type: Constructable | Injectable): Key[] {
+  },
+  getOrCreateAnnotationParamTypes(Type: Constructable | Injectable): Key[] {
     const key = Protocol.annotation.keyFor('di:paramtypes');
     let annotationParamtypes = Metadata.getOwn(key, Type);
     if (annotationParamtypes === void 0) {
@@ -134,9 +129,8 @@ export class DI {
       Protocol.annotation.appendTo(Type, key);
     }
     return annotationParamtypes;
-  }
-
-  public static getDependencies(Type: Constructable | Injectable): Key[] {
+  },
+  getDependencies(Type: Constructable | Injectable): Key[] {
     // Note: Every detail of this getDependencies method is pretty deliberate at the moment, and probably not yet 100% tested from every possible angle,
     // so be careful with making changes here as it can have a huge impact on complex end user apps.
     // Preferably, only make changes to the dependency resolution process via a RFC.
@@ -205,9 +199,8 @@ export class DI {
     }
 
     return dependencies!;
-  }
-
-  public static createInterface<K extends Key>(friendlyName?: string): IDefaultableInterfaceSymbol<K> {
+  },
+  createInterface<K extends Key>(friendlyName?: string): IDefaultableInterfaceSymbol<K> {
     const Interface: InternalDefaultableInterfaceSymbol<K> = function (target: Injectable<K>, property: string, index: number): any {
       if (target == null) {
         throw Reporter.error(16, Interface.friendlyName, Interface); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
@@ -252,9 +245,8 @@ export class DI {
     };
 
     return Interface;
-  }
-
-  public static inject(...dependencies: Key[]): (target: Injectable, key?: string | number, descriptor?: PropertyDescriptor | number) => void {
+  },
+  inject(...dependencies: Key[]): (target: Injectable, key?: string | number, descriptor?: PropertyDescriptor | number) => void {
     return function (target: Injectable, key?: string | number, descriptor?: PropertyDescriptor | number): void {
       if (typeof descriptor === 'number') { // It's a parameter decorator.
         const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
@@ -289,8 +281,7 @@ export class DI {
         }
       }
     };
-  }
-
+  },
   /**
    * Registers the `target` class as a transient dependency; each time the dependency is resolved
    * a new instance will be created.
@@ -309,14 +300,13 @@ export class DI {
    * Foo.register(container);
    * ```
    */
-  public static transient<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
+  transient<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
     target.register = function register(container: IContainer): IResolver<InstanceType<T>> {
       const registration = Registration.transient(target as T, target as T);
       return registration.register(container, target);
     };
     return target as T & RegisterSelf<T>;
-  }
-
+  },
   /**
    * Registers the `target` class as a singleton dependency; the class will only be created once. Each
    * consecutive time the dependency is resolved, the same instance will be returned.
@@ -334,14 +324,14 @@ export class DI {
    * Foo.register(container);
    * ```
    */
-  public static singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
+  singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
     target.register = function register(container: IContainer): IResolver<InstanceType<T>> {
       const registration = Registration.singleton(target, target);
       return registration.register(container, target);
     };
     return target as T & RegisterSelf<T>;
-  }
-}
+  },
+};
 
 export const IContainer = DI.createInterface<IContainer>('IContainer').noDefault();
 export const IServiceLocator = IContainer as unknown as InterfaceSymbol<IServiceLocator>;

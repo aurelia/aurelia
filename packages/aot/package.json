@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/aot",
-  "version": "0.7.0-dev.202001131000",
+  "version": "0.7.0-dev.202001141140",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -36,14 +36,14 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/debug": "0.7.0-dev.202001131000",
-    "@aurelia/kernel": "0.7.0-dev.202001131000",
-    "@aurelia/runtime": "0.7.0-dev.202001131000",
-    "@aurelia/runtime-html": "0.7.0-dev.202001131000",
-    "@aurelia/runtime-html-jsdom": "0.7.0-dev.202001131000",
-    "@aurelia/jit": "0.7.0-dev.202001131000",
-    "@aurelia/jit-html": "0.7.0-dev.202001131000",
-    "@aurelia/jit-html-jsdom": "0.7.0-dev.202001131000",
+    "@aurelia/debug": "0.7.0-dev.202001141140",
+    "@aurelia/kernel": "0.7.0-dev.202001141140",
+    "@aurelia/runtime": "0.7.0-dev.202001141140",
+    "@aurelia/runtime-html": "0.7.0-dev.202001141140",
+    "@aurelia/runtime-html-jsdom": "0.7.0-dev.202001141140",
+    "@aurelia/jit": "0.7.0-dev.202001141140",
+    "@aurelia/jit-html": "0.7.0-dev.202001141140",
+    "@aurelia/jit-html-jsdom": "0.7.0-dev.202001141140",
     "typescript": "^3.7.4",
     "jsdom": "^15.2.1"
   },

@@ -20,8 +20,7 @@ interface ValidationRuleDefinition {
   aliases: ValidationRuleAlias[];
 }
 
-/* @internal */
-const ValidationRule = Object.freeze({
+export const ValidationRule = Object.freeze({
   aliasKey: Protocol.annotation.keyFor('validation-rule-alias-message'),
   define<TRule extends BaseValidationRule>(target: Constructable<TRule>, definition: ValidationRuleDefinition): Constructable<TRule> {
     ValidationRule.setDefaultMessage(target, definition);

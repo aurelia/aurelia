@@ -1,9 +1,9 @@
 import { IContainer } from '@aurelia/kernel';
-import { INode, IScheduler } from '@aurelia/runtime';
+import { INode, IScheduler, valueConverter } from '@aurelia/runtime';
 
 export interface TestExecutionContext<TApp extends any> {
   container: IContainer;
-  host: INode;
+  host: HTMLElement;
   app: TApp;
   scheduler: IScheduler;
 }
@@ -25,4 +25,9 @@ export function createSpecFunction<TTestContext extends TestExecutionContext<any
     it.skip(title, async function () { await wrap(testFunction, setupContext); });
   };
   return $it;
+}
+
+@valueConverter('toNumber')
+export class ToNumberValueConverter {
+  public fromView(value: string): number { return Number(value) || void 0; }
 }

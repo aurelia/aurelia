@@ -3,8 +3,7 @@ import { ICustomMessages, IValidationMessageProvider, IValidationRules, Validati
 import { ValidateBindingBehavior, IDefaultTrigger, ValidationTrigger } from './validate-binding-behavior';
 import { IValidationControllerFactory, ValidationControllerFactory } from './validation-controller';
 import { ValidationCustomizationOpions } from './validation-customization-options';
-import { ValidationErrorsCustomAttribute } from './validation-errors-custom-attribute';
-import { ValidationRendererCustomAttribute } from './validation-renderer-custom-attribute';
+import { ValidationErrorsCustomAttribute } from './subscribers/validation-errors-custom-attribute';
 import { IValidator, StandardValidator } from './validator';
 
 export type ValidationConfigurationProvider = (options: ValidationCustomizationOpions) => void;
@@ -24,7 +23,6 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
         Registration.transient(IValidationRules, ValidationRules),
         ValidateBindingBehavior,
         ValidationErrorsCustomAttribute,
-        ValidationRendererCustomAttribute,
         Registration.singleton(IValidationControllerFactory, ValidationControllerFactory)
       );
     },

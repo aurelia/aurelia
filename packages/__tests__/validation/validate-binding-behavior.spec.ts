@@ -35,7 +35,7 @@ import {
 } from '@aurelia/validation';
 import { Spy } from '../Spy';
 import { Person, Organization } from './_test-resources';
-import { createSpecFunction, TestFunction, TestExecutionContext } from '../util';
+import { createSpecFunction, TestFunction, TestExecutionContext, ToNumberValueConverter } from '../util';
 
 describe.only('validate-biniding-behavior', function () {
 
@@ -190,10 +190,6 @@ describe.only('validate-biniding-behavior', function () {
       this.value = FooBar.staticText;
     }
   }
-  @valueConverter('toNumber')
-  class ToNumberValueConverter {
-    public fromView(value: string): number { return Number(value) || void 0; }
-  }
   @valueConverter('b64ToPlainText')
   class B64ToPlainTextValueConverter {
     public fromView(b64: string): string { return atob(b64); }
@@ -234,7 +230,7 @@ describe.only('validate-biniding-behavior', function () {
     const container = ctx.container;
     const host = ctx.dom.createElement('app');
     ctx.doc.body.appendChild(host);
-    let app;
+    let app: App;
     const au = new Aurelia(container);
     await au
       .register(
@@ -293,7 +289,7 @@ describe.only('validate-biniding-behavior', function () {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
-      const target: HTMLInputElement = (host as Element).querySelector("#target");
+      const target: HTMLInputElement = host.querySelector("#target");
       assertControllerBinding(controller, 'person.name', target, controllerSpy);
 
       assert.equal(controller.results.filter((r) => !r.valid).length, 0, 'error1');
@@ -313,7 +309,7 @@ describe.only('validate-biniding-behavior', function () {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
-      const target: HTMLInputElement = (host as Element).querySelector("#target");
+      const target: HTMLInputElement = host.querySelector("#target");
       assertControllerBinding(controller, 'person.name', target, controllerSpy);
 
       assert.equal(controller.results.filter((r) => !r.valid).length, 0, 'error1');
@@ -333,7 +329,7 @@ describe.only('validate-biniding-behavior', function () {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
-      const target: HTMLInputElement = (host as Element).querySelector("#target");
+      const target: HTMLInputElement = host.querySelector("#target");
       assertControllerBinding(controller, 'person.name', target, controllerSpy);
 
       await assertEventHandler(target, 'blur', 1, scheduler, controllerSpy);
@@ -351,7 +347,7 @@ describe.only('validate-biniding-behavior', function () {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
-      const target: HTMLInputElement = (host as Element).querySelector("#target");
+      const target: HTMLInputElement = host.querySelector("#target");
       assertControllerBinding(controller, 'person.name', target, controllerSpy);
 
       controllerSpy.clearCallRecords();
@@ -376,7 +372,7 @@ describe.only('validate-biniding-behavior', function () {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
-      const target: HTMLInputElement = (host as Element).querySelector("#target");
+      const target: HTMLInputElement = host.querySelector("#target");
       assertControllerBinding(controller, 'person.name', target, controllerSpy);
 
       assert.equal(app.trigger, ValidationTrigger.change);
@@ -411,8 +407,8 @@ describe.only('validate-biniding-behavior', function () {
       const controller2 = app.controller2;
       const controller2Spy = app.controller2Spy;
 
-      const target1: HTMLInputElement = (host as Element).querySelector("#target1");
-      const target2: HTMLInputElement = (host as Element).querySelector("#target2");
+      const target1: HTMLInputElement = host.querySelector("#target1");
+      const target2: HTMLInputElement = host.querySelector("#target2");
       assertControllerBinding(controller, 'person.name', target1, controllerSpy);
       assertControllerBinding(controller2, 'person.age', target2, controller2Spy);
 
@@ -439,7 +435,7 @@ describe.only('validate-biniding-behavior', function () {
       const controller2 = app.controller2;
       const controller2Spy = app.controller2Spy;
 
-      const target1: HTMLInputElement = (host as Element).querySelector("#target1");
+      const target1: HTMLInputElement = host.querySelector("#target1");
       assertControllerBinding(controller, 'person.name', target1, controllerSpy);
 
       await assertEventHandler(target1, 'blur', 1, scheduler, controllerSpy);
@@ -468,8 +464,8 @@ describe.only('validate-biniding-behavior', function () {
       const controller2 = app.controller2;
       const controller2Spy = app.controller2Spy;
 
-      const target1: HTMLInputElement = (host as Element).querySelector("#target1");
-      const target2: HTMLInputElement = (host as Element).querySelector("#target2");
+      const target1: HTMLInputElement = host.querySelector("#target1");
+      const target2: HTMLInputElement = host.querySelector("#target2");
       assertControllerBinding(controller, 'person.name', target1, controllerSpy);
       assertControllerBinding(controller2, 'person.age', target2, controller2Spy);
 
@@ -499,7 +495,7 @@ describe.only('validate-biniding-behavior', function () {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
-      const target2: HTMLInputElement = (host as Element).querySelector("#target2");
+      const target2: HTMLInputElement = host.querySelector("#target2");
       assertControllerBinding(controller, 'person.age', target2, controllerSpy);
 
       target2.value = '41';
@@ -521,7 +517,7 @@ describe.only('validate-biniding-behavior', function () {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
-      const target2: HTMLInputElement = (host as Element).querySelector("#target2");
+      const target2: HTMLInputElement = host.querySelector("#target2");
       assertControllerBinding(controller, 'person.age', target2, controllerSpy);
 
       target2.value = '41';
@@ -601,7 +597,7 @@ describe.only('validate-biniding-behavior', function () {
       const controllerSpy = app.controllerSpy;
       const person = app.person;
 
-      const ceHost: HTMLElement = (host as Element).querySelector("#target");
+      const ceHost: HTMLElement = host.querySelector("#target");
       const input: HTMLInputElement = ceHost.querySelector("input");
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
@@ -620,7 +616,7 @@ describe.only('validate-biniding-behavior', function () {
       const controllerSpy = app.controllerSpy;
       const person = app.person;
 
-      const ceHost: HTMLElement = (host as Element).querySelector("#target");
+      const ceHost: HTMLElement = host.querySelector("#target");
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
       await controller.validate();
@@ -647,7 +643,7 @@ describe.only('validate-biniding-behavior', function () {
       const controllerSpy = app.controllerSpy;
       const person = app.person;
 
-      const ceHost: HTMLElement = (host as Element).querySelector("#target");
+      const ceHost: HTMLElement = host.querySelector("#target");
       const input: HTMLInputElement = ceHost.querySelector("input");
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
@@ -671,7 +667,7 @@ describe.only('validate-biniding-behavior', function () {
       const controllerSpy = app.controllerSpy;
       const person = app.person;
 
-      const ceHost: HTMLElement = (host as Element).querySelector("#target");
+      const ceHost: HTMLElement = host.querySelector("#target");
       const input: HTMLInputElement = ceHost.querySelector("input");
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
@@ -699,7 +695,7 @@ describe.only('validate-biniding-behavior', function () {
       const controllerSpy = app.controllerSpy;
       const person = app.person;
 
-      const caHost: HTMLDivElement = (host as Element).querySelector("#target");
+      const caHost: HTMLDivElement = host.querySelector("#target");
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
       await controller.validate();
@@ -720,7 +716,7 @@ describe.only('validate-biniding-behavior', function () {
       const controllerSpy = app.controllerSpy;
       const person = app.person;
 
-      const caHost: HTMLDivElement = (host as Element).querySelector("#target");
+      const caHost: HTMLDivElement = host.querySelector("#target");
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
       await controller.validate();
@@ -740,7 +736,7 @@ describe.only('validate-biniding-behavior', function () {
       const controllerSpy = app.controllerSpy;
       const person = app.person;
 
-      const caHost: HTMLDivElement = (host as Element).querySelector("#target");
+      const caHost: HTMLDivElement = host.querySelector("#target");
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
       await controller.validate();
@@ -766,7 +762,7 @@ describe.only('validate-biniding-behavior', function () {
       const controllerSpy = app.controllerSpy;
       const person = app.person;
 
-      const caHost: HTMLDivElement = (host as Element).querySelector("#target");
+      const caHost: HTMLDivElement = host.querySelector("#target");
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
       await controller.validate();
@@ -798,7 +794,7 @@ describe.only('validate-biniding-behavior', function () {
       const controllerSpy = app.controllerSpy;
       const person = app.person;
 
-      const target: HTMLInputElement = (host as Element).querySelector("#target");
+      const target: HTMLInputElement = host.querySelector("#target");
       assertControllerBinding(controller, 'person.age|toNumber', target, controllerSpy);
 
       assert.equal(controller.results.filter((r) => !r.valid).length, 0, 'error1');
@@ -823,7 +819,7 @@ describe.only('validate-biniding-behavior', function () {
       const controllerSpy = app.controllerSpy;
       const person = app.person;
 
-      const target: HTMLInputElement = (host as Element).querySelector("#target");
+      const target: HTMLInputElement = host.querySelector("#target");
       assertControllerBinding(controller, 'person.age|toNumber|b64ToPlainText', target, controllerSpy);
 
       assert.equal(controller.results.filter((r) => !r.valid).length, 0, 'error1');
@@ -859,7 +855,7 @@ describe.only('validate-biniding-behavior', function () {
         const controller = app.controller;
         const controllerSpy = app.controllerSpy;
 
-        const target: HTMLInputElement = (host as Element).querySelector("#target");
+        const target: HTMLInputElement = host.querySelector("#target");
         assertControllerBinding(controller, rawExpr, target, controllerSpy);
 
         assert.equal(controller.results.filter((r) => !r.valid).length, 0, 'error1');
@@ -880,7 +876,7 @@ describe.only('validate-biniding-behavior', function () {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
-      const target: HTMLInputElement = (host as Element).querySelector("#target");
+      const target: HTMLInputElement = host.querySelector("#target");
       controllerSpy.methodCalledTimes('registerBinding', 1);
       const bindings = Array.from((controller['bindings'] as Map<IBinding, any>).keys()) as BindingWithBehavior[];
       assert.equal(bindings.length, 1);
@@ -915,7 +911,7 @@ describe.only('validate-biniding-behavior', function () {
 
       assert.equal(!!app.employeesMediator, true, "mediator should have been instantiated");
       assert.equal(!!app.employeeObserver, true, "observer should have been instantiated");
-      const target: HTMLInputElement = (host as Element).querySelector("#target");
+      const target: HTMLInputElement = host.querySelector("#target");
       controllerSpy.methodCalledTimes('registerBinding', 1);
       const bindings = Array.from((controller['bindings'] as Map<IBinding, any>).keys()) as BindingWithBehavior[];
       assert.equal(bindings.length, 1);
@@ -948,8 +944,8 @@ describe.only('validate-biniding-behavior', function () {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
-      const target1: HTMLInputElement = (host as Element).querySelector("#target1");
-      const target2: HTMLInputElement = (host as Element).querySelector("#target2");
+      const target1: HTMLInputElement = host.querySelector("#target1");
+      const target2: HTMLInputElement = host.querySelector("#target2");
 
       controllerSpy.methodCalledTimes('registerBinding', 2);
       const bindings = Array.from((controller['bindings'] as Map<IBinding, any>).keys()) as BindingWithBehavior[];
@@ -990,7 +986,7 @@ describe.only('validate-biniding-behavior', function () {
       person.address = { pin: 'foobar' as unknown as number, city: 'foobar', line1: 'foobar' };
       await scheduler.yieldAll();
 
-      const target: HTMLInputElement = (host as Element).querySelector("#target");
+      const target: HTMLInputElement = host.querySelector("#target");
       assertControllerBinding(controller, 'person.address.pin|toNumber', target, controllerSpy);
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'address.pin').length, 0, 'error1');
@@ -1010,7 +1006,7 @@ describe.only('validate-biniding-behavior', function () {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
-      const target: HTMLInputElement = (host as Element).querySelector("#target");
+      const target: HTMLInputElement = host.querySelector("#target");
       assertControllerBinding(controller, 'person.address.pin|toNumber', target, controllerSpy);
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'address.pin').length, 0, 'error1');
@@ -1033,7 +1029,7 @@ describe.only('validate-biniding-behavior', function () {
       org.employees.push(new Person((void 0)!, (void 0)!, { pin: 'foobar' as unknown as number, city: 'foobar', line1: 'foobar' }));
       await scheduler.yieldAll();
 
-      const target: HTMLInputElement = (host as Element).querySelector("#target");
+      const target: HTMLInputElement = host.querySelector("#target");
       assertControllerBinding(controller, 'org.employees[(0)].address.pin|toNumber', target, controllerSpy);
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'employees[0].address.pin').length, 0, 'error1');

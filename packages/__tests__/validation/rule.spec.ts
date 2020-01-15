@@ -1,6 +1,20 @@
 /* eslint-disable no-constant-condition */
-import { DI, ILogEvent, ISink, LogLevel, Metadata, Protocol, Registration } from '@aurelia/kernel';
-import { Interpolation, PrimitiveLiteralExpression, LifecycleFlags, IExpressionParser, BindingType } from '@aurelia/runtime';
+import {
+  DI,
+  ILogEvent,
+  ISink,
+  LogLevel,
+  Metadata,
+  Protocol,
+  Registration
+} from '@aurelia/kernel';
+import {
+  Interpolation,
+  PrimitiveLiteralExpression,
+  LifecycleFlags,
+  IExpressionParser,
+  BindingType
+} from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import {
   EqualsRule,
@@ -16,7 +30,8 @@ import {
   ValidationConfiguration,
   BaseValidationRule,
   ICustomMessage,
-  parsePropertyName
+  parsePropertyName,
+  ValidationRule
 } from '@aurelia/validation';
 import { IPerson, Person } from './_test-resources';
 
@@ -385,10 +400,14 @@ describe.only('ValidationMessageProvider', function () {
       configuration,
       Registration.instance(ISink, eventLog)
     );
+
+    const originalMessages = customMessages?.map(({ rule }) => ({ rule, aliases: ValidationRule.getDefaultMessages(rule) }));
+
     return {
       sut: container.get(IValidationMessageProvider),
       container,
-      eventLog
+      eventLog,
+      originalMessages
     };
   }
 
@@ -577,7 +596,7 @@ describe.only('ValidationMessageProvider', function () {
         ],
       },
     ];
-    const { sut, container } = setup(customMessages);
+    const { sut, container, originalMessages } = setup(customMessages);
     for (const { getRule } of rules) {
       const $rule = getRule(sut);
       const scope = { bindingContext: { $displayName: 'FooBar', $rule }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
@@ -586,6 +605,10 @@ describe.only('ValidationMessageProvider', function () {
       const template = aliases.length === 1 ? aliases[0].defaultMessage : aliases.find(({ name }) => name === $rule.messageKey)?.defaultMessage;
       const expected = sut.parseMessage(template).evaluate(LifecycleFlags.none, scope, null!);
       assert.equal(actual, expected);
+    }
+    // reset the messages
+    for (const { rule, aliases } of originalMessages) {
+      ValidationRule.setDefaultMessage(rule, { aliases });
     }
   });
   [

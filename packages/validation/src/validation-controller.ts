@@ -1,10 +1,13 @@
-import { DI, IContainer, Registration, IEventAggregator, EventAggregator, toArray } from '@aurelia/kernel';
+import {
+  DI,
+  IContainer,
+  Registration,
+} from '@aurelia/kernel';
 import {
   AccessKeyedExpression,
   AccessMemberExpression,
   AccessScopeExpression,
   BindingBehaviorExpression,
-  IBinding,
   IExpressionParser,
   IScope,
   LifecycleFlags,
@@ -13,8 +16,14 @@ import {
   ValueConverterExpression,
   PropertyBinding
 } from '@aurelia/runtime';
-import { IValidateable, parsePropertyName, PropertyAccessor, PropertyRule, ValidationResult, BaseValidationRule } from './rule';
-import { RenderInstruction, ValidationRenderer } from './validation-renderer';
+import {
+  IValidateable,
+  parsePropertyName,
+  PropertyAccessor,
+  PropertyRule,
+  ValidationResult,
+  BaseValidationRule
+} from './rule';
 import { IValidator } from './validator';
 
 export const VALIDATION_EVENT_CHANNEL = 'au:validation';
@@ -24,38 +33,100 @@ export type BindingWithBehavior = PropertyBinding & {
   target: Element | object;
 };
 type ValidatableExpression = AccessScopeExpression | AccessMemberExpression | AccessKeyedExpression;
+export type ValidateEventKind = 'validate' | 'reset';
+
+/**
+ * The result of a call to the validation controller's validate method.
+ */
+export class ControllerValidateResult {
+  public constructor(
+    /**
+     * Whether validation passed.
+     */
+    public valid: boolean,
+
+    /**
+     * The validation result of every rule that was evaluated.
+     */
+    public results: ValidationResult[],
+
+    /**
+     * The instruction passed to the controller's validate method.
+     */
+    public instruction?: ValidateInstruction,
+  ) { }
+}
+
+/**
+ * Instructions for the validation controller's validate method.
+ */
+export class ValidateInstruction {
+  public constructor(
+    /**
+     * The object to validate.
+     */
+    public object: IValidateable,
+
+    /**
+     * The property to validate. Optional.
+     */
+    public propertyName: string = (void 0)!,
+
+    /**
+     * The rules to validate. Optional.
+     */
+    public rules: PropertyRule[] = (void 0)!,
+  ) { }
+}
+
+export class ValidationResultTarget {
+  public constructor(
+    public result: ValidationResult,
+    public targets: Element[],
+  ) { }
+}
+
+export class ValidationEvent {
+  public constructor(
+    public kind: ValidateEventKind,
+    public addedErrors: ValidationResultTarget[],
+    public removedErrors: ValidationResultTarget[],
+  ) { }
+}
+
+export interface ValidationErrorsSubscriber {
+  handleValidationEvent(event: ValidationEvent): void;
+}
 
 export interface IValidationController {
   validator: IValidator;
   readonly results: ValidationResult[];
   validating: boolean;
+  validate(instruction?: ValidateInstruction): Promise<ControllerValidateResult>;
   addObject(object: IValidateable, rules?: PropertyRule[]): void;
   removeObject(object: IValidateable): void;
   addError<TObject>(message: string, object: TObject, propertyName?: string | PropertyAccessor | null): ValidationResult;
   removeError(result: ValidationResult): void;
-  addRenderer(renderer: ValidationRenderer): void;
+  addSubscriber(subscriber: ValidationErrorsSubscriber): void;
+  removeSubscriber(subscriber: ValidationErrorsSubscriber): void;
   registerBinding(binding: BindingWithBehavior, target: Element, scope: IScope, rules?: any): void;
   deregisterBinding(binding: BindingWithBehavior): void;
-  validate(instruction?: ValidateInstruction): Promise<ControllerValidateResult>;
-  reset(instruction?: ValidateInstruction): void;
   validateBinding(binding: BindingWithBehavior): Promise<void>;
   resetBinding(binding: BindingWithBehavior): void;
   revalidateErrors(): Promise<void>;
+  reset(instruction?: ValidateInstruction): void;
 }
 export const IValidationController = DI.createInterface<IValidationController>("IValidationController").noDefault();
 
 /**
  * Orchestrates validation.
- * Manages a set of bindings, renderers and objects.
+ * Manages a set of bindings, subscribers and objects.
  * Exposes the current list of validation results for binding purposes.
  */
 export class ValidationController implements IValidationController {
 
-  // Registered bindings (via the validate binding behavior)
   private readonly bindings: Map<BindingWithBehavior, BindingInfo> = new Map<BindingWithBehavior, BindingInfo>();
-
-  // Renderers that have been added to the controller instance.
-  private readonly renderers: ValidationRenderer[] = [];
+  private readonly subscribers: ValidationErrorsSubscriber[] = [];
 
   /**
    * Validation results that have been rendered by the controller.
@@ -76,7 +147,6 @@ export class ValidationController implements IValidationController {
   public constructor(
     @IValidator public readonly validator: IValidator,
     @IExpressionParser private readonly parser: IExpressionParser,
-    @IEventAggregator private readonly ea: EventAggregator,
     @IScheduler private readonly scheduler: IScheduler,
   ) { }
 
@@ -129,30 +199,12 @@ export class ValidationController implements IValidationController {
     }
   }
 
-  /**
-   * Adds a renderer.
-   *
-   * @param renderer - The renderer.
-   */
-  public addRenderer(renderer: ValidationRenderer) {
-    this.renderers.push(renderer);
-    renderer.render({
-      kind: 'validate',
-      render: this.results.map(result => ({ result, elements: this.elements.get(result)! })),
-      unrender: []
-    });
+  public addSubscriber(subscriber: ValidationErrorsSubscriber) {
+    this.subscribers.push(subscriber);
   }
 
-  /**
-   * Removes a renderer.
-   */
-  public removeRenderer(renderer: ValidationRenderer) {
-    this.renderers.splice(this.renderers.indexOf(renderer), 1);
-    renderer.render({
-      kind: 'reset',
-      render: [],
-      unrender: this.results.map(result => ({ result, elements: this.elements.get(result)! }))
-    });
+  public removeSubscriber(subscriber: ValidationErrorsSubscriber) {
+    this.subscribers.splice(this.subscribers.indexOf(subscriber), 1);
   }
 
   /**
@@ -303,14 +355,11 @@ export class ValidationController implements IValidationController {
         const oldResults = this.results.filter(predicate);
         this.processResultDelta('validate', oldResults, newResults);
 
-        const result: ControllerValidateResult = {
-          instruction,
-          valid: newResults.find(r => !r.valid) === void 0,
-          results: newResults
-        };
-
-        this.publishEvent(instruction, result);
-        return result;
+        return new ControllerValidateResult(
+          newResults.find(r => !r.valid) === void 0,
+          newResults,
+          instruction
+        );
       } finally {
         this.validating = false;
       }
@@ -328,7 +377,6 @@ export class ValidationController implements IValidationController {
     const predicate = this.getInstructionPredicate(instruction);
     const oldResults = this.results.filter(predicate);
     this.processResultDelta('reset', oldResults, []);
-    this.publishEvent(instruction);
   }
 
   /**
@@ -346,16 +394,12 @@ export class ValidationController implements IValidationController {
   }
 
   private processResultDelta(
-    kind: 'validate' | 'reset',
+    kind: ValidateEventKind,
     oldResults: ValidationResult[],
     newResults: ValidationResult[],
   ) {
     // prepare the instruction.
-    const instruction: RenderInstruction = {
-      kind,
-      render: [],
-      unrender: []
-    };
+    const eventData: ValidationEvent = new ValidationEvent(kind, [], []);
 
     // create a shallow copy of newResults so we can mutate it without causing side-effects.
     newResults = newResults.slice(0);
@@ -369,7 +413,7 @@ export class ValidationController implements IValidationController {
       this.elements.delete(oldResult);
 
       // create the unrender instruction.
-      instruction.unrender.push({ result: oldResult, elements });
+      eventData.removedErrors.push({ result: oldResult, targets: elements });
 
       // determine if there's a corresponding new result for the old result we are unrendering.
       const newResultIndex = newResults.findIndex(
@@ -386,7 +430,7 @@ export class ValidationController implements IValidationController {
         this.elements.set(newResult, elements);
 
         // create a render instruction for the new result.
-        instruction.render.push({ result: newResult, elements });
+        eventData.addedErrors.push({ result: newResult, targets: elements });
 
         // do an in-place replacement of the old result with the new result.
         // this ensures any repeats bound to this.results will not thrash.
@@ -397,14 +441,14 @@ export class ValidationController implements IValidationController {
     // create render instructions from the remaining new results.
     for (const result of newResults) {
       const elements = this.getAssociatedElements(result);
-      instruction.render.push({ result, elements });
+      eventData.addedErrors.push({ result, targets: elements });
       this.elements.set(result, elements);
       this.results.push(result);
     }
 
     // render.
-    for (const renderer of this.renderers) {
-      renderer.render(instruction);
+    for (const subscriber of this.subscribers) {
+      subscriber.handleValidationEvent(eventData);
     }
   }
 
@@ -483,15 +527,6 @@ export class ValidationController implements IValidationController {
     }
     await Promise.all(promises);
   }
-
-  private publishEvent(instruction: ValidateInstruction | undefined, result?: ControllerValidateResult) {
-    const event = new ValidateEvent(
-      result !== void 0 ? 'validate' : 'reset',
-      this.results,
-      instruction,
-      result);
-    this.ea.publish(VALIDATION_EVENT_CHANNEL, event);
-  }
 }
 
 /**
@@ -542,94 +577,17 @@ export class ValidationControllerFactory implements IValidationControllerFactory
     return new ValidationController(
       validator ?? container.get<IValidator>(IValidator),
       container.get(IExpressionParser),
-      container.get(IEventAggregator),
       container.get(IScheduler)
     );
   }
 
   /**
    * Creates a new controller and registers it in the current element's container so that it's
-   * available to the validate binding behavior and renderers.
+   * available to the validate binding behavior and subscribers.
    */
   public createForCurrentScope(validator?: IValidator): IValidationController {
     const controller = this.create(validator);
     Registration.instance(IValidationController, controller).register(this.container);
     return controller;
   }
-}
-
-export class ValidateEvent {
-  public constructor(
-    /**
-     * The type of validate event. Either "validate" or "reset".
-     */
-    public readonly type: 'validate' | 'reset',
-
-    /**
-     * The controller's current array of validate results. This
-     * includes both passed rules and failed rules. For an array of only failed rules,
-     * use the "errors" property.
-     */
-    public readonly results: ValidationResult[],
-
-    /**
-     * The instruction passed to the "validate" or "reset" event. Will be null when
-     * the controller's validate/reset method was called with no instruction argument.
-     */
-    public readonly instruction?: ValidateInstruction,
-
-    /**
-     * In events with type === "validate", this property will contain the result
-     * of validating the instruction (see "instruction" property). Use the controllerValidateResult
-     * to access the validate results specific to the call to "validate"
-     * (as opposed to using the "results" and "errors" properties to access the controller's entire
-     * set of results/errors).
-     */
-    public readonly controllerValidateResult?: ControllerValidateResult
-
-  ) { }
-}
-
-/**
- * The result of a call to the validation controller's validate method.
- */
-export class ControllerValidateResult {
-  public constructor(
-    /**
-     * Whether validation passed.
-     */
-    public valid: boolean,
-
-    /**
-     * The validation result of every rule that was evaluated.
-     */
-    public results: ValidationResult[],
-
-    /**
-     * The instruction passed to the controller's validate method.
-     */
-    public instruction?: ValidateInstruction,
-  ) { }
-}
-
-/**
- * Instructions for the validation controller's validate method.
- */
-export class ValidateInstruction {
-  public constructor(
-    /**
-     * The object to validate.
-     */
-    public object: IValidateable,
-
-    /**
-     * The property to validate. Optional.
-     */
-    public propertyName: string = (void 0)!,
-
-    /**
-     * The rules to validate. Optional.
-     */
-    public rules: PropertyRule[] = (void 0)!,
-  ) { }
 }

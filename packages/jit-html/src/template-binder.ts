@@ -535,7 +535,7 @@ export class TemplateBinder {
     const attrRawValue = attrSyntax.rawValue;
     const command = this.resources.getBindingCommand(attrSyntax, false);
     // multi-bindings logic here is similar to (and explained in) bindCustomAttribute
-    const isMultiBindings = command === null && hasInlineBindings(attrRawValue);
+    const isMultiBindings = attrInfo.noMultiBindings === false && command === null && hasInlineBindings(attrRawValue);
 
     if (isMultiBindings) {
       symbol = new TemplateControllerSymbol(this.dom, attrSyntax, attrInfo, partName);
@@ -561,11 +561,12 @@ export class TemplateBinder {
     // Custom attributes are always in multiple binding mode,
     // except when they can't be
     // When they cannot be:
+    //        * has explicit configuration noMultiBindings: false
     //        * has binding command, ie: <div my-attr.bind="...">.
     //          In this scenario, the value of the custom attributes is required to be a valid expression
     //        * has no colon: ie: <div my-attr="abcd">
     //          In this scenario, it's simply invalid syntax. Consider style attribute rule-value pair: <div style="rule: ruleValue">
-    const isMultiBindings = command === null && hasInlineBindings(attrRawValue);
+    const isMultiBindings = attrInfo.noMultiBindings === false && command === null && hasInlineBindings(attrRawValue);
 
     if (isMultiBindings) {
       // a multiple-bindings attribute usage (semicolon separated binding) is only valid without a binding command;

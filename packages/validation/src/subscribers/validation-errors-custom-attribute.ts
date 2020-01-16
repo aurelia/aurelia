@@ -5,8 +5,7 @@ import { IValidationController, ValidationErrorsSubscriber, ValidationEvent, Val
 @customAttribute('validation-errors')
 export class ValidationErrorsCustomAttribute implements ValidationErrorsSubscriber {
 
-  @bindable({ mode: BindingMode.fromView })
-  public controller?: IValidationController;
+  @bindable public controller?: IValidationController;
 
   @bindable({ primary: true, mode: BindingMode.twoWay })
   public errors: ValidationResultTarget[] = [];
@@ -52,6 +51,6 @@ export class ValidationErrorsCustomAttribute implements ValidationErrorsSubscrib
   }
 
   public beforeUnbind() {
-    this.controller?.removeSubscriber(this);
+    this.controller!.removeSubscriber(this);
   }
 }

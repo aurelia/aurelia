@@ -71,7 +71,8 @@ describe.only('validation-controller', function () {
       const controller = this.controller = this.controllerSpy.getMock(factory.create()) as unknown as ValidationController;
       Registration.instance(IValidationController, controller).register(container);
 
-      container.get(IValidationRules)
+      const validationRules = container.get(IValidationRules);
+      validationRules
         .on(this.person1)
 
         .ensure('name')
@@ -81,7 +82,7 @@ describe.only('validation-controller', function () {
         .required()
         .min(42);
 
-      this.person2rules = container.get(IValidationRules)
+      this.person2rules = validationRules
         .on(this.person2)
 
         .ensure('name')

@@ -1,4 +1,4 @@
-/* eslint-disable no-constant-condition */
+/* eslint-disable no-constant-condition, mocha/no-hooks, mocha/no-sibling-hooks */
 import {
   DI,
   ILogEvent,
@@ -31,7 +31,8 @@ import {
   BaseValidationRule,
   ICustomMessage,
   parsePropertyName,
-  ValidationRule
+  ValidationRule,
+  validationRules
 } from '@aurelia/validation';
 import { IPerson, Person } from './_test-resources';
 
@@ -377,7 +378,42 @@ describe.only('ValidationRules', function () {
     assert.instanceOf(rules3.$rules[0][0], RequiredRule);
   });
 
-  // TODO define rules on 2 different objects using the same instance of ValidationRules
+  it('can define rules on multiple objects', function () {
+    const { sut } = setup();
+    const obj1: IPerson = { name: undefined, age: undefined, address: undefined };
+    const obj2: IPerson = { name: undefined, age: undefined, address: undefined };
+    sut
+      .on(obj1)
+      .ensure('name')
+      .required()
+
+      .on(obj2)
+      .ensure('name')
+      .required()
+      .ensure('age')
+      .required()
+
+      .on(obj1)
+      .ensure((o) => o.address.line1)
+      .required();
+
+    const rules1 = validationRules.get(obj1);
+    const rules2 = validationRules.get(obj2);
+
+    assert.equal(rules1.length, 2, 'error1');
+    const [name1Rule, line1Rule] = rules1;
+    assert.equal(name1Rule.property.name, 'name', 'error3');
+    assert.instanceOf(name1Rule.$rules[0][0], RequiredRule);
+    assert.equal(line1Rule.property.name, 'address.line1', 'error4');
+    assert.instanceOf(line1Rule.$rules[0][0], RequiredRule);
+
+    assert.equal(rules2.length, 2, 'error2');
+    const [name2Rule, age2Rule] = rules2;
+    assert.equal(name2Rule.property.name, 'name', 'error5');
+    assert.instanceOf(name2Rule.$rules[0][0], RequiredRule);
+    assert.equal(age2Rule.property.name, 'age', 'error6');
+    assert.instanceOf(age2Rule.$rules[0][0], RequiredRule);
+});
 });
 
 describe.only('ValidationMessageProvider', function () {

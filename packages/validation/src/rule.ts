@@ -174,7 +174,6 @@ export class RuleProperty {
 }
 export type RuleCondition<TObject extends IValidateable = IValidateable, TValue = any> = (value: TValue, object?: TObject) => boolean | Promise<boolean>;
 
-/** @internal */
 export const validationRules = Object.freeze({
   name: 'validation-rules',
   key: Protocol.annotation.keyFor('validation-rules'),
@@ -675,6 +674,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
    *
    * @param target - A class or object.
    */
+  public on<TAnotherObject extends IValidateable = IValidateable>(target: Class<TAnotherObject> | TAnotherObject): IValidationRules<TAnotherObject>;
   public on(target: IValidateable) {
     return this.validationRules.on(target);
   }
@@ -727,7 +727,6 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
    * function.
    */
   public ensure<TValue>(property: keyof TObject | string | PropertyAccessor): PropertyRule {
-    // this.assertInitialized();
     const [name, expression] = parsePropertyName(property as any, this.parser);
     // eslint-disable-next-line eqeqeq
     let rule = this.rules.find((r) => r.property.name == name);
@@ -742,7 +741,6 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
    * Targets an object with validation rules.
    */
   public ensureObject(): PropertyRule {
-    // this.assertInitialized();
     const rule = new PropertyRule(this, this.messageProvider, new RuleProperty());
     this.rules.push(rule);
     return rule;
@@ -754,6 +752,11 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
    * @param target - A class or object.
    */
   public on(target: IValidateable) {
+    const rules = validationRules.get(target);
+    if (Object.is(rules, this.rules)) {
+      return this;
+    }
+    this.rules = rules ?? [];
     validationRules.set(target, this.rules);
     return this;
   }

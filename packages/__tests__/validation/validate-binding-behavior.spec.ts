@@ -70,7 +70,8 @@ describe.only('validate-biniding-behavior', function () {
 
       this.controller2 = this.controller2Spy.getMock(factory.create()) as unknown as ValidationController;
 
-      const rules = container.get(IValidationRules)
+      const validationRules = container.get(IValidationRules);
+      const rules = validationRules
         .on(this.person)
 
         .ensure('name')
@@ -87,7 +88,7 @@ describe.only('validate-biniding-behavior', function () {
       const { validationRules: vrs, messageProvider, property, $rules } = rules.find((rule) => rule.property.name === 'age')!;
       this.ageMinRule = new PropertyRule(vrs, messageProvider, property, [[$rules[0].find((rule) => rule instanceof RangeRule)]]);
 
-      container.get(IValidationRules)
+      validationRules
         .on(this.org)
 
         .ensure('employees')
@@ -103,7 +104,7 @@ describe.only('validate-biniding-behavior', function () {
       }
 
       this.obj = { coll: [{ a: 1 }, { a: 2 }] };
-      container.get(IValidationRules)
+      validationRules
         .on(this.obj)
 
         .ensure((o) => o.coll[0].a)

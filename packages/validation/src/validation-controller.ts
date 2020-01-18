@@ -14,7 +14,8 @@ import {
   PrimitiveLiteralExpression,
   IScheduler,
   ValueConverterExpression,
-  PropertyBinding
+  PropertyBinding,
+  State
 } from '@aurelia/runtime';
 import {
   IValidateable,
@@ -33,7 +34,10 @@ export type BindingWithBehavior = PropertyBinding & {
   target: Element | object;
 };
 type ValidatableExpression = AccessScopeExpression | AccessMemberExpression | AccessKeyedExpression;
-export type ValidateEventKind = 'validate' | 'reset';
+export const enum ValidateEventKind {
+  validate = 'validate',
+  reset = 'reset',
+}
 
 /**
  * The result of a call to the validation controller's validate method.
@@ -89,8 +93,8 @@ export class ValidationResultTarget {
 export class ValidationEvent {
   public constructor(
     public kind: ValidateEventKind,
-    public addedErrors: ValidationResultTarget[],
-    public removedErrors: ValidationResultTarget[],
+    public addedResults: ValidationResultTarget[],
+    public removedResults: ValidationResultTarget[],
   ) { }
 }
 
@@ -98,6 +102,23 @@ export interface ValidationErrorsSubscriber {
   handleValidationEvent(event: ValidationEvent): void;
 }
 
+export class BindingInfo {
+  public constructor(
+    public target: Element,
+    public scope: IScope,
+    public rules?: PropertyRule[],
+    public propertyInfo: PropertyInfo | undefined = void 0,
+  ) { }
+}
+
+class PropertyInfo {
+  public constructor(
+    public object: any,
+    public propertyName: string,
+  ) { }
+}
+
+type ValidationPredicate = (result: ValidationResult) => boolean;
 export interface IValidationController {
   validator: IValidator;
   readonly results: ValidationResult[];
@@ -109,7 +130,7 @@ export interface IValidationController {
   removeError(result: ValidationResult): void;
   addSubscriber(subscriber: ValidationErrorsSubscriber): void;
   removeSubscriber(subscriber: ValidationErrorsSubscriber): void;
-  registerBinding(binding: BindingWithBehavior, target: Element, scope: IScope, rules?: any): void;
+  registerBinding(binding: BindingWithBehavior, info: BindingInfo): void;
   deregisterBinding(binding: BindingWithBehavior): void;
   validateBinding(binding: BindingWithBehavior): Promise<void>;
   resetBinding(binding: BindingWithBehavior): void;
@@ -166,7 +187,7 @@ export class ValidationController implements IValidationController {
   public removeObject(object: IValidateable): void {
     this.objects.delete(object);
     this.processResultDelta(
-      'reset',
+      ValidateEventKind.reset,
       this.results.filter(result => result.object === object),
       []);
   }
@@ -180,13 +201,11 @@ export class ValidationController implements IValidationController {
     propertyName?: string | PropertyAccessor
   ): ValidationResult {
     let resolvedPropertyName: string | number | undefined;
-    if (propertyName === void 0) {
-      resolvedPropertyName = propertyName;
-    } else {
+    if (propertyName !== void 0) {
       [resolvedPropertyName] = parsePropertyName(propertyName, this.parser);
     }
     const result = new ValidationResult(false, message, resolvedPropertyName, object, undefined, undefined, true);
-    this.processResultDelta('validate', [], [result]);
+    this.processResultDelta(ValidateEventKind.validate, [], [result]);
     return result;
   }
 
@@ -195,7 +214,7 @@ export class ValidationController implements IValidationController {
    */
   public removeError(result: ValidationResult) {
     if (this.results.includes(result)) {
-      this.processResultDelta('reset', [result], []);
+      this.processResultDelta(ValidateEventKind.reset, [result], []);
     }
   }
 
@@ -208,15 +227,10 @@ export class ValidationController implements IValidationController {
   }
 
   /**
-   * Registers a binding with the controller.
-   *
-   * @param binding - The binding instance.
-   * @param target - The DOM element.
-   * @param rules - (optional) rules associated with the binding. Validator implementation specific.
    * @internal
    */
-  public registerBinding(binding: BindingWithBehavior, target: Element, scope: IScope, rules?: any) {
-    this.bindings.set(binding, { target, scope, rules, propertyInfo: void 0 });
+  public registerBinding(binding: BindingWithBehavior, info: BindingInfo) {
+    this.bindings.set(binding, info);
   }
 
   /**
@@ -234,22 +248,17 @@ export class ValidationController implements IValidationController {
    * Interprets the instruction and returns a predicate that will identify
    * relevant results in the list of rendered validation results.
    */
-  private getInstructionPredicate(instruction?: ValidateInstruction): (result: ValidationResult) => boolean {
-    if (instruction !== void 0) {
-      const { object, propertyName, rules } = instruction;
-      let predicate: (result: ValidationResult) => boolean;
-      if (instruction.propertyName !== void 0) {
-        predicate = x => x.object === object && x.propertyName === propertyName;
-      } else {
-        predicate = x => x.object === object;
-      }
-      if (rules !== void 0) {
-        return x => predicate(x) && rules.find((rule: PropertyRule) => rule === x.propertyRule) !== undefined;
-      }
-      return predicate;
-    } else {
-      return () => true;
-    }
+  private getInstructionPredicate(instruction?: ValidateInstruction): ValidationPredicate {
+    if (instruction === void 0) { return () => true; }
+
+    const propertyName = instruction.propertyName;
+    const rules = instruction.rules;
+
+    return x => x.object === instruction.object &&
+      (propertyName === void 0 || x.propertyName === propertyName) &&
+      (rules === void 0 || rules.includes(x.propertyRule!) ||
+        rules.some((r) => x.propertyRule === void 0 || r.$rules.flat().every(($r) => x.propertyRule!.$rules.flat().includes($r)))
+      );
   }
 
   private getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo): PropertyInfo | undefined {
@@ -291,14 +300,17 @@ export class ValidationController implements IValidationController {
     if (expression === void 0) {
       throw new Error('Unable to parse binding expression'); // TODO use reporter/logger
     }
+    let object: any;
     if (propertyName.length === 0) {
       propertyName = expression.name;
+      object = scope.bindingContext;
+    } else {
+      object = expression.evaluate(LifecycleFlags.none, scope, locator);
     }
-    const object = expression.evaluate(LifecycleFlags.none, scope, locator);
     if (object === null || object === void 0) {
       return (void 0);
     }
-    propertyInfo = { object, propertyName };
+    propertyInfo = new PropertyInfo(object, propertyName);
     // console.log(propertyInfo);
     if (toCachePropertyName) {
       info.propertyInfo = propertyInfo;
@@ -315,8 +327,9 @@ export class ValidationController implements IValidationController {
   public async validate(instruction?: ValidateInstruction): Promise<ControllerValidateResult> {
     let execute: () => Promise<ValidationResult[]>;
     if (instruction !== void 0) {
-      // eslint-disable-next-line prefer-const
-      let { object, propertyName, rules } = instruction;
+      const object = instruction.object;
+      const propertyName = instruction.propertyName;
+      let rules = instruction.rules;
       // if rules were not specified, check the object map.
       rules = rules ?? this.objects.get(object);
       execute = propertyName !== void 0
@@ -331,10 +344,9 @@ export class ValidationController implements IValidationController {
         }
         for (const [binding, info] of this.bindings.entries()) {
           const propertyInfo = this.getPropertyInfo(binding, info);
-          if (!propertyInfo || this.objects.has(propertyInfo.object)) {
-            continue;
+          if (propertyInfo !== void 0 && !this.objects.has(propertyInfo.object)) {
+            promises.push(this.validator.validateProperty(propertyInfo.object, propertyInfo.propertyName, info.rules));
           }
-          promises.push(this.validator.validateProperty(propertyInfo.object, propertyInfo.propertyName, info.rules));
         }
         const results = await Promise.all(promises);
         return results.reduce(
@@ -352,14 +364,11 @@ export class ValidationController implements IValidationController {
       try {
         const newResults = await execute();
         const predicate = this.getInstructionPredicate(instruction);
+        // console.log(`predicate: ${predicate.toString()}`);
         const oldResults = this.results.filter(predicate);
-        this.processResultDelta('validate', oldResults, newResults);
+        this.processResultDelta(ValidateEventKind.validate, oldResults, newResults);
 
-        return new ControllerValidateResult(
-          newResults.find(r => !r.valid) === void 0,
-          newResults,
-          instruction
-        );
+        return new ControllerValidateResult(newResults.find(r => !r.valid) === void 0, newResults, instruction);
       } finally {
         this.validating = false;
       }
@@ -376,7 +385,7 @@ export class ValidationController implements IValidationController {
   public reset(instruction?: ValidateInstruction) {
     const predicate = this.getInstructionPredicate(instruction);
     const oldResults = this.results.filter(predicate);
-    this.processResultDelta('reset', oldResults, []);
+    this.processResultDelta(ValidateEventKind.reset, oldResults, []);
   }
 
   /**
@@ -386,7 +395,7 @@ export class ValidationController implements IValidationController {
     const elements: Element[] = [];
     for (const [binding, info] of this.bindings.entries()) {
       const propertyInfo = this.getPropertyInfo(binding, info);
-      if (propertyInfo && propertyInfo.object === object && propertyInfo.propertyName === propertyName) {
+      if (propertyInfo !== void 0 && propertyInfo.object === object && propertyInfo.propertyName === propertyName) {
         elements.push(info.target);
       }
     }
@@ -398,39 +407,30 @@ export class ValidationController implements IValidationController {
     oldResults: ValidationResult[],
     newResults: ValidationResult[],
   ) {
-    // prepare the instruction.
     const eventData: ValidationEvent = new ValidationEvent(kind, [], []);
+    // console.log(`process delta, #new: ${newResults.length}, #old: ${oldResults.length}`);
 
     // create a shallow copy of newResults so we can mutate it without causing side-effects.
     newResults = newResults.slice(0);
 
-    // create unrender instructions from the old results.
+    const elements = this.elements;
     for (const oldResult of oldResults) {
-      // get the elements associated with the old result.
-      const elements = this.elements.get(oldResult)!;
+      const removalTargets = elements.get(oldResult)!;
+      elements.delete(oldResult);
 
-      // remove the old result from the element map.
-      this.elements.delete(oldResult);
+      eventData.removedResults.push({ result: oldResult, targets: removalTargets });
 
-      // create the unrender instruction.
-      eventData.removedErrors.push({ result: oldResult, targets: elements });
-
-      // determine if there's a corresponding new result for the old result we are unrendering.
-      const newResultIndex = newResults.findIndex(
-        x => x.rule === oldResult.rule && x.object === oldResult.object && x.propertyName === oldResult.propertyName);
+      // determine if there's a corresponding new result for the old result we are removing.
+      const newResultIndex = newResults.findIndex(x => x.rule === oldResult.rule && x.object === oldResult.object && x.propertyName === oldResult.propertyName);
       if (newResultIndex === -1) {
         // no corresponding new result... simple remove.
         this.results.splice(this.results.indexOf(oldResult), 1);
       } else {
         // there is a corresponding new result...
         const newResult = newResults.splice(newResultIndex, 1)[0];
-
-        // get the elements that are associated with the new result.
-        const elements = this.getAssociatedElements(newResult);
-        this.elements.set(newResult, elements);
-
-        // create a render instruction for the new result.
-        eventData.addedErrors.push({ result: newResult, targets: elements });
+        const newTargets = this.getAssociatedElements(newResult);
+        elements.set(newResult, newTargets);
+        eventData.addedResults.push({ result: newResult, targets: newTargets });
 
         // do an in-place replacement of the old result with the new result.
         // this ensures any repeats bound to this.results will not thrash.
@@ -438,15 +438,14 @@ export class ValidationController implements IValidationController {
       }
     }
 
-    // create render instructions from the remaining new results.
+    // add the remaining new results to the event data.
     for (const result of newResults) {
-      const elements = this.getAssociatedElements(result);
-      eventData.addedErrors.push({ result, targets: elements });
-      this.elements.set(result, elements);
+      const newTargets = this.getAssociatedElements(result);
+      eventData.addedResults.push({ result, targets: newTargets });
+      elements.set(result, newTargets);
       this.results.push(result);
     }
 
-    // render.
     for (const subscriber of this.subscribers) {
       subscriber.handleValidationEvent(eventData);
     }
@@ -458,16 +457,16 @@ export class ValidationController implements IValidationController {
    * @internal
    */
   public async validateBinding(binding: BindingWithBehavior) {
-    // if (!binding.isBound) { return; }
+    const $state = binding.$state;
+    if (($state & State.isBound) === 0 || ($state & State.isUnbinding) !== 0) { return; }
+
     const bindingInfo = this.bindings.get(binding);
-    if (bindingInfo === void 0) {
-      return;
-    }
+    if (bindingInfo === void 0) { return; }
+
     const propertyInfo = this.getPropertyInfo(binding, bindingInfo);
     const rules = bindingInfo.rules;
-    if (propertyInfo === void 0) {
-      return;
-    }
+    if (propertyInfo === void 0) { return; }
+
     const { object, propertyName } = propertyInfo;
     await this.validate(new ValidateInstruction(object, propertyName, rules));
   }
@@ -527,31 +526,6 @@ export class ValidationController implements IValidationController {
     }
     await Promise.all(promises);
   }
-}
-
-/**
- * Information related to an "& validate" decorated binding.
- */
-interface BindingInfo {
-  /**
-   * The DOM element associated with the binding.
-   */
-  target: Element;
-  scope: IScope;
-
-  /**
-   * The rules associated with the binding via the validate binding behavior's rules parameter.
-   */
-  rules?: PropertyRule[];
-
-  /**
-   * The object and property associated with the binding.
-   */
-  propertyInfo?: PropertyInfo;
-}
-interface PropertyInfo {
-  object: any;
-  propertyName: string;
 }
 
 export interface IValidationControllerFactory {

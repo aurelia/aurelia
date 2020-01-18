@@ -24,7 +24,7 @@ describe.only('validation-errors-custom-attribute', function () {
     public controller: ValidationController;
     public controller2: ValidationController;
 
-    public constructor(@IContainer container: IContainer) {
+    public constructor(container: IContainer) {
       const factory = container.get(IValidationControllerFactory);
       this.scheduler = container.get(IScheduler);
       this.controllerSpy = new Spy();

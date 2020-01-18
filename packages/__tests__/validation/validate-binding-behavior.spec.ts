@@ -40,6 +40,7 @@ import { createSpecFunction, TestFunction, TestExecutionContext, ToNumberValueCo
 describe.only('validate-biniding-behavior', function () {
 
   class App {
+    public validatableProp: string = (void 0)!;
     public person: Person = new Person((void 0)!, (void 0)!);
     public tempController: ValidationController;
     public controller: ValidationController;
@@ -56,7 +57,7 @@ describe.only('validate-biniding-behavior', function () {
     private readonly obj: any;
 
     public constructor(
-      @IContainer private readonly container: IContainer,
+      private readonly container: IContainer,
       observeCollection = false,
     ) {
       const factory = container.get(IValidationControllerFactory);
@@ -111,7 +112,12 @@ describe.only('validate-biniding-behavior', function () {
         .equals(11)
 
         .ensure('coll[1].a')
-        .equals(11);
+        .equals(11)
+
+        .on(this)
+        .ensure('validatableProp')
+        .displayName('Property')
+        .required();
     }
 
     public async handleEmployeesChange() {
@@ -871,6 +877,24 @@ describe.only('validate-biniding-behavior', function () {
     ));
   // #endregion
 
+  $it('can be used to validate simple property',
+    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+      const controller = app.controller;
+      const controllerSpy = app.controllerSpy;
+
+      const target: HTMLInputElement = host.querySelector("#target");
+      assertControllerBinding(controller, 'validatableProp', target, controllerSpy);
+
+      assert.equal(controller.results.filter((r) => !r.valid).length, 0, 'error1');
+      await controller.validate();
+      assert.equal(controller.results.filter((r) => !r.valid).length, 1, 'error2');
+
+      target.value = 'foo';
+      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy);
+      assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'validatableProp').length, 0, 'error3');
+    },
+    { template: `<input id="target" value.two-way="validatableProp & validate:'change'">` }
+  );
   // #region collection and nested properties
   $it('can be used to validate nested collection - collection replace',
     async function ({ app, host, scheduler }: TestExecutionContext<App>) {
@@ -1046,4 +1070,34 @@ describe.only('validate-biniding-behavior', function () {
     }
   );
   // #endregion
+
+  [
+    { text: 'listener binding', template: `<button click.delegate="handleClick() & validate"></button>` },
+    { text: 'call binding', template: `<button action.call="handleClick() & validate"></button>` },
+  ].map(({ text, template }) =>
+    it(`cannot be used with ${text}`, async function () {
+      const ctx = TestContext.createHTMLTestContext();
+      const container = ctx.container;
+      const host = ctx.dom.createElement('app');
+      ctx.doc.body.appendChild(host);
+      let app: App;
+      const au = new Aurelia(container).register(ValidationConfiguration);
+
+      try {
+        await au
+          .app({
+            host,
+            component: app = (() => {
+              const ca = CustomElement.define({ name: 'app', isStrictBinding: true, template }, App);
+              return new ca(container);
+            })()
+          })
+          .start()
+          .wait();
+      } catch (e) {
+        assert.equal(e.message, 'Unable to set property binding');
+      }
+      await au.stop().wait();
+      ctx.doc.body.removeChild(host);
+    }));
 });

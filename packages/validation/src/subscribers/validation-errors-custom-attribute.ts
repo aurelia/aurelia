@@ -18,14 +18,14 @@ export class ValidationErrorsCustomAttribute implements ValidationErrorsSubscrib
   ) { }
 
   public handleValidationEvent(event: ValidationEvent) {
-    for (const { result } of event.removedErrors) {
+    for (const { result } of event.removedResults) {
       const index = this.errorsInternal.findIndex(x => x.result === result);
       if (index !== -1) {
         this.errorsInternal.splice(index, 1);
       }
     }
 
-    for (const { result, targets: elements } of event.addedErrors) {
+    for (const { result, targets: elements } of event.addedResults) {
       if (result.valid) {
         continue;
       }

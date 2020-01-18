@@ -15,7 +15,7 @@ import {
   BindingBehaviorExpression,
 } from '@aurelia/runtime';
 import { PropertyRule } from './rule';
-import { BindingWithBehavior, IValidationController, ValidationController } from './validation-controller';
+import { BindingWithBehavior, IValidationController, ValidationController, BindingInfo } from './validation-controller';
 
 /**
  * Validation triggers.
@@ -191,7 +191,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
     if (this.controller !== controller || rules !== void 0) {
       this.controller?.deregisterBinding(this.propertyBinding);
       this.controller = controller;
-      controller.registerBinding(this.propertyBinding, this.target, this.scope, rules);
+      controller.registerBinding(this.propertyBinding, new BindingInfo(this.target, this.scope, rules));
     }
   }
 

@@ -245,7 +245,7 @@ export class BaseValidationRule<TValue = any, TObject extends IValidateable = IV
 export class RequiredRule extends BaseValidationRule {
   public execute(value: unknown): boolean | Promise<boolean> {
     return value !== null
-      && value !== undefined
+      && value !== void 0
       && !(typeof value === 'string' && !/\S/.test(value));
   }
 }

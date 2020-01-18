@@ -2,12 +2,12 @@ import { join, resolve } from 'path';
 import { Char } from '@aurelia/kernel';
 
 export const normalizePath = (function () {
-  const cache: Record<string, string | undefined> = Object.create(null);
+  const cache = new Map<string, string>();
   const regex = /\\/g;
   return function (path: string) {
-    let normalized = cache[path];
+    let normalized = cache.get(path);
     if (normalized === void 0) {
-      normalized = cache[path] = path.replace(regex, '/');
+      cache.set(path, normalized = path.replace(regex, '/'));
     }
     return normalized;
   };

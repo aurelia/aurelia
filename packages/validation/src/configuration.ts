@@ -1,9 +1,10 @@
 import { IContainer, PLATFORM, Registration } from '@aurelia/kernel';
-import { ICustomMessages, IValidationMessageProvider, IValidationRules, ValidationMessageProvider, ValidationRules } from './rule';
-import { ValidateBindingBehavior, IDefaultTrigger, ValidationTrigger } from './validate-binding-behavior';
+import { ICustomMessages, IValidationRules, ValidationMessageProvider, ValidationRules } from './rule-provider';
+import { IValidationMessageProvider } from './rules';
+import { ValidationErrorsCustomAttribute } from './subscribers/validation-errors-custom-attribute';
+import { IDefaultTrigger, ValidateBindingBehavior, ValidationTrigger } from './validate-binding-behavior';
 import { IValidationControllerFactory, ValidationControllerFactory } from './validation-controller';
 import { ValidationCustomizationOpions } from './validation-customization-options';
-import { ValidationErrorsCustomAttribute } from './subscribers/validation-errors-custom-attribute';
 import { IValidator, StandardValidator } from './validator';
 
 export type ValidationConfigurationProvider = (options: ValidationCustomizationOpions) => void;

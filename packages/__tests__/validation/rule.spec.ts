@@ -31,7 +31,7 @@ import {
   BaseValidationRule,
   ICustomMessage,
   parsePropertyName,
-  ValidationRule,
+  ValidationRuleAliasMessage,
   validationRules
 } from '@aurelia/validation';
 import { IPerson, Person } from './_test-resources';
@@ -50,7 +50,7 @@ describe.only('ValidationRules', function () {
     assert.equal(Object.is(instance1, instance2), false);
   });
 
-  it('can be used to define validation rules fluenty on string properties', function () {
+  it('can be used to define validation rules fluently on string properties', function () {
     const { sut } = setup();
     const propName = 'name';
     const rules = sut
@@ -101,7 +101,7 @@ describe.only('ValidationRules', function () {
     assert.equal(equalRule['expectedValue'], 'foo@bar.com');
   });
 
-  it('can be used to define validation rules fluenty on number properties', function () {
+  it('can be used to define validation rules fluently on number properties', function () {
     const { sut } = setup();
     const propName = 'age';
     const rules = sut
@@ -146,7 +146,7 @@ describe.only('ValidationRules', function () {
     }
   });
 
-  it('can be used to define validation rules fluenty on collection properties', function () {
+  it('can be used to define validation rules fluently on collection properties', function () {
     const { sut } = setup();
     const propName = 'arrayProp';
     const rules = sut
@@ -178,7 +178,7 @@ describe.only('ValidationRules', function () {
     }
   });
 
-  it('can be used to define validation rules fluenty using lambda', function () {
+  it('can be used to define validation rules fluently using lambda', function () {
     const { sut } = setup();
     const propName = 'fooBar';
     let executed = false;
@@ -204,7 +204,7 @@ describe.only('ValidationRules', function () {
     assert.equal(executed, true);
   });
 
-  it('can be used to define custom validation rules fluenty', function () {
+  it('can be used to define custom validation rules fluently', function () {
     const { sut, container } = setup();
     const propName = 'fooBar';
     let executed = false;
@@ -262,7 +262,7 @@ describe.only('ValidationRules', function () {
     assert.instanceOf(rule2.$rules[0][0], RangeRule, 'expected range rule');
   });
 
-  it('conslidates the rule based on property name', function () {
+  it('consolidates the rule based on property name', function () {
     const { sut } = setup();
     const rules = sut
 
@@ -437,7 +437,7 @@ describe.only('ValidationMessageProvider', function () {
       Registration.instance(ISink, eventLog)
     );
 
-    const originalMessages = customMessages?.map(({ rule }) => ({ rule, aliases: ValidationRule.getDefaultMessages(rule) }));
+    const originalMessages = customMessages?.map(({ rule }) => ({ rule, aliases: ValidationRuleAliasMessage.getDefaultMessages(rule) }));
 
     return {
       sut: container.get(IValidationMessageProvider),
@@ -644,7 +644,7 @@ describe.only('ValidationMessageProvider', function () {
     }
     // reset the messages
     for (const { rule, aliases } of originalMessages) {
-      ValidationRule.setDefaultMessage(rule, { aliases });
+      ValidationRuleAliasMessage.setDefaultMessage(rule, { aliases });
     }
   });
   [

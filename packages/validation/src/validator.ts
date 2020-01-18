@@ -1,6 +1,7 @@
 import { DI } from '@aurelia/kernel';
-import { IValidateable, PropertyRule, validationRules, ValidationResult } from './rule';
 import { LifecycleFlags } from '@aurelia/runtime';
+import { PropertyRule, ValidationResult, validationRules } from './rule-provider';
+import { IValidateable } from './rules';
 
 export const IValidator = DI.createInterface<IValidator>("IValidator").noDefault();
 /**

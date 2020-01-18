@@ -11,150 +11,29 @@ import {
   AccessScopeExpression,
   AccessThisExpression,
 } from '@aurelia/runtime';
-
-interface ValidationRuleAlias {
-  name: string;
-  defaultMessage?: string;
-}
-interface ValidationRuleDefinition {
-  aliases: ValidationRuleAlias[];
-}
-
-export const ValidationRule = Object.freeze({
-  aliasKey: Protocol.annotation.keyFor('validation-rule-alias-message'),
-  define<TRule extends BaseValidationRule>(target: Constructable<TRule>, definition: ValidationRuleDefinition): Constructable<TRule> {
-    ValidationRule.setDefaultMessage(target, definition);
-    return target;
-  },
-  setDefaultMessage<TRule extends BaseValidationRule>(target: Constructable<TRule> | TRule, { aliases }: ValidationRuleDefinition) {
-    Metadata.define(ValidationRule.aliasKey, aliases, target instanceof Function ? target.prototype : target);
-  },
-  getDefaultMessages<TRule extends BaseValidationRule>(rule: Constructable<TRule> | TRule): ValidationRuleAlias[] {
-    return Metadata.get(this.aliasKey, rule instanceof Function ? rule.prototype : rule);
-  }
-});
+import {
+  BaseValidationRule,
+  ValidationRuleAlias,
+  RequiredRule,
+  RegexRule,
+  LengthRule,
+  SizeRule,
+  RangeRule,
+  EqualsRule,
+  IValidateable,
+  IValidationMessageProvider,
+  ValidationRuleAliasMessage,
+  ValidationRuleExecutionPredicate
+} from './rules';
 
 export interface ICustomMessage<T extends BaseValidationRule = BaseValidationRule> {
   rule: new (...args: any[]) => T;
   aliases: ValidationRuleAlias[];
 }
 
-export interface IValidationMessageProvider {
-  getMessage(rule: BaseValidationRule): IInterpolationExpression | PrimitiveLiteralExpression;
-  parseMessage(message: string): IInterpolationExpression | PrimitiveLiteralExpression;
-  getDisplayName(propertyName: string | number, displayName?: string | null | (() => string)): string;
-}
-
-export const IValidationMessageProvider = DI.createInterface<IValidationMessageProvider>("IValidationMessageProvider").noDefault();
-
 /* @internal */
 export const ICustomMessages = DI.createInterface<ICustomMessage[]>("ICustomMessages").noDefault();
 
-const contextualProperties: Readonly<Set<string>> = new Set([
-  "displayName",
-  "propertyName",
-  "value",
-  "object",
-  "config",
-  "getDisplayName"
-]);
-/**
- * Retrieves validation messages and property display names.
- */
-export class ValidationMessageProvider implements IValidationMessageProvider {
-
-  // TODO move the messages to rules as well as facilitate having custom message registration
-  protected defaultMessages: Record<string, string> = {
-    /**
-     * The default validation message. Used with rules that have no standard message.
-     */
-    default: `\${$displayName} is invalid.`,
-    required: `\${$displayName} is required.`,
-    matches: `\${$displayName} is not correctly formatted.`,
-    email: `\${$displayName} is not a valid email.`,
-    minLength: `\${$displayName} must be at least \${$rule.length} character\${$rule.length === 1 ? '' : 's'}.`,
-    maxLength: `\${$displayName} cannot be longer than \${$rule.length} character\${$rule.length === 1 ? '' : 's'}.`,
-    minItems: `\${$displayName} must contain at least \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.`,
-    maxItems: `\${$displayName} cannot contain more than \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.`,
-    min: `\${$displayName} must be at least \${$rule.min}.`,
-    max: `\${$displayName} must be at most \${$rule.max}.`,
-    range: `\${$displayName} must be between or equal to \${$rule.min} and \${$rule.max}.`,
-    between: `\${$displayName} must be between but not equal to \${$rule.min} and \${$rule.max}.`,
-    equals: `\${$displayName} must be \${$rule.expectedValue}.`,
-  };
-  private readonly logger: ILogger;
-
-  public constructor(
-    @IExpressionParser public parser: IExpressionParser,
-    @ILogger logger: ILogger,
-    @ICustomMessages customMessages: ICustomMessage[],
-  ) {
-    this.logger = logger.scopeTo(ValidationMessageProvider.name);
-    for (const { rule, aliases } of customMessages) {
-      ValidationRule.setDefaultMessage(rule, { aliases });
-    }
-  }
-
-  /**
-   * Returns a message binding expression that corresponds to the key.
-   */
-  public getMessage(rule: BaseValidationRule): IInterpolationExpression | PrimitiveLiteralExpression {
-    const validationMessages = ValidationRule.getDefaultMessages(rule);
-    const messageKey = rule.messageKey;
-    let message: string | undefined;
-    const messageCount = validationMessages.length;
-    if (messageCount === 1 && messageKey === void 0) {
-      message = validationMessages[0].defaultMessage;
-    } else {
-      message = validationMessages.find(m => m.name === messageKey)?.defaultMessage;
-    }
-    if (!message) {
-      message = ValidationRule.getDefaultMessages(BaseValidationRule)[0].defaultMessage!;
-    }
-    return this.parseMessage(message);
-  }
-
-  public parseMessage(message: string): IInterpolationExpression | PrimitiveLiteralExpression {
-    const parsed = this.parser.parse(message, BindingType.Interpolation);
-    if (parsed instanceof Interpolation) {
-      for (const expr of parsed.expressions) {
-        const name = (expr as AccessScopeExpression).name;
-        if (contextualProperties.has(name)) {
-          this.logger.warn(`Did you mean to use "$${name}" instead of "${name}" in this validation message template: "${message}"?`);
-        }
-        if (expr instanceof AccessThisExpression || (expr as AccessScopeExpression).ancestor > 0) {
-          throw new Error('$parent is not permitted in validation message expressions.'); // TODO use reporter
-        }
-      }
-      return parsed;
-    }
-    return new PrimitiveLiteralExpression(message);
-  }
-
-  /**
-   * Formulates a property display name using the property name and the configured
-   * displayName (if provided).
-   * Override this with your own custom logic.
-   *
-   * @param propertyName - The property name.
-   */
-  public getDisplayName(propertyName: string | number, displayName?: string | null | (() => string)): string {
-    if (displayName !== null && displayName !== undefined) {
-      return (displayName instanceof Function) ? displayName() : displayName as string;
-    }
-
-    // split on upper-case letters.
-    const words = propertyName.toString().split(/(?=[A-Z])/).join(' ');
-    // capitalize first letter.
-    return words.charAt(0).toUpperCase() + words.slice(1);
-  }
-}
-
-export class LocalizedValidationMessageProvider extends ValidationMessageProvider {
-  // TODO no more monkey patching prototype in user code, rather a standard i18n validation message provider impl
-}
-
-export type IValidateable<T = any> = (Class<T> | object) & { [key in PropertyKey]: any };
 export type ValidationDisplayNameAccessor = () => string;
 
 /**
@@ -197,173 +76,6 @@ export const validationRules = Object.freeze({
     }
   }
 });
-
-export type ValidationRuleExecutionPredicate = (object?: IValidateable) => boolean;
-
-export function validationRule(definition: ValidationRuleDefinition) {
-  // eslint-disable-next-line space-before-function-paren
-  return function <TRule extends BaseValidationRule>(target: Constructable<TRule>) {
-    return ValidationRule.define(target, definition);
-  };
-}
-
-@validationRule({ aliases: [{ name: (void 0)!, defaultMessage: `\${$displayName} is invalid.` }] })
-export class BaseValidationRule<TValue = any, TObject extends IValidateable = IValidateable> {
-  public tag?: string = (void 0)!;
-  protected _message: IInterpolationExpression | PrimitiveLiteralExpression = (void 0)!;
-
-  protected _messageKey: string = (void 0)!;
-  public get messageKey() { return this._messageKey; }
-  public set messageKey(key: string) {
-    this._messageKey = key;
-    this._message = (void 0)!;
-  }
-
-  public get message(): IInterpolationExpression | PrimitiveLiteralExpression {
-    let message = this._message;
-    if (message !== void 0) {
-      return message;
-    }
-    message = this._message = this.messageProvider.getMessage(this);
-    return message;
-  }
-
-  public setMessage(message: string) {
-    this._messageKey = 'custom';
-    this._message = this.messageProvider.parseMessage(message);
-  }
-
-  public constructor(protected readonly messageProvider: IValidationMessageProvider) { }
-
-  public canExecute: ValidationRuleExecutionPredicate = () => true;
-  public execute(value: TValue, object?: TObject): boolean | Promise<boolean> {
-    throw new Error('No base implementation of execute. Did you forget to implement the excute method?'); // TODO reporter
-  }
-}
-
-@validationRule({ aliases: [{ name: 'required', defaultMessage: `\${$displayName} is required.` }] })
-export class RequiredRule extends BaseValidationRule {
-  public execute(value: unknown): boolean | Promise<boolean> {
-    return value !== null
-      && value !== void 0
-      && !(typeof value === 'string' && !/\S/.test(value));
-  }
-}
-@validationRule({
-  aliases: [
-    { name: 'matches', defaultMessage: `\${$displayName} is not correctly formatted.` },
-    { name: 'email', defaultMessage: `\${$displayName} is not a valid email.` },
-  ]
-})
-export class RegexRule extends BaseValidationRule<string> {
-
-  public constructor(
-    messageProvider: IValidationMessageProvider,
-    private readonly pattern: RegExp,
-    protected readonly _messageKey: string = 'matches',
-  ) {
-    super(messageProvider);
-  }
-
-  public execute(value: string): boolean | Promise<boolean> {
-    return value === null || value === undefined || value.length === 0 || this.pattern.test(value);
-  }
-}
-@validationRule({
-  aliases: [
-    { name: 'minLength', defaultMessage: `\${$displayName} must be at least \${$rule.length} character\${$rule.length === 1 ? '' : 's'}.` },
-    { name: 'maxLength', defaultMessage: `\${$displayName} cannot be longer than \${$rule.length} character\${$rule.length === 1 ? '' : 's'}.` },
-  ]
-})
-export class LengthRule extends BaseValidationRule<string> {
-
-  public constructor(
-    messageProvider: IValidationMessageProvider,
-    private readonly length: number,
-    private readonly isMax: boolean,
-  ) {
-    super(messageProvider);
-    this.messageKey = isMax ? 'maxLength' : 'minLength';
-  }
-
-  public execute(value: string): boolean | Promise<boolean> {
-    return value === null || value === undefined || value.length === 0 || (this.isMax ? value.length <= this.length : value.length >= this.length);
-  }
-}
-@validationRule({
-  aliases: [
-    { name: 'minItems', defaultMessage: `\${$displayName} must contain at least \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.` },
-    { name: 'maxItems', defaultMessage: `\${$displayName} cannot contain more than \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.` },
-  ]
-})
-export class SizeRule extends BaseValidationRule<unknown[]> {
-
-  public constructor(
-    messageProvider: IValidationMessageProvider,
-    private readonly count: number,
-    private readonly isMax: boolean,
-  ) {
-    super(messageProvider);
-    this.messageKey = isMax ? 'maxItems' : 'minItems';
-  }
-
-  public execute(value: unknown[]): boolean | Promise<boolean> {
-    return value === null || value === undefined || (this.isMax ? value.length <= this.count : value.length >= this.count);
-  }
-}
-type Range = { min?: number; max?: number };
-@validationRule({
-  aliases: [
-    { name: 'min', defaultMessage: `\${$displayName} must be at least \${$rule.min}.` },
-    { name: 'max', defaultMessage: `\${$displayName} must be at most \${$rule.max}.` },
-    { name: 'range', defaultMessage: `\${$displayName} must be between or equal to \${$rule.min} and \${$rule.max}.` },
-    { name: 'between', defaultMessage: `\${$displayName} must be between but not equal to \${$rule.min} and \${$rule.max}.` },
-  ]
-})
-export class RangeRule extends BaseValidationRule<number> {
-
-  private readonly min: number = Number.NEGATIVE_INFINITY;
-  private readonly max: number = Number.POSITIVE_INFINITY;
-
-  public constructor(
-    messageProvider: IValidationMessageProvider,
-    private readonly isInclusive: boolean,
-    { min, max }: Range = {},
-  ) {
-    super(messageProvider);
-    if (min !== void 0 && max !== void 0) {
-      this._messageKey = this.isInclusive ? 'range' : 'between';
-    } else {
-      this._messageKey = min !== void 0 ? 'min' : 'max';
-    }
-
-    this.min = min ?? this.min;
-    this.max = max ?? this.max;
-  }
-
-  public execute(value: number, _object?: IValidateable): boolean | Promise<boolean> {
-    return value === null || value === undefined || (
-      this.isInclusive
-        ? value >= this.min && value <= this.max
-        : value > this.min && value < this.max
-    );
-  }
-}
-
-@validationRule({
-  aliases: [
-    { name: 'equals', defaultMessage: `\${$displayName} must be \${$rule.expectedValue}.` },
-  ]
-})
-export class EqualsRule extends BaseValidationRule {
-  public constructor(
-    messageProvider: IValidationMessageProvider,
-    private readonly expectedValue: unknown,
-  ) { super(messageProvider); }
-  public execute(value: unknown): boolean | Promise<boolean> {
-    return value === null || value === undefined || value as any === '' || value === this.expectedValue;
-  }
-}
 
 export class PropertyRule<TObject extends IValidateable = IValidateable, TValue = unknown> {
 
@@ -827,4 +539,108 @@ export class ValidationResult<TRule extends BaseValidationRule = BaseValidationR
   public toString() {
     return this.valid ? 'Valid.' : this.message;
   }
+}
+
+const contextualProperties: Readonly<Set<string>> = new Set([
+  "displayName",
+  "propertyName",
+  "value",
+  "object",
+  "config",
+  "getDisplayName"
+]);
+/**
+ * Retrieves validation messages and property display names.
+ */
+export class ValidationMessageProvider implements IValidationMessageProvider {
+
+  // TODO move the messages to rules as well as facilitate having custom message registration
+  protected defaultMessages: Record<string, string> = {
+    /**
+     * The default validation message. Used with rules that have no standard message.
+     */
+    default: `\${$displayName} is invalid.`,
+    required: `\${$displayName} is required.`,
+    matches: `\${$displayName} is not correctly formatted.`,
+    email: `\${$displayName} is not a valid email.`,
+    minLength: `\${$displayName} must be at least \${$rule.length} character\${$rule.length === 1 ? '' : 's'}.`,
+    maxLength: `\${$displayName} cannot be longer than \${$rule.length} character\${$rule.length === 1 ? '' : 's'}.`,
+    minItems: `\${$displayName} must contain at least \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.`,
+    maxItems: `\${$displayName} cannot contain more than \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.`,
+    min: `\${$displayName} must be at least \${$rule.min}.`,
+    max: `\${$displayName} must be at most \${$rule.max}.`,
+    range: `\${$displayName} must be between or equal to \${$rule.min} and \${$rule.max}.`,
+    between: `\${$displayName} must be between but not equal to \${$rule.min} and \${$rule.max}.`,
+    equals: `\${$displayName} must be \${$rule.expectedValue}.`,
+  };
+  private readonly logger: ILogger;
+
+  public constructor(
+    @IExpressionParser public parser: IExpressionParser,
+    @ILogger logger: ILogger,
+    @ICustomMessages customMessages: ICustomMessage[],
+  ) {
+    this.logger = logger.scopeTo(ValidationMessageProvider.name);
+    for (const { rule, aliases } of customMessages) {
+      ValidationRuleAliasMessage.setDefaultMessage(rule, { aliases });
+    }
+  }
+
+  /**
+   * Returns a message binding expression that corresponds to the key.
+   */
+  public getMessage(rule: BaseValidationRule): IInterpolationExpression | PrimitiveLiteralExpression {
+    const validationMessages = ValidationRuleAliasMessage.getDefaultMessages(rule);
+    const messageKey = rule.messageKey;
+    let message: string | undefined;
+    const messageCount = validationMessages.length;
+    if (messageCount === 1 && messageKey === void 0) {
+      message = validationMessages[0].defaultMessage;
+    } else {
+      message = validationMessages.find(m => m.name === messageKey)?.defaultMessage;
+    }
+    if (!message) {
+      message = ValidationRuleAliasMessage.getDefaultMessages(BaseValidationRule)[0].defaultMessage!;
+    }
+    return this.parseMessage(message);
+  }
+
+  public parseMessage(message: string): IInterpolationExpression | PrimitiveLiteralExpression {
+    const parsed = this.parser.parse(message, BindingType.Interpolation);
+    if (parsed instanceof Interpolation) {
+      for (const expr of parsed.expressions) {
+        const name = (expr as AccessScopeExpression).name;
+        if (contextualProperties.has(name)) {
+          this.logger.warn(`Did you mean to use "$${name}" instead of "${name}" in this validation message template: "${message}"?`);
+        }
+        if (expr instanceof AccessThisExpression || (expr as AccessScopeExpression).ancestor > 0) {
+          throw new Error('$parent is not permitted in validation message expressions.'); // TODO use reporter
+        }
+      }
+      return parsed;
+    }
+    return new PrimitiveLiteralExpression(message);
+  }
+
+  /**
+   * Formulates a property display name using the property name and the configured
+   * displayName (if provided).
+   * Override this with your own custom logic.
+   *
+   * @param propertyName - The property name.
+   */
+  public getDisplayName(propertyName: string | number, displayName?: string | null | (() => string)): string {
+    if (displayName !== null && displayName !== undefined) {
+      return (displayName instanceof Function) ? displayName() : displayName as string;
+    }
+
+    // split on upper-case letters.
+    const words = propertyName.toString().split(/(?=[A-Z])/).join(' ');
+    // capitalize first letter.
+    return words.charAt(0).toUpperCase() + words.slice(1);
+  }
+}
+
+export class LocalizedValidationMessageProvider extends ValidationMessageProvider {
+  // TODO no more monkey patching prototype in user code, rather a standard i18n validation message provider impl
 }

@@ -36,7 +36,7 @@ import {
 } from '@aurelia/validation';
 import { IPerson, Person } from './_test-resources';
 
-describe.only('ValidationRules', function () {
+describe('ValidationRules', function () {
 
   function setup() {
     const container = DI.createContainer();
@@ -531,7 +531,7 @@ describe.only('ValidationRules', function () {
   });
 });
 
-describe.only('ValidationMessageProvider', function () {
+describe('ValidationMessageProvider', function () {
   class EventLog implements ISink {
     public log: ILogEvent[] = [];
     public emit(event: ILogEvent): void {
@@ -778,7 +778,7 @@ describe.only('ValidationMessageProvider', function () {
     }));
 });
 
-describe.only('parsePropertyName', function () {
+describe('parsePropertyName', function () {
 
   function setup() {
     const container = TestContext.createHTMLTestContext().container;
@@ -912,7 +912,7 @@ describe.only('parsePropertyName', function () {
     }));
 });
 
-describe.only('PropertyRule', function () {
+describe('PropertyRule', function () {
 
   function setup() {
     const container = DI.createContainer();

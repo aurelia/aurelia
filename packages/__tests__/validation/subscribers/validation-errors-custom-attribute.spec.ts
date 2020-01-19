@@ -14,7 +14,7 @@ import { Spy } from '../../Spy';
 import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../../util';
 import { Person } from '../_test-resources';
 
-describe.only('validation-errors-custom-attribute', function () {
+describe('validation-errors-custom-attribute', function () {
 
   class App {
     public person: Person = new Person((void 0)!, (void 0)!);

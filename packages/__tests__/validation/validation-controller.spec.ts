@@ -20,7 +20,7 @@ import { Spy } from '../Spy';
 import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../util';
 import { Person } from './_test-resources';
 
-describe.only('validation-controller-factory', function () {
+describe('validation-controller-factory', function () {
   function setup() {
     const container = TestContext.createHTMLTestContext().container;
     container.register(ValidationConfiguration);
@@ -69,7 +69,7 @@ describe.only('validation-controller-factory', function () {
   });
 });
 
-describe.only('validation-controller', function () {
+describe('validation-controller', function () {
   class App {
     public person1: Person = new Person((void 0)!, (void 0)!);
     public person2: Person = new Person((void 0)!, (void 0)!);

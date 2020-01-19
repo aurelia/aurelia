@@ -1,7 +1,7 @@
 import { assert } from '@aurelia/testing';
 import { EqualsRule, LengthRule, RangeRule, RegexRule, RequiredRule, SizeRule } from '@aurelia/validation';
 
-describe.only('rule execution', function () {
+describe('rule execution', function () {
   [
     { value: null,      isValid: false },
     { value: undefined, isValid: false },

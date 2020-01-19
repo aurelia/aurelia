@@ -37,7 +37,7 @@ import { Spy } from '../Spy';
 import { Person, Organization } from './_test-resources';
 import { createSpecFunction, TestFunction, TestExecutionContext, ToNumberValueConverter } from '../util';
 
-describe.only('validate-biniding-behavior', function () {
+describe('validate-biniding-behavior', function () {
 
   class App {
     public validatableProp: string = (void 0)!;

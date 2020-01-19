@@ -19,7 +19,7 @@ import {
 import { assert } from '@aurelia/testing';
 import { Person, Address, Organization } from './_test-resources';
 
-describe.only('IValidator', function () {
+describe('IValidator', function () {
   function setup(validator?: Class<IValidator>) {
     const container = DI.createContainer();
     container.register(
@@ -59,7 +59,7 @@ describe.only('IValidator', function () {
   });
 });
 
-describe.only('StandardValidator', function () {
+describe('StandardValidator', function () {
   function setup() {
     const container = DI.createContainer();
     container.register(ValidationConfiguration);

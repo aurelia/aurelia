@@ -291,7 +291,7 @@ describe.only('ValidationRules', function () {
 
   it('can define metadata annotation for rules on an object', function () {
     const { sut } = setup();
-    const obj: IPerson = { name: undefined, age: undefined };
+    const obj: IPerson = { name: (void 0)!, age: (void 0)! };
     const rules = sut
       .on(obj)
 
@@ -303,7 +303,7 @@ describe.only('ValidationRules', function () {
 
       .rules;
 
-    assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules'), obj), rules);
+    assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules', validationRules.defaultRuleSetName), obj), rules);
 
     sut.off();
   });
@@ -321,14 +321,14 @@ describe.only('ValidationRules', function () {
 
       .rules;
 
-    assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules'), Person), rules);
+    assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules', validationRules.defaultRuleSetName), Person), rules);
 
     sut.off();
   });
 
   it('can define rules on properties of an object using lambda expression', function () {
     const { sut } = setup();
-    const obj: IPerson = { name: undefined, age: undefined, address: undefined };
+    const obj: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
     const rules = sut
       .on(obj)
 
@@ -343,7 +343,7 @@ describe.only('ValidationRules', function () {
 
       .rules;
 
-    assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules'), obj), rules);
+    assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules', validationRules.defaultRuleSetName), obj), rules);
 
     const [rules1, rules2, rules3] = rules;
     assert.equal(rules1.property.name, 'name');
@@ -373,7 +373,7 @@ describe.only('ValidationRules', function () {
 
       .rules;
 
-    assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules'), Person), rules);
+    assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules', validationRules.defaultRuleSetName), Person), rules);
 
     const [rules1, rules2, rules3] = rules;
     assert.equal(rules1.property.name, 'name');
@@ -388,8 +388,8 @@ describe.only('ValidationRules', function () {
 
   it('can define rules on multiple objects', function () {
     const { sut } = setup();
-    const obj1: IPerson = { name: undefined, age: undefined, address: undefined };
-    const obj2: IPerson = { name: undefined, age: undefined, address: undefined };
+    const obj1: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
+    const obj2: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
     sut
       .on(obj1)
       .ensure('name')
@@ -403,26 +403,131 @@ describe.only('ValidationRules', function () {
 
       .on(obj1)
       .ensure((o) => o.address.line1)
+      .required()
+      .on(obj1)
+      .ensure((o) => o.age)
       .required();
 
     const rules1 = validationRules.get(obj1);
     const rules2 = validationRules.get(obj2);
 
-    assert.equal(rules1.length, 2, 'error1');
-    const [name1Rule, line1Rule] = rules1;
+    assert.equal(rules1.length, 3, 'error1');
+    const [name1Rule, line1Rule, age1Rule] = rules1;
     assert.equal(name1Rule.property.name, 'name', 'error3');
     assert.instanceOf(name1Rule.$rules[0][0], RequiredRule);
     assert.equal(line1Rule.property.name, 'address.line1', 'error4');
     assert.instanceOf(line1Rule.$rules[0][0], RequiredRule);
+    assert.equal(age1Rule.property.name, 'age', 'error5');
+    assert.instanceOf(age1Rule.$rules[0][0], RequiredRule);
 
     assert.equal(rules2.length, 2, 'error2');
     const [name2Rule, age2Rule] = rules2;
-    assert.equal(name2Rule.property.name, 'name', 'error5');
+    assert.equal(name2Rule.property.name, 'name', 'error6');
     assert.instanceOf(name2Rule.$rules[0][0], RequiredRule);
-    assert.equal(age2Rule.property.name, 'age', 'error6');
+    assert.equal(age2Rule.property.name, 'age', 'error7');
     assert.instanceOf(age2Rule.$rules[0][0], RequiredRule);
 
     sut.off();
+  });
+
+  it('can define multiple ruleset for the same object using tagging', function () {
+    const { sut } = setup();
+    const obj: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
+    const tag1 = 'tag1', tag2 = 'tag2';
+    sut
+      .on(obj, tag1)
+      .ensure('name')
+      .required()
+
+      .on(obj, tag2)
+      .ensure('age')
+      .required();
+
+    const ruleset1 = validationRules.get(obj, tag1);
+    const ruleset2 = validationRules.get(obj, tag2);
+
+    assert.equal(ruleset1.length, 1, 'error1');
+    assert.equal(ruleset1[0].property.name, 'name', 'error2');
+    assert.equal(ruleset2.length, 1, 'error3');
+    assert.equal(ruleset2[0].property.name, 'age', 'error4');
+
+    sut.off(obj);
+
+    assert.equal(validationRules.get(obj), void 0);
+  });
+
+  it('can be used to delete the rules defined for an object', function () {
+    const { sut } = setup();
+    const obj: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
+    sut
+      .on(obj)
+      .ensure('name')
+      .required();
+
+    const rules1 = validationRules.get(obj);
+
+    assert.equal(rules1.length, 1, 'error1');
+
+    sut.off(obj);
+
+    assert.equal(validationRules.get(obj), void 0);
+  });
+
+  it('can be used to delete specific ruleset', function () {
+    const { sut } = setup();
+    const obj: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
+    const tag1 = 'tag1', tag2 = 'tag2';
+
+    assert.equal(validationRules.isValidationRulesSet(obj), false);
+
+    sut
+      .on(obj, tag1)
+      .ensure('name')
+      .required()
+
+      .on(obj, tag2)
+      .ensure('age')
+      .required();
+
+    assert.notEqual(validationRules.get(obj, tag1), void 0);
+    assert.notEqual(validationRules.get(obj, tag2), void 0);
+
+    sut.off(obj, tag2);
+
+    assert.notEqual(validationRules.get(obj, tag1), void 0);
+    assert.equal(validationRules.get(obj, tag2), void 0);
+    assert.equal(validationRules.isValidationRulesSet(obj), true);
+    assert.equal(sut['targets'].has(obj), true);
+
+    sut.off(obj, tag1);
+
+    assert.equal(validationRules.get(obj, tag1), void 0);
+    assert.equal(validationRules.get(obj, tag2), void 0);
+    assert.equal(validationRules.isValidationRulesSet(obj), false);
+    assert.equal(sut['targets'].has(obj), false);
+
+    sut.off();
+  });
+
+  it('can be used to delete all ruleset by default for a given object', function () {
+    const { sut } = setup();
+    const obj: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
+    const tag1 = 'tag1', tag2 = 'tag2';
+
+    assert.equal(validationRules.isValidationRulesSet(obj), false);
+
+    sut
+      .on(obj, tag1)
+      .ensure('name')
+      .required()
+
+      .on(obj, tag2)
+      .ensure('age')
+      .required();
+
+    sut.off();
+    assert.equal(validationRules.isValidationRulesSet(obj), false);
+    assert.equal(sut['targets'].has(obj), false);
   });
 });
 
@@ -661,9 +766,9 @@ describe.only('ValidationMessageProvider', function () {
     { arg1: 'foo', arg2: null, expected: 'Foo' },
     { arg1: 'fooBar', arg2: null, expected: 'Foo Bar' },
     { arg1: 'foo bar', arg2: null, expected: 'Foo bar' },
-    { arg1: 'foo', arg2: undefined, expected: 'Foo' },
-    { arg1: 'fooBar', arg2: undefined, expected: 'Foo Bar' },
-    { arg1: 'foo bar', arg2: undefined, expected: 'Foo bar' },
+    { arg1: 'foo', arg2: void 0, expected: 'Foo' },
+    { arg1: 'fooBar', arg2: void 0, expected: 'Foo Bar' },
+    { arg1: 'foo bar', arg2: void 0, expected: 'Foo bar' },
     { arg1: 'foo', arg2: 'hello', expected: 'hello' },
     { arg1: 'foo', arg2: () => 'hello', expected: 'hello' },
   ].map(({ arg1, arg2, expected }) =>
@@ -805,4 +910,144 @@ describe.only('parsePropertyName', function () {
         },
         /Unable to parse accessor function/);
     }));
+});
+
+describe.only('PropertyRule', function () {
+
+  function setup() {
+    const container = DI.createContainer();
+    container.register(ValidationConfiguration);
+    return { validationRules: container.get(IValidationRules), container };
+  }
+
+  it('can validate async rules', async function () {
+    const { validationRules } = setup();
+    const obj1: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
+    const rules = validationRules
+      .on(obj1)
+      .ensure('name')
+      .satisfies(async (value: string) => new Promise<boolean>((resolve) => { setTimeout(() => { resolve(value === 'foo'); }, 300); }))
+      .rules;
+
+    assert.equal(rules.length, 1, 'error1');
+    const nameRule = rules[0];
+
+    let result = await nameRule.validate('foobar', obj1);
+    assert.equal(result.length, 1);
+    assert.equal(result[0].valid, false);
+    assert.equal(result[0].propertyName, 'name');
+
+    result = await nameRule.validate('foo', obj1);
+    assert.equal(result.length, 1);
+    assert.equal(result[0].valid, true);
+    assert.equal(result[0].propertyName, 'name');
+
+    validationRules.off();
+  });
+
+  it('respects a function for displayName', async function () {
+    const { validationRules } = setup();
+    const obj: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
+    let i = 0;
+    const rules = validationRules
+      .on(obj)
+      .ensure('name')
+      .displayName(() => { i++; return `Name${i}`; })
+      .required()
+      .rules;
+
+    assert.equal(rules.length, 1, 'error1');
+    const nameRule = rules[0];
+
+    let result = await nameRule.validate(undefined, obj);
+    assert.equal(result[0].valid, false);
+    assert.equal(result[0].message, 'Name1 is required.');
+
+    result = await nameRule.validate(undefined, obj);
+    assert.equal(result[0].valid, false);
+    assert.equal(result[0].message, 'Name2 is required.');
+
+    validationRules.off();
+  });
+
+  it('respects execution condition', async function () {
+    const { validationRules } = setup();
+    const obj: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
+    const rule = validationRules
+      .on(obj)
+      .ensure('name')
+      .required()
+      .when((o) => o.age > 5)
+      .rules[0];
+
+    let result = await rule.validate(undefined, obj);
+    assert.equal(result.length, 0);
+
+    obj.age = 10;
+    result = await rule.validate(undefined, obj);
+    assert.equal(result[0].valid, false);
+    assert.equal(result[0].message, 'name is required.');
+
+    validationRules.off();
+  });
+
+  it('can be used to tag the rules', function () {
+    const { validationRules } = setup();
+    const obj: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
+    const tag = 'foo';
+    const rules = validationRules
+      .on(obj)
+      .ensure('name')
+      .required()
+      .tag(tag)
+      .ensure('age')
+      .required()
+      .rules;
+
+    assert.equal(rules.flatMap((r) => r.$rules.flat()).filter((r) => r.tag === tag).length, 1);
+
+    validationRules.off();
+  });
+
+  it('validates all rules by default despite some of those are tagged', async function () {
+    const { validationRules } = setup();
+    const obj: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
+    const tag = 'foo';
+    const msg = 'not foobar';
+    const rule = validationRules
+      .on(obj)
+      .ensure('name')
+      .required()
+      .satisfies((value) => value === 'foobar')
+      .withMessage(msg)
+      .tag(tag)
+      .rules[0];
+
+    const results = await rule.validate('', obj);
+    assert.equal(results.length, 2);
+    assert.deepEqual(results.map((r) => r.message), ['name is required.', msg]);
+
+    validationRules.off();
+  });
+
+  it('validates only the tagged rules when provided', async function () {
+    const { validationRules } = setup();
+    const obj: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
+    const tag = 'foo';
+    const msg = 'not foobar';
+    const rule = validationRules
+      .on(obj)
+      .ensure('name')
+      .required()
+      .satisfies((value) => value === 'foobar')
+      .withMessage(msg)
+      .tag(tag)
+      .rules[0];
+
+    const results = await rule.validate('', obj, tag);
+    assert.equal(results.length, 1);
+    assert.deepEqual(results[0].message, msg);
+
+    validationRules.off();
+  });
 });

@@ -1,3 +1,4 @@
+/* eslint-disable mocha/no-hooks, mocha/no-sibling-hooks */
 import { DI, Class } from '@aurelia/kernel';
 import {
   ValidationConfiguration,
@@ -13,7 +14,7 @@ import {
   SizeRule,
   EqualsRule,
   PropertyAccessor,
-  BaseValidationRule
+  BaseValidationRule,
 } from '@aurelia/validation';
 import { assert } from '@aurelia/testing';
 import { Person, Address, Organization } from './_test-resources';
@@ -328,6 +329,7 @@ describe.only('StandardValidator', function () {
 
       validationRules.off();
     }));
+
   [
     { title: 'string property', getProperty1: () => 'subprop[\'a\']' as const },
     { title: 'lambda property', getProperty1: () => ((o) => o.subprop['a']) as PropertyAccessor },
@@ -356,4 +358,120 @@ describe.only('StandardValidator', function () {
 
       validationRules.off();
     }));
+
+  it(`validates only tagged rules for property when provided`, async function () {
+    const { sut, validationRules } = setup();
+    const message1 = 'message1', message2 = 'message2';
+    const obj: Person = new Person('test', (void 0)!, (void 0)!);
+    const tag = 'foo';
+    validationRules
+      .on(obj)
+      .ensure('name')
+      .matches(/foo/)
+      .withMessage(message1)
+      .tag(tag)
+      .minLength(42)
+      .withMessage(message2);
+
+    const result = await sut.validateProperty(obj, 'name', void 0, tag);
+    assert.equal(result.length, 1);
+
+    assertValidationResult(result[0], false, 'name', obj, RegexRule, message1);
+    validationRules.off();
+  });
+
+  it(`validates only tagged rules for property when provided with specific rules`, async function () {
+    const { sut, validationRules } = setup();
+    const message1 = 'message1', message2 = 'message2';
+    const obj: Person = new Person('test', (void 0)!, (void 0)!);
+    const tag = 'foo';
+    const rules = validationRules
+      .on(obj)
+      .ensure('name')
+      .matches(/foo/)
+      .withMessage(message1)
+      .tag(tag)
+      .minLength(42)
+      .withMessage(message2)
+      .rules;
+
+    const result = await sut.validateProperty(obj, 'name', rules, tag);
+    assert.equal(result.length, 1);
+
+    assertValidationResult(result[0], false, 'name', obj, RegexRule, message1);
+    validationRules.off();
+  });
+
+  it(`validates only tagged rules for property when provided with specific rules`, async function () {
+    const { sut, validationRules: rules } = setup();
+    const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
+    const tag1 = 'tag1', tag2 = 'tag2';
+
+    rules
+      .on(obj, tag1)
+      .ensure('name')
+      .required()
+
+      .on(obj, tag2)
+      .ensure('age')
+      .required();
+
+    const result1 = await sut.validateObject(obj, void 0, tag1);
+    const result2 = await sut.validateObject(obj, void 0, tag2);
+
+    assert.deepEqual(result1.map((r) => r.toString()), ['name is required.']);
+    assert.deepEqual(result2.map((r) => r.toString()), ['age is required.']);
+
+    rules.off();
+  });
+
+  it(`validates the default ruleset by default`, async function () {
+    const { sut, validationRules: rules } = setup();
+    const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
+    const tag1 = 'tag1';
+
+    rules
+      .on(obj)
+      .ensure('name')
+      .required()
+
+      .on(obj, tag1)
+      .ensure('age')
+      .required();
+
+    const result1 = await sut.validateObject(obj);
+
+    assert.deepEqual(result1.map((r) => r.toString()), ['name is required.']);
+
+    rules.off();
+  });
+
+  it(`can be used to validate an object with custom validation rule`, async function () {
+    const { sut, validationRules: rules } = setup();
+    const people: Person[] = [new Person((void 0)!, (void 0)!, (void 0)!), new Person((void 0)!, (void 0)!, (void 0)!)];
+    const obj = { a: 1, b: 1 };
+    const msg1 = 'not foobar';
+    const msg2 = 'not the answer';
+
+    rules
+      .on(people)
+      .ensureObject()
+      .satisfies((o: Person[]) => o[0].name === 'foo' && o[1].name === 'bar')
+      .withMessage(msg1)
+
+      .on(obj)
+      .ensure('b')
+      .equals(42)
+      .ensureObject()
+      .satisfies((o: typeof obj) => o.a === 42)
+      .withMessage(msg2);
+
+    const result1 = await sut.validateObject(people);
+    const result2 = await sut.validateObject(obj);
+
+    assert.deepEqual(result1.map((r) => r.toString()), [msg1]);
+    assert.deepEqual(result2.map((r) => r.toString()), ['b must be 42.', msg2]);
+
+    rules.off();
+  });
 });

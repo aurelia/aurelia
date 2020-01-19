@@ -68,7 +68,7 @@ export class ValidateInstruction {
     /**
      * The object to validate.
      */
-    public object: IValidateable,
+    public object: IValidateable = (void 0)!,
 
     /**
      * The property to validate. Optional.
@@ -79,6 +79,7 @@ export class ValidateInstruction {
      * The rules to validate. Optional.
      */
     public rules: PropertyRule[] = (void 0)!,
+    public tag: string = (void 0)!,
   ) { }
 }
 
@@ -325,10 +326,9 @@ export class ValidationController implements IValidationController {
    */
   public async validate(instruction?: ValidateInstruction): Promise<ControllerValidateResult> {
     let execute: () => Promise<ValidationResult[]>;
-    if (instruction !== void 0) {
-      const object = instruction.object;
-      const propertyName = instruction.propertyName;
-      let rules = instruction.rules;
+    const { object, propertyName, tag } = instruction ?? {};
+    if (object !== void 0) {
+      let rules = instruction!.rules;
       // if rules were not specified, check the object map.
       rules = rules ?? this.objects.get(object);
       execute = propertyName !== void 0
@@ -339,12 +339,14 @@ export class ValidationController implements IValidationController {
       execute = async () => {
         const promises: Promise<ValidationResult[]>[] = [];
         for (const [object, rules] of this.objects.entries()) {
-          promises.push(this.validator.validateObject(object, rules));
+          promises.push(this.validator.validateObject(object, rules, tag));
         }
-        for (const [binding, info] of this.bindings.entries()) {
-          const propertyInfo = this.getPropertyInfo(binding, info);
-          if (propertyInfo !== void 0 && !this.objects.has(propertyInfo.object)) {
-            promises.push(this.validator.validateProperty(propertyInfo.object, propertyInfo.propertyName, info.rules));
+        if (tag === void 0) {
+          for (const [binding, info] of this.bindings.entries()) {
+            const propertyInfo = this.getPropertyInfo(binding, info);
+            if (propertyInfo !== void 0 && !this.objects.has(propertyInfo.object)) {
+              promises.push(this.validator.validateProperty(propertyInfo.object, propertyInfo.propertyName, info.rules));
+            }
           }
         }
         const results = await Promise.all(promises);
@@ -363,7 +365,6 @@ export class ValidationController implements IValidationController {
       try {
         const newResults = await execute();
         const predicate = this.getInstructionPredicate(instruction);
-        // console.log(`predicate: ${predicate.toString()}`);
         const oldResults = this.results.filter(predicate);
         this.processResultDelta(ValidateEventKind.validate, oldResults, newResults);
 

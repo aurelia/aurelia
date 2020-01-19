@@ -76,7 +76,7 @@ describe.only('validation-controller', function () {
     public controller: ValidationController;
     public controllerSpy: Spy;
     public person2rules: PropertyRule[];
-    private readonly validationRules: IValidationRules;
+    public readonly validationRules: IValidationRules;
 
     public constructor(container: IContainer) {
       const factory = container.get(IValidationControllerFactory);
@@ -416,6 +416,22 @@ describe.only('validation-controller', function () {
 
       await sut.revalidateErrors();
       assert.equal(results.filter((r) => !r.valid).length, 0);
+    }
+  );
+
+  $it(`can be used to validate all the tagged objects registered`,
+    async function ({ app: { controller: sut, validationRules } }) {
+      const obj1 = { a: 1, b: 2 };
+      const tag = 'tag';
+      validationRules
+        .on(obj1, tag)
+        .ensure('a')
+        .equals(42);
+      sut.addObject(obj1);
+
+      await sut.validate(new ValidateInstruction((void 0)!, (void 0)!, (void 0)!, tag));
+
+      assert.deepEqual(sut.results.map((r) => r.toString()), ['a must be 42.']);
     }
   );
 });

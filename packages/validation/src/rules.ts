@@ -34,7 +34,7 @@ export const ValidationRuleAliasMessage = Object.freeze({
   }
 });
 
-export type ValidationRuleExecutionPredicate = (object?: IValidateable) => boolean;
+export type ValidationRuleExecutionPredicate<TObject extends IValidateable = IValidateable> = (object?: TObject) => boolean;
 
 export function validationRule(definition: ValidationRuleDefinition) {
   return function <TRule extends BaseValidationRule>(target: Constructable<TRule>) {

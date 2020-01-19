@@ -55,25 +55,35 @@ export type RuleCondition<TObject extends IValidateable = IValidateable, TValue 
 
 export const validationRules = Object.freeze({
   name: 'validation-rules',
-  key: Protocol.annotation.keyFor('validation-rules'),
-  set(target: IValidateable, rules: PropertyRule[]): void {
-    if (target instanceof Function) {
-      const key = validationRules.name;
-      Protocol.annotation.set(target as Constructable, key, rules);
-      Protocol.annotation.appendTo(target as Constructable, key);
+  defaultRuleSetName: '__default',
+  set(target: IValidateable, rules: PropertyRule[], tag?: string): void {
+    const key = `${validationRules.name}:${tag ?? validationRules.defaultRuleSetName}`;
+    Metadata.define(Protocol.annotation.keyFor(key), rules, target);
+    const keys = Metadata.getOwn(Protocol.annotation.name, target) as string[];
+    if (keys === void 0) {
+      Metadata.define(Protocol.annotation.name, [key], target);
     } else {
-      Metadata.define(validationRules.key, rules, target);
+      keys.push(key);
     }
   },
-  get(target: IValidateable): PropertyRule[] {
-    return target instanceof Function
-      ? Protocol.annotation.get(target as Constructable, validationRules.name)
-      : Metadata.getOwn(validationRules.key, target);
+  get(target: IValidateable, tag?: string): PropertyRule[] {
+    return Metadata.getOwn(Protocol.annotation.keyFor(validationRules.name, tag ?? validationRules.defaultRuleSetName), target);
   },
-  unset(target: IValidateable): void {
-    if (!(target instanceof Function)) {
-      Metadata.delete(validationRules.key, target);
+  unset(target: IValidateable, tag?: string): void {
+    const keys = Metadata.getOwn(Protocol.annotation.name, target) as string[];
+    for (const key of keys.slice(0)) {
+      if (key.startsWith(validationRules.name) && (tag === void 0 || key.endsWith(tag))) {
+        Metadata.delete(Protocol.annotation.keyFor(key), target);
+        const index = keys.indexOf(key);
+        if (index > -1) {
+          keys.splice(index, 1);
+        }
+      }
     }
+  },
+  isValidationRulesSet(target: IValidateable) {
+    return (Metadata.getOwn(Protocol.annotation.name, target) as string[] ?? [])
+      .some((key) => key.startsWith(validationRules.name));
   }
 });
 
@@ -100,7 +110,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
     return this.$rules[depth];
   }
 
-  public async validate(value: TValue, object?: IValidateable): Promise<ValidationResult[]> {
+  public async validate(value: TValue, object?: IValidateable, tag?: string): Promise<ValidationResult[]> {
 
     let isValid = true;
     const validateRuleset = async (rules: BaseValidationRule[]) => {
@@ -116,7 +126,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
           const scope = {
             bindingContext: {
               $object: object,
-              $displayName: displayName instanceof Function ? displayName() : displayName,
+              $displayName: (displayName instanceof Function ? displayName() : displayName) ?? name,
               $propertyName: name,
               $value: value,
               $rule: rule,
@@ -130,7 +140,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
 
       const promises: Promise<ValidationResult>[] = [];
       for (const rule of rules) {
-        if (rule.canExecute(object)) {
+        if (rule.canExecute(object) && (tag === void 0 || rule.tag === tag)) {
           promises.push(validateRule(rule));
         }
       }
@@ -184,7 +194,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
    * @param condition - A function that accepts the object as a parameter and returns true
    * or false whether the rule should be evaluated.
    */
-  public when(condition: ValidationRuleExecutionPredicate) {
+  public when(this: PropertyRule<TObject>, condition: ValidationRuleExecutionPredicate<TObject>) {
     this.assertLatesRule(this.latestRule);
     this.latestRule.canExecute = condition;
     return this;
@@ -198,15 +208,6 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
     this.assertLatesRule(this.latestRule);
     this.latestRule.tag = tag;
     return this;
-  }
-
-  public getTagedRules(tag: string | undefined): any {
-    return new PropertyRule(
-      this.validationRules,
-      this.messageProvider,
-      this.property,
-      this.$rules.map((rules) => rules.filter((rule) => rule.tag === tag)),
-    );
   }
 
   private assertLatesRule(latestRule: BaseValidationRule | undefined): asserts latestRule is BaseValidationRule {
@@ -386,9 +387,9 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
    *
    * @param target - A class or object.
    */
-  public on<TAnotherObject extends IValidateable = IValidateable>(target: Class<TAnotherObject> | TAnotherObject): IValidationRules<TAnotherObject>;
-  public on(target: IValidateable) {
-    return this.validationRules.on(target);
+  public on<TAnotherObject extends IValidateable = IValidateable>(target: Class<TAnotherObject> | TAnotherObject, tag?: string): IValidationRules<TAnotherObject>;
+  public on(target: IValidateable, tag?: string) {
+    return this.validationRules.on(target, tag);
   }
   // #endregion
 }
@@ -399,8 +400,8 @@ export interface IValidationRules<TObject extends IValidateable = IValidateable>
   ensure<TValue>(property: PropertyAccessor<TObject, TValue>): PropertyRule<TObject, TValue>;
   ensure(property: string): PropertyRule;
   ensureObject(): PropertyRule;
-  on<TAnotherObject extends IValidateable = IValidateable>(target: Class<TAnotherObject> | TAnotherObject): IValidationRules<TAnotherObject>;
-  off<TAnotherObject extends IValidateable = IValidateable>(target?: Class<TAnotherObject> | TAnotherObject): void;
+  on<TAnotherObject extends IValidateable = IValidateable>(target: Class<TAnotherObject> | TAnotherObject, tag?: string): IValidationRules<TAnotherObject>;
+  off<TAnotherObject extends IValidateable = IValidateable>(target?: Class<TAnotherObject> | TAnotherObject, tag?: string): void;
 }
 export const IValidationRules = DI.createInterface<IValidationRules>('IValidationRules').noDefault();
 
@@ -408,25 +409,6 @@ export const IValidationRules = DI.createInterface<IValidationRules>('IValidatio
  * Part of the fluent rule API. Enables targeting properties and objects with rules.
  */
 export class ValidationRules<TObject extends IValidateable = IValidateable> implements IValidationRules<TObject> {
-
-  // /**
-  //  * Returns rules with the matching tag.
-  //  *
-  //  * @param rules - The rules to search.
-  //  * @param tag - The tag to search for.
-  //  */
-  // public static taggedRules(rules: PropertyRule[], tag: string): PropertyRule[] {
-  //   return rules.map(rule => rule.getTagedRules(tag));
-  // }
-
-  // /**
-  //  * Returns rules that have no tag.
-  //  *
-  //  * @param rules - The rules to search.
-  //  */
-  // public static untaggedRules(rules: PropertyRule[]): PropertyRule[][] {
-  //   return rules.map(rule => rule.getTagedRules(void 0));
-  // }
   public rules: PropertyRule[] = [];
   private readonly targets: Set<IValidateable> = new Set<IValidateable>();
 
@@ -440,6 +422,7 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
    *
    * @param property - The property to target. Can be the property name or a property accessor
    * function.
+   * @internal
    */
   public ensure<TValue>(property: keyof TObject | string | PropertyAccessor): PropertyRule {
     const [name, expression] = parsePropertyName(property as any, this.parser);
@@ -454,6 +437,7 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
 
   /**
    * Targets an object with validation rules.
+   * @internal
    */
   public ensureObject(): PropertyRule {
     const rule = new PropertyRule(this, this.messageProvider, new RuleProperty());
@@ -466,13 +450,13 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
    *
    * @param target - A class or object.
    */
-  public on(target: IValidateable) {
-    const rules = validationRules.get(target);
+  public on(target: IValidateable, tag?: string) {
+    const rules = validationRules.get(target, tag);
     if (Object.is(rules, this.rules)) {
       return this;
     }
     this.rules = rules ?? [];
-    validationRules.set(target, this.rules);
+    validationRules.set(target, this.rules, tag);
     this.targets.add(target);
     return this;
   }
@@ -482,11 +466,13 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
    *
    * @param target - A class or object.
    */
-  public off(target?: IValidateable): void {
+  public off(target?: IValidateable, tag?: string): void {
     const $targets = target !== void 0 ? [target] : Array.from(this.targets);
     for (const $target of $targets) {
-      validationRules.unset($target);
-      this.targets.delete($target);
+      validationRules.unset($target, tag);
+      if (!validationRules.isValidationRulesSet($target)) {
+        this.targets.delete($target);
+      }
     }
   }
 }

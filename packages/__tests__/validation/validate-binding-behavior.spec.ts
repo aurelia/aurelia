@@ -20,7 +20,7 @@ import {
   ILifecycle,
   ArrayObserver
 } from '@aurelia/runtime';
-import { assert, TestContext } from '@aurelia/testing';
+import { assert, TestContext, HTMLTestContext } from '@aurelia/testing';
 import {
   BindingWithBehavior,
   IValidationController,
@@ -272,7 +272,7 @@ describe('validate-biniding-behavior', function () {
       .start()
       .wait();
 
-    await testFunction({ app, host, container, scheduler: app.scheduler });
+    await testFunction({ app, host, container, scheduler: app.scheduler, ctx });
 
     await au.stop().wait();
     ctx.doc.body.removeChild(host);
@@ -290,9 +290,9 @@ describe('validate-biniding-behavior', function () {
     assert.equal(Unparser.unparse(binding.sourceExpression.expression), rawExpression);
   }
 
-  async function assertEventHandler(target: HTMLElement, event: 'change' | 'blur', callCount: number, scheduler: IScheduler, controllerSpy: Spy) {
+  async function assertEventHandler(target: HTMLElement, event: 'change' | 'blur', callCount: number, scheduler: IScheduler, controllerSpy: Spy, ctx: HTMLTestContext) {
     controllerSpy.clearCallRecords();
-    target.dispatchEvent(new Event(event));
+    target.dispatchEvent(new ctx.Event(event));
     await scheduler.yieldAll(10);
     controllerSpy.methodCalledTimes('validateBinding', callCount);
     controllerSpy.methodCalledTimes('validate', callCount);
@@ -300,7 +300,7 @@ describe('validate-biniding-behavior', function () {
 
   // #region trigger
   $it('registers binding to the controller with default **blur** trigger',
-    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
@@ -312,15 +312,15 @@ describe('validate-biniding-behavior', function () {
       assert.equal(controller.results.filter((r) => !r.valid).length, 1, 'error2');
 
       target.value = 'foo';
-      await assertEventHandler(target, 'change', 0, scheduler, controllerSpy);
-      await assertEventHandler(target, 'blur', 1, scheduler, controllerSpy);
+      await assertEventHandler(target, 'change', 0, scheduler, controllerSpy, ctx);
+      await assertEventHandler(target, 'blur', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error3');
     },
     { template: `<input id="target" type="text" value.two-way="person.name & validate">` }
   );
 
   $it('a default trigger can be registered - **change**',
-    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
@@ -332,33 +332,33 @@ describe('validate-biniding-behavior', function () {
       assert.equal(controller.results.filter((r) => !r.valid).length, 1, 'error2');
 
       target.value = 'foo';
-      await assertEventHandler(target, 'blur', 0, scheduler, controllerSpy);
-      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy);
+      await assertEventHandler(target, 'blur', 0, scheduler, controllerSpy, ctx);
+      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error3');
     },
     { template: `<input id="target" type="text" value.two-way="person.name & validate:'change'">`, customDefaultTrigger: ValidationTrigger.change }
   );
 
   $it('supports **changeOrBlur** validation trigger',
-    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
       const target: HTMLInputElement = host.querySelector("#target");
       assertControllerBinding(controller, 'person.name', target, controllerSpy);
 
-      await assertEventHandler(target, 'blur', 1, scheduler, controllerSpy);
+      await assertEventHandler(target, 'blur', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 1, 'error3');
 
       target.value = 'foo';
-      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy);
+      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error4');
     },
     { template: `<input id="target" type="text" value.two-way="person.name & validate:'changeOrBlur'">` }
   );
 
   $it('supports **manual** validation trigger',
-    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
@@ -370,9 +370,9 @@ describe('validate-biniding-behavior', function () {
       await controller.validate();
       assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 1, 'error2');
 
-      await assertEventHandler(target, 'blur', 0, scheduler, controllerSpy);
+      await assertEventHandler(target, 'blur', 0, scheduler, controllerSpy, ctx);
       target.value = 'foo';
-      await assertEventHandler(target, 'change', 0, scheduler, controllerSpy);
+      await assertEventHandler(target, 'change', 0, scheduler, controllerSpy, ctx);
 
       controllerSpy.clearCallRecords();
       assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 1, 'error3');
@@ -383,7 +383,7 @@ describe('validate-biniding-behavior', function () {
   );
 
   $it('handles changes in dynamically bound trigger value',
-    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
@@ -392,23 +392,23 @@ describe('validate-biniding-behavior', function () {
 
       assert.equal(app.trigger, ValidationTrigger.change);
       target.value = 'foo';
-      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy);
-      await assertEventHandler(target, 'blur', 0, scheduler, controllerSpy);
+      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy, ctx);
+      await assertEventHandler(target, 'blur', 0, scheduler, controllerSpy, ctx);
 
       app.trigger = ValidationTrigger.blur;
-      await assertEventHandler(target, 'blur', 1, scheduler, controllerSpy);
+      await assertEventHandler(target, 'blur', 1, scheduler, controllerSpy, ctx);
       target.value = 'bar';
-      await assertEventHandler(target, 'change', 0, scheduler, controllerSpy);
+      await assertEventHandler(target, 'change', 0, scheduler, controllerSpy, ctx);
 
       app.trigger = ValidationTrigger.changeOrBlur;
-      await assertEventHandler(target, 'blur', 1, scheduler, controllerSpy);
+      await assertEventHandler(target, 'blur', 1, scheduler, controllerSpy, ctx);
       target.value = 'foo';
-      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy);
+      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy, ctx);
 
       app.trigger = ValidationTrigger.manual;
-      await assertEventHandler(target, 'blur', 0, scheduler, controllerSpy);
+      await assertEventHandler(target, 'blur', 0, scheduler, controllerSpy, ctx);
       target.value = 'bar';
-      await assertEventHandler(target, 'change', 0, scheduler, controllerSpy);
+      await assertEventHandler(target, 'change', 0, scheduler, controllerSpy, ctx);
     },
     { template: `<input id="target" type="text" value.two-way="person.name & validate:trigger">` }
   );
@@ -416,7 +416,7 @@ describe('validate-biniding-behavior', function () {
 
   // #region controller
   $it('respects bound controller',
-    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
       const controller2 = app.controller2;
@@ -429,8 +429,8 @@ describe('validate-biniding-behavior', function () {
 
       target1.value = 'foo';
       target2.value = '42';
-      await assertEventHandler(target1, 'change', 1, scheduler, controllerSpy);
-      await assertEventHandler(target2, 'change', 1, scheduler, controller2Spy);
+      await assertEventHandler(target1, 'change', 1, scheduler, controllerSpy, ctx);
+      await assertEventHandler(target2, 'change', 1, scheduler, controller2Spy, ctx);
       assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error5');
       assert.equal(controller.results.filter((e) => e.propertyName === 'age').length, 0, 'error6');
       assert.equal(controller2.results.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error7');
@@ -444,7 +444,7 @@ describe('validate-biniding-behavior', function () {
   );
 
   $it('handles value change of the bound controller',
-    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
       const controller2 = app.controller2;
@@ -453,7 +453,7 @@ describe('validate-biniding-behavior', function () {
       const target1: HTMLInputElement = host.querySelector("#target1");
       assertControllerBinding(controller, 'person.name', target1, controllerSpy);
 
-      await assertEventHandler(target1, 'blur', 1, scheduler, controllerSpy);
+      await assertEventHandler(target1, 'blur', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 1, 'error1');
       assert.equal(controller2.results.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error2');
 
@@ -462,7 +462,7 @@ describe('validate-biniding-behavior', function () {
       controllerSpy.methodCalledTimes('deregisterBinding', 1);
       assertControllerBinding(controller2, 'person.name', target1, controller2Spy);
 
-      await assertEventHandler(target1, 'blur', 1, scheduler, controller2Spy);
+      await assertEventHandler(target1, 'blur', 1, scheduler, controller2Spy, ctx);
       assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error1');
       assert.equal(controller2.results.filter((e) => !e.valid && e.propertyName === 'name').length, 1, 'error2');
     },
@@ -473,7 +473,7 @@ describe('validate-biniding-behavior', function () {
   );
 
   $it('handles the trigger-controller combo correctly',
-    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
       const controller2 = app.controller2;
@@ -484,15 +484,15 @@ describe('validate-biniding-behavior', function () {
       assertControllerBinding(controller, 'person.name', target1, controllerSpy);
       assertControllerBinding(controller2, 'person.age', target2, controller2Spy);
 
-      await assertEventHandler(target1, 'blur', 1, scheduler, controllerSpy);
-      await assertEventHandler(target2, 'blur', 0, scheduler, controller2Spy);
+      await assertEventHandler(target1, 'blur', 1, scheduler, controllerSpy, ctx);
+      await assertEventHandler(target2, 'blur', 0, scheduler, controller2Spy, ctx);
       assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 1, 'error1');
       assert.equal(controller2.results.filter((e) => !e.valid && e.propertyName === 'age').length, 0, 'error2');
 
       target1.value = 'foo';
       target2.value = '41';
-      await assertEventHandler(target1, 'change', 0, scheduler, controllerSpy);
-      await assertEventHandler(target2, 'change', 1, scheduler, controller2Spy);
+      await assertEventHandler(target1, 'change', 0, scheduler, controllerSpy, ctx);
+      await assertEventHandler(target2, 'change', 1, scheduler, controller2Spy, ctx);
       assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 1, 'error3');
       assert.equal(controller2.results.filter((e) => !e.valid && e.propertyName === 'age').length, 1, 'error4');
     },
@@ -506,7 +506,7 @@ describe('validate-biniding-behavior', function () {
 
   // #region rules
   $it('respects bound rules',
-    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
@@ -514,11 +514,11 @@ describe('validate-biniding-behavior', function () {
       assertControllerBinding(controller, 'person.age', target2, controllerSpy);
 
       target2.value = '41';
-      await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy);
+      await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((e) => e.propertyName === 'age').length, 1, 'error2');
 
       target2.value = '42';
-      await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy);
+      await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'age').length, 0, 'error3');
     },
     {
@@ -528,7 +528,7 @@ describe('validate-biniding-behavior', function () {
   );
 
   $it('respects change in value of bound rules',
-    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
@@ -536,27 +536,27 @@ describe('validate-biniding-behavior', function () {
       assertControllerBinding(controller, 'person.age', target2, controllerSpy);
 
       target2.value = '41';
-      await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy);
+      await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'age' && e.rule instanceof RangeRule).length, 1, 'error2');
       assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'age' && e.rule instanceof RequiredRule).length, 0, 'error3');
 
       target2.value = '42';
-      await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy);
+      await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'age').length, 0, 'error4');
 
       app.tempAgeRule = [app.ageMinRule];
       await scheduler.yieldAll();
 
       target2.value = '';
-      await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy);
+      await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'age' && e.rule instanceof RequiredRule).length, 0, 'error5');
 
       target2.value = '41';
-      await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy);
+      await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'age' && e.rule instanceof RangeRule).length, 1, 'error6');
 
       target2.value = '42';
-      await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy);
+      await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'age').length, 0, 'error7');
     },
     {
@@ -607,7 +607,7 @@ describe('validate-biniding-behavior', function () {
 
   // #region custom element
   $it('can be used with custom element - change trigger',
-    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
       const person = app.person;
@@ -620,13 +620,13 @@ describe('validate-biniding-behavior', function () {
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 1, 'error2');
 
       input.value = 'foo';
-      await assertEventHandler(input, 'change', 1, scheduler, controllerSpy);
+      await assertEventHandler(input, 'change', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error3');
     },
     { template: `<text-box id="target" value.two-way="person.name & validate:'change'"></text-box>` }
   );
   $it('can be used with custom element - blur trigger',
-    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
       const person = app.person;
@@ -647,13 +647,13 @@ describe('validate-biniding-behavior', function () {
       controllerSpy.clearCallRecords();
       ceHost.focus();
       await scheduler.yieldAll();
-      await assertEventHandler(ceHost, 'blur', 1, scheduler, controllerSpy);
+      await assertEventHandler(ceHost, 'blur', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error4');
     },
     { template: `<text-box tabindex="-1" id="target" value.two-way="person.name & validate:'blur'"></text-box>` }
   );
   $it('can be used with custom element - changeOrBlur trigger',
-    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
       const person = app.person;
@@ -666,18 +666,18 @@ describe('validate-biniding-behavior', function () {
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 1, 'error2');
 
       input.value = 'foo';
-      await assertEventHandler(input, 'change', 1, scheduler, controllerSpy);
+      await assertEventHandler(input, 'change', 1, scheduler, controllerSpy, ctx);
 
       controllerSpy.clearCallRecords();
       ceHost.focus();
       await scheduler.yieldAll();
-      await assertEventHandler(ceHost, 'blur', 1, scheduler, controllerSpy);
+      await assertEventHandler(ceHost, 'blur', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error4');
     },
     { template: `<text-box tabindex="-1" id="target" value.two-way="person.name & validate:'changeOrBlur'"></text-box>` }
   );
   $it('can be used with custom element - manual trigger',
-    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
       const person = app.person;
@@ -690,12 +690,12 @@ describe('validate-biniding-behavior', function () {
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 1, 'error2');
 
       input.value = 'foo';
-      await assertEventHandler(input, 'change', 0, scheduler, controllerSpy);
+      await assertEventHandler(input, 'change', 0, scheduler, controllerSpy, ctx);
 
       controllerSpy.clearCallRecords();
       ceHost.focus();
       await scheduler.yieldAll();
-      await assertEventHandler(ceHost, 'blur', 0, scheduler, controllerSpy);
+      await assertEventHandler(ceHost, 'blur', 0, scheduler, controllerSpy, ctx);
       await controller.validate();
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error4');
     },
@@ -705,7 +705,7 @@ describe('validate-biniding-behavior', function () {
 
   // #region custom attribute
   $it('can be used with custom attribute - change trigger',
-    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
       const person = app.person;
@@ -726,7 +726,7 @@ describe('validate-biniding-behavior', function () {
     { template: `<div id="target" foo-bar="value.two-way:person.name & validate:'change'; triggering-events.bind:['click']"></div>` }
   );
   $it('can be used with custom attribute - blur trigger',
-    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
       const person = app.person;
@@ -740,13 +740,13 @@ describe('validate-biniding-behavior', function () {
       controllerSpy.clearCallRecords();
       caHost.focus();
       await scheduler.yieldAll();
-      await assertEventHandler(caHost, 'blur', 1, scheduler, controllerSpy);
+      await assertEventHandler(caHost, 'blur', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error3');
     },
     { template: `<div id="target" tabindex="-1" foo-bar="value.two-way:person.name & validate:'blur'; triggering-events.bind:['blur']"></div>` }
   );
   $it('can be used with custom attribute - changeOrBlur trigger',
-    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
       const person = app.person;
@@ -767,12 +767,12 @@ describe('validate-biniding-behavior', function () {
       controllerSpy.clearCallRecords();
       caHost.focus();
       await scheduler.yieldAll();
-      await assertEventHandler(caHost, 'blur', 1, scheduler, controllerSpy);
+      await assertEventHandler(caHost, 'blur', 1, scheduler, controllerSpy, ctx);
     },
     { template: `<div id="target" tabindex="-1" foo-bar="value.two-way:person.name & validate:'changeOrBlur'; triggering-events.bind:['click']"></div>` }
   );
   $it('can be used with custom attribute - manual trigger',
-    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
       const person = app.person;
@@ -793,7 +793,7 @@ describe('validate-biniding-behavior', function () {
       controllerSpy.clearCallRecords();
       caHost.focus();
       await scheduler.yieldAll();
-      await assertEventHandler(caHost, 'blur', 0, scheduler, controllerSpy);
+      await assertEventHandler(caHost, 'blur', 0, scheduler, controllerSpy, ctx);
 
       await controller.validate();
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error5');
@@ -804,7 +804,7 @@ describe('validate-biniding-behavior', function () {
 
   // #region VC, BB
   $it('can be used with value converter',
-    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
       const person = app.person;
@@ -817,19 +817,19 @@ describe('validate-biniding-behavior', function () {
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'age').length, 2, 'error2');
 
       target.value = '123';
-      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy);
+      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'age').length, 0, 'error3');
       assert.equal(person.age, 123);
 
       target.value = 'foo';
-      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy);
+      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'age').length, 2, 'error4');
       assert.equal(person.age, undefined);
     },
     { template: `<input id="target" value.two-way="person.age | toNumber & validate:'change'">` }
   );
   $it('can be used with multiple value converters',
-    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
       const person = app.person;
@@ -842,12 +842,12 @@ describe('validate-biniding-behavior', function () {
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'age').length, 2, 'error2');
 
       target.value = btoa('1234');
-      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy);
+      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'age').length, 0, 'error3');
       assert.equal(person.age, 1234);
 
       target.value = btoa('foobar');
-      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy);
+      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'age').length, 2, 'error4');
       assert.equal(person.age, undefined);
     },
@@ -866,7 +866,7 @@ describe('validate-biniding-behavior', function () {
     { expr: `person.name & interceptor & vanilla & validate:'change'`, rawExpr: 'person.name&interceptor&vanilla' },
   ].map(({ expr, rawExpr }) =>
     $it(`can be used with other binding behavior - ${expr}`,
-      async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+      async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
         const controller = app.controller;
         const controllerSpy = app.controllerSpy;
 
@@ -878,7 +878,7 @@ describe('validate-biniding-behavior', function () {
         assert.equal(controller.results.filter((r) => !r.valid).length, 1, 'error2');
 
         target.value = 'foo';
-        await assertEventHandler(target, 'change', 1, scheduler, controllerSpy);
+        await assertEventHandler(target, 'change', 1, scheduler, controllerSpy, ctx);
         assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error3');
       },
       { template: `<input id="target" value.two-way="${expr}">` }
@@ -886,7 +886,7 @@ describe('validate-biniding-behavior', function () {
   // #endregion
 
   $it('can be used to validate simple property',
-    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
@@ -898,14 +898,14 @@ describe('validate-biniding-behavior', function () {
       assert.equal(controller.results.filter((r) => !r.valid).length, 1, 'error2');
 
       target.value = 'foo';
-      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy);
+      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'validatableProp').length, 0, 'error3');
     },
     { template: `<input id="target" value.two-way="validatableProp & validate:'change'">` }
   );
   // #region collection and nested properties
   $it('can be used to validate nested collection - collection replace',
-    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
@@ -938,7 +938,7 @@ describe('validate-biniding-behavior', function () {
     { template: `<employee-list id="target" employees.two-way="org.employees & validate:'change'"></employee-list>` }
   );
   $it('can be used to validate nested collection - collection observer',
-    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
@@ -973,7 +973,7 @@ describe('validate-biniding-behavior', function () {
     { template: `<employee-list id="target" employees.two-way="org.employees & validate:'change'"></employee-list>`, observeCollection: true }
   );
   $it('can be used to validate nested collection property by index',
-    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
@@ -993,15 +993,15 @@ describe('validate-biniding-behavior', function () {
       assert.equal(controller.results.filter((r) => !r.valid && (r.propertyName === 'coll[0].a' || r.propertyName === 'coll[1].a')).length, 2, 'error2');
 
       target1.value = '42';
-      await assertEventHandler(target1, 'change', 1, scheduler, controllerSpy);
+      await assertEventHandler(target1, 'change', 1, scheduler, controllerSpy, ctx);
       target2.value = '42';
-      await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy);
+      await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((r) => !r.valid && (r.propertyName === 'coll[0].a' || r.propertyName === 'coll[1].a')).length, 2, 'error3');
 
       target1.value = '11';
-      await assertEventHandler(target1, 'change', 1, scheduler, controllerSpy);
+      await assertEventHandler(target1, 'change', 1, scheduler, controllerSpy, ctx);
       target2.value = '11';
-      await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy);
+      await assertEventHandler(target2, 'change', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((r) => !r.valid && (r.propertyName === 'coll[0].a' || r.propertyName === 'coll[1].a')).length, 0, 'error4');
     },
     {
@@ -1012,7 +1012,7 @@ describe('validate-biniding-behavior', function () {
     }
   );
   $it('can be used to validate nested property - intial non-undefined',
-    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
       const person = app.person;
@@ -1027,7 +1027,7 @@ describe('validate-biniding-behavior', function () {
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'address.pin').length, 1, 'error2');
 
       target.value = '123456';
-      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy);
+      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'address.pin').length, 0, 'error3');
     },
     {
@@ -1035,7 +1035,7 @@ describe('validate-biniding-behavior', function () {
     }
   );
   $it('can be used to validate nested property - intial undefined',
-    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
@@ -1047,7 +1047,7 @@ describe('validate-biniding-behavior', function () {
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'address.pin').length, 0, 'error2');
 
       target.value = '123456';
-      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy);
+      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'address.pin').length, 0, 'error3');
     },
     {
@@ -1055,7 +1055,7 @@ describe('validate-biniding-behavior', function () {
     }
   );
   $it('can be used to validate multi-level nested property',
-    async function ({ app, host, scheduler }: TestExecutionContext<App>) {
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
       const org = app.org;
@@ -1070,7 +1070,7 @@ describe('validate-biniding-behavior', function () {
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'employees[0].address.pin').length, 1, 'error2');
 
       target.value = '123456';
-      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy);
+      await assertEventHandler(target, 'change', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'employees[0].address.pin').length, 0, 'error3');
     },
     {

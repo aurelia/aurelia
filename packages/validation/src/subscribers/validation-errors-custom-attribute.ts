@@ -12,10 +12,7 @@ export class ValidationErrorsCustomAttribute implements ValidationErrorsSubscrib
 
   private readonly errorsInternal: ValidationResultTarget[] = [];
   private readonly host: HTMLElement;
-  public constructor(
-    @INode host: INode,
-    @IContainer private readonly container: IContainer,
-  ) {
+  public constructor(@INode host: INode, @IContainer private readonly container: IContainer) {
     this.host = host as HTMLElement;
   }
 

@@ -1,5 +1,5 @@
 /* eslint-disable no-template-curly-in-string */
-import { Class, DI, Protocol, Constructable, Metadata, ILogger } from '@aurelia/kernel';
+import { Class, DI, Protocol, Metadata, ILogger } from '@aurelia/kernel';
 import {
   BindingType,
   IExpressionParser,
@@ -26,8 +26,8 @@ import {
   ValidationRuleExecutionPredicate
 } from './rules';
 
-export interface ICustomMessage<T extends BaseValidationRule = BaseValidationRule> {
-  rule: new (...args: any[]) => T;
+export interface ICustomMessage<TRule extends BaseValidationRule = BaseValidationRule> {
+  rule: Class<TRule>;
   aliases: ValidationRuleAlias[];
 }
 
@@ -437,6 +437,7 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
 
   /**
    * Targets an object with validation rules.
+   *
    * @internal
    */
   public ensureObject(): PropertyRule {

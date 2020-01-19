@@ -1,6 +1,6 @@
 import { IContainer, Registration, toArray } from '@aurelia/kernel';
 import { Aurelia, CustomElement, IScheduler, CustomAttribute } from '@aurelia/runtime';
-import { TestContext, assert, createSpy, ISpy, getVisibleText } from '@aurelia/testing';
+import { TestContext, assert, createSpy, ISpy, getVisibleText, HTMLTestContext } from '@aurelia/testing';
 import {
   IValidationController,
   IValidationControllerFactory,
@@ -85,7 +85,7 @@ describe('validation-errors-custom-attribute', function () {
       .start()
       .wait();
 
-    await testFunction({ app, host, container, scheduler: app.scheduler });
+    await testFunction({ app, host, container, scheduler: app.scheduler, ctx });
 
     await au.stop().wait();
     ctx.doc.body.removeChild(host);
@@ -105,11 +105,12 @@ describe('validation-errors-custom-attribute', function () {
     scheduler: IScheduler,
     controllerSpy: Spy,
     handleValidationEventSpy: ISpy,
-    event: string = 'blur'
+    ctx: HTMLTestContext,
+    event: string = 'blur',
   ) {
     handleValidationEventSpy.calls.splice(0);
     controllerSpy.clearCallRecords();
-    target.dispatchEvent(new Event(event));
+    target.dispatchEvent(new ctx.Event(event));
     await scheduler.yieldAll(10);
     controllerSpy.methodCalledTimes('validate', 1);
     assert.equal(handleValidationEventSpy.calls.length, 1, 'incorrect #calls for handleValidationEvent');
@@ -121,7 +122,7 @@ describe('validation-errors-custom-attribute', function () {
   }
 
   $it('registers only the errors targeted for the containing elements',
-    async function ({ host, scheduler, app }) {
+    async function ({ host, scheduler, app, ctx }) {
       const div1 = host.querySelector('#div1');
       const div2 = host.querySelector('#div2');
       const ca1: ValidationErrorsCustomAttribute = CustomAttribute.for(div1, 'validation-errors').viewModel as unknown as ValidationErrorsCustomAttribute;
@@ -136,11 +137,11 @@ describe('validation-errors-custom-attribute', function () {
       const target1 = div1.querySelector('#target1') as HTMLInputElement;
       const target2 = div2.querySelector('#target2') as HTMLInputElement;
 
-      await assertEventHandler(target1, scheduler, controllerSpy, spy1);
+      await assertEventHandler(target1, scheduler, controllerSpy, spy1, ctx);
       target2.value = "foo";
-      target2.dispatchEvent(new Event('change'));
+      target2.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);
-      await assertEventHandler(target2, scheduler, controllerSpy, spy2);
+      await assertEventHandler(target2, scheduler, controllerSpy, spy2, ctx);
 
       let errors1 = ca1.errors;
       assert.deepEqual(app['nameErrors'], errors1);
@@ -161,14 +162,14 @@ describe('validation-errors-custom-attribute', function () {
       );
 
       target1.value = "foo";
-      target1.dispatchEvent(new Event('change'));
+      target1.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);
-      await assertEventHandler(target1, scheduler, controllerSpy, spy1);
+      await assertEventHandler(target1, scheduler, controllerSpy, spy1, ctx);
 
       target2.value = "15";
-      target2.dispatchEvent(new Event('change'));
+      target2.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);
-      await assertEventHandler(target2, scheduler, controllerSpy, spy2);
+      await assertEventHandler(target2, scheduler, controllerSpy, spy2, ctx);
 
       errors1 = ca1.errors;
       assert.equal(errors1.length, 0);
@@ -195,7 +196,7 @@ describe('validation-errors-custom-attribute', function () {
   );
 
   $it('sorts the errors according to the target position',
-    async function ({ host, scheduler, app }) {
+    async function ({ host, scheduler, app, ctx }) {
       const div = host.querySelector('div');
       const ca: ValidationErrorsCustomAttribute = CustomAttribute.for(div, 'validation-errors').viewModel as unknown as ValidationErrorsCustomAttribute;
       const spy = createSpy(ca, 'handleValidationEvent', true);
@@ -206,11 +207,11 @@ describe('validation-errors-custom-attribute', function () {
       const target1 = div.querySelector('#target1') as HTMLInputElement;
       const target2 = div.querySelector('#target2') as HTMLInputElement;
 
-      await assertEventHandler(target1, scheduler, controllerSpy, spy);
+      await assertEventHandler(target1, scheduler, controllerSpy, spy, ctx);
       target2.value = "foo";
-      target2.dispatchEvent(new Event('change'));
+      target2.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);
-      await assertEventHandler(target2, scheduler, controllerSpy, spy);
+      await assertEventHandler(target2, scheduler, controllerSpy, spy, ctx);
 
       const errors1 = ca.errors;
       assert.deepEqual(app['errors'], errors1);
@@ -238,7 +239,7 @@ describe('validation-errors-custom-attribute', function () {
   );
 
   $it('respects bound controller',
-    async function ({ host, scheduler, app }) {
+    async function ({ host, scheduler, app, ctx }) {
       const div1 = host.querySelector('#div1');
       const div2 = host.querySelector('#div2');
       const ca1: ValidationErrorsCustomAttribute = CustomAttribute.for(div1, 'validation-errors').viewModel as unknown as ValidationErrorsCustomAttribute;
@@ -253,11 +254,11 @@ describe('validation-errors-custom-attribute', function () {
       const target1 = div1.querySelector('#target1') as HTMLInputElement;
       const target2 = div2.querySelector('#target2') as HTMLInputElement;
 
-      await assertEventHandler(target1, scheduler, controllerSpy, spy1);
+      await assertEventHandler(target1, scheduler, controllerSpy, spy1, ctx);
       target2.value = "foo";
-      target2.dispatchEvent(new Event('change'));
+      target2.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);
-      await assertEventHandler(target2, scheduler, controller2Spy, spy2);
+      await assertEventHandler(target2, scheduler, controller2Spy, spy2, ctx);
 
       let errors1 = ca1.errors;
       assert.deepEqual(app['nameErrors'], errors1);
@@ -278,14 +279,14 @@ describe('validation-errors-custom-attribute', function () {
       );
 
       target1.value = "foo";
-      target1.dispatchEvent(new Event('change'));
+      target1.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);
-      await assertEventHandler(target1, scheduler, controllerSpy, spy1);
+      await assertEventHandler(target1, scheduler, controllerSpy, spy1, ctx);
 
       target2.value = "15";
-      target2.dispatchEvent(new Event('change'));
+      target2.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);
-      await assertEventHandler(target2, scheduler, controller2Spy, spy2);
+      await assertEventHandler(target2, scheduler, controller2Spy, spy2, ctx);
 
       errors1 = ca1.errors;
       assert.equal(errors1.length, 0);
@@ -314,7 +315,7 @@ describe('validation-errors-custom-attribute', function () {
   );
 
   $it('does not put the errors in VM when used with let',
-    async function ({ host, scheduler, app }) {
+    async function ({ host, scheduler, app, ctx }) {
       const div = host.querySelector('div');
       const ca: ValidationErrorsCustomAttribute = CustomAttribute.for(div, 'validation-errors').viewModel as unknown as ValidationErrorsCustomAttribute;
       const spy = createSpy(ca, 'handleValidationEvent', true);
@@ -324,7 +325,7 @@ describe('validation-errors-custom-attribute', function () {
 
       const target = div.querySelector('#target1') as HTMLInputElement;
 
-      await assertEventHandler(target, scheduler, controllerSpy, spy);
+      await assertEventHandler(target, scheduler, controllerSpy, spy, ctx);
 
       const errors1 = ca.errors;
       assert.equal('errors' in app, false);

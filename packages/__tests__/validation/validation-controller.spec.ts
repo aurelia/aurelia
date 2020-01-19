@@ -1,3 +1,4 @@
+/* eslint-disable mocha/no-hooks, mocha/no-sibling-hooks */
 import { IContainer, Registration } from '@aurelia/kernel';
 import { Aurelia, CustomElement, IScheduler } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
@@ -156,7 +157,7 @@ describe('validation-controller', function () {
       .start()
       .wait();
 
-    await testFunction({ app, container, host, scheduler: container.get(IScheduler) });
+    await testFunction({ app, container, host, scheduler: container.get(IScheduler), ctx });
 
     await au.stop().wait();
     ctx.doc.body.removeChild(host);

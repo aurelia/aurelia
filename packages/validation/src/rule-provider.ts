@@ -26,6 +26,9 @@ import {
   ValidationRuleExecutionPredicate
 } from './rules';
 
+/**
+ * Contract to register the custom messages for rules, during plugin registration.
+ */
 export interface ICustomMessage<TRule extends BaseValidationRule = BaseValidationRule> {
   rule: Class<TRule>;
   aliases: ValidationRuleAlias[];
@@ -37,13 +40,13 @@ export const ICustomMessages = DI.createInterface<ICustomMessage[]>("ICustomMess
 export type ValidationDisplayNameAccessor = () => string;
 
 /**
- * Information related to a property that is the subject of validation.
+ * Describes a property to be validated.
  */
 export class RuleProperty {
   /**
-   * @param {(string | number | null)} [name=null] - The property name. null indicates the rule targets the object itself.
-   * @param {(string | ValidationDisplayNameAccessor | null)} [displayName=null] - The displayName of the property (or object).
-   * @memberof RuleProperty
+   * @param {IsBindingBehavior} [expression] - parsed property expression.
+   * @param {(string | number | undefined)} [name=void 0] - name of the property; absent for a object validation.
+   * @param {(string | ValidationDisplayNameAccessor | undefined)} [displayName=void 0] - display name of the property to be used in validation error messages.
    */
   public constructor(
     public expression?: IsBindingBehavior,
@@ -53,11 +56,11 @@ export class RuleProperty {
 }
 export type RuleCondition<TObject extends IValidateable = IValidateable, TValue = any> = (value: TValue, object?: TObject) => boolean | Promise<boolean>;
 
-export const validationRules = Object.freeze({
+export const validationRulesRegistrar = Object.freeze({
   name: 'validation-rules',
   defaultRuleSetName: '__default',
   set(target: IValidateable, rules: PropertyRule[], tag?: string): void {
-    const key = `${validationRules.name}:${tag ?? validationRules.defaultRuleSetName}`;
+    const key = `${validationRulesRegistrar.name}:${tag ?? validationRulesRegistrar.defaultRuleSetName}`;
     Metadata.define(Protocol.annotation.keyFor(key), rules, target);
     const keys = Metadata.getOwn(Protocol.annotation.name, target) as string[];
     if (keys === void 0) {
@@ -67,12 +70,12 @@ export const validationRules = Object.freeze({
     }
   },
   get(target: IValidateable, tag?: string): PropertyRule[] {
-    return Metadata.getOwn(Protocol.annotation.keyFor(validationRules.name, tag ?? validationRules.defaultRuleSetName), target);
+    return Metadata.getOwn(Protocol.annotation.keyFor(validationRulesRegistrar.name, tag ?? validationRulesRegistrar.defaultRuleSetName), target);
   },
   unset(target: IValidateable, tag?: string): void {
     const keys = Metadata.getOwn(Protocol.annotation.name, target) as string[];
     for (const key of keys.slice(0)) {
-      if (key.startsWith(validationRules.name) && (tag === void 0 || key.endsWith(tag))) {
+      if (key.startsWith(validationRulesRegistrar.name) && (tag === void 0 || key.endsWith(tag))) {
         Metadata.delete(Protocol.annotation.keyFor(key), target);
         const index = keys.indexOf(key);
         if (index > -1) {
@@ -83,16 +86,19 @@ export const validationRules = Object.freeze({
   },
   isValidationRulesSet(target: IValidateable) {
     return (Metadata.getOwn(Protocol.annotation.name, target) as string[] ?? [])
-      .some((key) => key.startsWith(validationRules.name));
+      .some((key) => key.startsWith(validationRulesRegistrar.name));
   }
 });
 
+/**
+ * Describes a collection of rules, defined on a property.
+ */
 export class PropertyRule<TObject extends IValidateable = IValidateable, TValue = unknown> {
 
   private latestRule?: BaseValidationRule;
 
   public constructor(
-    public readonly validationRules: ValidationRules,
+    public readonly validationRules: IValidationRules,
     public readonly messageProvider: IValidationMessageProvider,
     public property: RuleProperty,
     public $rules: BaseValidationRule[][] = [[]],
@@ -161,9 +167,8 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
 
   // #region customization API
   /**
-   * Validate subsequent rules after previously declared rules have
-   * been validated successfully. Use to postpone validation of costly
-   * rules until less expensive rules pass validation.
+   * Validate subsequent rules after previously declared rules have been validated successfully.
+   * Use to postpone validation of costly rules until less expensive rules pass validation.
    */
   public then() {
     this.$rules.push([]);
@@ -191,8 +196,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   /**
    * Specifies a condition that must be met before attempting to validate the rule.
    *
-   * @param condition - A function that accepts the object as a parameter and returns true
-   * or false whether the rule should be evaluated.
+   * @param {ValidationRuleExecutionPredicate<TObject>} condition - A function that accepts the object as a parameter and returns true or false whether the rule should be evaluated.
    */
   public when(this: PropertyRule<TObject>, condition: ValidationRuleExecutionPredicate<TObject>) {
     this.assertLatesRule(this.latestRule);
@@ -201,8 +205,8 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   }
 
   /**
-   * Tags the rule instance, enabling the rule to be found easily
-   * using ValidationRules.taggedRules(rules, tag)
+   * Tags the rule instance.
+   * The tag can lated be used to perform selective validation.
    */
   public tag(tag: string) {
     this.assertLatesRule(this.latestRule);
@@ -397,8 +401,8 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
 export interface IValidationRules<TObject extends IValidateable = IValidateable> {
   rules: PropertyRule[];
   ensure<TProp extends keyof TObject>(property: TProp): PropertyRule<TObject, TObject[TProp]>;
-  ensure<TValue>(property: PropertyAccessor<TObject, TValue>): PropertyRule<TObject, TValue>;
-  ensure(property: string): PropertyRule;
+  ensure<TValue>(property: string | PropertyAccessor<TObject, TValue>): PropertyRule<TObject, TValue>;
+  // ensure(property: string): PropertyRule;
   ensureObject(): PropertyRule;
   on<TAnotherObject extends IValidateable = IValidateable>(target: Class<TAnotherObject> | TAnotherObject, tag?: string): IValidationRules<TAnotherObject>;
   off<TAnotherObject extends IValidateable = IValidateable>(target?: Class<TAnotherObject> | TAnotherObject, tag?: string): void;
@@ -452,12 +456,12 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
    * @param target - A class or object.
    */
   public on(target: IValidateable, tag?: string) {
-    const rules = validationRules.get(target, tag);
+    const rules = validationRulesRegistrar.get(target, tag);
     if (Object.is(rules, this.rules)) {
       return this;
     }
     this.rules = rules ?? [];
-    validationRules.set(target, this.rules, tag);
+    validationRulesRegistrar.set(target, this.rules, tag);
     this.targets.add(target);
     return this;
   }
@@ -470,8 +474,8 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
   public off(target?: IValidateable, tag?: string): void {
     const $targets = target !== void 0 ? [target] : Array.from(this.targets);
     for (const $target of $targets) {
-      validationRules.unset($target, tag);
-      if (!validationRules.isValidationRulesSet($target)) {
+      validationRulesRegistrar.unset($target, tag);
+      if (!validationRulesRegistrar.isValidationRulesSet($target)) {
         this.targets.delete($target);
       }
     }

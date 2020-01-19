@@ -38,6 +38,8 @@ import { Person, Organization } from './_test-resources';
 import { createSpecFunction, TestFunction, TestExecutionContext, ToNumberValueConverter } from '../util';
 
 describe('validate-biniding-behavior', function () {
+  const $atob = typeof atob === 'function' ? atob : (b64: string) => Buffer.from(b64, 'base64').toString();
+  const $btoa = typeof btoa === 'function' ? btoa : (plainText: string) => Buffer.from(plainText).toString('base64');
 
   class App {
     public validatableProp: string = (void 0)!;
@@ -207,7 +209,7 @@ describe('validate-biniding-behavior', function () {
   }
   @valueConverter('b64ToPlainText')
   class B64ToPlainTextValueConverter {
-    public fromView(b64: string): string { return atob(b64); }
+    public fromView(b64: string): string { return $atob(b64); }
   }
   @bindingBehavior('interceptor')
   class InterceptorBindingBehavior extends BindingInterceptor {
@@ -841,12 +843,12 @@ describe('validate-biniding-behavior', function () {
       await controller.validate();
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'age').length, 2, 'error2');
 
-      target.value = btoa('1234');
+      target.value = $btoa('1234');
       await assertEventHandler(target, 'change', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'age').length, 0, 'error3');
       assert.equal(person.age, 1234);
 
-      target.value = btoa('foobar');
+      target.value = $btoa('foobar');
       await assertEventHandler(target, 'change', 1, scheduler, controllerSpy, ctx);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'age').length, 2, 'error4');
       assert.equal(person.age, undefined);

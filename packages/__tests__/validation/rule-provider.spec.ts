@@ -13,7 +13,7 @@ import {
   PrimitiveLiteralExpression,
   LifecycleFlags,
   IExpressionParser,
-  BindingType
+BindingType
 } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import {
@@ -32,7 +32,7 @@ import {
   ICustomMessage,
   parsePropertyName,
   ValidationRuleAliasMessage,
-  validationRules
+  validationRulesRegistrar
 } from '@aurelia/validation';
 import { IPerson, Person } from './_test-resources';
 
@@ -303,7 +303,7 @@ describe('ValidationRules', function () {
 
       .rules;
 
-    assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules', validationRules.defaultRuleSetName), obj), rules);
+    assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules', validationRulesRegistrar.defaultRuleSetName), obj), rules);
 
     sut.off();
   });
@@ -321,7 +321,7 @@ describe('ValidationRules', function () {
 
       .rules;
 
-    assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules', validationRules.defaultRuleSetName), Person), rules);
+    assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules', validationRulesRegistrar.defaultRuleSetName), Person), rules);
 
     sut.off();
   });
@@ -343,7 +343,7 @@ describe('ValidationRules', function () {
 
       .rules;
 
-    assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules', validationRules.defaultRuleSetName), obj), rules);
+    assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules', validationRulesRegistrar.defaultRuleSetName), obj), rules);
 
     const [rules1, rules2, rules3] = rules;
     assert.equal(rules1.property.name, 'name');
@@ -373,7 +373,7 @@ describe('ValidationRules', function () {
 
       .rules;
 
-    assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules', validationRules.defaultRuleSetName), Person), rules);
+    assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules', validationRulesRegistrar.defaultRuleSetName), Person), rules);
 
     const [rules1, rules2, rules3] = rules;
     assert.equal(rules1.property.name, 'name');
@@ -408,8 +408,8 @@ describe('ValidationRules', function () {
       .ensure((o) => o.age)
       .required();
 
-    const rules1 = validationRules.get(obj1);
-    const rules2 = validationRules.get(obj2);
+    const rules1 = validationRulesRegistrar.get(obj1);
+    const rules2 = validationRulesRegistrar.get(obj2);
 
     assert.equal(rules1.length, 3, 'error1');
     const [name1Rule, line1Rule, age1Rule] = rules1;
@@ -443,8 +443,8 @@ describe('ValidationRules', function () {
       .ensure('age')
       .required();
 
-    const ruleset1 = validationRules.get(obj, tag1);
-    const ruleset2 = validationRules.get(obj, tag2);
+    const ruleset1 = validationRulesRegistrar.get(obj, tag1);
+    const ruleset2 = validationRulesRegistrar.get(obj, tag2);
 
     assert.equal(ruleset1.length, 1, 'error1');
     assert.equal(ruleset1[0].property.name, 'name', 'error2');
@@ -453,7 +453,7 @@ describe('ValidationRules', function () {
 
     sut.off(obj);
 
-    assert.equal(validationRules.get(obj), void 0);
+    assert.equal(validationRulesRegistrar.get(obj), void 0);
   });
 
   it('can be used to delete the rules defined for an object', function () {
@@ -464,13 +464,13 @@ describe('ValidationRules', function () {
       .ensure('name')
       .required();
 
-    const rules1 = validationRules.get(obj);
+    const rules1 = validationRulesRegistrar.get(obj);
 
     assert.equal(rules1.length, 1, 'error1');
 
     sut.off(obj);
 
-    assert.equal(validationRules.get(obj), void 0);
+    assert.equal(validationRulesRegistrar.get(obj), void 0);
   });
 
   it('can be used to delete specific ruleset', function () {
@@ -478,7 +478,7 @@ describe('ValidationRules', function () {
     const obj: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
     const tag1 = 'tag1', tag2 = 'tag2';
 
-    assert.equal(validationRules.isValidationRulesSet(obj), false);
+    assert.equal(validationRulesRegistrar.isValidationRulesSet(obj), false);
 
     sut
       .on(obj, tag1)
@@ -489,21 +489,21 @@ describe('ValidationRules', function () {
       .ensure('age')
       .required();
 
-    assert.notEqual(validationRules.get(obj, tag1), void 0);
-    assert.notEqual(validationRules.get(obj, tag2), void 0);
+    assert.notEqual(validationRulesRegistrar.get(obj, tag1), void 0);
+    assert.notEqual(validationRulesRegistrar.get(obj, tag2), void 0);
 
     sut.off(obj, tag2);
 
-    assert.notEqual(validationRules.get(obj, tag1), void 0);
-    assert.equal(validationRules.get(obj, tag2), void 0);
-    assert.equal(validationRules.isValidationRulesSet(obj), true);
+    assert.notEqual(validationRulesRegistrar.get(obj, tag1), void 0);
+    assert.equal(validationRulesRegistrar.get(obj, tag2), void 0);
+    assert.equal(validationRulesRegistrar.isValidationRulesSet(obj), true);
     assert.equal(sut['targets'].has(obj), true);
 
     sut.off(obj, tag1);
 
-    assert.equal(validationRules.get(obj, tag1), void 0);
-    assert.equal(validationRules.get(obj, tag2), void 0);
-    assert.equal(validationRules.isValidationRulesSet(obj), false);
+    assert.equal(validationRulesRegistrar.get(obj, tag1), void 0);
+    assert.equal(validationRulesRegistrar.get(obj, tag2), void 0);
+    assert.equal(validationRulesRegistrar.isValidationRulesSet(obj), false);
     assert.equal(sut['targets'].has(obj), false);
 
     sut.off();
@@ -514,7 +514,7 @@ describe('ValidationRules', function () {
     const obj: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
     const tag1 = 'tag1', tag2 = 'tag2';
 
-    assert.equal(validationRules.isValidationRulesSet(obj), false);
+    assert.equal(validationRulesRegistrar.isValidationRulesSet(obj), false);
 
     sut
       .on(obj, tag1)
@@ -526,7 +526,7 @@ describe('ValidationRules', function () {
       .required();
 
     sut.off();
-    assert.equal(validationRules.isValidationRulesSet(obj), false);
+    assert.equal(validationRulesRegistrar.isValidationRulesSet(obj), false);
     assert.equal(sut['targets'].has(obj), false);
   });
 });

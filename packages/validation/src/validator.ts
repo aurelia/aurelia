@@ -1,6 +1,6 @@
 import { DI } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
-import { PropertyRule, ValidationResult, validationRules } from './rule-provider';
+import { PropertyRule, ValidationResult, validationRulesRegistrar } from './rule-provider';
 import { IValidateable } from './rules';
 
 export const IValidator = DI.createInterface<IValidator>("IValidator").noDefault();
@@ -75,7 +75,7 @@ export class StandardValidator implements IValidator {
   ): Promise<ValidationResult[]> {
     const validateAllProperties = propertyName === void 0;
     const tagPresent = tag !== void 0;
-    rules = rules ?? validationRules.get(object, validateAllProperties && tagPresent ? tag : void 0);
+    rules = rules ?? validationRulesRegistrar.get(object, validateAllProperties && tagPresent ? tag : void 0);
 
     const result = await Promise.all(rules.reduce((acc: Promise<ValidationResult[]>[], rule) => {
       const { name, expression } = rule.property;

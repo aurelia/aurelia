@@ -189,8 +189,11 @@ describe('validate-biniding-behavior', function () {
     public static staticText: string = 'from foo-bar ca';
     @bindable public value: unknown;
     @bindable public triggeringEvents: string[];
+    private readonly node: HTMLElement;
 
-    public constructor(@INode private readonly node: HTMLElement) { }
+    public constructor(@INode node: INode) {
+      this.node = node as HTMLElement;
+    }
 
     public beforeBind() {
       for (const event of this.triggeringEvents) {

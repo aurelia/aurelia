@@ -76,6 +76,7 @@ describe.only('validation-controller', function () {
     public controller: ValidationController;
     public controllerSpy: Spy;
     public person2rules: PropertyRule[];
+    private readonly validationRules: IValidationRules;
 
     public constructor(container: IContainer) {
       const factory = container.get(IValidationControllerFactory);
@@ -85,7 +86,7 @@ describe.only('validation-controller', function () {
       const controller = this.controller = this.controllerSpy.getMock(factory.create()) as unknown as ValidationController;
       Registration.instance(IValidationController, controller).register(container);
 
-      const validationRules = container.get(IValidationRules);
+      const validationRules = this.validationRules = container.get(IValidationRules);
       validationRules
         .on(this.person1)
 
@@ -113,6 +114,10 @@ describe.only('validation-controller', function () {
         .max(42)
 
         .rules;
+    }
+
+    public beforeUnbind() {
+      this.validationRules.off();
     }
   }
   class FooSubscriber implements ValidationErrorsSubscriber {
@@ -280,7 +285,7 @@ describe.only('validation-controller', function () {
       assert.equal(notifications2.length, 0);
       assert.equal(notifications1.length, 1);
 
-      const removedResults =  notifications1[0].removedResults.map((r) => r.result);
+      const removedResults = notifications1[0].removedResults.map((r) => r.result);
       assert.equal(validateEvent.addedResults.map((r) => r.result).every((r) => removedResults.includes(r)), true);
       assert.equal(notifications1[0].addedResults.every((r) => r.result.valid), true);
     }

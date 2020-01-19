@@ -304,6 +304,8 @@ describe.only('ValidationRules', function () {
       .rules;
 
     assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules'), obj), rules);
+
+    sut.off();
   });
 
   it('can define metadata annotation for rules on a class', function () {
@@ -320,6 +322,8 @@ describe.only('ValidationRules', function () {
       .rules;
 
     assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules'), Person), rules);
+
+    sut.off();
   });
 
   it('can define rules on properties of an object using lambda expression', function () {
@@ -348,6 +352,8 @@ describe.only('ValidationRules', function () {
     assert.instanceOf(rules2.$rules[0][0], RangeRule);
     assert.equal(rules3.property.name, 'address.line1');
     assert.instanceOf(rules3.$rules[0][0], RequiredRule);
+
+    sut.off();
   });
 
   it('can define rules on properties of a class using lambda expression', function () {
@@ -376,6 +382,8 @@ describe.only('ValidationRules', function () {
     assert.instanceOf(rules2.$rules[0][0], RangeRule);
     assert.equal(rules3.property.name, 'address.line1');
     assert.instanceOf(rules3.$rules[0][0], RequiredRule);
+
+    sut.off();
   });
 
   it('can define rules on multiple objects', function () {
@@ -413,7 +421,9 @@ describe.only('ValidationRules', function () {
     assert.instanceOf(name2Rule.$rules[0][0], RequiredRule);
     assert.equal(age2Rule.property.name, 'age', 'error6');
     assert.instanceOf(age2Rule.$rules[0][0], RequiredRule);
-});
+
+    sut.off();
+  });
 });
 
 describe.only('ValidationMessageProvider', function () {
@@ -661,142 +671,6 @@ describe.only('ValidationMessageProvider', function () {
       const { sut } = setup();
       assert.equal(sut.getDisplayName(arg1, arg2), expected);
     }));
-});
-
-describe.only('rule execution', function () {
-  [
-    { value: null,      isValid: false  },
-    { value: undefined, isValid: false  },
-    { value: '',        isValid: false  },
-    { value: true,      isValid: true   },
-    { value: false,     isValid: true   },
-    { value: "1",       isValid: true   },
-    { value: "chaos",   isValid: true   },
-    { value: 0,         isValid: true   },
-    { value: 1,         isValid: true   },
-  ].map(({ value, isValid }) =>
-    it(`RequiredRule#execute validates ${value} to be ${isValid}`, function () {
-      const sut = new RequiredRule((void 0)!);
-      assert.equal(sut.execute(value), isValid);
-    })
-  );
-
-  [
-    { value: null,      isValid: true   },
-    { value: undefined, isValid: true   },
-    { value: '',        isValid: true   },
-    { value: 'foobar',  isValid: true   },
-    { value: 'barbar',  isValid: false  },
-  ].map(({ value, isValid }) =>
-    it(`RegexRule#execute validates ${value} to be ${isValid}`, function () {
-      const sut = new RegexRule((void 0)!, /foo/);
-      assert.equal(sut.execute(value), isValid);
-    })
-  );
-
-  [
-    { value: null,      length: void 0,   isMax: true,    isValid: true   },
-    { value: null,      length: void 0,   isMax: false,   isValid: true   },
-    { value: undefined, length: void 0,   isMax: true,    isValid: true   },
-    { value: undefined, length: void 0,   isMax: false,   isValid: true   },
-    { value: '',        length: 1,        isMax: true,    isValid: true   },
-    { value: '',        length: 1,        isMax: false,   isValid: true   },
-    { value: 'foo',     length: 5,        isMax: true,    isValid: true   },
-    { value: 'foobar',  length: 5,        isMax: true,    isValid: false  },
-    { value: 'fooba',   length: 5,        isMax: true,    isValid: true   },
-    { value: 'foo',     length: 5,        isMax: false,   isValid: false  },
-    { value: 'foobar',  length: 5,        isMax: false,   isValid: true   },
-    { value: 'fooba',   length: 5,        isMax: false,   isValid: true   },
-  ].map(({ value, length, isMax, isValid }) =>
-    it(`LengthRule#execute validates ${value} to be ${isValid} for length constraint ${length}`, function () {
-      const sut = new LengthRule((void 0)!, length, isMax);
-      assert.equal(sut.messageKey, isMax ? 'maxLength' : 'minLength');
-      assert.equal(sut.execute(value), isValid);
-    })
-  );
-
-  [
-    { value: null,                      count: void 0,   isMax: true,    isValid: true   },
-    { value: null,                      count: void 0,   isMax: false,   isValid: true   },
-    { value: undefined,                 count: void 0,   isMax: true,    isValid: true   },
-    { value: undefined,                 count: void 0,   isMax: false,   isValid: true   },
-    { value: [],                        count: 1,        isMax: true,    isValid: true   },
-    { value: [],                        count: 1,        isMax: false,   isValid: false  },
-    { value: ['foobar'],                count: 2,        isMax: true,    isValid: true   },
-    { value: ['foobar'],                count: 2,        isMax: false,   isValid: false  },
-    { value: ['foo', 'bar'],            count: 2,        isMax: true,    isValid: true   },
-    { value: ['foo', 'bar', 'fu'],      count: 2,        isMax: true,    isValid: false  },
-    { value: ['foo', 'bar'],            count: 2,        isMax: false,   isValid: true   },
-    { value: ['foo', 'bar', 'fu'],      count: 2,        isMax: false,   isValid: true   },
-  ].map(({ value, count, isMax, isValid }) =>
-    it(`SizeRule#execute validates ${value} to be ${isValid} for count constraint ${count}`, function () {
-      const sut = new SizeRule((void 0)!, count, isMax);
-      assert.equal(sut.messageKey, isMax ? 'maxItems' : 'minItems');
-      assert.equal(sut.execute(value), isValid);
-    })
-  );
-
-  [
-    { value: null,                      range: { min: 42,        max: undefined  },        isInclusive: true,    isValid: true,   key: 'min'      },
-    { value: null,                      range: { min: 42,        max: undefined  },        isInclusive: false,   isValid: true,   key: 'min'      },
-    { value: null,                      range: { min: undefined, max: 42         },        isInclusive: true,    isValid: true,   key: 'max'      },
-    { value: null,                      range: { min: undefined, max: 42         },        isInclusive: false,   isValid: true,   key: 'max'      },
-    { value: undefined,                 range: { min: 42,        max: undefined  },        isInclusive: true,    isValid: true,   key: 'min'      },
-    { value: undefined,                 range: { min: 42,        max: undefined  },        isInclusive: false,   isValid: true,   key: 'min'      },
-    { value: undefined,                 range: { min: undefined, max: 42         },        isInclusive: true,    isValid: true,   key: 'max'      },
-    { value: undefined,                 range: { min: undefined, max: 42         },        isInclusive: false,   isValid: true,   key: 'max'      },
-    { value: -41000,                    range: { min: 42,        max: undefined  },        isInclusive: true,    isValid: false,  key: 'min'      },
-    { value: 41,                        range: { min: 42,        max: undefined  },        isInclusive: true,    isValid: false,  key: 'min'      },
-    { value: 42,                        range: { min: 42,        max: undefined  },        isInclusive: true,    isValid: true,   key: 'min'      },
-    { value: 43,                        range: { min: 42,        max: undefined  },        isInclusive: true,    isValid: true,   key: 'min'      },
-    { value: 43000,                     range: { min: 42,        max: undefined  },        isInclusive: true,    isValid: true,   key: 'min'      },
-    { value: -41000,                    range: { min: 42,        max: undefined  },        isInclusive: false,   isValid: false,  key: 'min'      },
-    { value: 41,                        range: { min: 42,        max: undefined  },        isInclusive: false,   isValid: false,  key: 'min'      },
-    { value: 42,                        range: { min: 42,        max: undefined  },        isInclusive: false,   isValid: false,  key: 'min'      },
-    { value: 43,                        range: { min: 42,        max: undefined  },        isInclusive: false,   isValid: true,   key: 'min'      },
-    { value: 43000,                     range: { min: 42,        max: undefined  },        isInclusive: false,   isValid: true,   key: 'min'      },
-    { value: -41000,                    range: { min: undefined, max: 42         },        isInclusive: true,    isValid: true,   key: 'max'      },
-    { value: 41,                        range: { min: undefined, max: 42         },        isInclusive: true,    isValid: true,   key: 'max'      },
-    { value: 42,                        range: { min: undefined, max: 42         },        isInclusive: true,    isValid: true,   key: 'max'      },
-    { value: 43,                        range: { min: undefined, max: 42         },        isInclusive: true,    isValid: false,  key: 'max'      },
-    { value: 43000,                     range: { min: undefined, max: 42         },        isInclusive: true,    isValid: false,  key: 'max'      },
-    { value: -41000,                    range: { min: undefined, max: 42         },        isInclusive: false,   isValid: true,   key: 'max'      },
-    { value: 41,                        range: { min: undefined, max: 42         },        isInclusive: false,   isValid: true,   key: 'max'      },
-    { value: 42,                        range: { min: undefined, max: 42         },        isInclusive: false,   isValid: false,  key: 'max'      },
-    { value: 43,                        range: { min: undefined, max: 42         },        isInclusive: false,   isValid: false,  key: 'max'      },
-    { value: 43000,                     range: { min: undefined, max: 42         },        isInclusive: false,   isValid: false,  key: 'max'      },
-    { value: 38,                        range: { min: 39,        max: 42         },        isInclusive: false,   isValid: false,  key: 'between'  },
-    { value: 39,                        range: { min: 39,        max: 42         },        isInclusive: false,   isValid: false,  key: 'between'  },
-    { value: 40,                        range: { min: 39,        max: 42         },        isInclusive: false,   isValid: true,   key: 'between'  },
-    { value: 41,                        range: { min: 39,        max: 42         },        isInclusive: false,   isValid: true,   key: 'between'  },
-    { value: 42,                        range: { min: 39,        max: 42         },        isInclusive: false,   isValid: false,  key: 'between'  },
-    { value: 43,                        range: { min: 39,        max: 42         },        isInclusive: false,   isValid: false,  key: 'between'  },
-    { value: 38,                        range: { min: 39,        max: 42         },        isInclusive: true,    isValid: false,  key: 'range'    },
-    { value: 39,                        range: { min: 39,        max: 42         },        isInclusive: true,    isValid: true,   key: 'range'    },
-    { value: 40,                        range: { min: 39,        max: 42         },        isInclusive: true,    isValid: true,   key: 'range'    },
-    { value: 41,                        range: { min: 39,        max: 42         },        isInclusive: true,    isValid: true,   key: 'range'    },
-    { value: 42,                        range: { min: 39,        max: 42         },        isInclusive: true,    isValid: true,   key: 'range'    },
-    { value: 43,                        range: { min: 39,        max: 42         },        isInclusive: true,    isValid: false,  key: 'range'    },
-  ].map(({ value, range, isInclusive, isValid, key }) =>
-    it(`RangeRule#execute validates ${value} to be ${isValid} for range ${isInclusive ? `[${range.min}, ${range.max}]` : `(${range.min}, ${range.max})`}`, function () {
-      const sut = new RangeRule((void 0)!, isInclusive, range);
-      assert.equal(sut.messageKey, key);
-      assert.equal(sut.execute(value), isValid);
-    })
-  );
-
-  [
-    { value: null,                      expectedValue: 42,     isValid: true   },
-    { value: undefined,                 expectedValue: 42,     isValid: true   },
-    { value: '',                        expectedValue: 42,     isValid: true   },
-    { value: '42',                      expectedValue: 42,     isValid: false  },
-    { value: 42,                        expectedValue: 42,     isValid: true  },
-  ].map(({ value, expectedValue, isValid }) =>
-    it(`EqualsRule#execute validates ${value} to be ${isValid} for expected value ${expectedValue}`, function () {
-      const sut = new EqualsRule((void 0)!, expectedValue);
-      assert.equal(sut.execute(value), isValid);
-    })
-  );
 });
 
 describe.only('parsePropertyName', function () {

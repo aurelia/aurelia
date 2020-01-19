@@ -400,7 +400,7 @@ export interface IValidationRules<TObject extends IValidateable = IValidateable>
   ensure(property: string): PropertyRule;
   ensureObject(): PropertyRule;
   on<TAnotherObject extends IValidateable = IValidateable>(target: Class<TAnotherObject> | TAnotherObject): IValidationRules<TAnotherObject>;
-  off<TAnotherObject extends IValidateable = IValidateable>(target: Class<TAnotherObject> | TAnotherObject): void;
+  off<TAnotherObject extends IValidateable = IValidateable>(target?: Class<TAnotherObject> | TAnotherObject): void;
 }
 export const IValidationRules = DI.createInterface<IValidationRules>('IValidationRules').noDefault();
 
@@ -408,6 +408,7 @@ export const IValidationRules = DI.createInterface<IValidationRules>('IValidatio
  * Part of the fluent rule API. Enables targeting properties and objects with rules.
  */
 export class ValidationRules<TObject extends IValidateable = IValidateable> implements IValidationRules<TObject> {
+
   // /**
   //  * Returns rules with the matching tag.
   //  *
@@ -427,6 +428,8 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
   //   return rules.map(rule => rule.getTagedRules(void 0));
   // }
   public rules: PropertyRule[] = [];
+  private readonly targets: Set<IValidateable> = new Set<IValidateable>();
+
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IValidationMessageProvider private readonly messageProvider: IValidationMessageProvider,
@@ -470,6 +473,7 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
     }
     this.rules = rules ?? [];
     validationRules.set(target, this.rules);
+    this.targets.add(target);
     return this;
   }
 
@@ -478,8 +482,12 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
    *
    * @param target - A class or object.
    */
-  public off(target: IValidateable): void {
-    validationRules.unset(target);
+  public off(target?: IValidateable): void {
+    const $targets = target !== void 0 ? [target] : Array.from(this.targets);
+    for (const $target of $targets) {
+      validationRules.unset($target);
+      this.targets.delete($target);
+    }
   }
 }
 

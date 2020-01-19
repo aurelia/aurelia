@@ -55,6 +55,7 @@ describe.only('validate-biniding-behavior', function () {
     public employeeObserver: ArrayObserver;
     public readonly scheduler: IScheduler;
     private readonly obj: any;
+    private readonly validationRules: IValidationRules;
 
     public constructor(
       private readonly container: IContainer,
@@ -71,7 +72,7 @@ describe.only('validate-biniding-behavior', function () {
 
       this.controller2 = this.controller2Spy.getMock(factory.create()) as unknown as ValidationController;
 
-      const validationRules = container.get(IValidationRules);
+      const validationRules = this.validationRules = container.get(IValidationRules);
       const rules = validationRules
         .on(this.person)
 
@@ -124,6 +125,10 @@ describe.only('validate-biniding-behavior', function () {
       await this.scheduler.getPostRenderTaskQueue().queueTask(async () => {
         await this.controller.validate();
       }).result;
+    }
+
+    public beforeUnbind() {
+      this.validationRules.off();
     }
   }
 

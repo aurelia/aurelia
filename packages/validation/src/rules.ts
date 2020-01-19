@@ -26,8 +26,8 @@ export const ValidationRuleAliasMessage = Object.freeze({
     ValidationRuleAliasMessage.setDefaultMessage(target, definition);
     return target;
   },
-  setDefaultMessage<TRule extends BaseValidationRule>(target: Constructable<TRule> | TRule, { aliases }: ValidationRuleDefinition) {
-    Metadata.define(ValidationRuleAliasMessage.aliasKey, aliases, target instanceof Function ? target.prototype : target);
+  setDefaultMessage<TRule extends BaseValidationRule>(rule: Constructable<TRule> | TRule, { aliases }: ValidationRuleDefinition) {
+    Metadata.define(ValidationRuleAliasMessage.aliasKey, aliases, rule instanceof Function ? rule.prototype : rule);
   },
   getDefaultMessages<TRule extends BaseValidationRule>(rule: Constructable<TRule> | TRule): ValidationRuleAlias[] {
     return Metadata.get(this.aliasKey, rule instanceof Function ? rule.prototype : rule);
@@ -37,7 +37,6 @@ export const ValidationRuleAliasMessage = Object.freeze({
 export type ValidationRuleExecutionPredicate = (object?: IValidateable) => boolean;
 
 export function validationRule(definition: ValidationRuleDefinition) {
-  // eslint-disable-next-line space-before-function-paren
   return function <TRule extends BaseValidationRule>(target: Constructable<TRule>) {
     return ValidationRuleAliasMessage.define(target, definition);
   };

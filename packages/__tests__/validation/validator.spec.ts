@@ -112,6 +112,8 @@ describe.only('StandardValidator', function () {
 
       assertValidationResult(result[0], true, 'name', obj, RegexRule);
       assertValidationResult(result[1], true, 'name', obj, LengthRule);
+
+      validationRules.off();
     }));
 
   [
@@ -146,6 +148,8 @@ describe.only('StandardValidator', function () {
       assert.equal(result.length, 1);
 
       assertValidationResult(result[0], true, 'name', obj, RegexRule);
+
+      validationRules.off();
     }));
 
   [
@@ -197,6 +201,8 @@ describe.only('StandardValidator', function () {
       assertValidationResult(result[0], true, 'name', obj, RequiredRule);
       assertValidationResult(result[1], true, 'age', obj, RequiredRule);
       assertValidationResult(result[2], true, 'address.line1', obj, RegexRule);
+
+      validationRules.off();
     }));
 
   [
@@ -240,6 +246,8 @@ describe.only('StandardValidator', function () {
       assert.equal(result.length, 1);
 
       assertValidationResult(result[0], true, 'name', obj, RequiredRule);
+
+      validationRules.off();
     }));
 
   [
@@ -273,6 +281,8 @@ describe.only('StandardValidator', function () {
       assert.equal(result.length, 1);
 
       assertValidationResult(result[0], true, 'employees', obj, SizeRule);
+
+      validationRules.off();
     }));
 
   [
@@ -315,6 +325,8 @@ describe.only('StandardValidator', function () {
 
       assertValidationResult(result[0], true, 'coll[0].a', obj, EqualsRule);
       assertValidationResult(result[1], true, 'coll[1].a', obj, EqualsRule);
+
+      validationRules.off();
     }));
   [
     { title: 'string property', getProperty1: () => 'subprop[\'a\']' as const },
@@ -341,5 +353,7 @@ describe.only('StandardValidator', function () {
       assert.equal(result.length, 1);
 
       assertValidationResult(result[0], true, 'subprop[\'a\']', obj, EqualsRule);
+
+      validationRules.off();
     }));
 });

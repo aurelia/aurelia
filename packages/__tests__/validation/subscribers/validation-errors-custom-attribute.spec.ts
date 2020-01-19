@@ -23,6 +23,7 @@ describe.only('validation-errors-custom-attribute', function () {
     public readonly scheduler: IScheduler;
     public controller: ValidationController;
     public controller2: ValidationController;
+    private readonly validationRules: IValidationRules;
 
     public constructor(container: IContainer) {
       const factory = container.get(IValidationControllerFactory);
@@ -36,7 +37,8 @@ describe.only('validation-errors-custom-attribute', function () {
 
       this.controller2 = this.controller2Spy.getMock(factory.create()) as unknown as ValidationController;
 
-      container.get(IValidationRules)
+      const validationRules = this.validationRules = container.get(IValidationRules);
+      validationRules
         .on(this.person)
 
         .ensure('name')
@@ -48,6 +50,10 @@ describe.only('validation-errors-custom-attribute', function () {
         .required()
         .satisfies((age: any) => age !== '' && age % 3 === 0 && age % 5 === 0)
         .withMessage('\${$displayName} is not fizbaz');
+    }
+
+    public beforeUnbind() {
+      this.validationRules.off();
     }
   }
   interface TestSetupContext {

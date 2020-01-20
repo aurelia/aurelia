@@ -331,10 +331,10 @@ export class ValidationController implements IValidationController {
     if (obj !== void 0) {
       instructions = [new ValidateInstruction(
         obj,
-        instruction?.propertyName,
-        instruction?.rules ?? this.objects.get(obj),
+        instruction!.propertyName,
+        instruction!.rules ?? this.objects.get(obj),
         objectTag,
-        instruction?.propertyTag
+        instruction!.propertyTag
       )];
     } else {
       // validate all objects and bindings.

@@ -15,6 +15,7 @@ import {
   EqualsRule,
   PropertyAccessor,
   BaseValidationRule,
+  ValidateInstruction,
 } from '@aurelia/validation';
 import { assert } from '@aurelia/testing';
 import { Person, Address, Organization } from './_test-resources';
@@ -42,10 +43,7 @@ describe('IValidator', function () {
 
   it('can be registered to Singleton custom validator', function () {
     class CustomValidator implements IValidator {
-      public validateProperty(object: IValidateable, propertyName: string, rules?: PropertyRule[]): Promise<ValidationResult[]> {
-        throw new Error('Method not implemented.');
-      }
-      public validateObject(object: IValidateable, rules?: PropertyRule[]): Promise<ValidationResult[]> {
+      public validate(_: ValidateInstruction): Promise<ValidationResult[]> {
         throw new Error('Method not implemented.');
       }
 
@@ -101,14 +99,14 @@ describe('StandardValidator', function () {
         .minLength(42)
         .withMessage(message2);
 
-      let result = await sut.validateProperty(obj, 'name');
+      let result = await sut.validate(new ValidateInstruction(obj, 'name'));
       assert.equal(result.length, 2);
 
       assertValidationResult(result[0], false, 'name', obj, RegexRule, message1);
       assertValidationResult(result[1], false, 'name', obj, LengthRule, message2);
 
       obj.name = 'foo'.repeat(15);
-      result = await sut.validateProperty(obj, 'name');
+      result = await sut.validate(new ValidateInstruction(obj, 'name'));
       assert.equal(result.length, 2);
 
       assertValidationResult(result[0], true, 'name', obj, RegexRule);
@@ -139,13 +137,13 @@ describe('StandardValidator', function () {
         rules.property,
         [[rules.$rules[0][0]]]);
 
-      let result = await sut.validateProperty(obj, 'name', [rule]);
+      let result = await sut.validate(new ValidateInstruction(obj, 'name', [rule]));
       assert.equal(result.length, 1);
 
       assertValidationResult(result[0], false, 'name', obj, RegexRule, message1);
 
       obj.name = 'foo';
-      result = await sut.validateProperty(obj, 'name', [rule]);
+      result = await sut.validate(new ValidateInstruction(obj, 'name', [rule]));
       assert.equal(result.length, 1);
 
       assertValidationResult(result[0], true, 'name', obj, RegexRule);
@@ -186,7 +184,7 @@ describe('StandardValidator', function () {
         .matches(/foo/)
         .withMessage("\${$value} does not match pattern");
 
-      let result = await sut.validateObject(obj);
+      let result = await sut.validate(new ValidateInstruction(obj));
       assert.equal(result.length, 3);
 
       assertValidationResult(result[0], false, 'name', obj, RequiredRule, message1);
@@ -196,7 +194,7 @@ describe('StandardValidator', function () {
       obj.name = 'foo';
       obj.age = 42;
       obj.address.line1 = 'foo';
-      result = await sut.validateObject(obj);
+      result = await sut.validate(new ValidateInstruction(obj));
       assert.equal(result.length, 3);
 
       assertValidationResult(result[0], true, 'name', obj, RequiredRule);
@@ -237,13 +235,13 @@ describe('StandardValidator', function () {
 
         .rules;
 
-      let result = await sut.validateObject(obj, [rules[0]]);
+      let result = await sut.validate(new ValidateInstruction(obj, void 0, [rules[0]]));
       assert.equal(result.length, 1);
 
       assertValidationResult(result[0], false, 'name', obj, RequiredRule, message1);
 
       obj.name = 'foo';
-      result = await sut.validateObject(obj, [rules[0]]);
+      result = await sut.validate(new ValidateInstruction(obj, void 0, [rules[0]]));
       assert.equal(result.length, 1);
 
       assertValidationResult(result[0], true, 'name', obj, RequiredRule);
@@ -272,13 +270,13 @@ describe('StandardValidator', function () {
         .minItems(1)
         .withMessage(message1);
 
-      let result = await sut.validateObject(obj);
+      let result = await sut.validate(new ValidateInstruction(obj));
       assert.equal(result.length, 1);
 
       assertValidationResult(result[0], false, 'employees', obj, SizeRule, message1);
 
       obj.employees.push(new Person((void 0)!, (void 0)!, (void 0)!));
-      result = await sut.validateObject(obj);
+      result = await sut.validate(new ValidateInstruction(obj));
       assert.equal(result.length, 1);
 
       assertValidationResult(result[0], true, 'employees', obj, SizeRule);
@@ -313,7 +311,7 @@ describe('StandardValidator', function () {
         .equals(11)
         .withMessage(message2);
 
-      let result = await sut.validateObject(obj);
+      let result = await sut.validate(new ValidateInstruction(obj));
       assert.equal(result.length, 2);
 
       assertValidationResult(result[0], false, 'coll[0].a', obj, EqualsRule, message1);
@@ -321,7 +319,7 @@ describe('StandardValidator', function () {
 
       obj.coll[0].a = 11;
       obj.coll[1].a = 11;
-      result = await sut.validateObject(obj);
+      result = await sut.validate(new ValidateInstruction(obj));
       assert.equal(result.length, 2);
 
       assertValidationResult(result[0], true, 'coll[0].a', obj, EqualsRule);
@@ -345,13 +343,13 @@ describe('StandardValidator', function () {
         .equals(11)
         .withMessage(message1);
 
-      let result = await sut.validateObject(obj);
+      let result = await sut.validate(new ValidateInstruction(obj));
       assert.equal(result.length, 1);
 
       assertValidationResult(result[0], false, 'subprop[\'a\']', obj, EqualsRule, message1);
 
       obj.subprop.a = 11;
-      result = await sut.validateObject(obj);
+      result = await sut.validate(new ValidateInstruction(obj));
       assert.equal(result.length, 1);
 
       assertValidationResult(result[0], true, 'subprop[\'a\']', obj, EqualsRule);
@@ -373,7 +371,7 @@ describe('StandardValidator', function () {
       .minLength(42)
       .withMessage(message2);
 
-    const result = await sut.validateProperty(obj, 'name', void 0, tag);
+    const result = await sut.validate(new ValidateInstruction(obj, 'name', void 0, void 0, tag));
     assert.equal(result.length, 1);
 
     assertValidationResult(result[0], false, 'name', obj, RegexRule, message1);
@@ -395,7 +393,7 @@ describe('StandardValidator', function () {
       .withMessage(message2)
       .rules;
 
-    const result = await sut.validateProperty(obj, 'name', rules, tag);
+    const result = await sut.validate(new ValidateInstruction(obj, 'name', rules, void 0, tag));
     assert.equal(result.length, 1);
 
     assertValidationResult(result[0], false, 'name', obj, RegexRule, message1);
@@ -416,8 +414,8 @@ describe('StandardValidator', function () {
       .ensure('age')
       .required();
 
-    const result1 = await sut.validateObject(obj, void 0, tag1);
-    const result2 = await sut.validateObject(obj, void 0, tag2);
+    const result1 = await sut.validate(new ValidateInstruction(obj, void 0, void 0, tag1));
+    const result2 = await sut.validate(new ValidateInstruction(obj, void 0, void 0, tag2));
 
     assert.deepEqual(result1.map((r) => r.toString()), ['name is required.']);
     assert.deepEqual(result2.map((r) => r.toString()), ['age is required.']);
@@ -439,7 +437,7 @@ describe('StandardValidator', function () {
       .ensure('age')
       .required();
 
-    const result1 = await sut.validateObject(obj);
+    const result1 = await sut.validate(new ValidateInstruction(obj));
 
     assert.deepEqual(result1.map((r) => r.toString()), ['name is required.']);
 
@@ -466,8 +464,8 @@ describe('StandardValidator', function () {
       .satisfies((o: typeof obj) => o.a === 42)
       .withMessage(msg2);
 
-    const result1 = await sut.validateObject(people);
-    const result2 = await sut.validateObject(obj);
+    const result1 = await sut.validate(new ValidateInstruction(people));
+    const result2 = await sut.validate(new ValidateInstruction(obj));
 
     assert.deepEqual(result1.map((r) => r.toString()), [msg1]);
     assert.deepEqual(result2.map((r) => r.toString()), ['b must be 42.', msg2]);

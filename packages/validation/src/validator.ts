@@ -1,81 +1,21 @@
 import { DI } from '@aurelia/kernel';
 import { LifecycleFlags } from '@aurelia/runtime';
-import { PropertyRule, ValidationResult, validationRulesRegistrar } from './rule-provider';
-import { IValidateable } from './rules';
+import { ValidationResult, validationRulesRegistrar } from './rule-provider';
+import { ValidateInstruction } from './validation-controller';
 
 export const IValidator = DI.createInterface<IValidator>("IValidator").noDefault();
-/**
- * Validates objects and properties.
- */
 export interface IValidator {
-
-  /**
-   * Validates the specified property.
-   *
-   * @param object - The object to validate.
-   * @param propertyName - The name of the property to validate.
-   * @param rules - Optional. If unspecified, the implementation should lookup the rules for the
-   * specified object. This may not be possible for all implementations of this interface.
-   */
-  validateProperty<T extends IValidateable = IValidateable>(object: T, propertyName: keyof T, rules?: PropertyRule[], tag?: string): Promise<ValidationResult[]>;
-  validateProperty<T extends IValidateable = IValidateable>(object: T, propertyName: string, rules?: PropertyRule[], tag?: string): Promise<ValidationResult[]>;
-
-  /**
-   * Validates all rules for specified object and it's properties.
-   *
-   * @param object - The object to validate.
-   * @param rules - Optional. If unspecified, the implementation should lookup the rules for the
-   * specified object. This may not be possible for all implementations of this interface.
-   */
-  validateObject(object: IValidateable, rules?: PropertyRule[], tag?: string): Promise<ValidationResult[]>;
+  validate<T>(instruction: ValidateInstruction<T>): Promise<ValidationResult[]>;
 }
 
-/**
- * Validates.
- * Responsible for validating objects and properties.
- */
 export class StandardValidator implements IValidator {
-  /**
-   * Validates the specified property.
-   *
-   * @param {*} object - The object to validate.
-   * @param {(string|number)} propertyName - The name of the property to validate.
-   * @param {*} [rules] - If unspecified, the rules will be looked up using the metadata
-   * for the object created by ValidationRules....on(class/object)
-   */
-  public async validateProperty<T extends IValidateable = IValidateable>(
-    object: T,
-    propertyName: keyof T | string,
-    rules?: PropertyRule[],
-    tag?: string,
-  ): Promise<ValidationResult[]> {
-    return this.validate(object, propertyName, rules, tag);
-  }
+  public async validate<T>(instruction: ValidateInstruction<T>): Promise<ValidationResult[]> {
+    const object = instruction.object;
+    const propertyName = instruction.propertyName;
+    const propertyTag = instruction.propertyTag;
 
-  /**
-   * Validates all rules for specified object and it's properties.
-   *
-   * @param {*} object - The object to validate.
-   * @param {*} [rules] - Optional. If unspecified, the rules will be looked up using the metadata
-   * for the object created by ValidationRules....on(class/object)
-   */
-  public async validateObject(
-    object: IValidateable,
-    rules?: PropertyRule[],
-    tag?: string,
-  ): Promise<ValidationResult[]> {
-    return this.validate(object, void 0, rules, tag);
-  }
-
-  private async validate<T extends IValidateable = IValidateable>(
-    object: T,
-    propertyName?: keyof T | string,
-    rules?: PropertyRule[],
-    tag?: string,
-  ): Promise<ValidationResult[]> {
     const validateAllProperties = propertyName === void 0;
-    const tagPresent = tag !== void 0;
-    rules = rules ?? validationRulesRegistrar.get(object, validateAllProperties && tagPresent ? tag : void 0);
+    const rules = instruction.rules ?? validationRulesRegistrar.get(object, instruction.objectTag) ?? [];
 
     const result = await Promise.all(rules.reduce((acc: Promise<ValidationResult[]>[], rule) => {
       const { name, expression } = rule.property;
@@ -87,7 +27,7 @@ export class StandardValidator implements IValidator {
           const scope = { bindingContext: object, parentScope: null, scopeParts: [], overrideContext: (void 0)! };
           value = expression.evaluate(LifecycleFlags.none, scope, null!);
         }
-        acc.push(rule.validate(value, object, !validateAllProperties && tagPresent ? tag : void 0));
+        acc.push(rule.validate(value, object, propertyTag));
       }
       return acc;
     }, []));

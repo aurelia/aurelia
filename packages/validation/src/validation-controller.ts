@@ -63,23 +63,24 @@ export class ControllerValidateResult {
 /**
  * Instructions for the validation controller's validate method.
  */
-export class ValidateInstruction {
+export class ValidateInstruction<TObject extends IValidateable = IValidateable> {
   public constructor(
     /**
      * The object to validate.
      */
-    public object: IValidateable = (void 0)!,
+    public object: TObject = (void 0)!,
 
     /**
      * The property to validate. Optional.
      */
-    public propertyName: string = (void 0)!,
+    public propertyName: keyof TObject | string = (void 0)!,
 
     /**
      * The rules to validate. Optional.
      */
     public rules: PropertyRule[] = (void 0)!,
-    public tag: string = (void 0)!,
+    public objectTag: string = (void 0)!,
+    public propertyTag: string = (void 0)!,
   ) { }
 }
 
@@ -123,7 +124,7 @@ export interface IValidationController {
   validator: IValidator;
   readonly results: ValidationResult[];
   validating: boolean;
-  validate(instruction?: ValidateInstruction): Promise<ControllerValidateResult>;
+  validate<TObject extends IValidateable>(instruction?: ValidateInstruction<TObject>): Promise<ControllerValidateResult>;
   addObject(object: IValidateable, rules?: PropertyRule[]): void;
   removeObject(object: IValidateable): void;
   addError<TObject>(message: string, object: TObject, propertyName?: string | PropertyAccessor | null): ValidationResult;
@@ -324,46 +325,46 @@ export class ValidationController implements IValidationController {
    * @param {ValidateInstruction} [instruction] - Instructions on what to validate. If undefined, all
    * objects and bindings will be validated.
    */
-  public async validate(instruction?: ValidateInstruction): Promise<ControllerValidateResult> {
-    let execute: () => Promise<ValidationResult[]>;
-    const { object, propertyName, tag } = instruction ?? {};
-    if (object !== void 0) {
-      let rules = instruction!.rules;
-      // if rules were not specified, check the object map.
-      rules = rules ?? this.objects.get(object);
-      execute = propertyName !== void 0
-        ? async () => this.validator.validateProperty(object, propertyName!, rules)
-        : async () => this.validator.validateObject(object, rules);
+  public async validate<TObject extends IValidateable>(instruction?: ValidateInstruction<TObject>): Promise<ControllerValidateResult> {
+    const { object: obj, objectTag } = instruction ?? {};
+    let instructions: ValidateInstruction[];
+    if (obj !== void 0) {
+      instructions = [new ValidateInstruction(
+        obj,
+        instruction?.propertyName,
+        instruction?.rules ?? this.objects.get(obj),
+        objectTag,
+        instruction?.propertyTag
+      )];
     } else {
       // validate all objects and bindings.
-      execute = async () => {
-        const promises: Promise<ValidationResult[]>[] = [];
-        for (const [object, rules] of this.objects.entries()) {
-          promises.push(this.validator.validateObject(object, rules, tag));
-        }
-        if (tag === void 0) {
-          for (const [binding, info] of this.bindings.entries()) {
-            const propertyInfo = this.getPropertyInfo(binding, info);
-            if (propertyInfo !== void 0 && !this.objects.has(propertyInfo.object)) {
-              promises.push(this.validator.validateProperty(propertyInfo.object, propertyInfo.propertyName, info.rules));
-            }
-          }
-        }
-        const results = await Promise.all(promises);
-        return results.reduce(
-          (acc, reslutSet) => {
-            acc.push(...reslutSet);
-            return acc;
-          },
-          []);
-      };
+      instructions = [
+        ...Array.from(this.objects.entries())
+          .map(([object, rules]) => new ValidateInstruction(object, void 0, rules, objectTag)),
+        ...(!objectTag ? Array.from(this.bindings.entries()) : [])
+          .reduce(
+            (acc: ValidateInstruction[], [binding, info]) => {
+              const propertyInfo = this.getPropertyInfo(binding, info);
+              if (propertyInfo !== void 0 && !this.objects.has(propertyInfo.object)) {
+                acc.push(new ValidateInstruction(propertyInfo.object, propertyInfo.propertyName, info.rules));
+              }
+              return acc;
+            },
+            [])
+      ];
     }
 
     // Wait for any existing validation to finish, execute the instruction, render the results.
     this.validating = true;
     const task = this.scheduler.getPostRenderTaskQueue().queueTask(async () => {
       try {
-        const newResults = await execute();
+        const results = await Promise.all(instructions.map(async (x) => this.validator.validate(x)));
+        const newResults = results.reduce(
+          (acc, resultSet) => {
+            acc.push(...resultSet);
+            return acc;
+          },
+          []);
         const predicate = this.getInstructionPredicate(instruction);
         const oldResults = this.results.filter(predicate);
         this.processResultDelta(ValidateEventKind.validate, oldResults, newResults);

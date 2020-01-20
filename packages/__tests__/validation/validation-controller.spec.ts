@@ -182,7 +182,7 @@ describe('validation-controller', function () {
     {
       text: '{ object }',
       getValidationInstruction: (app: App) => { return new ValidateInstruction(app.person2); },
-      assertResult: (result: ControllerValidateResult, instruction: ValidateInstruction) => {
+      assertResult: (result: ControllerValidateResult, instruction: ValidateInstruction<Person>) => {
         const results = result.results;
         assert.equal(results.every((r) => Object.is(instruction.object, r.object)), true);
         assert.equal(results.filter((r) => r.propertyName === 'name').length, 3);
@@ -192,7 +192,7 @@ describe('validation-controller', function () {
     {
       text: '{ object, propertyName }',
       getValidationInstruction: (app: App) => { return new ValidateInstruction(app.person2, 'age'); },
-      assertResult: (result: ControllerValidateResult, instruction: ValidateInstruction) => {
+      assertResult: (result: ControllerValidateResult, instruction: ValidateInstruction<Person>) => {
         const results = result.results;
         assert.equal(results.every((r) => Object.is(instruction.object, r.object)), true);
         assert.equal(results.filter((r) => r.propertyName === 'name').length, 0);
@@ -202,7 +202,7 @@ describe('validation-controller', function () {
     {
       text: '{ object, rules }',
       getValidationInstruction: (app: App) => { return new ValidateInstruction(app.person2, void 0, [app.person2rules[1]]); },
-      assertResult: (result: ControllerValidateResult, instruction: ValidateInstruction) => {
+      assertResult: (result: ControllerValidateResult, instruction: ValidateInstruction<Person>) => {
         const results = result.results;
         assert.equal(results.every((r) => Object.is(instruction.object, r.object)), true);
         assert.equal(results.filter((r) => r.propertyName === 'name').length, 0);
@@ -216,7 +216,7 @@ describe('validation-controller', function () {
         const rule = new PropertyRule(validationRules, messageProvider, property, [[required]]);
         return new ValidateInstruction(app.person2, void 0, [rule]);
       },
-      assertResult: (result: ControllerValidateResult, instruction: ValidateInstruction) => {
+      assertResult: (result: ControllerValidateResult, instruction: ValidateInstruction<Person>) => {
         const results = result.results;
         assert.equal(results.every((r) => Object.is(instruction.object, r.object)), true);
         assert.equal(results.filter((r) => r.propertyName === 'name').length, 0);
@@ -227,7 +227,7 @@ describe('validation-controller', function () {
     $it(`#validate respects explicit validation instruction - ${text}`,
       async function ({ app }) {
         const sut = app.controller;
-        const instruction = getValidationInstruction(app);
+        const instruction: ValidateInstruction<Person> = getValidationInstruction(app);
         const result = await sut.validate(instruction);
         assertResult(result, instruction);
       },
@@ -435,4 +435,51 @@ describe('validation-controller', function () {
       assert.deepEqual(sut.results.map((r) => r.toString()), ['a must be 42.']);
     }
   );
+
+  $it(`validates object only based on specific rulesset when specified`,
+    async function ({ app: { controller: sut, validationRules } }) {
+      const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
+      const tag1 = 'tag1', tag2 = 'tag2';
+      validationRules
+        .on(obj, tag1)
+        .ensure('name')
+        .required()
+
+        .on(obj, tag2)
+        .ensure('age')
+        .required();
+
+      const { valid, results } = await sut.validate(new ValidateInstruction(obj, void 0, void 0, tag1));
+
+      assert.equal(valid, false);
+      const messages = ['name is required.'];
+      assert.deepEqual(results.map((r) => r.toString()), messages);
+      assert.deepEqual(sut.results.filter((r) => !r.valid).map((r) => r.toString()), messages);
+
+      validationRules.off();
+    });
+
+  $it(`validates object property only based on the tagged rules when specified`,
+    async function ({ app: { controller: sut, validationRules } }) {
+      const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
+      const tag1 = 'tag1', tag2 = 'tag2';
+      const msg1 = 'msg1', msg2 = 'msg2';
+      validationRules
+        .on(obj)
+        .ensure('name')
+        .satisfies((value) => value === 'fizbaz')
+        .withMessage(msg1)
+        .tag(tag1)
+        .satisfies((value) => value === 'foobar')
+        .withMessage(msg2)
+        .tag(tag2);
+
+      const { valid, results } = await sut.validate(new ValidateInstruction(obj, void 0, void 0, void 0, tag1));
+
+      assert.equal(valid, false);
+      assert.deepEqual(results.map((r) => r.toString()), [msg1]);
+      assert.deepEqual(sut.results.filter((r) => !r.valid).map((r) => r.toString()), [msg1]);
+
+      validationRules.off();
+    });
 });

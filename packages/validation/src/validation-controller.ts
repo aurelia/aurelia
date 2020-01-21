@@ -42,48 +42,42 @@ export const enum ValidateEventKind {
  * The result of a call to the validation controller's validate method.
  */
 export class ControllerValidateResult {
+  /**
+   * @param {boolean} valid - `true` if the validation passed, else `false`.
+   * @param {ValidationResult[]} results - The validation result of every rule that was evaluated.
+   * @param {ValidateInstruction} [instruction] - The instruction passed to the controller's validate method.
+   */
   public constructor(
-    /**
-     * Whether validation passed.
-     */
     public valid: boolean,
-
-    /**
-     * The validation result of every rule that was evaluated.
-     */
     public results: ValidationResult[],
-
-    /**
-     * The instruction passed to the controller's validate method.
-     */
     public instruction?: ValidateInstruction,
   ) { }
 }
 
 /**
- * Instructions for the validation controller's validate method.
+ * Instruction for the validation controller's validate method.
  */
 export class ValidateInstruction<TObject extends IValidateable = IValidateable> {
+  /**
+   * @param {TObject} [object=(void 0)!] - The object to validate.
+   * @param {(keyof TObject | string)} [propertyName=(void 0)!] - The property name to validate.
+   * @param {PropertyRule[]} [rules=(void 0)!] - The rules to validate.
+   * @param {string} [objectTag=(void 0)!] - The tag indicating the ruleset defined for the object.
+   * @param {string} [propertyTag=(void 0)!] - The tag indicating the ruleset for the property.
+   */
   public constructor(
-    /**
-     * The object to validate.
-     */
     public object: TObject = (void 0)!,
-
-    /**
-     * The property to validate. Optional.
-     */
     public propertyName: keyof TObject | string = (void 0)!,
-
-    /**
-     * The rules to validate. Optional.
-     */
     public rules: PropertyRule[] = (void 0)!,
     public objectTag: string = (void 0)!,
     public propertyTag: string = (void 0)!,
   ) { }
 }
 
+/**
+ * Describes the validation result and target elements pair.
+ * Used to notify the subscribers.
+ */
 export class ValidationResultTarget {
   public constructor(
     public result: ValidationResult,
@@ -91,7 +85,17 @@ export class ValidationResultTarget {
   ) { }
 }
 
+/**
+ * Describes the contract of the validation event.
+ * Used to notify the subscribers.
+ */
 export class ValidationEvent {
+  /**
+   * @param {ValidateEventKind} kind - 'validate' or 'reset'.
+   * @param {ValidationResultTarget[]} addedResults - new errors added.
+   * @param {ValidationResultTarget[]} removedResults - old errors removed.
+   * @memberof ValidationEvent
+   */
   public constructor(
     public kind: ValidateEventKind,
     public addedResults: ValidationResultTarget[],
@@ -99,11 +103,26 @@ export class ValidationEvent {
   ) { }
 }
 
+/**
+ * Contract of the validation errors subscriber.
+ * The subscriber should implement this interface.
+ */
 export interface ValidationErrorsSubscriber {
   handleValidationEvent(event: ValidationEvent): void;
 }
 
+/**
+ * Describes a binding information to the validation controller.
+ * This is provided by the `validate` binding behavior during binding registration.
+ */
 export class BindingInfo {
+  /**
+   * @param {Element} target - The HTMLElement associated with the binding.
+   * @param {IScope} scope - The binding scope.
+   * @param {PropertyRule[]} [rules] - Rules bound to the binding behavior.
+   * @param {(PropertyInfo | undefined)} [propertyInfo=void 0] - Information describing the associated property for the binding.
+   * @memberof BindingInfo
+   */
   public constructor(
     public target: Element,
     public scope: IScope,
@@ -120,51 +139,133 @@ class PropertyInfo {
 }
 
 type ValidationPredicate = (result: ValidationResult) => boolean;
+/**
+ * Orchestrates validation.
+ * Manages a set of bindings, subscribers and objects.
+ */
 export interface IValidationController {
-  validator: IValidator;
+  /**
+   * Collection of registered property bindings.
+   *
+   * @type {Map<BindingWithBehavior, BindingInfo>}
+   */
+  readonly bindings: Map<BindingWithBehavior, BindingInfo>;
+  /**
+   * Objects that have been added to the controller instance (entity-style validation).
+   *
+   * @type {(Map<IValidateable, PropertyRule[] | undefined>)}
+   */
+  readonly objects: Map<IValidateable, PropertyRule[] | undefined>;
+  /**
+   * Collection of registered subscribers.
+   *
+   * @type {ValidationErrorsSubscriber[]}
+   */
+  readonly subscribers: ValidationErrorsSubscriber[];
+  /**
+   * Current set of validation results.
+   *
+   * @type {ValidationResult[]}
+   */
   readonly results: ValidationResult[];
+  /**
+   * The core validator, used to perform all validation.
+   *
+   * @type {IValidator}
+   */
+  validator: IValidator;
+  /**
+   * Whether the controller is currently validating.
+   *
+   * @type {boolean}
+   */
   validating: boolean;
+  /**
+   * Validates and notifies the subscribers with the result.
+   *
+   * @param {ValidateInstruction<TObject>} [instruction] - If omitted, then all the registered objects and bindings will be validated.
+   */
   validate<TObject extends IValidateable>(instruction?: ValidateInstruction<TObject>): Promise<ControllerValidateResult>;
+  /**
+   * Registers the given `object` with optional `rules` to the controller.
+   * During `validate` without instruction, the object will be validated.
+   * If the instruction consists of only an object tag, and the `object` is tagged also with the similar tag, it will be validated.
+   */
   addObject(object: IValidateable, rules?: PropertyRule[]): void;
+  /**
+   * Deregisters the given `object` from the controller; i.e. during `validate` the `object` won't be validated.
+   */
   removeObject(object: IValidateable): void;
+  /**
+   * Adds a manual error. This is never removed explicitly by validation controller when re-validating the errors.
+   * The subscribers gets notified.
+   */
   addError<TObject>(message: string, object: TObject, propertyName?: string | PropertyAccessor | null): ValidationResult;
+  /**
+   * Removes an error from the controller.
+   * The subscribers gets notified.
+   */
   removeError(result: ValidationResult): void;
+  /**
+   * Registers the `subscriber` to the controller.
+   * The `subscriber` does not get notified of the previous errors.
+   */
   addSubscriber(subscriber: ValidationErrorsSubscriber): void;
+  /**
+   * Deregisters the `subscriber` from the controller.
+   */
   removeSubscriber(subscriber: ValidationErrorsSubscriber): void;
+  /**
+   * Registers a `binding` to the controller.
+   * The binding will be validated during validate without instruction.
+   * This is usually done via the `validate` binding behavior during binding phase.
+   * @internal
+   */
   registerBinding(binding: BindingWithBehavior, info: BindingInfo): void;
+  /**
+   * Deregisters a binding; i.e. it won't be validated during validate without instruction.
+   * This is usually done via the `validate` binding behavior during unbinding phase.
+   * @internal
+   */
   deregisterBinding(binding: BindingWithBehavior): void;
+  /**
+   * Validates a specific binding.
+   * This is usually done from the `validate` binding behavior, triggered by some `ValidationTrigger`
+   * @internal
+   */
   validateBinding(binding: BindingWithBehavior): Promise<void>;
+  /**
+   * Resets the results for a property associated with a binding.
+   */
   resetBinding(binding: BindingWithBehavior): void;
+  /**
+   * Revalidates the controller's current set of results.
+   */
   revalidateErrors(): Promise<void>;
+  /**
+   * Resets any validation results.
+   *
+   * @param {ValidateInstruction} [instruction] - Instructions on what to reset. If omitted all rendered results will be removed.
+   */
   reset(instruction?: ValidateInstruction): void;
 }
 export const IValidationController = DI.createInterface<IValidationController>("IValidationController").noDefault();
 
-/**
- * Orchestrates validation.
- * Manages a set of bindings, subscribers and objects.
- * Exposes the current list of validation results for binding purposes.
- */
 export class ValidationController implements IValidationController {
 
-  private readonly bindings: Map<BindingWithBehavior, BindingInfo> = new Map<BindingWithBehavior, BindingInfo>();
-  private readonly subscribers: ValidationErrorsSubscriber[] = [];
-
-  /**
-   * Validation results that have been rendered by the controller.
-   */
+  public readonly bindings: Map<BindingWithBehavior, BindingInfo> = new Map<BindingWithBehavior, BindingInfo>();
+  public readonly subscribers: ValidationErrorsSubscriber[] = [];
   public readonly results: ValidationResult[] = [];
-
-  /**
-   * Whether the controller is currently validating.
-   */
   public validating: boolean = false;
 
-  // Elements related to validation results that have been rendered.
+  /**
+   * Elements related to validation results that have been rendered.
+   *
+   * @private
+   * @type {Map<ValidationResult, Element[]>}
+   */
   private readonly elements: Map<ValidationResult, Element[]> = new Map<ValidationResult, Element[]>();
-
-  // Objects that have been added to the controller instance (entity-style validation).
-  private readonly objects: Map<IValidateable, PropertyRule[] | undefined> = new Map<IValidateable, PropertyRule[] | undefined>();
+  public readonly objects: Map<IValidateable, PropertyRule[] | undefined> = new Map<IValidateable, PropertyRule[] | undefined>();
 
   public constructor(
     @IValidator public readonly validator: IValidator,
@@ -172,19 +273,10 @@ export class ValidationController implements IValidationController {
     @IScheduler private readonly scheduler: IScheduler,
   ) { }
 
-  /**
-   * Adds an object to the set of objects that should be validated when validate is called.
-   *
-   * @param {IValidateable} object - The object.
-   * @param {PropertyRule[][]} [rules] - The rules. If rules aren't supplied the Validator implementation will lookup the rules.
-   */
   public addObject(object: IValidateable, rules?: PropertyRule[]): void {
     this.objects.set(object, rules);
   }
 
-  /**
-   * Removes an object from the set of objects that should be validated when validate is called.
-   */
   public removeObject(object: IValidateable): void {
     this.objects.delete(object);
     this.processResultDelta(
@@ -193,9 +285,6 @@ export class ValidationController implements IValidationController {
       []);
   }
 
-  /**
-   * Adds and renders an error.
-   */
   public addError<TObject>(
     message: string,
     object: TObject,
@@ -210,9 +299,6 @@ export class ValidationController implements IValidationController {
     return result;
   }
 
-  /**
-   * Removes and unrenders an error.
-   */
   public removeError(result: ValidationResult) {
     if (this.results.includes(result)) {
       this.processResultDelta(ValidateEventKind.reset, [result], []);
@@ -227,27 +313,139 @@ export class ValidationController implements IValidationController {
     this.subscribers.splice(this.subscribers.indexOf(subscriber), 1);
   }
 
-  /**
-   * @internal
-   */
   public registerBinding(binding: BindingWithBehavior, info: BindingInfo) {
     this.bindings.set(binding, info);
   }
 
-  /**
-   * Unregisters a binding with the controller.
-   *
-   * @param binding - The binding instance.
-   * @internal
-   */
   public deregisterBinding(binding: BindingWithBehavior) {
     this.resetBinding(binding);
     this.bindings.delete(binding);
   }
 
+  public async validate<TObject extends IValidateable>(instruction?: ValidateInstruction<TObject>): Promise<ControllerValidateResult> {
+    const { object: obj, objectTag } = instruction ?? {};
+    let instructions: ValidateInstruction[];
+    if (obj !== void 0) {
+      instructions = [new ValidateInstruction(
+        obj,
+        instruction!.propertyName,
+        instruction!.rules ?? this.objects.get(obj),
+        objectTag,
+        instruction!.propertyTag
+      )];
+    } else {
+      // validate all objects and bindings.
+      instructions = [
+        ...Array.from(this.objects.entries())
+          .map(([object, rules]) => new ValidateInstruction(object, void 0, rules, objectTag)),
+        ...(!objectTag ? Array.from(this.bindings.entries()) : [])
+          .reduce(
+            (acc: ValidateInstruction[], [binding, info]) => {
+              const propertyInfo = this.getPropertyInfo(binding, info);
+              if (propertyInfo !== void 0 && !this.objects.has(propertyInfo.object)) {
+                acc.push(new ValidateInstruction(propertyInfo.object, propertyInfo.propertyName, info.rules));
+              }
+              return acc;
+            },
+            [])
+      ];
+    }
+
+    this.validating = true;
+    const task = this.scheduler.getPostRenderTaskQueue().queueTask(async () => {
+      try {
+        const results = await Promise.all(instructions.map(async (x) => this.validator.validate(x)));
+        const newResults = results.reduce(
+          (acc, resultSet) => {
+            acc.push(...resultSet);
+            return acc;
+          },
+          []);
+        const predicate = this.getInstructionPredicate(instruction);
+        const oldResults = this.results.filter(predicate);
+        this.processResultDelta(ValidateEventKind.validate, oldResults, newResults);
+
+        return new ControllerValidateResult(newResults.find(r => !r.valid) === void 0, newResults, instruction);
+      } finally {
+        this.validating = false;
+      }
+    });
+    return task.result;
+  }
+
+  public reset(instruction?: ValidateInstruction) {
+    const predicate = this.getInstructionPredicate(instruction);
+    const oldResults = this.results.filter(predicate);
+    this.processResultDelta(ValidateEventKind.reset, oldResults, []);
+  }
+
+  public async validateBinding(binding: BindingWithBehavior) {
+    const $state = binding.$state;
+    if (($state & State.isBound) === 0 || ($state & State.isUnbinding) !== 0) { return; }
+
+    const bindingInfo = this.bindings.get(binding);
+    if (bindingInfo === void 0) { return; }
+
+    const propertyInfo = this.getPropertyInfo(binding, bindingInfo);
+    const rules = bindingInfo.rules;
+    if (propertyInfo === void 0) { return; }
+
+    const { object, propertyName } = propertyInfo;
+    await this.validate(new ValidateInstruction(object, propertyName, rules));
+  }
+
+  public resetBinding(binding: BindingWithBehavior) {
+    const bindingInfo = this.bindings.get(binding);
+    if (bindingInfo === void 0) { return; }
+
+    const propertyInfo = this.getPropertyInfo(binding, bindingInfo);
+    if (propertyInfo === void 0) { return; }
+
+    bindingInfo.propertyInfo = void 0;
+    const { object, propertyName } = propertyInfo;
+    this.reset(new ValidateInstruction(object, propertyName));
+  }
+
+  public async revalidateErrors() {
+    const map = this.results
+      .reduce(
+        (acc, { isManual, object, propertyRule, rule, valid }) => {
+          if (!valid && !isManual && propertyRule !== void 0 && object !== void 0 && rule !== void 0) {
+            let value = acc.get(object);
+            if (value === void 0) {
+              value = new Map();
+              acc.set(object, value);
+            }
+            let rules = value.get(propertyRule);
+            if (rules === void 0) {
+              rules = [];
+              value.set(propertyRule, rules);
+            }
+            rules.push(rule);
+          }
+          return acc;
+        },
+        new Map<IValidateable, Map<PropertyRule, BaseValidationRule[]>>());
+
+    const promises = [];
+    for (const [object, innerMap] of map) {
+      promises.push(
+        this.validate(new ValidateInstruction(
+          object,
+          undefined,
+          Array.from(innerMap)
+            .map(([
+              { validationRules, messageProvider, property },
+              rules
+            ]) => new PropertyRule(validationRules, messageProvider, property, [rules]))
+        ))
+      );
+    }
+    await Promise.all(promises);
+  }
+
   /**
-   * Interprets the instruction and returns a predicate that will identify
-   * relevant results in the list of rendered validation results.
+   * Interprets the instruction and returns a predicate that will identify relevant results in the list of rendered validation results.
    */
   private getInstructionPredicate(instruction?: ValidateInstruction): ValidationPredicate {
     if (instruction === void 0) { return () => true; }
@@ -320,75 +518,6 @@ export class ValidationController implements IValidationController {
   }
 
   /**
-   * Validates and renders results.
-   *
-   * @param {ValidateInstruction} [instruction] - Instructions on what to validate. If undefined, all
-   * objects and bindings will be validated.
-   */
-  public async validate<TObject extends IValidateable>(instruction?: ValidateInstruction<TObject>): Promise<ControllerValidateResult> {
-    const { object: obj, objectTag } = instruction ?? {};
-    let instructions: ValidateInstruction[];
-    if (obj !== void 0) {
-      instructions = [new ValidateInstruction(
-        obj,
-        instruction!.propertyName,
-        instruction!.rules ?? this.objects.get(obj),
-        objectTag,
-        instruction!.propertyTag
-      )];
-    } else {
-      // validate all objects and bindings.
-      instructions = [
-        ...Array.from(this.objects.entries())
-          .map(([object, rules]) => new ValidateInstruction(object, void 0, rules, objectTag)),
-        ...(!objectTag ? Array.from(this.bindings.entries()) : [])
-          .reduce(
-            (acc: ValidateInstruction[], [binding, info]) => {
-              const propertyInfo = this.getPropertyInfo(binding, info);
-              if (propertyInfo !== void 0 && !this.objects.has(propertyInfo.object)) {
-                acc.push(new ValidateInstruction(propertyInfo.object, propertyInfo.propertyName, info.rules));
-              }
-              return acc;
-            },
-            [])
-      ];
-    }
-
-    this.validating = true;
-    const task = this.scheduler.getPostRenderTaskQueue().queueTask(async () => {
-      try {
-        const results = await Promise.all(instructions.map(async (x) => this.validator.validate(x)));
-        const newResults = results.reduce(
-          (acc, resultSet) => {
-            acc.push(...resultSet);
-            return acc;
-          },
-          []);
-        const predicate = this.getInstructionPredicate(instruction);
-        const oldResults = this.results.filter(predicate);
-        this.processResultDelta(ValidateEventKind.validate, oldResults, newResults);
-
-        return new ControllerValidateResult(newResults.find(r => !r.valid) === void 0, newResults, instruction);
-      } finally {
-        this.validating = false;
-      }
-    });
-    return task.result;
-  }
-
-  /**
-   * Resets any rendered validation results (unrenders).
-   *
-   * @param {ValidateInstruction} [instruction] - Instructions on what to reset. If unspecified all rendered results
-   * will be unrendered.
-   */
-  public reset(instruction?: ValidateInstruction) {
-    const predicate = this.getInstructionPredicate(instruction);
-    const oldResults = this.results.filter(predicate);
-    this.processResultDelta(ValidateEventKind.reset, oldResults, []);
-  }
-
-  /**
    * Gets the elements associated with an object and propertyName (if any).
    */
   private getAssociatedElements({ object, propertyName }: ValidationResult): Element[] {
@@ -408,8 +537,6 @@ export class ValidationController implements IValidationController {
     newResults: ValidationResult[],
   ) {
     const eventData: ValidationEvent = new ValidationEvent(kind, [], []);
-    // console.log(`process delta, #new: ${newResults.length}, #old: ${oldResults.length}`);
-
     // create a shallow copy of newResults so we can mutate it without causing side-effects.
     newResults = newResults.slice(0);
 
@@ -449,82 +576,6 @@ export class ValidationController implements IValidationController {
     for (const subscriber of this.subscribers) {
       subscriber.handleValidationEvent(eventData);
     }
-  }
-
-  /**
-   * Validates the property associated with a binding.
-   *
-   * @internal
-   */
-  public async validateBinding(binding: BindingWithBehavior) {
-    const $state = binding.$state;
-    if (($state & State.isBound) === 0 || ($state & State.isUnbinding) !== 0) { return; }
-
-    const bindingInfo = this.bindings.get(binding);
-    if (bindingInfo === void 0) { return; }
-
-    const propertyInfo = this.getPropertyInfo(binding, bindingInfo);
-    const rules = bindingInfo.rules;
-    if (propertyInfo === void 0) { return; }
-
-    const { object, propertyName } = propertyInfo;
-    await this.validate(new ValidateInstruction(object, propertyName, rules));
-  }
-
-  /**
-   * Resets the results for a property associated with a binding.
-   */
-  public resetBinding(binding: BindingWithBehavior) {
-    const bindingInfo = this.bindings.get(binding);
-    if (bindingInfo === void 0) { return; }
-
-    const propertyInfo = this.getPropertyInfo(binding, bindingInfo);
-    if (propertyInfo === void 0) { return; }
-
-    bindingInfo.propertyInfo = void 0;
-    const { object, propertyName } = propertyInfo;
-    this.reset(new ValidateInstruction(object, propertyName));
-  }
-
-  /**
-   * Revalidates the controller's current set of errors.
-   */
-  public async revalidateErrors() {
-    const map = this.results
-      .reduce(
-        (acc, { isManual, object, propertyRule, rule, valid }) => {
-          if (!valid && !isManual && propertyRule !== void 0 && object !== void 0 && rule !== void 0) {
-            let value = acc.get(object);
-            if (value === void 0) {
-              value = new Map();
-              acc.set(object, value);
-            }
-            let rules = value.get(propertyRule);
-            if (rules === void 0) {
-              rules = [];
-              value.set(propertyRule, rules);
-            }
-            rules.push(rule);
-          }
-          return acc;
-        },
-        new Map<IValidateable, Map<PropertyRule, BaseValidationRule[]>>());
-
-    const promises = [];
-    for (const [object, innerMap] of map) {
-      promises.push(
-        this.validate(new ValidateInstruction(
-          object,
-          undefined,
-          Array.from(innerMap)
-            .map(([
-              { validationRules, messageProvider, property },
-              rules
-            ]) => new PropertyRule(validationRules, messageProvider, property, [rules]))
-        ))
-      );
-    }
-    await Promise.all(promises);
   }
 }
 

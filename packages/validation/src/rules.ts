@@ -1,12 +1,23 @@
-// import { IValidationMessageProvider, IValidateable } from './rule';
 import { Constructable, Protocol, Metadata, Class, DI } from '@aurelia/kernel';
 import { IInterpolationExpression, PrimitiveLiteralExpression } from '@aurelia/runtime';
 
 export type IValidateable<T = any> = (Class<T> | object) & { [key in PropertyKey]: any };
 
+/**
+ * Retrieves validation messages and property display names.
+ */
 export interface IValidationMessageProvider {
+  /**
+   * Gets the parsed message for the `rule`.
+   */
   getMessage(rule: BaseValidationRule): IInterpolationExpression | PrimitiveLiteralExpression;
+  /**
+   * Core message parsing function.
+   */
   parseMessage(message: string): IInterpolationExpression | PrimitiveLiteralExpression;
+  /**
+   * Formulates a property display name using the property name and the configured displayName (if provided).
+   */
   getDisplayName(propertyName: string | number, displayName?: string | null | (() => string)): string;
 }
 
@@ -51,6 +62,9 @@ export function validationRule(definition: ValidationRuleDefinition) {
   };
 }
 
+/**
+ * Abstract validation rule.
+ */
 @validationRule({ aliases: [{ name: (void 0)!, defaultMessage: `\${$displayName} is invalid.` }] })
 export class BaseValidationRule<TValue = any, TObject extends IValidateable = IValidateable> {
   public tag?: string = (void 0)!;
@@ -80,11 +94,25 @@ export class BaseValidationRule<TValue = any, TObject extends IValidateable = IV
   public constructor(protected readonly messageProvider: IValidationMessageProvider) { }
 
   public canExecute: ValidationRuleExecutionPredicate = () => true;
+
+  /**
+   * Core rule execution.
+   *
+   * @param {TValue} value - value to validate
+   * @param {TObject} [object] - target object
+   * @returns {(boolean | Promise<boolean>)} - `true | Promise<true>` if the validation is successfull, else `false | Promise<false>`.
+   */
   public execute(value: TValue, object?: TObject): boolean | Promise<boolean> {
     throw new Error('No base implementation of execute. Did you forget to implement the excute method?'); // TODO reporter
   }
 }
 
+/**
+ * Passes the validation if the value is not `null`, and not `undefined`.
+ * In case of string, it must not be empty.
+ *
+ * @see PropertyRule#required
+ */
 @validationRule({ aliases: [{ name: 'required', defaultMessage: `\${$displayName} is required.` }] })
 export class RequiredRule extends BaseValidationRule {
   public execute(value: unknown): boolean | Promise<boolean> {
@@ -94,6 +122,13 @@ export class RequiredRule extends BaseValidationRule {
   }
 }
 
+/**
+ * Passes the validation if the non-`null`, non-`undefined`, and non-empty string value matches the given pattern described by a regular expression.
+ * There are 2 aliases: 'matches' (any random regex), and 'email' (with email regex).
+ *
+ * @see PropertyRule#matches
+ * @see PropertyRule#email
+ */
 @validationRule({
   aliases: [
     { name: 'matches', defaultMessage: `\${$displayName} is not correctly formatted.` },
@@ -109,6 +144,13 @@ export class RegexRule extends BaseValidationRule<string> {
   }
 }
 
+/**
+ * Passes the validation if the non-`null`, non-`undefined`, and non-empty string value matches the given length constraint.
+ * There are 2 aliases: 'minLength', and 'maxLength'.
+ *
+ * @see PropertyRule#minLength
+ * @see PropertyRule#maxLength
+ */
 @validationRule({
   aliases: [
     { name: 'minLength', defaultMessage: `\${$displayName} must be at least \${$rule.length} character\${$rule.length === 1 ? '' : 's'}.` },
@@ -125,6 +167,13 @@ export class LengthRule extends BaseValidationRule<string> {
   }
 }
 
+/**
+ * Passes the validation if the non-`null`, and non-`undefined` array value matches the given count constraint.
+ * There are 2 aliases: 'minItems', and 'maxItems'.
+ *
+ * @see PropertyRule#minItems
+ * @see PropertyRule#maxItems
+ */
 @validationRule({
   aliases: [
     { name: 'minItems', defaultMessage: `\${$displayName} must contain at least \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.` },
@@ -145,6 +194,16 @@ type Range = {
   min?: number;
   max?: number;
 };
+
+/**
+ * Passes the validation if the non-`null`, and non-`undefined` numeric value matches the given interval constraint.
+ * There are 2 aliases: 'min' (`[min,]`), 'max' (`[, max]`), range (`[min, max]`), and 'between' (`(min, max)`).
+ *
+ * @see PropertyRule#min
+ * @see PropertyRule#max
+ * @see PropertyRule#range
+ * @see PropertyRule#between
+ */
 @validationRule({
   aliases: [
     { name: 'min', defaultMessage: `\${$displayName} must be at least \${$rule.min}.` },
@@ -173,6 +232,11 @@ export class RangeRule extends BaseValidationRule<number> {
   }
 }
 
+/**
+ * Passes the validation if the the non-`null`, non-`undefined`, non-empty value matches given expected value.
+ *
+ * @see PropertyRule#equals
+ */
 @validationRule({
   aliases: [
     { name: 'equals', defaultMessage: `\${$displayName} must be \${$rule.expectedValue}.` },

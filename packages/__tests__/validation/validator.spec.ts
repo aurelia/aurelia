@@ -16,6 +16,7 @@ import {
   PropertyAccessor,
   BaseValidationRule,
   ValidateInstruction,
+  ValidationRuleAliasMessage,
 } from '@aurelia/validation';
 import { assert } from '@aurelia/testing';
 import { Person, Address, Organization } from './_test-resources';
@@ -469,6 +470,44 @@ describe('StandardValidator', function () {
 
     assert.deepEqual(result1.map((r) => r.toString()), [msg1]);
     assert.deepEqual(result2.map((r) => r.toString()), ['b must be 42.', msg2]);
+
+    rules.off();
+  });
+
+  it(`respects registered custom message key`, async function () {
+    const { sut, validationRules: rules } = setup();
+
+    const messageKey = 'fooBarFizBaz';
+    const displayName = 'FooBar';
+    const defaultRequiredRulesMessages = ValidationRuleAliasMessage.getDefaultMessages(RequiredRule);
+    const customMessages = {
+      rule: RequiredRule,
+      aliases: [
+        { name: messageKey, defaultMessage: '${$displayName} foobar fizbaz' }
+      ],
+    };
+    ValidationRuleAliasMessage.setDefaultMessage(RequiredRule, customMessages);
+
+    const person: Person = new Person((void 0)!, (void 0)!, { line1: (void 0)!, city: (void 0)!, pin: (void 0)! });
+
+    rules
+      .on(person)
+      .ensure('name')
+      .displayName(displayName)
+      .required()
+      .withMessageKey(messageKey)
+      .ensure('age')
+      .required()
+      .withMessageKey('required')
+      .ensure((p) => p.address.line1)
+      .required()
+      ;
+
+    const result1 = await sut.validate(new ValidateInstruction(person));
+
+    assert.deepEqual(result1.map((r) => r.toString()), ['FooBar foobar fizbaz', 'age is required.', 'address.line1 is invalid.']);
+
+    ValidationRuleAliasMessage.setDefaultMessage(RequiredRule, { aliases: defaultRequiredRulesMessages }, false);
 
     rules.off();
   });

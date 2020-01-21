@@ -354,7 +354,6 @@ export class ValidationController implements IValidationController {
       ];
     }
 
-    // Wait for any existing validation to finish, execute the instruction, render the results.
     this.validating = true;
     const task = this.scheduler.getPostRenderTaskQueue().queueTask(async () => {
       try {

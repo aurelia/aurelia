@@ -26,7 +26,16 @@ export const ValidationRuleAliasMessage = Object.freeze({
     ValidationRuleAliasMessage.setDefaultMessage(target, definition);
     return target;
   },
-  setDefaultMessage<TRule extends BaseValidationRule>(rule: Constructable<TRule> | TRule, { aliases }: ValidationRuleDefinition) {
+  setDefaultMessage<TRule extends BaseValidationRule>(rule: Constructable<TRule>, { aliases }: ValidationRuleDefinition, append: boolean = true) {
+    // conditionally merge
+    const defaultMessages = append ? Metadata.getOwn(this.aliasKey, rule.prototype) as ValidationRuleAlias[] : void 0;
+    if (defaultMessages !== void 0) {
+      const allMessages: Record<string, string> = {
+        ...Object.fromEntries(defaultMessages.map(({ name, defaultMessage }) => [name, defaultMessage])) as Record<string, string>,
+        ...Object.fromEntries(aliases.map(({ name, defaultMessage }) => [name, defaultMessage])) as Record<string, string>,
+      };
+      aliases = Array.from(Object.entries(allMessages)).map(([name, defaultMessage]) => ({ name, defaultMessage }));
+    }
     Metadata.define(ValidationRuleAliasMessage.aliasKey, aliases, rule instanceof Function ? rule.prototype : rule);
   },
   getDefaultMessages<TRule extends BaseValidationRule>(rule: Constructable<TRule> | TRule): ValidationRuleAlias[] {

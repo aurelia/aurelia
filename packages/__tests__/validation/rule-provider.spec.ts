@@ -720,8 +720,8 @@ describe('ValidationMessageProvider', function () {
       {
         rule: LengthRule,
         aliases: [
-          { name: 'minLength', defaultMessage: `\${$displayName} fails min. chars contraint.` },
-          { name: 'maxLength', defaultMessage: `\${$displayName} fails max. chars contraint.` },
+          { name: 'minLength', defaultMessage: `\${$displayName} fails min. chars constraint.` },
+          { name: 'maxLength', defaultMessage: `\${$displayName} fails max. chars constraint.` },
         ],
       },
       {
@@ -762,6 +762,42 @@ describe('ValidationMessageProvider', function () {
       ValidationRuleAliasMessage.setDefaultMessage(rule, { aliases });
     }
   });
+
+  it('appending new custom key and messages is also possible', function () {
+
+    const messageKey = 'fooBarFizBaz';
+    const displayName = 'FooBar';
+    const customMessages: ICustomMessage[] = [
+      {
+        rule: RequiredRule,
+        aliases: [
+          { name: messageKey, defaultMessage: '${$displayName} foobar fizbaz' }
+        ],
+      }
+    ];
+    const { sut, container, originalMessages } = setup(customMessages);
+
+    const $rule1 = new RequiredRule(sut);
+    $rule1.messageKey = 'required';
+
+    const $rule2 = new RequiredRule(sut);
+    $rule2.messageKey = messageKey;
+
+    const scope1 = { bindingContext: { $displayName: displayName, $rule: $rule1 }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
+    const scope2 = { bindingContext: { $displayName: displayName, $rule: $rule2 }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
+
+    const actual1 = $rule1.message.evaluate(LifecycleFlags.none, scope1, container);
+    const actual2 = $rule2.message.evaluate(LifecycleFlags.none, scope2, container);
+
+    assert.equal(actual1, 'FooBar is required.');
+    assert.equal(actual2, 'FooBar foobar fizbaz');
+
+    // reset the messages
+    for (const { rule, aliases } of originalMessages) {
+      ValidationRuleAliasMessage.setDefaultMessage(rule, { aliases }, false);
+    }
+  });
+
   [
     { arg1: 'foo', arg2: null, expected: 'Foo' },
     { arg1: 'fooBar', arg2: null, expected: 'Foo Bar' },

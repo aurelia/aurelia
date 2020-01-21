@@ -482,4 +482,34 @@ describe('validation-controller', function () {
 
       validationRules.off();
     });
+
+  $it(`validates object based on both the object and property tags`,
+    async function ({ app: { controller: sut, validationRules } }) {
+      const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
+      const tag1 = 'tag1', tag2 = 'tag2';
+      const pTag1 = 'ptag1', pTag2 = 'ptag2';
+      const msg1 = 'msg1', msg2 = 'msg2';
+
+      validationRules
+        .on(obj, tag1)
+        .ensure('name')
+        .satisfies((value) => value === 'fizbaz')
+        .withMessage(msg1)
+        .tag(pTag1)
+        .satisfies((value) => value === 'foobar')
+        .withMessage(msg2)
+        .tag(pTag2)
+
+        .on(obj, tag2)
+        .ensure('age')
+        .required();
+
+      const { valid, results } = await sut.validate(new ValidateInstruction(obj, void 0, void 0, tag1, pTag1));
+
+      assert.equal(valid, false);
+      assert.deepEqual(results.map((r) => r.toString()), [msg1]);
+      assert.deepEqual(sut.results.filter((r) => !r.valid).map((r) => r.toString()), [msg1]);
+
+      validationRules.off();
+    });
 });

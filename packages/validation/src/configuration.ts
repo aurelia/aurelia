@@ -4,16 +4,16 @@ import { IValidationMessageProvider } from './rules';
 import { ValidationErrorsCustomAttribute } from './subscribers/validation-errors-custom-attribute';
 import { IDefaultTrigger, ValidateBindingBehavior, ValidationTrigger } from './validate-binding-behavior';
 import { IValidationControllerFactory, ValidationControllerFactory } from './validation-controller';
-import { ValidationCustomizationOpions } from './validation-customization-options';
+import { ValidationCustomizationOptions } from './validation-customization-options';
 import { IValidator, StandardValidator } from './validator';
 
-export type ValidationConfigurationProvider = (options: ValidationCustomizationOpions) => void;
+export type ValidationConfigurationProvider = (options: ValidationCustomizationOptions) => void;
 
 function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
   return {
     optionsProvider,
     register(container: IContainer) {
-      const options: ValidationCustomizationOpions = { validator: StandardValidator, customMessages: [], defaultTrigger: ValidationTrigger.blur };
+      const options: ValidationCustomizationOptions = { validator: StandardValidator, customMessages: [], defaultTrigger: ValidationTrigger.blur };
       optionsProvider(options);
 
       return container.register(

@@ -579,24 +579,29 @@ export class ValidationController implements IValidationController {
   }
 }
 
+/**
+ * Creates ValidationController instances.
+ */
 export interface IValidationControllerFactory {
+
+  /**
+   * Creates a new controller instance.
+   */
   create(validator?: IValidator): IValidationController;
+
+  /**
+   * Creates a new controller and registers it in the current element's container so that it's available to the validate binding behavior and subscribers.
+   */
   createForCurrentScope(validator?: IValidator): IValidationController;
 }
 export const IValidationControllerFactory = DI.createInterface<IValidationControllerFactory>("IValidationControllerFactory").noDefault();
 
-/**
- * Creates ValidationController instances.
- */
 export class ValidationControllerFactory implements IValidationControllerFactory {
 
   public constructor(
     @IContainer private readonly container: IContainer,
   ) { }
 
-  /**
-   * Creates a new controller instance.
-   */
   public create(validator?: IValidator): IValidationController {
     const container = this.container;
     return new ValidationController(
@@ -606,10 +611,6 @@ export class ValidationControllerFactory implements IValidationControllerFactory
     );
   }
 
-  /**
-   * Creates a new controller and registers it in the current element's container so that it's
-   * available to the validate binding behavior and subscribers.
-   */
   public createForCurrentScope(validator?: IValidator): IValidationController {
     const controller = this.create(validator);
     Registration.instance(IValidationController, controller).register(this.container);

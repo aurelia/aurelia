@@ -26,8 +26,6 @@ import {
 import { IValidator } from './validator';
 import { IValidateable, BaseValidationRule } from './rules';
 
-export const VALIDATION_EVENT_CHANNEL = 'au:validation';
-
 export type BindingWithBehavior = PropertyBinding & {
   sourceExpression: BindingBehaviorExpression;
   target: Element | object;

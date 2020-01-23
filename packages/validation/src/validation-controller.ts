@@ -498,7 +498,7 @@ export class ValidationController implements IValidationController {
       expression = (expression as AccessMemberExpression | AccessKeyedExpression).object;
     }
     if (expression === void 0) {
-      throw new Error(`Unable to parse binding expression: ${expression}`); // TODO use reporter/logger
+      throw new Error(`Unable to parse binding expression: ${binding.sourceExpression.expression}`); // TODO use reporter/logger
     }
     let object: any;
     if (propertyName.length === 0) {

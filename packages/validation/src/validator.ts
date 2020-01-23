@@ -1,8 +1,29 @@
 import { DI } from '@aurelia/kernel';
 import { LifecycleFlags, Scope } from '@aurelia/runtime';
-import { ValidationResult, validationRulesRegistrar } from './rule-provider';
-import { ValidateInstruction } from './validation-controller';
+import { ValidationResult, validationRulesRegistrar, PropertyRule } from './rule-provider';
 import { IValidateable } from './rules';
+
+/**
+ * Instruction for the validation controller's validate method.
+ */
+export class ValidateInstruction<TObject extends IValidateable = IValidateable> {
+  /**
+   * @param {TObject} [object=(void 0)!] - The object to validate.
+   * @param {(keyof TObject | string)} [propertyName=(void 0)!] - The property name to validate.
+   * @param {PropertyRule[]} [rules=(void 0)!] - The rules to validate.
+   * @param {string} [objectTag=(void 0)!] - The tag indicating the ruleset defined for the object.
+   * @param {string} [propertyTag=(void 0)!] - The tag indicating the ruleset for the property.
+   * @param {LifecycleFlags} [flags=LifecycleFlags.none] - Use this to enable lifecycle flag sensitive expression evaluation.
+   */
+  public constructor(
+    public object: TObject = (void 0)!,
+    public propertyName: keyof TObject | string = (void 0)!,
+    public rules: PropertyRule[] = (void 0)!,
+    public objectTag: string = (void 0)!,
+    public propertyTag: string = (void 0)!,
+    public flags: LifecycleFlags = LifecycleFlags.none,
+  ) { }
+}
 
 export const IValidator = DI.createInterface<IValidator>("IValidator").noDefault();
 
@@ -32,6 +53,7 @@ export class StandardValidator implements IValidator {
     const object = instruction.object;
     const propertyName = instruction.propertyName;
     const propertyTag = instruction.propertyTag;
+    const flags = instruction.flags;
 
     const validateAllProperties = propertyName === void 0;
     const rules = instruction.rules ?? validationRulesRegistrar.get(object, instruction.objectTag) ?? [];
@@ -43,10 +65,10 @@ export class StandardValidator implements IValidator {
         if (expression === void 0) {
           value = object;
         } else {
-          const scope = Scope.create(LifecycleFlags.none, object);
-          value = expression.evaluate(LifecycleFlags.none, scope, null!);
+          const scope = Scope.create(flags, object);
+          value = expression.evaluate(flags, scope, null!);
         }
-        acc.push(rule.validate(value, object, propertyTag));
+        acc.push(rule.validate(value, object, propertyTag, flags));
       }
       return acc;
     }, []));

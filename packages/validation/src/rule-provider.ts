@@ -117,7 +117,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
     return this.$rules[depth];
   }
 
-  public async validate(value: TValue, object?: IValidateable, tag?: string): Promise<ValidationResult[]> {
+  public async validate(value: TValue, object?: IValidateable, tag?: string, flags: LifecycleFlags = LifecycleFlags.none): Promise<ValidationResult[]> {
 
     let isValid = true;
     const validateRuleset = async (rules: BaseValidationRule[]) => {
@@ -130,7 +130,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
         const { displayName, name } = this.property;
         let message: string | undefined;
         if (!isValidOrPromise) {
-          const scope = Scope.create(LifecycleFlags.none, {
+          const scope = Scope.create(flags, {
             $object: object,
             $displayName: (displayName instanceof Function ? displayName() : displayName) ?? name,
             $propertyName: name,
@@ -138,7 +138,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
             $rule: rule,
             $getDisplayName: this.messageProvider.getDisplayName
           });
-          message = rule.message.evaluate(LifecycleFlags.none, scope, null!) as string;
+          message = rule.message.evaluate(flags, scope, null!) as string;
         }
         return new ValidationResult(isValidOrPromise, message, name, object, rule, this);
       };

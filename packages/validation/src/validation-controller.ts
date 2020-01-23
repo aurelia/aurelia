@@ -24,7 +24,7 @@ import {
   PropertyRule,
   ValidationResult,
 } from './rule-provider';
-import { IValidator } from './validator';
+import { IValidator, ValidateInstruction } from './validator';
 import { IValidateable, BaseValidationRule } from './rules';
 
 export type BindingWithBehavior = PropertyBinding & {
@@ -49,26 +49,6 @@ export class ControllerValidateResult {
     public valid: boolean,
     public results: ValidationResult[],
     public instruction?: ValidateInstruction,
-  ) { }
-}
-
-/**
- * Instruction for the validation controller's validate method.
- */
-export class ValidateInstruction<TObject extends IValidateable = IValidateable> {
-  /**
-   * @param {TObject} [object=(void 0)!] - The object to validate.
-   * @param {(keyof TObject | string)} [propertyName=(void 0)!] - The property name to validate.
-   * @param {PropertyRule[]} [rules=(void 0)!] - The rules to validate.
-   * @param {string} [objectTag=(void 0)!] - The tag indicating the ruleset defined for the object.
-   * @param {string} [propertyTag=(void 0)!] - The tag indicating the ruleset for the property.
-   */
-  public constructor(
-    public object: TObject = (void 0)!,
-    public propertyName: keyof TObject | string = (void 0)!,
-    public rules: PropertyRule[] = (void 0)!,
-    public objectTag: string = (void 0)!,
-    public propertyTag: string = (void 0)!,
   ) { }
 }
 
@@ -324,7 +304,7 @@ export class ValidationController implements IValidationController {
   }
 
   public async validate<TObject extends IValidateable>(instruction?: ValidateInstruction<TObject>): Promise<ControllerValidateResult> {
-    const { object: obj, objectTag } = instruction ?? {};
+    const { object: obj, objectTag, flags } = instruction ?? {};
     let instructions: ValidateInstruction[];
     if (obj !== void 0) {
       instructions = [new ValidateInstruction(
@@ -342,7 +322,7 @@ export class ValidationController implements IValidationController {
         ...(!objectTag ? Array.from(this.bindings.entries()) : [])
           .reduce(
             (acc: ValidateInstruction[], [binding, info]) => {
-              const propertyInfo = this.getPropertyInfo(binding, info);
+              const propertyInfo = this.getPropertyInfo(binding, info, flags);
               if (propertyInfo !== void 0 && !this.objects.has(propertyInfo.object)) {
                 acc.push(new ValidateInstruction(propertyInfo.object, propertyInfo.propertyName, info.rules));
               }
@@ -461,7 +441,7 @@ export class ValidationController implements IValidationController {
       );
   }
 
-  private getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo): PropertyInfo | undefined {
+  private getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo, flags: LifecycleFlags = LifecycleFlags.none): PropertyInfo | undefined {
     let propertyInfo = info.propertyInfo;
     if (propertyInfo !== void 0) {
       return propertyInfo;
@@ -487,7 +467,7 @@ export class ValidationController implements IValidationController {
           if (toCachePropertyName) {
             toCachePropertyName = keyExpr instanceof PrimitiveLiteralExpression;
           }
-          memberName = `[${(keyExpr.evaluate(LifecycleFlags.none, scope, locator) as any).toString()}]`;
+          memberName = `[${(keyExpr.evaluate(flags, scope, locator) as any).toString()}]`;
           break;
         }
         default:
@@ -505,7 +485,7 @@ export class ValidationController implements IValidationController {
       propertyName = expression.name;
       object = scope.bindingContext;
     } else {
-      object = expression.evaluate(LifecycleFlags.none, scope, locator);
+      object = expression.evaluate(flags, scope, locator);
     }
     if (object === null || object === void 0) {
       return (void 0);

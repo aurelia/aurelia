@@ -118,7 +118,7 @@ describe('validation-errors-custom-attribute', function () {
   function assertSubscriber(controller: ValidationController, ca: ValidationErrorsCustomAttribute) {
     const subscribers = (controller['subscribers'] as ValidationErrorsSubscriber[]);
     assert.equal((subscribers).includes(ca), true);
-    assert.equal(Object.is(ca.controller, controller), true);
+    assert.equal(ca.controller, controller);
   }
 
   $it('registers only the errors targeted for the containing elements',

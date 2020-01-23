@@ -5,7 +5,6 @@ import {
   IValidator,
   StandardValidator,
   PropertyRule,
-  IValidateable,
   ValidationResult,
   IValidationRules,
   RegexRule,
@@ -27,7 +26,7 @@ describe('IValidator', function () {
     container.register(
       validator
         ? ValidationConfiguration.customize((options) => {
-          options.validator = validator;
+          options.ValidatorType = validator;
         })
         : ValidationConfiguration);
     return { sut: container.get(IValidator), container };
@@ -47,7 +46,6 @@ describe('IValidator', function () {
       public validate(_: ValidateInstruction): Promise<ValidationResult[]> {
         throw new Error('Method not implemented.');
       }
-
     }
     const { sut: sut1, container } = setup(CustomValidator);
     const sut2 = container.get(IValidator);

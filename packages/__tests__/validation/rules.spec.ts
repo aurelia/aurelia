@@ -2,7 +2,7 @@ import { assert } from '@aurelia/testing';
 import { EqualsRule, LengthRule, RangeRule, RegexRule, RequiredRule, SizeRule } from '@aurelia/validation';
 
 describe('rule execution', function () {
-  [
+  const requiredRuleDataRows = [
     { value: null,      isValid: false },
     { value: undefined, isValid: false },
     { value: '',        isValid: false },
@@ -12,27 +12,29 @@ describe('rule execution', function () {
     { value: "chaos",   isValid: true  },
     { value: 0,         isValid: true  },
     { value: 1,         isValid: true  },
-  ].map(({ value, isValid }) =>
+  ];
+  for (const {value, isValid} of requiredRuleDataRows) {
     it(`RequiredRule#execute validates ${value} to be ${isValid}`, function () {
       const sut = new RequiredRule((void 0)!);
       assert.equal(sut.execute(value), isValid);
-    })
-  );
+    });
+  }
 
-  [
+  const regexRuleDataRows = [
     { value: null,      isValid: true  },
     { value: undefined, isValid: true  },
     { value: '',        isValid: true  },
     { value: 'foobar',  isValid: true  },
     { value: 'barbar',  isValid: false },
-  ].map(({ value, isValid }) =>
+  ];
+  for(const { value, isValid } of regexRuleDataRows) {
     it(`RegexRule#execute validates ${value} to be ${isValid}`, function () {
       const sut = new RegexRule((void 0)!, /foo/);
       assert.equal(sut.execute(value), isValid);
-    })
-  );
+    });
+  }
 
-  [
+  const lengthRuleDataRows = [
     { value: null,      length: void 0, isMax: true,  isValid: true  },
     { value: null,      length: void 0, isMax: false, isValid: true  },
     { value: undefined, length: void 0, isMax: true,  isValid: true  },
@@ -45,15 +47,16 @@ describe('rule execution', function () {
     { value: 'foo',     length: 5,      isMax: false, isValid: false },
     { value: 'foobar',  length: 5,      isMax: false, isValid: true  },
     { value: 'fooba',   length: 5,      isMax: false, isValid: true  },
-  ].map(({ value, length, isMax, isValid }) =>
+  ];
+  for(const { value, length, isMax, isValid } of lengthRuleDataRows) {
     it(`LengthRule#execute validates ${value} to be ${isValid} for length constraint ${length}`, function () {
       const sut = new LengthRule((void 0)!, length, isMax);
       assert.equal(sut.messageKey, isMax ? 'maxLength' : 'minLength');
       assert.equal(sut.execute(value), isValid);
-    })
-  );
+    });
+  }
 
-  [
+  const sizeRuleDataRows = [
     { value: null,                  count: void 0,  isMax: true,  isValid: true  },
     { value: null,                  count: void 0,  isMax: false, isValid: true  },
     { value: undefined,             count: void 0,  isMax: true,  isValid: true  },
@@ -66,15 +69,16 @@ describe('rule execution', function () {
     { value: ['foo', 'bar', 'fu'],  count: 2,       isMax: true,  isValid: false },
     { value: ['foo', 'bar'],        count: 2,       isMax: false, isValid: true  },
     { value: ['foo', 'bar', 'fu'],  count: 2,       isMax: false, isValid: true  },
-  ].map(({ value, count, isMax, isValid }) =>
+  ];
+  for(const { value, count, isMax, isValid } of sizeRuleDataRows) {
     it(`SizeRule#execute validates ${value} to be ${isValid} for count constraint ${count}`, function () {
       const sut = new SizeRule((void 0)!, count, isMax);
       assert.equal(sut.messageKey, isMax ? 'maxItems' : 'minItems');
       assert.equal(sut.execute(value), isValid);
-    })
-  );
+    });
+  }
 
-  [
+  const rangeRuleDataRows = [
     { value: null,      range: { min: 42,         max: undefined }, isInclusive: true,  isValid: true,  key: 'min'     },
     { value: null,      range: { min: 42,         max: undefined }, isInclusive: false, isValid: true,  key: 'min'     },
     { value: null,      range: { min: undefined,  max: 42        }, isInclusive: true,  isValid: true,  key: 'max'     },
@@ -115,24 +119,26 @@ describe('rule execution', function () {
     { value: 41,        range: { min: 39,         max: 42        }, isInclusive: true,  isValid: true,  key: 'range'   },
     { value: 42,        range: { min: 39,         max: 42        }, isInclusive: true,  isValid: true,  key: 'range'   },
     { value: 43,        range: { min: 39,         max: 42        }, isInclusive: true,  isValid: false, key: 'range'   },
-  ].map(({ value, range, isInclusive, isValid, key }) =>
+  ];
+  for(const { value, range, isInclusive, isValid, key } of rangeRuleDataRows) {
     it(`RangeRule#execute validates ${value} to be ${isValid} for range ${isInclusive ? `[${range.min}, ${range.max}]` : `(${range.min}, ${range.max})`}`, function () {
       const sut = new RangeRule((void 0)!, isInclusive, range);
       assert.equal(sut.messageKey, key);
       assert.equal(sut.execute(value), isValid);
-    })
-  );
+    });
+  }
 
-  [
+  const equalsRuleDataRows = [
     { value: null,      expectedValue: 42, isValid: true  },
     { value: undefined, expectedValue: 42, isValid: true  },
     { value: '',        expectedValue: 42, isValid: true  },
     { value: '42',      expectedValue: 42, isValid: false },
     { value: 42,        expectedValue: 42, isValid: true  },
-  ].map(({ value, expectedValue, isValid }) =>
+  ];
+  for(const { value, expectedValue, isValid } of equalsRuleDataRows) {
     it(`EqualsRule#execute validates ${value} to be ${isValid} for expected value ${expectedValue}`, function () {
       const sut = new EqualsRule((void 0)!, expectedValue);
       assert.equal(sut.execute(value), isValid);
-    })
-  );
+    });
+  }
 });

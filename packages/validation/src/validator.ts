@@ -1,7 +1,8 @@
 import { DI } from '@aurelia/kernel';
-import { LifecycleFlags } from '@aurelia/runtime';
+import { LifecycleFlags, Scope } from '@aurelia/runtime';
 import { ValidationResult, validationRulesRegistrar } from './rule-provider';
 import { ValidateInstruction } from './validation-controller';
+import { IValidateable } from './rules';
 
 export const IValidator = DI.createInterface<IValidator>("IValidator").noDefault();
 
@@ -20,14 +21,14 @@ export interface IValidator {
    * - case `{object, objectTag, propertyName}` - only the rules for the property in the tagged ruleset are used for validation.
    * - case `{object, objectTag, propertyName, propertyTag}` - only the tagged rules for the property in the tagged ruleset for the object are validated
    */
-  validate<T>(instruction: ValidateInstruction<T>): Promise<ValidationResult[]>;
+  validate<TObject extends IValidateable = IValidateable>(instruction: ValidateInstruction<TObject>): Promise<ValidationResult[]>;
 }
 
 /**
  * Standard implementation of `IValidator`.
  */
 export class StandardValidator implements IValidator {
-  public async validate<T>(instruction: ValidateInstruction<T>): Promise<ValidationResult[]> {
+  public async validate<TObject extends IValidateable = IValidateable>(instruction: ValidateInstruction<TObject>): Promise<ValidationResult[]> {
     const object = instruction.object;
     const propertyName = instruction.propertyName;
     const propertyTag = instruction.propertyTag;
@@ -42,7 +43,7 @@ export class StandardValidator implements IValidator {
         if (expression === void 0) {
           value = object;
         } else {
-          const scope = { bindingContext: object, parentScope: null, scopeParts: [], overrideContext: (void 0)! };
+          const scope = Scope.create(LifecycleFlags.none, object);
           value = expression.evaluate(LifecycleFlags.none, scope, null!);
         }
         acc.push(rule.validate(value, object, propertyTag));

@@ -253,7 +253,7 @@ describe('validate-biniding-behavior', function () {
       .register(
         customDefaultTrigger
           ? ValidationConfiguration.customize((options) => {
-            options.defaultTrigger = customDefaultTrigger;
+            options.DefaultTrigger = customDefaultTrigger;
           })
           : ValidationConfiguration,
         TextBox,

@@ -10,6 +10,7 @@ import {
   Interpolation,
   AccessScopeExpression,
   AccessThisExpression,
+  Scope,
 } from '@aurelia/runtime';
 import {
   BaseValidationRule,
@@ -129,16 +130,14 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
         const { displayName, name } = this.property;
         let message: string | undefined;
         if (!isValidOrPromise) {
-          const scope = {
-            bindingContext: {
-              $object: object,
-              $displayName: (displayName instanceof Function ? displayName() : displayName) ?? name,
-              $propertyName: name,
-              $value: value,
-              $rule: rule,
-              $getDisplayName: this.messageProvider.getDisplayName
-            }, parentScope: null, scopeParts: [], overrideContext: (void 0)!
-          };
+          const scope = Scope.create(LifecycleFlags.none, {
+            $object: object,
+            $displayName: (displayName instanceof Function ? displayName() : displayName) ?? name,
+            $propertyName: name,
+            $value: value,
+            $rule: rule,
+            $getDisplayName: this.messageProvider.getDisplayName
+          });
           message = rule.message.evaluate(LifecycleFlags.none, scope, null!) as string;
         }
         return new ValidationResult(isValidOrPromise, message, name, object, rule, this);

@@ -47,7 +47,7 @@ describe('ValidationRules', function () {
   it('is transient', function () {
     const { sut: instance1, container } = setup();
     const instance2 = container.get(IValidationRules);
-    assert.equal(Object.is(instance1, instance2), false);
+    assert.notEqual(instance1, instance2);
   });
 
   it('can be used to define validation rules fluently on string properties', function () {
@@ -544,7 +544,7 @@ describe('ValidationMessageProvider', function () {
 
     const configuration = customMessages !== (void 0)
       ? ValidationConfiguration.customize((options) => {
-        options.customMessages = customMessages;
+        options.CustomMessages = customMessages;
       })
       : ValidationConfiguration;
     container.register(
@@ -826,7 +826,7 @@ describe('parsePropertyName', function () {
   }
 
   const a: string = 'foo';
-  [
+  const positiveDataRows = [
     { property: 'prop',                   expected: 'prop' },
     { property: 'obj.prop',               expected: 'obj.prop' },
     { property: 'obj.prop1.prop2',        expected: 'obj.prop1.prop2' },
@@ -922,13 +922,15 @@ describe('parsePropertyName', function () {
     { property: function (o: any) { "use strict"; return o.prop["a"].prop2; },      expected: 'prop["a"].prop2' },
     { property: function (o: any) { "use strict"; return o.obj.prop["a"]; },        expected: 'obj.prop["a"]' },
     { property: function (o: any) { "use strict"; return o.obj.prop["a"].prop2; },  expected: 'obj.prop["a"].prop2' },
-  ].map(({ property, expected }) =>
+  ];
+  for(const { property, expected } of positiveDataRows) {
     it(`parses ${property.toString()} to ${expected}`, function () {
       const { parser } = setup();
-      assert.deepEqual(parsePropertyName(property, parser), [expected, parser.parse(expected, BindingType.None)]);
-    }));
+      assert.deepStrictEqual(parsePropertyName(property, parser), [expected, parser.parse(expected, BindingType.None)]);
+    });
+  }
 
-  [
+  const negativeDataRows = [
     { property: 1 },
     { property: true },
     { property: false },
@@ -937,7 +939,8 @@ describe('parsePropertyName', function () {
     { property: (o) => { while (true) { /* noop */ } return o.prop; } },
     { property: function (o) { while (true) { /* noop */ } } },
     { property: function (o) { while (true) { /* noop */ } return o.prop; } },
-  ].map(({ property }) =>
+  ];
+  for(const { property } of negativeDataRows) {
     it(`throws error when parsing ${property.toString()}`, function () {
       const { parser } = setup();
       assert.throws(
@@ -945,7 +948,8 @@ describe('parsePropertyName', function () {
           parsePropertyName(property as any, parser);
         },
         /Unable to parse accessor function/);
-    }));
+    });
+  }
 });
 
 describe('PropertyRule', function () {

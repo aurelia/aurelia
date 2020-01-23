@@ -13,13 +13,13 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
   return {
     optionsProvider,
     register(container: IContainer) {
-      const options: ValidationCustomizationOptions = { validator: StandardValidator, customMessages: [], defaultTrigger: ValidationTrigger.blur };
+      const options: ValidationCustomizationOptions = { ValidatorType: StandardValidator, CustomMessages: [], DefaultTrigger: ValidationTrigger.blur };
       optionsProvider(options);
 
       return container.register(
-        Registration.callback(ICustomMessages, () => options.customMessages),
-        Registration.callback(IDefaultTrigger, () => options.defaultTrigger),
-        Registration.singleton(IValidator, options.validator),
+        Registration.callback(ICustomMessages, () => options.CustomMessages),
+        Registration.callback(IDefaultTrigger, () => options.DefaultTrigger),
+        Registration.singleton(IValidator, options.ValidatorType),
         Registration.singleton(IValidationMessageProvider, ValidationMessageProvider), // TODO enable customization of messages and i18n
         Registration.transient(IValidationRules, ValidationRules),
         ValidateBindingBehavior,

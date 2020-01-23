@@ -15,7 +15,8 @@ import {
   IScheduler,
   ValueConverterExpression,
   PropertyBinding,
-  State
+  State,
+  ExpressionKind
 } from '@aurelia/runtime';
 import {
   parsePropertyName,
@@ -30,7 +31,6 @@ export type BindingWithBehavior = PropertyBinding & {
   sourceExpression: BindingBehaviorExpression;
   target: Element | object;
 };
-type ValidatableExpression = AccessScopeExpression | AccessMemberExpression | AccessKeyedExpression;
 export const enum ValidateEventKind {
   validate = 'validate',
   reset = 'reset',
@@ -217,18 +217,21 @@ export interface IValidationController {
    * Registers a `binding` to the controller.
    * The binding will be validated during validate without instruction.
    * This is usually done via the `validate` binding behavior during binding phase.
+   *
    * @internal
    */
   registerBinding(binding: BindingWithBehavior, info: BindingInfo): void;
   /**
    * Deregisters a binding; i.e. it won't be validated during validate without instruction.
    * This is usually done via the `validate` binding behavior during unbinding phase.
+   *
    * @internal
    */
   deregisterBinding(binding: BindingWithBehavior): void;
   /**
    * Validates a specific binding.
    * This is usually done from the `validate` binding behavior, triggered by some `ValidationTrigger`
+   *
    * @internal
    */
   validateBinding(binding: BindingWithBehavior): Promise<void>;
@@ -465,21 +468,21 @@ export class ValidationController implements IValidationController {
     }
 
     const scope = info.scope;
-    let expression = binding.sourceExpression.expression as ValidatableExpression;
+    let expression = binding.sourceExpression.expression;
     const locator = binding.locator;
     let toCachePropertyName = true;
     let propertyName: string = "";
     while (expression !== void 0 && !(expression instanceof AccessScopeExpression)) {
       let memberName: string;
-      switch (true) {
-        case expression instanceof BindingBehaviorExpression || expression instanceof ValueConverterExpression:
-          expression = (expression as unknown as (BindingBehaviorExpression | ValueConverterExpression)).expression as ValidatableExpression;
+      switch (expression.$kind) {
+        case ExpressionKind.BindingBehavior:
+        case ExpressionKind.ValueConverter:
+          expression = (expression as (BindingBehaviorExpression | ValueConverterExpression)).expression;
           continue;
-        case expression instanceof AccessMemberExpression: {
+        case ExpressionKind.AccessMember:
           memberName = (expression as AccessMemberExpression).name;
           break;
-        }
-        case expression instanceof AccessKeyedExpression: {
+        case ExpressionKind.AccessKeyed: {
           const keyExpr = (expression as AccessKeyedExpression).key;
           if (toCachePropertyName) {
             toCachePropertyName = keyExpr instanceof PrimitiveLiteralExpression;
@@ -492,10 +495,10 @@ export class ValidationController implements IValidationController {
       }
       const separator = propertyName.startsWith('[') ? '' : '.';
       propertyName = propertyName.length === 0 ? memberName : `${memberName}${separator}${propertyName}`;
-      expression = expression.object as ValidatableExpression;
+      expression = (expression as AccessMemberExpression | AccessKeyedExpression).object;
     }
     if (expression === void 0) {
-      throw new Error('Unable to parse binding expression'); // TODO use reporter/logger
+      throw new Error(`Unable to parse binding expression: ${expression}`); // TODO use reporter/logger
     }
     let object: any;
     if (propertyName.length === 0) {
@@ -508,7 +511,6 @@ export class ValidationController implements IValidationController {
       return (void 0);
     }
     propertyInfo = new PropertyInfo(object, propertyName);
-    // console.log(propertyInfo);
     if (toCachePropertyName) {
       info.propertyInfo = propertyInfo;
     }
@@ -543,7 +545,7 @@ export class ValidationController implements IValidationController {
       const removalTargets = elements.get(oldResult)!;
       elements.delete(oldResult);
 
-      eventData.removedResults.push({ result: oldResult, targets: removalTargets });
+      eventData.removedResults.push(new ValidationResultTarget(oldResult, removalTargets));
 
       // determine if there's a corresponding new result for the old result we are removing.
       const newResultIndex = newResults.findIndex(x => x.rule === oldResult.rule && x.object === oldResult.object && x.propertyName === oldResult.propertyName);
@@ -555,7 +557,7 @@ export class ValidationController implements IValidationController {
         const newResult = newResults.splice(newResultIndex, 1)[0];
         const newTargets = this.getAssociatedElements(newResult);
         elements.set(newResult, newTargets);
-        eventData.addedResults.push({ result: newResult, targets: newTargets });
+        eventData.addedResults.push(new ValidationResultTarget(newResult, newTargets));
 
         // do an in-place replacement of the old result with the new result.
         // this ensures any repeats bound to this.results will not thrash.
@@ -566,7 +568,7 @@ export class ValidationController implements IValidationController {
     // add the remaining new results to the event data.
     for (const result of newResults) {
       const newTargets = this.getAssociatedElements(result);
-      eventData.addedResults.push({ result, targets: newTargets });
+      eventData.addedResults.push(new ValidationResultTarget(result, newTargets));
       elements.set(result, newTargets);
       this.results.push(result);
     }

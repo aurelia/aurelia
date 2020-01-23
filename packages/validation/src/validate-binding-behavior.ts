@@ -117,18 +117,18 @@ export class ValidateBindingBehavior extends BindingInterceptor {
   }
 
   public handleTriggerChange(newValue: unknown, _previousValue: unknown, _flags: LifecycleFlags): void {
-    this.processDelta(new Delta(void 0, this.ensureTrigger(newValue), void 0));
+    this.processDelta(new ValidateArgumentsDelta(void 0, this.ensureTrigger(newValue), void 0));
   }
 
   public handleControllerChange(newValue: unknown, _previousValue: unknown, _flags: LifecycleFlags): void {
-    this.processDelta(new Delta(this.ensureController(newValue), void 0, void 0));
+    this.processDelta(new ValidateArgumentsDelta(this.ensureController(newValue), void 0, void 0));
   }
 
   public handleRulesChange(newValue: unknown, _previousValue: unknown, _flags: LifecycleFlags): void {
-    this.processDelta(new Delta(void 0, void 0, this.ensureRules(newValue)));
+    this.processDelta(new ValidateArgumentsDelta(void 0, void 0, this.ensureRules(newValue)));
   }
 
-  private processBindingExpressionArgs(flags: LifecycleFlags): Delta {
+  private processBindingExpressionArgs(flags: LifecycleFlags): ValidateArgumentsDelta {
     const scope: IScope = this.scope;
     const locator = this.locator;
     let rules: PropertyRule[] | undefined;
@@ -162,7 +162,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
       this.connectedExpressions.push(arg);
     }
 
-    return new Delta(this.ensureController(controller), this.ensureTrigger(trigger), rules);
+    return new ValidateArgumentsDelta(this.ensureController(controller), this.ensureTrigger(trigger), rules);
   }
 
   private validateBinding() {
@@ -171,7 +171,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
     });
   }
 
-  private processDelta(delta: Delta) {
+  private processDelta(delta: ValidateArgumentsDelta) {
     const trigger = delta.trigger ?? this.trigger;
     const controller = delta.controller ?? this.controller;
     const rules = delta.rules;
@@ -241,7 +241,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
   }
 }
 
-class Delta {
+class ValidateArgumentsDelta {
   public constructor(
     public controller?: ValidationController,
     public trigger?: ValidationTrigger,

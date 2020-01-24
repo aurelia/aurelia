@@ -116,8 +116,8 @@ describe('validation-errors-custom-attribute', function () {
     assert.equal(handleValidationEventSpy.calls.length, 1, 'incorrect #calls for handleValidationEvent');
   }
   function assertSubscriber(controller: ValidationController, ca: ValidationErrorsCustomAttribute) {
-    const subscribers = (controller['subscribers'] as ValidationErrorsSubscriber[]);
-    assert.equal((subscribers).includes(ca), true);
+    const subscribers = (controller['subscribers'] as Set<ValidationErrorsSubscriber>);
+    assert.equal((subscribers).has(ca), true);
     assert.equal(ca.controller, controller);
   }
 

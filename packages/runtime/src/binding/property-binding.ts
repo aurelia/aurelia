@@ -73,7 +73,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     this.sourceExpression.assign!(flags, this.$scope!, this.locator, value, this.part);
   }
 
-  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
+  public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
     if ((this.$state & State.isBound) === 0) {
       return;
     }
@@ -81,7 +81,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     flags |= this.persistentFlags;
 
     if ((flags & LifecycleFlags.updateTargetInstance) > 0) {
-      previousValue = this.targetObserver!.getValue();
+      const previousValue = this.targetObserver!.getValue();
       // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
       if (this.sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
         newValue = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.part);

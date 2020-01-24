@@ -140,7 +140,10 @@ export class RegexRule extends BaseValidationRule<string> {
     super(messageProvider);
   }
   public execute(value: string): boolean | Promise<boolean> {
-    return value === null || value === undefined || value.length === 0 || this.pattern.test(value);
+    return value === null
+      || value === undefined
+      || value.length === 0
+      || this.pattern.test(value);
   }
 }
 
@@ -163,7 +166,10 @@ export class LengthRule extends BaseValidationRule<string> {
     this.messageKey = isMax ? 'maxLength' : 'minLength';
   }
   public execute(value: string): boolean | Promise<boolean> {
-    return value === null || value === undefined || value.length === 0 || (this.isMax ? value.length <= this.length : value.length >= this.length);
+    return value === null
+      || value === undefined
+      || value.length === 0
+      || (this.isMax ? value.length <= this.length : value.length >= this.length);
   }
 }
 
@@ -186,7 +192,9 @@ export class SizeRule extends BaseValidationRule<unknown[]> {
     this.messageKey = isMax ? 'maxItems' : 'minItems';
   }
   public execute(value: unknown[]): boolean | Promise<boolean> {
-    return value === null || value === undefined || (this.isMax ? value.length <= this.count : value.length >= this.count);
+    return value === null
+      || value === undefined
+      || (this.isMax ? value.length <= this.count : value.length >= this.count);
   }
 }
 
@@ -226,9 +234,12 @@ export class RangeRule extends BaseValidationRule<number> {
     this.max = max ?? this.max;
   }
   public execute(value: number, _object?: IValidateable): boolean | Promise<boolean> {
-    return value === null || value === undefined || (this.isInclusive
-      ? value >= this.min && value <= this.max
-      : value > this.min && value < this.max);
+    return value === null
+      || value === undefined
+      || (this.isInclusive
+        ? value >= this.min && value <= this.max
+        : value > this.min && value < this.max
+      );
   }
 }
 
@@ -245,6 +256,9 @@ export class RangeRule extends BaseValidationRule<number> {
 export class EqualsRule extends BaseValidationRule {
   public constructor(messageProvider: IValidationMessageProvider, private readonly expectedValue: unknown) { super(messageProvider); }
   public execute(value: unknown): boolean | Promise<boolean> {
-    return value === null || value === undefined || value as any === '' || value === this.expectedValue;
+    return value === null
+      || value === undefined
+      || value as any === ''
+      || value === this.expectedValue;
   }
 }

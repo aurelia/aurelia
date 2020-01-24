@@ -137,9 +137,9 @@ export interface IValidationController {
   /**
    * Collection of registered subscribers.
    *
-   * @type {ValidationErrorsSubscriber[]}
+   * @type {Set<ValidationErrorsSubscriber>}
    */
-  readonly subscribers: ValidationErrorsSubscriber[];
+  readonly subscribers: Set<ValidationErrorsSubscriber>;
   /**
    * Current set of validation results.
    *
@@ -235,7 +235,7 @@ export const IValidationController = DI.createInterface<IValidationController>("
 export class ValidationController implements IValidationController {
 
   public readonly bindings: Map<BindingWithBehavior, BindingInfo> = new Map<BindingWithBehavior, BindingInfo>();
-  public readonly subscribers: ValidationErrorsSubscriber[] = [];
+  public readonly subscribers: Set<ValidationErrorsSubscriber> = new Set<ValidationErrorsSubscriber>();
   public readonly results: ValidationResult[] = [];
   public validating: boolean = false;
 
@@ -287,11 +287,11 @@ export class ValidationController implements IValidationController {
   }
 
   public addSubscriber(subscriber: ValidationErrorsSubscriber) {
-    this.subscribers.push(subscriber);
+    this.subscribers.add(subscriber);
   }
 
   public removeSubscriber(subscriber: ValidationErrorsSubscriber) {
-    this.subscribers.splice(this.subscribers.indexOf(subscriber), 1);
+    this.subscribers.delete(subscriber);
   }
 
   public registerBinding(binding: BindingWithBehavior, info: BindingInfo) {

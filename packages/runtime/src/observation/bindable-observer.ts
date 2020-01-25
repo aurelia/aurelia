@@ -59,7 +59,7 @@ export class BindableObserver {
       this.observing = true;
 
       const currentValue = obj[propertyKey];
-      this.currentValue = shouldInterceptSet
+      this.currentValue = shouldInterceptSet && currentValue !== undefined
         ? $set(currentValue)
         : currentValue;
       if (!isProxy) {

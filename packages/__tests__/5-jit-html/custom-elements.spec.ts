@@ -13,7 +13,7 @@ import { InterceptorFunc } from '@aurelia/runtime/dist/templating/bindable';
 interface Person { firstName?: string; lastName?: string; fullName?: string }
 const app = class { public value: string = 'wOOt'; };
 
-describe('custom-elements', function () {
+describe('5-jit-html/custom-elements/custom-elements.spec.ts', function () {
 
   const registrations = [TestConfiguration];
 

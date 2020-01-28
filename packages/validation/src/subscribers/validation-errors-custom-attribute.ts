@@ -2,6 +2,9 @@ import { IContainer } from '@aurelia/kernel';
 import { bindable, BindingMode, customAttribute, INode } from '@aurelia/runtime';
 import { IValidationController, ValidationErrorsSubscriber, ValidationEvent, ValidationResultTarget } from '../validation-controller';
 
+// polyfill for Node.js
+const DOCUMENT_POSITION_PRECEDING = typeof Node !== 'undefined' ? Node.DOCUMENT_POSITION_PRECEDING : 2;
+
 /**
  * A validation errors subscriber in form of a custom attribute.
  *
@@ -57,7 +60,7 @@ export class ValidationErrorsCustomAttribute implements ValidationErrorsSubscrib
         return 0;
       }
       // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-      return a.targets[0].compareDocumentPosition(b.targets[0]) & Node.DOCUMENT_POSITION_PRECEDING ? 1 : -1;
+      return a.targets[0].compareDocumentPosition(b.targets[0]) & DOCUMENT_POSITION_PRECEDING ? 1 : -1;
     });
     this.errors = this.errorsInternal;
   }

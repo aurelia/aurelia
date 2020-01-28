@@ -17,7 +17,6 @@ const defaultConfiguration: ITemplateConfiguration = {
       'dist'
     ], filters: [ notADeclarationFile   ]
   },
-  baseUrl: '',
   environment: Nunjucks,
   typeMapper: typeMapper
 };

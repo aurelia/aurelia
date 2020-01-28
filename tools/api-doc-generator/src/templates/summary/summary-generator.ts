@@ -209,7 +209,7 @@ export function generateSummary(sourceFileInfo: SourceFileInfo, ...prepend: stri
             result.push(mid);
             for (let index = 0; index < element.length; index++) {
                 const item = element[index];
-                const filePath = [...parents, category, item.file, item.name].join('/') + '.md';
+                const filePath = [...parents, category, item.file, item.name].join('/').replace(/\$/g, "usd") + '.md';
                 const data = `${tab(parents.length + 1)}* [${item.name}](${filePath.toLowerCase()})`;
                 result.push(data);
             }

@@ -34,7 +34,7 @@ export function generateApiDoc( destination: string , tsconfig?: string) {
         for (let index = 0; index < element.length; index++) {
             const el = element[index];
             for (let index = 0; index < el.folders.length; index++) {
-                const link = `[${el.name ?? '__default'}](${sourceFileLocator(el.path, (el.name ?? '__default'), el.category, TemplateConfiguration.baseUrl ?? '', undefined, true)})`;
+                const link = `[${el.name ?? '__default'}](${sourceFileLocator(el.path, (el.name ?? '__default'), el.category)})`;
                 tocList.push({
                     name: el.name ?? '__default',
                     package: el.folders.slice(0, index + 1).join('/'),
@@ -102,7 +102,7 @@ export function generateApiDoc( destination: string , tsconfig?: string) {
         const classRenderer = TemplateGenerator.getRenderer(TemplateRendererType.Class);
         for (let index = 0; index < source.classes.length; index++) {
             const item = source.classes[index];
-            const url = sourceFileLocator(item.path, (item.name ?? '__default'), TypeCategory.Class, '', '.md');
+            const url = sourceFileLocator(item.path, (item.name ?? '__default'), TypeCategory.Class);
             const template = classRenderer.render(item);
             const path = destination + url.toLowerCase();
             fse.outputFileSync(path, template);
@@ -112,7 +112,7 @@ export function generateApiDoc( destination: string , tsconfig?: string) {
         const enumRenderer = TemplateGenerator.getRenderer(TemplateRendererType.Enum);
         for (let index = 0; index < source.enums.length; index++) {
             const item = source.enums[index];
-            const url = sourceFileLocator(item.path, item.name, TypeCategory.Enum, '', '.md');
+            const url = sourceFileLocator(item.path, item.name, TypeCategory.Enum);
             const template = enumRenderer.render(item);
             const path = destination + url.toLowerCase();
             fse.outputFileSync(path, template);
@@ -122,7 +122,7 @@ export function generateApiDoc( destination: string , tsconfig?: string) {
         const exportAssignmentRenderer = TemplateGenerator.getRenderer(TemplateRendererType.ExportAssignment);
         for (let index = 0; index < source.exportAssignments.length; index++) {
             const item = source.exportAssignments[index];
-            const url = sourceFileLocator(item.path, '__default', TypeCategory.ExportAssignment, '', '.md');
+            const url = sourceFileLocator(item.path, '__default', TypeCategory.ExportAssignment);
             const template = exportAssignmentRenderer.render(item);
             const path = destination + url.toLowerCase();
             fse.outputFileSync(path, template);
@@ -132,7 +132,7 @@ export function generateApiDoc( destination: string , tsconfig?: string) {
         const functionRenderer = TemplateGenerator.getRenderer(TemplateRendererType.Function);
         for (let index = 0; index < source.functions.length; index++) {
             const item = source.functions[index];
-            const url = sourceFileLocator(item.path, (item.name ?? '__default'), TypeCategory.Function, '', '.md');
+            const url = sourceFileLocator(item.path, (item.name ?? '__default'), TypeCategory.Function);
             const template = functionRenderer.render(item);
             const path = destination + url.toLowerCase();
             fse.outputFileSync(path, template);
@@ -142,7 +142,7 @@ export function generateApiDoc( destination: string , tsconfig?: string) {
         const interfaceRenderer = TemplateGenerator.getRenderer(TemplateRendererType.Interface);
         for (let index = 0; index < source.interfaces.length; index++) {
             const item = source.interfaces[index];
-            const url = sourceFileLocator(item.path, item.name, TypeCategory.Interface, '', '.md');
+            const url = sourceFileLocator(item.path, item.name, TypeCategory.Interface);
             const template = interfaceRenderer.render(item);
             const path = destination + url.toLowerCase();
             fse.outputFileSync(path, template);
@@ -152,7 +152,7 @@ export function generateApiDoc( destination: string , tsconfig?: string) {
         const typeAliasRenderer = TemplateGenerator.getRenderer(TemplateRendererType.TypeAlias);
         for (let index = 0; index < source.typeAliases.length; index++) {
             const item = source.typeAliases[index];
-            const url = sourceFileLocator(item.path, item.name, TypeCategory.TypeAlias, '', '.md');
+            const url = sourceFileLocator(item.path, item.name, TypeCategory.TypeAlias);
             const template = typeAliasRenderer.render(item);
             const path = destination + url.toLowerCase();
             fse.outputFileSync(path, template);
@@ -165,7 +165,7 @@ export function generateApiDoc( destination: string , tsconfig?: string) {
             if (item.variables) {
                 for (let i = 0; i < item.variables.length; i++) {
                     const variable = item.variables[i];
-                    const url = sourceFileLocator(item.path, variable.name, TypeCategory.Variable, '', '.md');
+                    const url = sourceFileLocator(item.path, variable.name, TypeCategory.Variable);
                     const template = variableStatementRenderer.render(item);
                     const path = destination + url.toLowerCase();
                     fse.outputFileSync(path, template);
@@ -174,7 +174,7 @@ export function generateApiDoc( destination: string , tsconfig?: string) {
             if (item.literals) {
                 for (let j = 0; j < item.literals.length; j++) {
                     const literal = item.literals[j];
-                    const url = sourceFileLocator(item.path, literal.name, TypeCategory.Literal, '', '.md');
+                    const url = sourceFileLocator(item.path, literal.name, TypeCategory.Literal);
                     const template = variableStatementRenderer.render(item);
                     const path = destination + url.toLowerCase();
                     fse.outputFileSync(path, template);
@@ -183,7 +183,7 @@ export function generateApiDoc( destination: string , tsconfig?: string) {
             if (item.destructuring) {
                 for (let k = 0; k < item.destructuring.length; k++) {
                     // const destructure = item.destructuring[k];
-                    const url = sourceFileLocator(item.path, '__default', TypeCategory.Destructuring, '', '.md');
+                    const url = sourceFileLocator(item.path, '__default', TypeCategory.Destructuring);
                     const template = variableStatementRenderer.render(item);
                     const path = destination + url.toLowerCase();
                     fse.outputFileSync(path, template);

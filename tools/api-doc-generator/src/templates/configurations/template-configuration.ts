@@ -9,7 +9,6 @@ export interface ITemplateConfiguration {
     excludes: string[],
     filters: Array<(item: SourceFile) => boolean>;
   }
-  baseUrl: string;
   typeMapper: (typeInfo: TypeInfo) => string;
   appendComments?: boolean;
   environment: nj.Environment;

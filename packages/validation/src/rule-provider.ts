@@ -86,8 +86,8 @@ export const validationRulesRegistrar = Object.freeze({
     }
   },
   isValidationRulesSet(target: IValidateable) {
-    return (Metadata.getOwn(Protocol.annotation.name, target) as string[] ?? [])
-      .some((key) => key.startsWith(validationRulesRegistrar.name));
+    const keys = Metadata.getOwn(Protocol.annotation.name, target) as string[];
+    return keys !== void 0 && keys.some((key) => key.startsWith(validationRulesRegistrar.name));
   }
 });
 

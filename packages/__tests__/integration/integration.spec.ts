@@ -1,12 +1,12 @@
 /* eslint-disable mocha/no-skipped-tests, mocha/no-exclusive-tests, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/strict-boolean-expressions */
 import { toArray } from '@aurelia/kernel';
-import { CustomElement, DirtyCheckProperty, IDirtyChecker } from '@aurelia/runtime';
-import { assert, Call, fail, getVisibleText } from '@aurelia/testing';
+import { DirtyCheckProperty, IDirtyChecker } from '@aurelia/runtime';
+import { assert, getVisibleText } from '@aurelia/testing';
 import { App, Product } from './app/app';
 import { Cards } from './app/molecules/cards/cards';
 import { LetDemo } from './app/molecules/let-demo/let-demo';
 import { RandomGenerator } from './app/molecules/random-generator/random-generator';
-import { $it, getViewModel, assertCalls } from './util';
+import { $it, assertCalls, getViewModel } from './util';
 
 describe('app', function () {
 

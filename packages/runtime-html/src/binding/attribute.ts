@@ -20,7 +20,6 @@ import {
   State,
   IScheduler,
   INode,
-  ITaskQueue
 } from '@aurelia/runtime';
 import {
   AttributeObserver,

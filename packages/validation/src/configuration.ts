@@ -24,7 +24,7 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
         Registration.transient(IValidationRules, ValidationRules),
         ValidateBindingBehavior,
         ValidationErrorsCustomAttribute,
-        Registration.singleton(IValidationControllerFactory, ValidationControllerFactory)
+        Registration.transient(IValidationControllerFactory, ValidationControllerFactory)
       );
     },
     customize(cb?: ValidationConfigurationProvider) {

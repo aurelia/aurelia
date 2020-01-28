@@ -467,6 +467,8 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
   }
 }
 
+const classicAccessorPattern = /^function\s*\([$_\w\d]+\)\s*\{(?:\s*["']{1}use strict["']{1};)?\s*(?:[$_\w\d.['"\]+;]+)?\s*return\s+[$_\w\d]+((\.[$_\w\d]+|\[['"$_\w\d]+\])+)\s*;?\s*\}$/;
+const arrowAccessorPattern = /^\(?[$_\w\d]+\)?\s*=>\s*[$_\w\d]+((\.[$_\w\d]+|\[['"$_\w\d]+\])+)$/;
 export type PropertyAccessor<TObject extends IValidateable = IValidateable, TValue = unknown> = (object: TObject) => TValue;
 export function parsePropertyName(property: string | PropertyAccessor, parser: IExpressionParser): [string, IsBindingBehavior] {
 
@@ -474,10 +476,8 @@ export function parsePropertyName(property: string | PropertyAccessor, parser: I
     case "string":
       break;
     case "function": {
-      const classic = /^function\s*\([$_\w\d]+\)\s*\{(?:\s*["']{1}use strict["']{1};)?\s*(?:[$_\w\d.['"\]+;]+)?\s*return\s+[$_\w\d]+((\.[$_\w\d]+|\[['"$_\w\d]+\])+)\s*;?\s*\}$/;
-      const arrow = /^\(?[$_\w\d]+\)?\s*=>\s*[$_\w\d]+((\.[$_\w\d]+|\[['"$_\w\d]+\])+)$/;
       const fn = property.toString();
-      const match = classic.exec(fn) ?? arrow.exec(fn);
+      const match = arrowAccessorPattern.exec(fn) ?? classicAccessorPattern.exec(fn);
       if (match === null) {
         throw new Error(`Unable to parse accessor function:\n${fn}`); // TODO use reporter
       }

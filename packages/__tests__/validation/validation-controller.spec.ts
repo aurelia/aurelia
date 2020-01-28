@@ -31,10 +31,10 @@ describe('validation-controller-factory', function () {
     };
   }
 
-  it('registered to be singleton', function () {
+  it('registered to be transient', function () {
     const { sut, container } = setup();
     const sut1 = container.get(IValidationControllerFactory);
-    assert.equal(sut, sut1);
+    assert.notEqual(sut, sut1);
     assert.equal((sut as ValidationControllerFactory)['container'], container);
     assert.equal((sut1 as ValidationControllerFactory)['container'], container);
   });
@@ -140,7 +140,7 @@ describe('validation-controller', function () {
     const container = ctx.container;
     const host = ctx.dom.createElement('app');
     ctx.doc.body.appendChild(host);
-    let app;
+    let app: App;
     const au = new Aurelia(container);
     await au
       .register(

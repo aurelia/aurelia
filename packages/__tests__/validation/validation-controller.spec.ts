@@ -119,7 +119,17 @@ describe('validation-controller', function () {
 
     public beforeUnbind() {
       this.validationRules.off();
+      // mandatory cleanup in root
+      this.controller.reset();
     }
+
+    public afterUnbind() {
+      const controller = this.controller;
+      assert.equal(controller.results.length, 0, 'the result should have been removed');
+      assert.equal(controller['elements'].size, 0, 'the elements should have been removed');
+      assert.equal(controller.bindings.size, 0, 'the bindings should have been removed');
+      assert.equal(controller.objects.size, 0, 'the objects should have been removed');
+  }
   }
   class FooSubscriber implements ValidationErrorsSubscriber {
     public notifications: ValidationEvent[] = [];
@@ -174,6 +184,9 @@ describe('validation-controller', function () {
       const result = await sut.validate();
       assert.greaterThan(result.results.findIndex((r) => Object.is(person1, r.object)), -1);
       assert.greaterThan(result.results.findIndex((r) => Object.is(person2, r.object)), -1);
+
+      // cleanup
+      sut.removeObject(person2);
     },
     { template: `<input id="target" type="text" value.two-way="person1.name & validate">` }
   );
@@ -251,6 +264,9 @@ describe('validation-controller', function () {
 
       result = await sut.validate();
       assert.equal(result.results.findIndex((r) => Object.is(person2, r.object)), -1);
+
+      // cleanup
+      sut.removeObject(person2);
     },
     { template: `<input id="target" type="text" value.two-way="person1.name & validate">` }
   );
@@ -289,6 +305,9 @@ describe('validation-controller', function () {
       const removedResults = notifications1[0].removedResults.map((r) => r.result);
       assert.equal(validateEvent.addedResults.map((r) => r.result).every((r) => removedResults.includes(r)), true);
       assert.equal(notifications1[0].addedResults.every((r) => r.result.valid), true);
+
+      // cleanup
+      sut.removeObject(person2);
     }
   );
 
@@ -417,6 +436,9 @@ describe('validation-controller', function () {
 
       await sut.revalidateErrors();
       assert.equal(results.filter((r) => !r.valid).length, 0);
+
+      // cleanup
+      sut.removeObject(person2);
     }
   );
 
@@ -433,6 +455,9 @@ describe('validation-controller', function () {
       await sut.validate(new ValidateInstruction((void 0)!, (void 0)!, (void 0)!, tag));
 
       assert.deepEqual(sut.results.map((r) => r.toString()), ['a must be 42.']);
+
+      // cleanup
+      sut.removeObject(obj1);
     }
   );
 
@@ -512,4 +537,20 @@ describe('validation-controller', function () {
 
       validationRules.off();
     });
+
+  $it('#validate does not produce duplicate result if the same object is also registered as well as used in binding',
+    async function ({ app: { controller: sut, person1 } }) {
+      assert.equal(sut['objects'].has(person1), false);
+
+      sut.addObject(person1);
+      assert.equal(sut['objects'].has(person1), true);
+
+      const result = await sut.validate();
+      assert.deepStrictEqual(result.results.filter((r) => !r.valid).map((r) => r.toString()), ['Name is required.', 'Age is required.']);
+
+      // cleanup
+      sut.removeObject(person1);
+    },
+    { template: `<input id="target" type="text" value.two-way="person1.name & validate">` }
+  );
 });

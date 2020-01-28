@@ -1,6 +1,6 @@
 import { DI } from '@aurelia/kernel';
 import { LifecycleFlags, Scope } from '@aurelia/runtime';
-import { ValidationResult, validationRulesRegistrar, PropertyRule } from './rule-provider';
+import { ValidationResult, validationRulesRegistrar, PropertyRule, rootObjectSymbol } from './rule-provider';
 import { IValidateable } from './rules';
 
 /**
@@ -65,7 +65,7 @@ export class StandardValidator implements IValidator {
         if (expression === void 0) {
           value = object;
         } else {
-          const scope = Scope.create(flags, object);
+          const scope = Scope.create(flags, { [rootObjectSymbol]: object });
           value = expression.evaluate(flags, scope, null!);
         }
         acc.push(rule.validate(value, object, propertyTag, flags));

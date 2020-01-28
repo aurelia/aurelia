@@ -32,7 +32,8 @@ import {
   ICustomMessage,
   parsePropertyName,
   ValidationRuleAliasMessage,
-  validationRulesRegistrar
+  validationRulesRegistrar,
+  rootObjectSymbol
 } from '@aurelia/validation';
 import { IPerson, Person } from './_test-resources';
 
@@ -926,7 +927,7 @@ describe('parsePropertyName', function () {
   for(const { property, expected } of positiveDataRows) {
     it(`parses ${property.toString()} to ${expected}`, function () {
       const { parser } = setup();
-      assert.deepStrictEqual(parsePropertyName(property, parser), [expected, parser.parse(expected, BindingType.None)]);
+      assert.deepStrictEqual(parsePropertyName(property, parser), [expected, parser.parse(`${rootObjectSymbol}.${expected}`, BindingType.None)]);
     });
   }
 

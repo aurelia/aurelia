@@ -816,7 +816,7 @@ describe('validate-biniding-behavior', function () {
 
       assert.equal(controller.results.filter((r) => !r.valid).length, 0, 'error1');
       await controller.validate();
-      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'age').length, 2, 'error2');
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'age').length, 1, 'error2');
 
       target.value = '123';
       await assertEventHandler(target, 'change', 1, scheduler, controllerSpy, ctx);
@@ -825,7 +825,7 @@ describe('validate-biniding-behavior', function () {
 
       target.value = 'foo';
       await assertEventHandler(target, 'change', 1, scheduler, controllerSpy, ctx);
-      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'age').length, 2, 'error4');
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'age').length, 1, 'error4');
       assert.equal(person.age, undefined);
     },
     { template: `<input id="target" value.two-way="person.age | toNumber & validate:'change'">` }
@@ -841,7 +841,7 @@ describe('validate-biniding-behavior', function () {
 
       assert.equal(controller.results.filter((r) => !r.valid).length, 0, 'error1');
       await controller.validate();
-      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'age').length, 2, 'error2');
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'age').length, 1, 'error2');
 
       target.value = $btoa('1234');
       await assertEventHandler(target, 'change', 1, scheduler, controllerSpy, ctx);
@@ -850,7 +850,7 @@ describe('validate-biniding-behavior', function () {
 
       target.value = $btoa('foobar');
       await assertEventHandler(target, 'change', 1, scheduler, controllerSpy, ctx);
-      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'age').length, 2, 'error4');
+      assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'age').length, 1, 'error4');
       assert.equal(person.age, undefined);
     },
     { template: `<input id="target" value.two-way="person.age | toNumber | b64ToPlainText & validate:'change'">` }

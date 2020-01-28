@@ -469,6 +469,7 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
 
 const classicAccessorPattern = /^function\s*\([$_\w\d]+\)\s*\{(?:\s*["']{1}use strict["']{1};)?\s*(?:[$_\w\d.['"\]+;]+)?\s*return\s+[$_\w\d]+((\.[$_\w\d]+|\[['"$_\w\d]+\])+)\s*;?\s*\}$/;
 const arrowAccessorPattern = /^\(?[$_\w\d]+\)?\s*=>\s*[$_\w\d]+((\.[$_\w\d]+|\[['"$_\w\d]+\])+)$/;
+export const rootObjectSymbol = '$root';
 export type PropertyAccessor<TObject extends IValidateable = IValidateable, TValue = unknown> = (object: TObject) => TValue;
 export function parsePropertyName(property: string | PropertyAccessor, parser: IExpressionParser): [string, IsBindingBehavior] {
 
@@ -488,7 +489,7 @@ export function parsePropertyName(property: string | PropertyAccessor, parser: I
       throw new Error(`Unable to parse accessor function:\n${property}`); // TODO use reporter
   }
 
-  return [property, parser.parse(property, BindingType.None)];
+  return [property, parser.parse(`${rootObjectSymbol}.${property}`, BindingType.BindCommand)];
 }
 
 /**

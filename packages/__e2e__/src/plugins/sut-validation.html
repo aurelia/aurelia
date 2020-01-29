@@ -1,0 +1,22 @@
+<validated-el>
+  <input value.two-way="person.name & validate">
+</validated-el>
+<br>
+
+<validated-el>
+  <input value.two-way="person.age & validate" style="display: block;">
+</validated-el>
+
+<br>
+
+<validated-el errors.to-view="errors">
+  <input value.two-way="person.profession & validate">
+  <div slot="errors">
+    <small repeat.for="error of errors" style="color: red; font-size: smaller;">
+      ${error.result.message}
+    </small>
+  </div>
+</validated-el>
+
+<br>
+<button click.delegate="validate()">validate</button>

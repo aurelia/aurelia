@@ -6,6 +6,7 @@ import { IDefaultTrigger, ValidateBindingBehavior, ValidationTrigger } from './v
 import { IValidationControllerFactory, ValidationControllerFactory } from './validation-controller';
 import { ValidationCustomizationOptions } from './validation-customization-options';
 import { IValidator, StandardValidator } from './validator';
+import { Validated } from './subscribers/validated';
 
 export type ValidationConfigurationProvider = (options: ValidationCustomizationOptions) => void;
 
@@ -22,9 +23,10 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
         Registration.singleton(IValidator, options.ValidatorType),
         Registration.singleton(IValidationMessageProvider, ValidationMessageProvider), // TODO enable customization of messages and i18n
         Registration.transient(IValidationRules, ValidationRules),
+        Registration.transient(IValidationControllerFactory, ValidationControllerFactory),
         ValidateBindingBehavior,
         ValidationErrorsCustomAttribute,
-        Registration.transient(IValidationControllerFactory, ValidationControllerFactory)
+        Validated,
       );
     },
     customize(cb?: ValidationConfigurationProvider) {

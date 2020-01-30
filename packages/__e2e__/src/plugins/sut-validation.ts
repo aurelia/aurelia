@@ -5,8 +5,7 @@ import { IValidationControllerFactory, IValidationController, IValidationRules, 
 @customElement({ name: 'sut-validation', template })
 export class SutValidation {
   private readonly controller: IValidationController;
-  public errors: ValidationResultTarget[] = [];
-  private person: Person;
+  private readonly person: Person;
 
   public constructor(
     @IValidationControllerFactory factory: IValidationControllerFactory,
@@ -22,7 +21,7 @@ export class SutValidation {
       .ensure((p) => p.age)
       .required()
       .ensure((p) => p.profession)
-      .required()
+      .required();
   }
 
   public async validate() {

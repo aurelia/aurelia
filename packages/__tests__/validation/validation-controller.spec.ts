@@ -129,7 +129,7 @@ describe('validation-controller', function () {
       assert.equal(controller['elements'].size, 0, 'the elements should have been removed');
       assert.equal(controller.bindings.size, 0, 'the bindings should have been removed');
       assert.equal(controller.objects.size, 0, 'the objects should have been removed');
-  }
+    }
   }
   class FooSubscriber implements ValidationErrorsSubscriber {
     public notifications: ValidationEvent[] = [];

@@ -3,17 +3,23 @@ import { ValidationErrorsSubscriber, ValidationEvent, ValidationResultTarget, IV
 import { DOCUMENT_POSITION_PRECEDING } from './common';
 
 @customElement({
-  name: 'validated-el',
+  name: 'validation-container',
   shadowOptions: { mode: 'open' },
   hasSlots: true,
-  template: `<slot></slot>
-<slot name='errors'>
-  <span repeat.for="error of errors">
-    \${error.result.message}
-  </span>
-</slot>`
+  // TODO customize template from plugin registration
+  template: `
+<div>
+  <slot></slot>
+</div>
+<div>
+  <slot name='errors'>
+    <span repeat.for="error of errors">
+      \${error.result.message}
+    </span>
+  </slot>
+<div>`
 })
-export class Validated implements ValidationErrorsSubscriber {
+export class ValidationContainerCustomElement implements ValidationErrorsSubscriber {
   @bindable public errors: ValidationResultTarget[] = [];
   private readonly host: HTMLElement;
 
@@ -49,8 +55,6 @@ export class Validated implements ValidationErrorsSubscriber {
       // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       return a.targets[0].compareDocumentPosition(b.targets[0]) & DOCUMENT_POSITION_PRECEDING ? 1 : -1;
     });
-
-    console.log(this.errors.map((e) => e.result.toString()));
   }
 
   public beforeBind() {

@@ -6,7 +6,7 @@ import { IDefaultTrigger, ValidateBindingBehavior, ValidationTrigger } from './v
 import { IValidationControllerFactory, ValidationControllerFactory } from './validation-controller';
 import { ValidationCustomizationOptions } from './validation-customization-options';
 import { IValidator, StandardValidator } from './validator';
-import { Validated } from './subscribers/validated';
+import { ValidationContainerCustomElement } from './subscribers/validation-container-custom-element';
 
 export type ValidationConfigurationProvider = (options: ValidationCustomizationOptions) => void;
 
@@ -26,7 +26,7 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
         Registration.transient(IValidationControllerFactory, ValidationControllerFactory),
         ValidateBindingBehavior,
         ValidationErrorsCustomAttribute,
-        Validated,
+        ValidationContainerCustomElement,
       );
     },
     customize(cb?: ValidationConfigurationProvider) {

@@ -7,7 +7,8 @@ import {
   StyleElementStyles,
   cssModules,
   IShadowDOMGlobalStyles,
-  IShadowDOMStyles
+  IShadowDOMStyles,
+  ShadowDOMProjector
 } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { ResourceModel } from '@aurelia/jit';
@@ -208,7 +209,7 @@ describe('Styles', function () {
       );
 
       const seq = NodeSequence.empty;
-      const projector = controller.projector as any;
+      const projector = controller.projector as ShadowDOMProjector;
 
       projector.project(seq);
 

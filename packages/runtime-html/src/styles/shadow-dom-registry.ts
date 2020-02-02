@@ -1,6 +1,7 @@
 import { IContainer, IRegistry, Registration, DI, IResolver } from '@aurelia/kernel';
 import { IShadowDOMStyles, IShadowDOMGlobalStyles, AdoptedStyleSheetsStyles, StyleElementStyles } from './shadow-dom-styles';
 import { HTMLDOM } from '../dom';
+import { IDOM } from '@aurelia/runtime';
 
 export function shadowCSS(...css: (string | CSSStyleSheet)[]) {
   return new ShadowDOMRegistry(css);
@@ -42,36 +43,48 @@ export class ShadowDOMRegistry implements IRegistry {
   }
 
   public static createStyleFactory(container: IContainer): IShadowDOMStyleFactory {
-    const dom = container.get(HTMLDOM);
-
-    if (AdoptedStyleSheetsStyles.supported(dom)) {
-      const styleSheetCache = new Map();
-
-      return {
-        createStyles(localStyles, sharedStyles) {
-          return new AdoptedStyleSheetsStyles(
-            dom,
-            localStyles,
-            styleSheetCache,
-            sharedStyles
-          );
-        }
-      }
+    if (AdoptedStyleSheetsStyles.supported(container.get(HTMLDOM))) {
+      return container.get(AdoptedStyleSheetsStylesFactory);
     }
 
-    return {
-      createStyles(localStyles, sharedStyles) {
-        if (localStyles.some(x => typeof x !== 'string')) {
-          // TODO: use reporter
-          throw new Error('Shadow DOM CSS must be a string.');
-        }
+    return container.get(StyleElementStylesFactory);
+  }
+}
 
-        return new StyleElementStyles(
-          dom,
-          localStyles as string[],
-          sharedStyles
-        );
-      }
-    };
+class AdoptedStyleSheetsStylesFactory {
+  private readonly cache = new Map();
+
+  public constructor(@IDOM private readonly dom: HTMLDOM) {}
+
+  public createStyles(
+    localStyles: (string | CSSStyleSheet)[],
+    sharedStyles: IShadowDOMStyles | null,
+  ): IShadowDOMStyles {
+    return new AdoptedStyleSheetsStyles(
+      this.dom,
+      localStyles,
+      this.cache,
+      sharedStyles,
+    );
+  }
+}
+
+class StyleElementStylesFactory {
+  public constructor(@IDOM private readonly dom: HTMLDOM) {}
+
+  public createStyles(
+    localStyles: string[],
+    sharedStyles: IShadowDOMStyles | null,
+  ): IShadowDOMStyles {
+    if (localStyles.some(x => typeof x !== 'string')) {
+      // TODO: use reporter
+      throw new Error('Shadow DOM CSS must be a string.');
+    }
+
+    return new StyleElementStyles(
+      this.dom,
+      localStyles,
+      sharedStyles,
+    );
   }
 }

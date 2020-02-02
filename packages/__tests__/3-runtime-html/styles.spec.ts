@@ -202,7 +202,7 @@ describe('Styles', function () {
       const component = new FooBar();
       const controller = Controller.forCustomElement(
         component as ICustomElementViewModel<HTMLElement>,
-        ctx.container.get(ILifecycle),
+        ctx.lifecycle,
         host,
         ctx.container, void 0
       );

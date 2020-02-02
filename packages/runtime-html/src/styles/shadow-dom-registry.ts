@@ -58,7 +58,7 @@ export class ShadowDOMRegistry implements IRegistry {
 
     return {
       createStyles(localStyles, sharedStyles) {
-        if (localStyles.find(x => typeof x !== 'string')) {
+        if (localStyles.some(x => typeof x !== 'string')) {
           // TODO: use reporter
           throw new Error('Shadow DOM CSS must be a string.');
         }

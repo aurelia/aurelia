@@ -1,5 +1,5 @@
 import { DI, Registration } from '@aurelia/kernel';
-import { Aurelia, CustomAttribute, CustomElement, INode, CustomAttributeType, Controller, ICustomElementViewModel, ILifecycle } from '@aurelia/runtime';
+import { Aurelia, CustomAttribute, CustomElement, INode, CustomAttributeType, Controller, ICustomElementViewModel, ILifecycle, NodeSequence } from '@aurelia/runtime';
 import {
   AdoptedStyleSheetsStyles,
   CSSModulesProcessorRegistry,
@@ -207,10 +207,10 @@ describe('Styles', function () {
         ctx.container, void 0
       );
 
-      const seq = { appendTo() { return; } };
+      const seq = NodeSequence.empty;
       const projector = controller.projector as any;
 
-      projector.project(seq as any);
+      projector.project(seq);
 
       const root = projector.provideEncapsulationSource();
 

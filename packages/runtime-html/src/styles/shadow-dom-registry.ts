@@ -1,4 +1,4 @@
-import { IContainer, IRegistry, Registration, DI } from '@aurelia/kernel';
+import { IContainer, IRegistry, Registration, DI, IResolver } from '@aurelia/kernel';
 import { IShadowDOMStyles, IShadowDOMGlobalStyles, AdoptedStyleSheetsStyles, StyleElementStyles } from './shadow-dom-styles';
 import { HTMLDOM } from '../dom';
 
@@ -10,14 +10,17 @@ export interface IShadowDOMStyleFactory {
   createStyles(localStyles: (string | CSSStyleSheet)[], sharedStyles: IShadowDOMStyles | null): IShadowDOMStyles;
 }
 
+const factoryCache = new WeakMap<IResolver, IShadowDOMStyleFactory>();
 export const IShadowDOMStyleFactory
   = DI.createInterface<IShadowDOMStyleFactory>('IShadowDOMStyleFactory')
-    .withDefault(x => x.callback((handler, requestor, resolver: any) => {
-      let factory = resolver.styleFactory;
+    .withDefault(x => x.callback((handler, requestor, resolver) => {
+      let factory = factoryCache.get(resolver);
 
-      if (!factory) {
-        // cache the lazily created instance on the resolver
-        resolver.styleFactory = factory = ShadowDOMRegistry.createStyleFactory(handler!);
+      if (factory === void 0) {
+        factoryCache.set(
+          resolver,
+          factory = ShadowDOMRegistry.createStyleFactory(handler)
+        );
       }
 
       return factory;

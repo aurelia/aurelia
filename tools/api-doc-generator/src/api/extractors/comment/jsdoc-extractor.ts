@@ -92,8 +92,8 @@ export class JsDocExtractor implements IJsDocExtractor {
                     }
                     if (defaultValue && defaultValue.length > 0) {
                         line = line.replace(`${OPEN_BRACKET}${defaultValue}${CLOSE_BRACKET}`, NOTHING);
-                        const dv = defaultValue.trim().split('=');
-                        if ( dv.length == 2 && dv[0] === 'defaultValue') defaultValue = dv[1];
+                        // const dv = defaultValue.trim().split('=');
+                        // if ( dv.length == 2 && dv[0] === 'defaultValue') defaultValue = dv[1];
                     }
                     if (description && description.length > 0) {
                         line = line.replace(`${HYPHEN}${description}`, NOTHING);

@@ -1,4 +1,4 @@
-import { ClassDeclaration, IndexSignatureDeclaration, TypeGuards, SyntaxKind } from 'ts-morph';
+import { IndexSignatureDeclaration } from 'ts-morph';
 
 import { IComment } from '../../models/comment/comment';
 import { TypeExtractor, ITypeExtractor } from '../type/type-extractor';

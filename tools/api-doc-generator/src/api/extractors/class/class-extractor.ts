@@ -1,4 +1,4 @@
-import { ClassDeclaration, IndexSignatureDeclaration, TypeGuards, SyntaxKind } from 'ts-morph';
+import { ClassDeclaration, SyntaxKind } from 'ts-morph';
 
 import { IComment } from '../../models/comment/comment';
 import { ClassInfo } from '../../models/class/class-info';
@@ -15,7 +15,7 @@ import { TypescriptCommentExtractor, ITypescriptCommentExtractor } from '../comm
 import { ApiConfiguration as extractorConfiguration } from '../../configurations';
 
 import { TypeCategory } from '../../../helpers';
-import { IndexerInfo } from '../../models/indexer/indexer-info';
+// import { IndexerInfo } from '../../models/indexer/indexer-info';
 import { IIndexExtractor, IndexExtractor } from '../indexer/index-extractor';
 
 export interface IClassExtractor {

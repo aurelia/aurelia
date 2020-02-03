@@ -33,7 +33,7 @@ export function getCommentGroupInfo(
         for (let index = 0; index < grouped.length; index++) {
             const element = grouped[index];
             let title = toTitleCase(element[0].tagName);
-            if (alterTags) {
+            if (alterTags.length > 0) {
                 const info = alterTags.filter(item => item.name === element[0].tagName);
                 if (info.length > 0) {
                     title = info[0].alternative;

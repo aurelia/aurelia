@@ -15,13 +15,14 @@ export function getAureliaSources(tsconfig?: string): SourceFileInfo {
 
       // loop over excluding folders
       for (let index = 0; index < config.files.excludes.length; index++) {
-        if (item.getFilePath().includes(config.files.excludes[index]))
+        if (item.getFilePath().includes(config.files.excludes[index])) {
           return false;
+        }
       }
 
       // loop over filter delegates
-      for (let index = 0; index < config.files.filters.length; index++) {
-        return config.files.filters[index](item);
+      if (config.files.filter) {
+        return config.files.filter(item);
       }
 
       //include this path/folder if none of above code applied

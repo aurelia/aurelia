@@ -160,7 +160,7 @@ function getSummaryMapInfo(sourceFileInfo: SourceFileInfo): SummaryMapInfo[] {
 export function generateSummary(sourceFileInfo: SourceFileInfo, ...prepend: string[]): [string, SummaryMapInfo[][]] {
     const result: string[] = [];
     prepend = prepend || ['# Table of contents', "---", ""];
-    if (prepend) {
+    if (prepend.length > 0) {
         for (let index = 0; index < prepend.length; index++) {
             result.push(prepend[index]);
         }

@@ -9,7 +9,6 @@ import {
     VariableStatement,
     VariableDeclaration,
     TypeGuards,
-    Node,
 } from 'ts-morph';
 // import { TypescriptCommentExtractor, ITypescriptCommentExtractor } from '../comment/ts-comment-extractor';
 // import { CommentInfo } from '../../models/comment/comment-info';
@@ -74,7 +73,7 @@ export class SourceFileExtractor implements ISourceFileExtractor {
             /* eslint-disable */
             declarations.forEach(declaration => {
                 const path = declaration.compilerNode.getSourceFile().fileName;
-                const ignoreInternals = extractorConfiguration.ignoreInternals || true;
+                const ignoreInternals = extractorConfiguration.ignoreInternals ?? true;
                 let ignoreDeclaration = false;
                 // Should be a config here!
                 if (!path.includes('aot/src/vm')) {
@@ -119,7 +118,9 @@ export class SourceFileExtractor implements ISourceFileExtractor {
 
                             if (ignoreFilters?.class || extractorConfiguration.source?.ignore.class) {
                                 const ignore = ignoreFilters?.class || extractorConfiguration.source?.ignore.class;
-                                ignoreDeclaration = ignore!(cls);
+                                if( ignore !== void 0 ){
+                                  ignoreDeclaration = ignore(cls);
+                                }
                             }
                             if (!ignoreDeclaration)
                                 result.classes.push(cls);
@@ -138,7 +139,9 @@ export class SourceFileExtractor implements ISourceFileExtractor {
 
                             if (ignoreFilters?.enum || extractorConfiguration.source?.ignore.enum) {
                                 const ignore = ignoreFilters?.enum || extractorConfiguration.source?.ignore.enum;
-                                ignoreDeclaration = ignore!(em);
+                                if( ignore !== void 0 ){
+                                  ignoreDeclaration = ignore(em);
+                                }
                             }
                             if (!ignoreDeclaration)
                                 result.enums.push(em);
@@ -157,7 +160,9 @@ export class SourceFileExtractor implements ISourceFileExtractor {
 
                             if (ignoreFilters?.function || extractorConfiguration.source?.ignore.function) {
                                 const ignore = ignoreFilters?.function || extractorConfiguration.source?.ignore.function;
-                                ignoreDeclaration = ignore!(func);
+                                if( ignore !== void 0 ){
+                                  ignoreDeclaration = ignore(func);
+                                }
                             }
                             if (!ignoreDeclaration)
                                 result.functions.push(func);
@@ -208,10 +213,10 @@ export class SourceFileExtractor implements ISourceFileExtractor {
                             if (variableStatement) {
                                 if (this.isVariableStatementInSourceOrModule(variableStatement)) {
                                     let variable = this.variableStatementExtractor.extract(variableStatement);
-                                    if (ignoreInternals && variable.markedAsInternal) {
+                                    if (variable.markedAsInternal) {
                                         break;
                                     }
-                                    if (ignoreInternals && !variable.markedAsInternal) {
+                                    if (!variable.markedAsInternal) {
                                         const d = variable.destructuring?.filter(item => !item.markedAsInternal);
                                         const l = variable.literals?.filter(item => !item.markedAsInternal);
                                         const v = variable.variables?.filter(item => !item.markedAsInternal);
@@ -234,7 +239,9 @@ export class SourceFileExtractor implements ISourceFileExtractor {
 
                                     if (ignoreFilters?.variable || extractorConfiguration.source?.ignore.variable) {
                                         const ignore = ignoreFilters?.variable || extractorConfiguration.source?.ignore.variable;
-                                        ignoreDeclaration = ignore!(variable);
+                                        if( ignore !== void 0 ){
+                                          ignoreDeclaration = ignore(variable);
+                                        }
                                     }
                                     if (!ignoreDeclaration)
                                         result.variableStatements.push(variable);

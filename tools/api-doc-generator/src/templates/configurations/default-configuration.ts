@@ -15,7 +15,7 @@ const defaultConfiguration: ITemplateConfiguration = {
       '__e2e__',
       'node_modules',
       'dist'
-    ], filters: [ notADeclarationFile   ]
+    ], filter: [ notADeclarationFile   ]
   },
   environment: Nunjucks,
   typeMapper: typeMapper

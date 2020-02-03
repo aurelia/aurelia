@@ -7,7 +7,7 @@ export interface ITemplateConfiguration {
   files: {
     tsConfig: string,
     excludes: string[],
-    filters: Array<(item: SourceFile) => boolean>;
+    filter: (item: SourceFile) => boolean;
   }
   typeMapper: (typeInfo: TypeInfo) => string;
   appendComments?: boolean;

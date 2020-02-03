@@ -4,7 +4,7 @@ import {
     CallSignatureDeclaration,
     ParameterDeclaration,
     ConstructSignatureDeclaration,
-    IndexSignatureDeclaration,
+    // IndexSignatureDeclaration,
     MethodSignature,
 } from 'ts-morph';
 

@@ -1,12 +1,22 @@
-import { ApiExtractor, generateApiDoc, TemplateGenerator } from "./src";
-import { IComment } from './src/api/models/comment/comment';
+import { generateApiDoc, TemplateGenerator } from "./src";
 import { environment } from './environment';
 
 
-TemplateGenerator.configure(configuration => {
-    configuration.baseUrl = 'https://docs.aurelia.io/';
-    configuration.files.tsConfig = environment.tsConfigFile;
-    return configuration;
-});
 
-generateApiDoc("./result");
+function XX ( rept?: number ){
+
+console.log(!rept);
+
+rept = 0;
+
+console.log(!rept);
+}
+
+XX();
+
+// TemplateGenerator.configure(configuration => {
+//     configuration.files.tsConfig = environment.tsConfigFile;
+//     return configuration;
+// });
+
+// generateApiDoc("./result");

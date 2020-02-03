@@ -27,7 +27,7 @@ export class TypeExtractor implements ITypeExtractor {
                 const otherTypes = candidateTypes.filter(
                     item => item.getSymbol() !== void 0 && item.getSymbolOrThrow().getName() === name,
                 );
-                if (otherTypes && otherTypes.length > 0) {
+                if (otherTypes.length > 0) {
                     // Why a symbol has multiple declarations?!!!
                     const declaration = otherTypes[0].getSymbolOrThrow().getDeclarations()[0];
                     const typeCategory = getTypeCategory(declaration.getKind());

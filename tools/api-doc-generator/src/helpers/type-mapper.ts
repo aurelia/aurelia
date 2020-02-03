@@ -1,5 +1,5 @@
 import { TypeInfo } from '../api/models/type/type-info';
-import { TemplateConfiguration } from '../templates/configurations';
+// import { TemplateConfiguration } from '../templates/configurations';
 import { sourceFileLocator } from './source-file-locator';
 
 export function typeMapper(typeInfo: TypeInfo): string {

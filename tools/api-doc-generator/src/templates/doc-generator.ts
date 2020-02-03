@@ -1,10 +1,10 @@
 import * as fse from 'fs-extra';
 import * as _ from 'lodash';
-import { TemplateGenerator, TemplateConfiguration } from './configurations';
+import { TemplateGenerator } from './configurations';
 import { getAureliaSources } from '../helpers/aurelia/aurelia-source-utils';
 import { TemplateRendererType } from './renderers/template-renderer';
 import { generateSummary } from './summary/summary-generator';
-import { TypeCategory, sourceFileLocator, typeMapper } from "../helpers";
+import { TypeCategory, sourceFileLocator } from "../helpers";
 /* eslint-disable */
 const markdownTable = require('markdown-table')
 /* eslint-disable */

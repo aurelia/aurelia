@@ -181,7 +181,9 @@ export class SourceFileExtractor implements ISourceFileExtractor {
 
                             if (ignoreFilters?.typeAlias || extractorConfiguration.source?.ignore.typeAlias) {
                                 const ignore = ignoreFilters?.typeAlias || extractorConfiguration.source?.ignore.typeAlias;
-                                ignoreDeclaration = ignore!(ta);
+                                if( ignore != void 0 ){
+                                  ignoreDeclaration = ignore!(ta);
+                                }
                             }
                             if (!ignoreDeclaration)
                                 result.typeAliases.push(ta);
@@ -200,7 +202,9 @@ export class SourceFileExtractor implements ISourceFileExtractor {
 
                             if (ignoreFilters?.interface || extractorConfiguration.source?.ignore.interface) {
                                 const ignore = ignoreFilters?.interface || extractorConfiguration.source?.ignore.interface;
-                                ignoreDeclaration = ignore!(inf);
+                                if( ignore != void 0 ){
+                                  ignoreDeclaration = ignore(inf);
+                                }
                             }
                             if (!ignoreDeclaration)
                                 result.interfaces.push(inf);
@@ -213,10 +217,12 @@ export class SourceFileExtractor implements ISourceFileExtractor {
                             if (variableStatement) {
                                 if (this.isVariableStatementInSourceOrModule(variableStatement)) {
                                     let variable = this.variableStatementExtractor.extract(variableStatement);
+
                                     if (variable.markedAsInternal) {
                                         break;
                                     }
-                                    if (!variable.markedAsInternal) {
+
+                                    // if (!variable.markedAsInternal) {
                                         const d = variable.destructuring?.filter(item => !item.markedAsInternal);
                                         const l = variable.literals?.filter(item => !item.markedAsInternal);
                                         const v = variable.variables?.filter(item => !item.markedAsInternal);
@@ -232,7 +238,7 @@ export class SourceFileExtractor implements ISourceFileExtractor {
                                             text: variable.text,
                                             typeCategory: variable.typeCategory
                                         }
-                                    }
+                                    // }
                                     if (!result.variableStatements) {
                                         result.variableStatements = [];
                                     }

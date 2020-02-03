@@ -8,16 +8,13 @@ import { DOCUMENT_POSITION_PRECEDING } from './common';
   hasSlots: true,
   // TODO customize template from plugin registration
   template: `
-<div>
-  <slot></slot>
-</div>
-<div>
-  <slot name='errors'>
-    <span repeat.for="error of errors">
-      \${error.result.message}
-    </span>
-  </slot>
-<div>`
+<slot></slot>
+<slot name='secondary'>
+  <span repeat.for="error of errors">
+    \${error.result.message}
+  </span>
+</slot>
+`
 })
 export class ValidationContainerCustomElement implements ValidationErrorsSubscriber {
   @bindable public errors: ValidationResultTarget[] = [];

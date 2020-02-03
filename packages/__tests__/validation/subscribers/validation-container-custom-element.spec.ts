@@ -1,5 +1,5 @@
 import { IContainer, Registration, toArray } from '@aurelia/kernel';
-import { IScheduler, Aurelia, CustomElement, CustomAttribute } from '@aurelia/runtime';
+import { IScheduler, Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, TestContext, ISpy, HTMLTestContext, createSpy, getVisibleText } from '@aurelia/testing';
 import {
   IValidationController,
@@ -7,7 +7,6 @@ import {
   IValidationRules,
   ValidationController,
   ValidationConfiguration,
-  ValidationErrorsCustomAttribute,
   ValidationErrorsSubscriber,
   ValidationContainerCustomElement
 } from '@aurelia/validation';
@@ -161,6 +160,65 @@ describe.only('validation-container-custom-element', function () {
       </validation-container>
       <validation-container>
         <input id="target2" type="text" value.two-way="person.age & validate">
+      </validation-container>
+    ` }
+  );
+
+  $it('sorts the errors according to the target position',
+    async function ({ host, scheduler, app, ctx }) {
+      const ceEl = host.querySelector('validation-container');
+      const ceVm: ValidationContainerCustomElement = CustomElement.for(ceEl).viewModel as ValidationContainerCustomElement;
+      const spy = createSpy(ceVm, 'handleValidationEvent', true);
+
+      const controller = app.controller;
+      assertSubscriber(controller, ceVm);
+
+      const target1 = ceEl.querySelector('#target1') as HTMLInputElement;
+      const target2 = ceEl.querySelector('#target2') as HTMLInputElement;
+
+      const controllerSpy = app.controllerSpy;
+      await assertEventHandler(target1, scheduler, controllerSpy, spy, ctx);
+      await assertEventHandler(target2, scheduler, controllerSpy, spy, ctx);
+
+      const errors = toArray(ceEl.shadowRoot.querySelectorAll("span")).map((el) => getVisibleText(void 0, el, true));
+      assert.deepStrictEqual(errors, ['Age is required.', 'Name is required.']);
+    },
+    {
+      template: `
+    <validation-container>
+      <input id="target2" type="text" value.two-way="person.age & validate">
+      <input id="target1" type="text" value.two-way="person.name & validate">
+    </validation-container>
+    ` }
+  );
+
+  $it('lets injection of error template via Light DOM',
+    async function ({ host, scheduler, app, ctx }) {
+      const ceEl1 = host.querySelector('validation-container');
+      const ceVm1: ValidationContainerCustomElement = CustomElement.for(ceEl1).viewModel as ValidationContainerCustomElement;
+
+      const controller = app.controller;
+
+      assertSubscriber(controller, ceVm1);
+
+      const input1: HTMLInputElement = ceEl1.querySelector('input#target1');
+
+      const controllerSpy = app.controllerSpy;
+      const spy1 = createSpy(ceVm1, 'handleValidationEvent', true);
+      await assertEventHandler(input1, scheduler, controllerSpy, spy1, ctx);
+
+      assert.deepStrictEqual(toArray(ceEl1.shadowRoot.querySelectorAll("span")).map((el) => getVisibleText(void 0, el, true)),  ["Name is required."]);
+      assert.deepStrictEqual(toArray(ceEl1.querySelectorAll("small")).map((el) => getVisibleText(void 0, el, true)),  ["Name is required."]);
+    },
+    {
+      template: `
+      <validation-container errors.from-view="errors">
+        <input id="target1" type="text" value.two-way="person.name & validate">
+        <div slot="secondary">
+          <small repeat.for="error of errors">
+            \${error.result.message}
+          </small>
+        </div>
       </validation-container>
     ` }
   );

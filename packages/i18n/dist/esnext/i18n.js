@@ -103,7 +103,7 @@ let I18nService = class I18nService {
         return new this.intl.RelativeTimeFormat(locales || this.getLocale(), options);
     }
     rt(input, options, locales) {
-        let difference = input.getTime() - new Date().getTime();
+        let difference = input.getTime() - this.now();
         const epsilon = this.options.rtEpsilon * (difference > 0 ? 1 : 0);
         const formatter = this.createRelativeTimeFormat(options, locales);
         let value = difference / 31536000000 /* Year */;
@@ -133,6 +133,9 @@ let I18nService = class I18nService {
         difference = Math.abs(difference) < 1000 /* Second */ ? 1000 /* Second */ : difference;
         value = difference / 1000 /* Second */;
         return formatter.format(Math.round(value), 'second');
+    }
+    now() {
+        return new Date().getTime();
     }
     async initializeI18next(options) {
         const defaultOptions = {

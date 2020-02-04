@@ -93,6 +93,7 @@ export declare class I18nService implements I18N {
     uf(numberLike: string, locale?: string): number;
     createRelativeTimeFormat(options?: Intl.RelativeTimeFormatOptions, locales?: string | string[]): Intl.RelativeTimeFormat;
     rt(input: Date, options?: Intl.RelativeTimeFormatOptions, locales?: string | string[]): string;
+    private now;
     private initializeI18next;
 }
 //# sourceMappingURL=i18n.d.ts.map

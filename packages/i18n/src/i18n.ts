@@ -188,7 +188,7 @@ export class I18nService implements I18N {
   }
 
   public rt(input: Date, options?: Intl.RelativeTimeFormatOptions, locales?: string | string[]): string {
-    let difference = input.getTime() - new Date().getTime();
+    let difference = input.getTime() - this.now();
     const epsilon = this.options.rtEpsilon! * (difference > 0 ? 1 : 0);
 
     const formatter = this.createRelativeTimeFormat(options, locales);
@@ -226,6 +226,10 @@ export class I18nService implements I18N {
     difference = Math.abs(difference) < TimeSpan.Second ? TimeSpan.Second : difference;
     value = difference / TimeSpan.Second;
     return formatter.format(Math.round(value), 'second');
+  }
+
+  private now() {
+    return new Date().getTime();
   }
 
   private async initializeI18next(options: I18nInitOptions) {

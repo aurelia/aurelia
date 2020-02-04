@@ -1,5 +1,5 @@
 import { customElement, INode, bindable } from '@aurelia/runtime';
-import { ValidationErrorsSubscriber, ValidationEvent, ValidationResultTarget, IValidationController } from '../validation-controller';
+import { ValidationResultsSubscriber, ValidationEvent, ValidationResultTarget, IValidationController } from '../validation-controller';
 import { DOCUMENT_POSITION_PRECEDING } from './common';
 
 @customElement({
@@ -16,7 +16,7 @@ import { DOCUMENT_POSITION_PRECEDING } from './common';
 </slot>
 `
 })
-export class ValidationContainerCustomElement implements ValidationErrorsSubscriber {
+export class ValidationContainerCustomElement implements ValidationResultsSubscriber {
   @bindable public errors: ValidationResultTarget[] = [];
   private readonly host: HTMLElement;
 

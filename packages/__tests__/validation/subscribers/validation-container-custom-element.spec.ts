@@ -7,14 +7,14 @@ import {
   IValidationRules,
   ValidationController,
   ValidationConfiguration,
-  ValidationErrorsSubscriber,
+  ValidationResultsSubscriber,
   ValidationContainerCustomElement
 } from '@aurelia/validation';
 import { Spy } from '../../Spy';
 import { Person } from '../_test-resources';
 import { TestFunction, TestExecutionContext, ToNumberValueConverter, createSpecFunction } from '../../util';
 
-describe.only('validation-container-custom-element', function () {
+describe('validation-container-custom-element', function () {
 
   class App {
     public person: Person = new Person((void 0)!, (void 0)!);
@@ -121,7 +121,7 @@ describe.only('validation-container-custom-element', function () {
     assert.equal(handleValidationEventSpy.calls.length, 1, 'incorrect #calls for handleValidationEvent');
   }
   function assertSubscriber(controller: ValidationController, ce: ValidationContainerCustomElement) {
-    const subscribers = (controller['subscribers'] as Set<ValidationErrorsSubscriber>);
+    const subscribers = (controller['subscribers'] as Set<ValidationResultsSubscriber>);
     assert.equal((subscribers).has(ce), true);
     assert.equal(ce['controller'], controller);
   }

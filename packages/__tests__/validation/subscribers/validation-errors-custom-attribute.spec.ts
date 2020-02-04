@@ -8,7 +8,7 @@ import {
   ValidationConfiguration,
   ValidationController,
   ValidationErrorsCustomAttribute,
-  ValidationErrorsSubscriber,
+  ValidationResultsSubscriber,
 } from '@aurelia/validation';
 import { Spy } from '../../Spy';
 import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../../util';
@@ -126,7 +126,7 @@ describe('validation-errors-custom-attribute', function () {
     assert.equal(handleValidationEventSpy.calls.length, 1, 'incorrect #calls for handleValidationEvent');
   }
   function assertSubscriber(controller: ValidationController, ca: ValidationErrorsCustomAttribute) {
-    const subscribers = (controller['subscribers'] as Set<ValidationErrorsSubscriber>);
+    const subscribers = (controller['subscribers'] as Set<ValidationResultsSubscriber>);
     assert.equal((subscribers).has(ca), true);
     assert.equal(ca.controller, controller);
   }
@@ -201,7 +201,7 @@ describe('validation-errors-custom-attribute', function () {
       <span class="error" repeat.for="errorInfo of ageErrors">
         \${errorInfo.result.message}
       </span>
-    </div>    
+    </div>
     ` }
   );
 
@@ -318,7 +318,7 @@ describe('validation-errors-custom-attribute', function () {
       <span class="error" repeat.for="errorInfo of ageErrors">
         \${errorInfo.result.message}
       </span>
-    </div>    
+    </div>
     `,
       removeSubscriberSpies: { controllerSpy: 1, controller2Spy: 1 }
     }

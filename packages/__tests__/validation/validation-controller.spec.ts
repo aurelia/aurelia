@@ -14,7 +14,7 @@ import {
   ValidationConfiguration,
   ValidationController,
   ValidationControllerFactory,
-  ValidationErrorsSubscriber,
+  ValidationResultsSubscriber,
   ValidationEvent
 } from '@aurelia/validation';
 import { Spy } from '../Spy';
@@ -131,7 +131,7 @@ describe('validation-controller', function () {
       assert.equal(controller.objects.size, 0, 'the objects should have been removed');
     }
   }
-  class FooSubscriber implements ValidationErrorsSubscriber {
+  class FooSubscriber implements ValidationResultsSubscriber {
     public notifications: ValidationEvent[] = [];
     public handleValidationEvent(event: ValidationEvent): void {
       this.notifications.push(event);

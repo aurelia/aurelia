@@ -1,6 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
 import { bindable, BindingMode, customAttribute, INode } from '@aurelia/runtime';
-import { IValidationController, ValidationErrorsSubscriber, ValidationEvent, ValidationResultTarget } from '../validation-controller';
+import { IValidationController, ValidationResultsSubscriber, ValidationEvent, ValidationResultTarget } from '../validation-controller';
 import { DOCUMENT_POSITION_PRECEDING } from './common';
 
 /**
@@ -22,7 +22,7 @@ import { DOCUMENT_POSITION_PRECEDING } from './common';
  * ```
  */
 @customAttribute('validation-errors')
-export class ValidationErrorsCustomAttribute implements ValidationErrorsSubscriber {
+export class ValidationErrorsCustomAttribute implements ValidationResultsSubscriber {
 
   @bindable public controller?: IValidationController;
 

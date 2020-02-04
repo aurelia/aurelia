@@ -85,7 +85,7 @@ export class ValidationEvent {
  * Contract of the validation errors subscriber.
  * The subscriber should implement this interface.
  */
-export interface ValidationErrorsSubscriber {
+export interface ValidationResultsSubscriber {
   handleValidationEvent(event: ValidationEvent): void;
 }
 
@@ -137,9 +137,9 @@ export interface IValidationController {
   /**
    * Collection of registered subscribers.
    *
-   * @type {Set<ValidationErrorsSubscriber>}
+   * @type {Set<ValidationResultsSubscriber>}
    */
-  readonly subscribers: Set<ValidationErrorsSubscriber>;
+  readonly subscribers: Set<ValidationResultsSubscriber>;
   /**
    * Current set of validation results.
    *
@@ -188,11 +188,11 @@ export interface IValidationController {
    * Registers the `subscriber` to the controller.
    * The `subscriber` does not get notified of the previous errors.
    */
-  addSubscriber(subscriber: ValidationErrorsSubscriber): void;
+  addSubscriber(subscriber: ValidationResultsSubscriber): void;
   /**
    * Deregisters the `subscriber` from the controller.
    */
-  removeSubscriber(subscriber: ValidationErrorsSubscriber): void;
+  removeSubscriber(subscriber: ValidationResultsSubscriber): void;
   /**
    * Registers a `binding` to the controller.
    * The binding will be validated during validate without instruction.
@@ -235,7 +235,7 @@ export const IValidationController = DI.createInterface<IValidationController>("
 export class ValidationController implements IValidationController {
 
   public readonly bindings: Map<BindingWithBehavior, BindingInfo> = new Map<BindingWithBehavior, BindingInfo>();
-  public readonly subscribers: Set<ValidationErrorsSubscriber> = new Set<ValidationErrorsSubscriber>();
+  public readonly subscribers: Set<ValidationResultsSubscriber> = new Set<ValidationResultsSubscriber>();
   public readonly results: ValidationResult[] = [];
   public validating: boolean = false;
 
@@ -286,11 +286,11 @@ export class ValidationController implements IValidationController {
     }
   }
 
-  public addSubscriber(subscriber: ValidationErrorsSubscriber) {
+  public addSubscriber(subscriber: ValidationResultsSubscriber) {
     this.subscribers.add(subscriber);
   }
 
-  public removeSubscriber(subscriber: ValidationErrorsSubscriber) {
+  public removeSubscriber(subscriber: ValidationResultsSubscriber) {
     this.subscribers.delete(subscriber);
   }
 

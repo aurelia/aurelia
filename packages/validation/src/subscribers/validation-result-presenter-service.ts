@@ -8,9 +8,6 @@ const resultContainerAttribute = 'validation-result-container';
 export class ValidationResultPresenterService implements ValidationResultsSubscriber {
 
   public handleValidationEvent(event: ValidationEvent): void {
-    // console.log(`#added ${event.addedResults.length}, #removed ${event.removedResults.length}`);
-    console.log('added', event.addedResults.map(({ result, targets }) => ([result.toString(), targets.length])));
-    console.log('removed', event.removedResults.map(({ result, targets }) => ([result.toString(), targets.length])));
     for (const [target, results] of this.reverseMap(event.removedResults)) {
       this.remove(target, results);
     }
@@ -21,14 +18,12 @@ export class ValidationResultPresenterService implements ValidationResultsSubscr
   }
 
   public remove(target: Element, results: ValidationResult[]) {
-    console.log(`remove\n${target.outerHTML}, ${results.map(r => r.message).join()}`);
     const messageContainer = this.getValidationMessageContainer(target);
     if (messageContainer === null) { return; }
     this.removeResults(messageContainer, results);
   }
 
   public add(target: Element, results: ValidationResult[]) {
-    console.log(`add\n${target.outerHTML}, ${results.map(r => r.message).join()}`);
     const messageContainer = this.getValidationMessageContainer(target);
     if (messageContainer === null) { return; }
     this.showResults(messageContainer, results);
@@ -61,16 +56,9 @@ export class ValidationResultPresenterService implements ValidationResultsSubscr
   }
 
   public removeResults(messageContainer: Element, results: ValidationResult[]) {
-    console.log('removeResults', messageContainer);
-    console.log('#results', results.length);
     for (const result of results) {
       if (!result.valid) {
-        console.log('resultId:', result.id);
-        const message = messageContainer.querySelector(`[${resultIdAttribute}=${result.id}]`);
-        if (!message) { throw new Error('message not found'); }
-        console.log(`message found: ${message?.outerHTML}`);
-        // message!.remove();
-        messageContainer.removeChild(message!);
+        messageContainer.querySelector(`[${resultIdAttribute}="${result.id}"]`)?.remove();
       }
     }
   }

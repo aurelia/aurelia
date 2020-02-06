@@ -416,8 +416,8 @@ describe('StandardValidator', function () {
     const result1 = await sut.validate(new ValidateInstruction(obj, void 0, void 0, tag1));
     const result2 = await sut.validate(new ValidateInstruction(obj, void 0, void 0, tag2));
 
-    assert.deepEqual(result1.map((r) => r.toString()), ['name is required.']);
-    assert.deepEqual(result2.map((r) => r.toString()), ['age is required.']);
+    assert.deepEqual(result1.map((r) => r.toString()), ['Name is required.']);
+    assert.deepEqual(result2.map((r) => r.toString()), ['Age is required.']);
 
     rules.off();
   });
@@ -438,7 +438,7 @@ describe('StandardValidator', function () {
 
     const result1 = await sut.validate(new ValidateInstruction(obj));
 
-    assert.deepEqual(result1.map((r) => r.toString()), ['name is required.']);
+    assert.deepEqual(result1.map((r) => r.toString()), ['Name is required.']);
 
     rules.off();
   });
@@ -467,7 +467,7 @@ describe('StandardValidator', function () {
     const result2 = await sut.validate(new ValidateInstruction(obj));
 
     assert.deepEqual(result1.map((r) => r.toString()), [msg1]);
-    assert.deepEqual(result2.map((r) => r.toString()), ['b must be 42.', msg2]);
+    assert.deepEqual(result2.map((r) => r.toString()), ['B must be 42.', msg2]);
 
     rules.off();
   });
@@ -503,7 +503,7 @@ describe('StandardValidator', function () {
 
     const result1 = await sut.validate(new ValidateInstruction(person));
 
-    assert.deepEqual(result1.map((r) => r.toString()), ['FooBar foobar fizbaz', 'age is required.', 'address.line1 is invalid.']);
+    assert.deepEqual(result1.map((r) => r.toString()), ['FooBar foobar fizbaz', 'Age is required.', 'Address.line1 is invalid.']);
 
     ValidationRuleAliasMessage.setDefaultMessage(RequiredRule, { aliases: defaultRequiredRulesMessages }, false);
 

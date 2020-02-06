@@ -1027,7 +1027,7 @@ describe('PropertyRule', function () {
     obj.age = 10;
     result = await rule.validate(undefined, obj);
     assert.equal(result[0].valid, false);
-    assert.equal(result[0].message, 'name is required.');
+    assert.equal(result[0].message, 'Name is required.');
 
     validationRules.off();
   });
@@ -1066,7 +1066,7 @@ describe('PropertyRule', function () {
 
     const results = await rule.validate('', obj);
     assert.equal(results.length, 2);
-    assert.deepEqual(results.map((r) => r.message), ['name is required.', msg]);
+    assert.deepEqual(results.map((r) => r.message), ['Name is required.', msg]);
 
     validationRules.off();
   });

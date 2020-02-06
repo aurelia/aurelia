@@ -18,7 +18,7 @@ export interface IValidationMessageProvider {
   /**
    * Formulates a property display name using the property name and the configured displayName (if provided).
    */
-  getDisplayName(propertyName: string | number, displayName?: string | null | (() => string)): string;
+  getDisplayName(propertyName: string | number | undefined, displayName?: string | null | (() => string)): string | undefined;
 }
 
 export const IValidationMessageProvider = DI.createInterface<IValidationMessageProvider>("IValidationMessageProvider").noDefault();

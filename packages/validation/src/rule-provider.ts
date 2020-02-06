@@ -132,11 +132,11 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
         if (!isValidOrPromise) {
           const scope = Scope.create(flags, {
             $object: object,
-            $displayName: (displayName instanceof Function ? displayName() : displayName) ?? name,
+            $displayName: this.messageProvider.getDisplayName(name, displayName),
             $propertyName: name,
             $value: value,
             $rule: rule,
-            $getDisplayName: this.messageProvider.getDisplayName
+            $getDisplayName: this.messageProvider.getDisplayName.bind(this.messageProvider)
           });
           message = rule.message.evaluate(flags, scope, null!) as string;
         }
@@ -585,11 +585,12 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
     return new PrimitiveLiteralExpression(message);
   }
 
-  public getDisplayName(propertyName: string | number, displayName?: string | null | (() => string)): string {
+  public getDisplayName(propertyName: string | number | undefined, displayName?: string | null | (() => string)): string | undefined {
     if (displayName !== null && displayName !== undefined) {
       return (displayName instanceof Function) ? displayName() : displayName as string;
     }
 
+    if (propertyName === void 0) { return; }
     // split on upper-case letters.
     const words = propertyName.toString().split(/(?=[A-Z])/).join(' ');
     // capitalize first letter.

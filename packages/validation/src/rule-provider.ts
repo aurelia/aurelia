@@ -538,10 +538,10 @@ const contextualProperties: Readonly<Set<string>> = new Set([
   "getDisplayName"
 ]);
 
-const registeredMessages: WeakMap<BaseValidationRule, IInterpolationExpression | PrimitiveLiteralExpression> = new WeakMap<BaseValidationRule, IInterpolationExpression | PrimitiveLiteralExpression>();
 export class ValidationMessageProvider implements IValidationMessageProvider {
 
   private readonly logger: ILogger;
+  protected registeredMessages: WeakMap<BaseValidationRule, IInterpolationExpression | PrimitiveLiteralExpression> = new WeakMap<BaseValidationRule, IInterpolationExpression | PrimitiveLiteralExpression>();
 
   public constructor(
     @IExpressionParser public parser: IExpressionParser,
@@ -555,7 +555,7 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
   }
 
   public getMessage(rule: BaseValidationRule): IInterpolationExpression | PrimitiveLiteralExpression {
-    const parsedMessage = registeredMessages.get(rule);
+    const parsedMessage = this.registeredMessages.get(rule);
     if (parsedMessage !== void 0) { return parsedMessage; }
 
     const validationMessages = ValidationRuleAliasMessage.getDefaultMessages(rule);
@@ -575,7 +575,7 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
 
   public setMessage(rule: BaseValidationRule, message: string): IInterpolationExpression | PrimitiveLiteralExpression {
     const parsedMessage = this.parseMessage(message);
-    registeredMessages.set(rule, parsedMessage);
+    this.registeredMessages.set(rule, parsedMessage);
     return parsedMessage;
   }
 

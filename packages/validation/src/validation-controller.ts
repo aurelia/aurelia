@@ -229,6 +229,7 @@ export interface IValidationController {
    * @param {ValidateInstruction} [instruction] - Instructions on what to reset. If omitted all rendered results will be removed.
    */
   reset(instruction?: ValidateInstruction): void;
+  // TODO have dispose
 }
 export const IValidationController = DI.createInterface<IValidationController>("IValidationController").noDefault();
 
@@ -245,7 +246,7 @@ export class ValidationController implements IValidationController {
    * @private
    * @type {Map<ValidationResult, Element[]>}
    */
-  private readonly elements: Map<ValidationResult, Element[]> = new Map<ValidationResult, Element[]>();
+  private readonly elements: WeakMap<ValidationResult, Element[]> = new WeakMap<ValidationResult, Element[]>();
   public readonly objects: Map<IValidateable, PropertyRule[] | undefined> = new Map<IValidateable, PropertyRule[] | undefined>();
 
   public constructor(
@@ -424,6 +425,7 @@ export class ValidationController implements IValidationController {
     }
     await Promise.all(promises);
   }
+  // TODO have dispose
 
   /**
    * Interprets the instruction and returns a predicate that will identify relevant results in the list of rendered validation results.

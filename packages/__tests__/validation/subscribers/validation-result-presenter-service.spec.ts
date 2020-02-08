@@ -61,7 +61,6 @@ describe('validation-result-presenter-service', function () {
     public afterUnbind() {
       const controller = this.controller;
       assert.equal(controller.results.length, 0, 'the result should have been removed');
-      assert.equal(controller['elements'].size, 0, 'the elements should have been removed');
       assert.equal(controller.bindings.size, 0, 'the bindings should have been removed');
       assert.equal(controller.objects.size, 0, 'the objects should have been removed');
       assert.equal(controller.subscribers.size, 0, 'the subscribers should have been removed');

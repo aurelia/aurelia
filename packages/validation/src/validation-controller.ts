@@ -579,7 +579,7 @@ export const IValidationControllerFactory = DI.createInterface<IValidationContro
 export class ValidationControllerFactory implements IValidationControllerFactory {
 
   public constructor(
-    @IContainer private readonly container: IContainer,
+    @IContainer protected readonly container: IContainer,
   ) { }
 
   public create(validator?: IValidator): IValidationController {

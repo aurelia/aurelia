@@ -15,7 +15,7 @@ describe('rule execution', function () {
   ];
   for (const {value, isValid} of requiredRuleDataRows) {
     it(`RequiredRule#execute validates ${value} to be ${isValid}`, function () {
-      const sut = new RequiredRule((void 0)!);
+      const sut = new RequiredRule();
       assert.equal(sut.execute(value), isValid);
     });
   }
@@ -29,7 +29,7 @@ describe('rule execution', function () {
   ];
   for(const { value, isValid } of regexRuleDataRows) {
     it(`RegexRule#execute validates ${value} to be ${isValid}`, function () {
-      const sut = new RegexRule((void 0)!, /foo/);
+      const sut = new RegexRule(/foo/);
       assert.equal(sut.execute(value), isValid);
     });
   }
@@ -50,7 +50,7 @@ describe('rule execution', function () {
   ];
   for(const { value, length, isMax, isValid } of lengthRuleDataRows) {
     it(`LengthRule#execute validates ${value} to be ${isValid} for length constraint ${length}`, function () {
-      const sut = new LengthRule((void 0)!, length, isMax);
+      const sut = new LengthRule(length, isMax);
       assert.equal(sut.messageKey, isMax ? 'maxLength' : 'minLength');
       assert.equal(sut.execute(value), isValid);
     });
@@ -72,7 +72,7 @@ describe('rule execution', function () {
   ];
   for(const { value, count, isMax, isValid } of sizeRuleDataRows) {
     it(`SizeRule#execute validates ${value} to be ${isValid} for count constraint ${count}`, function () {
-      const sut = new SizeRule((void 0)!, count, isMax);
+      const sut = new SizeRule(count, isMax);
       assert.equal(sut.messageKey, isMax ? 'maxItems' : 'minItems');
       assert.equal(sut.execute(value), isValid);
     });
@@ -122,7 +122,7 @@ describe('rule execution', function () {
   ];
   for(const { value, range, isInclusive, isValid, key } of rangeRuleDataRows) {
     it(`RangeRule#execute validates ${value} to be ${isValid} for range ${isInclusive ? `[${range.min}, ${range.max}]` : `(${range.min}, ${range.max})`}`, function () {
-      const sut = new RangeRule((void 0)!, isInclusive, range);
+      const sut = new RangeRule(isInclusive, range);
       assert.equal(sut.messageKey, key);
       assert.equal(sut.execute(value), isValid);
     });
@@ -137,7 +137,7 @@ describe('rule execution', function () {
   ];
   for(const { value, expectedValue, isValid } of equalsRuleDataRows) {
     it(`EqualsRule#execute validates ${value} to be ${isValid} for expected value ${expectedValue}`, function () {
-      const sut = new EqualsRule((void 0)!, expectedValue);
+      const sut = new EqualsRule(expectedValue);
       assert.equal(sut.execute(value), isValid);
     });
   }

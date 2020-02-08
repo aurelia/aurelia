@@ -13,7 +13,7 @@ import {
   PrimitiveLiteralExpression,
   LifecycleFlags,
   IExpressionParser,
-BindingType
+  BindingType
 } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import {
@@ -218,7 +218,7 @@ describe('ValidationRules', function () {
     }
     const rules = sut
       .ensure(propName)
-      .satisfiesRule(new CustomRule(container.get(IValidationMessageProvider)))
+      .satisfiesRule(new CustomRule())
       .rules;
 
     assert.equal(rules.length, 1);
@@ -611,51 +611,51 @@ describe('ValidationMessageProvider', function () {
   const rules = [
     {
       title: 'RequiredRule',
-      getRule: (sut: IValidationMessageProvider) => new RequiredRule(sut),
+      getRule: (sut: IValidationMessageProvider) => new RequiredRule(),
     },
     {
       title: 'RegexRule',
-      getRule: (sut: IValidationMessageProvider) => new RegexRule(sut, /foo/),
+      getRule: (sut: IValidationMessageProvider) => new RegexRule(/foo/),
     },
     {
       title: 'RegexRule - email',
-      getRule: (sut: IValidationMessageProvider) => new RegexRule(sut, /foo/, 'email'),
+      getRule: (sut: IValidationMessageProvider) => new RegexRule(/foo/, 'email'),
     },
     {
       title: 'LengthRule - minLength',
-      getRule: (sut: IValidationMessageProvider) => new LengthRule(sut, 42, false),
+      getRule: (sut: IValidationMessageProvider) => new LengthRule(42, false),
     },
     {
       title: 'LengthRule - maxLength',
-      getRule: (sut: IValidationMessageProvider) => new LengthRule(sut, 42, true),
+      getRule: (sut: IValidationMessageProvider) => new LengthRule(42, true),
     },
     {
       title: 'SizeRule - minItems',
-      getRule: (sut: IValidationMessageProvider) => new SizeRule(sut, 42, false),
+      getRule: (sut: IValidationMessageProvider) => new SizeRule(42, false),
     },
     {
       title: 'SizeRule - maxItems',
-      getRule: (sut: IValidationMessageProvider) => new SizeRule(sut, 42, true),
+      getRule: (sut: IValidationMessageProvider) => new SizeRule(42, true),
     },
     {
       title: 'RangeRule - min',
-      getRule: (sut: IValidationMessageProvider) => new RangeRule(sut, true, { min: 42 }),
+      getRule: (sut: IValidationMessageProvider) => new RangeRule(true, { min: 42 }),
     },
     {
       title: 'RangeRule - max',
-      getRule: (sut: IValidationMessageProvider) => new RangeRule(sut, true, { max: 42 }),
+      getRule: (sut: IValidationMessageProvider) => new RangeRule(true, { max: 42 }),
     },
     {
       title: 'RangeRule - range',
-      getRule: (sut: IValidationMessageProvider) => new RangeRule(sut, true, { min: 42, max: 43 }),
+      getRule: (sut: IValidationMessageProvider) => new RangeRule(true, { min: 42, max: 43 }),
     },
     {
       title: 'RangeRule - between',
-      getRule: (sut: IValidationMessageProvider) => new RangeRule(sut, false, { min: 42, max: 43 }),
+      getRule: (sut: IValidationMessageProvider) => new RangeRule(false, { min: 42, max: 43 }),
     },
     {
       title: 'EqualsRule',
-      getRule: (sut: IValidationMessageProvider) => new EqualsRule(sut, 42),
+      getRule: (sut: IValidationMessageProvider) => new EqualsRule(42),
     },
   ];
   rules.map(({ title, getRule }) =>
@@ -663,9 +663,9 @@ describe('ValidationMessageProvider', function () {
       const { sut, container } = setup();
       const message = 'FooBar';
       const $rule = getRule(sut);
-      $rule.setMessage(message);
+      sut.setMessage($rule, message);
       const scope = { bindingContext: {}, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
-      const actual = $rule.message.evaluate(LifecycleFlags.none, scope, container);
+      const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, container);
       assert.equal(actual, message);
     }));
 
@@ -688,7 +688,7 @@ describe('ValidationMessageProvider', function () {
       const { sut, container } = setup();
       const $rule = getRule(sut);
       const scope = { bindingContext: { $displayName: 'FooBar', $rule }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
-      const actual = $rule.message.evaluate(LifecycleFlags.none, scope, container);
+      const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, container);
       assert.equal(actual, expected);
     }));
 
@@ -698,7 +698,7 @@ describe('ValidationMessageProvider', function () {
       const $rule = getRule(sut);
       $rule.messageKey = 'foobar';
       const scope = { bindingContext: { $displayName: 'FooBar', $rule }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
-      const actual = $rule.message.evaluate(LifecycleFlags.none, scope, container);
+      const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, container);
       assert.equal(actual, 'FooBar is invalid.');
     }));
 
@@ -752,7 +752,7 @@ describe('ValidationMessageProvider', function () {
     for (const { getRule } of rules) {
       const $rule = getRule(sut);
       const scope = { bindingContext: { $displayName: 'FooBar', $rule }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
-      const actual = $rule.message.evaluate(LifecycleFlags.none, scope, container);
+      const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, container);
       const aliases = customMessages.find((item) => $rule instanceof item.rule).aliases;
       const template = aliases.length === 1 ? aliases[0].defaultMessage : aliases.find(({ name }) => name === $rule.messageKey)?.defaultMessage;
       const expected = sut.parseMessage(template).evaluate(LifecycleFlags.none, scope, null!);
@@ -778,17 +778,17 @@ describe('ValidationMessageProvider', function () {
     ];
     const { sut, container, originalMessages } = setup(customMessages);
 
-    const $rule1 = new RequiredRule(sut);
+    const $rule1 = new RequiredRule();
     $rule1.messageKey = 'required';
 
-    const $rule2 = new RequiredRule(sut);
+    const $rule2 = new RequiredRule();
     $rule2.messageKey = messageKey;
 
     const scope1 = { bindingContext: { $displayName: displayName, $rule: $rule1 }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
     const scope2 = { bindingContext: { $displayName: displayName, $rule: $rule2 }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
 
-    const actual1 = $rule1.message.evaluate(LifecycleFlags.none, scope1, container);
-    const actual2 = $rule2.message.evaluate(LifecycleFlags.none, scope2, container);
+    const actual1 = sut.getMessage($rule1).evaluate(LifecycleFlags.none, scope1, container);
+    const actual2 = sut.getMessage($rule2).evaluate(LifecycleFlags.none, scope2, container);
 
     assert.equal(actual1, 'FooBar is required.');
     assert.equal(actual2, 'FooBar foobar fizbaz');

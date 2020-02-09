@@ -10,17 +10,21 @@ import { ValidationContainerCustomElement } from './subscribers/validation-conta
 
 export type ValidationConfigurationProvider = (options: ValidationCustomizationOptions) => void;
 
+export function getDefaultValidationConfiguration(): ValidationCustomizationOptions {
+  return {
+    ValidatorType: StandardValidator,
+    MessageProviderType: ValidationMessageProvider,
+    ValidationControllerFactoryType: ValidationControllerFactory,
+    CustomMessages: [],
+    DefaultTrigger: ValidationTrigger.blur
+  };
+}
+
 function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
   return {
     optionsProvider,
     register(container: IContainer) {
-      const options: ValidationCustomizationOptions = {
-        ValidatorType: StandardValidator,
-        MessageProviderType: ValidationMessageProvider,
-        ValidationControllerFactoryType: ValidationControllerFactory,
-        CustomMessages: [],
-        DefaultTrigger: ValidationTrigger.blur
-      };
+      const options: ValidationCustomizationOptions = getDefaultValidationConfiguration();
 
       optionsProvider(options);
 

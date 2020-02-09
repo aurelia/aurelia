@@ -103,6 +103,7 @@ export class BaseValidationRule<TValue = any, TObject extends IValidateable = IV
  */
 @validationRule({ aliases: [{ name: 'required', defaultMessage: `\${$displayName} is required.` }] })
 export class RequiredRule extends BaseValidationRule {
+  protected _messageKey: string = 'required';
   public execute(value: unknown): boolean | Promise<boolean> {
     return value !== null
       && value !== void 0
@@ -242,6 +243,7 @@ export class RangeRule extends BaseValidationRule<number> {
   ]
 })
 export class EqualsRule extends BaseValidationRule {
+  protected _messageKey: string = 'equals';
   public constructor(private readonly expectedValue: unknown) { super(); }
   public execute(value: unknown): boolean | Promise<boolean> {
     return value === null

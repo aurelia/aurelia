@@ -503,7 +503,7 @@ describe('StandardValidator', function () {
 
     const result1 = await sut.validate(new ValidateInstruction(person));
 
-    assert.deepEqual(result1.map((r) => r.toString()), ['FooBar foobar fizbaz', 'Age is required.', 'Address.line1 is invalid.']);
+    assert.deepEqual(result1.map((r) => r.toString()), ['FooBar foobar fizbaz', 'Age is required.', 'Address.line1 is required.']);
 
     ValidationRuleAliasMessage.setDefaultMessage(RequiredRule, { aliases: defaultRequiredRulesMessages }, false);
 

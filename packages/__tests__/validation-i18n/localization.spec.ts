@@ -200,6 +200,30 @@ describe.only('validation-i18n', function () {
     assert.instanceOf(container.get(IValidator), FooValidator);
   }, { toCustomize: true });
 
+  $it('provides localized validation failure messages - controller#validate',
+    async function ({ app, container, scheduler }) {
+      const controller = app.controller;
+      const controllerSpy = app.controllerSpy;
+      const person1= app.person1;
+
+      controller.addObject(person1);
+      let { results } = await controller.validate();
+      assert.deepStrictEqual(
+        results.filter(r => !r.valid).map((r) => r.toString()),
+        ['Name is mandatory', 'Enter a value for Age.']
+      );
+
+      await changeLocale(container, scheduler, controllerSpy);
+
+      ({ results } = await controller.validate());
+      assert.deepStrictEqual(
+        results.filter(r => !r.valid).map((r) => r.toString()),
+        ['Name ist notwendig', 'Geben Sie einen Wert für Alter ein.']
+      );
+
+      controller.removeObject(person1);
+    });
+
   $it('provides localized validation failure messages',
     async function ({ app, container, host, scheduler, ctx }) {
       const controller = app.controller;

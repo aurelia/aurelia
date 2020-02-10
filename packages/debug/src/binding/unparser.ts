@@ -1,5 +1,6 @@
 import { Unwrap } from '@aurelia/kernel';
 import * as AST from '@aurelia/runtime';
+import { IHydrator } from '@aurelia/runtime/dist/ast';
 
 const astTypeMap = [
   { type: AST.AccessKeyedExpression, name: 'AccessKeyedExpression' },
@@ -287,6 +288,67 @@ export class Unparser implements AST.IVisitor<void> {
   }
 }
 
+type HydrateableExpression = { fromJSON(jsonObject: any, hydrator: IHydrator): any };
+type ParsedRawExpression = any & { $TYPE: string };
+export class Deserializer implements IHydrator {
+  public static deserialize(serializedExpr: string): AST.IExpression {
+    const deserializer = new Deserializer();
+    const raw = JSON.parse(serializedExpr) as ParsedRawExpression;
+    return deserializer.hydrate(raw);
+  }
+
+  private static readonly hydrationMap: { [$TYPE: string]: HydrateableExpression } = {
+    [AST.AccessMemberExpression.$TYPE]:     AST.AccessMemberExpression,
+    [AST.AccessKeyedExpression.$TYPE]:      AST.AccessKeyedExpression,
+    [AST.AccessThisExpression.$TYPE]:       AST.AccessThisExpression,
+    [AST.AccessScopeExpression.$TYPE]:      AST.AccessScopeExpression,
+    [AST.ArrayLiteralExpression.$TYPE]:     AST.ArrayLiteralExpression,
+    [AST.ObjectLiteralExpression.$TYPE]:    AST.ObjectLiteralExpression,
+    [AST.PrimitiveLiteralExpression.$TYPE]: AST.PrimitiveLiteralExpression,
+    [AST.CallFunctionExpression.$TYPE]:     AST.CallFunctionExpression,
+    [AST.CallMemberExpression.$TYPE]:       AST.CallMemberExpression,
+    [AST.CallScopeExpression.$TYPE]:        AST.CallScopeExpression,
+    [AST.TemplateExpression.$TYPE]:         AST.TemplateExpression,
+    [AST.TaggedTemplateExpression.$TYPE]:   AST.TaggedTemplateExpression,
+    [AST.UnaryExpression.$TYPE]:            AST.UnaryExpression,
+    [AST.BinaryExpression.$TYPE]:           AST.BinaryExpression,
+    [AST.ConditionalExpression.$TYPE]:      AST.ConditionalExpression,
+    [AST.AssignExpression.$TYPE]:           AST.AssignExpression,
+    [AST.ValueConverterExpression.$TYPE]:   AST.ValueConverterExpression,
+    [AST.BindingBehaviorExpression.$TYPE]:  AST.BindingBehaviorExpression,
+    [AST.ArrayBindingPattern.$TYPE]:        AST.ArrayBindingPattern,
+    [AST.ObjectBindingPattern.$TYPE]:       AST.ObjectBindingPattern,
+    [AST.BindingIdentifier.$TYPE]:          AST.BindingIdentifier,
+    [AST.ForOfStatement.$TYPE]:             AST.ForOfStatement,
+    [AST.Interpolation.$TYPE]:              AST.Interpolation,
+  } as const;
+
+  public hydrate(raw: ParsedRawExpression): any {
+    const expressionFunction = Deserializer.hydrationMap[raw.$TYPE];
+    if (expressionFunction !== void 0) {
+      return expressionFunction.fromJSON(raw, this);
+    } else {
+      if (Array.isArray(raw)) {
+        if (typeof raw[0] === 'object') {
+          return this.deserializeExpressions(raw);
+        } else {
+          return raw.map(deserializePrimitive);
+        }
+      } else if (typeof raw !== 'object') {
+        return deserializePrimitive(raw);
+      }
+      throw new Error(`unable to deserialize the expression: ${raw}`); // TODO use reporter/logger
+    }
+  }
+
+  private deserializeExpressions(exprs: unknown[]) {
+    const expressions: AST.IExpression[] = [];
+    for (const expr of exprs) {
+      expressions.push(this.hydrate(expr));
+    }
+    return expressions;
+  }
+}
 export class Serializer implements AST.IVisitor<string> {
   public static serialize(expr: AST.IExpression): string {
     const visitor = new Serializer();
@@ -297,97 +359,97 @@ export class Serializer implements AST.IVisitor<string> {
   }
 
   public visitAccessMember(expr: AST.AccessMemberExpression): string {
-    return `{"type":"AccessMemberExpression","name":${expr.name},"object":${expr.object.accept(this)}}`;
+    return `{"$TYPE":"${AST.AccessMemberExpression.$TYPE}","name":"${expr.name}","object":${expr.object.accept(this)}}`;
   }
 
   public visitAccessKeyed(expr: AST.AccessKeyedExpression): string {
-    return `{"type":"AccessKeyedExpression","object":${expr.object.accept(this)},"key":${expr.key.accept(this)}}`;
+    return `{"$TYPE":"${AST.AccessKeyedExpression.$TYPE}","object":${expr.object.accept(this)},"key":${expr.key.accept(this)}}`;
   }
 
   public visitAccessThis(expr: AST.AccessThisExpression): string {
-    return `{"type":"AccessThisExpression","ancestor":${expr.ancestor}}`;
+    return `{"$TYPE":"${AST.AccessThisExpression.$TYPE}","ancestor":${expr.ancestor}}`;
   }
 
   public visitAccessScope(expr: AST.AccessScopeExpression): string {
-    return `{"type":"AccessScopeExpression","name":"${expr.name}","ancestor":${expr.ancestor}}`;
+    return `{"$TYPE":"${AST.AccessScopeExpression.$TYPE}","name":"${expr.name}","ancestor":${expr.ancestor}}`;
   }
 
   public visitArrayLiteral(expr: AST.ArrayLiteralExpression): string {
-    return `{"type":"ArrayLiteralExpression","elements":${this.serializeExpressions(expr.elements)}}`;
+    return `{"$TYPE":"${AST.ArrayLiteralExpression.$TYPE}","elements":${this.serializeExpressions(expr.elements)}}`;
   }
 
   public visitObjectLiteral(expr: AST.ObjectLiteralExpression): string {
-    return `{"type":"ObjectLiteralExpression","keys":${serializePrimitives(expr.keys)},"values":${this.serializeExpressions(expr.values)}}`;
+    return `{"$TYPE":"${AST.ObjectLiteralExpression.$TYPE}","keys":${serializePrimitives(expr.keys)},"values":${this.serializeExpressions(expr.values)}}`;
   }
 
   public visitPrimitiveLiteral(expr: AST.PrimitiveLiteralExpression): string {
-    return `{"type":"PrimitiveLiteralExpression","value":${serializePrimitive(expr.value)}}`;
+    return `{"$TYPE":"${AST.PrimitiveLiteralExpression.$TYPE}","value":${serializePrimitive(expr.value)}}`;
   }
 
   public visitCallFunction(expr: AST.CallFunctionExpression): string {
-    return `{"type":"CallFunctionExpression","func":${expr.func.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+    return `{"$TYPE":"${AST.CallFunctionExpression.$TYPE}","func":${expr.func.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
   }
 
   public visitCallMember(expr: AST.CallMemberExpression): string {
-    return `{"type":"CallMemberExpression","name":"${expr.name}","object":${expr.object.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+    return `{"$TYPE":"${AST.CallMemberExpression.$TYPE}","name":"${expr.name}","object":${expr.object.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
   }
 
   public visitCallScope(expr: AST.CallScopeExpression): string {
-    return `{"type":"CallScopeExpression","name":"${expr.name}","ancestor":${expr.ancestor},"args":${this.serializeExpressions(expr.args)}}`;
+    return `{"$TYPE":"${AST.CallScopeExpression.$TYPE}","name":"${expr.name}","ancestor":${expr.ancestor},"args":${this.serializeExpressions(expr.args)}}`;
   }
 
   public visitTemplate(expr: AST.TemplateExpression): string {
-    return `{"type":"TemplateExpression","cooked":${serializePrimitives(expr.cooked)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
+    return `{"$TYPE":"${AST.TemplateExpression.$TYPE}","cooked":${serializePrimitives(expr.cooked)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
   }
 
   public visitTaggedTemplate(expr: AST.TaggedTemplateExpression): string {
-    return `{"type":"TaggedTemplateExpression","cooked":${serializePrimitives(expr.cooked)},"raw":${serializePrimitives(expr.cooked.raw as readonly unknown[])},"expressions":${this.serializeExpressions(expr.expressions)}}`;
+    return `{"$TYPE":"${AST.TaggedTemplateExpression.$TYPE}","cooked":${serializePrimitives(expr.cooked)},"raw":${serializePrimitives(expr.cooked.raw as readonly unknown[])},"func":${expr.func.accept(this)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
   }
 
   public visitUnary(expr: AST.UnaryExpression): string {
-    return `{"type":"UnaryExpression","operation":"${expr.operation}","expression":${expr.expression.accept(this)}}`;
+    return `{"$TYPE":"${AST.UnaryExpression.$TYPE}","operation":"${expr.operation}","expression":${expr.expression.accept(this)}}`;
   }
 
   public visitBinary(expr: AST.BinaryExpression): string {
-    return `{"type":"BinaryExpression","operation":"${expr.operation}","left":${expr.left.accept(this)},"right":${expr.right.accept(this)}}`;
+    return `{"$TYPE":"${AST.BinaryExpression.$TYPE}","operation":"${expr.operation}","left":${expr.left.accept(this)},"right":${expr.right.accept(this)}}`;
   }
 
   public visitConditional(expr: AST.ConditionalExpression): string {
-    return `{"type":"ConditionalExpression","condition":${expr.condition.accept(this)},"yes":${expr.yes.accept(this)},"no":${expr.no.accept(this)}}`;
+    return `{"$TYPE":"${AST.ConditionalExpression.$TYPE}","condition":${expr.condition.accept(this)},"yes":${expr.yes.accept(this)},"no":${expr.no.accept(this)}}`;
   }
 
   public visitAssign(expr: AST.AssignExpression): string {
-    return `{"type":"AssignExpression","target":${expr.target.accept(this)},"value":${expr.value.accept(this)}}`;
+    return `{"$TYPE":"${AST.AssignExpression.$TYPE}","target":${expr.target.accept(this)},"value":${expr.value.accept(this)}}`;
   }
 
   public visitValueConverter(expr: AST.ValueConverterExpression): string {
-    return `{"type":"ValueConverterExpression","name":"${expr.name}","expression":${expr.expression.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+    return `{"$TYPE":"${AST.ValueConverterExpression.$TYPE}","name":"${expr.name}","expression":${expr.expression.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
   }
 
   public visitBindingBehavior(expr: AST.BindingBehaviorExpression): string {
-    return `{"type":"BindingBehaviorExpression","name":"${expr.name}","expression":${expr.expression.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+    return `{"$TYPE":"${AST.BindingBehaviorExpression.$TYPE}","name":"${expr.name}","expression":${expr.expression.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
   }
 
   public visitArrayBindingPattern(expr: AST.ArrayBindingPattern): string {
-    return `{"type":"ArrayBindingPattern","elements":${this.serializeExpressions(expr.elements)}}`;
+    return `{"$TYPE":"${AST.ArrayBindingPattern.$TYPE}","elements":${this.serializeExpressions(expr.elements)}}`;
   }
 
   public visitObjectBindingPattern(expr: AST.ObjectBindingPattern): string {
-    return `{"type":"ObjectBindingPattern","keys":${serializePrimitives(expr.keys)},"values":${this.serializeExpressions(expr.values)}}`;
+    return `{"$TYPE":"${AST.ObjectBindingPattern.$TYPE}","keys":${serializePrimitives(expr.keys)},"values":${this.serializeExpressions(expr.values)}}`;
   }
 
   public visitBindingIdentifier(expr: AST.BindingIdentifier): string {
-    return `{"type":"BindingIdentifier","name":"${expr.name}"}`;
+    return `{"$TYPE":"${AST.BindingIdentifier.$TYPE}","name":"${expr.name}"}`;
   }
 
   public visitHtmlLiteral(expr: AST.HtmlLiteralExpression): string { throw new Error('visitHtmlLiteral'); }
 
   public visitForOfStatement(expr: AST.ForOfStatement): string {
-    return `{"type":"ForOfStatement","declaration":${expr.declaration.accept(this)},"iterable":${expr.iterable.accept(this)}}`;
+    return `{"$TYPE":"${AST.ForOfStatement.$TYPE}","declaration":${expr.declaration.accept(this)},"iterable":${expr.iterable.accept(this)}}`;
   }
 
   public visitInterpolation(expr: AST.Interpolation): string {
-    return `{"type":"Interpolation","cooked":${serializePrimitives(expr.parts)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
+    return `{"$TYPE":"${AST.Interpolation.$TYPE}","cooked":${serializePrimitives(expr.parts)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
   }
 
   private serializeExpressions(args: readonly AST.IExpression[]): string {
@@ -445,5 +507,15 @@ function escape(ch: string): string {
     case '\'': return '\\\'';
     case '\\': return '\\\\';
     default: return ch;
+  }
+}
+
+function deserializePrimitive(value: unknown): any {
+  if (typeof value === 'string') {
+    if (value === 'null') { return null; }
+    if (value === 'undefined') { return undefined; }
+    return value.substring(1, value.length - 1);
+  } else {
+    return value;
   }
 }

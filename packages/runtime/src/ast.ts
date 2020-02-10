@@ -33,6 +33,9 @@ export type HasUnbind = IValueConverterExpression | IBindingBehaviorExpression |
 export type HasAncestor = IAccessThisExpression | IAccessScopeExpression | ICallScopeExpression;
 export type AnyBindingExpression = IInterpolationExpression | IForOfStatement | IsBindingBehavior;
 
+export interface IHydrator {
+  hydrate(jsonExpr: any): any;
+}
 export interface IVisitor<T = unknown> {
   visitAccessKeyed(expr: IAccessKeyedExpression): T;
   visitAccessMember(expr: IAccessMemberExpression): T;
@@ -156,7 +159,7 @@ export interface ICallFunctionExpression extends IExpression {
   readonly args: readonly IsAssign[];
 }
 
-export type BinaryOperator = '&&' | '||' |  '==' |  '===' |  '!=' |  '!==' |  'instanceof' |  'in' |  '+' |  '-' |  '*' |  '/' |  '%' |  '<' |  '>' |  '<=' |  '>=';
+export type BinaryOperator = '&&' | '||' | '==' | '===' | '!=' | '!==' | 'instanceof' | 'in' | '+' | '-' | '*' | '/' | '%' | '<' | '>' | '<=' | '>=';
 
 export interface IBinaryExpression extends IExpression {
   readonly $kind: ExpressionKind.Binary;

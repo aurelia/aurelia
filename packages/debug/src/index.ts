@@ -11,4 +11,5 @@ export {
 export {
   Unparser,
   Serializer,
+  Deserializer,
 } from './binding/unparser';

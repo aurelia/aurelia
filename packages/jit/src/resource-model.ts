@@ -117,10 +117,11 @@ export class AttrInfo {
   public constructor(
     public name: string,
     public isTemplateController: boolean,
+    public noMultiBindings: boolean,
   ) {}
 
   public static from(def: CustomAttributeDefinition): AttrInfo {
-    const info = new AttrInfo(def.name, def.isTemplateController);
+    const info = new AttrInfo(def.name, def.isTemplateController, def.noMultiBindings);
     const bindables = def.bindables;
     const defaultBindingMode = def.defaultBindingMode !== void 0 && def.defaultBindingMode !== BindingMode.default
       ? def.defaultBindingMode

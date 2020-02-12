@@ -303,6 +303,7 @@ export class ValidationController implements IValidationController {
     this.bindings.delete(binding);
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   public async validate<TObject extends IValidateable>(instruction?: ValidateInstruction<TObject>): Promise<ControllerValidateResult> {
     const { object: obj, objectTag, flags } = instruction ?? {};
     let instructions: ValidateInstruction[];

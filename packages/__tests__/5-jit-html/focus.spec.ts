@@ -20,7 +20,7 @@ describe('focus.spec.ts', function () {
 
     describe('with non-focusable element', function () {
       it('focuses when there is tabindex attribute', async function () {
-        const { startPromise, testHost, dispose, component, ctx } = setup<IApp>(
+        const { startPromise, testHost, dispose, component, ctx } = createFixture<IApp>(
           `<template>
             <div focus.two-way="hasFocus" id="blurred" tabindex="-1"></div>
           </template>`,
@@ -48,7 +48,7 @@ describe('focus.spec.ts', function () {
         return HTMLElement.prototype.focus.call(this);
       };
 
-      const { startPromise, testHost, dispose, component, ctx } = setup<IApp>(
+      const { startPromise, testHost, dispose, component, ctx } = createFixture<IApp>(
         `<template>
           <div focus.two-way="hasFocus" id="blurred"></div>
         </template>`,
@@ -83,7 +83,7 @@ describe('focus.spec.ts', function () {
     ]) {
       describe(`with ${desc}`, function () {
         it('Works in basic scenario', async function () {
-          const { startPromise, testHost, dispose, component, ctx } = setup<IApp>(
+          const { startPromise, testHost, dispose, component, ctx } = createFixture<IApp>(
             `<template>
               ${template}
             </template>`,
@@ -142,7 +142,7 @@ describe('focus.spec.ts', function () {
           const ceName = `ce-${Math.random().toString().slice(-6)}`;
 
           it(`works with ${isFocusable ? 'focusable' : ''} custom element ${ceName}, #shadowRoot: ${shadowMode}`, async function () {
-            const { testHost, start, dispose, component, ctx } = setup<IApp>(
+            const { testHost, start, dispose, component, ctx } = createFixture<IApp>(
               `<template><${ceName} focus.two-way=hasFocus></${ceName}></template>`,
               class App {
                 public hasFocus = true;
@@ -303,7 +303,7 @@ describe('focus.spec.ts', function () {
       [focusAttrs, templates],
       (command, { title, template, getFocusable, app, assertionFn }: IFocusTestCase) => {
         it(title(command), async function () {
-          const { testHost, start, dispose, component, ctx } = setup<IApp>(
+          const { testHost, start, dispose, component, ctx } = createFixture<IApp>(
             template(command),
             app,
             false
@@ -337,7 +337,7 @@ describe('focus.spec.ts', function () {
     }
   });
 
-  function setup<T>(template: string | Node, $class: Constructable<T>, autoStart: boolean = true, ...registrations: any[]) {
+  function createFixture<T>(template: string | Node, $class: Constructable<T>, autoStart: boolean = true, ...registrations: any[]) {
     const ctx = TestContext.createHTMLTestContext();
     const { container, lifecycle, observerLocator } = ctx;
     container.register(...registrations, Focus);

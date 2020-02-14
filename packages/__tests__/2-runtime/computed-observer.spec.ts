@@ -22,7 +22,7 @@ import {
 declare let document;
 
 describe.skip('ComputedObserver', function () {
-  function setup() {
+  function createFixture() {
     const container = RuntimeConfiguration.createContainer();
     const innerLocator = {
       handles() { return false; }
@@ -94,7 +94,7 @@ describe.skip('ComputedObserver', function () {
 
   eachCartesianJoin([computedSpecs, propSpecs, depSpecs], (computedSpec, propSpec, depSpec) => {
     it(`computedSpec ${computedSpec.t}, propSpec ${propSpec.t}, depSpec ${depSpec.t}`, function () {
-      const { locator, dirtyChecker, lifecycle } = setup();
+      const { locator, dirtyChecker, lifecycle } = createFixture();
       const { isVolatile, isStatic, exists } = computedSpec;
       const { initialValue: propInitialValue, newValue: propNewValue, descriptor: propDescriptor } = propSpec;
       const { initialValue: depInitialValue, newValue: depNewValue, descriptor: depDescriptor } = depSpec;
@@ -267,7 +267,7 @@ describe.skip('ComputedObserver', function () {
   if (typeof document !== 'undefined') {
     it(`complex nested dependencies`, function () {
       this.timeout(30000);
-      const { locator, dirtyChecker, lifecycle, scheduler } = setup();
+      const { locator, dirtyChecker, lifecycle, scheduler } = createFixture();
 
       class Foo {
         public array1: unknown[];
@@ -435,7 +435,7 @@ describe.skip('ComputedObserver', function () {
   }
 
   it('resorts to dirty checking for non configurable props', function () {
-    const { locator, dirtyChecker, lifecycle } = setup();
+    const { locator, dirtyChecker, lifecycle } = createFixture();
     class Foo {}
     Reflect.defineProperty(Foo.prototype, 'bar', {
       writable: true,
@@ -452,7 +452,7 @@ describe.skip('ComputedObserver', function () {
   });
 
   it('throws in case of no getter', function () {
-    const { locator, dirtyChecker, lifecycle } = setup();
+    const { locator, dirtyChecker, lifecycle } = createFixture();
     class Foo {}
     Reflect.defineProperty(Foo.prototype, 'bar', {
       writable: true,

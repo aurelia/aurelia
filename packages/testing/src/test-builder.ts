@@ -1,55 +1,21 @@
-import { parseExpression } from '@aurelia/jit';
-import { JitHtmlConfiguration } from '@aurelia/jit-html';
 import {
-  Class,
-  Constructable,
   DI,
   IContainer,
-  InstanceProvider,
   Registration,
-  Writable,
 } from '@aurelia/kernel';
 import {
-  BindingType,
-  customAttribute,
-  CustomElement,
-
-  customElement,
-
-  HydrateAttributeInstruction,
-  HydrateElementInstruction,
-  HydrateTemplateController,
-  PartialCustomAttributeDefinition,
-  IController,
-
-  CustomElementType,
-
   IDirtyChecker,
-  IHydrateElementInstruction,
 
   ILifecycle,
   ILifecycleRegistration,
-  INode,
-  INodeSequence,
-  Interpolation,
   IObserverLocator,
   IObserverLocatorRegistration,
-  IRenderingEngine,
-  IsBindingBehavior,
   IScope,
   ITargetAccessorLocator,
-  ITargetedInstruction,
   ITargetObserverLocator,
-  PartialCustomElementDefinition,
-  IteratorBindingInstruction,
-  IViewFactory,
-  IViewModel,
   LifecycleFlags as LF,
   OverrideContext,
   Scope,
-  TargetedInstructionType,
-  templateController,
-  ToViewBindingInstruction,
   IScheduler,
 } from '@aurelia/runtime';
 // import {

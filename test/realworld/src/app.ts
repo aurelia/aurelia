@@ -42,8 +42,9 @@ export class App implements IViewModel {
     this.message = 'Hello World!'; // just for unit testing ;)
   }
 
-  public async binding() {
-    this.router.guardian.addGuard(
+  public async beforeBind() {
+    // this.router.guardian.addGuard(
+    this.router.addHook(
       () => {
         if (this.state.isAuthenticated) {
           return true;

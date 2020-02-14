@@ -106,12 +106,7 @@ export class I18nService implements I18N {
   private options!: I18nInitOptions;
   private readonly intl: typeof Intl;
 
-  public constructor(
-    @I18nWrapper i18nextWrapper: I18nextWrapper,
-    @I18nInitOptions options: I18nInitOptions,
-    @IEventAggregator private readonly ea: IEventAggregator,
-    @ISignaler private readonly signaler: ISignaler,
-  ) {
+  public constructor(@I18nWrapper i18nextWrapper: I18nextWrapper, @I18nInitOptions options: I18nInitOptions, @IEventAggregator private readonly ea: IEventAggregator, @ISignaler private readonly signaler: ISignaler) {
     this.i18next = i18nextWrapper.i18next;
     this.task = new PromiseTask(this.initializeI18next(options), null, this);
     this.intl = PLATFORM.global.Intl;
@@ -193,7 +188,7 @@ export class I18nService implements I18N {
   }
 
   public rt(input: Date, options?: Intl.RelativeTimeFormatOptions, locales?: string | string[]): string {
-    let difference = input.getTime() - new Date().getTime();
+    let difference = input.getTime() - this.now();
     const epsilon = this.options.rtEpsilon! * (difference > 0 ? 1 : 0);
 
     const formatter = this.createRelativeTimeFormat(options, locales);
@@ -231,6 +226,10 @@ export class I18nService implements I18N {
     difference = Math.abs(difference) < TimeSpan.Second ? TimeSpan.Second : difference;
     value = difference / TimeSpan.Second;
     return formatter.format(Math.round(value), 'second');
+  }
+
+  private now() {
+    return new Date().getTime();
   }
 
   private async initializeI18next(options: I18nInitOptions) {

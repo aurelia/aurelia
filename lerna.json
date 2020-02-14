@@ -8,6 +8,7 @@
     "packages/__e2e__",
     "packages/__tests__",
     "packages/aot",
+    "packages/au",
     "packages/aurelia",
     "packages/debug",
     "packages/dialog",
@@ -31,6 +32,7 @@
     "packages/store",
     "packages/testing",
     "packages/validation",
+    "packages/web-components",
     "packages/webpack-loader",
     "test/1kcomponents",
     "test/browserstack",
@@ -45,5 +47,5 @@
     "test/realworld",
     "test/sierpinski-triangle"
   ],
-  "version": "0.5.0"
+  "version": "0.6.0"
 }

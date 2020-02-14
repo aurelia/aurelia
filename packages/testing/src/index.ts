@@ -14,7 +14,6 @@ export {
   AuObserverLocator,
   AuProjector,
   AuProjectorLocator,
-  AuTemplateFactory,
   AuTextInstruction,
   AuTextRenderer,
 } from './au-dom';
@@ -33,7 +32,7 @@ export {
   hJsx,
 } from './h';
 export {
-  setup
+  createFixture
 } from './startup';
 export {
   HTMLTestContext,

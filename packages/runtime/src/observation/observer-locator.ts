@@ -5,6 +5,7 @@ import {
   Primitive,
   Registration,
   Reporter,
+  isArrayIndex,
 } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
@@ -209,31 +210,35 @@ export class ObserverLocator implements IObserverLocator {
         if (propertyName === 'length') {
           return this.getArrayObserver(flags, obj as IObservedArray).getLengthObserver();
         }
-        return this.dirtyChecker.createProperty(obj, propertyName);
+        // is numer only returns true for integer
+        if (isArrayIndex(propertyName)) {
+          return this.getArrayObserver(flags, obj as IObservedArray).getIndexObserver(Number(propertyName));
+        }
+        break;
       case '[object Map]':
         if (propertyName === 'size') {
           return this.getMapObserver(flags, obj as IObservedMap).getLengthObserver();
         }
-        return this.dirtyChecker.createProperty(obj, propertyName);
+        break;
       case '[object Set]':
         if (propertyName === 'size') {
           return this.getSetObserver(flags, obj as IObservedSet).getLengthObserver();
         }
-        return this.dirtyChecker.createProperty(obj, propertyName);
+        break;
     }
 
     const descriptor = getPropertyDescriptor(obj, propertyName) as PropertyDescriptor & {
       get: PropertyDescriptor['get'] & { getObserver(obj: IObservable): IBindingTargetObserver };
     };
 
-    if (descriptor && (descriptor.get || descriptor.set)) {
-      if (descriptor.get && descriptor.get.getObserver) {
+    if (descriptor != null && (descriptor.get != null || descriptor.set != null)) {
+      if (descriptor.get != null && descriptor.get.getObserver != null) {
         return descriptor.get.getObserver(obj);
       }
 
       // attempt to use an adapter before resorting to dirty checking.
       const adapterObserver = this.getAdapterObserver(flags, obj, propertyName, descriptor);
-      if (adapterObserver) {
+      if (adapterObserver != null) {
         return adapterObserver;
       }
       if (isNode) {

@@ -1,5 +1,66 @@
 export interface IPerformance {
   now(): number;
+
+  /**
+   * Removes the given mark from the browser's performance entry buffer.
+   *
+   * - @param {string} [markName] A DOMString representing the name of the timestamp. If this argument is omitted, all performance entries with an entry type of "mark" will be removed.
+   *
+   * @memberof IPerformance
+   */
+  clearMarks(markName?: string): void;
+
+  /**
+   * Removes the given measure from the browser's performance entry buffer.
+   *
+   * - @param {string} [measureName] A DOMString representing the name of the timestamp. If this argument is omitted, all performance entries with an entry type of "measure" will be removed.
+   *
+   * @memberof IPerformance
+   */
+  clearMeasures(measureName?: string): void;
+
+  /**
+   * Returns a list of PerformanceEntry objects based on the given name and entry type.
+   *
+   * - @param {string} name The name of the entry to retrieve
+   * - @param {string} [entryType] The type of entry to retrieve such as "mark". The valid entry types are listed in PerformanceEntry.entryType.
+   *
+   * @returns {*}
+   * @memberof IPerformance
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getEntriesByName(name: string, entryType?: string): any;
+
+  /**
+   * Returns a list of PerformanceEntry objects of the given entry type.
+   *
+   * - @param {string} entryType The type of entry to retrieve such as "mark". The valid entry types are listed in PerformanceEntry.entryType.
+   *
+   * @returns {*}
+   * @memberof IPerformance
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getEntriesByType(entryType: string): any;
+
+  /**
+   * Creates a timestamp in the browser's performance entry buffer with the given name.
+   *
+   * - @param {string} markName a DOMString representing the name of the mark
+   *
+   * @memberof IPerformance
+   */
+  mark(markName: string): void;
+
+  /**
+   * Creates a named timestamp in the browser's performance entry buffer between two specified marks (known as the start mark and end mark, respectively).
+   *
+   * - @param {string} measureName a DOMString representing the name of the measure.
+   * - @param {string} [startMarkName] A DOMString representing the name of the measure's starting mark. May also be the name of a PerformanceTiming property.
+   * - @param {string} [endMarkName] A DOMString representing the name of the measure's ending mark. May also be the name of a PerformanceTiming property.
+   *
+   * @memberof IPerformance
+   */
+  measure(measureName: string, startMarkName?: string, endMarkName?: string): void;
 }
 
 export interface IPerformanceEntry {
@@ -75,13 +136,13 @@ export type IIndexable<
   TBase extends {} = {},
   TValue = unknown,
   TKey extends PropertyKey = Exclude<PropertyKey, keyof TBase>,
-> = { [K in TKey]: TValue } & TBase;
+  > = { [K in TKey]: TValue } & TBase;
 
 export type Writable<T> = {
   -readonly [K in keyof T]: T[K]
 };
 
-export type Diff<T extends string, U extends string> = ({[P in T]: P } & {[P in U]: never } & { [x: string]: never })[T];
+export type Diff<T extends string, U extends string> = ({ [P in T]: P } & { [P in U]: never } & { [x: string]: never })[T];
 
 export type Omit<T, K extends keyof T> = T extends {} ? Pick<T, Exclude<keyof T, K>> : never;
 
@@ -89,7 +150,7 @@ export type Overwrite<T1, T2> = Pick<T1, Exclude<keyof T1, keyof T2>> & T2;
 
 export type KnownKeys<T> = {
   [K in keyof T]: string extends K ? never : number extends K ? never : K
-} extends {[_ in keyof T]: infer U} ? U : never;
+} extends { [_ in keyof T]: infer U } ? U : never;
 
 export type RequiredKnownKeys<T> = {
   [K in keyof T]: {} extends Pick<T, K> ? never : K
@@ -141,10 +202,10 @@ export type Pick3<T, K1 extends keyof T, K2 extends keyof T[K1], K3 extends keyo
 export type Primitive = undefined | null | number | boolean | string | symbol;
 
 export type Unwrap<T> =
-    T extends (infer U)[] ? U :
-      T extends (...args: unknown[]) => infer U ? U :
-        T extends Promise<infer U> ? U :
-          T;
+  T extends (infer U)[] ? U :
+  T extends (...args: unknown[]) => infer U ? U :
+  T extends Promise<infer U> ? U :
+  T;
 
 export type StrictPrimitive = string | number | boolean | null | undefined;
 

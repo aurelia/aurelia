@@ -3,7 +3,7 @@ import { Observable, Subscription } from 'rxjs';
 
 import { Store, STORE } from './store';
 
-export interface ConnectToSettings<T, R = T | unknown> {
+export interface ConnectToSettings<T, R = T | any> {
   onChanged?: string;
   selector: ((store: Store<T>) => Observable<R>) | MultipleSelector<T, R>;
   setup?: string;
@@ -11,28 +11,21 @@ export interface ConnectToSettings<T, R = T | unknown> {
   teardown?: string;
 }
 
-export interface MultipleSelector<T, R = T | unknown> {
+export interface MultipleSelector<T, R = T | any> {
   [key: string]: ((store: Store<T>) => Observable<R>);
 }
 
 const defaultSelector = <T>(store: Store<T>) => store.state;
 
-// tslint:disable-next-line:cognitive-complexity
-export function connectTo<T, R = unknown>(settings?: ((store: Store<T>) => Observable<R>) | ConnectToSettings<T, R>): (target: unknown) => void {
-  if (!Object.entries) {
-    // You need a polyfill for Object.entries for browsers like Internet Explorer. Example: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries#Polyfill
-    throw Reporter.error(507);
-  }
-
+export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observable<R>) | ConnectToSettings<T, R>) {
   let $store: Store<T>;
 
-  //tslint:disable-next-line
   const _settings: ConnectToSettings<T, any> = {
     selector: typeof settings === 'function' ? settings : defaultSelector,
     ...settings
   };
 
-  function getSource(selector: (((store: Store<T>) => Observable<R>))): Observable<unknown> {
+  function getSource(selector: (((store: Store<T>) => Observable<R>))): Observable<any> {
     // if for some reason getSource is invoked before setup (bind lifecycle, typically)
     // then we have no choice but to get the store instance from global container instance
     // otherwise, assume that $store variable in the closure would be already assigned the right
@@ -48,15 +41,14 @@ export function connectTo<T, R = unknown>(settings?: ((store: Store<T>) => Obser
     return store.state;
   }
 
-  // tslint:disable-next-line:no-any
-  function createSelectors(): any {
-    const isSelectorObj = typeof _settings.selector === 'object';
+  function createSelectors() {
+    const isSelectorObj = typeof _settings.selector === "object";
     const fallbackSelector = {
       [_settings.target || 'state']: _settings.selector || defaultSelector
     };
 
     return Object.entries({
-      ...((isSelectorObj ? _settings.selector : fallbackSelector) as MultipleSelector<T, unknown>)
+      ...((isSelectorObj ? _settings.selector : fallbackSelector) as MultipleSelector<T, any>)
     }).map(([target, selector]) => ({
       targets: _settings.target && isSelectorObj ? [_settings.target, target] : [target],
       selector,
@@ -70,7 +62,6 @@ export function connectTo<T, R = unknown>(settings?: ((store: Store<T>) => Obser
     }));
   }
 
-  // tslint:disable-next-line
   return function (target: any) {
     const originalCreated = target.prototype.created;
     const originalSetup = typeof settings === 'object' && settings.setup
@@ -94,29 +85,28 @@ export function connectTo<T, R = unknown>(settings?: ((store: Store<T>) => Obser
       };
     }
 
-    //tslint:disable-next-line
-    target.prototype[typeof settings === 'object' && settings.setup ? settings.setup : 'bind'] = function (): any {
+    target.prototype[typeof settings === 'object' && settings.setup !== undefined ? settings.setup : 'bind'] = function () {
       if (typeof settings === 'object' &&
-        typeof settings.onChanged === 'string' && !(settings.onChanged in this)) {
-          // Provided onChanged handler does not exist on target VM
-          throw Reporter.error(510);
-        }
+        typeof settings.onChanged === 'string' &&
+        !(settings.onChanged in this)) {
+        // Provided onChanged handler does not exist on target VM
+        throw Reporter.error(510);
+      }
 
-      //tslint:disable-next-line
       this._stateSubscriptions = createSelectors().map(s => getSource(s.selector).subscribe((state: any) => {
         const lastTargetIdx = s.targets.length - 1;
         const oldState = s.targets.reduce((accu = {}, curr) => accu[curr], this);
 
         Object.entries(s.changeHandlers).forEach(([handlerName, args]) => {
           if (handlerName in this) {
-            this[handlerName](...[ s.targets[lastTargetIdx], state, oldState ].slice(args as number, 3));
+            this[handlerName](...[ s.targets[lastTargetIdx], state, oldState ].slice(args, 3));
           }
         });
 
         s.targets.reduce((accu, curr, idx) => {
           accu[curr] = idx === lastTargetIdx ? state : accu[curr] || {};
           return accu[curr];
-        },               this);
+        }, this);
       }));
 
       if (originalSetup) {
@@ -124,7 +114,7 @@ export function connectTo<T, R = unknown>(settings?: ((store: Store<T>) => Obser
       }
     };
 
-    target.prototype[typeof settings === 'object' && settings.teardown ? settings.teardown : 'unbind'] = function (): unknown {
+    target.prototype[typeof settings === 'object' && settings.teardown ? settings.teardown : 'unbind'] = function () {
       if (this._stateSubscriptions && Array.isArray(this._stateSubscriptions)) {
         this._stateSubscriptions.forEach((sub: Subscription) => {
           if (sub instanceof Subscription && sub.closed === false) {

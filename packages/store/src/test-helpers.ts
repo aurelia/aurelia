@@ -4,8 +4,13 @@ import { Store } from './store';
 
 export type StepFn<T> = (res: T) => void;
 
-export async function executeSteps<T>(store: Store<T>, shouldLogResults: boolean, ...steps: StepFn<T>[]): Promise<{}> {
+export async function executeSteps<T>(store: Store<T>, shouldLogResults: boolean, ...steps: StepFn<T>[]) {
   const logStep = (step: StepFn<T>, stepIdx: number) => (res: T) => {
+    if (shouldLogResults) {
+      console.group(`Step ${stepIdx}`);
+      console.log(res);
+      console.groupEnd();
+    }
     step(res);
   };
 

@@ -1,6 +1,5 @@
 import { IContainer, Registration, Reporter } from '@aurelia/kernel';
 import { isStateHistory } from './history';
-import { StorePluginOptions } from './index';
 import { Store, STORE, StoreOptions } from './store';
 
 export interface StorePluginOptions<T> extends StoreOptions {
@@ -35,7 +34,7 @@ export const StoreConfiguration: IConfigure = {
 
     let initState: unknown = state;
 
-    if (options && options.history && options.history.undoable && !isStateHistory(state)) {
+    if (options?.history?.undoable && !isStateHistory(state)) {
       initState = { past: [], present: state, future: [] };
     }
 

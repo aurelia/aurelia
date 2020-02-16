@@ -1,7 +1,7 @@
 import { DI } from '@aurelia/kernel';
 import { LifecycleFlags, Scope } from '@aurelia/runtime';
 import { ValidationResult, validationRulesRegistrar, PropertyRule, rootObjectSymbol } from './rule-provider';
-import { IValidateable } from './rules';
+import { IValidateable } from './rule-interfaces';
 
 /**
  * Instruction for the validation controller's validate method.

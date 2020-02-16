@@ -465,7 +465,7 @@ export class Serializer implements AST.IVisitor<string> {
   }
 }
 
-function serializePrimitives(values: readonly unknown[]): string {
+export function serializePrimitives(values: readonly unknown[]): string {
   let text = '[';
   for (let i = 0, ii = values.length; i < ii; ++i) {
     if (i !== 0) {
@@ -477,7 +477,7 @@ function serializePrimitives(values: readonly unknown[]): string {
   return text;
 }
 
-function serializePrimitive(value: unknown): string {
+export function serializePrimitive(value: unknown): string {
   if (typeof value === 'string') {
     return `"\\"${escapeString(value)}\\""`;
   } else if (value == null) {
@@ -510,7 +510,7 @@ function escape(ch: string): string {
   }
 }
 
-function deserializePrimitive(value: unknown): any {
+export function deserializePrimitive(value: unknown): any {
   if (typeof value === 'string') {
     if (value === 'null') { return null; }
     if (value === 'undefined') { return undefined; }

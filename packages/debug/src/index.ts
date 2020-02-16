@@ -12,4 +12,7 @@ export {
   Unparser,
   Serializer,
   Deserializer,
+  serializePrimitive,
+  serializePrimitives,
+  deserializePrimitive,
 } from './binding/unparser';

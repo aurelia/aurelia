@@ -1,7 +1,17 @@
 import { Constructable, Protocol, Metadata, Class, DI } from '@aurelia/kernel';
 import { IInterpolationExpression, PrimitiveLiteralExpression } from '@aurelia/runtime';
-
-export type IValidateable<T = any> = (Class<T> | object) & { [key in PropertyKey]: any };
+import {
+  IValidateable,
+  ValidationRuleExecutionPredicate,
+  IValidationRule,
+  IRequiredRule,
+  IRegexRule,
+  ILengthRule,
+  ISizeRule,
+  IRangeRule,
+  IEqualsRule,
+  IValidationVisitor
+} from './rule-interfaces';
 
 /**
  * Retrieves validation messages and property display names.
@@ -37,7 +47,7 @@ export interface ValidationRuleDefinition {
 
 export const ValidationRuleAliasMessage = Object.freeze({
   aliasKey: Protocol.annotation.keyFor('validation-rule-alias-message'),
-  define<TRule extends BaseValidationRule>(target: Constructable<TRule>, definition: ValidationRuleDefinition): Constructable<TRule> {
+  define<TRule extends BaseValidationRule>(target: Class<TRule, { $TYPE: string }>, definition: ValidationRuleDefinition): Class<TRule, { $TYPE: string }> {
     ValidationRuleAliasMessage.setDefaultMessage(target, definition);
     return target;
   },
@@ -58,10 +68,8 @@ export const ValidationRuleAliasMessage = Object.freeze({
   }
 });
 
-export type ValidationRuleExecutionPredicate<TObject extends IValidateable = IValidateable> = (object?: TObject) => boolean;
-
 export function validationRule(definition: ValidationRuleDefinition) {
-  return function <TRule extends BaseValidationRule>(target: Constructable<TRule>) {
+  return function <TRule extends BaseValidationRule>(target: Class<TRule, { $TYPE: string }>) {
     return ValidationRuleAliasMessage.define(target, definition);
   };
 }
@@ -70,28 +78,18 @@ export function validationRule(definition: ValidationRuleDefinition) {
  * Abstract validation rule.
  */
 @validationRule({ aliases: [{ name: (void 0)!, defaultMessage: `\${$displayName} is invalid.` }] })
-export class BaseValidationRule<TValue = any, TObject extends IValidateable = IValidateable> {
+export class BaseValidationRule<TValue = any, TObject extends IValidateable = IValidateable> implements IValidationRule<TValue, TObject> {
+  public static readonly $TYPE: string = '';
   public tag?: string = (void 0)!;
-  protected _message: IInterpolationExpression | PrimitiveLiteralExpression = (void 0)!;
-
-  protected _messageKey: string = (void 0)!;
-  public get messageKey() { return this._messageKey; }
-  public set messageKey(key: string) {
-    this._messageKey = key;
-    this._message = (void 0)!;
-  }
-
+  public constructor(
+    public messageKey: string = (void 0)!,
+  ) { }
   public canExecute: ValidationRuleExecutionPredicate = () => true;
-
-  /**
-   * Core rule execution.
-   *
-   * @param {TValue} value - value to validate
-   * @param {TObject} [object] - target object
-   * @returns {(boolean | Promise<boolean>)} - `true | Promise<true>` if the validation is successfull, else `false | Promise<false>`.
-   */
-  public execute(value: TValue, object?: TObject): boolean | Promise<boolean> {
+  public execute(_value: TValue, _object?: TObject): boolean | Promise<boolean> {
     throw new Error('No base implementation of execute. Did you forget to implement the execute method?'); // TODO reporter
+  }
+  public accept(_visitor: IValidationVisitor): any {
+    throw new Error('No base implementation of execute. Did you forget to implement the accept method?'); // TODO reporter
   }
 }
 
@@ -102,12 +100,16 @@ export class BaseValidationRule<TValue = any, TObject extends IValidateable = IV
  * @see PropertyRule#required
  */
 @validationRule({ aliases: [{ name: 'required', defaultMessage: `\${$displayName} is required.` }] })
-export class RequiredRule extends BaseValidationRule {
-  protected _messageKey: string = 'required';
+export class RequiredRule extends BaseValidationRule implements IRequiredRule {
+  public static readonly $TYPE: string = 'RequiredRule';
+  public constructor() { super('required'); }
   public execute(value: unknown): boolean | Promise<boolean> {
     return value !== null
       && value !== void 0
       && !(typeof value === 'string' && !/\S/.test(value));
+  }
+  public accept(visitor: IValidationVisitor) {
+    return visitor.visitRequiredRule(this);
   }
 }
 
@@ -124,15 +126,19 @@ export class RequiredRule extends BaseValidationRule {
     { name: 'email', defaultMessage: `\${$displayName} is not a valid email.` },
   ]
 })
-export class RegexRule extends BaseValidationRule<string> {
-  public constructor(private readonly pattern: RegExp, protected readonly _messageKey: string = 'matches') {
-    super();
+export class RegexRule extends BaseValidationRule<string> implements IRegexRule {
+  public static readonly $TYPE: string = 'RegexRule';
+  public constructor(public readonly pattern: RegExp, messageKey: string = 'matches') {
+    super(messageKey);
   }
   public execute(value: string): boolean | Promise<boolean> {
     return value === null
       || value === undefined
       || value.length === 0
       || this.pattern.test(value);
+  }
+  public accept(visitor: IValidationVisitor) {
+    return visitor.visitRegexRule(this);
   }
 }
 
@@ -149,16 +155,19 @@ export class RegexRule extends BaseValidationRule<string> {
     { name: 'maxLength', defaultMessage: `\${$displayName} cannot be longer than \${$rule.length} character\${$rule.length === 1 ? '' : 's'}.` },
   ]
 })
-export class LengthRule extends BaseValidationRule<string> {
-  public constructor(private readonly length: number, private readonly isMax: boolean) {
-    super();
-    this.messageKey = isMax ? 'maxLength' : 'minLength';
+export class LengthRule extends BaseValidationRule<string> implements ILengthRule {
+  public static readonly $TYPE: string = 'LengthRule';
+  public constructor(public readonly length: number, public readonly isMax: boolean) {
+    super(isMax ? 'maxLength' : 'minLength');
   }
   public execute(value: string): boolean | Promise<boolean> {
     return value === null
       || value === undefined
       || value.length === 0
       || (this.isMax ? value.length <= this.length : value.length >= this.length);
+  }
+  public accept(visitor: IValidationVisitor) {
+    return visitor.visitLengthRule(this);
   }
 }
 
@@ -175,15 +184,18 @@ export class LengthRule extends BaseValidationRule<string> {
     { name: 'maxItems', defaultMessage: `\${$displayName} cannot contain more than \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.` },
   ]
 })
-export class SizeRule extends BaseValidationRule<unknown[]> {
-  public constructor(private readonly count: number, private readonly isMax: boolean) {
-    super();
-    this.messageKey = isMax ? 'maxItems' : 'minItems';
+export class SizeRule extends BaseValidationRule<unknown[]> implements ISizeRule {
+  public static readonly $TYPE: string = 'SizeRule';
+  public constructor(public readonly count: number, public readonly isMax: boolean) {
+    super(isMax ? 'maxItems' : 'minItems');
   }
   public execute(value: unknown[]): boolean | Promise<boolean> {
     return value === null
       || value === undefined
       || (this.isMax ? value.length <= this.count : value.length >= this.count);
+  }
+  public accept(visitor: IValidationVisitor) {
+    return visitor.visitSizeRule(this);
   }
 }
 
@@ -209,16 +221,16 @@ type Range = {
     { name: 'between', defaultMessage: `\${$displayName} must be between but not equal to \${$rule.min} and \${$rule.max}.` },
   ]
 })
-export class RangeRule extends BaseValidationRule<number> {
-  private readonly min: number = Number.NEGATIVE_INFINITY;
-  private readonly max: number = Number.POSITIVE_INFINITY;
-  public constructor(private readonly isInclusive: boolean, { min, max }: Range) {
-    super();
-    if (min !== void 0 && max !== void 0) {
-      this._messageKey = this.isInclusive ? 'range' : 'between';
-    } else {
-      this._messageKey = min !== void 0 ? 'min' : 'max';
-    }
+export class RangeRule extends BaseValidationRule<number> implements IRangeRule {
+  public static readonly $TYPE: string = 'RangeRule';
+  public readonly min: number = Number.NEGATIVE_INFINITY;
+  public readonly max: number = Number.POSITIVE_INFINITY;
+  public constructor(public readonly isInclusive: boolean, { min, max }: Range) {
+    super(
+      min !== void 0 && max !== void 0
+        ? (isInclusive ? 'range' : 'between')
+        : (min !== void 0 ? 'min' : 'max')
+    );
     this.min = min ?? this.min;
     this.max = max ?? this.max;
   }
@@ -229,6 +241,9 @@ export class RangeRule extends BaseValidationRule<number> {
         ? value >= this.min && value <= this.max
         : value > this.min && value < this.max
       );
+  }
+  public accept(visitor: IValidationVisitor) {
+    return visitor.visitRangeRule(this);
   }
 }
 
@@ -242,13 +257,16 @@ export class RangeRule extends BaseValidationRule<number> {
     { name: 'equals', defaultMessage: `\${$displayName} must be \${$rule.expectedValue}.` },
   ]
 })
-export class EqualsRule extends BaseValidationRule {
-  protected _messageKey: string = 'equals';
-  public constructor(private readonly expectedValue: unknown) { super(); }
+export class EqualsRule extends BaseValidationRule implements IEqualsRule {
+  public static readonly $TYPE: string = 'EqualsRule';
+  public constructor(public readonly expectedValue: unknown) { super('equals'); }
   public execute(value: unknown): boolean | Promise<boolean> {
     return value === null
       || value === undefined
       || value as any === ''
       || value === this.expectedValue;
+  }
+  public accept(visitor: IValidationVisitor) {
+    return visitor.visitEqualsRule(this);
   }
 }

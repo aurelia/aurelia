@@ -200,7 +200,7 @@ module.exports = {
     '@typescript-eslint/no-this-alias': 'warn',
     '@typescript-eslint/no-unnecessary-condition': 'off', // Only false positives seen so far
     '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
-    '@typescript-eslint/no-unused-vars': 'warn',
+    '@typescript-eslint/no-unused-vars': ['warn', { 'argsIgnorePattern': '^_' }],
     '@typescript-eslint/no-unused-vars-experimental': 'off', // Off for now, crashes eslint
     '@typescript-eslint/prefer-nullish-coalescing': ['warn', { 'forceSuggestionFixer': true }],
     '@typescript-eslint/prefer-optional-chain': 'warn',

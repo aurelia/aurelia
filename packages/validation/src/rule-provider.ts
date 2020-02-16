@@ -1,4 +1,5 @@
 /* eslint-disable no-template-curly-in-string */
+import { Serializer, serializePrimitive } from '@aurelia/debug';
 import { Class, DI, Protocol, Metadata, ILogger } from '@aurelia/kernel';
 import {
   BindingType,
@@ -21,11 +22,17 @@ import {
   SizeRule,
   RangeRule,
   EqualsRule,
-  IValidateable,
   IValidationMessageProvider,
   ValidationRuleAliasMessage,
-  ValidationRuleExecutionPredicate
 } from './rules';
+import {
+  IValidateable,
+  ValidationRuleExecutionPredicate,
+  IValidationVisitor,
+  ValidationDisplayNameAccessor,
+  IRuleProperty,
+  IPropertyRule,
+} from './rule-interfaces';
 
 /**
  * Contract to register the custom messages for rules, during plugin registration.
@@ -38,22 +45,16 @@ export interface ICustomMessage<TRule extends BaseValidationRule = BaseValidatio
 /* @internal */
 export const ICustomMessages = DI.createInterface<ICustomMessage[]>("ICustomMessages").noDefault();
 
-export type ValidationDisplayNameAccessor = () => string;
-
-/**
- * Describes a property to be validated.
- */
-export class RuleProperty {
-  /**
-   * @param {IsBindingBehavior} [expression] - parsed property expression.
-   * @param {(string | number | undefined)} [name=void 0] - name of the property; absent for a object validation.
-   * @param {(string | ValidationDisplayNameAccessor | undefined)} [displayName=void 0] - display name of the property to be used in validation error messages.
-   */
+export class RuleProperty implements IRuleProperty {
+  public static $TYPE: string = "RuleProperty";
   public constructor(
     public expression?: IsBindingBehavior,
     public name: string | number | undefined = void 0,
     public displayName: string | ValidationDisplayNameAccessor | undefined = void 0,
   ) { }
+  public accept(visitor: IValidationVisitor): string {
+    return visitor.visitRuleProperty(this);
+  }
 }
 export type RuleCondition<TObject extends IValidateable = IValidateable, TValue = any> = (value: TValue, object?: TObject) => boolean | Promise<boolean>;
 
@@ -91,11 +92,8 @@ export const validationRulesRegistrar = Object.freeze({
   }
 });
 
-/**
- * Describes a collection of rules, defined on a property.
- */
-export class PropertyRule<TObject extends IValidateable = IValidateable, TValue = unknown> {
-
+export class PropertyRule<TObject extends IValidateable = IValidateable, TValue = unknown> implements IPropertyRule {
+  public static readonly $TYPE: string = "PropertyRule";
   private latestRule?: BaseValidationRule;
 
   public constructor(
@@ -104,6 +102,9 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
     public property: RuleProperty,
     public $rules: BaseValidationRule[][] = [[]],
   ) { }
+  public accept(visitor: IValidationVisitor): string {
+    return visitor.visitPropertyRule(this);
+  }
 
   /** @internal */
   public addRule(rule: BaseValidationRule) {
@@ -606,5 +607,67 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
     const words = propertyName.toString().split(/(?=[A-Z])/).join(' ');
     // capitalize first letter.
     return words.charAt(0).toUpperCase() + words.slice(1);
+  }
+}
+
+export type Visitable<T extends BaseValidationRule> = (PropertyRule | RuleProperty | T) & { accept(visitor: ValidationSerializer): string };
+export class ValidationSerializer implements IValidationVisitor {
+  public static serialize<T extends BaseValidationRule>(object: Visitable<T>): string {
+    if (object == null || typeof object.accept !== 'function') {
+      return `${object}`;
+    }
+    const visitor = new ValidationSerializer(new Serializer());
+    return object.accept(visitor);
+  }
+
+  public constructor(
+    private readonly serializer: Serializer,
+  ) { }
+
+  public visitRequiredRule(rule: RequiredRule): string {
+    return `{"$TYPE":"${RequiredRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${serializePrimitive(rule.tag)}}`;
+  }
+  public visitRegexRule(rule: RegexRule): string {
+    const pattern = rule.pattern;
+    return `{"$TYPE":"${RegexRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${serializePrimitive(rule.tag)},"pattern":{"source":"${pattern.source}","flags":"${pattern.flags}"}}`;
+  }
+  public visitLengthRule(rule: LengthRule): string {
+    return `{"$TYPE":"${LengthRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${serializePrimitive(rule.tag)},"length":${serializePrimitive(rule.length)},"isMax":${serializePrimitive(rule.isMax)}}`;
+  }
+  public visitSizeRule(rule: SizeRule): string {
+    return `{"$TYPE":"${SizeRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${serializePrimitive(rule.tag)},"length":${serializePrimitive(rule.count)},"isMax":${serializePrimitive(rule.isMax)}}`;
+  }
+  public visitRangeRule(rule: RangeRule): string {
+    return `{"$TYPE":"${RangeRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${serializePrimitive(rule.tag)},"isInclusive":${rule.isInclusive},"min":${this.serializeNumber(rule.min)},"max":${this.serializeNumber(rule.max)}}`;
+  }
+  public visitEqualsRule(rule: EqualsRule): string {
+    const expectedValue: any = rule.expectedValue;
+    let serializedExpectedValue: string;
+    if (typeof expectedValue !== 'object' || expectedValue === null) {
+      serializedExpectedValue = serializePrimitive(expectedValue);
+    } else {
+      serializedExpectedValue = typeof expectedValue.accept === 'function' ? expectedValue.accept(this) : JSON.stringify(expectedValue);
+    }
+    return `{"$TYPE":"${EqualsRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${serializePrimitive(rule.tag)},"expectedValue":${serializedExpectedValue}}`;
+  }
+
+  public visitRuleProperty(property: RuleProperty): string {
+    const displayName = property.displayName;
+    if (displayName !== void 0 && typeof displayName !== 'string') {
+      throw new Error('Serializing a non-string displayName for rule property is not supported.'); // TODO use reporter/logger
+    }
+    return `{"$TYPE":"${RuleProperty.$TYPE}","name":${serializePrimitive(property.name)},"expression":${Serializer.serialize(property.expression!)},"displayName":${serializePrimitive(displayName)}}`;
+  }
+
+  public visitPropertyRule(propertyRule: PropertyRule): string {
+    return `{"$TYPE":"${PropertyRule.$TYPE}","property":${propertyRule.property.accept(this)},"$rules":${this.serializeRules(propertyRule.$rules)}}`;
+  }
+
+  private serializeNumber(num: number): string {
+    return num === Number.POSITIVE_INFINITY || num === Number.NEGATIVE_INFINITY ? null! : num.toString();
+  }
+
+  private serializeRules(ruleset: BaseValidationRule[][]) {
+    return `[${ruleset.map((rules) => `[${rules.map((rule) => rule.accept(this)).join(',')}]`).join(',')}]`;
   }
 }

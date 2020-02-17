@@ -78,7 +78,7 @@ const levels = [
 ] as const;
 
 describe('Logger', function () {
-  function setup(level: LogLevel, colorOpts: ColorOptions, scopeTo: string[]) {
+  function createFixture(level: LogLevel, colorOpts: ColorOptions, scopeTo: string[]) {
     const container = DI.createContainer();
     const mock = new ConsoleMock();
     container.register(LoggerConfiguration.create(mock, level, colorOpts));
@@ -139,7 +139,7 @@ describe('Logger', function () {
       describe(`with configured level=${configName}, colors=${colorOpts}, msgOrGetMsg=${msgOrGetMsg}, optionalParams=${optionalParams}, scopeTo=${scopeTo}`, function () {
         if (methodLevel >= configLevel) {
           it(`logs ${loggerMethodName}`, function () {
-            const { sut, mock } = setup(configLevel, colorOpts, scopeTo);
+            const { sut, mock } = createFixture(configLevel, colorOpts, scopeTo);
 
             sut[loggerMethodName](msgOrGetMsg, ...optionalParams);
 
@@ -155,7 +155,7 @@ describe('Logger', function () {
           });
         } else {
           it(`does NOT log ${loggerMethodName}`, function () {
-            const { sut, mock } = setup(configLevel, colorOpts, scopeTo);
+            const { sut, mock } = createFixture(configLevel, colorOpts, scopeTo);
 
             sut[loggerMethodName](msgOrGetMsg, ...optionalParams);
 
@@ -163,7 +163,7 @@ describe('Logger', function () {
           });
 
           it(`can change the level after instantiation`, function () {
-            const { sut, mock } = setup(configLevel, colorOpts, scopeTo);
+            const { sut, mock } = createFixture(configLevel, colorOpts, scopeTo);
 
             sut.config.level = methodLevel;
 

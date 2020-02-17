@@ -324,7 +324,7 @@ export class RouteRecognizer {
     }
 
     // Any trailing skipped states need to be endpoints and need to have
-    // handlers attached.
+    // handlers afterAttach.
     for (let i = 0; i < skippableStates.length; i++) {
       const state = skippableStates[i];
       state.handlers = handlers;

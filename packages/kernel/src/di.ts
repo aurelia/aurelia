@@ -5,16 +5,16 @@ import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
 import { ResourceType, Protocol } from './resource';
 import { Metadata } from './metadata';
-import { isNumeric, isNativeFunction, isObject } from './functions';
+import { isArrayIndex, isNativeFunction, isObject } from './functions';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-export type ResolveCallback<T = any> = (handler?: IContainer, requestor?: IContainer, resolver?: IResolver) => T;
+export type ResolveCallback<T = any> = (handler: IContainer, requestor: IContainer, resolver: IResolver<T>) => T;
 
 export type InterfaceSymbol<K = any> = (target: Injectable<K>, property: string, index: number) => void;
 
 export interface IDefaultableInterfaceSymbol<K> extends InterfaceSymbol<K> {
-  withDefault(configure: (builder: IResolverBuilder<K>) => IResolver<K>): InterfaceSymbol<K>;
+  withDefault(configure: (builder: ResolverBuilder<K>) => IResolver<K>): InterfaceSymbol<K>;
   noDefault(): InterfaceSymbol<K>;
 }
 
@@ -54,8 +54,6 @@ export interface IRegistry {
 }
 
 export interface IContainer extends IServiceLocator {
-  readonly id: number;
-  readonly path: string;
   register(...params: any[]): IContainer;
   registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>): IResolver<T>;
   registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
@@ -64,12 +62,37 @@ export interface IContainer extends IServiceLocator {
   createChild(): IContainer;
 }
 
-export interface IResolverBuilder<K> {
-  instance(value: K): IResolver<K>;
-  singleton(value: Constructable): IResolver<K>;
-  transient(value: Constructable): IResolver<K>;
-  callback(value: ResolveCallback<K>): IResolver<K>;
-  aliasTo(destinationKey: Key): IResolver<K>;
+export class ResolverBuilder<K> {
+  public constructor(
+    private container: IContainer,
+    private key: Key,
+  ) {}
+
+  public instance(value: K): IResolver<K> {
+    return this.registerResolver(ResolverStrategy.instance, value);
+  }
+
+  public singleton(value: Constructable): IResolver<K> {
+    return this.registerResolver(ResolverStrategy.singleton, value);
+  }
+
+  public transient(value: Constructable): IResolver<K> {
+    return this.registerResolver(ResolverStrategy.transient, value);
+  }
+
+  public callback(value: ResolveCallback<K>): IResolver<K> {
+    return this.registerResolver(ResolverStrategy.callback, value);
+  }
+
+  public aliasTo(destinationKey: Key): IResolver<K> {
+    return this.registerResolver(ResolverStrategy.alias, destinationKey);
+  }
+
+  private registerResolver(strategy: ResolverStrategy, state: unknown): IResolver<K> {
+    const { container, key } = this;
+    this.container = this.key = (void 0)!;
+    return container.registerResolver(key, new Resolver(key, strategy, state));
+  }
 }
 
 export type RegisterSelf<T extends Constructable> = {
@@ -101,34 +124,29 @@ function cloneArrayWithPossibleProps<T>(source: readonly T[]): T[] {
   let key: string;
   for (let i = 0; i < len; ++i) {
     key = keys[i];
-    if (!isNumeric(key)) {
+    if (!isArrayIndex(key)) {
       clone[key] = source[key];
     }
   }
   return clone;
 }
 
-export class DI {
-  private constructor() { return; }
-
-  public static createContainer(...params: any[]): IContainer {
+export const DI = {
+  createContainer(...params: any[]): IContainer {
     if (params.length === 0) {
       return new Container(null);
     } else {
       return new Container(null).register(...params);
     }
-  }
-
-  public static getDesignParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined {
+  },
+  getDesignParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined {
     return Metadata.getOwn('design:paramtypes', Type);
-  }
-
-  public static getAnnotationParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined {
+  },
+  getAnnotationParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined {
     const key = Protocol.annotation.keyFor('di:paramtypes');
     return Metadata.getOwn(key, Type);
-  }
-
-  public static getOrCreateAnnotationParamTypes(Type: Constructable | Injectable): Key[] {
+  },
+  getOrCreateAnnotationParamTypes(Type: Constructable | Injectable): Key[] {
     const key = Protocol.annotation.keyFor('di:paramtypes');
     let annotationParamtypes = Metadata.getOwn(key, Type);
     if (annotationParamtypes === void 0) {
@@ -136,9 +154,8 @@ export class DI {
       Protocol.annotation.appendTo(Type, key);
     }
     return annotationParamtypes;
-  }
-
-  public static getDependencies(Type: Constructable | Injectable): Key[] {
+  },
+  getDependencies(Type: Constructable | Injectable): Key[] {
     // Note: Every detail of this getDependencies method is pretty deliberate at the moment, and probably not yet 100% tested from every possible angle,
     // so be careful with making changes here as it can have a huge impact on complex end user apps.
     // Preferably, only make changes to the dependency resolution process via a RFC.
@@ -192,7 +209,7 @@ export class DI {
           let key: string;
           for (let i = 0; i < len; ++i) {
             key = keys[i];
-            if (!isNumeric(key)) {
+            if (!isArrayIndex(key)) {
               dependencies[key] = annotationParamtypes[key];
             }
           }
@@ -207,9 +224,8 @@ export class DI {
     }
 
     return dependencies!;
-  }
-
-  public static createInterface<K extends Key>(friendlyName?: string): IDefaultableInterfaceSymbol<K> {
+  },
+  createInterface<K extends Key>(friendlyName?: string): IDefaultableInterfaceSymbol<K> {
     const Interface: InternalDefaultableInterfaceSymbol<K> = function (target: Injectable<K>, property: string, index: number): any {
       if (target == null) {
         throw Reporter.error(16, Interface.friendlyName, Interface); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
@@ -224,39 +240,21 @@ export class DI {
       return Interface;
     };
 
-    Interface.withDefault = function (configure: (builder: IResolverBuilder<K>) => IResolver<K>): InterfaceSymbol<K> {
+    Interface.withDefault = function (configure: (builder: ResolverBuilder<K>) => IResolver<K>): InterfaceSymbol<K> {
       Interface.withDefault = function (): InterfaceSymbol<K> {
         throw Reporter.error(17, Interface);
       };
 
       Interface.register = function (container: IContainer, key?: Key): IResolver<K> {
-        const trueKey = key == null ? Interface : key;
-        return configure({
-          instance(value: K): IResolver<K> {
-            return container.registerResolver(trueKey, new Resolver(trueKey, ResolverStrategy.instance, value));
-          },
-          singleton(value: Constructable): IResolver<K> {
-            return container.registerResolver(trueKey, new Resolver(trueKey, ResolverStrategy.singleton, value));
-          },
-          transient(value: Constructable): IResolver<K> {
-            return container.registerResolver(trueKey, new Resolver(trueKey, ResolverStrategy.transient, value));
-          },
-          callback(value: ResolveCallback<K>): IResolver<K> {
-            return container.registerResolver(trueKey, new Resolver(trueKey, ResolverStrategy.callback, value));
-          },
-          aliasTo(destinationKey: Key): IResolver<K> {
-            return container.registerResolver(trueKey, new Resolver(trueKey, ResolverStrategy.alias, destinationKey));
-          },
-        });
+        return configure(new ResolverBuilder(container, key ?? Interface));
       };
 
       return Interface;
     };
 
     return Interface;
-  }
-
-  public static inject(...dependencies: Key[]): (target: Injectable, key?: string | number, descriptor?: PropertyDescriptor | number) => void {
+  },
+  inject(...dependencies: Key[]): (target: Injectable, key?: string | number, descriptor?: PropertyDescriptor | number) => void {
     return function (target: Injectable, key?: string | number, descriptor?: PropertyDescriptor | number): void {
       if (typeof descriptor === 'number') { // It's a parameter decorator.
         const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
@@ -291,8 +289,7 @@ export class DI {
         }
       }
     };
-  }
-
+  },
   /**
    * Registers the `target` class as a transient dependency; each time the dependency is resolved
    * a new instance will be created.
@@ -311,14 +308,13 @@ export class DI {
    * Foo.register(container);
    * ```
    */
-  public static transient<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
+  transient<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
     target.register = function register(container: IContainer): IResolver<InstanceType<T>> {
       const registration = Registration.transient(target as T, target as T);
       return registration.register(container, target);
     };
     return target as T & RegisterSelf<T>;
-  }
-
+  },
   /**
    * Registers the `target` class as a singleton dependency; the class will only be created once. Each
    * consecutive time the dependency is resolved, the same instance will be returned.
@@ -336,14 +332,14 @@ export class DI {
    * Foo.register(container);
    * ```
    */
-  public static singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
+  singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
     target.register = function register(container: IContainer): IResolver<InstanceType<T>> {
       const registration = Registration.singleton(target, target);
       return registration.register(container, target);
     };
     return target as T & RegisterSelf<T>;
-  }
-}
+  },
+};
 
 export const IContainer = DI.createInterface<IContainer>('IContainer').noDefault();
 export const IServiceLocator = IContainer as unknown as InterfaceSymbol<IServiceLocator>;
@@ -372,7 +368,7 @@ function transientDecorator<T extends Constructable>(target: T & Partial<Registe
  * a new instance will be created.
  *
  * @example ```ts
- * @transient()
+ * &#64;transient()
  * class Foo { }
  * ```
  */
@@ -384,7 +380,7 @@ export function transient<T extends Constructable>(): typeof transientDecorator;
  * @param target - The class / constructor function to register as transient.
  *
  * @example ```ts
- * @transient()
+ * &#64;transient()
  * class Foo { }
  * ```
  */
@@ -401,7 +397,7 @@ function singletonDecorator<T extends Constructable>(target: T & Partial<Registe
  * consecutive time the dependency is resolved, the same instance will be returned.
  *
  * @example ```ts
- * @singleton()
+ * &#64;singleton()
  * class Foo { }
  * ```
  */
@@ -413,7 +409,7 @@ export function singleton<T extends Constructable>(): typeof singletonDecorator;
  * @param target - The class / constructor function to register as a singleton.
  *
  * @example ```ts
- * @singleton()
+ * &#64;singleton()
  * class Foo { }
  * ```
  */
@@ -675,22 +671,12 @@ function isClass<T extends { prototype?: any }>(obj: T): obj is Class<any, T> {
   return obj.prototype !== void 0;
 }
 
-const nextContainerId = (function () {
-  let id = 0;
-  return function () {
-    return ++id;
-  };
-})();
-
 function isResourceKey(key: Key): key is string {
   return typeof key === 'string' && key.indexOf(':') > 0;
 }
 
 /** @internal */
 export class Container implements IContainer {
-  public readonly id: number = nextContainerId();
-  public readonly path: string;
-
   private registerDepth: number = 0;
 
   private readonly root: Container;
@@ -703,14 +689,12 @@ export class Container implements IContainer {
     private readonly parent: Container | null,
   ) {
     if (parent === null) {
-      this.path = this.id.toString();
       this.root = this;
 
       this.resolvers = new Map();
 
       this.resourceResolvers = Object.create(null);
     } else {
-      this.path = `${parent.path}.${this.id}`;
       this.root = parent.root;
 
       this.resolvers = new Map();

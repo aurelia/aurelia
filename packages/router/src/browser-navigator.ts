@@ -32,7 +32,7 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
   private isActive: boolean = false;
   private options: IBrowserNavigatorOptions = {
     useUrlFragmentHash: true,
-    callback: () => { },
+    callback: () => { return; },
   };
 
   private forwardedState: ForwardedState = {};
@@ -66,7 +66,7 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
     }
     this.window.removeEventListener('popstate', this.handlePopstate as (ev: PopStateEvent | null) => void);
     this.pendingCalls.deactivate();
-    this.options = { useUrlFragmentHash: true, callback: () => { } };
+    this.options = { useUrlFragmentHash: true, callback: () => { return; } };
     this.isActive = false;
   }
 

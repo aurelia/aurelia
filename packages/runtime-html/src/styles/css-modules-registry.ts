@@ -12,13 +12,11 @@ export class CSSModulesProcessorRegistry implements IRegistry {
 
       private element: HTMLElement;
 
-      public constructor(
-        @INode element: INode,
-      ) {
+      public constructor(@INode element: INode) {
         this.element = element as HTMLElement;
       }
 
-      public binding() {
+      public beforeBind() {
         this.valueChanged();
       }
 

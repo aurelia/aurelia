@@ -12,7 +12,7 @@ describe("generated.template-compiler.static", function () {
         Profiler.disable();
         writeProfilerReport("static");
     });
-    function setup() {
+    function createFixture() {
         const ctx = TestContext.createHTMLTestContext();
         const au = new Aurelia(ctx.container);
         const host = ctx.createElement("div");
@@ -36,7 +36,7 @@ describe("generated.template-compiler.static", function () {
         assert.strictEqual(outerHtmlAfterStop1, outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
     }
     it("tag$01 text$01 _", function () {
-        const { au, host } = setup();
+        const { au, host } = createFixture();
         const App = CustomElement.define({ name: "app", template: "<template><div>a</div></template>" }, class {
         });
         const component = new App();
@@ -44,7 +44,7 @@ describe("generated.template-compiler.static", function () {
         verify(au, host, "a");
     });
     it("tag$01 text$03 _", function () {
-        const { au, host } = setup();
+        const { au, host } = createFixture();
         const App = CustomElement.define({ name: "app", template: "<template><div>${msg}</div></template>" }, class {
             msg = "a";
         });
@@ -53,7 +53,7 @@ describe("generated.template-compiler.static", function () {
         verify(au, host, "a");
     });
     it("tag$02 text$01 _", function () {
-        const { au, host } = setup();
+        const { au, host } = createFixture();
         const App = CustomElement.define({ name: "app", template: "<template>a</template>" }, class {
         });
         const component = new App();
@@ -61,7 +61,7 @@ describe("generated.template-compiler.static", function () {
         verify(au, host, "a");
     });
     it("tag$02 text$03 _", function () {
-        const { au, host } = setup();
+        const { au, host } = createFixture();
         const App = CustomElement.define({ name: "app", template: "<template>${msg}</template>" }, class {
             msg = "a";
         });
@@ -70,7 +70,7 @@ describe("generated.template-compiler.static", function () {
         verify(au, host, "a");
     });
     it("tag$03 text$03 _", function () {
-        const { au, host } = setup();
+        const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}</template>" }, class {
             static bindables = ["msg", "not", "item"];
             msg = "";
@@ -86,7 +86,7 @@ describe("generated.template-compiler.static", function () {
         verify(au, host, "a");
     });
     it("tag$04 text$03 _", function () {
-        const { au, host } = setup();
+        const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
             static bindables = ["msg", "not", "item"];
             msg = "";
@@ -102,7 +102,7 @@ describe("generated.template-compiler.static", function () {
         verify(au, host, "a");
     });
     it("tag$05 text$03 _", function () {
-        const { au, host } = setup();
+        const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}</template>" }, class {
             static bindables = ["msg", "not", "item"];
             static containerless = true;
@@ -119,7 +119,7 @@ describe("generated.template-compiler.static", function () {
         verify(au, host, "a");
     });
     it("tag$06 text$03 _", function () {
-        const { au, host } = setup();
+        const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
             static bindables = ["msg", "not", "item"];
             static containerless = true;
@@ -136,7 +136,7 @@ describe("generated.template-compiler.static", function () {
         verify(au, host, "a");
     });
     it("tag$07 text$03 _", function () {
-        const { au, host } = setup();
+        const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}</template>" }, class {
             static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
@@ -153,7 +153,7 @@ describe("generated.template-compiler.static", function () {
         verify(au, host, "a");
     });
     it("tag$08 text$03 _", function () {
-        const { au, host } = setup();
+        const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
             static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "open" };
@@ -170,7 +170,7 @@ describe("generated.template-compiler.static", function () {
         verify(au, host, "a");
     });
     it("tag$09 text$03 _", function () {
-        const { au, host } = setup();
+        const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}</template>" }, class {
             static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
@@ -187,7 +187,7 @@ describe("generated.template-compiler.static", function () {
         verify(au, host, "a");
     });
     it("tag$10 text$03 _", function () {
-        const { au, host } = setup();
+        const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
             static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };

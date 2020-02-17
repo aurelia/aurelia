@@ -37,20 +37,14 @@ describe('doc-example / default route', function () {
   });
 
   it('displays the correct viewports', function () {
-    cy.get(Shared.listsViewportHeader)
+    cy.get(Shared.listsViewport)
       .should('exist');
-    cy.get(Shared.listsViewportHeader)
-      .should('contain', 'Viewport: lists  : authors');
 
-    cy.get(Shared.contentViewportHeader)
+    cy.get(Shared.contentViewport)
       .should('exist');
-    cy.get(Shared.contentViewportHeader)
-      .should('contain', 'Viewport: content  : about');
 
-    cy.get(Shared.chatViewportHeader)
+    cy.get(Shared.chatViewport)
       .should('exist');
-    cy.get(Shared.chatViewportHeader)
-      .should('contain', 'Viewport: chat  : null');
   });
 
   describe('authors component', function () {
@@ -123,13 +117,9 @@ describe('doc-example / default route', function () {
     it('displays the correct viewport', function () {
       cy.get(Shared.contentViewport)
         .should('exist');
-      cy.get(Shared.contentViewportHeader)
-        .should('contain', 'Viewport: content  : author');
 
       cy.get(AuthorComponent.authorTabsViewport)
         .should('exist');
-      cy.get(AuthorComponent.authorTabsViewportHeader)
-        .should('contain', 'Viewport: author-tabs  : author-details');
     });
 
     it('display the correct author details', function () {

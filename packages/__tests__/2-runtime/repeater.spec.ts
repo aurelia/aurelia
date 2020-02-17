@@ -1,20 +1,13 @@
-import { Writable } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
-  addBinding,
   PropertyBinding,
   BindingContext,
   BindingIdentifier,
-  BindingMode,
   BindingStrategy,
   ForOfStatement,
-  IDOM,
   ILifecycle,
   IObservedArray,
-  IObserverLocator,
-  IController,
   IScope,
-  ITemplate,
   LifecycleFlags,
   ProxyObserver,
   Repeat,
@@ -22,36 +15,39 @@ import {
   ViewFactory,
   Controller,
   IScheduler,
+  CustomElementDefinition,
+  ToViewBindingInstruction,
+  getRenderContext,
+  IRenderableController,
 } from '@aurelia/runtime';
 import {
-  AuDOM,
   AuDOMConfiguration,
   AuNode,
-  AuNodeSequence,
   eachCartesianJoin,
   assert,
 } from '@aurelia/testing';
+import { Writable } from '@aurelia/kernel';
 
 describe(`Repeat`, function () {
   function runBindLifecycle(lifecycle: ILifecycle, sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags, scope: IScope): void {
-    lifecycle.bound.begin();
+    lifecycle.afterBind.begin();
     sut.$controller.bind(flags, scope);
-    lifecycle.bound.end(flags);
+    lifecycle.afterBind.end(flags);
   }
   function runUnbindLifecycle(lifecycle: ILifecycle, sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags): void {
-    lifecycle.unbound.begin();
+    lifecycle.afterUnbind.begin();
     sut.$controller.unbind(flags);
-    lifecycle.unbound.end(flags);
+    lifecycle.afterUnbind.end(flags);
   }
   function runAttachLifecycle(lifecycle: ILifecycle, sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags): void {
-    lifecycle.attached.begin();
+    lifecycle.afterAttach.begin();
     sut.$controller.attach(flags);
-    lifecycle.attached.end(flags);
+    lifecycle.afterAttach.end(flags);
   }
   function runDetachLifecycle(lifecycle: ILifecycle, sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags): void {
-    lifecycle.detached.begin();
+    lifecycle.afterDetach.begin();
     sut.$controller.detach(flags);
-    lifecycle.detached.end(flags);
+    lifecycle.afterDetach.end(flags);
   }
 
   interface Spec {
@@ -581,49 +577,45 @@ describe(`Repeat`, function () {
         const baseFlags: LifecycleFlags = strategy as unknown as LifecycleFlags;
         const proxies = (strategy & BindingStrategy.proxies) > 0;
         const container = AuDOMConfiguration.createContainer();
-        const dom = container.get<AuDOM>(IDOM);
-        const observerLocator = container.get(IObserverLocator);
         const lifecycle = container.get(ILifecycle);
         const scheduler = container.get(IScheduler);
 
         const location = AuNode.createRenderLocation();
         const host = AuNode.createHost().appendChild(location.$start).appendChild(location);
 
-        const itemTemplate: ITemplate<AuNode> = {
-          renderContext: null as any,
-          dom: null as any,
-          definition: null as any,
-          render(itemRenderable) {
-            const text = AuNode.createText();
-            const wrapper = AuNode.createTemplate().appendChild(text);
+        const itemContext = getRenderContext<AuNode>(
+          CustomElementDefinition.create({
+            name: void 0,
+            template: AuNode.createText().makeTarget(),
+            instructions: [
+              [
+                new ToViewBindingInstruction(new AccessScopeExpression('item'), 'textContent'),
+              ],
+            ],
+            needsCompile: false,
+          }),
+          container,
+          void 0,
+        );
 
-            const nodes = new AuNodeSequence(dom, wrapper);
-            const itemBinding = new PropertyBinding(new AccessScopeExpression('item'), text, 'textContent', BindingMode.toView, observerLocator, container);
-            binding.persistentFlags |= strategy;
-
-            (itemRenderable as Writable<typeof itemRenderable>).nodes = nodes;
-            addBinding(itemRenderable, itemBinding);
-          }
-        };
-
-        const itemFactory = new ViewFactory<AuNode>(`item-view`, itemTemplate, lifecycle);
+        const itemFactory = new ViewFactory<AuNode>(`item-view`, itemContext, lifecycle, void 0);
 
         const binding: PropertyBinding = {
           target: null,
           targetProperty: 'items',
           sourceExpression: new ForOfStatement(new BindingIdentifier('item'), new AccessScopeExpression('items'))
         } as any;
-        const renderable: IController<AuNode> = {
+        const renderable: IRenderableController<AuNode> = {
           bindings: [binding]
         } as any;
         let sut: Repeat<IObservedArray, AuNode>;
         if (proxies) {
           const raw = new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory);
           sut = new ProxyObserver(raw).proxy;
-          raw.$controller = Controller.forCustomAttribute(sut, container);
+          (raw as Writable<Repeat>).$controller = Controller.forCustomAttribute(sut, lifecycle);
         } else {
           sut = new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory);
-          sut.$controller = Controller.forCustomAttribute(sut, container);
+          (sut as Writable<Repeat>).$controller = Controller.forCustomAttribute(sut, lifecycle);
         }
         binding.target = sut as any;
 

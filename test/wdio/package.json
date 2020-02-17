@@ -1,11 +1,12 @@
 {
   "name": "examples-e2e",
+  "private": true,
   "version": "0.3.0",
   "devDependencies": {
     "chromedriver": "^77.0.0",
     "fibers": "^4.0.2",
     "mocha": "~6.1.4",
-    "wdio": "^3.0.3",
+    "wdio": "^4.0.0",
     "wdio-mocha-framework": "^0.6.4"
   },
   "scripts": {

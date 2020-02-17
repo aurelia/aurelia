@@ -27,7 +27,7 @@ describe('BrowserNavigator', function () {
     }
   }
 
-  function setup() {
+  function createFixture() {
     const ctx = TestContext.createHTMLTestContext();
     const { lifecycle, scheduler, dom } = ctx;
     // const originalWnd = ctx.wnd;
@@ -57,14 +57,14 @@ describe('BrowserNavigator', function () {
   }
 
   it('can be created', function () {
-    const { sut, tearDown, callback } = setup();
+    const { sut, tearDown, callback } = createFixture();
 
     assert.notStrictEqual(sut, null, `sut`);
     tearDown();
   });
 
   it('can be activated', function () {
-    const { sut, tearDown, callback } = setup();
+    const { sut, tearDown, callback } = createFixture();
 
     sut.activate({ callback });
 
@@ -77,7 +77,7 @@ describe('BrowserNavigator', function () {
   });
 
   it('can be deactivated', function () {
-    const { sut, tearDown, callback } = setup();
+    const { sut, tearDown, callback } = createFixture();
 
     sut.activate({ callback });
     assert.strictEqual(sut['isActive'], true, `sut.isActive`);
@@ -92,7 +92,7 @@ describe('BrowserNavigator', function () {
   });
 
   it('throws when activated while active', function () {
-    const { sut, tearDown, callback } = setup();
+    const { sut, tearDown, callback } = createFixture();
 
     sut.activate({ callback });
     assert.strictEqual(sut['isActive'], true, `sut.isActive`);
@@ -111,7 +111,7 @@ describe('BrowserNavigator', function () {
   });
 
   it('suppresses popstate event callback', async function () {
-    const { sut, tearDown, callback } = setup();
+    const { sut, tearDown, callback } = createFixture();
 
     let counter = 0;
     sut.activate({
@@ -138,7 +138,7 @@ describe('BrowserNavigator', function () {
   });
 
   it('queues consecutive calls', async function () {
-    const { sut, tearDown, callback } = setup();
+    const { sut, tearDown, callback } = createFixture();
 
     sut.activate({ callback });
     await wait();
@@ -159,7 +159,7 @@ describe('BrowserNavigator', function () {
   });
 
   it('awaits go', async function () {
-    const { sut, tearDown, callback } = setup();
+    const { sut, tearDown, callback } = createFixture();
 
     let counter = 0;
     sut.activate({
@@ -186,7 +186,7 @@ describe('BrowserNavigator', function () {
   });
 
   it('defaults to using url fragment hash', async function () {
-    const { sut, tearDown, callback } = setup();
+    const { sut, tearDown, callback } = createFixture();
 
     let instruction;
     sut.activate({
@@ -214,7 +214,7 @@ describe('BrowserNavigator', function () {
   });
 
   it('can be set to not using url fragment hash', async function () {
-    const { sut, tearDown, callback } = setup();
+    const { sut, tearDown, callback } = createFixture();
 
     let instruction;
     sut.activate({

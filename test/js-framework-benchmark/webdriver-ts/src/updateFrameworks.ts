@@ -135,10 +135,7 @@ async function main() {
   }
 }
 
-main()
-  .then(text => {
-  })
-  .catch(err => {
-    console.log('error', err);
-  });
+main().catch(err => {
+  console.log('error', err);
+});
 

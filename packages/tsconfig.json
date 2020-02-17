@@ -4,6 +4,7 @@
     { "path": "__e2e__" },
     { "path": "__tests__" },
     { "path": "aot" },
+    { "path": "au" },
     { "path": "aurelia" },
     { "path": "dialog" },
     { "path": "debug" },
@@ -26,6 +27,7 @@
     { "path": "store" },
     { "path": "testing" },
     { "path": "validation" },
+    { "path": "web-components" },
     { "path": "webpack-loader" }
   ]
 }

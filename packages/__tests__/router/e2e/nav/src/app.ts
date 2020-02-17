@@ -23,7 +23,7 @@ import { Router } from '../../../../../router/src/index';
 export class App {
   public constructor(private readonly router: Router) { }
 
-  public attached() {
+  public afterAttach() {
     this.router.activate().catch(error => { throw error; });
   }
 }

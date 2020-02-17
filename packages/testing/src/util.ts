@@ -24,7 +24,7 @@
  */
 
 import {
-  isNumeric,
+  isArrayIndex,
   PLATFORM,
   Primitive,
 } from '@aurelia/kernel';
@@ -269,9 +269,9 @@ export function getOwnNonIndexProperties(
   showHidden: boolean,
 ): string[] {
   if (showHidden) {
-    return getOwnPropertyNames(val).filter(k => !isNumeric(k));
+    return getOwnPropertyNames(val).filter(k => !isArrayIndex(k));
   } else {
-    return Object_keys(val).filter(k => !isNumeric(k));
+    return Object_keys(val).filter(k => !isArrayIndex(k));
   }
 }
 

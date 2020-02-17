@@ -46,49 +46,20 @@ export function ensureValidStrategy(strategy: BindingStrategy | null | undefined
 }
 
 export const enum State {
-  none                  = 0b000_000000_00_000000_00000000,
-  isBinding             = 0b000_000000_00_000000_00000001,
-  isUnbinding           = 0b000000_00_000000_00000010,
-  isBound               = 0b000000_00_000000_00000100,
-  isBoundOrBinding      = 0b000000_00_000000_00000101,
-  isBoundOrUnbinding    = 0b000000_00_000000_00000110,
-  isAttaching           = 0b000000_00_000000_00001000,
-  isDetaching           = 0b000000_00_000000_00010000,
-  isAttached            = 0b000000_00_000000_00100000,
-  isAttachedOrAttaching = 0b000000_00_000000_00101000,
-  isAttachedOrDetaching = 0b000000_00_000000_00110000,
-  isMounted             = 0b000000_00_000000_01000000,
-  isCached              = 0b000000_00_000000_10000000,
-  needsBind             = 0b000000_00_000001_00000000,
-  needsUnbind           = 0b000000_00_000010_00000000,
-  needsAttach           = 0b000000_00_000100_00000000,
-  needsDetach           = 0b000000_00_001000_00000000,
-  needsMount            = 0b000000_00_010000_00000000,
-  needsUnmount          = 0b000000_00_100000_00000000,
-  hasLockedScope        = 0b000000_01_000000_00000000,
-  canBeCached           = 0b000000_10_000000_00000000,
-  inBoundQueue          = 0b000001_00_000000_00000000,
-  inUnboundQueue        = 0b000010_00_000000_00000000,
-  inAttachedQueue       = 0b000100_00_000000_00000000,
-  inDetachedQueue       = 0b001000_00_000000_00000000,
-  inMountQueue          = 0b010000_00_000000_00000000,
-  inUnmountQueue        = 0b100000_00_000000_00000000,
-
-}
-
-export const enum Hooks {
-  none                   = 0b000000000001,
-  hasCreated             = 0b000000000010,
-  hasBinding             = 0b000000000100,
-  hasBound               = 0b000000001000,
-  hasAttaching           = 0b000000010000,
-  hasAttached            = 0b000000100000,
-  hasDetaching           = 0b000001000000,
-  hasDetached            = 0b000010000000,
-  hasUnbinding           = 0b000100000000,
-  hasUnbound             = 0b001000000000,
-  hasRender              = 0b010000000000,
-  hasCaching             = 0b100000000000
+  none                  = 0b00_00000000,
+  isBinding             = 0b00_00000001,
+  isUnbinding           = 0b00_00000010,
+  isBound               = 0b00_00000100,
+  isBoundOrBinding      = 0b00_00000101,
+  isBoundOrUnbinding    = 0b00_00000110,
+  isAttaching           = 0b00_00001000,
+  isDetaching           = 0b00_00010000,
+  isAttached            = 0b00_00100000,
+  isAttachedOrAttaching = 0b00_00101000,
+  isAttachedOrDetaching = 0b00_00110000,
+  isMounted             = 0b00_01000000,
+  hasLockedScope        = 0b01_00000000,
+  canBeCached           = 0b10_00000000,
 }
 
 export const enum LifecycleFlags {

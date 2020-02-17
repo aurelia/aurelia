@@ -51,6 +51,8 @@ export interface ICollectionSubscribable {
 }
 
 export interface ISubscriberCollection extends ISubscribable {
+  [key: number]: LifecycleFlags;
+
   /** @internal */_subscriberFlags: SubscriberFlags;
   /** @internal */_subscriber0?: ISubscriber;
   /** @internal */_subscriber1?: ISubscriber;
@@ -62,11 +64,11 @@ export interface ISubscriberCollection extends ISubscribable {
   hasSubscriber(subscriber: ISubscriber): boolean;
   removeSubscriber(subscriber: ISubscriber): boolean;
   addSubscriber(subscriber: ISubscriber): boolean;
-
-  [key: number]: LifecycleFlags;
 }
 
 export interface IProxySubscriberCollection extends IProxySubscribable {
+  [key: number]: LifecycleFlags;
+
   /** @internal */_proxySubscriberFlags: SubscriberFlags;
   /** @internal */_proxySubscriber0?: IProxySubscriber;
   /** @internal */_proxySubscriber1?: IProxySubscriber;
@@ -78,11 +80,11 @@ export interface IProxySubscriberCollection extends IProxySubscribable {
   hasProxySubscriber(subscriber: IProxySubscriber): boolean;
   removeProxySubscriber(subscriber: IProxySubscriber): boolean;
   addProxySubscriber(subscriber: IProxySubscriber): boolean;
-
-  [key: number]: LifecycleFlags;
 }
 
 export interface ICollectionSubscriberCollection extends ICollectionSubscribable {
+  [key: number]: LifecycleFlags;
+
   /** @internal */_collectionSubscriberFlags: SubscriberFlags;
   /** @internal */_collectionSubscriber0?: ICollectionSubscriber;
   /** @internal */_collectionSubscriber1?: ICollectionSubscriber;
@@ -94,8 +96,6 @@ export interface ICollectionSubscriberCollection extends ICollectionSubscribable
   hasCollectionSubscriber(subscriber: ICollectionSubscriber): boolean;
   removeCollectionSubscriber(subscriber: ICollectionSubscriber): boolean;
   addCollectionSubscriber(subscriber: ICollectionSubscriber): boolean;
-
-  [key: number]: LifecycleFlags;
 }
 
 /**
@@ -290,6 +290,10 @@ export interface ICollectionSizeObserver extends IAccessor<number>, IPropertyCha
   currentValue: number;
 }
 
+export interface ICollectionIndexObserver extends ICollectionSubscriber, IPropertyObserver<IIndexable, string> {
+  owner: ICollectionObserver<CollectionKind.array>;
+}
+
 /**
  * Describes a type that specifically tracks changes in a collection (map, set or array)
  */
@@ -311,6 +315,7 @@ export interface ICollectionObserver<T extends CollectionKind> extends
   collection: ObservedCollectionKindToType<T>;
   lengthObserver: T extends CollectionKind.array ? ICollectionLengthObserver : ICollectionSizeObserver;
   getLengthObserver(): T extends CollectionKind.array ? ICollectionLengthObserver : ICollectionSizeObserver;
+  getIndexObserver(index: number): ICollectionIndexObserver;
   notify(): void;
 }
 export type CollectionObserver = ICollectionObserver<CollectionKind>;

@@ -110,6 +110,33 @@ describe('translation-integration', function () {
     assertTextContent(host, 'span', translation.simple.text);
   });
 
+  it('works for null/undefined and zero bound values', async function () {
+    @customElement({
+      name: 'app',
+      template: `<p t.bind="undef" id="undefined">
+        Undefined value
+      </p>
+      <p t.bind="nullul" id="null">
+        Null value
+      </p>
+      <p t.bind="zero" id="zero">
+        Zero value
+      </p>`,
+      isStrictBinding: true })
+    class App {
+      private readonly nullul: null = null;
+      private readonly undef: undefined = undefined;
+      private readonly zero: 0 = 0;
+    }
+
+    const host = DOM.createElement('app');
+    await createFixture(host, new App());
+
+    assertTextContent(host, '#undefined', "");
+    assertTextContent(host, '#null', "");
+    assertTextContent(host, '#zero', "0");
+  });
+
   it('with multiple `t` attribute only the first one is considered', async function () {
 
     @customElement({ name: 'app', template: `<span t='simple.text' t='simple.attr'></span>`, isStrictBinding: true })

@@ -55,7 +55,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   public parametersExpr?: IsExpression;
   private readonly i18n: I18N;
   private readonly contentAttributes: readonly string[] = contentAttributes;
-  private keyExpression!: string;
+  private keyExpression!: string | undefined | null;
   private translationParameters!: i18next.TOptions;
   private scope!: IScope;
   private isInterpolatedSourceExpr!: boolean;
@@ -166,7 +166,11 @@ export class TranslationBinding implements IPartialConnectableBinding {
   }
 
   private updateTranslations(flags: LifecycleFlags) {
-    const results = this.i18n.evaluate(this.keyExpression, this.translationParameters);
+    // zero needs to be a valid value
+    const keyExpressionSanitized = this.keyExpression === null || this.keyExpression === undefined
+      ? ""
+      : this.keyExpression;
+    const results = this.i18n.evaluate(keyExpressionSanitized, this.translationParameters);
     const content: ContentValue = Object.create(null);
     this.unobserveTargets(flags);
 

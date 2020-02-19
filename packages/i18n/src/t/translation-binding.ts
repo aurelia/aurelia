@@ -55,7 +55,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   public parametersExpr?: IsExpression;
   private readonly i18n: I18N;
   private readonly contentAttributes: readonly string[] = contentAttributes;
-  private keyExpression!: string | undefined | null;
+  private keyExpression: string | undefined | null;
   private translationParameters!: i18next.TOptions;
   private scope!: IScope;
   private isInterpolatedSourceExpr!: boolean;
@@ -114,6 +114,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
     this.isInterpolatedSourceExpr = this.expr instanceof Interpolation;
 
     this.keyExpression = this.expr.evaluate(flags, scope, this.locator, part) as string;
+    this.ensureKeyExpression();
     if (this.parametersExpr) {
       const parametersFlags = flags | LifecycleFlags.secondaryExpression;
       this.translationParameters = this.parametersExpr.evaluate(parametersFlags, scope, this.locator, part) as i18next.TOptions;
@@ -157,6 +158,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
       this.keyExpression = this.isInterpolatedSourceExpr
         ? this.expr.evaluate(flags, this.scope, this.locator, '') as string
         : newValue as string;
+      this.ensureKeyExpression();
     }
     this.updateTranslations(flags);
   }
@@ -166,11 +168,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   }
 
   private updateTranslations(flags: LifecycleFlags) {
-    // zero needs to be a valid value
-    const keyExpressionSanitized = this.keyExpression === null || this.keyExpression === undefined
-      ? ""
-      : this.keyExpression;
-    const results = this.i18n.evaluate(keyExpressionSanitized, this.translationParameters);
+    const results = this.i18n.evaluate(this.keyExpression!, this.translationParameters);
     const content: ContentValue = Object.create(null);
     this.unobserveTargets(flags);
 
@@ -248,7 +246,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
     this.addContentToTemplate(template, content.prepend, marker);
 
     // build content: prioritize [html], then textContent, and falls back to original content
-    if (!this.addContentToTemplate(template, content.innerHTML || content.textContent, marker)) {
+    if (!this.addContentToTemplate(template, content.innerHTML ?? content.textContent, marker)) {
       for (const fallbackContent of fallBackContents) {
         template.content.append(fallbackContent);
       }
@@ -259,7 +257,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   }
 
   private addContentToTemplate(template: HTMLTemplateElement, content: string | undefined, marker: string) {
-    if (content) {
+    if (content !== void 0 && content !== null) {
       const addendum = DOM.createDocumentFragment(content) as Node;
       for (const child of toArray(addendum.childNodes)) {
         Reflect.set(child, marker, true);
@@ -277,5 +275,13 @@ export class TranslationBinding implements IPartialConnectableBinding {
       }
     }
     this.targetObservers.clear();
+  }
+
+  private ensureKeyExpression() {
+    const expr = this.keyExpression = this.keyExpression ?? '';
+    const exprType = typeof expr;
+    if (exprType !== 'string') {
+      throw new Error(`Expected the i18n key to be a string, but got ${expr} of type ${exprType}`); // TODO use reporter/logger
+    }
   }
 }

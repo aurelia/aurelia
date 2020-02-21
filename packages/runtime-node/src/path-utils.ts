@@ -21,6 +21,19 @@ export function resolvePath(...paths: string[]): string {
   return normalizePath(resolve(...paths));
 }
 
+export function countSlashes(path: string): number {
+  let count = 0;
+  const len = path.length;
+
+  for (let i = 0; i < len; ++i) {
+    if (path.charCodeAt(i) === Char.Slash) {
+      ++count;
+    }
+  }
+
+  return count;
+}
+
 /**
  * Returns `true` if this is an absolute POSIX, UNC or DOS path.
  *

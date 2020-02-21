@@ -5,36 +5,32 @@ import {
   Char,
 } from '@aurelia/kernel';
 import {
-  IFileSystem,
-  IFile,
-  normalizePath,
-  joinPath,
-  Package,
-} from '@aurelia/runtime-node';
-import {
   basename,
   dirname,
   join,
 } from 'path';
-
-function countSlashes(path: string): number {
-  let count = 0;
-  const len = path.length;
-
-  for (let i = 0; i < len; ++i) {
-    if (path.charCodeAt(i) === Char.Slash) {
-      ++count;
-    }
-  }
-
-  return count;
-}
+import {
+  normalizePath,
+  joinPath,
+  countSlashes,
+} from './path-utils';
+import {
+  IFileSystem,
+  Encoding
+} from './interfaces';
+import {
+  FSController,
+} from './observation/file-observer';
+import {
+  Package
+} from './package-types';
+import { FileEntry, FSFlags, FSEntryResolver, FSEntry } from './fs-entry';
 
 function createFileComparer(preferredNames: readonly string[]) {
   const len = preferredNames.length;
   let name: string = '';
 
-  return function compareFiles(a: IFile, b: IFile): number {
+  return function compareFiles(a: FileEntry, b: FileEntry): number {
     const aName = basename(a.path);
     const bName = basename(b.path);
 
@@ -138,9 +134,9 @@ const compareApplicationEntryFile = createFileComparer([
 ]);
 
 function determineEntryFileByConvention(
-  files: readonly IFile[],
+  files: readonly FileEntry[],
   isPrimaryEntryPoint: boolean,
-): IFile {
+): FileEntry {
   if (isPrimaryEntryPoint) {
     return files.slice().sort(compareApplicationEntryFile)[0];
   }
@@ -155,30 +151,31 @@ export class NPMPackageLoader {
   private readonly pkgResolveCache: Map<string, string> = new Map();
   private readonly pkgResolvePromiseCache: Map<string, Promise<string>> = new Map();
 
-  public static get inject() { return [IContainer, ILogger, IFileSystem]; }
+  public static get inject() { return [IContainer, ILogger, IFileSystem, FSEntryResolver]; }
 
   public constructor(
     public readonly container: IContainer,
     public readonly logger: ILogger,
     public readonly fs: IFileSystem,
+    public readonly resolver: FSEntryResolver,
   ) {
     this.logger = logger.root.scopeTo('NPMPackageLoader');
   }
 
   public async loadEntryPackage(
-    pathOrFile: string | IFile,
+    pathOrFile: string | FileEntry,
   ): Promise<NPMPackage> {
     let path: string;
-    let file: IFile | undefined;
+    let file: FSEntry | undefined;
     let isFile: boolean;
     if (typeof pathOrFile === 'string') {
       path = pathOrFile;
-      file = void 0;
       isFile = false;
+      file = void 0;
     } else {
       path = pathOrFile.path;
-      file = pathOrFile;
       isFile = true;
+      file = pathOrFile;
     }
 
     this.logger.info(`loadEntryPackage(path="${path}")`);
@@ -193,6 +190,7 @@ export class NPMPackageLoader {
       const originalPath = path;
       path = dirname(path);
 
+      // eslint-disable-next-line no-constant-condition
       while (true) {
         // eslint-disable-next-line no-await-in-loop
         if (await fs.isReadable(join(path, 'package.json'))) {
@@ -207,7 +205,10 @@ export class NPMPackageLoader {
 
     path = normalizePath(path);
 
-    return this.loadPackageCore(path, null, file);
+    if (file === void 0) {
+      file = await this.resolver.getEntry(path);
+    }
+    return this.loadPackageCore(path, null, file.flags === FSFlags.file ? file : void 0);
   }
 
   public hasCachedPackage(refName: string): boolean {
@@ -222,7 +223,6 @@ export class NPMPackageLoader {
     return pkg;
   }
 
-  /** @internal */
   public async loadPackage(issuer: NPMPackageDependency): Promise<NPMPackage> {
     const pkgCache = this.pkgCache;
 
@@ -246,17 +246,17 @@ export class NPMPackageLoader {
   private async loadPackageCore(
     dir: null,
     issuer: NPMPackageDependency,
-    entryFile?: IFile,
+    entryFile?: FileEntry,
   ): Promise<NPMPackage>;
   private async loadPackageCore(
     dir: string,
     issuer: null,
-    entryFile?: IFile,
+    entryFile?: FileEntry,
   ): Promise<NPMPackage>;
   private async loadPackageCore(
     dir: string | null,
     issuer: NPMPackageDependency | null,
-    entryFile?: IFile,
+    entryFile?: FileEntry,
   ): Promise<NPMPackage> {
 
     const fs = this.fs;
@@ -272,17 +272,20 @@ export class NPMPackageLoader {
       const pkgPath = joinPath(dir, 'package.json');
 
       const start = PLATFORM.now();
-      const files = await fs.getFiles(dir);
+
+      const controller = await FSController.getOrCreate(this.container, dir);
+
+      const pkgJsonEntry = await controller.findFile(x => x.path === pkgPath, false);
+
       const end = PLATFORM.now();
 
-      const pkgJsonFile = files.find(x => x.path === pkgPath);
-      if (pkgJsonFile === void 0) {
+      if (pkgJsonEntry === void 0) {
         throw new Error(`No package.json found at "${pkgPath}"`);
       }
 
-      const pkgJsonFileContent = await pkgJsonFile.getContent();
-      pkg = new NPMPackage(this, files, issuer, pkgJsonFile, dir, pkgJsonFileContent, entryFile);
-      this.logger.info(`loadPackageCore(\n  dir: ${dir},\n  issuer: ${issuer === null ? 'null' : issuer.issuer.pkgName}\n  specifier: ${refName}\n) discovered ${files.length} files in ${Math.round(end - start)}ms`);
+      const pkgJsonFileContent = await fs.readFile(pkgJsonEntry.path, Encoding.utf8, true);
+      pkg = await NPMPackage.load(this, controller, issuer, pkgJsonEntry, dir, pkgJsonFileContent, entryFile);
+      this.logger.info(`loadPackageCore(\n  dir: ${dir},\n  issuer: ${issuer === null ? 'null' : issuer.issuer.pkgName}\n  specifier: ${refName}\n) read ${controller.entries.length} entries in ${Math.round((end - start) * 100) / 100}ms`);
 
       pkgCache.set(refName, pkg);
 
@@ -338,6 +341,7 @@ export class NPMPackageLoader {
       }
 
       if (resolvedPath === void 0) {
+        // eslint-disable-next-line no-constant-condition
         while (true) {
           resolvedPath = joinPath(dir, 'node_modules', refName, 'package.json');
           // eslint-disable-next-line no-await-in-loop
@@ -347,7 +351,7 @@ export class NPMPackageLoader {
 
           const parent = normalizePath(dirname(dir));
           if (parent === dir) {
-            throw new Error(`Unable to resolve npm dependency "${refName}" (requested from ${dep.issuer.pkgJsonFile.path})`);
+            throw new Error(`Unable to resolve npm dependency "${refName}" (requested from ${dep.issuer.pkgJsonEntry.path})`);
           }
 
           dir = parent;
@@ -371,67 +375,93 @@ export class NPMPackageLoader {
 }
 
 export class NPMPackage {
-  public readonly pkgName: string;
-  public readonly isAureliaPkg: boolean;
-  public readonly isEntryPoint: boolean;
-  public readonly hasSpecificEntryFile: boolean;
-  public readonly entryFile: IFile;
   public readonly deps: readonly NPMPackageDependency[];
 
-  public readonly container: IContainer;
+  public get files(): readonly FileEntry[] {
+    return this.controller.files;
+  }
 
   public constructor(
     public readonly loader: NPMPackageLoader,
-    public readonly files: readonly IFile[],
+    public readonly controller: FSController,
     public readonly issuer: NPMPackageDependency | null,
-    public readonly pkgJsonFile: IFile,
+    public readonly pkgJsonEntry: FileEntry,
     public readonly dir: string,
-    pkgJsonFileContent: string,
-    entryFile?: IFile,
+    public readonly pkgName: string,
+    public readonly isAureliaPkg: boolean,
+    public readonly isEntryPoint: boolean,
+    public readonly hasSpecificEntryFile: boolean,
+    public readonly entryFile: FileEntry,
+    public readonly pkgJson: Package,
+    public readonly container: IContainer,
   ) {
-    this.container = loader.container;
-
-    const pkgJson = JSON.parse(pkgJsonFileContent) as Package;
-    const pkgName = this.pkgName = typeof pkgJson.name === 'string' ? pkgJson.name : dir.slice(dir.lastIndexOf('/') + 1);
-    const pkgModuleOrMain = typeof pkgJson.module === 'string' ? pkgJson.module : pkgJson.main;
-    const isAureliaPkg = this.isAureliaPkg = pkgName.startsWith('@aurelia');
-    const isEntryPoint = this.isEntryPoint = issuer === null;
-
-    if (entryFile === void 0) {
-      this.hasSpecificEntryFile = false;
-
-      let entryFilePath = isAureliaPkg ? 'src/index.ts' : pkgModuleOrMain;
-      if (entryFilePath === void 0) {
-        entryFile = determineEntryFileByConvention(files, isEntryPoint);
-      } else {
-        if (entryFilePath.startsWith('.')) {
-          entryFilePath = entryFilePath.slice(1);
-        }
-        entryFile = files.find(x => x.path.endsWith(entryFilePath!));
-        if (entryFile === void 0) {
-          const withJs = `${entryFilePath}.js`;
-          entryFile = files.find(x => x.path.endsWith(withJs));
-          if (entryFile === void 0) {
-            const withIndexJs = joinPath(entryFilePath, 'index.js');
-            entryFile = files.find(x => x.path.endsWith(withIndexJs));
-          }
-        }
-      }
-
-      if (entryFile === void 0) {
-        throw new Error(`No entry file could be located for package ${pkgName}`);
-      }
-    } else {
-      this.hasSpecificEntryFile = true;
-    }
-
-    this.entryFile = entryFile;
-
     if (pkgJson.dependencies instanceof Object) {
       this.deps = Object.keys(pkgJson.dependencies).map(name => new NPMPackageDependency(this, name));
     } else {
       this.deps = PLATFORM.emptyArray;
     }
+  }
+
+  public static async load(
+    loader: NPMPackageLoader,
+    controller: FSController,
+    issuer: NPMPackageDependency | null,
+    pkgJsonEntry: FileEntry,
+    dir: string,
+    pkgJsonFileContent: string,
+    entryFile?: FileEntry,
+  ): Promise<NPMPackage> {
+    const container = loader.container;
+
+    const pkgJson = JSON.parse(pkgJsonFileContent) as Package;
+    const pkgName = typeof pkgJson.name === 'string' ? pkgJson.name : dir.slice(dir.lastIndexOf('/') + 1);
+    const pkgModuleOrMain = typeof pkgJson.module === 'string' ? pkgJson.module : pkgJson.main;
+    const isAureliaPkg = pkgName.startsWith('@aurelia');
+    const isEntryPoint = issuer === null;
+    let hasSpecificEntryFile: boolean;
+
+    if (entryFile === void 0) {
+      hasSpecificEntryFile = false;
+
+      let entryFilePath = isAureliaPkg ? 'src/index.ts' : pkgModuleOrMain;
+      if (entryFilePath === void 0) {
+        entryFile = determineEntryFileByConvention(controller.files, isEntryPoint);
+      } else {
+        if (entryFilePath.startsWith('.')) {
+          entryFilePath = entryFilePath.slice(1);
+        }
+        entryFile = await controller.findFile(x => x.path.startsWith(dir) && x.path.endsWith(entryFilePath!), true);
+        if (entryFile === void 0) {
+          const withJs = `${entryFilePath}.js`;
+          entryFile = await controller.findFile(x => x.path.startsWith(dir) && x.path.endsWith(withJs), true);
+          if (entryFile === void 0) {
+            const withIndexJs = joinPath(entryFilePath, 'index.js');
+            entryFile = await controller.findFile(x => x.path.startsWith(dir) && x.path.endsWith(withIndexJs), true);
+          }
+        }
+      }
+
+      if (entryFile === void 0) {
+        throw new Error(`No entry file could be located for package ${pkgName} in dir ${dir} by controller ${controller.entry.path}`);
+      }
+    } else {
+      hasSpecificEntryFile = true;
+    }
+
+    return new NPMPackage(
+      loader,
+      controller,
+      issuer,
+      pkgJsonEntry,
+      dir,
+      pkgName,
+      isAureliaPkg,
+      isEntryPoint,
+      hasSpecificEntryFile,
+      entryFile,
+      pkgJson,
+      container,
+    );
   }
 }
 

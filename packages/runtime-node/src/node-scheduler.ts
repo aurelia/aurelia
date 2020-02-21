@@ -1,11 +1,24 @@
 /* eslint-disable no-await-in-loop */
-import { IContainer, bound } from '@aurelia/kernel';
-import { QueueTaskOptions, TaskQueuePriority, IScheduler, TaskQueue, IClock, TaskCallback, Task, DOM, ITaskQueue, ITask, QueueTaskTargetOptions } from '@aurelia/runtime';
-
-declare const process: NodeJS.Process;
+import {
+  IContainer,
+  bound,
+} from '@aurelia/kernel';
+import {
+  QueueTaskOptions,
+  TaskQueuePriority,
+  IScheduler,
+  TaskQueue,
+  IClock,
+  TaskCallback,
+  Task,
+  DOM,
+  ITaskQueue,
+  ITask,
+  QueueTaskTargetOptions,
+} from '@aurelia/runtime';
 
 createMicrotaskFlushRequestor.called = false;
-function createMicrotaskFlushRequestor(flush: () => void) {
+function createMicrotaskFlushRequestor(g: NodeJS.Global, flush: () => void) {
   if (createMicrotaskFlushRequestor.called) {
     throw new Error('Cannot have more than one global MicrotaskFlushRequestor');
   }
@@ -16,12 +29,12 @@ function createMicrotaskFlushRequestor(flush: () => void) {
   }
 
   return function () {
-    process.nextTick(callFlush);
+    g.process.nextTick(callFlush);
   };
 }
 
 createSetTimeoutFlushRequestor.called = false;
-function createSetTimeoutFlushRequestor(flush: () => void) {
+function createSetTimeoutFlushRequestor(g: NodeJS.Global, flush: () => void) {
   if (createSetTimeoutFlushRequestor.called) {
     throw new Error('Cannot have more than one global SetTimeoutFlushRequestor');
   }
@@ -36,27 +49,23 @@ function createSetTimeoutFlushRequestor(flush: () => void) {
     }
   }
 
-  function cancel() {
-    if (handle !== null) {
-      clearTimeout(handle);
-      handle = null;
-    }
-  }
-
-  function request() {
-    if (handle === null) {
-      handle = setTimeout(callFlush, 0);
-    }
-  }
-
   return {
-    cancel,
-    request,
+    cancel() {
+      if (handle !== null) {
+        g.clearTimeout(handle);
+        handle = null;
+      }
+    },
+    request() {
+      if (handle === null) {
+        handle = g.setTimeout(callFlush, 0);
+      }
+    },
   };
 }
 
 createRequestAnimationFrameFlushRequestor.called = false;
-function createRequestAnimationFrameFlushRequestor(flush: () => void) {
+function createRequestAnimationFrameFlushRequestor(g: NodeJS.Global, flush: () => void) {
   if (createRequestAnimationFrameFlushRequestor.called) {
     throw new Error('Cannot have more than one global RequestAnimationFrameFlushRequestor');
   }
@@ -71,27 +80,23 @@ function createRequestAnimationFrameFlushRequestor(flush: () => void) {
     }
   }
 
-  function cancel() {
-    if (handle !== null) {
-      clearTimeout(handle);
-      handle = null;
-    }
-  }
-
-  function request() {
-    if (handle === null) {
-      handle = setTimeout(callFlush, 1000 / 60);
-    }
-  }
-
   return {
-    cancel,
-    request,
+    cancel() {
+      if (handle !== null) {
+        g.clearTimeout(handle);
+        handle = null;
+      }
+    },
+    request() {
+      if (handle === null) {
+        handle = g.setTimeout(callFlush, 1000 / 60);
+      }
+    },
   };
 }
 
 createPostRequestAnimationFrameFlushRequestor.called = false;
-function createPostRequestAnimationFrameFlushRequestor(flush: () => void) {
+function createPostRequestAnimationFrameFlushRequestor(g: NodeJS.Global, flush: () => void) {
   if (createPostRequestAnimationFrameFlushRequestor.called) {
     throw new Error('Cannot have more than one global PostRequestAnimationFrameFlushRequestor');
   }
@@ -111,36 +116,32 @@ function createPostRequestAnimationFrameFlushRequestor(flush: () => void) {
     if (rafHandle !== null) {
       rafHandle = null;
       if (timeoutHandle === null) {
-        timeoutHandle = setTimeout(callFlush, 0);
+        timeoutHandle = g.setTimeout(callFlush, 0);
       }
     }
   }
 
-  function cancel() {
-    if (rafHandle !== null) {
-      clearTimeout(rafHandle);
-      rafHandle = null;
-    }
-    if (timeoutHandle !== null) {
-      clearTimeout(timeoutHandle);
-      timeoutHandle = null;
-    }
-  }
-
-  function request() {
-    if (rafHandle === null) {
-      rafHandle = setTimeout(queueFlush, 1000 / 16);
-    }
-  }
-
   return {
-    cancel,
-    request,
+    cancel() {
+      if (rafHandle !== null) {
+        g.clearTimeout(rafHandle);
+        rafHandle = null;
+      }
+      if (timeoutHandle !== null) {
+        g.clearTimeout(timeoutHandle);
+        timeoutHandle = null;
+      }
+    },
+    request() {
+      if (rafHandle === null) {
+        rafHandle = g.setTimeout(queueFlush, 1000 / 16);
+      }
+    },
   };
 }
 
 createRequestIdleCallbackFlushRequestor.called = false;
-function createRequestIdleCallbackFlushRequestor(flush: () => void) {
+function createRequestIdleCallbackFlushRequestor(g: NodeJS.Global, flush: () => void) {
   if (createRequestIdleCallbackFlushRequestor.called) {
     throw new Error('Cannot have more than one global RequestIdleCallbackFlushRequestor');
   }
@@ -155,22 +156,18 @@ function createRequestIdleCallbackFlushRequestor(flush: () => void) {
     }
   }
 
-  function cancel() {
-    if (handle !== null) {
-      clearTimeout(handle);
-      handle = null;
-    }
-  }
-
-  function request() {
-    if (handle === null) {
-      handle = setTimeout(callFlush, 45);
-    }
-  }
-
   return {
-    cancel,
-    request,
+    cancel() {
+      if (handle !== null) {
+        g.clearTimeout(handle);
+        handle = null;
+      }
+    },
+    request() {
+      if (handle === null) {
+        handle = g.setTimeout(callFlush, 45);
+      }
+    },
   };
 }
 
@@ -227,11 +224,11 @@ export class NodeScheduler implements IScheduler {
     ];
 
     this.flush = [
-      createMicrotaskFlushRequestor(microTaskTaskQueue.flush.bind(microTaskTaskQueue)),
-      createRequestAnimationFrameFlushRequestor(renderTaskQueue.flush.bind(renderTaskQueue)),
-      createSetTimeoutFlushRequestor(macroTaskTaskQueue.flush.bind(macroTaskTaskQueue)),
-      createPostRequestAnimationFrameFlushRequestor(postRenderTaskQueue.flush.bind(postRenderTaskQueue)),
-      createRequestIdleCallbackFlushRequestor(idleTaskQueue.flush.bind(idleTaskQueue)),
+      createMicrotaskFlushRequestor(global, microTaskTaskQueue.flush.bind(microTaskTaskQueue)),
+      createRequestAnimationFrameFlushRequestor(global, renderTaskQueue.flush.bind(renderTaskQueue)),
+      createSetTimeoutFlushRequestor(global, macroTaskTaskQueue.flush.bind(macroTaskTaskQueue)),
+      createPostRequestAnimationFrameFlushRequestor(global, postRenderTaskQueue.flush.bind(postRenderTaskQueue)),
+      createRequestIdleCallbackFlushRequestor(global, idleTaskQueue.flush.bind(idleTaskQueue)),
     ];
   }
 

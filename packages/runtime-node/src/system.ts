@@ -27,7 +27,8 @@ export class TempDir {
   }
 
   public async dispose(): Promise<void> {
-    await this.fs.rimraf(this.path);
+    // TODO: make this work
+    // await this.fs.rimraf(this.path);
   }
 }
 

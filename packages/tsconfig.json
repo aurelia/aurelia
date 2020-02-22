@@ -28,6 +28,7 @@
     { "path": "store" },
     { "path": "testing" },
     { "path": "validation" },
+    { "path": "web-components" },
     { "path": "webpack-loader" }
   ]
 }

@@ -1,6 +1,6 @@
 import { DI, LoggerConfiguration, LogLevel, ColorOptions, Registration } from '@aurelia/kernel';
 import { ServiceHost, $Undefined, $ESModule } from '@aurelia/aot';
-import { IFileSystem, FileKind } from '@aurelia/runtime-node';
+import { IFileSystem, FileKind, FileEntry } from '@aurelia/runtime-node';
 import { VirtualFileSystem } from './virtual-file-system';
 import { assert } from '@aurelia/testing';
 
@@ -20,23 +20,7 @@ describe.skip('AOT (smoke tests)', function () {
     const result = await host.execute({
       evaluate: true,
       entries: [{
-        file: {
-          shortName: '',
-          shortPath: '',
-          kind: FileKind.Script,
-          path: '',
-          dir: '',
-          rootlessPath: '',
-          name: '',
-          ext: '',
-          // eslint-disable-next-line @typescript-eslint/require-await
-          async getContent() {
-            return content;
-          },
-          getContentSync() {
-            return content;
-          },
-        },
+        file: new FileEntry('test.js', void 0),
         standalone: true,
       }]
     });

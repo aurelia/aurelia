@@ -1,9 +1,9 @@
-import { IFile } from '@aurelia/runtime-node';
+import { FileEntry } from '@aurelia/runtime-node';
 
 export interface IFileEntry {
   readonly mode?: 'script' | 'module';
   readonly standalone?: boolean;
-  readonly file: string | IFile;
+  readonly file: string | FileEntry;
 }
 
 export interface IDirEntry {
@@ -23,7 +23,7 @@ export class ScriptFileEntry implements IFileEntry {
   public get mode(): 'script' { return 'script'; }
 
   public constructor(
-    public readonly file: string | IFile,
+    public readonly file: string | FileEntry,
   ) {}
 }
 
@@ -33,7 +33,7 @@ export class ModuleFileEntry implements IFileEntry {
 
   public constructor(
     public readonly standalone: boolean,
-    public readonly file: string | IFile,
+    public readonly file: string | FileEntry,
   ) {}
 }
 

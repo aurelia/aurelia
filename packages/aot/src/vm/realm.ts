@@ -5,7 +5,7 @@ import {
   IDisposable,
 } from '@aurelia/kernel';
 import {
-  IFile,
+  FileEntry,
 } from '@aurelia/runtime-node';
 import {
   Intrinsics,
@@ -162,7 +162,7 @@ export class DeferredModule implements IModule {
   public get isAbrupt(): false { return false; }
 
   public constructor(
-    public readonly $file: IFile,
+    public readonly $file: FileEntry,
     public readonly realm: Realm,
   ) { }
 

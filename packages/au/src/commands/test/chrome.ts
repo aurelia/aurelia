@@ -1,7 +1,22 @@
-import { IBrowserSession, IBrowser } from './interfaces';
-import { ILogger } from '@aurelia/kernel';
-import { TempDir, ISystem, IProcess, IFileSystem } from '@aurelia/runtime-node';
-import { join } from 'path';
+import {
+  ILogger,
+  DI,
+} from '@aurelia/kernel';
+import {
+  TempDir,
+  ISystem,
+  IProcess,
+  IFileSystem,
+} from '@aurelia/runtime-node';
+
+import {
+  join,
+} from 'path';
+
+import {
+  IBrowserSession,
+  IBrowser,
+} from './interfaces';
 
 export class ChromeBrowserSession implements IBrowserSession {
   public constructor(
@@ -27,8 +42,21 @@ export class ChromeBrowserSession implements IBrowserSession {
   }
 }
 
+const defaultChromeOptions: IChromeOptions = {
+  canary: true,
+  headless: false,
+};
+
+export const IChromeOptions = DI.createInterface<IChromeOptions>('IChromeOptions').withDefault(x => x.instance(defaultChromeOptions));
+
+export interface IChromeOptions {
+  readonly canary?: boolean;
+  readonly headless?: boolean;
+}
+
 export class ChromeBrowser implements IBrowser {
   public readonly name = 'ChromeBrowser';
+  protected readonly canary: boolean = false;
 
   public constructor(
     @ISystem
@@ -39,7 +67,10 @@ export class ChromeBrowser implements IBrowser {
     private readonly fs: IFileSystem,
     @ILogger
     private readonly logger: ILogger,
+    @IChromeOptions
+    private readonly options: IChromeOptions,
   ) {
+    this.options = { ...defaultChromeOptions, ...options };
     this.logger = logger.root.scopeTo('ChromeBrowser');
   }
 
@@ -56,6 +87,9 @@ export class ChromeBrowser implements IBrowser {
 
     let paths: string[];
 
+    const canary = this.options.canary!;
+    const headless = this.options.headless!;
+
     if (env.CHROME_BIN !== void 0) {
       paths = [env.CHROME_BIN];
     } else if (sys.isWin) {
@@ -63,11 +97,11 @@ export class ChromeBrowser implements IBrowser {
         env.LOCALAPPDATA,
         env.PROGRAMFILES,
         env['PROGRAMFILES(X86)'],
-      ].filter(p => p !== void 0).map(p => join(p!, 'Google', 'Chrome', 'Application', 'chrome.exe'));
+      ].filter(p => p !== void 0).map(p => join(p!, 'Google', canary ? 'Chrome SxS' : 'Chrome', 'Application', 'chrome.exe'));
     } else if (sys.isMac) {
-      paths = [join(env.HOME!, 'Applications', 'Google Chrome.app', 'Contents', 'MacOS', 'Google Chrome')];
+      paths = [join(env.HOME!, 'Applications', canary ? 'Google Chrome Canary.app' : 'Google Chrome.app', 'Contents', 'MacOS', canary ? 'Google Chrome Canary' : 'Google Chrome')];
     } else {
-      paths = ['google-chrome', 'google-chrome-stable'];
+      paths = [canary ? 'google-chrome-canary' : 'google-chrome', canary ? 'google-chrome-unstable' : 'google-chrome-stable'];
     }
 
     const name = sys.generateName();
@@ -85,9 +119,15 @@ export class ChromeBrowser implements IBrowser {
       `--disable-renderer-backgrounding`,
       `--disable-device-discovery-notifications`,
       // Headless:
-      // '--headless',
-      // '--disable-gpu',
-      // '--disable-dev-shm-usage'
+      ...(
+        headless
+          ? [
+            '--headless',
+            '--disable-gpu',
+            '--disable-dev-shm-usage',
+          ]
+          : []
+      ),
 
       // Debugging:
       // --remote-debugging-port=9222

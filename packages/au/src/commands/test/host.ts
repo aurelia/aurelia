@@ -1,7 +1,18 @@
-import { ISystem, IProcess } from '@aurelia/runtime-node';
-import { ILogger } from '@aurelia/kernel';
-import { IBrowser } from './interfaces';
-import { spawn } from 'child_process';
+import {
+  ISystem,
+  IProcess,
+} from '@aurelia/runtime-node';
+import {
+  ILogger,
+} from '@aurelia/kernel';
+
+import {
+  spawn,
+} from 'child_process';
+
+import {
+  IBrowser,
+} from './interfaces';
 
 export class BrowserHost {
   public constructor(

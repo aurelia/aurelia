@@ -1,13 +1,25 @@
 export {
+  FSEventType,
+  FSEventBatch,
+  FSController as DirController,
+  DirObserver,
+} from './observation/file-observer';
+export {
   FileServer,
 } from './request-handlers/file-server';
 export {
   RuntimeNodeConfiguration,
 } from './configuration';
 export {
-  File,
   NodeFileSystem,
 } from './file-system';
+export {
+  FSEntry,
+  FSFlags,
+  FileEntry,
+  DirEntry,
+  FSEntryResolver,
+} from './fs-entry';
 export {
   HttpContextState,
   HttpContext,
@@ -28,7 +40,6 @@ export {
   FileKind,
   IStats,
   IDirent,
-  IFile,
   IFileSystem,
   ISystem,
   IProcessEnv,
@@ -37,6 +48,11 @@ export {
   IHttpServerOptions,
   IRequestHandler,
 } from './interfaces';
+export {
+  NPMPackage,
+  NPMPackageDependency,
+  NPMPackageLoader,
+} from './npm-package-loader';
 export {
   Package,
 } from './package-types';

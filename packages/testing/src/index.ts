@@ -98,6 +98,8 @@ export {
   TAPItem,
   TAPDirective,
   TAPParser,
+  TAPLineKind,
+  ITAPChannel,
 } from './tap';
 export {
   // DefinitionBuilder,

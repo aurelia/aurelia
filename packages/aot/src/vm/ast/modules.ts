@@ -37,13 +37,11 @@ import {
 } from '@aurelia/kernel';
 import {
   $CompilerOptions,
-} from '../../system/interfaces';
+} from '../interfaces';
 import {
-  IFile,
-} from '@aurelia/runtime-node';
-import {
+  FileEntry,
   NPMPackage,
-} from '../../system/npm-package-loader';
+} from '@aurelia/runtime-node';
 import {
   IModule,
   ResolveSet,
@@ -169,6 +167,7 @@ import {
   MaybePromise,
   awaitIfPromise,
   computeRelativeDirectory,
+  trueThunk,
 } from '../util';
 
 const {
@@ -238,17 +237,17 @@ export class $ESScript implements I$Node {
 
   public constructor(
     public readonly logger: ILogger,
-    public readonly $file: IFile,
+    public readonly $file: FileEntry,
     public readonly node: SourceFile,
     public readonly realm: Realm,
     public readonly ws: Workspace,
   ) {
-    this.path = `ESScript<(...)${$file.rootlessPath}>`;
+    this.path = `ESScript<(...)${$file.path.slice(ws.lastCommonRootDir.length)}>`;
   }
 
   public static create(
     logger: ILogger,
-    $file: IFile,
+    $file: FileEntry,
     node: SourceFile,
     realm: Realm,
     ws: Workspace,
@@ -826,19 +825,19 @@ export class $ESModule implements I$Node, IModule {
 
   public constructor(
     public readonly logger: ILogger,
-    public readonly $file: IFile,
+    public readonly $file: FileEntry,
     public readonly node: SourceFile,
     public readonly realm: Realm,
     public readonly pkg: NPMPackage | null,
     public readonly compilerOptions: $CompilerOptions,
     public readonly ws: Workspace,
   ) {
-    this.path = `ESModule<(...)${$file.rootlessPath}>`;
+    this.path = `ESModule<(...)${$file.path.slice(ws.lastCommonRootDir.length)}>`;
   }
 
   public static create(
     logger: ILogger,
-    $file: IFile,
+    $file: FileEntry,
     node: SourceFile,
     realm: Realm,
     pkg: NPMPackage | null,
@@ -1679,14 +1678,14 @@ export class $ESModule implements I$Node, IModule {
 
           return awaitIfPromise(
             $importedModule,
-            () => true,
+            trueThunk,
             importedModule => {
               if (importedModule.isAbrupt) { return importedModule.enrichWith(ctx, this); }
 
               // 5. a. iii. Return importedModule.ResolveExport(e.[[ImportName]], resolveSet).
               return awaitIfPromise(
                 importedModule.ResolveExport(ctx, e.ImportName as $String, resolveSet),
-                () => true,
+                trueThunk,
                 resolvedExport => {
                   cache.set(exportName['[[Value]]'], $resolution = resolvedExport);
                   return $resolution;
@@ -1723,13 +1722,13 @@ export class $ESModule implements I$Node, IModule {
             return awaitIfPromise(
               // 8. a. Let importedModule be ? HostResolveImportedModule(module, e.[[ModuleRequest]]).
               this.ws.ResolveImportedModule(realm, this, e.ModuleRequest as $String),
-              () => true,
+              trueThunk,
               importedModule => {
                 if (importedModule.isAbrupt) { return importedModule.enrichWith(ctx, this); }
                 return awaitIfPromise(
                   // 8. b. Let resolution be ? importedModule.ResolveExport(exportName, resolveSet).
                   importedModule.ResolveExport(ctx, exportName, resolveSet),
-                  () => true,
+                  trueThunk,
                   resolution => {
                     if (resolution.isAbrupt) { return resolution.enrichWith(ctx, this); }
 
@@ -1759,6 +1758,8 @@ export class $ESModule implements I$Node, IModule {
                           return $resolution;
                         }
                       }
+                    } else {
+                      this.logger.warn(`[ResolveExport] null resolution for ${exportName['[[Value]]']}`);
                     }
                   },
                 );
@@ -1781,11 +1782,11 @@ export class $ESModule implements I$Node, IModule {
               }
 
               for (const e of this.IndirectExportEntries) {
-                msg = `${msg}\n  indirect: { ${e.LocalName} as ${e.ExportName} } from "${e.ModuleRequest}:`;
+                msg = `${msg}\n  indirect: { ${e.LocalName} as ${e.ExportName} } from ${e.ModuleRequest}:`;
               }
 
               for (const e of this.StarExportEntries) {
-                msg = `${msg}\n  star:     * from "${e.ModuleRequest}"`;
+                msg = `${msg}\n  star:     * from ${e.ModuleRequest}`;
               }
 
               return `[ResolveExport] starResolution is null for ${exportName['[[Value]]']}\n${msg}`;
@@ -2197,7 +2198,7 @@ export class $DocumentFragment implements I$Node, IModule {
 
   public constructor(
     public readonly logger: ILogger,
-    public readonly $file: IFile,
+    public readonly $file: FileEntry,
     public readonly node: DocumentFragment,
     public readonly realm: Realm,
     public readonly pkg: NPMPackage | null,
@@ -2208,7 +2209,7 @@ export class $DocumentFragment implements I$Node, IModule {
 
     this.logger = logger.root;
 
-    this.path = `DocumentFragment<(...)${$file.rootlessPath}>`;
+    this.path = `DocumentFragment<(...)${$file.path}>`;
   }
 
   public ResolveExport(

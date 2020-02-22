@@ -24,6 +24,10 @@ export function awaitIfPromise<T, R>(
   return maybePromise as unknown as R;
 }
 
+export function trueThunk(): true {
+  return true;
+}
+
 export function computeCommonRootDirectory(dirs: readonly string[]): string {
   let commonRootDir = dirs[0];
   const initialLength = commonRootDir.length;

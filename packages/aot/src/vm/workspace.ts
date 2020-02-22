@@ -10,17 +10,20 @@ import {
   Registration,
   ILogger,
   Writable,
+  Char,
 } from '@aurelia/kernel';
 import {
-  IFile,
+  FileEntry,
   normalizePath,
   joinPath,
   isRelativeModulePath,
   resolvePath,
   FileKind,
-  File,
   IFileSystem,
   Encoding,
+  NPMPackage,
+  NPMPackageLoader,
+  DirController,
 } from '@aurelia/runtime-node';
 
 import {
@@ -53,6 +56,7 @@ import {
   MaybePromise,
   awaitIfPromise,
   computeCommonRootDirectory,
+  trueThunk,
 } from './util';
 import {
   GlobalOptions,
@@ -68,16 +72,15 @@ import {
 } from './types/error';
 
 import {
-  NPMPackage,
-  NPMPackageLoader,
-} from '../system/npm-package-loader';
-import {
   $CompilerOptions,
-} from '../system/interfaces';
+} from './interfaces';
 import {
   PatternMatcher,
-} from '../system/pattern-matcher';
-import { TransformationContext, HydrateContext } from './ast/_shared';
+} from './pattern-matcher';
+import {
+  TransformationContext,
+  HydrateContext,
+} from './ast/_shared';
 
 export interface IEmitOptions {
   readonly outDir: string;
@@ -119,12 +122,13 @@ export class Workspace implements IContainer {
     return this._scripts;
   }
 
-  private readonly _files: IFile[] = [];
-  public get files(): readonly IFile[] {
+  private readonly _files: FileEntry[] = [];
+  public get files(): readonly FileEntry[] {
     return this._files;
   }
 
   public lastCommonRootDir: string = '';
+  public dirController: DirController | undefined = void 0;
 
   private readonly logger: ILogger;
   private readonly fs: IFileSystem;
@@ -132,7 +136,7 @@ export class Workspace implements IContainer {
   private readonly container: IContainer;
 
   private readonly compilerOptionsCache: Map<string, $CompilerOptions> = new Map();
-  private readonly fileCache: Map<string, IFile> = new Map();
+  private readonly fileCache: Map<string, FileEntry> = new Map();
   private readonly moduleCache: Map<string, IModule> = new Map();
   private readonly scriptCache: Map<string, $ESScript> = new Map();
 
@@ -175,46 +179,75 @@ export class Workspace implements IContainer {
       }
       // TODO: this is currently just for the 262 test suite but we need to resolve the other stuff properly too for end users that don't want to use the package eager load mechanism
       const dir = referencingModule.$file.dir;
-      const ext = '.js';
       const name = basename(specifier);
-      const shortName = name.slice(0, -3);
-      const path = joinPath(dir, name);
-      const file = new File(this.fs, path, dir, specifier, name, shortName, ext);
+      const path = `${joinPath(dir, name)}.js`;
+      const file = new FileEntry(path, void 0);
       return this.getESModule(realm, file, null);
     }
 
     if (isRelative) {
-      this.logger.debug(`[ResolveImport] resolving internal relative module: '${$specifier['[[Value]]']}' for ${referencingModule.$file.name}`);
+      this.logger.debug(`[ResolveImport] resolving internal relative module: '${specifier}' for ${referencingModule.$file.name}`);
 
       const filePath = resolvePath(dirname(referencingModule.$file.path), specifier);
-      const files = pkg.files.filter(x => x.shortPath === filePath || x.path === filePath).sort(comparePathLength);
-      if (files.length === 0) {
-        throw new Error(`Cannot find file "${filePath}" (imported as "${specifier}" by "${referencingModule.$file.name}")`);
-      }
 
-      let file = files.find(x => x.kind === FileKind.Script);
-      if (file === void 0) {
-        // TODO: make this less messy/patchy
-        file = files.find(x => x.kind === FileKind.Markup);
-        if (file === void 0) {
-          file = files[0];
-          let deferred = this.moduleCache.get(file.path);
-          if (deferred === void 0) {
-            deferred = new DeferredModule(file, realm);
-            this.moduleCache.set(file.path, deferred);
+      // Conditional matcher is a perf optimization because this is a very hot path. We can get rid of this once we have efficient glob matching though.
+      const matcher = specifier.includes('.')
+        ? (x: FileEntry) => (x.shortPath === filePath || x.path === filePath) && x.kind === FileKind.Script
+        : (x: FileEntry) => x.shortPath === filePath && x.kind === FileKind.Script;
+      let file = awaitIfPromise(
+        pkg.controller.findFile(matcher, true),
+        trueThunk,
+        maybeScriptFile => {
+          if (maybeScriptFile === void 0) {
+            return awaitIfPromise(
+              pkg.controller.findFile(x => (x.shortPath === filePath || x.path === filePath) && x.kind === FileKind.Markup, true),
+              trueThunk,
+              maybeMarkupFile => {
+                if (maybeMarkupFile === void 0) {
+                  return awaitIfPromise(
+                    pkg.controller.findFile(x => (x.shortPath === filePath || x.path === filePath), true),
+                    trueThunk,
+                    maybeUnknownFile => {
+                      if (maybeUnknownFile === void 0) {
+                        throw new Error(`Cannot find file "${filePath}" (imported as "${specifier}" by "${referencingModule.$file.name}")`);
+                      }
+                      return maybeUnknownFile;
+                    },
+                  );
+                }
+                return maybeMarkupFile;
+              },
+            );
           }
+          return maybeScriptFile;
+        },
+      ) as MaybePromise<FileEntry>;
 
-          return deferred;
-        }
+      return awaitIfPromise(
+        file,
+        trueThunk,
+        $file => {
+          switch ($file.kind) {
+            case FileKind.Script:
+              return this.getESModule(realm, $file, pkg);
+            case FileKind.Markup:
+              return this.getHTMLModule(realm, $file, pkg);
+            default: {
+              let deferred = this.moduleCache.get($file.path);
+              if (deferred === void 0) {
+                deferred = new DeferredModule($file, realm);
+                this.moduleCache.set($file.path, deferred);
+              }
 
-        return this.getHTMLModule(realm, file, pkg);
-      }
-
-      return this.getESModule(realm, file, pkg);
+              return deferred;
+            }
+          }
+        },
+      );
     } else {
       const pkgDep = pkg.deps.find(n => n.refName === specifier || specifier.startsWith(`${n.refName}/`));
       if (pkgDep === void 0) {
-        this.logger.debug(`[ResolveImport] resolving internal absolute module: '${$specifier['[[Value]]']}' for ${referencingModule.$file.name}`);
+        this.logger.debug(`[ResolveImport] resolving internal absolute module: '${specifier}' for ${referencingModule.$file.name}`);
 
         const matcher = PatternMatcher.getOrCreate(referencingModule.compilerOptions, this.container);
         if (matcher !== null) {
@@ -224,39 +257,57 @@ export class Workspace implements IContainer {
           throw new Error(`Cannot resolve absolute file path without path mappings in tsconfig`);
         }
       } else {
-        this.logger.debug(`[ResolveImport] resolving external absolute module: '${$specifier['[[Value]]']}' for ${referencingModule.$file.name}`);
 
         let $externalPkg: MaybePromise<NPMPackage>;
         if (pkg.loader.hasCachedPackage(pkgDep.refName)) {
+          this.logger.debug(`[ResolveImport] resolving external absolute module: '${specifier}' for ${referencingModule.$file.name} (${pkgDep.refName} is already cached)`);
           $externalPkg = pkg.loader.getCachedPackage(pkgDep.refName);
         } else {
+          this.logger.debug(`[ResolveImport] resolving external absolute module: '${specifier}' for ${referencingModule.$file.name} (${pkgDep.refName} is not yet cached)`);
           $externalPkg = pkg.loader.loadPackage(pkgDep);
         }
 
         return awaitIfPromise(
           $externalPkg,
-          () => true,
+          trueThunk,
           externalPkg => {
             if (pkgDep.refName !== specifier) {
               if (externalPkg.entryFile.shortName === specifier) {
                 return this.getESModule(realm, externalPkg.entryFile, externalPkg);
               }
 
-              let file = externalPkg.files.find(x => x.shortPath === externalPkg.dir && x.ext === '.js');
-              if (file === void 0) {
-                const indexModulePath = joinPath(externalPkg.dir, 'index');
-                file = externalPkg.files.find(f => f.shortPath === indexModulePath && f.ext === '.js');
-                if (file === void 0) {
-                  const partialAbsolutePath = joinPath('node_modules', specifier);
-                  file = externalPkg.files.find(f => f.shortPath.endsWith(partialAbsolutePath) && f.ext === '.js');
-                  if (file === void 0) {
-                    throw new Error(`Unable to resolve file "${externalPkg.dir}" or "${indexModulePath}" (refName="${pkgDep.refName}", entryFile="${externalPkg.entryFile.shortPath}", specifier=${specifier})`);
+              return awaitIfPromise(
+                pkg.controller.findFile(x => x.shortPath === externalPkg.dir && x.ext === '.js', true),
+                trueThunk,
+                maybeFile => {
+                  if (maybeFile === void 0) {
+                    const indexModulePath = joinPath(externalPkg.dir, 'index');
+                    return awaitIfPromise(
+                      pkg.controller.findFile(x => x.shortPath === indexModulePath && x.ext === '.js', true),
+                      trueThunk,
+                      maybeIndexFile => {
+                        if (maybeIndexFile === void 0) {
+                          const partialAbsolutePath = joinPath('node_modules', specifier);
+                          return awaitIfPromise(
+                            pkg.controller.findFile(x => x.shortPath.endsWith(partialAbsolutePath) && x.ext === '.js', true),
+                            trueThunk,
+                            maybeNestedFile => {
+                              if (maybeNestedFile === void 0) {
+                                throw new Error(`Unable to resolve file "${externalPkg.dir}" or "${indexModulePath}" (refName="${pkgDep.refName}", entryFile="${externalPkg.entryFile.shortPath}", specifier=${specifier})`);
+                              }
+                              return this.getESModule(realm, maybeNestedFile, externalPkg);
+                            },
+                          );
+                        }
+                        return this.getESModule(realm, maybeIndexFile, externalPkg);
+                      },
+                    );
                   }
-                }
-              }
-
-              return this.getESModule(realm, file, externalPkg);
+                  return this.getESModule(realm, maybeFile, externalPkg);
+                },
+              ) as MaybePromise<$ESModule>;
             } else {
+              this.logger.debug(`Returning external package entryFile: ${externalPkg.entryFile.path} from package: ${externalPkg.pkgName}`);
               return this.getESModule(realm, externalPkg.entryFile, externalPkg);
             }
           },
@@ -289,9 +340,9 @@ export class Workspace implements IContainer {
 
   public async loadEntryFileFromScriptFile(
     realm: Realm,
-    fileOrPath: string | IFile,
+    fileOrPath: string | FileEntry,
   ): Promise<$ESScript> {
-    const file = this.getFile(fileOrPath);
+    const file = await this.getFile(fileOrPath);
 
     this.logger.info(`Loading entry file from script file: ${file.path}`);
 
@@ -300,10 +351,10 @@ export class Workspace implements IContainer {
 
   public async loadEntryFileFromModuleFile(
     realm: Realm,
-    fileOrPath: string | IFile,
+    fileOrPath: string | FileEntry,
     standalone?: boolean,
   ): Promise<$ESModule> {
-    const file = this.getFile(fileOrPath);
+    const file = await this.getFile(fileOrPath);
 
     if (standalone === true) {
       this.logger.info(`Loading entry file from module file (standalone): ${file.path}`);
@@ -401,7 +452,7 @@ export class Workspace implements IContainer {
 
   // #endregion
 
-  public loadEntryPackage(pathOrFile: string | IFile): Promise<NPMPackage> {
+  public loadEntryPackage(pathOrFile: string | FileEntry): Promise<NPMPackage> {
     this.logger.trace(`loadEntryPackage(path="${typeof pathOrFile === 'string' ? pathOrFile : pathOrFile.path}")`);
 
     return this.loader.loadEntryPackage(pathOrFile);
@@ -409,117 +460,164 @@ export class Workspace implements IContainer {
 
   public getHTMLModule(
     realm: Realm,
-    file: IFile,
+    file: FileEntry,
     pkg: NPMPackage,
-  ): $DocumentFragment {
-    let hm = this.moduleCache.get(file.path);
+  ): MaybePromise<$DocumentFragment> {
+    const hm = this.moduleCache.get(file.path);
     if (hm === void 0) {
-      const sourceText = file.getContentSync();
-      const template = this.jsdom.window.document.createElement('template');
-      template.innerHTML = sourceText;
-      hm = new $DocumentFragment(
-        /* logger */this.logger,
-        /* $file  */file,
-        /* node   */template.content,
-        /* realm  */realm,
-        /* pkg    */pkg,
-      );
-
-      this.moduleCache.set(file.path, hm);
+      return this.getHTMLModuleCore(realm, file, pkg).then($hm => {
+        this.moduleCache.set(file.path, $hm);
+        return $hm;
+      });
     }
 
     return hm as $DocumentFragment;
   }
 
+  private async getHTMLModuleCore(
+    realm: Realm,
+    file: FileEntry,
+    pkg: NPMPackage,
+  ): Promise<$DocumentFragment> {
+    const sourceText = await this.fs.readFile(file.path, Encoding.utf8, true);
+    const template = this.jsdom.window.document.createElement('template');
+    template.innerHTML = sourceText;
+    return new $DocumentFragment(
+      /* logger */this.logger,
+      /* $file  */file,
+      /* node   */template.content,
+      /* realm  */realm,
+      /* pkg    */pkg,
+    );
+  }
+
   public getESScript(
     realm: Realm,
-    fileOrPath: IFile | string,
-  ): $ESScript {
+    fileOrPath: FileEntry | string,
+  ): MaybePromise<$ESScript> {
     const file = this.getFile(fileOrPath);
-    let script = this.scriptCache.get(file.path);
-    if (script === void 0) {
-      const sourceText = file.getContentSync();
-      const sf = createSourceFile(file.path, sourceText, ScriptTarget.Latest, false);
-      script = $ESScript.create(
-        /* logger */this.logger,
-        /* $file  */file,
-        /* node   */sf,
-        /* realm  */realm,
-        /* ws     */this,
-      ).hydrate(HydrateContext.None);
+    if (file instanceof Promise) {
+      return file.then(async $file => {
+        const script = await this.getESScriptCore(realm, $file);
+        this._scripts.push(script);
+        this.scriptCache.set($file.path, script);
+        return script;
+      });
+    }
 
-      this._scripts.push(script);
-      this.scriptCache.set(file.path, script);
+    const script = this.scriptCache.get(file.path);
+    if (script === void 0) {
+      return this.getESScriptCore(realm, file).then($script => {
+        this._scripts.push($script);
+        this.scriptCache.set(file.path, $script);
+        return $script;
+      });
     }
 
     return script as $ESScript;
   }
 
+  private async getESScriptCore(
+    realm: Realm,
+    file: FileEntry,
+  ): Promise<$ESScript> {
+    const sourceText = await this.fs.readFile(file.path, Encoding.utf8, true);
+    const sf = createSourceFile(file.path, sourceText, ScriptTarget.Latest, false);
+    return $ESScript.create(
+      /* logger */this.logger,
+      /* $file  */file,
+      /* node   */sf,
+      /* realm  */realm,
+      /* ws     */this,
+    ).hydrate(HydrateContext.None);
+  }
+
   public getESModule(
     realm: Realm,
-    file: IFile,
+    file: FileEntry,
     pkg: NPMPackage | null,
-  ): $ESModule {
-    let esm = this.moduleCache.get(file.path);
-    if (esm === void 0) {
-      const compilerOptions = this.getCompilerOptions(file.path, pkg);
-      const sourceText = file.getContentSync();
-      const sf = createSourceFile(file.path, sourceText, ScriptTarget.Latest, false);
-      esm = $ESModule.create(
-        /* logger          */this.logger,
-        /* $file           */file,
-        /* node            */sf,
-        /* realm           */realm,
-        /* pkg             */pkg,
-        /* compilerOptions */compilerOptions,
-        /* ws              */this,
-      ).hydrate(HydrateContext.None);
+  ): MaybePromise<$ESModule> {
+    const cachedMod = this.moduleCache.get(file.path);
+    if (cachedMod === void 0) {
+      return this.getESModuleCore(realm, file, pkg).then(mod => {
+        this._modules.push(mod);
+        this.moduleCache.set(file.path, mod);
 
-      this._modules.push(esm as $ESModule);
-      this.moduleCache.set(file.path, esm);
+        this.logger.debug(`[getESModule] caching and returning module ${file.path}`);
+        return mod;
+      });
     }
 
-    return esm as $ESModule;
+    this.logger.debug(`[getESModule] returning module ${file.path} from cache`);
+    return cachedMod as $ESModule;
+  }
+
+  private async getESModuleCore(
+    realm: Realm,
+    file: FileEntry,
+    pkg: NPMPackage | null,
+  ): Promise<$ESModule> {
+    const compilerOptions = await this.getCompilerOptions(file.path, pkg);
+    const sourceText = await this.fs.readFile(file.path, Encoding.utf8, true);
+    const sf = createSourceFile(file.path, sourceText, ScriptTarget.Latest, false);
+    return $ESModule.create(
+      /* logger          */this.logger,
+      /* $file           */file,
+      /* node            */sf,
+      /* realm           */realm,
+      /* pkg             */pkg,
+      /* compilerOptions */compilerOptions,
+      /* ws              */this,
+    ).hydrate(HydrateContext.None);
   }
 
   public getCompilerOptions(
     path: string,
     pkg: NPMPackage | null,
-  ): $CompilerOptions {
+  ): MaybePromise<$CompilerOptions> {
     // TODO: this is a very simple/naive impl, needs more work for inheritance etc
     path = normalizePath(path);
 
-    let compilerOptions = this.compilerOptionsCache.get(path);
-    if (compilerOptions === void 0) {
-      const dir = normalizePath(dirname(path));
-      if (dir === path || pkg === null/* TODO: maybe still try to find tsconfig? */) {
-        compilerOptions = {
-          __dirname: '',
-        };
-      } else {
-        const tsConfigPath = joinPath(path, 'tsconfig.json');
-        const tsConfigFile = pkg.files.find(x => x.path === tsConfigPath);
-        if (tsConfigFile === void 0) {
-          compilerOptions = this.getCompilerOptions(dir, pkg);
-        } else {
-          const tsConfigText = tsConfigFile.getContentSync();
-          // tsconfig allows some stuff that's not valid JSON, so parse it as a JS object instead
-          // eslint-disable-next-line no-new-func
-          const tsConfigObj = new Function(`return ${tsConfigText}`)();
-          compilerOptions = tsConfigObj.compilerOptions;
-          if (compilerOptions === null || typeof compilerOptions !== 'object') {
-            compilerOptions = {
-              __dirname: tsConfigFile.dir,
-            };
-          } else {
-            (compilerOptions as Writable<$CompilerOptions>).__dirname = tsConfigFile.dir;
-          }
-        }
-      }
-
-      this.compilerOptionsCache.set(path, compilerOptions);
+    const cachedOptions = this.compilerOptionsCache.get(path);
+    if (cachedOptions === void 0) {
+      return this.getCompilerOptionsCore(path, pkg).then(options => {
+        this.compilerOptionsCache.set(path, options);
+        return options;
+      });
     }
 
+    return cachedOptions;
+  }
+
+  private async getCompilerOptionsCore(
+    path: string,
+    pkg: NPMPackage | null,
+  ): Promise<$CompilerOptions> {
+    const dir = normalizePath(dirname(path));
+    if (dir === path || pkg === null/* TODO: maybe still try to find tsconfig? */) {
+      return {
+        __dirname: '',
+      };
+    }
+
+    const tsConfigPath = joinPath(path, 'tsconfig.json');
+    const tsConfigFile = pkg.files.find(x => x.path === tsConfigPath);
+    if (tsConfigFile === void 0) {
+      return this.getCompilerOptions(dir, pkg);
+    }
+
+    const tsConfigText = await this.fs.readFile(tsConfigFile.path, Encoding.utf8);
+    // tsconfig allows some stuff that's not valid JSON, so parse it as a JS object instead
+    // eslint-disable-next-line no-new-func
+    const tsConfigObj = new Function(`return ${tsConfigText}`)();
+    const compilerOptions = tsConfigObj.compilerOptions;
+    if (compilerOptions === null || typeof compilerOptions !== 'object') {
+      return {
+        __dirname: tsConfigFile.dir,
+      };
+    }
+
+    (compilerOptions as Writable<$CompilerOptions>).__dirname = tsConfigFile.dir;
     return compilerOptions;
   }
 
@@ -536,31 +634,107 @@ export class Workspace implements IContainer {
     this._files.length = 0;
   }
 
-  private getFile(fileOrPath: IFile | string): IFile {
+  private getFile(fileOrPath: FileEntry | string): MaybePromise<FileEntry> {
     const cache = this.fileCache;
     let path: string;
-    let file: IFile | undefined;
+    let cachedFile: FileEntry | undefined;
 
     if (typeof fileOrPath === 'string') {
       path = fileOrPath;
-      file = void 0;
+      cachedFile = void 0;
     } else {
       path = fileOrPath.path;
-      file = fileOrPath;
+      cachedFile = fileOrPath;
     }
 
     if (!cache.has(path)) {
-      if (file === void 0) {
-        file = this.fs.getFileSync(path);
+      if (cachedFile === void 0) {
+        const dir = normalizePath(dirname(path));
+        const controller = this.getDirController(dir);
+        if (controller instanceof Promise) {
+          return controller.then(c => this.findFile(c, path));
+        }
+
+        return this.findFile(controller, path);
       }
-      this._files.push(file);
-      cache.set(path, file);
-    } else if (file === void 0) {
-      file = cache.get(path)!;
+    } else if (cachedFile === void 0) {
+      cachedFile = cache.get(path)!;
     }
 
+    return cachedFile;
+  }
+
+  private findFile(ctrl: DirController, path: string): MaybePromise<FileEntry> {
+    const file = ctrl.findFile(f => f.path === path, true);
+    if (file instanceof Promise) {
+      return file.then(f => {
+        if (f === void 0) {
+          throw new Error(`File not found: ${path}`);
+        }
+        this._files.push(f);
+        this.fileCache.set(path, f);
+        return f;
+      });
+    }
+
+    if (file === void 0) {
+      throw new Error(`File not found: ${path}`);
+    }
+    this._files.push(file);
+    this.fileCache.set(path, file);
     return file;
   }
+
+  private dirControllerPromise: Promise<DirController> | undefined = void 0;
+  private dirControllerPromiseDir: string | undefined = void 0;
+  private getDirController(dir: string): MaybePromise<DirController> {
+    dir = normalizePath(dir);
+    if (this.dirController === void 0) {
+      return this.getDirControllerCore(dir);
+    }
+
+    const currentDir = this.dirController.entry.path;
+    const commonRootDir = getCommonRootDir(currentDir, dir);
+    if (commonRootDir === currentDir) {
+      return this.dirController;
+    }
+
+    return this.getDirControllerCore(commonRootDir);
+  }
+
+  private getDirControllerCore(dir: string): MaybePromise<DirController> {
+    if (this.dirControllerPromise !== void 0 && this.dirControllerPromiseDir === dir) {
+      return this.dirControllerPromise;
+    }
+
+    const dirController = DirController.getOrCreate(this.container, dir);
+    if (dirController instanceof Promise) {
+      this.dirControllerPromiseDir = dir;
+      return this.dirControllerPromise = (async () => {
+        this.dirControllerPromise = this.dirControllerPromiseDir = void 0;
+        return this.dirController = await dirController;
+      })();
+    }
+
+    this.dirControllerPromise = this.dirControllerPromiseDir = void 0;
+    return this.dirController = dirController;
+  }
+}
+
+function getCommonRootDir(dir1: string, dir2: string): string {
+  const dir1Len = dir1.length;
+  let prevSlashIndex = 0;
+  for (let j = 0, jj = dir1Len; j < jj; ++j) {
+    const ch = dir1.charCodeAt(j);
+    if (ch === Char.Slash) {
+      prevSlashIndex = j;
+    }
+    if (ch !== dir2.charCodeAt(j)) {
+      return dir1.slice(0, prevSlashIndex);
+    }
+  }
+
+  return dir1;
 }
 
 function comparePathLength(a: { path: { length: number } }, b: { path: { length: number } }): number {

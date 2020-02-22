@@ -1,6 +1,7 @@
 import { DI, LogLevel } from '@aurelia/kernel';
 import { IHttpContext } from './http-context';
 import * as ws from 'ws';
+import { FileEntry } from './fs-entry';
 
 export const enum Encoding {
   utf8 = 'utf8',
@@ -34,21 +35,6 @@ export interface IDirent {
   isDirectory(): boolean;
   isSymbolicLink(): boolean;
   readonly name: string;
-}
-
-export interface IFile {
-  readonly shortPath: string;
-  readonly kind: FileKind;
-
-  readonly path: string;
-  readonly dir: string;
-  readonly rootlessPath: string;
-  readonly name: string;
-  readonly shortName: string;
-  readonly ext: string;
-
-  getContent(force?: boolean): Promise<string>;
-  getContentSync(force?: boolean): string;
 }
 
 export interface IFileSystem {
@@ -92,11 +78,11 @@ export interface IFileSystem {
   getChildren(path: string): Promise<readonly string[]>;
   getChildrenSync(path: string): readonly string[];
 
-  getFiles(dir: string, loadContent?: boolean): Promise<readonly IFile[]>;
-  getFilesSync(dir: string, loadContent?: boolean): readonly IFile[];
+  getFiles(dir: string, loadContent?: boolean): Promise<readonly FileEntry[]>;
+  getFilesSync(dir: string, loadContent?: boolean): readonly FileEntry[];
 
-  getFile(path: string, loadContent?: boolean): Promise<IFile>;
-  getFileSync(path: string, loadContent?: boolean): IFile;
+  getFile(path: string, loadContent?: boolean): Promise<FileEntry>;
+  getFileSync(path: string, loadContent?: boolean): FileEntry;
 }
 
 export type IProcessEnv = NodeJS.ProcessEnv;

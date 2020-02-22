@@ -20,14 +20,16 @@ import {
   ILogger,
   Char,
 } from '@aurelia/kernel';
+
 import {
-  FileKind,
   IFileSystem,
-  IFile,
   Encoding,
   IDirent,
   IStats,
 } from './interfaces';
+import {
+  FileEntry, FSFlags,
+} from './fs-entry';
 import {
   normalizePath,
   joinPath,
@@ -46,7 +48,7 @@ const {
   writeFile,
 } = promises;
 
-function compareFilePath(a: File, b: File) {
+function compareFilePath(a: FileEntry, b: FileEntry) {
   return a.path < b.path ? -1 : a.path > b.path ? 1 : 0;
 }
 
@@ -56,123 +58,6 @@ function shouldTraverse(path: string) {
   // We also exclude node_modules. But everything else is traversed by default.
   // TODO: make this configurable
   return path.charCodeAt(0) !== Char.Dot && path !== 'node_modules';
-}
-
-export class File implements IFile {
-  /**
-   * Similar to `shortName`, but includes the rest of the path including the root.
-   *
-   * Used for conventional matching, e.g. "try adding .js, .ts, /index.js", etc.
-   */
-  public readonly shortPath: string;
-  public readonly kind: FileKind;
-
-  public constructor(
-    private readonly fs: IFileSystem,
-    /**
-     * The full, absolute, real path to the file.
-     *
-     * @example
-     * 'd:/foo/bar.ts' // 'd:/foo/bar.ts' is the path
-     */
-    public readonly path: string,
-    /**
-     * The full, absolute, real path to the folder containing the file.
-     *
-     * @example
-     * 'd:/foo/bar.ts' // 'd:/foo' is the path
-     */
-    public readonly dir: string,
-    /**
-     * A loosely defined human-readable identifier for the file, usually with the common root directory removed for improved clarity in logs.
-     */
-    public readonly rootlessPath: string,
-    /**
-     * The leaf file name, including the extension.
-     *
-     * @example
-     * './foo/bar.ts' // 'bar.ts' is the name
-     */
-    public readonly name: string,
-    /**
-     * The leaf file name, excluding the extension.
-     *
-     * @example
-     * './foo/bar.ts' // 'bar' is the shortName
-     */
-    public readonly shortName: string,
-    /**
-     * The file extension, including the period. For .d.ts files, the whole part ".d.ts" must be included.
-     *
-     * @example
-     * './foo/bar.ts' // '.ts' is the extension
-     * './foo/bar.d.ts' // '.d.ts' is the extension
-     */
-    public readonly ext: string,
-  ) {
-    if (path.includes('\\')) {
-      path = this.path = normalizePath(path);
-    }
-    if (dir.includes('\\')) {
-      dir = this.dir = normalizePath(dir);
-    }
-    if (rootlessPath.includes('\\')) {
-      rootlessPath = this.rootlessPath = normalizePath(rootlessPath);
-    }
-
-    this.shortPath = `${dir}/${shortName}`;
-    switch (ext) {
-      case '.js':
-      case '.ts':
-      case '.d.ts':
-      case '.jsx':
-      case '.tsx':
-        this.kind = FileKind.Script;
-        break;
-      case '.html':
-        this.kind = FileKind.Markup;
-        break;
-      case '.css':
-        this.kind = FileKind.Style;
-        break;
-      case '.json':
-        this.kind = FileKind.JSON;
-        break;
-      default:
-        this.kind = FileKind.Unknown;
-    }
-  }
-
-  public static getExtension(name: string): string | undefined {
-    const lastDotIndex = name.lastIndexOf('.');
-    if (lastDotIndex <= 0) {
-      return void 0;
-    }
-
-    const lastPart = name.slice(lastDotIndex);
-    switch (lastPart) {
-      case '.ts':
-        return name.endsWith('.d.ts') ? '.d.ts' : '.ts';
-      case '.map': {
-        const extensionlessName = name.slice(0, lastDotIndex);
-        const secondDotIndex = extensionlessName.lastIndexOf('.');
-        if (secondDotIndex === -1) {
-          return void 0;
-        }
-        return name.slice(secondDotIndex);
-      }
-      default:
-        return lastPart;
-    }
-  }
-
-  public getContent(cache: boolean = false, force: boolean = false): Promise<string> {
-    return this.fs.readFile(this.path, Encoding.utf8, cache, force);
-  }
-
-  public getContentSync(cache: boolean = false, force: boolean = false): string {
-    return this.fs.readFileSync(this.path, Encoding.utf8, cache, force);
-  }
 }
 
 const tick = {
@@ -468,32 +353,35 @@ export class NodeFileSystem implements IFileSystem {
     return children;
   }
 
-  public async getFiles(root: string, loadContent: boolean = false): Promise<File[]> {
-    const files: File[] = [];
-    const seen: Record<string, true | undefined> = {};
+  public async getFiles(root: string, loadContent: boolean = false): Promise<FileEntry[]> {
+    const files: FileEntry[] = [];
+    const seen = new Set<string>();
 
     const walk = async (dir: string, name: string): Promise<void> => {
       const path = await this.getRealPath(joinPath(dir, name));
 
-      if (seen[path] === void 0) {
-        seen[path] = true;
+      if (!seen.has(path)) {
+        seen.add(path);
 
         const stats = await stat(path);
 
-        if (stats.isFile()) {
-          const ext = File.getExtension(path);
-
-          if (ext !== void 0) {
-            const rootlessPath = path.slice(dirname(root).length);
-            const shortName = name.slice(0, -ext.length);
-            const file = new File(this, path, dir, rootlessPath, name, shortName, ext);
+        switch (stats.mode & FSFlags.fileOrDir) {
+          case FSFlags.file: {
             if (loadContent) {
               await this.readFile(path, Encoding.utf8, true);
             }
-            files.push(file);
+            const file = new FileEntry(path, void 0);
+            if (file.ext.length > 0) {
+              files.push(file);
+            }
+            break;
           }
-        } else if (stats.isDirectory()) {
-          await Promise.all((await this.getChildren(path)).map(async x => walk(path, x)));
+          case FSFlags.dir: {
+            await Promise.all((await this.getChildren(path)).map(async x => walk(path, x)));
+            break;
+          }
+          default:
+            throw new Error(`Invalid entry type, mode=${stats.mode}`);
         }
       }
     };
@@ -503,32 +391,35 @@ export class NodeFileSystem implements IFileSystem {
     return files.sort(compareFilePath);
   }
 
-  public getFilesSync(root: string, loadContent: boolean = false): File[] {
-    const files: File[] = [];
-    const seen: Record<string, true | undefined> = {};
+  public getFilesSync(root: string, loadContent: boolean = false): FileEntry[] {
+    const files: FileEntry[] = [];
+    const seen = new Set<string>();
 
     const walk = (dir: string, name: string): void => {
       const path = this.getRealPathSync(joinPath(dir, name));
 
-      if (seen[path] === void 0) {
-        seen[path] = true;
+      if (!seen.has(path)) {
+        seen.add(path);
 
         const stats = statSync(path);
 
-        if (stats.isFile()) {
-          const ext = File.getExtension(path);
-
-          if (ext !== void 0) {
-            const rootlessPath = path.slice(dirname(root).length);
-            const shortName = name.slice(0, -ext.length);
-            const file = new File(this, path, dir, rootlessPath, name, shortName, ext);
+        switch (stats.mode & FSFlags.fileOrDir) {
+          case FSFlags.file: {
             if (loadContent) {
               this.readFileSync(path, Encoding.utf8, true);
             }
-            files.push(file);
+            const file = new FileEntry(path, void 0);
+            if (file.ext.length > 0) {
+              files.push(file);
+            }
+            break;
           }
-        } else if (stats.isDirectory()) {
-          this.getChildrenSync(path).forEach(x => { walk(path, x); });
+          case FSFlags.dir: {
+            this.getChildrenSync(path).forEach(x => { walk(path, x); });
+            break;
+          }
+          default:
+            throw new Error(`Invalid entry type, mode=${stats.mode}`);
         }
       }
     };
@@ -538,44 +429,38 @@ export class NodeFileSystem implements IFileSystem {
     return files.sort(compareFilePath);
   }
 
-  public async getFile(path: string, loadContent: boolean = false): Promise<File> {
+  public async getFile(path: string, loadContent: boolean = false): Promise<FileEntry> {
     if (!(await this.isReadable(path))) {
-      throw new Error(`File does not exit: "${path}"`);
+      throw new Error(`FileEntry does not exit: "${path}"`);
     }
 
+    path = await this.getRealPath(path);
     const stats = await stat(path);
 
     if (!stats.isFile()) {
       throw new Error(`Not a file: "${path}"`);
     }
 
-    const ext = File.getExtension(path) ?? '';
-    const dir = dirname(path);
-    const name = path.slice(dir.length);
-    const shortName = name.slice(0, -ext.length);
-    const file = new File(this, path, dir, name, name, shortName, ext);
+    const file = new FileEntry(path, void 0);
     if (loadContent) {
       await this.readFile(path, Encoding.utf8, true);
     }
     return file;
   }
 
-  public getFileSync(path: string, loadContent: boolean = false): File {
+  public getFileSync(path: string, loadContent: boolean = false): FileEntry {
     if (!this.isReadableSync(path)) {
-      throw new Error(`File does not exit: "${path}"`);
+      throw new Error(`FileEntry does not exit: "${path}"`);
     }
 
+    path = this.getRealPathSync(path);
     const stats = statSync(path);
 
     if (!stats.isFile()) {
       throw new Error(`Not a file: "${path}"`);
     }
 
-    const ext = File.getExtension(path) ?? '';
-    const dir = dirname(path);
-    const name = path.slice(dir.length);
-    const shortName = name.slice(0, -ext.length);
-    const file = new File(this, path, dir, name, name, shortName, ext);
+    const file = new FileEntry(path, void 0);
     if (loadContent) {
       this.readFileSync(path, Encoding.utf8, true);
     }

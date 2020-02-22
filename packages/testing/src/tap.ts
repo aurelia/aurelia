@@ -512,6 +512,14 @@ export type TAPLine = TAPItem | TAPComment;
 
 const noopChannel = { send: PLATFORM.noop };
 
+export const enum TAPLineKind {
+  testPoint = 1,
+  version   = 2,
+  plan      = 3,
+  bailOut   = 4,
+  comment   = 5,
+}
+
 export class TAPOutput {
   private lineNumber: number = 0;
   private pointNumber: number = 0;
@@ -610,6 +618,7 @@ export class TAPOutput {
 }
 
 export class TAPVersion {
+  public get kind(): TAPLineKind.version { return TAPLineKind.version; }
   public comments: TAPComment[] | undefined = void 0;
 
   private s: string;
@@ -639,6 +648,7 @@ export class TAPVersion {
 }
 
 export class TAPPlan {
+  public get kind(): TAPLineKind.plan { return TAPLineKind.plan; }
   public comments: TAPComment[] | undefined = void 0;
 
   private s: string;
@@ -694,6 +704,7 @@ export class TAPDirective {
 }
 
 export class TAPTestPoint {
+  public get kind(): TAPLineKind.testPoint { return TAPLineKind.testPoint; }
   public comments: TAPComment[] | undefined = void 0;
 
   private s: string;
@@ -735,6 +746,7 @@ export class TAPTestPoint {
 }
 
 export class TAPBailOut {
+  public get kind(): TAPLineKind.bailOut { return TAPLineKind.bailOut; }
   public comments: TAPComment[] | undefined = void 0;
 
   private s: string;
@@ -767,6 +779,7 @@ export class TAPBailOut {
 }
 
 export class TAPComment {
+  public get kind(): TAPLineKind.comment { return TAPLineKind.comment; }
   private readonly s: string;
 
   public constructor(

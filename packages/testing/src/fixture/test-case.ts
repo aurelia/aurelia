@@ -257,6 +257,13 @@ export class TestRunner {
         await this.runTests();
         resolve();
       });
+      this.ws.addEventListener('message', e => {
+        switch (e.data) {
+          case 'refresh':
+            window.location.reload();
+            break;
+        }
+      });
     });
   }
 

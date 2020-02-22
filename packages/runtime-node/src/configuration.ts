@@ -3,6 +3,8 @@ import { IFileSystem, IHttpServer, IHttpServerOptions, ISystem } from './interfa
 import { NodeFileSystem } from './file-system';
 import { HttpServer } from './http-server';
 import { System } from './system';
+import { IScheduler } from '@aurelia/runtime';
+import { NodeScheduler } from './node-scheduler';
 
 const defaultOpts: IHttpServerOptions = {
   hostName: '0.0.0.0',
@@ -20,6 +22,7 @@ export const RuntimeNodeConfiguration = {
           Registration.singleton(IFileSystem, NodeFileSystem),
           Registration.singleton(ISystem, System),
           Registration.singleton(IHttpServer, HttpServer),
+          Registration.singleton(IScheduler, NodeScheduler),
           Registration.instance(IHttpServerOptions, opts),
           LoggerConfiguration.create(console, opts.level, ColorOptions.colors)
         );

@@ -78,6 +78,8 @@ export class SourceFileExtractor implements ISourceFileExtractor {
                 let shouldNotProcess  = false;
                 for( let index  = 0; index < extractorConfiguration.exports.excludes.length; index++ ){
                   shouldNotProcess = path.includes(extractorConfiguration.exports.excludes[index]);
+                  if( shouldNotProcess )
+                    break;
                 }
                 if (!shouldNotProcess) {
                     switch (declaration.getKind()) {

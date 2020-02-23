@@ -8,7 +8,7 @@ import { LocalizedValidationController, LocalizedValidationControllerFactory, Lo
 import { Spy } from '../Spy';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util';
 
-describe.only('validation-i18n', function () {
+describe('validation-i18n', function () {
 
   interface TestSetupContext {
     template: string;

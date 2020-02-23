@@ -7,7 +7,13 @@ import { TypeAliasInfo } from '../models/type-parameter/type-alias-info';
 import { InterfaceInfo } from '../models/interface/interface-info';
 import { VariableStatementInfo } from '../models/variable-statement/variable-statement-info';
 import { ExportAssignmentInfo } from '../models/export-assignment/export-assignment-info';
+import { SourceFile } from 'ts-morph';
 export interface IApiConfiguration {
+  files: {
+    tsConfig: string,
+    excludes: string[],
+    filter: ((item: SourceFile) => boolean)[];
+  },
     decorators?: {
         filterStrategy: (decorator: DecoratorInfo) => boolean;
     };

@@ -1,7 +1,22 @@
 import { IApiConfiguration } from './configuration';
 import { IApiExtractor } from './api-extractor';
+import { SourceFile } from 'ts-morph';
 
-const defaultConfiguration: IApiConfiguration = {};
+function notADeclarationFile(item:SourceFile){
+  return !item.isDeclarationFile();
+}
+
+const defaultConfiguration: IApiConfiguration = {
+  files: {
+    tsConfig: '',
+    excludes: [
+      '__tests__',
+      '__e2e__',
+      'node_modules',
+      'dist'
+    ], filter: [ notADeclarationFile   ]
+  },
+};
 
 let configuration: IApiConfiguration = defaultConfiguration;
 

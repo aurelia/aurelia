@@ -1,4 +1,4 @@
-export { ApiExtractor, IApiExtractor, IApiConfiguration } from './configurations';
+export { ApiExtractor, IApiExtractor, IApiConfiguration, ApiConfiguration } from './configurations';
 
 export * from './models';
 

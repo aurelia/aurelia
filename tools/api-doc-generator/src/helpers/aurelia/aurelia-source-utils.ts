@@ -1,7 +1,7 @@
 import { SourceFileInfo } from '../../api/models/source-file/source-file-info';
 import { Project } from 'ts-morph';
 import { SourceFileExtractor } from '../../api';
-import { TemplateConfiguration as config } from '../../templates';
+import { ApiConfiguration as config } from '../../api';
 
 export function getAureliaSources(tsconfig?: string): SourceFileInfo {
 
@@ -22,7 +22,12 @@ export function getAureliaSources(tsconfig?: string): SourceFileInfo {
 
       // loop over filter delegates
       if (config.files.filter) {
-        return config.files.filter(item);
+        for (let index = 0; index < config.files.filter.length; index++) {
+          let functionFilters = config.files.filter[index](item);
+          if (functionFilters === false) {
+            return false;
+          }
+        }
       }
 
       //include this path/folder if none of above code applied

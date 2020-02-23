@@ -129,7 +129,7 @@ describe('validation-controller', function () {
       assert.equal(controller['elements'].size, 0, 'the elements should have been removed');
       assert.equal(controller.bindings.size, 0, 'the bindings should have been removed');
       assert.equal(controller.objects.size, 0, 'the objects should have been removed');
-  }
+    }
   }
   class FooSubscriber implements ValidationErrorsSubscriber {
     public notifications: ValidationEvent[] = [];
@@ -191,7 +191,7 @@ describe('validation-controller', function () {
     { template: `<input id="target" type="text" value.two-way="person1.name & validate">` }
   );
 
-  [
+  const instructionTestData = [
     {
       text: '{ object }',
       getValidationInstruction: (app: App) => { return new ValidateInstruction(app.person2); },
@@ -236,7 +236,8 @@ describe('validation-controller', function () {
         assert.equal(results.filter((r) => r.propertyName === 'age').length, 1);
       }
     },
-  ].map(({ text, getValidationInstruction, assertResult }) =>
+  ];
+  for (const { text, getValidationInstruction, assertResult } of instructionTestData) {
     $it(`#validate respects explicit validation instruction - ${text}`,
       async function ({ app }) {
         const sut = app.controller;
@@ -245,7 +246,8 @@ describe('validation-controller', function () {
         assertResult(result, instruction);
       },
       { template: `<input id="target" type="text" value.two-way="person1.name & validate">` }
-    ));
+    );
+  }
 
   $it('does not validate objects if it is removed',
     async function ({ app: { controller: sut, person2 } }) {
@@ -311,10 +313,11 @@ describe('validation-controller', function () {
     }
   );
 
-  [
+  const testData1 = [
     { text: 'with propertyName', property: 'name' },
     { text: 'without propertyName', property: undefined },
-  ].map(({ text, property }) =>
+  ];
+  for (const { text, property } of testData1) {
     $it(`lets add custom error - ${text}`,
       async function ({ app: { controller: sut, person1 }, scheduler, host }) {
         const subscriber = new FooSubscriber();
@@ -345,12 +348,8 @@ describe('validation-controller', function () {
       \${result.message}
     </span>
     ` }
-    ));
+    );
 
-  [
-    { text: 'with propertyName', property: 'name' },
-    { text: 'without propertyName', property: undefined },
-  ].map(({ text, property }) =>
     $it(`lets remove custom error - ${text}`,
       async function ({ app: { controller: sut, person1 }, scheduler, host }) {
         const subscriber = new FooSubscriber();
@@ -380,7 +379,8 @@ describe('validation-controller', function () {
       \${result.message}
     </span>
     ` }
-    ));
+    );
+  }
 
   $it(`lets remove error`,
     async function ({ app: { controller: sut, person1 }, scheduler, host }) {

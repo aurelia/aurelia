@@ -82,208 +82,323 @@ describe('StandardValidator', function () {
     assert.instanceOf(result.rule, rule);
   }
 
-  [
-    { title: 'string property', getProperty: () => 'name' as const },
-    { title: 'lambda property', getProperty: () => ((o) => o.name) as PropertyAccessor },
-  ].map(({ title, getProperty }) =>
-    it(`validates all rules by default for an object property - ${title}`, async function () {
+  for (const defineRuleOnClass of [true, false]) {
+    const properties1 = [
+      { title: 'string property', getProperty: () => 'name' as const },
+      { title: 'lambda property', getProperty: () => ((o) => o.name) as PropertyAccessor },
+    ];
+    for (const { title, getProperty } of properties1) {
+      it(`validates all rules by default for an object property - ${title}`, async function () {
+        const { sut, validationRules } = setup();
+        const message1 = 'message1', message2 = 'message2';
+        const obj: Person = new Person('test', (void 0)!, (void 0)!);
+        validationRules
+          .on(defineRuleOnClass ? Person : obj)
+          .ensure(getProperty() as any)
+          .matches(/foo/)
+          .withMessage(message1)
+          .minLength(42)
+          .withMessage(message2);
+
+        let result = await sut.validate(new ValidateInstruction(obj, 'name'));
+        assert.equal(result.length, 2);
+
+        assertValidationResult(result[0], false, 'name', obj, RegexRule, message1);
+        assertValidationResult(result[1], false, 'name', obj, LengthRule, message2);
+
+        obj.name = 'foo'.repeat(15);
+        result = await sut.validate(new ValidateInstruction(obj, 'name'));
+        assert.equal(result.length, 2);
+
+        assertValidationResult(result[0], true, 'name', obj, RegexRule);
+        assertValidationResult(result[1], true, 'name', obj, LengthRule);
+
+        validationRules.off();
+      });
+
+      it(`if given, validates only the specific rules for an object property - ${title}`, async function () {
+        const { sut, validationRules } = setup();
+        const message1 = 'message1', message2 = 'message2';
+        const obj: Person = new Person('test', (void 0)!, (void 0)!);
+        const rules = validationRules
+          .on(defineRuleOnClass ? Person : obj)
+          .ensure(getProperty() as any)
+          .matches(/foo/)
+          .withMessage(message1)
+          .minLength(42)
+          .withMessage(message2)
+          .rules[0];
+        const rule = new PropertyRule(
+          rules['validationRules'],
+          rules['messageProvider'],
+          rules.property,
+          [[rules.$rules[0][0]]]);
+
+        let result = await sut.validate(new ValidateInstruction(obj, 'name', [rule]));
+        assert.equal(result.length, 1);
+
+        assertValidationResult(result[0], false, 'name', obj, RegexRule, message1);
+
+        obj.name = 'foo';
+        result = await sut.validate(new ValidateInstruction(obj, 'name', [rule]));
+        assert.equal(result.length, 1);
+
+        assertValidationResult(result[0], true, 'name', obj, RegexRule);
+
+        validationRules.off();
+      });
+    }
+
+    const properties2 = [
+      {
+        title: 'string property',
+        getProperty1: () => 'name' as const,
+        getProperty2: () => 'age' as const,
+        getProperty3: () => 'address.line1' as const
+      },
+      {
+        title: 'lambda property',
+        getProperty1: () => ((o) => o.name) as PropertyAccessor,
+        getProperty2: () => ((o) => o.age) as PropertyAccessor,
+        getProperty3: () => ((o) => o.address.line1) as PropertyAccessor,
+      },
+    ];
+    for (const { title, getProperty1, getProperty2, getProperty3 } of properties2) {
+      it(`validates all rules by default for an object - ${title}`, async function () {
+        const { sut, validationRules } = setup();
+        const message1 = 'message1', message2 = 'message2';
+        const obj: Person = new Person((void 0)!, (void 0)!, { line1: 'invalid' } as any as Address);
+        validationRules
+          .on(defineRuleOnClass ? Person : obj)
+
+          .ensure(getProperty1() as any)
+          .required()
+          .withMessage(message1)
+
+          .ensure(getProperty2() as any)
+          .required()
+          .withMessage(message2)
+
+          .ensure(getProperty3() as any)
+          .matches(/foo/)
+          .withMessage("\${$value} does not match pattern");
+
+        let result = await sut.validate(new ValidateInstruction(obj));
+        assert.equal(result.length, 3);
+
+        assertValidationResult(result[0], false, 'name', obj, RequiredRule, message1);
+        assertValidationResult(result[1], false, 'age', obj, RequiredRule, message2);
+        assertValidationResult(result[2], false, 'address.line1', obj, RegexRule, 'invalid does not match pattern');
+
+        obj.name = 'foo';
+        obj.age = 42;
+        obj.address.line1 = 'foo';
+        result = await sut.validate(new ValidateInstruction(obj));
+        assert.equal(result.length, 3);
+
+        assertValidationResult(result[0], true, 'name', obj, RequiredRule);
+        assertValidationResult(result[1], true, 'age', obj, RequiredRule);
+        assertValidationResult(result[2], true, 'address.line1', obj, RegexRule);
+
+        validationRules.off();
+      });
+
+      it(`if given, validates only the specific rules for an object - ${title}`, async function () {
+        const { sut, validationRules } = setup();
+        const message1 = 'message1', message2 = 'message2';
+        const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
+        const rules = validationRules
+          .on(defineRuleOnClass ? Person : obj)
+
+          .ensure(getProperty1() as any)
+          .required()
+          .withMessage(message1)
+
+          .ensure(getProperty2() as any)
+          .required()
+          .withMessage(message2)
+
+          .rules;
+
+        let result = await sut.validate(new ValidateInstruction(obj, void 0, [rules[0]]));
+        assert.equal(result.length, 1);
+
+        assertValidationResult(result[0], false, 'name', obj, RequiredRule, message1);
+
+        obj.name = 'foo';
+        result = await sut.validate(new ValidateInstruction(obj, void 0, [rules[0]]));
+        assert.equal(result.length, 1);
+
+        assertValidationResult(result[0], true, 'name', obj, RequiredRule);
+
+        validationRules.off();
+      });
+    }
+
+    const properties3 = [
+      {
+        title: 'string property',
+        getProperty1: () => 'employees' as const,
+      },
+      {
+        title: 'lambda property',
+        getProperty1: () => ((o) => o.employees) as PropertyAccessor,
+      },
+    ];
+    for (const { title, getProperty1 } of properties3) {
+      it(`can validate collection - ${title}`, async function () {
+        const { sut, validationRules } = setup();
+        const message1 = 'message1';
+        const obj: Organization = new Organization([], (void 0)!);
+        validationRules
+          .on(defineRuleOnClass ? Organization : obj)
+
+          .ensure(getProperty1() as any)
+          .minItems(1)
+          .withMessage(message1);
+
+        let result = await sut.validate(new ValidateInstruction(obj));
+        assert.equal(result.length, 1);
+
+        assertValidationResult(result[0], false, 'employees', obj, SizeRule, message1);
+
+        obj.employees.push(new Person((void 0)!, (void 0)!, (void 0)!));
+        result = await sut.validate(new ValidateInstruction(obj));
+        assert.equal(result.length, 1);
+
+        assertValidationResult(result[0], true, 'employees', obj, SizeRule);
+
+        validationRules.off();
+      });
+    }
+
+    it(`validates only tagged rules for property when provided`, async function () {
       const { sut, validationRules } = setup();
       const message1 = 'message1', message2 = 'message2';
       const obj: Person = new Person('test', (void 0)!, (void 0)!);
+      const tag = 'foo';
       validationRules
-        .on(obj)
-        .ensure(getProperty() as any)
+        .on(defineRuleOnClass ? Person : obj)
+        .ensure('name')
         .matches(/foo/)
         .withMessage(message1)
+        .tag(tag)
         .minLength(42)
         .withMessage(message2);
 
-      let result = await sut.validate(new ValidateInstruction(obj, 'name'));
-      assert.equal(result.length, 2);
+      const result = await sut.validate(new ValidateInstruction(obj, 'name', void 0, void 0, tag));
+      assert.equal(result.length, 1);
 
       assertValidationResult(result[0], false, 'name', obj, RegexRule, message1);
-      assertValidationResult(result[1], false, 'name', obj, LengthRule, message2);
-
-      obj.name = 'foo'.repeat(15);
-      result = await sut.validate(new ValidateInstruction(obj, 'name'));
-      assert.equal(result.length, 2);
-
-      assertValidationResult(result[0], true, 'name', obj, RegexRule);
-      assertValidationResult(result[1], true, 'name', obj, LengthRule);
-
       validationRules.off();
-    }));
+    });
 
-  [
-    { title: 'string property', getProperty: () => 'name' as const },
-    { title: 'lambda property', getProperty: () => ((o) => o.name) as PropertyAccessor },
-  ].map(({ title, getProperty }) =>
-    it(`if given, validates only the specific rules for an object property - ${title}`, async function () {
+    it(`validates only tagged rules for property when provided with specific rules`, async function () {
       const { sut, validationRules } = setup();
       const message1 = 'message1', message2 = 'message2';
       const obj: Person = new Person('test', (void 0)!, (void 0)!);
+      const tag = 'foo';
       const rules = validationRules
-        .on(obj)
-        .ensure(getProperty() as any)
+        .on(defineRuleOnClass ? Person : obj)
+        .ensure('name')
         .matches(/foo/)
         .withMessage(message1)
+        .tag(tag)
         .minLength(42)
         .withMessage(message2)
-        .rules[0];
-      const rule = new PropertyRule(
-        rules['validationRules'],
-        rules['messageProvider'],
-        rules.property,
-        [[rules.$rules[0][0]]]);
+        .rules;
 
-      let result = await sut.validate(new ValidateInstruction(obj, 'name', [rule]));
+      const result = await sut.validate(new ValidateInstruction(obj, 'name', rules, void 0, tag));
       assert.equal(result.length, 1);
 
       assertValidationResult(result[0], false, 'name', obj, RegexRule, message1);
-
-      obj.name = 'foo';
-      result = await sut.validate(new ValidateInstruction(obj, 'name', [rule]));
-      assert.equal(result.length, 1);
-
-      assertValidationResult(result[0], true, 'name', obj, RegexRule);
-
       validationRules.off();
-    }));
+    });
 
-  [
-    {
-      title: 'string property',
-      getProperty1: () => 'name' as const,
-      getProperty2: () => 'age' as const,
-      getProperty3: () => 'address.line1' as const
-    },
-    {
-      title: 'lambda property',
-      getProperty1: () => ((o) => o.name) as PropertyAccessor,
-      getProperty2: () => ((o) => o.age) as PropertyAccessor,
-      getProperty3: () => ((o) => o.address.line1) as PropertyAccessor,
-    },
-  ].map(({ title, getProperty1, getProperty2, getProperty3 }) =>
-    it(`validates all rules by default for an object - ${title}`, async function () {
-      const { sut, validationRules } = setup();
-      const message1 = 'message1', message2 = 'message2';
-      const obj: Person = new Person((void 0)!, (void 0)!, { line1: 'invalid' } as any as Address);
-      validationRules
-        .on(obj)
-
-        .ensure(getProperty1() as any)
-        .required()
-        .withMessage(message1)
-
-        .ensure(getProperty2() as any)
-        .required()
-        .withMessage(message2)
-
-        .ensure(getProperty3() as any)
-        .matches(/foo/)
-        .withMessage("\${$value} does not match pattern");
-
-      let result = await sut.validate(new ValidateInstruction(obj));
-      assert.equal(result.length, 3);
-
-      assertValidationResult(result[0], false, 'name', obj, RequiredRule, message1);
-      assertValidationResult(result[1], false, 'age', obj, RequiredRule, message2);
-      assertValidationResult(result[2], false, 'address.line1', obj, RegexRule, 'invalid does not match pattern');
-
-      obj.name = 'foo';
-      obj.age = 42;
-      obj.address.line1 = 'foo';
-      result = await sut.validate(new ValidateInstruction(obj));
-      assert.equal(result.length, 3);
-
-      assertValidationResult(result[0], true, 'name', obj, RequiredRule);
-      assertValidationResult(result[1], true, 'age', obj, RequiredRule);
-      assertValidationResult(result[2], true, 'address.line1', obj, RegexRule);
-
-      validationRules.off();
-    }));
-
-  [
-    {
-      title: 'string property',
-      getProperty1: () => 'name' as const,
-      getProperty2: () => 'age' as const,
-      getProperty3: () => 'address.line1' as const
-    },
-    {
-      title: 'lambda property',
-      getProperty1: () => ((o) => o.name) as PropertyAccessor,
-      getProperty2: () => ((o) => o.age) as PropertyAccessor,
-      getProperty3: () => ((o) => o.address.line1) as PropertyAccessor,
-    },
-  ].map(({ title, getProperty1, getProperty2 }) =>
-    it(`if given, validates only the specific rules for an object - ${title}`, async function () {
-      const { sut, validationRules } = setup();
-      const message1 = 'message1', message2 = 'message2';
+    it(`validates only tagged rules for property when provided with specific rules`, async function () {
+      const { sut, validationRules: rules } = setup();
       const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
-      const rules = validationRules
-        .on(obj)
+      const tag1 = 'tag1', tag2 = 'tag2';
 
-        .ensure(getProperty1() as any)
+      rules
+        .on(defineRuleOnClass ? Person : obj, tag1)
+        .ensure('name')
         .required()
-        .withMessage(message1)
 
-        .ensure(getProperty2() as any)
+        .on(defineRuleOnClass ? Person : obj, tag2)
+        .ensure('age')
+        .required();
+
+      const result1 = await sut.validate(new ValidateInstruction(obj, void 0, void 0, tag1));
+      const result2 = await sut.validate(new ValidateInstruction(obj, void 0, void 0, tag2));
+
+      assert.deepEqual(result1.map((r) => r.toString()), ['name is required.']);
+      assert.deepEqual(result2.map((r) => r.toString()), ['age is required.']);
+
+      rules.off();
+    });
+
+    it(`validates the default ruleset by default`, async function () {
+      const { sut, validationRules: rules } = setup();
+      const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
+      const tag1 = 'tag1';
+
+      rules
+        .on(defineRuleOnClass ? Person : obj)
+        .ensure('name')
         .required()
-        .withMessage(message2)
 
-        .rules;
+        .on(obj, tag1)
+        .ensure('age')
+        .required();
 
-      let result = await sut.validate(new ValidateInstruction(obj, void 0, [rules[0]]));
-      assert.equal(result.length, 1);
+      const result1 = await sut.validate(new ValidateInstruction(obj));
 
-      assertValidationResult(result[0], false, 'name', obj, RequiredRule, message1);
+      assert.deepEqual(result1.map((r) => r.toString()), ['name is required.']);
 
-      obj.name = 'foo';
-      result = await sut.validate(new ValidateInstruction(obj, void 0, [rules[0]]));
-      assert.equal(result.length, 1);
+      rules.off();
+    });
 
-      assertValidationResult(result[0], true, 'name', obj, RequiredRule);
+    it(`respects registered custom message key`, async function () {
+      const { sut, validationRules: rules } = setup();
 
-      validationRules.off();
-    }));
+      const messageKey = 'fooBarFizBaz';
+      const displayName = 'FooBar';
+      const defaultRequiredRulesMessages = ValidationRuleAliasMessage.getDefaultMessages(RequiredRule);
+      const customMessages = {
+        rule: RequiredRule,
+        aliases: [
+          { name: messageKey, defaultMessage: '${$displayName} foobar fizbaz' }
+        ],
+      };
+      ValidationRuleAliasMessage.setDefaultMessage(RequiredRule, customMessages);
 
-  [
-    {
-      title: 'string property',
-      getProperty1: () => 'employees' as const,
-    },
-    {
-      title: 'lambda property',
-      getProperty1: () => ((o) => o.employees) as PropertyAccessor,
-    },
-  ].map(({ title, getProperty1 }) =>
-    it(`can validate collection - ${title}`, async function () {
-      const { sut, validationRules } = setup();
-      const message1 = 'message1';
-      const obj: Organization = new Organization([], (void 0)!);
-      validationRules
-        .on(obj)
+      const person: Person = new Person((void 0)!, (void 0)!, { line1: (void 0)!, city: (void 0)!, pin: (void 0)! });
 
-        .ensure(getProperty1() as any)
-        .minItems(1)
-        .withMessage(message1);
+      rules
+        .on(defineRuleOnClass ? Person : person)
+        .ensure('name')
+        .displayName(displayName)
+        .required()
+        .withMessageKey(messageKey)
+        .ensure('age')
+        .required()
+        .withMessageKey('required')
+        .ensure((p) => p.address.line1)
+        .required()
+        ;
 
-      let result = await sut.validate(new ValidateInstruction(obj));
-      assert.equal(result.length, 1);
+      const result1 = await sut.validate(new ValidateInstruction(person));
 
-      assertValidationResult(result[0], false, 'employees', obj, SizeRule, message1);
+      assert.deepEqual(result1.map((r) => r.toString()), ['FooBar foobar fizbaz', 'age is required.', 'address.line1 is invalid.']);
 
-      obj.employees.push(new Person((void 0)!, (void 0)!, (void 0)!));
-      result = await sut.validate(new ValidateInstruction(obj));
-      assert.equal(result.length, 1);
+      ValidationRuleAliasMessage.setDefaultMessage(RequiredRule, { aliases: defaultRequiredRulesMessages }, false);
 
-      assertValidationResult(result[0], true, 'employees', obj, SizeRule);
+      rules.off();
+    });
+  }
 
-      validationRules.off();
-    }));
-
-  [
+  const properties4 = [
     {
       title: 'string property',
       getProperty1: () => 'coll[0].a' as const,
@@ -294,7 +409,8 @@ describe('StandardValidator', function () {
       getProperty1: () => ((o) => o.coll[0].a) as PropertyAccessor,
       getProperty2: () => ((o) => o.coll[1].a) as PropertyAccessor,
     },
-  ].map(({ title, getProperty1, getProperty2 }) =>
+  ];
+  for (const { title, getProperty1, getProperty2 } of properties4) {
     it(`can validate collection by index - ${title}`, async function () {
       const { sut, validationRules } = setup();
       const message1 = 'message1', message2 = 'message2';
@@ -325,12 +441,14 @@ describe('StandardValidator', function () {
       assertValidationResult(result[1], true, 'coll[1].a', obj, EqualsRule);
 
       validationRules.off();
-    }));
+    });
+  }
 
-  [
+  const properties5 = [
     { title: 'string property', getProperty1: () => 'subprop[\'a\']' as const },
     { title: 'lambda property', getProperty1: () => ((o) => o.subprop['a']) as PropertyAccessor },
-  ].map(({ title, getProperty1 }) =>
+  ];
+  for (const { title, getProperty1 } of properties5) {
     it(`can validate indexed property - ${title}`, async function () {
       const { sut, validationRules } = setup();
       const message1 = 'message1';
@@ -354,94 +472,8 @@ describe('StandardValidator', function () {
       assertValidationResult(result[0], true, 'subprop[\'a\']', obj, EqualsRule);
 
       validationRules.off();
-    }));
-
-  it(`validates only tagged rules for property when provided`, async function () {
-    const { sut, validationRules } = setup();
-    const message1 = 'message1', message2 = 'message2';
-    const obj: Person = new Person('test', (void 0)!, (void 0)!);
-    const tag = 'foo';
-    validationRules
-      .on(obj)
-      .ensure('name')
-      .matches(/foo/)
-      .withMessage(message1)
-      .tag(tag)
-      .minLength(42)
-      .withMessage(message2);
-
-    const result = await sut.validate(new ValidateInstruction(obj, 'name', void 0, void 0, tag));
-    assert.equal(result.length, 1);
-
-    assertValidationResult(result[0], false, 'name', obj, RegexRule, message1);
-    validationRules.off();
-  });
-
-  it(`validates only tagged rules for property when provided with specific rules`, async function () {
-    const { sut, validationRules } = setup();
-    const message1 = 'message1', message2 = 'message2';
-    const obj: Person = new Person('test', (void 0)!, (void 0)!);
-    const tag = 'foo';
-    const rules = validationRules
-      .on(obj)
-      .ensure('name')
-      .matches(/foo/)
-      .withMessage(message1)
-      .tag(tag)
-      .minLength(42)
-      .withMessage(message2)
-      .rules;
-
-    const result = await sut.validate(new ValidateInstruction(obj, 'name', rules, void 0, tag));
-    assert.equal(result.length, 1);
-
-    assertValidationResult(result[0], false, 'name', obj, RegexRule, message1);
-    validationRules.off();
-  });
-
-  it(`validates only tagged rules for property when provided with specific rules`, async function () {
-    const { sut, validationRules: rules } = setup();
-    const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
-    const tag1 = 'tag1', tag2 = 'tag2';
-
-    rules
-      .on(obj, tag1)
-      .ensure('name')
-      .required()
-
-      .on(obj, tag2)
-      .ensure('age')
-      .required();
-
-    const result1 = await sut.validate(new ValidateInstruction(obj, void 0, void 0, tag1));
-    const result2 = await sut.validate(new ValidateInstruction(obj, void 0, void 0, tag2));
-
-    assert.deepEqual(result1.map((r) => r.toString()), ['name is required.']);
-    assert.deepEqual(result2.map((r) => r.toString()), ['age is required.']);
-
-    rules.off();
-  });
-
-  it(`validates the default ruleset by default`, async function () {
-    const { sut, validationRules: rules } = setup();
-    const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
-    const tag1 = 'tag1';
-
-    rules
-      .on(obj)
-      .ensure('name')
-      .required()
-
-      .on(obj, tag1)
-      .ensure('age')
-      .required();
-
-    const result1 = await sut.validate(new ValidateInstruction(obj));
-
-    assert.deepEqual(result1.map((r) => r.toString()), ['name is required.']);
-
-    rules.off();
-  });
+    });
+  }
 
   it(`can be used to validate an object with custom validation rule`, async function () {
     const { sut, validationRules: rules } = setup();
@@ -468,44 +500,6 @@ describe('StandardValidator', function () {
 
     assert.deepEqual(result1.map((r) => r.toString()), [msg1]);
     assert.deepEqual(result2.map((r) => r.toString()), ['b must be 42.', msg2]);
-
-    rules.off();
-  });
-
-  it(`respects registered custom message key`, async function () {
-    const { sut, validationRules: rules } = setup();
-
-    const messageKey = 'fooBarFizBaz';
-    const displayName = 'FooBar';
-    const defaultRequiredRulesMessages = ValidationRuleAliasMessage.getDefaultMessages(RequiredRule);
-    const customMessages = {
-      rule: RequiredRule,
-      aliases: [
-        { name: messageKey, defaultMessage: '${$displayName} foobar fizbaz' }
-      ],
-    };
-    ValidationRuleAliasMessage.setDefaultMessage(RequiredRule, customMessages);
-
-    const person: Person = new Person((void 0)!, (void 0)!, { line1: (void 0)!, city: (void 0)!, pin: (void 0)! });
-
-    rules
-      .on(person)
-      .ensure('name')
-      .displayName(displayName)
-      .required()
-      .withMessageKey(messageKey)
-      .ensure('age')
-      .required()
-      .withMessageKey('required')
-      .ensure((p) => p.address.line1)
-      .required()
-      ;
-
-    const result1 = await sut.validate(new ValidateInstruction(person));
-
-    assert.deepEqual(result1.map((r) => r.toString()), ['FooBar foobar fizbaz', 'age is required.', 'address.line1 is invalid.']);
-
-    ValidationRuleAliasMessage.setDefaultMessage(RequiredRule, { aliases: defaultRequiredRulesMessages }, false);
 
     rules.off();
   });

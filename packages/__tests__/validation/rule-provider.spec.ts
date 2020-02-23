@@ -13,7 +13,7 @@ import {
   PrimitiveLiteralExpression,
   LifecycleFlags,
   IExpressionParser,
-BindingType
+  BindingType
 } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import {
@@ -575,22 +575,18 @@ describe('ValidationMessageProvider', function () {
     };
   }
 
-  [
+  const messages1 = [
     { message: 'name is required', expectedType: PrimitiveLiteralExpression },
     { message: '${$displayName} is required', expectedType: Interpolation },
-  ].map(({ message, expectedType }) =>
+  ];
+  for (const { message, expectedType } of messages1) {
     it(`#parseMessage parses message correctly - ${message}`, function () {
       const { sut } = setup();
       assert.instanceOf(sut.parseMessage(message), expectedType);
-    }));
-  [
-    'displayName',
-    'propertyName',
-    'value',
-    'object',
-    'config',
-    'getDisplayName',
-  ].map((property) =>
+    });
+  }
+  const specialPropertyNames = ['displayName', 'propertyName', 'value', 'object', 'config', 'getDisplayName'];
+  for (const property of specialPropertyNames) {
     it(`#parseMessage logs warning if the message contains contextual property expression w/o preceeding '$' - ${property}`, function () {
       const { sut, eventLog } = setup();
 
@@ -606,9 +602,11 @@ describe('ValidationMessageProvider', function () {
           .endsWith(`[WRN ValidationMessageProvider] Did you mean to use "$${property}" instead of "${property}" in this validation message template: "${message}"?`),
         true
       );
-    }));
+    });
+  }
 
-  ['${$parent} foo bar', '${$parent.prop} foo bar'].map((message) =>
+  const invalidMessages = ['${$parent} foo bar', '${$parent.prop} foo bar'];
+  for (const message of invalidMessages) {
     it(`#parseMessage throws error if the message contains '$parent' - ${message}`, function () {
       const { sut } = setup();
 
@@ -618,7 +616,8 @@ describe('ValidationMessageProvider', function () {
         },
         '$parent is not permitted in validation message expressions.'
       );
-    }));
+    });
+  }
 
   const rules = [
     {
@@ -670,16 +669,6 @@ describe('ValidationMessageProvider', function () {
       getRule: (sut: IValidationMessageProvider) => new EqualsRule(sut, 42),
     },
   ];
-  rules.map(({ title, getRule }) =>
-    it(`rule.message returns the registered message for a rule instance - ${title}`, function () {
-      const { sut, container } = setup();
-      const message = 'FooBar';
-      const $rule = getRule(sut);
-      $rule.setMessage(message);
-      const scope = { bindingContext: {}, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
-      const actual = $rule.message.evaluate(LifecycleFlags.none, scope, container);
-      assert.equal(actual, message);
-    }));
 
   const messages = [
     'FooBar is required.',
@@ -695,16 +684,26 @@ describe('ValidationMessageProvider', function () {
     'FooBar must be between but not equal to 42 and 43.',
     'FooBar must be 42.',
   ];
-  rules.map((r, i) => ({ ...r, expected: messages[i] })).map(({ title, getRule, expected }) =>
+  for (let i = 0, ii = rules.length; i < ii; i++) {
+    const { title, getRule } = rules[i];
+    it(`rule.message returns the registered message for a rule instance - ${title}`, function () {
+      const { sut, container } = setup();
+      const message = 'FooBar';
+      const $rule = getRule(sut);
+      $rule.setMessage(message);
+      const scope = { bindingContext: {}, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
+      const actual = $rule.message.evaluate(LifecycleFlags.none, scope, container);
+      assert.equal(actual, message);
+    });
+
     it(`rule.message returns the registered default message for a rule type when no message for the instance is registered - ${title}`, function () {
       const { sut, container } = setup();
       const $rule = getRule(sut);
       const scope = { bindingContext: { $displayName: 'FooBar', $rule }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
       const actual = $rule.message.evaluate(LifecycleFlags.none, scope, container);
-      assert.equal(actual, expected);
-    }));
+      assert.equal(actual, messages[i]);
+    });
 
-  rules.map(({ title, getRule }) =>
     it(`rule.message returns the default message the registered key is not found - ${title}`, function () {
       const { sut, container } = setup();
       const $rule = getRule(sut);
@@ -712,7 +711,8 @@ describe('ValidationMessageProvider', function () {
       const scope = { bindingContext: { $displayName: 'FooBar', $rule }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
       const actual = $rule.message.evaluate(LifecycleFlags.none, scope, container);
       assert.equal(actual, 'FooBar is invalid.');
-    }));
+    });
+  }
 
   it('default messages can be overwritten by registering custom messages', function () {
 
@@ -811,7 +811,7 @@ describe('ValidationMessageProvider', function () {
     }
   });
 
-  [
+  const displayNames = [
     { arg1: 'foo', arg2: null, expected: 'Foo' },
     { arg1: 'fooBar', arg2: null, expected: 'Foo Bar' },
     { arg1: 'foo bar', arg2: null, expected: 'Foo bar' },
@@ -820,11 +820,13 @@ describe('ValidationMessageProvider', function () {
     { arg1: 'foo bar', arg2: void 0, expected: 'Foo bar' },
     { arg1: 'foo', arg2: 'hello', expected: 'hello' },
     { arg1: 'foo', arg2: () => 'hello', expected: 'hello' },
-  ].map(({ arg1, arg2, expected }) =>
+  ];
+  for (const { arg1, arg2, expected } of displayNames) {
     it(`#getDisplayName computes display name - (${arg1}, ${arg2?.toString() ?? Object.prototype.toString.call(arg2)}) => ${expected}`, function () {
       const { sut } = setup();
       assert.equal(sut.getDisplayName(arg1, arg2), expected);
-    }));
+    });
+  }
 });
 
 describe('parsePropertyName', function () {

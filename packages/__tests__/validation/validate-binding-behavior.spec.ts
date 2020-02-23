@@ -569,7 +569,7 @@ describe('validate-biniding-behavior', function () {
   // #endregion
 
   // #region argument parsing
-  [
+  const negativeTestData = [
     { args: `'chaos'`, expectedError: 'is not a supported validation trigger' },
     { args: `controller`, expectedError: 'is not a supported validation trigger' },
     { args: `ageMinRule`, expectedError: 'is not a supported validation trigger' },
@@ -578,7 +578,8 @@ describe('validate-biniding-behavior', function () {
     { args: `'change':{}`, expectedError: 'is not of type ValidationController' },
     { args: `'change':ageMinRule`, expectedError: 'is not of type ValidationController' },
     { args: `'change':controller:ageMinRule:'foo'`, expectedError: 'Unconsumed argument#4 for validate binding behavior: foo' },
-  ].map(({ args, expectedError }) =>
+  ];
+  for (const { args, expectedError } of negativeTestData) {
     it(`throws error if the arguments are not provided in correct order - ${args}`, async function () {
       const ctx = TestContext.createHTMLTestContext();
       const container = ctx.container;
@@ -603,7 +604,8 @@ describe('validate-biniding-behavior', function () {
       }
       await au.stop().wait();
       ctx.doc.body.removeChild(host);
-    }));
+    });
+  }
 
   // #endregion
 
@@ -855,7 +857,7 @@ describe('validate-biniding-behavior', function () {
     },
     { template: `<input id="target" value.two-way="person.age | toNumber | b64ToPlainText & validate:'change'">` }
   );
-  [
+  const bindingBehaviorTestData = [
     { expr: `person.name & validate:'change' & vanilla`, rawExpr: 'person.name&validate:(\'change\')' },
     { expr: `person.name & vanilla & validate:'change'`, rawExpr: 'person.name&vanilla' },
     { expr: `person.name & validate:'change' & interceptor`, rawExpr: 'person.name&validate:(\'change\')' },
@@ -866,7 +868,8 @@ describe('validate-biniding-behavior', function () {
     { expr: `person.name & interceptor & validate:'change' & vanilla`, rawExpr: 'person.name&interceptor&validate:(\'change\')' },
     { expr: `person.name & vanilla & interceptor & validate:'change'`, rawExpr: 'person.name&vanilla&interceptor' },
     { expr: `person.name & interceptor & vanilla & validate:'change'`, rawExpr: 'person.name&interceptor&vanilla' },
-  ].map(({ expr, rawExpr }) =>
+  ];
+  for (const { expr, rawExpr } of bindingBehaviorTestData) {
     $it(`can be used with other binding behavior - ${expr}`,
       async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
         const controller = app.controller;
@@ -884,7 +887,8 @@ describe('validate-biniding-behavior', function () {
         assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error3');
       },
       { template: `<input id="target" value.two-way="${expr}">` }
-    ));
+    );
+  }
   // #endregion
 
   $it('can be used to validate simple property',
@@ -1081,10 +1085,11 @@ describe('validate-biniding-behavior', function () {
   );
   // #endregion
 
-  [
+  const negativeTestData1 = [
     { text: 'listener binding', template: `<button click.delegate="handleClick() & validate"></button>` },
     { text: 'call binding', template: `<button action.call="handleClick() & validate"></button>` },
-  ].map(({ text, template }) =>
+  ];
+  for (const { text, template } of negativeTestData1) {
     it(`cannot be used with ${text}`, async function () {
       const ctx = TestContext.createHTMLTestContext();
       const container = ctx.container;
@@ -1109,5 +1114,6 @@ describe('validate-biniding-behavior', function () {
       }
       await au.stop().wait();
       ctx.doc.body.removeChild(host);
-    }));
+    });
+  }
 });

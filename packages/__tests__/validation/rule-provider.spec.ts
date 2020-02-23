@@ -35,8 +35,8 @@ import {
   validationRulesRegistrar,
   rootObjectSymbol,
   ValidationSerializer,
-  IValidationVisitor,
-  RuleProperty
+  RuleProperty,
+  ValidationDeserializer,
 } from '@aurelia/validation';
 import { IPerson, Person } from './_test-resources';
 
@@ -1096,169 +1096,186 @@ describe('PropertyRule', function () {
   });
 });
 
-describe.only('validation serialization', function () {
+describe('validation de/serialization', function () {
   function setup() {
     const container = TestContext.createHTMLTestContext().container;
-    container.register(ValidationConfiguration);
+    container.register(
+      ValidationConfiguration,
+      ValidationDeserializer
+    );
     return {
       parser: container.get(IExpressionParser),
       validationRules: container.get(IValidationRules),
       messageProvider: container.get(IValidationMessageProvider)
     };
   }
+  class RuleTestData {
+    public constructor(
+      public name: string,
+      public getRule: () => BaseValidationRule,
+      public serializedRule: string
+    ) { }
+  }
   const simpleRuleList = [
-    {
-      name: `required rule`, getRule() { return new RequiredRule(); },
-      expected: '{"$TYPE":"RequiredRule","messageKey":"required","tag":"undefined"}'
-    },
-    {
-      name: `regex rule`, getRule() { return new RegexRule(/foo\d/); },
-      expected: '{"$TYPE":"RegexRule","messageKey":"matches","tag":"undefined","pattern":{"source":"foo\\d","flags":""}}'
-    },
-    {
-      name: `max length rule`, getRule() { return new LengthRule(42, true); },
-      expected: '{"$TYPE":"LengthRule","messageKey":"maxLength","tag":"undefined","length":42,"isMax":true}'
-    },
-    {
-      name: `min length rule`, getRule() { return new LengthRule(42, false); },
-      expected: '{"$TYPE":"LengthRule","messageKey":"minLength","tag":"undefined","length":42,"isMax":false}'
-    },
-    {
-      name: `max items rule`, getRule() { return new SizeRule(42, true); },
-      expected: '{"$TYPE":"SizeRule","messageKey":"maxItems","tag":"undefined","length":42,"isMax":true}'
-    },
-    {
-      name: `min items rule`, getRule() { return new SizeRule(42, false); },
-      expected: '{"$TYPE":"SizeRule","messageKey":"minItems","tag":"undefined","length":42,"isMax":false}'
-    },
-    {
-      name: `equals rule (numeric expectation)`, getRule() { return new EqualsRule(42); },
-      expected: '{"$TYPE":"EqualsRule","messageKey":"equals","tag":"undefined","expectedValue":42}'
-    },
-    {
-      name: `equals rule (string expectation)`, getRule() { return new EqualsRule("42"); },
-      expected: '{"$TYPE":"EqualsRule","messageKey":"equals","tag":"undefined","expectedValue":"\\"42\\""}'
-    },
-    {
-      name: `equals rule (boole expectation)`, getRule() { return new EqualsRule(true); },
-      expected: '{"$TYPE":"EqualsRule","messageKey":"equals","tag":"undefined","expectedValue":true}'
-    },
-    {
-      name: `equals rule (object)`, getRule() { return new EqualsRule({ prop: 12 }); },
-      expected: '{"$TYPE":"EqualsRule","messageKey":"equals","tag":"undefined","expectedValue":{"prop":12}}'
-    },
-    {
-      name: `equals rule (array)`, getRule() { return new EqualsRule([{ prop: 12 }]); },
-      expected: '{"$TYPE":"EqualsRule","messageKey":"equals","tag":"undefined","expectedValue":[{"prop":12}]}'
-    },
-    {
-      name: `equals rule (object)`,
-      getRule() {
-        return new EqualsRule((new class {
-          public constructor(private readonly a: number, private readonly b: number) { }
-          public accept(_: IValidationVisitor) { return `"\\"a_${this.a}|b_${this.b}\\""`; }
-        }(11, 22)));
-      },
-      expected: '{"$TYPE":"EqualsRule","messageKey":"equals","tag":"undefined","expectedValue":"\\"a_11|b_22\\""}'
-    },
-    {
-      name: `[min,] range rule`, getRule() { return new RangeRule(true, { min: 42 }); },
-      expected: '{"$TYPE":"RangeRule","messageKey":"min","tag":"undefined","isInclusive":true,"min":42,"max":null}'
-    },
-    {
-      name: `[,max] range rule`, getRule() { return new RangeRule(true, { max: 42 }); },
-      expected: '{"$TYPE":"RangeRule","messageKey":"max","tag":"undefined","isInclusive":true,"min":null,"max":42}'
-    },
-    {
-      name: `[min,max] range rule`, getRule() { return new RangeRule(true, { min: 40, max: 42 }); },
-      expected: '{"$TYPE":"RangeRule","messageKey":"range","tag":"undefined","isInclusive":true,"min":40,"max":42}'
-    },
-    {
-      name: `(min,max) range rule`, getRule() { return new RangeRule(false, { min: 40, max: 42 }); },
-      expected: '{"$TYPE":"RangeRule","messageKey":"between","tag":"undefined","isInclusive":false,"min":40,"max":42}'
-    },
+    new RuleTestData(`required rule`, function () { return new RequiredRule(); }, '{"$TYPE":"RequiredRule","messageKey":"required","tag":"undefined"}'),
+    new RuleTestData(`regex rule`, function () { return new RegexRule(/foo\d/); }, '{"$TYPE":"RegexRule","messageKey":"matches","tag":"undefined","pattern":{"source":"\\"foo\\\\d\\"","flags":""}}'),
+    new RuleTestData(`regex rule with flags`, function () { return new RegexRule(/foo\d/gi); }, '{"$TYPE":"RegexRule","messageKey":"matches","tag":"undefined","pattern":{"source":"\\"foo\\\\d\\"","flags":"gi"}}'),
+    new RuleTestData(`max length rule`, function () { return new LengthRule(42, true); }, '{"$TYPE":"LengthRule","messageKey":"maxLength","tag":"undefined","length":42,"isMax":true}'),
+    new RuleTestData(`min length rule`, function () { return new LengthRule(42, false); }, '{"$TYPE":"LengthRule","messageKey":"minLength","tag":"undefined","length":42,"isMax":false}'),
+    new RuleTestData(`max items rule`, function () { return new SizeRule(42, true); }, '{"$TYPE":"SizeRule","messageKey":"maxItems","tag":"undefined","count":42,"isMax":true}'),
+    new RuleTestData(`min items rule`, function () { return new SizeRule(42, false); }, '{"$TYPE":"SizeRule","messageKey":"minItems","tag":"undefined","count":42,"isMax":false}'),
+    new RuleTestData(`equals rule (numeric expectation)`, function () { return new EqualsRule(42); }, '{"$TYPE":"EqualsRule","messageKey":"equals","tag":"undefined","expectedValue":42}'),
+    new RuleTestData(`equals rule (string expectation)`, function () { return new EqualsRule("42"); }, '{"$TYPE":"EqualsRule","messageKey":"equals","tag":"undefined","expectedValue":"\\"42\\""}'),
+    new RuleTestData(`equals rule (boole expectation)`, function () { return new EqualsRule(true); }, '{"$TYPE":"EqualsRule","messageKey":"equals","tag":"undefined","expectedValue":true}'),
+    new RuleTestData(`equals rule (object)`, function () { return new EqualsRule({ prop: 12 }); }, '{"$TYPE":"EqualsRule","messageKey":"equals","tag":"undefined","expectedValue":{"prop":12}}'),
+    new RuleTestData(`equals rule (array)`, function () { return new EqualsRule([{ prop: 12 }]); }, '{"$TYPE":"EqualsRule","messageKey":"equals","tag":"undefined","expectedValue":[{"prop":12}]}'),
+    new RuleTestData(`[min,] range rule`, function () { return new RangeRule(true, { min: 42 }); }, '{"$TYPE":"RangeRule","messageKey":"min","tag":"undefined","isInclusive":true,"min":42,"max":null}'),
+    new RuleTestData(`[,max] range rule`, function () { return new RangeRule(true, { max: 42 }); }, '{"$TYPE":"RangeRule","messageKey":"max","tag":"undefined","isInclusive":true,"min":null,"max":42}'),
+    new RuleTestData(`[min,max] range rule`, function () { return new RangeRule(true, { min: 40, max: 42 }); }, '{"$TYPE":"RangeRule","messageKey":"range","tag":"undefined","isInclusive":true,"min":40,"max":42}'),
+    new RuleTestData(`(min,max) range rule`, function () { return new RangeRule(false, { min: 40, max: 42 }); }, '{"$TYPE":"RangeRule","messageKey":"between","tag":"undefined","isInclusive":false,"min":40,"max":42}'),
   ];
   const list = [
     ...simpleRuleList,
-    ...simpleRuleList.map(({ name, getRule, expected }) => ({
-      name: `${name} with tag`,
-      getRule() {
-        const rule = getRule();
-        rule.tag = "foo";
-        return rule;
-      },
-      expected: expected.replace('"tag":"undefined"', '"tag":"\\"foo\\""')
-    })),
-    ...simpleRuleList.map(({ name, getRule, expected }) => ({
-      name: `${name} with custom messageKey`,
-      getRule() {
-        const rule = getRule();
-        rule.messageKey = "foo";
-        return rule;
-      },
-      expected: expected.replace(/"messageKey":"\w+"/, '"messageKey":"foo"')
-    })),
+    ...simpleRuleList.map(({ name, getRule, serializedRule }) =>
+      new RuleTestData(
+        `${name} with tag`,
+        function () {
+          const rule = getRule();
+          rule.tag = "foo";
+          return rule;
+        },
+        serializedRule.replace('"tag":"undefined"', '"tag":"\\"foo\\""')
+      )),
+    ...simpleRuleList.map(({ name, getRule, serializedRule }) =>
+      new RuleTestData(
+        `${name} with custom messageKey`,
+        function () {
+          const rule = getRule();
+          rule.messageKey = "foo";
+          return rule;
+        },
+        serializedRule.replace(/"messageKey":"\w+"/, '"messageKey":"foo"')
+      )),
   ];
-  for (const { name, getRule, expected } of list) {
-    it(`works for ${name}`, function () {
-      assert.strictEqual(ValidationSerializer.serialize(getRule()), expected);
-    });
-  }
 
+  class RulePropertyTestData {
+    public constructor(
+      public property: string,
+      public serializedProperty: string
+    ) { }
+  }
   const properties = [
-    { property: 'prop',               expected: '{"$TYPE":"RuleProperty","name":"\\"prop\\"","expression":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"displayName":"undefined"}' },
-    { property: 'obj.prop',           expected: '{"$TYPE":"RuleProperty","name":"\\"obj.prop\\"","expression":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessMemberExpression","name":"obj","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}}},"displayName":"undefined"}' },
-    { property: 'prop[0]',            expected: '{"$TYPE":"RuleProperty","name":"\\"prop[0]\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":0}},"displayName":"undefined"}' },
-    { property: 'prop[0].prop2',      expected: '{"$TYPE":"RuleProperty","name":"\\"prop[0].prop2\\"","expression":{"$TYPE":"AccessMemberExpression","name":"prop2","object":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":0}}},"displayName":"undefined"}' },
-    { property: 'obj.prop[0]',        expected: '{"$TYPE":"RuleProperty","name":"\\"obj.prop[0]\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessMemberExpression","name":"obj","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":0}},"displayName":"undefined"}' },
-    { property: 'prop[a]',            expected: '{"$TYPE":"RuleProperty","name":"\\"prop[a]\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"AccessScopeExpression","name":"a","ancestor":0}},"displayName":"undefined"}' },
-    { property: 'prop[a].prop2',      expected: '{"$TYPE":"RuleProperty","name":"\\"prop[a].prop2\\"","expression":{"$TYPE":"AccessMemberExpression","name":"prop2","object":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"AccessScopeExpression","name":"a","ancestor":0}}},"displayName":"undefined"}' },
-    { property: 'obj.prop[a]',        expected: '{"$TYPE":"RuleProperty","name":"\\"obj.prop[a]\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessMemberExpression","name":"obj","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}}},"key":{"$TYPE":"AccessScopeExpression","name":"a","ancestor":0}},"displayName":"undefined"}' },
-    { property: 'prop[\'a\']',        expected: '{"$TYPE":"RuleProperty","name":"\\"prop[\\\'a\\\']\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":"\\"a\\""}},"displayName":"undefined"}' },
-    { property: 'prop[\'a\'].prop2',  expected: '{"$TYPE":"RuleProperty","name":"\\"prop[\\\'a\\\'].prop2\\"","expression":{"$TYPE":"AccessMemberExpression","name":"prop2","object":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":"\\"a\\""}}},"displayName":"undefined"}' },
-    { property: 'obj.prop[\'a\']',    expected: '{"$TYPE":"RuleProperty","name":"\\"obj.prop[\\\'a\\\']\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessMemberExpression","name":"obj","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":"\\"a\\""}},"displayName":"undefined"}' },
+    new RulePropertyTestData('prop', '{"$TYPE":"RuleProperty","name":"\\"prop\\"","expression":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"displayName":"undefined"}'),
+    new RulePropertyTestData('obj.prop', '{"$TYPE":"RuleProperty","name":"\\"obj.prop\\"","expression":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessMemberExpression","name":"obj","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}}},"displayName":"undefined"}'),
+    new RulePropertyTestData('prop[0]', '{"$TYPE":"RuleProperty","name":"\\"prop[0]\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":0}},"displayName":"undefined"}'),
+    new RulePropertyTestData('prop[0].prop2', '{"$TYPE":"RuleProperty","name":"\\"prop[0].prop2\\"","expression":{"$TYPE":"AccessMemberExpression","name":"prop2","object":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":0}}},"displayName":"undefined"}'),
+    new RulePropertyTestData('obj.prop[0]', '{"$TYPE":"RuleProperty","name":"\\"obj.prop[0]\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessMemberExpression","name":"obj","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":0}},"displayName":"undefined"}'),
+    new RulePropertyTestData('prop[a]', '{"$TYPE":"RuleProperty","name":"\\"prop[a]\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"AccessScopeExpression","name":"a","ancestor":0}},"displayName":"undefined"}'),
+    new RulePropertyTestData('prop[a].prop2', '{"$TYPE":"RuleProperty","name":"\\"prop[a].prop2\\"","expression":{"$TYPE":"AccessMemberExpression","name":"prop2","object":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"AccessScopeExpression","name":"a","ancestor":0}}},"displayName":"undefined"}'),
+    new RulePropertyTestData('obj.prop[a]', '{"$TYPE":"RuleProperty","name":"\\"obj.prop[a]\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessMemberExpression","name":"obj","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}}},"key":{"$TYPE":"AccessScopeExpression","name":"a","ancestor":0}},"displayName":"undefined"}'),
+    new RulePropertyTestData('prop["a"]', '{"$TYPE":"RuleProperty","name":"\\"prop[\\"a\\"]\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":"\\"a\\""}},"displayName":"undefined"}'),
+    new RulePropertyTestData('prop["a"].prop2', '{"$TYPE":"RuleProperty","name":"\\"prop[\\"a\\"].prop2\\"","expression":{"$TYPE":"AccessMemberExpression","name":"prop2","object":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":"\\"a\\""}}},"displayName":"undefined"}'),
+    new RulePropertyTestData('obj.prop["a"]', '{"$TYPE":"RuleProperty","name":"\\"obj.prop[\\"a\\"]\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessMemberExpression","name":"obj","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":"\\"a\\""}},"displayName":"undefined"}'),
+    new RulePropertyTestData("prop['a']", `{"$TYPE":"RuleProperty","name":"\\"prop['a']\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":"\\"a\\""}},"displayName":"undefined"}`),
   ];
-  for (const { property, expected } of properties) {
-    it(`works for RuleProperty - ${property}`, function () {
+
+  describe('serialization', function () {
+    for (const { name, getRule, serializedRule } of list) {
+      it(`works for ${name}`, function () {
+        assert.strictEqual(ValidationSerializer.serialize(getRule()), serializedRule);
+      });
+    }
+    for (const { property, serializedProperty } of properties) {
+      it(`works for RuleProperty - ${property}`, function () {
+        const { parser } = setup();
+        const [name, expression] = parsePropertyName(property, parser);
+        const ruleProperty = new RuleProperty(expression, name);
+        assert.strictEqual(ValidationSerializer.serialize(ruleProperty), serializedProperty);
+      });
+    }
+    for (const { property, serializedProperty } of properties) {
+      it(`RuleProperty - ${property}`, function () {
+        const { parser } = setup();
+        const [name, expression] = parsePropertyName(property, parser);
+        const ruleProperty = new RuleProperty(expression, name, 'foo');
+        assert.strictEqual(ValidationSerializer.serialize(ruleProperty), serializedProperty.replace('"displayName":"undefined"', '"displayName":"\\"foo\\""'));
+      });
+    }
+
+    it(`throws error serializing RuleProperty if the displayName is not a string`, function () {
       const { parser } = setup();
+      assert.throws(() => {
+        const [name, expression] = parsePropertyName('foo', parser);
+        const ruleProperty = new RuleProperty(expression, name, () => 'foo');
+        ValidationSerializer.serialize(ruleProperty);
+      }, 'Serializing a non-string displayName for rule property is not supported.');
+    });
+
+    it(`works for PropertyRule`, function () {
+      const { parser, messageProvider, validationRules } = setup();
+      const { property, serializedProperty } = properties[0];
       const [name, expression] = parsePropertyName(property, parser);
       const ruleProperty = new RuleProperty(expression, name);
-      assert.strictEqual(ValidationSerializer.serialize(ruleProperty), expected);
+      const [req, regex, maxLen] = simpleRuleList;
+      const propertyRule = new PropertyRule(
+        validationRules,
+        messageProvider,
+        ruleProperty,
+        [[req.getRule(), maxLen.getRule()], [regex.getRule()]]
+      );
+      assert.strictEqual(
+        ValidationSerializer.serialize(propertyRule),
+        `{"$TYPE":"PropertyRule","property":${serializedProperty},"$rules":[[${req.serializedRule},${maxLen.serializedRule}],[${regex.serializedRule}]]}`
+      );
     });
-  }
-  for (const { property, expected } of properties) {
-    it(`RuleProperty - ${property}`, function () {
-      const { parser } = setup();
-      const [name, expression] = parsePropertyName(property, parser);
-      const ruleProperty = new RuleProperty(expression, name, 'foo');
-      assert.strictEqual(ValidationSerializer.serialize(ruleProperty), expected.replace('"displayName":"undefined"', '"displayName":"\\"foo\\""'));
-    });
-  }
-
-  it(`throws error serializing RuleProperty if the displayName is not a string`, function () {
-    const { parser } = setup();
-    assert.throws(() => {
-      const [name, expression] = parsePropertyName('foo', parser);
-      const ruleProperty = new RuleProperty(expression, name, () => 'foo');
-      ValidationSerializer.serialize(ruleProperty);
-    }, 'Serializing a non-string displayName for rule property is not supported.');
   });
 
-  it(`works for PropertyRule`, function () {
-    const { parser, messageProvider, validationRules } = setup();
-    const { property, expected } = properties[0];
-    const [name, expression] = parsePropertyName(property, parser);
-    const ruleProperty = new RuleProperty(expression, name);
-    const [req, regex, maxLen] = simpleRuleList;
-    const propertyRule = new PropertyRule(
-      validationRules,
-      messageProvider,
-      ruleProperty,
-      [[req.getRule(), maxLen.getRule()],[regex.getRule()]]
-    );
-    assert.strictEqual(
-      ValidationSerializer.serialize(propertyRule),
-      `{"$TYPE":"PropertyRule","property":${expected},"$rules":[[${req.expected},${maxLen.expected}],[${regex.expected}]]}`
-    );
+  describe('deserialization', function () {
+    for (const { name, getRule, serializedRule } of list) {
+      it(`works for ${name}`, function () {
+        setup();
+        const actual = ValidationDeserializer.deserialize(serializedRule);
+        const expected = getRule();
+        assert.instanceOf(actual, expected.constructor);
+        assert.deepEqual(actual, expected);
+      });
+    }
+
+    for (const { property, serializedProperty } of properties) {
+      it(`works for RuleProperty - ${property}`, function () {
+        const { parser } = setup();
+        const [name, expression] = parsePropertyName(property, parser);
+        const expected = new RuleProperty(expression, name);
+        const actual = ValidationDeserializer.deserialize(serializedProperty);
+        assert.instanceOf(actual, expected.constructor);
+        assert.deepStrictEqual(actual, expected);
+      });
+    }
+    // for (const { property, serializedProperty } of properties) {
+    //   it(`RuleProperty - ${property}`, function () {
+    //     const { parser } = setup();
+    //     const [name, expression] = parsePropertyName(property, parser);
+    //     const ruleProperty = new RuleProperty(expression, name, 'foo');
+    //     assert.strictEqual(ValidationSerializer.serialize(ruleProperty), serializedProperty.replace('"displayName":"undefined"', '"displayName":"\\"foo\\""'));
+    //   });
+    // }
+
+    // it(`works for PropertyRule`, function () {
+    //   const { parser, messageProvider, validationRules } = setup();
+    //   const { property, serializedProperty } = properties[0];
+    //   const [name, expression] = parsePropertyName(property, parser);
+    //   const ruleProperty = new RuleProperty(expression, name);
+    //   const [req, regex, maxLen] = simpleRuleList;
+    //   const propertyRule = new PropertyRule(
+    //     validationRules,
+    //     messageProvider,
+    //     ruleProperty,
+    //     [[req.getRule(), maxLen.getRule()], [regex.getRule()]]
+    //   );
+    //   assert.strictEqual(
+    //     ValidationSerializer.serialize(propertyRule),
+    //     `{"$TYPE":"PropertyRule","property":${serializedProperty},"$rules":[[${req.serializedRule},${maxLen.serializedRule}],[${regex.serializedRule}]]}`
+    //   );
+    // });
   });
 });

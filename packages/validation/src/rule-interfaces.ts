@@ -7,7 +7,7 @@ export type ValidationRuleExecutionPredicate<TObject extends IValidateable = IVa
 export interface IValidationRule<TValue = any, TObject extends IValidateable = IValidateable> {
   tag?: string;
   messageKey: string;
-  canExecute: ValidationRuleExecutionPredicate;
+  canExecute(object?: IValidateable): boolean;
 
   /**
    * Core rule execution.
@@ -79,4 +79,9 @@ export interface IValidationVisitor {
   visitEqualsRule(rule: IEqualsRule): string;
   visitRuleProperty(property: IRuleProperty): string;
   visitPropertyRule(propertyRule: IPropertyRule): string;
+}
+
+export type Hydratable = any & { $TYPE: string };
+export interface IValidationDeserializer {
+  hydrate(raw: Hydratable): any;
 }

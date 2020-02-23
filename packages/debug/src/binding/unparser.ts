@@ -504,7 +504,7 @@ function escape(ch: string): string {
     case '\f': return '\\f';
     case '\r': return '\\r';
     case '"': return '\\"';
-    case '\'': return '\\\'';
+    // case '\'': return '\\\'';
     case '\\': return '\\\\';
     default: return ch;
   }

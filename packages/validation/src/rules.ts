@@ -2,7 +2,6 @@ import { Constructable, Protocol, Metadata, Class, DI } from '@aurelia/kernel';
 import { IInterpolationExpression, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import {
   IValidateable,
-  ValidationRuleExecutionPredicate,
   IValidationRule,
   IRequiredRule,
   IRegexRule,
@@ -10,8 +9,10 @@ import {
   ISizeRule,
   IRangeRule,
   IEqualsRule,
-  IValidationVisitor
+  IValidationVisitor,
+  IValidationDeserializer
 } from './rule-interfaces';
+import { Deserializer } from '@aurelia/debug';
 
 /**
  * Retrieves validation messages and property display names.
@@ -20,11 +21,11 @@ export interface IValidationMessageProvider {
   /**
    * Gets the parsed message for the `rule`.
    */
-  getMessage(rule: BaseValidationRule): IInterpolationExpression | PrimitiveLiteralExpression;
+  getMessage(rule: IValidationRule): IInterpolationExpression | PrimitiveLiteralExpression;
   /**
    * Gets the parsed message for the `rule`.
    */
-  setMessage(rule: BaseValidationRule, message: string): IInterpolationExpression | PrimitiveLiteralExpression;
+  setMessage(rule: IValidationRule, message: string): IInterpolationExpression | PrimitiveLiteralExpression;
   /**
    * Core message parsing function.
    */
@@ -44,14 +45,14 @@ export interface ValidationRuleAlias {
 export interface ValidationRuleDefinition {
   aliases: ValidationRuleAlias[];
 }
-
+export type RuleType<TRule extends IValidationRule> = Class<TRule, { $TYPE: string; fromJSON(jsonObject: any, deserializer: IValidationDeserializer, astDeserializer: Deserializer): TRule }>;
 export const ValidationRuleAliasMessage = Object.freeze({
   aliasKey: Protocol.annotation.keyFor('validation-rule-alias-message'),
-  define<TRule extends BaseValidationRule>(target: Class<TRule, { $TYPE: string }>, definition: ValidationRuleDefinition): Class<TRule, { $TYPE: string }> {
+  define<TRule extends IValidationRule>(target: RuleType<TRule>, definition: ValidationRuleDefinition): RuleType<TRule> {
     ValidationRuleAliasMessage.setDefaultMessage(target, definition);
     return target;
   },
-  setDefaultMessage<TRule extends BaseValidationRule>(rule: Constructable<TRule>, { aliases }: ValidationRuleDefinition, append: boolean = true) {
+  setDefaultMessage<TRule extends IValidationRule>(rule: Constructable<TRule>, { aliases }: ValidationRuleDefinition, append: boolean = true) {
     // conditionally merge
     const defaultMessages = append ? Metadata.getOwn(this.aliasKey, rule.prototype) as ValidationRuleAlias[] : void 0;
     if (defaultMessages !== void 0) {
@@ -63,13 +64,13 @@ export const ValidationRuleAliasMessage = Object.freeze({
     }
     Metadata.define(ValidationRuleAliasMessage.aliasKey, aliases, rule instanceof Function ? rule.prototype : rule);
   },
-  getDefaultMessages<TRule extends BaseValidationRule>(rule: Constructable<TRule> | TRule): ValidationRuleAlias[] {
+  getDefaultMessages<TRule extends IValidationRule>(rule: Constructable<TRule> | TRule): ValidationRuleAlias[] {
     return Metadata.get(this.aliasKey, rule instanceof Function ? rule.prototype : rule);
   }
 });
 
 export function validationRule(definition: ValidationRuleDefinition) {
-  return function <TRule extends BaseValidationRule>(target: Class<TRule, { $TYPE: string }>) {
+  return function <TRule extends IValidationRule>(target: RuleType<TRule>) {
     return ValidationRuleAliasMessage.define(target, definition);
   };
 }
@@ -84,12 +85,15 @@ export class BaseValidationRule<TValue = any, TObject extends IValidateable = IV
   public constructor(
     public messageKey: string = (void 0)!,
   ) { }
-  public canExecute: ValidationRuleExecutionPredicate = () => true;
+  public canExecute(_object?: IValidateable): boolean { return true; }
   public execute(_value: TValue, _object?: TObject): boolean | Promise<boolean> {
     throw new Error('No base implementation of execute. Did you forget to implement the execute method?'); // TODO reporter
   }
   public accept(_visitor: IValidationVisitor): any {
-    throw new Error('No base implementation of execute. Did you forget to implement the accept method?'); // TODO reporter
+    throw new Error('No base implementation of accept. Did you forget to implement the accept method?'); // TODO reporter
+  }
+  public static fromJSON(_jsonObject: any, _deserializer: IValidationDeserializer, _astDeserializer: Deserializer): BaseValidationRule {
+    throw new Error('No base implementation of fromJSON. Did you forget to implement the fromJSON method?'); // TODO reporter
   }
 }
 
@@ -110,6 +114,12 @@ export class RequiredRule extends BaseValidationRule implements IRequiredRule {
   }
   public accept(visitor: IValidationVisitor) {
     return visitor.visitRequiredRule(this);
+  }
+  public static fromJSON(jsonObject: Pick<RequiredRule, 'messageKey' | 'tag'>, _deserializer: IValidationDeserializer, astDeserializer: Deserializer): RequiredRule {
+    const rule = new RequiredRule();
+    rule.messageKey = jsonObject.messageKey;
+    rule.tag = astDeserializer.hydrate(jsonObject.tag);
+    return rule;
   }
 }
 
@@ -140,6 +150,12 @@ export class RegexRule extends BaseValidationRule<string> implements IRegexRule 
   public accept(visitor: IValidationVisitor) {
     return visitor.visitRegexRule(this);
   }
+  public static fromJSON(jsonObject: Pick<RegexRule, 'pattern' | 'messageKey' | 'tag'>, _deserializer: IValidationDeserializer, astDeserializer: Deserializer): RegexRule {
+    const pattern = jsonObject.pattern;
+    const rule = new RegexRule(new RegExp(astDeserializer.hydrate(pattern.source), pattern.flags), jsonObject.messageKey);
+    rule.tag = astDeserializer.hydrate(jsonObject.tag);
+    return rule;
+  }
 }
 
 /**
@@ -169,6 +185,12 @@ export class LengthRule extends BaseValidationRule<string> implements ILengthRul
   public accept(visitor: IValidationVisitor) {
     return visitor.visitLengthRule(this);
   }
+  public static fromJSON(jsonObject: Pick<LengthRule, 'length' | 'isMax' | 'messageKey' | 'tag'>, _deserializer: IValidationDeserializer, astDeserializer: Deserializer): LengthRule {
+    const rule = new LengthRule(jsonObject.length, jsonObject.isMax);
+    rule.messageKey = jsonObject.messageKey;
+    rule.tag = astDeserializer.hydrate(jsonObject.tag);
+    return rule;
+  }
 }
 
 /**
@@ -196,6 +218,12 @@ export class SizeRule extends BaseValidationRule<unknown[]> implements ISizeRule
   }
   public accept(visitor: IValidationVisitor) {
     return visitor.visitSizeRule(this);
+  }
+  public static fromJSON(jsonObject: Pick<SizeRule, 'count' | 'isMax' | 'messageKey' | 'tag'>, _deserializer: IValidationDeserializer, astDeserializer: Deserializer): SizeRule {
+    const rule = new SizeRule(jsonObject.count, jsonObject.isMax);
+    rule.messageKey = jsonObject.messageKey;
+    rule.tag = astDeserializer.hydrate(jsonObject.tag);
+    return rule;
   }
 }
 
@@ -245,6 +273,12 @@ export class RangeRule extends BaseValidationRule<number> implements IRangeRule 
   public accept(visitor: IValidationVisitor) {
     return visitor.visitRangeRule(this);
   }
+  public static fromJSON(jsonObject: Pick<RangeRule, 'isInclusive' | 'max' | 'min' | 'messageKey' | 'tag'>, _deserializer: IValidationDeserializer, astDeserializer: Deserializer): RangeRule {
+    const rule = new RangeRule(jsonObject.isInclusive, { min: jsonObject.min ?? Number.NEGATIVE_INFINITY, max: jsonObject.max ?? Number.POSITIVE_INFINITY });
+    rule.messageKey = jsonObject.messageKey;
+    rule.tag = astDeserializer.hydrate(jsonObject.tag);
+    return rule;
+  }
 }
 
 /**
@@ -268,5 +302,11 @@ export class EqualsRule extends BaseValidationRule implements IEqualsRule {
   }
   public accept(visitor: IValidationVisitor) {
     return visitor.visitEqualsRule(this);
+  }
+  public static fromJSON(jsonObject: Pick<EqualsRule, 'expectedValue' | 'messageKey' | 'tag'>, _deserializer: IValidationDeserializer, astDeserializer: Deserializer): EqualsRule {
+    const rule = new EqualsRule(typeof jsonObject.expectedValue !== 'object' ? astDeserializer.hydrate(jsonObject.expectedValue) : jsonObject.expectedValue);
+    rule.messageKey = jsonObject.messageKey;
+    rule.tag = astDeserializer.hydrate(jsonObject.tag);
+    return rule;
   }
 }

@@ -1,6 +1,6 @@
 /* eslint-disable no-template-curly-in-string */
-import { Serializer, serializePrimitive } from '@aurelia/debug';
-import { Class, DI, Protocol, Metadata, ILogger } from '@aurelia/kernel';
+import { Serializer, serializePrimitive, Deserializer } from '@aurelia/debug';
+import { Class, DI, Protocol, Metadata, ILogger, IContainer } from '@aurelia/kernel';
 import {
   BindingType,
   IExpressionParser,
@@ -32,6 +32,9 @@ import {
   ValidationDisplayNameAccessor,
   IRuleProperty,
   IPropertyRule,
+  IValidationRule,
+  Hydratable,
+  IValidationDeserializer,
 } from './rule-interfaces';
 
 /**
@@ -54,6 +57,23 @@ export class RuleProperty implements IRuleProperty {
   ) { }
   public accept(visitor: IValidationVisitor): string {
     return visitor.visitRuleProperty(this);
+  }
+  public static fromJSON(jsonObject: Pick<RuleProperty, 'expression' | 'name' | 'displayName'>, _deserializer: IValidationDeserializer, astDeserializer: Deserializer, parser: IExpressionParser): RuleProperty {
+    let name: any = jsonObject.name;
+    name = name === 'undefined' ? undefined : astDeserializer.hydrate(name);
+
+    let expression: any = jsonObject.expression;
+    if (expression !== 'undefined') {
+      expression = astDeserializer.hydrate(expression);
+    } else if (name !== undefined) {
+      ([, expression] = parsePropertyName(name, parser));
+    } else {
+      expression = undefined;
+    }
+
+    let displayName = jsonObject.displayName;
+    displayName = displayName === 'undefined' ? undefined : astDeserializer.hydrate(displayName);
+    return new RuleProperty(expression, name, displayName);
   }
 }
 export type RuleCondition<TObject extends IValidateable = IValidateable, TValue = any> = (value: TValue, object?: TObject) => boolean | Promise<boolean>;
@@ -616,26 +636,22 @@ export class ValidationSerializer implements IValidationVisitor {
     if (object == null || typeof object.accept !== 'function') {
       return `${object}`;
     }
-    const visitor = new ValidationSerializer(new Serializer());
+    const visitor = new ValidationSerializer();
     return object.accept(visitor);
   }
-
-  public constructor(
-    private readonly serializer: Serializer,
-  ) { }
 
   public visitRequiredRule(rule: RequiredRule): string {
     return `{"$TYPE":"${RequiredRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${serializePrimitive(rule.tag)}}`;
   }
   public visitRegexRule(rule: RegexRule): string {
     const pattern = rule.pattern;
-    return `{"$TYPE":"${RegexRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${serializePrimitive(rule.tag)},"pattern":{"source":"${pattern.source}","flags":"${pattern.flags}"}}`;
+    return `{"$TYPE":"${RegexRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${serializePrimitive(rule.tag)},"pattern":{"source":${serializePrimitive(pattern.source)},"flags":"${pattern.flags}"}}`;
   }
   public visitLengthRule(rule: LengthRule): string {
     return `{"$TYPE":"${LengthRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${serializePrimitive(rule.tag)},"length":${serializePrimitive(rule.length)},"isMax":${serializePrimitive(rule.isMax)}}`;
   }
   public visitSizeRule(rule: SizeRule): string {
-    return `{"$TYPE":"${SizeRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${serializePrimitive(rule.tag)},"length":${serializePrimitive(rule.count)},"isMax":${serializePrimitive(rule.isMax)}}`;
+    return `{"$TYPE":"${SizeRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${serializePrimitive(rule.tag)},"count":${serializePrimitive(rule.count)},"isMax":${serializePrimitive(rule.isMax)}}`;
   }
   public visitRangeRule(rule: RangeRule): string {
     return `{"$TYPE":"${RangeRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${serializePrimitive(rule.tag)},"isInclusive":${rule.isInclusive},"min":${this.serializeNumber(rule.min)},"max":${this.serializeNumber(rule.max)}}`;
@@ -646,7 +662,7 @@ export class ValidationSerializer implements IValidationVisitor {
     if (typeof expectedValue !== 'object' || expectedValue === null) {
       serializedExpectedValue = serializePrimitive(expectedValue);
     } else {
-      serializedExpectedValue = typeof expectedValue.accept === 'function' ? expectedValue.accept(this) : JSON.stringify(expectedValue);
+      serializedExpectedValue = JSON.stringify(expectedValue);
     }
     return `{"$TYPE":"${EqualsRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${serializePrimitive(rule.tag)},"expectedValue":${serializedExpectedValue}}`;
   }
@@ -669,5 +685,68 @@ export class ValidationSerializer implements IValidationVisitor {
 
   private serializeRules(ruleset: BaseValidationRule[][]) {
     return `[${ruleset.map((rules) => `[${rules.map((rule) => rule.accept(this)).join(',')}]`).join(',')}]`;
+  }
+}
+
+type HydratableType = Class<IValidationRule, { $TYPE: string; fromJSON(jsonObject: any, deserializer: IValidationDeserializer, astDeserializer: Deserializer, parser: IExpressionParser): IValidationRule }>
+  | Class<IRuleProperty, { $TYPE: string; fromJSON(jsonObject: any, deserializer: IValidationDeserializer, astDeserializer: Deserializer, parser: IExpressionParser): IRuleProperty }>
+  | Class<IPropertyRule, { $TYPE: string; fromJSON(jsonObject: any, deserializer: IValidationDeserializer, astDeserializer: Deserializer, parser: IExpressionParser): IPropertyRule }>;
+export class ValidationDeserializer implements IValidationDeserializer {
+  private static container: IContainer;
+  public static register(container: IContainer) {
+    this.container = container;
+  }
+  public static deserialize(json: string): IValidationRule | IRuleProperty | IPropertyRule {
+    const messageProvider = this.container.get(IValidationMessageProvider);
+    const validationRules = this.container.get(IValidationRules);
+    const parser = this.container.get(IExpressionParser);
+    const deserializer = new ValidationDeserializer(validationRules, messageProvider, parser);
+    const raw = JSON.parse(json);
+    return deserializer.hydrate(raw);
+  }
+
+  public readonly astDeserializer: Deserializer = new Deserializer();
+  public constructor(
+    @IValidationRules private readonly validationRules: IValidationRules,
+    @IValidationMessageProvider private readonly messageProvider: IValidationMessageProvider,
+    @IExpressionParser private readonly parser: IExpressionParser,
+  ) { }
+
+  public hydrate(raw: Hydratable): any {
+    const hydratableType = this.getType(raw.$TYPE);
+    if (hydratableType !== void 0) {
+      return hydratableType.fromJSON(raw, this, this.astDeserializer, this.parser);
+    } /* else {
+      if (Array.isArray(raw)) {
+        if (typeof raw[0] === 'object') {
+          return this.deserializeExpressions(raw);
+        } else {
+          return raw.map(deserializePrimitive);
+        }
+      } else if (typeof raw !== 'object') {
+        return deserializePrimitive(raw);
+      }
+      throw new Error(`unable to deserialize the expression: ${raw}`); // TODO use reporter/logger
+    } */
+    return null!;
+  }
+
+  protected getType(type: unknown): HydratableType | undefined {
+    switch (type) {
+      case RequiredRule.$TYPE:
+        return RequiredRule;
+      case RegexRule.$TYPE:
+        return RegexRule;
+      case LengthRule.$TYPE:
+        return LengthRule;
+      case SizeRule.$TYPE:
+        return SizeRule;
+      case RangeRule.$TYPE:
+        return RangeRule;
+      case EqualsRule.$TYPE:
+        return EqualsRule;
+      case RuleProperty.$TYPE:
+        return RuleProperty;
+    }
   }
 }

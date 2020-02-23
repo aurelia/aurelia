@@ -17,6 +17,7 @@
     "test-node:runtime-html": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/3-runtime-html/**/*.spec.js --watch",
     "test-node:jit": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/4-jit/**/*.spec.js --watch",
     "test-node:jit-html": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/5-jit-html/**/*.spec.js --watch",
+    "test-node:validation": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/validation*/**/*.spec.js --watch",
     "test-node:plugin-conventions": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/plugin-conventions/**/*.spec.js --watch",
     "test-node:plugin-gulp": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/plugin-gulp/**/*.spec.js --watch",
     "test-node:webpack-loader": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/webpack-loader/**/*.spec.js --watch",

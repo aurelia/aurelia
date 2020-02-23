@@ -75,11 +75,11 @@ export class SourceFileExtractor implements ISourceFileExtractor {
                 const path = declaration.compilerNode.getSourceFile().fileName;
                 const ignoreInternals = extractorConfiguration.ignoreInternals ?? true;
                 let ignoreDeclaration = false;
-                let shouldBeProcessed  = true;
+                let shouldNotProcess  = false;
                 for( let index  = 0; index < extractorConfiguration.exports.excludes.length; index++ ){
-                  shouldBeProcessed = !path.includes(extractorConfiguration.exports.excludes[index]);
+                  shouldNotProcess = path.includes(extractorConfiguration.exports.excludes[index]);
                 }
-                if (shouldBeProcessed) {
+                if (!shouldNotProcess) {
                     switch (declaration.getKind()) {
                         case SyntaxKind.ClassDeclaration:
                             const classNode = declaration as ClassDeclaration;

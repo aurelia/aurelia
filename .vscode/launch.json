@@ -86,6 +86,25 @@
       "skipFiles": [
         "<node_internals>/**"
       ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch mocha validation tests",
+      "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+      "env": {
+        "TS_NODE_PROJECT": "${workspaceRoot}/packages/__tests__/tsconfig.json"
+      },
+      "args": [
+        "-r",
+        "esm",
+        "--opts",
+        "${workspaceRoot}/packages/__tests__/mocha.opts",
+        "${workspaceRoot}/packages/__tests__/dist/esnext/__tests__/setup-node.js",
+        "${workspaceRoot}/packages/__tests__/dist/esnext/__tests__/validation/**/*.spec.js"
+      ],
+      "cwd": "${workspaceRoot}",
+      "internalConsoleOptions": "openOnSessionStart"
     }
   ]
 }

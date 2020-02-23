@@ -321,8 +321,17 @@ describe('ValidationRules', function () {
       .range(24, 42)
 
       .rules;
+    const person = new Person(void 0!, void 0!);
 
     assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules', validationRulesRegistrar.defaultRuleSetName), Person), rules);
+
+    const [rules1, rules2] = rules;
+    assert.equal(rules1.property.name, 'name');
+    assert.instanceOf(rules1.$rules[0][0], RequiredRule);
+    assert.equal(rules2.property.name, 'age');
+    assert.instanceOf(rules2.$rules[0][0], RangeRule);
+
+    assert.equal(validationRulesRegistrar.get(person), rules);
 
     sut.off();
   });
@@ -373,6 +382,7 @@ describe('ValidationRules', function () {
       .required()
 
       .rules;
+    const person = new Person(void 0!, void 0!);
 
     assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules', validationRulesRegistrar.defaultRuleSetName), Person), rules);
 
@@ -383,6 +393,8 @@ describe('ValidationRules', function () {
     assert.instanceOf(rules2.$rules[0][0], RangeRule);
     assert.equal(rules3.property.name, 'address.line1');
     assert.instanceOf(rules3.$rules[0][0], RequiredRule);
+
+    assert.equal(validationRulesRegistrar.get(person), rules);
 
     sut.off();
   });

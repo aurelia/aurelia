@@ -71,7 +71,8 @@ export const validationRulesRegistrar = Object.freeze({
     }
   },
   get(target: IValidateable, tag?: string): PropertyRule[] {
-    return Metadata.getOwn(Protocol.annotation.keyFor(validationRulesRegistrar.name, tag ?? validationRulesRegistrar.defaultRuleSetName), target);
+    const key = Protocol.annotation.keyFor(validationRulesRegistrar.name, tag ?? validationRulesRegistrar.defaultRuleSetName);
+    return Metadata.get(key, target) ?? Metadata.getOwn(key, target.constructor);
   },
   unset(target: IValidateable, tag?: string): void {
     const keys = Metadata.getOwn(Protocol.annotation.name, target) as string[];

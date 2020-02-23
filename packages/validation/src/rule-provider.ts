@@ -58,24 +58,6 @@ export class RuleProperty implements IRuleProperty {
   public accept(visitor: IValidationVisitor): string {
     return visitor.visitRuleProperty(this);
   }
-  public static fromJSON(jsonObject: Pick<RuleProperty, 'expression' | 'name' | 'displayName'>, deserializer: IValidationDeserializer): RuleProperty {
-    const astDeserializer = deserializer.astDeserializer;
-    let name: any = jsonObject.name;
-    name = name === 'undefined' ? undefined : astDeserializer.hydrate(name);
-
-    let expression: any = jsonObject.expression;
-    if (expression !== 'undefined') {
-      expression = astDeserializer.hydrate(expression);
-    } else if (name !== undefined) {
-      ([, expression] = parsePropertyName(name, deserializer.parser));
-    } else {
-      expression = undefined;
-    }
-
-    let displayName = jsonObject.displayName;
-    displayName = displayName === 'undefined' ? undefined : astDeserializer.hydrate(displayName);
-    return new RuleProperty(expression, name, displayName);
-  }
 }
 export type RuleCondition<TObject extends IValidateable = IValidateable, TValue = any> = (value: TValue, object?: TObject) => boolean | Promise<boolean>;
 
@@ -126,14 +108,6 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   ) { }
   public accept(visitor: IValidationVisitor): string {
     return visitor.visitPropertyRule(this);
-  }
-  public static fromJSON(jsonObject: Pick<PropertyRule, 'property' | '$rules'>, deserializer: IValidationDeserializer): PropertyRule {
-    return new PropertyRule(
-      deserializer.validationRules,
-      deserializer.messageProvider,
-      deserializer.hydrate(jsonObject.property),
-      jsonObject.$rules.map((rules) => rules.map((rule) => deserializer.hydrate(rule)))
-    );
   }
 
   /** @internal */
@@ -698,9 +672,6 @@ export class ValidationSerializer implements IValidationVisitor {
   }
 }
 
-type HydratableType = Class<IValidationRule, { $TYPE: string; fromJSON(jsonObject: any, deserializer: IValidationDeserializer): IValidationRule }>
-  | Class<IRuleProperty, { $TYPE: string; fromJSON(jsonObject: any, deserializer: IValidationDeserializer): IRuleProperty }>
-  | Class<IPropertyRule, { $TYPE: string; fromJSON(jsonObject: any, deserializer: IValidationDeserializer): IPropertyRule }>;
 export class ValidationDeserializer implements IValidationDeserializer {
   private static container: IContainer;
   public static register(container: IContainer) {
@@ -723,28 +694,79 @@ export class ValidationDeserializer implements IValidationDeserializer {
   ) { }
 
   public hydrate(raw: Hydratable): any {
-    const hydratableType = this.getType(raw.$TYPE);
-    return hydratableType?.fromJSON(raw, this);
-  }
+    switch (raw.$TYPE) {
+      case RequiredRule.$TYPE: {
+        const $raw: Pick<RequiredRule, 'messageKey' | 'tag'> = raw;
+        const rule = new RequiredRule();
+        rule.messageKey = $raw.messageKey;
+        rule.tag = this.astDeserializer.hydrate($raw.tag);
+        return rule;
+      }
+      case RegexRule.$TYPE: {
+        const $raw: Pick<RegexRule, 'pattern' | 'messageKey' | 'tag'> = raw;
+        const pattern = $raw.pattern;
+        const astDeserializer = this.astDeserializer;
+        const rule = new RegexRule(new RegExp(astDeserializer.hydrate(pattern.source), pattern.flags), $raw.messageKey);
+        rule.tag = astDeserializer.hydrate($raw.tag);
+        return rule;
+      }
+      case LengthRule.$TYPE: {
+        const $raw: Pick<LengthRule, 'length' | 'isMax' | 'messageKey' | 'tag'> = raw;
+        const rule = new LengthRule($raw.length, $raw.isMax);
+        rule.messageKey = $raw.messageKey;
+        rule.tag = this.astDeserializer.hydrate($raw.tag);
+        return rule;
+      }
+      case SizeRule.$TYPE: {
+        const $raw: Pick<SizeRule, 'count' | 'isMax' | 'messageKey' | 'tag'> = raw;
+        const rule = new SizeRule($raw.count, $raw.isMax);
+        rule.messageKey = $raw.messageKey;
+        rule.tag = this.astDeserializer.hydrate($raw.tag);
+        return rule;
+      }
+      case RangeRule.$TYPE: {
+        const $raw: Pick<RangeRule, 'isInclusive' | 'max' | 'min' | 'messageKey' | 'tag'> = raw;
+        const rule = new RangeRule($raw.isInclusive, { min: $raw.min ?? Number.NEGATIVE_INFINITY, max: $raw.max ?? Number.POSITIVE_INFINITY });
+        rule.messageKey = $raw.messageKey;
+        rule.tag = this.astDeserializer.hydrate($raw.tag);
+        return rule;
+      }
+      case EqualsRule.$TYPE: {
+        const $raw: Pick<EqualsRule, 'expectedValue' | 'messageKey' | 'tag'> = raw;
+        const astDeserializer = this.astDeserializer;
+        const rule = new EqualsRule(typeof $raw.expectedValue !== 'object' ? astDeserializer.hydrate($raw.expectedValue) : $raw.expectedValue);
+        rule.messageKey = $raw.messageKey;
+        rule.tag = astDeserializer.hydrate($raw.tag);
+        return rule;
+      }
+      case RuleProperty.$TYPE: {
+        const $raw: Pick<RuleProperty, 'expression' | 'name' | 'displayName'> = raw;
+        const astDeserializer = this.astDeserializer;
+        let name: any = $raw.name;
+        name = name === 'undefined' ? undefined : astDeserializer.hydrate(name);
 
-  protected getType(type: unknown): HydratableType | undefined {
-    switch (type) {
-      case RequiredRule.$TYPE:
-        return RequiredRule;
-      case RegexRule.$TYPE:
-        return RegexRule;
-      case LengthRule.$TYPE:
-        return LengthRule;
-      case SizeRule.$TYPE:
-        return SizeRule;
-      case RangeRule.$TYPE:
-        return RangeRule;
-      case EqualsRule.$TYPE:
-        return EqualsRule;
-      case RuleProperty.$TYPE:
-        return RuleProperty;
-      case PropertyRule.$TYPE:
-        return PropertyRule;
+        let expression: any = $raw.expression;
+        if (expression !== 'undefined') {
+          expression = astDeserializer.hydrate(expression);
+        } else if (name !== undefined) {
+          ([, expression] = parsePropertyName(name, this.parser));
+        } else {
+          expression = undefined;
+        }
+
+        let displayName = $raw.displayName;
+        displayName = displayName === 'undefined' ? undefined : astDeserializer.hydrate(displayName);
+        return new RuleProperty(expression, name, displayName);
+      }
+      case PropertyRule.$TYPE: {
+        const $raw: Pick<PropertyRule, 'property' | '$rules'> = raw;
+        return new PropertyRule(
+          this.validationRules,
+          this.messageProvider,
+          this.hydrate($raw.property),
+          $raw.$rules.map((rules) => rules.map((rule) => this.hydrate(rule)))
+        );
+      }
     }
   }
 }

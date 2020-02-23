@@ -504,7 +504,7 @@ function escape(ch: string): string {
     case '\f': return '\\f';
     case '\r': return '\\r';
     case '"': return '\\"';
-    // case '\'': return '\\\'';
+    // case '\'': return '\\\''; /* when used in serialization context, escaping `'` (single quote) is not needed as the string is wrapped in a par of `"` (double quote) */
     case '\\': return '\\\\';
     default: return ch;
   }

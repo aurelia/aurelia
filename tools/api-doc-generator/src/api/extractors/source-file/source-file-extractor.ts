@@ -75,8 +75,11 @@ export class SourceFileExtractor implements ISourceFileExtractor {
                 const path = declaration.compilerNode.getSourceFile().fileName;
                 const ignoreInternals = extractorConfiguration.ignoreInternals ?? true;
                 let ignoreDeclaration = false;
-                // Should be a config here!
-                if (!path.includes('aot/src/vm')) {
+                let shouldBeProcessed  = true;
+                for( let index  = 0; index < extractorConfiguration.exports.excludes.length; index++ ){
+                  shouldBeProcessed = !path.includes(extractorConfiguration.exports.excludes[index]);
+                }
+                if (shouldBeProcessed) {
                     switch (declaration.getKind()) {
                         case SyntaxKind.ClassDeclaration:
                             const classNode = declaration as ClassDeclaration;
@@ -256,6 +259,10 @@ export class SourceFileExtractor implements ISourceFileExtractor {
                             break;
                     }
                 }
+                // else{
+                //   var y = declaration.compilerNode.getSourceFile().fileName;
+                //   var x = sourceFile.getFilePath();
+                // }
             })
         }
         return result;

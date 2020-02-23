@@ -7,6 +7,7 @@ function notADeclarationFile(item:SourceFile){
 }
 
 const defaultConfiguration: IApiConfiguration = {
+  exports: {excludes:[]},
   files: {
     tsConfig: '',
     excludes: [

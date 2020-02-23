@@ -13,7 +13,7 @@ ApiExtractor.configure(configuration => {
 
   configuration.files.tsConfig = environment.tsConfigFile;
 
-  configuration.files.excludes.push('aot/src/vm');
+  configuration.exports.excludes.push('aot/src/vm');
 
   configuration.files.filter.push(excludeVeryLargeFilesHere);
 
@@ -22,3 +22,4 @@ ApiExtractor.configure(configuration => {
 });
 
 generateApiDoc("./result");
+var done = true;

@@ -14,30 +14,33 @@ export interface IApiConfiguration {
     excludes: string[],
     filter: ((item: SourceFile) => boolean)[];
   },
-    decorators?: {
-        filterStrategy: (decorator: DecoratorInfo) => boolean;
-    };
+  exports:{
+    excludes: string[]
+  }
+  decorators?: {
+    filterStrategy: (decorator: DecoratorInfo) => boolean;
+  };
 
-    classes?: {
-        filterElements: (element: IComment) => boolean;
-    };
+  classes?: {
+    filterElements: (element: IComment) => boolean;
+  };
 
-    interfaces?: {
-        filterElements: (element: IComment) => boolean;
-    };
+  interfaces?: {
+    filterElements: (element: IComment) => boolean;
+  };
 
-    source?: {
-        ignore: ISourceFileIgnoreDeclarations;
-    };
-    ignoreInternals?: boolean;
+  source?: {
+    ignore: ISourceFileIgnoreDeclarations;
+  };
+  ignoreInternals?: boolean;
 }
 
 export interface ISourceFileIgnoreDeclarations {
-    class?: ($class: ClassInfo) => boolean;
-    enum?: ($enum: EnumInfo) => boolean;
-    function?: (func: FunctionInfo) => boolean;
-    typeAlias?: (ta: TypeAliasInfo) => boolean;
-    interface?: ($interface: InterfaceInfo) => boolean;
-    variable?: (variable: VariableStatementInfo) => boolean;
-    export?: ($export: ExportAssignmentInfo) => boolean;
+  class?: ($class: ClassInfo) => boolean;
+  enum?: ($enum: EnumInfo) => boolean;
+  function?: (func: FunctionInfo) => boolean;
+  typeAlias?: (ta: TypeAliasInfo) => boolean;
+  interface?: ($interface: InterfaceInfo) => boolean;
+  variable?: (variable: VariableStatementInfo) => boolean;
+  export?: ($export: ExportAssignmentInfo) => boolean;
 }

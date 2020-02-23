@@ -210,7 +210,7 @@ describe('validation-result-presenter-service', function () {
       removeResultsSpy.reset();
 
       input2.value = '22';
-      input2.dispatchEvent(new Event('change'));
+      input2.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);
       await assertEventHandler(input2, scheduler, controllerSpy, spy, ctx);
 
@@ -236,7 +236,7 @@ describe('validation-result-presenter-service', function () {
       removeResultsSpy.reset();
 
       input2.value = '15';
-      input2.dispatchEvent(new Event('change'));
+      input2.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);
       await assertEventHandler(input2, scheduler, controllerSpy, spy, ctx);
 
@@ -317,7 +317,7 @@ describe('validation-result-presenter-service', function () {
       removeResultsSpy.reset();
 
       input2.value = '22';
-      input2.dispatchEvent(new Event('change'));
+      input2.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);
       await assertEventHandler(input2, scheduler, controllerSpy, spy, ctx);
 
@@ -343,7 +343,7 @@ describe('validation-result-presenter-service', function () {
       removeResultsSpy.reset();
 
       input2.value = '15';
-      input2.dispatchEvent(new Event('change'));
+      input2.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);
       await assertEventHandler(input2, scheduler, controllerSpy, spy, ctx);
 
@@ -413,7 +413,7 @@ describe('validation-result-presenter-service', function () {
       removeResultsSpy.reset();
 
       input2.value = '22';
-      input2.dispatchEvent(new Event('change'));
+      input2.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);
       await assertEventHandler(input2, scheduler, controllerSpy, spy, ctx);
 

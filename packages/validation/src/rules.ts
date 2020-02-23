@@ -45,7 +45,7 @@ export interface ValidationRuleAlias {
 export interface ValidationRuleDefinition {
   aliases: ValidationRuleAlias[];
 }
-export type RuleType<TRule extends IValidationRule> = Class<TRule, { $TYPE: string; fromJSON(jsonObject: any, deserializer: IValidationDeserializer, astDeserializer: Deserializer): TRule }>;
+export type RuleType<TRule extends IValidationRule> = Class<TRule, { $TYPE: string; fromJSON(jsonObject: any, deserializer: IValidationDeserializer): TRule }>;
 export const ValidationRuleAliasMessage = Object.freeze({
   aliasKey: Protocol.annotation.keyFor('validation-rule-alias-message'),
   define<TRule extends IValidationRule>(target: RuleType<TRule>, definition: ValidationRuleDefinition): RuleType<TRule> {
@@ -92,7 +92,7 @@ export class BaseValidationRule<TValue = any, TObject extends IValidateable = IV
   public accept(_visitor: IValidationVisitor): any {
     throw new Error('No base implementation of accept. Did you forget to implement the accept method?'); // TODO reporter
   }
-  public static fromJSON(_jsonObject: any, _deserializer: IValidationDeserializer, _astDeserializer: Deserializer): BaseValidationRule {
+  public static fromJSON(_jsonObject: any, _deserializer: IValidationDeserializer): BaseValidationRule {
     throw new Error('No base implementation of fromJSON. Did you forget to implement the fromJSON method?'); // TODO reporter
   }
 }
@@ -115,10 +115,10 @@ export class RequiredRule extends BaseValidationRule implements IRequiredRule {
   public accept(visitor: IValidationVisitor) {
     return visitor.visitRequiredRule(this);
   }
-  public static fromJSON(jsonObject: Pick<RequiredRule, 'messageKey' | 'tag'>, _deserializer: IValidationDeserializer, astDeserializer: Deserializer): RequiredRule {
+  public static fromJSON(jsonObject: Pick<RequiredRule, 'messageKey' | 'tag'>, deserializer: IValidationDeserializer): RequiredRule {
     const rule = new RequiredRule();
     rule.messageKey = jsonObject.messageKey;
-    rule.tag = astDeserializer.hydrate(jsonObject.tag);
+    rule.tag = deserializer.astDeserializer.hydrate(jsonObject.tag);
     return rule;
   }
 }
@@ -150,8 +150,9 @@ export class RegexRule extends BaseValidationRule<string> implements IRegexRule 
   public accept(visitor: IValidationVisitor) {
     return visitor.visitRegexRule(this);
   }
-  public static fromJSON(jsonObject: Pick<RegexRule, 'pattern' | 'messageKey' | 'tag'>, _deserializer: IValidationDeserializer, astDeserializer: Deserializer): RegexRule {
+  public static fromJSON(jsonObject: Pick<RegexRule, 'pattern' | 'messageKey' | 'tag'>, deserializer: IValidationDeserializer): RegexRule {
     const pattern = jsonObject.pattern;
+    const astDeserializer = deserializer.astDeserializer;
     const rule = new RegexRule(new RegExp(astDeserializer.hydrate(pattern.source), pattern.flags), jsonObject.messageKey);
     rule.tag = astDeserializer.hydrate(jsonObject.tag);
     return rule;
@@ -185,10 +186,10 @@ export class LengthRule extends BaseValidationRule<string> implements ILengthRul
   public accept(visitor: IValidationVisitor) {
     return visitor.visitLengthRule(this);
   }
-  public static fromJSON(jsonObject: Pick<LengthRule, 'length' | 'isMax' | 'messageKey' | 'tag'>, _deserializer: IValidationDeserializer, astDeserializer: Deserializer): LengthRule {
+  public static fromJSON(jsonObject: Pick<LengthRule, 'length' | 'isMax' | 'messageKey' | 'tag'>, deserializer: IValidationDeserializer): LengthRule {
     const rule = new LengthRule(jsonObject.length, jsonObject.isMax);
     rule.messageKey = jsonObject.messageKey;
-    rule.tag = astDeserializer.hydrate(jsonObject.tag);
+    rule.tag = deserializer.astDeserializer.hydrate(jsonObject.tag);
     return rule;
   }
 }
@@ -219,10 +220,10 @@ export class SizeRule extends BaseValidationRule<unknown[]> implements ISizeRule
   public accept(visitor: IValidationVisitor) {
     return visitor.visitSizeRule(this);
   }
-  public static fromJSON(jsonObject: Pick<SizeRule, 'count' | 'isMax' | 'messageKey' | 'tag'>, _deserializer: IValidationDeserializer, astDeserializer: Deserializer): SizeRule {
+  public static fromJSON(jsonObject: Pick<SizeRule, 'count' | 'isMax' | 'messageKey' | 'tag'>, deserializer: IValidationDeserializer): SizeRule {
     const rule = new SizeRule(jsonObject.count, jsonObject.isMax);
     rule.messageKey = jsonObject.messageKey;
-    rule.tag = astDeserializer.hydrate(jsonObject.tag);
+    rule.tag = deserializer.astDeserializer.hydrate(jsonObject.tag);
     return rule;
   }
 }
@@ -273,10 +274,10 @@ export class RangeRule extends BaseValidationRule<number> implements IRangeRule 
   public accept(visitor: IValidationVisitor) {
     return visitor.visitRangeRule(this);
   }
-  public static fromJSON(jsonObject: Pick<RangeRule, 'isInclusive' | 'max' | 'min' | 'messageKey' | 'tag'>, _deserializer: IValidationDeserializer, astDeserializer: Deserializer): RangeRule {
+  public static fromJSON(jsonObject: Pick<RangeRule, 'isInclusive' | 'max' | 'min' | 'messageKey' | 'tag'>, deserializer: IValidationDeserializer): RangeRule {
     const rule = new RangeRule(jsonObject.isInclusive, { min: jsonObject.min ?? Number.NEGATIVE_INFINITY, max: jsonObject.max ?? Number.POSITIVE_INFINITY });
     rule.messageKey = jsonObject.messageKey;
-    rule.tag = astDeserializer.hydrate(jsonObject.tag);
+    rule.tag = deserializer.astDeserializer.hydrate(jsonObject.tag);
     return rule;
   }
 }
@@ -303,7 +304,8 @@ export class EqualsRule extends BaseValidationRule implements IEqualsRule {
   public accept(visitor: IValidationVisitor) {
     return visitor.visitEqualsRule(this);
   }
-  public static fromJSON(jsonObject: Pick<EqualsRule, 'expectedValue' | 'messageKey' | 'tag'>, _deserializer: IValidationDeserializer, astDeserializer: Deserializer): EqualsRule {
+  public static fromJSON(jsonObject: Pick<EqualsRule, 'expectedValue' | 'messageKey' | 'tag'>, deserializer: IValidationDeserializer): EqualsRule {
+    const astDeserializer = deserializer.astDeserializer;
     const rule = new EqualsRule(typeof jsonObject.expectedValue !== 'object' ? astDeserializer.hydrate(jsonObject.expectedValue) : jsonObject.expectedValue);
     rule.messageKey = jsonObject.messageKey;
     rule.tag = astDeserializer.hydrate(jsonObject.tag);

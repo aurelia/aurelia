@@ -1,5 +1,8 @@
 import { Class } from '@aurelia/kernel';
-import { IsBindingBehavior } from '@aurelia/runtime';
+import { IsBindingBehavior, IExpressionParser } from '@aurelia/runtime';
+import { Deserializer } from '@aurelia/debug';
+import { IValidationRules } from './rule-provider';
+import { IValidationMessageProvider } from './rules';
 
 export type IValidateable<T = any> = (Class<T> | object) & { [key in PropertyKey]: any };
 export type ValidationRuleExecutionPredicate<TObject extends IValidateable = IValidateable> = (object?: TObject) => boolean;
@@ -83,5 +86,9 @@ export interface IValidationVisitor {
 
 export type Hydratable = any & { $TYPE: string };
 export interface IValidationDeserializer {
+  readonly astDeserializer: Deserializer;
+  readonly parser: IExpressionParser;
+  readonly validationRules: IValidationRules;
+  readonly messageProvider: IValidationMessageProvider;
   hydrate(raw: Hydratable): any;
 }

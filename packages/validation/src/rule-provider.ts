@@ -58,7 +58,8 @@ export class RuleProperty implements IRuleProperty {
   public accept(visitor: IValidationVisitor): string {
     return visitor.visitRuleProperty(this);
   }
-  public static fromJSON(jsonObject: Pick<RuleProperty, 'expression' | 'name' | 'displayName'>, _deserializer: IValidationDeserializer, astDeserializer: Deserializer, parser: IExpressionParser): RuleProperty {
+  public static fromJSON(jsonObject: Pick<RuleProperty, 'expression' | 'name' | 'displayName'>, deserializer: IValidationDeserializer): RuleProperty {
+    const astDeserializer = deserializer.astDeserializer;
     let name: any = jsonObject.name;
     name = name === 'undefined' ? undefined : astDeserializer.hydrate(name);
 
@@ -66,7 +67,7 @@ export class RuleProperty implements IRuleProperty {
     if (expression !== 'undefined') {
       expression = astDeserializer.hydrate(expression);
     } else if (name !== undefined) {
-      ([, expression] = parsePropertyName(name, parser));
+      ([, expression] = parsePropertyName(name, deserializer.parser));
     } else {
       expression = undefined;
     }
@@ -124,6 +125,14 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   ) { }
   public accept(visitor: IValidationVisitor): string {
     return visitor.visitPropertyRule(this);
+  }
+  public static fromJSON(jsonObject: Pick<PropertyRule, 'property' | '$rules'>, deserializer: IValidationDeserializer): PropertyRule {
+    return new PropertyRule(
+      deserializer.validationRules,
+      deserializer.messageProvider,
+      deserializer.hydrate(jsonObject.property),
+      jsonObject.$rules.map((rules) => rules.map((rule) => deserializer.hydrate(rule)))
+    );
   }
 
   /** @internal */
@@ -688,9 +697,9 @@ export class ValidationSerializer implements IValidationVisitor {
   }
 }
 
-type HydratableType = Class<IValidationRule, { $TYPE: string; fromJSON(jsonObject: any, deserializer: IValidationDeserializer, astDeserializer: Deserializer, parser: IExpressionParser): IValidationRule }>
-  | Class<IRuleProperty, { $TYPE: string; fromJSON(jsonObject: any, deserializer: IValidationDeserializer, astDeserializer: Deserializer, parser: IExpressionParser): IRuleProperty }>
-  | Class<IPropertyRule, { $TYPE: string; fromJSON(jsonObject: any, deserializer: IValidationDeserializer, astDeserializer: Deserializer, parser: IExpressionParser): IPropertyRule }>;
+type HydratableType = Class<IValidationRule, { $TYPE: string; fromJSON(jsonObject: any, deserializer: IValidationDeserializer): IValidationRule }>
+  | Class<IRuleProperty, { $TYPE: string; fromJSON(jsonObject: any, deserializer: IValidationDeserializer): IRuleProperty }>
+  | Class<IPropertyRule, { $TYPE: string; fromJSON(jsonObject: any, deserializer: IValidationDeserializer): IPropertyRule }>;
 export class ValidationDeserializer implements IValidationDeserializer {
   private static container: IContainer;
   public static register(container: IContainer) {
@@ -707,28 +716,14 @@ export class ValidationDeserializer implements IValidationDeserializer {
 
   public readonly astDeserializer: Deserializer = new Deserializer();
   public constructor(
-    @IValidationRules private readonly validationRules: IValidationRules,
-    @IValidationMessageProvider private readonly messageProvider: IValidationMessageProvider,
-    @IExpressionParser private readonly parser: IExpressionParser,
+    @IValidationRules public readonly validationRules: IValidationRules,
+    @IValidationMessageProvider public readonly messageProvider: IValidationMessageProvider,
+    @IExpressionParser public readonly parser: IExpressionParser,
   ) { }
 
   public hydrate(raw: Hydratable): any {
     const hydratableType = this.getType(raw.$TYPE);
-    if (hydratableType !== void 0) {
-      return hydratableType.fromJSON(raw, this, this.astDeserializer, this.parser);
-    } /* else {
-      if (Array.isArray(raw)) {
-        if (typeof raw[0] === 'object') {
-          return this.deserializeExpressions(raw);
-        } else {
-          return raw.map(deserializePrimitive);
-        }
-      } else if (typeof raw !== 'object') {
-        return deserializePrimitive(raw);
-      }
-      throw new Error(`unable to deserialize the expression: ${raw}`); // TODO use reporter/logger
-    } */
-    return null!;
+    return hydratableType?.fromJSON(raw, this);
   }
 
   protected getType(type: unknown): HydratableType | undefined {
@@ -747,6 +742,8 @@ export class ValidationDeserializer implements IValidationDeserializer {
         return EqualsRule;
       case RuleProperty.$TYPE:
         return RuleProperty;
+      case PropertyRule.$TYPE:
+        return PropertyRule;
     }
   }
 }

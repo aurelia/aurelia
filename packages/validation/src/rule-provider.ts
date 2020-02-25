@@ -392,6 +392,13 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   // #endregion
 }
 
+export class ModelBasedRule {
+  public constructor(
+    public ruleset: any[],
+    public tag: string = validationRulesRegistrar.defaultRuleSetName
+  ) { }
+}
+
 export interface IValidationRules<TObject extends IValidateable = IValidateable> {
   rules: PropertyRule[];
   /**
@@ -422,6 +429,7 @@ export interface IValidationRules<TObject extends IValidateable = IValidateable>
    * @param {string} [tag] - Use this tag to remove a specific ruleset. If omitted all rulesets of the object are removed.
    */
   off<TAnotherObject extends IValidateable = IValidateable>(target?: Class<TAnotherObject> | TAnotherObject, tag?: string): void;
+  applyModelBasedRules(target: IValidateable, rules: ModelBasedRule[]): void;
 }
 export const IValidationRules = DI.createInterface<IValidationRules>('IValidationRules').noDefault();
 
@@ -432,6 +440,7 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IValidationMessageProvider private readonly messageProvider: IValidationMessageProvider,
+    @IValidationDeserializer private readonly deserializer: IValidationDeserializer,
   ) { }
 
   public ensure<TValue>(property: keyof TObject | string | PropertyAccessor): PropertyRule {
@@ -469,6 +478,19 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
       if (!validationRulesRegistrar.isValidationRulesSet($target)) {
         this.targets.delete($target);
       }
+    }
+  }
+
+  public applyModelBasedRules(target: IValidateable, rules: ModelBasedRule[]): void {
+    const tags: Set<string> = new Set<string>();
+    for (const rule of rules) {
+      const tag = rule.tag;
+      if (tags.has(tag)) {
+        console.warn(`A ruleset for tag ${tag} is already defined which will be overwritten`); // TODO use reporter/logger
+      }
+      const rules = rule.ruleset.map(($rule) => this.deserializer.hydrate($rule, this) as PropertyRule);
+      validationRulesRegistrar.set(target, rules, tag);
+      tags.add(tag);
     }
   }
 }
@@ -656,7 +678,8 @@ export class ValidationSerializer implements IValidationVisitor {
     if (displayName !== void 0 && typeof displayName !== 'string') {
       throw new Error('Serializing a non-string displayName for rule property is not supported.'); // TODO use reporter/logger
     }
-    return `{"$TYPE":"${RuleProperty.$TYPE}","name":${serializePrimitive(property.name)},"expression":${Serializer.serialize(property.expression!)},"displayName":${serializePrimitive(displayName)}}`;
+    const expression = property.expression;
+    return `{"$TYPE":"${RuleProperty.$TYPE}","name":${serializePrimitive(property.name)},"expression":${expression ? Serializer.serialize(expression) : null},"displayName":${serializePrimitive(displayName)}}`;
   }
 
   public visitPropertyRule(propertyRule: PropertyRule): string {
@@ -677,23 +700,21 @@ export class ValidationDeserializer implements IValidationDeserializer {
   public static register(container: IContainer) {
     this.container = container;
   }
-  public static deserialize(json: string): IValidationRule | IRuleProperty | IPropertyRule {
+  public static deserialize(json: string, validationRules: IValidationRules): IValidationRule | IRuleProperty | IPropertyRule {
     const messageProvider = this.container.get(IValidationMessageProvider);
-    const validationRules = this.container.get(IValidationRules);
     const parser = this.container.get(IExpressionParser);
-    const deserializer = new ValidationDeserializer(validationRules, messageProvider, parser);
+    const deserializer = new ValidationDeserializer(/* validationRules ?? this.container.get(IValidationRules), */ messageProvider, parser);
     const raw = JSON.parse(json);
-    return deserializer.hydrate(raw);
+    return deserializer.hydrate(raw, validationRules);
   }
 
   public readonly astDeserializer: Deserializer = new Deserializer();
   public constructor(
-    @IValidationRules public readonly validationRules: IValidationRules,
     @IValidationMessageProvider public readonly messageProvider: IValidationMessageProvider,
     @IExpressionParser public readonly parser: IExpressionParser,
   ) { }
 
-  public hydrate(raw: Hydratable): any {
+  public hydrate(raw: Hydratable, validationRules: IValidationRules): any {
     switch (raw.$TYPE) {
       case RequiredRule.$TYPE: {
         const $raw: Pick<RequiredRule, 'messageKey' | 'tag'> = raw;
@@ -743,28 +764,28 @@ export class ValidationDeserializer implements IValidationDeserializer {
         const $raw: Pick<RuleProperty, 'expression' | 'name' | 'displayName'> = raw;
         const astDeserializer = this.astDeserializer;
         let name: any = $raw.name;
-        name = name === 'undefined' ? undefined : astDeserializer.hydrate(name);
+        name = name === 'undefined' ? void 0 : astDeserializer.hydrate(name);
 
         let expression: any = $raw.expression;
-        if (expression !== 'undefined') {
+        if (expression !== null && expression !== void 0) {
           expression = astDeserializer.hydrate(expression);
-        } else if (name !== undefined) {
+        } else if (name !== void 0) {
           ([, expression] = parsePropertyName(name, this.parser));
         } else {
-          expression = undefined;
+          expression = void 0;
         }
 
         let displayName = $raw.displayName;
-        displayName = displayName === 'undefined' ? undefined : astDeserializer.hydrate(displayName);
+        displayName = displayName === 'undefined' ? void 0 : astDeserializer.hydrate(displayName);
         return new RuleProperty(expression, name, displayName);
       }
       case PropertyRule.$TYPE: {
         const $raw: Pick<PropertyRule, 'property' | '$rules'> = raw;
         return new PropertyRule(
-          this.validationRules,
+          validationRules,
           this.messageProvider,
-          this.hydrate($raw.property),
-          $raw.$rules.map((rules) => rules.map((rule) => this.hydrate(rule)))
+          this.hydrate($raw.property, validationRules),
+          $raw.$rules.map((rules) => rules.map((rule) => this.hydrate(rule, validationRules)))
         );
       }
     }

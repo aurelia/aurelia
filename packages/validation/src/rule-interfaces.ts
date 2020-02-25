@@ -1,4 +1,4 @@
-import { Class } from '@aurelia/kernel';
+import { Class, DI } from '@aurelia/kernel';
 import { IsBindingBehavior, IExpressionParser } from '@aurelia/runtime';
 import { Deserializer } from '@aurelia/debug';
 import { IValidationRules } from './rule-provider';
@@ -85,10 +85,10 @@ export interface IValidationVisitor {
 }
 
 export type Hydratable = any & { $TYPE: string };
+export const IValidationDeserializer = DI.createInterface<IValidationDeserializer>('IValidationDeserializer').noDefault();
 export interface IValidationDeserializer {
   readonly astDeserializer: Deserializer;
   readonly parser: IExpressionParser;
-  readonly validationRules: IValidationRules;
   readonly messageProvider: IValidationMessageProvider;
-  hydrate(raw: Hydratable): any;
+  hydrate(raw: Hydratable, validationRules: IValidationRules): any;
 }

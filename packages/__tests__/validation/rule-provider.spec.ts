@@ -37,6 +37,9 @@ import {
   ValidationSerializer,
   RuleProperty,
   ValidationDeserializer,
+  ModelBasedRule,
+  IValidator,
+  ValidateInstruction,
 } from '@aurelia/validation';
 import { IPerson, Person } from './_test-resources';
 
@@ -1116,6 +1119,7 @@ describe('validation de/serialization', function () {
       ValidationDeserializer
     );
     return {
+      container,
       parser: container.get(IExpressionParser),
       validationRules: container.get(IValidationRules),
       messageProvider: container.get(IValidationMessageProvider)
@@ -1123,9 +1127,9 @@ describe('validation de/serialization', function () {
   }
   class RuleTestData {
     public constructor(
-      public name: string,
-      public getRule: () => BaseValidationRule,
-      public serializedRule: string
+      public readonly name: string,
+      public readonly getRule: () => BaseValidationRule,
+      public readonly serializedRule: string
     ) { }
   }
   const simpleRuleList = [
@@ -1172,8 +1176,8 @@ describe('validation de/serialization', function () {
 
   class RulePropertyTestData {
     public constructor(
-      public property: string,
-      public serializedProperty: string
+      public readonly property: string,
+      public readonly serializedProperty: string
     ) { }
   }
   const properties = [
@@ -1190,6 +1194,7 @@ describe('validation de/serialization', function () {
     new RulePropertyTestData('obj.prop["a"]', '{"$TYPE":"RuleProperty","name":"\\"obj.prop[\\"a\\"]\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessMemberExpression","name":"obj","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":"\\"a\\""}},"displayName":"undefined"}'),
     new RulePropertyTestData("prop['a']", `{"$TYPE":"RuleProperty","name":"\\"prop['a']\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":"\\"a\\""}},"displayName":"undefined"}`),
   ];
+  const rulePropWithUndExpr = new RulePropertyTestData('prop', '{"$TYPE":"RuleProperty","name":"\\"prop\\"","expression":null,"displayName":"undefined"}');
 
   describe('serialization', function () {
     for (const { name, getRule, serializedRule } of list) {
@@ -1212,6 +1217,12 @@ describe('validation de/serialization', function () {
         assert.strictEqual(ValidationSerializer.serialize(ruleProperty), serializedProperty.replace('"displayName":"undefined"', '"displayName":"\\"foo\\""'));
       });
     }
+
+    it('works for RuleProperty with undefined expression', function () {
+      setup();
+      const ruleProperty = new RuleProperty(void 0, rulePropWithUndExpr.property);
+      assert.strictEqual(ValidationSerializer.serialize(ruleProperty), rulePropWithUndExpr.serializedProperty);
+    });
 
     it(`throws error serializing RuleProperty if the displayName is not a string`, function () {
       const { parser } = setup();
@@ -1245,7 +1256,7 @@ describe('validation de/serialization', function () {
     for (const { name, getRule, serializedRule } of list) {
       it(`works for ${name}`, function () {
         setup();
-        const actual = ValidationDeserializer.deserialize(serializedRule);
+        const actual = ValidationDeserializer.deserialize(serializedRule, null!);
         const expected = getRule();
         assert.instanceOf(actual, expected.constructor);
         assert.deepEqual(actual, expected);
@@ -1257,7 +1268,7 @@ describe('validation de/serialization', function () {
         const { parser } = setup();
         const [name, expression] = parsePropertyName(property, parser);
         const expected = new RuleProperty(expression, name);
-        const actual = ValidationDeserializer.deserialize(serializedProperty);
+        const actual = ValidationDeserializer.deserialize(serializedProperty, null!);
         assert.instanceOf(actual, expected.constructor);
         assert.deepStrictEqual(actual, expected);
       });
@@ -1265,11 +1276,21 @@ describe('validation de/serialization', function () {
         const { parser } = setup();
         const [name, expression] = parsePropertyName(property, parser);
         const expected = new RuleProperty(expression, name, 'foo');
-        const actual = ValidationDeserializer.deserialize(serializedProperty.replace('"displayName":"undefined"', '"displayName":"\\"foo\\""'));
+        const actual = ValidationDeserializer.deserialize(serializedProperty.replace('"displayName":"undefined"', '"displayName":"\\"foo\\""'), null!);
         assert.instanceOf(actual, expected.constructor);
         assert.deepStrictEqual(actual, expected);
       });
     }
+
+    it('works for RuleProperty with undefined expression', function () {
+      const { parser } = setup();
+      const [name, expression] = parsePropertyName(rulePropWithUndExpr.property, parser);
+      const expected = new RuleProperty(expression, name);
+      const actual = ValidationDeserializer.deserialize(rulePropWithUndExpr.serializedProperty, null!);
+      assert.instanceOf(actual, expected.constructor);
+      assert.deepStrictEqual(actual, expected);
+    });
+
     it(`works for PropertyRule`, function () {
       const { parser, messageProvider, validationRules } = setup();
       const { property, serializedProperty } = properties[0];
@@ -1283,10 +1304,139 @@ describe('validation de/serialization', function () {
         [[req.getRule(), maxLen.getRule()], [regex.getRule()]]
       );
       const actual = ValidationDeserializer.deserialize(
-        `{"$TYPE":"PropertyRule","property":${serializedProperty},"$rules":[[${req.serializedRule},${maxLen.serializedRule}],[${regex.serializedRule}]]}`
+        `{"$TYPE":"PropertyRule","property":${serializedProperty},"$rules":[[${req.serializedRule},${maxLen.serializedRule}],[${regex.serializedRule}]]}`,
+        propertyRule.validationRules
       );
       assert.instanceOf(actual, propertyRule.constructor);
       assert.deepStrictEqual(actual, propertyRule);
     });
+  });
+
+  describe('hydrated ruleset validation works for', function () {
+    class RuleHydrationTestData {
+      public constructor(
+        public readonly name: string,
+        public readonly displayName: string,
+        public readonly ruleNameMatcher: RegExp,
+        public readonly errorMessages: readonly string[],
+        public readonly target: any,
+      ) { }
+    }
+    const data1 = [
+      new RuleHydrationTestData('"name"', '"Name"', /required/, ['Name is required.'], new Person(null!, null!)),
+      new RuleHydrationTestData('"name"', '"Name"', /regex/, ['Name is not correctly formatted.'], new Person('test', null!)),
+      new RuleHydrationTestData('"name"', '"Name"', /regex.*flags/, ['Name is not correctly formatted.'], new Person('test', null!)),
+      new RuleHydrationTestData('"name"', '"Name"', /max length/, ['Name cannot be longer than 42 characters.'], new Person(new Array(43).fill('a').join(''), null!)),
+      new RuleHydrationTestData('"name"', '"Name"', /min length/, ['Name must be at least 42 characters.'], new Person(new Array(41).fill('a').join(''), null!)),
+      new RuleHydrationTestData('"name"', '"Name"', /equals.*string/, ['Name must be 42.'], new Person('test', null!)),
+      new RuleHydrationTestData('"age"', '"Age"', /required/, ['Age is required.'], new Person(null!, null!)),
+      new RuleHydrationTestData('"age"', '"Age"', /min,.*range/, ['Age must be at least 42.'], new Person(null!, 41)),
+      new RuleHydrationTestData('"age"', '"Age"', /,max.*range/, ['Age must be at most 42.'], new Person(null!, 43)),
+      new RuleHydrationTestData('"age"', '"Age"', /\[m.*x\].*range/, ['Age must be between or equal to 40 and 42.'], new Person(null!, 43)),
+      new RuleHydrationTestData('"age"', '"Age"', /\(m.*x\).*range/, ['Age must be between but not equal to 40 and 42.'], new Person(null!, 42)),
+      new RuleHydrationTestData('"age"', '"Age"', /equals.*numeric/, ['Age must be 42.'], new Person('test', 41)),
+    ];
+    const data2 = [
+      new RuleHydrationTestData('"coll"', '"Collection"', /max items/, ['Collection cannot contain more than 42 items.'], { coll: new Array(43).fill(0) }),
+      new RuleHydrationTestData('"coll"', '"Collection"', /min items/, ['Collection must contain at least 42 items.'], { coll: new Array(41).fill(0) }),
+    ];
+    const data3 = [
+      new RuleHydrationTestData('"address.line1"', '"Address line1"', /required/, ['Address line1 is required.'], new Person(null!, null!, { line1: void 0, city: void 0, pin: void 0 })),
+      new RuleHydrationTestData('"address.line1"', '"Address line1"', /regex/, ['Address line1 is not correctly formatted.'], new Person(null!, null!, { line1: "test", city: void 0, pin: void 0 })),
+      new RuleHydrationTestData('"address.line1"', '"Address line1"', /regex.*flags/, ['Address line1 is not correctly formatted.'], new Person(null!, null!, { line1: "test", city: void 0, pin: void 0 })),
+      new RuleHydrationTestData('"address.line1"', '"Address line1"', /max length/, ['Address line1 cannot be longer than 42 characters.'], new Person(null!, null!, { line1: new Array(43).fill('a').join(''), city: void 0, pin: void 0 })),
+      new RuleHydrationTestData('"address.line1"', '"Address line1"', /min length/, ['Address line1 must be at least 42 characters.'], new Person(null!, null!, { line1: new Array(41).fill('a').join(''), city: void 0, pin: void 0 })),
+      new RuleHydrationTestData('"address.line1"', '"Address line1"', /equals.*string/, ['Address line1 must be 42.'], new Person('test', null!, { line1: "test", city: void 0, pin: void 0 })),
+      new RuleHydrationTestData('"address.pin"', '"Pin code"', /required/, ['Pin code is required.'], new Person(null!, null!, { line1: void 0, city: void 0, pin: void 0 })),
+      new RuleHydrationTestData('"address.pin"', '"Pin code"', /min,.*range/, ['Pin code must be at least 42.'], new Person(null!, null!, { line1: void 0, city: void 0, pin: 41 })), // i know the rule does not make sense :P
+      new RuleHydrationTestData('"address.pin"', '"Pin code"', /,max.*range/, ['Pin code must be at most 42.'], new Person(null!, null!, { line1: void 0, city: void 0, pin: 43 })),
+      new RuleHydrationTestData('"address.pin"', '"Pin code"', /\[m.*x\].*range/, ['Pin code must be between or equal to 40 and 42.'], new Person(null!, null!, { line1: void 0, city: void 0, pin: 43 })),
+      new RuleHydrationTestData('"address.pin"', '"Pin code"', /\(m.*x\).*range/, ['Pin code must be between but not equal to 40 and 42.'], new Person(null!, null!, { line1: void 0, city: void 0, pin: 42 })),
+      new RuleHydrationTestData('"address.pin"', '"Pin code"', /equals.*numeric/, ['Pin code must be 42.'], new Person(null!, null!, { line1: void 0, city: void 0, pin: 40 })),
+    ];
+    const data4 = [
+      new RuleHydrationTestData('"address[\'line1\']"', '"Address line1"', /required/, ['Address line1 is required.'], new Person(null!, null!, { line1: void 0, city: void 0, pin: void 0 })),
+      new RuleHydrationTestData('"address[\'line1\']"', '"Address line1"', /regex/, ['Address line1 is not correctly formatted.'], new Person(null!, null!, { line1: "test", city: void 0, pin: void 0 })),
+      new RuleHydrationTestData('"address[\'line1\']"', '"Address line1"', /regex.*flags/, ['Address line1 is not correctly formatted.'], new Person(null!, null!, { line1: "test", city: void 0, pin: void 0 })),
+      new RuleHydrationTestData('"address[\'line1\']"', '"Address line1"', /max length/, ['Address line1 cannot be longer than 42 characters.'], new Person(null!, null!, { line1: new Array(43).fill('a').join(''), city: void 0, pin: void 0 })),
+      new RuleHydrationTestData('"address[\'line1\']"', '"Address line1"', /min length/, ['Address line1 must be at least 42 characters.'], new Person(null!, null!, { line1: new Array(41).fill('a').join(''), city: void 0, pin: void 0 })),
+      new RuleHydrationTestData('"address[\'line1\']"', '"Address line1"', /equals.*string/, ['Address line1 must be 42.'], new Person('test', null!, { line1: "test", city: void 0, pin: void 0 })),
+      new RuleHydrationTestData('"address[\'pin\']"', '"Pin code"', /required/, ['Pin code is required.'], new Person(null!, null!, { line1: void 0, city: void 0, pin: void 0 })),
+      new RuleHydrationTestData('"address[\'pin\']"', '"Pin code"', /min,.*range/, ['Pin code must be at least 42.'], new Person(null!, null!, { line1: void 0, city: void 0, pin: 41 })), // i know the rule does not make sense :P
+      new RuleHydrationTestData('"address[\'pin\']"', '"Pin code"', /,max.*range/, ['Pin code must be at most 42.'], new Person(null!, null!, { line1: void 0, city: void 0, pin: 43 })),
+      new RuleHydrationTestData('"address[\'pin\']"', '"Pin code"', /\[m.*x\].*range/, ['Pin code must be between or equal to 40 and 42.'], new Person(null!, null!, { line1: void 0, city: void 0, pin: 43 })),
+      new RuleHydrationTestData('"address[\'pin\']"', '"Pin code"', /\(m.*x\).*range/, ['Pin code must be between but not equal to 40 and 42.'], new Person(null!, null!, { line1: void 0, city: void 0, pin: 42 })),
+      new RuleHydrationTestData('"address[\'pin\']"', '"Pin code"', /equals.*numeric/, ['Pin code must be 42.'], new Person(null!, null!, { line1: void 0, city: void 0, pin: 40 })),
+    ];
+
+    for (const tag of [undefined, "foo-tag"]) {
+      for (const { name, displayName, ruleNameMatcher, errorMessages, target } of data1) {
+        // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
+        const item = simpleRuleList.find((rule) => rule.name.match(ruleNameMatcher) !== null);
+        it(`simple property - ${item.name} - tag: ${tag}`, async function () {
+          const modelBasedRule = new ModelBasedRule(
+            [{ $TYPE: 'PropertyRule', property: { $TYPE: 'RuleProperty', name, displayName }, $rules: [[JSON.parse(item.serializedRule)]] }],
+            tag
+          );
+          const { container, validationRules } = setup();
+          validationRules.applyModelBasedRules(Person, [modelBasedRule]);
+
+          const validator = container.get(IValidator);
+          const results = await validator.validate(new ValidateInstruction(target, undefined, undefined, tag));
+          assert.deepStrictEqual(results.filter((result) => !result.valid).map((result) => result.toString()), errorMessages);
+          validationRules.off(Person);
+        });
+      }
+      for (const { name, displayName, ruleNameMatcher, errorMessages, target } of data2) {
+        // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
+        const item = simpleRuleList.find((rule) => rule.name.match(ruleNameMatcher) !== null);
+        it(`collection property - ${item.name} - tag: ${tag}`, async function () {
+          const modelBasedRule = new ModelBasedRule(
+            [{ $TYPE: 'PropertyRule', property: { $TYPE: 'RuleProperty', name, displayName }, $rules: [[JSON.parse(item.serializedRule)]] }],
+            tag
+          );
+          const { container, validationRules } = setup();
+          validationRules.applyModelBasedRules(target, [modelBasedRule]);
+
+          const validator = container.get(IValidator);
+          const results = await validator.validate(new ValidateInstruction(target, undefined, undefined, tag));
+          assert.deepStrictEqual(results.filter((result) => !result.valid).map((result) => result.toString()), errorMessages);
+        });
+      }
+      for (const { name, displayName, ruleNameMatcher, errorMessages, target } of data3) {
+        // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
+        const item = simpleRuleList.find((rule) => rule.name.match(ruleNameMatcher) !== null);
+        it(`nested property - ${item.name} - tag: ${tag}`, async function () {
+          const modelBasedRule = new ModelBasedRule(
+            [{ $TYPE: 'PropertyRule', property: { $TYPE: 'RuleProperty', name, displayName }, $rules: [[JSON.parse(item.serializedRule)]] }],
+            tag
+          );
+          const { container, validationRules } = setup();
+          validationRules.applyModelBasedRules(Person, [modelBasedRule]);
+
+          const validator = container.get(IValidator);
+          const results = await validator.validate(new ValidateInstruction(target, undefined, undefined, tag));
+          assert.deepStrictEqual(results.filter((result) => !result.valid).map((result) => result.toString()), errorMessages);
+          validationRules.off(Person);
+        });
+      }
+      for (const { name, displayName, ruleNameMatcher, errorMessages, target } of data4) {
+        // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
+        const item = simpleRuleList.find((rule) => rule.name.match(ruleNameMatcher) !== null);
+        it(`keyed property - ${item.name} - tag: ${tag}`, async function () {
+          const modelBasedRule = new ModelBasedRule(
+            [{ $TYPE: 'PropertyRule', property: { $TYPE: 'RuleProperty', name, displayName }, $rules: [[JSON.parse(item.serializedRule)]] }],
+            tag
+          );
+          const { container, validationRules } = setup();
+          validationRules.applyModelBasedRules(Person, [modelBasedRule]);
+
+          const validator = container.get(IValidator);
+          const results = await validator.validate(new ValidateInstruction(target, undefined, undefined, tag));
+          assert.deepStrictEqual(results.filter((result) => !result.valid).map((result) => result.toString()), errorMessages);
+          validationRules.off(Person);
+        });
+      }
+    }
   });
 });

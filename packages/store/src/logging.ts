@@ -15,17 +15,18 @@ export interface LogDefinitions {
   devToolsStatus?: LogLevel;
 }
 
+export type GenericLogger = { [key in keyof typeof LogLevel]: (...args: unknown[]) => {} };
+
 export function getLogType(
   options: Partial<StoreOptions>,
   definition: keyof LogDefinitions,
   defaultLevel: LogLevel
 ): LogLevel {
   if (definition &&
-    options.logDefinitions &&
-    options.logDefinitions.hasOwnProperty(definition) &&
+    options.logDefinitions?.hasOwnProperty(definition) &&
     options.logDefinitions[definition] &&
-    Object.values(LogLevel).includes(options.logDefinitions[definition])) {
-    return options.logDefinitions[definition];
+    Object.values(LogLevel).includes(options.logDefinitions[definition]!)) {
+    return options.logDefinitions[definition]!;
   }
 
   return defaultLevel;

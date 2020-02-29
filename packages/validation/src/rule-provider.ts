@@ -1,6 +1,5 @@
 /* eslint-disable no-template-curly-in-string */
-import { Serializer, serializePrimitive, Deserializer } from '@aurelia/debug';
-import { Class, DI, Protocol, Metadata, ILogger, IContainer } from '@aurelia/kernel';
+import { Class, DI, Protocol, Metadata, ILogger } from '@aurelia/kernel';
 import {
   BindingType,
   IExpressionParser,
@@ -32,9 +31,7 @@ import {
   ValidationDisplayNameAccessor,
   IRuleProperty,
   IPropertyRule,
-  IValidationRule,
-  Hydratable,
-  IValidationDeserializer,
+  IValidationHydrator,
 } from './rule-interfaces';
 
 /**
@@ -64,7 +61,7 @@ export type RuleCondition<TObject extends IValidateable = IValidateable, TValue 
 export const validationRulesRegistrar = Object.freeze({
   name: 'validation-rules',
   defaultRuleSetName: '__default',
-  set(target: IValidateable, rules: PropertyRule[], tag?: string): void {
+  set(target: IValidateable, rules: IPropertyRule[], tag?: string): void {
     const key = `${validationRulesRegistrar.name}:${tag ?? validationRulesRegistrar.defaultRuleSetName}`;
     Metadata.define(Protocol.annotation.keyFor(key), rules, target);
     const keys = Metadata.getOwn(Protocol.annotation.name, target) as string[];
@@ -161,12 +158,10 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
       results.push(...result);
       return results;
     };
-    return this.$rules.reduce(async (acc, ruleset) => {
-      if (isValid) {
-        acc = acc.then(async (accValidateResult) => accumulateResult(accValidateResult, ruleset));
-      }
-      return acc;
-    }, Promise.resolve([] as ValidationResult[]));
+    return this.$rules.reduce(
+      async (acc, ruleset) => acc.then(async (accValidateResult) => isValid ? accumulateResult(accValidateResult, ruleset) : Promise.resolve(accValidateResult)),
+      Promise.resolve([] as ValidationResult[])
+    );
   }
 
   // #region customization API
@@ -394,7 +389,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
 
 export class ModelBasedRule {
   public constructor(
-    public ruleset: any[],
+    public ruleset: any,
     public tag: string = validationRulesRegistrar.defaultRuleSetName
   ) { }
 }
@@ -440,7 +435,7 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IValidationMessageProvider private readonly messageProvider: IValidationMessageProvider,
-    @IValidationDeserializer private readonly deserializer: IValidationDeserializer,
+    @IValidationHydrator private readonly deserializer: IValidationHydrator,
   ) { }
 
   public ensure<TValue>(property: keyof TObject | string | PropertyAccessor): PropertyRule {
@@ -488,7 +483,7 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
       if (tags.has(tag)) {
         console.warn(`A ruleset for tag ${tag} is already defined which will be overwritten`); // TODO use reporter/logger
       }
-      const rules = rule.ruleset.map(($rule) => this.deserializer.hydrate($rule, this) as PropertyRule);
+      const rules = this.deserializer.hydrateRuleset(rule.ruleset, this);
       validationRulesRegistrar.set(target, rules, tag);
       tags.add(tag);
     }
@@ -633,161 +628,5 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
     const words = propertyName.toString().split(/(?=[A-Z])/).join(' ');
     // capitalize first letter.
     return words.charAt(0).toUpperCase() + words.slice(1);
-  }
-}
-
-export type Visitable<T extends BaseValidationRule> = (PropertyRule | RuleProperty | T) & { accept(visitor: ValidationSerializer): string };
-export class ValidationSerializer implements IValidationVisitor {
-  public static serialize<T extends BaseValidationRule>(object: Visitable<T>): string {
-    if (object == null || typeof object.accept !== 'function') {
-      return `${object}`;
-    }
-    const visitor = new ValidationSerializer();
-    return object.accept(visitor);
-  }
-
-  public visitRequiredRule(rule: RequiredRule): string {
-    return `{"$TYPE":"${RequiredRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${serializePrimitive(rule.tag)}}`;
-  }
-  public visitRegexRule(rule: RegexRule): string {
-    const pattern = rule.pattern;
-    return `{"$TYPE":"${RegexRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${serializePrimitive(rule.tag)},"pattern":{"source":${serializePrimitive(pattern.source)},"flags":"${pattern.flags}"}}`;
-  }
-  public visitLengthRule(rule: LengthRule): string {
-    return `{"$TYPE":"${LengthRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${serializePrimitive(rule.tag)},"length":${serializePrimitive(rule.length)},"isMax":${serializePrimitive(rule.isMax)}}`;
-  }
-  public visitSizeRule(rule: SizeRule): string {
-    return `{"$TYPE":"${SizeRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${serializePrimitive(rule.tag)},"count":${serializePrimitive(rule.count)},"isMax":${serializePrimitive(rule.isMax)}}`;
-  }
-  public visitRangeRule(rule: RangeRule): string {
-    return `{"$TYPE":"${RangeRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${serializePrimitive(rule.tag)},"isInclusive":${rule.isInclusive},"min":${this.serializeNumber(rule.min)},"max":${this.serializeNumber(rule.max)}}`;
-  }
-  public visitEqualsRule(rule: EqualsRule): string {
-    const expectedValue: any = rule.expectedValue;
-    let serializedExpectedValue: string;
-    if (typeof expectedValue !== 'object' || expectedValue === null) {
-      serializedExpectedValue = serializePrimitive(expectedValue);
-    } else {
-      serializedExpectedValue = JSON.stringify(expectedValue);
-    }
-    return `{"$TYPE":"${EqualsRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${serializePrimitive(rule.tag)},"expectedValue":${serializedExpectedValue}}`;
-  }
-
-  public visitRuleProperty(property: RuleProperty): string {
-    const displayName = property.displayName;
-    if (displayName !== void 0 && typeof displayName !== 'string') {
-      throw new Error('Serializing a non-string displayName for rule property is not supported.'); // TODO use reporter/logger
-    }
-    const expression = property.expression;
-    return `{"$TYPE":"${RuleProperty.$TYPE}","name":${serializePrimitive(property.name)},"expression":${expression ? Serializer.serialize(expression) : null},"displayName":${serializePrimitive(displayName)}}`;
-  }
-
-  public visitPropertyRule(propertyRule: PropertyRule): string {
-    return `{"$TYPE":"${PropertyRule.$TYPE}","property":${propertyRule.property.accept(this)},"$rules":${this.serializeRules(propertyRule.$rules)}}`;
-  }
-
-  private serializeNumber(num: number): string {
-    return num === Number.POSITIVE_INFINITY || num === Number.NEGATIVE_INFINITY ? null! : num.toString();
-  }
-
-  private serializeRules(ruleset: BaseValidationRule[][]) {
-    return `[${ruleset.map((rules) => `[${rules.map((rule) => rule.accept(this)).join(',')}]`).join(',')}]`;
-  }
-}
-
-export class ValidationDeserializer implements IValidationDeserializer {
-  private static container: IContainer;
-  public static register(container: IContainer) {
-    this.container = container;
-  }
-  public static deserialize(json: string, validationRules: IValidationRules): IValidationRule | IRuleProperty | IPropertyRule {
-    const messageProvider = this.container.get(IValidationMessageProvider);
-    const parser = this.container.get(IExpressionParser);
-    const deserializer = new ValidationDeserializer(/* validationRules ?? this.container.get(IValidationRules), */ messageProvider, parser);
-    const raw = JSON.parse(json);
-    return deserializer.hydrate(raw, validationRules);
-  }
-
-  public readonly astDeserializer: Deserializer = new Deserializer();
-  public constructor(
-    @IValidationMessageProvider public readonly messageProvider: IValidationMessageProvider,
-    @IExpressionParser public readonly parser: IExpressionParser,
-  ) { }
-
-  public hydrate(raw: Hydratable, validationRules: IValidationRules): any {
-    switch (raw.$TYPE) {
-      case RequiredRule.$TYPE: {
-        const $raw: Pick<RequiredRule, 'messageKey' | 'tag'> = raw;
-        const rule = new RequiredRule();
-        rule.messageKey = $raw.messageKey;
-        rule.tag = this.astDeserializer.hydrate($raw.tag);
-        return rule;
-      }
-      case RegexRule.$TYPE: {
-        const $raw: Pick<RegexRule, 'pattern' | 'messageKey' | 'tag'> = raw;
-        const pattern = $raw.pattern;
-        const astDeserializer = this.astDeserializer;
-        const rule = new RegexRule(new RegExp(astDeserializer.hydrate(pattern.source), pattern.flags), $raw.messageKey);
-        rule.tag = astDeserializer.hydrate($raw.tag);
-        return rule;
-      }
-      case LengthRule.$TYPE: {
-        const $raw: Pick<LengthRule, 'length' | 'isMax' | 'messageKey' | 'tag'> = raw;
-        const rule = new LengthRule($raw.length, $raw.isMax);
-        rule.messageKey = $raw.messageKey;
-        rule.tag = this.astDeserializer.hydrate($raw.tag);
-        return rule;
-      }
-      case SizeRule.$TYPE: {
-        const $raw: Pick<SizeRule, 'count' | 'isMax' | 'messageKey' | 'tag'> = raw;
-        const rule = new SizeRule($raw.count, $raw.isMax);
-        rule.messageKey = $raw.messageKey;
-        rule.tag = this.astDeserializer.hydrate($raw.tag);
-        return rule;
-      }
-      case RangeRule.$TYPE: {
-        const $raw: Pick<RangeRule, 'isInclusive' | 'max' | 'min' | 'messageKey' | 'tag'> = raw;
-        const rule = new RangeRule($raw.isInclusive, { min: $raw.min ?? Number.NEGATIVE_INFINITY, max: $raw.max ?? Number.POSITIVE_INFINITY });
-        rule.messageKey = $raw.messageKey;
-        rule.tag = this.astDeserializer.hydrate($raw.tag);
-        return rule;
-      }
-      case EqualsRule.$TYPE: {
-        const $raw: Pick<EqualsRule, 'expectedValue' | 'messageKey' | 'tag'> = raw;
-        const astDeserializer = this.astDeserializer;
-        const rule = new EqualsRule(typeof $raw.expectedValue !== 'object' ? astDeserializer.hydrate($raw.expectedValue) : $raw.expectedValue);
-        rule.messageKey = $raw.messageKey;
-        rule.tag = astDeserializer.hydrate($raw.tag);
-        return rule;
-      }
-      case RuleProperty.$TYPE: {
-        const $raw: Pick<RuleProperty, 'expression' | 'name' | 'displayName'> = raw;
-        const astDeserializer = this.astDeserializer;
-        let name: any = $raw.name;
-        name = name === 'undefined' ? void 0 : astDeserializer.hydrate(name);
-
-        let expression: any = $raw.expression;
-        if (expression !== null && expression !== void 0) {
-          expression = astDeserializer.hydrate(expression);
-        } else if (name !== void 0) {
-          ([, expression] = parsePropertyName(name, this.parser));
-        } else {
-          expression = void 0;
-        }
-
-        let displayName = $raw.displayName;
-        displayName = displayName === 'undefined' ? void 0 : astDeserializer.hydrate(displayName);
-        return new RuleProperty(expression, name, displayName);
-      }
-      case PropertyRule.$TYPE: {
-        const $raw: Pick<PropertyRule, 'property' | '$rules'> = raw;
-        return new PropertyRule(
-          validationRules,
-          this.messageProvider,
-          this.hydrate($raw.property, validationRules),
-          $raw.$rules.map((rules) => rules.map((rule) => this.hydrate(rule, validationRules)))
-        );
-      }
-    }
   }
 }

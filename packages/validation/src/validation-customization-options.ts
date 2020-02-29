@@ -4,7 +4,7 @@ import { Class } from '@aurelia/kernel';
 import { ValidationTrigger } from './validate-binding-behavior';
 import { IValidationMessageProvider } from './rules';
 import { IValidationControllerFactory } from './validation-controller';
-import { IValidationDeserializer } from './rule-interfaces';
+import { IValidationHydrator } from './rule-interfaces';
 
 /**
  * Customization options for the plugin.
@@ -15,5 +15,5 @@ export interface ValidationCustomizationOptions {
   ValidationControllerFactoryType: Class<IValidationControllerFactory>;
   CustomMessages: ICustomMessage[];
   DefaultTrigger: ValidationTrigger;
-  DeserializerType: Class<IValidationDeserializer>;
+  HydratorType: Class<IValidationHydrator>;
 }

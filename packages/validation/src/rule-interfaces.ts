@@ -85,10 +85,11 @@ export interface IValidationVisitor {
 }
 
 export type Hydratable = any & { $TYPE: string };
-export const IValidationDeserializer = DI.createInterface<IValidationDeserializer>('IValidationDeserializer').noDefault();
-export interface IValidationDeserializer {
+export const IValidationHydrator = DI.createInterface<IValidationHydrator>('IValidationHydrator').noDefault();
+export interface IValidationHydrator {
   readonly astDeserializer: Deserializer;
   readonly parser: IExpressionParser;
   readonly messageProvider: IValidationMessageProvider;
-  hydrate(raw: Hydratable, validationRules: IValidationRules): any;
+  hydrate(raw: any, validationRules: IValidationRules): any;
+  hydrateRuleset(ruleset: any, validationRules: IValidationRules): IPropertyRule[];
 }

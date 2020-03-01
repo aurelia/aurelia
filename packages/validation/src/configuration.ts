@@ -19,7 +19,9 @@ export function getDefaultValidationConfiguration(): ValidationCustomizationOpti
     ValidationControllerFactoryType: ValidationControllerFactory,
     CustomMessages: [],
     DefaultTrigger: ValidationTrigger.blur,
-    HydratorType: ValidationDeserializer
+    HydratorType: ValidationDeserializer,
+    UseSubscriberCustomAttribute: true,
+    UseSubscriberCustomElement: true
   };
 }
 
@@ -31,7 +33,7 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
 
       optionsProvider(options);
 
-      return container.register(
+      container.register(
         Registration.callback(ICustomMessages, () => options.CustomMessages),
         Registration.callback(IDefaultTrigger, () => options.DefaultTrigger),
         Registration.singleton(IValidator, options.ValidatorType),
@@ -40,10 +42,15 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
         Registration.transient(IValidationRules, ValidationRules),
         Registration.transient(IValidationControllerFactory, options.ValidationControllerFactoryType),
         ValidateBindingBehavior,
-        ValidationErrorsCustomAttribute,
-        ValidationContainerCustomElement,
         ValidationDeserializer
       );
+      if (options.UseSubscriberCustomAttribute) {
+        container.register(ValidationErrorsCustomAttribute);
+      }
+      if (options.UseSubscriberCustomElement) {
+        container.register(ValidationContainerCustomElement);
+      }
+      return container;
     },
     customize(cb?: ValidationConfigurationProvider) {
       return createConfiguration(cb ?? optionsProvider);

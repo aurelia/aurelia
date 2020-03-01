@@ -284,6 +284,12 @@ describe('I18N', function () {
             input.setMonth(0);
             input.setDate(31);
             sut['now'] = () => new Date(input.getFullYear(), 0, 1).getTime();
+          } else if (input.getMonth() === 2 && multiplier < 0 && value === 1) {
+            input.setMonth(0);
+            input.setDate(1);
+            input.setHours(0);
+            input.setMinutes(0);
+            sut['now'] = () => new Date(input.getFullYear(), 0, 31, 23, 59).getTime();
           } else {
             input.setMonth(input.getMonth() + multiplier * value);
           }

@@ -1,7 +1,7 @@
 import { DI } from '@aurelia/kernel';
 import { LifecycleFlags, Scope } from '@aurelia/runtime';
 import { ValidationResult, validationRulesRegistrar, PropertyRule, rootObjectSymbol } from './rule-provider';
-import { IValidateable } from './rules';
+import { IValidateable } from './rule-interfaces';
 
 /**
  * Instruction for the validation controller's validate method.
@@ -55,27 +55,18 @@ export class StandardValidator implements IValidator {
     const propertyTag = instruction.propertyTag;
     const flags = instruction.flags;
 
-    const validateAllProperties = propertyName === void 0;
     const rules = instruction.rules ?? validationRulesRegistrar.get(object, instruction.objectTag) ?? [];
+    const scope = Scope.create(flags, { [rootObjectSymbol]: object });
 
-    const result = await Promise.all(rules.reduce((acc: Promise<ValidationResult[]>[], rule) => {
-      const { name, expression } = rule.property;
-      if (validateAllProperties || name === propertyName) {
-        let value: unknown;
-        if (expression === void 0) {
-          value = object;
-        } else {
-          const scope = Scope.create(flags, { [rootObjectSymbol]: object });
-          value = expression.evaluate(flags, scope, null!);
-        }
-        acc.push(rule.validate(value, object, propertyTag, flags));
-      }
-      return acc;
-    }, []));
+    if (propertyName !== void 0) {
+      return (await rules.find((r) => r.property.name === propertyName)?.validate(object, propertyTag, flags, scope)) ?? [];
+    }
 
-    return result.reduce((acc, propertyResult) => {
-      acc.push(...propertyResult);
-      return acc;
-    }, []);
+    return (
+      await Promise.all(rules.reduce((acc: Promise<ValidationResult[]>[], rule) => {
+        acc.push(rule.validate(object, propertyTag, flags, scope));
+        return acc;
+      }, []))
+    ).flatMap((r) => r);
   }
 }

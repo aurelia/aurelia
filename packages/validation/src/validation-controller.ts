@@ -25,7 +25,8 @@ import {
   ValidationResult,
 } from './rule-provider';
 import { IValidator, ValidateInstruction } from './validator';
-import { IValidateable, BaseValidationRule } from './rules';
+import { BaseValidationRule } from './rules';
+import { IValidateable } from './rule-interfaces';
 
 export type BindingWithBehavior = PropertyBinding & {
   sourceExpression: BindingBehaviorExpression;

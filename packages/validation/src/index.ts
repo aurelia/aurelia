@@ -7,3 +7,5 @@ export * from './validator';
 export * from './subscribers/validation-container-custom-element';
 export * from './subscribers/validation-errors-custom-attribute';
 export * from './subscribers/validation-result-presenter-service';
+export * from './rule-interfaces';
+export * from './serialization';

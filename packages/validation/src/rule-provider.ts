@@ -21,11 +21,18 @@ import {
   SizeRule,
   RangeRule,
   EqualsRule,
-  IValidateable,
   IValidationMessageProvider,
   ValidationRuleAliasMessage,
-  ValidationRuleExecutionPredicate
 } from './rules';
+import {
+  IValidateable,
+  ValidationRuleExecutionPredicate,
+  IValidationVisitor,
+  ValidationDisplayNameAccessor,
+  IRuleProperty,
+  IPropertyRule,
+  IValidationHydrator,
+} from './rule-interfaces';
 
 /**
  * Contract to register the custom messages for rules, during plugin registration.
@@ -38,29 +45,23 @@ export interface ICustomMessage<TRule extends BaseValidationRule = BaseValidatio
 /* @internal */
 export const ICustomMessages = DI.createInterface<ICustomMessage[]>("ICustomMessages").noDefault();
 
-export type ValidationDisplayNameAccessor = () => string;
-
-/**
- * Describes a property to be validated.
- */
-export class RuleProperty {
-  /**
-   * @param {IsBindingBehavior} [expression] - parsed property expression.
-   * @param {(string | number | undefined)} [name=void 0] - name of the property; absent for a object validation.
-   * @param {(string | ValidationDisplayNameAccessor | undefined)} [displayName=void 0] - display name of the property to be used in validation error messages.
-   */
+export class RuleProperty implements IRuleProperty {
+  public static $TYPE: string = "RuleProperty";
   public constructor(
     public expression?: IsBindingBehavior,
     public name: string | number | undefined = void 0,
     public displayName: string | ValidationDisplayNameAccessor | undefined = void 0,
   ) { }
+  public accept(visitor: IValidationVisitor): string {
+    return visitor.visitRuleProperty(this);
+  }
 }
 export type RuleCondition<TObject extends IValidateable = IValidateable, TValue = any> = (value: TValue, object?: TObject) => boolean | Promise<boolean>;
 
 export const validationRulesRegistrar = Object.freeze({
   name: 'validation-rules',
   defaultRuleSetName: '__default',
-  set(target: IValidateable, rules: PropertyRule[], tag?: string): void {
+  set(target: IValidateable, rules: IPropertyRule[], tag?: string): void {
     const key = `${validationRulesRegistrar.name}:${tag ?? validationRulesRegistrar.defaultRuleSetName}`;
     Metadata.define(Protocol.annotation.keyFor(key), rules, target);
     const keys = Metadata.getOwn(Protocol.annotation.name, target) as string[];
@@ -92,11 +93,8 @@ export const validationRulesRegistrar = Object.freeze({
   }
 });
 
-/**
- * Describes a collection of rules, defined on a property.
- */
-export class PropertyRule<TObject extends IValidateable = IValidateable, TValue = unknown> {
-
+export class PropertyRule<TObject extends IValidateable = IValidateable, TValue = unknown> implements IPropertyRule {
+  public static readonly $TYPE: string = "PropertyRule";
   private latestRule?: BaseValidationRule;
 
   public constructor(
@@ -105,6 +103,9 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
     public property: RuleProperty,
     public $rules: BaseValidationRule[][] = [[]],
   ) { }
+  public accept(visitor: IValidationVisitor): string {
+    return visitor.visitPropertyRule(this);
+  }
 
   /** @internal */
   public addRule(rule: BaseValidationRule) {
@@ -118,7 +119,25 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
     return this.$rules[depth];
   }
 
-  public async validate(value: TValue, object?: IValidateable, tag?: string, flags: LifecycleFlags = LifecycleFlags.none): Promise<ValidationResult[]> {
+  public async validate(
+    object?: IValidateable,
+    tag?: string,
+    flags?: LifecycleFlags,
+    scope?: Scope
+  ): Promise<ValidationResult[]> {
+    if (flags === void 0) {
+      flags = LifecycleFlags.none;
+    }
+    if (scope === void 0) {
+      scope = Scope.create(flags, { [rootObjectSymbol]: object });
+    }
+    const expression = this.property.expression;
+    let value: unknown;
+    if (expression === void 0) {
+      value = object;
+    } else {
+      value = expression.evaluate(flags, scope, null!);
+    }
 
     let isValid = true;
     const validateRuleset = async (rules: BaseValidationRule[]) => {
@@ -131,7 +150,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
         const { displayName, name } = this.property;
         let message: string | undefined;
         if (!isValidOrPromise) {
-          const scope = Scope.create(flags, {
+          const messageEvaluationScope = Scope.create(flags!, {
             $object: object,
             $displayName: this.messageProvider.getDisplayName(name, displayName),
             $propertyName: name,
@@ -139,7 +158,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
             $rule: rule,
             $getDisplayName: this.messageProvider.getDisplayName.bind(this.messageProvider)
           });
-          message = this.messageProvider.getMessage(rule).evaluate(flags, scope, null!) as string;
+          message = this.messageProvider.getMessage(rule).evaluate(flags!, messageEvaluationScope, null!) as string;
         }
         return new ValidationResult(isValidOrPromise, message, name, object, rule, this);
       };
@@ -157,12 +176,10 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
       results.push(...result);
       return results;
     };
-    return this.$rules.reduce(async (acc, ruleset) => {
-      if (isValid) {
-        acc = acc.then(async (accValidateResult) => accumulateResult(accValidateResult, ruleset));
-      }
-      return acc;
-    }, Promise.resolve([] as ValidationResult[]));
+    return this.$rules.reduce(
+      async (acc, ruleset) => acc.then(async (accValidateResult) => isValid ? accumulateResult(accValidateResult, ruleset) : Promise.resolve(accValidateResult)),
+      Promise.resolve([] as ValidationResult[])
+    );
   }
 
   // #region customization API
@@ -388,6 +405,13 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   // #endregion
 }
 
+export class ModelBasedRule {
+  public constructor(
+    public ruleset: any,
+    public tag: string = validationRulesRegistrar.defaultRuleSetName
+  ) { }
+}
+
 export interface IValidationRules<TObject extends IValidateable = IValidateable> {
   rules: PropertyRule[];
   /**
@@ -418,6 +442,7 @@ export interface IValidationRules<TObject extends IValidateable = IValidateable>
    * @param {string} [tag] - Use this tag to remove a specific ruleset. If omitted all rulesets of the object are removed.
    */
   off<TAnotherObject extends IValidateable = IValidateable>(target?: Class<TAnotherObject> | TAnotherObject, tag?: string): void;
+  applyModelBasedRules(target: IValidateable, rules: ModelBasedRule[]): void;
 }
 export const IValidationRules = DI.createInterface<IValidationRules>('IValidationRules').noDefault();
 
@@ -428,6 +453,7 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IValidationMessageProvider private readonly messageProvider: IValidationMessageProvider,
+    @IValidationHydrator private readonly deserializer: IValidationHydrator,
   ) { }
 
   public ensure<TValue>(property: keyof TObject | string | PropertyAccessor): PropertyRule {
@@ -465,6 +491,19 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
       if (!validationRulesRegistrar.isValidationRulesSet($target)) {
         this.targets.delete($target);
       }
+    }
+  }
+
+  public applyModelBasedRules(target: IValidateable, rules: ModelBasedRule[]): void {
+    const tags: Set<string> = new Set<string>();
+    for (const rule of rules) {
+      const tag = rule.tag;
+      if (tags.has(tag)) {
+        console.warn(`A ruleset for tag ${tag} is already defined which will be overwritten`); // TODO use reporter/logger
+      }
+      const rules = this.deserializer.hydrateRuleset(rule.ruleset, this);
+      validationRulesRegistrar.set(target, rules, tag);
+      tags.add(tag);
     }
   }
 }

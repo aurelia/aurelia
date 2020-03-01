@@ -33,7 +33,7 @@ import {
   parsePropertyName,
   ValidationRuleAliasMessage,
   validationRulesRegistrar,
-  rootObjectSymbol
+  rootObjectSymbol,
 } from '@aurelia/validation';
 import { IPerson, Person } from './_test-resources';
 
@@ -255,8 +255,8 @@ describe('ValidationRules', function () {
     const [rule1, rule2] = rules;
     assert.instanceOf(rule1, PropertyRule);
     assert.equal((rule1 as PropertyRule).property.name, 'name');
-    assert.instanceOf(rule1.$rules[0][0], RequiredRule, 'exprected required rule');
-    assert.instanceOf(rule1.$rules[0][1], RegexRule, 'exprected regex rule');
+    assert.instanceOf(rule1.$rules[0][0], RequiredRule, 'expected required rule');
+    assert.instanceOf(rule1.$rules[0][1], RegexRule, 'expected regex rule');
 
     assert.instanceOf(rule2, PropertyRule);
     assert.equal((rule2 as PropertyRule).property.name, 'age');
@@ -282,8 +282,8 @@ describe('ValidationRules', function () {
     const [rule1, rule2] = rules;
     assert.instanceOf(rule1, PropertyRule);
     assert.equal((rule1 as PropertyRule).property.name, 'name');
-    assert.instanceOf(rule1.$rules[0][0], RequiredRule, 'exprected required rule');
-    assert.instanceOf(rule1.$rules[0][1], RegexRule, 'exprected regex rule');
+    assert.instanceOf(rule1.$rules[0][0], RequiredRule, 'expected required rule');
+    assert.instanceOf(rule1.$rules[0][1], RegexRule, 'expected regex rule');
 
     assert.instanceOf(rule2, PropertyRule);
     assert.equal((rule2 as PropertyRule).property.name, 'age');
@@ -622,51 +622,51 @@ describe('ValidationMessageProvider', function () {
   const rules = [
     {
       title: 'RequiredRule',
-      getRule: (sut: IValidationMessageProvider) => new RequiredRule(),
+      getRule: () => new RequiredRule(),
     },
     {
       title: 'RegexRule',
-      getRule: (sut: IValidationMessageProvider) => new RegexRule(/foo/),
+      getRule: () => new RegexRule(/foo/),
     },
     {
       title: 'RegexRule - email',
-      getRule: (sut: IValidationMessageProvider) => new RegexRule(/foo/, 'email'),
+      getRule: () => new RegexRule(/foo/, 'email'),
     },
     {
       title: 'LengthRule - minLength',
-      getRule: (sut: IValidationMessageProvider) => new LengthRule(42, false),
+      getRule: () => new LengthRule(42, false),
     },
     {
       title: 'LengthRule - maxLength',
-      getRule: (sut: IValidationMessageProvider) => new LengthRule(42, true),
+      getRule: () => new LengthRule(42, true),
     },
     {
       title: 'SizeRule - minItems',
-      getRule: (sut: IValidationMessageProvider) => new SizeRule(42, false),
+      getRule: () => new SizeRule(42, false),
     },
     {
       title: 'SizeRule - maxItems',
-      getRule: (sut: IValidationMessageProvider) => new SizeRule(42, true),
+      getRule: () => new SizeRule(42, true),
     },
     {
       title: 'RangeRule - min',
-      getRule: (sut: IValidationMessageProvider) => new RangeRule(true, { min: 42 }),
+      getRule: () => new RangeRule(true, { min: 42 }),
     },
     {
       title: 'RangeRule - max',
-      getRule: (sut: IValidationMessageProvider) => new RangeRule(true, { max: 42 }),
+      getRule: () => new RangeRule(true, { max: 42 }),
     },
     {
       title: 'RangeRule - range',
-      getRule: (sut: IValidationMessageProvider) => new RangeRule(true, { min: 42, max: 43 }),
+      getRule: () => new RangeRule(true, { min: 42, max: 43 }),
     },
     {
       title: 'RangeRule - between',
-      getRule: (sut: IValidationMessageProvider) => new RangeRule(false, { min: 42, max: 43 }),
+      getRule: () => new RangeRule(false, { min: 42, max: 43 }),
     },
     {
       title: 'EqualsRule',
-      getRule: (sut: IValidationMessageProvider) => new EqualsRule(42),
+      getRule: () => new EqualsRule(42),
     },
   ];
 
@@ -698,7 +698,7 @@ describe('ValidationMessageProvider', function () {
 
     it(`rule.message returns the registered default message for a rule type when no message for the instance is registered - ${title}`, function () {
       const { sut, container } = setup();
-      const $rule = getRule(sut);
+      const $rule = getRule();
       const scope = { bindingContext: { $displayName: 'FooBar', $rule }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
       const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, container);
       assert.equal(actual, expected);
@@ -706,7 +706,7 @@ describe('ValidationMessageProvider', function () {
 
     it(`rule.message returns the default message the registered key is not found - ${title}`, function () {
       const { sut, container } = setup();
-      const $rule = getRule(sut);
+      const $rule = getRule();
       $rule.messageKey = 'foobar';
       const scope = { bindingContext: { $displayName: 'FooBar', $rule }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
       const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, container);
@@ -762,7 +762,7 @@ describe('ValidationMessageProvider', function () {
     ];
     const { sut, container, originalMessages } = setup(customMessages);
     for (const { getRule } of rules) {
-      const $rule = getRule(sut);
+      const $rule = getRule();
       const scope = { bindingContext: { $displayName: 'FooBar', $rule }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
       const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, container);
       const aliases = customMessages.find((item) => $rule instanceof item.rule).aliases;
@@ -970,7 +970,7 @@ describe('parsePropertyName', function () {
 describe('PropertyRule', function () {
 
   function setup() {
-    const container = DI.createContainer();
+    const container = TestContext.createHTMLTestContext().container;
     container.register(ValidationConfiguration);
     return { validationRules: container.get(IValidationRules), container };
   }
@@ -987,12 +987,14 @@ describe('PropertyRule', function () {
     assert.equal(rules.length, 1, 'error1');
     const nameRule = rules[0];
 
-    let result = await nameRule.validate('foobar', obj1);
+    obj1.name = 'foobar';
+    let result = await nameRule.validate(obj1);
     assert.equal(result.length, 1);
     assert.equal(result[0].valid, false);
     assert.equal(result[0].propertyName, 'name');
 
-    result = await nameRule.validate('foo', obj1);
+    obj1.name = 'foo';
+    result = await nameRule.validate(obj1);
     assert.equal(result.length, 1);
     assert.equal(result[0].valid, true);
     assert.equal(result[0].propertyName, 'name');
@@ -1014,11 +1016,11 @@ describe('PropertyRule', function () {
     assert.equal(rules.length, 1, 'error1');
     const nameRule = rules[0];
 
-    let result = await nameRule.validate(undefined, obj);
+    let result = await nameRule.validate(obj);
     assert.equal(result[0].valid, false);
     assert.equal(result[0].message, 'Name1 is required.');
 
-    result = await nameRule.validate(undefined, obj);
+    result = await nameRule.validate(obj);
     assert.equal(result[0].valid, false);
     assert.equal(result[0].message, 'Name2 is required.');
 
@@ -1035,13 +1037,38 @@ describe('PropertyRule', function () {
       .when((o) => o.age > 5)
       .rules[0];
 
-    let result = await rule.validate(undefined, obj);
+    let result = await rule.validate(obj);
     assert.equal(result.length, 0);
 
     obj.age = 10;
-    result = await rule.validate(undefined, obj);
+    result = await rule.validate(obj);
     assert.equal(result[0].valid, false);
     assert.equal(result[0].message, 'Name is required.');
+
+    validationRules.off();
+  });
+
+  it('respects rule chaining', async function () {
+    const { validationRules } = setup();
+    const obj: IPerson = { name: 'test', age: (void 0)!, address: (void 0)! };
+    const rule = validationRules
+      .on(obj)
+      .ensure('name')
+      .minLength(42)
+      .then()
+      .matches(/foo/)
+      .rules[0];
+
+    let result = await rule.validate(obj);
+    assert.deepStrictEqual(result.filter(r => !r.valid).map((r) => r.toString()), ['Name must be at least 42 characters.']);
+
+    obj.name = 'a'.repeat(42);
+    result = await rule.validate(obj);
+    assert.deepStrictEqual(result.filter(r => !r.valid).map((r) => r.toString()), ['Name is not correctly formatted.']);
+
+    obj.name = 'foo'.repeat(14);
+    result = await rule.validate(obj);
+    assert.deepStrictEqual(result.filter(r => !r.valid).map((r) => r.toString()), []);
 
     validationRules.off();
   });
@@ -1078,7 +1105,8 @@ describe('PropertyRule', function () {
       .tag(tag)
       .rules[0];
 
-    const results = await rule.validate('', obj);
+    obj.name = '';
+    const results = await rule.validate(obj);
     assert.equal(results.length, 2);
     assert.deepEqual(results.map((r) => r.message), ['Name is required.', msg]);
 
@@ -1099,7 +1127,8 @@ describe('PropertyRule', function () {
       .tag(tag)
       .rules[0];
 
-    const results = await rule.validate('', obj, tag);
+    obj.name = '';
+    const results = await rule.validate(obj, tag);
     assert.equal(results.length, 1);
     assert.deepEqual(results[0].message, msg);
 

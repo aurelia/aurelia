@@ -968,7 +968,7 @@ describe('parsePropertyName', function () {
 describe('PropertyRule', function () {
 
   function setup() {
-    const container = DI.createContainer();
+    const container = TestContext.createHTMLTestContext().container;
     container.register(ValidationConfiguration);
     return { validationRules: container.get(IValidationRules), container };
   }
@@ -1040,6 +1040,33 @@ describe('PropertyRule', function () {
     result = await rule.validate(undefined, obj);
     assert.equal(result[0].valid, false);
     assert.equal(result[0].message, 'Name is required.');
+
+    validationRules.off();
+  });
+
+  it('respects rule chaining', async function () {
+    const { validationRules } = setup();
+    const obj: IPerson = { name: 'test', age: (void 0)!, address: (void 0)! };
+    const rule = validationRules
+      .on(obj)
+      .ensure('name')
+      .minLength(42)
+      .then()
+      .matches(/foo/)
+      .rules[0];
+
+    let result = await rule.validate('test', obj);
+    assert.deepStrictEqual(result.filter(r => !r.valid).map((r) => r.toString()), ['Name must be at least 42 characters.']);
+
+    let newName = 'a'.repeat(42);
+    obj.name = newName;
+    result = await rule.validate(newName, obj);
+    assert.deepStrictEqual(result.filter(r => !r.valid).map((r) => r.toString()), ['Name is not correctly formatted.']);
+
+    newName = 'foo'.repeat(14);
+    obj.name = newName;
+    result = await rule.validate(newName, obj);
+    assert.deepStrictEqual(result.filter(r => !r.valid).map((r) => r.toString()), []);
 
     validationRules.off();
   });

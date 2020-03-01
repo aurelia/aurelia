@@ -1,6 +1,6 @@
 import { Deserializer, serializePrimitive, Serializer } from '@aurelia/debug';
 import { IContainer } from '@aurelia/kernel';
-import { IExpressionParser } from '@aurelia/runtime';
+import { IExpressionParser, BindingType, LifecycleFlags, Scope } from '@aurelia/runtime';
 import { Hydratable, IPropertyRule, IRuleProperty, IValidationHydrator, IValidationRule, IValidationVisitor, IValidateable, IRequiredRule, IRegexRule } from './rule-interfaces';
 import { IValidationRules, parsePropertyName, PropertyRule, RuleProperty } from './rule-provider';
 import { BaseValidationRule, EqualsRule, IValidationMessageProvider, LengthRule, RangeRule, RegexRule, RequiredRule, SizeRule } from './rules';
@@ -227,12 +227,24 @@ export class ModelValidationHydrator implements IValidationHydrator {
     return typeof value === 'object' && 'rules' in value;
   }
 
-  private setCommonRuleProperties(raw: Pick<IValidationRule, 'messageKey' | 'tag'>, rule: RequiredRule) {
+  private setCommonRuleProperties(raw: Pick<IValidationRule, 'messageKey' | 'tag'> & { when?: string | ((object?: IValidateable) => boolean) }, rule: RequiredRule) {
     const messageKey = raw.messageKey;
     if (messageKey !== void 0 && messageKey !== null) {
       rule.messageKey = messageKey;
     }
     rule.tag = raw.tag;
+    const when = raw.when;
+    if (when) {
+      if (typeof when === 'string') {
+        const parsed = this.parser.parse(when, BindingType.None);
+        rule.canExecute = (object: IValidateable) => {
+          const flags = LifecycleFlags.none; // TODO? need to get the flags propagated here?
+          return parsed.evaluate(flags, Scope.create(flags, { $object: object }), null) as boolean;
+        };
+      } else if (typeof when === 'function') {
+        rule.canExecute = when;
+      }
+    }
   }
 
   private hydrateRequiredRule(raw: Pick<IRequiredRule, 'messageKey' | 'tag'>) {

@@ -453,4 +453,37 @@ describe('ModelValidationHydrator', function () {
       `incorrect error messages for tag ${tag}`
     );
   });
+  const conditionals = [
+    { text: 'string', when: '$object.age > 1' },
+    { text: 'function', when: (object: Person) => object.age > 1 },
+  ];
+  for (const { text, when } of conditionals) {
+    it(`works for conditional rule - ${text}`, async function () {
+      const { validationRules, container } = setup();
+      const requiredModelRule = simpleRuleList.find((r) => r.name.includes('required')).modelRule.required;
+      const rules = [
+        new ModelBasedRule({ name: { rules: [{ required: { ...requiredModelRule, when } }] } })
+      ];
+      validationRules.applyModelBasedRules(Person, rules);
+      const person = new Person(void 0, 1);
+
+      const validator = container.get(IValidator);
+
+      const instruction = new ValidateInstruction(person);
+      assert.deepStrictEqual(
+        (await validator.validate(instruction)).filter((r) => !r.valid).map((r) => r.toString()),
+        [],
+        'error1'
+      );
+
+      person.age = 2;
+      assert.deepStrictEqual(
+        (await validator.validate(instruction)).filter((r) => !r.valid).map((r) => r.toString()),
+        ['Name is required.'],
+        'error2'
+      );
+
+      validationRules.off(Person);
+    });
+  }
 });

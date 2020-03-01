@@ -12,13 +12,17 @@ export interface IValidationMessageProvider {
    */
   getMessage(rule: BaseValidationRule): IInterpolationExpression | PrimitiveLiteralExpression;
   /**
+   * Gets the parsed message for the `rule`.
+   */
+  setMessage(rule: BaseValidationRule, message: string): IInterpolationExpression | PrimitiveLiteralExpression;
+  /**
    * Core message parsing function.
    */
   parseMessage(message: string): IInterpolationExpression | PrimitiveLiteralExpression;
   /**
    * Formulates a property display name using the property name and the configured displayName (if provided).
    */
-  getDisplayName(propertyName: string | number, displayName?: string | null | (() => string)): string;
+  getDisplayName(propertyName: string | number | undefined, displayName?: string | null | (() => string)): string | undefined;
 }
 
 export const IValidationMessageProvider = DI.createInterface<IValidationMessageProvider>("IValidationMessageProvider").noDefault();
@@ -77,22 +81,6 @@ export class BaseValidationRule<TValue = any, TObject extends IValidateable = IV
     this._message = (void 0)!;
   }
 
-  public get message(): IInterpolationExpression | PrimitiveLiteralExpression {
-    let message = this._message;
-    if (message !== void 0) {
-      return message;
-    }
-    message = this._message = this.messageProvider.getMessage(this);
-    return message;
-  }
-
-  public setMessage(message: string) {
-    this._messageKey = 'custom';
-    this._message = this.messageProvider.parseMessage(message);
-  }
-
-  public constructor(protected readonly messageProvider: IValidationMessageProvider) { }
-
   public canExecute: ValidationRuleExecutionPredicate = () => true;
 
   /**
@@ -103,7 +91,7 @@ export class BaseValidationRule<TValue = any, TObject extends IValidateable = IV
    * @returns {(boolean | Promise<boolean>)} - `true | Promise<true>` if the validation is successfull, else `false | Promise<false>`.
    */
   public execute(value: TValue, object?: TObject): boolean | Promise<boolean> {
-    throw new Error('No base implementation of execute. Did you forget to implement the excute method?'); // TODO reporter
+    throw new Error('No base implementation of execute. Did you forget to implement the execute method?'); // TODO reporter
   }
 }
 
@@ -115,6 +103,7 @@ export class BaseValidationRule<TValue = any, TObject extends IValidateable = IV
  */
 @validationRule({ aliases: [{ name: 'required', defaultMessage: `\${$displayName} is required.` }] })
 export class RequiredRule extends BaseValidationRule {
+  protected _messageKey: string = 'required';
   public execute(value: unknown): boolean | Promise<boolean> {
     return value !== null
       && value !== void 0
@@ -136,8 +125,8 @@ export class RequiredRule extends BaseValidationRule {
   ]
 })
 export class RegexRule extends BaseValidationRule<string> {
-  public constructor(messageProvider: IValidationMessageProvider, private readonly pattern: RegExp, protected readonly _messageKey: string = 'matches') {
-    super(messageProvider);
+  public constructor(private readonly pattern: RegExp, protected readonly _messageKey: string = 'matches') {
+    super();
   }
   public execute(value: string): boolean | Promise<boolean> {
     return value === null
@@ -161,8 +150,8 @@ export class RegexRule extends BaseValidationRule<string> {
   ]
 })
 export class LengthRule extends BaseValidationRule<string> {
-  public constructor(messageProvider: IValidationMessageProvider, private readonly length: number, private readonly isMax: boolean) {
-    super(messageProvider);
+  public constructor(private readonly length: number, private readonly isMax: boolean) {
+    super();
     this.messageKey = isMax ? 'maxLength' : 'minLength';
   }
   public execute(value: string): boolean | Promise<boolean> {
@@ -187,8 +176,8 @@ export class LengthRule extends BaseValidationRule<string> {
   ]
 })
 export class SizeRule extends BaseValidationRule<unknown[]> {
-  public constructor(messageProvider: IValidationMessageProvider, private readonly count: number, private readonly isMax: boolean) {
-    super(messageProvider);
+  public constructor(private readonly count: number, private readonly isMax: boolean) {
+    super();
     this.messageKey = isMax ? 'maxItems' : 'minItems';
   }
   public execute(value: unknown[]): boolean | Promise<boolean> {
@@ -223,8 +212,8 @@ type Range = {
 export class RangeRule extends BaseValidationRule<number> {
   private readonly min: number = Number.NEGATIVE_INFINITY;
   private readonly max: number = Number.POSITIVE_INFINITY;
-  public constructor(messageProvider: IValidationMessageProvider, private readonly isInclusive: boolean, { min, max }: Range) {
-    super(messageProvider);
+  public constructor(private readonly isInclusive: boolean, { min, max }: Range) {
+    super();
     if (min !== void 0 && max !== void 0) {
       this._messageKey = this.isInclusive ? 'range' : 'between';
     } else {
@@ -254,7 +243,8 @@ export class RangeRule extends BaseValidationRule<number> {
   ]
 })
 export class EqualsRule extends BaseValidationRule {
-  public constructor(messageProvider: IValidationMessageProvider, private readonly expectedValue: unknown) { super(messageProvider); }
+  protected _messageKey: string = 'equals';
+  public constructor(private readonly expectedValue: unknown) { super(); }
   public execute(value: unknown): boolean | Promise<boolean> {
     return value === null
       || value === undefined

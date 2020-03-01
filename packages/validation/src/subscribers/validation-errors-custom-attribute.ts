@@ -1,9 +1,7 @@
 import { IContainer } from '@aurelia/kernel';
 import { bindable, BindingMode, customAttribute, INode } from '@aurelia/runtime';
-import { IValidationController, ValidationErrorsSubscriber, ValidationEvent, ValidationResultTarget } from '../validation-controller';
-
-// polyfill for Node.js
-const DOCUMENT_POSITION_PRECEDING = typeof Node !== 'undefined' ? Node.DOCUMENT_POSITION_PRECEDING : 2;
+import { IValidationController, ValidationResultsSubscriber, ValidationEvent, ValidationResultTarget } from '../validation-controller';
+import { DOCUMENT_POSITION_PRECEDING } from './common';
 
 /**
  * A validation errors subscriber in form of a custom attribute.
@@ -24,7 +22,7 @@ const DOCUMENT_POSITION_PRECEDING = typeof Node !== 'undefined' ? Node.DOCUMENT_
  * ```
  */
 @customAttribute('validation-errors')
-export class ValidationErrorsCustomAttribute implements ValidationErrorsSubscriber {
+export class ValidationErrorsCustomAttribute implements ValidationResultsSubscriber {
 
   @bindable public controller?: IValidationController;
 
@@ -39,7 +37,7 @@ export class ValidationErrorsCustomAttribute implements ValidationErrorsSubscrib
 
   public handleValidationEvent(event: ValidationEvent) {
     for (const { result } of event.removedResults) {
-      const index = this.errorsInternal.findIndex(x => x.result === result);
+      const index = this.errorsInternal.findIndex((x) => x.result === result);
       if (index !== -1) {
         this.errorsInternal.splice(index, 1);
       }
@@ -49,7 +47,7 @@ export class ValidationErrorsCustomAttribute implements ValidationErrorsSubscrib
       if (result.valid) {
         continue;
       }
-      const targets = elements.filter(e => this.host.contains(e));
+      const targets = elements.filter((e) => this.host.contains(e));
       if (targets.length > 0) {
         this.errorsInternal.push(new ValidationResultTarget(result, targets));
       }

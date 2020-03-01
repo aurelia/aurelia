@@ -6,25 +6,38 @@ import { IDefaultTrigger, ValidateBindingBehavior, ValidationTrigger } from './v
 import { IValidationControllerFactory, ValidationControllerFactory } from './validation-controller';
 import { ValidationCustomizationOptions } from './validation-customization-options';
 import { IValidator, StandardValidator } from './validator';
+import { ValidationContainerCustomElement } from './subscribers/validation-container-custom-element';
 
 export type ValidationConfigurationProvider = (options: ValidationCustomizationOptions) => void;
+
+export function getDefaultValidationConfiguration(): ValidationCustomizationOptions {
+  return {
+    ValidatorType: StandardValidator,
+    MessageProviderType: ValidationMessageProvider,
+    ValidationControllerFactoryType: ValidationControllerFactory,
+    CustomMessages: [],
+    DefaultTrigger: ValidationTrigger.blur
+  };
+}
 
 function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
   return {
     optionsProvider,
     register(container: IContainer) {
-      const options: ValidationCustomizationOptions = { ValidatorType: StandardValidator, CustomMessages: [], DefaultTrigger: ValidationTrigger.blur };
+      const options: ValidationCustomizationOptions = getDefaultValidationConfiguration();
+
       optionsProvider(options);
 
       return container.register(
         Registration.callback(ICustomMessages, () => options.CustomMessages),
         Registration.callback(IDefaultTrigger, () => options.DefaultTrigger),
         Registration.singleton(IValidator, options.ValidatorType),
-        Registration.singleton(IValidationMessageProvider, ValidationMessageProvider), // TODO enable customization of messages and i18n
+        Registration.singleton(IValidationMessageProvider, options.MessageProviderType),
         Registration.transient(IValidationRules, ValidationRules),
+        Registration.transient(IValidationControllerFactory, options.ValidationControllerFactoryType),
         ValidateBindingBehavior,
         ValidationErrorsCustomAttribute,
-        Registration.transient(IValidationControllerFactory, ValidationControllerFactory)
+        ValidationContainerCustomElement,
       );
     },
     customize(cb?: ValidationConfigurationProvider) {

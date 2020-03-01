@@ -8,7 +8,7 @@ import {
   ValidationConfiguration,
   ValidationController,
   ValidationErrorsCustomAttribute,
-  ValidationErrorsSubscriber,
+  ValidationResultsSubscriber,
 } from '@aurelia/validation';
 import { Spy } from '../../Spy';
 import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../../util';
@@ -54,6 +54,15 @@ describe('validation-errors-custom-attribute', function () {
 
     public beforeUnbind() {
       this.validationRules.off();
+      // mandatory cleanup in root
+      this.controller.reset();
+    }
+
+    public afterUnbind() {
+      const controller = this.controller;
+      assert.equal(controller.results.length, 0, 'the result should have been removed');
+      assert.equal(controller.bindings.size, 0, 'the bindings should have been removed');
+      assert.equal(controller.objects.size, 0, 'the objects should have been removed');
     }
   }
   interface TestSetupContext {
@@ -116,7 +125,7 @@ describe('validation-errors-custom-attribute', function () {
     assert.equal(handleValidationEventSpy.calls.length, 1, 'incorrect #calls for handleValidationEvent');
   }
   function assertSubscriber(controller: ValidationController, ca: ValidationErrorsCustomAttribute) {
-    const subscribers = (controller['subscribers'] as Set<ValidationErrorsSubscriber>);
+    const subscribers = (controller['subscribers'] as Set<ValidationResultsSubscriber>);
     assert.equal((subscribers).has(ca), true);
     assert.equal(ca.controller, controller);
   }
@@ -191,7 +200,7 @@ describe('validation-errors-custom-attribute', function () {
       <span class="error" repeat.for="errorInfo of ageErrors">
         \${errorInfo.result.message}
       </span>
-    </div>    
+    </div>
     ` }
   );
 
@@ -308,7 +317,7 @@ describe('validation-errors-custom-attribute', function () {
       <span class="error" repeat.for="errorInfo of ageErrors">
         \${errorInfo.result.message}
       </span>
-    </div>    
+    </div>
     `,
       removeSubscriberSpies: { controllerSpy: 1, controller2Spy: 1 }
     }

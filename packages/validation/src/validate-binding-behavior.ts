@@ -70,6 +70,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
     super(binding, expr);
     this.scheduler = this.locator.get(IScheduler);
     this.defaultTrigger = this.locator.get(IDefaultTrigger);
+    this.setPropertyBinding();
   }
 
   public updateSource(value: unknown, flags: LifecycleFlags) {
@@ -99,7 +100,6 @@ export class ValidateBindingBehavior extends BindingInterceptor {
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined) {
     this.scope = scope;
     this.binding.$bind(flags, scope, part);
-    this.setPropertyBinding();
     this.setTarget();
     const delta = this.processBindingExpressionArgs(flags);
     this.processDelta(delta);

@@ -14,7 +14,7 @@ import {
   ValidationConfiguration,
   ValidationController,
   ValidationControllerFactory,
-  ValidationErrorsSubscriber,
+  ValidationResultsSubscriber,
   ValidationEvent
 } from '@aurelia/validation';
 import { Spy } from '../Spy';
@@ -126,12 +126,11 @@ describe('validation-controller', function () {
     public afterUnbind() {
       const controller = this.controller;
       assert.equal(controller.results.length, 0, 'the result should have been removed');
-      assert.equal(controller['elements'].size, 0, 'the elements should have been removed');
       assert.equal(controller.bindings.size, 0, 'the bindings should have been removed');
       assert.equal(controller.objects.size, 0, 'the objects should have been removed');
     }
   }
-  class FooSubscriber implements ValidationErrorsSubscriber {
+  class FooSubscriber implements ValidationResultsSubscriber {
     public notifications: ValidationEvent[] = [];
     public handleValidationEvent(event: ValidationEvent): void {
       this.notifications.push(event);
@@ -454,7 +453,7 @@ describe('validation-controller', function () {
 
       await sut.validate(new ValidateInstruction((void 0)!, (void 0)!, (void 0)!, tag));
 
-      assert.deepEqual(sut.results.map((r) => r.toString()), ['a must be 42.']);
+      assert.deepEqual(sut.results.map((r) => r.toString()), ['A must be 42.']);
 
       // cleanup
       sut.removeObject(obj1);
@@ -477,7 +476,7 @@ describe('validation-controller', function () {
       const { valid, results } = await sut.validate(new ValidateInstruction(obj, void 0, void 0, tag1));
 
       assert.equal(valid, false);
-      const messages = ['name is required.'];
+      const messages = ['Name is required.'];
       assert.deepEqual(results.map((r) => r.toString()), messages);
       assert.deepEqual(sut.results.filter((r) => !r.valid).map((r) => r.toString()), messages);
 

@@ -499,7 +499,7 @@ describe('StandardValidator', function () {
     const result2 = await sut.validate(new ValidateInstruction(obj));
 
     assert.deepEqual(result1.map((r) => r.toString()), [msg1]);
-    assert.deepEqual(result2.map((r) => r.toString()), ['b must be 42.', msg2]);
+    assert.deepEqual(result2.map((r) => r.toString()), ['B must be 42.', msg2]);
 
     rules.off();
   });

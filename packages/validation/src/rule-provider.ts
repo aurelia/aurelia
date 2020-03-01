@@ -133,13 +133,13 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
         if (!isValidOrPromise) {
           const scope = Scope.create(flags, {
             $object: object,
-            $displayName: (displayName instanceof Function ? displayName() : displayName) ?? name,
+            $displayName: this.messageProvider.getDisplayName(name, displayName),
             $propertyName: name,
             $value: value,
             $rule: rule,
-            $getDisplayName: this.messageProvider.getDisplayName
+            $getDisplayName: this.messageProvider.getDisplayName.bind(this.messageProvider)
           });
-          message = rule.message.evaluate(flags, scope, null!) as string;
+          message = this.messageProvider.getMessage(rule).evaluate(flags, scope, null!) as string;
         }
         return new ValidationResult(isValidOrPromise, message, name, object, rule, this);
       };
@@ -180,7 +180,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
    * Note that custom keys needs to be registered during plugin registration.
    */
   public withMessageKey(key: string) {
-    this.assertLatesRule(this.latestRule);
+    this.assertLatestRule(this.latestRule);
     this.latestRule.messageKey = key;
     return this;
   }
@@ -189,8 +189,9 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
    * Specifies rule's validation message; this overrides the rules default validation message.
    */
   public withMessage(message: string) {
-    this.assertLatesRule(this.latestRule);
-    this.latestRule.setMessage(message);
+    const rule = this.latestRule;
+    this.assertLatestRule(rule);
+    this.messageProvider.setMessage(rule, message);
     return this;
   }
 
@@ -200,7 +201,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
    * @param {ValidationRuleExecutionPredicate<TObject>} condition - A function that accepts the object as a parameter and returns true or false whether the rule should be evaluated.
    */
   public when(this: PropertyRule<TObject>, condition: ValidationRuleExecutionPredicate<TObject>) {
-    this.assertLatesRule(this.latestRule);
+    this.assertLatestRule(this.latestRule);
     this.latestRule.canExecute = condition;
     return this;
   }
@@ -210,12 +211,12 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
    * The tag can later be used to perform selective validation.
    */
   public tag(tag: string) {
-    this.assertLatesRule(this.latestRule);
+    this.assertLatestRule(this.latestRule);
     this.latestRule.tag = tag;
     return this;
   }
 
-  private assertLatesRule(latestRule: BaseValidationRule | undefined): asserts latestRule is BaseValidationRule {
+  private assertLatestRule(latestRule: BaseValidationRule | undefined): asserts latestRule is BaseValidationRule {
     if (latestRule === void 0) {
       throw new Error('No rule has been added'); // TODO use reporter
     }
@@ -237,7 +238,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
    * @param {RuleCondition} condition - The function to validate the rule. Will be called with two arguments, the property value and the object.
    */
   public satisfies(condition: RuleCondition) {
-    const rule = new (class extends BaseValidationRule { public execute: RuleCondition = condition; })(this.messageProvider);
+    const rule = new (class extends BaseValidationRule { public execute: RuleCondition = condition; })();
     return this.addRule(rule);
   }
 
@@ -254,14 +255,14 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
    * Applies an instance of `RequiredRule`.
    */
   public required() {
-    return this.addRule(new RequiredRule(this.messageProvider));
+    return this.addRule(new RequiredRule());
   }
 
   /**
    * Applies an instance of `RegexRule`.
    */
   public matches(this: PropertyRule<TObject, string>, regex: RegExp) {
-    return this.addRule(new RegexRule(this.messageProvider, regex));
+    return this.addRule(new RegexRule(regex));
   }
 
   /**
@@ -270,7 +271,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   public email(this: PropertyRule<TObject, string>) {
     // eslint-disable-next-line no-useless-escape
     const emailPattern = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-    return this.addRule(new RegexRule(this.messageProvider, emailPattern, 'email'));
+    return this.addRule(new RegexRule(emailPattern, 'email'));
   }
 
   /**
@@ -278,7 +279,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
    * Applicable for string value.
    */
   public minLength(this: PropertyRule<TObject, string>, length: number) {
-    return this.addRule(new LengthRule(this.messageProvider, length, false));
+    return this.addRule(new LengthRule(length, false));
   }
 
   /**
@@ -286,7 +287,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
    * Applicable for string value.
    */
   public maxLength(this: PropertyRule<TObject, string>, length: number) {
-    return this.addRule(new LengthRule(this.messageProvider, length, true));
+    return this.addRule(new LengthRule(length, true));
   }
 
   /**
@@ -294,7 +295,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
    * Applicable for array value.
    */
   public minItems(this: PropertyRule<TObject, unknown[]>, count: number) {
-    return this.addRule(new SizeRule(this.messageProvider, count, false));
+    return this.addRule(new SizeRule(count, false));
   }
 
   /**
@@ -302,7 +303,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
    * Applicable for array value.
    */
   public maxItems(this: PropertyRule<TObject, unknown[]>, count: number) {
-    return this.addRule(new SizeRule(this.messageProvider, count, true));
+    return this.addRule(new SizeRule(count, true));
   }
 
   /**
@@ -310,7 +311,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
    * Applicable for number value.
    */
   public min(this: PropertyRule<TObject, number>, constraint: number) {
-    return this.addRule(new RangeRule(this.messageProvider, true, { min: constraint }));
+    return this.addRule(new RangeRule(true, { min: constraint }));
   }
 
   /**
@@ -318,7 +319,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
    * Applicable for number value.
    */
   public max(this: PropertyRule<TObject, number>, constraint: number) {
-    return this.addRule(new RangeRule(this.messageProvider, true, { max: constraint }));
+    return this.addRule(new RangeRule(true, { max: constraint }));
   }
 
   /**
@@ -326,7 +327,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
    * Applicable for number value.
    */
   public range(this: PropertyRule<TObject, number>, min: number, max: number) {
-    return this.addRule(new RangeRule(this.messageProvider, true, { min, max }));
+    return this.addRule(new RangeRule(true, { min, max }));
   }
 
   /**
@@ -334,14 +335,14 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
    * Applicable for number value.
    */
   public between(this: PropertyRule<TObject, number>, min: number, max: number) {
-    return this.addRule(new RangeRule(this.messageProvider, false, { min, max }));
+    return this.addRule(new RangeRule(false, { min, max }));
   }
 
   /**
    * Applies an instance of `EqualsRule` with the `expectedValue`.
    */
   public equals(expectedValue: unknown) {
-    return this.addRule(new EqualsRule(this.messageProvider, expectedValue));
+    return this.addRule(new EqualsRule(expectedValue));
   }
   // #endregion
 
@@ -541,6 +542,7 @@ const contextualProperties: Readonly<Set<string>> = new Set([
 export class ValidationMessageProvider implements IValidationMessageProvider {
 
   private readonly logger: ILogger;
+  protected registeredMessages: WeakMap<BaseValidationRule, IInterpolationExpression | PrimitiveLiteralExpression> = new WeakMap<BaseValidationRule, IInterpolationExpression | PrimitiveLiteralExpression>();
 
   public constructor(
     @IExpressionParser public parser: IExpressionParser,
@@ -554,6 +556,9 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
   }
 
   public getMessage(rule: BaseValidationRule): IInterpolationExpression | PrimitiveLiteralExpression {
+    const parsedMessage = this.registeredMessages.get(rule);
+    if (parsedMessage !== void 0) { return parsedMessage; }
+
     const validationMessages = ValidationRuleAliasMessage.getDefaultMessages(rule);
     const messageKey = rule.messageKey;
     let message: string | undefined;
@@ -566,7 +571,13 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
     if (!message) {
       message = ValidationRuleAliasMessage.getDefaultMessages(BaseValidationRule)[0].defaultMessage!;
     }
-    return this.parseMessage(message);
+    return this.setMessage(rule, message);
+  }
+
+  public setMessage(rule: BaseValidationRule, message: string): IInterpolationExpression | PrimitiveLiteralExpression {
+    const parsedMessage = this.parseMessage(message);
+    this.registeredMessages.set(rule, parsedMessage);
+    return parsedMessage;
   }
 
   public parseMessage(message: string): IInterpolationExpression | PrimitiveLiteralExpression {
@@ -586,18 +597,15 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
     return new PrimitiveLiteralExpression(message);
   }
 
-  public getDisplayName(propertyName: string | number, displayName?: string | null | (() => string)): string {
+  public getDisplayName(propertyName: string | number | undefined, displayName?: string | null | (() => string)): string | undefined {
     if (displayName !== null && displayName !== undefined) {
       return (displayName instanceof Function) ? displayName() : displayName as string;
     }
 
+    if (propertyName === void 0) { return; }
     // split on upper-case letters.
     const words = propertyName.toString().split(/(?=[A-Z])/).join(' ');
     // capitalize first letter.
     return words.charAt(0).toUpperCase() + words.slice(1);
   }
-}
-
-export class LocalizedValidationMessageProvider extends ValidationMessageProvider {
-  // TODO no more monkey patching prototype in user code, rather a standard i18n validation message provider impl
 }

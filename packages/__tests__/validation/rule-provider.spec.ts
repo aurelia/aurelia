@@ -689,10 +689,10 @@ describe('ValidationMessageProvider', function () {
     it(`rule.message returns the registered message for a rule instance - ${title}`, function () {
       const { sut, container } = setup();
       const message = 'FooBar';
-      const $rule = getRule(sut);
-      $rule.setMessage(message);
+      const $rule = getRule();
+      sut.setMessage($rule, message);
       const scope = { bindingContext: {}, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
-      const actual = $rule.message.evaluate(LifecycleFlags.none, scope, container);
+      const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, container);
       assert.equal(actual, message);
     });
 
@@ -701,8 +701,8 @@ describe('ValidationMessageProvider', function () {
       const $rule = getRule();
       const scope = { bindingContext: { $displayName: 'FooBar', $rule }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
       const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, container);
-      assert.equal(actual, expected);
-    }));
+      assert.equal(actual, messages[i]);
+    });
 
     it(`rule.message returns the default message the registered key is not found - ${title}`, function () {
       const { sut, container } = setup();

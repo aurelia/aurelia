@@ -315,7 +315,7 @@ describe('StandardValidator', function () {
       validationRules.off();
     });
 
-    it(`validates only tagged rules for property when provided with specific rules`, async function () {
+    it(`validates only tagged rules for object when provided with specific rules`, async function () {
       const { sut, validationRules: rules } = setup();
       const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
       const tag1 = 'tag1', tag2 = 'tag2';
@@ -332,8 +332,8 @@ describe('StandardValidator', function () {
       const result1 = await sut.validate(new ValidateInstruction(obj, void 0, void 0, tag1));
       const result2 = await sut.validate(new ValidateInstruction(obj, void 0, void 0, tag2));
 
-      assert.deepEqual(result1.map((r) => r.toString()), ['name is required.']);
-      assert.deepEqual(result2.map((r) => r.toString()), ['age is required.']);
+      assert.deepEqual(result1.map((r) => r.toString()), ['Name is required.']);
+      assert.deepEqual(result2.map((r) => r.toString()), ['Age is required.']);
 
       rules.off();
     });
@@ -354,7 +354,7 @@ describe('StandardValidator', function () {
 
       const result1 = await sut.validate(new ValidateInstruction(obj));
 
-      assert.deepEqual(result1.map((r) => r.toString()), ['name is required.']);
+      assert.deepEqual(result1.map((r) => r.toString()), ['Name is required.']);
 
       rules.off();
     });
@@ -390,7 +390,7 @@ describe('StandardValidator', function () {
 
       const result1 = await sut.validate(new ValidateInstruction(person));
 
-      assert.deepEqual(result1.map((r) => r.toString()), ['FooBar foobar fizbaz', 'age is required.', 'address.line1 is invalid.']);
+      assert.deepEqual(result1.map((r) => r.toString()), ['FooBar foobar fizbaz', 'Age is required.', 'Address.line1 is required.']);
 
       ValidationRuleAliasMessage.setDefaultMessage(RequiredRule, { aliases: defaultRequiredRulesMessages }, false);
 

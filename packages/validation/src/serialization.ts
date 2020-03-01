@@ -179,7 +179,7 @@ export class ModelValidationHydrator implements IValidationHydrator {
     throw new Error('Method not implemented.');
   }
 
-  public hydrateRuleset(ruleset: Record<string, any>, validationRules: IValidationRules<IValidateable<any>>): any[] {
+  public hydrateRuleset(ruleset: Record<string, any>, validationRules: IValidationRules): any[] {
     const accRules: IPropertyRule[] = [];
     // depth first traversal
     const iterate = (entries: [string, any][], propertyPath: string[] = []) => {

@@ -1,5 +1,5 @@
 import { I18N, Signals } from "@aurelia/i18n";
-import { IValidationController, IValidator, ValidationControllerFactory, ValidationController, ValidationMessageProvider, ICustomMessage, BaseValidationRule } from "@aurelia/validation";
+import { IValidationController, IValidator, ValidationControllerFactory, ValidationController, ValidationMessageProvider, BaseValidationRule } from "@aurelia/validation";
 import { IExpressionParser, IScheduler, PrimitiveLiteralExpression, IInterpolationExpression } from '@aurelia/runtime';
 import { EventAggregator, IEventAggregator, ILogger, IDisposable, DI } from '@aurelia/kernel';
 import { ValidationCustomizationOptions } from '@aurelia/validation/dist/validation-customization-options';

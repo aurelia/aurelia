@@ -985,12 +985,14 @@ describe('PropertyRule', function () {
     assert.equal(rules.length, 1, 'error1');
     const nameRule = rules[0];
 
-    let result = await nameRule.validate('foobar', obj1);
+    obj1.name = 'foobar';
+    let result = await nameRule.validate(obj1);
     assert.equal(result.length, 1);
     assert.equal(result[0].valid, false);
     assert.equal(result[0].propertyName, 'name');
 
-    result = await nameRule.validate('foo', obj1);
+    obj1.name = 'foo';
+    result = await nameRule.validate(obj1);
     assert.equal(result.length, 1);
     assert.equal(result[0].valid, true);
     assert.equal(result[0].propertyName, 'name');
@@ -1012,11 +1014,11 @@ describe('PropertyRule', function () {
     assert.equal(rules.length, 1, 'error1');
     const nameRule = rules[0];
 
-    let result = await nameRule.validate(undefined, obj);
+    let result = await nameRule.validate(obj);
     assert.equal(result[0].valid, false);
     assert.equal(result[0].message, 'Name1 is required.');
 
-    result = await nameRule.validate(undefined, obj);
+    result = await nameRule.validate(obj);
     assert.equal(result[0].valid, false);
     assert.equal(result[0].message, 'Name2 is required.');
 
@@ -1033,11 +1035,11 @@ describe('PropertyRule', function () {
       .when((o) => o.age > 5)
       .rules[0];
 
-    let result = await rule.validate(undefined, obj);
+    let result = await rule.validate(obj);
     assert.equal(result.length, 0);
 
     obj.age = 10;
-    result = await rule.validate(undefined, obj);
+    result = await rule.validate(obj);
     assert.equal(result[0].valid, false);
     assert.equal(result[0].message, 'Name is required.');
 
@@ -1055,17 +1057,15 @@ describe('PropertyRule', function () {
       .matches(/foo/)
       .rules[0];
 
-    let result = await rule.validate('test', obj);
+    let result = await rule.validate(obj);
     assert.deepStrictEqual(result.filter(r => !r.valid).map((r) => r.toString()), ['Name must be at least 42 characters.']);
 
-    let newName = 'a'.repeat(42);
-    obj.name = newName;
-    result = await rule.validate(newName, obj);
+    obj.name = 'a'.repeat(42);
+    result = await rule.validate(obj);
     assert.deepStrictEqual(result.filter(r => !r.valid).map((r) => r.toString()), ['Name is not correctly formatted.']);
 
-    newName = 'foo'.repeat(14);
-    obj.name = newName;
-    result = await rule.validate(newName, obj);
+    obj.name = 'foo'.repeat(14);
+    result = await rule.validate(obj);
     assert.deepStrictEqual(result.filter(r => !r.valid).map((r) => r.toString()), []);
 
     validationRules.off();
@@ -1103,7 +1103,8 @@ describe('PropertyRule', function () {
       .tag(tag)
       .rules[0];
 
-    const results = await rule.validate('', obj);
+    obj.name = '';
+    const results = await rule.validate(obj);
     assert.equal(results.length, 2);
     assert.deepEqual(results.map((r) => r.message), ['Name is required.', msg]);
 
@@ -1124,11 +1125,11 @@ describe('PropertyRule', function () {
       .tag(tag)
       .rules[0];
 
-    const results = await rule.validate('', obj, tag);
+    obj.name = '';
+    const results = await rule.validate(obj, tag);
     assert.equal(results.length, 1);
     assert.deepEqual(results[0].message, msg);
 
     validationRules.off();
   });
 });
-

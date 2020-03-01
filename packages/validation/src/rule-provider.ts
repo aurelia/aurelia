@@ -119,7 +119,25 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
     return this.$rules[depth];
   }
 
-  public async validate(value: TValue, object?: IValidateable, tag?: string, flags: LifecycleFlags = LifecycleFlags.none): Promise<ValidationResult[]> {
+  public async validate(
+    object?: IValidateable,
+    tag?: string,
+    flags?: LifecycleFlags,
+    scope?: Scope
+  ): Promise<ValidationResult[]> {
+    if (flags === void 0) {
+      flags = LifecycleFlags.none;
+    }
+    if (scope === void 0) {
+      scope = Scope.create(flags, { [rootObjectSymbol]: object });
+    }
+    const expression = this.property.expression;
+    let value: unknown;
+    if (expression === void 0) {
+      value = object;
+    } else {
+      value = expression.evaluate(flags, scope, null!);
+    }
 
     let isValid = true;
     const validateRuleset = async (rules: BaseValidationRule[]) => {
@@ -132,7 +150,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
         const { displayName, name } = this.property;
         let message: string | undefined;
         if (!isValidOrPromise) {
-          const scope = Scope.create(flags, {
+          const messageEvaluationScope = Scope.create(flags!, {
             $object: object,
             $displayName: this.messageProvider.getDisplayName(name, displayName),
             $propertyName: name,
@@ -140,7 +158,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
             $rule: rule,
             $getDisplayName: this.messageProvider.getDisplayName.bind(this.messageProvider)
           });
-          message = this.messageProvider.getMessage(rule).evaluate(flags, scope, null!) as string;
+          message = this.messageProvider.getMessage(rule).evaluate(flags!, messageEvaluationScope, null!) as string;
         }
         return new ValidationResult(isValidOrPromise, message, name, object, rule, this);
       };

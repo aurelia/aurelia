@@ -10,8 +10,7 @@ import {
   MockSignaler,
   MockValueConverter,
   MockBinding,
-  assert,
-  TestContext
+  assert
 } from '@aurelia/testing';
 import {
   AccessKeyedExpression,
@@ -63,8 +62,7 @@ import {
   TemplateExpression,
   UnaryExpression,
   ValueConverterExpression,
-  IOverrideContext,
-  IScheduler
+  IOverrideContext
 } from '@aurelia/runtime';
 
 const $false = PrimitiveLiteralExpression.$false;
@@ -2029,7 +2027,7 @@ describe('BindingBehaviorExpression', function () {
       const sut = new BindingBehaviorExpression(expr as any, 'mock', args);
 
       const mock = new MockBindingBehavior();
-      const locator = new MockServiceLocator(new Map<any, any>([['au:resource:binding-behavior:mock', mock], [IScheduler, TestContext.createHTMLTestContext().scheduler]]));
+      const locator = new MockServiceLocator(new Map<any, any>([['au:resource:binding-behavior:mock', mock]]));
       const observerLocator = createObserverLocator();
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
@@ -2046,7 +2044,7 @@ describe('BindingBehaviorExpression', function () {
       const sut = new BindingBehaviorExpression(expr as any, 'mock', args as any);
 
       const mock = new MockBindingBehavior();
-      const locator = new MockServiceLocator(new Map<any, any>([['au:resource:binding-behavior:mock', mock], [IScheduler, TestContext.createHTMLTestContext().scheduler]]));
+      const locator = new MockServiceLocator(new Map<any, any>([['au:resource:binding-behavior:mock', mock]]));
       const observerLocator = createObserverLocator();
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
@@ -2069,7 +2067,7 @@ describe('BindingBehaviorExpression', function () {
       const sut = new BindingBehaviorExpression(expr as any, 'mock', args as any);
 
       const mock = new MockBindingBehavior();
-      const locator = new MockServiceLocator(new Map<any, any>([['au:resource:binding-behavior:mock', mock], [IScheduler, TestContext.createHTMLTestContext().scheduler]]));
+      const locator = new MockServiceLocator(new Map<any, any>([['au:resource:binding-behavior:mock', mock]]));
       const observerLocator = createObserverLocator();
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
@@ -2295,7 +2293,7 @@ describe('ValueConverterExpression', function () {
       const methods = [];
       const mock = new MockValueConverter(methods);
       mock['signals'] = signals;
-      const locator = new MockServiceLocator(new Map<any, any>([['au:resource:value-converter:mock', mock], [ISignaler, signaler], [IScheduler, TestContext.createHTMLTestContext().scheduler]]));
+      const locator = new MockServiceLocator(new Map<any, any>([['au:resource:value-converter:mock', mock], [ISignaler, signaler]]));
       const observerLocator = createObserverLocator();
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
@@ -2312,7 +2310,7 @@ describe('ValueConverterExpression', function () {
       const methods = ['toView'];
       const mock = new MockValueConverter(methods);
       mock['signals'] = signals;
-      const locator = new MockServiceLocator(new Map<any, any>([['au:resource:value-converter:mock', mock], [ISignaler, signaler], [IScheduler, TestContext.createHTMLTestContext().scheduler]]));
+      const locator = new MockServiceLocator(new Map<any, any>([['au:resource:value-converter:mock', mock], [ISignaler, signaler]]));
       const observerLocator = createObserverLocator();
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
@@ -2329,7 +2327,7 @@ describe('ValueConverterExpression', function () {
       const methods = ['fromView'];
       const mock = new MockValueConverter(methods);
       mock['signals'] = signals;
-      const locator = new MockServiceLocator(new Map<any, any>([['au:resource:value-converter:mock', mock], [ISignaler, signaler], [IScheduler, TestContext.createHTMLTestContext().scheduler]]));
+      const locator = new MockServiceLocator(new Map<any, any>([['au:resource:value-converter:mock', mock], [ISignaler, signaler]]));
       const observerLocator = createObserverLocator();
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
@@ -2346,7 +2344,7 @@ describe('ValueConverterExpression', function () {
       const methods = ['toView', 'fromView'];
       const mock = new MockValueConverter(methods);
       mock['signals'] = signals;
-      const locator = new MockServiceLocator(new Map<any, any>([['au:resource:value-converter:mock', mock], [ISignaler, signaler], [IScheduler, TestContext.createHTMLTestContext().scheduler]]));
+      const locator = new MockServiceLocator(new Map<any, any>([['au:resource:value-converter:mock', mock], [ISignaler, signaler]]));
       const observerLocator = createObserverLocator();
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
@@ -2364,7 +2362,7 @@ describe('ValueConverterExpression', function () {
       const methods = ['toView', 'fromView'];
       const mock = new MockValueConverter(methods);
       mock['signals'] = signals;
-      const locator = new MockServiceLocator(new Map<any, any>([['au:resource:value-converter:mock', mock], [ISignaler, signaler], [IScheduler, TestContext.createHTMLTestContext().scheduler]]));
+      const locator = new MockServiceLocator(new Map<any, any>([['au:resource:value-converter:mock', mock], [ISignaler, signaler]]));
       const observerLocator = createObserverLocator();
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
@@ -2388,7 +2386,7 @@ describe('ValueConverterExpression', function () {
       const methods = ['toView', 'fromView'];
       const mock = new MockValueConverter(methods);
       mock['signals'] = signals;
-      const locator = new MockServiceLocator(new Map<any, any>([['au:resource:value-converter:mock', mock], [ISignaler, signaler], [IScheduler, TestContext.createHTMLTestContext().scheduler]]));
+      const locator = new MockServiceLocator(new Map<any, any>([['au:resource:value-converter:mock', mock], [ISignaler, signaler]]));
       const observerLocator = createObserverLocator();
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 

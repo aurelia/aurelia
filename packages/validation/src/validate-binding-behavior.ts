@@ -74,7 +74,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
   }
 
   public updateSource(value: unknown, flags: LifecycleFlags) {
-    // TODO need better approach. If done icorrectly may cause infinite loop, stack overflow 💣
+    // TODO: need better approach. If done incorrectly may cause infinite loop, stack overflow 💣
     if (this.interceptor !== this) {
       this.interceptor.updateSource(value, flags);
     } else {
@@ -157,7 +157,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
           arg.connect(flags, scope, this.rulesMediator);
           break;
         default:
-          throw new Error(`Unconsumed argument#${i + 1} for validate binding behavior: ${temp}`); // TODO use reporter
+          throw new Error(`Unconsumed argument#${i + 1} for validate binding behavior: ${temp}`); // TODO: use reporter
       }
       this.connectedExpressions.push(arg);
     }
@@ -196,7 +196,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
     if (trigger === (void 0) || trigger === null) {
       trigger = this.defaultTrigger;
     } else if (!Object.values(ValidationTrigger).includes(trigger as ValidationTrigger)) {
-      throw new Error(`${trigger} is not a supported validation trigger`); // TODO use reporter
+      throw new Error(`${trigger} is not a supported validation trigger`); // TODO: use reporter
     }
     return trigger as ValidationTrigger;
   }
@@ -205,7 +205,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
     if (controller === (void 0) || controller === null) {
       controller = this.locator.get(IValidationController);
     } else if (!(controller instanceof ValidationController)) {
-      throw new Error(`${controller} is not of type ValidationController`); // TODO use reporter
+      throw new Error(`${controller} is not of type ValidationController`); // TODO: use reporter
     }
     return controller as ValidationController;
   }
@@ -234,7 +234,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
     } else {
       const controller = (target as CustomElementHost)?.$controller;
       if (controller === void 0) {
-        throw new Error('Invalid binding target'); // TODO use reporter
+        throw new Error('Invalid binding target'); // TODO: use reporter
       }
       this.target = controller.host as HTMLElement;
     }

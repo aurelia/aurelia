@@ -4,6 +4,5 @@ module.exports = {
   ],
   rules: {
     'no-template-curly-in-string': 'off',
-    'no-useless-escape': 'off'
   }
 };

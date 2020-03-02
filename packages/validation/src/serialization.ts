@@ -44,7 +44,7 @@ export class ValidationSerializer implements IValidationVisitor {
   public visitRuleProperty(property: RuleProperty): string {
     const displayName = property.displayName;
     if (displayName !== void 0 && typeof displayName !== 'string') {
-      throw new Error('Serializing a non-string displayName for rule property is not supported.'); // TODO use reporter/logger
+      throw new Error('Serializing a non-string displayName for rule property is not supported.'); // TODO: use reporter/logger
     }
     const expression = property.expression;
     return `{"$TYPE":"${RuleProperty.$TYPE}","name":${serializePrimitive(property.name)},"expression":${expression ? Serializer.serialize(expression) : null},"displayName":${serializePrimitive(displayName)}}`;
@@ -157,7 +157,7 @@ export class ValidationDeserializer implements IValidationHydrator {
 
   public hydrateRuleset(ruleset: Hydratable[], validationRules: IValidationRules): PropertyRule[] {
     if (!Array.isArray(ruleset)) {
-      throw new Error("The ruleset has to be an array of serialized property rule objects"); // TODO use reporter
+      throw new Error("The ruleset has to be an array of serialized property rule objects"); // TODO: use reporter
     }
     return ruleset.map(($rule) => this.hydrate($rule, validationRules) as PropertyRule);
   }
@@ -287,7 +287,7 @@ export class ModelValidationHydrator implements IValidationHydrator {
   private hydrateRuleProperty(raw: Pick<RuleProperty, 'expression' | 'name' | 'displayName'>) {
     const rawName = raw.name;
     if (!rawName || typeof rawName !== 'string') {
-      throw new Error('The property name needs to be a non-empty string'); // TODO use reporter
+      throw new Error('The property name needs to be a non-empty string'); // TODO: use reporter
     }
     const [name, expression] = parsePropertyName(rawName, this.parser);
     return new RuleProperty(expression, name, raw.displayName);

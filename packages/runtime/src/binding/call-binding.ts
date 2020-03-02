@@ -17,7 +17,7 @@ import {
 } from './ast';
 import { IConnectableBinding } from './connectable';
 
-export interface CallBinding extends IConnectableBinding { }
+export interface CallBinding extends IConnectableBinding {}
 export class CallBinding {
   public interceptor: this = this;
 

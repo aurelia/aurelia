@@ -44,7 +44,6 @@ Intl['RelativeTimeFormat'] = Intl['RelativeTimeFormat'] || RelativeTimeFormat;
       SutI18N,
       CustomMessage,
     );
-  // au.container.register(SutI18N, CustomMessage, SutValidation);
   au.app({ host, component });
 
   await au.start().wait();

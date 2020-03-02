@@ -9,11 +9,11 @@ import {
   IsBindingBehavior,
   IScope,
   LifecycleFlags,
-  State,
+  State
 } from '@aurelia/runtime';
 import { IEventManager } from '../observation/event-manager';
 
-export interface Listener extends IConnectableBinding { }
+export interface Listener extends IConnectableBinding {}
 /**
  * Listener binding. Handle event binding between view and view model
  */

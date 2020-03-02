@@ -49,7 +49,7 @@ describe('validation-errors-custom-attribute', function () {
         .displayName('Age')
         .required()
         .satisfies((age: any) => age !== '' && age % 3 === 0 && age % 5 === 0)
-        .withMessage('\${$displayName} is not fizbaz');
+        .withMessage('${$displayName} is not fizbaz');
     }
 
     public beforeUnbind() {

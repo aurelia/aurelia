@@ -35,7 +35,7 @@ const { oneTime, toView, fromView } = BindingMode;
 // pre-combining flags for bitwise checks is a minor perf tweak
 const toViewOrOneTime = toView | oneTime;
 
-export interface PropertyBinding extends IConnectableBinding { }
+export interface PropertyBinding extends IConnectableBinding {}
 
 @connectable()
 export class PropertyBinding implements IPartialConnectableBinding {

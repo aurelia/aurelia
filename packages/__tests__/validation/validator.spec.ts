@@ -181,7 +181,7 @@ describe('StandardValidator', function () {
 
           .ensure(getProperty3() as any)
           .matches(/foo/)
-          .withMessage("\${$value} does not match pattern");
+          .withMessage('${$value} does not match pattern');
 
         let result = await sut.validate(new ValidateInstruction(obj));
         assert.equal(result.length, 3);

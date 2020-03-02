@@ -32,7 +32,7 @@ const { oneTime, toView, fromView } = BindingMode;
 // pre-combining flags for bitwise checks is a minor perf tweak
 const toViewOrOneTime = toView | oneTime;
 
-export interface AttributeBinding extends IConnectableBinding { }
+export interface AttributeBinding extends IConnectableBinding {}
 
 /**
  * Attribute binding. Handle attribute binding betwen view/view model. Understand Html special attributes
@@ -86,7 +86,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     this.sourceExpression.assign!(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.locator, value);
   }
 
-  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
+  public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
     if (!(this.$state & State.isBound)) {
       return;
     }
@@ -99,7 +99,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     }
 
     if (flags & LifecycleFlags.updateTargetInstance) {
-      previousValue = this.targetObserver.getValue();
+      const previousValue = this.targetObserver.getValue();
       // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
       if (this.sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
         newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);

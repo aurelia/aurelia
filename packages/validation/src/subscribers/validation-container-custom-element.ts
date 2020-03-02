@@ -6,7 +6,7 @@ import { DOCUMENT_POSITION_PRECEDING } from './common';
   name: 'validation-container',
   shadowOptions: { mode: 'open' },
   hasSlots: true,
-  // TODO customize template from plugin registration
+  // TODO: customize template from plugin registration
   template: `
 <slot></slot>
 <slot name='secondary'>

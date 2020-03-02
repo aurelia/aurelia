@@ -85,10 +85,10 @@ export class BaseValidationRule<TValue = any, TObject extends IValidateable = IV
   ) { }
   public canExecute(_object?: IValidateable): boolean { return true; }
   public execute(_value: TValue, _object?: TObject): boolean | Promise<boolean> {
-    throw new Error('No base implementation of execute. Did you forget to implement the execute method?'); // TODO reporter
+    throw new Error('No base implementation of execute. Did you forget to implement the execute method?'); // TODO: reporter
   }
   public accept(_visitor: IValidationVisitor): any {
-    throw new Error('No base implementation of accept. Did you forget to implement the accept method?'); // TODO reporter
+    throw new Error('No base implementation of accept. Did you forget to implement the accept method?'); // TODO: reporter
   }
 }
 

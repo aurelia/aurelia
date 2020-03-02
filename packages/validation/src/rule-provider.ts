@@ -235,7 +235,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
 
   private assertLatestRule(latestRule: BaseValidationRule | undefined): asserts latestRule is BaseValidationRule {
     if (latestRule === void 0) {
-      throw new Error('No rule has been added'); // TODO use reporter
+      throw new Error('No rule has been added'); // TODO: use reporter
     }
   }
   // #endregion
@@ -499,7 +499,7 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
     for (const rule of rules) {
       const tag = rule.tag;
       if (tags.has(tag)) {
-        console.warn(`A ruleset for tag ${tag} is already defined which will be overwritten`); // TODO use reporter/logger
+        console.warn(`A ruleset for tag ${tag} is already defined which will be overwritten`); // TODO: use reporter/logger
       }
       const rules = this.deserializer.hydrateRuleset(rule.ruleset, this);
       validationRulesRegistrar.set(target, rules, tag);
@@ -521,13 +521,13 @@ export function parsePropertyName(property: string | PropertyAccessor, parser: I
       const fn = property.toString();
       const match = arrowAccessorPattern.exec(fn) ?? classicAccessorPattern.exec(fn);
       if (match === null) {
-        throw new Error(`Unable to parse accessor function:\n${fn}`); // TODO use reporter
+        throw new Error(`Unable to parse accessor function:\n${fn}`); // TODO: use reporter
       }
       property = match[1].substring(1);
       break;
     }
     default:
-      throw new Error(`Unable to parse accessor function:\n${property}`); // TODO use reporter
+      throw new Error(`Unable to parse accessor function:\n${property}`); // TODO: use reporter
   }
 
   return [property, parser.parse(`${rootObjectSymbol}.${property}`, BindingType.BindCommand)];
@@ -628,7 +628,7 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
           this.logger.warn(`Did you mean to use "$${name}" instead of "${name}" in this validation message template: "${message}"?`);
         }
         if (expr instanceof AccessThisExpression || (expr as AccessScopeExpression).ancestor > 0) {
-          throw new Error('$parent is not permitted in validation message expressions.'); // TODO use reporter
+          throw new Error('$parent is not permitted in validation message expressions.'); // TODO: use reporter
         }
       }
       return parsed;

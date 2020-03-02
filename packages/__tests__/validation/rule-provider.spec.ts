@@ -35,7 +35,7 @@ import {
   validationRulesRegistrar,
   rootObjectSymbol,
 } from '@aurelia/validation';
-import { IPerson, Person } from './_test-resources';
+import { Person } from './_test-resources';
 
 describe('ValidationRules', function () {
 
@@ -292,7 +292,7 @@ describe('ValidationRules', function () {
 
   it('can define metadata annotation for rules on an object', function () {
     const { sut } = setup();
-    const obj: IPerson = { name: (void 0)!, age: (void 0)! };
+    const obj: Person = new Person((void 0)!, (void 0)!);
     const rules = sut
       .on(obj)
 
@@ -338,7 +338,7 @@ describe('ValidationRules', function () {
 
   it('can define rules on properties of an object using lambda expression', function () {
     const { sut } = setup();
-    const obj: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
+    const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
     const rules = sut
       .on(obj)
 
@@ -401,8 +401,8 @@ describe('ValidationRules', function () {
 
   it('can define rules on multiple objects', function () {
     const { sut } = setup();
-    const obj1: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
-    const obj2: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
+    const obj1: Person = new Person((void 0)!, (void 0)!, (void 0)!);
+    const obj2: Person = new Person((void 0)!, (void 0)!, (void 0)!);
     sut
       .on(obj1)
       .ensure('name')
@@ -445,7 +445,7 @@ describe('ValidationRules', function () {
 
   it('can define multiple ruleset for the same object using tagging', function () {
     const { sut } = setup();
-    const obj: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
+    const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
     const tag1 = 'tag1', tag2 = 'tag2';
     sut
       .on(obj, tag1)
@@ -471,7 +471,7 @@ describe('ValidationRules', function () {
 
   it('can be used to delete the rules defined for an object', function () {
     const { sut } = setup();
-    const obj: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
+    const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
     sut
       .on(obj)
       .ensure('name')
@@ -488,7 +488,7 @@ describe('ValidationRules', function () {
 
   it('can be used to delete specific ruleset', function () {
     const { sut } = setup();
-    const obj: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
+    const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
     const tag1 = 'tag1', tag2 = 'tag2';
 
     assert.equal(validationRulesRegistrar.isValidationRulesSet(obj), false);
@@ -524,7 +524,7 @@ describe('ValidationRules', function () {
 
   it('can be used to delete all ruleset by default for a given object', function () {
     const { sut } = setup();
-    const obj: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
+    const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
     const tag1 = 'tag1', tag2 = 'tag2';
 
     assert.equal(validationRulesRegistrar.isValidationRulesSet(obj), false);
@@ -977,7 +977,7 @@ describe('PropertyRule', function () {
 
   it('can validate async rules', async function () {
     const { validationRules } = setup();
-    const obj1: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
+    const obj1: Person = new Person((void 0)!, (void 0)!, (void 0)!);
     const rules = validationRules
       .on(obj1)
       .ensure('name')
@@ -1004,7 +1004,7 @@ describe('PropertyRule', function () {
 
   it('respects a function for displayName', async function () {
     const { validationRules } = setup();
-    const obj: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
+    const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
     let i = 0;
     const rules = validationRules
       .on(obj)
@@ -1029,7 +1029,7 @@ describe('PropertyRule', function () {
 
   it('respects execution condition', async function () {
     const { validationRules } = setup();
-    const obj: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
+    const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
     const rule = validationRules
       .on(obj)
       .ensure('name')
@@ -1050,7 +1050,7 @@ describe('PropertyRule', function () {
 
   it('respects rule chaining', async function () {
     const { validationRules } = setup();
-    const obj: IPerson = { name: 'test', age: (void 0)!, address: (void 0)! };
+    const obj: Person = new Person('test', (void 0)!, (void 0)!);
     const rule = validationRules
       .on(obj)
       .ensure('name')
@@ -1075,7 +1075,7 @@ describe('PropertyRule', function () {
 
   it('can be used to tag the rules', function () {
     const { validationRules } = setup();
-    const obj: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
+    const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
     const tag = 'foo';
     const rules = validationRules
       .on(obj)
@@ -1093,7 +1093,7 @@ describe('PropertyRule', function () {
 
   it('validates all rules by default despite some of those are tagged', async function () {
     const { validationRules } = setup();
-    const obj: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
+    const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
     const tag = 'foo';
     const msg = 'not foobar';
     const rule = validationRules
@@ -1115,7 +1115,7 @@ describe('PropertyRule', function () {
 
   it('validates only the tagged rules when provided', async function () {
     const { validationRules } = setup();
-    const obj: IPerson = { name: (void 0)!, age: (void 0)!, address: (void 0)! };
+    const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
     const tag = 'foo';
     const msg = 'not foobar';
     const rule = validationRules

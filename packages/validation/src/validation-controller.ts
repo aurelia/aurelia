@@ -230,7 +230,7 @@ export interface IValidationController {
    * @param {ValidateInstruction} [instruction] - Instructions on what to reset. If omitted all rendered results will be removed.
    */
   reset(instruction?: ValidateInstruction): void;
-  // TODO have dispose
+  // TODO: have dispose
 }
 export const IValidationController = DI.createInterface<IValidationController>("IValidationController").noDefault();
 
@@ -427,7 +427,7 @@ export class ValidationController implements IValidationController {
     }
     await Promise.all(promises);
   }
-  // TODO have dispose
+  // TODO: have dispose
 
   /**
    * Interprets the instruction and returns a predicate that will identify relevant results in the list of rendered validation results.
@@ -475,14 +475,14 @@ export class ValidationController implements IValidationController {
           break;
         }
         default:
-          throw new Error(`Unknown expression of type ${expression.constructor.name}`); // TODO use reporter/logger
+          throw new Error(`Unknown expression of type ${expression.constructor.name}`); // TODO: use reporter/logger
       }
       const separator = propertyName.startsWith('[') ? '' : '.';
       propertyName = propertyName.length === 0 ? memberName : `${memberName}${separator}${propertyName}`;
       expression = (expression as AccessMemberExpression | AccessKeyedExpression).object;
     }
     if (expression === void 0) {
-      throw new Error(`Unable to parse binding expression: ${binding.sourceExpression.expression}`); // TODO use reporter/logger
+      throw new Error(`Unable to parse binding expression: ${binding.sourceExpression.expression}`); // TODO: use reporter/logger
     }
     let object: any;
     if (propertyName.length === 0) {

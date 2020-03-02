@@ -140,6 +140,7 @@ describe('validation-errors-custom-attribute', function () {
       const spy2 = createSpy(ca2, 'handleValidationEvent', true);
       const { controllerSpy, controller } = app;
 
+      // assert that things are correctly wired up
       assertSubscriber(controller, ca1);
       assertSubscriber(controller, ca2);
 
@@ -152,6 +153,7 @@ describe('validation-errors-custom-attribute', function () {
       await scheduler.yieldAll(10);
       await assertEventHandler(target2, scheduler, controllerSpy, spy2, ctx);
 
+      // assert that errors are rendered in the respective containers
       let errors1 = ca1.errors;
       assert.deepEqual(app['nameErrors'], errors1);
       assert.equal(errors1.length, 1);
@@ -170,6 +172,7 @@ describe('validation-errors-custom-attribute', function () {
         ['Age is required.', 'Age is not fizbaz']
       );
 
+      // assert that errors are removed
       target1.value = "foo";
       target1.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);
@@ -257,6 +260,7 @@ describe('validation-errors-custom-attribute', function () {
       const spy2 = createSpy(ca2, 'handleValidationEvent', true);
       const { controllerSpy, controller, controller2Spy, controller2 } = app;
 
+      // assert that things are correctly wired up
       assertSubscriber(controller, ca1);
       assertSubscriber(controller2, ca2);
 
@@ -269,6 +273,7 @@ describe('validation-errors-custom-attribute', function () {
       await scheduler.yieldAll(10);
       await assertEventHandler(target2, scheduler, controller2Spy, spy2, ctx);
 
+      // assert that errors are rendered in the respective containers
       let errors1 = ca1.errors;
       assert.deepEqual(app['nameErrors'], errors1);
       assert.equal(errors1.length, 1);
@@ -287,6 +292,7 @@ describe('validation-errors-custom-attribute', function () {
         ['Age is required.', 'Age is not fizbaz']
       );
 
+      // assert that errors are removed
       target1.value = "foo";
       target1.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);

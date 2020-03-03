@@ -20,7 +20,6 @@ import {
   ModelBasedRule,
   IValidator,
   ValidateInstruction,
-  ModelValidationHydrator,
   IValidationHydrator
 } from '@aurelia/validation';
 import { Person } from './_test-resources';
@@ -28,7 +27,7 @@ import { Person } from './_test-resources';
 describe('validation de/serialization', function () {
   function setup() {
     const container = TestContext.createHTMLTestContext().container;
-    container.register(ValidationConfiguration);
+    container.register(ValidationConfiguration.customize((options) => { options.HydratorType = ValidationDeserializer; }));
     return {
       container,
       parser: container.get(IExpressionParser),
@@ -287,7 +286,7 @@ describe('validation de/serialization', function () {
 describe('ModelValidationHydrator', function () {
   function setup() {
     const container = TestContext.createHTMLTestContext().container;
-    container.register(ValidationConfiguration.customize((options) => { options.HydratorType = ModelValidationHydrator; }));
+    container.register(ValidationConfiguration);
     return {
       container,
       hydrator: container.get(IValidationHydrator),

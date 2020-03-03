@@ -1,6 +1,6 @@
 import { IContainer, PLATFORM, Registration } from '@aurelia/kernel';
 import { ICustomMessages, IValidationRules, ValidationMessageProvider, ValidationRules } from './rule-provider';
-import { ValidationDeserializer } from "./serialization";
+import { ValidationDeserializer, ModelValidationHydrator } from "./serialization";
 import { IValidationMessageProvider } from './rules';
 import { ValidationErrorsCustomAttribute } from './subscribers/validation-errors-custom-attribute';
 import { IDefaultTrigger, ValidateBindingBehavior, ValidationTrigger } from './validate-binding-behavior';
@@ -19,7 +19,7 @@ export function getDefaultValidationConfiguration(): ValidationCustomizationOpti
     ValidationControllerFactoryType: ValidationControllerFactory,
     CustomMessages: [],
     DefaultTrigger: ValidationTrigger.blur,
-    HydratorType: ValidationDeserializer,
+    HydratorType: ModelValidationHydrator,
     UseSubscriberCustomAttribute: true,
     UseSubscriberCustomElement: true
   };

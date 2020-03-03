@@ -54,6 +54,7 @@ export const ValidationRuleAliasMessage = Object.freeze({
     // conditionally merge
     const defaultMessages = append ? Metadata.getOwn(this.aliasKey, rule.prototype) as ValidationRuleAlias[] : void 0;
     if (defaultMessages !== void 0) {
+      // TODO: have polyfill for `Object.fromEntries` as IE does not yet support it
       const allMessages: Record<string, string> = {
         ...Object.fromEntries(defaultMessages.map(({ name, defaultMessage }) => [name, defaultMessage])) as Record<string, string>,
         ...Object.fromEntries(aliases.map(({ name, defaultMessage }) => [name, defaultMessage])) as Record<string, string>,

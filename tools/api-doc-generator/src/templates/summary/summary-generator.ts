@@ -157,13 +157,15 @@ function getSummaryMapInfo(sourceFileInfo: SourceFileInfo): SummaryMapInfo[] {
     return result;
 }
 
-export function generateSummary(sourceFileInfo: SourceFileInfo, ...prepend: string[]): [string, SummaryMapInfo[][]] {
+export function generateSummary(sourceFileInfo: SourceFileInfo, prefixUrl? : string): [string, SummaryMapInfo[][]] {
     const result: string[] = [];
-    prepend = prepend || ['# Table of contents', "---", ""];
-    if (prepend.length > 0) {
-        for (let index = 0; index < prepend.length; index++) {
-            result.push(prepend[index]);
-        }
+    if(prefixUrl && prefixUrl[prefixUrl.length -1] !== '/')
+    {
+        prefixUrl = prefixUrl + '/';
+    }
+    else
+    {
+        prefixUrl = '';
     }
     const summaryMapInfo = getSummaryMapInfo(sourceFileInfo);
     const summaryGroup = _(summaryMapInfo)
@@ -179,13 +181,13 @@ export function generateSummary(sourceFileInfo: SourceFileInfo, ...prepend: stri
         const element = summaryGroup[index];
         const parents = element[0].folders;
         const title = beautifyName(parents[parents.length - 1]);
-        const root = `${tab(parents.length - 1)}* [${title}](${parents.join('/').toLowerCase()}/README.md)`;
+        const root = `${tab(parents.length - 1)}* [${title}](${prefixUrl}${parents.join('/').toLowerCase()}/README.md)`;
 
         // Detect parent folders with no file inside. They should be added just before their child's folders.
         if (parents.length > 1) {
             for (let index = 0; index < parents.length; index++) {
                 const parent = parents[index];
-                const info = `${tab(index)}* [${beautifyName(parent)}](${parents.slice(0, index + 1).join('/').toLowerCase()}/README.md)`;
+                const info = `${tab(index)}* [${beautifyName(parent)}](${prefixUrl}${parents.slice(0, index + 1).join('/').toLowerCase()}/README.md)`;
                 let exists = result.filter(item => item === info).length > 0;
                 if (!exists && root !== info) {
                     result.push(info);
@@ -205,12 +207,12 @@ export function generateSummary(sourceFileInfo: SourceFileInfo, ...prepend: stri
         for (let index = 0; index < catSummaryGroup.length; index++) {
             const element = catSummaryGroup[index];
             const category = element[0].category;
-            const mid = `${tab(parents.length)}* [${category}](${[...parents, category].join('/').toLowerCase()}/README.md)`;
+            const mid = `${tab(parents.length)}* [${category}](${prefixUrl}${[...parents, category].join('/').toLowerCase()}/README.md)`;
             result.push(mid);
             for (let index = 0; index < element.length; index++) {
                 const item = element[index];
                 const filePath = [...parents, category, item.file, item.name].join('/').replace(/\$/g, "usd") + '.md';
-                const data = `${tab(parents.length + 1)}* [${item.name}](${filePath.toLowerCase()})`;
+                const data = `${tab(parents.length + 1)}* [${item.name}](${prefixUrl}${filePath.toLowerCase()})`;
                 result.push(data);
             }
         }

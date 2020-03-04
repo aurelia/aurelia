@@ -1,4 +1,5 @@
 import * as fse from 'fs-extra';
+import * as fs from 'fs';
 import * as _ from 'lodash';
 import { TemplateGenerator } from './configurations';
 import { getAureliaSources } from '../helpers/aurelia/aurelia-source-utils';
@@ -17,7 +18,7 @@ interface ITOC {
     domain: string;
 }
 
-export function generateApiDoc( destination: string , tsconfig?: string) {
+export function generateApiDoc(destination: string, summaryDestination?: string, summaryPrefixUrl?: string, tsconfig?: string) {
     if (destination && destination.length > 0) {
         if (destination[destination.length - 1] === '/') {
             destination = destination.substring(0, destination.length - 1);
@@ -25,8 +26,21 @@ export function generateApiDoc( destination: string , tsconfig?: string) {
     }
     let tocList: ITOC[] = [];
     const source = getAureliaSources(tsconfig);
-    const summary = generateSummary(source);
-    fse.outputFile(`${destination}/SUMMARY.md`, summary[0]);
+    const summary = generateSummary(source, summaryPrefixUrl);
+    if (!summaryDestination) {
+        fse.outputFile(`${destination}/SUMMARY.md`, summary[0]);
+    }
+    else {
+        var stat = fs.lstatSync(summaryDestination);
+        if (stat.isDirectory()) {
+            fse.outputFile(`${summaryDestination}/SUMMARY.md`, summary[0]);
+        }
+        if (stat.isFile()) {
+            let tocText = fse.readFileSync(summaryDestination).toString();
+            let newToc = tocText.replace(/(?<=#.*API\s)([\s\S]*?)(?=#)/, '\n' + summary[0] + '\n\n');
+            fse.outputFile(`${summaryDestination}`, newToc);
+        }
+    }
 
     const summaryGroup = summary[1];
     for (let index = 0; index < summaryGroup.length; index++) {

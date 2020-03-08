@@ -3,7 +3,7 @@ import { I18N, I18nConfiguration, I18nConfigurationOptions } from '@aurelia/i18n
 import { IContainer, Registration } from '@aurelia/kernel';
 import { Aurelia, CustomElement, IBinding, INode, IScheduler } from '@aurelia/runtime';
 import { assert, HTMLTestContext, TestContext } from '@aurelia/testing';
-import { BindingWithBehavior, IValidationController, IValidationControllerFactory, IValidationMessageProvider, IValidationRules, IValidator, StandardValidator, ValidationController, ValidationMessageProvider } from '@aurelia/validation';
+import { BindingWithBehavior, IValidationController, IValidationMessageProvider, IValidationRules, IValidator, StandardValidator, ValidationController, ValidationMessageProvider } from '@aurelia/validation';
 import { LocalizedValidationController, LocalizedValidationControllerFactory, LocalizedValidationMessageProvider, ValidationI18nConfiguration } from '@aurelia/validation-i18n';
 import { Spy } from '../Spy';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util';
@@ -24,17 +24,17 @@ describe('validation-i18n', function () {
   class App {
     public person1: Person = new Person((void 0)!, (void 0)!);
     public person2: Person = new Person((void 0)!, (void 0)!);
-    public factory: IValidationControllerFactory;
+    public factory: LocalizedValidationControllerFactory;
     public controller: IValidationController;
     public controllerSpy: Spy;
     public readonly validationRules: IValidationRules;
 
     public constructor(container: IContainer) {
-      const factory = this.factory = container.get(IValidationControllerFactory);
+      const factory = this.factory = new LocalizedValidationControllerFactory();
       this.controllerSpy = new Spy();
 
-      // mocks ValidationControllerFactory#createForCurrentScope
-      const controller = this.controller = this.controllerSpy.getMock(factory.create());
+      // mocks LocalizedValidationControllerFactory#createForCurrentScope
+      const controller = this.controller = this.controllerSpy.getMock(factory.construct(container));
       Registration.instance(IValidationController, controller).register(container);
 
       const validationRules = this.validationRules = container.get(IValidationRules);

@@ -1,14 +1,14 @@
-import { IContainer, PLATFORM, Registration } from '@aurelia/kernel';
+import { Constructable, IContainer, PLATFORM, Protocol, Registration } from '@aurelia/kernel';
+import { IValidationHydrator } from './rule-interfaces';
 import { ICustomMessages, IValidationRules, ValidationMessageProvider, ValidationRules } from './rule-provider';
-import { ValidationDeserializer, ModelValidationHydrator } from "./serialization";
 import { IValidationMessageProvider } from './rules';
+import { ModelValidationHydrator, ValidationDeserializer } from "./serialization";
+import { ValidationContainerCustomElement } from './subscribers/validation-container-custom-element';
 import { ValidationErrorsCustomAttribute } from './subscribers/validation-errors-custom-attribute';
 import { IDefaultTrigger, ValidateBindingBehavior, ValidationTrigger } from './validate-binding-behavior';
-import { IValidationControllerFactory, ValidationControllerFactory } from './validation-controller';
+import { IValidationController, ValidationControllerFactory } from './validation-controller';
 import { ValidationCustomizationOptions } from './validation-customization-options';
 import { IValidator, StandardValidator } from './validator';
-import { ValidationContainerCustomElement } from './subscribers/validation-container-custom-element';
-import { IValidationHydrator } from './rule-interfaces';
 
 export type ValidationConfigurationProvider = (options: ValidationCustomizationOptions) => void;
 
@@ -33,6 +33,10 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
 
       optionsProvider(options);
 
+      const key = Protocol.annotation.keyFor('di:factory');
+      Protocol.annotation.set(IValidationController as unknown as Constructable, 'di:factory', new options.ValidationControllerFactoryType());
+      Protocol.annotation.appendTo(IValidationController as unknown as Constructable, key);
+
       container.register(
         Registration.callback(ICustomMessages, () => options.CustomMessages),
         Registration.callback(IDefaultTrigger, () => options.DefaultTrigger),
@@ -40,7 +44,6 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
         Registration.singleton(IValidationMessageProvider, options.MessageProviderType),
         Registration.singleton(IValidationHydrator, options.HydratorType),
         Registration.transient(IValidationRules, ValidationRules),
-        Registration.transient(IValidationControllerFactory, options.ValidationControllerFactoryType),
         ValidateBindingBehavior,
         ValidationDeserializer
       );

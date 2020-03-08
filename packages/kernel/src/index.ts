@@ -22,6 +22,8 @@ export {
   InstanceProvider,
   Resolved,
   Transformer,
+  newInstanceForScope,
+  newInstanceOf
 } from './di';
 export {
   Class,

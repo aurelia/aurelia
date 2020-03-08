@@ -24,14 +24,14 @@ import { assert, TestContext, HTMLTestContext } from '@aurelia/testing';
 import {
   BindingWithBehavior,
   IValidationController,
-  IValidationControllerFactory,
   IValidationRules,
   ValidationConfiguration,
   ValidationController,
   ValidationTrigger,
   PropertyRule,
   RangeRule,
-  RequiredRule
+  RequiredRule,
+  ValidationControllerFactory
 } from '@aurelia/validation';
 import { Spy } from '../Spy';
 import { Person, Organization } from './_test-resources';
@@ -63,16 +63,16 @@ describe('validate-biniding-behavior', function () {
       private readonly container: IContainer,
       observeCollection = false,
     ) {
-      const factory = container.get(IValidationControllerFactory);
+      const factory = new ValidationControllerFactory();
       this.scheduler = container.get(IScheduler);
       this.controllerSpy = new Spy();
       this.controller2Spy = new Spy();
 
       // mocks ValidationControllerFactory#createForCurrentScope
-      const controller = this.controller = this.controllerSpy.getMock(factory.create()) as unknown as ValidationController;
+      const controller = this.controller = this.controllerSpy.getMock(factory.construct(container)) as unknown as ValidationController;
       Registration.instance(IValidationController, controller).register(container);
 
-      this.controller2 = this.controller2Spy.getMock(factory.create()) as unknown as ValidationController;
+      this.controller2 = this.controller2Spy.getMock(factory.construct(container)) as unknown as ValidationController;
 
       const validationRules = this.validationRules = container.get(IValidationRules);
       const rules = validationRules

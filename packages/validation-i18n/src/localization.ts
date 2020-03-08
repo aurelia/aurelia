@@ -1,7 +1,7 @@
 import { I18N, Signals } from "@aurelia/i18n";
 import { IValidationController, IValidator, ValidationControllerFactory, ValidationController, ValidationMessageProvider, BaseValidationRule } from "@aurelia/validation";
 import { IExpressionParser, IScheduler, PrimitiveLiteralExpression, IInterpolationExpression } from '@aurelia/runtime';
-import { EventAggregator, IEventAggregator, ILogger, IDisposable, DI } from '@aurelia/kernel';
+import { EventAggregator, IEventAggregator, ILogger, IDisposable, DI, IContainer, Key } from '@aurelia/kernel';
 import { ValidationCustomizationOptions } from '@aurelia/validation/dist/validation-customization-options';
 
 const I18N_VALIDATION_EA_CHANNEL = 'i18n:locale:changed:validation';
@@ -32,14 +32,15 @@ export class LocalizedValidationController extends ValidationController {
 }
 
 export class LocalizedValidationControllerFactory extends ValidationControllerFactory {
-  public create(validator?: IValidator): IValidationController {
-    const container = this.container;
-    return new LocalizedValidationController(
-      container.get(IEventAggregator),
-      validator ?? container.get<IValidator>(IValidator),
-      container.get(IExpressionParser),
-      container.get(IScheduler)
-    );
+  public construct(container: IContainer, _dynamicDependencies?: Key[] | undefined): IValidationController {
+    return _dynamicDependencies !== void 0
+      ? Reflect.construct(LocalizedValidationController, _dynamicDependencies)
+      : new LocalizedValidationController(
+        container.get(IEventAggregator),
+        container.get<IValidator>(IValidator),
+        container.get(IExpressionParser),
+        container.get(IScheduler)
+      );
   }
 }
 

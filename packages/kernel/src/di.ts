@@ -26,6 +26,9 @@ interface IResolverLike<C, K = any> {
 }
 
 export interface IResolver<K = any> extends IResolverLike<IContainer, K> { }
+export interface IDisposableResolver<K = any> extends IResolver<K> {
+  dispose(): void;
+}
 
 export interface IRegistration<K = any> {
   register(container: IContainer, key?: Key): IResolver<K>;
@@ -55,11 +58,12 @@ export interface IRegistry {
 
 export interface IContainer extends IServiceLocator {
   register(...params: any[]): IContainer;
-  registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>): IResolver<T>;
+  registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>, isDisposable?: boolean): IResolver<T>;
   registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
   getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
   getFactory<T extends Constructable>(key: T): IFactory<T> | null;
   createChild(): IContainer;
+  disposeResolvers(): void;
 }
 
 export class ResolverBuilder<K> {
@@ -439,6 +443,27 @@ export const optional = createResolver((key: any, handler: IContainer, requestor
   }
 });
 
+export const newInstanceForScope = createResolver((key: any, handler: IContainer, requestor: IContainer) => {
+  const instance = createNewInstance(key, handler);
+
+  const instanceProvider: InstanceProvider<any> = new InstanceProvider<any>();
+  instanceProvider.prepare(instance);
+
+  requestor.registerResolver(key, instanceProvider, true);
+
+  return instance;
+});
+
+export const newInstanceOf = createResolver((key: any, handler: IContainer, _requestor: IContainer) => createNewInstance(key, handler));
+
+function createNewInstance(key: any, handler: IContainer) {
+  const factory = handler.getFactory(key);
+  if (factory === null) {
+    throw new Error(`No factory registered for ${key}`);
+  }
+  return factory.construct(handler);
+}
+
 /** @internal */
 export const enum ResolverStrategy {
   instance = 0,
@@ -685,6 +710,8 @@ export class Container implements IContainer {
 
   private readonly resourceResolvers: Record<string, IResolver | undefined>;
 
+  private readonly disposableResolvers: Set<IDisposableResolver> = new Set<IDisposableResolver>();
+
   public constructor(
     private readonly parent: Container | null,
   ) {
@@ -760,7 +787,7 @@ export class Container implements IContainer {
     return this;
   }
 
-  public registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>): IResolver<T> {
+  public registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>, isDisposable: boolean = false): IResolver<T> {
     validateKey(key);
 
     const resolvers = this.resolvers;
@@ -775,6 +802,10 @@ export class Container implements IContainer {
       (result.state as IResolver[]).push(resolver);
     } else {
       resolvers.set(key, new Resolver(key, ResolverStrategy.array, [result, resolver]));
+    }
+
+    if (isDisposable) {
+      this.disposableResolvers.add(resolver as IDisposableResolver);
     }
 
     return resolver;
@@ -904,6 +935,13 @@ export class Container implements IContainer {
     return new Container(this);
   }
 
+  public disposeResolvers() {
+    const disposables = Array.from(this.disposableResolvers);
+    while (disposables.length > 0) {
+      disposables.pop()?.dispose();
+    }
+  }
+
   private jitRegister(keyAsValue: any, handler: Container): IResolver {
     if (typeof keyAsValue !== 'function') {
       throw new Error(`Attempted to jitRegister something that is not a constructor: '${keyAsValue}'. Did you forget to register this resource?`);
@@ -985,7 +1023,7 @@ export const Registration = {
   }
 };
 
-export class InstanceProvider<K extends Key> implements IResolver<K | null> {
+export class InstanceProvider<K extends Key> implements IDisposableResolver<K | null> {
   private instance: Resolved<K> | null = null;
 
   public prepare(instance: Resolved<K>): void {

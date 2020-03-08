@@ -1,7 +1,10 @@
 import {
   DI,
   IContainer,
-  Registration,
+  IFactory,
+  Constructable,
+  Transformer,
+  Key,
 } from '@aurelia/kernel';
 import {
   AccessKeyedExpression,
@@ -563,41 +566,20 @@ export class ValidationController implements IValidationController {
   }
 }
 
-/**
- * Creates ValidationController instances.
- */
-export interface IValidationControllerFactory {
+export class ValidationControllerFactory implements IFactory<Constructable<IValidationController>> {
+  public Type: Constructable<IValidationController> = (void 0)!;
 
-  /**
-   * Creates a new controller instance.
-   */
-  create(validator?: IValidator): IValidationController;
-
-  /**
-   * Creates a new controller and registers it in the current element's container so that it's available to the validate binding behavior and subscribers.
-   */
-  createForCurrentScope(validator?: IValidator): IValidationController;
-}
-export const IValidationControllerFactory = DI.createInterface<IValidationControllerFactory>("IValidationControllerFactory").noDefault();
-
-export class ValidationControllerFactory implements IValidationControllerFactory {
-
-  public constructor(
-    @IContainer protected readonly container: IContainer,
-  ) { }
-
-  public create(validator?: IValidator): IValidationController {
-    const container = this.container;
-    return new ValidationController(
-      validator ?? container.get<IValidator>(IValidator),
-      container.get(IExpressionParser),
-      container.get(IScheduler)
-    );
+  public registerTransformer(_transformer: Transformer<Constructable<IValidationController>>): boolean {
+    return false;
   }
 
-  public createForCurrentScope(validator?: IValidator): IValidationController {
-    const controller = this.create(validator);
-    Registration.instance(IValidationController, controller).register(this.container);
-    return controller;
+  public construct(container: IContainer, _dynamicDependencies?: Key[] | undefined): IValidationController {
+    return _dynamicDependencies !== void 0
+      ? Reflect.construct(ValidationController, _dynamicDependencies)
+      : new ValidationController(
+        container.get<IValidator>(IValidator),
+        container.get(IExpressionParser),
+        container.get(IScheduler)
+      );
   }
 }

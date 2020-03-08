@@ -3,13 +3,13 @@ import { IScheduler, Aurelia, CustomElement, DOM, customElement } from '@aurelia
 import { assert, TestContext, ISpy, HTMLTestContext, createSpy, getVisibleText } from '@aurelia/testing';
 import {
   IValidationController,
-  IValidationControllerFactory,
   IValidationRules,
   ValidationController,
   ValidationConfiguration,
   ValidationResultsSubscriber,
   ValidationResultPresenterService,
-  ValidationResult
+  ValidationResult,
+  ValidationControllerFactory
 } from '@aurelia/validation';
 import { Spy } from '../../Spy';
 import { Person } from '../_test-resources';
@@ -26,12 +26,12 @@ describe('validation-result-presenter-service', function () {
     private readonly validationRules: IValidationRules;
 
     public constructor(container: IContainer, presenterService?: ValidationResultPresenterService) {
-      const factory = container.get(IValidationControllerFactory);
+      const factory = new ValidationControllerFactory();
       this.scheduler = container.get(IScheduler);
       this.controllerSpy = new Spy();
 
       // mocks ValidationControllerFactory#createForCurrentScope
-      const controller = this.controller = this.controllerSpy.getMock(factory.create()) as unknown as ValidationController;
+      const controller = this.controller = this.controllerSpy.getMock(factory.construct(container)) as unknown as ValidationController;
       Registration.instance(IValidationController, controller).register(container);
 
       controller.addSubscriber(this.presenterService = presenterService ?? new ValidationResultPresenterService());

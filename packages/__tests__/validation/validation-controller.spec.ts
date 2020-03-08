@@ -1,13 +1,11 @@
 /* eslint-disable mocha/no-hooks, mocha/no-sibling-hooks */
-import { IContainer, Registration } from '@aurelia/kernel';
-import { Aurelia, CustomElement, IScheduler } from '@aurelia/runtime';
+import { IContainer, Registration, newInstanceForScope } from '@aurelia/kernel';
+import { Aurelia, CustomElement, IScheduler, customElement } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import {
   ControllerValidateResult,
   IValidationController,
-  IValidationControllerFactory,
   IValidationRules,
-  IValidator,
   PropertyRule,
   ValidateEventKind,
   ValidateInstruction,
@@ -21,52 +19,114 @@ import { Spy } from '../Spy';
 import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../util';
 import { Person } from './_test-resources';
 
-describe('validation-controller-factory', function () {
-  function setup() {
-    const container = TestContext.createHTMLTestContext().container;
-    container.register(ValidationConfiguration);
-    return {
-      sut: container.get(IValidationControllerFactory),
-      container
-    };
+describe('validation controller factory', function () {
+  @customElement({
+    name: 'app',
+    isStrictBinding: true,
+    template: `<vc-root></vc-root>`
+  })
+  class App { }
+  @customElement({
+    name: 'vc-root',
+    isStrictBinding: true,
+    template: `
+  <custom-stuff1></custom-stuff1>
+  <custom-stuff2></custom-stuff2>
+  <new-vc-root></new-vc-root>
+  `
+  })
+  class VcRoot {
+    public constructor(
+      @newInstanceForScope(IValidationController) public controller1: ValidationController,
+      @newInstanceForScope(IValidationController) public controller2: ValidationController,
+      @IValidationController public controller3: ValidationController,
+    ) { }
   }
 
-  it('registered to be transient', function () {
-    const { sut, container } = setup();
-    const sut1 = container.get(IValidationControllerFactory);
-    assert.notEqual(sut, sut1);
-    assert.equal((sut as ValidationControllerFactory)['container'], container);
-    assert.equal((sut1 as ValidationControllerFactory)['container'], container);
-  });
+  @customElement({ name: 'new-vc-root', template: `<custom-stuff3></custom-stuff3>` })
+  class NewVcRoot {
+    public constructor(
+      @newInstanceForScope(IValidationController) public controller: ValidationController
+    ) { }
+  }
 
-  it('#create instantiates transient validation-controller', function () {
-    const { sut } = setup();
-    const controller1 = sut.create();
-    const controller2 = sut.create();
-    assert.notEqual(controller1, controller2);
-  });
+  @customElement({ name: 'custom-stuff1', template: `custom stuff1` })
+  class CustomStuff1 {
+    public constructor(
+      @IValidationController public controller: ValidationController
+    ) { }
+  }
 
-  it('#create instantiates validation-controller with specific validator', function () {
-    const { sut } = setup();
-    const validator = {} as unknown as IValidator;
-    const controller = sut.create(validator);
-    assert.equal(controller.validator, validator);
-  });
+  @customElement({ name: 'custom-stuff2', template: `custom stuff2` })
+  class CustomStuff2 {
+    public constructor(
+      @IValidationController public controller: ValidationController
+    ) { }
+  }
 
-  it('#createForCurrentScope registers an instance of validation-controller to the the container', function () {
-    const { sut, container } = setup();
-    const controller1 = sut.createForCurrentScope();
-    const controller2 = container.get(IValidationController);
-    assert.equal(controller1, controller2);
-  });
+  @customElement({ name: 'custom-stuff3', template: `custom stuff3` })
+  class CustomStuff3 {
+    public constructor(
+      @IValidationController public controller: ValidationController
+    ) { }
+  }
 
-  it('#createForCurrentScope registers an instance of validation-controller to the the container with specific validator', function () {
-    const { sut, container } = setup();
-    const validator = {} as unknown as IValidator;
-    const controller1 = sut.createForCurrentScope(validator);
-    const controller2 = container.get(IValidationController);
-    assert.equal(controller1.validator, validator);
-    assert.equal(controller2.validator, validator);
+  async function runTest(
+    testFunction: TestFunction<TestExecutionContext<VcRoot>>,
+  ) {
+    const ctx = TestContext.createHTMLTestContext();
+    const container = ctx.container;
+    const host = ctx.dom.createElement('div');
+    ctx.doc.body.appendChild(host);
+    const au = new Aurelia(container);
+    await au
+      .register(
+        ValidationConfiguration,
+        VcRoot,
+        NewVcRoot,
+        CustomStuff1,
+        CustomStuff2,
+        CustomStuff3
+      )
+      .app({ host, component: App })
+      .start()
+      .wait();
+
+    await testFunction({ app: void 0, container, host, scheduler: container.get(IScheduler), ctx });
+
+    await au.stop().wait();
+    document.body.removeChild(host);
+  }
+  const $it = createSpecFunction(runTest);
+
+  $it('injection of validation controller is done properly', function ({ host }) {
+    const vcRootEl: HTMLElement = host.querySelector('vc-root');
+    const vcRootVm: VcRoot = CustomElement.for(vcRootEl).viewModel as any;
+
+    const cs1: CustomStuff1 = CustomElement.for(host.querySelector('custom-stuff1')).viewModel as any;
+    const cs2: CustomStuff2 = CustomElement.for(host.querySelector('custom-stuff2')).viewModel as any;
+
+    const newVcRootEl = host.querySelector('new-vc-root');
+    const newVcRoot: NewVcRoot = CustomElement.for(newVcRootEl).viewModel as any;
+    const cs3: CustomStuff3 = CustomElement.for(newVcRootEl.querySelector('custom-stuff3')).viewModel as any;
+
+    assert.equal(!!vcRootVm.controller1, true, 'error8');
+    assert.equal(!!vcRootVm.controller2, true, 'error9');
+    assert.equal(!!vcRootVm.controller3, true, 'error10');
+
+    assert.equal(vcRootVm.controller1, vcRootVm.controller3, 'error1');
+    assert.notEqual(vcRootVm.controller1, vcRootVm.controller2, 'error2');
+
+    assert.equal(!!cs1.controller, true, 'error11');
+    assert.equal(!!cs2.controller, true, 'error12');
+    assert.equal(vcRootVm.controller1, cs1.controller, 'error3');
+    assert.equal(vcRootVm.controller1, cs2.controller, 'error4');
+
+    assert.notEqual(vcRootVm.controller1, newVcRoot.controller, 'error5');
+    assert.notEqual(vcRootVm.controller2, newVcRoot.controller, 'error6');
+
+    assert.equal(!!cs3.controller, true, 'error13');
+    assert.equal(newVcRoot.controller, cs3.controller, 'error7');
   });
 });
 
@@ -80,11 +140,11 @@ describe('validation-controller', function () {
     public readonly validationRules: IValidationRules;
 
     public constructor(container: IContainer) {
-      const factory = container.get(IValidationControllerFactory);
+      const factory = new ValidationControllerFactory();
       this.controllerSpy = new Spy();
 
-      // mocks ValidationCOntrollerFactory#createForCurrentScope
-      const controller = this.controller = this.controllerSpy.getMock(factory.create()) as unknown as ValidationController;
+      // mocks ValidationControllerFactory#createForCurrentScope
+      const controller = this.controller = this.controllerSpy.getMock(factory.construct(container)) as unknown as ValidationController;
       Registration.instance(IValidationController, controller).register(container);
 
       const validationRules = this.validationRules = container.get(IValidationRules);
@@ -460,7 +520,7 @@ describe('validation-controller', function () {
     }
   );
 
-  $it(`validates object only based on specific rulesset when specified`,
+  $it(`validates object only based on specific ruleset when specified`,
     async function ({ app: { controller: sut, validationRules } }) {
       const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
       const tag1 = 'tag1', tag2 = 'tag2';

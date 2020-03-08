@@ -3,12 +3,12 @@ import { Aurelia, CustomElement, IScheduler, CustomAttribute } from '@aurelia/ru
 import { TestContext, assert, createSpy, ISpy, getVisibleText, HTMLTestContext } from '@aurelia/testing';
 import {
   IValidationController,
-  IValidationControllerFactory,
   IValidationRules,
   ValidationConfiguration,
   ValidationController,
   ValidationErrorsCustomAttribute,
   ValidationResultsSubscriber,
+  ValidationControllerFactory,
 } from '@aurelia/validation';
 import { Spy } from '../../Spy';
 import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../../util';
@@ -26,16 +26,16 @@ describe('validation-errors-custom-attribute', function () {
     private readonly validationRules: IValidationRules;
 
     public constructor(container: IContainer) {
-      const factory = container.get(IValidationControllerFactory);
+      const factory = new ValidationControllerFactory();
       this.scheduler = container.get(IScheduler);
       this.controllerSpy = new Spy();
       this.controller2Spy = new Spy();
 
       // mocks ValidationControllerFactory#createForCurrentScope
-      const controller = this.controller = this.controllerSpy.getMock(factory.create()) as unknown as ValidationController;
+      const controller = this.controller = this.controllerSpy.getMock(factory.construct(container)) as unknown as ValidationController;
       Registration.instance(IValidationController, controller).register(container);
 
-      this.controller2 = this.controller2Spy.getMock(factory.create()) as unknown as ValidationController;
+      this.controller2 = this.controller2Spy.getMock(factory.construct(container)) as unknown as ValidationController;
 
       const validationRules = this.validationRules = container.get(IValidationRules);
       validationRules

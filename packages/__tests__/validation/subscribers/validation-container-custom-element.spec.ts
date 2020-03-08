@@ -3,12 +3,12 @@ import { IScheduler, Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, TestContext, ISpy, HTMLTestContext, createSpy, getVisibleText } from '@aurelia/testing';
 import {
   IValidationController,
-  IValidationControllerFactory,
   IValidationRules,
   ValidationController,
   ValidationConfiguration,
   ValidationResultsSubscriber,
-  ValidationContainerCustomElement
+  ValidationContainerCustomElement,
+  ValidationControllerFactory
 } from '@aurelia/validation';
 import { Spy } from '../../Spy';
 import { Person } from '../_test-resources';
@@ -24,12 +24,12 @@ describe('validation-container-custom-element', function () {
     private readonly validationRules: IValidationRules;
 
     public constructor(container: IContainer) {
-      const factory = container.get(IValidationControllerFactory);
+      const factory = new ValidationControllerFactory();
       this.scheduler = container.get(IScheduler);
       this.controllerSpy = new Spy();
 
       // mocks ValidationControllerFactory#createForCurrentScope
-      const controller = this.controller = this.controllerSpy.getMock(factory.create()) as unknown as ValidationController;
+      const controller = this.controller = this.controllerSpy.getMock(factory.construct(container)) as unknown as ValidationController;
       Registration.instance(IValidationController, controller).register(container);
 
       const validationRules = this.validationRules = container.get(IValidationRules);

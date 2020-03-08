@@ -1,9 +1,9 @@
-import { Class } from '@aurelia/kernel';
+import { Class, Constructable, IFactory } from '@aurelia/kernel';
 import { IValidationHydrator } from './rule-interfaces';
 import { ICustomMessage } from './rule-provider';
 import { IValidationMessageProvider } from './rules';
 import { ValidationTrigger } from './validate-binding-behavior';
-import { IValidationControllerFactory } from './validation-controller';
+import { IValidationController } from './validation-controller';
 import { IValidator } from './validator';
 
 /**
@@ -12,7 +12,7 @@ import { IValidator } from './validator';
 export interface ValidationCustomizationOptions {
   ValidatorType: Class<IValidator>;
   MessageProviderType: Class<IValidationMessageProvider>;
-  ValidationControllerFactoryType: Class<IValidationControllerFactory>;
+  ValidationControllerFactoryType: Class<IFactory<Constructable<IValidationController>>>;
   CustomMessages: ICustomMessage[];
   DefaultTrigger: ValidationTrigger;
   HydratorType: Class<IValidationHydrator>;

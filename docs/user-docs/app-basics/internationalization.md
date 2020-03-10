@@ -483,6 +483,16 @@ This results in the following.
 <span>a lot of items</span>
 ```
 
+**Default value**
+
+If the key expression is evaluated to `null`, or `undefined`, a default value can be provided as follows.
+
+```markup
+<span t.bind="exprEvaluatedToNullOrUnd" t-params.bind="{defaultValue: 'foo-bar'}">ignored</span>
+```
+
+The example above produces `<span>foo-bar</span>`, considering `exprEvaluatedToNullOrUnd` is evaluated to `null`, or `undefined`. Note that in the absence of `defaultValue` the outcome will be `<span></span>`, that is an empty string is used as fallback.
+
 **ValueConverter and BindingBehavior**
 
 In order to do translations in a more declarative way from within your HTML markup you can use the `t` ValueConverter and BindingBehavior.

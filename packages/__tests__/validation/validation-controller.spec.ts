@@ -95,7 +95,7 @@ describe('validation controller factory', function () {
     await testFunction({ app: void 0, container, host, scheduler: container.get(IScheduler), ctx });
 
     await au.stop().wait();
-    document.body.removeChild(host);
+    ctx.doc.body.removeChild(host);
   }
   const $it = createSpecFunction(runTest);
 

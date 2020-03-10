@@ -124,6 +124,30 @@ describe('translation-integration', function () {
     assertTextContent(host, '#null', '');
   });
 
+  it('works for null/undefined bound values - default value', async function () {
+    @customElement({
+      name: 'app',
+      template: `<p t.bind="undef" id="undefined" t-params.bind="{defaultValue:'foo'}">
+        Undefined value
+      </p>
+      <p t.bind="nullul" id="null" t-params.bind="{defaultValue:'bar'}">
+        Null value
+      </p>`,
+      isStrictBinding: true
+    })
+    class App {
+      private readonly nullul: null = null;
+      private readonly undef: undefined = undefined;
+      // private readonly zero: 0 = 0;
+    }
+
+    const host = DOM.createElement('app');
+    await createFixture(host, new App());
+
+    assertTextContent(host, '#undefined', 'foo');
+    assertTextContent(host, '#null', 'bar');
+  });
+
   it('works if the keyExpression is changed to null/undefined', async function () {
     @customElement({
       name: 'app',
@@ -153,6 +177,37 @@ describe('translation-integration', function () {
 
     assertTextContent(host, '#undefined', '');
     assertTextContent(host, '#null', '');
+  });
+
+  it('works if the keyExpression is changed to null/undefined - default value', async function () {
+    @customElement({
+      name: 'app',
+      template: `<p t.bind="undef" id="undefined" t-params.bind="{defaultValue:'foo'}">
+        Undefined value
+      </p>
+      <p t.bind="nullul" id="null" t-params.bind="{defaultValue:'bar'}">
+        Null value
+      </p>`,
+      isStrictBinding: true
+    })
+    class App {
+      private nullul: string | null = 'simple.text';
+      private undef: string | undefined = 'simple.text';
+
+      public changeKey() {
+        this.nullul = null;
+        this.undef = undefined;
+      }
+    }
+
+    const host = DOM.createElement('app');
+    const app = new App();
+    await createFixture(host, app);
+
+    app.changeKey();
+
+    assertTextContent(host, '#undefined', 'foo');
+    assertTextContent(host, '#null', 'bar');
   });
 
   for (const value of [true, false, 0]) {

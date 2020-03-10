@@ -805,7 +805,7 @@ export class Container implements IContainer {
     }
 
     if (isDisposable) {
-      this.disposableResolvers.add(resolver as IDisposableResolver);
+      this.disposableResolvers.add(resolver as IDisposableResolver<T>);
     }
 
     return resolver;

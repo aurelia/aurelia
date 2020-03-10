@@ -491,7 +491,7 @@ If the key expression is evaluated to `null`, or `undefined`, a default value ca
 <span t.bind="exprEvaluatedToNullOrUnd" t-params.bind="{defaultValue: 'foo-bar'}">ignored</span>
 ```
 
-The example above produces `<span>foo-bar</span>`, considering `exprEvaluatedToNullOrUnd` is evaluated to `null`, or `undefined`. Note that in the absence of `defaultValue` the outcome will be `<span></span>`, that is an empty string is used as fallback.
+The example above produces `<span>foo-bar</span>`, considering `exprEvaluatedToNullOrUnd` is evaluated to `null`, or `undefined`. Note that in the absence of `defaultValue` the outcome will be `<span></span>`, that is the old content of the target element will be cleaned up (no additional empty text node is created).
 
 **ValueConverter and BindingBehavior**
 

@@ -47,9 +47,9 @@ export interface IServiceLocator {
   get<K extends Key>(key: K): Resolved<K>;
   get<K extends Key>(key: Key): Resolved<K>;
   get<K extends Key>(key: K | Key): Resolved<K>;
-  getAll<K extends Key>(key: K): readonly Resolved<K>[];
-  getAll<K extends Key>(key: Key): readonly Resolved<K>[];
-  getAll<K extends Key>(key: K | Key): readonly Resolved<K>[];
+  getAll<K extends Key>(key: K, searchAncestors?: boolean): readonly Resolved<K>[];
+  getAll<K extends Key>(key: Key, searchAncestors?: boolean): readonly Resolved<K>[];
+  getAll<K extends Key>(key: K | Key, searchAncestors?: boolean): readonly Resolved<K>[];
 }
 
 export interface IRegistry {
@@ -362,6 +362,24 @@ function createResolver(getter: (key: any, handler: IContainer, requestor: ICont
   };
 }
 
+// type ResolverCreator<T = void> =
+//   T extends void
+//     ? (getter: (key: any, handler: IContainer, requestor: IContainer) => any) => (key: any) => any
+//     : (getter: (key: any, handler: IContainer, requestor: IContainer, args: T) => any) => (key: any, ...args: T) => any;
+function createAllResolver<T>(getter: (key: any, handler: IContainer, requestor: IContainer, param?: T) => any): (key: any, searchAncestors?: T) => any {
+  return function (key: any, param?: T): ReturnType<typeof DI.inject> {
+    const resolver: ReturnType<typeof DI.inject> & Partial<Pick<IResolver, 'resolve'>> = function (target: Injectable, property?: string | number, descriptor?: PropertyDescriptor | number): void {
+      DI.inject(resolver)(target, property, descriptor);
+    };
+
+    resolver.resolve = function (handler: IContainer, requestor: IContainer): any {
+      return getter(key, handler, requestor, param);
+    };
+
+    return resolver;
+  };
+}
+
 export const inject = DI.inject;
 
 function transientDecorator<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
@@ -422,7 +440,7 @@ export function singleton<T extends Constructable>(target?: T & Partial<Register
   return target == null ? singletonDecorator : singletonDecorator(target);
 }
 
-export const all = createResolver((key: any, handler: IContainer, requestor: IContainer) => requestor.getAll(key));
+export const all = createAllResolver((key: any, handler: IContainer, requestor: IContainer, searchAncestors?: boolean) => requestor.getAll(key, searchAncestors));
 
 export const lazy = createResolver((key: any, handler: IContainer, requestor: IContainer) =>  {
   let instance: unknown = null; // cache locally so that lazy always returns the same instance once resolved
@@ -898,23 +916,38 @@ export class Container implements IContainer {
     throw new Error(`Unable to resolve key: ${key}`);
   }
 
-  public getAll<K extends Key>(key: K): readonly Resolved<K>[] {
+  public getAll<K extends Key>(key: K, searchAncestors: boolean = false): readonly Resolved<K>[] {
     validateKey(key);
 
     let current: Container | null = this;
     let resolver: IResolver | undefined;
+    let resolvers: IResolver[] | undefined;
 
     while (current != null) {
       resolver = current.resolvers.get(key);
 
       if (resolver == null) {
-        if (this.parent == null) {
+        if (current.parent == null) {
           return PLATFORM.emptyArray;
         }
 
         current = current.parent;
       } else {
-        return buildAllResponse(resolver, current, this);
+        if (searchAncestors) {
+          if (resolvers == null) {
+            resolvers = [resolver];
+          } else {
+            // the result should represent container hierarchy
+            resolvers.push(resolver);
+          }
+        }
+        if (current.parent == null) {
+          return searchAncestors
+              ? buildAllResponses(resolvers ?? PLATFORM.emptyArray, current, this)
+              : buildAllResponse(resolver, current, this);
+        } else {
+          current = current.parent;
+        }
       }
     }
 
@@ -1063,4 +1096,25 @@ function buildAllResponse(resolver: IResolver, handler: IContainer, requestor: I
   }
 
   return [resolver.resolve(handler, requestor)];
+}
+
+function buildAllResponses(resolvers: IResolver[], handler: IContainer, requestor: IContainer): any[] {
+  const results = [];
+  for (let i = 0, ii = resolvers.length; ii > i; ++i) {
+    const resolver = resolvers[i];
+    if (resolver instanceof Resolver && resolver.strategy === ResolverStrategy.array) {
+      const state = resolver.state as IResolver[];
+      let j = state.length;
+      let jj = 0;
+
+      while (j--) {
+        results[i + jj] = state[j].resolve(handler, requestor);
+        jj++;
+      }
+
+    } else {
+      results[i] = resolver.resolve(handler, requestor);
+    }
+  }
+  return results;
 }

@@ -278,10 +278,13 @@ export interface ISyntaxInterpreter {
   interpret(value: string): Interpretation;
 }
 
-export const ISyntaxInterpreter = DI.createInterface<ISyntaxInterpreter>('ISyntaxInterpreter').withDefault(x => x.singleton(SyntaxInterpreter));
+export const ISyntaxInterpreter = DI
+  .createInterface<ISyntaxInterpreter>('ISyntaxInterpreter')
+  .withDefault(x => x.singleton(SyntaxInterpreter));
 
 /** @internal */
-export class SyntaxInterpreter {
+export class SyntaxInterpreter implements ISyntaxInterpreter {
+
   public rootState: State = new State(null!);
   private readonly initialStates: State[] = [this.rootState];
 

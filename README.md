@@ -83,7 +83,7 @@ If you are interested in contributing to Aurelia, please see [our contributor do
 
 ## Staying Up-to-Date
 
-To keep up to date on [Aurelia](http://www.aurelia.io/), please visit and subscribe to [the official blog](http://blog.aurelia.io/) and [our email list](http://eepurl.com/ces50j). We also invite you to [follow us on twitter](https://twitter.com/aureliaeffect). If you have questions, have a look around our [Discourse forum](https://discourse.aurelia.io/). For chat on Aurelia 2, [join our new Aurelia 2 community on Discord](https://discord.gg/fh72aCn). If you'd like to join the growing list of Aurelia sponsors, please [back us on Open Collective](https://opencollective.com/aurelia).
+To keep up to date on [Aurelia](http://www.aurelia.io/), please visit and subscribe to [the official blog](http://blog.aurelia.io/) and [our email list](http://eepurl.com/ces50j). We also invite you to [follow us on twitter](https://twitter.com/aureliaeffect). If you have questions, have a look around our [Discourse forum](https://discourse.aurelia.io/). For chat on Aurelia 2, [join our new Aurelia 2 community on Discord](https://discord.gg/MfzdX9s). If you'd like to join the growing list of Aurelia sponsors, please [back us on Open Collective](https://opencollective.com/aurelia).
 
 ## License
 

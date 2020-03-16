@@ -610,6 +610,24 @@ export class Router implements IRouter {
   public getViewport(name: string): Viewport | null {
     return this.allViewports().find(viewport => viewport.name === name) || null;
   }
+  /**
+   * Public API (not yet implemented)
+   */
+  public addViewport(...args: unknown[]): unknown {
+    throw new Error('Not implemented');
+  }
+  /**
+   * Public API (not yet implemented)
+   */
+  public findViewportScope(...args: unknown[]): unknown {
+    throw new Error('Not implemented');
+  }
+  /**
+   * Public API (not yet implemented)
+   */
+  public addViewportScope(...args: unknown[]): unknown {
+    throw new Error('Not implemented');
+  }
 
   /**
    * @internal - Called from the viewport scope custom element in created()

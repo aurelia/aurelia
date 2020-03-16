@@ -2,6 +2,7 @@ import {
   IAttributeParser,
   ResourceModel,
   SymbolFlags,
+  IAttributePattern,
 } from '@aurelia/jit';
 import {
   IContainer,
@@ -99,7 +100,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     @ITemplateElementFactory private readonly factory: ITemplateElementFactory,
     @IAttributeParser private readonly attrParser: IAttributeParser,
     @IExpressionParser private readonly exprParser: IExpressionParser,
-    @IAttrSyntaxTransformer private readonly attrSyntaxModifier: IAttrSyntaxTransformer
+    @IAttrSyntaxTransformer private readonly attrSyntaxModifier: IAttrSyntaxTransformer,
   ) {}
 
   public static register(container: IContainer): IResolver<ITemplateCompiler> {
@@ -113,7 +114,12 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
 
     const resources = ResourceModel.getOrCreate(context);
-    const { attrParser, exprParser, attrSyntaxModifier, factory } = this;
+    const { exprParser, attrSyntaxModifier, factory } = this;
+    const shouldCreateAttrParser = context.has(IAttributePattern, false);
+    const attrParser = shouldCreateAttrParser
+      ? this.attrParser.cloneTo(context)
+      : this.attrParser;
+    debugger;
 
     const binder = new TemplateBinder(context.get(IDOM), resources, attrParser, exprParser, attrSyntaxModifier);
 

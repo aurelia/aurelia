@@ -90,16 +90,6 @@ describe('translation-integration', function () {
     assert.equal((host as Element).querySelector(selector).textContent, translation);
   }
 
-  it('left the content as-is if empty value is used for translation attribute', async function () {
-
-    @customElement({ name: 'app', template: `<span t=''>The Intouchables</span>`, isStrictBinding: true })
-    class App { }
-
-    const host = DOM.createElement('app');
-    await createFixture(host, new App());
-    assertTextContent(host, 'span', 'The Intouchables');
-  });
-
   it('works for simple string literal key', async function () {
 
     @customElement({ name: 'app', template: `<span t='simple.text'></span>`, isStrictBinding: true })
@@ -109,6 +99,162 @@ describe('translation-integration', function () {
     const { en: translation } = await createFixture(host, new App());
     assertTextContent(host, 'span', translation.simple.text);
   });
+
+  it('works for null/undefined bound values', async function () {
+    @customElement({
+      name: 'app',
+      template: `<p t.bind="undef" id="undefined">
+        Undefined value
+      </p>
+      <p t.bind="nullul" id="null">
+        Null value
+      </p>`,
+      isStrictBinding: true
+    })
+    class App {
+      private readonly nullul: null = null;
+      private readonly undef: undefined = undefined;
+      // private readonly zero: 0 = 0;
+    }
+
+    const host = DOM.createElement('app');
+    await createFixture(host, new App());
+
+    assertTextContent(host, '#undefined', '');
+    assertTextContent(host, '#null', '');
+  });
+
+  it('works for null/undefined bound values - default value', async function () {
+    @customElement({
+      name: 'app',
+      template: `<p t.bind="undef" id="undefined" t-params.bind="{defaultValue:'foo'}">
+        Undefined value
+      </p>
+      <p t.bind="nullul" id="null" t-params.bind="{defaultValue:'bar'}">
+        Null value
+      </p>`,
+      isStrictBinding: true
+    })
+    class App {
+      private readonly nullul: null = null;
+      private readonly undef: undefined = undefined;
+      // private readonly zero: 0 = 0;
+    }
+
+    const host = DOM.createElement('app');
+    await createFixture(host, new App());
+
+    assertTextContent(host, '#undefined', 'foo');
+    assertTextContent(host, '#null', 'bar');
+  });
+
+  it('works if the keyExpression is changed to null/undefined', async function () {
+    @customElement({
+      name: 'app',
+      template: `<p t.bind="undef" id="undefined">
+        Undefined value
+      </p>
+      <p t.bind="nullul" id="null">
+        Null value
+      </p>`,
+      isStrictBinding: true
+    })
+    class App {
+      private nullul: string | null = 'simple.text';
+      private undef: string | undefined = 'simple.text';
+
+      public changeKey() {
+        this.nullul = null;
+        this.undef = undefined;
+      }
+    }
+
+    const host = DOM.createElement('app');
+    const app = new App();
+    await createFixture(host, app);
+
+    app.changeKey();
+
+    assertTextContent(host, '#undefined', '');
+    assertTextContent(host, '#null', '');
+  });
+
+  it('works if the keyExpression is changed to null/undefined - default value', async function () {
+    @customElement({
+      name: 'app',
+      template: `<p t.bind="undef" id="undefined" t-params.bind="{defaultValue:'foo'}">
+        Undefined value
+      </p>
+      <p t.bind="nullul" id="null" t-params.bind="{defaultValue:'bar'}">
+        Null value
+      </p>`,
+      isStrictBinding: true
+    })
+    class App {
+      private nullul: string | null = 'simple.text';
+      private undef: string | undefined = 'simple.text';
+
+      public changeKey() {
+        this.nullul = null;
+        this.undef = undefined;
+      }
+    }
+
+    const host = DOM.createElement('app');
+    const app = new App();
+    await createFixture(host, app);
+
+    app.changeKey();
+
+    assertTextContent(host, '#undefined', 'foo');
+    assertTextContent(host, '#null', 'bar');
+  });
+
+  for (const value of [true, false, 0]) {
+    it(`throws error if the key expression is evaluated to ${value}`, async function () {
+      @customElement({
+        name: 'app',
+        template: `<p t.bind="key" id="undefined"></p>`,
+        isStrictBinding: true
+      })
+      class App {
+        private readonly key: any = value;
+      }
+
+      const host = DOM.createElement('app');
+      try {
+        await createFixture(host, new App());
+      } catch (e) {
+        assert.match(e.message, new RegExp(`Expected the i18n key to be a string, but got ${value} of type (boolean|number)`));
+      }
+    });
+  }
+
+  for (const value of [true, false, 0]) {
+    it(`throws error if the key expression is changed to ${value}`, async function () {
+      @customElement({
+        name: 'app',
+        template: `<p t.bind="key" id="undefined"></p>`,
+        isStrictBinding: true
+      })
+      class App {
+        private key: any = 'simple.text';
+
+        public changeKey() {
+          this.key = value;
+        }
+      }
+
+      const host = DOM.createElement('app');
+      const app = new App();
+      await createFixture(host, app);
+      try {
+        app.changeKey();
+      } catch (e) {
+        assert.match(e.message, new RegExp(`Expected the i18n key to be a string, but got ${value} of type (boolean|number)`));
+      }
+    });
+  }
 
   it('with multiple `t` attribute only the first one is considered', async function () {
 

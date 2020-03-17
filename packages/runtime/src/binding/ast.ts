@@ -227,14 +227,6 @@ export class BindingBehaviorExpression implements IBindingBehaviorExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitBindingBehavior(this);
   }
-
-  public static fromJSON(jsonObject: Pick<BindingBehaviorExpression, 'expression' | 'name' | 'args'>, hydrator: IHydrator): BindingBehaviorExpression {
-    return new BindingBehaviorExpression(
-      hydrator.hydrate(jsonObject.expression),
-      jsonObject.name,
-      hydrator.hydrate(jsonObject.args)
-    );
-  }
 }
 
 export class ValueConverterExpression implements IValueConverterExpression {
@@ -331,14 +323,6 @@ export class ValueConverterExpression implements IValueConverterExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitValueConverter(this);
   }
-
-  public static fromJSON(jsonObject: Pick<ValueConverterExpression, 'expression' | 'name' | 'args'>, hydrator: IHydrator): ValueConverterExpression {
-    return new ValueConverterExpression(
-      hydrator.hydrate(jsonObject.expression),
-      jsonObject.name,
-      hydrator.hydrate(jsonObject.args)
-    );
-  }
 }
 
 export class AssignExpression implements IAssignExpression {
@@ -365,13 +349,6 @@ export class AssignExpression implements IAssignExpression {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitAssign(this);
-  }
-
-  public static fromJSON(jsonObject: Pick<AssignExpression, 'target' | 'value'>, hydrator: IHydrator): AssignExpression {
-    return new AssignExpression(
-      hydrator.hydrate(jsonObject.target),
-      hydrator.hydrate(jsonObject.value)
-    );
   }
 }
 
@@ -408,14 +385,6 @@ export class ConditionalExpression implements IConditionalExpression {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitConditional(this);
-  }
-
-  public static fromJSON(jsonObject: Pick<ConditionalExpression, 'condition' | 'yes' | 'no'>, hydrator: IHydrator): ConditionalExpression {
-    return new ConditionalExpression(
-      hydrator.hydrate(jsonObject.condition),
-      hydrator.hydrate(jsonObject.yes),
-      hydrator.hydrate(jsonObject.no),
-    );
   }
 }
 
@@ -465,10 +434,6 @@ export class AccessThisExpression implements IAccessThisExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitAccessThis(this);
   }
-
-  public static fromJSON(jsonObject: Pick<AccessThisExpression, 'ancestor'>, _hydrator: IHydrator): AccessThisExpression {
-    return new AccessThisExpression(jsonObject.ancestor);
-  }
 }
 
 export class AccessScopeExpression implements IAccessScopeExpression {
@@ -509,10 +474,6 @@ export class AccessScopeExpression implements IAccessScopeExpression {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitAccessScope(this);
-  }
-
-  public static fromJSON(jsonObject: Pick<AccessScopeExpression, 'name' | 'ancestor'>, _hydrator: IHydrator): AccessScopeExpression {
-    return new AccessScopeExpression(jsonObject.name, jsonObject.ancestor);
   }
 }
 
@@ -559,10 +520,6 @@ export class AccessMemberExpression implements IAccessMemberExpression {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitAccessMember(this);
-  }
-
-  public static fromJSON(jsonObject: Pick<AccessMemberExpression, 'object' | 'name'>, hydrator: IHydrator): AccessMemberExpression {
-    return new AccessMemberExpression(hydrator.hydrate(jsonObject.object) as IsLeftHandSide, jsonObject.name);
   }
 }
 
@@ -648,13 +605,6 @@ export class CallScopeExpression implements ICallScopeExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitCallScope(this);
   }
-
-  public static fromJSON(jsonObject: Pick<CallScopeExpression, 'name' | 'args' | 'ancestor'>, hydrator: IHydrator): CallScopeExpression {
-    return new CallScopeExpression(
-      jsonObject.name,
-      hydrator.hydrate(jsonObject.args),
-      jsonObject.ancestor);
-  }
 }
 
 export class CallMemberExpression implements ICallMemberExpression {
@@ -697,14 +647,6 @@ export class CallMemberExpression implements ICallMemberExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitCallMember(this);
   }
-
-  public static fromJSON(jsonObject: Pick<CallMemberExpression, 'object' | 'name' | 'args'>, hydrator: IHydrator): CallMemberExpression {
-    return new CallMemberExpression(
-      hydrator.hydrate(jsonObject.object),
-      jsonObject.name,
-      hydrator.hydrate(jsonObject.args)
-    );
-  }
 }
 
 export class CallFunctionExpression implements ICallFunctionExpression {
@@ -744,9 +686,6 @@ export class CallFunctionExpression implements ICallFunctionExpression {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitCallFunction(this);
-  }
-  public static fromJSON(jsonObject: Pick<CallFunctionExpression, 'func' | 'args'>, hydrator: IHydrator): CallFunctionExpression {
-    return new CallFunctionExpression(hydrator.hydrate(jsonObject.func), hydrator.hydrate(jsonObject.args));
   }
 }
 
@@ -866,14 +805,6 @@ export class BinaryExpression implements IBinaryExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitBinary(this);
   }
-
-  public static fromJSON(jsonObject: Pick<BinaryExpression, 'operation' | 'left' | 'right'>, hydrator: IHydrator): BinaryExpression {
-    return new BinaryExpression(
-      jsonObject.operation,
-      hydrator.hydrate(jsonObject.left),
-      hydrator.hydrate(jsonObject.right)
-    );
-  }
 }
 
 export class UnaryExpression implements IUnaryExpression {
@@ -919,13 +850,6 @@ export class UnaryExpression implements IUnaryExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitUnary(this);
   }
-
-  public static fromJSON(jsonObject: Pick<UnaryExpression, 'operation' | 'expression'>, hydrator: IHydrator): UnaryExpression {
-    return new UnaryExpression(
-      jsonObject.operation,
-      hydrator.hydrate(jsonObject.expression)
-    );
-  }
 }
 export class PrimitiveLiteralExpression<TValue extends StrictPrimitive = StrictPrimitive> implements IPrimitiveLiteralExpression {
   public static readonly $TYPE: string = 'PrimitiveLiteralExpression';
@@ -954,10 +878,6 @@ export class PrimitiveLiteralExpression<TValue extends StrictPrimitive = StrictP
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitPrimitiveLiteral(this);
-  }
-
-  public static fromJSON(jsonObject: Pick<PrimitiveLiteralExpression, 'value'>, hydrator: IHydrator) {
-    return new PrimitiveLiteralExpression(hydrator.hydrate(jsonObject.value));
   }
 }
 
@@ -1030,10 +950,6 @@ export class ArrayLiteralExpression implements IArrayLiteralExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitArrayLiteral(this);
   }
-
-  public static fromJSON(jsonObject: Pick<ArrayLiteralExpression, 'elements'>, hydrator: IHydrator): ArrayLiteralExpression {
-    return new ArrayLiteralExpression(hydrator.hydrate(jsonObject.elements));
-  }
 }
 
 export class ObjectLiteralExpression implements IObjectLiteralExpression {
@@ -1070,10 +986,6 @@ export class ObjectLiteralExpression implements IObjectLiteralExpression {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitObjectLiteral(this);
-  }
-
-  public static fromJSON(jsonObject: Pick<ObjectLiteralExpression, 'keys' | 'values'>, hydrator: IHydrator): ObjectLiteralExpression {
-    return new ObjectLiteralExpression(hydrator.hydrate(jsonObject.keys), hydrator.hydrate(jsonObject.values));
   }
 }
 
@@ -1112,10 +1024,6 @@ export class TemplateExpression implements ITemplateExpression {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitTemplate(this);
-  }
-
-  public static fromJSON(jsonObject: Pick<TemplateExpression, 'cooked' | 'expressions'>, hydrator: IHydrator): TemplateExpression {
-    return new TemplateExpression(hydrator.hydrate(jsonObject.cooked), hydrator.hydrate(jsonObject.expressions));
   }
 }
 
@@ -1161,15 +1069,6 @@ export class TaggedTemplateExpression implements ITaggedTemplateExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitTaggedTemplate(this);
   }
-
-  public static fromJSON(jsonObject: Pick<TaggedTemplateExpression, 'cooked' | 'func' | 'expressions'> & { raw: any }, hydrator: IHydrator): TaggedTemplateExpression {
-    return new TaggedTemplateExpression(
-      hydrator.hydrate(jsonObject.cooked),
-      hydrator.hydrate(jsonObject.raw),
-      hydrator.hydrate(jsonObject.func),
-      hydrator.hydrate(jsonObject.expressions)
-    );
-  }
 }
 
 export class ArrayBindingPattern implements IArrayBindingPattern {
@@ -1197,10 +1096,6 @@ export class ArrayBindingPattern implements IArrayBindingPattern {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitArrayBindingPattern(this);
-  }
-
-  public static fromJSON(jsonObject: Pick<ArrayBindingPattern, 'elements'>, hydrator: IHydrator): ArrayBindingPattern {
-    return new ArrayBindingPattern(hydrator.hydrate(jsonObject.elements));
   }
 }
 
@@ -1231,13 +1126,6 @@ export class ObjectBindingPattern implements IObjectBindingPattern {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitObjectBindingPattern(this);
   }
-
-  public static fromJSON(jsonObject: Pick<ObjectBindingPattern, 'keys' | 'values'>, hydrator: IHydrator): ObjectBindingPattern {
-    return new ObjectBindingPattern(
-      hydrator.hydrate(jsonObject.keys),
-      hydrator.hydrate(jsonObject.values)
-    );
-  }
 }
 
 export class BindingIdentifier implements IBindingIdentifier {
@@ -1257,10 +1145,6 @@ export class BindingIdentifier implements IBindingIdentifier {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitBindingIdentifier(this);
-  }
-
-  public static fromJSON(jsonObject: Pick<BindingIdentifier, 'name'>, _hydrator: IHydrator): BindingIdentifier {
-    return new BindingIdentifier(jsonObject.name);
   }
 }
 
@@ -1331,13 +1215,6 @@ export class ForOfStatement implements IForOfStatement {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitForOfStatement(this);
   }
-
-  public static fromJSON(jsonObject: Pick<ForOfStatement, 'declaration' | 'iterable'>, hydrator: IHydrator): ForOfStatement {
-    return new ForOfStatement(
-      hydrator.hydrate(jsonObject.declaration),
-      hydrator.hydrate(jsonObject.iterable)
-    );
-  }
 }
 
 /*
@@ -1385,10 +1262,6 @@ export class Interpolation implements IInterpolationExpression {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitInterpolation(this);
-  }
-
-  public static fromJSON(jsonObject: { cooked: any; expressions: any }, hydrator: IHydrator): Interpolation {
-    return new Interpolation(hydrator.hydrate(jsonObject.cooked), hydrator.hydrate(jsonObject.expressions));
   }
 }
 

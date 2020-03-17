@@ -297,47 +297,111 @@ export class Deserializer implements IHydrator {
     return deserializer.hydrate(raw);
   }
 
-  private static readonly hydrationMap: { [$TYPE: string]: HydrateableExpression } = {
-    [AST.AccessMemberExpression.$TYPE]:     AST.AccessMemberExpression,
-    [AST.AccessKeyedExpression.$TYPE]:      AST.AccessKeyedExpression,
-    [AST.AccessThisExpression.$TYPE]:       AST.AccessThisExpression,
-    [AST.AccessScopeExpression.$TYPE]:      AST.AccessScopeExpression,
-    [AST.ArrayLiteralExpression.$TYPE]:     AST.ArrayLiteralExpression,
-    [AST.ObjectLiteralExpression.$TYPE]:    AST.ObjectLiteralExpression,
-    [AST.PrimitiveLiteralExpression.$TYPE]: AST.PrimitiveLiteralExpression,
-    [AST.CallFunctionExpression.$TYPE]:     AST.CallFunctionExpression,
-    [AST.CallMemberExpression.$TYPE]:       AST.CallMemberExpression,
-    [AST.CallScopeExpression.$TYPE]:        AST.CallScopeExpression,
-    [AST.TemplateExpression.$TYPE]:         AST.TemplateExpression,
-    [AST.TaggedTemplateExpression.$TYPE]:   AST.TaggedTemplateExpression,
-    [AST.UnaryExpression.$TYPE]:            AST.UnaryExpression,
-    [AST.BinaryExpression.$TYPE]:           AST.BinaryExpression,
-    [AST.ConditionalExpression.$TYPE]:      AST.ConditionalExpression,
-    [AST.AssignExpression.$TYPE]:           AST.AssignExpression,
-    [AST.ValueConverterExpression.$TYPE]:   AST.ValueConverterExpression,
-    [AST.BindingBehaviorExpression.$TYPE]:  AST.BindingBehaviorExpression,
-    [AST.ArrayBindingPattern.$TYPE]:        AST.ArrayBindingPattern,
-    [AST.ObjectBindingPattern.$TYPE]:       AST.ObjectBindingPattern,
-    [AST.BindingIdentifier.$TYPE]:          AST.BindingIdentifier,
-    [AST.ForOfStatement.$TYPE]:             AST.ForOfStatement,
-    [AST.Interpolation.$TYPE]:              AST.Interpolation,
-  } as const;
-
   public hydrate(raw: ParsedRawExpression): any {
-    const expressionFunction = Deserializer.hydrationMap[raw.$TYPE];
-    if (expressionFunction !== void 0) {
-      return expressionFunction.fromJSON(raw, this);
-    } else {
-      if (Array.isArray(raw)) {
-        if (typeof raw[0] === 'object') {
-          return this.deserializeExpressions(raw);
-        } else {
-          return raw.map(deserializePrimitive);
-        }
-      } else if (typeof raw !== 'object') {
-        return deserializePrimitive(raw);
+    switch (raw.$TYPE) {
+      case AST.AccessMemberExpression.$TYPE: {
+        const expr: Pick<AST.AccessMemberExpression, 'object' | 'name'> = raw;
+        return new AST.AccessMemberExpression(this.hydrate(expr.object), expr.name);
       }
-      throw new Error(`unable to deserialize the expression: ${raw}`); // TODO use reporter/logger
+      case AST.AccessKeyedExpression.$TYPE: {
+        const expr: Pick<AST.AccessKeyedExpression, 'object' | 'key'> = raw;
+        return new AST.AccessKeyedExpression(this.hydrate(expr.object), this.hydrate(expr.key));
+      }
+      case AST.AccessThisExpression.$TYPE: {
+        const expr: Pick<AST.AccessThisExpression, 'ancestor'> = raw;
+        return new AST.AccessThisExpression(expr.ancestor);
+      }
+      case AST.AccessScopeExpression.$TYPE: {
+        const expr: Pick<AST.AccessScopeExpression, 'name' | 'ancestor'> = raw;
+        return new AST.AccessScopeExpression(expr.name, expr.ancestor);
+      }
+      case AST.ArrayLiteralExpression.$TYPE: {
+        const expr: Pick<AST.ArrayLiteralExpression, 'elements'> = raw;
+        return new AST.ArrayLiteralExpression(this.hydrate(expr.elements));
+      }
+      case AST.ObjectLiteralExpression.$TYPE: {
+        const expr: Pick<AST.ObjectLiteralExpression, 'keys' | 'values'> = raw;
+        return new AST.ObjectLiteralExpression(this.hydrate(expr.keys), this.hydrate(expr.values));
+      }
+      case AST.PrimitiveLiteralExpression.$TYPE: {
+        const expr: Pick<AST.PrimitiveLiteralExpression, 'value'> = raw;
+        return new AST.PrimitiveLiteralExpression(this.hydrate(expr.value));
+      }
+      case AST.CallFunctionExpression.$TYPE: {
+        const expr: Pick<AST.CallFunctionExpression, 'func' | 'args'> = raw;
+        return new AST.CallFunctionExpression(this.hydrate(expr.func), this.hydrate(expr.args));
+      }
+      case AST.CallMemberExpression.$TYPE: {
+        const expr: Pick<AST.CallMemberExpression, 'object' | 'name' | 'args'> = raw;
+        return new AST.CallMemberExpression(this.hydrate(expr.object), expr.name, this.hydrate(expr.args));
+      }
+      case AST.CallScopeExpression.$TYPE: {
+        const expr: Pick<AST.CallScopeExpression, 'name' | 'args' | 'ancestor'> = raw;
+        return new AST.CallScopeExpression(expr.name, this.hydrate(expr.args), expr.ancestor);
+      }
+      case AST.TemplateExpression.$TYPE: {
+        const expr: Pick<AST.TemplateExpression, 'cooked' | 'expressions'> = raw;
+        return new AST.TemplateExpression(this.hydrate(expr.cooked), this.hydrate(expr.expressions));
+      }
+      case AST.TaggedTemplateExpression.$TYPE: {
+        const expr: Pick<AST.TaggedTemplateExpression, 'cooked' | 'func' | 'expressions'> & { raw: any } = raw;
+        return new AST.TaggedTemplateExpression(this.hydrate(expr.cooked), this.hydrate(expr.raw), this.hydrate(expr.func), this.hydrate(expr.expressions));
+      }
+      case AST.UnaryExpression.$TYPE: {
+        const expr: Pick<AST.UnaryExpression, 'operation' | 'expression'> = raw;
+        return new AST.UnaryExpression(expr.operation, this.hydrate(expr.expression));
+      }
+      case AST.BinaryExpression.$TYPE: {
+        const expr: Pick<AST.BinaryExpression, 'operation' | 'left' | 'right'> = raw;
+        return new AST.BinaryExpression(expr.operation, this.hydrate(expr.left), this.hydrate(expr.right));
+      }
+      case AST.ConditionalExpression.$TYPE: {
+        const expr: Pick<AST.ConditionalExpression, 'condition' | 'yes' | 'no'> = raw;
+        return new AST.ConditionalExpression(this.hydrate(expr.condition), this.hydrate(expr.yes), this.hydrate(expr.no));
+      }
+      case AST.AssignExpression.$TYPE: {
+        const expr: Pick<AST.AssignExpression, 'target' | 'value'> = raw;
+        return new AST.AssignExpression(this.hydrate(expr.target), this.hydrate(expr.value));
+      }
+      case AST.ValueConverterExpression.$TYPE: {
+        const expr: Pick<AST.ValueConverterExpression, 'expression' | 'name' | 'args'> = raw;
+        return new AST.ValueConverterExpression(this.hydrate(expr.expression), expr.name, this.hydrate(expr.args));
+      }
+      case AST.BindingBehaviorExpression.$TYPE: {
+        const expr: Pick<AST.BindingBehaviorExpression, 'expression' | 'name' | 'args'> = raw;
+        return new AST.BindingBehaviorExpression(this.hydrate(expr.expression), expr.name, this.hydrate(expr.args));
+      }
+      case AST.ArrayBindingPattern.$TYPE: {
+        const expr: Pick<AST.ArrayBindingPattern, 'elements'> = raw;
+        return new AST.ArrayBindingPattern(this.hydrate(expr.elements));
+      }
+      case AST.ObjectBindingPattern.$TYPE: {
+        const expr: Pick<AST.ObjectBindingPattern, 'keys' | 'values'> = raw;
+        return new AST.ObjectBindingPattern(this.hydrate(expr.keys), this.hydrate(expr.values));
+      }
+      case AST.BindingIdentifier.$TYPE: {
+        const expr: Pick<AST.BindingIdentifier, 'name'> = raw;
+        return new AST.BindingIdentifier(expr.name);
+      }
+      case AST.ForOfStatement.$TYPE: {
+        const expr: Pick<AST.ForOfStatement, 'declaration' | 'iterable'> = raw;
+        return new AST.ForOfStatement(this.hydrate(expr.declaration), this.hydrate(expr.iterable));
+      }
+      case AST.Interpolation.$TYPE: {
+        const expr: { cooked: any; expressions: any } = raw;
+        return new AST.Interpolation(this.hydrate(expr.cooked), this.hydrate(expr.expressions));
+      }
+      default:
+        if (Array.isArray(raw)) {
+          if (typeof raw[0] === 'object') {
+            return this.deserializeExpressions(raw);
+          } else {
+            return raw.map(deserializePrimitive);
+          }
+        } else if (typeof raw !== 'object') {
+          return deserializePrimitive(raw);
+        }
+        throw new Error(`unable to deserialize the expression: ${raw}`); // TODO use reporter/logger
     }
   }
 

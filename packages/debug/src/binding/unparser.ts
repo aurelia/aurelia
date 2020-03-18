@@ -288,7 +288,31 @@ export class Unparser implements AST.IVisitor<void> {
   }
 }
 
-type HydrateableExpression = { fromJSON(jsonObject: any, hydrator: IHydrator): any };
+enum ASTExpressionTypes {
+  BindingBehaviorExpression = 'BindingBehaviorExpression',
+  ValueConverterExpression = 'ValueConverterExpression',
+  AssignExpression = 'AssignExpression',
+  ConditionalExpression = 'ConditionalExpression',
+  AccessThisExpression = 'AccessThisExpression',
+  AccessScopeExpression = 'AccessScopeExpression',
+  AccessMemberExpression = 'AccessMemberExpression',
+  AccessKeyedExpression = 'AccessKeyedExpression',
+  CallScopeExpression = 'CallScopeExpression',
+  CallMemberExpression = 'CallMemberExpression',
+  CallFunctionExpression = 'CallFunctionExpression',
+  BinaryExpression = 'BinaryExpression',
+  UnaryExpression = 'UnaryExpression',
+  PrimitiveLiteralExpression = 'PrimitiveLiteralExpression',
+  ArrayLiteralExpression = 'ArrayLiteralExpression',
+  ObjectLiteralExpression = 'ObjectLiteralExpression',
+  TemplateExpression = 'TemplateExpression',
+  TaggedTemplateExpression = 'TaggedTemplateExpression',
+  ArrayBindingPattern = 'ArrayBindingPattern',
+  ObjectBindingPattern = 'ObjectBindingPattern',
+  BindingIdentifier = 'BindingIdentifier',
+  ForOfStatement = 'ForOfStatement',
+  Interpolation = 'Interpolation',
+}
 type ParsedRawExpression = any & { $TYPE: string };
 export class Deserializer implements IHydrator {
   public static deserialize(serializedExpr: string): AST.IExpression {
@@ -299,95 +323,95 @@ export class Deserializer implements IHydrator {
 
   public hydrate(raw: ParsedRawExpression): any {
     switch (raw.$TYPE) {
-      case AST.AccessMemberExpression.$TYPE: {
+      case ASTExpressionTypes.AccessMemberExpression: {
         const expr: Pick<AST.AccessMemberExpression, 'object' | 'name'> = raw;
         return new AST.AccessMemberExpression(this.hydrate(expr.object), expr.name);
       }
-      case AST.AccessKeyedExpression.$TYPE: {
+      case ASTExpressionTypes.AccessKeyedExpression: {
         const expr: Pick<AST.AccessKeyedExpression, 'object' | 'key'> = raw;
         return new AST.AccessKeyedExpression(this.hydrate(expr.object), this.hydrate(expr.key));
       }
-      case AST.AccessThisExpression.$TYPE: {
+      case ASTExpressionTypes.AccessThisExpression: {
         const expr: Pick<AST.AccessThisExpression, 'ancestor'> = raw;
         return new AST.AccessThisExpression(expr.ancestor);
       }
-      case AST.AccessScopeExpression.$TYPE: {
+      case ASTExpressionTypes.AccessScopeExpression: {
         const expr: Pick<AST.AccessScopeExpression, 'name' | 'ancestor'> = raw;
         return new AST.AccessScopeExpression(expr.name, expr.ancestor);
       }
-      case AST.ArrayLiteralExpression.$TYPE: {
+      case ASTExpressionTypes.ArrayLiteralExpression: {
         const expr: Pick<AST.ArrayLiteralExpression, 'elements'> = raw;
         return new AST.ArrayLiteralExpression(this.hydrate(expr.elements));
       }
-      case AST.ObjectLiteralExpression.$TYPE: {
+      case ASTExpressionTypes.ObjectLiteralExpression: {
         const expr: Pick<AST.ObjectLiteralExpression, 'keys' | 'values'> = raw;
         return new AST.ObjectLiteralExpression(this.hydrate(expr.keys), this.hydrate(expr.values));
       }
-      case AST.PrimitiveLiteralExpression.$TYPE: {
+      case ASTExpressionTypes.PrimitiveLiteralExpression: {
         const expr: Pick<AST.PrimitiveLiteralExpression, 'value'> = raw;
         return new AST.PrimitiveLiteralExpression(this.hydrate(expr.value));
       }
-      case AST.CallFunctionExpression.$TYPE: {
+      case ASTExpressionTypes.CallFunctionExpression: {
         const expr: Pick<AST.CallFunctionExpression, 'func' | 'args'> = raw;
         return new AST.CallFunctionExpression(this.hydrate(expr.func), this.hydrate(expr.args));
       }
-      case AST.CallMemberExpression.$TYPE: {
+      case ASTExpressionTypes.CallMemberExpression: {
         const expr: Pick<AST.CallMemberExpression, 'object' | 'name' | 'args'> = raw;
         return new AST.CallMemberExpression(this.hydrate(expr.object), expr.name, this.hydrate(expr.args));
       }
-      case AST.CallScopeExpression.$TYPE: {
+      case ASTExpressionTypes.CallScopeExpression: {
         const expr: Pick<AST.CallScopeExpression, 'name' | 'args' | 'ancestor'> = raw;
         return new AST.CallScopeExpression(expr.name, this.hydrate(expr.args), expr.ancestor);
       }
-      case AST.TemplateExpression.$TYPE: {
+      case ASTExpressionTypes.TemplateExpression: {
         const expr: Pick<AST.TemplateExpression, 'cooked' | 'expressions'> = raw;
         return new AST.TemplateExpression(this.hydrate(expr.cooked), this.hydrate(expr.expressions));
       }
-      case AST.TaggedTemplateExpression.$TYPE: {
+      case ASTExpressionTypes.TaggedTemplateExpression: {
         const expr: Pick<AST.TaggedTemplateExpression, 'cooked' | 'func' | 'expressions'> & { raw: any } = raw;
         return new AST.TaggedTemplateExpression(this.hydrate(expr.cooked), this.hydrate(expr.raw), this.hydrate(expr.func), this.hydrate(expr.expressions));
       }
-      case AST.UnaryExpression.$TYPE: {
+      case ASTExpressionTypes.UnaryExpression: {
         const expr: Pick<AST.UnaryExpression, 'operation' | 'expression'> = raw;
         return new AST.UnaryExpression(expr.operation, this.hydrate(expr.expression));
       }
-      case AST.BinaryExpression.$TYPE: {
+      case ASTExpressionTypes.BinaryExpression: {
         const expr: Pick<AST.BinaryExpression, 'operation' | 'left' | 'right'> = raw;
         return new AST.BinaryExpression(expr.operation, this.hydrate(expr.left), this.hydrate(expr.right));
       }
-      case AST.ConditionalExpression.$TYPE: {
+      case ASTExpressionTypes.ConditionalExpression: {
         const expr: Pick<AST.ConditionalExpression, 'condition' | 'yes' | 'no'> = raw;
         return new AST.ConditionalExpression(this.hydrate(expr.condition), this.hydrate(expr.yes), this.hydrate(expr.no));
       }
-      case AST.AssignExpression.$TYPE: {
+      case ASTExpressionTypes.AssignExpression: {
         const expr: Pick<AST.AssignExpression, 'target' | 'value'> = raw;
         return new AST.AssignExpression(this.hydrate(expr.target), this.hydrate(expr.value));
       }
-      case AST.ValueConverterExpression.$TYPE: {
+      case ASTExpressionTypes.ValueConverterExpression: {
         const expr: Pick<AST.ValueConverterExpression, 'expression' | 'name' | 'args'> = raw;
         return new AST.ValueConverterExpression(this.hydrate(expr.expression), expr.name, this.hydrate(expr.args));
       }
-      case AST.BindingBehaviorExpression.$TYPE: {
+      case ASTExpressionTypes.BindingBehaviorExpression: {
         const expr: Pick<AST.BindingBehaviorExpression, 'expression' | 'name' | 'args'> = raw;
         return new AST.BindingBehaviorExpression(this.hydrate(expr.expression), expr.name, this.hydrate(expr.args));
       }
-      case AST.ArrayBindingPattern.$TYPE: {
+      case ASTExpressionTypes.ArrayBindingPattern: {
         const expr: Pick<AST.ArrayBindingPattern, 'elements'> = raw;
         return new AST.ArrayBindingPattern(this.hydrate(expr.elements));
       }
-      case AST.ObjectBindingPattern.$TYPE: {
+      case ASTExpressionTypes.ObjectBindingPattern: {
         const expr: Pick<AST.ObjectBindingPattern, 'keys' | 'values'> = raw;
         return new AST.ObjectBindingPattern(this.hydrate(expr.keys), this.hydrate(expr.values));
       }
-      case AST.BindingIdentifier.$TYPE: {
+      case ASTExpressionTypes.BindingIdentifier: {
         const expr: Pick<AST.BindingIdentifier, 'name'> = raw;
         return new AST.BindingIdentifier(expr.name);
       }
-      case AST.ForOfStatement.$TYPE: {
+      case ASTExpressionTypes.ForOfStatement: {
         const expr: Pick<AST.ForOfStatement, 'declaration' | 'iterable'> = raw;
         return new AST.ForOfStatement(this.hydrate(expr.declaration), this.hydrate(expr.iterable));
       }
-      case AST.Interpolation.$TYPE: {
+      case ASTExpressionTypes.Interpolation: {
         const expr: { cooked: any; expressions: any } = raw;
         return new AST.Interpolation(this.hydrate(expr.cooked), this.hydrate(expr.expressions));
       }
@@ -423,97 +447,97 @@ export class Serializer implements AST.IVisitor<string> {
   }
 
   public visitAccessMember(expr: AST.AccessMemberExpression): string {
-    return `{"$TYPE":"${AST.AccessMemberExpression.$TYPE}","name":"${expr.name}","object":${expr.object.accept(this)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.AccessMemberExpression}","name":"${expr.name}","object":${expr.object.accept(this)}}`;
   }
 
   public visitAccessKeyed(expr: AST.AccessKeyedExpression): string {
-    return `{"$TYPE":"${AST.AccessKeyedExpression.$TYPE}","object":${expr.object.accept(this)},"key":${expr.key.accept(this)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.AccessKeyedExpression}","object":${expr.object.accept(this)},"key":${expr.key.accept(this)}}`;
   }
 
   public visitAccessThis(expr: AST.AccessThisExpression): string {
-    return `{"$TYPE":"${AST.AccessThisExpression.$TYPE}","ancestor":${expr.ancestor}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.AccessThisExpression}","ancestor":${expr.ancestor}}`;
   }
 
   public visitAccessScope(expr: AST.AccessScopeExpression): string {
-    return `{"$TYPE":"${AST.AccessScopeExpression.$TYPE}","name":"${expr.name}","ancestor":${expr.ancestor}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.AccessScopeExpression}","name":"${expr.name}","ancestor":${expr.ancestor}}`;
   }
 
   public visitArrayLiteral(expr: AST.ArrayLiteralExpression): string {
-    return `{"$TYPE":"${AST.ArrayLiteralExpression.$TYPE}","elements":${this.serializeExpressions(expr.elements)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.ArrayLiteralExpression}","elements":${this.serializeExpressions(expr.elements)}}`;
   }
 
   public visitObjectLiteral(expr: AST.ObjectLiteralExpression): string {
-    return `{"$TYPE":"${AST.ObjectLiteralExpression.$TYPE}","keys":${serializePrimitives(expr.keys)},"values":${this.serializeExpressions(expr.values)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.ObjectLiteralExpression}","keys":${serializePrimitives(expr.keys)},"values":${this.serializeExpressions(expr.values)}}`;
   }
 
   public visitPrimitiveLiteral(expr: AST.PrimitiveLiteralExpression): string {
-    return `{"$TYPE":"${AST.PrimitiveLiteralExpression.$TYPE}","value":${serializePrimitive(expr.value)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.PrimitiveLiteralExpression}","value":${serializePrimitive(expr.value)}}`;
   }
 
   public visitCallFunction(expr: AST.CallFunctionExpression): string {
-    return `{"$TYPE":"${AST.CallFunctionExpression.$TYPE}","func":${expr.func.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.CallFunctionExpression}","func":${expr.func.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
   }
 
   public visitCallMember(expr: AST.CallMemberExpression): string {
-    return `{"$TYPE":"${AST.CallMemberExpression.$TYPE}","name":"${expr.name}","object":${expr.object.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.CallMemberExpression}","name":"${expr.name}","object":${expr.object.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
   }
 
   public visitCallScope(expr: AST.CallScopeExpression): string {
-    return `{"$TYPE":"${AST.CallScopeExpression.$TYPE}","name":"${expr.name}","ancestor":${expr.ancestor},"args":${this.serializeExpressions(expr.args)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.CallScopeExpression}","name":"${expr.name}","ancestor":${expr.ancestor},"args":${this.serializeExpressions(expr.args)}}`;
   }
 
   public visitTemplate(expr: AST.TemplateExpression): string {
-    return `{"$TYPE":"${AST.TemplateExpression.$TYPE}","cooked":${serializePrimitives(expr.cooked)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.TemplateExpression}","cooked":${serializePrimitives(expr.cooked)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
   }
 
   public visitTaggedTemplate(expr: AST.TaggedTemplateExpression): string {
-    return `{"$TYPE":"${AST.TaggedTemplateExpression.$TYPE}","cooked":${serializePrimitives(expr.cooked)},"raw":${serializePrimitives(expr.cooked.raw as readonly unknown[])},"func":${expr.func.accept(this)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.TaggedTemplateExpression}","cooked":${serializePrimitives(expr.cooked)},"raw":${serializePrimitives(expr.cooked.raw as readonly unknown[])},"func":${expr.func.accept(this)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
   }
 
   public visitUnary(expr: AST.UnaryExpression): string {
-    return `{"$TYPE":"${AST.UnaryExpression.$TYPE}","operation":"${expr.operation}","expression":${expr.expression.accept(this)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.UnaryExpression}","operation":"${expr.operation}","expression":${expr.expression.accept(this)}}`;
   }
 
   public visitBinary(expr: AST.BinaryExpression): string {
-    return `{"$TYPE":"${AST.BinaryExpression.$TYPE}","operation":"${expr.operation}","left":${expr.left.accept(this)},"right":${expr.right.accept(this)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.BinaryExpression}","operation":"${expr.operation}","left":${expr.left.accept(this)},"right":${expr.right.accept(this)}}`;
   }
 
   public visitConditional(expr: AST.ConditionalExpression): string {
-    return `{"$TYPE":"${AST.ConditionalExpression.$TYPE}","condition":${expr.condition.accept(this)},"yes":${expr.yes.accept(this)},"no":${expr.no.accept(this)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.ConditionalExpression}","condition":${expr.condition.accept(this)},"yes":${expr.yes.accept(this)},"no":${expr.no.accept(this)}}`;
   }
 
   public visitAssign(expr: AST.AssignExpression): string {
-    return `{"$TYPE":"${AST.AssignExpression.$TYPE}","target":${expr.target.accept(this)},"value":${expr.value.accept(this)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.AssignExpression}","target":${expr.target.accept(this)},"value":${expr.value.accept(this)}}`;
   }
 
   public visitValueConverter(expr: AST.ValueConverterExpression): string {
-    return `{"$TYPE":"${AST.ValueConverterExpression.$TYPE}","name":"${expr.name}","expression":${expr.expression.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.ValueConverterExpression}","name":"${expr.name}","expression":${expr.expression.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
   }
 
   public visitBindingBehavior(expr: AST.BindingBehaviorExpression): string {
-    return `{"$TYPE":"${AST.BindingBehaviorExpression.$TYPE}","name":"${expr.name}","expression":${expr.expression.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.BindingBehaviorExpression}","name":"${expr.name}","expression":${expr.expression.accept(this)},"args":${this.serializeExpressions(expr.args)}}`;
   }
 
   public visitArrayBindingPattern(expr: AST.ArrayBindingPattern): string {
-    return `{"$TYPE":"${AST.ArrayBindingPattern.$TYPE}","elements":${this.serializeExpressions(expr.elements)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.ArrayBindingPattern}","elements":${this.serializeExpressions(expr.elements)}}`;
   }
 
   public visitObjectBindingPattern(expr: AST.ObjectBindingPattern): string {
-    return `{"$TYPE":"${AST.ObjectBindingPattern.$TYPE}","keys":${serializePrimitives(expr.keys)},"values":${this.serializeExpressions(expr.values)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.ObjectBindingPattern}","keys":${serializePrimitives(expr.keys)},"values":${this.serializeExpressions(expr.values)}}`;
   }
 
   public visitBindingIdentifier(expr: AST.BindingIdentifier): string {
-    return `{"$TYPE":"${AST.BindingIdentifier.$TYPE}","name":"${expr.name}"}`;
+    return `{"$TYPE":"${ASTExpressionTypes.BindingIdentifier}","name":"${expr.name}"}`;
   }
 
   public visitHtmlLiteral(expr: AST.HtmlLiteralExpression): string { throw new Error('visitHtmlLiteral'); }
 
   public visitForOfStatement(expr: AST.ForOfStatement): string {
-    return `{"$TYPE":"${AST.ForOfStatement.$TYPE}","declaration":${expr.declaration.accept(this)},"iterable":${expr.iterable.accept(this)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.ForOfStatement}","declaration":${expr.declaration.accept(this)},"iterable":${expr.iterable.accept(this)}}`;
   }
 
   public visitInterpolation(expr: AST.Interpolation): string {
-    return `{"$TYPE":"${AST.Interpolation.$TYPE}","cooked":${serializePrimitives(expr.parts)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.Interpolation}","cooked":${serializePrimitives(expr.parts)},"expressions":${this.serializeExpressions(expr.expressions)}}`;
   }
 
   private serializeExpressions(args: readonly AST.IExpression[]): string {

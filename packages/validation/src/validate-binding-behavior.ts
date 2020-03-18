@@ -107,7 +107,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
 
   public $unbind(flags: LifecycleFlags) {
     this.target?.removeEventListener('blur', this);
-    this.controller?.deregisterBinding(this.propertyBinding);
+    this.controller?.unregisterBinding(this.propertyBinding);
     this.binding.$unbind(flags);
     for (const expr of this.connectedExpressions) {
       if (expr.unbind !== void 0) {
@@ -186,7 +186,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
       }
     }
     if (this.controller !== controller || rules !== void 0) {
-      this.controller?.deregisterBinding(this.propertyBinding);
+      this.controller?.unregisterBinding(this.propertyBinding);
       this.controller = controller;
       controller.registerBinding(this.propertyBinding, new BindingInfo(this.target, this.scope, rules));
     }

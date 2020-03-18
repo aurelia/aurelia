@@ -461,7 +461,7 @@ describe('validate-biniding-behavior', function () {
 
       app.tempController = controller2;
       await scheduler.yieldAll(10);
-      controllerSpy.methodCalledTimes('deregisterBinding', 1);
+      controllerSpy.methodCalledTimes('unregisterBinding', 1);
       assertControllerBinding(controller2, 'person.name', target1, controller2Spy);
 
       await assertEventHandler(target1, 'blur', 1, scheduler, controller2Spy, ctx);

@@ -211,7 +211,7 @@ export interface IValidationController {
    *
    * @internal
    */
-  deregisterBinding(binding: BindingWithBehavior): void;
+  unregisterBinding(binding: BindingWithBehavior): void;
   /**
    * Validates a specific binding.
    * This is usually done from the `validate` binding behavior, triggered by some `ValidationTrigger`
@@ -303,7 +303,7 @@ export class ValidationController implements IValidationController {
     this.bindings.set(binding, info);
   }
 
-  public deregisterBinding(binding: BindingWithBehavior) {
+  public unregisterBinding(binding: BindingWithBehavior) {
     this.resetBinding(binding);
     this.bindings.delete(binding);
   }
@@ -459,7 +459,7 @@ export class ValidationController implements IValidationController {
     const locator = binding.locator;
     let toCachePropertyName = true;
     let propertyName: string = "";
-    while (expression !== void 0 && !(expression instanceof AccessScopeExpression)) {
+    while (expression !== void 0 && expression?.$kind !== ExpressionKind.AccessScope) {
       let memberName: string;
       switch (expression.$kind) {
         case ExpressionKind.BindingBehavior:
@@ -472,7 +472,7 @@ export class ValidationController implements IValidationController {
         case ExpressionKind.AccessKeyed: {
           const keyExpr = (expression as AccessKeyedExpression).key;
           if (toCachePropertyName) {
-            toCachePropertyName = keyExpr instanceof PrimitiveLiteralExpression;
+            toCachePropertyName = keyExpr?.$kind === ExpressionKind.PrimitiveLiteral;
           }
           memberName = `[${(keyExpr.evaluate(flags, scope, locator) as any).toString()}]`;
           break;

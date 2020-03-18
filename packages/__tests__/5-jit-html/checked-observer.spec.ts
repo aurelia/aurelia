@@ -29,7 +29,7 @@ describe('simple Computed Observer test case', function () {
       title: 'basic scenario with array',
       template: '<input type=checkbox repeat.for="i of 10" model.bind=i checked.bind=selected >',
       ViewModel: class {
-        selected: any = [];
+        public selected: any[] = [];
       },
       assertFn: (ctx, host, $component) => {
         const component = $component as IApp & { selected: any[] };
@@ -57,7 +57,7 @@ describe('simple Computed Observer test case', function () {
       title: 'basic scenario with Set',
       template: '<input type=checkbox repeat.for="i of 10" model.bind=i checked.bind=selected >',
       ViewModel: class {
-        selected: Set<any> = new Set();
+        public selected: Set<any> = new Set();
       },
       assertFn: (ctx, host, $component) => {
         const component = $component as IApp & { selected: Set<any> };
@@ -85,7 +85,7 @@ describe('simple Computed Observer test case', function () {
       title: 'basic scenario with Map',
       template: '<input type=checkbox repeat.for="i of 10" model.bind=i checked.bind=selected >',
       ViewModel: class {
-        selected: Map<any, any> = new Map();
+        public selected: Map<any, any> = new Map();
       },
       assertFn: (ctx, host, $component) => {
         const component = $component as IApp & { selected: Map<any, any> };
@@ -107,6 +107,107 @@ describe('simple Computed Observer test case', function () {
         component.selected = new Map(Array.from({ length: 10 }, (_, i) => [i, true]));
         ctx.scheduler.getRenderTaskQueue().flush();
         assert.strictEqual(inputEls.every(el => el.checked), true, 'new Set(), all checked');
+      }
+    },
+    {
+      title: 'mathcer scenario with Array',
+      template: '<input type=checkbox repeat.for="i of items" model.bind=i checked.bind=selected matcher.bind="matchItems">',
+      ViewModel: class {
+        public items: any[] = createItems(10);
+        public selected: any[] = [];
+
+        public matchItems(itemA: IAppItem, itemB: IAppItem): boolean {
+          return itemA.name === itemB.name;
+        }
+      },
+      assertFn: (ctx, host, $component) => {
+        const component = $component as IApp & { selected: IAppItem[] };
+        const inputEls = Array.from(host.querySelectorAll('input'));
+        assert.strictEqual(inputEls.length, 10);
+        assert.strictEqual(inputEls.every(el => !el.checked), true, 'all checkbox checked');
+
+        component.selected.push({ name: 'item 0', value: 0 });
+        ctx.scheduler.getRenderTaskQueue().flush();
+        assert.strictEqual(inputEls[0].checked, true, 'first input is checked');
+
+        simulateStateChange(ctx, inputEls[0], false);
+        assert.strictEqual(component.selected.length, 0);
+
+        component.selected.push({ name: 'item 10', value: 10 });
+        ctx.scheduler.getRenderTaskQueue().flush();
+        assert.strictEqual(inputEls.every(el => !el.checked), true, 'all not checked');
+
+        component.selected = createItems(10);
+        ctx.scheduler.getRenderTaskQueue().flush();
+        assert.strictEqual(inputEls.every(el => el.checked), true, 'new [], all checked');
+      }
+    },
+    {
+      title: 'mathcer scenario with Set',
+      template: '<input type=checkbox repeat.for="i of items" model.bind=i checked.bind=selected matcher.bind="matchItems">',
+      ViewModel: class {
+        public items: any[] = createItems(10);
+        public selected: Set<any> = new Set();
+
+        public matchItems(itemA: IAppItem, itemB: IAppItem): boolean {
+          return itemA.name === itemB.name;
+        }
+      },
+      assertFn: (ctx, host, $component) => {
+        const component = $component as IApp & { selected: Set<IAppItem> };
+        const inputEls = Array.from(host.querySelectorAll('input'));
+        assert.strictEqual(inputEls.length, 10);
+        assert.strictEqual(inputEls.every(el => !el.checked), true, 'all checkbox checked');
+
+        component.selected.add({ name: 'item 0', value: 0 });
+        ctx.scheduler.getRenderTaskQueue().flush();
+        assert.strictEqual(inputEls[0].checked, true, 'first input is checked');
+
+        simulateStateChange(ctx, inputEls[0], false);
+        assert.strictEqual(component.selected.size, 0);
+
+        component.selected.add({ name: 'item 10', value: 10 });
+        ctx.scheduler.getRenderTaskQueue().flush();
+        assert.strictEqual(inputEls.every(el => !el.checked), true, 'all not checked');
+
+        component.selected = new Set(createItems(10));
+        ctx.scheduler.getRenderTaskQueue().flush();
+        assert.strictEqual(inputEls.every(el => el.checked), true, 'new Set, all checked');
+      }
+    },
+    {
+      title: 'mathcer scenario with Map',
+      template: '<input type=checkbox repeat.for="i of items" model.bind=i checked.bind=selected matcher.bind="matchItems">',
+      ViewModel: class {
+        public items: any[] = createItems(10);
+        public selected: Map<any, any> = new Map();
+
+        public matchItems(itemA: IAppItem, itemB: IAppItem): boolean {
+          return itemA.name === itemB.name;
+        }
+      },
+      assertFn: (ctx, host, $component) => {
+        const component = $component as IApp & { selected: Map<IAppItem, boolean> };
+        const inputEls = Array.from(host.querySelectorAll('input'));
+        assert.strictEqual(inputEls.length, 10);
+        assert.strictEqual(inputEls.every(el => !el.checked), true, 'all checkbox checked');
+
+        const firstItemValue = { name: 'item 0', value: 0 };
+        component.selected.set(firstItemValue, true);
+        ctx.scheduler.getRenderTaskQueue().flush();
+        assert.strictEqual(inputEls[0].checked, true, 'first input is checked');
+
+        simulateStateChange(ctx, inputEls[0], false);
+        assert.strictEqual(component.selected.size, 1, 'unchecked');
+        assert.strictEqual(component.selected.get(firstItemValue), false);
+
+        component.selected.set({ name: 'item 10', value: 10 }, true);
+        ctx.scheduler.getRenderTaskQueue().flush();
+        assert.strictEqual(inputEls.every(el => !el.checked), true, 'all not checked');
+
+        component.selected = new Map(Array.from(createItems(10), item => [item, true]));
+        ctx.scheduler.getRenderTaskQueue().flush();
+        assert.strictEqual(inputEls.every(el => el.checked), true, 'new Map, all checked');
       }
     }
   ];
@@ -160,6 +261,13 @@ describe('simple Computed Observer test case', function () {
     name: string;
     value: number;
     isDone?: boolean;
+  }
+
+  function createItems(count: number): IAppItem[] {
+    return Array.from({ length: count }, (_, i) => ({
+      name: `item ${i}`,
+      value: i,
+    }));
   }
 
   async function createFixture<T>(template: string | Node, $class: Constructable | null, ...registrations: any[]) {

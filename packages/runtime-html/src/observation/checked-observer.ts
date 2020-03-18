@@ -158,7 +158,7 @@ export class CheckedObserver implements IAccessor {
     } else if (currentValue instanceof Set) {
       let hasMatch = false;
       for (const v of currentValue) {
-        if (!hasMatch && matcher(v, elementValue)) {
+        if (matcher(v, elementValue)) {
           hasMatch = true;
           break;
         }
@@ -169,10 +169,10 @@ export class CheckedObserver implements IAccessor {
       for (const pair of currentValue) {
         const existingItem = pair[0];
         const $isChecked = pair[1];
-        if (!hasMatch && matcher(existingItem, elementValue)) {
-          // a potential complain, when only `true` is supported
-          // but it's consistent with array
-          hasMatch = $isChecked === true;
+        // a potential complain, when only `true` is supported
+        // but it's consistent with array
+        if (matcher(existingItem, elementValue) && $isChecked === true) {
+          hasMatch = true;
           break;
         }
       }

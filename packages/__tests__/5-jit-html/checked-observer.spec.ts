@@ -1,15 +1,7 @@
 import {
-  IObserverLocator,
-  IScheduler,
-  LifecycleFlags,
   CustomElement,
   Aurelia,
   BindingStrategy,
-  GetterObserver,
-  SetterObserver,
-  MapObserver,
-  CustomSetterObserver,
-  IDirtyChecker
 } from '@aurelia/runtime';
 import {
   Constructable

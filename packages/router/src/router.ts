@@ -641,7 +641,7 @@ export class Router implements IRouter {
   public checkActive(instructions: ViewportInstruction[]): boolean {
     for (const instruction of instructions) {
       const scopeInstructions: ViewportInstruction[] = this.instructionResolver.matchScope(this.activeComponents, instruction.scope!);
-      const matching: ViewportInstruction[] = scopeInstructions.filter(instr => instr.sameComponent(instruction));
+      const matching: ViewportInstruction[] = scopeInstructions.filter(instr => instr.sameComponent(instruction, true));
       if (matching.length === 0) {
         return false;
       }

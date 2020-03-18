@@ -279,7 +279,20 @@ describe('I18N', function () {
         it(`works for time difference in months - ${multiplier > 0 ? 'future' : 'past'} - ${value > 1 ? 'plural' : 'singular'}`, async function () {
           const { sut } = await createFixture();
           const input = new Date();
-          input.setMonth(input.getMonth() + multiplier * value);
+          // month time span for rt is of 30 days, therefore for February, forcing this to be January. We play fair for other months :)
+          if (input.getMonth() === 1 && multiplier > 0 && value === 1) {
+            input.setMonth(0);
+            input.setDate(31);
+            sut['now'] = () => new Date(input.getFullYear(), 0, 1).getTime();
+          } else if (input.getMonth() === 2 && multiplier < 0 && value === 1) {
+            input.setMonth(0);
+            input.setDate(1);
+            input.setHours(0);
+            input.setMinutes(0);
+            sut['now'] = () => new Date(input.getFullYear(), 0, 31, 23, 59).getTime();
+          } else {
+            input.setMonth(input.getMonth() + multiplier * value);
+          }
           assert.equal(
             sut.rt(input),
             value > 1

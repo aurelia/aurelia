@@ -7,19 +7,15 @@ import {
   Key,
 } from '@aurelia/kernel';
 import {
-  AccessKeyedExpression,
-  AccessMemberExpression,
-  AccessScopeExpression,
   BindingBehaviorExpression,
   IExpressionParser,
   IScope,
   LifecycleFlags,
-  PrimitiveLiteralExpression,
   IScheduler,
-  ValueConverterExpression,
   PropertyBinding,
   State,
-  ExpressionKind
+  ExpressionKind,
+  IsBindingBehavior
 } from '@aurelia/runtime';
 import {
   parsePropertyName,
@@ -400,13 +396,11 @@ export class ValidationController implements IValidationController {
           if (!valid && !isManual && propertyRule !== void 0 && object !== void 0 && rule !== void 0) {
             let value = acc.get(object);
             if (value === void 0) {
-              value = new Map();
-              acc.set(object, value);
+              acc.set(object, value = new Map());
             }
             let rules = value.get(propertyRule);
             if (rules === void 0) {
-              rules = [];
-              value.set(propertyRule, rules);
+              value.set(propertyRule, rules = []);
             }
             rules.push(rule);
           }
@@ -455,7 +449,7 @@ export class ValidationController implements IValidationController {
     }
 
     const scope = info.scope;
-    let expression = binding.sourceExpression.expression;
+    let expression = binding.sourceExpression.expression as IsBindingBehavior;
     const locator = binding.locator;
     let toCachePropertyName = true;
     let propertyName: string = "";
@@ -464,13 +458,13 @@ export class ValidationController implements IValidationController {
       switch (expression.$kind) {
         case ExpressionKind.BindingBehavior:
         case ExpressionKind.ValueConverter:
-          expression = (expression as (BindingBehaviorExpression | ValueConverterExpression)).expression;
+          expression = expression.expression;
           continue;
         case ExpressionKind.AccessMember:
-          memberName = (expression as AccessMemberExpression).name;
+          memberName = expression.name;
           break;
         case ExpressionKind.AccessKeyed: {
-          const keyExpr = (expression as AccessKeyedExpression).key;
+          const keyExpr = expression.key;
           if (toCachePropertyName) {
             toCachePropertyName = keyExpr?.$kind === ExpressionKind.PrimitiveLiteral;
           }
@@ -482,7 +476,7 @@ export class ValidationController implements IValidationController {
       }
       const separator = propertyName.startsWith('[') ? '' : '.';
       propertyName = propertyName.length === 0 ? memberName : `${memberName}${separator}${propertyName}`;
-      expression = (expression as AccessMemberExpression | AccessKeyedExpression).object;
+      expression = expression.object;
     }
     if (expression === void 0) {
       throw new Error(`Unable to parse binding expression: ${binding.sourceExpression.expression}`); // TODO: use reporter/logger

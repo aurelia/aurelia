@@ -94,6 +94,19 @@ export const validationRulesRegistrar = Object.freeze({
   }
 });
 
+class ValidationMessageEvaluationContext {
+  public constructor(
+    private readonly messageProvider: IValidationMessageProvider,
+    public readonly $displayName: string | undefined,
+    public readonly $propertyName: string | number | undefined,
+    public readonly $value: unknown,
+    public readonly $rule: BaseValidationRule,
+    public readonly $object?: IValidateable,
+  ) { }
+  public $getDisplayName(propertyName: string | number | undefined, displayName?: string | null | (() => string)) {
+    return this.messageProvider.getDisplayName(propertyName, displayName);
+  }
+}
 export class PropertyRule<TObject extends IValidateable = IValidateable, TValue = unknown> implements IPropertyRule {
   public static readonly $TYPE: string = "PropertyRule";
   private latestRule?: BaseValidationRule;
@@ -151,14 +164,15 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
         const { displayName, name } = this.property;
         let message: string | undefined;
         if (!isValidOrPromise) {
-          const messageEvaluationScope = Scope.create(flags!, {
-            $object: object,
-            $displayName: this.messageProvider.getDisplayName(name, displayName),
-            $propertyName: name,
-            $value: value,
-            $rule: rule,
-            $getDisplayName: this.messageProvider.getDisplayName.bind(this.messageProvider)
-          });
+          const messageEvaluationScope = Scope.create(flags!,
+            new ValidationMessageEvaluationContext(
+              this.messageProvider,
+              this.messageProvider.getDisplayName(name, displayName),
+              name,
+              value,
+              rule,
+              object,
+            ));
           message = this.messageProvider.getMessage(rule).evaluate(flags!, messageEvaluationScope, null!) as string;
         }
         return new ValidationResult(isValidOrPromise, message, name, object, rule, this);

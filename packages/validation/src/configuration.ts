@@ -38,8 +38,8 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
       Protocol.annotation.appendTo(IValidationController as unknown as Constructable, key);
 
       container.register(
-        Registration.callback(ICustomMessages, () => options.CustomMessages),
-        Registration.callback(IDefaultTrigger, () => options.DefaultTrigger),
+        Registration.instance(ICustomMessages, options.CustomMessages),
+        Registration.instance(IDefaultTrigger, options.DefaultTrigger),
         Registration.singleton(IValidator, options.ValidatorType),
         Registration.singleton(IValidationMessageProvider, options.MessageProviderType),
         Registration.singleton(IValidationHydrator, options.HydratorType),

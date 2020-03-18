@@ -110,9 +110,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
     this.controller?.unregisterBinding(this.propertyBinding);
     this.binding.$unbind(flags);
     for (const expr of this.connectedExpressions) {
-      if (expr.unbind !== void 0) {
-        expr.unbind(flags, this.scope, this);
-      }
+      expr.unbind?.(flags, this.scope, this);
     }
   }
 

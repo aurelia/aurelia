@@ -62,11 +62,6 @@ export class StandardValidator implements IValidator {
       return (await rules.find((r) => r.property.name === propertyName)?.validate(object, propertyTag, flags, scope)) ?? [];
     }
 
-    return (
-      await Promise.all(rules.reduce((acc: Promise<ValidationResult[]>[], rule) => {
-        acc.push(rule.validate(object, propertyTag, flags, scope));
-        return acc;
-      }, []))
-    ).flatMap((r) => r);
+    return (await Promise.all(rules.map(async (rule) => rule.validate(object, propertyTag, flags, scope)))).flat();
   }
 }

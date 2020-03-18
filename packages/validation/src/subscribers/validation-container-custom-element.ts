@@ -1,6 +1,6 @@
 import { customElement, INode, bindable } from '@aurelia/runtime';
 import { ValidationResultsSubscriber, ValidationEvent, ValidationResultTarget, IValidationController } from '../validation-controller';
-import { DOCUMENT_POSITION_PRECEDING } from './common';
+import { compareDocumentPositionFlat } from './common';
 
 @customElement({
   name: 'validation-container',
@@ -49,8 +49,7 @@ export class ValidationContainerCustomElement implements ValidationResultsSubscr
       if (a.targets[0] === b.targets[0]) {
         return 0;
       }
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-      return a.targets[0].compareDocumentPosition(b.targets[0]) & DOCUMENT_POSITION_PRECEDING ? 1 : -1;
+      return compareDocumentPositionFlat(a.targets[0], b.targets[0]);
     });
   }
 

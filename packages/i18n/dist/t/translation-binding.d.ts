@@ -43,6 +43,7 @@ export declare class TranslationBinding implements IPartialConnectableBinding {
     private prepareTemplate;
     private addContentToTemplate;
     private unobserveTargets;
+    private ensureKeyExpression;
 }
 export {};
 //# sourceMappingURL=translation-binding.d.ts.map

@@ -505,7 +505,7 @@
         checkActive(instructions) {
             for (const instruction of instructions) {
                 const scopeInstructions = this.instructionResolver.matchScope(this.activeComponents, instruction.scope);
-                const matching = scopeInstructions.filter(instr => instr.sameComponent(instruction));
+                const matching = scopeInstructions.filter(instr => instr.sameComponent(instruction, true));
                 if (matching.length === 0) {
                     return false;
                 }

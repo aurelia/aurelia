@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/plugin-pixi",
-  "version": "0.7.0-dev.202002082140",
+  "version": "0.7.0-dev.202003190345",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -35,10 +35,10 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.7.0-dev.202002082140",
-    "@aurelia/runtime": "0.7.0-dev.202002082140",
-    "@aurelia/runtime-html": "0.7.0-dev.202002082140",
-    "@aurelia/runtime-html-browser": "0.7.0-dev.202002082140",
+    "@aurelia/kernel": "0.7.0-dev.202003190345",
+    "@aurelia/runtime": "0.7.0-dev.202003190345",
+    "@aurelia/runtime-html": "0.7.0-dev.202003190345",
+    "@aurelia/runtime-html-browser": "0.7.0-dev.202003190345",
     "pixi.js": "^4.8.8"
   },
   "devDependencies": {

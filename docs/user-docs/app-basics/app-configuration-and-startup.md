@@ -75,10 +75,13 @@ new Aurelia()
 
 If you have a package that exports all your custom elements, you can pass the entire package to the `.register()` method on your Aurelia app.
 
-\`\`\`TypeScript src/components/index.ts export { CardCustomElement } from './card'; export { CollapseCustomElement } from './collapse';
-
-```text
-```TypeScript src/main.ts
+src/components/index.ts:
+```TypeScript 
+export { CardCustomElement } from './card';
+export { CollapseCustomElement } from './collapse';
+```
+src/main.ts:
+```TypeScript
 import * as globalComponents from './components';
 
 // When using quick startup

@@ -31,7 +31,8 @@ import {
   PropertyRule,
   RangeRule,
   RequiredRule,
-  ValidationControllerFactory
+  ValidationControllerFactory,
+  ValidateInstruction
 } from '@aurelia/validation';
 import { Spy } from '../Spy';
 import { Person, Organization } from './_test-resources';
@@ -234,6 +235,17 @@ describe('validate-biniding-behavior', function () {
       return;
     }
   }
+  @customElement({ name: 'editor', template: `<div replaceable="content"></div><div>static content</div>` })
+  class Editor {
+    public readonly person = new Person(void 0, void 0);
+    public constructor(@IValidationRules validationRules: IValidationRules) {
+      validationRules
+        .on(this.person)
+        .ensure("name")
+        .satisfies((name) => name === "foo")
+        .withMessage("Not foo");
+    }
+  }
   interface TestSetupContext {
     template: string;
     customDefaultTrigger?: ValidationTrigger;
@@ -262,7 +274,8 @@ describe('validate-biniding-behavior', function () {
         ToNumberValueConverter,
         B64ToPlainTextValueConverter,
         InterceptorBindingBehavior,
-        VanillaBindingBehavior
+        VanillaBindingBehavior,
+        Editor
       )
       .app({
         host,
@@ -1081,6 +1094,52 @@ describe('validate-biniding-behavior', function () {
     },
     {
       template: `<input id="target" value.two-way="org.employees[0].address.pin | toNumber & validate:'change'">`
+    }
+  );
+  // #endregion
+
+  // #region replaceable
+  $it('works with replaceable - replaced part',
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
+      const controller = app.controller;
+      const controllerSpy = app.controllerSpy;
+
+      const target: HTMLInputElement = host.querySelector("editor #target");
+      assertControllerBinding(controller, 'person.name', target, controllerSpy);
+
+      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
+      await controller.validate();
+      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), ["Not foo"]);
+
+      target.value = 'foo';
+      await assertEventHandler(target, 'change', 0, scheduler, controllerSpy, ctx);
+      await assertEventHandler(target, 'blur', 1, scheduler, controllerSpy, ctx);
+      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
+    },
+    {
+      template: `<editor><input id="target" value.two-way="person.name & validate" replace="content"><editor>`
+    }
+  );
+
+  $it('works with replaceable - non-replaced part',
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
+      const controller = app.controller;
+      const controllerSpy = app.controllerSpy;
+
+      const target: HTMLInputElement = host.querySelector("editor #target");
+      assertControllerBinding(controller, 'person.name', target, controllerSpy);
+
+      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
+      await controller.validate();
+      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), ["Name is required."]);
+
+      target.value = 'foo';
+      await assertEventHandler(target, 'change', 0, scheduler, controllerSpy, ctx);
+      await assertEventHandler(target, 'blur', 1, scheduler, controllerSpy, ctx);
+      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
+    },
+    {
+      template: `<editor><input id="target" value.two-way="person.name & validate"><editor>`
     }
   );
   // #endregion

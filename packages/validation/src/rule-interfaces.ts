@@ -1,6 +1,6 @@
 import { Class, DI } from '@aurelia/kernel';
 import { IsBindingBehavior, IExpressionParser } from '@aurelia/runtime';
-import { Deserializer } from '@aurelia/debug';
+import { Deserializer } from './ast-serialization';
 import { IValidationRules } from './rule-provider';
 import { IValidationMessageProvider } from './rules';
 

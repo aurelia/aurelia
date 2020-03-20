@@ -1,6 +1,6 @@
-import { Deserializer, serializePrimitive, Serializer } from '@aurelia/debug';
 import { IContainer } from '@aurelia/kernel';
 import { IExpressionParser, BindingType, LifecycleFlags, Scope } from '@aurelia/runtime';
+import { Deserializer, serializePrimitive, Serializer } from './ast-serialization';
 import { Hydratable, IPropertyRule, IRuleProperty, IValidationHydrator, IValidationRule, IValidationVisitor, IValidateable, IRequiredRule, IRegexRule } from './rule-interfaces';
 import { IValidationRules, parsePropertyName, PropertyRule, RuleProperty } from './rule-provider';
 import { BaseValidationRule, EqualsRule, IValidationMessageProvider, LengthRule, RangeRule, RegexRule, RequiredRule, SizeRule } from './rules';

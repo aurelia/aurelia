@@ -24,7 +24,7 @@ import {
   AssignExpression
 } from "@aurelia/runtime";
 import { TestContext, assert } from '@aurelia/testing';
-import { Deserializer, Serializer } from '@aurelia/debug';
+import { Deserializer, Serializer } from '@aurelia/validation';
 
 describe('expression-de/serialization', function () {
   function setup() {

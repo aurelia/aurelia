@@ -136,12 +136,10 @@ export class Deserializer implements IHydrator {
         if (Array.isArray(raw)) {
           if (typeof raw[0] === 'object') {
             return this.deserializeExpressions(raw);
-          }
-          else {
+          } else {
             return raw.map(deserializePrimitive);
           }
-        }
-        else if (typeof raw !== 'object') {
+        } else if (typeof raw !== 'object') {
           return deserializePrimitive(raw);
         }
         throw new Error(`unable to deserialize the expression: ${raw}`); // TODO use reporter/logger

@@ -199,7 +199,7 @@ describe(`If/Else`, function () {
           elseSut = new Else<AuNode>(elseFactory);
         }
         elseSut.link(sut);
-        (sut as Writable<If>).$controller = Controller.forCustomAttribute(sut, lifecycle);
+        (sut as Writable<If>).$controller = Controller.forCustomAttribute(sut, lifecycle, (void 0)!);
 
         let firstBindFinalNodesText: string;
         let secondBindFinalNodesText: string;

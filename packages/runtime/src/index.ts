@@ -98,7 +98,9 @@ export {
 export {
   IPartialConnectableBinding,
   IConnectableBinding,
-  connectable
+  connectable,
+  BindingMediator,
+  MediatedBinding
 } from './binding/connectable';
 export {
   IExpressionParser,
@@ -198,6 +200,8 @@ export {
   BindingBehaviorDecorator,
   BindingBehaviorInstance,
   BindingBehaviorType,
+  BindingInterceptor,
+  IInterceptableBinding
 } from './resources/binding-behavior';
 export {
   BindingModeBehavior,

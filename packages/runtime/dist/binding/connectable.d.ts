@@ -1,7 +1,8 @@
-import { Class } from '@aurelia/kernel';
+import { Class, IServiceLocator } from '@aurelia/kernel';
 import { IConnectable } from '../ast';
+import { LifecycleFlags } from '../flags';
 import { IBinding } from '../lifecycle';
-import { IProxySubscribable, ISubscribable, ISubscriber } from '../observation';
+import { IProxySubscribable, ISubscribable, ISubscriber, IScope } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 export interface IPartialConnectableBinding extends IBinding, ISubscriber {
     observerLocator: IObserverLocator;
@@ -23,6 +24,24 @@ export declare namespace connectable {
 export declare function connectable<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass>;
 export declare namespace connectable {
     var assignIdTo: (instance: IConnectableBinding) => void;
+}
+export declare type MediatedBinding<K extends string> = {
+    [key in K]: (newValue: unknown, previousValue: unknown, flags: LifecycleFlags) => void;
+};
+export interface BindingMediator<K extends string> extends IConnectableBinding {
+}
+export declare class BindingMediator<K extends string> implements IConnectableBinding {
+    readonly key: K;
+    readonly binding: MediatedBinding<K>;
+    observerLocator: IObserverLocator;
+    locator: IServiceLocator;
+    constructor(key: K, binding: MediatedBinding<K>, observerLocator: IObserverLocator, locator: IServiceLocator);
+    $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined): void;
+    $unbind(flags: LifecycleFlags): void;
+    observeProperty: typeof observeProperty;
+    unobserve: typeof unobserve;
+    addObserver: typeof addObserver;
+    handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
 }
 export {};
 //# sourceMappingURL=connectable.d.ts.map

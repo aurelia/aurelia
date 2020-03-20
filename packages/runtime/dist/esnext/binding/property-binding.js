@@ -105,6 +105,9 @@ let PropertyBinding = class PropertyBinding {
         }
         if (this.mode & fromView) {
             targetObserver.subscribe(this.interceptor);
+            if ((this.mode & toView) === 0) {
+                this.interceptor.updateSource(targetObserver.getValue(), flags);
+            }
             targetObserver[this.id] |= 32 /* updateSourceExpression */;
         }
         // add isBound flag and remove isBinding flag

@@ -54,6 +54,7 @@
     exports.CallBinding = call_binding_1.CallBinding;
     var connectable_1 = require("./binding/connectable");
     exports.connectable = connectable_1.connectable;
+    exports.BindingMediator = connectable_1.BindingMediator;
     var expression_parser_1 = require("./binding/expression-parser");
     exports.IExpressionParser = expression_parser_1.IExpressionParser;
     exports.BindingType = expression_parser_1.BindingType;
@@ -122,6 +123,7 @@
     exports.bindingBehavior = binding_behavior_1.bindingBehavior;
     exports.BindingBehavior = binding_behavior_1.BindingBehavior;
     exports.BindingBehaviorDefinition = binding_behavior_1.BindingBehaviorDefinition;
+    exports.BindingInterceptor = binding_behavior_1.BindingInterceptor;
     var binding_mode_1 = require("./resources/binding-behaviors/binding-mode");
     exports.BindingModeBehavior = binding_mode_1.BindingModeBehavior;
     exports.OneTimeBindingBehavior = binding_mode_1.OneTimeBindingBehavior;

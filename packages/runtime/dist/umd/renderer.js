@@ -223,6 +223,7 @@
             const childController = controller_1.Controller.forCustomAttribute(
             /* viewModel */ component, 
             /* lifecycle */ lifecycle, 
+            /* host      */ target, 
             /* flags     */ flags);
             kernel_1.Metadata.define(key, childController, target);
             context.renderInstructions(
@@ -259,6 +260,7 @@
             const childController = controller_1.Controller.forCustomAttribute(
             /* viewModel */ component, 
             /* lifecycle */ lifecycle, 
+            /* host      */ target, 
             /* flags     */ flags);
             kernel_1.Metadata.define(key, childController, renderLocation);
             if (instruction.link) {

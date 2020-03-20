@@ -70,10 +70,10 @@
             this.compiledDefinition = (void 0);
             const container = this.container = parentContainer.createChild();
             this.renderer = container.get(renderer_1.IRenderer);
-            container.registerResolver(lifecycle_1.IViewFactory, this.factoryProvider = new ViewFactoryProvider());
-            container.registerResolver(lifecycle_1.IController, this.parentControllerProvider = new kernel_1.InstanceProvider());
-            container.registerResolver(definitions_1.ITargetedInstruction, this.instructionProvider = new kernel_1.InstanceProvider());
-            container.registerResolver(dom_1.IRenderLocation, this.renderLocationProvider = new kernel_1.InstanceProvider());
+            container.registerResolver(lifecycle_1.IViewFactory, this.factoryProvider = new ViewFactoryProvider(), true);
+            container.registerResolver(lifecycle_1.IController, this.parentControllerProvider = new kernel_1.InstanceProvider(), true);
+            container.registerResolver(definitions_1.ITargetedInstruction, this.instructionProvider = new kernel_1.InstanceProvider(), true);
+            container.registerResolver(dom_1.IRenderLocation, this.renderLocationProvider = new kernel_1.InstanceProvider(), true);
             (this.dom = container.get(dom_1.IDOM)).registerElementResolver(container, this.elementProvider = new kernel_1.InstanceProvider());
             container.register(...definition.dependencies);
         }
@@ -106,6 +106,9 @@
         }
         createChild() {
             return this.container.createChild();
+        }
+        disposeResolvers() {
+            this.container.disposeResolvers();
         }
         // #endregion
         // #region IRenderContext api
@@ -198,11 +201,8 @@
             this.renderer.renderInstructions(flags, this, instructions, controller, target, parts);
         }
         dispose() {
-            this.factoryProvider.dispose();
-            this.parentControllerProvider.dispose();
-            this.instructionProvider.dispose();
             this.elementProvider.dispose();
-            this.renderLocationProvider.dispose();
+            this.container.disposeResolvers();
         }
     }
     exports.RenderContext = RenderContext;

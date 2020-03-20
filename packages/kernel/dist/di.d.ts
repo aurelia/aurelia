@@ -11,6 +11,9 @@ interface IResolverLike<C, K = any> {
 }
 export interface IResolver<K = any> extends IResolverLike<IContainer, K> {
 }
+export interface IDisposableResolver<K = any> extends IResolver<K> {
+    dispose(): void;
+}
 export interface IRegistration<K = any> {
     register(container: IContainer, key?: Key): IResolver<K>;
 }
@@ -34,11 +37,12 @@ export interface IRegistry {
 }
 export interface IContainer extends IServiceLocator {
     register(...params: any[]): IContainer;
-    registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>): IResolver<T>;
+    registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>, isDisposable?: boolean): IResolver<T>;
     registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
     getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
     getFactory<T extends Constructable>(key: T): IFactory<T> | null;
     createChild(): IContainer;
+    disposeResolvers(): void;
 }
 export declare class ResolverBuilder<K> {
     private container;
@@ -157,6 +161,8 @@ export declare function singleton<T extends Constructable>(target: T & Partial<R
 export declare const all: (key: any) => any;
 export declare const lazy: (key: any) => any;
 export declare const optional: (key: any) => any;
+export declare const newInstanceForScope: (key: any) => any;
+export declare const newInstanceOf: (key: any) => any;
 /**
  * An implementation of IRegistry that delegates registration to a
  * separately registered class. The ParameterizedRegistry facilitates the
@@ -176,7 +182,7 @@ export declare const Registration: {
     alias<T_4>(originalKey: T_4, aliasKey: Key): IRegistration<Resolved<T_4>>;
     defer(key: Key, ...params: unknown[]): IRegistry;
 };
-export declare class InstanceProvider<K extends Key> implements IResolver<K | null> {
+export declare class InstanceProvider<K extends Key> implements IDisposableResolver<K | null> {
     private instance;
     prepare(instance: Resolved<K>): void;
     resolve(handler: IContainer, requestor: IContainer): Resolved<K> | null;

@@ -21,6 +21,8 @@
     exports.singleton = di_1.singleton;
     exports.transient = di_1.transient;
     exports.InstanceProvider = di_1.InstanceProvider;
+    exports.newInstanceForScope = di_1.newInstanceForScope;
+    exports.newInstanceOf = di_1.newInstanceOf;
     var metadata_1 = require("./metadata");
     exports.metadata = metadata_1.metadata;
     exports.Metadata = metadata_1.Metadata;

@@ -208,6 +208,7 @@ class CustomAttributeRenderer {
         const childController = Controller.forCustomAttribute(
         /* viewModel */ component, 
         /* lifecycle */ lifecycle, 
+        /* host      */ target, 
         /* flags     */ flags);
         Metadata.define(key, childController, target);
         context.renderInstructions(
@@ -244,6 +245,7 @@ class TemplateControllerRenderer {
         const childController = Controller.forCustomAttribute(
         /* viewModel */ component, 
         /* lifecycle */ lifecycle, 
+        /* host      */ target, 
         /* flags     */ flags);
         Metadata.define(key, childController, renderLocation);
         if (instruction.link) {

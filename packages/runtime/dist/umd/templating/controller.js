@@ -101,7 +101,7 @@
             controller.hydrateCustomElement(definition, parentContainer, parts);
             return controller;
         }
-        static forCustomAttribute(viewModel, lifecycle, flags = 0 /* none */) {
+        static forCustomAttribute(viewModel, lifecycle, host, flags = 0 /* none */) {
             if (controllerLookup.has(viewModel)) {
                 return controllerLookup.get(viewModel);
             }
@@ -114,7 +114,7 @@
             /* viewFactory    */ void 0, 
             /* viewModel      */ viewModel, 
             /* bindingContext */ getBindingContext(flags, viewModel), 
-            /* host           */ void 0);
+            /* host           */ host);
             controllerLookup.set(viewModel, controller);
             controller.hydrateCustomAttribute(definition);
             return controller;

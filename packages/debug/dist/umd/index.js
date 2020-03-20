@@ -17,6 +17,5 @@
     exports.stringifyLifecycleFlags = tracer_1.stringifyLifecycleFlags;
     var unparser_1 = require("./binding/unparser");
     exports.Unparser = unparser_1.Unparser;
-    exports.Serializer = unparser_1.Serializer;
 });
 //# sourceMappingURL=index.js.map

@@ -29,32 +29,4 @@ export declare class Unparser implements AST.IVisitor<void> {
     visitInterpolation(expr: AST.Interpolation): void;
     private writeArgs;
 }
-export declare class Serializer implements AST.IVisitor<string> {
-    static serialize(expr: AST.IExpression): string;
-    visitAccessMember(expr: AST.AccessMemberExpression): string;
-    visitAccessKeyed(expr: AST.AccessKeyedExpression): string;
-    visitAccessThis(expr: AST.AccessThisExpression): string;
-    visitAccessScope(expr: AST.AccessScopeExpression): string;
-    visitArrayLiteral(expr: AST.ArrayLiteralExpression): string;
-    visitObjectLiteral(expr: AST.ObjectLiteralExpression): string;
-    visitPrimitiveLiteral(expr: AST.PrimitiveLiteralExpression): string;
-    visitCallFunction(expr: AST.CallFunctionExpression): string;
-    visitCallMember(expr: AST.CallMemberExpression): string;
-    visitCallScope(expr: AST.CallScopeExpression): string;
-    visitTemplate(expr: AST.TemplateExpression): string;
-    visitTaggedTemplate(expr: AST.TaggedTemplateExpression): string;
-    visitUnary(expr: AST.UnaryExpression): string;
-    visitBinary(expr: AST.BinaryExpression): string;
-    visitConditional(expr: AST.ConditionalExpression): string;
-    visitAssign(expr: AST.AssignExpression): string;
-    visitValueConverter(expr: AST.ValueConverterExpression): string;
-    visitBindingBehavior(expr: AST.BindingBehaviorExpression): string;
-    visitArrayBindingPattern(expr: AST.ArrayBindingPattern): string;
-    visitObjectBindingPattern(expr: AST.ObjectBindingPattern): string;
-    visitBindingIdentifier(expr: AST.BindingIdentifier): string;
-    visitHtmlLiteral(expr: AST.HtmlLiteralExpression): string;
-    visitForOfStatement(expr: AST.ForOfStatement): string;
-    visitInterpolation(expr: AST.Interpolation): string;
-    private serializeExpressions;
-}
 //# sourceMappingURL=unparser.d.ts.map

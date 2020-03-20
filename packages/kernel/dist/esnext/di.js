@@ -293,6 +293,21 @@ export const optional = createResolver((key, handler, requestor) => {
         return null;
     }
 });
+export const newInstanceForScope = createResolver((key, handler, requestor) => {
+    const instance = createNewInstance(key, handler);
+    const instanceProvider = new InstanceProvider();
+    instanceProvider.prepare(instance);
+    requestor.registerResolver(key, instanceProvider, true);
+    return instance;
+});
+export const newInstanceOf = createResolver((key, handler, _requestor) => createNewInstance(key, handler));
+function createNewInstance(key, handler) {
+    const factory = handler.getFactory(key);
+    if (factory === null) {
+        throw new Error(`No factory registered for ${key}`);
+    }
+    return factory.construct(handler);
+}
 /** @internal */
 export var ResolverStrategy;
 (function (ResolverStrategy) {
@@ -478,6 +493,7 @@ export class Container {
     constructor(parent) {
         this.parent = parent;
         this.registerDepth = 0;
+        this.disposableResolvers = new Set();
         if (parent === null) {
             this.root = this;
             this.resolvers = new Map();
@@ -549,7 +565,7 @@ export class Container {
         --this.registerDepth;
         return this;
     }
-    registerResolver(key, resolver) {
+    registerResolver(key, resolver, isDisposable = false) {
         validateKey(key);
         const resolvers = this.resolvers;
         const result = resolvers.get(key);
@@ -564,6 +580,9 @@ export class Container {
         }
         else {
             resolvers.set(key, new Resolver(key, 4 /* array */, [result, resolver]));
+        }
+        if (isDisposable) {
+            this.disposableResolvers.add(resolver);
         }
         return resolver;
     }
@@ -664,6 +683,13 @@ export class Container {
     }
     createChild() {
         return new Container(this);
+    }
+    disposeResolvers() {
+        var _a;
+        const disposables = Array.from(this.disposableResolvers);
+        while (disposables.length > 0) {
+            (_a = disposables.pop()) === null || _a === void 0 ? void 0 : _a.dispose();
+        }
     }
     jitRegister(keyAsValue, handler) {
         if (typeof keyAsValue !== 'function') {

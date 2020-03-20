@@ -1,30 +1,32 @@
-import { Serializer, Unparser, } from '@aurelia/debug';
+// import {
+//   Serializer,
+//   Unparser,
+// } from '@aurelia/debug';
 import { If, Repeat, Replaceable, With } from '@aurelia/runtime';
 import { Compose } from '@aurelia/runtime-html';
 import { assert } from './assert';
-export function verifyASTEqual(actual, expected, errors, path) {
-    if (expected == null) {
-        if (actual != null) {
-            assert.strictEqual(actual, null, `actual`);
-        }
-    }
-    else if (actual == null) {
-        const expectedSerialized = Serializer.serialize(expected);
-        assert.strictEqual(actual, expectedSerialized, `actual`);
-    }
-    else {
-        const expectedSerialized = Serializer.serialize(expected);
-        const expectedUnparsed = Unparser.unparse(expected);
-        const actualSerialized = Serializer.serialize(actual);
-        const actualUnparsed = Unparser.unparse(actual);
-        if (actualSerialized !== expectedSerialized) {
-            assert.strictEqual(actualSerialized, expectedSerialized, `actualSerialized`);
-        }
-        if (actualUnparsed !== expectedUnparsed) {
-            assert.strictEqual(actualUnparsed, expectedUnparsed, `actualUnparsed`);
-        }
-    }
-}
+// Disabling this as it this is nowhere used. And also the ast-serialization infra is moved to validation package.
+// export function verifyASTEqual(actual: any, expected: any, errors?: string[], path?: string): any {
+//   if (expected == null) {
+//     if (actual != null) {
+//       assert.strictEqual(actual, null, `actual`);
+//     }
+//   } else if (actual == null) {
+//     const expectedSerialized = Serializer.serialize(expected);
+//     assert.strictEqual(actual, expectedSerialized, `actual`);
+//   } else {
+//     const expectedSerialized = Serializer.serialize(expected);
+//     const expectedUnparsed = Unparser.unparse(expected);
+//     const actualSerialized = Serializer.serialize(actual);
+//     const actualUnparsed = Unparser.unparse(actual);
+//     if (actualSerialized !== expectedSerialized) {
+//       assert.strictEqual(actualSerialized, expectedSerialized, `actualSerialized`);
+//     }
+//     if (actualUnparsed !== expectedUnparsed) {
+//       assert.strictEqual(actualUnparsed, expectedUnparsed, `actualUnparsed`);
+//     }
+//   }
+// }
 export function verifyEqual(actual, expected, depth, property, index) {
     if (depth === undefined) {
         depth = 0;

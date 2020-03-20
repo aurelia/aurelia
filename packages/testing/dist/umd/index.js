@@ -64,7 +64,7 @@
     exports.JsonValueConverter = resources_1.JsonValueConverter;
     exports.TestConfiguration = resources_1.TestConfiguration;
     var specialized_assertions_1 = require("./specialized-assertions");
-    exports.verifyASTEqual = specialized_assertions_1.verifyASTEqual;
+    // verifyASTEqual,
     exports.verifyBindingInstructionsEqual = specialized_assertions_1.verifyBindingInstructionsEqual;
     exports.verifyEqual = specialized_assertions_1.verifyEqual;
     exports.getVisibleText = specialized_assertions_1.getVisibleText;

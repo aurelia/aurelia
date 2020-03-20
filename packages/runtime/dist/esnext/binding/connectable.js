@@ -102,4 +102,26 @@ let value = 0;
 connectable.assignIdTo = (instance) => {
     instance.id = ++value;
 };
+// @connectable
+export class BindingMediator {
+    constructor(key, binding, observerLocator, locator) {
+        this.key = key;
+        this.binding = binding;
+        this.observerLocator = observerLocator;
+        this.locator = locator;
+        this.observeProperty = observeProperty;
+        this.unobserve = unobserve;
+        this.addObserver = addObserver;
+        connectable.assignIdTo(this);
+    }
+    $bind(flags, scope, part) {
+        throw new Error('Method not implemented.');
+    }
+    $unbind(flags) {
+        throw new Error('Method not implemented.');
+    }
+    handleChange(newValue, previousValue, flags) {
+        this.binding[this.key](newValue, previousValue, flags);
+    }
+}
 //# sourceMappingURL=connectable.js.map

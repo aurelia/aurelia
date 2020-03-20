@@ -89,7 +89,7 @@ export declare class Controller<T extends INode = INode, C extends IViewModel<T>
     static getCached<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(viewModel: C): ICustomElementController<T, C> | undefined;
     static getCachedOrThrow<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(viewModel: C): ICustomElementController<T, C>;
     static forCustomElement<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(viewModel: C, lifecycle: ILifecycle, host: T, parentContainer: IContainer, parts: PartialCustomElementDefinitionParts | undefined, flags?: LifecycleFlags): ICustomElementController<T, C>;
-    static forCustomAttribute<T extends INode = INode, C extends ICustomAttributeViewModel<T> = ICustomAttributeViewModel<T>>(viewModel: C, lifecycle: ILifecycle, flags?: LifecycleFlags): ICustomAttributeController<T, C>;
+    static forCustomAttribute<T extends INode = INode, C extends ICustomAttributeViewModel<T> = ICustomAttributeViewModel<T>>(viewModel: C, lifecycle: ILifecycle, host: T, flags?: LifecycleFlags): ICustomAttributeController<T, C>;
     static forSyntheticView<T extends INode = INode>(viewFactory: IViewFactory<T>, lifecycle: ILifecycle, context: IRenderContext<T>, flags?: LifecycleFlags): ISyntheticView<T>;
     private hydrateCustomElement;
     private hydrateCustomAttribute;

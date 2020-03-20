@@ -2,7 +2,7 @@ export { CallFunctionExpression, connects, observes, callsFunction, hasAncestor,
 export { AnyBindingExpression, IsPrimary, IsLiteral, IsLeftHandSide, IsUnary, IsBinary, IsConditional, IsAssign, IsValueConverter, IsBindingBehavior, IsAssignable, IsExpression, IsExpressionOrStatement, Connects, Observes, CallsFunction, IsResource, HasBind, HasUnbind, HasAncestor, IVisitor, IExpression, IAccessKeyedExpression, IAccessMemberExpression, IAccessScopeExpression, IAccessThisExpression, IArrayBindingPattern, IArrayLiteralExpression, IAssignExpression, IBinaryExpression, IBindingBehaviorExpression, IBindingIdentifier, ICallFunctionExpression, ICallMemberExpression, ICallScopeExpression, IConditionalExpression, IForOfStatement, IHtmlLiteralExpression, IInterpolationExpression, IObjectBindingPattern, IObjectLiteralExpression, IPrimitiveLiteralExpression, ITaggedTemplateExpression, ITemplateExpression, IUnaryExpression, IValueConverterExpression, BinaryOperator, BindingIdentifierOrPattern, UnaryOperator } from './ast';
 export { PropertyBinding } from './binding/property-binding';
 export { CallBinding } from './binding/call-binding';
-export { IPartialConnectableBinding, IConnectableBinding, connectable } from './binding/connectable';
+export { IPartialConnectableBinding, IConnectableBinding, connectable, BindingMediator, MediatedBinding } from './binding/connectable';
 export { IExpressionParser, BindingType } from './binding/expression-parser';
 export { MultiInterpolationBinding, InterpolationBinding } from './binding/interpolation-binding';
 export { LetBinding } from './binding/let-binding';
@@ -23,7 +23,7 @@ export { BindableObserver } from './observation/bindable-observer';
 export { SetterObserver } from './observation/setter-observer';
 export { ISignaler } from './observation/signaler';
 export { subscriberCollection, collectionSubscriberCollection, proxySubscriberCollection, } from './observation/subscriber-collection';
-export { bindingBehavior, BindingBehavior, BindingBehaviorDefinition, PartialBindingBehaviorDefinition, BindingBehaviorKind, BindingBehaviorDecorator, BindingBehaviorInstance, BindingBehaviorType, } from './resources/binding-behavior';
+export { bindingBehavior, BindingBehavior, BindingBehaviorDefinition, PartialBindingBehaviorDefinition, BindingBehaviorKind, BindingBehaviorDecorator, BindingBehaviorInstance, BindingBehaviorType, BindingInterceptor, IInterceptableBinding } from './resources/binding-behavior';
 export { BindingModeBehavior, OneTimeBindingBehavior, ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior } from './resources/binding-behaviors/binding-mode';
 export { DebounceBindingBehavior } from './resources/binding-behaviors/debounce';
 export { SignalableBinding, SignalBindingBehavior } from './resources/binding-behaviors/signals';

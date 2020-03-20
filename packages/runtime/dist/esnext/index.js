@@ -1,7 +1,7 @@
 export { CallFunctionExpression, connects, observes, callsFunction, hasAncestor, isAssignable, isLeftHandSide, isPrimary, isResource, hasBind, hasUnbind, isLiteral, arePureLiterals, isPureLiteral, CustomExpression, BindingBehaviorExpression, ValueConverterExpression, AssignExpression, ConditionalExpression, AccessThisExpression, AccessScopeExpression, AccessMemberExpression, AccessKeyedExpression, CallScopeExpression, CallMemberExpression, BinaryExpression, UnaryExpression, PrimitiveLiteralExpression, HtmlLiteralExpression, ArrayLiteralExpression, ObjectLiteralExpression, TemplateExpression, TaggedTemplateExpression, ArrayBindingPattern, ObjectBindingPattern, BindingIdentifier, ForOfStatement, Interpolation } from './binding/ast';
 export { PropertyBinding } from './binding/property-binding';
 export { CallBinding } from './binding/call-binding';
-export { connectable } from './binding/connectable';
+export { connectable, BindingMediator } from './binding/connectable';
 export { IExpressionParser, BindingType } from './binding/expression-parser';
 export { MultiInterpolationBinding, InterpolationBinding } from './binding/interpolation-binding';
 export { LetBinding } from './binding/let-binding';
@@ -22,7 +22,7 @@ export { BindableObserver } from './observation/bindable-observer';
 export { SetterObserver } from './observation/setter-observer';
 export { ISignaler } from './observation/signaler';
 export { subscriberCollection, collectionSubscriberCollection, proxySubscriberCollection, } from './observation/subscriber-collection';
-export { bindingBehavior, BindingBehavior, BindingBehaviorDefinition, } from './resources/binding-behavior';
+export { bindingBehavior, BindingBehavior, BindingBehaviorDefinition, BindingInterceptor } from './resources/binding-behavior';
 export { BindingModeBehavior, OneTimeBindingBehavior, ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior } from './resources/binding-behaviors/binding-mode';
 export { DebounceBindingBehavior } from './resources/binding-behaviors/debounce';
 export { SignalBindingBehavior } from './resources/binding-behaviors/signals';

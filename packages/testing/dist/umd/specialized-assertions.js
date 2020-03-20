@@ -4,39 +4,40 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/debug", "@aurelia/runtime", "@aurelia/runtime-html", "./assert"], factory);
+        define(["require", "exports", "@aurelia/runtime", "@aurelia/runtime-html", "./assert"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const debug_1 = require("@aurelia/debug");
+    // import {
+    //   Serializer,
+    //   Unparser,
+    // } from '@aurelia/debug';
     const runtime_1 = require("@aurelia/runtime");
     const runtime_html_1 = require("@aurelia/runtime-html");
     const assert_1 = require("./assert");
-    function verifyASTEqual(actual, expected, errors, path) {
-        if (expected == null) {
-            if (actual != null) {
-                assert_1.assert.strictEqual(actual, null, `actual`);
-            }
-        }
-        else if (actual == null) {
-            const expectedSerialized = debug_1.Serializer.serialize(expected);
-            assert_1.assert.strictEqual(actual, expectedSerialized, `actual`);
-        }
-        else {
-            const expectedSerialized = debug_1.Serializer.serialize(expected);
-            const expectedUnparsed = debug_1.Unparser.unparse(expected);
-            const actualSerialized = debug_1.Serializer.serialize(actual);
-            const actualUnparsed = debug_1.Unparser.unparse(actual);
-            if (actualSerialized !== expectedSerialized) {
-                assert_1.assert.strictEqual(actualSerialized, expectedSerialized, `actualSerialized`);
-            }
-            if (actualUnparsed !== expectedUnparsed) {
-                assert_1.assert.strictEqual(actualUnparsed, expectedUnparsed, `actualUnparsed`);
-            }
-        }
-    }
-    exports.verifyASTEqual = verifyASTEqual;
+    // Disabling this as it this is nowhere used. And also the ast-serialization infra is moved to validation package.
+    // export function verifyASTEqual(actual: any, expected: any, errors?: string[], path?: string): any {
+    //   if (expected == null) {
+    //     if (actual != null) {
+    //       assert.strictEqual(actual, null, `actual`);
+    //     }
+    //   } else if (actual == null) {
+    //     const expectedSerialized = Serializer.serialize(expected);
+    //     assert.strictEqual(actual, expectedSerialized, `actual`);
+    //   } else {
+    //     const expectedSerialized = Serializer.serialize(expected);
+    //     const expectedUnparsed = Unparser.unparse(expected);
+    //     const actualSerialized = Serializer.serialize(actual);
+    //     const actualUnparsed = Unparser.unparse(actual);
+    //     if (actualSerialized !== expectedSerialized) {
+    //       assert.strictEqual(actualSerialized, expectedSerialized, `actualSerialized`);
+    //     }
+    //     if (actualUnparsed !== expectedUnparsed) {
+    //       assert.strictEqual(actualUnparsed, expectedUnparsed, `actualUnparsed`);
+    //     }
+    //   }
+    // }
     function verifyEqual(actual, expected, depth, property, index) {
         if (depth === undefined) {
             depth = 0;

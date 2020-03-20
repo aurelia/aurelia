@@ -21,6 +21,9 @@ export declare type HasBind = IBindingBehaviorExpression | IForOfStatement;
 export declare type HasUnbind = IValueConverterExpression | IBindingBehaviorExpression | IForOfStatement;
 export declare type HasAncestor = IAccessThisExpression | IAccessScopeExpression | ICallScopeExpression;
 export declare type AnyBindingExpression = IInterpolationExpression | IForOfStatement | IsBindingBehavior;
+export interface IHydrator {
+    hydrate(jsonExpr: any): any;
+}
 export interface IVisitor<T = unknown> {
     visitAccessKeyed(expr: IAccessKeyedExpression): T;
     visitAccessMember(expr: IAccessMemberExpression): T;

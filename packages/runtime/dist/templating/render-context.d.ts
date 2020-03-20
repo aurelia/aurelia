@@ -141,6 +141,7 @@ export declare class RenderContext<T extends INode = INode> implements IComponen
     getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
     getFactory<T extends Constructable>(key: T): IFactory<T> | null;
     createChild(): IContainer;
+    disposeResolvers(): void;
     compile(): ICompiledRenderContext<T>;
     getViewFactory(name?: string): IViewFactory<T>;
     beginChildComponentOperation(instance: ICustomElementViewModel): IRenderContext<T>;

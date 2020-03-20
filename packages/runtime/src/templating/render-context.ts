@@ -247,18 +247,22 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     container.registerResolver(
       IViewFactory,
       this.factoryProvider = new ViewFactoryProvider(),
+      true,
     );
     container.registerResolver(
       IController,
       this.parentControllerProvider = new InstanceProvider(),
+      true,
     );
     container.registerResolver(
       ITargetedInstruction,
       this.instructionProvider = new InstanceProvider<ITargetedInstruction>(),
+      true,
     );
     container.registerResolver(
       IRenderLocation,
       this.renderLocationProvider = new InstanceProvider<IRenderLocation>(),
+      true,
     );
 
     (this.dom = container.get<IDOM<T>>(IDOM)).registerElementResolver(
@@ -307,6 +311,9 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     return this.container.createChild();
   }
 
+  public disposeResolvers() {
+    this.container.disposeResolvers();
+  }
   // #endregion
 
   // #region IRenderContext api
@@ -440,11 +447,9 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
   }
 
   public dispose(): void {
-    this.factoryProvider.dispose();
-    this.parentControllerProvider.dispose();
-    this.instructionProvider.dispose();
     this.elementProvider.dispose();
-    this.renderLocationProvider.dispose();
+    this.container.disposeResolvers();
+
   }
   // #endregion
 }

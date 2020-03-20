@@ -153,6 +153,9 @@ export class PropertyBinding implements IPartialConnectableBinding {
     }
     if (this.mode & fromView) {
       targetObserver.subscribe(this.interceptor);
+      if ((this.mode & toView) === 0) {
+        this.interceptor.updateSource(targetObserver.getValue(), flags);
+      }
       (targetObserver as typeof targetObserver & { [key: string]: number })[this.id] |= LifecycleFlags.updateSourceExpression;
     }
 

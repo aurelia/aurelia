@@ -53,6 +53,7 @@ import {
   IVisitor,
   Observes,
   UnaryOperator,
+  IHydrator,
 } from '../ast';
 import {
   ExpressionKind,

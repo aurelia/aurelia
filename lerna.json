@@ -33,6 +33,7 @@
     "packages/store",
     "packages/testing",
     "packages/validation",
+    "packages/validation-i18n",
     "packages/web-components",
     "packages/webpack-loader",
     "test/1kcomponents",

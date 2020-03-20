@@ -1,5 +1,5 @@
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
-import { RouteRecognizer, RouteHandler, ConfigurableRoute, RecognizeResult } from './route-recognizer';
+import { RouteRecognizer, RouteHandler, ConfigurableRoute, RecognizeResult } from '@aurelia/route-recognizer';
 import { IContainer } from '@aurelia/kernel';
 import { CustomElementType } from '@aurelia/runtime';
 import { IRoute, ComponentAppellation, INavigatorInstruction } from './interfaces';

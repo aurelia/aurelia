@@ -247,6 +247,7 @@ export class Controller<
   >(
     viewModel: C,
     lifecycle: ILifecycle,
+    host: T,
     flags: LifecycleFlags = LifecycleFlags.none,
   ): ICustomAttributeController<T, C> {
     if (controllerLookup.has(viewModel)) {
@@ -264,7 +265,7 @@ export class Controller<
       /* viewFactory    */void 0,
       /* viewModel      */viewModel,
       /* bindingContext */getBindingContext<T, C>(flags, viewModel),
-      /* host           */void 0,
+      /* host           */host
     );
 
     controllerLookup.set(viewModel, controller);

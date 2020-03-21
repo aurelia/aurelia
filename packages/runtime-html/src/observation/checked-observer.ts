@@ -27,6 +27,8 @@ export interface IInputElement extends HTMLInputElement {
   matcher?: typeof defaultMatcher;
 }
 
+const toStringTag = Object.prototype.toString;
+
 function defaultMatcher(a: unknown, b: unknown): boolean {
   return a === b;
 }
@@ -149,32 +151,33 @@ export class CheckedObserver implements IAccessor {
       obj.checked = !!matcher(currentValue, elementValue);
     } else if (currentValue === true) {
       obj.checked = true;
-    } else if (currentValue instanceof Array /* Array.isArray does not account for proxy */) {
-      obj.checked = currentValue.findIndex(item => !!matcher(item, elementValue)) !== -1;
-    } else if (currentValue instanceof Set) {
-      let hasMatch = false;
-      for (const v of currentValue) {
-        if (matcher(v, elementValue)) {
-          hasMatch = true;
-          break;
-        }
-      }
-      obj.checked = hasMatch;
-    } else if (currentValue instanceof Map) {
-      let hasMatch = false;
-      for (const pair of currentValue) {
-        const existingItem = pair[0];
-        const $isChecked = pair[1];
-        // a potential complain, when only `true` is supported
-        // but it's consistent with array
-        if (matcher(existingItem, elementValue) && $isChecked === true) {
-          hasMatch = true;
-          break;
-        }
-      }
-      obj.checked = hasMatch;
     } else {
-      obj.checked = false;
+      let hasMatch = false;
+      switch (toStringTag.call(currentValue)) {
+        case '[object Array]':
+          hasMatch = (currentValue as unknown[]).findIndex(item => !!matcher(item, elementValue)) !== -1;
+          break;
+        case '[object Set]':
+          for (const v of currentValue as Set<unknown>) {
+            if (matcher(v, elementValue)) {
+              hasMatch = true;
+              break;
+            }
+          }
+          break;
+        case '[object Map]':
+          for (const pair of currentValue as Map<unknown, unknown>) {
+            const existingItem = pair[0];
+            const $isChecked = pair[1];
+            // a potential complain, when only `true` is supported
+            // but it's consistent with array
+            if (matcher(existingItem, elementValue) && $isChecked === true) {
+              hasMatch = true;
+              break;
+            }
+          }
+      }
+      obj.checked = hasMatch;
     }
   }
 
@@ -186,7 +189,8 @@ export class CheckedObserver implements IAccessor {
     const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;
 
     if (obj.type === 'checkbox') {
-      if (currentValue instanceof Array) {
+      const toStringRet = toStringTag.call(currentValue);
+      if (toStringRet === '[object Array]') {
         // Array binding steps on a change event:
         // 1. find corresponding item INDEX in the Set based on current model/value and matcher
         // 2. is the checkbox checked?
@@ -195,22 +199,22 @@ export class CheckedObserver implements IAccessor {
         //    2.2. No: is the corresponding item in the Array (index !== -1)?
         //        2.2.1: Yes: remove the corresponding item
         // =================================================
-        const index = currentValue.findIndex(item => !!matcher(item, elementValue));
+        const index = (currentValue as unknown[]).findIndex(item => !!matcher(item, elementValue));
 
         // if the checkbox is checkde, and there's no matching value in the existing array
         // add the checkbox model/value to the array
         if (isChecked && index === -1) {
-          currentValue.push(elementValue);
+          (currentValue as unknown[]).push(elementValue);
         } else if (!isChecked && index !== -1) {
           // if the checkbox is not checked, and found a matching item in the array
           // based on the checkbox model/value
           // remove the existing item
-          currentValue.splice(index, 1);
+          (currentValue as unknown[]).splice(index, 1);
         }
         // when existing currentValue is an array,
         // do not invoke callback as only the array obj has changed
         return;
-      } else if (currentValue instanceof Set) {
+      } else if (toStringRet === '[object Set]') {
         // Set binding steps on a change event:
         // 1. find corresponding item in the Set based on current model/value and matcher
         // 2. is the checkbox checked?
@@ -223,7 +227,7 @@ export class CheckedObserver implements IAccessor {
         // 1. find corresponding item
         const unset = {};
         let existingItem: unknown = unset;
-        for (const value of currentValue) {
+        for (const value of currentValue as Set<unknown>) {
           if (matcher(value, elementValue) === true) {
             existingItem = value;
             break;
@@ -235,19 +239,19 @@ export class CheckedObserver implements IAccessor {
         // add the checkbox model/value to the Set
         if (isChecked && existingItem === unset) {
           // 2.1.1. add the current model/value to the Set
-          currentValue.add(elementValue);
+          (currentValue as Set<unknown>).add(elementValue);
         } else if (!isChecked && existingItem !== unset) {
           // 2.2.1 Checkbox is unchecked, corresponding is in the Set
           //
           // if checkbox is not checked, and found a matching item in the Set
           // based on the checkbox model/value
           // remove the existing item
-          currentValue.delete(existingItem);
+          (currentValue as Set<unknown>).delete(existingItem);
         }
         // when existing value is a Set,
         // do not invoke callback as only the Set has been mutated
         return;
-      } else if (currentValue instanceof Map) {
+      } else if (toStringRet === '[object Map]') {
         // Map binding steps on a change event
         // 1. find corresponding item in the Map based on current model/value and matcher
         // 2. Set the value of the corresponding item in the Map based on checked state of the checkbox
@@ -255,7 +259,7 @@ export class CheckedObserver implements IAccessor {
 
         // 1. find the corresponding item
         let existingItem: unknown;
-        for (const pair of currentValue) {
+        for (const pair of currentValue as Map<unknown, unknown>) {
           const currItem = pair[0];
           if (matcher(currItem, elementValue) === true) {
             existingItem = currItem;
@@ -267,7 +271,7 @@ export class CheckedObserver implements IAccessor {
         // if checkbox is checked and there's no value in the existing Map
         // add the checkbox model/value to the Map as key,
         // and value will be checked state of the checkbox
-        currentValue.set(existingItem, isChecked);
+        (currentValue as Map<unknown, unknown>).set(existingItem, isChecked);
         // when existing value is a Map,
         // do not invoke callback as only the Map has been mutated
         return;

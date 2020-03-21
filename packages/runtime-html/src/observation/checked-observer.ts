@@ -3,7 +3,6 @@ import {
   IAccessor,
   ICollectionObserver,
   IndexMap,
-  IObserverLocator,
   ISubscriber,
   ISubscriberCollection,
   LifecycleFlags,
@@ -12,9 +11,12 @@ import {
   subscriberCollection,
   IScheduler,
   ITask,
+  getCollectionObserver,
+  ILifecycle,
 } from '@aurelia/runtime';
 import { IEventSubscriber } from './event-manager';
 import { ValueAttributeObserver } from './value-attribute-observer';
+import { RepeatableCollection } from '@aurelia/runtime/dist/observation/observer-locator';
 
 export interface IInputElement extends HTMLInputElement {
   model?: unknown;
@@ -48,7 +50,7 @@ export class CheckedObserver implements IAccessor {
   public constructor(
     public readonly scheduler: IScheduler,
     flags: LifecycleFlags,
-    public readonly observerLocator: IObserverLocator,
+    public lifecycle: ILifecycle,
     public readonly handler: IEventSubscriber,
     public readonly obj: IInputElement,
   ) {
@@ -62,7 +64,7 @@ export class CheckedObserver implements IAccessor {
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
+    if ((flags & LifecycleFlags.fromBind) === LifecycleFlags.fromBind || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
       this.flushChanges(flags);
     } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
       this.task = this.scheduler.queueRenderTask(() => {
@@ -75,8 +77,8 @@ export class CheckedObserver implements IAccessor {
   public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
-      const currentValue = this.currentValue;
-      this.oldValue = currentValue;
+
+      const currentValue = this.oldValue = this.currentValue;
 
       if (this.valueObserver === void 0) {
         if (this.obj.$observers !== void 0) {
@@ -97,13 +99,7 @@ export class CheckedObserver implements IAccessor {
       }
 
       if (this.obj.type === 'checkbox') {
-        if (Array.isArray(currentValue)) {
-          this.collectionObserver = this.observerLocator.getArrayObserver(flags, currentValue);
-        } else if (currentValue instanceof Set) {
-          this.collectionObserver = this.observerLocator.getSetObserver(flags, currentValue);
-        } else if (currentValue instanceof Map) {
-          this.collectionObserver = this.observerLocator.getMapObserver(flags, currentValue);
-        }
+        this.collectionObserver = getCollectionObserver(flags, this.lifecycle, currentValue as RepeatableCollection);
         if (this.collectionObserver !== void 0) {
           this.collectionObserver.subscribeToCollection(this);
         }
@@ -153,7 +149,7 @@ export class CheckedObserver implements IAccessor {
       obj.checked = !!matcher(currentValue, elementValue);
     } else if (currentValue === true) {
       obj.checked = true;
-    } else if (Array.isArray(currentValue)) {
+    } else if (currentValue instanceof Array /* Array.isArray does not account for proxy */) {
       obj.checked = currentValue.findIndex(item => !!matcher(item, elementValue)) !== -1;
     } else if (currentValue instanceof Set) {
       let hasMatch = false;
@@ -190,7 +186,7 @@ export class CheckedObserver implements IAccessor {
     const matcher = obj.matcher !== void 0 ? obj.matcher : defaultMatcher;
 
     if (obj.type === 'checkbox') {
-      if (Array.isArray(currentValue)) {
+      if (currentValue instanceof Array) {
         // Array binding steps on a change event:
         // 1. find corresponding item INDEX in the Set based on current model/value and matcher
         // 2. is the checkbox checked?

@@ -2,6 +2,7 @@ import {
   CustomElement,
   Aurelia,
   BindingStrategy,
+  ProxyObserver,
 } from '@aurelia/runtime';
 import {
   Constructable
@@ -14,7 +15,6 @@ import {
 } from '@aurelia/testing';
 
 describe('checked-observer.spec.ts', function () {
-  this.afterEach(assert.isSchedulerEmpty);
 
   const testCases: ITestCase[] = [
     {
@@ -31,18 +31,18 @@ describe('checked-observer.spec.ts', function () {
 
         component.selected.push(0);
         ctx.scheduler.getRenderTaskQueue().flush();
-        assert.strictEqual(inputEls[0].checked, true);
+        assert.strictEqual(inputEls[0].checked, true, 'after push(0), 1st checkbox should be checked');
 
         simulateStateChange(ctx, inputEls[0], false);
-        assert.strictEqual(component.selected.length, 0);
+        assert.strictEqual(component.selected.length, 0, 'after unticking 1st checkbox, selected length should be 0');
 
         component.selected.push(10);
         ctx.scheduler.getRenderTaskQueue().flush();
-        assert.strictEqual(inputEls.every(el => !el.checked), true);
+        assert.strictEqual(inputEls.every(el => !el.checked), true, 'After push(10), no checkbox should be checked');
 
         component.selected = Array.from({ length: 10 }, (_, i) => i);
         ctx.scheduler.getRenderTaskQueue().flush();
-        assert.strictEqual(inputEls.every(el => el.checked), true);
+        assert.strictEqual(inputEls.every(el => el.checked), true, 'after assigning new array, all checkboxes should be checked');
       }
     },
     {
@@ -247,22 +247,29 @@ describe('checked-observer.spec.ts', function () {
   eachCartesianJoin(
     [testCases],
     (testCase, callIndex) => {
-      const { title, template, ViewModel, assertFn, only } = testCase;
-      // eslint-disable-next-line mocha/no-exclusive-tests
-      const $it = (title_: string, fn: Mocha.Func) => only ? it.only(title_, fn) : it(title_, fn);
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      $it(title, async function () {
-        const { ctx, component, testHost, tearDown } = await createFixture<any>(
-          template,
-          ViewModel
-        );
-        await assertFn(ctx, testHost, component);
-        // test cases could be sharing the same context document
-        // so wait a bit before running the next test
-        await tearDown();
+      for (const strategy of [
+        // todo: enable this
+        // BindingStrategy.proxies,
+        BindingStrategy.getterSetter,
+      ]) {
+        const { title, template, ViewModel, assertFn, only } = testCase;
+        // eslint-disable-next-line mocha/no-exclusive-tests
+        const $it = (title_: string, fn: Mocha.Func) => only ? it.only(title_, fn) : it(title_, fn);
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        $it(`<Strategy: ${strategy === BindingStrategy.getterSetter ? 'Getter/Setter' : 'Proxies'}> ${title}`, async function () {
+          const { ctx, component, testHost, tearDown } = await createFixture<any>(
+            template,
+            ViewModel,
+            strategy,
+          );
+          await assertFn(ctx, testHost, component);
+          // test cases could be sharing the same context document
+          // so wait a bit before running the next test
+          await tearDown();
 
-        assert.isSchedulerEmpty();
-      });
+          assert.isSchedulerEmpty();
+        });
+      }
     }
   );
 
@@ -297,28 +304,29 @@ describe('checked-observer.spec.ts', function () {
     }));
   }
 
-  async function createFixture<T>(template: string | Node, $class: Constructable | null, ...registrations: any[]) {
+  async function createFixture<T>(template: string | Node, $class: Constructable | null, bindingStrategy: BindingStrategy, ...registrations: any[]) {
     const ctx = TestContext.createHTMLTestContext();
     const { container, lifecycle, observerLocator } = ctx;
     registrations = Array.from(new Set([...registrations]));
     container.register(...registrations);
-    const testHost = ctx.doc.body.appendChild(ctx.createElement('div'));
+    const testHost = ctx.createElement('div');
     const appHost = testHost.appendChild(ctx.createElement('app'));
     const au = new Aurelia(container);
-    const App = CustomElement.define({ name: 'app', template, strategy: BindingStrategy.proxies }, $class);
+    const App = CustomElement.define({ name: 'app', template }, $class);
     const component = new App();
 
-    au.app({ host: appHost, component });
+    au.app({ host: appHost, component, strategy: bindingStrategy });
     await au.start().wait();
 
     return {
-      ctx: ctx,
+      ctx,
       au,
       container,
       lifecycle,
-      testHost: testHost,
+      testHost,
       appHost,
-      component: component as T,
+      // todo: keeping ProxyObserver.getProxyOrSelf as a reminder of what will need to be done to make the tests behave as expected
+      component: ProxyObserver.getProxyOrSelf(component) as T,
       observerLocator,
       tearDown: async () => {
         await au.stop().wait();

@@ -27,6 +27,7 @@
     "@aurelia/runtime": "0.6.0",
     "@aurelia/runtime-html": "0.6.0",
     "@aurelia/runtime-html-browser": "0.6.0",
+    "@aurelia/validation": "0.6.0",
     "i18next-intervalplural-postprocessor": "^1.0.0",
     "relative-time-format": "^1.0.0",
     "i18next-fetch-backend": "^2.2.0"

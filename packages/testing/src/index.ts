@@ -65,7 +65,7 @@ export {
   TestConfiguration,
 } from './resources';
 export {
-  verifyASTEqual,
+  // verifyASTEqual,
   verifyBindingInstructionsEqual,
   verifyEqual,
   getVisibleText,

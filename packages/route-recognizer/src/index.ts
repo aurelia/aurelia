@@ -1,72 +1,87 @@
-export interface IConfigurableRoute {
+import { IQueryParams, parseQueryString } from '@aurelia/kernel';
+
+export interface IConfigurableRoute<T> {
   readonly path: string;
   readonly caseSensitive?: boolean;
+  readonly handler: T;
 }
 
-export class ConfigurableRoute implements IConfigurableRoute {
+export class ConfigurableRoute<T> implements IConfigurableRoute<T> {
   public constructor(
     public readonly path: string,
     public readonly caseSensitive: boolean,
+    public readonly handler: T,
   ) {}
 }
 
-export class RouteEntry {
+export class Endpoint<T> {
   public constructor(
-    public readonly route: ConfigurableRoute,
-    public readonly handler: unknown,
+    public readonly route: ConfigurableRoute<T>,
+    public readonly paramNames: readonly string[],
   ) {}
 }
 
-export class RouteRecognizer {
-  public readonly rootState: State = new State(null, null, '');
+export class RecognizedRoute<T> {
+  public constructor(
+    public readonly endpoint: Endpoint<T>,
+    public readonly params: Readonly<Record<string, string | undefined>>,
+    public readonly queryParams: Readonly<IQueryParams>,
+    public readonly isDynamic: boolean,
+    public readonly queryString: string,
+  ) {}
+}
+
+export class RouteRecognizer<T> {
+  public readonly rootState: State<T> = new State(null, null, '');
+  private sequenceId: number = 0;
 
   public add(
-    route: IConfigurableRoute,
-    handler: unknown,
+    routeOrRoutes: IConfigurableRoute<T> | readonly IConfigurableRoute<T>[],
   ): void {
-    const entry = new RouteEntry(
-      new ConfigurableRoute(
-        route.path,
-        route.caseSensitive === true,
-      ),
-      handler,
-    );
-    const { segments } = URLPath.parse(entry.route.path);
-    const optionalStates: State[] = [];
+    if (Array.isArray(routeOrRoutes)) {
+      return routeOrRoutes.forEach(x => this.add(x));
+    }
+    const route = routeOrRoutes as IConfigurableRoute<T>;
+    const $route = new ConfigurableRoute(route.path, route.caseSensitive === true, route.handler);
+    const parts = parsePath($route.path);
+    const optionalStates: State<T>[] = [];
+    const paramNames: string[] = [];
 
     let isEmpty = true;
     let state = this.rootState;
 
-    for (const segment of segments) {
-      // Automatically normalize leading, trailing and double slashes by ignoring empty segments
-      if (segment.isEmpty) {
-        continue;
-      }
+    let prev: ParsedSegment<T> | null = null;
 
+    for (const part of parts) {
       // Each segment always begins with a slash, so we represent this with a non-segment state
-      state = state.link(null, '/');
+      state = state.append(null, '/');
 
       // Add the first part of this segment to the end of any existing optional states
-      optionalStates.forEach(x => x.successors.push(state));
+      optionalStates.forEach(x => x.nextStates.push(state));
 
       let isOptional = false;
-      const { value } = segment;
-      switch (value.charAt(0)) {
+      switch (part.charAt(0)) {
         case ':': { // route parameter
-          if (value.endsWith('?')) { // optional
+          let name: string;
+          if (part.endsWith('?')) { // optional
             isOptional = true;
-            optionalStates.push(new DynamicSegment(segment, value.slice(1, -1), true).link(state));
+            name = part.slice(1, -1);
+            optionalStates.push((prev = new DynamicSegment(prev, name, true)).appendTo(state));
           } else {
-            state = new DynamicSegment(segment, value.slice(1), false).link(state);
+            name = part.slice(1);
+            state = (prev = new DynamicSegment(prev, name, false)).appendTo(state);
           }
+          paramNames.push(name);
           break;
         }
         case '*': { // dynamic route
-          state = new StarSegment(segment, value.slice(1)).link(state);
+          const name = part.slice(1);
+          paramNames.push(name);
+          state = (prev = new StarSegment(prev, name)).appendTo(state);
           break;
         }
         default: { // standard path route
-          state = new StaticSegment(segment, value, entry.route.caseSensitive).link(state);
+          state = (prev = new StaticSegment(prev, part, $route.caseSensitive)).appendTo(state);
           break;
         }
       }
@@ -80,142 +95,292 @@ export class RouteRecognizer {
     // A fully empty route is represented by simply a slash
     // An "all optional" path is technically empty since the current state is the provided root state
     if (isEmpty) {
-      state = state.link(null, '/');
+      state = state.append(null, '/');
     }
 
-    state.makeTerminal(entry);
+    const endpoint = new Endpoint<T>($route, paramNames);
 
-    // Any trailing optional states need to be indicated as terminal as well
-    optionalStates.forEach(x => x.makeTerminal(entry));
+    state.setEndpoint(endpoint);
+
+    // Any trailing optional states need to be endpoints as well
+    optionalStates.forEach(x => x.setEndpoint(endpoint));
   }
 
-  public recognize(path: string):
+  public recognize(path: string): RecognizedRoute<T> | null {
+    let queryParams: IQueryParams;
+    let queryString = '';
+
+    const queryStart = path.indexOf('?');
+    if (queryStart >= 0) {
+      queryString = path.slice(queryStart + 1);
+      path = path.slice(0, queryStart);
+      queryParams = parseQueryString(queryString);
+    } else {
+      queryParams = {};
+    }
+
+    path = decodeURI(path);
+
+    if (!path.startsWith('/')) {
+      path = `/${path}`;
+    }
+
+    let isSlashDropped: boolean;
+    if (path.length > 1 && path.endsWith('/')) {
+      path = path.slice(0, -1);
+      isSlashDropped = true;
+    } else {
+      isSlashDropped = false;
+    }
+
+    let states = [this.rootState];
+    const sequenceId = ++this.sequenceId;
+    for (let i = 0, ii = path.length; i < ii; ++i) {
+      const ch = path.charAt(i);
+      states = states.flatMap(x => x.nextStates.filter(y => y.isMatch(sequenceId, path, ch)));
+      if (states.length === 0) {
+        return null;
+      }
+    }
+
+    const solutions = states.filter(x => x.hasEndpoint).sort((a, b) => a.compareTo(b));
+    if (solutions.length === 0) {
+      return null;
+    }
+
+    const solution = solutions[0];
+    const params = solution.path.getParams(path);
+    const isDynamic = solution.path.isDynamic;
+
+    return new RecognizedRoute<T>(
+      solution.endpoint!,
+      params,
+      queryParams,
+      isDynamic,
+      '',
+    );
+  }
 }
 
-export class State {
-  public readonly predecessor: State;
-  public readonly successors: State[] = [];
-  public get isTerminal(): boolean {
-    return this.entry !== null;
+class State<T> {
+  public readonly nextStates: State<T>[] = [];
+  public readonly isSeparator: boolean;
+
+  private _scores: readonly number[] | undefined = void 0;
+  public get scores(): readonly number[] {
+    let scores = this._scores;
+    if (scores === void 0) {
+      scores = this._scores = this.path.segments.map(x => x.kind);
+    }
+    return scores;
   }
-  public entry: RouteEntry | null = null;
+
+  private _endpoint: Endpoint<T> | null = null;
+  public get endpoint(): Endpoint<T> | null {
+    return this._endpoint;
+  }
+  public get hasEndpoint(): boolean {
+    return this._endpoint !== null;
+  }
+
+  public get path(): ParsedPath<T> {
+    return this.segment!.path;
+  }
 
   public constructor(
-    predecessor: State | null,
-    public readonly segment: ParsedSegment | null,
+    public readonly prevState: State<T> | null,
+    public readonly segment: ParsedSegment<T> | null,
     public readonly value: string,
   ) {
-    this.predecessor = predecessor ?? this;
+    this.isSeparator = segment === null;
   }
 
-  public link(
-    segment: ParsedSegment | null,
+  public append(
+    segment: ParsedSegment<T> | null,
     value: string,
-  ): State {
-    const { successors } = this;
-    let state = successors.find(s =>
+  ): State<T> {
+    const { nextStates } = this;
+    let state = nextStates.find(s =>
       s.value === value &&
       s.segment?.kind === segment?.kind
     );
 
     if (state === void 0) {
-      successors.push(state = new State(this, segment, value));
+      nextStates.push(state = new State(this, segment, value));
 
       switch (segment?.kind) {
         case SegmentKind.dynamic:
         case SegmentKind.star:
-          state.successors.push(state);
+          state.nextStates.push(state);
       }
     }
 
     return state;
   }
 
-  public makeTerminal(entry: RouteEntry): void {
-    this.entry = entry;
+  public setEndpoint(endpoint: Endpoint<T>): void {
+    this._endpoint = endpoint;
   }
 
-  public isMatch(ch: string): boolean {
+  public isMatch(
+    sequenceId: number,
+    path: string,
+    ch: string,
+  ): boolean {
     switch (this.segment?.kind) {
       case SegmentKind.static:
         return this.value.includes(ch);
       case SegmentKind.dynamic:
-        return !this.value.includes(ch);
+        if (!this.value.includes(ch)) {
+          this.segment.params.record(sequenceId, path, ch);
+          return true;
+        }
+        return false;
       case SegmentKind.star:
+        this.segment.params.record(sequenceId, path, ch);
         return true;
       case undefined:
         // segment separators (slashes) are non-segments. We could say return ch === '/' as well, technically.
         return this.value.includes(ch);
     }
   }
-}
 
-export class URLPath {
-  private constructor(
-    public readonly rawURL: string,
-    public readonly segments: readonly RawSegment[],
-  ) {}
+  /**
+   * Compares this state to another state to determine the correct sorting order.
+   *
+   * This algorithm is different from `sortSolutions` in v1's route-recognizer in that it compares
+   * the solutions segment-by-segment, rather than merely comparing the cumulative of segment types
+   *
+   * This resolves v1's ambiguity in situations like `/foo/:id/bar` vs. `/foo/bar/:id`, which had the
+   * same sorting value because they both consist of two static segments and one dynamic segment.
+   *
+   * With this algorithm, `/foo/bar/:id` would always be sorted first because the second segment is different,
+   * and static wins over dynamic.
+   *
+   * ### NOTE
+   * This algorithm violates some of the invariants of v1's algorithm,
+   * but those invariants were arguably not very sound to begin with. Example:
+   *
+   * `/foo/*path/bar/baz` vs. `/foo/bar/*path1/*path2`
+   * - in v1, the first would win because that match has fewer stars
+   * - in v2, the second will win because there is a bigger static match at the start of the pattern
+   *
+   * The algorithm should be more logical and easier to reason about in v2, but it's important to be aware of
+   * subtle difference like this which might surprise some users who happened to rely on this behavior from v1,
+   * intentionally or unintentionally.
+   *
+   * @param b - The state to compare this to.
+   * Parameter name is `b` because the method should be used like so: `states.sort((a, b) => a.compareTo(b))`.
+   * This will bring the state with the highest score to the first position of the array.
+   */
+  public compareTo(b: State<T>): -1 | 1 {
+    const scoresA = this.scores!;
+    const scoresB = b.scores!;
 
-  public static parse(rawURL: string): URLPath {
-    const parts = rawURL.split('/');
-    const segments = Array(parts.length) as RawSegment[];
-    const url = new URLPath(rawURL, segments);
-
-    let prev: RawSegment | null = null;
-    let cur: RawSegment;
-    for (let i = 0, ii = parts.length; i < ii; ++i) {
-      cur = new RawSegment(url, parts[i]);
-      if (prev !== null) {
-        prev.next = cur;
-        cur.prev = prev;
+    const scoresALen = scoresA.length;
+    const scoresBLen = scoresB.length;
+    for (let i = 0, ii = Math.min(scoresALen, scoresBLen); i < ii; ++i) {
+      const scoreA = scoresA[i];
+      const scoreB = scoresB[i];
+      if (scoreA < scoreB) {
+        return -1;
       }
-      prev = cur;
+      if (scoreA > scoreB) {
+        return 1;
+      }
     }
-    return url;
+
+    // Everything up to this point is identical in score, so the pattern with more segments wins.
+    // This could happen with e.g. `foo/*path` vs. `foo/*path/bar`, where the path `foo/baz/bar` would match both patterns.
+    // In this case, `foo/*path/bar` should win because a smaller portion of path is matched by the star segment.
+    if (scoresALen < scoresBLen) {
+      return -1;
+    }
+    if (scoresALen > scoresBLen) {
+      return 1;
+    }
+
+    // Theoretically if the lengths are the same, we are dealing with two ambiguous patterns.
+    // In practice, this shouldn't be possible because dynamic and star patterns (even though they are named) are
+    // represented in state by hard-coded negative match characters.
+    // So, if the code reaches this point, there must be a bug somewhere in `RouteRecognizer.add`.
+    throw new Error(`Ambiguous pattern: a=${this.toString()}, b=${b.toString()}. This error indicates a bug in Aurelia; please report it via GitHub.`);
+  }
+
+  public toString(): string {
+    return this.path.toString();
   }
 }
 
-export class RawSegment {
-  public prev: RawSegment | null = null;
-  public next: RawSegment | null = null;
+type Segments = readonly string[];
+function parsePath(path: string): Segments {
+  // Normalize leading, trailing and double slashes by ignoring empty segments
+  return path.split('/').filter(x => x.length > 0);
+}
 
-  public readonly isEmpty: boolean;
+class ParsedPath<T> {
+  public readonly isDynamic: boolean;
 
   public constructor(
-    public readonly url: URLPath,
-    public readonly value: string,
+    public readonly segments: readonly ParsedSegment<T>[],
   ) {
-    this.isEmpty = value.length === 0;
+    this.isDynamic = segments.some(x => x.kind !== SegmentKind.static);
+  }
+
+  public getParams(path: string): Record<string, string | undefined> {
+    const { segments } = this;
+    const params: Record<string, string | undefined> = {};
+    for (const segment of segments) {
+      switch (segment.kind) {
+        case SegmentKind.dynamic:
+        case SegmentKind.star:
+          params[segment.name] = segment.params.get(path);
+          break;
+      }
+    }
+
+    return params;
+  }
+
+  public append(segment: ParsedSegment<T>): ParsedPath<T> {
+    return new ParsedPath([...this.segments, segment]);
+  }
+
+  public toString(): string {
+    return this.segments.map(x => `/${x.toString()}`).join('');
   }
 }
 
-export type ParsedSegment = (
-  StaticSegment |
-  DynamicSegment |
-  StarSegment
+type ParsedSegment<T> = (
+  StaticSegment<T> |
+  DynamicSegment<T> |
+  StarSegment<T>
 );
 
-export const enum SegmentKind {
+const enum SegmentKind {
   star    = 1,
   dynamic = 2,
   static  = 3,
 }
 
-export class StaticSegment {
+class StaticSegment<T> {
   public get kind(): SegmentKind.static { return SegmentKind.static; }
+  public readonly path: ParsedPath<T>;
 
   public constructor(
-    public readonly raw: RawSegment,
+    prev: ParsedSegment<T> | null,
     public readonly value: string,
     public readonly caseSensitive: boolean,
-  ) {}
+  ) {
+    this.path = prev === null ? new ParsedPath([this]) : prev.path.append(this);
+  }
 
-  public link(state: State): State {
+  public appendTo(state: State<T>): State<T> {
     const { value, value: { length } } = this;
 
     if (this.caseSensitive) {
       for (let i = 0; i < length; ++i) {
-        state = state.link(
+        state = state.append(
           /* segment */this,
           /* value   */value.charAt(i),
         );
@@ -223,7 +388,7 @@ export class StaticSegment {
     } else {
       for (let i = 0; i < length; ++i) {
         const ch = value.charAt(i);
-        state = state.link(
+        state = state.append(
           /* segment */this,
           /* value   */ch.toUpperCase() + ch.toLowerCase(),
         );
@@ -232,37 +397,119 @@ export class StaticSegment {
 
     return state;
   }
-}
 
-export class DynamicSegment {
-  public get kind(): SegmentKind.dynamic { return SegmentKind.dynamic; }
-
-  public constructor(
-    public readonly raw: RawSegment,
-    public readonly name: string,
-    public readonly optional: boolean,
-  ) {}
-
-  public link(state: State): State {
-    return state.link(
-      /* segment */this,
-      /* value   */'/',
-    );
+  /**
+   * Returns a regex-like representation of this segment, mainly for debugging purposes.
+   */
+  public toString(): string {
+    return this.caseSensitive
+      ? this.value.split('').map(x => `[${x.toLowerCase()}${x.toUpperCase()}]`).join('')
+      : this.value;
   }
 }
 
-export class StarSegment {
-  public get kind(): SegmentKind.star { return SegmentKind.star; }
+class NamedParameters {
+  private readonly cache: Map<string, string> = new Map();
+  private path: string = '';
+  private buffer: string = '';
+  private sequenceId: number = 0;
+
+  public record(
+    sequenceId: number,
+    path: string,
+    ch: string,
+  ): void {
+    if (!this.cache.has(path)) {
+      if (this.sequenceId === sequenceId) {
+        this.buffer += ch;
+      } else {
+        if (this.path.length > 0) {
+          this.cache.set(this.path, this.buffer);
+        }
+        this.sequenceId = sequenceId;
+        this.path = path;
+        this.buffer = ch;
+      }
+    }
+  }
+
+  public get(path: string): string {
+    if (this.path === path) {
+      return this.buffer;
+    }
+
+    const value = this.cache.get(path);
+    if (value === void 0) {
+      throw new Error(`Path ${path} has not been recorded yet. This error indicates a bug in Aurelia; please report it via GitHub.`);
+    }
+
+    return value;
+  }
+}
+
+class DynamicSegment<T> {
+  public get kind(): SegmentKind.dynamic { return SegmentKind.dynamic; }
+  public readonly path: ParsedPath<T>;
+
+  private _params: NamedParameters | null = null;
+  public get params(): NamedParameters {
+    return this._params ?? (this._params = new NamedParameters());
+  }
 
   public constructor(
-    public readonly raw: RawSegment,
+    prev: ParsedSegment<T> | null,
     public readonly name: string,
-  ) {}
+    public readonly optional: boolean,
+  ) {
+    this.path = prev === null ? new ParsedPath([this]) : prev.path.append(this);
+  }
 
-  public link(state: State): State {
-    return state.link(
+  public appendTo(state: State<T>): State<T> {
+    state = state.append(
+      /* segment */this,
+      /* value   */'/',
+    );
+
+    return state;
+  }
+
+  /**
+   * Returns a regex-like representation of this segment, mainly for debugging purposes.
+   */
+  public toString(): string {
+    return `(?<${this.name}>[^/]+)${this.optional ? '?' : ''}`;
+  }
+}
+
+class StarSegment<T> {
+  public get kind(): SegmentKind.star { return SegmentKind.star; }
+  public readonly path: ParsedPath<T>;
+
+  private _params: NamedParameters | null = null;
+  public get params(): NamedParameters {
+    return this._params ?? (this._params = new NamedParameters());
+  }
+
+  public constructor(
+    prev: ParsedSegment<T> | null,
+    public readonly name: string,
+  ) {
+    this.path = prev === null ? new ParsedPath([this]) : prev.path.append(this);
+  }
+
+  public appendTo(state: State<T>): State<T> {
+    state = state.append(
       /* segment */this,
       /* value   */'',
     );
+
+    return state;
+  }
+
+  /**
+   * Returns a regex-like representation of this segment, mainly for debugging purposes.
+   */
+  public toString(): string {
+    return `(?<${this.name}>.+)`;
   }
 }

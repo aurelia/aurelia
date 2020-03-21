@@ -62,21 +62,11 @@ export {
 } from './queue';
 
 export {
-  RouteHandler,
-  ConfigurableRoute,
-  HandlerEntry,
-  RouteGenerator,
-  TypesRecord,
-  RecognizeResult,
-  RecognizeResults,
-  CharSpec,
-  State,
-  StaticSegment,
-  DynamicSegment,
-  StarSegment,
-  EpsilonSegment,
-  Segment,
   RouteRecognizer,
+  IConfigurableRoute,
+  ConfigurableRoute,
+  RecognizedRoute,
+  Endpoint,
 } from './route-recognizer';
 
 export {

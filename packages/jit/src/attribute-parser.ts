@@ -27,9 +27,12 @@ export class AttributeParser implements IAttributeParser {
     const patterns: AttributeParser['patterns'] = this.patterns = {};
     attrPatterns.forEach(attrPattern => {
       const defs = AttributePattern.getPatternDefinitions(attrPattern.constructor as Constructable);
-      interpreter.add(defs);
       defs.forEach(def => {
-        patterns[def.pattern] = attrPattern as unknown as IAttributePattern;
+        // won't allow override
+        if (patterns[def.pattern] === void 0) {
+          patterns[def.pattern] = attrPattern as unknown as IAttributePattern;
+          interpreter.add(def);
+        }
       });
     });
   }

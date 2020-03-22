@@ -49,11 +49,10 @@ export class AttributeParser implements IAttributeParser {
 
   public cloneTo(container: IContainer): IAttributeParser {
     const newInterpreter = new SyntaxInterpreter();
-    // patterns of the clone need to be added after the existing pattern to override
     const patterns = container.getAll(IAttributePattern, true);
     const childParser = new AttributeParser(
       newInterpreter,
-      patterns.slice(0).reverse()
+      patterns.slice(0)
     );
     Registration.instance(ISyntaxInterpreter, newInterpreter).register(container);
     Registration.instance(IAttributeParser, childParser).register(container);

@@ -937,7 +937,6 @@ export class Container implements IContainer {
           if (resolvers == null) {
             resolvers = [resolver];
           } else {
-            // the result should represent container hierarchy
             resolvers.push(resolver);
           }
         }
@@ -1104,14 +1103,9 @@ function buildAllResponses(resolvers: IResolver[], handler: IContainer, requesto
     const resolver = resolvers[i];
     if (resolver instanceof Resolver && resolver.strategy === ResolverStrategy.array) {
       const state = resolver.state as IResolver[];
-      let j = state.length;
-      let jj = 0;
-
-      while (j--) {
-        results[i + jj] = state[j].resolve(handler, requestor);
-        jj++;
+      for (let j = 0, jj = state.length; jj > j; ++j) {
+        results[i + j] = state[j].resolve(handler, requestor);
       }
-
     } else {
       results[i] = resolver.resolve(handler, requestor);
     }

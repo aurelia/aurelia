@@ -36,7 +36,8 @@
     "bump-version:latest": "ts-node -P tsconfig.json scripts/bump-version.ts latest",
     "refresh": "lerna clean -y && nodetouch ensurestash && git add . && git stash && git clean -xfd && git stash pop && git rm -f ensurestash && npm ci && npm run build",
     "generate-tests:template-compiler.static": "ts-node -P tsconfig.json scripts/generate-tests/template-compiler.static.ts",
-    "generate-tests:template-compiler.mutations": "ts-node -P tsconfig.json scripts/generate-tests/template-compiler.mutations.ts"
+    "generate-tests:template-compiler.mutations": "ts-node -P tsconfig.json scripts/generate-tests/template-compiler.mutations.ts",
+    "mermaid": "mmdc -i docs/mermaid-src/**/*.mmd -o docs/images"
   },
   "dependencies": {
     "i18next": "^17.0.0",
@@ -109,6 +110,7 @@
     "lodash": "4.17.15",
     "magic-string": "^0.25.4",
     "marked": "^0.8.0",
+    "mermaid": "^8.4.8",
     "mocha": "~6.1.4",
     "npm-run-all": "^4.1.5",
     "path": "^0.12.7",

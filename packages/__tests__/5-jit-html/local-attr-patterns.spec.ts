@@ -32,7 +32,7 @@ describe('local-attr-patterns.spec.ts', function () {
       ]);
       assert.strictEqual(appHost.textContent, 'hellociao');
 
-      tearDown();
+      await tearDown();
   });
 
   async function createFixture<T>(template: string | Node, $class: Constructable | null, deps: any[] = []) {

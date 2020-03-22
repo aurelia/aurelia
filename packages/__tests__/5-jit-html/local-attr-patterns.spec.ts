@@ -1,28 +1,20 @@
-import {
-  bindable,
-  customElement,
-  CustomElement,
-  alias,
-  CustomElementHost,
-  Aurelia
-} from '@aurelia/runtime';
-import {
-  ColonPrefixedBindAttributePattern, AttributePattern, AttrSyntax
-} from '@aurelia/jit';
-import { TestConfiguration, assert, createFixture, TestContext, HTMLTestContext } from '@aurelia/testing';
-import { Registration, IIndexable, PLATFORM, Constructable } from '@aurelia/kernel';
+import { AttributePattern, AttrSyntax, ColonPrefixedBindAttributePattern } from '@aurelia/jit';
+import { Constructable } from '@aurelia/kernel';
+import { Aurelia, CustomElement } from '@aurelia/runtime';
+import { assert, TestContext } from '@aurelia/testing';
 
-describe('local-attr-patterns', function() {
-  it('works in basic scenario [Global with : --> root with override :]', async function() {
+describe('local-attr-patterns.spec.ts', function () {
+  it('works in basic scenario [Global with : --> root with override :]', async function () {
     const { appHost } = await createFixture(
       `<div :for="msg of messages">\${msg}`,
-      class { messages = ['hello', 'ciao']  },
+      class {
+        public messages = ['hello', 'ciao'];
+      },
       [
         AttributePattern.define(
           [{ pattern: ':PART', symbols: ':' }],
           class ColonPrefixedBindAttributePattern {
             public [':PART'](rawName: string, rawValue: string, parts: string[]): AttrSyntax {
-              debugger
               const shorthand = parts[0];
               let syntaxParts: [string, string];
               switch (shorthand) {
@@ -33,7 +25,6 @@ describe('local-attr-patterns', function() {
                   syntaxParts = [shorthand, 'bind'];
                   break;
               }
-              debugger;
               return new AttrSyntax(rawName, rawValue === '' ? syntaxParts[0] : rawValue, syntaxParts[0], syntaxParts[1]);
             }
           }
@@ -56,7 +47,7 @@ describe('local-attr-patterns', function() {
       const def = CustomElement.getDefinition(App);
       debugger;
     const testHost = ctx.createElement('div');
-    
+
     const appHost = testHost.appendChild(ctx.createElement('app'));
     const au = new Aurelia(container);
     const component = new App();

@@ -1,0 +1,21 @@
+classDiagram
+  BaseValidationRule <|-- RequiredRule
+  BaseValidationRule <|-- RegexRule
+  BaseValidationRule <|-- CustomRule
+  PropertyRule o-- BaseValidationRule
+
+  class PropertyRule {
+    +RuleProperty property
+    +BaseValidationRule[][] $rules
+    +validate(args) Promise~ValidationResult[]~
+  }
+  class BaseValidationRule {
+    +execute(value, object) boolean
+    +canExecute(object) boolean
+  }
+  class RequiredRule {
+  }
+  class RegexRule {
+  }
+  class CustomRule {
+  }

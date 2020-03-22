@@ -5,7 +5,7 @@ import { assert, TestContext } from '@aurelia/testing';
 
 describe('local-attr-patterns.spec.ts', function () {
   it('works in basic scenario [Global with : --> root with override :]', async function () {
-    const { appHost } = await createFixture(
+    const { appHost, tearDown } = await createFixture(
       `<div :for="msg of messages">\${msg}`,
       class {
         public messages = ['hello', 'ciao'];
@@ -31,6 +31,8 @@ describe('local-attr-patterns.spec.ts', function () {
         )
       ]);
       assert.strictEqual(appHost.textContent, 'hellociao');
+
+      tearDown();
   });
 
   async function createFixture<T>(template: string | Node, $class: Constructable | null, deps: any[] = []) {

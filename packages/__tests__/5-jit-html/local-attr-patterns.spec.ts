@@ -46,8 +46,6 @@ describe('local-attr-patterns.spec.ts', function () {
         dependencies: deps
       },
       $class);
-      const def = CustomElement.getDefinition(App);
-      debugger;
     const testHost = ctx.createElement('div');
 
     const appHost = testHost.appendChild(ctx.createElement('app'));

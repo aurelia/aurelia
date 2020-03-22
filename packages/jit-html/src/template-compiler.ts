@@ -119,7 +119,6 @@ export class TemplateCompiler implements ITemplateCompiler {
     const attrParser = shouldCreateAttrParser
       ? this.attrParser.cloneTo(context)
       : this.attrParser;
-    debugger;
 
     const binder = new TemplateBinder(context.get(IDOM), resources, attrParser, exprParser, attrSyntaxModifier);
 

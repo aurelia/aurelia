@@ -8,7 +8,7 @@ sequenceDiagram
   alt instruction present
     VC->>V: validate(instruction) (async)
     V->>VC: Validation results
-  else
+  else not present
     loop every binding
       VC->>VC: create instruction for binding
       VC->>V: validate(instruction_binding) (async)

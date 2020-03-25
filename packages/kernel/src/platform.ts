@@ -1,4 +1,4 @@
-import { IPerformance, IWindowOrWorkerGlobalScope } from './interfaces';
+import { IPerformance, IWindowOrWorkerGlobalScope, IPerformanceEntry } from './interfaces';
 
 function $noop(): void { return; }
 
@@ -80,6 +80,102 @@ const $now = (function (): () => number {
   }
 })();
 
+/* eslint-disable */
+function ensurePerformance(window: any) {
+  const _entries: IPerformanceEntry[] = [];
+  const _marksIndex = {} as any;
+
+  function _filterEntries(key: string, value: any) {
+    var i = 0, n = _entries.length, result = [];
+    for (; i < n; i++) {
+      if ((_entries[i] as any)[key] == value) {
+        result.push(_entries[i]);
+      }
+    }
+    return result;
+  }
+
+  function _clearEntries(type: string, name: string) {
+    var i = _entries.length, entry;
+    while (i--) {
+      entry = _entries[i];
+      if (entry.entryType == type && (name === void 0 || entry.name == name)) {
+        _entries.splice(i, 1);
+      }
+    }
+  };
+
+  if (window.performance === undefined) {
+    window.performance = {};
+  }
+
+  if (window.performance.now === undefined) {
+    let nowOffset = Date.now();
+
+    window.performance.now = function now() {
+      return Date.now() - nowOffset;
+    };
+  }
+
+  if (!window.performance.mark) {
+    window.performance.mark = window.performance.webkitMark || function (name: string) {
+      const mark = {
+        name,
+        entryType: "mark",
+        startTime: window.performance.now(),
+        duration: 0
+      };
+
+      _entries.push(mark);
+      _marksIndex[name] = mark;
+    };
+  }
+
+
+  if (!window.performance.measure) {
+    window.performance.measure = window.performance.webkitMeasure || function (name: string, startMark: string, endMark: string) {
+      startMark = _marksIndex[startMark].startTime;
+      endMark = _marksIndex[endMark].startTime;
+
+      _entries.push({
+        name,
+        entryType: "measure",
+        startTime: startMark as unknown as number,
+        duration: (endMark as unknown as number)- (startMark as unknown as number)
+      });
+    };
+  }
+
+
+  if (!window.performance.getEntriesByType) {
+    window.performance.getEntriesByType = window.performance.webkitGetEntriesByType || function (type: string) {
+      return _filterEntries("entryType", type);
+    };
+  }
+
+
+  if (!window.performance.getEntriesByName) {
+    window.performance.getEntriesByName = window.performance.webkitGetEntriesByName || function (name: string) {
+      return _filterEntries("name", name);
+    };
+  }
+
+
+  if (!window.performance.clearMarks) {
+    window.performance.clearMarks = window.performance.webkitClearMarks || function (name: string) {
+      _clearEntries("mark", name);
+    };
+  }
+
+
+  if (!window.performance.clearMeasures) {
+    window.performance.clearMeasures = window.performance.webkitClearMeasures || function (name: string) {
+      _clearEntries("measure", name);
+    };
+  }
+}
+/* eslint-enable */
+
 const hasOwnProperty = Object.prototype.hasOwnProperty as unknown as {
   call<V, T = object, K extends PropertyKey = PropertyKey>(target: T, key: K): target is (
     T & { [P in K]: V; }
@@ -123,13 +219,17 @@ const $PLATFORM = {
   noop: $noop,
   now: $now,
   hasOwnProperty,
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  performance: $global.performance,
 
   restore(): void {
     Object.assign(PLATFORM, $PLATFORM);
   },
 };
 
-interface IPlatform extends IPerformance {
+ensurePerformance($PLATFORM);
+
+interface IPlatform {
   /**
    * `true` if there is a `window` variable in the global scope with a `document` property.
    *
@@ -157,6 +257,7 @@ interface IPlatform extends IPerformance {
   global: IWindowOrWorkerGlobalScope;
   emptyArray: any[];
   emptyObject: any;
+  now(): number;
 
   hasOwnProperty: {
     call<V, T = object, K extends PropertyKey = PropertyKey>(target: T, key: K): target is (
@@ -166,6 +267,8 @@ interface IPlatform extends IPerformance {
       T & { [P in K]-?: T[P]; }
     );
   };
+
+  performance: IPerformance;
 
   noop(): void;
 

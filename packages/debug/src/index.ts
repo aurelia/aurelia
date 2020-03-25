@@ -10,5 +10,4 @@ export {
 
 export {
   Unparser,
-  Serializer,
 } from './binding/unparser';

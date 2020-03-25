@@ -336,6 +336,24 @@ export class Store<T> {
       this.devTools.subscribe((message: any) => {
         this.logger[getLogType(this.options, "devToolsStatus", LogLevel.debug)](`DevTools sent change ${message.type}`);
 
+        if (message.type === "ACTION" && message.payload) {
+          const byName = Array.from(this.actions).find(function ([reducer]) {
+            return reducer.name === message.payload.name;
+          });
+          const action = this.lookupAction(message.payload.name) || byName && byName[0];
+
+          if (!action) {
+            throw new Error("Tried to remotely dispatch an unregistered action");
+          }
+
+          if (!message.payload.args || message.payload.args.length < 1) {
+            throw new Error("No action arguments provided");
+          }
+
+          this.dispatch(action, ...message.payload.args.slice(1).map((arg: string) => JSON.parse(arg)));
+          return;
+        }
+
         if (message.type === "DISPATCH" && message.payload) {
           switch (message.payload.type) {
             case "JUMP_TO_STATE":

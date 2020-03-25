@@ -47,7 +47,7 @@ The plugin gives you enough flexibility to write your own rules rather than bein
   import { IValidationController, IValidationRules } from '@aurelia/validation';
 
   export class AwesomeComponent {
-    private person: Person; // Let's assume that we want to validate instance of Person class
+    private person: Person; // Let us assume that we want to validate instance of Person class
     public constructor(
       @newInstanceForScope(IValidationController) private validationController: IValidationController,
       @IValidationRules validationRules: IValidationRules
@@ -231,18 +231,18 @@ Secondly, this helps providing the typing information from the target to the sub
 
 The `.ensure` method can be use used select a property of the target for validation.
 This adds an instance of `PropertyRule` to the ruleset for the object.
-The property can be defined using a string or a lambda expression.
+The property can be defined using a string or an arrow function expression.
 
 ```typescript
 validationRules
   .on(person)
   .ensure('name')                   // string literal
   //...
-  .ensure((p) => p.age)             // lambda expression
+  .ensure((p) => p.age)             // arrow function expression
   //...
   .ensure("address.line1")          // nested property using string literal
   //...
-  .ensure((p) => address.line2)     // nested property using lambda
+  .ensure((p) => address.line2)     // nested property using an arrow function expression
   //...
 ```
 
@@ -394,7 +394,7 @@ validationRules
   .between(42, 84);     // a person's age should be between 42 and 84, but cannot be equal to any these values
 ```
 
-**`between`**
+**`equals`**
 
 Considers the property to be valid if the value is strictly equal to the expected value.
 Under the hood, it instantiates a `EqualsRule`.
@@ -406,10 +406,99 @@ validationRules
   .equals('John Doe');  // Only people named 'John Doe' are valid
 ```
 
-* Define custom rules
-  * `satisfies`
-  * `satisfiesRule`
-  * Instantiating the build rules the same way
+**Custom rules**
+
+There are two ways custom rules can be defined.
+
+* `satisfies`
+
+    This is the easiest way of defining a custom rule using an arrow function that has loosely the following signature.
+
+    ```typescript
+    (value: any, object?: any) => boolean | Promise<boolean>;
+    ```
+
+    The value of the first argument provides the value being validated, whereas the value of the second argument provides the containing object.
+    You can use it as follows.
+
+    ```typescript
+    // Let us assume that we do not want to accept "John Doe"s as the input for name
+    const testNames = [ "John Doe", "Max Mustermann" ];
+    validationRules
+      .on(person)
+      .ensure('name')
+      .satisfies((name) => !testNames.includes(name));
+    ```
+
+    This is useful for the rules that are used only in one place.
+    For example, in one of view-model you need to apply a very specific rule that is not needed elsewhere.
+    However, if you want to reuse you rule, then you need to use the `satisfiesRule`.
+
+* `satisfiesRule`
+
+  This lets reuse a rule implementation.
+  For this we need to remember two things.
+  Firstly, as mentioned before at the [start of this section](validating-data#associating-validation-rules-with-property) any rule can be applied on a property just by instantiating the rule, and associating with the property.
+  Secondly, every rule needs to be a subtype of `BaseValidationRule`, as discussed in [before](validating-data#how-does-it-work).
+
+  The method `satisfiesRule` accepts such an instance of a rule implementation and associates it with the property.
+  It can be used as follows.
+
+  ```typescript
+  class NotTestName extends BaseValidationRule {
+    public constructor(
+      private testNames: string[],
+    ) { }
+    public execute(value: any, _object?: IValidateable): boolean {
+      return !this.testNames.includes(value);
+    }
+  }
+
+  //...
+
+  validationRules
+    .on(person)
+    .ensure(name)
+    .satisfiesRule(new NotTestName([ "John Doe", "Max Mustermann" ]));
+  ```
+
+  Attentive readers must have noticed that the API for the built rules instantiates a rule implementation.
+  For example, the following two are synonymous.
+
+  ```typescript
+  validationRules
+    .on(person)
+    .ensure('name')
+    .required();
+
+  // same can be done by this as well
+  import { RequiredRule } from "@aurelia/validation";
+
+  validationRules
+    .on(person)
+    .ensure('name')
+    .satisfiesRule(new RequiredRule());
+  ```
+
+  Let us look at one last example before moving to next section.
+  The following example implements a integer range rule by inheriting the `RangeRule`.
+
+  ```typescript
+  import { RangeRule } from "@aurelia/validation";
+
+  class IntegerRangeRule extends RangeRule {
+    public execute(value: any, object?: IValidateable): boolean {
+      return super.execute(value, object) && Number.isInteger(value);
+    }
+  }
+
+  //...
+
+  validationRules
+    .on(person)
+    .ensure(age)
+    .satisfiesRule(new IntegerRangeRule(true, {42, 84})); // the age must between 42 and 84 (inclusive) and must be an integer.
+  ```
 
 * Defining rules on multiple objects.
 

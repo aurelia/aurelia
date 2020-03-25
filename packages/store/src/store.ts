@@ -53,7 +53,7 @@ export class UnregisteredActionError<T, P extends any[]> extends Error {
 export class Store<T> {
   public readonly state: Observable<T>;
   // TODO: need an alternative for the Reporter which supports multiple log levels
-  private readonly logger = Reporter as GenericLogger;
+  private readonly logger = Reporter as unknown as GenericLogger;
   private devToolsAvailable: boolean = false;
   private devTools: any;
   private readonly actions: Map<Reducer<T>, Action<string>> = new Map();
@@ -196,7 +196,7 @@ export class Store<T> {
       throw new UnregisteredActionError(unregisteredAction.reducer);
     }
 
-    PLATFORM.global.performance.mark("dispatch-start");
+    PLATFORM.performance.mark("dispatch-start");
 
     const pipedActions = actions.map((a) => ({
       type: this.actions.get(a.reducer)!.type,
@@ -225,8 +225,8 @@ export class Store<T> {
     );
 
     if (beforeMiddleswaresResult === false) {
-      PLATFORM.global.performance.clearMarks();
-      PLATFORM.global.performance.clearMeasures();
+      PLATFORM.performance.clearMarks();
+      PLATFORM.performance.clearMeasures();
 
       return;
     }
@@ -235,13 +235,13 @@ export class Store<T> {
     for (const action of pipedActions) {
       result = await action.reducer(result, ...action.params);
       if (result === false) {
-        PLATFORM.global.performance.clearMarks();
-        PLATFORM.global.performance.clearMeasures();
+        PLATFORM.performance.clearMarks();
+        PLATFORM.performance.clearMeasures();
 
         return;
       }
 
-      PLATFORM.global.performance.mark(`dispatch-after-reducer-${action.type}`);
+      PLATFORM.performance.mark(`dispatch-after-reducer-${action.type}`);
 
       if (!result && typeof result !== "object") {
         throw new Error("The reducer has to return a new state");
@@ -256,8 +256,8 @@ export class Store<T> {
     );
 
     if (resultingState === false) {
-      PLATFORM.global.performance.clearMarks();
-      PLATFORM.global.performance.clearMeasures();
+      PLATFORM.performance.clearMarks();
+      PLATFORM.performance.clearMeasures();
 
       return;
     }
@@ -269,22 +269,22 @@ export class Store<T> {
     }
 
     this._state.next(resultingState);
-    PLATFORM.global.performance.mark("dispatch-end");
+    PLATFORM.performance.mark("dispatch-end");
 
     if (this.options.measurePerformance === PerformanceMeasurement.StartEnd) {
-      PLATFORM.global.performance.measure(
+      PLATFORM.performance.measure(
         "startEndDispatchDuration",
         "dispatch-start",
         "dispatch-end"
       );
 
-      const measures = PLATFORM.global.performance.getEntriesByName("startEndDispatchDuration");
+      const measures = PLATFORM.performance.getEntriesByName("startEndDispatchDuration");
       this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
         `Total duration ${measures[0].duration} of dispatched action ${callingAction.name}:`,
         measures
       );
     } else if (this.options.measurePerformance === PerformanceMeasurement.All) {
-      const marks = PLATFORM.global.performance.getEntriesByType("mark");
+      const marks = PLATFORM.performance.getEntriesByType("mark");
       const totalDuration = marks[marks.length - 1].startTime - marks[0].startTime;
       this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
         `Total duration ${totalDuration} of dispatched action ${callingAction.name}:`,
@@ -292,8 +292,8 @@ export class Store<T> {
       );
     }
 
-    PLATFORM.global.performance.clearMarks();
-    PLATFORM.global.performance.clearMeasures();
+    PLATFORM.performance.clearMarks();
+    PLATFORM.performance.clearMeasures();
 
     this.updateDevToolsState({ type: callingAction.name, params: callingAction.params }, resultingState);
   }
@@ -319,7 +319,7 @@ export class Store<T> {
           // eslint-disable-next-line @typescript-eslint/return-await
           return await prev;
         } finally {
-          PLATFORM.global.performance.mark(`dispatch-${placement}-${curr[0].name}`);
+          PLATFORM.performance.mark(`dispatch-${placement}-${curr[0].name}`);
         }
       }, state);
   }

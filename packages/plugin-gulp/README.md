@@ -63,20 +63,4 @@ declare module '*.html' {
 }
 ```
 
-Besides webpack config, you need following config in your app's entry file if you use ShadowDOM or CSS Module.
-
-1. ShadowDOM
-```js
-import { StyleConfiguration } from '@aurelia/runtime-html';
-new Aurelia()
-  .register(/* ... */, StyleConfiguration.shadowDOM())
-```
-
-2. CSS Module
-```js
-import { StyleConfiguration } from '@aurelia/runtime-html';
-new Aurelia()
-  .register(/* ... */, StyleConfiguration.cssModulesProcessor())
-```
-
 TODO: add example of using other template syntax like markdown.

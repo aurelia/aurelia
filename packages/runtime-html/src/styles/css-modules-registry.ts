@@ -16,7 +16,11 @@ export class CSSModulesProcessorRegistry implements IRegistry {
     class ClassCustomAttribute {
       @bindable public value!: string;
 
-      public constructor(@INode private element: HTMLElement) {}
+      private element: HTMLElement;
+
+      public constructor(@INode element: INode /* TODO(fkleuver): fix this type annotation reflection issue in AOT */) {
+        this.element = element as HTMLElement;
+      }
 
       public beforeBind() {
         this.valueChanged();

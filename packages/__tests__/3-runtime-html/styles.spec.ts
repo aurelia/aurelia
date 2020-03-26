@@ -205,7 +205,8 @@ describe('Styles', function () {
         component as ICustomElementViewModel<HTMLElement>,
         ctx.lifecycle,
         host,
-        ctx.container, void 0
+        ctx.container,
+        void 0,
       );
 
       const seq = NodeSequence.empty;

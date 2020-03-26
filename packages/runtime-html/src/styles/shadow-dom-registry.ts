@@ -28,7 +28,9 @@ export const IShadowDOMStyleFactory
     }));
 
 export class ShadowDOMRegistry implements IRegistry {
-  public constructor(private css: (string | CSSStyleSheet)[]) { }
+  public constructor(
+    private readonly css: (string | CSSStyleSheet)[],
+  ) { }
 
   public register(container: IContainer) {
     const sharedStyles = container.get(IShadowDOMGlobalStyles);

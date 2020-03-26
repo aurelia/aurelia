@@ -38,8 +38,10 @@ export class RouteRecognizer<T> {
   public add(
     routeOrRoutes: IConfigurableRoute<T> | readonly IConfigurableRoute<T>[],
   ): void {
-    if (Array.isArray(routeOrRoutes)) {
-      return routeOrRoutes.forEach(x => this.add(x));
+    if (routeOrRoutes instanceof Array) {
+      for (const route of routeOrRoutes) {
+        this.add(route);
+      }
     }
     const route = routeOrRoutes as IConfigurableRoute<T>;
     const $route = new ConfigurableRoute(route.path, route.caseSensitive === true, route.handler);
@@ -50,14 +52,16 @@ export class RouteRecognizer<T> {
     let isEmpty = true;
     let state = this.rootState;
 
-    let prev: ParsedSegment<T> | null = null;
+    let prevSegment: ParsedSegment<T> | null = null;
 
     for (const part of parts) {
       // Each segment always begins with a slash, so we represent this with a non-segment state
       state = state.append(null, '/');
 
       // Add the first part of this segment to the end of any existing optional states
-      optionalStates.forEach(x => x.nextStates.push(state));
+      for (const optionalState of optionalStates) {
+        optionalState.nextStates.push(state);
+      }
 
       let isOptional = false;
       switch (part.charAt(0)) {
@@ -66,10 +70,13 @@ export class RouteRecognizer<T> {
           if (part.endsWith('?')) { // optional
             isOptional = true;
             name = part.slice(1, -1);
-            optionalStates.push((prev = new DynamicSegment(prev, name, true)).appendTo(state));
+            prevSegment = new DynamicSegment(prevSegment, name, true);
+            const nextState = prevSegment.appendTo(state);
+            optionalStates.push(nextState);
           } else {
             name = part.slice(1);
-            state = (prev = new DynamicSegment(prev, name, false)).appendTo(state);
+            prevSegment = new DynamicSegment(prevSegment, name, false);
+            state = prevSegment.appendTo(state);
           }
           paramNames.push(name);
           break;
@@ -77,11 +84,13 @@ export class RouteRecognizer<T> {
         case '*': { // dynamic route
           const name = part.slice(1);
           paramNames.push(name);
-          state = (prev = new StarSegment(prev, name)).appendTo(state);
+          prevSegment = new StarSegment(prevSegment, name);
+          state = prevSegment.appendTo(state);
           break;
         }
         default: { // standard path route
-          state = (prev = new StaticSegment(prev, part, $route.caseSensitive)).appendTo(state);
+          prevSegment = new StaticSegment(prevSegment, part, $route.caseSensitive);
+          state = prevSegment.appendTo(state);
           break;
         }
       }
@@ -103,7 +112,9 @@ export class RouteRecognizer<T> {
     state.setEndpoint(endpoint);
 
     // Any trailing optional states need to be endpoints as well
-    optionalStates.forEach(x => x.setEndpoint(endpoint));
+    for (const optionalState of optionalStates) {
+      optionalState.setEndpoint(endpoint);
+    }
   }
 
   public recognize(path: string): RecognizedRoute<T> | null {
@@ -125,34 +136,41 @@ export class RouteRecognizer<T> {
       path = `/${path}`;
     }
 
-    let isSlashDropped: boolean;
     if (path.length > 1 && path.endsWith('/')) {
       path = path.slice(0, -1);
-      isSlashDropped = true;
-    } else {
-      isSlashDropped = false;
     }
 
     let states = [this.rootState];
     const sequenceId = ++this.sequenceId;
     for (let i = 0, ii = path.length; i < ii; ++i) {
       const ch = path.charAt(i);
-      states = states.flatMap(x => x.nextStates.filter(y => y.isMatch(sequenceId, path, ch)));
+      const nextStates: State<T>[] = [];
+      for (const state of states) {
+        for (const nextState of state.nextStates) {
+          if (nextState.isMatch(sequenceId, ch)) {
+            nextStates.push(nextState);
+          }
+        }
+      }
+      states = nextStates;
       if (states.length === 0) {
         return null;
       }
     }
 
-    const solutions = states.filter(x => x.hasEndpoint).sort((a, b) => a.compareTo(b));
+    const solutions = states.filter(x => x.hasEndpoint);
+    solutions.sort((a, b) => a.compareTo(b));
+
     if (solutions.length === 0) {
       return null;
     }
 
     const solution = solutions[0];
-    const params = solution.path.getParams(path);
+    const params = solution.getParams();
     const isDynamic = solution.path.isDynamic;
 
     return new RecognizedRoute<T>(
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       solution.endpoint!,
       params,
       queryParams,
@@ -184,6 +202,7 @@ class State<T> {
   }
 
   public get path(): ParsedPath<T> {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     return this.segment!.path;
   }
 
@@ -200,10 +219,7 @@ class State<T> {
     value: string,
   ): State<T> {
     const { nextStates } = this;
-    let state = nextStates.find(s =>
-      s.value === value &&
-      s.segment?.kind === segment?.kind
-    );
+    let state = nextStates.find(s => s.value === value && s.segment?.kind === segment?.kind);
 
     if (state === void 0) {
       nextStates.push(state = new State(this, segment, value));
@@ -224,7 +240,6 @@ class State<T> {
 
   public isMatch(
     sequenceId: number,
-    path: string,
     ch: string,
   ): boolean {
     switch (this.segment?.kind) {
@@ -232,12 +247,12 @@ class State<T> {
         return this.value.includes(ch);
       case SegmentKind.dynamic:
         if (!this.value.includes(ch)) {
-          this.segment.params.record(sequenceId, path, ch);
+          this.record(sequenceId, ch);
           return true;
         }
         return false;
       case SegmentKind.star:
-        this.segment.params.record(sequenceId, path, ch);
+        this.record(sequenceId, ch);
         return true;
       case undefined:
         // segment separators (slashes) are non-segments. We could say return ch === '/' as well, technically.
@@ -274,8 +289,8 @@ class State<T> {
    * This will bring the state with the highest score to the first position of the array.
    */
   public compareTo(b: State<T>): -1 | 1 {
-    const scoresA = this.scores!;
-    const scoresB = b.scores!;
+    const scoresA = this.scores;
+    const scoresB = b.scores;
 
     const scoresALen = scoresA.length;
     const scoresBLen = scoresB.length;
@@ -283,10 +298,10 @@ class State<T> {
       const scoreA = scoresA[i];
       const scoreB = scoresB[i];
       if (scoreA < scoreB) {
-        return -1;
+        return 1;
       }
       if (scoreA > scoreB) {
-        return 1;
+        return -1;
       }
     }
 
@@ -294,10 +309,10 @@ class State<T> {
     // This could happen with e.g. `foo/*path` vs. `foo/*path/bar`, where the path `foo/baz/bar` would match both patterns.
     // In this case, `foo/*path/bar` should win because a smaller portion of path is matched by the star segment.
     if (scoresALen < scoresBLen) {
-      return -1;
+      return 1;
     }
     if (scoresALen > scoresBLen) {
-      return 1;
+      return -1;
     }
 
     // Theoretically if the lengths are the same, we are dealing with two ambiguous patterns.
@@ -307,8 +322,44 @@ class State<T> {
     throw new Error(`Ambiguous pattern: a=${this.toString()}, b=${b.toString()}. This error indicates a bug in Aurelia; please report it via GitHub.`);
   }
 
+  public getParams(): Record<string, string | undefined> {
+    const params: Record<string, string | undefined> = {};
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    let state: State<T> | null = this;
+    let segment: ParsedSegment<T> | null;
+    while (state !== null) {
+      segment = state.segment;
+      if (segment !== null) {
+        switch (segment.kind) {
+          case SegmentKind.dynamic:
+          case SegmentKind.star:
+            params[segment.name] = state.dynamicValue;
+            break;
+        }
+      }
+      state = state.prevState;
+    }
+
+    return params;
+  }
+
   public toString(): string {
     return this.path.toString();
+  }
+
+  private dynamicValue: string = '';
+  private sequenceId: number = 0;
+
+  private record(
+    sequenceId: number,
+    ch: string,
+  ): void {
+    if (this.sequenceId === sequenceId) {
+      this.dynamicValue += ch;
+    } else {
+      this.sequenceId = sequenceId;
+      this.dynamicValue = ch;
+    }
   }
 }
 
@@ -325,21 +376,6 @@ class ParsedPath<T> {
     public readonly segments: readonly ParsedSegment<T>[],
   ) {
     this.isDynamic = segments.some(x => x.kind !== SegmentKind.static);
-  }
-
-  public getParams(path: string): Record<string, string | undefined> {
-    const { segments } = this;
-    const params: Record<string, string | undefined> = {};
-    for (const segment of segments) {
-      switch (segment.kind) {
-        case SegmentKind.dynamic:
-        case SegmentKind.star:
-          params[segment.name] = segment.params.get(path);
-          break;
-      }
-    }
-
-    return params;
   }
 
   public append(segment: ParsedSegment<T>): ParsedPath<T> {
@@ -408,53 +444,9 @@ class StaticSegment<T> {
   }
 }
 
-class NamedParameters {
-  private readonly cache: Map<string, string> = new Map();
-  private path: string = '';
-  private buffer: string = '';
-  private sequenceId: number = 0;
-
-  public record(
-    sequenceId: number,
-    path: string,
-    ch: string,
-  ): void {
-    if (!this.cache.has(path)) {
-      if (this.sequenceId === sequenceId) {
-        this.buffer += ch;
-      } else {
-        if (this.path.length > 0) {
-          this.cache.set(this.path, this.buffer);
-        }
-        this.sequenceId = sequenceId;
-        this.path = path;
-        this.buffer = ch;
-      }
-    }
-  }
-
-  public get(path: string): string {
-    if (this.path === path) {
-      return this.buffer;
-    }
-
-    const value = this.cache.get(path);
-    if (value === void 0) {
-      throw new Error(`Path ${path} has not been recorded yet. This error indicates a bug in Aurelia; please report it via GitHub.`);
-    }
-
-    return value;
-  }
-}
-
 class DynamicSegment<T> {
   public get kind(): SegmentKind.dynamic { return SegmentKind.dynamic; }
   public readonly path: ParsedPath<T>;
-
-  private _params: NamedParameters | null = null;
-  public get params(): NamedParameters {
-    return this._params ?? (this._params = new NamedParameters());
-  }
 
   public constructor(
     prev: ParsedSegment<T> | null,
@@ -484,11 +476,6 @@ class DynamicSegment<T> {
 class StarSegment<T> {
   public get kind(): SegmentKind.star { return SegmentKind.star; }
   public readonly path: ParsedPath<T>;
-
-  private _params: NamedParameters | null = null;
-  public get params(): NamedParameters {
-    return this._params ?? (this._params = new NamedParameters());
-  }
 
   public constructor(
     prev: ParsedSegment<T> | null,

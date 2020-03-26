@@ -545,5 +545,10 @@ HTMLDOM, DOM, // on top of DOM in @aurelia/runtime
 // HostProjector,
 // HTMLProjectorLocator,
 // ShadowDOMProjector,
-StyleConfiguration, styles, } from '@aurelia/runtime-html';
+StyleConfiguration, 
+// CSSModulesProcessorRegistry,
+cssModules, 
+// ShadowDOMRegistry,
+// IShadowDOMStyleFactory,
+shadowCSS, } from '@aurelia/runtime-html';
 //# sourceMappingURL=index.js.map

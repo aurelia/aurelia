@@ -1,11 +1,17 @@
 import { __decorate, __metadata, __param } from "tslib";
 import { bindable, customAttribute, INode } from '@aurelia/runtime';
 import { getClassesToAdd } from '../observation/class-attribute-accessor';
+export function cssModules(...cssModules) {
+    return new CSSModulesProcessorRegistry(cssModules);
+}
 export class CSSModulesProcessorRegistry {
-    register(container, ...params) {
-        const classLookup = Object.assign({}, ...params);
+    constructor(cssModules) {
+        this.cssModules = cssModules;
+    }
+    register(container) {
+        const classLookup = Object.assign({}, ...this.cssModules);
         let ClassCustomAttribute = class ClassCustomAttribute {
-            constructor(element) {
+            constructor(element /* TODO(fkleuver): fix this type annotation reflection issue in AOT */) {
                 this.element = element;
             }
             beforeBind() {

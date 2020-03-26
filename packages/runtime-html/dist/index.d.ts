@@ -24,8 +24,8 @@ export { HTMLAttributeInstruction, HTMLInstructionRow, HTMLNodeInstruction, HTML
 export { NodeType, HTMLDOM, DOM, FragmentNodeSequence } from './dom';
 export { AttributeBindingInstruction, CaptureBindingInstruction, DelegateBindingInstruction, SetAttributeInstruction, SetClassAttributeInstruction, SetStyleAttributeInstruction, StylePropertyBindingInstruction, TextBindingInstruction, TriggerBindingInstruction } from './instructions';
 export { ContainerlessProjector, HostProjector, HTMLProjectorLocator, ShadowDOMProjector } from './projectors';
-export { StyleConfiguration, styles, IShadowDOMConfiguration } from './styles/style-configuration';
-export { CSSModulesProcessorRegistry } from './styles/css-modules-registry';
-export { ShadowDOMRegistry } from './styles/shadow-dom-registry';
+export { StyleConfiguration, IShadowDOMConfiguration } from './styles/style-configuration';
+export { CSSModulesProcessorRegistry, cssModules } from './styles/css-modules-registry';
+export { ShadowDOMRegistry, IShadowDOMStyleFactory, shadowCSS } from './styles/shadow-dom-registry';
 export { AdoptedStyleSheetsStyles, StyleElementStyles, IShadowDOMStyles, IShadowDOMGlobalStyles } from './styles/shadow-dom-styles';
 //# sourceMappingURL=index.d.ts.map

@@ -13,12 +13,12 @@
     exports.defaultJsExtensions = ['.js', '.jsx', '.ts', '.tsx', '.coffee'];
     exports.defaultTemplateExtensions = ['.html', '.md', '.pug', '.haml', '.jade', '.slim', '.slm'];
     function preprocessOptions(options = {}) {
-        const { cssExtensions = [], jsExtensions = [], templateExtensions = [], useCSSModule = false, stringModuleWrap, ...others } = options;
+        const { cssExtensions = [], jsExtensions = [], templateExtensions = [], useCSSModule = false, ...others } = options;
         return {
             cssExtensions: Array.from(new Set([...exports.defaultCssExtensions, ...cssExtensions])).sort(),
             jsExtensions: Array.from(new Set([...exports.defaultJsExtensions, ...jsExtensions])).sort(),
             templateExtensions: Array.from(new Set([...exports.defaultTemplateExtensions, ...templateExtensions])).sort(),
-            stringModuleWrap: useCSSModule ? undefined : stringModuleWrap,
+            useCSSModule,
             ...others
         };
     }

@@ -12,11 +12,18 @@
     const tslib_1 = require("tslib");
     const runtime_1 = require("@aurelia/runtime");
     const class_attribute_accessor_1 = require("../observation/class-attribute-accessor");
+    function cssModules(...cssModules) {
+        return new CSSModulesProcessorRegistry(cssModules);
+    }
+    exports.cssModules = cssModules;
     class CSSModulesProcessorRegistry {
-        register(container, ...params) {
-            const classLookup = Object.assign({}, ...params);
+        constructor(cssModules) {
+            this.cssModules = cssModules;
+        }
+        register(container) {
+            const classLookup = Object.assign({}, ...this.cssModules);
             let ClassCustomAttribute = class ClassCustomAttribute {
-                constructor(element) {
+                constructor(element /* TODO(fkleuver): fix this type annotation reflection issue in AOT */) {
                     this.element = element;
                 }
                 beforeBind() {

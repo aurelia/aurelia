@@ -608,6 +608,10 @@
     // HTMLProjectorLocator,
     // ShadowDOMProjector,
     exports.StyleConfiguration = runtime_html_1.StyleConfiguration;
-    exports.styles = runtime_html_1.styles;
+    // CSSModulesProcessorRegistry,
+    exports.cssModules = runtime_html_1.cssModules;
+    // ShadowDOMRegistry,
+    // IShadowDOMStyleFactory,
+    exports.shadowCSS = runtime_html_1.shadowCSS;
 });
 //# sourceMappingURL=index.js.map

@@ -29,6 +29,7 @@ export interface IPreprocessOptions {
     jsExtensions: string[];
     templateExtensions: string[];
     useProcessedFilePairFilename?: boolean;
+    useCSSModule: boolean;
 }
 export declare const defaultCssExtensions: string[];
 export declare const defaultJsExtensions: string[];

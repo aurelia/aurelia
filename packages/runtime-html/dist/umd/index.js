@@ -103,11 +103,13 @@
     exports.ShadowDOMProjector = projectors_1.ShadowDOMProjector;
     var style_configuration_1 = require("./styles/style-configuration");
     exports.StyleConfiguration = style_configuration_1.StyleConfiguration;
-    exports.styles = style_configuration_1.styles;
     var css_modules_registry_1 = require("./styles/css-modules-registry");
     exports.CSSModulesProcessorRegistry = css_modules_registry_1.CSSModulesProcessorRegistry;
+    exports.cssModules = css_modules_registry_1.cssModules;
     var shadow_dom_registry_1 = require("./styles/shadow-dom-registry");
     exports.ShadowDOMRegistry = shadow_dom_registry_1.ShadowDOMRegistry;
+    exports.IShadowDOMStyleFactory = shadow_dom_registry_1.IShadowDOMStyleFactory;
+    exports.shadowCSS = shadow_dom_registry_1.shadowCSS;
     var shadow_dom_styles_1 = require("./styles/shadow-dom-styles");
     exports.AdoptedStyleSheetsStyles = shadow_dom_styles_1.AdoptedStyleSheetsStyles;
     exports.StyleElementStyles = shadow_dom_styles_1.StyleElementStyles;

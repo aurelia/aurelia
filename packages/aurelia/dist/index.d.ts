@@ -8,6 +8,6 @@ export { all, DI, IContainer, inject, IRegistration, IRegistry, IResolver, IServ
 export { INavRoute, NavRoute, IRouterOptions, IRouter, Router, ViewportInstruction, RouterConfiguration, RouterRegistration, } from '@aurelia/router';
 export { computed, IObserverLocator, ISignaler, subscriberCollection, collectionSubscriberCollection, proxySubscriberCollection, bindingBehavior, BindingBehavior, BindingBehaviorInstance, customAttribute, CustomAttribute, templateController, containerless, customElement, CustomElementHost, CustomElement, useShadowDOM, ValueConverter, ValueConverterInstance, valueConverter, IScheduler, TaskQueuePriority, bindable, Bindable, children, Controller, ViewFactory, CompositionRoot, alias, registerAliases, INode, IRenderLocation, IDOM, BindingMode, BindingStrategy, LifecycleFlags, ILifecycle, IViewModel, AggregateContinuationTask, TerminalTask, AggregateTerminalTask, ContinuationTask, ILifecycleTask, LifecycleTask, PromiseTask, TaskSlot, StartTask, IStartTask, IStartTaskManager, ProviderTask, IndexMap, instructionRenderer, ensureExpression, } from '@aurelia/runtime';
 export { createElement, HTMLDOM, DOM, // on top of DOM in @aurelia/runtime
-StyleConfiguration, styles, IShadowDOMConfiguration, } from '@aurelia/runtime-html';
+StyleConfiguration, IShadowDOMConfiguration, cssModules, shadowCSS, } from '@aurelia/runtime-html';
 export {} from '@aurelia/runtime-html-browser';
 //# sourceMappingURL=index.d.ts.map

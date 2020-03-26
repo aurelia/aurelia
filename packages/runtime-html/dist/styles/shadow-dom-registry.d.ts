@@ -1,10 +1,14 @@
 import { IContainer, IRegistry } from '@aurelia/kernel';
 import { IShadowDOMStyles } from './shadow-dom-styles';
-export declare type ShadowDOMStylesFactory = (localStyles: (string | CSSStyleSheet)[], sharedStyles: IShadowDOMStyles | null) => IShadowDOMStyles;
+export declare function shadowCSS(...css: (string | CSSStyleSheet)[]): ShadowDOMRegistry;
+export interface IShadowDOMStyleFactory {
+    createStyles(localStyles: (string | CSSStyleSheet)[], sharedStyles: IShadowDOMStyles | null): IShadowDOMStyles;
+}
+export declare const IShadowDOMStyleFactory: import("@aurelia/kernel").InterfaceSymbol<IShadowDOMStyleFactory>;
 export declare class ShadowDOMRegistry implements IRegistry {
-    private readonly sharedStyles;
-    private readonly createStyles;
-    constructor(sharedStyles: IShadowDOMStyles, createStyles: ShadowDOMStylesFactory);
-    register(container: IContainer, ...params: (string | CSSStyleSheet)[]): void;
+    private readonly css;
+    constructor(css: (string | CSSStyleSheet)[]);
+    register(container: IContainer): void;
+    static createStyleFactory(container: IContainer): IShadowDOMStyleFactory;
 }
 //# sourceMappingURL=shadow-dom-registry.d.ts.map

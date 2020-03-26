@@ -41,9 +41,9 @@ function convertDir(root: string) {
         mermaidCache.push({ relativePath, hash });
       } else {
         hasChange = hash !== cacheItem.hash;
+        cacheItem.hash = hash;
       }
       if (!hasChange) { continue; }
-      cacheItem.hash = hash;
 
       const relativeSrcPath = path.relative(mermaidRoot, root);
       const outputDir = path.resolve(imagesRoot, relativeSrcPath);

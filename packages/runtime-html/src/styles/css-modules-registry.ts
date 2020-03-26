@@ -7,7 +7,9 @@ export function cssModules(...cssModules: (Record<string, string>)[]) {
 }
 
 export class CSSModulesProcessorRegistry implements IRegistry {
-  constructor(private cssModules: (Record<string, string>)[]) {}
+  public constructor(
+    private readonly cssModules: Record<string, string>[],
+  ) {}
 
   public register(container: IContainer) {
     const classLookup = Object.assign({}, ...this.cssModules) as Record<string, string>;

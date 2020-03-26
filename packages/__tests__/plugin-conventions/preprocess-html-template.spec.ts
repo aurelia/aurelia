@@ -62,6 +62,28 @@ export function register(container) {
     assert.equal(result.code, expected);
   });
 
+  it('processes template with multiple css', function () {
+    const html = '<require from="./lo.css"></require><template></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime';
+import { Registration } from '@aurelia/kernel';
+import d0 from "./foo-bar.css";
+import d1 from "./lo.css";
+export const name = "foo-bar";
+export const template = "<template></template>";
+export default template;
+export const dependencies = [ Registration.defer('.css', d0, d1) ];
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies });
+  }
+  container.register(_e);
+}
+`;
+    const result = preprocessHtmlTemplate({ path: path.join('lo', 'foo-bar.html'), contents: html, filePair: 'foo-bar.css' }, preprocessOptions());
+    assert.equal(result.code, expected);
+  });
+
   it('do not import css pair if a pair is imported', function () {
     const html = '<import from="./foo-bar.less"></import><template></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
@@ -150,7 +172,7 @@ export function register(container) {
 `;
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'FooBar.html'), contents: html },
-      preprocessOptions({ stringModuleWrap: (id: string) => `!!raw-loader!${id}` })
+      preprocessOptions({ stringModuleWrap: (id: string) => `text!${id}` })
     );
     assert.equal(result.code, expected);
   });
@@ -158,14 +180,14 @@ export function register(container) {
   it('processes template with css dependencies in shadowDOM mode', function () {
     const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
+import { shadowCSS } from '@aurelia/runtime-html';
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
-import { Registration } from '@aurelia/kernel';
-import d2 from "!!raw-loader!./foo-bar.scss";
+import d2 from "text!./foo-bar.scss";
 export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
-export const dependencies = [ d0, d1, Registration.defer('.css', d2) ];
+export const dependencies = [ d0, d1, shadowCSS(d2) ];
 export const shadowOptions = { mode: 'open' };
 let _e;
 export function register(container) {
@@ -179,7 +201,37 @@ export function register(container) {
       { path: path.join('lo', 'FooBar.html'), contents: html },
       preprocessOptions({
         defaultShadowOptions: { mode: 'open' },
-        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
+        stringModuleWrap: (id: string) => `text!${id}`
+      })
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('processes template with multiple css dependencies in shadowDOM mode', function () {
+    const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"><require from="./foo-bar2.scss"></require></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime';
+import { shadowCSS } from '@aurelia/runtime-html';
+import * as d0 from "./hello-world.html";
+import * as d1 from "foo";
+import d2 from "./foo-bar.scss";
+import d3 from "./foo-bar2.scss";
+export const name = "foo-bar";
+export const template = "<template></template>";
+export default template;
+export const dependencies = [ d0, d1, shadowCSS(d2, d3) ];
+export const shadowOptions = { mode: 'open' };
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies, shadowOptions });
+  }
+  container.register(_e);
+}
+`;
+    const result = preprocessHtmlTemplate(
+      { path: path.join('lo', 'FooBar.html'), contents: html },
+      preprocessOptions({
+        defaultShadowOptions: { mode: 'open' }
       })
     );
     assert.equal(result.code, expected);
@@ -188,14 +240,14 @@ export function register(container) {
   it('processes template with css dependencies in shadowDOM mode with string module wrap', function () {
     const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
+import { shadowCSS } from '@aurelia/runtime-html';
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
-import { Registration } from '@aurelia/kernel';
-import d2 from "!!raw-loader!./foo-bar.scss";
+import d2 from "text!./foo-bar.scss";
 export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
-export const dependencies = [ d0, d1, Registration.defer('.css', d2) ];
+export const dependencies = [ d0, d1, shadowCSS(d2) ];
 export const shadowOptions = { mode: 'closed' };
 let _e;
 export function register(container) {
@@ -209,7 +261,7 @@ export function register(container) {
       { path: path.join('lo', 'FooBar.html'), contents: html },
       preprocessOptions({
         defaultShadowOptions: { mode: 'closed' },
-        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
+        stringModuleWrap: (id: string) => `text!${id}`
       })
     );
     assert.equal(result.code, expected);
@@ -218,14 +270,14 @@ export function register(container) {
   it('processes template with css dependencies in shadowDOM mode with string module wrap and explicit shadow mode', function () {
     const html = '<import from="./hello-world.html"><use-shadow-dom><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
+import { shadowCSS } from '@aurelia/runtime-html';
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
-import { Registration } from '@aurelia/kernel';
-import d2 from "!!raw-loader!./foo-bar.scss";
+import d2 from "text!./foo-bar.scss";
 export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
-export const dependencies = [ d0, d1, Registration.defer('.css', d2) ];
+export const dependencies = [ d0, d1, shadowCSS(d2) ];
 export const shadowOptions = { mode: 'open' };
 let _e;
 export function register(container) {
@@ -239,7 +291,7 @@ export function register(container) {
       { path: path.join('lo', 'FooBar.html'), contents: html },
       preprocessOptions({
         defaultShadowOptions: { mode: 'closed' },
-        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
+        stringModuleWrap: (id: string) => `text!${id}`
       })
     );
     assert.equal(result.code, expected);
@@ -248,14 +300,14 @@ export function register(container) {
   it('processes template with css dependencies in per-file shadowDOM mode with string module wrap and explicit shadow mode', function () {
     const html = '<import from="./hello-world.html"><use-shadow-dom><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
+import { shadowCSS } from '@aurelia/runtime-html';
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
-import { Registration } from '@aurelia/kernel';
-import d2 from "!!raw-loader!./foo-bar.scss";
+import d2 from "text!./foo-bar.scss";
 export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
-export const dependencies = [ d0, d1, Registration.defer('.css', d2) ];
+export const dependencies = [ d0, d1, shadowCSS(d2) ];
 export const shadowOptions = { mode: 'open' };
 let _e;
 export function register(container) {
@@ -268,7 +320,7 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'FooBar.html'), contents: html },
       preprocessOptions({
-        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
+        stringModuleWrap: (id: string) => `text!${id}`
       })
     );
     assert.equal(result.code, expected);
@@ -277,7 +329,7 @@ export function register(container) {
   it('turn off shadowDOM mode for one word element', function () {
     const html = '<import from="./hello-world.html"><use-shadow-dom><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
-console.warn("WARN: ShadowDOM is disabled for ${path.join('lo', 'foo.html')}. ShadowDOM requires element name to contain a dash (-), you have to refactor <foo> to something like <lorem-foo>.");
+console.warn("WARN: ShadowDOM is disabled for ${path.join('lo', 'foo.html')}. ShadowDOM requires element name to contain at least one dash (-), you have to refactor <foo> to something like <lorem-foo>.");
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
 import { Registration } from '@aurelia/kernel';
@@ -298,7 +350,7 @@ export function register(container) {
       { path: path.join('lo', 'foo.html'), contents: html },
       preprocessOptions({
         defaultShadowOptions: { mode: 'closed' },
-        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
+        stringModuleWrap: (id: string) => `text!${id}`
       })
     );
     assert.equal(result.code, expected);
@@ -324,7 +376,7 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'foo.html'), contents: html },
       preprocessOptions({
-        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
+        stringModuleWrap: (id: string) => `text!${id}`
       })
     );
     assert.equal(result.code, expected);
@@ -350,7 +402,7 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'foo.html'), contents: html },
       preprocessOptions({
-        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
+        stringModuleWrap: (id: string) => `text!${id}`
       })
     );
     assert.equal(result.code, expected);
@@ -377,7 +429,7 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'foo.html'), contents: html },
       preprocessOptions({
-        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
+        stringModuleWrap: (id: string) => `text!${id}`
       })
     );
     assert.equal(result.code, expected);
@@ -404,7 +456,7 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'foo.html'), contents: html },
       preprocessOptions({
-        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
+        stringModuleWrap: (id: string) => `text!${id}`
       })
     );
     assert.equal(result.code, expected);
@@ -431,7 +483,7 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'foo.html'), contents: html },
       preprocessOptions({
-        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
+        stringModuleWrap: (id: string) => `text!${id}`
       })
     );
     assert.equal(result.code, expected);
@@ -458,7 +510,7 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'foo.html'), contents: html },
       preprocessOptions({
-        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
+        stringModuleWrap: (id: string) => `text!${id}`
       })
     );
     assert.equal(result.code, expected);
@@ -485,7 +537,7 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'foo.html'), contents: html },
       preprocessOptions({
-        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
+        stringModuleWrap: (id: string) => `text!${id}`
       })
     );
     assert.equal(result.code, expected);
@@ -511,7 +563,7 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'foo.html'), contents: html },
       preprocessOptions({
-        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
+        stringModuleWrap: (id: string) => `text!${id}`
       })
     );
     assert.equal(result.code, expected);
@@ -538,7 +590,7 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'foo.html'), contents: html },
       preprocessOptions({
-        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
+        stringModuleWrap: (id: string) => `text!${id}`
       })
     );
     assert.equal(result.code, expected);
@@ -565,7 +617,65 @@ export function register(container) {
     const result = preprocessHtmlTemplate(
       { path: path.join('lo', 'foo.html'), contents: html },
       preprocessOptions({
-        stringModuleWrap: (id: string) => `!!raw-loader!${id}`
+        stringModuleWrap: (id: string) => `text!${id}`
+      })
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('processes template with css dependencies in cssModule mode', function () {
+    const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime';
+import { cssModules } from '@aurelia/runtime-html';
+import * as d0 from "./hello-world.html";
+import * as d1 from "foo";
+import d2 from "./foo-bar.scss";
+export const name = "foo-bar";
+export const template = "<template></template>";
+export default template;
+export const dependencies = [ d0, d1, cssModules(d2) ];
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies });
+  }
+  container.register(_e);
+}
+`;
+    const result = preprocessHtmlTemplate(
+      { path: path.join('lo', 'FooBar.html'), contents: html },
+      preprocessOptions({
+        useCSSModule: true,
+        stringModuleWrap: (id: string) => `text!${id}`
+      })
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('processes template with multiple css dependencies in cssModule mode', function () {
+    const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"><require from="./foo-bar2.scss"></require></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime';
+import { cssModules } from '@aurelia/runtime-html';
+import * as d0 from "./hello-world.html";
+import * as d1 from "foo";
+import d2 from "./foo-bar.scss";
+import d3 from "./foo-bar2.scss";
+export const name = "foo-bar";
+export const template = "<template></template>";
+export default template;
+export const dependencies = [ d0, d1, cssModules(d2, d3) ];
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies });
+  }
+  container.register(_e);
+}
+`;
+    const result = preprocessHtmlTemplate(
+      { path: path.join('lo', 'FooBar.html'), contents: html },
+      preprocessOptions({
+        useCSSModule: true
       })
     );
     assert.equal(result.code, expected);

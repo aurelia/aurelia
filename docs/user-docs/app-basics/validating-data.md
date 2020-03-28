@@ -88,6 +88,10 @@ The plugin gives you enough flexibility to write your own rules rather than bein
 
   > `@newInstanceForScope(IValidationController)` injects a new instance of validation controller which is made available to the children of `awesome-component`. More on validation controller [later](TODO).
 
+Here is one similar playable demo, if you want to explore on you own!
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=3a45de5a62157688181c0c78e5bcd570&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+
 That's all you need to do to get started with the plugin.
 However, read on to understand how the plugin functions, and offers flexible API to support your app.
 
@@ -271,6 +275,8 @@ validationRules
 
 This instantiates a `RequiredRule` for the property.
 
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=3a45de5a62157688181c0c78e5bcd570&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+
 > Note that this is the only built-in rule that considers `null`, `undefined`, or empty string as invalid value. The other built-in rules purposefully consider `null`, `undefined`, or empty string as valid value. This is done to ensure single responsibility for the built-in rules.
 
 **`matches`**
@@ -286,6 +292,8 @@ validationRules
 
 This instantiates a `RegexRule` for the property.
 
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=5e0ef6c9fdcdb9d34927ce2e116b0de7&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+
 **`email`**
 
 This also instantiates a `RegexRule` for the property, but with a specific regex for matching emails.
@@ -296,6 +304,8 @@ validationRules
   .ensure('email')
   .email();     // person's email need to be valid
 ```
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=dbf7ec616b3d458e0e980f3c29f2d624&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
 
 **`minLength`**
 
@@ -309,6 +319,8 @@ validationRules
   .minLength(42);     // name must be at least 42 characters long
 ```
 
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=8bd5721cda282b888d0b640326b399bc&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+
 **`maxLength`**
 
 Considers the string property to be valid if the value is at most of the specified length.
@@ -320,6 +332,8 @@ validationRules
   .ensure('name')
   .maxLength(42);     // name must be at most 42 characters long
 ```
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=35d3ca11fdc8089c362de84498be1e15&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
 
 **`minItems`**
 
@@ -333,6 +347,8 @@ validationRules
   .minItems(42);    // a person should have at least 42 pets
 ```
 
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=abd1f558567e7380876c0c685f8d294a&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+
 **`maxItems`**
 
 Considers the collection (array) property to be valid if the array has at most the number of items specified by the constraint.
@@ -344,6 +360,8 @@ validationRules
   .ensure('pets')
   .maxItems(42);    // a person should have at most 42 pets
 ```
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=154f65652c9bc6d3513867c42fde7dd9&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
 
 **`min`**
 
@@ -357,6 +375,8 @@ validationRules
   .min(42);     // a person should be at least 42 years old
 ```
 
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=25537dd2aa59549d040e6965e0fa2f71&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+
 **`max`**
 
 Considers the numeric property to be valid if the value is less than or equal to the given upper bound.
@@ -369,6 +389,8 @@ validationRules
   .max(42);     // a person should be at most 42 years old
 ```
 
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=2e7dbfdee0cbab766935c7d46b9f5bb0&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+
 **`range`**
 
 Considers the numeric property to be valid if the value is greater than or equal to the given lower bound and less than or equal to the given upper bound.
@@ -380,6 +402,8 @@ validationRules
   .ensure('age')
   .range(42, 84);     // a person's age should be between 42 and 84 or equal to these values
 ```
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=379e9f3dcc4cc08cd440653d2c0940d8&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
 
 **`between`**
 
@@ -394,6 +418,8 @@ validationRules
   .between(42, 84);     // a person's age should be between 42 and 84, but cannot be equal to any these values
 ```
 
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=450b17bf4a6774807d193172b180c5a2&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+
 **`equals`**
 
 Considers the property to be valid if the value is strictly equal to the expected value.
@@ -405,6 +431,8 @@ validationRules
   .ensure('name')
   .equals('John Doe');  // Only people named 'John Doe' are valid
 ```
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=7dbffc2a9961d5f4de1b9669abc8a7c7&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
 
 **Custom rules**
 
@@ -434,6 +462,8 @@ There are two ways custom rules can be defined.
     For example, in one of view-model you need to apply a very specific rule that is not needed elsewhere.
     However, if you want to reuse you rule, then you need to use the `satisfiesRule`.
 
+    <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=87d8206a6d1d4037933ea9e383aabf3e&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+
 * `satisfiesRule`
 
   This lets reuse a rule implementation.
@@ -445,10 +475,14 @@ There are two ways custom rules can be defined.
   It can be used as follows.
 
   ```typescript
+  import { BaseValidationRule, IValidateable } from '@aurelia/validation';
+
   class NotTestName extends BaseValidationRule {
     public constructor(
       private testNames: string[],
-    ) { }
+    ) {
+      super();
+    }
     public execute(value: any, _object?: IValidateable): boolean {
       return !this.testNames.includes(value);
     }
@@ -461,6 +495,8 @@ There are two ways custom rules can be defined.
     .ensure(name)
     .satisfiesRule(new NotTestName([ "John Doe", "Max Mustermann" ]));
   ```
+
+  <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=a7e99a9c48fa87b800a250f3bfb3761c&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
 
   Attentive readers must have noticed that the API for the built rules instantiates a rule implementation.
   For example, the following two are synonymous.
@@ -488,7 +524,13 @@ There are two ways custom rules can be defined.
 
   class IntegerRangeRule extends RangeRule {
     public execute(value: any, object?: IValidateable): boolean {
-      return super.execute(value, object) && Number.isInteger(value);
+      return value === null
+      || value === undefined
+      || (Number.isInteger(Number(value))
+        && (this.isInclusive
+          ? value >= this.min && value <= this.max
+          : value > this.min && value < this.max
+        ));
     }
   }
 
@@ -497,10 +539,15 @@ There are two ways custom rules can be defined.
   validationRules
     .on(person)
     .ensure(age)
-    .satisfiesRule(new IntegerRangeRule(true, {42, 84})); // the age must between 42 and 84 (inclusive) and must be an integer.
+    .satisfiesRule(new IntegerRangeRule(true, { min:42, max: 84 })); // the age must between 42 and 84 (inclusive) and must be an integer.
   ```
 
-* Defining rules on multiple objects.
+  <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=94aeaa114ac92d556d762794b651f375&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+
+**Defining rules for multiple objects**
+
+Rules on multiple objects can be defined by simply using the API in sequence for multiple objects.
+An example is shown below.
 
 ```typescript
 validationRules
@@ -513,6 +560,33 @@ validationRules
   .required()
 ```
 
+Note that there is no limitation on how many times `on` is applied on an object or in what order.
+The following is a perfectly valid rule definition, although such definition can be difficult to understand.
+
+```typescript
+validationRules
+  .on(person1)
+  .ensure('name')
+  .required()
+
+  .on(person2)
+  .ensure('name')
+  .required()
+  .ensure('age')
+  .required()
+
+  .on(person1)
+  .ensure((o) => o.address.line1)
+  .required()
+  .on(person1)
+  .ensure((o) => o.age)
+  .required();
+```
+
+This functions a bit differently in case of Tagged Rules, which is discussed in the following section.
+
+## Tagging rules
+
 ### Customizing rules
 
 * with message
@@ -520,7 +594,6 @@ validationRules
 * conditional
 * sequencing
 
-## Tagging rules
 
 ## Migration Guide and Breaking Changes
 * Transient `IValidationRules`

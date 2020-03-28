@@ -7,6 +7,7 @@ import { compareDocumentPositionFlat } from './common';
   shadowOptions: { mode: 'open' },
   hasSlots: true,
   // TODO: customize template from plugin registration
+  // TODO: define style for this using custom properties so that those can be overridden from outside
   template: `
 <slot></slot>
 <slot name='secondary'>

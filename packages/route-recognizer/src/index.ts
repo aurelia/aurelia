@@ -31,9 +31,120 @@ export class RecognizedRoute<T> {
   ) {}
 }
 
+class StateChain<T> {
+  public get head(): State<T> {
+    return this.states[this.states.length - 1];
+  }
+
+  public get isDynamic(): boolean {
+    return this.head.path.isDynamic;
+  }
+
+  public get endpoint(): Endpoint<T> {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+    return this.head.endpoint!;
+  }
+
+  public constructor(
+    private readonly chars: string[],
+    private readonly states: State<T>[],
+    private readonly result: RecognizeResult<T>,
+  ) {}
+
+  public advance(ch: string): void {
+    const { chars, states, result } = this;
+    let stateToAdd: State<T> | null = null;
+
+    let matchCount = 0;
+    const state = states[states.length - 1];
+    const nextStates = state.nextStates;
+    for (const nextState of nextStates) {
+      if (nextState.isMatch(ch)) {
+        if (++matchCount === 1) {
+          stateToAdd = nextState;
+        } else {
+          result.add(new StateChain([...chars, ch], [...states, nextState], result));
+        }
+      }
+    }
+
+    if (stateToAdd !== null) {
+      states.push(stateToAdd);
+      chars.push(ch);
+    }
+
+    if (matchCount === 0) {
+      result.remove(this);
+    }
+  }
+
+  public compareTo(b: StateChain<T>): -1 | 1 | 0 {
+    return this.head.compareTo(b.head);
+  }
+
+  public getParams(): Record<string, string | undefined> {
+    const params: Record<string, string | undefined> = {};
+
+    const { states, chars } = this;
+    for (let i = 0, ii = states.length; i < ii; ++i) {
+      const state = states[i];
+      if (state.isDynamic) {
+        const name = (state.segment as StarSegment<T> | DynamicSegment<T>).name;
+        if (params[name] === void 0) {
+          params[name] = chars[i];
+        } else {
+          params[name] += chars[i];
+        }
+      }
+    }
+
+    return params;
+  }
+}
+
+class RecognizeResult<T> {
+  private readonly chains: StateChain<T>[] = [];
+
+  public get isEmpty(): boolean {
+    return this.chains.length === 0;
+  }
+
+  public constructor(
+    rootState: State<T>,
+  ) {
+    this.chains = [new StateChain([''], [rootState], this)];
+  }
+
+  public getSolution(): StateChain<T> | null {
+    const solutions = this.chains.filter(x => x.head.hasEndpoint);
+    if (solutions.length === 0) {
+      return null;
+    }
+
+    solutions.sort((a, b) => a.compareTo(b));
+
+    return solutions[0];
+  }
+
+  public add(chain: StateChain<T>): void {
+    this.chains.push(chain);
+  }
+
+  public remove(chain: StateChain<T>): void {
+    this.chains.splice(this.chains.indexOf(chain), 1);
+  }
+
+  public advance(ch: string): void {
+    const chains = this.chains.slice();
+
+    for (const chain of chains) {
+      chain.advance(ch);
+    }
+  }
+}
+
 export class RouteRecognizer<T> {
   public readonly rootState: State<T> = new State(null, null, '');
-  private sequenceId: number = 0;
 
   public add(
     routeOrRoutes: IConfigurableRoute<T> | readonly IConfigurableRoute<T>[],
@@ -140,38 +251,26 @@ export class RouteRecognizer<T> {
       path = path.slice(0, -1);
     }
 
-    let states = [this.rootState];
-    const sequenceId = ++this.sequenceId;
+    const result = new RecognizeResult(this.rootState);
     for (let i = 0, ii = path.length; i < ii; ++i) {
       const ch = path.charAt(i);
-      const nextStates: State<T>[] = [];
-      for (const state of states) {
-        for (const nextState of state.nextStates) {
-          if (nextState.isMatch(sequenceId, ch)) {
-            nextStates.push(nextState);
-          }
-        }
-      }
-      states = nextStates;
-      if (states.length === 0) {
+      result.advance(ch);
+
+      if (result.isEmpty) {
         return null;
       }
     }
 
-    const solutions = states.filter(x => x.hasEndpoint);
-    solutions.sort((a, b) => a.compareTo(b));
-
-    if (solutions.length === 0) {
+    const solution = result.getSolution();
+    if (solution === null) {
       return null;
     }
 
-    const solution = solutions[0];
     const params = solution.getParams();
-    const isDynamic = solution.path.isDynamic;
+    const isDynamic = solution.isDynamic;
 
     return new RecognizedRoute<T>(
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-      solution.endpoint!,
+      solution.endpoint,
       params,
       queryParams,
       isDynamic,
@@ -183,6 +282,7 @@ export class RouteRecognizer<T> {
 class State<T> {
   public readonly nextStates: State<T>[] = [];
   public readonly isSeparator: boolean;
+  public readonly isDynamic: boolean;
 
   private _scores: readonly number[] | undefined = void 0;
   public get scores(): readonly number[] {
@@ -211,7 +311,21 @@ class State<T> {
     public readonly segment: ParsedSegment<T> | null,
     public readonly value: string,
   ) {
-    this.isSeparator = segment === null;
+    switch (segment?.kind) {
+      case SegmentKind.dynamic:
+      case SegmentKind.star:
+        this.isSeparator = false;
+        this.isDynamic = true;
+        break;
+      case SegmentKind.static:
+        this.isSeparator = false;
+        this.isDynamic = false;
+        break;
+      case undefined:
+        this.isSeparator = true;
+        this.isDynamic = false;
+        break;
+    }
   }
 
   public append(
@@ -239,21 +353,15 @@ class State<T> {
   }
 
   public isMatch(
-    sequenceId: number,
     ch: string,
   ): boolean {
-    switch (this.segment?.kind) {
-      case SegmentKind.static:
-        return this.value.includes(ch);
+    const segment = this.segment;
+    switch (segment?.kind) {
       case SegmentKind.dynamic:
-        if (!this.value.includes(ch)) {
-          this.record(sequenceId, ch);
-          return true;
-        }
-        return false;
+        return !this.value.includes(ch);
       case SegmentKind.star:
-        this.record(sequenceId, ch);
         return true;
+      case SegmentKind.static:
       case undefined:
         // segment separators (slashes) are non-segments. We could say return ch === '/' as well, technically.
         return this.value.includes(ch);
@@ -288,7 +396,7 @@ class State<T> {
    * Parameter name is `b` because the method should be used like so: `states.sort((a, b) => a.compareTo(b))`.
    * This will bring the state with the highest score to the first position of the array.
    */
-  public compareTo(b: State<T>): -1 | 1 {
+  public compareTo(b: State<T>): -1 | 1 | 0 {
     const scoresA = this.scores;
     const scoresB = b.scores;
 
@@ -315,51 +423,9 @@ class State<T> {
       return -1;
     }
 
-    // Theoretically if the lengths are the same, we are dealing with two ambiguous patterns.
-    // In practice, this shouldn't be possible because dynamic and star patterns (even though they are named) are
-    // represented in state by hard-coded negative match characters.
-    // So, if the code reaches this point, there must be a bug somewhere in `RouteRecognizer.add`.
-    throw new Error(`Ambiguous pattern: a=${this.toString()}, b=${b.toString()}. This error indicates a bug in Aurelia; please report it via GitHub.`);
-  }
-
-  public getParams(): Record<string, string | undefined> {
-    const params: Record<string, string | undefined> = {};
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    let state: State<T> | null = this;
-    let segment: ParsedSegment<T> | null;
-    while (state !== null) {
-      segment = state.segment;
-      if (segment !== null) {
-        switch (segment.kind) {
-          case SegmentKind.dynamic:
-          case SegmentKind.star:
-            params[segment.name] = state.dynamicValue;
-            break;
-        }
-      }
-      state = state.prevState;
-    }
-
-    return params;
-  }
-
-  public toString(): string {
-    return this.path.toString();
-  }
-
-  private dynamicValue: string = '';
-  private sequenceId: number = 0;
-
-  private record(
-    sequenceId: number,
-    ch: string,
-  ): void {
-    if (this.sequenceId === sequenceId) {
-      this.dynamicValue += ch;
-    } else {
-      this.sequenceId = sequenceId;
-      this.dynamicValue = ch;
-    }
+    // This should only be possible with a single pattern with multiple consecutive star segments.
+    // TODO: probably want to warn or even throw here, but leave it be for now.
+    return 0;
   }
 }
 
@@ -380,10 +446,6 @@ class ParsedPath<T> {
 
   public append(segment: ParsedSegment<T>): ParsedPath<T> {
     return new ParsedPath([...this.segments, segment]);
-  }
-
-  public toString(): string {
-    return this.segments.map(x => `/${x.toString()}`).join('');
   }
 }
 
@@ -433,15 +495,6 @@ class StaticSegment<T> {
 
     return state;
   }
-
-  /**
-   * Returns a regex-like representation of this segment, mainly for debugging purposes.
-   */
-  public toString(): string {
-    return this.caseSensitive
-      ? this.value.split('').map(x => `[${x.toLowerCase()}${x.toUpperCase()}]`).join('')
-      : this.value;
-  }
 }
 
 class DynamicSegment<T> {
@@ -464,13 +517,6 @@ class DynamicSegment<T> {
 
     return state;
   }
-
-  /**
-   * Returns a regex-like representation of this segment, mainly for debugging purposes.
-   */
-  public toString(): string {
-    return `(?<${this.name}>[^/]+)${this.optional ? '?' : ''}`;
-  }
 }
 
 class StarSegment<T> {
@@ -491,12 +537,5 @@ class StarSegment<T> {
     );
 
     return state;
-  }
-
-  /**
-   * Returns a regex-like representation of this segment, mainly for debugging purposes.
-   */
-  public toString(): string {
-    return `(?<${this.name}>.+)`;
   }
 }

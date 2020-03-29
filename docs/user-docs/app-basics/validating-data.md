@@ -943,9 +943,59 @@ Some of the useful combinations are as follows.
 |✔|✔||✔|✔|Only the tagged rules for the property in the tagged ruleset for the object are validated.|
 
 Note that in the presence of `rules` the `objectTag` is ignored.
+However, we strongly encourage the usage of tags for executing specific set of rules.
 You can find more details on tagging in [Tagging rules](validating-data.md#tagging-rules) section.
+Note that the validate instruction is also respected by [validation controller](validating-data.md#validation-controller).
 
 ## Tagging rules
+
+Tagging rules involves marking a rule or ruleset for a property or an object with a string identifier, namely tag.
+Later the tag can be used to selectively execute specific set of rules.
+Note that every set of rules defined on an object has a tag.
+When the tag is omitted, a default tag for the ruleset is used for the objects.
+
+Tags can be defined both with objects and properties.
+Refer the following examples.
+
+```typescript
+/* tagged rule definition */
+
+// default tag
+validationRules
+  .on(person)
+  .ensure('name')
+
+// specific tags on object
+validationRules
+  .on(person, 'ruleset1')
+  //...
+  .on(person, 'ruleset2')
+  //...
+
+// specific tag on property rules
+validationRules
+  .on(person)
+    .ensure('name')
+    .minLength(42)
+    .tag('ruleset1')
+    .minLength(84)
+    .tag('ruleset2')
+
+
+/* executing tagged rules */
+
+// default tag
+validator.validate(new ValidateInstruction(person));
+validator.validate(new ValidateInstruction(person, 'name'));
+
+// specific object tag
+validator.validate(new ValidateInstruction(person, undefined, 'ruleset1'));
+
+// specific property tag
+validator.validate(new ValidateInstruction(person, 'name', undefined, 'ruleset1'));
+```
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=fa08f913ac506f7f150fc6ff8115e589&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
 
 ## Validation controller
 

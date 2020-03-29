@@ -26,18 +26,21 @@ export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOpti
     }
   }
 
-  if (options.defaultShadowOptions && !shadowMode) {
+  if (options.defaultShadowOptions && shadowMode === null) {
     shadowMode = options.defaultShadowOptions.mode;
   }
 
+  const useCSSModule = shadowMode !== null ? false : options.useCSSModule;
+
   const viewDeps: string[] = [];
+  const cssDeps: string[] = [];
   const statements: string[] = [];
   let registrationImported = false;
 
   // Turn off ShadowDOM for invalid element
-  if (!name.includes('-') && shadowMode) {
+  if (!name.includes('-') && shadowMode !== null) {
     shadowMode = null;
-    const error = `WARN: ShadowDOM is disabled for ${unit.path}. ShadowDOM requires element name to contain a dash (-), you have to refactor <${name}> to something like <lorem-${name}>.`;
+    const error = `WARN: ShadowDOM is disabled for ${unit.path}. ShadowDOM requires element name to contain at least one dash (-), you have to refactor <${name}> to something like <lorem-${name}>.`;
     console.warn(error);
     statements.push(`console.warn(${JSON.stringify(error)});\n`);
   }
@@ -45,20 +48,27 @@ export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOpti
   deps.forEach((d, i) => {
     const ext = path.extname(d);
     if (ext && ext !== '.js' && ext !== '.ts' && !options.templateExtensions.includes(ext)) {
+      const isCssResource = options.cssExtensions.includes(ext);
+
       // Wrap all other unknown resources (including .css, .scss) in defer.
-      if (!registrationImported) {
+      if ((!isCssResource || (shadowMode === null && !useCSSModule)) && !registrationImported) {
         statements.push(`import { Registration } from '@aurelia/kernel';\n`);
         registrationImported = true;
       }
-      const isCssResource = options.cssExtensions.includes(ext);
+
       let stringModuleId = d;
 
-      if (isCssResource && shadowMode && options.stringModuleWrap) {
+      if (isCssResource && shadowMode !== null && options.stringModuleWrap) {
         stringModuleId = options.stringModuleWrap(d);
       }
 
       statements.push(`import d${i} from ${s(stringModuleId)};\n`);
-      viewDeps.push(`Registration.defer('${isCssResource ? '.css' : ext}', d${i})`);
+
+      if (isCssResource) {
+        cssDeps.push(`d${i}`);
+      } else {
+        viewDeps.push(`Registration.defer('${ext}', d${i})`);
+      }
     } else {
       statements.push(`import * as d${i} from ${s(d)};\n`);
       viewDeps.push(`d${i}`);
@@ -67,6 +77,17 @@ export function preprocessHtmlTemplate(unit: IFileUnit, options: IPreprocessOpti
 
   const m = modifyCode('', unit.path);
   m.append(`import { CustomElement } from '@aurelia/runtime';\n`);
+  if (cssDeps.length > 0) {
+    if (shadowMode !== null) {
+      m.append(`import { shadowCSS } from '@aurelia/runtime-html';\n`);
+      viewDeps.push(`shadowCSS(${cssDeps.join(', ')})`);
+    } else if (useCSSModule) {
+      m.append(`import { cssModules } from '@aurelia/runtime-html';\n`);
+      viewDeps.push(`cssModules(${cssDeps.join(', ')})`);
+    } else {
+      viewDeps.push(`Registration.defer('.css', ${cssDeps.join(', ')})`);
+    }
+  }
   statements.forEach(st => m.append(st));
   m.append(`export const name = ${s(name)};
 export const template = ${s(html)};
@@ -74,7 +95,7 @@ export default template;
 export const dependencies = [ ${viewDeps.join(', ')} ];
 `);
 
-  if (shadowMode) {
+  if (shadowMode !== null) {
     m.append(`export const shadowOptions = { mode: '${shadowMode}' };\n`);
   }
 
@@ -82,7 +103,7 @@ export const dependencies = [ ${viewDeps.join(', ')} ];
     m.append(`export const containerless = true;\n`);
   }
 
-  if (Object.keys(bindables).length) {
+  if (Object.keys(bindables).length > 0) {
     m.append(`export const bindables = ${JSON.stringify(bindables)};\n`);
   }
 
@@ -93,7 +114,7 @@ export const dependencies = [ ${viewDeps.join(', ')} ];
   m.append(`let _e;
 export function register(container) {
   if (!_e) {
-    _e = CustomElement.define({ name, template, dependencies${shadowMode ? ', shadowOptions' : ''}${containerless ? ', containerless' : ''}${Object.keys(bindables).length ? ', bindables' : ''}${aliases.length > 0 ? ', aliases' : ''} });
+    _e = CustomElement.define({ name, template, dependencies${shadowMode !== null ? ', shadowOptions' : ''}${containerless ? ', containerless' : ''}${Object.keys(bindables).length > 0 ? ', bindables' : ''}${aliases.length > 0 ? ', aliases' : ''} });
   }
   container.register(_e);
 }

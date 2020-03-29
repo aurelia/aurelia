@@ -943,12 +943,15 @@ export {
   // ShadowDOMProjector,
 
   StyleConfiguration,
-  styles,
+  // styles,
   IShadowDOMConfiguration,
 
   // CSSModulesProcessorRegistry,
+  cssModules,
 
   // ShadowDOMRegistry,
+  // IShadowDOMStyleFactory,
+  shadowCSS,
 
   // AdoptedStyleSheetsStyles,
   // StyleElementStyles,

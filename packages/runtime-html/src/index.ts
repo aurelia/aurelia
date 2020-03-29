@@ -155,14 +155,16 @@ export {
 
 export {
   StyleConfiguration,
-  styles,
   IShadowDOMConfiguration
 } from './styles/style-configuration';
 export {
-  CSSModulesProcessorRegistry
+  CSSModulesProcessorRegistry,
+  cssModules
 } from './styles/css-modules-registry';
 export {
-  ShadowDOMRegistry
+  ShadowDOMRegistry,
+  IShadowDOMStyleFactory,
+  shadowCSS
 } from './styles/shadow-dom-registry';
 export {
   AdoptedStyleSheetsStyles,

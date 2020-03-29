@@ -796,7 +796,26 @@ validationRules
 
 <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=115bdc1fd460f1469f5500da03064235&open=src%2Fmain.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
 
-TODO: messages for custom rule
+If you want to define aliases for your custom rules, you need to decorate the rule class with `validationRule`.
+
+```typescript
+import { validationRule, BaseValidationRule } from '@aurelia/validation';
+
+@validationRule({
+  aliases: [
+    { name: 'key1', defaultMessage: `Message1` },
+    { name: 'key2', defaultMessage: `Message2` },
+  ]
+})
+class CustomRule extends BaseValidationRule {
+  //...
+}
+```
+
+Then you can refer the second message by using `.withMessageKey('key2')`.
+Refer the demo below, to see this in action.
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=606cf358fdd58d14cf4848729eec9a48&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
 
 * conditional
 * sequencing

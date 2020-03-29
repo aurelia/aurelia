@@ -873,7 +873,38 @@ validationRules
 TODO fix the demo.
 <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=70572608599cfee591ba80a9e494dd87&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
 
-### Tagging rules
+## Validator and validate instruction
+
+## Tagging rules
+
+## Validation controller
+
+* `validate`
+* `addObject` & `removeObject`
+* `addError` & `removeError`
+* `ValidationResultsSubscriber`
+  * add and remove
+* `revalidate errors`
+* `@newInstanceForScope`
+
+## `validate` binding behavior
+
+* trigger
+* controller
+* rules
+
+## Displaying errors
+
+* OOTB subscribers
+  * `validation-errors` CA
+  * `validation-container` CE
+  * `ValidationResultPresenterService`
+
+## Integrations with other libraries
+
+v8n?
+
+## I18N Support
 
 ## Migration Guide and Breaking Changes
 * Transient `IValidationRules`

@@ -858,7 +858,22 @@ Verify this in the demo shown below.
 
 <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=c3ef11edf8feca7cea0275fc179cc160&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
 
-## Tagging rules
+### Validating object
+
+So far we have seen how to define validation rules on properties.
+Validation rules can also be applied on an object using `ensureObject`, and validate the object as a whole.
+
+```typescript
+validationRules
+  .on(person)
+  .ensureObject()
+  .satisfies((p) => p.name === 'Foo' && p.age === 42);
+```
+
+TODO fix the demo.
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=70572608599cfee591ba80a9e494dd87&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
+
+### Tagging rules
 
 ## Migration Guide and Breaking Changes
 * Transient `IValidationRules`

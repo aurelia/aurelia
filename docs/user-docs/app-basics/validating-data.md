@@ -875,6 +875,76 @@ TODO fix the demo.
 
 ## Validator and validate instruction
 
+In all the demos so far we have seen usage of validation controller.
+Under the hood, validation controller uses the `IValidator` API to perform the validation.
+
+Loosely the interface looks as follows.
+
+```typescript
+interface IValidator {
+  validate(instruction: ValidateInstruction<any>): Promise<ValidationResult[]>;
+}
+```
+
+It has only a single method called `validate`, which accepts an instruction that describes what needs to be be validated.
+
+The plugin ships a standard implementation of the `IValidator` interface.
+This can be injected to manually perform the validation on objects.
+Note that validator is the core component that executes the validation rules without any connection with the view.
+This is the main difference between validator and validation controller.
+The following example shows how to use it.
+
+```typescript
+export class AwesomComponent {
+
+  private person: Person;
+  private errors: string[];
+
+  public constructor(
+     @IValidator private validator: IValidator,
+     @IValidationRules validationRules: IValidationRules
+  ) {
+      this.person = new Person();
+      validationRules
+        .on(this.person)
+          .ensure("name")
+          .required();
+    }
+
+  public async submit(){
+    const result = await this.validator.validate(new ValidateInstruction(this.person));
+    console.log(result);
+    this.errors = result.filter((r) => !r.valid).map((r) => r.message);
+  }
+}
+```
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=6d5ec84b163215dd47495e41eeb940b8&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+
+Let us now focus on the `ValidateInstruction`, which basically instructs the validator, on what to validate.
+The instruction can be manipulated using the following optional class properties.
+
+* `object`: The object to validate.
+* `propertyName`: The property name to validate.
+* `rules`: The specific rules to execute.
+* `objectTag`: When present instructs to validate only specific ruleset defined for a object. Tagging is discussed in detail in the respective [section](validating-data.md#tagging-rules)
+* `propertyTag`: When present instructs to validate only specific ruleset for a property. Tagging is discussed in detail in the respective [section](validating-data.md#tagging-rules)
+
+Some of the useful combinations are as follows.
+
+|`object`|`propertyName`|`rules`|`objectTag`|`propertyTag`|Details|
+|-|-|-|-|-|-|
+|✔|||||The default ruleset defined on the instance or the class are used for validation.|
+|✔|✔||||Only the rules defined for the particular property are used for validation.|
+|✔||✔|-||Only the specified rules are used for validation.|
+|✔|✔|✔|-||Only the specified rules that are associated with the property are used for validation.|
+|✔|||✔||Only the tagged ruleset for the object is used for validation.|
+|✔|✔||✔||Only the rules for the property in the tagged ruleset are used for validation.|
+|✔|✔||✔|✔|Only the tagged rules for the property in the tagged ruleset for the object are validated.|
+
+Note that in the presence of `rules` the `objectTag` is ignored.
+You can find more details on tagging in [Tagging rules](validating-data.md#tagging-rules) section.
+
 ## Tagging rules
 
 ## Validation controller

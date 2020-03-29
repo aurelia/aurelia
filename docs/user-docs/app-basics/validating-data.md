@@ -619,7 +619,7 @@ Note that some parts of the example is not yet discussed, but those will be addr
 
 <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=59398645df32122cfeb68e8685e6a4ef&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
 
-**Customize message**
+**Customize the validation message**
 
 Apart from customizing the display name, you can in fact customize the whole message.
 Messages can be customized on a per-instance basis or globally.
@@ -817,8 +817,46 @@ Refer the demo below, to see this in action.
 
 <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=606cf358fdd58d14cf4848729eec9a48&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
 
-* conditional
-* sequencing
+**Conditional Rule**
+
+Often you would want to execute a rule conditionally.
+This can be done using the `.when` method.
+This method takes a function, with signature `object: any) => boolean`, as input which is later evaluated during rule evaluation to decide whether or not to execute this rule.
+The `object` in the argument of the function is the object being validated.
+
+```typescript
+validationRules
+  .on(person)
+  .ensure("guardianName")
+  .required()
+  .when((p) => p.age < 18 );
+```
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=7ece8d8c5e13296cacc69a3e8bbcfe39&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+
+**Sequencing Rules**
+
+When multiple rules are defined on a property, the rules are all executed on parallel.
+Using `then`, the rules can be chained and executed serially.
+This means that if the first rule fails, the second rule is not executed.
+A common example is shown below.
+
+```typescript
+validationRules
+  .on(person)
+  .ensure('email')
+  .required()
+  .email()
+  .then()
+  .satisfiesRule(new UniqueRule());
+```
+
+Assuming there is an implementation of `UniqueRule`, that validates the data against the records existing in data store/backend service.
+Such rules can be expensive in nature, and thus it makes sense to execute those when all other preconditions are validated.
+In the above example if either of the `required` or `email` rules fails, the `UniqueRule` will never be executed.
+Verify this in the demo shown below.
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=c3ef11edf8feca7cea0275fc179cc160&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
 
 ## Tagging rules
 

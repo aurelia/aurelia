@@ -1,4 +1,4 @@
-import { IQueryParams, parseQueryString } from '@aurelia/kernel';
+import { IQueryParams, parseQueryString } from './parse-querystring';
 
 export interface IConfigurableRoute<T> {
   readonly path: string;

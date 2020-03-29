@@ -1908,3 +1908,36 @@ describe(RouteRecognizer.name, function () {
     }
   }
 });
+
+// describe('query strings', function () {
+//   it('should parse query strings', function () {
+//     const parse = parseQueryString;
+
+//     assert.deepStrictEqual(parse(''), {}, `parse('')`);
+//     assert.deepStrictEqual(parse('='), {}, `parse('=')`);
+//     assert.deepStrictEqual(parse('&'), {}, `parse('&')`);
+//     assert.deepStrictEqual(parse('?'), {}, `parse('?')`);
+
+//     assert.deepStrictEqual(parse('a'), { a: true }, `parse('a')`);
+//     assert.deepStrictEqual(parse('a&b'), { a: true, b: true }, `parse('a&b')`);
+//     assert.deepStrictEqual(parse('a='), { a: '' }, `parse('a=')`);
+//     assert.deepStrictEqual(parse('a=&b='), { a: '', b: '' }, `parse('a=&b=')`);
+
+//     assert.deepStrictEqual(parse('a=b'), { a: 'b' }, `parse('a=b')`);
+//     assert.deepStrictEqual(parse('a=b&c=d'), { a: 'b', c: 'd' }, `parse('a=b&c=d')`);
+//     assert.deepStrictEqual(parse('a=b&&c=d'), { a: 'b', c: 'd' }, `parse('a=b&&c=d')`);
+//     assert.deepStrictEqual(parse('a=b&a=c'), { a: ['b', 'c'] }, `parse('a=b&a=c')`);
+
+//     assert.deepStrictEqual(parse('a=b&c=d='), { a: 'b', c: 'd' }, `parse('a=b&c=d=')`);
+//     assert.deepStrictEqual(parse('a=b&c=d=='), { a: 'b', c: 'd' }, `parse('a=b&c=d==')`);
+
+//     assert.deepStrictEqual(parse('a=%26'), { a: '&' }, `parse('a=%26')`);
+//     assert.deepStrictEqual(parse('%26=a'), { '&': 'a' }, `parse('%26=a')`);
+//     assert.deepStrictEqual(parse('%26[]=b&%26[]=c'), { '&': ['b', 'c'] }, `parse('%26[]=b&%26[]=c')`);
+
+//     assert.deepStrictEqual(parse('a[b]=c&a[d]=e'), {a: {b: 'c', d: 'e'}}, `parse('a[b]=c&a[d]=e')`);
+//     assert.deepStrictEqual(parse('a[b][c][d]=e'), {a: {b: {c: {d: 'e'}}}}, `parse('a[b][c][d]=e')`);
+//     assert.deepStrictEqual(parse('a[b][]=c&a[b][]=d&a[b][2][]=f&a[b][2][]=g'), {a: {b: ['c', 'd', ['f', 'g']]}}, `parse('a[b][]=c&a[b][]=d&a[b][2][]=f&a[b][2][]=g')`);
+//     assert.deepStrictEqual(parse('a[0]=b'), {a: ['b']}, `parse('a[0]=b')`);
+//   });
+// });

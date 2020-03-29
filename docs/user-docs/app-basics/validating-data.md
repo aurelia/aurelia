@@ -171,7 +171,7 @@ export class Person {
     public age: number,
     public email: string,
     public pets: string[],
-    public address?: Address,
+    public address: Address,
   ) { }
 }
 ```
@@ -434,6 +434,8 @@ validationRules
 
 <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=7dbffc2a9961d5f4de1b9669abc8a7c7&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
 
+> Have you noticed that the same rule implementation is "alias"ed for multiple validation rules? You will get know another aspect of aliasing rules in the [customizing validation messages](validating-data.md#customizing-rules) section.
+
 **Custom rules**
 
 There are two ways custom rules can be defined.
@@ -544,6 +546,8 @@ There are two ways custom rules can be defined.
 
   <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=94aeaa114ac92d556d762794b651f375&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
 
+> In the light of using rule *instance*, note that the the lambda in `satisfies` is actually wrapped in an instance of anonymous subclass of `BaseValidationRule`.
+
 **Defining rules for multiple objects**
 
 Rules on multiple objects can be defined by simply using the API in sequence for multiple objects.
@@ -583,17 +587,221 @@ validationRules
   .required();
 ```
 
-This functions a bit differently in case of Tagged Rules, which is discussed in the following section.
-
-## Tagging rules
+This feature is bit nuanced with the usage of [tagged rules](validating-data.md#tagging-rules).
 
 ### Customizing rules
 
-* with message
-* with display name
+In this section you will learn about how to customize the rule definition.
+A common use-case of that will be to customize the validation messages, as in most of the cases, the default validation messages might not fit the real-life requirements.
+Apart from that this section also discusses further ways to change the chaining of the rules.
+
+**Customize the display name**
+
+By default, the display name of the property is computed by splitting on capital letters and capitalizing the first letter of the property name.
+For example, the property named `age` will appear as "Age" in the validation messages for `age`, or `firstName` becomes "First Name", etc.
+It is quite evident that this is limiting in a sense.
+However, the display name of the property can easily be changed using `.displayName`.
+
+```typescript
+validationRules
+  .on(person)
+  .ensure("address.line1")
+  .displayName("First line of address")
+  .required();  // results in validation message: "First line of address is required."
+```
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=fc661ec8026974f6decb580b6da43498&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+
+Note that instead of a literal string, a function can also be used to customize the display name.
+The function signature needs to be `() => string`;
+The following example shows a use case for this.
+Note that some parts of the example is not yet discussed, but those will be addressed in respective sections.
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=59398645df32122cfeb68e8685e6a4ef&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+
+**Customize message**
+
+Apart from customizing the display name, you can in fact customize the whole message.
+Messages can be customized on a per-instance basis or globally.
+Let us first consider the per-instance based customization.
+
+For this, we need to use the `withMessage` method.
+The example below shows how it can be used to define different messages for different rule instances.
+
+```typescript
+validationRules
+  .on(person)
+  .ensure("address.line1")
+  .required()
+  .withMessage("Enter the address line1 to continue.")
+  .maxLength(42)
+  .withMessage("The address line1 is too long.");
+```
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=cf929a91cb875bd88c27b14e8011e7be&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+
+The above examples shows usage of string literal as custom message.
+A message template can also be used instead.
+The expressions supported in the template are as follows.
+
+* `$object`: The object being validated. Note that any property of the object can thus be accessed in the template.
+* `$value`: The value being validated.
+* `$displayName`: The display name of the property.
+* `$propertyName`: The name of the property.
+* `$rule`: The associated rule instance. This is useful to access the properties of the rule instance. For example, you have a custom validation rule, and you want to access the value of some of your rule property in the validation message, this property is what you need to use. This is used in the messages of `RangeRule` to access the "min", and "max" values of the rule instance.
+* `$getDisplayName`: It is a function that returns the display name of another given property. This is useful if you want to create a message associating another property.
+
+Let us look at the following example, to understand these better.
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=311cbeb44313ee9ed54a4b9a4467c7d6&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+
+Apart from this the messages the can be customized globally.
+You must have noted that same rule implementations are aliased quite frequently.
+The same concept is used here as well.
+
+The messages can be customized globally during registering the plugin, using the `CustomMessages` property of the configuration object.
+
+{% tabs %}
+{% tab title="main.ts" %}
+
+```typescript
+import { ValidationConfiguration, RequiredRule, RangeRule, } from '@aurelia/validation';
+import Aurelia from 'aurelia';
+
+const customMessages: ICustomMessage[] = [
+  {
+    rule: RequiredRule,
+    aliases: [
+      { name: 'required', defaultMessage: `\${$displayName} is non-optional.` }
+    ],
+  },
+  {
+    rule: RangeRule,
+    aliases: [
+      { name: 'min', defaultMessage: `\${$displayName} should be at least \${$rule.min}.` },
+      { name: 'max', defaultMessage: `\${$displayName} should be at most \${$rule.max}.` },
+      { name: 'range', defaultMessage: `\${$displayName} should be between or equal to \${$rule.min} and \${$rule.max}.` },
+      { name: 'between', defaultMessage: `\${$displayName} should be between but not equal to \${$rule.min} and \${$rule.max}.` },
+    ],
+  },
+  // ...
+];
+
+Aurelia
+  .register(
+    ValidationConfiguration
+      .customize((options) => {
+        options.CustomMessages = customMessages;
+      })
+  )
+  .app(component)
+  .start();
+```
+
+{% endtab %}
+{% endtabs %}
+
+You are encouraged to play with the following demo; define more rules, change the custom messages, etc. to see it in action.
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=27399da21435c959a5e4229de5c383b4&open=src%2Fmain.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
+
+Following is the complete list of default messages for the out of the box validation rules.
+
+* `RequiredRule`
+
+  | Alias    | Message template              |
+  | -------- | ----------------------------- |
+  | required | `${$displayName} is invalid.` |
+
+* `RegexRule`
+
+  | Alias   | Message template                              |
+  | ------- | --------------------------------------------- |
+  | matches | `${$displayName} is not correctly formatted.` |
+  | email   | `${$displayName} is not a valid email.`       |
+
+* `LengthRule`
+
+  | Alias     | Message template                                                                                   |
+  | --------- | -------------------------------------------------------------------------------------------------- |
+  | minLength | `${$displayName} must be at least ${$rule.length} character${$rule.length === 1 ? '' : 's'}.`      |
+  | maxLength | `${$displayName} cannot be longer than ${$rule.length} character${$rule.length === 1 ? '' : 's'}.` |
+
+* `SizeRule`
+
+  | Alias    | Message template                                                                               |
+  | -------- | ---------------------------------------------------------------------------------------------- |
+  | minItems | `${$displayName} must contain at least ${$rule.count} item${$rule.count === 1 ? '' : 's'}.`    |
+  | maxItems | `${$displayName} cannot contain more than ${$rule.count} item${$rule.count === 1 ? '' : 's'}.` |
+
+* `RangeRule`
+
+  | Alias   | Message template                                                                  |
+  | ------- | --------------------------------------------------------------------------------- |
+  | min     | `${$displayName} must be at least ${$rule.min}.`                                  |
+  | max     | `${$displayName} must be at most ${$rule.max}.`                                   |
+  | range   | `${$displayName} must be between or equal to ${$rule.min} and ${$rule.max}.`      |
+  | between | `${$displayName} must be between but not equal to ${$rule.min} and ${$rule.max}.` |
+
+* `EqualsRule`
+
+  | Alias  | Message template                                  |
+  | ------ | ------------------------------------------------- |
+  | equals | `${$displayName} must be ${$rule.expectedValue}.` |
+
+Note that a new key can also be added to any out of the box rule, and can be referred from the code using `withMessageKey`.
+
+{% tabs %}
+{% tab title="main.ts" %}
+
+```typescript
+import { ValidationConfiguration } from '@aurelia/validation';
+import Aurelia from 'aurelia';
+
+const customMessages: ICustomMessage[] = [
+  {
+    rule: RequiredRule,
+    aliases: [
+      { name: 'foobar', defaultMessage: `\${$displayName} is required in foo bar.` }
+    ],
+  }
+];
+
+Aurelia
+  .register(
+    ValidationConfiguration
+      .customize((options) => {
+        options.CustomMessages = customMessages;
+      })
+  )
+  .app(component)
+  .start();
+```
+
+{% endtab %}
+{% tab title="awesome-component.ts" %}
+
+```typescript
+// ...
+validationRules
+  .on(person)
+  .ensure('name')
+  .required()
+  .withMessageKey('foobar');
+// ...
+```
+
+{% endtab %}
+{% endtabs %}
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=115bdc1fd460f1469f5500da03064235&open=src%2Fmain.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
+
+TODO: messages for custom rule
+
 * conditional
 * sequencing
 
+## Tagging rules
 
 ## Migration Guide and Breaking Changes
 * Transient `IValidationRules`

@@ -1286,6 +1286,430 @@ describe(RouteRecognizer.name, function () {
       ],
     },
     // #endregion
+    {
+      routes: [
+        ':1?',
+      ],
+      tests: [
+        ['',    ':1?', { 1: void 0 }],
+        ['a',   ':1?', { 1: 'a' }],
+        ['aa',  ':1?', { 1: 'aa' }],
+        ['aaa', ':1?', { 1: 'aaa' }],
+        ['a/a', null,  null],
+      ],
+    },
+    // #region 2-depth optional dynamic routes
+    // d/s
+    {
+      routes: [
+        ':1?/a',
+        'a/a',
+      ],
+      tests: [
+        ['',      null,    null],
+        ['a',     ':1?/a', { 1: void 0 }],
+        ['aa',    null,    null],
+        ['aaa',   null,    null],
+        ['a/a',   'a/a',   null],
+        ['a/aa',  null,    null],
+        ['aa/a',  ':1?/a', { 1: 'aa' }],
+        ['aa/aa', null,    null],
+        ['a/a/a', null,    null],
+      ],
+    },
+    {
+      routes: [
+        ':1?/a',
+        'a/a',
+        'aa/a',
+      ],
+      tests: [
+        ['',      null,    null],
+        ['a',     ':1?/a', { 1: void 0 }],
+        ['aa',    null,    null],
+        ['aaa',   null,    null],
+        ['a/a',   'a/a',   null],
+        ['a/aa',  null,    null],
+        ['aa/a',  'aa/a',  null],
+        ['aaa/a', ':1?/a', { 1: 'aaa' }],
+        ['aa/aa', null,    null],
+        ['a/a/a', null,    null],
+      ],
+    },
+    // s/d
+    {
+      routes: [
+        'a/:2?',
+        'a/a',
+      ],
+      tests: [
+        ['',      null,    null],
+        ['a',     'a/:2?', { 2: void 0 }],
+        ['aa',    null,    null],
+        ['aaa',   null,    null],
+        ['a/a',   'a/a',   null],
+        ['a/aa',  'a/:2?', { 2: 'aa' }],
+        ['aa/a',  null,    null],
+        ['aa/aa', null,    null],
+        ['a/a/a', null,    null],
+      ],
+    },
+    {
+      routes: [
+        'a/:2?',
+        'a/a',
+        'a/aa',
+      ],
+      tests: [
+        ['',      null,    null],
+        ['a',     'a/:2?', { 2: void 0 }],
+        ['aa',    null,    null],
+        ['aaa',   null,    null],
+        ['a/a',   'a/a',   null],
+        ['a/aa',  'a/aa',  null],
+        ['a/aaa', 'a/:2?', { 2: 'aaa' }],
+        ['aa/a',  null,    null],
+        ['aa/aa', null,    null],
+        ['a/a/a', null,    null],
+      ],
+    },
+    // d/s + s/d
+    {
+      routes: [
+        ':1?/a',
+        'a/:2?',
+        'a/a',
+      ],
+      tests: [
+        ['',      null,    null],
+        ['a',     'a/:2?', { 2: void 0 }],
+        ['aa',    null,    null],
+        ['aaa',   null,    null],
+        ['a/a',   'a/a',   null],
+        ['a/aa',  'a/:2?', { 2: 'aa' }],
+        ['aa/a',  ':1?/a', { 1: 'aa' }],
+        ['a/a/a', null,    null],
+      ],
+    },
+    {
+      routes: [
+        ':1?/a',
+        'a/:2?',
+        'a/a',
+        'aa/a',
+      ],
+      tests: [
+        ['',      null,    null],
+        ['a',     'a/:2?', { 2: void 0 }],
+        ['aa',    null,    null],
+        ['aaa',   null,    null],
+        ['a/a',   'a/a',   null],
+        ['a/aa',  'a/:2?', { 2: 'aa' }],
+        ['aa/a',  'aa/a',  null],
+        ['aaa/a', ':1?/a', { 1: 'aaa' }],
+        ['a/a/a', null,    null],
+      ],
+    },
+    {
+      routes: [
+        ':1?/a',
+        'a/:2?',
+        'a/a',
+        'a/aa',
+      ],
+      tests: [
+        ['',      null,    null],
+        ['a',     'a/:2?', { 2: void 0 }],
+        ['aa',    null,    null],
+        ['aaa',   null,    null],
+        ['a/a',   'a/a',   null],
+        ['a/aa',  'a/aa',  null],
+        ['a/aaa', 'a/:2?', { 2: 'aaa' }],
+        ['aa/a',  ':1?/a', { 1: 'aa' }],
+        ['a/a/a', null,    null],
+      ],
+    },
+    {
+      routes: [
+        ':1?/a',
+        'a/:2?',
+        'a/a',
+        'a/aa',
+        'aa/a',
+      ],
+      tests: [
+        ['',      null,    null],
+        ['a',     'a/:2?', { 2: void 0 }],
+        ['aa',    null,    null],
+        ['aaa',   null,    null],
+        ['a/a',   'a/a',   null],
+        ['a/aa',  'a/aa',  null],
+        ['a/aaa', 'a/:2?', { 2: 'aaa' }],
+        ['aa/a',  'aa/a',  null],
+        ['aaa/a', ':1?/a', { 1: 'aaa' }],
+        ['a/a/a', null,    null],
+      ],
+    },
+    // d/d + d/s + s/s
+    {
+      routes: [
+        ':1?/:2?',
+        ':1?/a',
+        'a/a',
+      ],
+      tests: [
+        ['',      ':1?/:2?', { 1: void 0, 2: void 0 }],
+        ['a',     ':1?/a',   { 1: void 0 }],
+        ['aa',    null,      null],
+        ['aaa',   null,      null],
+        ['a/a',   'a/a',     null],
+        ['a/aa',  ':1?/:2?', { 1: 'a', 2: 'aa' }],
+        ['aa/a',  ':1?/a',   { 1: 'aa' }],
+        ['aa/aa', ':1?/:2?', { 1: 'aa', 2: 'aa' }],
+        ['a/a/a', null,      null],
+      ],
+    },
+    // d/d + d/s*2 + s/s
+    {
+      routes: [
+        ':1?/:2?',
+        ':1?/a',
+        ':1?/aa',
+        'a/a',
+      ],
+      tests: [
+        ['',       ':1?/:2?', { 1: void 0, 2: void 0 }],
+        ['a',      ':1?/a',   { 1: void 0 }],
+        ['aa',     ':1?/aa',  { 1: void 0 }],
+        ['aaa',    null,      null],
+        ['a/a',    'a/a',     null],
+        ['a/aa',   ':1?/aa',  { 1: 'a' }],
+        ['a/aaa',  ':1?/:2?', { 1: 'a', 2: 'aaa' }],
+        ['aa/a',   ':1?/a',   { 1: 'aa' }],
+        ['aa/aa',  ':1?/aa',  { 1: 'aa' }],
+        ['aa/aaa', ':1?/:2?', { 1: 'aa', 2: 'aaa' }],
+        ['a/a/a',  null,      null],
+      ],
+    },
+    // d/d + d/s + s/s*2
+    {
+      routes: [
+        ':1?/:2?',
+        ':1?/a',
+        'a/a',
+        'aa/a',
+      ],
+      tests: [
+        ['',      ':1?/:2?', { 1: void 0, 2: void 0 }],
+        ['a',     ':1?/a',   { 1: void 0 }],
+        ['aa',    null,      null],
+        ['aaa',   null,      null],
+        ['a/a',   'a/a',     null],
+        ['a/aa',  ':1?/:2?', { 1: 'a', 2: 'aa' }],
+        ['aa/a',  'aa/a',    null],
+        ['aaa/a', ':1?/a',   { 1: 'aaa' }],
+        ['aa/aa', ':1?/:2?', { 1: 'aa', 2: 'aa' }],
+        ['a/a/a', null,      null],
+      ],
+    },
+    // d/d + d/s*2 + s/s*2
+    {
+      routes: [
+        ':1?/:2?',
+        ':1?/a',
+        ':1?/aa',
+        'a/a',
+        'aa/a',
+      ],
+      tests: [
+        ['',       ':1?/:2?', { 1: void 0, 2: void 0 }],
+        ['a',      ':1?/a',   { 1: void 0 }],
+        ['aa',     ':1?/aa',  { 1: void 0 }],
+        ['aaa',    null,      null],
+        ['a/a',    'a/a',     null],
+        ['a/aa',   ':1?/aa',  { 1: 'a' }],
+        ['a/aaa',  ':1?/:2?', { 1: 'a', 2: 'aaa' }],
+        ['aa/a',   'aa/a',    null],
+        ['aaa/a',  ':1?/a',   { 1: 'aaa' }],
+        ['aa/aa',  ':1?/aa',  { 1: 'aa' }],
+        ['aa/aaa', ':1?/:2?', { 1: 'aa', 2: 'aaa' }],
+        ['a/a/a',  null,      null],
+      ],
+    },
+    // d/d + s/d + s/s
+    {
+      routes: [
+        ':1?/:2?',
+        'a/:2?',
+        'a/a',
+      ],
+      tests: [
+        ['',      ':1?/:2?', { 1: void 0, 2: void 0 }],
+        ['a',     'a/:2?',   { 2: void 0 }],
+        ['aa',    null,      null],
+        ['aaa',   null,      null],
+        ['a/a',   'a/a',     null],
+        ['a/aa',  'a/:2?',   { 2: 'aa' }],
+        ['aa/a',  ':1?/:2?', { 1: 'aa', 2: 'a' }],
+        ['aa/aa', ':1?/:2?', { 1: 'aa', 2: 'aa' }],
+        ['a/a/a', null,      null],
+      ],
+    },
+    // d/d + s/d*2 + s/s
+    {
+      routes: [
+        ':1?/:2?',
+        'a/:2?',
+        'aa/:2?',
+        'a/a',
+      ],
+      tests: [
+        ['',       ':1?/:2?', { 1: void 0, 2: void 0 }],
+        ['a',      'a/:2?',   { 2: void 0 }],
+        ['aa',     'aa/:2?',  { 2: void 0 }],
+        ['aaa',    null,      null],
+        ['a/a',    'a/a',     null],
+        ['a/aa',   'a/:2?',   { 2: 'aa' }],
+        ['aa/a',   'aa/:2?',  { 2: 'a' }],
+        ['aa/aa',  'aa/:2?',  { 2: 'aa' }],
+        ['aaa/aa', ':1?/:2?', { 1: 'aaa', 2: 'aa' }],
+        ['a/a/a',  null,      null],
+      ],
+    },
+    // d/d + s/d + s/s*2
+    {
+      routes: [
+        ':1?/:2?',
+        'a/:2?',
+        'a/a',
+        'a/aa',
+      ],
+      tests: [
+        ['',      ':1?/:2?', { 1: void 0, 2: void 0 }],
+        ['a',     'a/:2?',   { 2: void 0 }],
+        ['aa',    null,      null],
+        ['aaa',   null,      null],
+        ['a/a',   'a/a',     null],
+        ['a/aa',  'a/aa',    null],
+        ['a/aaa', 'a/:2?',   { 2: 'aaa' }],
+        ['aa/a',  ':1?/:2?', { 1: 'aa', 2: 'a' }],
+        ['aa/aa', ':1?/:2?', { 1: 'aa', 2: 'aa' }],
+        ['a/a/a', null,      null],
+      ],
+    },
+    // d/d + s/d*2 + s/s*2
+    {
+      routes: [
+        ':1?/:2?',
+        'a/:2?',
+        'aa/:2?',
+        'a/a',
+        'a/aa',
+      ],
+      tests: [
+        ['',       ':1?/:2?', { 1: void 0, 2: void 0 }],
+        ['a',      'a/:2?',   { 2: void 0 }],
+        ['aa',     'aa/:2?',  { 2: void 0 }],
+        ['aaa',    null,      null],
+        ['a/a',    'a/a',     null],
+        ['a/aa',   'a/aa',    null],
+        ['a/aaa',  'a/:2?',   { 2: 'aaa' }],
+        ['aa/a',   'aa/:2?',  { 2: 'a' }],
+        ['aa/aa',  'aa/:2?',  { 2: 'aa' }],
+        ['aaa/aa', ':1?/:2?', { 1: 'aaa', 2: 'aa' }],
+        ['a/a/a',  null,      null],
+      ],
+    },
+    // d/d + d/s + s/d + s/s
+    {
+      routes: [
+        ':1?/:2?',
+        ':1?/a',
+        'a/:2?',
+        'a/a',
+      ],
+      tests: [
+        ['',      ':1?/:2?', { 1: void 0, 2: void 0 }],
+        ['a',     'a/:2?',   { 2: void 0 }],
+        ['aa',    null,      null],
+        ['aaa',   null,      null],
+        ['a/a',   'a/a',     null],
+        ['a/aa',  'a/:2?',   { 2: 'aa' }],
+        ['aa/a',  ':1?/a',   { 1: 'aa' }],
+        ['aa/aa', ':1?/:2?', { 1: 'aa', 2: 'aa' }],
+        ['a/a/a', null,      null],
+      ],
+    },
+    // d/d + d/s*2 + s/d + s/s
+    {
+      routes: [
+        ':1?/:2?',
+        ':1?/a',
+        ':1?/aa',
+        'a/:2?',
+        'a/a',
+      ],
+      tests: [
+        ['',       ':1?/:2?', { 1: void 0, 2: void 0 }],
+        ['a',      'a/:2?',   { 2: void 0 }],
+        ['aa',     ':1?/aa',  { 1: void 0 }],
+        ['aaa',    null,      null],
+        ['a/a',    'a/a',     null],
+        ['a/aa',   'a/:2?',   { 2: 'aa' }],
+        ['aa/a',   ':1?/a',   { 1: 'aa' }],
+        ['aa/aa',  ':1?/aa',  { 1: 'aa' }],
+        ['aa/aaa', ':1?/:2?', { 1: 'aa', 2: 'aaa' }],
+        ['a/a/a',  null,      null],
+      ],
+    },
+    // d/d + d/s + s/d*2 + s/s
+    {
+      routes: [
+        ':1?/:2?',
+        ':1?/a',
+        'a/:2?',
+        'aa/:2?',
+        'a/a',
+      ],
+      tests: [
+        ['',       ':1?/:2?', { 1: void 0, 2: void 0 }],
+        ['a',      'a/:2?',   { 2: void 0 }],
+        ['aa',     'aa/:2?',  { 2: void 0 }],
+        ['aaa',    null,      null],
+        ['a/a',    'a/a',     null],
+        ['a/aa',   'a/:2?',   { 2: 'aa' }],
+        ['aa/a',   'aa/:2?',  { 2: 'a' }],
+        ['aa/aa',  'aa/:2?',  { 2: 'aa' }],
+        ['aaa/aa', ':1?/:2?', { 1: 'aaa', 2: 'aa' }],
+        ['a/a/a',  null,      null],
+      ],
+    },
+    // d/d + d/s*2 + s/d*2 + s/s
+    {
+      routes: [
+        ':1?/:2?',
+        ':1?/a',
+        ':1?/aa',
+        'a/:2?',
+        'aa/:2?',
+        'a/a',
+      ],
+      tests: [
+        ['',        ':1?/:2?', { 1: void 0, 2: void 0 }],
+        ['a',       'a/:2?',   { 2: void 0 }],
+        ['aa',      'aa/:2?',  { 2: void 0 }],
+        ['aaa',     null,      null],
+        ['a/a',     'a/a',     null],
+        ['a/aa',    'a/:2?',   { 2: 'aa' }],
+        ['aa/a',    'aa/:2?',  { 2: 'a' }],
+        ['aa/aa',   'aa/:2?',  { 2: 'aa' }],
+        ['aa/aaa',  'aa/:2?',  { 2: 'aaa' }],
+        ['aaa/aa',  ':1?/aa',  { 1: 'aaa' }],
+        ['aaa/aaa', ':1?/:2?', { 1: 'aaa', 2: 'aaa' }],
+        ['a/a/a',   null,      null],
+      ],
+    },
+    // #endregion
     // #region 1-depth star routes
     {
       routes: [
@@ -2143,31 +2567,31 @@ describe(RouteRecognizer.name, function () {
       ],
     },
     // #endregion
-    // {
-    //   routes: [
-    //     '/a/b/c/d',
-    //     '/a/b/c/:d',
-    //     '/a/b/:c/:d',
-    //     '/a/:b/:c/:d',
-    //     '/a/b/:c/d',
-    //     '/a/:b/:c/d',
-    //     '/a/:b/c/d',
-    //     '/a/:b/c/:d',
-    //   ],
-    //   tests: [
-    //     ['a/b/c/d',    '/a/b/c/d',    {}                           ],
-    //     ['a/b/c/c',    '/a/b/c/:d',   { d: 'c' }                   ],
-    //     ['a/b/b/d',    '/a/b/:c/d',   { c: 'b' }                   ],
-    //     ['a/a/c/d',    '/a/:b/c/d',   { b: 'a' }                   ],
-    //     ['a/b/c/dd',   '/a/b/c/:d',   { d: 'dd' }                  ],
-    //     ['a/b/cc/d',   '/a/b/:c/d',   { c: 'cc' }                  ],
-    //     ['a/bb/c/d',   '/a/:b/c/d',   { b: 'bb' }                  ],
-    //     ['a/bb/cc/d',  '/a/:b/:c/d',  { b: 'bb', c: 'cc' }         ],
-    //     ['a/bb/c/dd',  '/a/:b/c/:d',  { b: 'bb', d: 'dd' }         ],
-    //     ['a/b/cc/dd',  '/a/b/:c/:d',  { c: 'cc', d: 'dd' }         ],
-    //     ['a/bb/cc/dd', '/a/:b/:c/:d', { b: 'bb', c: 'cc', d: 'dd' }],
-    //   ],
-    // },
+    {
+      routes: [
+        '/a/b/c/d',
+        '/a/b/c/:d',
+        '/a/b/:c/:d',
+        '/a/:b/:c/:d',
+        '/a/b/:c/d',
+        '/a/:b/:c/d',
+        '/a/:b/c/d',
+        '/a/:b/c/:d',
+      ],
+      tests: [
+        ['a/b/c/d',    '/a/b/c/d',    {}                           ],
+        ['a/b/c/c',    '/a/b/c/:d',   { d: 'c' }                   ],
+        ['a/b/b/d',    '/a/b/:c/d',   { c: 'b' }                   ],
+        ['a/a/c/d',    '/a/:b/c/d',   { b: 'a' }                   ],
+        ['a/b/c/dd',   '/a/b/c/:d',   { d: 'dd' }                  ],
+        ['a/b/cc/d',   '/a/b/:c/d',   { c: 'cc' }                  ],
+        ['a/bb/c/d',   '/a/:b/c/d',   { b: 'bb' }                  ],
+        ['a/bb/cc/d',  '/a/:b/:c/d',  { b: 'bb', c: 'cc' }         ],
+        ['a/bb/c/dd',  '/a/:b/c/:d',  { b: 'bb', d: 'dd' }         ],
+        ['a/b/cc/dd',  '/a/b/:c/:d',  { c: 'cc', d: 'dd' }         ],
+        ['a/bb/cc/dd', '/a/:b/:c/:d', { b: 'bb', c: 'cc', d: 'dd' }],
+      ],
+    },
   ];
 
   for (const hasLeadingSlash of [true, false]) {
@@ -2208,11 +2632,11 @@ describe(RouteRecognizer.name, function () {
                     sut.add({ path: route, handler: null });
                   }
 
-                  const params = $params ?? {};
+                  const params = { ...$params };
                   const paramNames = Object.keys(params);
+                  const isDynamic = paramNames.length > 0;
                   const configurableRoute = new ConfigurableRoute(match, false, null);
                   const endpoint = new Endpoint(configurableRoute, paramNames);
-                  const isDynamic = paramNames.length > 0;
                   const expected = new RecognizedRoute(endpoint, params, queryParams, isDynamic, queryString);
 
                   // Act

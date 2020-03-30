@@ -2,24 +2,11 @@ import { ConfigurableRoute, Endpoint, RecognizedRoute, RouteRecognizer } from '@
 import { assert } from '@aurelia/testing';
 
 describe(RouteRecognizer.name, function () {
-  interface QuerySpec {
-    keyValuePairs: [string, string][];
-    queryParams: Record<string, string>;
-    queryString: string;
-  }
 
   interface RecognizeSpec {
     routes: string[];
     tests: [string, string | null, Record<string, string> | null][];
   }
-
-  const querySpecs: QuerySpec[] = [
-    {
-      keyValuePairs: [],
-      queryParams: {},
-      queryString: ''
-    },
-  ];
 
   const recognizeSpecs: RecognizeSpec[] = [
     // #region 1-depth static routes
@@ -2716,73 +2703,86 @@ describe(RouteRecognizer.name, function () {
                 assert.strictEqual(actual, null);
               });
             } else {
-              for (const { keyValuePairs, queryString, queryParams } of querySpecs) {
-                const query = keyValuePairs.length > 0
-                  ? `?${keyValuePairs.map(pair => pair.join('=')).join('&')}`
-                  : '';
-                const input = `${leading}${path}${trailing}${query}`;
-                title = `${title} recognize '${input}' as '${match}' out of routes: [${routes.map(x => `'${x}'`).join(',')}]`;
+              const input = `${leading}${path}${trailing}`;
+              title = `${title} recognize '${input}' as '${match}' out of routes: [${routes.map(x => `'${x}'`).join(',')}]`;
 
-                it(title, function () {
-                  // Arrange
-                  const sut = new RouteRecognizer();
-                  for (const route of routes) {
-                    sut.add({ path: route, handler: null });
-                  }
+              it(title, function () {
+                // Arrange
+                const sut = new RouteRecognizer();
+                for (const route of routes) {
+                  sut.add({ path: route, handler: null });
+                }
 
-                  const params = { ...$params };
-                  const paramNames = Object.keys(params);
-                  const isDynamic = paramNames.length > 0;
-                  const configurableRoute = new ConfigurableRoute(match, false, null);
-                  const endpoint = new Endpoint(configurableRoute, paramNames);
-                  const expected = new RecognizedRoute(endpoint, params, queryParams, isDynamic, queryString);
+                const params = { ...$params };
+                const paramNames = Object.keys(params);
+                const isDynamic = paramNames.length > 0;
+                const configurableRoute = new ConfigurableRoute(match, false, null);
+                const endpoint = new Endpoint(configurableRoute, paramNames);
+                const expected = new RecognizedRoute(endpoint, params, {}, isDynamic, '');
 
-                  // Act
-                  const actual1 = sut.recognize(path);
-                  const actual2 = sut.recognize(path);
+                // Act
+                const actual1 = sut.recognize(path);
+                const actual2 = sut.recognize(path);
 
-                  // Assert
-                  assert.deepStrictEqual(actual1, actual2, `consecutive calls should return the same result`);
-                  assert.deepStrictEqual(actual1, expected);
-                });
-              }
+                // Assert
+                assert.deepStrictEqual(actual1, actual2, `consecutive calls should return the same result`);
+                assert.deepStrictEqual(actual1, expected);
+              });
             }
           }
         }
       }
     }
   }
+
+  const querySpecs = [
+    ['',                                          { }],
+    ['=',                                         { }],
+    ['&',                                         { }],
+    ['?',                                         { }],
+    ['a',                                         { a: true }],
+    ['a&b',                                       { a: true, b: true }],
+    ['a=',                                        { a: '' }],
+    ['a=&b=',                                     { a: '', b: '' }],
+    ['a=b',                                       { a: 'b' }],
+    ['a=b&c=d',                                   { a: 'b', c: 'd' }],
+    ['a=b&&c=d',                                  { a: 'b', c: 'd' }],
+    ['a=b&a=c',                                   { a: ['b', 'c'] }],
+    ['a=b&c=d=',                                  { a: 'b', c: 'd' }],
+    ['a=b&c=d==',                                 { a: 'b', c: 'd' }],
+    ['a=%26',                                     { a: '&' }],
+    ['%26=a',                                     { '&': 'a' }],
+    ['%26[]=b&%26[]=c',                           { '&': ['b', 'c'] }],
+    ['a[b]=c&a[d]=e',                             { a: { b: 'c', d: 'e' } }],
+    ['a[b][c][d]=e',                              { a: { b: { c: { d: 'e' } } } }],
+    ['a[b][]=c&a[b][]=d&a[b][2][]=f&a[b][2][]=g', { a: { b: ['c', 'd', ['f', 'g']] } }],
+    ['a[0]=b',                                    { a: ['b'] }],
+  ] as [string, {}][];
+
+  for (const hasLeadingSlash of [true, false]) {
+    for (const hasTrailingSlash of [true, false]) {
+      for (const [queryString, query] of querySpecs) {
+        const leading = hasLeadingSlash ? '/' : '';
+        const trailing = hasTrailingSlash ? '/' : '';
+        const input = `${leading}a${trailing}?${queryString}`;
+
+        it(`correctly parses queryString from ${input}`, function () {
+          // Arrange
+          const sut = new RouteRecognizer();
+
+          sut.add({ path: 'a', handler: null });
+
+          const configurableRoute = new ConfigurableRoute('a', false, null);
+          const endpoint = new Endpoint(configurableRoute, []);
+          const expected = new RecognizedRoute(endpoint, {}, query, false, queryString);
+
+          // Act
+          const actual = sut.recognize(input);
+
+          // Assert
+          assert.deepStrictEqual(actual, expected);
+        });
+      }
+    }
+  }
 });
-
-// describe('query strings', function () {
-//   it('should parse query strings', function () {
-//     const parse = parseQueryString;
-
-//     assert.deepStrictEqual(parse(''), {}, `parse('')`);
-//     assert.deepStrictEqual(parse('='), {}, `parse('=')`);
-//     assert.deepStrictEqual(parse('&'), {}, `parse('&')`);
-//     assert.deepStrictEqual(parse('?'), {}, `parse('?')`);
-
-//     assert.deepStrictEqual(parse('a'), { 1: true }, `parse('a')`);
-//     assert.deepStrictEqual(parse('a&b'), { 1: true, b: true }, `parse('a&b')`);
-//     assert.deepStrictEqual(parse('a='), { 1: '' }, `parse('a=')`);
-//     assert.deepStrictEqual(parse('a=&b='), { 1: '', b: '' }, `parse('a=&b=')`);
-
-//     assert.deepStrictEqual(parse('a=b'), { 1: 'b' }, `parse('a=b')`);
-//     assert.deepStrictEqual(parse('a=b&c=d'), { 1: 'b', c: 'd' }, `parse('a=b&c=d')`);
-//     assert.deepStrictEqual(parse('a=b&&c=d'), { 1: 'b', c: 'd' }, `parse('a=b&&c=d')`);
-//     assert.deepStrictEqual(parse('a=b&a=c'), { 1: ['b', 'c'] }, `parse('a=b&a=c')`);
-
-//     assert.deepStrictEqual(parse('a=b&c=d='), { 1: 'b', c: 'd' }, `parse('a=b&c=d=')`);
-//     assert.deepStrictEqual(parse('a=b&c=d=='), { 1: 'b', c: 'd' }, `parse('a=b&c=d==')`);
-
-//     assert.deepStrictEqual(parse('a=%26'), { 1: '&' }, `parse('a=%26')`);
-//     assert.deepStrictEqual(parse('%26=a'), { '&': 'a' }, `parse('%26=a')`);
-//     assert.deepStrictEqual(parse('%26[]=b&%26[]=c'), { '&': ['b', 'c'] }, `parse('%26[]=b&%26[]=c')`);
-
-//     assert.deepStrictEqual(parse('a[b]=c&a[d]=e'), {1: {b: 'c', d: 'e'}}, `parse('a[b]=c&a[d]=e')`);
-//     assert.deepStrictEqual(parse('a[b][c][d]=e'), {1: {b: {c: {d: 'e'}}}}, `parse('a[b][c][d]=e')`);
-//     assert.deepStrictEqual(parse('a[b][]=c&a[b][]=d&a[b][2][]=f&a[b][2][]=g'), {1: {b: ['c', 'd', ['f', 'g']]}}, `parse('a[b][]=c&a[b][]=d&a[b][2][]=f&a[b][2][]=g')`);
-//     assert.deepStrictEqual(parse('a[0]=b'), {1: ['b']}, `parse('a[0]=b')`);
-//   });
-// });

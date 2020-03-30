@@ -419,7 +419,7 @@ export class RouteRecognizer<T> {
       params,
       queryParams,
       isDynamic,
-      '',
+      queryString,
     );
   }
 }

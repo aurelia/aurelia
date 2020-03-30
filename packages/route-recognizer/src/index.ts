@@ -40,6 +40,7 @@ class StateChain<T> {
   public constructor(
     private readonly chars: string[],
     private readonly states: AnyState<T>[],
+    private readonly skippedStates: DynamicSegmentState<T>[],
     private readonly result: RecognizeResult<T>,
   ) {
     this.head = states[states.length - 1];
@@ -47,37 +48,53 @@ class StateChain<T> {
   }
 
   public advance(ch: string): void {
-    const { chars, states, result } = this;
+    const { chars, states, skippedStates, result } = this;
     let stateToAdd: AnyState<T> | null = null;
 
     let matchCount = 0;
     const state = states[states.length - 1];
 
-    function $process(nextState: AnyState<T>): void {
+    function $process(
+      nextState: AnyState<T>,
+      skippedState: DynamicSegmentState<T> | null,
+    ): void {
       if (nextState.isMatch(ch)) {
         if (++matchCount === 1) {
           stateToAdd = nextState;
         } else {
-          result.add(new StateChain(chars.concat(ch), states.concat(nextState), result));
+          result.add(
+            new StateChain(
+              chars.concat(ch),
+              states.concat(nextState),
+              skippedState === null ? skippedStates : skippedStates.concat(skippedState),
+              result,
+            ),
+          );
         }
       }
 
-      if (nextState.isOptional && nextState.nextStates !== null) {
+      if (state.segment === null && nextState.isOptional && nextState.nextStates !== null) {
+        if (nextState.nextStates.length > 1) {
+          throw new Error(`${nextState.nextStates.length} nextStates`);
+        }
         const separator = nextState.nextStates[0];
+        if (!separator.isSeparator) {
+          throw new Error(`Not a separator`);
+        }
         if (separator.nextStates !== null) {
           for (const $nextState of separator.nextStates) {
-            $process($nextState);
+            $process($nextState, nextState);
           }
         }
       }
     }
 
     if (state.isDynamic) {
-      $process(state);
+      $process(state, null);
     }
     if (state.nextStates !== null) {
       for (const nextState of state.nextStates) {
-        $process(nextState);
+        $process(nextState, null);
       }
     }
 
@@ -92,6 +109,33 @@ class StateChain<T> {
     if (matchCount === 0) {
       result.remove(this);
     }
+  }
+
+  public finalize(): void {
+    function collectSkippedStates(
+      skippedStates: DynamicSegmentState<T>[],
+      state: AnyState<T>,
+    ): void {
+      const nextStates = state.nextStates;
+      if (nextStates !== null) {
+        if (nextStates.length === 1 && nextStates[0].segment === null) {
+          collectSkippedStates(skippedStates, nextStates[0]);
+        } else {
+          for (const nextState of nextStates) {
+            if (nextState.isOptional && nextState.endpoint !== null) {
+              skippedStates.push(nextState);
+              if (nextState.nextStates !== null) {
+                for (const $nextState of nextState.nextStates) {
+                  collectSkippedStates(skippedStates, $nextState);
+                }
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
+    collectSkippedStates(this.skippedStates, this.head);
   }
 
   public getParams(): Record<string, string | undefined> {
@@ -117,6 +161,113 @@ class StateChain<T> {
 
     return params;
   }
+
+  /**
+   * Compares this chain to another chain to determine the correct sorting order.
+   *
+   * This algorithm is different from `sortSolutions` in v1's route-recognizer in that it compares
+   * the solutions segment-by-segment, rather than merely comparing the cumulative of segment types
+   *
+   * This resolves v1's ambiguity in situations like `/foo/:id/bar` vs. `/foo/bar/:id`, which had the
+   * same sorting value because they both consist of two static segments and one dynamic segment.
+   *
+   * With this algorithm, `/foo/bar/:id` would always be sorted first because the second segment is different,
+   * and static wins over dynamic.
+   *
+   * ### NOTE
+   * This algorithm violates some of the invariants of v1's algorithm,
+   * but those invariants were arguably not very sound to begin with. Example:
+   *
+   * `/foo/*path/bar/baz` vs. `/foo/bar/*path1/*path2`
+   * - in v1, the first would win because that match has fewer stars
+   * - in v2, the second will win because there is a bigger static match at the start of the pattern
+   *
+   * The algorithm should be more logical and easier to reason about in v2, but it's important to be aware of
+   * subtle difference like this which might surprise some users who happened to rely on this behavior from v1,
+   * intentionally or unintentionally.
+   *
+   * @param b - The chain to compare this to.
+   * Parameter name is `b` because the method should be used like so: `states.sort((a, b) => a.compareTo(b))`.
+   * This will bring the chain with the highest score to the first position of the array.
+   */
+  public compareTo(b: StateChain<T>): -1 | 1 | 0 {
+    const statesA = this.states;
+    const statesB = b.states;
+
+    for (let iA = 0, iB = 0, ii = Math.max(statesA.length, statesB.length); iA < ii; ++iA) {
+      let stateA = statesA[iA];
+      if (stateA === void 0) {
+        return 1;
+      }
+
+      let stateB = statesB[iB];
+      if (stateB === void 0) {
+        return -1;
+      }
+
+      let segmentA = stateA.segment;
+      let segmentB = stateB.segment;
+      if (segmentA === null) {
+        if (segmentB === null) {
+          ++iB;
+          continue;
+        }
+
+        if ((stateA = statesA[++iA]) === void 0) {
+          return 1;
+        }
+
+        segmentA = stateA.segment!;
+      } else if (segmentB === null) {
+        if ((stateB = statesB[++iB]) === void 0) {
+          return -1;
+        }
+
+        segmentB = stateB.segment!;
+      }
+
+      if (segmentA.kind < segmentB.kind) {
+        return 1;
+      }
+
+      if (segmentA.kind > segmentB.kind) {
+        return -1;
+      }
+
+      ++iB;
+    }
+
+    const skippedStatesA = this.skippedStates;
+    const skippedStatesB = b.skippedStates;
+
+    const skippedStatesALen = skippedStatesA.length;
+    const skippedStatesBLen = skippedStatesB.length;
+
+    if (skippedStatesALen < skippedStatesBLen) {
+      return 1;
+    }
+
+    if (skippedStatesALen > skippedStatesBLen) {
+      return -1;
+    }
+
+    for (let i = 0; i < skippedStatesALen; ++i) {
+      const skippedStateA = skippedStatesA[i];
+      const skippedStateB = skippedStatesB[i];
+
+      if (skippedStateA.length < skippedStateB.length) {
+        return 1;
+      }
+
+      if (skippedStateA.length > skippedStateB.length) {
+        return -1;
+      }
+    }
+
+    // This should only be possible with a single pattern with multiple consecutive star segments.
+    // TODO: probably want to warn or even throw here, but leave it be for now.
+    return 0;
+  }
 }
 
 function hasEndpoint<T>(chain: StateChain<T>): boolean {
@@ -124,7 +275,7 @@ function hasEndpoint<T>(chain: StateChain<T>): boolean {
 }
 
 function compareChains<T>(a: StateChain<T>, b: StateChain<T>): -1 | 1 | 0 {
-  return a.head.compareTo(b.head);
+  return a.compareTo(b);
 }
 
 class RecognizeResult<T> {
@@ -137,13 +288,17 @@ class RecognizeResult<T> {
   public constructor(
     rootState: SeparatorState<T>,
   ) {
-    this.chains = [new StateChain([''], [rootState], this)];
+    this.chains = [new StateChain([''], [rootState], [], this)];
   }
 
   public getSolution(): StateChain<T> | null {
     const solutions = this.chains.filter(hasEndpoint);
     if (solutions.length === 0) {
       return null;
+    }
+
+    for (const solution of solutions) {
+      solution.finalize();
     }
 
     solutions.sort(compareChains);
@@ -326,23 +481,6 @@ class State<T> {
   public readonly isDynamic: boolean;
   public readonly isOptional: boolean;
 
-  private _scores: readonly number[] | undefined = void 0;
-  public get scores(): readonly number[] {
-    let scores = this._scores as number[];
-    if (scores === void 0) {
-      scores = this._scores = [];
-      // eslint-disable-next-line @typescript-eslint/no-this-alias
-      let state: State<T> | null = this;
-      while (state !== null) {
-        if (state.segment !== null) {
-          scores.unshift(state.segment.kind);
-        }
-        state = state.prevState;
-      }
-    }
-    return scores;
-  }
-
   public endpoint: Endpoint<T> | null = null;
   public readonly length: number;
 
@@ -405,6 +543,9 @@ class State<T> {
     this: AnyState<T>,
     endpoint: Endpoint<T>,
   ): void {
+    if (this.endpoint !== null) {
+      throw new Error(`Cannot add ambiguous route. The pattern ${endpoint.route.path} clashes with ${this.endpoint.route.path}`);
+    }
     this.endpoint = endpoint;
     if (this.isOptional) {
       this.prevState.setEndpoint(endpoint);
@@ -428,66 +569,6 @@ class State<T> {
         // segment separators (slashes) are non-segments. We could say return ch === '/' as well, technically.
         return this.value.includes(ch);
     }
-  }
-
-  /**
-   * Compares this state to another state to determine the correct sorting order.
-   *
-   * This algorithm is different from `sortSolutions` in v1's route-recognizer in that it compares
-   * the solutions segment-by-segment, rather than merely comparing the cumulative of segment types
-   *
-   * This resolves v1's ambiguity in situations like `/foo/:id/bar` vs. `/foo/bar/:id`, which had the
-   * same sorting value because they both consist of two static segments and one dynamic segment.
-   *
-   * With this algorithm, `/foo/bar/:id` would always be sorted first because the second segment is different,
-   * and static wins over dynamic.
-   *
-   * ### NOTE
-   * This algorithm violates some of the invariants of v1's algorithm,
-   * but those invariants were arguably not very sound to begin with. Example:
-   *
-   * `/foo/*path/bar/baz` vs. `/foo/bar/*path1/*path2`
-   * - in v1, the first would win because that match has fewer stars
-   * - in v2, the second will win because there is a bigger static match at the start of the pattern
-   *
-   * The algorithm should be more logical and easier to reason about in v2, but it's important to be aware of
-   * subtle difference like this which might surprise some users who happened to rely on this behavior from v1,
-   * intentionally or unintentionally.
-   *
-   * @param b - The state to compare this to.
-   * Parameter name is `b` because the method should be used like so: `states.sort((a, b) => a.compareTo(b))`.
-   * This will bring the state with the highest score to the first position of the array.
-   */
-  public compareTo(b: AnyState<T>): -1 | 1 | 0 {
-    const scoresA = this.scores;
-    const scoresB = b.scores;
-
-    const scoresALen = scoresA.length;
-    const scoresBLen = scoresB.length;
-    for (let i = 0, ii = Math.min(scoresALen, scoresBLen); i < ii; ++i) {
-      const scoreA = scoresA[i];
-      const scoreB = scoresB[i];
-      if (scoreA < scoreB) {
-        return 1;
-      }
-      if (scoreA > scoreB) {
-        return -1;
-      }
-    }
-
-    // Everything up to this point is identical in score, so the pattern with more segments wins.
-    // This could happen with e.g. `foo/*path` vs. `foo/*path/bar`, where the path `foo/baz/bar` would match both patterns.
-    // In this case, `foo/*path/bar` should win because a smaller portion of path is matched by the star segment.
-    if (scoresALen < scoresBLen) {
-      return 1;
-    }
-    if (scoresALen > scoresBLen) {
-      return -1;
-    }
-
-    // This should only be possible with a single pattern with multiple consecutive star segments.
-    // TODO: probably want to warn or even throw here, but leave it be for now.
-    return 0;
   }
 }
 

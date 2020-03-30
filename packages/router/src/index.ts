@@ -21,6 +21,7 @@ export {
   IViewportInstruction,
   NavigationInstruction,
   ReentryBehavior,
+  IRoute,
 } from './interfaces';
 
 export {

@@ -999,10 +999,86 @@ validator.validate(new ValidateInstruction(person, 'name', undefined, 'ruleset1'
 
 ## Validation controller
 
-* `validate`
-* `addObject` & `removeObject`
+So far the core functionalities of the validation have been discussed.
+The part regarding the integration with view has been kept out of the discussion so far.
+This section starts addressing that.
+
+The validation controller is the implementation of `IValidationController` interface.
+It acts as a bridge between the validator and the other related components, such as view, binding, and subscribers.
+The capabilities of validation controller is discussed below.
+
+### Injecting a controller instance
+
+An instance of the validation controller can be injected using the `@newInstanceForScope(IValidationController)`, and the `@IValidationController` decorator.
+The `@newInstanceForScope(IValidationController)` decorator creates a new instance of the validation controller and registers the instance with the dependency inject container.
+This same instance can later be made available to the child components using the `@IValidationController` decorator.
+
+```typescript
+// parent-ce.ts
+import { customElement } from '@aurelia/runtime';
+import { newInstanceForScope } from '@aurelia/kernel';
+import { IValidationController } from '@aurelia/validation';
+
+@customElement({name:'parent-ce', template:`<child-ce></child-ce>`})
+export class ParentCe {
+  public constructor(
+    // new instance of validation controller; let us name it c1
+    @newInstanceForScope(IValidationController) private controller: IValidationController
+  ) { }
+}
+
+// child-ce.ts
+import { IValidationController } from '@aurelia/validation';
+
+export class Parent {
+  public constructor(
+    // the c1 instance is injected here
+    @IValidationController private controller: IValidationController
+  ) { }
+}
+```
+
+> The design decision is made keeping the following frequent use case in mind.
+> The manual/final validation happens in the "root"/"parent" component/custom element.
+> The child components such as other custom elements define the necessary validation rules in the custom element level, as well as uses the `validate` binding behavior to mark the validation targets in the view/markup.
+> This helps showing the validation messages near the validation targets.
+> Creating a new instance of the validation controller and registering the instance with the dependency injection container, makes the same instance available to the child components level.
+> The instance can then be used for registering the validation targets (see [`validate` binding behavior](validating-data.md#validate-binding-behavior)), which makes it possible to execute all the validation rules defined in the children with a single instance of controller.
+
+A new instance of validation controller can always be injected using the `@newInstanceOf(IValidationController)` decorator.
+See this action in the demo below.
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=86d6dddcdf06e16bdf8a7b788aa15959&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fperson-partial.ts&open=src%2Fperson-partial.html"></iframe>
+
+### `validate`
+
+The `validate` method can be used to explicitly/manually perform the validation.
+The usage examples are as follows.
+
+```typescript
+// validate all registered objects and bindings.
+await validationController.validate();
+
+// validate specific instruction
+await validationController.validate(new ValidateInstruction(person));
+await validationController.validate(new ValidateInstruction(person, 'name'));
+```
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=56355313e67c8f53565d8475cac55cb1&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
+
+> This method is in essence similar to the `validate` method in validator.
+> However, there are some differences.
+> If the method is called with an instruction, the instruction is executed.
+> Otherwise all the [registered objects](validating-data.md#addObject-and-removeObject), as well as the [registered bindings](validating-data.> md#validate-binding-behavior) are validated.
+> After the validation, all the [registered subscribers](validating-data.md#subscribing-to-validation-result) are notified of the change.
+> Refer the [visual representation of the workflow](validating-data.md#how-does-it-work) to understand it better.
+
+To know more about `ValidateInstruction` refer [this](validating-data.md#Validator-and-validate-instruction).
+
+* `addObject` and `removeObject`
 * `addError` & `removeError`
-* `ValidationResultsSubscriber`
+* Subscribing to validation result`
+  * `ValidationResultsSubscriber`
   * add and remove
 * `revalidate errors`
 * `@newInstanceForScope`

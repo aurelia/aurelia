@@ -333,6 +333,7 @@ export class RouteRecognizer<T> {
       for (const route of routeOrRoutes) {
         this.add(route);
       }
+      return;
     }
 
     const route = routeOrRoutes as IConfigurableRoute<T>;

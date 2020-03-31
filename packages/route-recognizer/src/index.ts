@@ -33,14 +33,14 @@ export class RecognizedRoute<T> {
   ) {}
 }
 
-class StateChain<T> {
+class Candidate<T> {
   public head: AnyState<T>;
   public endpoint: Endpoint<T>;
 
   public constructor(
     private readonly chars: string[],
     private readonly states: AnyState<T>[],
-    private readonly skippedStates: DynamicSegmentState<T>[],
+    private readonly skippedStates: DynamicState<T>[],
     private readonly result: RecognizeResult<T>,
   ) {
     this.head = states[states.length - 1];
@@ -56,14 +56,14 @@ class StateChain<T> {
 
     function $process(
       nextState: AnyState<T>,
-      skippedState: DynamicSegmentState<T> | null,
+      skippedState: DynamicState<T> | null,
     ): void {
       if (nextState.isMatch(ch)) {
         if (++matchCount === 1) {
           stateToAdd = nextState;
         } else {
           result.add(
-            new StateChain(
+            new Candidate(
               chars.concat(ch),
               states.concat(nextState),
               skippedState === null ? skippedStates : skippedStates.concat(skippedState),
@@ -113,7 +113,7 @@ class StateChain<T> {
 
   public finalize(): void {
     function collectSkippedStates(
-      skippedStates: DynamicSegmentState<T>[],
+      skippedStates: DynamicState<T>[],
       state: AnyState<T>,
     ): void {
       const nextStates = state.nextStates;
@@ -163,10 +163,10 @@ class StateChain<T> {
   }
 
   /**
-   * Compares this chain to another chain to determine the correct sorting order.
+   * Compares this candidate to another candidate to determine the correct sorting order.
    *
    * This algorithm is different from `sortSolutions` in v1's route-recognizer in that it compares
-   * the solutions segment-by-segment, rather than merely comparing the cumulative of segment types
+   * the candidates segment-by-segment, rather than merely comparing the cumulative of segment types
    *
    * This resolves v1's ambiguity in situations like `/foo/:id/bar` vs. `/foo/bar/:id`, which had the
    * same sorting value because they both consist of two static segments and one dynamic segment.
@@ -186,11 +186,11 @@ class StateChain<T> {
    * subtle difference like this which might surprise some users who happened to rely on this behavior from v1,
    * intentionally or unintentionally.
    *
-   * @param b - The chain to compare this to.
+   * @param b - The candidate to compare this to.
    * Parameter name is `b` because the method should be used like so: `states.sort((a, b) => a.compareTo(b))`.
-   * This will bring the chain with the highest score to the first position of the array.
+   * This will bring the candidate with the highest score to the first position of the array.
    */
-  public compareTo(b: StateChain<T>): -1 | 1 | 0 {
+  public compareTo(b: Candidate<T>): -1 | 1 | 0 {
     const statesA = this.states;
     const statesB = b.states;
 
@@ -270,61 +270,61 @@ class StateChain<T> {
   }
 }
 
-function hasEndpoint<T>(chain: StateChain<T>): boolean {
-  return chain.head.endpoint !== null;
+function hasEndpoint<T>(candidate: Candidate<T>): boolean {
+  return candidate.head.endpoint !== null;
 }
 
-function compareChains<T>(a: StateChain<T>, b: StateChain<T>): -1 | 1 | 0 {
+function compareChains<T>(a: Candidate<T>, b: Candidate<T>): -1 | 1 | 0 {
   return a.compareTo(b);
 }
 
 class RecognizeResult<T> {
-  private readonly chains: StateChain<T>[] = [];
+  private readonly candidates: Candidate<T>[] = [];
 
   public get isEmpty(): boolean {
-    return this.chains.length === 0;
+    return this.candidates.length === 0;
   }
 
   public constructor(
     rootState: SeparatorState<T>,
   ) {
-    this.chains = [new StateChain([''], [rootState], [], this)];
+    this.candidates = [new Candidate([''], [rootState], [], this)];
   }
 
-  public getSolution(): StateChain<T> | null {
-    const solutions = this.chains.filter(hasEndpoint);
-    if (solutions.length === 0) {
+  public getSolution(): Candidate<T> | null {
+    const candidates = this.candidates.filter(hasEndpoint);
+    if (candidates.length === 0) {
       return null;
     }
 
-    for (const solution of solutions) {
-      solution.finalize();
+    for (const candidate of candidates) {
+      candidate.finalize();
     }
 
-    solutions.sort(compareChains);
+    candidates.sort(compareChains);
 
-    return solutions[0];
+    return candidates[0];
   }
 
-  public add(chain: StateChain<T>): void {
-    this.chains.push(chain);
+  public add(candidate: Candidate<T>): void {
+    this.candidates.push(candidate);
   }
 
-  public remove(chain: StateChain<T>): void {
-    this.chains.splice(this.chains.indexOf(chain), 1);
+  public remove(candidate: Candidate<T>): void {
+    this.candidates.splice(this.candidates.indexOf(candidate), 1);
   }
 
   public advance(ch: string): void {
-    const chains = this.chains.slice();
+    const candidates = this.candidates.slice();
 
-    for (const chain of chains) {
-      chain.advance(ch);
+    for (const candidate of candidates) {
+      candidate.advance(ch);
     }
   }
 }
 
 export class RouteRecognizer<T> {
-  public readonly rootState: SeparatorState<T> = new State(null, null, '') as SeparatorState<T>;
+  private readonly rootState: SeparatorState<T> = new State(null, null, '') as SeparatorState<T>;
 
   public add(
     routeOrRoutes: IConfigurableRoute<T> | readonly IConfigurableRoute<T>[],
@@ -406,14 +406,14 @@ export class RouteRecognizer<T> {
       }
     }
 
-    const solution = result.getSolution();
-    if (solution === null) {
+    const candidate = result.getSolution();
+    if (candidate === null) {
       return null;
     }
 
-    const { endpoint } = solution;
-    const params = solution.getParams();
-    const isDynamic = solution.endpoint.paramNames.length > 0;
+    const { endpoint } = candidate;
+    const params = candidate.getParams();
+    const isDynamic = candidate.endpoint.paramNames.length > 0;
 
     return new RecognizedRoute<T>(
       endpoint,
@@ -425,16 +425,16 @@ export class RouteRecognizer<T> {
   }
 }
 
-type StaticSegmentState<T> = State<T> & {
+type StaticState<T> = State<T> & {
   readonly isSeparator: false;
   readonly isDynamic: false;
   readonly isOptional: false;
 
-  readonly prevState: StaticSegmentState<T> | SeparatorState<T>;
+  readonly prevState: StaticState<T> | SeparatorState<T>;
   readonly segment: StaticSegment<T>;
 };
 
-type DynamicSegmentState<T> = State<T> & {
+type DynamicState<T> = State<T> & {
   readonly isSeparator: false;
   readonly isDynamic: true;
   readonly isOptional: true | false;
@@ -443,7 +443,7 @@ type DynamicSegmentState<T> = State<T> & {
   readonly segment: DynamicSegment<T>;
 };
 
-type StarSegmentState<T> = State<T> & {
+type StarState<T> = State<T> & {
   readonly isSeparator: false;
   readonly isDynamic: true;
   readonly isOptional: false;
@@ -462,16 +462,16 @@ type SeparatorState<T> = State<T> & {
 };
 
 type AnyState<T> = (
-  StaticSegmentState<T> |
-  DynamicSegmentState<T> |
-  StarSegmentState<T> |
+  StaticState<T> |
+  DynamicState<T> |
+  StarState<T> |
   SeparatorState<T>
 );
 
 type SegmentToState<S, T> = (
-  S extends StaticSegment<T> ? StaticSegmentState<T> :
-  S extends DynamicSegment<T> ? DynamicSegmentState<T> :
-  S extends StarSegment<T> ? StarSegmentState<T> :
+  S extends StaticSegment<T> ? StaticState<T> :
+  S extends DynamicSegment<T> ? DynamicState<T> :
+  S extends StarSegment<T> ? StarState<T> :
   S extends null ? SeparatorState<T> :
   never
 );
@@ -603,7 +603,7 @@ class StaticSegment<T> {
     public readonly caseSensitive: boolean,
   ) {}
 
-  public appendTo(state: AnyState<T>): StaticSegmentState<T> {
+  public appendTo(state: AnyState<T>): StaticState<T> {
     const { value, value: { length } } = this;
 
     if (this.caseSensitive) {
@@ -623,7 +623,7 @@ class StaticSegment<T> {
       }
     }
 
-    return state as StaticSegmentState<T>;
+    return state as StaticState<T>;
   }
 
   public equals(b: AnySegment<T>): boolean {
@@ -643,7 +643,7 @@ class DynamicSegment<T> {
     public readonly optional: boolean,
   ) {}
 
-  public appendTo(state: AnyState<T>): DynamicSegmentState<T> {
+  public appendTo(state: AnyState<T>): DynamicState<T> {
     state = state.append(
       /* segment */this,
       /* value   */'/',
@@ -668,7 +668,7 @@ class StarSegment<T> {
     public readonly name: string,
   ) {}
 
-  public appendTo(state: AnyState<T>): StarSegmentState<T> {
+  public appendTo(state: AnyState<T>): StarState<T> {
     state = state.append(
       /* segment */this,
       /* value   */'',

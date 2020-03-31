@@ -494,9 +494,9 @@ export class Scope {
       if ($params.remainingPath !== void 0) {
         found.remaining = $params.remainingPath;
         Reflect.deleteProperty($params, 'remainingPath');
-        params = $params;
         found.matching = found.matching.slice(0, found.matching.indexOf(found.remaining));
       }
+      params = $params;
     }
     if (found.foundConfiguration) {
       // clone it so config doesn't get modified

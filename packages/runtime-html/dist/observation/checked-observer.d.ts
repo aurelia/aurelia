@@ -1,4 +1,4 @@
-import { CollectionKind, IAccessor, ICollectionObserver, IndexMap, IObserverLocator, ISubscriber, ISubscriberCollection, LifecycleFlags, ObserversLookup, SetterObserver, IScheduler, ITask } from '@aurelia/runtime';
+import { CollectionKind, IAccessor, ICollectionObserver, IndexMap, ISubscriber, ISubscriberCollection, LifecycleFlags, ObserversLookup, SetterObserver, IScheduler, ITask, ILifecycle } from '@aurelia/runtime';
 import { IEventSubscriber } from './event-manager';
 import { ValueAttributeObserver } from './value-attribute-observer';
 export interface IInputElement extends HTMLInputElement {
@@ -14,7 +14,7 @@ export interface CheckedObserver extends ISubscriberCollection {
 }
 export declare class CheckedObserver implements IAccessor {
     readonly scheduler: IScheduler;
-    readonly observerLocator: IObserverLocator;
+    lifecycle: ILifecycle;
     readonly handler: IEventSubscriber;
     readonly obj: IInputElement;
     currentValue: unknown;
@@ -22,9 +22,9 @@ export declare class CheckedObserver implements IAccessor {
     readonly persistentFlags: LifecycleFlags;
     hasChanges: boolean;
     task: ITask | null;
-    arrayObserver?: ICollectionObserver<CollectionKind.array>;
+    collectionObserver?: ICollectionObserver<CollectionKind>;
     valueObserver?: ValueAttributeObserver | SetterObserver;
-    constructor(scheduler: IScheduler, flags: LifecycleFlags, observerLocator: IObserverLocator, handler: IEventSubscriber, obj: IInputElement);
+    constructor(scheduler: IScheduler, flags: LifecycleFlags, lifecycle: ILifecycle, handler: IEventSubscriber, obj: IInputElement);
     getValue(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;
     flushChanges(flags: LifecycleFlags): void;

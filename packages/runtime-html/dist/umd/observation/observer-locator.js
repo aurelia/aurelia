@@ -77,7 +77,7 @@
         getObserver(flags, scheduler, lifecycle, observerLocator, obj, propertyName) {
             switch (propertyName) {
                 case 'checked':
-                    return new checked_observer_1.CheckedObserver(scheduler, flags, observerLocator, new event_manager_1.EventSubscriber(this.dom, inputEvents), obj);
+                    return new checked_observer_1.CheckedObserver(scheduler, flags, lifecycle, new event_manager_1.EventSubscriber(this.dom, inputEvents), obj);
                 case 'value':
                     if (obj.tagName === 'SELECT') {
                         return new select_value_observer_1.SelectValueObserver(scheduler, flags, observerLocator, this.dom, new event_manager_1.EventSubscriber(this.dom, selectEvents), obj);
@@ -114,6 +114,10 @@
         overridesAccessor(flags, obj, propertyName) {
             return overrideProps[propertyName] === true;
         }
+        // consider a scenario where user would want to provide a Date object observation via patching a few mutation method on it
+        // then this extension point of this default implementaion cannot be used,
+        // and a new implementation of ITargetObserverLocator should be used instead
+        // This default implementation only accounts for the most common target scenarios
         handles(flags, obj) {
             return this.dom.isNodeInstance(obj);
         }

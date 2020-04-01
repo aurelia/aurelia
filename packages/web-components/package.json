@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/web-components",
-  "version": "0.7.0-dev.202004010149",
+  "version": "0.7.0-dev.202004010255",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -35,9 +35,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.7.0-dev.202004010149",
-    "@aurelia/runtime-html": "0.7.0-dev.202004010149",
-    "@aurelia/runtime": "0.7.0-dev.202004010149"
+    "@aurelia/kernel": "0.7.0-dev.202004010255",
+    "@aurelia/runtime-html": "0.7.0-dev.202004010255",
+    "@aurelia/runtime": "0.7.0-dev.202004010255"
   },
   "devDependencies": {
     "tslib": "^1.10.0",

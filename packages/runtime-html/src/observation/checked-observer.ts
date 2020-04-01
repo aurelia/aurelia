@@ -16,7 +16,8 @@ import {
 } from '@aurelia/runtime';
 import { IEventSubscriber } from './event-manager';
 import { ValueAttributeObserver } from './value-attribute-observer';
-import { RepeatableCollection } from '@aurelia/runtime/dist/observation/observer-locator';
+
+type RepeatableCollection = unknown[] | Set<unknown> | Map<unknown, unknown>;
 
 export interface IInputElement extends HTMLInputElement {
   model?: unknown;

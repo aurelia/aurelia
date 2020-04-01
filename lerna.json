@@ -19,6 +19,7 @@
     "packages/jit-html-browser",
     "packages/jit-html-jsdom",
     "packages/kernel",
+    "packages/metadata",
     "packages/plugin-conventions",
     "packages/plugin-gulp",
     "packages/plugin-parcel",

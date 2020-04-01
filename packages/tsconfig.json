@@ -14,6 +14,7 @@
     { "path": "jit-html-browser" },
     { "path": "jit-html-jsdom" },
     { "path": "kernel" },
+    { "path": "metadata" },
     { "path": "plugin-conventions" },
     { "path": "plugin-gulp" },
     { "path": "plugin-parcel" },

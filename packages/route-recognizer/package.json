@@ -1,5 +1,5 @@
 {
-  "name": "@aurelia/router",
+  "name": "@aurelia/route-recognizer",
   "version": "0.6.0",
   "main": "dist/esnext/index.js",
   "module": "dist/esnext/index.js",
@@ -16,7 +16,7 @@
   },
   "keywords": [
     "aurelia",
-    "router"
+    "route-recognizer"
   ],
   "files": [
     "dist",
@@ -28,20 +28,14 @@
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
     "build": "tsc -b",
-    "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system router",
+    "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system route-recognizer",
     "dev": "tsc -b -w"
   },
   "publishConfig": {
     "access": "public"
   },
-  "dependencies": {
-    "@aurelia/kernel": "0.6.0",
-    "@aurelia/runtime": "0.6.0",
-    "@aurelia/runtime-html": "0.6.0",
-    "@aurelia/route-recognizer": "0.6.0"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "@types/node": "^12.12.21",
     "tslib": "^1.10.0",
     "typescript": "^3.7.4"
   }

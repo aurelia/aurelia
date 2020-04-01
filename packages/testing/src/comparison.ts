@@ -220,6 +220,14 @@ export function innerDeepEqual(
   if (val1Tag !== val2Tag) {
     return false;
   }
+  if (val1Tag === '[object URLSearchParams]') {
+    return innerDeepEqual(
+      Array.from((val1 as URLSearchParams & { entries(): IterableIterator<[string, string]> }).entries()),
+      Array.from((val2 as URLSearchParams & { entries(): IterableIterator<[string, string]> }).entries()),
+      strict,
+      memos,
+    );
+  }
   if (Array.isArray(val1)) {
     if (val1.length !== (val2 as typeof val1).length) {
       return false;

@@ -243,7 +243,6 @@ export {
 
   // relativeToFile,
   // join,
-  // buildQueryString,
   // parseQueryString,
   // IQueryParams,
 

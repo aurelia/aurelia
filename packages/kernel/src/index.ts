@@ -85,9 +85,6 @@ export {
 export {
   relativeToFile,
   join,
-  buildQueryString,
-  parseQueryString,
-  IQueryParams
 } from './path';
 export { PLATFORM } from './platform';
 export {

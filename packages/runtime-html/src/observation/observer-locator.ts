@@ -97,7 +97,7 @@ export class TargetObserverLocator implements ITargetObserverLocator {
   ): IBindingTargetObserver | IBindingTargetAccessor {
     switch (propertyName) {
       case 'checked':
-        return new CheckedObserver(scheduler, flags, observerLocator, new EventSubscriber(this.dom, inputEvents), obj as IInputElement);
+        return new CheckedObserver(scheduler, flags, lifecycle, new EventSubscriber(this.dom, inputEvents), obj as IInputElement);
       case 'value':
         if ((obj as Element).tagName === 'SELECT') {
           return new SelectValueObserver(scheduler, flags, observerLocator, this.dom, new EventSubscriber(this.dom, selectEvents), obj as ISelectElement);
@@ -136,6 +136,10 @@ export class TargetObserverLocator implements ITargetObserverLocator {
     return overrideProps[propertyName] === true;
   }
 
+  // consider a scenario where user would want to provide a Date object observation via patching a few mutation method on it
+  // then this extension point of this default implementaion cannot be used,
+  // and a new implementation of ITargetObserverLocator should be used instead
+  // This default implementation only accounts for the most common target scenarios
   public handles(flags: LifecycleFlags, obj: unknown): boolean {
     return this.dom.isNodeInstance(obj);
   }

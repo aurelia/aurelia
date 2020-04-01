@@ -2718,7 +2718,7 @@ describe(RouteRecognizer.name, function () {
                 const isDynamic = paramNames.length > 0;
                 const configurableRoute = new ConfigurableRoute(match, false, null);
                 const endpoint = new Endpoint(configurableRoute, paramNames);
-                const expected = new RecognizedRoute(endpoint, params, {}, isDynamic, '');
+                const expected = new RecognizedRoute(endpoint, params, new URLSearchParams(), isDynamic, '');
 
                 // Act
                 const actual1 = sut.recognize(path);
@@ -2735,54 +2735,21 @@ describe(RouteRecognizer.name, function () {
     }
   }
 
-  const querySpecs = [
-    ['',                                          { }],
-    ['=',                                         { }],
-    ['&',                                         { }],
-    ['?',                                         { }],
-    ['a',                                         { a: true }],
-    ['a&b',                                       { a: true, b: true }],
-    ['a=',                                        { a: '' }],
-    ['a=&b=',                                     { a: '', b: '' }],
-    ['a=b',                                       { a: 'b' }],
-    ['a=b&c=d',                                   { a: 'b', c: 'd' }],
-    ['a=b&&c=d',                                  { a: 'b', c: 'd' }],
-    ['a=b&a=c',                                   { a: ['b', 'c'] }],
-    ['a=b&c=d=',                                  { a: 'b', c: 'd' }],
-    ['a=b&c=d==',                                 { a: 'b', c: 'd' }],
-    ['a=%26',                                     { a: '&' }],
-    ['%26=a',                                     { '&': 'a' }],
-    ['%26[]=b&%26[]=c',                           { '&': ['b', 'c'] }],
-    ['a[b]=c&a[d]=e',                             { a: { b: 'c', d: 'e' } }],
-    ['a[b][c][d]=e',                              { a: { b: { c: { d: 'e' } } } }],
-    ['a[b][]=c&a[b][]=d&a[b][2][]=f&a[b][2][]=g', { a: { b: ['c', 'd', ['f', 'g']] } }],
-    ['a[0]=b',                                    { a: ['b'] }],
-  ] as [string, {}][];
+  it(`passes the queryString to URLSearchParams`, function () {
+    // Arrange
+    const sut = new RouteRecognizer();
 
-  for (const hasLeadingSlash of [true, false]) {
-    for (const hasTrailingSlash of [true, false]) {
-      for (const [queryString, query] of querySpecs) {
-        const leading = hasLeadingSlash ? '/' : '';
-        const trailing = hasTrailingSlash ? '/' : '';
-        const input = `${leading}a${trailing}?${queryString}`;
+    const query = `foo=bar`;
+    sut.add({ path: 'a', handler: null });
 
-        it(`correctly parses queryString from ${input}`, function () {
-          // Arrange
-          const sut = new RouteRecognizer();
+    const configurableRoute = new ConfigurableRoute('a', false, null);
+    const endpoint = new Endpoint(configurableRoute, []);
+    const expected = new RecognizedRoute(endpoint, {}, new URLSearchParams(query), false, query);
 
-          sut.add({ path: 'a', handler: null });
+    // Act
+    const actual = sut.recognize(`a?foo=bar`);
 
-          const configurableRoute = new ConfigurableRoute('a', false, null);
-          const endpoint = new Endpoint(configurableRoute, []);
-          const expected = new RecognizedRoute(endpoint, {}, query, false, queryString);
-
-          // Act
-          const actual = sut.recognize(input);
-
-          // Assert
-          assert.deepStrictEqual(actual, expected);
-        });
-      }
-    }
-  }
+    // Assert
+    assert.deepStrictEqual(actual, expected);
+  });
 });

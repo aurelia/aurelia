@@ -1,5 +1,3 @@
-import { IQueryParams, parseQueryString } from './parse-querystring';
-
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 
 export interface IConfigurableRoute<T> {
@@ -27,7 +25,7 @@ export class RecognizedRoute<T> {
   public constructor(
     public readonly endpoint: Endpoint<T>,
     public readonly params: Readonly<Record<string, string | undefined>>,
-    public readonly queryParams: Readonly<IQueryParams>,
+    public readonly searchParams: URLSearchParams,
     public readonly isDynamic: boolean,
     public readonly queryString: string,
   ) {}
@@ -374,16 +372,16 @@ export class RouteRecognizer<T> {
   }
 
   public recognize(path: string): RecognizedRoute<T> | null {
-    let queryParams: IQueryParams;
+    let searchParams: URLSearchParams;
     let queryString = '';
 
     const queryStart = path.indexOf('?');
     if (queryStart >= 0) {
       queryString = path.slice(queryStart + 1);
       path = path.slice(0, queryStart);
-      queryParams = parseQueryString(queryString);
+      searchParams = new URLSearchParams(queryString);
     } else {
-      queryParams = {};
+      searchParams = new URLSearchParams();
     }
 
     path = decodeURI(path);
@@ -418,7 +416,7 @@ export class RouteRecognizer<T> {
     return new RecognizedRoute<T>(
       endpoint,
       params,
-      queryParams,
+      searchParams,
       isDynamic,
       queryString,
     );

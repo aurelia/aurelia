@@ -42,8 +42,6 @@
     var path_1 = require("./path");
     exports.relativeToFile = path_1.relativeToFile;
     exports.join = path_1.join;
-    exports.buildQueryString = path_1.buildQueryString;
-    exports.parseQueryString = path_1.parseQueryString;
     var platform_1 = require("./platform");
     exports.PLATFORM = platform_1.PLATFORM;
     var reporter_1 = require("./reporter");

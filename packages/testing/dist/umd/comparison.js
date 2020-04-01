@@ -131,6 +131,9 @@
         if (val1Tag !== val2Tag) {
             return false;
         }
+        if (val1Tag === '[object URLSearchParams]') {
+            return innerDeepEqual(Array.from(val1.entries()), Array.from(val2.entries()), strict, memos);
+        }
         if (Array.isArray(val1)) {
             if (val1.length !== val2.length) {
                 return false;

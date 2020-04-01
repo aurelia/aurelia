@@ -4,18 +4,18 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./viewport-scope", "./route-recognizer", "./found-route", "./type-resolvers", "./viewport", "./utils", "./collection"], factory);
+        define(["require", "exports", "./viewport-scope", "./found-route", "./type-resolvers", "./viewport", "./utils", "./collection", "./route-recognizer"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const viewport_scope_1 = require("./viewport-scope");
-    const route_recognizer_1 = require("./route-recognizer");
     const found_route_1 = require("./found-route");
     const type_resolvers_1 = require("./type-resolvers");
     const viewport_1 = require("./viewport");
     const utils_1 = require("./utils");
     const collection_1 = require("./collection");
+    const route_recognizer_1 = require("./route-recognizer");
     class Scope {
         constructor(router, hasScope, owningScope, viewport = null, viewportScope = null, rootComponentType = null) {
             this.router = router;
@@ -396,11 +396,16 @@
                 return null;
             }
             routes = routes.map(route => this.ensureProperRoute(route));
-            const recognizableRoutes = routes.map(route => ({ path: route.path, handler: { name: route.id, route } }));
-            for (let i = 0, ilen = recognizableRoutes.length; i < ilen; i++) {
-                const newRoute = { ...recognizableRoutes[i] };
-                newRoute.path += '/*remainingPath';
-                recognizableRoutes.push(newRoute);
+            const cRoutes = routes.map(route => ({
+                path: route.path,
+                handler: route,
+            }));
+            for (let i = 0, ii = cRoutes.length; i < ii; ++i) {
+                const cRoute = cRoutes[i];
+                cRoutes.push({
+                    ...cRoute,
+                    path: `${cRoute.path}/*remainingPath`,
+                });
             }
             const found = new found_route_1.FoundRoute();
             let params = {};
@@ -408,17 +413,18 @@
                 path = path.slice(1);
             }
             const recognizer = new route_recognizer_1.RouteRecognizer();
-            recognizer.add(recognizableRoutes);
+            recognizer.add(cRoutes);
             const result = recognizer.recognize(path);
-            if (result !== void 0 && result.length > 0) {
-                found.match = result[0].handler.route;
+            if (result !== null) {
+                found.match = result.endpoint.route.handler;
                 found.matching = path;
-                params = result[0].params;
-                if (params.remainingPath !== void 0 && params.remainingPath.length > 0) {
-                    found.remaining = params.remainingPath;
-                    Reflect.deleteProperty(params, 'remainingPath');
+                const $params = { ...result.params };
+                if ($params.remainingPath !== void 0) {
+                    found.remaining = $params.remainingPath;
+                    Reflect.deleteProperty($params, 'remainingPath');
                     found.matching = found.matching.slice(0, found.matching.indexOf(found.remaining));
                 }
+                params = $params;
             }
             if (found.foundConfiguration) {
                 // clone it so config doesn't get modified

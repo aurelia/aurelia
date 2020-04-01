@@ -1,10 +1,10 @@
 import { ViewportScope } from './viewport-scope';
-import { RouteRecognizer } from './route-recognizer';
 import { FoundRoute } from './found-route';
 import { NavigationInstructionResolver } from './type-resolvers';
 import { Viewport } from './viewport';
 import { arrayRemove } from './utils';
 import { Collection } from './collection';
+import { RouteRecognizer } from './route-recognizer';
 export class Scope {
     constructor(router, hasScope, owningScope, viewport = null, viewportScope = null, rootComponentType = null) {
         this.router = router;
@@ -385,11 +385,16 @@ export class Scope {
             return null;
         }
         routes = routes.map(route => this.ensureProperRoute(route));
-        const recognizableRoutes = routes.map(route => ({ path: route.path, handler: { name: route.id, route } }));
-        for (let i = 0, ilen = recognizableRoutes.length; i < ilen; i++) {
-            const newRoute = { ...recognizableRoutes[i] };
-            newRoute.path += '/*remainingPath';
-            recognizableRoutes.push(newRoute);
+        const cRoutes = routes.map(route => ({
+            path: route.path,
+            handler: route,
+        }));
+        for (let i = 0, ii = cRoutes.length; i < ii; ++i) {
+            const cRoute = cRoutes[i];
+            cRoutes.push({
+                ...cRoute,
+                path: `${cRoute.path}/*remainingPath`,
+            });
         }
         const found = new FoundRoute();
         let params = {};
@@ -397,17 +402,18 @@ export class Scope {
             path = path.slice(1);
         }
         const recognizer = new RouteRecognizer();
-        recognizer.add(recognizableRoutes);
+        recognizer.add(cRoutes);
         const result = recognizer.recognize(path);
-        if (result !== void 0 && result.length > 0) {
-            found.match = result[0].handler.route;
+        if (result !== null) {
+            found.match = result.endpoint.route.handler;
             found.matching = path;
-            params = result[0].params;
-            if (params.remainingPath !== void 0 && params.remainingPath.length > 0) {
-                found.remaining = params.remainingPath;
-                Reflect.deleteProperty(params, 'remainingPath');
+            const $params = { ...result.params };
+            if ($params.remainingPath !== void 0) {
+                found.remaining = $params.remainingPath;
+                Reflect.deleteProperty($params, 'remainingPath');
                 found.matching = found.matching.slice(0, found.matching.indexOf(found.remaining));
             }
+            params = $params;
         }
         if (found.foundConfiguration) {
             // clone it so config doesn't get modified

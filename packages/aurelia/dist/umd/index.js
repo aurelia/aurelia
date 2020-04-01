@@ -121,7 +121,6 @@
     exports.LoggerConfiguration = kernel_1.LoggerConfiguration;
     // relativeToFile,
     // join,
-    // buildQueryString,
     // parseQueryString,
     // IQueryParams,
     exports.PLATFORM = kernel_1.PLATFORM;

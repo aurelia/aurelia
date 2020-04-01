@@ -1,7 +1,7 @@
 export { all, DI, IContainer, inject, IServiceLocator, lazy, optional, Registration, singleton, transient, InstanceProvider, newInstanceForScope, newInstanceOf } from './di';
 export { metadata, Metadata, } from './metadata';
 export { ColorOptions, ILogConfig, ILogEventFactory, ISink, ILogger, LogConfig, DefaultLogEvent, DefaultLogEventFactory, DefaultLogger, ConsoleSink, LoggerConfiguration, format, } from './logger';
-export { relativeToFile, join, buildQueryString, parseQueryString } from './path';
+export { relativeToFile, join, } from './path';
 export { PLATFORM } from './platform';
 export { Reporter, Tracer, LogLevel, } from './reporter';
 export { Profiler } from './profiler';

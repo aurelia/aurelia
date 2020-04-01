@@ -229,7 +229,6 @@ export interface IValidationController {
    * @param {ValidateInstruction} [instruction] - Instructions on what to reset. If omitted all rendered results will be removed.
    */
   reset(instruction?: ValidateInstruction): void;
-  // TODO: have dispose
 }
 export const IValidationController = DI.createInterface<IValidationController>("IValidationController").noDefault();
 
@@ -424,7 +423,6 @@ export class ValidationController implements IValidationController {
     }
     await Promise.all(promises);
   }
-  // TODO: have dispose
 
   /**
    * Interprets the instruction and returns a predicate that will identify relevant results in the list of rendered validation results.

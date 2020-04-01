@@ -1050,7 +1050,7 @@ See this action in the demo below.
 
 <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=86d6dddcdf06e16bdf8a7b788aa15959&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fperson-partial.ts&open=src%2Fperson-partial.html"></iframe>
 
-### `validate`
+### `validate` and `reset`
 
 The `validate` method can be used to explicitly/manually perform the validation.
 The usage examples are as follows.
@@ -1064,24 +1064,122 @@ await validationController.validate(new ValidateInstruction(person));
 await validationController.validate(new ValidateInstruction(person, 'name'));
 ```
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=56355313e67c8f53565d8475cac55cb1&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
-
 > This method is in essence similar to the `validate` method in validator.
 > However, there are some differences.
 > If the method is called with an instruction, the instruction is executed.
 > Otherwise all the [registered objects](validating-data.md#addObject-and-removeObject), as well as the [registered bindings](validating-data.> md#validate-binding-behavior) are validated.
 > After the validation, all the [registered subscribers](validating-data.md#subscribing-to-validation-result) are notified of the change.
 > Refer the [visual representation of the workflow](validating-data.md#how-does-it-work) to understand it better.
+> To know more about `ValidateInstruction` refer [this](validating-data.md#Validator-and-validate-instruction).
 
-To know more about `ValidateInstruction` refer [this](validating-data.md#Validator-and-validate-instruction).
+The `reset` method on the other hand removes the errors from the validation controller.
+It also has an optional argument of type `ValidateInstruction` which when provided instructs the controller to remove errors for specific object, and/or properties.
+Note that other properties of the instruction object has no effect on resetting the errors.
 
-* `addObject` and `removeObject`
-* `addError` & `removeError`
-* Subscribing to validation result`
-  * `ValidationResultsSubscriber`
-  * add and remove
-* `revalidate errors`
-* `@newInstanceForScope`
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=56355313e67c8f53565d8475cac55cb1&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
+
+### `revalidateErrors`
+
+With the `revalidateErrors` method, it is possible to verify whether the current set of errors are still there.
+Note that it does not validates all objects and bindings, as it is done in `validate` method.
+It is useful when you don't want to get a new set of errors, and rather check on the current status of the existing set of errors.
+
+```typescript
+await validationController.revalidateErrors();
+```
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=950d94ec248471cd37647b811053daba&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
+
+### `addObject` and `removeObject`
+
+The method `addObject` registers an object explicitly to validation controller.
+Validation controller automatically validates the object every time the `validate` method is called.
+This is useful when you can to validate some object in your view model, that does not have any direct reference to the view.
+
+The object can be unregistered by calling the `removeObject` method.
+This also removes the associated errors of the object.
+
+```typescript
+// add object
+validationController.addObject(person);
+
+// remove object
+validationController.removeObject(person);
+```
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=6a97821e6e13db71aafd50967856841c&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
+
+### `addError` and `removeError`
+
+Use the `addError` method to manually add an error to the controller.
+The signature of this method is as follows.
+
+```typescript
+addError(message: string, object: any, propertyName?: string): ValidationResult;
+```
+
+Note that this method returns an instance of `ValidationResult` which later can be used with `removeError` to clear the error.
+
+```typescript
+// add error
+const result= validationController.addError("Some critical error", person);
+
+// remove error
+validationController.removeError(result);
+```
+
+Note that the errors added by the `addError` method, never gets revalidated when `revalidateErrors` is called.
+If the error needs to be removed, it must be done using `removeError` method.
+
+TODO fix the demo in terms of revalidating manual error
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=b5db8659d6b46dacb7dfc1c72e646780&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
+
+### `addSubscriber` and `removeSubscriber`
+
+The subscribers can be added or removed using `addSubscriber` and `removeSubscriber` methods respectively.
+Whenever, the validation controller performs validation or resets errors, the registered subscribers are notified of the change in validation results.
+To unsubscribe the validation results notification, the subscriber needs to be removed.
+
+The subscriber interface is rather simple, consisting of only one method.
+
+```typescript
+interface ValidationResultsSubscriber {
+  handleValidationEvent(event: ValidationEvent): void;
+}
+```
+
+The notification event data looks loosely like following.
+
+```typescript
+class ValidationEvent {
+  public kind: 'validate' | 'reset';
+  public addedResults: ValidationResultTarget[];
+  public removedResults: ValidationResultTarget[];
+}
+
+class ValidationResultTarget {
+  public result: ValidationResult;
+  public targets: Element[];
+}
+
+class ValidationResult<TRule extends BaseValidationRule = BaseValidationRule> {
+    public valid: boolean;
+    public message: string | undefined;
+    public propertyName: string | undefined;
+    public object: any;
+    public rule: TRule | undefined;
+    public propertyRule: PropertyRule | undefined;
+    // `true` if the validation result is added manually.
+    public isManual: boolean = false;
+}
+```
+
+What the subscribers do with the event data, depends on the subscribers.
+A obvious use-case is to present the errors to the end-users.
+In fact the [out-of-the-box subscribers](validating-data.md#displaying-errors) are used for the purpose only.
+Below is one example of how you can create a custom subscriber.
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=51923879d83c2dc7016141343e73cd31&open=src%2Fresult-subscriber.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
 
 ## `validate` binding behavior
 

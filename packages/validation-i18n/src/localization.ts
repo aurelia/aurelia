@@ -28,7 +28,6 @@ export class LocalizedValidationController extends ValidationController {
       () => { scheduler.getPostRenderTaskQueue().queueTask(async () => { await this.revalidateErrors(); }); }
     );
   }
-  // TODO have dispose
 }
 
 export class LocalizedValidationControllerFactory extends ValidationControllerFactory {

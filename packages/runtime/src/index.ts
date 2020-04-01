@@ -284,9 +284,7 @@ export {
 } from './resources/value-converters/view';
 
 export {
-  Clock,
-  IClock,
-  IClockSettings,
+  Now,
   IScheduler,
   ITask,
   ITaskQueue,
@@ -298,7 +296,7 @@ export {
   TaskQueuePriority,
   TaskStatus,
   QueueTaskTargetOptions,
-} from './scheduler';
+} from '@aurelia/scheduler';
 
 export {
   bindable,

@@ -1,103 +1,9 @@
-import { PLATFORM, DI, bound, IContainer, IResolver, Registration, Writable } from '@aurelia/kernel';
+import { DI } from '@aurelia/kernel';
 
-export interface IClockSettings {
-  forceUpdateInterval?: number;
-  now?(): number;
-}
+const defaultNow = Date.now.bind(Date);
 
-const defaultClockSettings: Required<IClockSettings> = {
-  forceUpdateInterval: 10,
-  now: PLATFORM.now,
-};
-
-const {
-  enter,
-  leave,
-  trace,
-} = (function () {
-  const enabled = false;
-  let depth = 0;
-
-  function round(num: number) {
-    return ((num * 10 + .5) | 0) / 10;
-  }
-
-  function log(prefix: string, obj: TaskQueue | Task, method: string) {
-    if (obj instanceof TaskQueue) {
-      const processing = obj['processingSize'];
-      const pending = obj['pendingSize'];
-      const delayed = obj['delayedSize'];
-      const flushReq = obj['flushRequested'];
-      const prio = obj['priority'];
-
-      const info = `processing=${processing} pending=${pending} delayed=${delayed} flushReq=${flushReq} prio=${prio}`;
-      console.log(`${prefix}[Q.${method}] ${info}`);
-    } else {
-      const id = obj['id'];
-      const created = round(obj['createdTime']);
-      const queue = round(obj['queueTime']);
-      const preempt = obj['preempt'];
-      const reusable = obj['reusable'];
-      const persistent = obj['persistent'];
-      const status = obj['_status'];
-
-      const info = `id=${id} created=${created} queue=${queue} preempt=${preempt} persistent=${persistent} reusable=${reusable} status=${status}`;
-      console.log(`${prefix}[T.${method}] ${info}`);
-    }
-  }
-
-  function $enter(obj: TaskQueue | Task, method: string) {
-    if (enabled) {
-      log(`${'  '.repeat(depth++)}> `, obj, method);
-    }
-  }
-
-  function $leave(obj: TaskQueue | Task, method: string) {
-    if (enabled) {
-      log(`${'  '.repeat(--depth)}< `, obj, method);
-    }
-  }
-
-  function $trace(obj: TaskQueue | Task, method: string) {
-    if (enabled) {
-      log(`${'  '.repeat(depth)}- `, obj, method);
-    }
-  }
-
-  return {
-    enter: $enter,
-    leave: $leave,
-    trace: $trace,
-  };
-})();
-
-export const IClock = DI.createInterface<IClock>('IClock').withDefault(x => x.instance(globalClock));
-export interface IClock {
-  now(highRes?: boolean): number;
-}
-
-export class Clock implements IClock {
-  public readonly now: () => number;
-
-  public constructor(opts?: IClockSettings) {
-    const { now, forceUpdateInterval } = { ...defaultClockSettings, ...opts };
-
-    this.now = function (highRes: boolean = false): number {
-      // if (++requests === forceUpdateInterval || highRes) {
-      //   requests = 0;
-      //   timestamp = now();
-      // }
-      // return timestamp;
-      return now();
-    };
-  }
-
-  public static register(container: IContainer): IResolver<IClock> {
-    return Registration.singleton(IClock, this).register(container);
-  }
-}
-
-export const globalClock = new Clock();
+export const Now = DI.createInterface<Now>('Now').withDefault(x => x.instance(defaultNow));
+export type Now = () => number;
 
 export const enum TaskQueuePriority {
   microTask  = 0,
@@ -140,35 +46,28 @@ export interface IScheduler {
   /* @internal */requestFlush(taskQueue: ITaskQueue): void;
 }
 
-type ExposedPromise<T = void> = Promise<T> & {
-  resolve: (value?: T | PromiseLike<T>) => void;
-  reject: (reason?: any) => void;
-};
+type PResolve<T> = (value?: T | PromiseLike<T>) => void;
+type PReject<T = any> = (reason?: T) => void;
+let $resolve: PResolve<any>;
+let $reject: PReject;
+function executor<T>(resolve: PResolve<T>, reject: PReject): void {
+  $resolve = resolve;
+  $reject = reject;
+}
 
-const createPromise = (function () {
-  let $resolve: ((value?: any | PromiseLike<any>) => void) | undefined = void 0;
-  let $reject: ((reason?: any) => void) | undefined = void 0;
+class ExposedPromise<T = void> extends Promise<T> {
+  public readonly resolve: PResolve<T>;
+  public readonly reject: PReject;
 
-  function executor(
-    resolve: (value?: any | PromiseLike<any>) => void,
-    reject: (reason?: any) => void,
-  ): void {
-    $resolve = resolve;
-    $reject = reject;
+  public constructor() {
+    super(executor);
+    this.resolve = $resolve;
+    this.reject = $reject;
   }
-
-  return function <T> (): ExposedPromise<T> {
-    const p = new Promise(executor) as ExposedPromise<T>;
-    p.resolve = $resolve!;
-    p.reject = $reject!;
-    $resolve = void 0;
-    $reject = void 0;
-    return p;
-  };
-})();
+}
 
 type TaskQueueOptions = {
-  clock: IClock;
+  now: Now;
   priority: TaskQueuePriority;
   scheduler: IScheduler;
 };
@@ -245,7 +144,7 @@ export class TaskQueue {
   private yieldPromise: ExposedPromise | undefined = void 0;
 
   private readonly scheduler: IScheduler;
-  private readonly clock: IClock;
+  public readonly now: Now;
   private readonly taskPool: Task[] = [];
   private taskPoolSize: number = 0;
   private lastRequest: number = 0;
@@ -255,21 +154,20 @@ export class TaskQueue {
     return this.processingSize === 0 && this.pendingSize === 0 && this.delayedSize === 0;
   }
 
-  public constructor({ clock, priority, scheduler }: TaskQueueOptions) {
+  public constructor({ now, priority, scheduler }: TaskQueueOptions) {
     this.priority = priority;
     this.scheduler = scheduler;
-    this.clock = clock;
+    this.now = now;
+    this.requestFlush = this.requestFlush.bind(this);
   }
 
   public flush(): void {
-    enter(this, 'flush');
-
     if (this.microTaskRequestFlushTask !== null) {
       this.microTaskRequestFlushTask.cancel();
       this.microTaskRequestFlushTask = null;
     }
 
-    this.clock.now(true);
+    this.now();
     this.flushRequested = false;
 
     if (this.pendingSize > 0) {
@@ -338,13 +236,9 @@ export class TaskQueue {
         p.resolve();
       }
     }
-
-    leave(this, 'flush');
   }
 
   public cancel(): void {
-    enter(this, 'cancel');
-
     if (this.microTaskRequestFlushTask !== null) {
       this.microTaskRequestFlushTask.cancel();
       this.microTaskRequestFlushTask = null;
@@ -352,30 +246,19 @@ export class TaskQueue {
 
     this.scheduler.cancelFlush(this);
     this.flushRequested = false;
-
-    leave(this, 'cancel');
   }
 
-  public yield(): Promise<void> {
-    enter(this, 'yield');
+  public async yield(): Promise<void> {
+    if (this.processingSize > 0 || this.pendingSize > 0 || this.delayedSize > 0) {
+      if (this.yieldPromise === void 0) {
+        this.yieldPromise = new ExposedPromise();
+      }
 
-    if (this.processingSize === 0 && this.pendingSize === 0 && this.delayedSize === 0) {
-      leave(this, 'yield empty');
-
-      return Promise.resolve();
+      await this.yieldPromise;
     }
-    if (this.yieldPromise === void 0) {
-      this.yieldPromise = createPromise();
-    }
-
-    leave(this, 'yield task');
-
-    return this.yieldPromise;
   }
 
   public queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): Task<T> {
-    enter(this, 'queueTask');
-
     const { delay, preempt, persistent, reusable } = { ...defaultQueueTaskOptions, ...opts };
 
     if (preempt) {
@@ -394,7 +277,7 @@ export class TaskQueue {
       this.requestFlush();
     }
 
-    const time = this.clock.now();
+    const time = this.now();
 
     let task: Task<T>;
     if (reusable) {
@@ -433,17 +316,11 @@ export class TaskQueue {
       }
     }
 
-    leave(this, 'queueTask');
-
     return task;
   }
 
   public take(task: Task): void {
-    enter(this, 'take');
-
     if (task.status !== 'pending') {
-      leave(this, 'take error');
-
       throw new Error('Can only take pending tasks.');
     }
 
@@ -455,32 +332,24 @@ export class TaskQueue {
 
     if (task.preempt) {
       this.addToProcessing(task);
-    } else if (task.queueTime <= this.clock.now()) {
+    } else if (task.queueTime <= this.now()) {
       this.addToPending(task);
     } else {
       this.addToDelayed(task);
     }
-
-    leave(this, 'take');
   }
 
   public remove<T = any>(task: Task<T>): void {
-    enter(this, 'remove');
-
     if (task.preempt) {
       // Fast path - preempt task can only ever end up in the processing queue
       this.removeFromProcessing(task);
 
-      leave(this, 'remove processing fast');
-
       return;
     }
 
-    if (task.queueTime > this.clock.now()) {
+    if (task.queueTime > this.now()) {
       // Fast path - task with queueTime in the future can only ever be in the delayed queue
       this.removeFromDelayed(task);
-
-      leave(this, 'remove delayed fast');
 
       return;
     }
@@ -490,8 +359,6 @@ export class TaskQueue {
     while (cur !== void 0) {
       if (cur === task) {
         this.removeFromProcessing(task);
-
-        leave(this, 'remove processing slow');
 
         return;
       }
@@ -503,8 +370,6 @@ export class TaskQueue {
       if (cur === task) {
         this.removeFromPending(task);
 
-        leave(this, 'remove pending slow');
-
         return;
       }
       cur = cur.next;
@@ -515,28 +380,20 @@ export class TaskQueue {
       if (cur === task) {
         this.removeFromDelayed(task);
 
-        leave(this, 'remove delayed slow');
-
         return;
       }
       cur = cur.next;
     }
 
-    leave(this, 'remove error');
-
     throw new Error(`Task #${task.id} could not be found`);
   }
 
   public returnToPool(task: Task): void {
-    trace(this, 'returnToPool');
-
     this.taskPool[this.taskPoolSize++] = task;
   }
 
   public resetPersistentTask(task: Task): void {
-    enter(this, 'resetPersistentTask');
-
-    task.reset(this.clock.now());
+    task.reset(this.now());
 
     if (task.createdTime === task.queueTime) {
       if (this.pendingSize++ === 0) {
@@ -555,26 +412,18 @@ export class TaskQueue {
         task.next = void 0;
       }
     }
-
-    leave(this, 'resetPersistentTask');
   }
 
   private finish(task: Task): void {
-    enter(this, 'finish');
-
     if (task.next !== void 0) {
       task.next.prev = task.prev;
     }
     if (task.prev !== void 0) {
       task.prev.next = task.next;
     }
-
-    leave(this, 'finish');
   }
 
   private removeFromProcessing(task: Task): void {
-    enter(this, 'removeFromProcessing');
-
     if (this.processingHead === task) {
       this.processingHead = task.next;
     }
@@ -585,13 +434,9 @@ export class TaskQueue {
     --this.processingSize;
 
     this.finish(task);
-
-    leave(this, 'removeFromProcessing');
   }
 
   private removeFromPending(task: Task): void {
-    enter(this, 'removeFromPending');
-
     if (this.pendingHead === task) {
       this.pendingHead = task.next;
     }
@@ -602,13 +447,9 @@ export class TaskQueue {
     --this.pendingSize;
 
     this.finish(task);
-
-    leave(this, 'removeFromPending');
   }
 
   private removeFromDelayed(task: Task): void {
-    enter(this, 'removeFromDelayed');
-
     if (this.delayedHead === task) {
       this.delayedHead = task.next;
     }
@@ -619,49 +460,33 @@ export class TaskQueue {
     --this.delayedSize;
 
     this.finish(task);
-
-    leave(this, 'removeFromDelayed');
   }
 
   private addToProcessing(task: Task): void {
-    enter(this, 'addToProcessing');
-
     if (this.processingSize++ === 0) {
       this.processingHead = this.processingTail = task;
     } else {
       this.processingTail = (task.prev = this.processingTail!).next = task;
     }
-
-    leave(this, 'addToProcessing');
   }
 
   private addToPending(task: Task): void {
-    enter(this, 'addToPending');
-
     if (this.pendingSize++ === 0) {
       this.pendingHead = this.pendingTail = task;
     } else {
       this.pendingTail = (task.prev = this.pendingTail!).next = task;
     }
-
-    leave(this, 'addToPending');
   }
 
   private addToDelayed(task: Task): void {
-    enter(this, 'addToDelayed');
-
     if (this.delayedSize++ === 0) {
       this.delayedHead = this.delayedTail = task;
     } else {
       this.delayedTail = (task.prev = this.delayedTail!).next = task;
     }
-
-    leave(this, 'addToDelayed');
   }
 
   private movePendingToProcessing(): void {
-    enter(this, 'movePendingToProcessing');
-
     // Add the previously pending tasks to the currently processing tasks
     if (this.processingSize === 0) {
       this.processingHead = this.pendingHead;
@@ -676,14 +501,10 @@ export class TaskQueue {
     this.pendingHead = void 0;
     this.pendingTail = void 0;
     this.pendingSize = 0;
-
-    leave(this, 'movePendingToProcessing');
   }
 
   private moveDelayedToProcessing(): void {
-    enter(this, 'moveDelayedToProcessing');
-
-    const time = this.clock.now(true);
+    const time = this.now();
 
     // Add any delayed tasks whose delay have expired to the currently processing tasks
     const delayedHead = this.delayedHead!;
@@ -713,14 +534,9 @@ export class TaskQueue {
         this.delayedTail = void 0;
       }
     }
-
-    leave(this, 'moveDelayedToProcessing');
   }
 
-  @bound
   private requestFlush(): void {
-    enter(this, 'requestFlush');
-
     if (this.microTaskRequestFlushTask !== null) {
       this.microTaskRequestFlushTask.cancel();
       this.microTaskRequestFlushTask = null;
@@ -728,11 +544,9 @@ export class TaskQueue {
 
     if (!this.flushRequested) {
       this.flushRequested = true;
-      this.lastRequest = this.clock.now(true);
+      this.lastRequest = this.now();
       this.scheduler.requestFlush(this);
     }
-
-    leave(this, 'requestFlush');
   }
 }
 
@@ -757,8 +571,8 @@ export class Task<T = any> implements ITask {
   public next: Task<T> | undefined = void 0;
   public prev: Task<T> | undefined = void 0;
 
-  private resolve: ((value?: T) => void) | undefined = void 0;
-  private reject: ((reason: TaskAbortError<T>) => void) | undefined = void 0;
+  private resolve: PResolve<T> | undefined = void 0;
+  private reject: PReject<TaskAbortError<T>> | undefined = void 0;
 
   private _result: Promise<T> | undefined = void 0;
   public get result(): Promise<T> {
@@ -766,7 +580,7 @@ export class Task<T = any> implements ITask {
     if (result === void 0) {
       switch (this._status) {
         case 'pending': {
-          const promise = this._result = createPromise();
+          const promise = this._result = new ExposedPromise();
           this.resolve = promise.resolve;
           this.reject = promise.reject;
           return promise;
@@ -798,17 +612,11 @@ export class Task<T = any> implements ITask {
     public readonly reusable: boolean,
     public callback: TaskCallback<T>
   ) {
-    trace(this, 'constructor');
-
     this.priority = taskQueue.priority;
   }
 
   public run(): void {
-    enter(this, 'run');
-
     if (this._status !== 'pending') {
-      leave(this, 'run error');
-
       throw new Error(`Cannot run task in ${this._status} state`);
     }
 
@@ -828,7 +636,7 @@ export class Task<T = any> implements ITask {
     this._status = 'running';
 
     try {
-      const ret = callback(globalClock.now() - createdTime);
+      const ret = callback(taskQueue.now() - createdTime);
 
       if (this.persistent) {
         taskQueue.resetPersistentTask(this);
@@ -856,14 +664,10 @@ export class Task<T = any> implements ITask {
           taskQueue.returnToPool(this);
         }
       }
-
-      leave(this, 'run finally');
     }
   }
 
   public cancel(): boolean {
-    enter(this, 'cancel');
-
     if (this._status === 'pending') {
 
       const taskQueue = this.taskQueue;
@@ -888,25 +692,17 @@ export class Task<T = any> implements ITask {
         taskQueue.returnToPool(this);
       }
 
-      leave(this, 'cancel true =pending');
-
       return true;
     } else if (this._status === 'running' && this.persistent) {
       this.persistent = false;
 
-      leave(this, 'cancel true =running+persistent');
-
       return true;
     }
-
-    leave(this, 'cancel false');
 
     return false;
   }
 
   public reset(time: number): void {
-    enter(this, 'reset');
-
     const delay = this.queueTime - this.createdTime;
     this.createdTime = time;
     this.queueTime = time + delay;
@@ -915,8 +711,6 @@ export class Task<T = any> implements ITask {
     this.resolve = void 0;
     this.reject = void 0;
     this._result = void 0;
-
-    leave(this, 'reset');
   }
 
   public reuse(
@@ -926,21 +720,15 @@ export class Task<T = any> implements ITask {
     persistent: boolean,
     callback: TaskCallback<T>,
   ): void {
-    enter(this, 'reuse');
-
     this.createdTime = time;
     this.queueTime = time + delay;
     this.preempt = preempt;
     this.persistent = persistent;
     this.callback = callback;
     this._status = 'pending';
-
-    leave(this, 'reuse');
   }
 
   public dispose(): void {
-    trace(this, 'dispose');
-
     this.prev = void 0;
     this.next = void 0;
 

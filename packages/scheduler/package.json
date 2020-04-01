@@ -1,5 +1,5 @@
 {
-  "name": "@aurelia/runtime",
+  "name": "@aurelia/scheduler",
   "version": "0.6.0",
   "main": "dist/esnext/index.js",
   "module": "dist/esnext/index.js",
@@ -16,7 +16,7 @@
   },
   "keywords": [
     "aurelia",
-    "runtime"
+    "scheduler"
   ],
   "files": [
     "dist",
@@ -28,18 +28,18 @@
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
     "build": "tsc -b",
-    "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system runtime",
+    "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system scheduler",
     "dev": "tsc -b -w --preserveWatchOutput"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.6.0",
-    "@aurelia/scheduler": "0.6.0"
+    "@aurelia/kernel": "0.6.0"
   },
   "devDependencies": {
     "@types/node": "^12.12.21",
+    "reflect-metadata": "^0.1.13",
     "tslib": "^1.10.0",
     "typescript": "^3.7.4"
   }

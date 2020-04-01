@@ -1,6 +1,6 @@
 /* eslint-disable no-await-in-loop */
 import { IContainer, PLATFORM, bound } from '@aurelia/kernel';
-import { IDOM, QueueTaskOptions, TaskQueuePriority, IScheduler, TaskQueue, IClock, TaskCallback, Task, DOM, ITaskQueue, ITask, QueueTaskTargetOptions } from '@aurelia/runtime';
+import { IDOM, QueueTaskOptions, TaskQueuePriority, IScheduler, TaskQueue, Now, TaskCallback, Task, DOM, ITaskQueue, ITask, QueueTaskTargetOptions } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
 
 declare const process: NodeJS.Process;
@@ -303,12 +303,12 @@ export class JSDOMScheduler implements IScheduler {
     };
   };
 
-  public constructor(@IClock clock: IClock, @IDOM dom: HTMLDOM) {
-    const microTaskTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.microTask });
-    const renderTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.render });
-    const macroTaskTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.macroTask });
-    const postRenderTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.postRender });
-    const idleTaskQueue = new TaskQueue({ clock, scheduler: this, priority: TaskQueuePriority.idle });
+  public constructor(@Now now: Now, @IDOM dom: HTMLDOM) {
+    const microTaskTaskQueue = new TaskQueue({ now, scheduler: this, priority: TaskQueuePriority.microTask });
+    const renderTaskQueue = new TaskQueue({ now, scheduler: this, priority: TaskQueuePriority.render });
+    const macroTaskTaskQueue = new TaskQueue({ now, scheduler: this, priority: TaskQueuePriority.macroTask });
+    const postRenderTaskQueue = new TaskQueue({ now, scheduler: this, priority: TaskQueuePriority.postRender });
+    const idleTaskQueue = new TaskQueue({ now, scheduler: this, priority: TaskQueuePriority.idle });
 
     this.taskQueue = [
       microTaskTaskQueue,
@@ -332,9 +332,9 @@ export class JSDOMScheduler implements IScheduler {
     container.registerResolver(IScheduler, {
       resolve(): IScheduler {
         if (DOM.scheduler === void 0) {
-          const clock = container.get(IClock);
+          const now = container.get(Now);
           const dom = container.get(IDOM) as HTMLDOM;
-          const scheduler = new JSDOMScheduler(clock, dom);
+          const scheduler = new JSDOMScheduler(now, dom);
           Reflect.defineProperty(DOM, 'scheduler', {
             value: scheduler,
             writable: false,

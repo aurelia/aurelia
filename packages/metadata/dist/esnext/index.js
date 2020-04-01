@@ -1,4 +1,10 @@
-import { isObject, isNullOrUndefined } from './functions';
+// eslint-disable-next-line @typescript-eslint/ban-types
+function isObject(value) {
+    return typeof value === 'object' && value !== null || typeof value === 'function';
+}
+function isNullOrUndefined(value) {
+    return value === null || value === void 0;
+}
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
 const metadataInternalSlot = new WeakMap();
@@ -485,4 +491,4 @@ if (!hasDeleteMetadata) {
     def(Reflect, 'deleteMetadata', $delete);
 }
 export { Metadata, metadata };
-//# sourceMappingURL=metadata.js.map
+//# sourceMappingURL=index.js.map

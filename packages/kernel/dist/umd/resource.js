@@ -4,12 +4,12 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./metadata", "./platform"], factory);
+        define(["require", "exports", "@aurelia/metadata", "./platform"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const metadata_1 = require("./metadata");
+    const metadata_1 = require("@aurelia/metadata");
     const platform_1 = require("./platform");
     const annotation = {
         name: 'au:annotation',

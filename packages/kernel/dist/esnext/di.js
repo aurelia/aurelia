@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
+/// <reference types="reflect-metadata" />
+import { Metadata } from '@aurelia/metadata';
 import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
 import { Protocol } from './resource';
-import { Metadata } from './metadata';
 import { isArrayIndex, isNativeFunction, isObject } from './functions';
 export class ResolverBuilder {
     constructor(container, key) {

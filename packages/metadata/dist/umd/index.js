@@ -4,12 +4,18 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./functions"], factory);
+        define(["require", "exports"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const functions_1 = require("./functions");
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    function isObject(value) {
+        return typeof value === 'object' && value !== null || typeof value === 'function';
+    }
+    function isNullOrUndefined(value) {
+        return value === null || value === void 0;
+    }
     /* eslint-disable @typescript-eslint/no-explicit-any */
     /* eslint-disable @typescript-eslint/ban-types */
     const metadataInternalSlot = new WeakMap();
@@ -279,7 +285,7 @@
             // 1. Assert: F has a [[MetadataKey]] internal slot whose value is an ECMAScript language value, or undefined.
             // 2. Assert: F has a [[MetadataValue]] internal slot whose value is an ECMAScript language value, or undefined.
             // 3. If Type(target) is not Object, throw a TypeError exception.
-            if (!functions_1.isObject(target)) {
+            if (!isObject(target)) {
                 throw $typeError('@metadata', [metadataKey, metadataValue, target, propertyKey], 'target', target, 'Object or Function');
             }
             // 4. If key is not undefined and IsPropertyKey(key) is false, throw a TypeError exception.
@@ -297,10 +303,10 @@
             if (!Array.isArray(decorators)) {
                 throw $typeError('Metadata.decorate', [decorators, target, propertyKey, attributes], 'decorators', decorators, 'Array');
             }
-            if (!functions_1.isObject(target)) {
+            if (!isObject(target)) {
                 throw $typeError('Metadata.decorate', [decorators, target, propertyKey, attributes], 'target', target, 'Object or Function');
             }
-            if (!functions_1.isObject(attributes) && !functions_1.isNullOrUndefined(attributes)) {
+            if (!isObject(attributes) && !isNullOrUndefined(attributes)) {
                 throw $typeError('Metadata.decorate', [decorators, target, propertyKey, attributes], 'attributes', attributes, 'Object, Function, null, or undefined');
             }
             if (attributes === null) {
@@ -323,7 +329,7 @@
         for (let i = decorators.length - 1; i >= 0; --i) {
             const decorator = decorators[i];
             const decorated = decorator(target);
-            if (!functions_1.isNullOrUndefined(decorated)) {
+            if (!isNullOrUndefined(decorated)) {
                 if (typeof decorated !== 'function') {
                     throw $typeError('DecorateConstructor', [decorators, target], 'decorated', decorated, 'Function, null, or undefined');
                 }
@@ -336,8 +342,8 @@
         for (let i = decorators.length - 1; i >= 0; --i) {
             const decorator = decorators[i];
             const decorated = decorator(target, propertyKey, descriptor);
-            if (!functions_1.isNullOrUndefined(decorated)) {
-                if (!functions_1.isObject(decorated)) {
+            if (!isNullOrUndefined(decorated)) {
+                if (!isObject(decorated)) {
                     throw $typeError('DecorateProperty', [decorators, target, propertyKey, descriptor], 'decorated', decorated, 'Object, Function, null, or undefined');
                 }
                 descriptor = decorated;
@@ -347,7 +353,7 @@
     }
     function $define(metadataKey, metadataValue, target, propertyKey) {
         // 1. If Type(target) is not Object, throw a TypeError exception.
-        if (!functions_1.isObject(target)) {
+        if (!isObject(target)) {
             throw $typeError('Metadata.define', [metadataKey, metadataValue, target, propertyKey], 'target', target, 'Object or Function');
         }
         // 2. Return ? target.[[DefineMetadata]](metadataKey, metadataValue, propertyKey).
@@ -355,7 +361,7 @@
     }
     function $has(metadataKey, target, propertyKey) {
         // 1. If Type(target) is not Object, throw a TypeError exception.
-        if (!functions_1.isObject(target)) {
+        if (!isObject(target)) {
             throw $typeError('Metadata.has', [metadataKey, target, propertyKey], 'target', target, 'Object or Function');
         }
         // 2. Return ? target.[[HasMetadata]](metadataKey, propertyKey).
@@ -363,7 +369,7 @@
     }
     function $hasOwn(metadataKey, target, propertyKey) {
         // 1. If Type(target) is not Object, throw a TypeError exception.
-        if (!functions_1.isObject(target)) {
+        if (!isObject(target)) {
             throw $typeError('Metadata.hasOwn', [metadataKey, target, propertyKey], 'target', target, 'Object or Function');
         }
         // 2. Return ? target.[[HasOwn]](metadataKey, propertyKey).
@@ -371,7 +377,7 @@
     }
     function $get(metadataKey, target, propertyKey) {
         // 1. If Type(target) is not Object, throw a TypeError exception.
-        if (!functions_1.isObject(target)) {
+        if (!isObject(target)) {
             throw $typeError('Metadata.get', [metadataKey, target, propertyKey], 'target', target, 'Object or Function');
         }
         // 2. Return ? target.[[GetMetadata]](metadataKey, propertyKey).
@@ -379,7 +385,7 @@
     }
     function $getOwn(metadataKey, target, propertyKey) {
         // 1. If Type(target) is not Object, throw a TypeError exception.
-        if (!functions_1.isObject(target)) {
+        if (!isObject(target)) {
             throw $typeError('Metadata.getOwn', [metadataKey, target, propertyKey], 'target', target, 'Object or Function');
         }
         // 2. Return ? target.[[GetOwnMetadata]](metadataKey, propertyKey).
@@ -387,7 +393,7 @@
     }
     function $getKeys(target, propertyKey) {
         // 1. If Type(target) is not Object, throw a TypeError exception.
-        if (!functions_1.isObject(target)) {
+        if (!isObject(target)) {
             throw $typeError('Metadata.getKeys', [target, propertyKey], 'target', target, 'Object or Function');
         }
         // 2. Return ? target.[[GetMetadataKeys]](propertyKey).
@@ -395,7 +401,7 @@
     }
     function $getOwnKeys(target, propertyKey) {
         // 1. If Type(target) is not Object, throw a TypeError exception.
-        if (!functions_1.isObject(target)) {
+        if (!isObject(target)) {
             throw $typeError('Metadata.getOwnKeys', [target, propertyKey], 'target', target, 'Object or Function');
         }
         // 2. Return ? target.[[GetOwnMetadataKeys]](propertyKey).
@@ -403,7 +409,7 @@
     }
     function $delete(metadataKey, target, propertyKey) {
         // 1. If Type(target) is not Object, throw a TypeError exception.
-        if (!functions_1.isObject(target)) {
+        if (!isObject(target)) {
             throw $typeError('Metadata.delete', [metadataKey, target, propertyKey], 'target', target, 'Object or Function');
         }
         // 2. Return ? target.[[DeleteMetadata]](metadataKey, propertyKey).
@@ -498,4 +504,4 @@
         def(Reflect, 'deleteMetadata', $delete);
     }
 });
-//# sourceMappingURL=metadata.js.map
+//# sourceMappingURL=index.js.map

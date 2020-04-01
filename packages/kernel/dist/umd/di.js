@@ -4,15 +4,17 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./platform", "./reporter", "./resource", "./metadata", "./functions"], factory);
+        define(["require", "exports", "@aurelia/metadata", "./platform", "./reporter", "./resource", "./functions"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    /* eslint-disable @typescript-eslint/no-use-before-define */
+    /// <reference types="reflect-metadata" />
+    const metadata_1 = require("@aurelia/metadata");
     const platform_1 = require("./platform");
     const reporter_1 = require("./reporter");
     const resource_1 = require("./resource");
-    const metadata_1 = require("./metadata");
     const functions_1 = require("./functions");
     class ResolverBuilder {
         constructor(container, key) {

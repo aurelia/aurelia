@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./di", "./metadata", "./logger", "./path", "./platform", "./reporter", "./profiler", "./resource", "./eventaggregator", "./functions"], factory);
+        define(["require", "exports", "./di", "@aurelia/metadata", "./logger", "./path", "./platform", "./reporter", "./profiler", "./resource", "./eventaggregator", "./functions"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -23,7 +23,7 @@
     exports.InstanceProvider = di_1.InstanceProvider;
     exports.newInstanceForScope = di_1.newInstanceForScope;
     exports.newInstanceOf = di_1.newInstanceOf;
-    var metadata_1 = require("./metadata");
+    var metadata_1 = require("@aurelia/metadata");
     exports.metadata = metadata_1.metadata;
     exports.Metadata = metadata_1.Metadata;
     var logger_1 = require("./logger");

@@ -1,4 +1,4 @@
-import { Metadata } from './metadata';
+import { Metadata } from '@aurelia/metadata';
 import { PLATFORM } from './platform';
 const annotation = {
     name: 'au:annotation',

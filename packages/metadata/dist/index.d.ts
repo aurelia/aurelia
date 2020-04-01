@@ -412,4 +412,4 @@ declare const Metadata: {
     delete: typeof $delete;
 };
 export { Metadata, metadata };
-//# sourceMappingURL=metadata.d.ts.map
+//# sourceMappingURL=index.d.ts.map

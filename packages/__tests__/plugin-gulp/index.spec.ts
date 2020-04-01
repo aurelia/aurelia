@@ -159,9 +159,9 @@ describe('plugin-gulp', function () {
     }));
   });
 
-  it('transforms html file in shadowDOM mode + CSSModule mode', function (done) {
+  it('transforms html file in shadowDOM mode ignoring CSSModule mode', function (done) {
     const content = 'content';
-    const expected = 'processed {"mode":"open"} src/foo-bar.html content';
+    const expected = 'processed {"mode":"open"} text!src/foo-bar.html content';
 
     const files: Vinyl[] = [];
     const t = plugin.call(undefined,

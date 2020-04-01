@@ -1,5 +1,5 @@
-import { Aurelia, CustomElement, INode, Controller } from '@aurelia/runtime';
-import { StyleConfiguration, styles } from '@aurelia/runtime-html';
+import { Aurelia, CustomElement } from '@aurelia/runtime';
+import { cssModules } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
 describe('styles', function () {
@@ -7,10 +7,6 @@ describe('styles', function () {
     const ctx = TestContext.createHTMLTestContext();
     const au = new Aurelia(ctx.container);
     const host = ctx.createElement('div');
-
-    ctx.container.register(
-      StyleConfiguration.cssModulesProcessor()
-    );
 
     return { ctx, au, host };
   }
@@ -22,7 +18,7 @@ describe('styles', function () {
     const WithStyles = CustomElement.define({
       name: 'with-styles',
       template: `<div id="target" class="test"><slot></slot></div>`,
-      dependencies: [styles(cssClasses)],
+      dependencies: [cssModules(cssClasses)],
       shadowOptions: { mode: 'open' }
     });
 

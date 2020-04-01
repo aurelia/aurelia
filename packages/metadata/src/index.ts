@@ -1,4 +1,11 @@
-import { isObject, isNullOrUndefined } from './functions';
+// eslint-disable-next-line @typescript-eslint/ban-types
+function isObject<T extends object = Object | Function>(value: unknown): value is T {
+  return typeof value === 'object' && value !== null || typeof value === 'function';
+}
+
+function isNullOrUndefined(value: unknown): value is null | undefined {
+  return value === null || value === void 0;
+}
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */

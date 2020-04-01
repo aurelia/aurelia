@@ -1,6 +1,7 @@
+import { Metadata } from '@aurelia/metadata';
+
 import { IContainer } from './di';
 import { Constructable } from './interfaces';
-import { Metadata } from './metadata';
 import { PLATFORM } from './platform';
 
 export type ResourceType<

@@ -27,6 +27,8 @@
     { "path": "runtime-html-browser" },
     { "path": "runtime-html-jsdom" },
     { "path": "scheduler" },
+    { "path": "scheduler-dom" },
+    { "path": "scheduler-node" },
     { "path": "store" },
     { "path": "testing" },
     { "path": "validation" },

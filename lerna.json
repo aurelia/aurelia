@@ -32,6 +32,8 @@
     "packages/runtime-html-browser",
     "packages/runtime-html-jsdom",
     "packages/scheduler",
+    "packages/scheduler-dom",
+    "packages/scheduler-node",
     "packages/store",
     "packages/testing",
     "packages/validation",

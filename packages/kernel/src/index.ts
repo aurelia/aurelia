@@ -65,7 +65,7 @@ export {
 export {
   metadata,
   Metadata,
-} from './metadata';
+} from '@aurelia/metadata';
 export {
   IConsoleLike,
   ColorOptions,

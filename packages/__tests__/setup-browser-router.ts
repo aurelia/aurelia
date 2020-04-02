@@ -6,9 +6,6 @@ import {
   JitHtmlBrowserConfiguration
 } from '@aurelia/jit-html-browser';
 import {
-  BrowserScheduler
-} from '@aurelia/runtime-html-browser';
-import {
   Reporter,
   LogLevel,
 } from '@aurelia/kernel';
@@ -19,7 +16,6 @@ function createBrowserTestContext(): HTMLTestContext {
   return HTMLTestContext.create(
     JitHtmlBrowserConfiguration,
     window,
-    BrowserScheduler,
     UIEvent,
     Event,
     CustomEvent,

@@ -6,9 +6,6 @@ import {
   JitHtmlJsdomConfiguration
 } from '@aurelia/jit-html-jsdom';
 import {
-  JSDOMScheduler
-} from '@aurelia/runtime-html-jsdom';
-import {
   Reporter,
   LogLevel,
 } from '@aurelia/kernel';
@@ -22,7 +19,6 @@ function createJSDOMTestContext(): HTMLTestContext {
   return HTMLTestContext.create(
     JitHtmlJsdomConfiguration,
     jsdom.window,
-    JSDOMScheduler,
     jsdom.window.UIEvent,
     jsdom.window.Event,
     jsdom.window.CustomEvent,

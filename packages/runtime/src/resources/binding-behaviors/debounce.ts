@@ -1,7 +1,7 @@
 import { LifecycleFlags } from '../../flags';
 import { IScope } from '../../observation';
 import { bindingBehavior, BindingInterceptor, IInterceptableBinding } from '../binding-behavior';
-import { ITask, IScheduler, ITaskQueue, QueueTaskOptions } from '../../scheduler';
+import { ITask, IScheduler, ITaskQueue, QueueTaskOptions } from '@aurelia/scheduler';
 import { BindingBehaviorExpression } from '../../binding/ast';
 import { IsAssign } from '../../ast';
 

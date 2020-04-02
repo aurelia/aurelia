@@ -58,13 +58,14 @@ function executor<T>(resolve: PResolve<T>, reject: PReject): void {
   $reject = reject;
 }
 
-export class ExposedPromise<T = void> extends Promise<T> {
-  public readonly resolve: PResolve<T>;
-  public readonly reject: PReject;
+export type ExposedPromise<T = void> = Promise<T> & {
+  resolve: PResolve<T>;
+  reject: PReject;
+};
 
-  public constructor() {
-    super(executor);
-    this.resolve = $resolve;
-    this.reject = $reject;
-  }
+export function createExposedPromise<T>(): ExposedPromise<T> {
+  const p = new Promise<T>(executor) as ExposedPromise<T>;
+  p.resolve = $resolve;
+  p.reject = $reject;
+  return p;
 }

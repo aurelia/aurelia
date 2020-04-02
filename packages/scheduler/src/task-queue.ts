@@ -1,4 +1,5 @@
 import {
+  createExposedPromise,
   defaultQueueTaskOptions,
   ExposedPromise,
   QueueTaskOptions,
@@ -69,6 +70,7 @@ export class TaskQueue {
     flushRequestorFactory: IFlushRequestorFactory,
   ) {
     this.flushRequestor = flushRequestorFactory.create(this);
+    this.requestFlush = this.requestFlush.bind(this);
   }
 
   public flush(): void {
@@ -160,7 +162,7 @@ export class TaskQueue {
   public async yield(): Promise<void> {
     if (this.processingSize > 0 || this.pendingSize > 0 || this.delayedSize > 0) {
       if (this.yieldPromise === void 0) {
-        this.yieldPromise = new ExposedPromise();
+        this.yieldPromise = createExposedPromise();
       }
 
       await this.yieldPromise;

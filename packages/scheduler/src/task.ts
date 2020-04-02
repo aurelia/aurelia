@@ -1,5 +1,5 @@
 import {
-  ExposedPromise,
+  createExposedPromise,
   PReject,
   PResolve,
   TaskQueuePriority,
@@ -41,7 +41,7 @@ export class Task<T = any> implements ITask {
     if (result === void 0) {
       switch (this._status) {
         case 'pending': {
-          const promise = this._result = new ExposedPromise();
+          const promise = this._result = createExposedPromise();
           this.resolve = promise.resolve;
           this.reject = promise.reject;
           return promise;

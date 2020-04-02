@@ -24,8 +24,11 @@
  */
 
 import {
-  IIndexable,
+  IIndexable, PLATFORM,
 } from '@aurelia/kernel';
+import {
+  Scheduler,
+} from '@aurelia/scheduler';
 import {
   CompositionRoot, CustomElement, CustomAttribute, IScheduler, ITaskQueue, TaskQueue, TaskQueuePriority, ITask,
 } from '@aurelia/runtime';
@@ -809,7 +812,7 @@ const isSchedulerEmpty = (function () {
     // Please don't do this anywhere else. We need to get rid of this / improve this at some point, not make it worse.
     // Also for this to work, a HTMLTestContext needs to have been created somewhere, so we can't just call this e.g. in kernel and certain runtime tests that don't use
     // the full test context.
-    const scheduler = (DOM as any)['scheduler'] as IScheduler;
+    const scheduler = Scheduler.get(PLATFORM.global)!;
 
     const microTaskQueue = scheduler.getMicroTaskQueue() as any;
     const renderTaskQueue = scheduler.getRenderTaskQueue() as any;

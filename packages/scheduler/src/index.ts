@@ -19,8 +19,9 @@ export {
   TaskStatus,
 } from './task';
 export {
-  TaskQueuePriority,
+  createExposedPromise,
   ExposedPromise,
   QueueTaskOptions,
   QueueTaskTargetOptions,
+  TaskQueuePriority,
 } from './types';

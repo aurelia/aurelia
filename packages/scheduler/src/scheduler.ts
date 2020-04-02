@@ -87,6 +87,13 @@ export class Scheduler implements IScheduler {
         new TaskQueue(now, TaskQueuePriority.idle, this, idleFactory)
       ),
     ];
+
+    this.yieldMicroTask = this.yieldMicroTask.bind(this);
+    this.yieldRenderTask = this.yieldRenderTask.bind(this);
+    this.yieldMacroTask = this.yieldMacroTask.bind(this);
+    this.yieldPostRenderTask = this.yieldPostRenderTask.bind(this);
+    this.yieldIdleTask = this.yieldIdleTask.bind(this);
+    this.yieldAll = this.yieldAll.bind(this);
   }
 
   public static get(key: object): IScheduler | undefined {

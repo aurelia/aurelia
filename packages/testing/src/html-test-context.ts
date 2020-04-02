@@ -47,6 +47,7 @@ export class HTMLTestContext {
       this._container = DI.createContainer(this.config);
       Registration.instance(IDOM, this.dom).register(this._container);
       Registration.instance(HTMLTestContext, this).register(this._container);
+      Registration.instance(IScheduler, createDOMScheduler(this._container, this.wnd)).register(this._container);
       this._container.register(DebugConfiguration);
     }
     return this._container;

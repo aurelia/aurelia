@@ -20,6 +20,8 @@ import {
   ITask,
 } from './task';
 
+const store = new WeakMap<object, IScheduler>();
+
 export const IScheduler = DI.createInterface<IScheduler>('IScheduler').noDefault();
 export interface IScheduler {
   getTaskQueue(priority: TaskQueuePriority): ITaskQueue;
@@ -85,6 +87,14 @@ export class Scheduler implements IScheduler {
         new TaskQueue(now, TaskQueuePriority.idle, this, idleFactory)
       ),
     ];
+  }
+
+  public static get(key: object): IScheduler | undefined {
+    return store.get(key);
+  }
+
+  public static set(key: object, instance: IScheduler): void {
+    store.set(key, instance);
   }
 
   public getTaskQueue(priority: TaskQueuePriority): TaskQueue {

@@ -35,9 +35,11 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.7.0-dev.202004012037",
-    "@aurelia/runtime": "0.7.0-dev.202004012037",
-    "@aurelia/runtime-html": "0.7.0-dev.202004012037",
+    "@aurelia/kernel": "0.6.0",
+    "@aurelia/runtime": "0.6.0",
+    "@aurelia/runtime-html": "0.6.0",
+    "@aurelia/scheduler": "0.6.0",
+    "@aurelia/scheduler-dom": "0.6.0",
     "jsdom": "^15.2.1"
   },
   "devDependencies": {

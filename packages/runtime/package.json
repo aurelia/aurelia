@@ -35,7 +35,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.7.0-dev.202004012037"
+    "@aurelia/kernel": "0.6.0",
+    "@aurelia/scheduler": "0.6.0"
   },
   "devDependencies": {
     "@types/node": "^12.12.21",

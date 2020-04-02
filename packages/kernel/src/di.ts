@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 /// <reference types="reflect-metadata" />
+import { Metadata } from '@aurelia/metadata';
+
 import { Class, Constructable } from './interfaces';
 import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
 import { ResourceType, Protocol } from './resource';
-import { Metadata } from './metadata';
 import { isArrayIndex, isNativeFunction, isObject } from './functions';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */

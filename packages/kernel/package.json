@@ -34,6 +34,9 @@
   "publishConfig": {
     "access": "public"
   },
+  "dependencies": {
+    "@aurelia/metadata": "0.6.0"
+  },
   "devDependencies": {
     "@types/node": "^12.12.21",
     "reflect-metadata": "^0.1.13",

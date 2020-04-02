@@ -8,6 +8,7 @@ import {
 } from '@aurelia/scheduler';
 import {
   IContainer,
+  PLATFORM,
 } from '@aurelia/kernel';
 
 function createMicroTaskFlushRequestorFactory(): IFlushRequestorFactory {
@@ -21,6 +22,7 @@ function createMicroTaskFlushRequestorFactory(): IFlushRequestorFactory {
         if (canceled) {
           canceled = false;
         } else {
+          requested = false;
           taskQueue.flush();
         }
       }
@@ -174,12 +176,16 @@ function createRequestIdleCallbackFlushRequestor(g: NodeJS.Global): IFlushReques
 }
 
 export function createNodeScheduler(container: IContainer, g: NodeJS.Global): IScheduler {
-  return new Scheduler(
-    container.get(Now),
-    createMicroTaskFlushRequestorFactory(),
-    createRequestAnimationFrameFlushRequestor(g),
-    createSetTimeoutFlushRequestorFactory(g),
-    createPostRequestAnimationFrameFlushRequestor(g),
-    createRequestIdleCallbackFlushRequestor(g),
-  );
+  let scheduler = Scheduler.get(PLATFORM.global);
+  if (scheduler === void 0) {
+    Scheduler.set(PLATFORM.global, scheduler = new Scheduler(
+      container.get(Now),
+      createMicroTaskFlushRequestorFactory(),
+      createRequestAnimationFrameFlushRequestor(g),
+      createSetTimeoutFlushRequestorFactory(g),
+      createPostRequestAnimationFrameFlushRequestor(g),
+      createRequestIdleCallbackFlushRequestor(g),
+    ));
+  }
+  return scheduler;
 }

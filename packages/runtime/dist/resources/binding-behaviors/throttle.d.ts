@@ -4,7 +4,7 @@ import { BindingInterceptor, IInterceptableBinding } from '../binding-behavior';
 import { BindingBehaviorExpression } from '../../binding/ast';
 export declare class ThrottleBindingBehavior extends BindingInterceptor {
     private readonly taskQueue;
-    private readonly clock;
+    private readonly now;
     private readonly opts;
     private readonly firstArg;
     private task;

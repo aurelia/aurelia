@@ -1,7 +1,7 @@
 import { __decorate, __metadata, __param } from "tslib";
 import { DI, Reporter } from '@aurelia/kernel';
 import { subscriberCollection } from './subscriber-collection';
-import { IScheduler } from '../scheduler';
+import { IScheduler } from '@aurelia/scheduler';
 export const IDirtyChecker = DI.createInterface('IDirtyChecker').withDefault(x => x.singleton(DirtyChecker));
 export const DirtyCheckSettings = {
     /**

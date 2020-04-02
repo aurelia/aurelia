@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/kernel", "@aurelia/runtime", "@aurelia/runtime-html", "jsdom", "./jsdom-scheduler"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "@aurelia/runtime", "@aurelia/runtime-html", "@aurelia/scheduler-dom", "jsdom"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -13,9 +13,8 @@
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const runtime_html_1 = require("@aurelia/runtime-html");
+    const scheduler_dom_1 = require("@aurelia/scheduler-dom");
     const jsdom_1 = require("jsdom");
-    const jsdom_scheduler_1 = require("./jsdom-scheduler");
-    exports.JSDOMScheduler = jsdom_scheduler_1.JSDOMScheduler;
     let JSDOMInitializer = class JSDOMInitializer {
         constructor(container) {
             this.container = container;
@@ -47,12 +46,7 @@
                 dom = new runtime_html_1.HTMLDOM(this.jsdom.window, this.jsdom.window.document, this.jsdom.window.Node, this.jsdom.window.Element, this.jsdom.window.HTMLElement, this.jsdom.window.CustomEvent, this.jsdom.window.CSSStyleSheet, this.jsdom.window.ShadowRoot);
             }
             kernel_1.Registration.instance(runtime_1.IDOM, dom).register(this.container);
-            if (runtime_1.DOM.scheduler === void 0) {
-                this.container.register(jsdom_scheduler_1.JSDOMScheduler);
-            }
-            else {
-                kernel_1.Registration.instance(runtime_1.IScheduler, runtime_1.DOM.scheduler).register(this.container);
-            }
+            kernel_1.Registration.instance(runtime_1.IScheduler, scheduler_dom_1.createDOMScheduler(this.container, this.jsdom.window)).register(this.container);
             return dom;
         }
     };
@@ -62,14 +56,12 @@
     ], JSDOMInitializer);
     exports.JSDOMInitializer = JSDOMInitializer;
     exports.IDOMInitializerRegistration = JSDOMInitializer;
-    exports.IJSDOMSchedulerRegistration = jsdom_scheduler_1.JSDOMScheduler;
     /**
      * Default HTML-specific, jsdom-specific implementations for the following interfaces:
      * - `IDOMInitializer`
      */
     exports.DefaultComponents = [
         exports.IDOMInitializerRegistration,
-        exports.IJSDOMSchedulerRegistration,
     ];
     /**
      * A DI configuration object containing html-specific, jsdom-specific registrations:

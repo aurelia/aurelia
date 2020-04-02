@@ -1,6 +1,6 @@
 import { __decorate, __metadata } from "tslib";
 import { bindingBehavior, BindingInterceptor } from '../binding-behavior';
-import { IScheduler, IClock } from '../../scheduler';
+import { IScheduler, Now } from '@aurelia/scheduler';
 import { BindingBehaviorExpression } from '../../binding/ast';
 let ThrottleBindingBehavior = class ThrottleBindingBehavior extends BindingInterceptor {
     constructor(binding, expr) {
@@ -10,7 +10,7 @@ let ThrottleBindingBehavior = class ThrottleBindingBehavior extends BindingInter
         this.task = null;
         this.lastCall = 0;
         this.taskQueue = binding.locator.get(IScheduler).getPostRenderTaskQueue();
-        this.clock = binding.locator.get(IClock);
+        this.now = binding.locator.get(Now);
         if (expr.args.length > 0) {
             this.firstArg = expr.args[0];
         }
@@ -24,20 +24,20 @@ let ThrottleBindingBehavior = class ThrottleBindingBehavior extends BindingInter
     }
     queueTask(callback) {
         const opts = this.opts;
-        const clock = this.clock;
-        const nextDelay = this.lastCall + opts.delay - clock.now();
+        const now = this.now;
+        const nextDelay = this.lastCall + opts.delay - now();
         if (nextDelay > 0) {
             if (this.task !== null) {
                 this.task.cancel();
             }
             opts.delay = nextDelay;
             this.task = this.taskQueue.queueTask(() => {
-                this.lastCall = clock.now();
+                this.lastCall = now();
                 callback();
             }, opts);
         }
         else {
-            this.lastCall = clock.now();
+            this.lastCall = now();
             callback();
         }
     }

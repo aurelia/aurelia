@@ -6,11 +6,34 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime", "./comparison", "./inspect", "./specialized-assertions", "./util", "@aurelia/runtime-html"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/scheduler", "@aurelia/runtime", "./comparison", "./inspect", "./specialized-assertions", "./util", "@aurelia/runtime-html"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    // Original license:
+    /*
+     * Copyright Joyent, Inc. and other Node contributors. All rights reserved.
+     * Permission is hereby granted, free of charge, to any person obtaining a copy
+     * of this software and associated documentation files (the "Software"), to
+     * deal in the Software without restriction, including without limitation the
+     * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+     * sell copies of the Software, and to permit persons to whom the Software is
+     * furnished to do so, subject to the following conditions:
+     *
+     * The above copyright notice and this permission notice shall be included in
+     * all copies or substantial portions of the Software.
+     *
+     * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+     * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+     * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+     * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+     * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+     * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+     * IN THE SOFTWARE.
+     */
+    const kernel_1 = require("@aurelia/kernel");
+    const scheduler_1 = require("@aurelia/scheduler");
     const runtime_1 = require("@aurelia/runtime");
     const comparison_1 = require("./comparison");
     const inspect_1 = require("./inspect");
@@ -686,7 +709,7 @@
             // Please don't do this anywhere else. We need to get rid of this / improve this at some point, not make it worse.
             // Also for this to work, a HTMLTestContext needs to have been created somewhere, so we can't just call this e.g. in kernel and certain runtime tests that don't use
             // the full test context.
-            const scheduler = runtime_html_1.DOM['scheduler'];
+            const scheduler = scheduler_1.Scheduler.get(kernel_1.PLATFORM.global);
             const microTaskQueue = scheduler.getMicroTaskQueue();
             const renderTaskQueue = scheduler.getRenderTaskQueue();
             const macroTaskQueue = scheduler.getMacroTaskQueue();

@@ -37,7 +37,7 @@ export { containerless, customElement, CustomElement, CustomElementDefinition, I
 export { ValueConverter, ValueConverterDefinition, valueConverter, } from './resources/value-converter';
 export { ISanitizer, SanitizeValueConverter } from './resources/value-converters/sanitize';
 export { ViewValueConverter } from './resources/value-converters/view';
-export { Clock, IClock, IScheduler, Task, TaskAbortError, TaskQueue, TaskQueuePriority, } from './scheduler';
+export { Now, IScheduler, Task, TaskAbortError, TaskQueue, TaskQueuePriority, } from '@aurelia/scheduler';
 export { bindable, BindableDefinition, Bindable, } from './templating/bindable';
 export { ChildrenDefinition, Children, children, ChildrenObserver, } from './templating/children';
 // These exports are temporary until we have a proper way to unit test them

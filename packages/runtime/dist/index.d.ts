@@ -38,7 +38,7 @@ export { containerless, customElement, CustomElementHost, CustomElement, CustomE
 export { ValueConverter, ValueConverterDefinition, PartialValueConverterDefinition, ValueConverterKind, ValueConverterDecorator, ValueConverterInstance, ValueConverterType, valueConverter, } from './resources/value-converter';
 export { ISanitizer, SanitizeValueConverter } from './resources/value-converters/sanitize';
 export { ViewValueConverter } from './resources/value-converters/view';
-export { Clock, IClock, IClockSettings, IScheduler, ITask, ITaskQueue, QueueTaskOptions, Task, TaskAbortError, TaskCallback, TaskQueue, TaskQueuePriority, TaskStatus, QueueTaskTargetOptions, } from './scheduler';
+export { Now, IScheduler, ITask, ITaskQueue, QueueTaskOptions, Task, TaskAbortError, TaskCallback, TaskQueue, TaskQueuePriority, TaskStatus, QueueTaskTargetOptions, } from '@aurelia/scheduler';
 export { bindable, PartialBindableDefinition, BindableDefinition, Bindable, } from './templating/bindable';
 export { PartialChildrenDefinition, ChildrenDefinition, Children, children, ChildrenObserver, } from './templating/children';
 export { Controller, } from './templating/controller';

@@ -1,0 +1,159 @@
+import { Scheduler, Now, } from '@aurelia/scheduler';
+import { PLATFORM, } from '@aurelia/kernel';
+function createMicroTaskFlushRequestorFactory() {
+    return {
+        create(taskQueue) {
+            let requested = false;
+            let canceled = false;
+            const p = Promise.resolve();
+            function flush() {
+                if (canceled) {
+                    canceled = false;
+                }
+                else {
+                    requested = false;
+                    taskQueue.flush();
+                }
+            }
+            return {
+                request() {
+                    if (!requested) {
+                        canceled = false;
+                        requested = true;
+                        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                        p.then(flush);
+                    }
+                },
+                cancel() {
+                    canceled = true;
+                    requested = false;
+                },
+            };
+        },
+    };
+}
+function createSetTimeoutFlushRequestorFactory(g) {
+    return {
+        create(taskQueue) {
+            let handle = null;
+            function flush() {
+                if (handle !== null) {
+                    handle = null;
+                    taskQueue.flush();
+                }
+            }
+            return {
+                cancel() {
+                    if (handle !== null) {
+                        g.clearTimeout(handle);
+                        handle = null;
+                    }
+                },
+                request() {
+                    if (handle === null) {
+                        handle = g.setTimeout(flush, 0);
+                    }
+                },
+            };
+        },
+    };
+}
+function createRequestAnimationFrameFlushRequestor(g) {
+    return {
+        create(taskQueue) {
+            let handle = null;
+            function flush() {
+                if (handle !== null) {
+                    handle = null;
+                    taskQueue.flush();
+                }
+            }
+            return {
+                cancel() {
+                    if (handle !== null) {
+                        g.clearTimeout(handle);
+                        handle = null;
+                    }
+                },
+                request() {
+                    if (handle === null) {
+                        handle = g.setTimeout(flush, 1000 / 60);
+                    }
+                },
+            };
+        },
+    };
+}
+function createPostRequestAnimationFrameFlushRequestor(g) {
+    return {
+        create(taskQueue) {
+            let rafHandle = null;
+            let timeoutHandle = null;
+            function flush() {
+                if (timeoutHandle !== null) {
+                    timeoutHandle = null;
+                    taskQueue.flush();
+                }
+            }
+            function queueFlush() {
+                if (rafHandle !== null) {
+                    rafHandle = null;
+                    if (timeoutHandle === null) {
+                        timeoutHandle = g.setTimeout(flush, 0);
+                    }
+                }
+            }
+            return {
+                cancel() {
+                    if (rafHandle !== null) {
+                        g.clearTimeout(rafHandle);
+                        rafHandle = null;
+                    }
+                    if (timeoutHandle !== null) {
+                        g.clearTimeout(timeoutHandle);
+                        timeoutHandle = null;
+                    }
+                },
+                request() {
+                    if (rafHandle === null) {
+                        rafHandle = g.setTimeout(queueFlush, 1000 / 16);
+                    }
+                },
+            };
+        },
+    };
+}
+function createRequestIdleCallbackFlushRequestor(g) {
+    return {
+        create(taskQueue) {
+            let handle = null;
+            function flush() {
+                if (handle !== null) {
+                    handle = null;
+                    taskQueue.flush();
+                }
+            }
+            return {
+                cancel() {
+                    if (handle !== null) {
+                        g.clearTimeout(handle);
+                        handle = null;
+                    }
+                },
+                request() {
+                    if (handle === null) {
+                        handle = g.setTimeout(flush, 45);
+                    }
+                },
+            };
+        },
+    };
+}
+export function createNodeScheduler(container, g) {
+    let scheduler = Scheduler.get(PLATFORM.global);
+    if (scheduler === void 0) {
+        Scheduler.set(PLATFORM.global, scheduler = new Scheduler(container.get(Now), createMicroTaskFlushRequestorFactory(), createRequestAnimationFrameFlushRequestor(g), createSetTimeoutFlushRequestorFactory(g), createPostRequestAnimationFrameFlushRequestor(g), createRequestIdleCallbackFlushRequestor(g)));
+    }
+    return scheduler;
+}
+//# sourceMappingURL=index.js.map

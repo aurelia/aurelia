@@ -4,14 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "../binding-behavior", "../../scheduler", "../../binding/ast"], factory);
+        define(["require", "exports", "tslib", "../binding-behavior", "@aurelia/scheduler", "../../binding/ast"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const tslib_1 = require("tslib");
     const binding_behavior_1 = require("../binding-behavior");
-    const scheduler_1 = require("../../scheduler");
+    const scheduler_1 = require("@aurelia/scheduler");
     const ast_1 = require("../../binding/ast");
     let DebounceBindingBehavior = class DebounceBindingBehavior extends binding_behavior_1.BindingInterceptor {
         constructor(binding, expr) {

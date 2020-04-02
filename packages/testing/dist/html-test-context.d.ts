@@ -1,4 +1,4 @@
-import { IContainer, IRegistry, Constructable } from '@aurelia/kernel';
+import { IContainer, IRegistry } from '@aurelia/kernel';
 import { ILifecycle, IObserverLocator, IProjectorLocator, IRenderer, ITemplateCompiler, IScheduler } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
 export declare class HTMLTestContext {
@@ -32,9 +32,8 @@ export declare class HTMLTestContext {
     private _renderer?;
     private _projectorLocator?;
     private _domParser?;
-    private readonly Scheduler;
     private constructor();
-    static create(config: IRegistry, wnd: Window, Scheduler: Constructable<IScheduler>, UIEventType: typeof UIEvent, EventType: typeof Event, CustomEventType: typeof CustomEvent, NodeType: typeof Node, ElementType: typeof Element, HTMLElementType: typeof HTMLElement, HTMLDivElementType: typeof HTMLDivElement, TextType: typeof Text, CommentType: typeof Comment, DOMParserType: typeof DOMParser, CSSStyleSheetType: typeof CSSStyleSheet, ShadowRootType: typeof ShadowRoot): HTMLTestContext;
+    static create(config: IRegistry, wnd: Window, UIEventType: typeof UIEvent, EventType: typeof Event, CustomEventType: typeof CustomEvent, NodeType: typeof Node, ElementType: typeof Element, HTMLElementType: typeof HTMLElement, HTMLDivElementType: typeof HTMLDivElement, TextType: typeof Text, CommentType: typeof Comment, DOMParserType: typeof DOMParser, CSSStyleSheetType: typeof CSSStyleSheet, ShadowRootType: typeof ShadowRoot): HTMLTestContext;
     createElementFromMarkup(markup: string): HTMLElement;
     createElement(name: string): HTMLElement;
     createAttribute(name: string, value: string): Attr;

@@ -1,6 +1,5 @@
 import { IContainer, IRegistry, IResolver } from '@aurelia/kernel';
 import { IDOM, IDOMInitializer, ISinglePageApp } from '@aurelia/runtime';
-import { BrowserScheduler } from './browser-scheduler';
 declare class BrowserDOMInitializer implements IDOMInitializer {
     private readonly container;
     constructor(container: IContainer);
@@ -8,7 +7,6 @@ declare class BrowserDOMInitializer implements IDOMInitializer {
     initialize(config?: ISinglePageApp<Node>): IDOM;
 }
 export declare const IDOMInitializerRegistration: IRegistry;
-export declare const IBrowserSchedulerRegistration: IRegistry;
 /**
  * Default HTML-specific, browser-specific implementations for the following interfaces:
  * - `IDOMInitializer`
@@ -29,5 +27,5 @@ export declare const RuntimeHtmlBrowserConfiguration: {
      */
     createContainer(): IContainer;
 };
-export { BrowserDOMInitializer, BrowserScheduler, };
+export { BrowserDOMInitializer, };
 //# sourceMappingURL=index.d.ts.map

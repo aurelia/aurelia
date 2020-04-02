@@ -1,10 +1,10 @@
 import { IContainer, IRegistry } from '@aurelia/kernel';
+import { Now } from '@aurelia/scheduler';
 export declare const IObserverLocatorRegistration: IRegistry;
 export declare const ILifecycleRegistration: IRegistry;
 export declare const IRendererRegistration: IRegistry;
 export declare const IStartTaskManagerRegistration: IRegistry;
 export declare const IViewLocatorRegistration: IRegistry;
-export declare const IClockRegistration: IRegistry;
 /**
  * Default implementations for the following interfaces:
  * - `IObserverLocator`
@@ -15,7 +15,7 @@ export declare const IClockRegistration: IRegistry;
  * - `IClockRegistration`
  * - `ISchedulerRegistration`
  */
-export declare const DefaultComponents: IRegistry[];
+export declare const DefaultComponents: (IRegistry | import("@aurelia/kernel").InterfaceSymbol<Now>)[];
 export declare const FrequentMutationsRegistration: IRegistry;
 export declare const InfrequentMutationsRegistration: IRegistry;
 export declare const ObserveShallowRegistration: IRegistry;

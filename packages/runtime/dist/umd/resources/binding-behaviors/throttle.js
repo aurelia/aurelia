@@ -4,14 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "../binding-behavior", "../../scheduler", "../../binding/ast"], factory);
+        define(["require", "exports", "tslib", "../binding-behavior", "@aurelia/scheduler", "../../binding/ast"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const tslib_1 = require("tslib");
     const binding_behavior_1 = require("../binding-behavior");
-    const scheduler_1 = require("../../scheduler");
+    const scheduler_1 = require("@aurelia/scheduler");
     const ast_1 = require("../../binding/ast");
     let ThrottleBindingBehavior = class ThrottleBindingBehavior extends binding_behavior_1.BindingInterceptor {
         constructor(binding, expr) {
@@ -21,7 +21,7 @@
             this.task = null;
             this.lastCall = 0;
             this.taskQueue = binding.locator.get(scheduler_1.IScheduler).getPostRenderTaskQueue();
-            this.clock = binding.locator.get(scheduler_1.IClock);
+            this.now = binding.locator.get(scheduler_1.Now);
             if (expr.args.length > 0) {
                 this.firstArg = expr.args[0];
             }
@@ -35,20 +35,20 @@
         }
         queueTask(callback) {
             const opts = this.opts;
-            const clock = this.clock;
-            const nextDelay = this.lastCall + opts.delay - clock.now();
+            const now = this.now;
+            const nextDelay = this.lastCall + opts.delay - now();
             if (nextDelay > 0) {
                 if (this.task !== null) {
                     this.task.cancel();
                 }
                 opts.delay = nextDelay;
                 this.task = this.taskQueue.queueTask(() => {
-                    this.lastCall = clock.now();
+                    this.lastCall = now();
                     callback();
                 }, opts);
             }
             else {
-                this.lastCall = clock.now();
+                this.lastCall = now();
                 callback();
             }
         }

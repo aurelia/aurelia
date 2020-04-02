@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/kernel", "@aurelia/runtime", "@aurelia/runtime-html", "./browser-scheduler"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "@aurelia/runtime", "@aurelia/runtime-html", "@aurelia/scheduler-dom"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -13,8 +13,7 @@
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const runtime_html_1 = require("@aurelia/runtime-html");
-    const browser_scheduler_1 = require("./browser-scheduler");
-    exports.BrowserScheduler = browser_scheduler_1.BrowserScheduler;
+    const scheduler_dom_1 = require("@aurelia/scheduler-dom");
     let BrowserDOMInitializer = class BrowserDOMInitializer {
         constructor(container) {
             this.container = container;
@@ -42,12 +41,7 @@
                 dom = new runtime_html_1.HTMLDOM(window, document, Node, Element, HTMLElement, CustomEvent, CSSStyleSheet, ShadowRoot);
             }
             kernel_1.Registration.instance(runtime_1.IDOM, dom).register(this.container);
-            if (runtime_1.DOM.scheduler === void 0) {
-                this.container.register(browser_scheduler_1.BrowserScheduler);
-            }
-            else {
-                kernel_1.Registration.instance(runtime_1.IScheduler, runtime_1.DOM.scheduler).register(this.container);
-            }
+            kernel_1.Registration.instance(runtime_1.IScheduler, scheduler_dom_1.createDOMScheduler(this.container, window)).register(this.container);
             return dom;
         }
     };
@@ -57,14 +51,12 @@
     ], BrowserDOMInitializer);
     exports.BrowserDOMInitializer = BrowserDOMInitializer;
     exports.IDOMInitializerRegistration = BrowserDOMInitializer;
-    exports.IBrowserSchedulerRegistration = browser_scheduler_1.BrowserScheduler;
     /**
      * Default HTML-specific, browser-specific implementations for the following interfaces:
      * - `IDOMInitializer`
      */
     exports.DefaultComponents = [
         exports.IDOMInitializerRegistration,
-        exports.IBrowserSchedulerRegistration,
     ];
     /**
      * A DI configuration object containing html-specific, browser-specific registrations:

@@ -1,8 +1,8 @@
 import { __decorate, __metadata, __param } from "tslib";
 import { DI, IContainer, Registration } from '@aurelia/kernel';
-import { IDOM, IDOMInitializer, IScheduler, DOM } from '@aurelia/runtime';
+import { IDOM, IDOMInitializer, IScheduler } from '@aurelia/runtime';
 import { RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
-import { BrowserScheduler } from './browser-scheduler';
+import { createDOMScheduler } from '@aurelia/scheduler-dom';
 let BrowserDOMInitializer = class BrowserDOMInitializer {
     constructor(container) {
         this.container = container;
@@ -30,12 +30,7 @@ let BrowserDOMInitializer = class BrowserDOMInitializer {
             dom = new HTMLDOM(window, document, Node, Element, HTMLElement, CustomEvent, CSSStyleSheet, ShadowRoot);
         }
         Registration.instance(IDOM, dom).register(this.container);
-        if (DOM.scheduler === void 0) {
-            this.container.register(BrowserScheduler);
-        }
-        else {
-            Registration.instance(IScheduler, DOM.scheduler).register(this.container);
-        }
+        Registration.instance(IScheduler, createDOMScheduler(this.container, window)).register(this.container);
         return dom;
     }
 };
@@ -44,14 +39,12 @@ BrowserDOMInitializer = __decorate([
     __metadata("design:paramtypes", [Object])
 ], BrowserDOMInitializer);
 export const IDOMInitializerRegistration = BrowserDOMInitializer;
-export const IBrowserSchedulerRegistration = BrowserScheduler;
 /**
  * Default HTML-specific, browser-specific implementations for the following interfaces:
  * - `IDOMInitializer`
  */
 export const DefaultComponents = [
     IDOMInitializerRegistration,
-    IBrowserSchedulerRegistration,
 ];
 /**
  * A DI configuration object containing html-specific, browser-specific registrations:
@@ -74,5 +67,5 @@ export const RuntimeHtmlBrowserConfiguration = {
         return this.register(DI.createContainer());
     }
 };
-export { BrowserDOMInitializer, BrowserScheduler, };
+export { BrowserDOMInitializer, };
 //# sourceMappingURL=index.js.map

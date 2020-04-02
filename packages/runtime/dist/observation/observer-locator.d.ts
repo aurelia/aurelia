@@ -1,7 +1,7 @@
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import { AccessorOrObserver, CollectionKind, CollectionObserver, IBindingTargetAccessor, IBindingTargetObserver, ICollectionObserver, IObservedArray, IObservedMap, IObservedSet } from '../observation';
-import { IScheduler } from '../scheduler';
+import { IScheduler } from '@aurelia/scheduler';
 export interface IObjectObservationAdapter {
     getObserver(flags: LifecycleFlags, object: unknown, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver;
 }

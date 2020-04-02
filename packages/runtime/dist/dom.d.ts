@@ -1,5 +1,5 @@
 import { IContainer, IResolver } from '@aurelia/kernel';
-import { IScheduler } from './scheduler';
+import { IScheduler } from '@aurelia/scheduler';
 export interface INode extends Object {
 }
 export declare const INode: import("@aurelia/kernel").InterfaceSymbol<INode>;

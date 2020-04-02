@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/kernel", "../lifecycle", "./array-observer", "./computed-observer", "./dirty-checker", "./map-observer", "./primitive-observer", "./property-accessor", "./proxy-observer", "./set-observer", "./setter-observer", "../scheduler"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "../lifecycle", "./array-observer", "./computed-observer", "./dirty-checker", "./map-observer", "./primitive-observer", "./property-accessor", "./proxy-observer", "./set-observer", "./setter-observer", "@aurelia/scheduler"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -21,7 +21,7 @@
     const proxy_observer_1 = require("./proxy-observer");
     const set_observer_1 = require("./set-observer");
     const setter_observer_1 = require("./setter-observer");
-    const scheduler_1 = require("../scheduler");
+    const scheduler_1 = require("@aurelia/scheduler");
     const toStringTag = Object.prototype.toString;
     exports.IObserverLocator = kernel_1.DI.createInterface('IObserverLocator').noDefault();
     exports.ITargetObserverLocator = kernel_1.DI.createInterface('ITargetObserverLocator').noDefault();

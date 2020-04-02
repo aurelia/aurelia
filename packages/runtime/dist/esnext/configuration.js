@@ -15,13 +15,12 @@ import { With } from './resources/custom-attributes/with';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { ViewValueConverter } from './resources/value-converters/view';
 import { ViewLocator } from './templating/view';
-import { Clock } from './scheduler';
+import { Now } from '@aurelia/scheduler';
 export const IObserverLocatorRegistration = ObserverLocator;
 export const ILifecycleRegistration = Lifecycle;
 export const IRendererRegistration = Renderer;
 export const IStartTaskManagerRegistration = StartTaskManager;
 export const IViewLocatorRegistration = ViewLocator;
-export const IClockRegistration = Clock;
 /**
  * Default implementations for the following interfaces:
  * - `IObserverLocator`
@@ -38,7 +37,7 @@ export const DefaultComponents = [
     IRendererRegistration,
     IStartTaskManagerRegistration,
     IViewLocatorRegistration,
-    IClockRegistration,
+    Now,
 ];
 export const FrequentMutationsRegistration = FrequentMutations;
 export const InfrequentMutationsRegistration = InfrequentMutations;

@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/kernel", "./subscriber-collection", "../scheduler"], factory);
+        define(["require", "exports", "tslib", "@aurelia/kernel", "./subscriber-collection", "@aurelia/scheduler"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -12,7 +12,7 @@
     const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
     const subscriber_collection_1 = require("./subscriber-collection");
-    const scheduler_1 = require("../scheduler");
+    const scheduler_1 = require("@aurelia/scheduler");
     exports.IDirtyChecker = kernel_1.DI.createInterface('IDirtyChecker').withDefault(x => x.singleton(DirtyChecker));
     exports.DirtyCheckSettings = {
         /**

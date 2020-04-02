@@ -1,6 +1,6 @@
 import { __decorate, __metadata } from "tslib";
 import { bindingBehavior, BindingInterceptor } from '../binding-behavior';
-import { IScheduler } from '../../scheduler';
+import { IScheduler } from '@aurelia/scheduler';
 import { BindingBehaviorExpression } from '../../binding/ast';
 let DebounceBindingBehavior = class DebounceBindingBehavior extends BindingInterceptor {
     constructor(binding, expr) {

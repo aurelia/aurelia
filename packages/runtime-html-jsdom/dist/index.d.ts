@@ -1,6 +1,5 @@
 import { IContainer, IRegistry, IResolver } from '@aurelia/kernel';
 import { IDOM, IDOMInitializer, ISinglePageApp } from '@aurelia/runtime';
-import { JSDOMScheduler } from './jsdom-scheduler';
 declare class JSDOMInitializer implements IDOMInitializer {
     private readonly container;
     private readonly jsdom;
@@ -9,7 +8,6 @@ declare class JSDOMInitializer implements IDOMInitializer {
     initialize(config?: ISinglePageApp<Node>): IDOM;
 }
 export declare const IDOMInitializerRegistration: IRegistry;
-export declare const IJSDOMSchedulerRegistration: IRegistry;
 /**
  * Default HTML-specific, jsdom-specific implementations for the following interfaces:
  * - `IDOMInitializer`
@@ -30,5 +28,5 @@ export declare const RuntimeHtmlJsdomConfiguration: {
      */
     createContainer(): IContainer;
 };
-export { JSDOMInitializer, JSDOMScheduler, };
+export { JSDOMInitializer, };
 //# sourceMappingURL=index.d.ts.map

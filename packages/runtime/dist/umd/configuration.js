@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./lifecycle", "./lifecycle-task", "./observation/observer-locator", "./renderer", "./resources/binding-behaviors/binding-mode", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attributes/flags", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/replaceable", "./resources/custom-attributes/with", "./resources/value-converters/sanitize", "./resources/value-converters/view", "./templating/view", "./scheduler"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./lifecycle", "./lifecycle-task", "./observation/observer-locator", "./renderer", "./resources/binding-behaviors/binding-mode", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attributes/flags", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/replaceable", "./resources/custom-attributes/with", "./resources/value-converters/sanitize", "./resources/value-converters/view", "./templating/view", "@aurelia/scheduler"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -26,13 +26,12 @@
     const sanitize_1 = require("./resources/value-converters/sanitize");
     const view_1 = require("./resources/value-converters/view");
     const view_2 = require("./templating/view");
-    const scheduler_1 = require("./scheduler");
+    const scheduler_1 = require("@aurelia/scheduler");
     exports.IObserverLocatorRegistration = observer_locator_1.ObserverLocator;
     exports.ILifecycleRegistration = lifecycle_1.Lifecycle;
     exports.IRendererRegistration = renderer_1.Renderer;
     exports.IStartTaskManagerRegistration = lifecycle_task_1.StartTaskManager;
     exports.IViewLocatorRegistration = view_2.ViewLocator;
-    exports.IClockRegistration = scheduler_1.Clock;
     /**
      * Default implementations for the following interfaces:
      * - `IObserverLocator`
@@ -49,7 +48,7 @@
         exports.IRendererRegistration,
         exports.IStartTaskManagerRegistration,
         exports.IViewLocatorRegistration,
-        exports.IClockRegistration,
+        scheduler_1.Now,
     ];
     exports.FrequentMutationsRegistration = flags_1.FrequentMutations;
     exports.InfrequentMutationsRegistration = flags_1.InfrequentMutations;

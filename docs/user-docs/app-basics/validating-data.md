@@ -997,6 +997,10 @@ validator.validate(new ValidateInstruction(person, 'name', undefined, 'ruleset1'
 
 <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=fa08f913ac506f7f150fc6ff8115e589&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
 
+## Model-based validation
+
+TODO
+
 ## Validation controller
 
 So far the core functionalities of the validation have been discussed.
@@ -1094,7 +1098,7 @@ await validationController.revalidateErrors();
 
 The method `addObject` registers an object explicitly to validation controller.
 Validation controller automatically validates the object every time the `validate` method is called.
-This is useful when you can to validate some object in your view model, that does not have any direct reference to the view.
+This is useful when you can to validate some object in your view-model, that does not have any direct reference to the view.
 
 The object can be unregistered by calling the `removeObject` method.
 This also removes the associated errors of the object.
@@ -1183,22 +1187,195 @@ Below is one example of how you can create a custom subscriber.
 
 ## `validate` binding behavior
 
-* trigger
-* controller
-* rules
+The `validate` binding behavior, as the name suggests adds the validation behavior to a property binding.
+In other words, it "mark"s the associated property binding as a target for validation, by registering the binding to the validation controller.
+This is how the validation controller comes to know of the bindings that needs to be validated when `validationController.validate()` method is called.
+
+You must have noticed plenty example of the `validate` binding behavior in the demos so far.
+For completeness, this can be used as follows.
+
+```typescript
+<html-element target.bind="source & validate:[trigger]:[validationController]:[rules]"></html-element>
+```
+
+Note that the binding behavior has three optional arguments, namely trigger, validation controller, and rules.
+
+### Validation trigger
+
+This dictates when the validation is performed.
+The valid values are as follows.
+
+* `manual`: Use the controller's `validate()` method to validate all bindings.
+* `blur`:  Validate the binding when the binding's target element fires a DOM "blur" event.
+* `focusout`:  Validate the binding when the binding's target element fires a DOM "focusout" event.
+* `change`: Validate the binding when the source property property is updated (usually triggered by some change in view).
+* `changeOrBlur`: Validate the binding when the binding's target element fires a DOM "blur" event as well as when the source property is updated.
+* `changeOrFocusout`: Validate the binding when the binding's target element fires a DOM "focusout" event as well as when the source property is updated.
+
+TODO: add details on the new changed behavior for `changeOrEvent` trigger.
+
+TODO: add demo
+
+The default validation trigger is `focusout`, although it can be changed using the `DefaultTrigger` registration customization option.
+
+```typescript
+import { ValidationConfiguration, ValidationTrigger } from '@aurelia/validation';
+import Aurelia from 'aurelia';
+
+Aurelia
+  .register(ValidationConfiguration.customize((options) => {
+    // customization callback
+    options.DefaultTrigger = ValidationTrigger.changeOrFocusout;
+  }))
+  .app(component)
+  .start();
+```
+
+TODO: add demo
+
+### Explicit validation controller
+
+The binding behavior by default registers the binding to the closest (in terms of dependency injection container) available instance of validation controller.
+Note that the validation controller instance can be made available for the scope using the `@newInstanceForScope` decorator ([refer this](validating-data.md#injecting-a-controller-instance) for more details).
+If no instance of validation controller is available, it throws error.
+
+However, an instance of validation can be explicitly bound to the binding behavior, using the positional argument.
+This is useful when you need to use multiple instances of validation controller to perform different set of validation.
+
+TODO: add demo
 
 ## Displaying errors
 
-* OOTB subscribers
-  * `validation-errors` CA
-  * `validation-container` CE
-  * `ValidationResultPresenterService`
+The validation controller maintains the active list of validation results which can be iterated to display the errors in UI.
 
-## Integrations with other libraries
+```html
+<ul>
+  <li repeat.for="result of validationController.results">
+    <template if.bind="!result.valid">${result}</template>
+  </li>
+</ul>
+```
 
-v8n?
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=eadef7045bb99a4ebe251c5efd69ead5&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>
+
+There are also some out-of-the-box components that can be used to display the errors.
+These are discussed in the following sections.
+
+## `validation-errors` custom attribute
+
+This custom attribute can be used to bind the errors for children the target elements.
+
+```html
+<div validation-errors.from-view="nameErrors"> <!--binds all errors for name to the "nameErrors" property-->
+  <input value.bind="person.name & validate">
+  <div>
+    <span repeat.for="error of nameErrors">${error.result.message}</span>
+  </div>
+</div>
+<div validation-errors.from-view="ageErrors"> <!--binds all errors for age to the "ageErrors" property-->
+  <input value.bind="person.age & validate">
+  <div>
+    <span repeat.for="error of ageErrors">${error.result.message}</span>
+  </div>
+</div>
+```
+
+Note that this in itself does not show any error, unless errors are iterated to be bound with the view.
+An example can be seen below.
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=5c6bffb7f9fdcfccac6dfb57b1e6523e&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>
+
+The usage of this custom element can be deactivated by using `UseSubscriberCustomAttribute` configuration options.
+
+```typescript
+import { ValidationConfiguration } from '@aurelia/validation';
+import Aurelia from 'aurelia';
+
+Aurelia
+  .register(ValidationConfiguration.customize((options) => {
+    // customization callback
+    options.UseSubscriberCustomAttribute = false;
+  }))
+  .app(component)
+  .start();
+```
+
+This is useful if you have a custom attribute of the same name, and want to use that over this out-of-the-box custom attribute.
+
+### `validation-container` custom element
+
+The `validation-container`custom element also has similar goal of capturing the validation errors for the children target elements.
+Additionally, it provides a template to display the errors as well.
+This helps in reducing the boilerplate created by the `validation-errors` custom attribute.
+For example, using this custom element, displaying the errors reduces to the following.
+
+```html
+<validation-container>
+  <input value.bind="person.name & validate">
+</validation-container>
+<validation-container>
+  <input value.bind="person.age & validate">
+</validation-container>
+```
+
+TODO: add demo + explain options to override the template.
+
+### `ValidationResultPresenterService`
+
+Unlike the previous two approaches, this is a standalone service that manipulates the DOM directly.
+That it adds elements to DOM for every new errors and removes elements from DOM that are associated with old errors.
+
+To use this, you need to instantiate it and register it with the validation controller.
+
+```typescript
+import { IValidationController, ValidationResultPresenterService } from '@aurelia/validation';
+
+export class MyApp {
+  private presenter: ValidationResultPresenterService;
+
+  public constructor(
+     @newInstanceForScope(IValidationController) private validationController: IValidationController,
+  ) {
+      this.presenter = new ValidationResultPresenterService();
+      this.validationController.addSubscriber(this.presenter);
+  }
+}
+```
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=1d2eadca8b559d169819bd2ca93888a6&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
+
+The error rendering process can be completely overridden in the child classes.
+The use methods for overriding are described below.
+
+* `add`: this adds a new error to DOM. Override this if you want to completely change the process of adding new errors.
+* `remove`: this removes an old error from the DOM. Override this if you want to completely change the process of removing old errors.
+* `getValidationMessageContainer`: As the name suggests it provides container element with respect to current target. The default behavior is to look for an element with the attribute `validation-result-container` that is contained by the parent element of the current target element. If there is none found a `div` is created with the attribute and appended to the parent element.
+* `showResults`: This is the method that appends the errors to the container. By default a `span` with the error message is added for every errors whereas the valid results are skipped.
+
+To avoid direct DOM manipulation, it is highly encouraged to use the previously mentioned custom attribute, and custom element.
+
+> One commonality across these components is that all these are different implementations of the [`ValidationResultsSubscriber` interface](validating-data.md#addSubscriber-and-removeSubscriber).
+
+<!-- TODO -->
+<!-- ## Integrations with other libraries
+
+v8n? -->
 
 ## I18N Support
+
+If you are already using the `aurelia/i18n` plugin, then you would naturally want the localization support for validation as well.
+The out-of-the-box localization support is provided by the `@aurelia/validation-i18n` package.
+The plugin has dependency on [`@aurelia/i18n` package](internationalization.md).
+It assumes that the `@aurelia/i18n` package is correctly registered/configured and simply uses the i18n services to provide the translations.
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=b4994288b5c91cc9d9eb94def72fca26"></iframe>
+
+TODO: explain and give example of
+
+* `DefaultNamespace`
+* `DefaultKeyPrefix`
+
+`@aurelia/validation-i18n` customizes the `@aurelia/validation` package to provide implementations with localization support for following components.
 
 ## Migration Guide and Breaking Changes
 * Transient `IValidationRules`

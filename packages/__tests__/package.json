@@ -16,6 +16,7 @@
     "test-node:runtime": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/2-runtime/**/*.spec.js --watch",
     "test-node:runtime-html": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/3-runtime-html/**/*.spec.js --watch",
     "test-node:route-recognizer": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/router/route-recognizer.spec.js --watch --reporter=progress",
+    "test-node:scheduler": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/2-runtime/scheduler.spec.js --watch",
     "test-node:router": "mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/router/*.spec.js --watch",
     "test-node:i18n": "cross-env NODE_ICU_DATA=../../node_modules/full-icu mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/i18n/**/*.spec.js --exit",
     "test-node:i18n:watch": "cross-env NODE_ICU_DATA=../../node_modules/full-icu mocha --opts mocha.opts dist/esnext/__tests__/setup-node.js dist/esnext/__tests__/i18n/**/*.spec.js --watch-extensions ts --watch",

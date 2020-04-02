@@ -9,6 +9,7 @@ import {
 import {
   isNativeFunction,
   IContainer,
+  PLATFORM,
 } from '@aurelia/kernel';
 
 function createMicroTaskFlushRequestorFactory(): IFlushRequestorFactory {
@@ -22,6 +23,7 @@ function createMicroTaskFlushRequestorFactory(): IFlushRequestorFactory {
         if (canceled) {
           canceled = false;
         } else {
+          requested = false;
           taskQueue.flush();
         }
       }
@@ -203,12 +205,16 @@ function createRequestIdleCallbackFlushRequestor(w: WindowWithIdleCallback): IFl
 }
 
 export function createDOMScheduler(container: IContainer, w: Window): IScheduler {
-  return new Scheduler(
-    container.get(Now),
-    createMicroTaskFlushRequestorFactory(),
-    createRequestAnimationFrameFlushRequestor(w),
-    createSetTimeoutFlushRequestorFactory(w),
-    createPostRequestAnimationFrameFlushRequestor(w),
-    createRequestIdleCallbackFlushRequestor(w),
-  );
+  let scheduler = Scheduler.get(PLATFORM.global);
+  if (scheduler === void 0) {
+    Scheduler.set(PLATFORM.global, scheduler = new Scheduler(
+      container.get(Now),
+      createMicroTaskFlushRequestorFactory(),
+      createRequestAnimationFrameFlushRequestor(w),
+      createSetTimeoutFlushRequestorFactory(w),
+      createPostRequestAnimationFrameFlushRequestor(w),
+      createRequestIdleCallbackFlushRequestor(w),
+    ));
+  }
+  return scheduler;
 }

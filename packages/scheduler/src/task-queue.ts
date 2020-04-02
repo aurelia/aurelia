@@ -1,7 +1,6 @@
 import {
   defaultQueueTaskOptions,
   ExposedPromise,
-  IFlushRequestor,
   QueueTaskOptions,
   TaskQueuePriority,
 } from './types';
@@ -15,6 +14,15 @@ import {
 import {
   IScheduler,
 } from './scheduler';
+
+export interface IFlushRequestorFactory {
+  create(taskQueue: ITaskQueue): IFlushRequestor;
+}
+
+export interface IFlushRequestor {
+  request(): void;
+  cancel(): void;
+}
 
 export type TaskCallback<T = any> = (delta: number) => T;
 
@@ -48,6 +56,7 @@ export class TaskQueue {
   private taskPoolSize: number = 0;
   private lastRequest: number = 0;
   private microTaskRequestFlushTask: ITask | null = null;
+  private readonly flushRequestor: IFlushRequestor;
 
   public get isEmpty(): boolean {
     return this.processingSize === 0 && this.pendingSize === 0 && this.delayedSize === 0;
@@ -56,10 +65,10 @@ export class TaskQueue {
   public constructor(
     public readonly now: Now,
     public readonly priority: TaskQueuePriority,
-    private readonly flushRequestor: IFlushRequestor,
     private readonly scheduler: IScheduler,
+    flushRequestorFactory: IFlushRequestorFactory,
   ) {
-    this.requestFlush = this.requestFlush.bind(this);
+    this.flushRequestor = flushRequestorFactory.create(this);
   }
 
   public flush(): void {

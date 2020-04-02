@@ -49,14 +49,6 @@ export const defaultQueueTaskOptions: Required<QueueTaskTargetOptions> = {
   reusable: true,
 };
 
-export interface IFlushRequestor {
-  request(): void;
-  cancel(): void;
-
-  subscribe(callback: () => void): void;
-  unsubscribe(): void;
-}
-
 export type PResolve<T> = (value?: T | PromiseLike<T>) => void;
 export type PReject<T = any> = (reason?: T) => void;
 let $resolve: PResolve<any>;

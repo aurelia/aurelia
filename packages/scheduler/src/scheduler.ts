@@ -2,12 +2,12 @@ import { DI } from '@aurelia/kernel';
 
 import {
   defaultQueueTaskOptions,
-  IFlushRequestor,
   QueueTaskOptions,
   QueueTaskTargetOptions,
   TaskQueuePriority,
 } from './types';
 import {
+  IFlushRequestorFactory,
   ITaskQueue,
   TaskCallback,
   TaskQueue,
@@ -62,27 +62,27 @@ export class Scheduler implements IScheduler {
 
   public constructor(
     now: Now,
-    microtaskFlushRequestor: IFlushRequestor,
-    renderFlushRequestor: IFlushRequestor,
-    macroTaskFlushRequestor: IFlushRequestor,
-    postRenderFlushRequestor: IFlushRequestor,
-    idleFlushRequestor: IFlushRequestor,
+    microtaskFactory: IFlushRequestorFactory,
+    renderFactory: IFlushRequestorFactory,
+    macroTaskFactory: IFlushRequestorFactory,
+    postRenderFactory: IFlushRequestorFactory,
+    idleFactory: IFlushRequestorFactory,
   ) {
     this.taskQueues = [
       this.microtask = (
-        new TaskQueue(now, TaskQueuePriority.microTask, microtaskFlushRequestor, this)
+        new TaskQueue(now, TaskQueuePriority.microTask, this, microtaskFactory)
       ),
       this.render = (
-        new TaskQueue(now, TaskQueuePriority.render, renderFlushRequestor, this)
+        new TaskQueue(now, TaskQueuePriority.render, this, renderFactory)
       ),
       this.macroTask = (
-        new TaskQueue(now, TaskQueuePriority.macroTask, macroTaskFlushRequestor, this)
+        new TaskQueue(now, TaskQueuePriority.macroTask, this, macroTaskFactory)
       ),
       this.postRender = (
-        new TaskQueue(now, TaskQueuePriority.postRender, postRenderFlushRequestor, this)
+        new TaskQueue(now, TaskQueuePriority.postRender, this, postRenderFactory)
       ),
       this.idle = (
-        new TaskQueue(now, TaskQueuePriority.idle, idleFlushRequestor, this)
+        new TaskQueue(now, TaskQueuePriority.idle, this, idleFactory)
       ),
     ];
   }

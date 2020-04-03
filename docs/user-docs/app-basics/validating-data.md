@@ -1366,16 +1366,68 @@ v8n? -->
 If you are already using the `aurelia/i18n` plugin, then you would naturally want the localization support for validation as well.
 The out-of-the-box localization support is provided by the `@aurelia/validation-i18n` package.
 The plugin has dependency on [`@aurelia/i18n` package](internationalization.md).
-It assumes that the `@aurelia/i18n` package is correctly registered/configured and simply uses the i18n services to provide the translations.
+It assumes that the `@aurelia/i18n` package is correctly registered/configured and simply uses the I18N services to provide the translations.
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=b4994288b5c91cc9d9eb94def72fca26"></iframe>
+To add the localization support you must first register the plugin.
 
-TODO: explain and give example of
+```typescript
+import Aurelia from 'aurelia';
+import { ValidationI18nConfiguration } from '@aurelia/validation-i18n'; // <-- get the configuration
+import { I18nConfiguration } from '@aurelia/i18n';
+import { MyApp } from './my-app';
+import * as en from "./locales/en.json";
+import * as de from "./locales/de.json";
+
+Aurelia
+  .register(
+    I18nConfiguration.customize((options) => { // <-- take care of I18N configuration as you see fit
+      options.initOptions = {
+        resources: {
+          en: { translation: en },
+          de: { translation: de },
+        }
+      };
+    }),
+    ValidationI18nConfiguration // <-- register the configuration
+  )
+  .app(MyApp)
+  .start();
+
+```
+
+Note that the `@aurelia/validation-i18n` wraps the `@aurelia/validation` plugin.
+Stated differently, it [customizes](validating-data.md#registering-the-plugin) the `@aurelia/validation` plugin with custom implementations of the following:
+
+* Validation controller factory ( see the `ValidationControllerFactoryType` customization option): This ensures that the validation controller reacts to locale change.
+* Message provider (see the `MessageProviderType` customization option): This ensures that localized error message templates, and property names are used to create the error messages. With this place, the evaluated `expr` in `withMessageKey(expr)` is used as an I18N key, and the value is looked up in the I18N resources. This happens also for the display names of the properties, where the property name is used as the I18N key.
+
+Check the demo to see this in action.
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=b4994288b5c91cc9d9eb94def72fca26&open=src%2Fmy-app.ts&open=src%2Fmain.ts&open=src%2Flocales%2Fen.json&open=src%2Flocales%2Fde.json"></iframe>
+
+All the configuration options of the `@aurelia/validation` plugin are also available from `@aurelia/validation-i18n`.
+This means it even allows you provide your own implementation of message provider or validation controller factory!
+Apart from that it has two additional configuration options that dictates how the value of the I18N keys are looked up.
 
 * `DefaultNamespace`
+
+  By default the value of the keys are searched in `translation` namespace.
+  Using this configuration option that can be changed.
+  This is useful if you want to keep the validation resources separate from your regular 18N resources.
+  See the example below.
+
+  <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=7659284c799ec6215968ef9111ff2b95&open=src%2Fmain.ts&open=src%2Flocales%2Fen-validation.json&open=src%2Flocales%2Fde-validation.json"></iframe>
+
 * `DefaultKeyPrefix`
 
-`@aurelia/validation-i18n` customizes the `@aurelia/validation` package to provide implementations with localization support for following components.
+  Instead of using a separate namespace a key prefix can be used for the keys related to validation resources.
+  This is shown in the example below.
+
+  <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=8631eae51a833f27411725c8ab85ec5a&open=src%2Fmain.ts&open=src%2Flocales%2Fen.json&open=src%2Flocales%2Fde.json"></iframe>
+
+  Note that `DefaultNamespace` and `DefaultKeyPrefix` can be used together.
+
+  <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=54309a17b89925b4fadb50f068f5bdf9&open=src%2Fmain.ts&open=src%2Flocales%2Fen-ns1.json&open=src%2Flocales%2Fde-ns1.json"></iframe>
 
 ## Migration Guide and Breaking Changes
 * Transient `IValidationRules`

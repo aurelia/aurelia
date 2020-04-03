@@ -35,9 +35,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.7.0-dev.202004022223",
-    "@aurelia/runtime": "0.7.0-dev.202004022223",
-    "modify-code": "^1.0.1",
+    "@aurelia/kernel": "0.6.0",
+    "@aurelia/runtime": "0.6.0",
+    "modify-code": "^1.2.0",
     "parse5": "^5.1.1",
     "typescript": "^3.7.4"
   },

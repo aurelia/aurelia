@@ -33,7 +33,7 @@ import { PropertyAccessor } from './property-accessor';
 import { ProxyObserver } from './proxy-observer';
 import { getSetObserver } from './set-observer';
 import { SetterObserver } from './setter-observer';
-import { IScheduler } from '../scheduler';
+import { IScheduler } from '@aurelia/scheduler';
 
 const toStringTag = Object.prototype.toString;
 

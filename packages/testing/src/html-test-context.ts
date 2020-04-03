@@ -20,6 +20,9 @@ import {
 import {
   HTMLDOM,
 } from '@aurelia/runtime-html';
+import {
+  createDOMScheduler,
+} from '@aurelia/scheduler-dom';
 
 export class HTMLTestContext {
   public readonly wnd: Window;
@@ -44,14 +47,16 @@ export class HTMLTestContext {
       this._container = DI.createContainer(this.config);
       Registration.instance(IDOM, this.dom).register(this._container);
       Registration.instance(HTMLTestContext, this).register(this._container);
-      this._container.register(this.Scheduler);
+      Registration.instance(IScheduler, createDOMScheduler(this._container, this.wnd)).register(this._container);
       this._container.register(DebugConfiguration);
     }
     return this._container;
   }
   public get scheduler(): IScheduler {
     if (this._scheduler === void 0) {
-      this._scheduler = this.container.register(this.Scheduler).get(IScheduler);
+      this._scheduler = this.container.register(
+        Registration.instance(IScheduler, createDOMScheduler(this.container, this.wnd))
+      ).get(IScheduler);
     }
     return this._scheduler;
   }
@@ -101,12 +106,9 @@ export class HTMLTestContext {
   private _projectorLocator?: IProjectorLocator;
   private _domParser?: HTMLDivElement;
 
-  private readonly Scheduler: Constructable<IScheduler>;
-
   private constructor(
     config: IRegistry,
     wnd: Window,
-    Scheduler: Constructable<IScheduler>,
     UIEventType: typeof UIEvent,
     EventType: typeof Event,
     CustomEventType: typeof CustomEvent,
@@ -122,7 +124,6 @@ export class HTMLTestContext {
   ) {
     this.config = config;
     this.wnd = wnd;
-    this.Scheduler = Scheduler;
     this.UIEvent = UIEventType;
     this.Event = EventType;
     this.CustomEvent = CustomEventType;
@@ -148,7 +149,6 @@ export class HTMLTestContext {
   public static create(
     config: IRegistry,
     wnd: Window,
-    Scheduler: Constructable<IScheduler>,
     UIEventType: typeof UIEvent,
     EventType: typeof Event,
     CustomEventType: typeof CustomEvent,
@@ -165,7 +165,6 @@ export class HTMLTestContext {
     return new HTMLTestContext(
       config,
       wnd,
-      Scheduler,
       UIEventType,
       EventType,
       CustomEventType,

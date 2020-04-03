@@ -2,7 +2,7 @@ import { DI, IIndexable, Reporter } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { IBindingTargetObserver, IObservable, ISubscriber } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
-import { IScheduler, ITask } from '../scheduler';
+import { IScheduler, ITask } from '@aurelia/scheduler';
 
 export interface IDirtyChecker {
   createProperty(obj: object, propertyName: string): IBindingTargetObserver;

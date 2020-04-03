@@ -5,7 +5,7 @@ import {
   PLATFORM,
   Reporter,
 } from '@aurelia/kernel';
-import { IScheduler } from './scheduler';
+import { IScheduler } from '@aurelia/scheduler';
 
 export interface INode extends Object {}
 

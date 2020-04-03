@@ -49,6 +49,8 @@
     "@aurelia/runtime-html-jsdom": "0.6.0",
     "@aurelia/runtime-html": "0.6.0",
     "@aurelia/runtime": "0.6.0",
+    "@aurelia/scheduler": "0.6.0",
+    "@aurelia/scheduler-dom": "0.6.0",
     "@aurelia/store": "0.6.0",
     "@aurelia/validation": "0.6.0"
   },

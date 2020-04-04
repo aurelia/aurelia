@@ -821,7 +821,7 @@ Refer the demo below, to see this in action.
 
 Often you would want to execute a rule conditionally.
 This can be done using the `.when` method.
-This method takes a function, with signature `object: any) => boolean`, as input which is later evaluated during rule evaluation to decide whether or not to execute this rule.
+This method takes a function, with signature `(object: any) => boolean`, as input which is later evaluated during rule evaluation to decide whether or not to execute this rule.
 The `object` in the argument of the function is the object being validated.
 
 ```typescript
@@ -932,15 +932,15 @@ The instruction can be manipulated using the following optional class properties
 
 Some of the useful combinations are as follows.
 
-|`object`|`propertyName`|`rules`|`objectTag`|`propertyTag`|Details|
-|-|-|-|-|-|-|
-|✔|||||The default ruleset defined on the instance or the class are used for validation.|
-|✔|✔||||Only the rules defined for the particular property are used for validation.|
-|✔||✔|-||Only the specified rules are used for validation.|
-|✔|✔|✔|-||Only the specified rules that are associated with the property are used for validation.|
-|✔|||✔||Only the tagged ruleset for the object is used for validation.|
-|✔|✔||✔||Only the rules for the property in the tagged ruleset are used for validation.|
-|✔|✔||✔|✔|Only the tagged rules for the property in the tagged ruleset for the object are validated.|
+| `object` | `propertyName` | `rules` | `objectTag` | `propertyTag` | Details                                                                                    |
+| -------- | -------------- | ------- | ----------- | ------------- | ------------------------------------------------------------------------------------------ |
+| ✔        |                |         |             |               | The default ruleset defined on the instance or the class are used for validation.          |
+| ✔        | ✔              |         |             |               | Only the rules defined for the particular property are used for validation.                |
+| ✔        |                | ✔       | -           |               | Only the specified rules are used for validation.                                          |
+| ✔        | ✔              | ✔       | -           |               | Only the specified rules that are associated with the property are used for validation.    |
+| ✔        |                |         | ✔           |               | Only the tagged ruleset for the object is used for validation.                             |
+| ✔        | ✔              |         | ✔           |               | Only the rules for the property in the tagged ruleset are used for validation.             |
+| ✔        | ✔              |         | ✔           | ✔             | Only the tagged rules for the property in the tagged ruleset for the object are validated. |
 
 Note that in the presence of `rules` the `objectTag` is ignored.
 However, we strongly encourage the usage of tags for executing specific set of rules.
@@ -999,7 +999,208 @@ validator.validate(new ValidateInstruction(person, 'name', undefined, 'ruleset1'
 
 ## Model-based validation
 
-TODO
+It is a commonly known best practice to perform the data validation both on the server and the client.
+Validating the data on server reduces the coupling between the client and the server as then the service do not have to depend for the data quality, solely on the client.
+The client side validation on the other hand is equally important to ensure better user experience, so that the client can quickly provide feedback to the end users, without making a roundtrip to the server.
+For this reason, it is often the case that the validation rules are defined on server, and the client ends up duplicating those definitions.
+
+With the support of model-based validation, `@aurelia/validation` plugin tries to reduce the duplication.
+For this we assume that the server is capable of communicating the validation rules with the client in form of json data.
+The plugin uses an implementation of `IValidationHydrator` to adapt the json data to aurelia validation rules.
+Let us see an example of this.
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=9a27bcf1caec45f5aa5bba4f8831be5d&open=src%2Fmodel-based-rules.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
+
+Let us deconstruct the example.
+The method that applies the model based rules is the following (refer `my-app.ts`).
+
+```typescript
+validationRules.applyModelBasedRules(Person, personRules);
+```
+
+The first argument to the method can be a class or an object instance.
+The second argument must be an array of `ModelBasedRule` instances.
+This registers the rules for the target class or object instance.
+After this the normal validation works as expected, without any further changes.
+
+The `ModelBasedRule` is a simple class that describes the ruleset definition or the json data that describes the validation rules.
+
+```typescript
+export class ModelBasedRule {
+  public constructor(
+    public ruleset: any,
+    public tag: string = '__default'
+  ) { }
+}
+```
+
+The constructor of the class as shown above takes 2 arguments.
+The first is the ruleset.
+The second one is an optional object tag (refer the [validate instruction](validating-data.md#validator-and-validate-instruction)).
+The ruleset although typically a plain javascript object, can take any shape that is supported by the implementation of `IValidationHydrator`.
+
+### Default model-based ruleset schema
+
+The out-of-the-box implementation of `IValidationHydrator` supports plain javascript objects with a specific schema.
+The expected schema is explained below.
+
+```javascript
+{
+  "propertyName": {
+    // rule definition for this property
+    "displayName": "Optional display name for the property",
+    "rules": [ // <-- the rules needs to be an array
+      // the rules to be validated on parallel needs to go in one object
+      {
+        "ruleKey1": {  // <-- for the out-of-the-box rule keys see later
+          // common properties
+          "messageKey": "optional message key",
+          "tag": "optional tag",
+          "when": "boolean > expression"|function() { return boolean; }, // see later
+
+          // rule specific properties, see later
+        },
+        "ruleKey2": { /*... */ }
+      },
+      /**
+       * multiple items in the `rules` array means that the subsequent set of rules won't be validated
+       * till the preceding rules are successfully validated.
+       * It has same effect of sequencing rules using `.then`
+       */
+      {
+        "ruleKey11" : { /*... */ },
+        "ruleKey22" : { /*... */ },
+      }
+    ]
+  },
+  "navigationProperty": {
+    "subProperty": {
+      "subSubProperty": { /* rule definition */ } // <-- rules for navigationProperty.subProperty.subSubProperty
+    }
+  }
+}
+```
+
+The default implementation also supports defining all the out-of-the-box rules.
+
+| Rule                    | Key         | Rule-specific properties                                                                                                                                                                                                                                                                                                                                                |
+| ----------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Required                | `required`  | None.<br>Example: `{ required: { } }`                                                                                                                                                                                                                                                                                                                                   |
+| Regex                   | `regex`     | `pattern`: object describing a `RegExp`. <br>Example: `{ regex: { pattern: { source: 'foo\\d', flag: 'gi' } } }` is equivalent to `/foo\d/gi`                                                                                                                                                                                                                           |
+| Maximum length          | `maxLength` | `length`: numeric; maximum length constraint. <br>Example: `{ maxLength: { length: 42 } }`.                                                                                                                                                                                                                                                                             |
+| Minimum length          | `minLength` | `length`: numeric; minimum length constraint. <br>Example: `{ minLength: { length: 42 } }`.                                                                                                                                                                                                                                                                             |
+| Maximum size            | `maxItems`  | `count`: numeric; maximum size constraint. <br>Example: `{ maxItems: { count: 42 } }`.                                                                                                                                                                                                                                                                                  |
+| Minimum size            | `minItems`  | `count`: numeric; minimum size constraint. <br>Example: `{ minItems: { count: 42 } }`.                                                                                                                                                                                                                                                                                  |
+| Inclusive numeric range | `range`     | `min`: numeric; lower boundary, optional. <br>`max`: numeric; upper boundary, optional. <br>`isInclusive`: boolean; whether it is an inclusive or exclusive range, defaults to exclusive.<br>Note that either of the `min` or `max` is required.<br>Examples: `{ range: { isInclusive: true, min: 42 } }`, `{ range: { max: 42 } }`, `{ range: { min: 42, max: 84 } }`. |
+| Exclusive numeric range | `between`   | Same as `range`. <br>Examples: `{ between: { isInclusive: true, min: 42 } }`, `{ between: { max: 42 } }`, `{ between: { min: 42, max: 84 } }`.                                                                                                                                                                                                                          |
+| Equality                | `equals`    | `expectedValue`: any. <br>Examples: `{ equals: { expectedValue: 42 } }`.                                                                                                                                                                                                                                                                                                |
+
+It is also possible to specify a conditional rule, by using a string value that represents a boolean expression.
+For example,
+
+```javascript
+{ ruleKey: { when: "$object.age > 18" } }
+```
+
+Loosely speaking, the expression in `when` will be hydrated to this function expression: `($object) => $object.age > 18`.
+Alternatively, if the ruleset is not a plain json, rather a javascript object, a function can be used as well.
+
+```javascript
+{ ruleKey: { when: function(person) { return object.age > 18; } } }
+```
+
+### Custom rule hydrator
+
+You would want to create custom rule hydrator if you have either one of these use-cases.
+
+1. You have custom rules, and you want to use those in model-based rule json data.
+1. You have you own schema for rules or the rules metadata is not even a JSON data.
+
+Implementing a custom hydrator ends up implementing the following interface.
+
+```typescript
+export interface IValidationHydrator {
+  readonly astDeserializer: Deserializer;
+  readonly parser: IExpressionParser;
+  readonly messageProvider: IValidationMessageProvider;
+  hydrate(raw: any, validationRules: IValidationRules): any;
+  hydrateRuleset(ruleset: any, validationRules: IValidationRules): IPropertyRule[];
+}
+```
+
+Additionally, you need to register your custom hydrator implementation using the `HydratorType` customization option as shown below.
+
+```typescript
+import Aurelia from 'aurelia';
+import { ValidationConfiguration } from '@aurelia/validation';
+import { CustomModelValidationHydrator } './custom-model-validation-hydrator';
+
+Aurelia
+  .register(
+    ValidationConfiguration.customize((options) => {
+      options.HydratorType = CustomModelValidationHydrator; // <-- register the hydrator
+    })
+  )
+  //...
+```
+
+Note that the second use-case as stated above probably needs an completely new implementation of this interface, which is in its own merit out-of-the-scope of this documentation.
+This section focusses rather on the first use-case.
+To that end, you can easily subclass the default implementation to support your custom rule.
+Refer the example and the demo below.
+
+{% tabs %}
+{% tab title="custom-model-validation-hydrator.ts" %}
+
+```typescript
+import { ModelValidationHydrator } from "@aurelia/validation";
+
+export class CustomModelValidationHydrator extends ModelValidationHydrator {
+
+  protected hydrateRule(ruleName: string, ruleConfig: any): IValidationRule {
+    switch (ruleName) {
+      case 'customRule1':
+        return this.hydrateCustomRule1(ruleConfig);
+
+      // here goes more cases for other custom rules
+
+      default:
+        return super.hydrateRule(ruleName, ruleConfig);
+    }
+  }
+
+  private hydrateCustomRule1(ruleConfig: any) {
+    const rule = new CustomRule1(ruleConfig.ruleProperty1, ruleConfig.rulePropertyN);
+    this.setCommonRuleProperties(ruleConfig, rule);
+    return rule;
+  }
+}
+```
+
+{% endtab %}
+
+{% tab title="main.ts" %}
+
+```typescript
+import Aurelia from 'aurelia';
+import { ValidationConfiguration } from '@aurelia/validation';
+import { MyApp } from './my-app';
+import { CustomModelValidationHydrator } './custom-model-validation-hydrator';
+
+Aurelia
+  .register(
+    ValidationConfiguration.customize((options) => {
+      options.HydratorType = CustomModelValidationHydrator; // <-- register the hydrator
+    })
+  )
+  .app(MyApp)
+  .start();
+```
+
+{% endtab %}
+{% endtabs %}
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=d07e3aed9e606424a8f9526d14ebcfe8&open=src%2Fcustom-model-validation-hydrator.ts&open=src%2Fmain.ts&open=src%2Finteger-range-rule.ts&open=src%2Fmodel-based-rules.ts"></iframe>
 
 ## Validation controller
 
@@ -1428,6 +1629,8 @@ Apart from that it has two additional configuration options that dictates how th
   Note that `DefaultNamespace` and `DefaultKeyPrefix` can be used together.
 
   <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=54309a17b89925b4fadb50f068f5bdf9&open=src%2Fmain.ts&open=src%2Flocales%2Fen-ns1.json&open=src%2Flocales%2Fde-ns1.json"></iframe>
+
+TODO: add demo for model-based rules + i18n message key
 
 ## Migration Guide and Breaking Changes
 * Transient `IValidationRules`

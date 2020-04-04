@@ -7,14 +7,11 @@ import {
   IsBindingBehavior,
   LifecycleFlags,
   PrimitiveLiteralExpression,
-  Interpolation,
   AccessScopeExpression,
-  AccessThisExpression,
   Scope,
   ExpressionKind,
 } from '@aurelia/runtime';
 import {
-  BaseValidationRule,
   ValidationRuleAlias,
   RequiredRule,
   RegexRule,
@@ -24,6 +21,7 @@ import {
   EqualsRule,
   IValidationMessageProvider,
   ValidationRuleAliasMessage,
+  BaseValidationRule,
 } from './rules';
 import {
   IValidateable,
@@ -33,12 +31,13 @@ import {
   IRuleProperty,
   IPropertyRule,
   IValidationHydrator,
+  IValidationRule,
 } from './rule-interfaces';
 
 /**
  * Contract to register the custom messages for rules, during plugin registration.
  */
-export interface ICustomMessage<TRule extends BaseValidationRule = BaseValidationRule> {
+export interface ICustomMessage<TRule extends IValidationRule = IValidationRule> {
   rule: Class<TRule>;
   aliases: ValidationRuleAlias[];
 }
@@ -100,7 +99,7 @@ class ValidationMessageEvaluationContext {
     public readonly $displayName: string | undefined,
     public readonly $propertyName: string | number | undefined,
     public readonly $value: unknown,
-    public readonly $rule: BaseValidationRule,
+    public readonly $rule: IValidationRule,
     public readonly $object?: IValidateable,
   ) { }
   public $getDisplayName(propertyName: string | number | undefined, displayName?: string | null | (() => string)) {
@@ -109,26 +108,26 @@ class ValidationMessageEvaluationContext {
 }
 export class PropertyRule<TObject extends IValidateable = IValidateable, TValue = unknown> implements IPropertyRule {
   public static readonly $TYPE: string = "PropertyRule";
-  private latestRule?: BaseValidationRule;
+  private latestRule?: IValidationRule;
 
   public constructor(
     public readonly validationRules: IValidationRules,
     public readonly messageProvider: IValidationMessageProvider,
     public property: RuleProperty,
-    public $rules: BaseValidationRule[][] = [[]],
+    public $rules: IValidationRule[][] = [[]],
   ) { }
   public accept(visitor: IValidationVisitor): string {
     return visitor.visitPropertyRule(this);
   }
 
   /** @internal */
-  public addRule(rule: BaseValidationRule) {
-    const rules: BaseValidationRule[] = this.getLeafRules();
+  public addRule(rule: IValidationRule) {
+    const rules: IValidationRule[] = this.getLeafRules();
     rules.push(this.latestRule = rule);
     return this;
   }
 
-  private getLeafRules(): BaseValidationRule[] {
+  private getLeafRules(): IValidationRule[] {
     const depth = this.$rules.length - 1;
     return this.$rules[depth];
   }
@@ -154,8 +153,8 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
     }
 
     let isValid = true;
-    const validateRuleset = async (rules: BaseValidationRule[]) => {
-      const validateRule = async (rule: BaseValidationRule) => {
+    const validateRuleset = async (rules: IValidationRule[]) => {
+      const validateRule = async (rule: IValidationRule) => {
         let isValidOrPromise = rule.execute(value, object);
         if (isValidOrPromise instanceof Promise) {
           isValidOrPromise = await isValidOrPromise;
@@ -186,7 +185,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
       }
       return Promise.all(promises);
     };
-    const accumulateResult = async (results: ValidationResult[], rules: BaseValidationRule[]) => {
+    const accumulateResult = async (results: ValidationResult[], rules: IValidationRule[]) => {
       const result = await validateRuleset(rules);
       results.push(...result);
       return results;
@@ -248,7 +247,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
     return this;
   }
 
-  private assertLatestRule(latestRule: BaseValidationRule | undefined): asserts latestRule is BaseValidationRule {
+  private assertLatestRule(latestRule: IValidationRule | undefined): asserts latestRule is IValidationRule {
     if (latestRule === void 0) {
       throw new Error('No rule has been added'); // TODO: use reporter
     }
@@ -279,7 +278,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
    *
    * @param {TRule} validationRule - rule instance.
    */
-  public satisfiesRule<TRule extends BaseValidationRule>(validationRule: TRule) {
+  public satisfiesRule<TRule extends IValidationRule>(validationRule: TRule) {
     return this.addRule(validationRule);
   }
 
@@ -551,7 +550,7 @@ export function parsePropertyName(property: string | PropertyAccessor, parser: I
 /**
  * The result of validating an individual validation rule.
  */
-export class ValidationResult<TRule extends BaseValidationRule = BaseValidationRule> {
+export class ValidationResult<TRule extends IValidationRule = IValidationRule> {
   private static nextId = 0;
 
   /**
@@ -596,7 +595,7 @@ const contextualProperties: Readonly<Set<string>> = new Set([
 export class ValidationMessageProvider implements IValidationMessageProvider {
 
   private readonly logger: ILogger;
-  protected registeredMessages: WeakMap<BaseValidationRule, IInterpolationExpression | PrimitiveLiteralExpression> = new WeakMap<BaseValidationRule, IInterpolationExpression | PrimitiveLiteralExpression>();
+  protected registeredMessages: WeakMap<IValidationRule, IInterpolationExpression | PrimitiveLiteralExpression> = new WeakMap<IValidationRule, IInterpolationExpression | PrimitiveLiteralExpression>();
 
   public constructor(
     @IExpressionParser public parser: IExpressionParser,
@@ -609,7 +608,7 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
     }
   }
 
-  public getMessage(rule: BaseValidationRule): IInterpolationExpression | PrimitiveLiteralExpression {
+  public getMessage(rule: IValidationRule): IInterpolationExpression | PrimitiveLiteralExpression {
     const parsedMessage = this.registeredMessages.get(rule);
     if (parsedMessage !== void 0) { return parsedMessage; }
 
@@ -628,7 +627,7 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
     return this.setMessage(rule, message);
   }
 
-  public setMessage(rule: BaseValidationRule, message: string): IInterpolationExpression | PrimitiveLiteralExpression {
+  public setMessage(rule: IValidationRule, message: string): IInterpolationExpression | PrimitiveLiteralExpression {
     const parsedMessage = this.parseMessage(message);
     this.registeredMessages.set(rule, parsedMessage);
     return parsedMessage;

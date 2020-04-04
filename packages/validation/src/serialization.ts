@@ -1,14 +1,32 @@
 import { IContainer } from '@aurelia/kernel';
 import { IExpressionParser, BindingType, LifecycleFlags, Scope } from '@aurelia/runtime';
 import { Deserializer, serializePrimitive, Serializer } from './ast-serialization';
-import { Hydratable, IPropertyRule, IRuleProperty, IValidationHydrator, IValidationRule, IValidationVisitor, IValidateable, IRequiredRule, IRegexRule } from './rule-interfaces';
+import {
+  Hydratable,
+  IPropertyRule,
+  IRuleProperty,
+  IValidationHydrator,
+  IValidationRule,
+  IValidationVisitor,
+  IValidateable,
+  IRequiredRule,
+  IRegexRule,
+} from './rule-interfaces';
 import { IValidationRules, parsePropertyName, PropertyRule, RuleProperty } from './rule-provider';
-import { BaseValidationRule, EqualsRule, IValidationMessageProvider, LengthRule, RangeRule, RegexRule, RequiredRule, SizeRule } from './rules';
+import {
+  EqualsRule,
+  IValidationMessageProvider,
+  LengthRule,
+  RangeRule,
+  RegexRule,
+  RequiredRule,
+  SizeRule,
+} from './rules';
 
-export type Visitable<T extends BaseValidationRule> = (PropertyRule | RuleProperty | T) & { accept(visitor: ValidationSerializer): string };
+export type Visitable<T extends IValidationRule> = (PropertyRule | RuleProperty | T) & { accept(visitor: ValidationSerializer): string };
 
 export class ValidationSerializer implements IValidationVisitor {
-  public static serialize<T extends BaseValidationRule>(object: Visitable<T>): string {
+  public static serialize<T extends IValidationRule>(object: Visitable<T>): string {
     if (object == null || typeof object.accept !== 'function') {
       return `${object}`;
     }
@@ -55,7 +73,7 @@ export class ValidationSerializer implements IValidationVisitor {
   private serializeNumber(num: number): string {
     return num === Number.POSITIVE_INFINITY || num === Number.NEGATIVE_INFINITY ? null! : num.toString();
   }
-  private serializeRules(ruleset: BaseValidationRule[][]) {
+  private serializeRules(ruleset: IValidationRule[][]) {
     return `[${ruleset.map((rules) => `[${rules.map((rule) => rule.accept(this)).join(',')}]`).join(',')}]`;
   }
 }
@@ -223,11 +241,7 @@ export class ModelValidationHydrator implements IValidationHydrator {
     }
   }
 
-  private isModelPropertyRule(value: any): value is ModelPropertyRule {
-    return typeof value === 'object' && 'rules' in value;
-  }
-
-  private setCommonRuleProperties(raw: Pick<IValidationRule, 'messageKey' | 'tag'> & { when?: string | ((object?: IValidateable) => boolean) }, rule: RequiredRule) {
+  protected setCommonRuleProperties(raw: Pick<IValidationRule, 'messageKey' | 'tag'> & { when?: string | ((object?: IValidateable) => boolean) }, rule: RequiredRule) {
     const messageKey = raw.messageKey;
     if (messageKey !== void 0 && messageKey !== null) {
       rule.messageKey = messageKey;
@@ -245,6 +259,10 @@ export class ModelValidationHydrator implements IValidationHydrator {
         rule.canExecute = when;
       }
     }
+  }
+
+  private isModelPropertyRule(value: any): value is ModelPropertyRule {
+    return typeof value === 'object' && 'rules' in value;
   }
 
   private hydrateRequiredRule(raw: Pick<IRequiredRule, 'messageKey' | 'tag'>) {

@@ -1,7 +1,7 @@
 import { I18N, Signals } from "@aurelia/i18n";
 import { DI, EventAggregator, IContainer, IDisposable, IEventAggregator, ILogger, Key } from '@aurelia/kernel';
 import { IExpressionParser, IInterpolationExpression, IScheduler, PrimitiveLiteralExpression } from '@aurelia/runtime';
-import { BaseValidationRule, IValidator, ValidationMessageProvider } from "@aurelia/validation";
+import { IValidationRule, IValidator, ValidationMessageProvider } from "@aurelia/validation";
 import { IValidationController, ValidationController, ValidationControllerFactory, ValidationHtmlCustomizationOptions } from "@aurelia/validation-html";
 
 const I18N_VALIDATION_EA_CHANNEL = 'i18n:locale:changed:validation';
@@ -28,7 +28,6 @@ export class LocalizedValidationController extends ValidationController {
       () => { scheduler.getPostRenderTaskQueue().queueTask(async () => { await this.revalidateErrors(); }); }
     );
   }
-  // TODO have dispose
 }
 
 export class LocalizedValidationControllerFactory extends ValidationControllerFactory {
@@ -67,12 +66,12 @@ export class LocalizedValidationMessageProvider extends ValidationMessageProvide
     ea.subscribe(
       Signals.I18N_EA_CHANNEL,
       () => {
-        this.registeredMessages = new WeakMap<BaseValidationRule, IInterpolationExpression | PrimitiveLiteralExpression>();
+        this.registeredMessages = new WeakMap<IValidationRule, IInterpolationExpression | PrimitiveLiteralExpression>();
         ea.publish(I18N_VALIDATION_EA_CHANNEL);
       });
   }
 
-  public getMessage(rule: BaseValidationRule): IInterpolationExpression | PrimitiveLiteralExpression {
+  public getMessage(rule: IValidationRule): IInterpolationExpression | PrimitiveLiteralExpression {
     const parsedMessage = this.registeredMessages.get(rule);
     if (parsedMessage !== void 0) { return parsedMessage; }
 

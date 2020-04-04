@@ -24,7 +24,7 @@ import {
   ValidationResult,
   IValidator,
   ValidateInstruction,
-  BaseValidationRule,
+  IValidationRule,
   IValidateable
 } from '@aurelia/validation';
 
@@ -230,7 +230,6 @@ export interface IValidationController {
    * @param {ValidateInstruction} [instruction] - Instructions on what to reset. If omitted all rendered results will be removed.
    */
   reset(instruction?: ValidateInstruction): void;
-  // TODO: have dispose
 }
 export const IValidationController = DI.createInterface<IValidationController>("IValidationController").noDefault();
 
@@ -407,7 +406,7 @@ export class ValidationController implements IValidationController {
           }
           return acc;
         },
-        new Map<IValidateable, Map<PropertyRule, BaseValidationRule[]>>());
+        new Map<IValidateable, Map<PropertyRule, IValidationRule[]>>());
 
     const promises = [];
     for (const [object, innerMap] of map) {
@@ -425,7 +424,6 @@ export class ValidationController implements IValidationController {
     }
     await Promise.all(promises);
   }
-  // TODO: have dispose
 
   /**
    * Interprets the instruction and returns a predicate that will identify relevant results in the list of rendered validation results.

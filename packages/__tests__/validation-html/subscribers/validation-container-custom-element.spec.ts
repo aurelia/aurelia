@@ -2,16 +2,18 @@ import { IContainer, Registration, toArray } from '@aurelia/kernel';
 import { IScheduler, Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, TestContext, ISpy, HTMLTestContext, createSpy, getVisibleText } from '@aurelia/testing';
 import {
-  IValidationController,
   IValidationRules,
-  ValidationController,
-  ValidationConfiguration,
-  ValidationResultsSubscriber,
-  ValidationContainerCustomElement,
-  ValidationControllerFactory
 } from '@aurelia/validation';
+import {
+  IValidationController,
+  ValidationController,
+  ValidationContainerCustomElement,
+  ValidationControllerFactory,
+  ValidationResultsSubscriber,
+  ValidationHtmlConfiguration
+} from "@aurelia/validation-html";
 import { Spy } from '../../Spy';
-import { Person } from '../_test-resources';
+import { Person } from '../../validation/_test-resources';
 import { TestFunction, TestExecutionContext, ToNumberValueConverter, createSpecFunction } from '../../util';
 
 describe('validation-container-custom-element', function () {
@@ -76,7 +78,7 @@ describe('validation-container-custom-element', function () {
     const au = new Aurelia(container);
     await au
       .register(
-        ValidationConfiguration,
+        ValidationHtmlConfiguration,
         ToNumberValueConverter
       )
       .app({
@@ -206,8 +208,8 @@ describe('validation-container-custom-element', function () {
       const spy1 = createSpy(ceVm1, 'handleValidationEvent', true);
       await assertEventHandler(input1, scheduler, controllerSpy, spy1, ctx);
 
-      assert.deepStrictEqual(toArray(ceEl1.shadowRoot.querySelectorAll("span")).map((el) => getVisibleText(void 0, el, true)),  ["Name is required."]);
-      assert.deepStrictEqual(toArray(ceEl1.querySelectorAll("small")).map((el) => getVisibleText(void 0, el, true)),  ["Name is required."]);
+      assert.deepStrictEqual(toArray(ceEl1.shadowRoot.querySelectorAll("span")).map((el) => getVisibleText(void 0, el, true)), ["Name is required."]);
+      assert.deepStrictEqual(toArray(ceEl1.querySelectorAll("small")).map((el) => getVisibleText(void 0, el, true)), ["Name is required."]);
     },
     {
       template: `

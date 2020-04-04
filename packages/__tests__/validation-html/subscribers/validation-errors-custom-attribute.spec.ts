@@ -2,17 +2,19 @@ import { IContainer, Registration, toArray } from '@aurelia/kernel';
 import { Aurelia, CustomElement, IScheduler, CustomAttribute } from '@aurelia/runtime';
 import { TestContext, assert, createSpy, ISpy, getVisibleText, HTMLTestContext } from '@aurelia/testing';
 import {
-  IValidationController,
   IValidationRules,
-  ValidationConfiguration,
+} from '@aurelia/validation';
+import {
+  IValidationController,
+  ValidationHtmlConfiguration,
   ValidationController,
   ValidationErrorsCustomAttribute,
   ValidationResultsSubscriber,
   ValidationControllerFactory,
-} from '@aurelia/validation';
+} from "@aurelia/validation-html";
 import { Spy } from '../../Spy';
 import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../../util';
-import { Person } from '../_test-resources';
+import { Person } from '../../validation/_test-resources';
 
 describe('validation-errors-custom-attribute', function () {
 
@@ -81,7 +83,7 @@ describe('validation-errors-custom-attribute', function () {
     const au = new Aurelia(container);
     await au
       .register(
-        ValidationConfiguration,
+        ValidationHtmlConfiguration,
         ToNumberValueConverter
       )
       .app({

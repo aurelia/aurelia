@@ -63,6 +63,7 @@
     "@aurelia/store": "0.6.0",
     "@aurelia/testing": "0.6.0",
     "@aurelia/validation": "0.6.0",
+    "@aurelia/validation-html": "0.6.0",
     "@aurelia/validation-i18n": "0.6.0",
     "@aurelia/web-components": "0.6.0",
     "@aurelia/webpack-loader": "0.6.0",

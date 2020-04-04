@@ -3,7 +3,18 @@ import { I18N, I18nConfiguration, I18nConfigurationOptions } from '@aurelia/i18n
 import { IContainer, Registration } from '@aurelia/kernel';
 import { Aurelia, CustomElement, IBinding, INode, IScheduler } from '@aurelia/runtime';
 import { assert, HTMLTestContext, TestContext } from '@aurelia/testing';
-import { BindingWithBehavior, IValidationController, IValidationMessageProvider, IValidationRules, IValidator, StandardValidator, ValidationController, ValidationMessageProvider } from '@aurelia/validation';
+import {
+  IValidationMessageProvider,
+  IValidationRules,
+  IValidator,
+  StandardValidator,
+  ValidationMessageProvider,
+} from '@aurelia/validation';
+import {
+  BindingWithBehavior,
+  IValidationController,
+  ValidationController,
+} from '@aurelia/validation-html';
 import { LocalizedValidationController, LocalizedValidationControllerFactory, LocalizedValidationMessageProvider, ValidationI18nConfiguration } from '@aurelia/validation-i18n';
 import { Spy } from '../Spy';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util';
@@ -204,7 +215,7 @@ describe('validation-i18n', function () {
     async function ({ app, container, scheduler }) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
-      const person1= app.person1;
+      const person1 = app.person1;
 
       controller.addObject(person1);
       let { results } = await controller.validate();

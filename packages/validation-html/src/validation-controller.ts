@@ -22,10 +22,11 @@ import {
   PropertyAccessor,
   PropertyRule,
   ValidationResult,
-} from './rule-provider';
-import { IValidator, ValidateInstruction } from './validator';
-import { BaseValidationRule } from './rules';
-import { IValidateable } from './rule-interfaces';
+  IValidator,
+  ValidateInstruction,
+  BaseValidationRule,
+  IValidateable
+} from '@aurelia/validation';
 
 export type BindingWithBehavior = PropertyBinding & {
   sourceExpression: BindingBehaviorExpression;

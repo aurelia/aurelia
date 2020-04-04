@@ -2,17 +2,19 @@ import { IContainer, Registration, toArray } from '@aurelia/kernel';
 import { IScheduler, Aurelia, CustomElement, DOM, customElement } from '@aurelia/runtime';
 import { assert, TestContext, ISpy, HTMLTestContext, createSpy, getVisibleText } from '@aurelia/testing';
 import {
-  IValidationController,
   IValidationRules,
+  ValidationResult,
+} from '@aurelia/validation';
+import {
+  IValidationController,
   ValidationController,
-  ValidationConfiguration,
+  ValidationHtmlConfiguration,
   ValidationResultsSubscriber,
   ValidationResultPresenterService,
-  ValidationResult,
-  ValidationControllerFactory
-} from '@aurelia/validation';
+  ValidationControllerFactory,
+} from "@aurelia/validation-html";
 import { Spy } from '../../Spy';
-import { Person } from '../_test-resources';
+import { Person } from '../../validation/_test-resources';
 import { TestFunction, TestExecutionContext, ToNumberValueConverter, createSpecFunction } from '../../util';
 
 describe('validation-result-presenter-service', function () {
@@ -82,7 +84,7 @@ describe('validation-result-presenter-service', function () {
     const au = new Aurelia(container);
     await au
       .register(
-        ValidationConfiguration,
+        ValidationHtmlConfiguration,
         ToNumberValueConverter,
         CustomValidationContainer
       )

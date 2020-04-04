@@ -22,20 +22,21 @@ import {
 } from '@aurelia/runtime';
 import { assert, TestContext, HTMLTestContext } from '@aurelia/testing';
 import {
-  BindingWithBehavior,
-  IValidationController,
   IValidationRules,
-  ValidationConfiguration,
-  ValidationController,
-  ValidationTrigger,
   PropertyRule,
   RangeRule,
   RequiredRule,
-  ValidationControllerFactory,
-  ValidateInstruction
 } from '@aurelia/validation';
+import {
+  BindingWithBehavior,
+  IValidationController,
+  ValidationController,
+  ValidationTrigger,
+  ValidationControllerFactory,
+  ValidationHtmlConfiguration
+} from '@aurelia/validation-html';
 import { Spy } from '../Spy';
-import { Person, Organization } from './_test-resources';
+import { Person, Organization } from '../validation/_test-resources';
 import { createSpecFunction, TestFunction, TestExecutionContext, ToNumberValueConverter } from '../util';
 
 describe('validate-biniding-behavior', function () {
@@ -264,10 +265,10 @@ describe('validate-biniding-behavior', function () {
     await au
       .register(
         customDefaultTrigger
-          ? ValidationConfiguration.customize((options) => {
+          ? ValidationHtmlConfiguration.customize((options) => {
             options.DefaultTrigger = customDefaultTrigger;
           })
-          : ValidationConfiguration,
+          : ValidationHtmlConfiguration,
         TextBox,
         EmployeeList,
         FooBar,
@@ -602,7 +603,7 @@ describe('validate-biniding-behavior', function () {
       const au = new Aurelia(container);
       try {
         await au
-          .register(ValidationConfiguration)
+          .register(ValidationHtmlConfiguration)
           .app({
             host,
             component: (() => {
@@ -1155,7 +1156,7 @@ describe('validate-biniding-behavior', function () {
       const host = ctx.dom.createElement('app');
       ctx.doc.body.appendChild(host);
       let app: App;
-      const au = new Aurelia(container).register(ValidationConfiguration);
+      const au = new Aurelia(container).register(ValidationHtmlConfiguration);
 
       try {
         await au

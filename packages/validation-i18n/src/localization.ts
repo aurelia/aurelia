@@ -1,12 +1,12 @@
 import { I18N, Signals } from "@aurelia/i18n";
-import { IValidationController, IValidator, ValidationControllerFactory, ValidationController, ValidationMessageProvider, BaseValidationRule } from "@aurelia/validation";
-import { IExpressionParser, IScheduler, PrimitiveLiteralExpression, IInterpolationExpression } from '@aurelia/runtime';
-import { EventAggregator, IEventAggregator, ILogger, IDisposable, DI, IContainer, Key } from '@aurelia/kernel';
-import { ValidationCustomizationOptions } from '@aurelia/validation/dist/validation-customization-options';
+import { DI, EventAggregator, IContainer, IDisposable, IEventAggregator, ILogger, Key } from '@aurelia/kernel';
+import { IExpressionParser, IInterpolationExpression, IScheduler, PrimitiveLiteralExpression } from '@aurelia/runtime';
+import { BaseValidationRule, IValidator, ValidationMessageProvider } from "@aurelia/validation";
+import { IValidationController, ValidationController, ValidationControllerFactory, ValidationHtmlCustomizationOptions } from "@aurelia/validation-html";
 
 const I18N_VALIDATION_EA_CHANNEL = 'i18n:locale:changed:validation';
 
-export interface ValidationI18nCustomizationOptions extends ValidationCustomizationOptions {
+export interface ValidationI18nCustomizationOptions extends ValidationHtmlCustomizationOptions {
   DefaultNamespace?: string;
   DefaultKeyPrefix?: string;
 }

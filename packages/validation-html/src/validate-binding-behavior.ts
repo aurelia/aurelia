@@ -14,7 +14,7 @@ import {
   IBinding,
   BindingBehaviorExpression,
 } from '@aurelia/runtime';
-import { PropertyRule } from './rule-provider';
+import { PropertyRule } from '@aurelia/validation';
 import { BindingWithBehavior, IValidationController, ValidationController, BindingInfo } from './validation-controller';
 
 /**

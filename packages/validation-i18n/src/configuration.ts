@@ -1,7 +1,7 @@
-import { ValidationI18nCustomizationOptions, LocalizedValidationMessageProvider, LocalizedValidationControllerFactory, I18nKeyConfiguration } from './localization';
 import { IContainer, PLATFORM, Registration } from '@aurelia/kernel';
-import { ValidationConfiguration, getDefaultValidationConfiguration } from '@aurelia/validation';
-import { ValidationCustomizationOptions } from '@aurelia/validation/dist/validation-customization-options';
+import { getDefaultValidationHtmlConfiguration, ValidationHtmlConfiguration } from '@aurelia/validation-html';
+import { ValidationHtmlCustomizationOptions } from '@aurelia/validation-html/dist/validation-customization-options';
+import { I18nKeyConfiguration, LocalizedValidationControllerFactory, LocalizedValidationMessageProvider, ValidationI18nCustomizationOptions } from './localization';
 
 export type ValidationConfigurationProvider = (options: ValidationI18nCustomizationOptions) => void;
 
@@ -10,7 +10,7 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
     optionsProvider,
     register(container: IContainer) {
       const options: ValidationI18nCustomizationOptions = {
-        ...getDefaultValidationConfiguration(),
+        ...getDefaultValidationHtmlConfiguration(),
         MessageProviderType: LocalizedValidationMessageProvider,
         ValidationControllerFactoryType: LocalizedValidationControllerFactory,
         DefaultNamespace: void 0,
@@ -24,9 +24,9 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
       };
 
       return container.register(
-        ValidationConfiguration.customize((opt) => {
+        ValidationHtmlConfiguration.customize((opt) => {
           // copy the customization iff the key exists in validation configuration
-          for (const key of Object.keys(opt) as (keyof ValidationCustomizationOptions)[]) {
+          for (const key of Object.keys(opt) as (keyof ValidationHtmlCustomizationOptions)[]) {
             if (key in options) {
               (opt as any)[key] = options[key]; // TS cannot infer that the value of the same key is being copied from A to B, and rejects the assignment due to type broadening
             }

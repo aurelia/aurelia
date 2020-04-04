@@ -3,21 +3,23 @@ import { IContainer, Registration, newInstanceForScope } from '@aurelia/kernel';
 import { Aurelia, CustomElement, IScheduler, customElement } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import {
-  ControllerValidateResult,
-  IValidationController,
   IValidationRules,
   PropertyRule,
-  ValidateEventKind,
   ValidateInstruction,
-  ValidationConfiguration,
+} from '@aurelia/validation';
+import {
+  ControllerValidateResult,
+  IValidationController,
+  ValidateEventKind,
   ValidationController,
   ValidationControllerFactory,
   ValidationResultsSubscriber,
-  ValidationEvent
-} from '@aurelia/validation';
+  ValidationEvent,
+  ValidationHtmlConfiguration,
+} from '@aurelia/validation-html';
 import { Spy } from '../Spy';
 import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../util';
-import { Person } from './_test-resources';
+import { Person } from '../validation/_test-resources';
 
 describe('validation controller factory', function () {
   @customElement({
@@ -81,7 +83,7 @@ describe('validation controller factory', function () {
     const au = new Aurelia(container);
     await au
       .register(
-        ValidationConfiguration,
+        ValidationHtmlConfiguration,
         VcRoot,
         NewVcRoot,
         CustomStuff1,
@@ -213,7 +215,7 @@ describe('validation-controller', function () {
     const au = new Aurelia(container);
     await au
       .register(
-        ValidationConfiguration,
+        ValidationHtmlConfiguration,
         ToNumberValueConverter
       )
       .app({

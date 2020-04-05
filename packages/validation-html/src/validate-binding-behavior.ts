@@ -53,6 +53,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
   private propertyBinding: BindingWithBehavior = (void 0)!;
   private target: HTMLElement = (void 0)!;
   private trigger!: ValidationTrigger;
+  private readonly scopedController: IValidationController;
   private controller!: IValidationController;
   private isChangeTrigger: boolean = false;
   private readonly scheduler: IScheduler;
@@ -68,8 +69,10 @@ export class ValidateBindingBehavior extends BindingInterceptor {
     expr: IBindingBehaviorExpression,
   ) {
     super(binding, expr);
-    this.scheduler = this.locator.get(IScheduler);
-    this.defaultTrigger = this.locator.get(IDefaultTrigger);
+    const locator = this.locator;
+    this.scheduler = locator.get(IScheduler);
+    this.defaultTrigger = locator.get(IDefaultTrigger);
+    this.scopedController = locator.get(IValidationController);
     this.setPropertyBinding();
   }
 
@@ -137,10 +140,11 @@ export class ValidateBindingBehavior extends BindingInterceptor {
     while (expression.name !== 'validate' && expression !== void 0) {
       expression = expression.expression as BindingBehaviorExpression;
     }
+    const evaluationFlags = flags | LifecycleFlags.isStrictBindingStrategy;
     const args = expression.args;
     for (let i = 0, ii = args.length; i < ii; i++) {
       const arg = args[i];
-      const temp = arg.evaluate(flags, scope, locator);
+      const temp = arg.evaluate(evaluationFlags, scope, locator);
       switch (i) {
         case 0:
           trigger = this.ensureTrigger(temp);
@@ -201,7 +205,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
 
   private ensureController(controller: unknown): ValidationController {
     if (controller === (void 0) || controller === null) {
-      controller = this.locator.get(IValidationController);
+      controller = this.scopedController;
     } else if (!(controller instanceof ValidationController)) {
       throw new Error(`${controller} is not of type ValidationController`); // TODO: use reporter
     }
@@ -243,6 +247,6 @@ class ValidateArgumentsDelta {
   public constructor(
     public controller?: ValidationController,
     public trigger?: ValidationTrigger,
-    public rules?: PropertyRule[]
+    public rules?: PropertyRule[],
   ) { }
 }

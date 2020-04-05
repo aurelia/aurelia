@@ -1,4 +1,3 @@
-import { IContainer } from '@aurelia/kernel';
 import { bindable, BindingMode, customAttribute, INode } from '@aurelia/runtime';
 import { IValidationController, ValidationResultsSubscriber, ValidationEvent, ValidationResultTarget } from '../validation-controller';
 import { compareDocumentPositionFlat } from './common';
@@ -31,7 +30,10 @@ export class ValidationErrorsCustomAttribute implements ValidationResultsSubscri
 
   private readonly errorsInternal: ValidationResultTarget[] = [];
   private readonly host: HTMLElement;
-  public constructor(@INode host: INode, @IContainer private readonly container: IContainer) {
+  public constructor(
+    @INode host: INode,
+    @IValidationController private readonly scopedController: IValidationController
+  ) {
     this.host = host as HTMLElement;
   }
 
@@ -63,7 +65,7 @@ export class ValidationErrorsCustomAttribute implements ValidationResultsSubscri
   }
 
   public beforeBind() {
-    this.controller = this.controller ?? this.container.get(IValidationController);
+    this.controller = this.controller ?? this.scopedController;
     this.controller.addSubscriber(this);
   }
 

@@ -1,4 +1,4 @@
-import { IContainer, Registration, toArray } from '@aurelia/kernel';
+import { toArray, newInstanceForScope, newInstanceOf } from '@aurelia/kernel';
 import { Aurelia, CustomElement, IScheduler, CustomAttribute } from '@aurelia/runtime';
 import { TestContext, assert, createSpy, ISpy, getVisibleText, HTMLTestContext } from '@aurelia/testing';
 import {
@@ -10,9 +10,7 @@ import {
   ValidationController,
   ValidationErrorsCustomAttribute,
   ValidationResultsSubscriber,
-  ValidationControllerFactory,
 } from "@aurelia/validation-html";
-import { Spy } from '../../Spy';
 import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../../util';
 import { Person } from '../../validation/_test-resources';
 
@@ -20,26 +18,20 @@ describe('validation-errors-custom-attribute', function () {
 
   class App {
     public person: Person = new Person((void 0)!, (void 0)!);
-    public controllerSpy: Spy;
-    public controller2Spy: Spy;
-    public readonly scheduler: IScheduler;
-    public controller: ValidationController;
-    public controller2: ValidationController;
-    private readonly validationRules: IValidationRules;
-
-    public constructor(container: IContainer) {
-      const factory = new ValidationControllerFactory();
-      this.scheduler = container.get(IScheduler);
-      this.controllerSpy = new Spy();
-      this.controller2Spy = new Spy();
-
-      // mocks ValidationControllerFactory#createForCurrentScope
-      const controller = this.controller = this.controllerSpy.getMock(factory.construct(container)) as unknown as ValidationController;
-      Registration.instance(IValidationController, controller).register(container);
-
-      this.controller2 = this.controller2Spy.getMock(factory.construct(container)) as unknown as ValidationController;
-
-      const validationRules = this.validationRules = container.get(IValidationRules);
+    public controllerValidateSpy: ISpy;
+    public controllerRemoveSubscriberSpy: ISpy;
+    public controller2ValidateSpy: ISpy;
+    public controller2RemoveSubscriberSpy: ISpy;
+    public constructor(
+      @IScheduler public readonly scheduler: IScheduler,
+      @newInstanceForScope(IValidationController) public controller: ValidationController,
+      @newInstanceOf(IValidationController) public controller2: ValidationController,
+      @IValidationRules private readonly validationRules: IValidationRules,
+    ) {
+      this.controllerValidateSpy = createSpy(controller, "validate", true);
+      this.controllerRemoveSubscriberSpy = createSpy(controller, "removeSubscriber", true);
+      this.controller2ValidateSpy = createSpy(controller2, "validate", true);
+      this.controller2RemoveSubscriberSpy = createSpy(controller2, "removeSubscriber", true);
       validationRules
         .on(this.person)
 
@@ -79,7 +71,6 @@ describe('validation-errors-custom-attribute', function () {
     const container = ctx.container;
     const host = ctx.dom.createElement('app');
     ctx.doc.body.appendChild(host);
-    let app: App;
     const au = new Aurelia(container);
     await au
       .register(
@@ -88,24 +79,22 @@ describe('validation-errors-custom-attribute', function () {
       )
       .app({
         host,
-        component: app = (() => {
-          const ca = CustomElement.define({ name: 'app', isStrictBinding: true, template }, App);
-          return new ca(container);
-        })()
+        component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
       })
       .start()
       .wait();
 
+    const app = au.root.viewModel as App;
     await testFunction({ app, host, container, scheduler: app.scheduler, ctx });
 
     await au.stop().wait();
     ctx.doc.body.removeChild(host);
     if (removeSubscriberSpies !== void 0) {
       for (const [spy, count] of Object.entries(removeSubscriberSpies)) {
-        app[spy].methodCalledTimes('removeSubscriber', count);
+        assert.equal(app[spy].calls.length, count);
       }
     } else {
-      app.controllerSpy.methodCalledTimes('removeSubscriber', template.match(/validation-errors/g).length);
+      assert.equal(app.controllerRemoveSubscriberSpy.calls.length, template.match(/validation-errors/g).length);
     }
   }
 
@@ -114,16 +103,16 @@ describe('validation-errors-custom-attribute', function () {
   async function assertEventHandler(
     target: HTMLElement,
     scheduler: IScheduler,
-    controllerSpy: Spy,
+    controllerValidateSpy: ISpy,
     handleValidationEventSpy: ISpy,
     ctx: HTMLTestContext,
     event: string = 'blur',
   ) {
     handleValidationEventSpy.calls.splice(0);
-    controllerSpy.clearCallRecords();
+    controllerValidateSpy.calls.splice(0);
     target.dispatchEvent(new ctx.Event(event));
     await scheduler.yieldAll(10);
-    controllerSpy.methodCalledTimes('validate', 1);
+    assert.equal(controllerValidateSpy.calls.length, 1, 'incorrect #calls for validate');
     assert.equal(handleValidationEventSpy.calls.length, 1, 'incorrect #calls for handleValidationEvent');
   }
   function assertSubscriber(controller: ValidationController, ca: ValidationErrorsCustomAttribute) {
@@ -140,7 +129,7 @@ describe('validation-errors-custom-attribute', function () {
       const ca2: ValidationErrorsCustomAttribute = CustomAttribute.for(div2, 'validation-errors').viewModel as unknown as ValidationErrorsCustomAttribute;
       const spy1 = createSpy(ca1, 'handleValidationEvent', true);
       const spy2 = createSpy(ca2, 'handleValidationEvent', true);
-      const { controllerSpy, controller } = app;
+      const { controllerValidateSpy, controller } = app;
 
       // assert that things are correctly wired up
       assertSubscriber(controller, ca1);
@@ -149,11 +138,11 @@ describe('validation-errors-custom-attribute', function () {
       const target1 = div1.querySelector('#target1') as HTMLInputElement;
       const target2 = div2.querySelector('#target2') as HTMLInputElement;
 
-      await assertEventHandler(target1, scheduler, controllerSpy, spy1, ctx);
+      await assertEventHandler(target1, scheduler, controllerValidateSpy, spy1, ctx);
       target2.value = "foo";
       target2.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);
-      await assertEventHandler(target2, scheduler, controllerSpy, spy2, ctx);
+      await assertEventHandler(target2, scheduler, controllerValidateSpy, spy2, ctx);
 
       // assert that errors are rendered in the respective containers
       let errors1 = ca1.errors;
@@ -178,12 +167,12 @@ describe('validation-errors-custom-attribute', function () {
       target1.value = "foo";
       target1.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);
-      await assertEventHandler(target1, scheduler, controllerSpy, spy1, ctx);
+      await assertEventHandler(target1, scheduler, controllerValidateSpy, spy1, ctx);
 
       target2.value = "15";
       target2.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);
-      await assertEventHandler(target2, scheduler, controllerSpy, spy2, ctx);
+      await assertEventHandler(target2, scheduler, controllerValidateSpy, spy2, ctx);
 
       errors1 = ca1.errors;
       assert.equal(errors1.length, 0);
@@ -214,18 +203,18 @@ describe('validation-errors-custom-attribute', function () {
       const div = host.querySelector('div');
       const ca: ValidationErrorsCustomAttribute = CustomAttribute.for(div, 'validation-errors').viewModel as unknown as ValidationErrorsCustomAttribute;
       const spy = createSpy(ca, 'handleValidationEvent', true);
-      const { controllerSpy, controller } = app;
+      const { controllerValidateSpy, controller } = app;
 
       assertSubscriber(controller, ca);
 
       const target1 = div.querySelector('#target1') as HTMLInputElement;
       const target2 = div.querySelector('#target2') as HTMLInputElement;
 
-      await assertEventHandler(target1, scheduler, controllerSpy, spy, ctx);
+      await assertEventHandler(target1, scheduler, controllerValidateSpy, spy, ctx);
       target2.value = "foo";
       target2.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);
-      await assertEventHandler(target2, scheduler, controllerSpy, spy, ctx);
+      await assertEventHandler(target2, scheduler, controllerValidateSpy, spy, ctx);
 
       const errors1 = ca.errors;
       assert.deepEqual(app['errors'], errors1);
@@ -260,7 +249,7 @@ describe('validation-errors-custom-attribute', function () {
       const ca2: ValidationErrorsCustomAttribute = CustomAttribute.for(div2, 'validation-errors').viewModel as unknown as ValidationErrorsCustomAttribute;
       const spy1 = createSpy(ca1, 'handleValidationEvent', true);
       const spy2 = createSpy(ca2, 'handleValidationEvent', true);
-      const { controllerSpy, controller, controller2Spy, controller2 } = app;
+      const { controllerValidateSpy, controller, controller2ValidateSpy, controller2 } = app;
 
       // assert that things are correctly wired up
       assertSubscriber(controller, ca1);
@@ -269,11 +258,11 @@ describe('validation-errors-custom-attribute', function () {
       const target1 = div1.querySelector('#target1') as HTMLInputElement;
       const target2 = div2.querySelector('#target2') as HTMLInputElement;
 
-      await assertEventHandler(target1, scheduler, controllerSpy, spy1, ctx);
+      await assertEventHandler(target1, scheduler, controllerValidateSpy, spy1, ctx);
       target2.value = "foo";
       target2.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);
-      await assertEventHandler(target2, scheduler, controller2Spy, spy2, ctx);
+      await assertEventHandler(target2, scheduler, controller2ValidateSpy, spy2, ctx);
 
       // assert that errors are rendered in the respective containers
       let errors1 = ca1.errors;
@@ -298,12 +287,12 @@ describe('validation-errors-custom-attribute', function () {
       target1.value = "foo";
       target1.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);
-      await assertEventHandler(target1, scheduler, controllerSpy, spy1, ctx);
+      await assertEventHandler(target1, scheduler, controllerValidateSpy, spy1, ctx);
 
       target2.value = "15";
       target2.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);
-      await assertEventHandler(target2, scheduler, controller2Spy, spy2, ctx);
+      await assertEventHandler(target2, scheduler, controller2ValidateSpy, spy2, ctx);
 
       errors1 = ca1.errors;
       assert.equal(errors1.length, 0);
@@ -327,7 +316,7 @@ describe('validation-errors-custom-attribute', function () {
       </span>
     </div>
     `,
-      removeSubscriberSpies: { controllerSpy: 1, controller2Spy: 1 }
+      removeSubscriberSpies: { controllerRemoveSubscriberSpy: 1, controller2RemoveSubscriberSpy: 1 }
     }
   );
 
@@ -336,13 +325,13 @@ describe('validation-errors-custom-attribute', function () {
       const div = host.querySelector('div');
       const ca: ValidationErrorsCustomAttribute = CustomAttribute.for(div, 'validation-errors').viewModel as unknown as ValidationErrorsCustomAttribute;
       const spy = createSpy(ca, 'handleValidationEvent', true);
-      const { controllerSpy, controller } = app;
+      const { controllerValidateSpy, controller } = app;
 
       assertSubscriber(controller, ca);
 
       const target = div.querySelector('#target1') as HTMLInputElement;
 
-      await assertEventHandler(target, scheduler, controllerSpy, spy, ctx);
+      await assertEventHandler(target, scheduler, controllerValidateSpy, spy, ctx);
 
       const errors1 = ca.errors;
       assert.equal('errors' in app, false);

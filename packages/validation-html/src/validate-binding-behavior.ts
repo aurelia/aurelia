@@ -53,7 +53,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
   private propertyBinding: BindingWithBehavior = (void 0)!;
   private target: HTMLElement = (void 0)!;
   private trigger!: ValidationTrigger;
-  private readonly scopedController: IValidationController;
+  private readonly scopedController?: IValidationController;
   private controller!: IValidationController;
   private isChangeTrigger: boolean = false;
   private readonly scheduler: IScheduler;

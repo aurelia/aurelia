@@ -1,5 +1,5 @@
-import { toArray, newInstanceForScope } from '@aurelia/kernel';
-import { IScheduler, Aurelia, CustomElement } from '@aurelia/runtime';
+import { toArray, newInstanceForScope, newInstanceOf } from '@aurelia/kernel';
+import { IScheduler, Aurelia, CustomElement, customElement } from '@aurelia/runtime';
 import { assert, TestContext, ISpy, HTMLTestContext, createSpy, getVisibleText } from '@aurelia/testing';
 import {
   IValidationRules,
@@ -206,4 +206,69 @@ describe('validation-container-custom-element', function () {
       </validation-container>
     ` }
   );
+
+  it('can be used without any available registration for scoped controller', async function () {
+    @customElement({
+      name: 'app',
+      template: `
+      <validation-container controller.bind="controller">
+        <input id="target1" type="text" value.two-way="person.name & validate:undefined:controller">
+      </validation-container>
+    `})
+    class App1 {
+      public person: Person = new Person((void 0)!, (void 0)!);
+      public controllerValidateSpy: ISpy;
+
+      public constructor(
+        @newInstanceOf(IValidationController) public readonly controller: ValidationController,
+        @IValidationRules private readonly validationRules: IValidationRules,
+      ) {
+        this.controllerValidateSpy = createSpy(controller, 'validate', true);
+
+        validationRules
+          .on(this.person)
+
+          .ensure('name')
+          .required();
+      }
+
+      public beforeUnbind() {
+        this.validationRules.off();
+      }
+    }
+
+    const ctx = TestContext.createHTMLTestContext();
+    const container = ctx.container;
+    const host = ctx.dom.createElement('app');
+    ctx.doc.body.appendChild(host);
+    const au = new Aurelia(container).register(ValidationHtmlConfiguration);
+
+    await au
+      .app({ host, component: App1 })
+      .start()
+      .wait();
+
+    const app: App1 = au.root.viewModel as App1;
+    const scheduler = container.get(IScheduler);
+
+    const ceEl1 = host.querySelector('validation-container');
+    const ceVm1: ValidationContainerCustomElement = CustomElement.for(ceEl1).viewModel as ValidationContainerCustomElement;
+
+    const controller = app.controller;
+
+    assertSubscriber(controller, ceVm1);
+
+    const input1: HTMLInputElement = ceEl1.querySelector('input#target1');
+
+    const controllerSpy = app.controllerValidateSpy;
+    const spy1 = createSpy(ceVm1, 'handleValidationEvent', true);
+    await assertEventHandler(input1, scheduler, controllerSpy, spy1, ctx);
+
+    const errors1 = toArray(ceEl1.shadowRoot.querySelectorAll("span")).map((el) => getVisibleText(void 0, el, true));
+
+    assert.deepStrictEqual(errors1, ["Name is required."]);
+
+    await au.stop().wait();
+    ctx.doc.body.removeChild(host);
+  });
 });

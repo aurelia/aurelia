@@ -1,6 +1,7 @@
 import { customElement, INode, bindable } from '@aurelia/runtime';
 import { ValidationResultsSubscriber, ValidationEvent, ValidationResultTarget, IValidationController } from '../validation-controller';
 import { compareDocumentPositionFlat } from './common';
+import { optional } from '@aurelia/kernel';
 
 @customElement({
   name: 'validation-container',
@@ -17,12 +18,13 @@ import { compareDocumentPositionFlat } from './common';
 `
 })
 export class ValidationContainerCustomElement implements ValidationResultsSubscriber {
+  @bindable public controller!: IValidationController;
   @bindable public errors: ValidationResultTarget[] = [];
   private readonly host: HTMLElement;
 
   public constructor(
     @INode host: INode,
-    @IValidationController private readonly controller: IValidationController
+    @optional(IValidationController) private readonly scopedController: IValidationController
   ) {
     this.host = host as HTMLElement;
   }
@@ -54,6 +56,7 @@ export class ValidationContainerCustomElement implements ValidationResultsSubscr
   }
 
   public beforeBind() {
+    this.controller = this.controller ?? this.scopedController;
     this.controller.addSubscriber(this);
   }
 

@@ -1159,4 +1159,72 @@ describe('validate-binding-behavior', function () {
       ctx.doc.body.removeChild(host);
     });
   }
+
+  it('can be used without any available registration for scoped controller', async function () {
+    @customElement({ name: 'app', template: '<input id="target" type="text" value.two-way="person.name & validate:undefined:controller">' })
+    class App1 {
+      public person: Person = new Person((void 0)!, (void 0)!);
+      public controllerRegisterBindingSpy: ISpy;
+      public controllerUnregisterBindingSpy: ISpy;
+      public controllerValidateBindingSpy: ISpy;
+      public controllerValidateSpy: ISpy;
+
+      public constructor(
+        @newInstanceOf(IValidationController) public readonly controller: ValidationController,
+        @IValidationRules private readonly validationRules: IValidationRules,
+      ) {
+        this.controllerRegisterBindingSpy = createSpy(controller, 'registerBinding', true);
+        this.controllerUnregisterBindingSpy = createSpy(controller, 'unregisterBinding', true);
+        this.controllerValidateBindingSpy = createSpy(controller, 'validateBinding', true);
+        this.controllerValidateSpy = createSpy(controller, 'validate', true);
+
+        validationRules
+          .on(this.person)
+
+          .ensure('name')
+          .required();
+      }
+
+      public beforeUnbind() {
+        this.validationRules.off();
+      }
+
+      public clearControllerCalls() {
+        this.controllerRegisterBindingSpy.calls.splice(0);
+        this.controllerUnregisterBindingSpy.calls.splice(0);
+        this.controllerValidateBindingSpy.calls.splice(0);
+        this.controllerValidateSpy.calls.splice(0);
+      }
+    }
+
+    const ctx = TestContext.createHTMLTestContext();
+    const container = ctx.container;
+    const host = ctx.dom.createElement('app');
+    ctx.doc.body.appendChild(host);
+    const au = new Aurelia(container).register(ValidationHtmlConfiguration);
+
+    await au
+      .app({ host, component: App1 })
+      .start()
+      .wait();
+
+    const app: App1 = au.root.viewModel as App1;
+    const controller = app.controller;
+    const scheduler = container.get(IScheduler);
+
+    const target: HTMLInputElement = host.querySelector("#target");
+    assertControllerBinding(controller, 'person.name', target, app.controllerRegisterBindingSpy);
+
+    assert.equal(controller.results.filter((r) => !r.valid).length, 0, 'error1');
+    await controller.validate();
+    assert.equal(controller.results.filter((r) => !r.valid).length, 1, 'error2');
+
+    target.value = 'foo';
+    await assertEventHandler(target, 'change', 0, scheduler, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
+    await assertEventHandler(target, 'blur', 1, scheduler, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
+    assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error3');
+
+    await au.stop().wait();
+    ctx.doc.body.removeChild(host);
+  });
 });

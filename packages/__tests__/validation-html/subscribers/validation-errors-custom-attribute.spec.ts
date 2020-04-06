@@ -1,5 +1,5 @@
 import { toArray, newInstanceForScope, newInstanceOf } from '@aurelia/kernel';
-import { Aurelia, CustomElement, IScheduler, CustomAttribute } from '@aurelia/runtime';
+import { Aurelia, CustomElement, IScheduler, CustomAttribute, customElement } from '@aurelia/runtime';
 import { TestContext, assert, createSpy, ISpy, getVisibleText, HTMLTestContext } from '@aurelia/testing';
 import {
   IValidationRules,
@@ -350,4 +350,88 @@ describe('validation-errors-custom-attribute', function () {
     </div>
     ` }
   );
+
+  it('can be used without any available registration for scoped controller', async function () {
+    @customElement({
+      name: 'app',
+      template: `
+    <div id="div1" validation-errors="errors.bind: nameErrors; controller.bind: controller;">
+      <input id="target1" type="text" value.two-way="person.name & validate:undefined:controller">
+      <span class="error" repeat.for="errorInfo of nameErrors">
+        \${errorInfo.result.message}
+      </span>
+    </div>
+    `})
+    class App1 {
+      public person: Person = new Person((void 0)!, (void 0)!);
+      public controllerValidateSpy: ISpy;
+
+      public constructor(
+        @newInstanceOf(IValidationController) public readonly controller: ValidationController,
+        @IValidationRules private readonly validationRules: IValidationRules,
+      ) {
+        this.controllerValidateSpy = createSpy(controller, 'validate', true);
+
+        validationRules
+          .on(this.person)
+
+          .ensure('name')
+          .required();
+      }
+
+      public beforeUnbind() {
+        this.validationRules.off();
+      }
+    }
+
+    const ctx = TestContext.createHTMLTestContext();
+    const container = ctx.container;
+    const host = ctx.dom.createElement('app');
+    ctx.doc.body.appendChild(host);
+    const au = new Aurelia(container).register(ValidationHtmlConfiguration);
+
+    await au
+      .app({ host, component: App1 })
+      .start()
+      .wait();
+
+    const app: App1 = au.root.viewModel as App1;
+    const scheduler = container.get(IScheduler);
+
+    const div1 = host.querySelector('#div1');
+    const ca1: ValidationErrorsCustomAttribute = CustomAttribute.for(div1, 'validation-errors').viewModel as unknown as ValidationErrorsCustomAttribute;
+    const spy1 = createSpy(ca1, 'handleValidationEvent', true);
+    const { controllerValidateSpy, controller } = app;
+
+    // assert that things are correctly wired up
+    assertSubscriber(controller, ca1);
+    assert.equal(ca1["scopedController"], null);
+    assert.notEqual(ca1["scopedController"], controller);
+
+    const target1 = div1.querySelector('#target1') as HTMLInputElement;
+
+    await assertEventHandler(target1, scheduler, controllerValidateSpy, spy1, ctx);
+    await scheduler.yieldAll(10);
+
+    // assert that errors are rendered in the respective containers
+    let errors1 = ca1.errors;
+    assert.deepEqual(app['nameErrors'], errors1);
+    assert.equal(errors1.length, 1);
+    assert.deepEqual(errors1[0].targets, [target1]);
+
+    assert.html.textContent(div1.querySelector('span.error'), 'Name is required.');
+
+    // assert that errors are removed
+    target1.value = "foo";
+    target1.dispatchEvent(new ctx.Event('change'));
+    await scheduler.yieldAll(10);
+    await assertEventHandler(target1, scheduler, controllerValidateSpy, spy1, ctx);
+
+    errors1 = ca1.errors;
+    assert.equal(errors1.length, 0);
+    assert.equal(div1.querySelectorAll('span.error').length, 0);
+
+    await au.stop().wait();
+    ctx.doc.body.removeChild(host);
+  });
 });

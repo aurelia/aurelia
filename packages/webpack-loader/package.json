@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/webpack-loader",
-  "version": "0.7.0-dev.202004062057",
+  "version": "0.7.0-dev.202004062201",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -35,7 +35,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/plugin-conventions": "0.7.0-dev.202004062057",
+    "@aurelia/plugin-conventions": "0.7.0-dev.202004062201",
     "loader-utils": "^1.2.3",
     "webpack": "^4.41.4"
   },

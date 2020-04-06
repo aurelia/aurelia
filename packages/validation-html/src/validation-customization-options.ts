@@ -10,5 +10,5 @@ export interface ValidationHtmlCustomizationOptions extends ValidationCustomizat
   ValidationControllerFactoryType: Class<IFactory<Constructable<IValidationController>>>;
   DefaultTrigger: ValidationTrigger;
   UseSubscriberCustomAttribute: boolean;
-  UseSubscriberCustomElement: boolean;
+  SubscriberCustomElementTemplate: string;
 }

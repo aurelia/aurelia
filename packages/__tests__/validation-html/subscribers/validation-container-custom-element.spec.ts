@@ -57,10 +57,11 @@ describe('validation-container-custom-element', function () {
   }
   interface TestSetupContext {
     template: string;
+    containerTemplate?: string;
   }
   async function runTest(
     testFunction: TestFunction<TestExecutionContext<App>>,
-    { template }: TestSetupContext
+    { template, containerTemplate }: TestSetupContext
   ) {
     const ctx = TestContext.createHTMLTestContext();
     const container = ctx.container;
@@ -69,7 +70,11 @@ describe('validation-container-custom-element', function () {
     const au = new Aurelia(container);
     await au
       .register(
-        ValidationHtmlConfiguration,
+        ValidationHtmlConfiguration.customize((options) => {
+          if (containerTemplate) {
+            options.SubscriberCustomElementTemplate = containerTemplate;
+          }
+        }),
         ToNumberValueConverter
       )
       .app({
@@ -205,6 +210,52 @@ describe('validation-container-custom-element', function () {
         </div>
       </validation-container>
     ` }
+  );
+
+  $it('the template is customizable',
+    async function ({ host, scheduler, app, ctx }) {
+      const ceEl1 = host.querySelector('validation-container');
+      const ceVm1: ValidationContainerCustomElement = CustomElement.for(ceEl1).viewModel as ValidationContainerCustomElement;
+
+      const controller = app.controller;
+
+      assertSubscriber(controller, ceVm1);
+
+      const input1: HTMLInputElement = ceEl1.querySelector('input#target1');
+
+      const controllerSpy = app.controllerValidateSpy;
+      const spy1 = createSpy(ceVm1, 'handleValidationEvent', true);
+      await assertEventHandler(input1, scheduler, controllerSpy, spy1, ctx);
+
+      assert.equal(getComputedStyle(ceEl1).display, "flex");
+      const spans = toArray(ceEl1.shadowRoot.querySelectorAll("span.error"));
+      assert.equal(spans.every((span) => getComputedStyle(span).color === 'rgb(255, 0, 0)'), true, 'incorrect color');
+    },
+    {
+      template: `
+      <validation-container>
+        <input id="target1" type="text" value.two-way="person.name & validate">
+      </validation-container>
+      `,
+      containerTemplate: `
+      <style>
+      :host {
+        contain: content;
+        display: flex;
+        flex-direction: column;
+      }
+      :host .error {
+        color: rgb(255, 0, 0);
+      }
+      </style>
+      <slot></slot>
+      <slot name='secondary'>
+        <span class="error" repeat.for="error of errors">
+          \${error.result.message}
+        </span>
+      </slot>
+      `
+    }
   );
 
   it('can be used without any available registration for scoped controller', async function () {

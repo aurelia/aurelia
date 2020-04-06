@@ -1,10 +1,11 @@
 import { Constructable, IContainer, PLATFORM, Protocol, Registration } from '@aurelia/kernel';
 import { getDefaultValidationConfiguration, ValidationCustomizationOptions, ValidationConfiguration } from '@aurelia/validation';
-import { ValidationContainerCustomElement } from './subscribers/validation-container-custom-element';
+import { ValidationContainerCustomElement, defaultContainerDefinition, defaultContainerTemplate } from './subscribers/validation-container-custom-element';
 import { ValidationErrorsCustomAttribute } from './subscribers/validation-errors-custom-attribute';
 import { IDefaultTrigger, ValidateBindingBehavior, ValidationTrigger } from './validate-binding-behavior';
 import { IValidationController, ValidationControllerFactory } from './validation-controller';
 import { ValidationHtmlCustomizationOptions } from './validation-customization-options';
+import { CustomElement } from '@aurelia/runtime';
 
 export type ValidationConfigurationProvider = (options: ValidationHtmlCustomizationOptions) => void;
 
@@ -14,7 +15,7 @@ export function getDefaultValidationHtmlConfiguration(): ValidationHtmlCustomiza
     ValidationControllerFactoryType: ValidationControllerFactory,
     DefaultTrigger: ValidationTrigger.blur,
     UseSubscriberCustomAttribute: true,
-    UseSubscriberCustomElement: true
+    SubscriberCustomElementTemplate: defaultContainerTemplate
   };
 }
 
@@ -45,8 +46,9 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
       if (options.UseSubscriberCustomAttribute) {
         container.register(ValidationErrorsCustomAttribute);
       }
-      if (options.UseSubscriberCustomElement) {
-        container.register(ValidationContainerCustomElement);
+      const template = options.SubscriberCustomElementTemplate;
+      if (template) { // we need the boolean coercion here to ignore null, undefined, and ''
+        container.register(CustomElement.define({ ...defaultContainerDefinition, template }, ValidationContainerCustomElement));
       }
       return container;
     },

@@ -1,22 +1,21 @@
-import { customElement, INode, bindable } from '@aurelia/runtime';
+import { INode, bindable, PartialCustomElementDefinition } from '@aurelia/runtime';
 import { ValidationResultsSubscriber, ValidationEvent, ValidationResultTarget, IValidationController } from '../validation-controller';
 import { compareDocumentPositionFlat } from './common';
 import { optional } from '@aurelia/kernel';
 
-@customElement({
-  name: 'validation-container',
-  shadowOptions: { mode: 'open' },
-  hasSlots: true,
-  // TODO: customize template from plugin registration
-  template: `
+export const defaultContainerTemplate = `
 <slot></slot>
 <slot name='secondary'>
   <span repeat.for="error of errors">
     \${error.result.message}
   </span>
 </slot>
-`
-})
+`;
+export const defaultContainerDefinition: PartialCustomElementDefinition = {
+  name: 'validation-container',
+  shadowOptions: { mode: 'open' },
+  hasSlots: true,
+};
 export class ValidationContainerCustomElement implements ValidationResultsSubscriber {
   @bindable public controller!: IValidationController;
   @bindable public errors: ValidationResultTarget[] = [];

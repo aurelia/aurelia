@@ -205,7 +205,7 @@ export const DI = {
           for (let i = 0; i < len; ++i) {
             auAnnotationParamtype = annotationParamtypes[i];
             if (auAnnotationParamtype !== void 0) {
-              dependencies![i] = auAnnotationParamtype;
+              dependencies[i] = auAnnotationParamtype;
             }
           }
 
@@ -228,7 +228,7 @@ export const DI = {
       Protocol.annotation.appendTo(Type, key);
     }
 
-    return dependencies!;
+    return dependencies;
   },
   /**
    * creates a decorator that also matches an interface and can be used as a {@linkcode Key}.

@@ -93,7 +93,7 @@ export class Author {
     // console.log('route', route);
     // this.match(route);
   }
-  public afterBind() {
+  public afterBindChildren() {
     console.log('### bound', this);
   }
   public beforeAttach() {

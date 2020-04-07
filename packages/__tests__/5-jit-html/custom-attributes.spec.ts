@@ -22,7 +22,7 @@ describe('custom-attributes', function () {
         this.element = element as Element;
       }
 
-      public afterBind() {
+      public afterBindChildren() {
         this.element.setAttribute('test', this.value);
       }
     }
@@ -37,7 +37,7 @@ describe('custom-attributes', function () {
         this.element = element as Element;
       }
 
-      public afterBind() {
+      public afterBindChildren() {
         this.element.setAttribute('test', this.value);
       }
     }
@@ -53,7 +53,7 @@ describe('custom-attributes', function () {
         this.element = element as Element;
       }
 
-      public afterBind() {
+      public afterBindChildren() {
         this.element.setAttribute('test', this.value);
       }
     }
@@ -148,7 +148,7 @@ describe('custom-attributes', function () {
         this.element = element as Element;
         this.element.innerHTML = 'Created';
       }
-      public afterBind() {
+      public afterBindChildren() {
         this.aChanged();
         this.bChanged();
       }
@@ -175,7 +175,7 @@ describe('custom-attributes', function () {
         this.element = element as Element;
         this.element.innerHTML = 'Created';
       }
-      public afterBind() {
+      public afterBindChildren() {
         this.aChanged();
         this.bChanged();
       }
@@ -192,23 +192,23 @@ describe('custom-attributes', function () {
       }
     }
 
-    const app = class { public value: string = 'afterBind'; };
+    const app = class { public value: string = 'afterBindChildren'; };
 
     it('binds to multiple properties correctly', async function () {
       const options = createFixture('<template> <div multi="a.bind: true; b.bind: value">Initial</div> </template>', app, [Multi]);
-      assert.strictEqual(options.appHost.firstElementChild.textContent, 'a: true, b: afterBind');
+      assert.strictEqual(options.appHost.firstElementChild.textContent, 'a: true, b: afterBindChildren');
       await options.tearDown();
     });
 
     it('binds to multiple properties correctly when there’s a default property', async function () {
       const options = createFixture('<template> <div multi2="a.bind: true; b.bind: value">Initial</div> </template>', app, [Multi2]);
-      assert.strictEqual(options.appHost.firstElementChild.textContent, 'a: true, b: afterBind');
+      assert.strictEqual(options.appHost.firstElementChild.textContent, 'a: true, b: afterBindChildren');
       await options.tearDown();
     });
 
     it('binds to the default property correctly', async function () {
       const options = createFixture('<template> <div multi2.bind="value">Initial</div> </template>', app, [Multi2]);
-      assert.strictEqual(options.appHost.firstElementChild.textContent, 'a: undefined, b: afterBind');
+      assert.strictEqual(options.appHost.firstElementChild.textContent, 'a: undefined, b: afterBindChildren');
       await options.tearDown();
     });
 

@@ -64,7 +64,7 @@ export class App {
     }
   }
 
-  public afterBind(): void {
+  public afterBindChildren(): void {
     console.log('app bound');
   }
 

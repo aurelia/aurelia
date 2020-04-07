@@ -54,7 +54,7 @@ export class PixiApp {
     };
   }
 
-  public afterBind(): void {
+  public afterBindChildren(): void {
     const boundOptions = {
       width: typeof this.width === 'string' ? parseInt(this.width, 10) : this.width,
       height: typeof this.height === 'string' ? parseInt(this.height, 10) : this.height,

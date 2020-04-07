@@ -111,7 +111,7 @@ export class App {
     return { matches, match: matches === parts.length };
   }
 
-  public afterBind() {
+  public afterBindChildren() {
     setTimeout(() => { this.link = 'newLink'; }, 5000);
     const paths = [
       'authors',

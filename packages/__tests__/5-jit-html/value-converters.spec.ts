@@ -38,7 +38,7 @@ describe('value-converters', function () {
         this.element = element as Element;
       }
 
-      public afterBind() {
+      public afterBindChildren() {
         this.element.setAttribute('test', this.value);
       }
     }
@@ -53,7 +53,7 @@ describe('value-converters', function () {
         this.element = element as Element;
       }
 
-      public afterBind() {
+      public afterBindChildren() {
         this.element.setAttribute('test', this.value);
       }
     }

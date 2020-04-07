@@ -323,7 +323,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     const lifecycle = $controller.lifecycle;
     const parentScope = $controller.scope!;
 
-    lifecycle.afterBind.begin();
+    lifecycle.afterBindChildren.begin();
 
     const part = $controller.part;
     const factory = this.factory;
@@ -358,14 +358,14 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     });
 
     if (tasks === undefined) {
-      lifecycle.afterBind.end(flags);
+      lifecycle.afterBindChildren.end(flags);
       return LifecycleTask.done;
     }
 
     return new AggregateContinuationTask(
       tasks,
-      lifecycle.afterBind.end,
-      lifecycle.afterBind,
+      lifecycle.afterBindChildren.end,
+      lifecycle.afterBindChildren,
       flags,
     );
   }
@@ -385,7 +385,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     const lifecycle = $controller.lifecycle;
     const parentScope = $controller.scope!;
 
-    lifecycle.afterBind.begin();
+    lifecycle.afterBindChildren.begin();
 
     const part = $controller.part;
     const mapLen = indexMap.length;
@@ -425,14 +425,14 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
 
     if (tasks === undefined) {
-      lifecycle.afterBind.end(flags);
+      lifecycle.afterBindChildren.end(flags);
       return LifecycleTask.done;
     }
 
     return new AggregateContinuationTask(
       tasks,
-      lifecycle.afterBind.end,
-      lifecycle.afterBind,
+      lifecycle.afterBindChildren.end,
+      lifecycle.afterBindChildren,
       flags,
     );
   }

@@ -30,9 +30,9 @@ import { Writable } from '@aurelia/kernel';
 
 describe(`Repeat`, function () {
   function runBindLifecycle(lifecycle: ILifecycle, sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags, scope: IScope): void {
-    lifecycle.afterBind.begin();
+    lifecycle.afterBindChildren.begin();
     sut.$controller.bind(flags, scope);
-    lifecycle.afterBind.end(flags);
+    lifecycle.afterBindChildren.end(flags);
   }
   function runUnbindLifecycle(lifecycle: ILifecycle, sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags): void {
     lifecycle.afterUnbind.begin();

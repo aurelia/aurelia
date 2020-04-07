@@ -110,7 +110,7 @@ type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
   ): void;
 
   beforeBind(flags: LifecycleFlags): MaybePromiseOrTask;
-  afterBind(flags: LifecycleFlags): void;
+  afterBindChildren(flags: LifecycleFlags): void;
 
   beforeUnbind(flags: LifecycleFlags): MaybePromiseOrTask;
   afterUnbind(flags: LifecycleFlags): void;
@@ -495,9 +495,9 @@ export class Controller<
     }
   }
 
-  public afterBind(flags: LifecycleFlags): void {
+  public afterBindChildren(flags: LifecycleFlags): void {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this.bindingContext!.afterBind(flags); // non-null is implied by the hook
+    this.bindingContext!.afterBindChildren(flags); // non-null is implied by the hook
   }
 
   public afterUnbind(flags: LifecycleFlags): void {
@@ -610,7 +610,7 @@ export class Controller<
 
     this.state |= State.isBinding;
 
-    this.lifecycle.afterBind.begin();
+    this.lifecycle.afterBindChildren.begin();
 
     if (this.hooks.hasBeforeBind) {
       const ret = (this.bindingContext as BindingContext<T, C>).beforeBind(flags);
@@ -642,7 +642,7 @@ export class Controller<
     this.state |= State.isBinding;
 
     this.scope = scope;
-    this.lifecycle.afterBind.begin();
+    this.lifecycle.afterBindChildren.begin();
 
     if (this.hooks.hasBeforeBind) {
       const ret = (this.bindingContext as BindingContext<T, C>).beforeBind(flags);
@@ -683,7 +683,7 @@ export class Controller<
 
     this.state |= State.isBinding;
 
-    this.lifecycle.afterBind.begin();
+    this.lifecycle.afterBindChildren.begin();
     return this.bindBindings(flags, this.scope!);
   }
 
@@ -729,11 +729,11 @@ export class Controller<
   }
 
   private endBind(flags: LifecycleFlags): void {
-    if (this.hooks.hasAfterBind) {
-      this.lifecycle.afterBind.add(this);
+    if (this.hooks.hasAfterBindChildren) {
+      this.lifecycle.afterBindChildren.add(this);
     }
     this.state = this.state ^ State.isBinding | State.isBound;
-    this.lifecycle.afterBind.end(flags);
+    this.lifecycle.afterBindChildren.end(flags);
   }
 
   private unbindCustomElement(flags: LifecycleFlags): ILifecycleTask {

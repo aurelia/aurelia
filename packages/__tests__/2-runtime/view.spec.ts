@@ -135,9 +135,9 @@ describe.skip(`ViewFactory`, function () {
 // }
 // describe.skip('View', function () {
 //   function runBindLifecycle(lifecycle: ILifecycle, view: IController<AuNode>, flags: LF, scope: IScope): void {
-//     lifecycle.afterBind.begin();
+//     lifecycle.afterBindChildren.begin();
 //     view.bind(flags, scope);
-//     lifecycle.afterBind.end(flags);
+//     lifecycle.afterBindChildren.end(flags);
 //   }
 //   function runUnbindLifecycle(lifecycle: ILifecycle, view: IController<AuNode>, flags: LF): void {
 //     lifecycle.afterUnbind.begin();

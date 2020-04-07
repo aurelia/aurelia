@@ -49,7 +49,7 @@ export class App {
     observer.subscribeToCollection(this);
   }
 
-  public afterBind(): void {
+  public afterBindChildren(): void {
     this.setupNavs();
   }
 

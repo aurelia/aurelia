@@ -88,7 +88,7 @@ describe('5-jit-html/custom-elements/custom-elements.spec.ts', function () {
       @bindable()
       public value: any;
       public value1: any;
-      public afterBind(): void {
+      public afterBindChildren(): void {
         assert.strictEqual(this.value, 'w00t', 'Foo1.this.value');
         assert.strictEqual(this.value1, 'w00t1', 'Foo1.this.value1');
         boundCalls++;
@@ -106,7 +106,7 @@ describe('5-jit-html/custom-elements/custom-elements.spec.ts', function () {
       public value1: any;
       @bindable()
       public value2: any;
-      public afterBind(): void {
+      public afterBindChildren(): void {
         assert.strictEqual(this.value, 'w00t', 'Foo2.this.value');
         assert.strictEqual(this.value1, 'w00t1', 'Foo2.this.value1');
         assert.strictEqual(this.value2, 'w00t1', 'Foo2.this.value2');
@@ -125,7 +125,7 @@ describe('5-jit-html/custom-elements/custom-elements.spec.ts', function () {
       public value1: any;
       @bindable()
       public value2: any;
-      public afterBind(): void {
+      public afterBindChildren(): void {
         assert.strictEqual(this.value, 'w00t', 'Foo3.this.value');
         assert.strictEqual(this.value1, 'w00t1', 'Foo3.this.value1');
         assert.strictEqual(this.value2, 'w00t1', 'Foo3.this.value2');
@@ -144,7 +144,7 @@ describe('5-jit-html/custom-elements/custom-elements.spec.ts', function () {
       public value1: any;
       @bindable()
       public value2: any;
-      public afterBind(): void {
+      public afterBindChildren(): void {
         assert.strictEqual(this.value, 'w00t', 'Foo4.this.value');
         assert.strictEqual(this.value1, 'w00t1', 'Foo4.this.value1');
         assert.strictEqual(this.value2, 'w00t1', 'Foo4.this.value2');
@@ -163,7 +163,7 @@ describe('5-jit-html/custom-elements/custom-elements.spec.ts', function () {
       public value1: any;
       @bindable()
       public value2: any;
-      public afterBind(): void {
+      public afterBindChildren(): void {
         assert.strictEqual(this.value, 'w00t', 'Foo5.this.value');
         assert.strictEqual(this.value1, 'w00t1', 'Foo5.this.value1');
         assert.strictEqual(this.value2, 'w00t1', 'Foo5.this.value2');

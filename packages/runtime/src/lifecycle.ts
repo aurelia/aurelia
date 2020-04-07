@@ -128,7 +128,7 @@ export interface IComponentController<
   /** @internal */prevAttached: IComponentController | undefined;
   /** @internal */prevDetached: IComponentController | undefined;
 
-  /** @internal */afterBind(flags: LifecycleFlags): void;
+  /** @internal */afterBindChildren(flags: LifecycleFlags): void;
   /** @internal */afterUnbind(flags: LifecycleFlags): void;
   /** @internal */afterAttach(flags: LifecycleFlags): void;
   /** @internal */afterDetach(flags: LifecycleFlags): void;
@@ -376,7 +376,7 @@ export interface IViewModel<T extends INode = INode> {
   constructor: Function;
   readonly $controller?: IController<T, this>;
   beforeBind?(flags: LifecycleFlags): MaybePromiseOrTask;
-  afterBind?(flags: LifecycleFlags): void;
+  afterBindChildren?(flags: LifecycleFlags): void;
   beforeUnbind?(flags: LifecycleFlags): MaybePromiseOrTask;
   afterUnbind?(flags: LifecycleFlags): void;
   beforeAttach?(flags: LifecycleFlags): void;
@@ -423,7 +423,7 @@ export interface ILifecycle {
   readonly mount: IProcessingQueue<IController>;
   readonly unmount: IProcessingQueue<IController>;
 
-  readonly afterBind: IAutoProcessingQueue<IController>;
+  readonly afterBindChildren: IAutoProcessingQueue<IController>;
   readonly afterUnbind: IAutoProcessingQueue<IController>;
 
   readonly afterAttach: IAutoProcessingQueue<IController>;
@@ -508,7 +508,7 @@ export class BoundQueue implements IAutoProcessingQueue<IController> {
       this.head = this.tail = void 0;
       let next: IComponentController | undefined;
       do {
-        cur.afterBind(flags);
+        cur.afterBindChildren(flags);
         next = cur.nextBound;
         cur.nextBound = void 0;
         cur.prevBound = void 0;
@@ -914,7 +914,7 @@ export class Lifecycle implements ILifecycle {
   public readonly mount: IProcessingQueue<IController> = new MountQueue(this);
   public readonly unmount: IProcessingQueue<IController> = new UnmountQueue(this);
 
-  public readonly afterBind: IAutoProcessingQueue<IController> = new BoundQueue(this);
+  public readonly afterBindChildren: IAutoProcessingQueue<IController> = new BoundQueue(this);
   public readonly afterUnbind: IAutoProcessingQueue<IController> = new UnboundQueue(this);
 
   public readonly afterAttach: IAutoProcessingQueue<IController> = new AttachedQueue(this);

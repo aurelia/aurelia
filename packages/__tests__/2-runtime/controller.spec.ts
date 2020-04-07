@@ -47,7 +47,7 @@ describe.skip('controller', function () {
     afterAttachChildren: true,
     beforeDetach: true,
     caching: true,
-    afterDetach: true,
+    afterDetachChildren: true,
     beforeUnbind: true,
     afterUnbindChildren: true,
   }));
@@ -61,7 +61,7 @@ describe.skip('controller', function () {
     afterAttachChildren(...args: any[]): void;
     beforeDetach(...args: any[]): void;
     caching(...args: any[]): void;
-    afterDetach(...args: any[]): void;
+    afterDetachChildren(...args: any[]): void;
     beforeUnbind(...args: any[]): void;
     afterUnbindChildren(...args: any[]): void;
   }> {
@@ -88,8 +88,8 @@ describe.skip('controller', function () {
     proto.caching = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'caching', ...args);
     };
-    proto.afterDetach = function (...args: any[]): void {
-      this.$$calls.addCall(this.id, 'afterDetach', ...args);
+    proto.afterDetachChildren = function (...args: any[]): void {
+      this.$$calls.addCall(this.id, 'afterDetachChildren', ...args);
     };
     proto.beforeUnbind = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'beforeUnbind', ...args);
@@ -285,8 +285,8 @@ describe.skip('controller', function () {
         expectedCalls
           .addCall(2, 'unmount', LF.fromTick)
           .addCall(2, 'unmountCustomElement', LF.fromTick)
-          .addCall(2, 'afterDetach', LF.fromTick)
-          .addCall(1, 'afterDetach', LF.fromTick),
+          .addCall(2, 'afterDetachChildren', LF.fromTick)
+          .addCall(1, 'afterDetachChildren', LF.fromTick),
         '9',
       );
       assert.strictEqual(host.textContent, '', '10');
@@ -610,16 +610,16 @@ describe.skip('controller', function () {
           .addCall(7, 'unmount', LF.fromTick)
           .addCall(7, 'unmountCustomElement', LF.fromTick)
 
-          .addCall(7, 'afterDetach', LF.fromTick)
+          .addCall(7, 'afterDetachChildren', LF.fromTick)
 
           // ce #2
-          .addCall(6, 'afterDetach', LF.fromTick)
+          .addCall(6, 'afterDetachChildren', LF.fromTick)
 
           // ce #1 controller
-          .addCall(2, 'afterDetach', LF.fromTick)
+          .addCall(2, 'afterDetachChildren', LF.fromTick)
 
           // ce #1
-          .addCall(1, 'afterDetach', LF.fromTick)
+          .addCall(1, 'afterDetachChildren', LF.fromTick)
         ,
         '9',
       );
@@ -1012,16 +1012,16 @@ describe.skip('controller', function () {
           .addCall(7, 'unmount', LF.fromTick)
           .addCall(7, 'unmountCustomElement', LF.fromTick)
 
-          .addCall(7, 'afterDetach', LF.fromTick)
+          .addCall(7, 'afterDetachChildren', LF.fromTick)
 
           // ce #2
-          .addCall(6, 'afterDetach', LF.fromTick)
+          .addCall(6, 'afterDetachChildren', LF.fromTick)
 
           // ce #1 controller
-          .addCall(2, 'afterDetach', LF.fromTick)
+          .addCall(2, 'afterDetachChildren', LF.fromTick)
 
           // ce #1
-          .addCall(1, 'afterDetach', LF.fromTick)
+          .addCall(1, 'afterDetachChildren', LF.fromTick)
         ,
         '9',
       );

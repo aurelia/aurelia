@@ -213,14 +213,14 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   private detachViewsByRange(iStart: number, iEnd: number, flags: LF): void {
     const views = this.views;
-    this.$controller.lifecycle.afterDetach.begin();
+    this.$controller.lifecycle.afterDetachChildren.begin();
     let view: ISyntheticView<T>;
     for (let i = iStart; i < iEnd; ++i) {
       view = views[i];
       view.release(flags);
       view.detach(flags);
     }
-    this.$controller.lifecycle.afterDetach.end(flags);
+    this.$controller.lifecycle.afterDetachChildren.end(flags);
   }
 
   private unbindAndRemoveViewsByRange(iStart: number, iEnd: number, flags: LF, adjustLength: boolean): ILifecycleTask {
@@ -260,7 +260,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   private detachViewsByKey(indexMap: IndexMap, flags: LF): void {
     const views = this.views;
-    this.$controller.lifecycle.afterDetach.begin();
+    this.$controller.lifecycle.afterDetachChildren.begin();
     const deleted = indexMap.deletedItems;
     const deletedLen = deleted.length;
     let view: ISyntheticView<T>;
@@ -269,7 +269,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       view.release(flags);
       view.detach(flags);
     }
-    this.$controller.lifecycle.afterDetach.end(flags);
+    this.$controller.lifecycle.afterDetachChildren.end(flags);
   }
 
   private unbindAndRemoveViewsByKey(indexMap: IndexMap, flags: LF): ILifecycleTask {

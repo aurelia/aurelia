@@ -119,7 +119,7 @@ type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
   afterAttachChildren(flags: LifecycleFlags): void;
 
   beforeDetach(flags: LifecycleFlags): void;
-  afterDetach(flags: LifecycleFlags): void;
+  afterDetachChildren(flags: LifecycleFlags): void;
 
   caching(flags: LifecycleFlags): void;
 }>;
@@ -546,9 +546,9 @@ export class Controller<
     this.bindingContext!.afterAttachChildren(flags); // non-null is implied by the hook
   }
 
-  public afterDetach(flags: LifecycleFlags): void {
+  public afterDetachChildren(flags: LifecycleFlags): void {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this.bindingContext!.afterDetach(flags); // non-null is implied by the hook
+    this.bindingContext!.afterDetachChildren(flags); // non-null is implied by the hook
   }
 
   public mount(flags: LifecycleFlags): void {
@@ -907,7 +907,7 @@ export class Controller<
     flags |= LifecycleFlags.fromDetach;
     this.state |= State.isDetaching;
 
-    this.lifecycle.afterDetach.begin();
+    this.lifecycle.afterDetachChildren.begin();
     this.lifecycle.unmount.add(this);
 
     if (this.hooks.hasBeforeDetach) {
@@ -916,43 +916,43 @@ export class Controller<
 
     this.detachControllers(flags);
 
-    if (this.hooks.hasAfterDetach) {
-      this.lifecycle.afterDetach.add(this);
+    if (this.hooks.hasAfterDetachChildren) {
+      this.lifecycle.afterDetachChildren.add(this);
     }
 
     this.state = (this.state | State.isAttachedOrDetaching) ^ State.isAttachedOrDetaching;
-    this.lifecycle.afterDetach.end(flags);
+    this.lifecycle.afterDetachChildren.end(flags);
   }
 
   private detachCustomAttribute(flags: LifecycleFlags): void {
     flags |= LifecycleFlags.fromDetach;
     this.state |= State.isDetaching;
 
-    this.lifecycle.afterDetach.begin();
+    this.lifecycle.afterDetachChildren.begin();
 
     if (this.hooks.hasBeforeDetach) {
       (this.bindingContext as BindingContext<T, C>).beforeDetach(flags);
     }
 
-    if (this.hooks.hasAfterDetach) {
-      this.lifecycle.afterDetach.add(this);
+    if (this.hooks.hasAfterDetachChildren) {
+      this.lifecycle.afterDetachChildren.add(this);
     }
 
     this.state = (this.state | State.isAttachedOrDetaching) ^ State.isAttachedOrDetaching;
-    this.lifecycle.afterDetach.end(flags);
+    this.lifecycle.afterDetachChildren.end(flags);
   }
 
   private detachSynthetic(flags: LifecycleFlags): void {
     flags |= LifecycleFlags.fromDetach;
     this.state |= State.isDetaching;
 
-    this.lifecycle.afterDetach.begin();
+    this.lifecycle.afterDetachChildren.begin();
     this.lifecycle.unmount.add(this);
 
     this.detachControllers(flags);
 
     this.state = (this.state | State.isAttachedOrDetaching) ^ State.isAttachedOrDetaching;
-    this.lifecycle.afterDetach.end(flags);
+    this.lifecycle.afterDetachChildren.end(flags);
   }
 
   private attachControllers(flags: LifecycleFlags): void {

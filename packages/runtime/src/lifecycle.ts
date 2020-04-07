@@ -131,7 +131,7 @@ export interface IComponentController<
   /** @internal */afterBindChildren(flags: LifecycleFlags): void;
   /** @internal */afterUnbindChildren(flags: LifecycleFlags): void;
   /** @internal */afterAttachChildren(flags: LifecycleFlags): void;
-  /** @internal */afterDetach(flags: LifecycleFlags): void;
+  /** @internal */afterDetachChildren(flags: LifecycleFlags): void;
 }
 
 /**
@@ -382,7 +382,7 @@ export interface IViewModel<T extends INode = INode> {
   beforeAttach?(flags: LifecycleFlags): void;
   afterAttachChildren?(flags: LifecycleFlags): void;
   beforeDetach?(flags: LifecycleFlags): void;
-  afterDetach?(flags: LifecycleFlags): void;
+  afterDetachChildren?(flags: LifecycleFlags): void;
   caching?(flags: LifecycleFlags): void;
 }
 
@@ -427,7 +427,7 @@ export interface ILifecycle {
   readonly afterUnbindChildren: IAutoProcessingQueue<IController>;
 
   readonly afterAttachChildren: IAutoProcessingQueue<IController>;
-  readonly afterDetach: IAutoProcessingQueue<IController>;
+  readonly afterDetachChildren: IAutoProcessingQueue<IController>;
 }
 
 export const ILifecycle = DI.createInterface<ILifecycle>('ILifecycle').withDefault(x => x.singleton(Lifecycle));
@@ -734,7 +734,7 @@ export class DetachedQueue implements IAutoProcessingQueue<IController> {
       this.head = this.tail = void 0;
       let next: IComponentController | undefined;
       do {
-        cur.afterDetach(flags);
+        cur.afterDetachChildren(flags);
         next = cur.nextDetached;
         cur.nextDetached = void 0;
         cur.prevDetached = void 0;
@@ -918,7 +918,7 @@ export class Lifecycle implements ILifecycle {
   public readonly afterUnbindChildren: IAutoProcessingQueue<IController> = new UnboundQueue(this);
 
   public readonly afterAttachChildren: IAutoProcessingQueue<IController> = new AttachedQueue(this);
-  public readonly afterDetach: IAutoProcessingQueue<IController> = new DetachedQueue(this);
+  public readonly afterDetachChildren: IAutoProcessingQueue<IController> = new DetachedQueue(this);
 
   public static register(container: IContainer): IResolver<ILifecycle> {
     return Registration.singleton(ILifecycle, this).register(container);

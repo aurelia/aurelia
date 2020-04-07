@@ -45,9 +45,9 @@ describe(`Repeat`, function () {
     lifecycle.afterAttachChildren.end(flags);
   }
   function runDetachLifecycle(lifecycle: ILifecycle, sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags): void {
-    lifecycle.afterDetach.begin();
+    lifecycle.afterDetachChildren.begin();
     sut.$controller.detach(flags);
-    lifecycle.afterDetach.end(flags);
+    lifecycle.afterDetachChildren.end(flags);
   }
 
   interface Spec {

@@ -47,7 +47,7 @@
 //                 this.$lifecycle.processFlushQueue();
 //                 assert.strictEqual(this.el.textContent, this.cycled ? "1234567812345" : "12345", "this.el.textContent during beforeDetach() after mutation after flushChanges()", `this.el.textContent`);
 //             }
-//             afterDetach() {
+//             afterDetachChildren() {
 //                 this.items.push(6);
 //             }
 //             beforeUnbind() {
@@ -110,7 +110,7 @@
 //                 this.items.push(5);
 //                 assert.strictEqual(this.el.textContent, this.cycled ? "12345678123" : "123", "this.el.textContent during beforeDetach() before mutation", `this.el.textContent`);
 //             }
-//             afterDetach() {
+//             afterDetachChildren() {
 //                 this.items.push(6);
 //             }
 //             beforeUnbind() {
@@ -179,7 +179,7 @@
 //                 this.$lifecycle.processFlushQueue();
 //                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "24", "this.el.textContent during beforeDetach() after mutation after flushChanges()", `this.el.textContent`);
 //             }
-//             afterDetach() {
+//             afterDetachChildren() {
 //                 this.items.push(6);
 //             }
 //             beforeUnbind() {
@@ -244,7 +244,7 @@
 //                 this.items.push(5);
 //                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "2", "this.el.textContent during beforeDetach() before mutation", `this.el.textContent`);
 //             }
-//             afterDetach() {
+//             afterDetachChildren() {
 //                 this.items.push(6);
 //             }
 //             beforeUnbind() {

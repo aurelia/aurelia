@@ -114,8 +114,8 @@ export class Author {
   public beforeDetach() {
     console.log('### beforeDetach', this);
   }
-  public afterDetach() {
-    console.log('### afterDetach', this);
+  public afterDetachChildren() {
+    console.log('### afterDetachChildren', this);
   }
   public beforeUnbind() {
     console.log('### beforeUnbind', this);

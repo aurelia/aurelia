@@ -72,8 +72,8 @@ export class App {
     console.log('app beforeAttach');
   }
 
-  public afterAttach(): void {
-    console.log('app afterAttach');
+  public afterAttachChildren(): void {
+    console.log('app afterAttachChildren');
   }
 
   public beforeDetach(): void {

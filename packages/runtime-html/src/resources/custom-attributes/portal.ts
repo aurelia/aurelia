@@ -98,7 +98,7 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
     return this.view.bind(flags, this.$controller.scope);
   }
 
-  public afterAttach(flags: LifecycleFlags): void {
+  public afterAttachChildren(flags: LifecycleFlags): void {
     this.targetChanged();
   }
 

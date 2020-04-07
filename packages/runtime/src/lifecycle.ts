@@ -130,7 +130,7 @@ export interface IComponentController<
 
   /** @internal */afterBindChildren(flags: LifecycleFlags): void;
   /** @internal */afterUnbind(flags: LifecycleFlags): void;
-  /** @internal */afterAttach(flags: LifecycleFlags): void;
+  /** @internal */afterAttachChildren(flags: LifecycleFlags): void;
   /** @internal */afterDetach(flags: LifecycleFlags): void;
 }
 
@@ -380,7 +380,7 @@ export interface IViewModel<T extends INode = INode> {
   beforeUnbind?(flags: LifecycleFlags): MaybePromiseOrTask;
   afterUnbind?(flags: LifecycleFlags): void;
   beforeAttach?(flags: LifecycleFlags): void;
-  afterAttach?(flags: LifecycleFlags): void;
+  afterAttachChildren?(flags: LifecycleFlags): void;
   beforeDetach?(flags: LifecycleFlags): void;
   afterDetach?(flags: LifecycleFlags): void;
   caching?(flags: LifecycleFlags): void;
@@ -426,7 +426,7 @@ export interface ILifecycle {
   readonly afterBindChildren: IAutoProcessingQueue<IController>;
   readonly afterUnbind: IAutoProcessingQueue<IController>;
 
-  readonly afterAttach: IAutoProcessingQueue<IController>;
+  readonly afterAttachChildren: IAutoProcessingQueue<IController>;
   readonly afterDetach: IAutoProcessingQueue<IController>;
 }
 
@@ -658,7 +658,7 @@ export class AttachedQueue implements IAutoProcessingQueue<IController> {
       this.head = this.tail = void 0;
       let next: IComponentController | undefined;
       do {
-        cur.afterAttach(flags);
+        cur.afterAttachChildren(flags);
         next = cur.nextAttached;
         cur.nextAttached = void 0;
         cur.prevAttached = void 0;
@@ -917,7 +917,7 @@ export class Lifecycle implements ILifecycle {
   public readonly afterBindChildren: IAutoProcessingQueue<IController> = new BoundQueue(this);
   public readonly afterUnbind: IAutoProcessingQueue<IController> = new UnboundQueue(this);
 
-  public readonly afterAttach: IAutoProcessingQueue<IController> = new AttachedQueue(this);
+  public readonly afterAttachChildren: IAutoProcessingQueue<IController> = new AttachedQueue(this);
   public readonly afterDetach: IAutoProcessingQueue<IController> = new DetachedQueue(this);
 
   public static register(container: IContainer): IResolver<ILifecycle> {

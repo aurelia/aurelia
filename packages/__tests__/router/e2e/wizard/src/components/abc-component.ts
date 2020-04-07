@@ -16,8 +16,8 @@ export class AbcComponent {
   public afterBindChildren(...rest) {
     console.log(this.name, 'afterBindChildren', this.appState, rest);
   }
-  public afterAttach(...rest) {
-    console.log(this.name, 'afterAttach', rest);
+  public afterAttachChildren(...rest) {
+    console.log(this.name, 'afterAttachChildren', rest);
   }
   public canEnter(instruction, previousInstruction) {
     console.log(this.name, 'canEnter', ++this.counter, instruction, previousInstruction);

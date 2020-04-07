@@ -229,7 +229,7 @@ describe('the view locator', function () {
     'beforeBind',
     'afterBindChildren',
     'beforeAttach',
-    'afterAttach',
+    'afterAttachChildren',
     'beforeDetach',
     'caching',
     'afterDetach',

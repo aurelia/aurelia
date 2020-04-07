@@ -110,6 +110,7 @@ type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
   ): void;
 
   beforeBind(flags: LifecycleFlags): MaybePromiseOrTask;
+  afterBind(flags: LifecycleFlags): void;
   afterBindChildren(flags: LifecycleFlags): void;
 
   beforeUnbind(flags: LifecycleFlags): MaybePromiseOrTask;
@@ -699,6 +700,11 @@ export class Controller<
       }
     }
 
+    // This can only be a customElement, so we don't need to check the vmKind
+    if (this.hooks.hasAfterBind) {
+      (this.bindingContext as BindingContext<T, C>).afterBind(flags);
+    }
+
     return this.bindControllers(flags, this.scope!);
   }
 
@@ -729,6 +735,10 @@ export class Controller<
   }
 
   private endBind(flags: LifecycleFlags): void {
+    // This can be a customElement or customAttribute. If this is a customElement, bindBindings() will have already called this hook, hence the vmKind check.
+    if (this.hooks.hasAfterBind && this.vmKind === ViewModelKind.customAttribute) {
+      (this.bindingContext as BindingContext<T, C>).afterBind(flags);
+    }
     if (this.hooks.hasAfterBindChildren) {
       this.lifecycle.afterBindChildren.add(this);
     }

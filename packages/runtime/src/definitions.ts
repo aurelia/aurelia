@@ -208,11 +208,13 @@ export class HooksDefinition {
   public static readonly none: Readonly<HooksDefinition> = new HooksDefinition({});
 
   public readonly hasCreate: boolean;
+
   public readonly hasBeforeCompile: boolean;
   public readonly hasAfterCompile: boolean;
   public readonly hasAfterCompileChildren: boolean;
 
   public readonly hasBeforeBind: boolean;
+  public readonly hasAfterBind: boolean;
   public readonly hasAfterBindChildren: boolean;
 
   public readonly hasBeforeUnbind: boolean;
@@ -223,21 +225,29 @@ export class HooksDefinition {
 
   public readonly hasBeforeDetach: boolean;
   public readonly hasAfterDetachChildren: boolean;
+
   public readonly hasCaching: boolean;
 
   public constructor(target: object) {
     this.hasCreate = 'create' in target;
+
     this.hasBeforeCompile = 'beforeCompile' in target;
     this.hasAfterCompile = 'afterCompile' in target;
     this.hasAfterCompileChildren = 'afterCompileChildren' in target;
+
     this.hasBeforeBind = 'beforeBind' in target;
+    this.hasAfterBind = 'afterBind' in target;
     this.hasAfterBindChildren = 'afterBindChildren' in target;
+
     this.hasBeforeUnbind = 'beforeUnbind' in target;
     this.hasAfterUnbindChildren = 'afterUnbindChildren' in target;
+
     this.hasBeforeAttach = 'beforeAttach' in target;
     this.hasAfterAttachChildren = 'afterAttachChildren' in target;
+
     this.hasBeforeDetach = 'beforeDetach' in target;
     this.hasAfterDetachChildren = 'afterDetachChildren' in target;
+
     this.hasCaching = 'caching' in target;
   }
 }

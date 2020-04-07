@@ -1379,6 +1379,7 @@ export function formatProperty(
           case 'endBind':
 
           case 'beforeBind':
+          case 'afterBind':
           case 'afterBindChildren':
 
           case 'attach':

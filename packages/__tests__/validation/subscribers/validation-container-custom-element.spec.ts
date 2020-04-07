@@ -53,7 +53,7 @@ describe('validation-container-custom-element', function () {
       this.controller.reset();
     }
 
-    public afterUnbind() {
+    public afterUnbindChildren() {
       const controller = this.controller;
       assert.equal(controller.results.length, 0, 'the result should have been removed');
       assert.equal(controller.bindings.size, 0, 'the bindings should have been removed');

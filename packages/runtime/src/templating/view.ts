@@ -307,9 +307,9 @@ export class ViewLocator implements IViewLocator {
           return this.viewModel.beforeUnbind!(flags);
         };
       }
-      if ('afterUnbind' in object) {
-        proto.afterUnbind = function afterUnbind(flags: LifecycleFlags): void {
-          this.viewModel.afterUnbind!(flags);
+      if ('afterUnbindChildren' in object) {
+        proto.afterUnbindChildren = function afterUnbindChildren(flags: LifecycleFlags): void {
+          this.viewModel.afterUnbindChildren!(flags);
         };
       }
       if ('beforeAttach' in object) {

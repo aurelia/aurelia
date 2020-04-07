@@ -13,7 +13,7 @@ export function getDefaultValidationHtmlConfiguration(): ValidationHtmlCustomiza
   return {
     ...getDefaultValidationConfiguration(),
     ValidationControllerFactoryType: ValidationControllerFactory,
-    DefaultTrigger: ValidationTrigger.blur,
+    DefaultTrigger: ValidationTrigger.focusout,
     UseSubscriberCustomAttribute: true,
     SubscriberCustomElementTemplate: defaultContainerTemplate
   };

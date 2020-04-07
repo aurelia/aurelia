@@ -32,6 +32,11 @@ export enum ValidationTrigger {
   blur = "blur",
 
   /**
+   * Validate the binding when the binding's target element fires a DOM "focusout" event.
+   */
+  focusout = "focusout",
+
+  /**
    * Validate the binding when it updates the model due to a change in the source property (usually triggered by some change in view)
    */
   change = "change",
@@ -39,7 +44,12 @@ export enum ValidationTrigger {
   /**
    * Validate the binding when the binding's target element fires a DOM "blur" event and when it updates the model due to a change in the view.
    */
-  changeOrBlur = "changeOrBlur"
+  changeOrBlur = "changeOrBlur",
+
+  /**
+   * Validate the binding when the binding's target element fires a DOM "focusout" event and when it updates the model due to a change in the view.
+   */
+  changeOrFocusout = "changeOrFocusout",
 }
 
 /* @internal */
@@ -63,6 +73,9 @@ export class ValidateBindingBehavior extends BindingInterceptor {
   private readonly triggerMediator: BindingMediator<'handleTriggerChange'> = new BindingMediator('handleTriggerChange', this, this.observerLocator, this.locator);
   private readonly controllerMediator: BindingMediator<'handleControllerChange'> = new BindingMediator('handleControllerChange', this, this.observerLocator, this.locator);
   private readonly rulesMediator: BindingMediator<'handleRulesChange'> = new BindingMediator('handleRulesChange', this, this.observerLocator, this.locator);
+  private isDirty: boolean = false;
+  private validatedOnce: boolean = false;
+  private triggerEvent: 'blur' | 'focusout' | null = null;
 
   public constructor(
     public readonly binding: BindingWithBehavior,
@@ -91,13 +104,17 @@ export class ValidateBindingBehavior extends BindingInterceptor {
       this.propertyBinding.updateSource(value, flags);
     }
 
-    if (this.isChangeTrigger) {
+    this.isDirty = true;
+    const event = this.triggerEvent;
+    if (this.isChangeTrigger && (event === null || event !== null && this.validatedOnce)) {
       this.validateBinding();
     }
   }
 
   public handleEvent(_event: Event) {
-    this.validateBinding();
+    if (!this.isChangeTrigger || this.isChangeTrigger && this.isDirty) {
+      this.validateBinding();
+    }
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined) {
@@ -109,7 +126,10 @@ export class ValidateBindingBehavior extends BindingInterceptor {
   }
 
   public $unbind(flags: LifecycleFlags) {
-    this.target?.removeEventListener('blur', this);
+    const event = this.triggerEvent;
+    if (event !== null) {
+      this.target?.removeEventListener(event, this);
+    }
     this.controller?.unregisterBinding(this.propertyBinding);
     this.binding.$unbind(flags);
     for (const expr of this.connectedExpressions) {
@@ -170,6 +190,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
   private validateBinding() {
     this.scheduler.getPostRenderTaskQueue().queueTask(async () => {
       await this.controller.validateBinding(this.propertyBinding);
+      this.validatedOnce = true;
     });
   }
 
@@ -178,13 +199,19 @@ export class ValidateBindingBehavior extends BindingInterceptor {
     const controller = delta.controller ?? this.controller;
     const rules = delta.rules;
     if (this.trigger !== trigger) {
-      if (this.trigger === ValidationTrigger.blur || this.trigger === ValidationTrigger.changeOrBlur) {
-        this.target.removeEventListener('blur', this);
+      let event = this.triggerEvent;
+      if (event !== null) {
+        this.target.removeEventListener(event, this);
       }
+
       this.trigger = trigger;
-      this.isChangeTrigger = trigger === ValidationTrigger.change || trigger === ValidationTrigger.changeOrBlur;
-      if (trigger === ValidationTrigger.blur || trigger === ValidationTrigger.changeOrBlur) {
-        this.target.addEventListener('blur', this);
+      this.isChangeTrigger = trigger === ValidationTrigger.change
+        || trigger === ValidationTrigger.changeOrBlur
+        || trigger === ValidationTrigger.changeOrFocusout;
+
+      event = this.setTriggerEvent(this.trigger);
+      if (event !== null) {
+        this.target.addEventListener(event, this);
       }
     }
     if (this.controller !== controller || rules !== void 0) {
@@ -240,6 +267,21 @@ export class ValidateBindingBehavior extends BindingInterceptor {
       }
       this.target = controller.host as HTMLElement;
     }
+  }
+
+  private setTriggerEvent(trigger: ValidationTrigger) {
+    let triggerEvent: 'blur' | 'focusout' | null = null;
+    switch (trigger) {
+      case ValidationTrigger.blur:
+      case ValidationTrigger.changeOrBlur:
+        triggerEvent = 'blur';
+        break;
+      case ValidationTrigger.focusout:
+      case ValidationTrigger.changeOrFocusout:
+        triggerEvent = 'focusout';
+        break;
+    }
+    return this.triggerEvent = triggerEvent;
   }
 }
 

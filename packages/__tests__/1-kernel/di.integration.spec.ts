@@ -242,7 +242,7 @@ describe('DI.createInterface() -> container.get()', function () {
     });
 
     it(`string alias to transient registration returns a new instance each time`, function () {
-      container.register(Registration.alias(ITransient, 'alias'));
+      container.register(Registration.aliasTo(ITransient, 'alias'));
 
       const actual1 = container.get('alias');
       assert.instanceOf(actual1, Transient, `actual1`);
@@ -265,7 +265,7 @@ describe('DI.createInterface() -> container.get()', function () {
     });
 
     it(`string alias to singleton registration returns the same instance each time`, function () {
-      container.register(Registration.alias(ISingleton, 'alias'));
+      container.register(Registration.aliasTo(ISingleton, 'alias'));
 
       const actual1 = container.get('alias');
       assert.instanceOf(actual1, Singleton, `actual1`);
@@ -288,7 +288,7 @@ describe('DI.createInterface() -> container.get()', function () {
     });
 
     it(`string alias to instance registration returns the same instance each time`, function () {
-      container.register(Registration.alias(IInstance, 'alias'));
+      container.register(Registration.aliasTo(IInstance, 'alias'));
 
       const actual1 = container.get('alias');
       assert.instanceOf(actual1, Instance, `actual1`);
@@ -312,7 +312,7 @@ describe('DI.createInterface() -> container.get()', function () {
     });
 
     it(`string alias to callback registration is invoked each time`, function () {
-      container.register(Registration.alias(ICallback, 'alias'));
+      container.register(Registration.aliasTo(ICallback, 'alias'));
 
       const actual1 = container.get('alias');
       assert.instanceOf(actual1, Callback, `actual1`);

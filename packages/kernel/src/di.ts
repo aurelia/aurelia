@@ -1016,7 +1016,7 @@ export const Registration = {
   callback<T>(key: Key, callback: ResolveCallback<T>): IRegistration<Resolved<T>> {
     return new Resolver(key, ResolverStrategy.callback, callback);
   },
-  alias<T>(originalKey: T, aliasKey: Key): IRegistration<Resolved<T>> {
+  aliasTo<T>(originalKey: T, aliasKey: Key): IRegistration<Resolved<T>> {
     return new Resolver(aliasKey, ResolverStrategy.alias, originalKey);
   },
   defer(key: Key, ...params: unknown[]): IRegistry {

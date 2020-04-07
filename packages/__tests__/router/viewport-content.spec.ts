@@ -73,7 +73,7 @@ describe('ViewportContent', function () {
       const { container, router } = $setup([Local]);
 
       container.register(Global);
-      // Registration.alias(CustomElement.keyFrom('global'), Global).register(container);
+      // Registration.aliasTo(CustomElement.keyFrom('global'), Global).register(container);
 
       const viewport = new ViewportContent(router.createViewportInstruction(Global), null, router.container);
       const component = viewport.toComponentInstance(router.container);

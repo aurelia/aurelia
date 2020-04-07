@@ -22,7 +22,7 @@ export class Focus implements ICustomAttributeViewModel<HTMLElement> {
   public value: unknown;
 
   /**
-   * Indicates whether `apply` should be called when `afterAttach` callback is invoked
+   * Indicates whether `apply` should be called when `afterAttachChildren` callback is invoked
    */
   private needsApply: boolean = false;
 
@@ -52,15 +52,15 @@ export class Focus implements ICustomAttributeViewModel<HTMLElement> {
     } else {
       // If the element is not currently connect
       // toggle the flag to add pending work for later
-      // in afterAttach lifecycle
+      // in afterAttachChildren lifecycle
       this.needsApply = true;
     }
   }
 
   /**
-   * Invoked when the attribute is afterAttach to the DOM.
+   * Invoked when the attribute is afterAttachChildren to the DOM.
    */
-  public afterAttach(): void {
+  public afterAttachChildren(): void {
     if (this.needsApply) {
       this.needsApply = false;
       this.apply();

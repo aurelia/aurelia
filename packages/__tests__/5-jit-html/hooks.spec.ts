@@ -95,7 +95,7 @@
 //       public beforeAttach() {
 //         return;
 //       }
-//       public afterAttach() {
+//       public afterAttachChildren() {
 //         return;
 //       }
 //       public beforeDetach() {
@@ -131,7 +131,7 @@
 //       public beforeAttach() {
 //         return;
 //       }
-//       public afterAttach() {
+//       public afterAttachChildren() {
 //         return;
 //       }
 //       public beforeDetach() {
@@ -167,7 +167,7 @@
 //       public beforeAttach() {
 //         return;
 //       }
-//       public afterAttach() {
+//       public afterAttachChildren() {
 //         return;
 //       }
 //       public beforeDetach() {
@@ -202,7 +202,7 @@
 //       public beforeAttach() {
 //         return;
 //       }
-//       public afterAttach() {
+//       public afterAttachChildren() {
 //         return;
 //       }
 //       public beforeDetach() {
@@ -267,7 +267,7 @@
 
 //   });
 
-//   it('afterAttach task awaited indirectly', async function () {
+//   it('afterAttachChildren task awaited indirectly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',
@@ -326,7 +326,7 @@
 //     assert.strictEqual(host.textContent, '', `host.textContent`);
 //   });
 
-//   it('afterAttach task awaited directly', async function () {
+//   it('afterAttachChildren task awaited directly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',
@@ -390,7 +390,7 @@
 //     assert.strictEqual(host.textContent, '', `host.textContent`);
 //   });
 
-//   it('afterAttach task (triple then) awaited indirectly', async function () {
+//   it('afterAttachChildren task (triple then) awaited indirectly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',
@@ -457,7 +457,7 @@
 //     assert.strictEqual(host.textContent, '', `host.textContent`);
 //   });
 
-//   it('afterAttach task (triple then) awaited directly', async function () {
+//   it('afterAttachChildren task (triple then) awaited directly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',

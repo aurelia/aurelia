@@ -317,9 +317,9 @@ export class ViewLocator implements IViewLocator {
           this.viewModel.beforeAttach!(flags);
         };
       }
-      if ('afterAttach' in object) {
-        proto.afterAttach = function afterAttach(flags: LifecycleFlags): void {
-          this.viewModel.afterAttach!(flags);
+      if ('afterAttachChildren' in object) {
+        proto.afterAttachChildren = function afterAttachChildren(flags: LifecycleFlags): void {
+          this.viewModel.afterAttachChildren!(flags);
         };
       }
       if ('beforeDetach' in object) {

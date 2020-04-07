@@ -327,9 +327,9 @@ export class ViewLocator implements IViewLocator {
           this.viewModel.beforeDetach!(flags);
         };
       }
-      if ('afterDetach' in object) {
-        proto.afterDetach = function afterDetach(flags: LifecycleFlags): void {
-          this.viewModel.afterDetach!(flags);
+      if ('afterDetachChildren' in object) {
+        proto.afterDetachChildren = function afterDetachChildren(flags: LifecycleFlags): void {
+          this.viewModel.afterDetachChildren!(flags);
         };
       }
       if ('caching' in object) {

@@ -150,9 +150,9 @@ describe.skip(`ViewFactory`, function () {
 //     lifecycle.afterAttachChildren.end(flags);
 //   }
 //   function runDetachLifecycle(lifecycle: ILifecycle, view: IController<AuNode>, flags: LF): void {
-//     lifecycle.afterDetach.begin();
+//     lifecycle.afterDetachChildren.begin();
 //     view.detach(flags);
-//     lifecycle.afterDetach.end(flags);
+//     lifecycle.afterDetachChildren.end(flags);
 //   }
 
 //   interface Spec {
@@ -181,11 +181,11 @@ describe.skip(`ViewFactory`, function () {
 //   interface ReleaseSpec extends Spec {
 //     relBeforeDetach1: boolean;
 //     relBeforeEndDetach1: boolean;
-//     relAfterDetach1: boolean;
+//     relAfterDetachChildren1: boolean;
 
 //     relBeforeDetach2: boolean;
 //     relBeforeEndDetach2: boolean;
-//     relAfterDetach2: boolean;
+//     relAfterDetachChildren2: boolean;
 //   }
 //   interface FlagsSpec extends Spec {
 //     bindFlags1: LF;
@@ -225,22 +225,22 @@ describe.skip(`ViewFactory`, function () {
 //   ];
 
 //   const relSpecs: ReleaseSpec[] = [
-//     { t: ' 1', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetach1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetach2: false },
-//     { t: ' 2', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetach1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetach2: true  },
-//     { t: ' 3', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetach1: false, relBeforeDetach2: false, relBeforeEndDetach2: true,  relAfterDetach2: false },
-//     { t: ' 4', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetach1: false, relBeforeDetach2: true,  relBeforeEndDetach2: false, relAfterDetach2: false },
-//     { t: ' 5', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetach1: true,  relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetach2: false },
-//     { t: ' 6', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetach1: true,  relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetach2: true  },
-//     { t: ' 7', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetach1: true,  relBeforeDetach2: false, relBeforeEndDetach2: true,  relAfterDetach2: false },
-//     { t: ' 8', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetach1: true,  relBeforeDetach2: true,  relBeforeEndDetach2: false, relAfterDetach2: false },
-//     { t: ' 9', relBeforeDetach1: false, relBeforeEndDetach1: true,  relAfterDetach1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetach2: false },
-//     { t: '10', relBeforeDetach1: false, relBeforeEndDetach1: true,  relAfterDetach1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetach2: true  },
-//     { t: '11', relBeforeDetach1: false, relBeforeEndDetach1: true,  relAfterDetach1: false, relBeforeDetach2: false, relBeforeEndDetach2: true,  relAfterDetach2: false },
-//     { t: '12', relBeforeDetach1: false, relBeforeEndDetach1: true,  relAfterDetach1: false, relBeforeDetach2: true,  relBeforeEndDetach2: false, relAfterDetach2: false },
-//     { t: '13', relBeforeDetach1: true,  relBeforeEndDetach1: false, relAfterDetach1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetach2: false },
-//     { t: '14', relBeforeDetach1: true,  relBeforeEndDetach1: false, relAfterDetach1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetach2: true  },
-//     { t: '15', relBeforeDetach1: true,  relBeforeEndDetach1: false, relAfterDetach1: false, relBeforeDetach2: false, relBeforeEndDetach2: true,  relAfterDetach2: false },
-//     { t: '16', relBeforeDetach1: true,  relBeforeEndDetach1: false, relAfterDetach1: false, relBeforeDetach2: true,  relBeforeEndDetach2: false, relAfterDetach2: false },
+//     { t: ' 1', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: false },
+//     { t: ' 2', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: true  },
+//     { t: ' 3', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: false, relBeforeDetach2: false, relBeforeEndDetach2: true,  relAfterDetachChildren2: false },
+//     { t: ' 4', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: false, relBeforeDetach2: true,  relBeforeEndDetach2: false, relAfterDetachChildren2: false },
+//     { t: ' 5', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: true,  relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: false },
+//     { t: ' 6', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: true,  relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: true  },
+//     { t: ' 7', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: true,  relBeforeDetach2: false, relBeforeEndDetach2: true,  relAfterDetachChildren2: false },
+//     { t: ' 8', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: true,  relBeforeDetach2: true,  relBeforeEndDetach2: false, relAfterDetachChildren2: false },
+//     { t: ' 9', relBeforeDetach1: false, relBeforeEndDetach1: true,  relAfterDetachChildren1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: false },
+//     { t: '10', relBeforeDetach1: false, relBeforeEndDetach1: true,  relAfterDetachChildren1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: true  },
+//     { t: '11', relBeforeDetach1: false, relBeforeEndDetach1: true,  relAfterDetachChildren1: false, relBeforeDetach2: false, relBeforeEndDetach2: true,  relAfterDetachChildren2: false },
+//     { t: '12', relBeforeDetach1: false, relBeforeEndDetach1: true,  relAfterDetachChildren1: false, relBeforeDetach2: true,  relBeforeEndDetach2: false, relAfterDetachChildren2: false },
+//     { t: '13', relBeforeDetach1: true,  relBeforeEndDetach1: false, relAfterDetachChildren1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: false },
+//     { t: '14', relBeforeDetach1: true,  relBeforeEndDetach1: false, relAfterDetachChildren1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: true  },
+//     { t: '15', relBeforeDetach1: true,  relBeforeEndDetach1: false, relAfterDetachChildren1: false, relBeforeDetach2: false, relBeforeEndDetach2: true,  relAfterDetachChildren2: false },
+//     { t: '16', relBeforeDetach1: true,  relBeforeEndDetach1: false, relAfterDetachChildren1: false, relBeforeDetach2: true,  relBeforeEndDetach2: false, relAfterDetachChildren2: false },
 //   ];
 
 //   const none = LF.none;
@@ -273,7 +273,7 @@ describe.skip(`ViewFactory`, function () {
 //       const { childCount, cacheSize } = cacheSpec;
 //       const { bindTwice, duplicateBindValue, attachTwice, detachTwice, unbindTwice } = duplicateOpSpec;
 //       const { propName, propValue1, lockScope1, newScopeForSecondBind, propValue2, lockScope2 } = bindSpec;
-//       const { relBeforeDetach1, relBeforeEndDetach1, relAfterDetach1, relBeforeDetach2, relBeforeEndDetach2, relAfterDetach2 } = relSpec;
+//       const { relBeforeDetach1, relBeforeEndDetach1, relAfterDetachChildren1, relBeforeDetach2, relBeforeEndDetach2, relAfterDetachChildren2 } = relSpec;
 //       const { bindFlags1, attachFlags1, detachFlags1, unbindFlags1, bindFlags2, attachFlags2, detachFlags2, unbindFlags2 } = flagsSpec;
 
 //       let firstBindInitialValue: string;
@@ -466,7 +466,7 @@ describe.skip(`ViewFactory`, function () {
 
 //       // - Round 1 - detach
 
-//       lifecycle.afterDetach.begin();
+//       lifecycle.afterDetachChildren.begin();
 //       if (relBeforeDetach1) {
 //         sut.release(detachFlags1);
 //         assert.strictEqual(host.textContent, firstBindFinalValue.repeat(1 + childCount), 'host.textContent #2');
@@ -476,8 +476,8 @@ describe.skip(`ViewFactory`, function () {
 //         sut.release(detachFlags1);
 //         assert.strictEqual(host.textContent, '', 'host.textContent #3');
 //       }
-//       lifecycle.afterDetach.end(detachFlags1);
-//       if (relAfterDetach1) {
+//       lifecycle.afterDetachChildren.end(detachFlags1);
+//       if (relAfterDetachChildren1) {
 //         sut.release(detachFlags1);
 //       }
 //       if (cacheSize > 0) {
@@ -489,7 +489,7 @@ describe.skip(`ViewFactory`, function () {
 //         }
 //       }
 //       if (detachTwice) {
-//         lifecycle.afterDetach.begin();
+//         lifecycle.afterDetachChildren.begin();
 //         if (relBeforeDetach1) {
 //           sut.release(detachFlags1);
 //         }
@@ -497,8 +497,8 @@ describe.skip(`ViewFactory`, function () {
 //         if (relBeforeEndDetach1) {
 //           sut.release(detachFlags1);
 //         }
-//         lifecycle.afterDetach.end(detachFlags1);
-//         if (relAfterDetach1) {
+//         lifecycle.afterDetachChildren.end(detachFlags1);
+//         if (relAfterDetachChildren1) {
 //           sut.release(detachFlags1);
 //         }
 //       }
@@ -554,7 +554,7 @@ describe.skip(`ViewFactory`, function () {
 
 //       // Round 2 - detach
 
-//       lifecycle.afterDetach.begin();
+//       lifecycle.afterDetachChildren.begin();
 //       if (relBeforeDetach2) {
 //         sut.release(detachFlags2);
 //         assert.strictEqual(host.textContent, secondBindFinalValue.repeat(1 + childCount), 'host.textContent #6');
@@ -564,8 +564,8 @@ describe.skip(`ViewFactory`, function () {
 //         sut.release(detachFlags2);
 //         assert.strictEqual(host.textContent, '', 'host.textContent #7');
 //       }
-//       lifecycle.afterDetach.end(detachFlags2);
-//       if (relAfterDetach2) {
+//       lifecycle.afterDetachChildren.end(detachFlags2);
+//       if (relAfterDetachChildren2) {
 //         sut.release(detachFlags2);
 //       }
 //       if (cacheSize > 0) {
@@ -577,7 +577,7 @@ describe.skip(`ViewFactory`, function () {
 //         }
 //       }
 //       if (detachTwice) {
-//         lifecycle.afterDetach.begin();
+//         lifecycle.afterDetachChildren.begin();
 //         if (relBeforeDetach2) {
 //           sut.release(detachFlags2);
 //         }
@@ -585,8 +585,8 @@ describe.skip(`ViewFactory`, function () {
 //         if (relBeforeEndDetach2) {
 //           sut.release(detachFlags2);
 //         }
-//         lifecycle.afterDetach.end(detachFlags2);
-//         if (relAfterDetach2) {
+//         lifecycle.afterDetachChildren.end(detachFlags2);
+//         if (relAfterDetachChildren2) {
 //           sut.release(detachFlags2);
 //         }
 //       }

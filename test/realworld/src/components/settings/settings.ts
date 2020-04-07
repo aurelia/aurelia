@@ -19,7 +19,7 @@ export class Settings {
   public beforeAttach() { return; }
   public afterAttachChildren() { return; }
   public beforeDetach() { return; }
-  public afterDetach() { return; }
+  public afterDetachChildren() { return; }
   public beforeUnbind() { return; }
   public afterUnbindChildren() { return; }
 

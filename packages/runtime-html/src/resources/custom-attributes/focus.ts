@@ -71,9 +71,9 @@ export class Focus implements ICustomAttributeViewModel<HTMLElement> {
   }
 
   /**
-   * Invoked when the attribute is afterDetach from the DOM.
+   * Invoked when the attribute is afterDetachChildren from the DOM.
    */
-  public afterDetach(): void {
+  public afterDetachChildren(): void {
     const el = this.element;
     el.removeEventListener('focus', this);
     el.removeEventListener('blur', this);

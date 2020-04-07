@@ -222,7 +222,7 @@ export class HooksDefinition {
   public readonly hasAfterAttachChildren: boolean;
 
   public readonly hasBeforeDetach: boolean;
-  public readonly hasAfterDetach: boolean;
+  public readonly hasAfterDetachChildren: boolean;
   public readonly hasCaching: boolean;
 
   public constructor(target: object) {
@@ -237,7 +237,7 @@ export class HooksDefinition {
     this.hasBeforeAttach = 'beforeAttach' in target;
     this.hasAfterAttachChildren = 'afterAttachChildren' in target;
     this.hasBeforeDetach = 'beforeDetach' in target;
-    this.hasAfterDetach = 'afterDetach' in target;
+    this.hasAfterDetachChildren = 'afterDetachChildren' in target;
     this.hasCaching = 'caching' in target;
   }
 }

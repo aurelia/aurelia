@@ -169,7 +169,7 @@ export class PixiSprite {
     }
   }
 
-  public afterDetach(): void {
+  public afterDetachChildren(): void {
     if (this.container && this._sprite) {
       this.container.removeChild(this._sprite);
       this._sprite.destroy();

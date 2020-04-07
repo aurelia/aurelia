@@ -88,7 +88,7 @@ export class PixiApp {
     }
   }
 
-  public afterDetach(): void {
+  public afterDetachChildren(): void {
     if (this._app !== null) {
       this.element.removeChild(this._app.view);
       this._app.ticker.remove(this.callTick);

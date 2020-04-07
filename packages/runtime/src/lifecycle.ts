@@ -376,6 +376,7 @@ export interface IViewModel<T extends INode = INode> {
   constructor: Function;
   readonly $controller?: IController<T, this>;
   beforeBind?(flags: LifecycleFlags): MaybePromiseOrTask;
+  afterBind?(flags: LifecycleFlags): void;
   afterBindChildren?(flags: LifecycleFlags): void;
   beforeUnbind?(flags: LifecycleFlags): MaybePromiseOrTask;
   afterUnbindChildren?(flags: LifecycleFlags): void;

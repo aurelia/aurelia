@@ -1350,7 +1350,7 @@ const methodNamesWithFlags: PropertyKey[] = [
   'endUnbind',
 
   'beforeUnbind',
-  'afterUnbind',
+  'afterUnbindChildren',
 ];
 
 export function formatProperty(
@@ -1430,7 +1430,7 @@ export function formatProperty(
           case 'endUnbind':
 
           case 'beforeUnbind':
-          case 'afterUnbind':
+          case 'afterUnbindChildren':
             value.args[0] = stringifyLifecycleFlags(value.args[0]);
             break;
           case 'valueChanged':

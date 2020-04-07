@@ -227,7 +227,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     const views = this.views;
     let tasks: ILifecycleTask[] | undefined = void 0;
     let task: ILifecycleTask;
-    this.$controller.lifecycle.afterUnbind.begin();
+    this.$controller.lifecycle.afterUnbindChildren.begin();
     let view: ISyntheticView<T>;
     for (let i = iStart; i < iEnd; ++i) {
       view = views[i];
@@ -246,14 +246,14 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
 
     if (tasks === undefined) {
-      this.$controller.lifecycle.afterUnbind.end(flags);
+      this.$controller.lifecycle.afterUnbindChildren.end(flags);
       return LifecycleTask.done;
     }
 
     return new AggregateContinuationTask(
       tasks,
-      this.$controller.lifecycle.afterUnbind.end,
-      this.$controller.lifecycle.afterUnbind,
+      this.$controller.lifecycle.afterUnbindChildren.end,
+      this.$controller.lifecycle.afterUnbindChildren,
       flags,
     );
   }
@@ -276,7 +276,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     const views = this.views;
     let tasks: ILifecycleTask[] | undefined = void 0;
     let task: ILifecycleTask;
-    this.$controller.lifecycle.afterUnbind.begin();
+    this.$controller.lifecycle.afterUnbindChildren.begin();
     const deleted = indexMap.deletedItems;
     const deletedLen = deleted.length;
     let view: ISyntheticView<T>;
@@ -301,14 +301,14 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
 
     if (tasks === undefined) {
-      this.$controller.lifecycle.afterUnbind.end(flags);
+      this.$controller.lifecycle.afterUnbindChildren.end(flags);
       return LifecycleTask.done;
     }
 
     return new AggregateContinuationTask(
       tasks,
-      this.$controller.lifecycle.afterUnbind.end,
-      this.$controller.lifecycle.afterUnbind,
+      this.$controller.lifecycle.afterUnbindChildren.end,
+      this.$controller.lifecycle.afterUnbindChildren,
       flags,
     );
   }

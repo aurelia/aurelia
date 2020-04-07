@@ -51,7 +51,7 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
     // this.connect();
   }
 
-  public afterUnbind(): void {
+  public afterUnbindChildren(): void {
     this.isBound = false;
   }
 

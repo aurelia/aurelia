@@ -120,7 +120,7 @@ export class Author {
   public beforeUnbind() {
     console.log('### beforeUnbind', this);
   }
-  public afterUnbind() {
+  public afterUnbindChildren() {
     console.log('### unbound', this);
   }
 }

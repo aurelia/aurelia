@@ -113,7 +113,7 @@ type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
   afterBindChildren(flags: LifecycleFlags): void;
 
   beforeUnbind(flags: LifecycleFlags): MaybePromiseOrTask;
-  afterUnbind(flags: LifecycleFlags): void;
+  afterUnbindChildren(flags: LifecycleFlags): void;
 
   beforeAttach(flags: LifecycleFlags): void;
   afterAttachChildren(flags: LifecycleFlags): void;
@@ -500,9 +500,9 @@ export class Controller<
     this.bindingContext!.afterBindChildren(flags); // non-null is implied by the hook
   }
 
-  public afterUnbind(flags: LifecycleFlags): void {
+  public afterUnbindChildren(flags: LifecycleFlags): void {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this.bindingContext!.afterUnbind(flags); // non-null is implied by the hook
+    this.bindingContext!.afterUnbindChildren(flags); // non-null is implied by the hook
   }
 
   public attach(flags: LifecycleFlags): void {
@@ -746,7 +746,7 @@ export class Controller<
     this.state |= State.isUnbinding;
 
     flags |= LifecycleFlags.fromUnbind;
-    this.lifecycle.afterUnbind.begin();
+    this.lifecycle.afterUnbindChildren.begin();
 
     if (this.hooks.hasBeforeUnbind) {
       const ret = (this.bindingContext as BindingContext<T, C>).beforeUnbind(flags);
@@ -766,7 +766,7 @@ export class Controller<
     this.state |= State.isUnbinding;
 
     flags |= LifecycleFlags.fromUnbind;
-    this.lifecycle.afterUnbind.begin();
+    this.lifecycle.afterUnbindChildren.begin();
 
     if (this.hooks.hasBeforeUnbind) {
       const ret = (this.bindingContext as BindingContext<T, C>).beforeUnbind(flags);
@@ -787,7 +787,7 @@ export class Controller<
     this.state |= State.isUnbinding;
 
     flags |= LifecycleFlags.fromUnbind;
-    this.lifecycle.afterUnbind.begin();
+    this.lifecycle.afterUnbindChildren.begin();
 
     return this.unbindControllers(flags);
   }
@@ -837,12 +837,12 @@ export class Controller<
           this.scope = void 0;
         }
     }
-    if (this.hooks.hasAfterUnbind) {
-      this.lifecycle.afterUnbind.add(this);
+    if (this.hooks.hasAfterUnbindChildren) {
+      this.lifecycle.afterUnbindChildren.add(this);
     }
 
     this.state = (this.state | State.isBoundOrUnbinding) ^ State.isBoundOrUnbinding;
-    this.lifecycle.afterUnbind.end(flags);
+    this.lifecycle.afterUnbindChildren.end(flags);
   }
   // #endregion
 

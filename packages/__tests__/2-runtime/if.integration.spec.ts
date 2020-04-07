@@ -30,9 +30,9 @@ describe(`If/Else`, function () {
     lifecycle.afterBindChildren.end(flags);
   }
   function runUnbindLifecycle(lifecycle: ILifecycle, sut: If<AuNode>, flags: LifecycleFlags): void {
-    lifecycle.afterUnbind.begin();
+    lifecycle.afterUnbindChildren.begin();
     sut.$controller.unbind(flags);
-    lifecycle.afterUnbind.end(flags);
+    lifecycle.afterUnbindChildren.end(flags);
   }
   function runAttachLifecycle(lifecycle: ILifecycle, sut: If<AuNode>, flags: LifecycleFlags): void {
     lifecycle.afterAttachChildren.begin();

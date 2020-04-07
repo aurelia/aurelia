@@ -140,9 +140,9 @@ describe.skip(`ViewFactory`, function () {
 //     lifecycle.afterBindChildren.end(flags);
 //   }
 //   function runUnbindLifecycle(lifecycle: ILifecycle, view: IController<AuNode>, flags: LF): void {
-//     lifecycle.afterUnbind.begin();
+//     lifecycle.afterUnbindChildren.begin();
 //     view.unbind(flags);
-//     lifecycle.afterUnbind.end(flags);
+//     lifecycle.afterUnbindChildren.end(flags);
 //   }
 //   function runAttachLifecycle(lifecycle: ILifecycle, view: IController<AuNode>, flags: LF): void {
 //     lifecycle.afterAttachChildren.begin();

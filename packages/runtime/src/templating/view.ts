@@ -292,6 +292,7 @@ export class ViewLocator implements IViewLocator {
           this.viewModel.afterCompileChildren!(controller as ICustomElementController<INode, T>);
         };
       }
+
       if ('beforeBind' in object) {
         proto.beforeBind = function beforeBind(flags: LifecycleFlags): MaybePromiseOrTask {
           return this.viewModel.beforeBind!(flags);
@@ -307,9 +308,15 @@ export class ViewLocator implements IViewLocator {
           this.viewModel.afterBindChildren!(flags);
         };
       }
+
       if ('beforeUnbind' in object) {
         proto.beforeUnbind = function beforeUnbind(flags: LifecycleFlags): MaybePromiseOrTask {
           return this.viewModel.beforeUnbind!(flags);
+        };
+      }
+      if ('afterUnbind' in object) {
+        proto.afterUnbind = function afterUnbind(flags: LifecycleFlags): void {
+          this.viewModel.afterUnbind!(flags);
         };
       }
       if ('afterUnbindChildren' in object) {
@@ -317,9 +324,15 @@ export class ViewLocator implements IViewLocator {
           this.viewModel.afterUnbindChildren!(flags);
         };
       }
+
       if ('beforeAttach' in object) {
         proto.beforeAttach = function beforeAttach(flags: LifecycleFlags): void {
           this.viewModel.beforeAttach!(flags);
+        };
+      }
+      if ('afterAttach' in object) {
+        proto.afterAttach = function afterAttach(flags: LifecycleFlags): void {
+          this.viewModel.afterAttach!(flags);
         };
       }
       if ('afterAttachChildren' in object) {
@@ -327,9 +340,15 @@ export class ViewLocator implements IViewLocator {
           this.viewModel.afterAttachChildren!(flags);
         };
       }
+
       if ('beforeDetach' in object) {
         proto.beforeDetach = function beforeDetach(flags: LifecycleFlags): void {
           this.viewModel.beforeDetach!(flags);
+        };
+      }
+      if ('afterDetach' in object) {
+        proto.afterDetach = function afterDetach(flags: LifecycleFlags): void {
+          this.viewModel.afterDetach!(flags);
         };
       }
       if ('afterDetachChildren' in object) {
@@ -337,6 +356,7 @@ export class ViewLocator implements IViewLocator {
           this.viewModel.afterDetachChildren!(flags);
         };
       }
+
       if ('caching' in object) {
         proto.caching = function caching(flags: LifecycleFlags): void {
           this.viewModel.caching!(flags);

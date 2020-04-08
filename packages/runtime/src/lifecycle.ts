@@ -389,6 +389,7 @@ export interface IViewModel<T extends INode = INode> {
   afterAttachChildren?(flags: LifecycleFlags): void;
 
   beforeDetach?(flags: LifecycleFlags): void;
+  afterDetach?(flags: LifecycleFlags): void;
   afterDetachChildren?(flags: LifecycleFlags): void;
 
   caching?(flags: LifecycleFlags): void;

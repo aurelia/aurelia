@@ -5,7 +5,7 @@ export function registerComponent(container, ...components) {
   for (const component of components) {
     const name = component.description ? component.description.name : component.name;
     container.register(component);
-    Registration.alias(CustomElement.keyFrom(name), component).register(container);
+    Registration.aliasTo(CustomElement.keyFrom(name), component).register(container);
   }
 }
 

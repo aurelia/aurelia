@@ -317,17 +317,17 @@ describe('5-jit-html/custom-elements/custom-elements.spec.ts', function () {
       await options.tearDown();
     });
     it('Alias to Alias ', async function () {
-      const options = createFixture(`<template><test value.bind="value"></test>\${value}</template>`, app, [...resources, Registration.alias(CustomElement.keyFrom('foo11'), CustomElement.keyFrom('test'))]);
+      const options = createFixture(`<template><test value.bind="value"></test>\${value}</template>`, app, [...resources, Registration.aliasTo(CustomElement.keyFrom('foo11'), CustomElement.keyFrom('test'))]);
       assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(3));
       await options.tearDown();
     });
     it('Alias to Alias plus original alias ', async function () {
-      const options = createFixture(`<template><test value.bind="value"></test><foo12 value.bind="value"></foo12>\${value}</template>`, app, [...resources, Registration.alias(CustomElement.keyFrom('foo11'), CustomElement.keyFrom('test'))]);
+      const options = createFixture(`<template><test value.bind="value"></test><foo12 value.bind="value"></foo12>\${value}</template>`, app, [...resources, Registration.aliasTo(CustomElement.keyFrom('foo11'), CustomElement.keyFrom('test'))]);
       assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(5));
       await options.tearDown();
     });
     it('Alias to Alias 2 aliases and original', async function () {
-      const options = createFixture(`<template><test value.bind="value"></test><foo12 value.bind="value"></foo11><foo12 value.bind="value"></foo11><foo1 value.bind="value"></foo1>\${value}</template>`, app, [...resources, Registration.alias(CustomElement.keyFrom('foo11'), CustomElement.keyFrom('test'))]);
+      const options = createFixture(`<template><test value.bind="value"></test><foo12 value.bind="value"></foo11><foo12 value.bind="value"></foo11><foo1 value.bind="value"></foo1>\${value}</template>`, app, [...resources, Registration.aliasTo(CustomElement.keyFrom('foo11'), CustomElement.keyFrom('test'))]);
       assert.strictEqual(options.appHost.textContent, 'wOOt'.repeat(9));
       await options.tearDown();
     });

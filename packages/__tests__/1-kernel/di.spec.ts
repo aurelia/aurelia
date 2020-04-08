@@ -1535,7 +1535,7 @@ describe(`The Container class`, function () {
 //   });
 
 //   it(`alias() returns the correct resolver`, function () {
-//     const actual = Registration.alias('key', 'key2');
+//     const actual = Registration.aliasTo('key', 'key2');
 //     assert.strictEqual(actual['key'], 'key2', `actual['key']`);
 //     assert.strictEqual(actual['strategy'], ResolverStrategy.alias, `actual['strategy']`);
 //     assert.strictEqual(actual['state'], 'key', `actual['state']`);

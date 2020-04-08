@@ -251,7 +251,7 @@ export class HooksDefinition {
     this.hasAfterAttachChildren = 'afterAttachChildren' in target;
 
     this.hasBeforeDetach = 'beforeDetach' in target;
-    this.hasAfterDetach = 'hasAfterDetach' in target;
+    this.hasAfterDetach = 'afterDetach' in target;
     this.hasAfterDetachChildren = 'afterDetachChildren' in target;
 
     this.hasCaching = 'caching' in target;

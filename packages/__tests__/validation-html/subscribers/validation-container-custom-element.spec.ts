@@ -227,9 +227,11 @@ describe('validation-container-custom-element', function () {
       const spy1 = createSpy(ceVm1, 'handleValidationEvent', true);
       await assertEventHandler(input1, scheduler, controllerSpy, spy1, ctx);
 
-      assert.equal(getComputedStyle(ceEl1).display, "flex");
-      const spans = toArray(ceEl1.shadowRoot.querySelectorAll("span.error"));
-      assert.equal(spans.every((span) => getComputedStyle(span).color === 'rgb(255, 0, 0)'), true, 'incorrect color');
+      if (typeof getComputedStyle === "function") { // seems not to work with jsdom
+        assert.equal(getComputedStyle(ceEl1).display, "flex");
+        const spans = toArray(ceEl1.shadowRoot.querySelectorAll("span.error"));
+        assert.equal(spans.every((span) => getComputedStyle(span).color === 'rgb(255, 0, 0)'), true, 'incorrect color');
+      }
     },
     {
       template: `

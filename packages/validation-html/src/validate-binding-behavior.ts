@@ -131,6 +131,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     if (event !== null) {
       this.target?.removeEventListener(event, this);
     }
+    this.controller?.removeSubscriber(this);
     this.controller?.unregisterBinding(this.propertyBinding);
     this.binding.$unbind(flags);
     for (const expr of this.connectedExpressions) {

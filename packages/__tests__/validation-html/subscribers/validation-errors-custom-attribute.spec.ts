@@ -94,7 +94,7 @@ describe('validation-errors-custom-attribute', function () {
         assert.equal(app[spy].calls.length, count);
       }
     } else {
-      assert.equal(app.controllerRemoveSubscriberSpy.calls.length, template.match(/validation-errors/g).length);
+      assert.equal(app.controllerRemoveSubscriberSpy.calls.length, template.match(/validation-errors|validate/g).length);
     }
   }
 
@@ -106,7 +106,7 @@ describe('validation-errors-custom-attribute', function () {
     controllerValidateSpy: ISpy,
     handleValidationEventSpy: ISpy,
     ctx: HTMLTestContext,
-    event: string = 'blur',
+    event: string = 'focusout',
   ) {
     handleValidationEventSpy.calls.splice(0);
     controllerValidateSpy.calls.splice(0);
@@ -304,19 +304,19 @@ describe('validation-errors-custom-attribute', function () {
     {
       template: `
     <div id="div1" validation-errors="errors.bind: nameErrors; controller.bind: controller;">
-      <input id="target1" type="text" value.two-way="person.name & validate:'blur':controller">
+      <input id="target1" type="text" value.two-way="person.name & validate:'focusout':controller">
       <span class="error" repeat.for="errorInfo of nameErrors">
         \${errorInfo.result.message}
       </span>
     </div>
     <div id="div2" validation-errors="errors.bind: ageErrors; controller.bind: controller2;">
-      <input id="target2" type="text" value.two-way="person.age | toNumber & validate:'blur':controller2">
+      <input id="target2" type="text" value.two-way="person.age | toNumber & validate:'focusout':controller2">
       <span class="error" repeat.for="errorInfo of ageErrors">
         \${errorInfo.result.message}
       </span>
     </div>
     `,
-      removeSubscriberSpies: { controllerRemoveSubscriberSpy: 1, controller2RemoveSubscriberSpy: 1 }
+      removeSubscriberSpies: { controllerRemoveSubscriberSpy: 2, controller2RemoveSubscriberSpy: 2 }
     }
   );
 

@@ -183,7 +183,7 @@ describe('validation-i18n', function () {
     assert.equal(Unparser.unparse(binding.sourceExpression.expression), rawExpression);
   }
 
-  async function assertEventHandler(target: HTMLElement, event: 'change' | 'blur', callCount: number, scheduler: IScheduler, controllerSpy: Spy, ctx: HTMLTestContext) {
+  async function assertEventHandler(target: HTMLElement, event: 'change' | 'focusout', callCount: number, scheduler: IScheduler, controllerSpy: Spy, ctx: HTMLTestContext) {
     controllerSpy.clearCallRecords();
     target.dispatchEvent(new ctx.Event(event));
     await scheduler.yieldAll(10);
@@ -243,7 +243,7 @@ describe('validation-i18n', function () {
       const target = host.querySelector('input');
       assertControllerBinding(controller as ValidationController, 'person1.age', target, controllerSpy);
 
-      await assertEventHandler(target, 'blur', 1, scheduler, controllerSpy, ctx);
+      await assertEventHandler(target, 'focusout', 1, scheduler, controllerSpy, ctx);
       assert.deepStrictEqual(
         controller.results.filter(r => !r.valid).map((r) => r.toString()),
         ['Enter a value for Age.']
@@ -269,7 +269,7 @@ describe('validation-i18n', function () {
       const target = host.querySelector('input');
       assertControllerBinding(controller as ValidationController, 'person1.name', target, controllerSpy);
 
-      await assertEventHandler(target, 'blur', 1, scheduler, controllerSpy, ctx);
+      await assertEventHandler(target, 'focusout', 1, scheduler, controllerSpy, ctx);
       assert.deepStrictEqual(
         controller.results.filter(r => !r.valid).map((r) => r.toString()),
         ['Name is mandatory']
@@ -295,7 +295,7 @@ describe('validation-i18n', function () {
       const target = host.querySelector('input');
       assertControllerBinding(controller as ValidationController, 'person2.name', target, controllerSpy);
 
-      await assertEventHandler(target, 'blur', 1, scheduler, controllerSpy, ctx);
+      await assertEventHandler(target, 'focusout', 1, scheduler, controllerSpy, ctx);
       assert.deepStrictEqual(
         controller.results.filter(r => !r.valid).map((r) => r.toString()),
         ['The value of the Name is required.']
@@ -321,7 +321,7 @@ describe('validation-i18n', function () {
       const target = host.querySelector('input');
       assertControllerBinding(controller as ValidationController, 'person1.age', target, controllerSpy);
 
-      await assertEventHandler(target, 'blur', 1, scheduler, controllerSpy, ctx);
+      await assertEventHandler(target, 'focusout', 1, scheduler, controllerSpy, ctx);
       assert.deepStrictEqual(
         controller.results.filter(r => !r.valid).map((r) => r.toString()),
         ['The value of the age is required.']
@@ -348,7 +348,7 @@ describe('validation-i18n', function () {
       const target = host.querySelector('input');
       assertControllerBinding(controller as ValidationController, 'person1.age', target, controllerSpy);
 
-      await assertEventHandler(target, 'blur', 1, scheduler, controllerSpy, ctx);
+      await assertEventHandler(target, 'focusout', 1, scheduler, controllerSpy, ctx);
       assert.deepStrictEqual(
         controller.results.filter(r => !r.valid).map((r) => r.toString()),
         ['The value is required']
@@ -375,7 +375,7 @@ describe('validation-i18n', function () {
       const target = host.querySelector('input');
       assertControllerBinding(controller as ValidationController, 'person1.age', target, controllerSpy);
 
-      await assertEventHandler(target, 'blur', 1, scheduler, controllerSpy, ctx);
+      await assertEventHandler(target, 'focusout', 1, scheduler, controllerSpy, ctx);
       assert.deepStrictEqual(
         controller.results.filter(r => !r.valid).map((r) => r.toString()),
         ['The value of Age Foo is required in foo']

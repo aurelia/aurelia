@@ -89,7 +89,7 @@ describe('validation-container-custom-element', function () {
 
     await au.stop().wait();
     ctx.doc.body.removeChild(host);
-    assert.equal(app.controllerRemoveSubscriberSpy.calls.length, template.match(/validation-container/g).length / 2);
+    assert.equal(app.controllerRemoveSubscriberSpy.calls.length, template.match(/validation-container/g).length / 2 + template.match(/validate/g).length);
   }
 
   const $it = createSpecFunction(runTest);
@@ -100,7 +100,7 @@ describe('validation-container-custom-element', function () {
     controllerValidateSpy: ISpy,
     handleValidationEventSpy: ISpy,
     ctx: HTMLTestContext,
-    event: string = 'blur',
+    event: string = 'focusout',
   ) {
     handleValidationEventSpy.calls.splice(0);
     controllerValidateSpy.calls.splice(0);

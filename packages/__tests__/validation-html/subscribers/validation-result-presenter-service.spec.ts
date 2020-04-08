@@ -103,7 +103,7 @@ describe('validation-result-presenter-service', function () {
     controllerValidateSpy: ISpy,
     handleValidationEventSpy: ISpy,
     ctx: HTMLTestContext,
-    event: string = 'blur',
+    event: string = 'focusout',
   ) {
     handleValidationEventSpy.calls.splice(0);
     controllerValidateSpy.calls.splice(0);

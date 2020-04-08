@@ -393,7 +393,10 @@ export class ValidationController implements IValidationController {
     this.validating = true;
     const task = this.scheduler.getPostRenderTaskQueue().queueTask(async () => {
       try {
-        const results = await Promise.all(instructions.map(async (x) => this.validator.validate(x)));
+        const results = await Promise.all(instructions.map(
+          // eslint-disable-next-line @typescript-eslint/require-await
+          async (x) => this.validator.validate(x)
+        ));
         const newResults = results.reduce(
           (acc, resultSet) => {
             acc.push(...resultSet);

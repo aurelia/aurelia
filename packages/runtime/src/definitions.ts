@@ -222,6 +222,7 @@ export class HooksDefinition {
   public readonly hasAfterUnbindChildren: boolean;
 
   public readonly hasBeforeAttach: boolean;
+  public readonly hasAfterAttach: boolean;
   public readonly hasAfterAttachChildren: boolean;
 
   public readonly hasBeforeDetach: boolean;
@@ -245,6 +246,7 @@ export class HooksDefinition {
     this.hasAfterUnbindChildren = 'afterUnbindChildren' in target;
 
     this.hasBeforeAttach = 'beforeAttach' in target;
+    this.hasAfterAttach = 'afterAttach' in target;
     this.hasAfterAttachChildren = 'afterAttachChildren' in target;
 
     this.hasBeforeDetach = 'beforeDetach' in target;

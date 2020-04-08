@@ -118,6 +118,7 @@ type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
   afterUnbindChildren(flags: LifecycleFlags): void;
 
   beforeAttach(flags: LifecycleFlags): void;
+  afterAttach(flags: LifecycleFlags): void;
   afterAttachChildren(flags: LifecycleFlags): void;
 
   beforeDetach(flags: LifecycleFlags): void;
@@ -1005,6 +1006,10 @@ export class Controller<
     this.state |= State.isMounted;
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.projector!.project(this.nodes!); // non-null is implied by the hook
+
+    if (this.hooks.hasAfterAttach) {
+      (this.bindingContext as BindingContext<T, C>).afterAttach(flags);
+    }
   }
 
   private mountSynthetic(flags: LifecycleFlags): void {

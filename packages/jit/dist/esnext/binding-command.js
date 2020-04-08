@@ -29,7 +29,7 @@ export class BindingCommandDefinition {
     register(container) {
         const { Type, key, aliases } = this;
         Registration.singleton(key, Type).register(container);
-        Registration.alias(key, Type).register(container);
+        Registration.aliasTo(key, Type).register(container);
         registerAliases(aliases, BindingCommand, key, container);
     }
 }

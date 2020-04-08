@@ -94,7 +94,7 @@ export function alias(...aliases) {
 }
 export function registerAliases(aliases, resource, key, container) {
     for (let i = 0, ii = aliases.length; i < ii; ++i) {
-        Registration.alias(key, resource.keyFrom(aliases[i])).register(container);
+        Registration.aliasTo(key, resource.keyFrom(aliases[i])).register(container);
     }
 }
 //# sourceMappingURL=definitions.js.map

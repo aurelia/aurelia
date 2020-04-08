@@ -41,18 +41,19 @@
         && process.versions.node != null);
     // performance.now polyfill for non-browser envs based on https://github.com/myrne/performance-now
     const $now = (function () {
+        var _a, _b;
         let getNanoSeconds;
         let hrtime;
         let moduleLoadTime;
         let nodeLoadTime;
         let upTime;
-        if ($global.performance != null && $global.performance.now != null) {
+        if (((_a = $global.performance) === null || _a === void 0 ? void 0 : _a.now) != null) {
             const $performance = $global.performance;
             return function () {
                 return $performance.now();
             };
         }
-        else if ($global.process != null && $global.process.hrtime != null) {
+        else if (((_b = $global.process) === null || _b === void 0 ? void 0 : _b.hrtime) != null) {
             const now = function () {
                 return (getNanoSeconds() - nodeLoadTime) / 1e6;
             };

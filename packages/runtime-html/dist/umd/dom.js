@@ -49,7 +49,7 @@
             this.emptyNodes = new FragmentNodeSequence(this, document.createDocumentFragment());
         }
         static register(container) {
-            return kernel_1.Registration.alias(runtime_1.IDOM, this).register(container);
+            return kernel_1.Registration.aliasTo(runtime_1.IDOM, this).register(container);
         }
         addEventListener(eventName, subscriber, publisher, options) {
             (publisher || this.document).addEventListener(eventName, subscriber, options);

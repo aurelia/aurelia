@@ -109,7 +109,7 @@
     exports.alias = alias;
     function registerAliases(aliases, resource, key, container) {
         for (let i = 0, ii = aliases.length; i < ii; ++i) {
-            kernel_1.Registration.alias(key, resource.keyFrom(aliases[i])).register(container);
+            kernel_1.Registration.aliasTo(key, resource.keyFrom(aliases[i])).register(container);
         }
     }
     exports.registerAliases = registerAliases;

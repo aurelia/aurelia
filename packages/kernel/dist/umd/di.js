@@ -33,6 +33,9 @@
         callback(value) {
             return this.registerResolver(3 /* callback */, value);
         }
+        cachedCallback(value) {
+            return this.registerResolver(3 /* callback */, cacheCallbackResult(value));
+        }
         aliasTo(destinationKey) {
             return this.registerResolver(5 /* alias */, destinationKey);
         }
@@ -150,6 +153,34 @@
             }
             return dependencies;
         },
+        /**
+         * creates a decorator that also matches an interface and can be used as a {@linkcode Key}.
+         * ```
+         * const ILogger = DI.createInterface<Logger>('Logger').noDefault();
+         * container.register(Registration.singleton(ILogger, getSomeLogger()));
+         * const log = container.get(ILogger);
+         * log.info('hello world');
+         * class Foo {
+         *   constructor( @ILogger log: ILogger ) {
+         *     log.info('hello world');
+         *   }
+         * }
+         * ```
+         * you can also build default registrations into your interface.
+         * ```
+         * export const ILogger = DI.createInterface<Logger>('Logger')
+         *        .withDefault( builder => builder.cachedCallback(LoggerDefault));
+         * const log = container.get(ILogger);
+         * log.info('hello world');
+         * class Foo {
+         *   constructor( @ILogger log: ILogger ) {
+         *     log.info('hello world');
+         *   }
+         * }
+         * ```
+         *
+         * @param friendlyName
+         */
         createInterface(friendlyName) {
             const Interface = function (target, property, index) {
                 if (target == null) {
@@ -771,22 +802,119 @@
         }
     }
     exports.ParameterizedRegistry = ParameterizedRegistry;
+    const cache = new WeakMap();
+    function cacheCallbackResult(fun) {
+        return function (handler, requestor, resolver) {
+            if (cache.has(resolver)) {
+                return cache.get(resolver);
+            }
+            const t = fun(handler, requestor, resolver);
+            cache.set(resolver, t);
+            return t;
+        };
+    }
+    /**
+     * you can use the resulting {@linkcode IRegistration} of any of the factory methods
+     * to register with the container, e.g.
+     * ```
+     * class Foo {}
+     * const container = DI.createContainer();
+     * container.register(Registration.instance(Foo, new Foo()));
+     * container.get(Foo);
+     * ```
+     */
     exports.Registration = {
+        /**
+         * allows you to pass an instance.
+         * Every time you request this {@linkcode Key} you will get this instance back.
+         * ```
+         * Registration.instance(Foo, new Foo()));
+         * ```
+         *
+         * @param key
+         * @param value
+         */
         instance(key, value) {
             return new Resolver(key, 0 /* instance */, value);
         },
+        /**
+         * Creates an instance from the class.
+         * Every time you request this {@linkcode Key} you will get the same one back.
+         * ```
+         * Registration.singleton(Foo, Foo);
+         * ```
+         *
+         * @param key
+         * @param value
+         */
         singleton(key, value) {
             return new Resolver(key, 1 /* singleton */, value);
         },
+        /**
+         * Creates an instance from a class.
+         * Every time you request this {@linkcode Key} you will get a new instance.
+         * ```
+         * Registration.instance(Foo, Foo);
+         * ```
+         *
+         * @param key
+         * @param value
+         */
         transient(key, value) {
             return new Resolver(key, 2 /* transient */, value);
         },
+        /**
+         * Creates an instance from the method passed.
+         * Every time you request this {@linkcode Key} you will get a new instance.
+         * ```
+         * Registration.callback(Foo, () => new Foo());
+         * Registration.callback(Bar, (c: IContainer) => new Bar(c.get(Foo)));
+         * ```
+         *
+         * @param key
+         * @param callback
+         */
         callback(key, callback) {
             return new Resolver(key, 3 /* callback */, callback);
         },
-        alias(originalKey, aliasKey) {
+        /**
+         * Creates an instance from the method passed.
+         * On the first request for the {@linkcode Key} your callback is called and returns an instance.
+         * subsequent requests for the {@linkcode Key}, the initial instance returned will be returned.
+         * If you pass the same {@linkcode Registration} to another container the same cached value will be used.
+         * Should all references to the resolver returned be removed, the cache will expire.
+         * ```
+         * Registration.cachedCallback(Foo, () => new Foo());
+         * Registration.cachedCallback(Bar, (c: IContainer) => new Bar(c.get(Foo)));
+         * ```
+         *
+         * @param key
+         * @param callback
+         */
+        cachedCallback(key, callback) {
+            return new Resolver(key, 3 /* callback */, cacheCallbackResult(callback));
+        },
+        /**
+         * creates an alternate {@linkcode Key} to retrieve an instance by.
+         * Returns the same scope as the original {@linkcode Key}.
+         * ```
+         * Register.singleton(Foo, Foo)
+         * Register.aliasTo(Foo, MyFoos);
+         *
+         * container.getAll(MyFoos) // contains an instance of Foo
+         * ```
+         *
+         * @param originalKey
+         * @param aliasKey
+         */
+        aliasTo(originalKey, aliasKey) {
             return new Resolver(aliasKey, 5 /* alias */, originalKey);
         },
+        /**
+         * @internal
+         * @param key
+         * @param params
+         */
         defer(key, ...params) {
             return new ParameterizedRegistry(key, params);
         }

@@ -43,7 +43,7 @@ export class CustomAttributeDefinition {
     register(container) {
         const { Type, key, aliases } = this;
         Registration.transient(key, Type).register(container);
-        Registration.alias(key, Type).register(container);
+        Registration.aliasTo(key, Type).register(container);
         registerAliases(aliases, CustomAttribute, key, container);
     }
 }

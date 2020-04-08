@@ -52,6 +52,7 @@ export declare class ResolverBuilder<K> {
     singleton(value: Constructable): IResolver<K>;
     transient(value: Constructable): IResolver<K>;
     callback(value: ResolveCallback<K>): IResolver<K>;
+    cachedCallback(value: ResolveCallback<K>): IResolver<K>;
     aliasTo(destinationKey: Key): IResolver<K>;
     private registerResolver;
 }
@@ -69,6 +70,34 @@ export declare const DI: {
     getAnnotationParamtypes(Type: Constructable<{}> | Injectable<{}>): readonly Key[] | undefined;
     getOrCreateAnnotationParamTypes(Type: Constructable<{}> | Injectable<{}>): Key[];
     getDependencies(Type: Constructable<{}> | Injectable<{}>): Key[];
+    /**
+     * creates a decorator that also matches an interface and can be used as a {@linkcode Key}.
+     * ```
+     * const ILogger = DI.createInterface<Logger>('Logger').noDefault();
+     * container.register(Registration.singleton(ILogger, getSomeLogger()));
+     * const log = container.get(ILogger);
+     * log.info('hello world');
+     * class Foo {
+     *   constructor( @ILogger log: ILogger ) {
+     *     log.info('hello world');
+     *   }
+     * }
+     * ```
+     * you can also build default registrations into your interface.
+     * ```
+     * export const ILogger = DI.createInterface<Logger>('Logger')
+     *        .withDefault( builder => builder.cachedCallback(LoggerDefault));
+     * const log = container.get(ILogger);
+     * log.info('hello world');
+     * class Foo {
+     *   constructor( @ILogger log: ILogger ) {
+     *     log.info('hello world');
+     *   }
+     * }
+     * ```
+     *
+     * @param friendlyName
+     */
     createInterface<K extends Key>(friendlyName?: string | undefined): IDefaultableInterfaceSymbol<K>;
     inject(...dependencies: Key[]): (target: Injectable<{}>, key?: string | number | undefined, descriptor?: number | PropertyDescriptor | undefined) => void;
     /**
@@ -174,12 +203,96 @@ export declare class ParameterizedRegistry implements IRegistry {
     constructor(key: Key, params: unknown[]);
     register(container: IContainer): void;
 }
+/**
+ * you can use the resulting {@linkcode IRegistration} of any of the factory methods
+ * to register with the container, e.g.
+ * ```
+ * class Foo {}
+ * const container = DI.createContainer();
+ * container.register(Registration.instance(Foo, new Foo()));
+ * container.get(Foo);
+ * ```
+ */
 export declare const Registration: {
+    /**
+     * allows you to pass an instance.
+     * Every time you request this {@linkcode Key} you will get this instance back.
+     * ```
+     * Registration.instance(Foo, new Foo()));
+     * ```
+     *
+     * @param key
+     * @param value
+     */
     instance<T>(key: Key, value: T): IRegistration<T>;
+    /**
+     * Creates an instance from the class.
+     * Every time you request this {@linkcode Key} you will get the same one back.
+     * ```
+     * Registration.singleton(Foo, Foo);
+     * ```
+     *
+     * @param key
+     * @param value
+     */
     singleton<T_1 extends Constructable<{}>>(key: Key, value: T_1): IRegistration<InstanceType<T_1>>;
+    /**
+     * Creates an instance from a class.
+     * Every time you request this {@linkcode Key} you will get a new instance.
+     * ```
+     * Registration.instance(Foo, Foo);
+     * ```
+     *
+     * @param key
+     * @param value
+     */
     transient<T_2 extends Constructable<{}>>(key: Key, value: T_2): IRegistration<InstanceType<T_2>>;
+    /**
+     * Creates an instance from the method passed.
+     * Every time you request this {@linkcode Key} you will get a new instance.
+     * ```
+     * Registration.callback(Foo, () => new Foo());
+     * Registration.callback(Bar, (c: IContainer) => new Bar(c.get(Foo)));
+     * ```
+     *
+     * @param key
+     * @param callback
+     */
     callback<T_3>(key: Key, callback: ResolveCallback<T_3>): IRegistration<Resolved<T_3>>;
-    alias<T_4>(originalKey: T_4, aliasKey: Key): IRegistration<Resolved<T_4>>;
+    /**
+     * Creates an instance from the method passed.
+     * On the first request for the {@linkcode Key} your callback is called and returns an instance.
+     * subsequent requests for the {@linkcode Key}, the initial instance returned will be returned.
+     * If you pass the same {@linkcode Registration} to another container the same cached value will be used.
+     * Should all references to the resolver returned be removed, the cache will expire.
+     * ```
+     * Registration.cachedCallback(Foo, () => new Foo());
+     * Registration.cachedCallback(Bar, (c: IContainer) => new Bar(c.get(Foo)));
+     * ```
+     *
+     * @param key
+     * @param callback
+     */
+    cachedCallback<T_4>(key: Key, callback: ResolveCallback<T_4>): IRegistration<Resolved<T_4>>;
+    /**
+     * creates an alternate {@linkcode Key} to retrieve an instance by.
+     * Returns the same scope as the original {@linkcode Key}.
+     * ```
+     * Register.singleton(Foo, Foo)
+     * Register.aliasTo(Foo, MyFoos);
+     *
+     * container.getAll(MyFoos) // contains an instance of Foo
+     * ```
+     *
+     * @param originalKey
+     * @param aliasKey
+     */
+    aliasTo<T_5>(originalKey: T_5, aliasKey: Key): IRegistration<Resolved<T_5>>;
+    /**
+     * @internal
+     * @param key
+     * @param params
+     */
     defer(key: Key, ...params: unknown[]): IRegistry;
 };
 export declare class InstanceProvider<K extends Key> implements IDisposableResolver<K | null> {

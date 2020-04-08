@@ -41,7 +41,7 @@
         register(container) {
             const { Type, key, aliases } = this;
             kernel_1.Registration.singleton(key, Type).register(container);
-            kernel_1.Registration.alias(key, Type).register(container);
+            kernel_1.Registration.aliasTo(key, Type).register(container);
             runtime_1.registerAliases(aliases, exports.BindingCommand, key, container);
         }
     }

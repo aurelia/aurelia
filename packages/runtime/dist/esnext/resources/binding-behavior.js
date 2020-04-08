@@ -44,7 +44,7 @@ export class BindingBehaviorDefinition {
                 Registration.instance(key, new BindingBehaviorFactory(container, Type)).register(container);
                 break;
         }
-        Registration.alias(key, Type).register(container);
+        Registration.aliasTo(key, Type).register(container);
         registerAliases(aliases, BindingBehavior, key, container);
     }
 }

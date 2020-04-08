@@ -38,7 +38,7 @@ export class HTMLDOM {
         this.emptyNodes = new FragmentNodeSequence(this, document.createDocumentFragment());
     }
     static register(container) {
-        return Registration.alias(IDOM, this).register(container);
+        return Registration.aliasTo(IDOM, this).register(container);
     }
     addEventListener(eventName, subscriber, publisher, options) {
         (publisher || this.document).addEventListener(eventName, subscriber, options);

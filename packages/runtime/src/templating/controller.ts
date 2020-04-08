@@ -122,6 +122,7 @@ type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
   afterAttachChildren(flags: LifecycleFlags): void;
 
   beforeDetach(flags: LifecycleFlags): void;
+  afterDetach(flags: LifecycleFlags): void;
   afterDetachChildren(flags: LifecycleFlags): void;
 
   caching(flags: LifecycleFlags): void;
@@ -905,6 +906,11 @@ export class Controller<
     }
 
     this.state = this.state ^ State.isAttaching | State.isAttached;
+
+    if (this.hooks.hasAfterAttach) {
+      (this.bindingContext as BindingContext<T, C>).afterAttach(flags);
+    }
+
     this.lifecycle.afterAttachChildren.end(flags);
   }
 
@@ -961,6 +967,11 @@ export class Controller<
     }
 
     this.state = (this.state | State.isAttachedOrDetaching) ^ State.isAttachedOrDetaching;
+
+    if (this.hooks.hasAfterDetach) {
+      (this.bindingContext as BindingContext<T, C>).afterDetach(flags);
+    }
+
     this.lifecycle.afterDetachChildren.end(flags);
   }
 
@@ -1034,6 +1045,10 @@ export class Controller<
     this.state = (this.state | State.isMounted) ^ State.isMounted;
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.projector!.take(this.nodes!); // non-null is implied by the hook
+
+    if (this.hooks.hasAfterDetach) {
+      (this.bindingContext as BindingContext<T, C>).afterDetach(flags);
+    }
   }
 
   private unmountSynthetic(flags: LifecycleFlags): boolean {

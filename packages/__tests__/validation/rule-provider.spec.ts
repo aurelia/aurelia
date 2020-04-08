@@ -840,6 +840,8 @@ describe('parsePropertyName', function () {
     };
   }
 
+  /* eslint-disable @typescript-eslint/camelcase */
+  const cov_1wjh4ld5ut: any = {};
   const a: string = 'foo';
   const positiveDataRows = [
     { property: 'prop',                   expected: 'prop' },
@@ -899,7 +901,6 @@ describe('parsePropertyName', function () {
     { property: function (o: any) { return o.prop["a"].prop2; },      expected: 'prop["a"].prop2' },
     { property: function (o: any) { return o.obj.prop["a"]; },        expected: 'obj.prop["a"]' },
     { property: function (o: any) { return o.obj.prop["a"].prop2; },  expected: 'obj.prop["a"].prop2' },
-    { property: function (o: any) { 'use strict'; return o.prop; },                 expected: 'prop' },
     { property: function (o: any) { 'use strict'; return o.obj.prop; },             expected: 'obj.prop' },
     { property: function (o: any) { 'use strict'; return o.obj.prop1.prop2; },      expected: 'obj.prop1.prop2' },
     { property: function (o: any) { 'use strict'; return o.prop[0]; },              expected: 'prop[0]' },
@@ -937,9 +938,18 @@ describe('parsePropertyName', function () {
     { property: function (o: any) { "use strict"; return o.prop["a"].prop2; },      expected: 'prop["a"].prop2' },
     { property: function (o: any) { "use strict"; return o.obj.prop["a"]; },        expected: 'obj.prop["a"]' },
     { property: function (o: any) { "use strict"; return o.obj.prop["a"].prop2; },  expected: 'obj.prop["a"].prop2' },
+    { property: function (o: any) { cov_1wjh4ld5ut.s[50]++; return o.prop; },                                      expected: 'prop' },
+    { property: function (o: any) { cov_1wjh4ld5ut.f[9]++;cov_1wjh4ld5ut.s[50]++; return o.prop; },                expected: 'prop' },
+    { property: function (o: any) { "use strict"; cov_1wjh4ld5ut.s[50]++; return o.prop; },                        expected: 'prop' },
+    { property: function (o: any) { "use strict"; cov_1wjh4ld5ut.f[9]++;cov_1wjh4ld5ut.s[50]++; return o.prop; },  expected: 'prop' },
+    { property: function (o: any) { /* istanbul ignore next */ cov_1wjh4ld5ut.s[50]++; return o.prop; },                                      expected: 'prop' },
+    { property: function (o: any) { /* istanbul ignore next */ cov_1wjh4ld5ut.f[9]++;cov_1wjh4ld5ut.s[50]++; return o.prop; },                expected: 'prop' },
+    { property: function (o: any) { "use strict"; /* istanbul ignore next */ cov_1wjh4ld5ut.s[50]++; return o.prop; },                        expected: 'prop' },
+    { property: function (o: any) { "use strict"; /* istanbul ignore next */ cov_1wjh4ld5ut.f[9]++;cov_1wjh4ld5ut.s[50]++; return o.prop; },  expected: 'prop' },
   ];
+  /* eslint-enable @typescript-eslint/camelcase */
   for(const { property, expected } of positiveDataRows) {
-    it(`parses ${property.toString()} to ${expected}`, function () {
+    it.only(`parses ${property.toString()} to ${expected}`, function () {
       const { parser } = setup();
       assert.deepStrictEqual(parsePropertyName(property, parser), [expected, parser.parse(`${rootObjectSymbol}.${expected}`, BindingType.None)]);
     });

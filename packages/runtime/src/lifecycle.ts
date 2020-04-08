@@ -375,16 +375,22 @@ export interface IViewModel<T extends INode = INode> {
   // eslint-disable-next-line @typescript-eslint/ban-types
   constructor: Function;
   readonly $controller?: IController<T, this>;
+
   beforeBind?(flags: LifecycleFlags): MaybePromiseOrTask;
   afterBind?(flags: LifecycleFlags): void;
   afterBindChildren?(flags: LifecycleFlags): void;
+
   beforeUnbind?(flags: LifecycleFlags): MaybePromiseOrTask;
   afterUnbind?(flags: LifecycleFlags): void;
   afterUnbindChildren?(flags: LifecycleFlags): void;
+
   beforeAttach?(flags: LifecycleFlags): void;
+  afterAttach?(flags: LifecycleFlags): void;
   afterAttachChildren?(flags: LifecycleFlags): void;
+
   beforeDetach?(flags: LifecycleFlags): void;
   afterDetachChildren?(flags: LifecycleFlags): void;
+
   caching?(flags: LifecycleFlags): void;
 }
 

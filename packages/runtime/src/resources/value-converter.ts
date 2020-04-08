@@ -76,7 +76,7 @@ export class ValueConverterDefinition<T extends Constructable = Constructable> i
   public register(container: IContainer): void {
     const { Type, key, aliases } = this;
     Registration.singleton(key, Type).register(container);
-    Registration.alias(key, Type).register(container);
+    Registration.aliasTo(key, Type).register(container);
     registerAliases(aliases, ValueConverter, key, container);
   }
 }

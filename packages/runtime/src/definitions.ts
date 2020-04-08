@@ -256,6 +256,6 @@ export function alias(...aliases: readonly string[]) {
 
 export function registerAliases(aliases: readonly string[], resource: IResourceKind<Constructable, ResourceDefinition>, key: string, container: IContainer) {
   for (let i = 0, ii = aliases.length; i < ii; ++i) {
-    Registration.alias(key, resource.keyFrom(aliases[i])).register(container);
+    Registration.aliasTo(key, resource.keyFrom(aliases[i])).register(container);
   }
 }

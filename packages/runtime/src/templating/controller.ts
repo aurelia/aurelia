@@ -114,6 +114,7 @@ type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
   afterBindChildren(flags: LifecycleFlags): void;
 
   beforeUnbind(flags: LifecycleFlags): MaybePromiseOrTask;
+  afterUnbind(flags: LifecycleFlags): void;
   afterUnbindChildren(flags: LifecycleFlags): void;
 
   beforeAttach(flags: LifecycleFlags): void;
@@ -761,11 +762,11 @@ export class Controller<
     if (this.hooks.hasBeforeUnbind) {
       const ret = (this.bindingContext as BindingContext<T, C>).beforeUnbind(flags);
       if (hasAsyncWork(ret)) {
-        return new ContinuationTask(ret, this.unbindControllers, this, flags);
+        return new ContinuationTask(ret, this.unbindBindings, this, flags);
       }
     }
 
-    return this.unbindControllers(flags);
+    return this.unbindBindings(flags);
   }
 
   private unbindCustomAttribute(flags: LifecycleFlags): ILifecycleTask {
@@ -799,17 +800,23 @@ export class Controller<
     flags |= LifecycleFlags.fromUnbind;
     this.lifecycle.afterUnbindChildren.begin();
 
-    return this.unbindControllers(flags);
+    return this.unbindBindings(flags);
   }
 
-  private unbindBindings(flags: LifecycleFlags): void {
+  private unbindBindings(flags: LifecycleFlags): ILifecycleTask {
     const { bindings } = this;
     if (bindings !== void 0) {
       for (let i = bindings.length - 1; i >= 0; --i) {
         bindings[i].$unbind(flags);
       }
     }
-    this.endUnbind(flags);
+
+    // This can only be a customElement, so we don't need to check the vmKind
+    if (this.hooks.hasAfterUnbind) {
+      (this.bindingContext as BindingContext<T, C>).afterUnbind(flags);
+    }
+
+    return this.unbindControllers(flags);
   }
 
   private unbindControllers(flags: LifecycleFlags): ILifecycleTask {
@@ -831,10 +838,10 @@ export class Controller<
     }
 
     if (tasks === void 0) {
-      this.unbindBindings(flags);
+      this.endUnbind(flags);
       return LifecycleTask.done;
     }
-    return new AggregateContinuationTask(tasks, this.unbindBindings, this, flags);
+    return new AggregateContinuationTask(tasks, this.endUnbind, this, flags);
   }
 
   private endUnbind(flags: LifecycleFlags): void {
@@ -846,6 +853,10 @@ export class Controller<
         if ((this.state & State.hasLockedScope) === 0) {
           this.scope = void 0;
         }
+    }
+    // This can be a customElement or customAttribute. If this is a customElement, bindBindings() will have already called this hook, hence the vmKind check.
+    if (this.hooks.hasAfterBind && this.vmKind === ViewModelKind.customAttribute) {
+      (this.bindingContext as BindingContext<T, C>).afterUnbind(flags);
     }
     if (this.hooks.hasAfterUnbindChildren) {
       this.lifecycle.afterUnbindChildren.add(this);

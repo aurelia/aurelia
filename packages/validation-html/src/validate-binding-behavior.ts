@@ -15,7 +15,7 @@ import {
   BindingBehaviorExpression,
 } from '@aurelia/runtime';
 import { PropertyRule } from '@aurelia/validation';
-import { BindingWithBehavior, IValidationController, ValidationController, BindingInfo } from './validation-controller';
+import { BindingWithBehavior, IValidationController, ValidationController, BindingInfo, ValidationResultsSubscriber, ValidationEvent } from './validation-controller';
 
 /**
  * Validation triggers.
@@ -59,7 +59,7 @@ export const IDefaultTrigger = DI.createInterface<ValidationTrigger>('IDefaultTr
  * Binding behavior. Indicates the bound property should be validated.
  */
 @bindingBehavior('validate')
-export class ValidateBindingBehavior extends BindingInterceptor {
+export class ValidateBindingBehavior extends BindingInterceptor implements ValidationResultsSubscriber {
   private propertyBinding: BindingWithBehavior = (void 0)!;
   private target: HTMLElement = (void 0)!;
   private trigger!: ValidationTrigger;
@@ -76,6 +76,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
   private isDirty: boolean = false;
   private validatedOnce: boolean = false;
   private triggerEvent: 'blur' | 'focusout' | null = null;
+  private bindingInfo!: BindingInfo;
 
   public constructor(
     public readonly binding: BindingWithBehavior,
@@ -149,6 +150,14 @@ export class ValidateBindingBehavior extends BindingInterceptor {
     this.processDelta(new ValidateArgumentsDelta(void 0, void 0, this.ensureRules(newValue)));
   }
 
+  public handleValidationEvent(event: ValidationEvent): void {
+    const triggerEvent = this.triggerEvent;
+    const propertyName = this.bindingInfo.propertyInfo?.propertyName;
+    if (propertyName !== void 0 && triggerEvent !== null && this.isChangeTrigger) {
+      this.validatedOnce = event.addedResults.find((r) => r.result.propertyName === propertyName) !== void 0;
+    }
+  }
+
   private processBindingExpressionArgs(flags: LifecycleFlags): ValidateArgumentsDelta {
     const scope: IScope = this.scope;
     const locator = this.locator;
@@ -190,7 +199,6 @@ export class ValidateBindingBehavior extends BindingInterceptor {
   private validateBinding() {
     this.scheduler.getPostRenderTaskQueue().queueTask(async () => {
       await this.controller.validateBinding(this.propertyBinding);
-      this.validatedOnce = true;
     });
   }
 
@@ -204,6 +212,8 @@ export class ValidateBindingBehavior extends BindingInterceptor {
         this.target.removeEventListener(event, this);
       }
 
+      this.validatedOnce = false;
+      this.isDirty = false;
       this.trigger = trigger;
       this.isChangeTrigger = trigger === ValidationTrigger.change
         || trigger === ValidationTrigger.changeOrBlur
@@ -215,9 +225,12 @@ export class ValidateBindingBehavior extends BindingInterceptor {
       }
     }
     if (this.controller !== controller || rules !== void 0) {
+      this.controller?.removeSubscriber(this);
       this.controller?.unregisterBinding(this.propertyBinding);
+
       this.controller = controller;
-      controller.registerBinding(this.propertyBinding, new BindingInfo(this.target, this.scope, rules));
+      controller.registerBinding(this.propertyBinding, this.setBindingInfo(rules));
+      controller.addSubscriber(this);
     }
   }
 
@@ -282,6 +295,10 @@ export class ValidateBindingBehavior extends BindingInterceptor {
         break;
     }
     return this.triggerEvent = triggerEvent;
+  }
+
+  private setBindingInfo(rules: PropertyRule[] | undefined): BindingInfo {
+    return this.bindingInfo = new BindingInfo(this.target, this.scope, rules);
   }
 }
 

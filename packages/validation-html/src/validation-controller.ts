@@ -143,7 +143,7 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo,
         if (toCachePropertyName) {
           toCachePropertyName = keyExpr?.$kind === ExpressionKind.PrimitiveLiteral;
         }
-        memberName = `[${(keyExpr.evaluate(flags, scope, locator) as any).toString()}]`;
+        memberName = `[${(keyExpr?.evaluate(flags, scope, locator) as any).toString()}]`;
         break;
       }
       default:

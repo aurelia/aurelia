@@ -89,6 +89,10 @@ export class ResolverBuilder<K> {
     return this.registerResolver(ResolverStrategy.callback, value);
   }
 
+  public cachedCallback(value: ResolveCallback<K>): IResolver<K> {
+    return this.registerResolver(ResolverStrategy.callback, cacheCallbackResult(value));
+  }
+
   public aliasTo(destinationKey: Key): IResolver<K> {
     return this.registerResolver(ResolverStrategy.alias, destinationKey);
   }
@@ -205,7 +209,7 @@ export const DI = {
           for (let i = 0; i < len; ++i) {
             auAnnotationParamtype = annotationParamtypes[i];
             if (auAnnotationParamtype !== void 0) {
-              dependencies![i] = auAnnotationParamtype;
+              dependencies[i] = auAnnotationParamtype;
             }
           }
 
@@ -228,8 +232,36 @@ export const DI = {
       Protocol.annotation.appendTo(Type, key);
     }
 
-    return dependencies!;
+    return dependencies;
   },
+  /**
+   * creates a decorator that also matches an interface and can be used as a {@linkcode Key}.
+   * ```
+   * const ILogger = DI.createInterface<Logger>('Logger').noDefault();
+   * container.register(Registration.singleton(ILogger, getSomeLogger()));
+   * const log = container.get(ILogger);
+   * log.info('hello world');
+   * class Foo {
+   *   constructor( @ILogger log: ILogger ) {
+   *     log.info('hello world');
+   *   }
+   * }
+   * ```
+   * you can also build default registrations into your interface.
+   * ```
+   * export const ILogger = DI.createInterface<Logger>('Logger')
+   *        .withDefault( builder => builder.cachedCallback(LoggerDefault));
+   * const log = container.get(ILogger);
+   * log.info('hello world');
+   * class Foo {
+   *   constructor( @ILogger log: ILogger ) {
+   *     log.info('hello world');
+   *   }
+   * }
+   * ```
+   *
+   * @param friendlyName
+   */
   createInterface<K extends Key>(friendlyName?: string): IDefaultableInterfaceSymbol<K> {
     const Interface: InternalDefaultableInterfaceSymbol<K> = function (target: Injectable<K>, property: string, index: number): any {
       if (target == null) {
@@ -1003,22 +1035,121 @@ export class ParameterizedRegistry implements IRegistry {
   }
 }
 
+const cache = new WeakMap<IResolver>();
+
+function cacheCallbackResult<T>(fun: ResolveCallback<T>): ResolveCallback<T> {
+  return function (handler: IContainer, requestor: IContainer, resolver: IResolver): T {
+    if (cache.has(resolver)) {
+      return cache.get(resolver);
+    }
+    const t = fun(handler, requestor, resolver);
+    cache.set(resolver, t);
+    return t;
+  };
+}
+
+/**
+ * you can use the resulting {@linkcode IRegistration} of any of the factory methods
+ * to register with the container, e.g.
+ * ```
+ * class Foo {}
+ * const container = DI.createContainer();
+ * container.register(Registration.instance(Foo, new Foo()));
+ * container.get(Foo);
+ * ```
+ */
 export const Registration = {
+  /**
+   * allows you to pass an instance.
+   * Every time you request this {@linkcode Key} you will get this instance back.
+   * ```
+   * Registration.instance(Foo, new Foo()));
+   * ```
+   *
+   * @param key
+   * @param value
+   */
   instance<T>(key: Key, value: T): IRegistration<T> {
     return new Resolver(key, ResolverStrategy.instance, value);
   },
+  /**
+   * Creates an instance from the class.
+   * Every time you request this {@linkcode Key} you will get the same one back.
+   * ```
+   * Registration.singleton(Foo, Foo);
+   * ```
+   *
+   * @param key
+   * @param value
+   */
   singleton<T extends Constructable>(key: Key, value: T): IRegistration<InstanceType<T>> {
     return new Resolver(key, ResolverStrategy.singleton, value);
   },
+  /**
+   * Creates an instance from a class.
+   * Every time you request this {@linkcode Key} you will get a new instance.
+   * ```
+   * Registration.instance(Foo, Foo);
+   * ```
+   *
+   * @param key
+   * @param value
+   */
   transient<T extends Constructable>(key: Key, value: T): IRegistration<InstanceType<T>> {
     return new Resolver(key, ResolverStrategy.transient, value);
   },
+  /**
+   * Creates an instance from the method passed.
+   * Every time you request this {@linkcode Key} you will get a new instance.
+   * ```
+   * Registration.callback(Foo, () => new Foo());
+   * Registration.callback(Bar, (c: IContainer) => new Bar(c.get(Foo)));
+   * ```
+   *
+   * @param key
+   * @param callback
+   */
   callback<T>(key: Key, callback: ResolveCallback<T>): IRegistration<Resolved<T>> {
     return new Resolver(key, ResolverStrategy.callback, callback);
   },
-  alias<T>(originalKey: T, aliasKey: Key): IRegistration<Resolved<T>> {
+  /**
+   * Creates an instance from the method passed.
+   * On the first request for the {@linkcode Key} your callback is called and returns an instance.
+   * subsequent requests for the {@linkcode Key}, the initial instance returned will be returned.
+   * If you pass the same {@linkcode Registration} to another container the same cached value will be used.
+   * Should all references to the resolver returned be removed, the cache will expire.
+   * ```
+   * Registration.cachedCallback(Foo, () => new Foo());
+   * Registration.cachedCallback(Bar, (c: IContainer) => new Bar(c.get(Foo)));
+   * ```
+   *
+   * @param key
+   * @param callback
+   */
+  cachedCallback<T>(key: Key, callback: ResolveCallback<T>): IRegistration<Resolved<T>> {
+    return new Resolver(key, ResolverStrategy.callback, cacheCallbackResult(callback));
+  },
+  /**
+   * creates an alternate {@linkcode Key} to retrieve an instance by.
+   * Returns the same scope as the original {@linkcode Key}.
+   * ```
+   * Register.singleton(Foo, Foo)
+   * Register.aliasTo(Foo, MyFoos);
+   *
+   * container.getAll(MyFoos) // contains an instance of Foo
+   * ```
+   *
+   * @param originalKey
+   * @param aliasKey
+   */
+  aliasTo<T>(originalKey: T, aliasKey: Key): IRegistration<Resolved<T>> {
     return new Resolver(aliasKey, ResolverStrategy.alias, originalKey);
   },
+  /**
+   * @internal
+   * @param key
+   * @param params
+   */
   defer(key: Key, ...params: unknown[]): IRegistry {
     return new ParameterizedRegistry(key, params);
   }

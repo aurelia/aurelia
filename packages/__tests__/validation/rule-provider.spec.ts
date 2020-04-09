@@ -949,7 +949,7 @@ describe('parsePropertyName', function () {
   ];
   /* eslint-enable @typescript-eslint/camelcase */
   for(const { property, expected } of positiveDataRows) {
-    it.only(`parses ${property.toString()} to ${expected}`, function () {
+    it(`parses ${property.toString()} to ${expected}`, function () {
       const { parser } = setup();
       assert.deepStrictEqual(parsePropertyName(property, parser), [expected, parser.parse(`${rootObjectSymbol}.${expected}`, BindingType.None)]);
     });

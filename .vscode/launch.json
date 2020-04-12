@@ -25,6 +25,61 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Launch current mocha test",
+      "runtimeArgs": [
+        "mocha"
+      ],
+      "outputCapture": "std",
+      "runtimeExecutable": "npx",
+      "args": [
+        "${workspaceRoot}/packages/__tests__/setup-node.ts",
+        "${file}",
+        "--color",
+        "--require",
+        "source-map-support/register",
+        "--require",
+        "ts-node/register",
+        "--require",
+        "esm",
+        "--globals",
+        "expect",
+        "--timeout",
+        "999999",
+      ],
+      "cwd": "${workspaceRoot}",
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch mocha kernel tests",
+      "runtimeArgs": [
+        "mocha"
+      ],
+      "outputCapture": "std",
+      "runtimeExecutable": "npx",
+      "args": [
+        "${workspaceRoot}/packages/__tests__/setup-node.ts",
+        "${workspaceRoot}/packages/__tests__/1-kernel",
+        "--color",
+        "--require",
+        "source-map-support/register",
+        "--require",
+        "ts-node/register",
+        "--require",
+        "esm",
+        "--recursive",
+        "--globals",
+        "expect",
+        "--timeout",
+        "999999"
+      ],
+      "cwd": "${workspaceRoot}",
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Launch mocha runtime tests",
       "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
       "env": {

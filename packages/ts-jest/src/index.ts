@@ -32,11 +32,13 @@ function createTransformer(conventionsOptions = {}) {
     );
     let newSourcePath = sourcePath;
     if (result !== undefined) {
+      let newCode = result.code;
       if (au2Options.templateExtensions.includes(path.extname(sourcePath))) {
-        // Rewrite foo.html to foo.html.js, or foo.md to foo.md.js
-        newSourcePath += '.js';
+        // Rewrite foo.html to foo.html.ts, or foo.md to foo.md.ts
+        newSourcePath += '.ts';
+        newCode = '// @ts-nocheck\n' + newCode;
       }
-      return tsTransformer.process(result.code, newSourcePath, config, transformOptions);
+      return tsTransformer.process(newCode, newSourcePath, config, transformOptions);
     }
     return tsTransformer.process(sourceText, sourcePath, config, transformOptions);
   }

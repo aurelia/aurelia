@@ -8,8 +8,8 @@ import { Config } from '@jest/types';
 import { TransformOptions, TransformedSource, CacheKeyOptions } from '@jest/transform';
 import * as path from 'path';
 
-function createTransformer(conventionsOptions = {}) {
-  const au2Options = preprocessOptions(conventionsOptions);
+function createTransformer(conventionsOptions: any = {}) {
+  const au2Options = preprocessOptions(conventionsOptions as IOptionalPreprocessOptions);
 
   function getCacheKey(
     fileData: string,

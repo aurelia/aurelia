@@ -40,6 +40,7 @@
     "packages/validation-i18n",
     "packages/web-components",
     "packages/webpack-loader",
+    "packages/babel-jest",
     "test/1kcomponents",
     "test/browserstack",
     "test/cypress",

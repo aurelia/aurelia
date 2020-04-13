@@ -33,6 +33,7 @@
     { "path": "testing" },
     { "path": "validation" },
     { "path": "web-components" },
-    { "path": "webpack-loader" }
+    { "path": "webpack-loader" },
+    { "path": "babel-jest" }
   ]
 }

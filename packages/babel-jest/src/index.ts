@@ -28,21 +28,17 @@ function createTransformer(conventionsOptions = {}) {
     config: Config.ProjectConfig,
     transformOptions?: TransformOptions
   ): TransformedSource {
-    try {
-      const result = preprocess(
-        { path: sourcePath, contents: sourceText },
-        au2Options
-      );
-      let newSourcePath = sourcePath;
-      if (result !== undefined) {
-        if (au2Options.templateExtensions.includes(path.extname(sourcePath))) {
-          // Rewrite foo.html to foo.html.js, or foo.md to foo.md.js
-          newSourcePath += '.js';
-        }
-        return babelProcess(result.code, newSourcePath, config, transformOptions);
+    const result = preprocess(
+      { path: sourcePath, contents: sourceText },
+      au2Options
+    );
+    let newSourcePath = sourcePath;
+    if (result !== undefined) {
+      if (au2Options.templateExtensions.includes(path.extname(sourcePath))) {
+        // Rewrite foo.html to foo.html.js, or foo.md to foo.md.js
+        newSourcePath += '.js';
       }
-    } catch (e) {
-      // ignore
+      return babelProcess(result.code, newSourcePath, config, transformOptions);
     }
     return babelProcess(sourceText, sourcePath, config, transformOptions);
   }

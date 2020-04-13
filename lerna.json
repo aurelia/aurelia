@@ -41,6 +41,7 @@
     "packages/web-components",
     "packages/webpack-loader",
     "packages/babel-jest",
+    "packages/ts-jest",
     "test/1kcomponents",
     "test/browserstack",
     "test/cypress",

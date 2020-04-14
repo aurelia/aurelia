@@ -43,10 +43,10 @@ export interface ICustomMessage<TRule extends IValidationRule = IValidationRule>
 }
 
 /* @internal */
-export const ICustomMessages = DI.createInterface<ICustomMessage[]>("ICustomMessages").noDefault();
+export const ICustomMessages = DI.createInterface<ICustomMessage[]>('ICustomMessages').noDefault();
 
 export class RuleProperty implements IRuleProperty {
-  public static $TYPE: string = "RuleProperty";
+  public static $TYPE: string = 'RuleProperty';
   public constructor(
     public expression?: IsBindingBehavior,
     public name: string | number | undefined = void 0,
@@ -107,7 +107,7 @@ class ValidationMessageEvaluationContext {
   }
 }
 export class PropertyRule<TObject extends IValidateable = IValidateable, TValue = unknown> implements IPropertyRule {
-  public static readonly $TYPE: string = "PropertyRule";
+  public static readonly $TYPE: string = 'PropertyRule';
   private latestRule?: IValidationRule;
 
   public constructor(
@@ -530,9 +530,9 @@ export type PropertyAccessor<TObject extends IValidateable = IValidateable, TVal
 export function parsePropertyName(property: string | PropertyAccessor, parser: IExpressionParser): [string, IsBindingBehavior] {
 
   switch (typeof property) {
-    case "string":
+    case 'string':
       break;
-    case "function": {
+    case 'function': {
       const fn = property.toString();
       const match = arrowAccessorPattern.exec(fn) ?? classicAccessorPattern.exec(fn);
       if (match === null) {
@@ -585,12 +585,12 @@ export class ValidationResult<TRule extends IValidationRule = IValidationRule> {
 }
 
 const contextualProperties: Readonly<Set<string>> = new Set([
-  "displayName",
-  "propertyName",
-  "value",
-  "object",
-  "config",
-  "getDisplayName"
+  'displayName',
+  'propertyName',
+  'value',
+  'object',
+  'config',
+  'getDisplayName'
 ]);
 
 export class ValidationMessageProvider implements IValidationMessageProvider {

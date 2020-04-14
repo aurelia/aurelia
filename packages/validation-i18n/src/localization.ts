@@ -1,8 +1,8 @@
-import { I18N, Signals } from "@aurelia/i18n";
+import { I18N, Signals } from '@aurelia/i18n';
 import { DI, EventAggregator, IContainer, IDisposable, IEventAggregator, ILogger, Key } from '@aurelia/kernel';
 import { IExpressionParser, IInterpolationExpression, IScheduler, PrimitiveLiteralExpression } from '@aurelia/runtime';
-import { IValidationRule, IValidator, ValidationMessageProvider } from "@aurelia/validation";
-import { IValidationController, ValidationController, ValidationControllerFactory, ValidationHtmlCustomizationOptions } from "@aurelia/validation-html";
+import { IValidationRule, IValidator, ValidationMessageProvider } from '@aurelia/validation';
+import { IValidationController, ValidationController, ValidationControllerFactory, ValidationHtmlCustomizationOptions } from '@aurelia/validation-html';
 
 const I18N_VALIDATION_EA_CHANNEL = 'i18n:locale:changed:validation';
 

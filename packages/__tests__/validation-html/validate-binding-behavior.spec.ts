@@ -40,7 +40,7 @@ import { createSpecFunction, TestFunction, TestExecutionContext, ToNumberValueCo
 describe('validate-binding-behavior', function () {
   const $atob = typeof atob === 'function' ? atob : (b64: string) => Buffer.from(b64, 'base64').toString();
   const $btoa = typeof btoa === 'function' ? btoa : (plainText: string) => Buffer.from(plainText).toString('base64');
-  const IObserveCollection = DI.createInterface("IObserveCollection");
+  const IObserveCollection = DI.createInterface('IObserveCollection');
 
   class App {
     public validatableProp: string = (void 0)!;
@@ -172,16 +172,16 @@ describe('validate-binding-behavior', function () {
   class EmployeeList {
     @bindable public employees: Person[];
     private readonly names: string[] = [
-      "Brigida Brayboy",
-      "Anya Dinapoli",
-      "Warren Asberry",
-      "Rudy Melone",
-      "Alexis Kinnaird",
-      "Lisa Goines",
-      "Carson Boyce",
-      "Carolann Rosales",
-      "Fabiola Jacome",
-      "Leoma Metro",
+      'Brigida Brayboy',
+      'Anya Dinapoli',
+      'Warren Asberry',
+      'Rudy Melone',
+      'Alexis Kinnaird',
+      'Lisa Goines',
+      'Carson Boyce',
+      'Carolann Rosales',
+      'Fabiola Jacome',
+      'Leoma Metro',
     ];
 
     private createPerson() {
@@ -261,9 +261,9 @@ describe('validate-binding-behavior', function () {
     public constructor(@IValidationRules validationRules: IValidationRules) {
       validationRules
         .on(this.person)
-        .ensure("name")
-        .satisfies((name) => name === "foo")
-        .withMessage("Not foo");
+        .ensure('name')
+        .satisfies((name) => name === 'foo')
+        .withMessage('Not foo');
     }
   }
   interface TestSetupContext {
@@ -329,8 +329,8 @@ describe('validate-binding-behavior', function () {
     validateSpy.calls.splice(0);
     target.dispatchEvent(new ctx.Event(event, { bubbles: event === 'focusout' }));
     await scheduler.yieldAll(10);
-    assert.equal(validateBindingSpy.calls.length, callCount, "incorrect validateBinding calls");
-    assert.equal(validateSpy.calls.length, callCount, "incorrect validate calls");
+    assert.equal(validateBindingSpy.calls.length, callCount, 'incorrect validateBinding calls');
+    assert.equal(validateSpy.calls.length, callCount, 'incorrect validate calls');
   }
 
   // #region trigger
@@ -338,7 +338,7 @@ describe('validate-binding-behavior', function () {
     async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
 
-      const target: HTMLInputElement = host.querySelector("#target");
+      const target: HTMLInputElement = host.querySelector('#target');
       assertControllerBinding(controller, 'person.name', target, app.controllerRegisterBindingSpy);
 
       assert.equal(controller.results.filter((r) => !r.valid).length, 0, 'error1');
@@ -357,7 +357,7 @@ describe('validate-binding-behavior', function () {
     async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
 
-      const target: HTMLInputElement = host.querySelector("#target");
+      const target: HTMLInputElement = host.querySelector('#target');
       assertControllerBinding(controller, 'person.name', target, app.controllerRegisterBindingSpy);
 
       assert.equal(controller.results.filter((r) => !r.valid).length, 0, 'error1');
@@ -376,7 +376,7 @@ describe('validate-binding-behavior', function () {
     async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
 
-      const target: HTMLInputElement = host.querySelector("#target");
+      const target: HTMLInputElement = host.querySelector('#target');
       assertControllerBinding(controller, 'person.name', target, app.controllerRegisterBindingSpy);
 
       assert.equal(controller.results.filter((r) => !r.valid).length, 0, 'error1');
@@ -400,7 +400,7 @@ describe('validate-binding-behavior', function () {
       async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
         const controller = app.controller;
 
-        const target: HTMLInputElement = host.querySelector("#target");
+        const target: HTMLInputElement = host.querySelector('#target');
         assertControllerBinding(controller, 'person.age|toNumber', target, app.controllerRegisterBindingSpy);
 
         // the first focus loss w/o change (dirty) does not trigger validation
@@ -424,7 +424,7 @@ describe('validate-binding-behavior', function () {
       async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
         const controller = app.controller;
 
-        const target: HTMLInputElement = host.querySelector("#target");
+        const target: HTMLInputElement = host.querySelector('#target');
         assertControllerBinding(controller, 'person.age|toNumber', target, app.controllerRegisterBindingSpy);
 
         await controller.validate();
@@ -446,7 +446,7 @@ describe('validate-binding-behavior', function () {
     async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
 
-      const target: HTMLInputElement = host.querySelector("#target");
+      const target: HTMLInputElement = host.querySelector('#target');
       assertControllerBinding(controller, 'person.name', target, app.controllerRegisterBindingSpy);
 
       app.clearControllerCalls();
@@ -471,7 +471,7 @@ describe('validate-binding-behavior', function () {
     async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
 
-      const target: HTMLInputElement = host.querySelector("#target");
+      const target: HTMLInputElement = host.querySelector('#target');
       assertControllerBinding(controller, 'person.name', target, app.controllerRegisterBindingSpy);
 
       assert.equal(app.trigger, ValidationTrigger.change);
@@ -524,8 +524,8 @@ describe('validate-binding-behavior', function () {
       const controller = app.controller;
       const controller2 = app.controller2;
 
-      const target1: HTMLInputElement = host.querySelector("#target1");
-      const target2: HTMLInputElement = host.querySelector("#target2");
+      const target1: HTMLInputElement = host.querySelector('#target1');
+      const target2: HTMLInputElement = host.querySelector('#target2');
       assertControllerBinding(controller, 'person.name', target1, app.controllerRegisterBindingSpy);
       assertControllerBinding(controller2, 'person.age', target2, app.controller2RegisterBindingSpy);
 
@@ -550,7 +550,7 @@ describe('validate-binding-behavior', function () {
       const controller = app.controller;
       const controller2 = app.controller2;
 
-      const target1: HTMLInputElement = host.querySelector("#target1");
+      const target1: HTMLInputElement = host.querySelector('#target1');
       assertControllerBinding(controller, 'person.name', target1, app.controllerRegisterBindingSpy);
 
       await assertEventHandler(target1, 'blur', 1, scheduler, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
@@ -577,8 +577,8 @@ describe('validate-binding-behavior', function () {
       const controller = app.controller;
       const controller2 = app.controller2;
 
-      const target1: HTMLInputElement = host.querySelector("#target1");
-      const target2: HTMLInputElement = host.querySelector("#target2");
+      const target1: HTMLInputElement = host.querySelector('#target1');
+      const target2: HTMLInputElement = host.querySelector('#target2');
       assertControllerBinding(controller, 'person.name', target1, app.controllerRegisterBindingSpy);
       assertControllerBinding(controller2, 'person.age', target2, app.controller2RegisterBindingSpy);
 
@@ -607,7 +607,7 @@ describe('validate-binding-behavior', function () {
     async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
 
-      const target2: HTMLInputElement = host.querySelector("#target2");
+      const target2: HTMLInputElement = host.querySelector('#target2');
       assertControllerBinding(controller, 'person.age', target2, app.controllerRegisterBindingSpy);
 
       target2.value = '41';
@@ -628,7 +628,7 @@ describe('validate-binding-behavior', function () {
     async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
 
-      const target2: HTMLInputElement = host.querySelector("#target2");
+      const target2: HTMLInputElement = host.querySelector('#target2');
       assertControllerBinding(controller, 'person.age', target2, app.controllerRegisterBindingSpy);
 
       target2.value = '41';
@@ -709,8 +709,8 @@ describe('validate-binding-behavior', function () {
       const controller = app.controller;
       const person = app.person;
 
-      const ceHost: HTMLElement = host.querySelector("#target");
-      const input: HTMLInputElement = ceHost.querySelector("input");
+      const ceHost: HTMLElement = host.querySelector('#target');
+      const input: HTMLInputElement = ceHost.querySelector('input');
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
       await controller.validate();
@@ -727,7 +727,7 @@ describe('validate-binding-behavior', function () {
       const controller = app.controller;
       const person = app.person;
 
-      const ceHost: HTMLElement = host.querySelector("#target");
+      const ceHost: HTMLElement = host.querySelector('#target');
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
       await controller.validate();
@@ -754,8 +754,8 @@ describe('validate-binding-behavior', function () {
       const controller = app.controller;
       const person = app.person;
 
-      const ceHost: HTMLElement = host.querySelector("#target");
-      const input: HTMLInputElement = ceHost.querySelector("input");
+      const ceHost: HTMLElement = host.querySelector('#target');
+      const input: HTMLInputElement = ceHost.querySelector('input');
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
       await controller.validate();
@@ -776,8 +776,8 @@ describe('validate-binding-behavior', function () {
       const controller = app.controller;
       const person = app.person;
 
-      const ceHost: HTMLElement = host.querySelector("#target");
-      const input: HTMLInputElement = ceHost.querySelector("input");
+      const ceHost: HTMLElement = host.querySelector('#target');
+      const input: HTMLInputElement = ceHost.querySelector('input');
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
       await controller.validate();
@@ -800,8 +800,8 @@ describe('validate-binding-behavior', function () {
       const controller = app.controller;
       const person = app.person;
 
-      const ceHost: HTMLElement = host.querySelector("#target");
-      const input: HTMLInputElement = ceHost.querySelector("input");
+      const ceHost: HTMLElement = host.querySelector('#target');
+      const input: HTMLInputElement = ceHost.querySelector('input');
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
       await controller.validate();
@@ -821,8 +821,8 @@ describe('validate-binding-behavior', function () {
       const controller = app.controller;
       const person = app.person;
 
-      const ceHost: HTMLElement = host.querySelector("#target");
-      const input: HTMLInputElement = ceHost.querySelector("input");
+      const ceHost: HTMLElement = host.querySelector('#target');
+      const input: HTMLInputElement = ceHost.querySelector('input');
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
       await controller.validate();
@@ -848,7 +848,7 @@ describe('validate-binding-behavior', function () {
       const controller = app.controller;
       const person = app.person;
 
-      const caHost: HTMLDivElement = host.querySelector("#target");
+      const caHost: HTMLDivElement = host.querySelector('#target');
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
       await controller.validate();
@@ -868,7 +868,7 @@ describe('validate-binding-behavior', function () {
       const controller = app.controller;
       const person = app.person;
 
-      const caHost: HTMLDivElement = host.querySelector("#target");
+      const caHost: HTMLDivElement = host.querySelector('#target');
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
       await controller.validate();
@@ -887,7 +887,7 @@ describe('validate-binding-behavior', function () {
       const controller = app.controller;
       const person = app.person;
 
-      const caHost: HTMLDivElement = host.querySelector("#target");
+      const caHost: HTMLDivElement = host.querySelector('#target');
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
       await controller.validate();
@@ -906,7 +906,7 @@ describe('validate-binding-behavior', function () {
       const controller = app.controller;
       const person = app.person;
 
-      const caHost: HTMLDivElement = host.querySelector("#target");
+      const caHost: HTMLDivElement = host.querySelector('#target');
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
       await controller.validate();
@@ -932,7 +932,7 @@ describe('validate-binding-behavior', function () {
       const controller = app.controller;
       const person = app.person;
 
-      const caHost: HTMLDivElement = host.querySelector("#target");
+      const caHost: HTMLDivElement = host.querySelector('#target');
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
       await controller.validate();
@@ -956,7 +956,7 @@ describe('validate-binding-behavior', function () {
       const controller = app.controller;
       const person = app.person;
 
-      const caHost: HTMLDivElement = host.querySelector("#target");
+      const caHost: HTMLDivElement = host.querySelector('#target');
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error1');
       await controller.validate();
@@ -987,7 +987,7 @@ describe('validate-binding-behavior', function () {
       const controller = app.controller;
       const person = app.person;
 
-      const target: HTMLInputElement = host.querySelector("#target");
+      const target: HTMLInputElement = host.querySelector('#target');
       assertControllerBinding(controller, 'person.age|toNumber', target, app.controllerRegisterBindingSpy);
 
       assert.equal(controller.results.filter((r) => !r.valid).length, 0, 'error1');
@@ -1011,7 +1011,7 @@ describe('validate-binding-behavior', function () {
       const controller = app.controller;
       const person = app.person;
 
-      const target: HTMLInputElement = host.querySelector("#target");
+      const target: HTMLInputElement = host.querySelector('#target');
       assertControllerBinding(controller, 'person.age|toNumber|b64ToPlainText', target, app.controllerRegisterBindingSpy);
 
       assert.equal(controller.results.filter((r) => !r.valid).length, 0, 'error1');
@@ -1047,7 +1047,7 @@ describe('validate-binding-behavior', function () {
       async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
         const controller = app.controller;
 
-        const target: HTMLInputElement = host.querySelector("#target");
+        const target: HTMLInputElement = host.querySelector('#target');
         assertControllerBinding(controller, rawExpr, target, app.controllerRegisterBindingSpy);
 
         assert.equal(controller.results.filter((r) => !r.valid).length, 0, 'error1');
@@ -1067,7 +1067,7 @@ describe('validate-binding-behavior', function () {
     async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
 
-      const target: HTMLInputElement = host.querySelector("#target");
+      const target: HTMLInputElement = host.querySelector('#target');
       assertControllerBinding(controller, 'validatableProp', target, app.controllerRegisterBindingSpy);
 
       assert.equal(controller.results.filter((r) => !r.valid).length, 0, 'error1');
@@ -1085,7 +1085,7 @@ describe('validate-binding-behavior', function () {
     async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
 
-      const target: HTMLInputElement = host.querySelector("#target");
+      const target: HTMLInputElement = host.querySelector('#target');
       assert.equal(app.controllerRegisterBindingSpy.calls.length, 1);
       const bindings = Array.from((controller['bindings'] as Map<IBinding, any>).keys()) as BindingWithBehavior[];
       assert.equal(bindings.length, 1);
@@ -1117,9 +1117,9 @@ describe('validate-binding-behavior', function () {
     async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
 
-      assert.equal(!!app.employeesMediator, true, "mediator should have been instantiated");
-      assert.equal(!!app.employeeObserver, true, "observer should have been instantiated");
-      const target: HTMLInputElement = host.querySelector("#target");
+      assert.equal(!!app.employeesMediator, true, 'mediator should have been instantiated');
+      assert.equal(!!app.employeeObserver, true, 'observer should have been instantiated');
+      const target: HTMLInputElement = host.querySelector('#target');
       assert.equal(app.controllerRegisterBindingSpy.calls.length, 1);
       const bindings = Array.from((controller['bindings'] as Map<IBinding, any>).keys()) as BindingWithBehavior[];
       assert.equal(bindings.length, 1);
@@ -1151,8 +1151,8 @@ describe('validate-binding-behavior', function () {
     async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
 
-      const target1: HTMLInputElement = host.querySelector("#target1");
-      const target2: HTMLInputElement = host.querySelector("#target2");
+      const target1: HTMLInputElement = host.querySelector('#target1');
+      const target2: HTMLInputElement = host.querySelector('#target2');
 
       assert.equal(app.controllerRegisterBindingSpy.calls.length, 2);
       const bindings = Array.from((controller['bindings'] as Map<IBinding, any>).keys()) as BindingWithBehavior[];
@@ -1192,7 +1192,7 @@ describe('validate-binding-behavior', function () {
       person.address = { pin: 'foobar' as unknown as number, city: 'foobar', line1: 'foobar' };
       await scheduler.yieldAll();
 
-      const target: HTMLInputElement = host.querySelector("#target");
+      const target: HTMLInputElement = host.querySelector('#target');
       assertControllerBinding(controller, 'person.address.pin|toNumber', target, app.controllerRegisterBindingSpy);
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'address.pin').length, 0, 'error1');
@@ -1211,7 +1211,7 @@ describe('validate-binding-behavior', function () {
     async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
 
-      const target: HTMLInputElement = host.querySelector("#target");
+      const target: HTMLInputElement = host.querySelector('#target');
       assertControllerBinding(controller, 'person.address.pin|toNumber', target, app.controllerRegisterBindingSpy);
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'address.pin').length, 0, 'error1');
@@ -1233,7 +1233,7 @@ describe('validate-binding-behavior', function () {
       org.employees.push(new Person((void 0)!, (void 0)!, { pin: 'foobar' as unknown as number, city: 'foobar', line1: 'foobar' }));
       await scheduler.yieldAll();
 
-      const target: HTMLInputElement = host.querySelector("#target");
+      const target: HTMLInputElement = host.querySelector('#target');
       assertControllerBinding(controller, 'org.employees[(0)].address.pin|toNumber', target, app.controllerRegisterBindingSpy);
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'employees[0].address.pin').length, 0, 'error1');
@@ -1255,12 +1255,12 @@ describe('validate-binding-behavior', function () {
     async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
 
-      const target: HTMLInputElement = host.querySelector("editor #target");
+      const target: HTMLInputElement = host.querySelector('editor #target');
       assertControllerBinding(controller, 'person.name', target, app.controllerRegisterBindingSpy);
 
       assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
       await controller.validate();
-      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), ["Not foo"]);
+      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), ['Not foo']);
 
       target.value = 'foo';
       await assertEventHandler(target, 'change', 0, scheduler, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
@@ -1276,12 +1276,12 @@ describe('validate-binding-behavior', function () {
     async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
 
-      const target: HTMLInputElement = host.querySelector("editor #target");
+      const target: HTMLInputElement = host.querySelector('editor #target');
       assertControllerBinding(controller, 'person.name', target, app.controllerRegisterBindingSpy);
 
       assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
       await controller.validate();
-      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), ["Name is required."]);
+      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), ['Name is required.']);
 
       target.value = 'foo';
       await assertEventHandler(target, 'change', 0, scheduler, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
@@ -1375,7 +1375,7 @@ describe('validate-binding-behavior', function () {
     const controller = app.controller;
     const scheduler = container.get(IScheduler);
 
-    const target: HTMLInputElement = host.querySelector("#target");
+    const target: HTMLInputElement = host.querySelector('#target');
     assertControllerBinding(controller, 'person.name', target, app.controllerRegisterBindingSpy);
 
     assert.equal(controller.results.filter((r) => !r.valid).length, 0, 'error1');

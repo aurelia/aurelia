@@ -11,13 +11,13 @@ import {
   ValidationHtmlConfiguration,
   ValidationResultsSubscriber,
   ValidationResultPresenterService,
-} from "@aurelia/validation-html";
+} from '@aurelia/validation-html';
 import { Person } from '../../validation/_test-resources';
 import { TestFunction, TestExecutionContext, ToNumberValueConverter, createSpecFunction } from '../../util';
 
 describe('validation-result-presenter-service', function () {
 
-  const IValidationResultPresenterService = DI.createInterface<ValidationResultPresenterService>("ValidationResultPresenterService").noDefault();
+  const IValidationResultPresenterService = DI.createInterface<ValidationResultPresenterService>('ValidationResultPresenterService').noDefault();
 
   class App {
     public person: Person = new Person((void 0)!, (void 0)!);
@@ -29,7 +29,7 @@ describe('validation-result-presenter-service', function () {
       @IValidationResultPresenterService public presenterService: ValidationResultPresenterService,
       @IValidationRules private readonly validationRules: IValidationRules,
     ) {
-      this.controllerValidateSpy = createSpy(controller, "validate", true);
+      this.controllerValidateSpy = createSpy(controller, 'validate', true);
       controller.addSubscriber(presenterService);
       validationRules
         .on(this.person)

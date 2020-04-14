@@ -24,32 +24,32 @@ export enum ValidationTrigger {
   /**
    * Manual validation.  Use the controller's `validate()` and  `reset()` methods to validate all bindings.
    */
-  manual = "manual",
+  manual = 'manual',
 
   /**
-   * Validate the binding when the binding's target element fires a DOM "blur" event.
+   * Validate the binding when the binding's target element fires a DOM 'blur' event.
    */
-  blur = "blur",
+  blur = 'blur',
 
   /**
-   * Validate the binding when the binding's target element fires a DOM "focusout" event.
+   * Validate the binding when the binding's target element fires a DOM 'focusout' event.
    */
-  focusout = "focusout",
+  focusout = 'focusout',
 
   /**
    * Validate the binding when it updates the model due to a change in the source property (usually triggered by some change in view)
    */
-  change = "change",
+  change = 'change',
 
   /**
-   * Validate the binding when the binding's target element fires a DOM "blur" event and when it updates the model due to a change in the view.
+   * Validate the binding when the binding's target element fires a DOM 'blur' event and when it updates the model due to a change in the view.
    */
-  changeOrBlur = "changeOrBlur",
+  changeOrBlur = 'changeOrBlur',
 
   /**
-   * Validate the binding when the binding's target element fires a DOM "focusout" event and when it updates the model due to a change in the view.
+   * Validate the binding when the binding's target element fires a DOM 'focusout' event and when it updates the model due to a change in the view.
    */
-  changeOrFocusout = "changeOrFocusout",
+  changeOrFocusout = 'changeOrFocusout',
 }
 
 /* @internal */

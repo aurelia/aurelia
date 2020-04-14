@@ -10,7 +10,7 @@ import {
   ValidationController,
   ValidationErrorsCustomAttribute,
   ValidationResultsSubscriber,
-} from "@aurelia/validation-html";
+} from '@aurelia/validation-html';
 import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../../util';
 import { Person } from '../../validation/_test-resources';
 
@@ -28,10 +28,10 @@ describe('validation-errors-custom-attribute', function () {
       @newInstanceOf(IValidationController) public controller2: ValidationController,
       @IValidationRules private readonly validationRules: IValidationRules,
     ) {
-      this.controllerValidateSpy = createSpy(controller, "validate", true);
-      this.controllerRemoveSubscriberSpy = createSpy(controller, "removeSubscriber", true);
-      this.controller2ValidateSpy = createSpy(controller2, "validate", true);
-      this.controller2RemoveSubscriberSpy = createSpy(controller2, "removeSubscriber", true);
+      this.controllerValidateSpy = createSpy(controller, 'validate', true);
+      this.controllerRemoveSubscriberSpy = createSpy(controller, 'removeSubscriber', true);
+      this.controller2ValidateSpy = createSpy(controller2, 'validate', true);
+      this.controller2RemoveSubscriberSpy = createSpy(controller2, 'removeSubscriber', true);
       validationRules
         .on(this.person)
 
@@ -139,7 +139,7 @@ describe('validation-errors-custom-attribute', function () {
       const target2 = div2.querySelector('#target2') as HTMLInputElement;
 
       await assertEventHandler(target1, scheduler, controllerValidateSpy, spy1, ctx);
-      target2.value = "foo";
+      target2.value = 'foo';
       target2.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);
       await assertEventHandler(target2, scheduler, controllerValidateSpy, spy2, ctx);
@@ -164,12 +164,12 @@ describe('validation-errors-custom-attribute', function () {
       );
 
       // assert that errors are removed
-      target1.value = "foo";
+      target1.value = 'foo';
       target1.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);
       await assertEventHandler(target1, scheduler, controllerValidateSpy, spy1, ctx);
 
-      target2.value = "15";
+      target2.value = '15';
       target2.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);
       await assertEventHandler(target2, scheduler, controllerValidateSpy, spy2, ctx);
@@ -211,7 +211,7 @@ describe('validation-errors-custom-attribute', function () {
       const target2 = div.querySelector('#target2') as HTMLInputElement;
 
       await assertEventHandler(target1, scheduler, controllerValidateSpy, spy, ctx);
-      target2.value = "foo";
+      target2.value = 'foo';
       target2.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);
       await assertEventHandler(target2, scheduler, controllerValidateSpy, spy, ctx);
@@ -259,7 +259,7 @@ describe('validation-errors-custom-attribute', function () {
       const target2 = div2.querySelector('#target2') as HTMLInputElement;
 
       await assertEventHandler(target1, scheduler, controllerValidateSpy, spy1, ctx);
-      target2.value = "foo";
+      target2.value = 'foo';
       target2.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);
       await assertEventHandler(target2, scheduler, controller2ValidateSpy, spy2, ctx);
@@ -284,12 +284,12 @@ describe('validation-errors-custom-attribute', function () {
       );
 
       // assert that errors are removed
-      target1.value = "foo";
+      target1.value = 'foo';
       target1.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);
       await assertEventHandler(target1, scheduler, controllerValidateSpy, spy1, ctx);
 
-      target2.value = "15";
+      target2.value = '15';
       target2.dispatchEvent(new ctx.Event('change'));
       await scheduler.yieldAll(10);
       await assertEventHandler(target2, scheduler, controller2ValidateSpy, spy2, ctx);
@@ -405,8 +405,8 @@ describe('validation-errors-custom-attribute', function () {
 
     // assert that things are correctly wired up
     assertSubscriber(controller, ca1);
-    assert.equal(ca1["scopedController"], null);
-    assert.notEqual(ca1["scopedController"], controller);
+    assert.equal(ca1['scopedController'], null);
+    assert.notEqual(ca1['scopedController'], controller);
 
     const target1 = div1.querySelector('#target1') as HTMLInputElement;
 
@@ -422,7 +422,7 @@ describe('validation-errors-custom-attribute', function () {
     assert.html.textContent(div1.querySelector('span.error'), 'Name is required.');
 
     // assert that errors are removed
-    target1.value = "foo";
+    target1.value = 'foo';
     target1.dispatchEvent(new ctx.Event('change'));
     await scheduler.yieldAll(10);
     await assertEventHandler(target1, scheduler, controllerValidateSpy, spy1, ctx);

@@ -2,7 +2,7 @@ import { IContainer, PLATFORM, Registration } from '@aurelia/kernel';
 import { IValidationHydrator } from './rule-interfaces';
 import { ICustomMessages, IValidationRules, ValidationMessageProvider, ValidationRules } from './rule-provider';
 import { IValidationMessageProvider } from './rules';
-import { ModelValidationHydrator, ValidationDeserializer } from "./serialization";
+import { ModelValidationHydrator, ValidationDeserializer } from './serialization';
 import { ValidationCustomizationOptions } from './validation-customization-options';
 import { IValidator, StandardValidator } from './validator';
 

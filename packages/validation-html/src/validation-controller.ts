@@ -127,7 +127,7 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo,
   let expression = binding.sourceExpression.expression as IsBindingBehavior;
   const locator = binding.locator;
   let toCachePropertyName = true;
-  let propertyName: string = "";
+  let propertyName: string = '';
   while (expression !== void 0 && expression?.$kind !== ExpressionKind.AccessScope) {
     let memberName: string;
     switch (expression.$kind) {
@@ -287,7 +287,7 @@ export interface IValidationController {
    */
   reset(instruction?: ValidateInstruction): void;
 }
-export const IValidationController = DI.createInterface<IValidationController>("IValidationController").noDefault();
+export const IValidationController = DI.createInterface<IValidationController>('IValidationController').noDefault();
 
 export class ValidationController implements IValidationController {
 

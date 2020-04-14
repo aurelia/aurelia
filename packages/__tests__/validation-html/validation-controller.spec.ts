@@ -1,23 +1,23 @@
 /* eslint-disable mocha/no-hooks, mocha/no-sibling-hooks */
-import { IContainer, Registration, newInstanceForScope } from '@aurelia/kernel';
+import { newInstanceForScope } from '@aurelia/kernel';
 import { Aurelia, CustomElement, IScheduler, customElement } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import {
-  ControllerValidateResult,
-  IValidationController,
   IValidationRules,
   PropertyRule,
-  ValidateEventKind,
   ValidateInstruction,
-  ValidationConfiguration,
-  ValidationController,
-  ValidationControllerFactory,
-  ValidationResultsSubscriber,
-  ValidationEvent
 } from '@aurelia/validation';
-import { Spy } from '../Spy';
+import {
+  ControllerValidateResult,
+  IValidationController,
+  ValidateEventKind,
+  ValidationController,
+  ValidationResultsSubscriber,
+  ValidationEvent,
+  ValidationHtmlConfiguration,
+} from '@aurelia/validation-html';
 import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../util';
-import { Person } from './_test-resources';
+import { Person } from '../validation/_test-resources';
 
 describe('validation controller factory', function () {
   @customElement({
@@ -81,7 +81,7 @@ describe('validation controller factory', function () {
     const au = new Aurelia(container);
     await au
       .register(
-        ValidationConfiguration,
+        ValidationHtmlConfiguration,
         VcRoot,
         NewVcRoot,
         CustomStuff1,
@@ -134,20 +134,12 @@ describe('validation-controller', function () {
   class App {
     public person1: Person = new Person((void 0)!, (void 0)!);
     public person2: Person = new Person((void 0)!, (void 0)!);
-    public controller: ValidationController;
-    public controllerSpy: Spy;
     public person2rules: PropertyRule[];
-    public readonly validationRules: IValidationRules;
 
-    public constructor(container: IContainer) {
-      const factory = new ValidationControllerFactory();
-      this.controllerSpy = new Spy();
-
-      // mocks ValidationControllerFactory#createForCurrentScope
-      const controller = this.controller = this.controllerSpy.getMock(factory.construct(container)) as unknown as ValidationController;
-      Registration.instance(IValidationController, controller).register(container);
-
-      const validationRules = this.validationRules = container.get(IValidationRules);
+    public constructor(
+      @newInstanceForScope(IValidationController) public controller: ValidationController,
+      @IValidationRules public readonly validationRules: IValidationRules,
+    ) {
       validationRules
         .on(this.person1)
 
@@ -209,23 +201,20 @@ describe('validation-controller', function () {
     const container = ctx.container;
     const host = ctx.dom.createElement('app');
     ctx.doc.body.appendChild(host);
-    let app: App;
     const au = new Aurelia(container);
     await au
       .register(
-        ValidationConfiguration,
+        ValidationHtmlConfiguration,
         ToNumberValueConverter
       )
       .app({
         host,
-        component: app = (() => {
-          const ca = CustomElement.define({ name: 'app', isStrictBinding: true, template }, App);
-          return new ca(container);
-        })()
+        component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
       })
       .start()
       .wait();
 
+    const app = au.root.viewModel as App;
     await testFunction({ app, container, host, scheduler: container.get(IScheduler), ctx });
 
     await au.stop().wait();

@@ -13,9 +13,9 @@ import {
   SizeRule,
   EqualsRule,
   PropertyAccessor,
-  BaseValidationRule,
   ValidateInstruction,
   ValidationRuleAliasMessage,
+  IValidationRule,
 } from '@aurelia/validation';
 import { assert } from '@aurelia/testing';
 import { Person, Address, Organization } from './_test-resources';
@@ -67,7 +67,7 @@ describe('StandardValidator', function () {
     };
   }
 
-  function assertValidationResult<T extends BaseValidationRule>(
+  function assertValidationResult<T extends IValidationRule>(
     result: ValidationResult,
     isValid: boolean,
     propertyName: string,

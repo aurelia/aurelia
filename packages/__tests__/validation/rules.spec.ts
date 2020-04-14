@@ -8,8 +8,8 @@ describe('rule execution', function () {
     { value: '',        isValid: false },
     { value: true,      isValid: true  },
     { value: false,     isValid: true  },
-    { value: "1",       isValid: true  },
-    { value: "chaos",   isValid: true  },
+    { value: '1',       isValid: true  },
+    { value: 'chaos',   isValid: true  },
     { value: 0,         isValid: true  },
     { value: 1,         isValid: true  },
   ];

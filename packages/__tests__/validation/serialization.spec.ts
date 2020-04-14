@@ -12,7 +12,7 @@ import {
   RequiredRule,
   SizeRule,
   ValidationConfiguration,
-  BaseValidationRule,
+  IValidationRule,
   parsePropertyName,
   ValidationSerializer,
   RuleProperty,
@@ -36,7 +36,7 @@ describe('validation de/serialization', function () {
     };
   }
   class RuleTestData {
-    public constructor(public readonly name: string, public readonly getRule: () => BaseValidationRule, public readonly serializedRule: string) { }
+    public constructor(public readonly name: string, public readonly getRule: () => IValidationRule, public readonly serializedRule: string) { }
   }
   const simpleRuleList = [
     new RuleTestData(`required rule`, function () { return new RequiredRule(); }, '{"$TYPE":"RequiredRule","messageKey":"required","tag":"undefined"}'),
@@ -296,7 +296,7 @@ describe('ModelValidationHydrator', function () {
     };
   }
   class RuleTestData {
-    public constructor(public readonly name: string, public readonly getRule: () => BaseValidationRule, public readonly modelRule: Record<string, any>) { }
+    public constructor(public readonly name: string, public readonly getRule: () => IValidationRule, public readonly modelRule: Record<string, any>) { }
   }
   const simpleRuleList = [
     new RuleTestData(`required rule`, function () { return new RequiredRule(); }, { required: {} }),

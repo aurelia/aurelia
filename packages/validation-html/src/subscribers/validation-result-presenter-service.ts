@@ -1,6 +1,6 @@
-import { ValidationResultsSubscriber, ValidationEvent, ValidationResultTarget } from '../validation-controller';
-import { ValidationResult } from '../rule-provider';
 import { DOM } from '@aurelia/runtime';
+import { ValidationResult } from '@aurelia/validation';
+import { ValidationEvent, ValidationResultsSubscriber, ValidationResultTarget } from '../validation-controller';
 
 const resultIdAttribute = 'validation-result-id';
 const resultContainerAttribute = 'validation-result-container';

@@ -6,9 +6,13 @@ import {
 } from 'babel-jest';
 import { Config } from '@jest/types';
 import { TransformOptions, TransformedSource, CacheKeyOptions } from '@jest/transform';
-import * as path from 'path';
 
-function createTransformer(conventionsOptions: any = {}) {
+function _createTransformer(
+  conventionsOptions = {},
+  // for testing
+  _preprocess = preprocess,
+  _babelProcess = babelProcess
+) {
   const au2Options = preprocessOptions(conventionsOptions as IOptionalPreprocessOptions);
 
   function getCacheKey(
@@ -28,19 +32,14 @@ function createTransformer(conventionsOptions: any = {}) {
     config: Config.ProjectConfig,
     transformOptions?: TransformOptions
   ): TransformedSource {
-    const result = preprocess(
+    const result = _preprocess(
       { path: sourcePath, contents: sourceText },
       au2Options
     );
-    let newSourcePath = sourcePath;
     if (result !== undefined) {
-      if (au2Options.templateExtensions.includes(path.extname(sourcePath))) {
-        // Rewrite foo.html to foo.html.js, or foo.md to foo.md.js
-        newSourcePath += '.js';
-      }
-      return babelProcess(result.code, newSourcePath, config, transformOptions);
+      return _babelProcess(result.code, sourcePath, config, transformOptions);
     }
-    return babelProcess(sourceText, sourcePath, config, transformOptions);
+    return _babelProcess(sourceText, sourcePath, config, transformOptions);
   }
 
   return {
@@ -50,5 +49,9 @@ function createTransformer(conventionsOptions: any = {}) {
   };
 }
 
+function createTransformer(conventionsOptions = {}) {
+  return _createTransformer(conventionsOptions);
+}
+
 const { canInstrument, getCacheKey, process } = createTransformer();
-export { canInstrument, getCacheKey, process, createTransformer };
+export { canInstrument, getCacheKey, process, createTransformer, _createTransformer };

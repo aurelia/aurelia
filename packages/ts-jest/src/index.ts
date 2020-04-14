@@ -1,13 +1,18 @@
 import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
 import { createTransformer as tsCreateTransformer } from 'ts-jest';
-
 import { Config } from '@jest/types';
 import { TransformOptions, TransformedSource, CacheKeyOptions } from '@jest/transform';
 import * as path from 'path';
 
-function createTransformer(conventionsOptions: any = {}) {
+const tsTransformer = tsCreateTransformer();
+
+function _createTransformer(
+  conventionsOptions = {},
+  // for testing
+  _preprocess = preprocess,
+  _tsProcess = tsTransformer.process.bind(tsTransformer)
+) {
   const au2Options = preprocessOptions(conventionsOptions as IOptionalPreprocessOptions);
-  const tsTransformer = tsCreateTransformer();
 
   function getCacheKey(
     fileData: string,
@@ -26,7 +31,7 @@ function createTransformer(conventionsOptions: any = {}) {
     config: Config.ProjectConfig,
     transformOptions?: TransformOptions
   ): TransformedSource {
-    const result = preprocess(
+    const result = _preprocess(
       { path: sourcePath, contents: sourceText },
       au2Options
     );
@@ -36,11 +41,11 @@ function createTransformer(conventionsOptions: any = {}) {
       if (au2Options.templateExtensions.includes(path.extname(sourcePath))) {
         // Rewrite foo.html to foo.html.ts, or foo.md to foo.md.ts
         newSourcePath += '.ts';
-        newCode = '// @ts-nocheck\n' + newCode;
+        newCode = `// @ts-nocheck\n${newCode}`;
       }
-      return tsTransformer.process(newCode, newSourcePath, config, transformOptions);
+      return _tsProcess(newCode, newSourcePath, config, transformOptions);
     }
-    return tsTransformer.process(sourceText, sourcePath, config, transformOptions);
+    return _tsProcess(sourceText, sourcePath, config, transformOptions);
   }
 
   return {
@@ -50,5 +55,9 @@ function createTransformer(conventionsOptions: any = {}) {
   };
 }
 
+function createTransformer(conventionsOptions = {}) {
+  return _createTransformer(conventionsOptions);
+}
+
 const { canInstrument, getCacheKey, process } = createTransformer();
-export { canInstrument, getCacheKey, process, createTransformer };
+export { canInstrument, getCacheKey, process, createTransformer, _createTransformer };

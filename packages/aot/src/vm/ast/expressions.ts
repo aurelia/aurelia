@@ -816,6 +816,7 @@ export class $PropertyAccessExpression implements I$Node {
     public readonly path: string = `${parent.path}${$i(idx)}.PropertyAccessExpression`,
   ) {
     this.$expression = $LHSExpression(node.expression as $LHSExpressionNode, this, ctx, -1);
+    // @ts-ignore - TODO(fkleuver): update AOT to use new TS 3.8 ast
     this.$name = $identifier(node.name, this, ctx | Context.IsPropertyAccessName, -1);
   }
 

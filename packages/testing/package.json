@@ -60,6 +60,6 @@
     "jsdom": "^15.2.1",
     "mocha": "~6.1.4",
     "tslib": "^1.10.0",
-    "typescript": "^3.7.4"
+    "typescript": "^3.8.3"
   }
 }

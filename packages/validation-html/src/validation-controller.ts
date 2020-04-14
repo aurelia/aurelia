@@ -22,10 +22,11 @@ import {
   PropertyAccessor,
   PropertyRule,
   ValidationResult,
-} from './rule-provider';
-import { IValidator, ValidateInstruction } from './validator';
-import { BaseValidationRule } from './rules';
-import { IValidateable } from './rule-interfaces';
+  IValidator,
+  ValidateInstruction,
+  IValidationRule,
+  IValidateable
+} from '@aurelia/validation';
 
 export type BindingWithBehavior = PropertyBinding & {
   sourceExpression: BindingBehaviorExpression;
@@ -114,6 +115,62 @@ class PropertyInfo {
     public object: any,
     public propertyName: string,
   ) { }
+}
+
+export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo, flags: LifecycleFlags = LifecycleFlags.none): PropertyInfo | undefined {
+  let propertyInfo = info.propertyInfo;
+  if (propertyInfo !== void 0) {
+    return propertyInfo;
+  }
+
+  const scope = info.scope;
+  let expression = binding.sourceExpression.expression as IsBindingBehavior;
+  const locator = binding.locator;
+  let toCachePropertyName = true;
+  let propertyName: string = '';
+  while (expression !== void 0 && expression?.$kind !== ExpressionKind.AccessScope) {
+    let memberName: string;
+    switch (expression.$kind) {
+      case ExpressionKind.BindingBehavior:
+      case ExpressionKind.ValueConverter:
+        expression = expression.expression;
+        continue;
+      case ExpressionKind.AccessMember:
+        memberName = expression.name;
+        break;
+      case ExpressionKind.AccessKeyed: {
+        const keyExpr = expression.key;
+        if (toCachePropertyName) {
+          toCachePropertyName = keyExpr.$kind === ExpressionKind.PrimitiveLiteral;
+        }
+        memberName = `[${(keyExpr.evaluate(flags, scope, locator) as any).toString()}]`;
+        break;
+      }
+      default:
+        throw new Error(`Unknown expression of type ${expression.constructor.name}`); // TODO: use reporter/logger
+    }
+    const separator = propertyName.startsWith('[') ? '' : '.';
+    propertyName = propertyName.length === 0 ? memberName : `${memberName}${separator}${propertyName}`;
+    expression = expression.object;
+  }
+  if (expression === void 0) {
+    throw new Error(`Unable to parse binding expression: ${binding.sourceExpression.expression}`); // TODO: use reporter/logger
+  }
+  let object: any;
+  if (propertyName.length === 0) {
+    propertyName = expression.name;
+    object = scope.bindingContext;
+  } else {
+    object = expression.evaluate(flags, scope, locator);
+  }
+  if (object === null || object === void 0) {
+    return (void 0);
+  }
+  propertyInfo = new PropertyInfo(object, propertyName);
+  if (toCachePropertyName) {
+    info.propertyInfo = propertyInfo;
+  }
+  return propertyInfo;
 }
 
 type ValidationPredicate = (result: ValidationResult) => boolean;
@@ -229,9 +286,8 @@ export interface IValidationController {
    * @param {ValidateInstruction} [instruction] - Instructions on what to reset. If omitted all rendered results will be removed.
    */
   reset(instruction?: ValidateInstruction): void;
-  // TODO: have dispose
 }
-export const IValidationController = DI.createInterface<IValidationController>("IValidationController").noDefault();
+export const IValidationController = DI.createInterface<IValidationController>('IValidationController').noDefault();
 
 export class ValidationController implements IValidationController {
 
@@ -324,7 +380,7 @@ export class ValidationController implements IValidationController {
         ...(!objectTag ? Array.from(this.bindings.entries()) : [])
           .reduce(
             (acc: ValidateInstruction[], [binding, info]) => {
-              const propertyInfo = this.getPropertyInfo(binding, info, flags);
+              const propertyInfo = getPropertyInfo(binding, info, flags);
               if (propertyInfo !== void 0 && !this.objects.has(propertyInfo.object)) {
                 acc.push(new ValidateInstruction(propertyInfo.object, propertyInfo.propertyName, info.rules));
               }
@@ -337,7 +393,10 @@ export class ValidationController implements IValidationController {
     this.validating = true;
     const task = this.scheduler.getPostRenderTaskQueue().queueTask(async () => {
       try {
-        const results = await Promise.all(instructions.map(async (x) => this.validator.validate(x)));
+        const results = await Promise.all(instructions.map(
+          // eslint-disable-next-line @typescript-eslint/require-await
+          async (x) => this.validator.validate(x)
+        ));
         const newResults = results.reduce(
           (acc, resultSet) => {
             acc.push(...resultSet);
@@ -369,7 +428,7 @@ export class ValidationController implements IValidationController {
     const bindingInfo = this.bindings.get(binding);
     if (bindingInfo === void 0) { return; }
 
-    const propertyInfo = this.getPropertyInfo(binding, bindingInfo);
+    const propertyInfo = getPropertyInfo(binding, bindingInfo);
     const rules = bindingInfo.rules;
     if (propertyInfo === void 0) { return; }
 
@@ -381,7 +440,7 @@ export class ValidationController implements IValidationController {
     const bindingInfo = this.bindings.get(binding);
     if (bindingInfo === void 0) { return; }
 
-    const propertyInfo = this.getPropertyInfo(binding, bindingInfo);
+    const propertyInfo = getPropertyInfo(binding, bindingInfo);
     if (propertyInfo === void 0) { return; }
 
     bindingInfo.propertyInfo = void 0;
@@ -406,7 +465,7 @@ export class ValidationController implements IValidationController {
           }
           return acc;
         },
-        new Map<IValidateable, Map<PropertyRule, BaseValidationRule[]>>());
+        new Map<IValidateable, Map<PropertyRule, IValidationRule[]>>());
 
     const promises = [];
     for (const [object, innerMap] of map) {
@@ -424,7 +483,6 @@ export class ValidationController implements IValidationController {
     }
     await Promise.all(promises);
   }
-  // TODO: have dispose
 
   /**
    * Interprets the instruction and returns a predicate that will identify relevant results in the list of rendered validation results.
@@ -442,69 +500,13 @@ export class ValidationController implements IValidationController {
       );
   }
 
-  private getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo, flags: LifecycleFlags = LifecycleFlags.none): PropertyInfo | undefined {
-    let propertyInfo = info.propertyInfo;
-    if (propertyInfo !== void 0) {
-      return propertyInfo;
-    }
-
-    const scope = info.scope;
-    let expression = binding.sourceExpression.expression as IsBindingBehavior;
-    const locator = binding.locator;
-    let toCachePropertyName = true;
-    let propertyName: string = "";
-    while (expression !== void 0 && expression?.$kind !== ExpressionKind.AccessScope) {
-      let memberName: string;
-      switch (expression.$kind) {
-        case ExpressionKind.BindingBehavior:
-        case ExpressionKind.ValueConverter:
-          expression = expression.expression;
-          continue;
-        case ExpressionKind.AccessMember:
-          memberName = expression.name;
-          break;
-        case ExpressionKind.AccessKeyed: {
-          const keyExpr = expression.key;
-          if (toCachePropertyName) {
-            toCachePropertyName = keyExpr?.$kind === ExpressionKind.PrimitiveLiteral;
-          }
-          memberName = `[${(keyExpr.evaluate(flags, scope, locator) as any).toString()}]`;
-          break;
-        }
-        default:
-          throw new Error(`Unknown expression of type ${expression.constructor.name}`); // TODO: use reporter/logger
-      }
-      const separator = propertyName.startsWith('[') ? '' : '.';
-      propertyName = propertyName.length === 0 ? memberName : `${memberName}${separator}${propertyName}`;
-      expression = expression.object;
-    }
-    if (expression === void 0) {
-      throw new Error(`Unable to parse binding expression: ${binding.sourceExpression.expression}`); // TODO: use reporter/logger
-    }
-    let object: any;
-    if (propertyName.length === 0) {
-      propertyName = expression.name;
-      object = scope.bindingContext;
-    } else {
-      object = expression.evaluate(flags, scope, locator);
-    }
-    if (object === null || object === void 0) {
-      return (void 0);
-    }
-    propertyInfo = new PropertyInfo(object, propertyName);
-    if (toCachePropertyName) {
-      info.propertyInfo = propertyInfo;
-    }
-    return propertyInfo;
-  }
-
   /**
    * Gets the elements associated with an object and propertyName (if any).
    */
   private getAssociatedElements({ object, propertyName }: ValidationResult): Element[] {
     const elements: Element[] = [];
     for (const [binding, info] of this.bindings.entries()) {
-      const propertyInfo = this.getPropertyInfo(binding, info);
+      const propertyInfo = getPropertyInfo(binding, info);
       if (propertyInfo !== void 0 && propertyInfo.object === object && propertyInfo.propertyName === propertyName) {
         elements.push(info.target);
       }

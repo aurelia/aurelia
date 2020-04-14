@@ -234,7 +234,7 @@ export class Controller<
       /* host           */host,
     );
 
-    controllerLookup.set(viewModel, controller);
+    controllerLookup.set(viewModel, controller as Controller<INode, IViewModel>);
 
     controller.hydrateCustomElement(definition, parentContainer, parts);
 
@@ -268,11 +268,11 @@ export class Controller<
       /* host           */host
     );
 
-    controllerLookup.set(viewModel, controller);
+    controllerLookup.set(viewModel, controller as Controller<INode, IViewModel>);
 
     controller.hydrateCustomAttribute(definition);
 
-    return controller as ICustomAttributeController<T, C>;
+    return controller as unknown as ICustomAttributeController<T, C>;
   }
 
   public static forSyntheticView<

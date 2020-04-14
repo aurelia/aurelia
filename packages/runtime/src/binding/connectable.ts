@@ -47,7 +47,7 @@ export interface IConnectableBinding extends IPartialConnectableBinding, IConnec
 
 /** @internal */
 export function addObserver(
-  this: IConnectableBinding & { [key: string]: ISubscribable & { [id: string]: number } | number },
+  this: IConnectableBinding & { [key: string]: ISubscribable & { [id: number]: number } | number },
   observer: ISubscribable & { [id: number]: number }
 ): void {
   // find the observer.

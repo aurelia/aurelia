@@ -1,23 +1,15 @@
-import { PLATFORM, Protocol, Registration } from '@aurelia/kernel';
+import { PLATFORM, Registration } from '@aurelia/kernel';
 import { IValidationHydrator } from './rule-interfaces';
 import { ICustomMessages, IValidationRules, ValidationMessageProvider, ValidationRules } from './rule-provider';
 import { IValidationMessageProvider } from './rules';
-import { ModelValidationHydrator, ValidationDeserializer } from "./serialization";
-import { ValidationContainerCustomElement } from './subscribers/validation-container-custom-element';
-import { ValidationErrorsCustomAttribute } from './subscribers/validation-errors-custom-attribute';
-import { IDefaultTrigger, ValidateBindingBehavior, ValidationTrigger } from './validate-binding-behavior';
-import { IValidationController, ValidationControllerFactory } from './validation-controller';
+import { ModelValidationHydrator, ValidationDeserializer } from './serialization';
 import { IValidator, StandardValidator } from './validator';
 export function getDefaultValidationConfiguration() {
     return {
         ValidatorType: StandardValidator,
         MessageProviderType: ValidationMessageProvider,
-        ValidationControllerFactoryType: ValidationControllerFactory,
         CustomMessages: [],
-        DefaultTrigger: ValidationTrigger.blur,
         HydratorType: ModelValidationHydrator,
-        UseSubscriberCustomAttribute: true,
-        UseSubscriberCustomElement: true
     };
 }
 function createConfiguration(optionsProvider) {
@@ -26,16 +18,7 @@ function createConfiguration(optionsProvider) {
         register(container) {
             const options = getDefaultValidationConfiguration();
             optionsProvider(options);
-            const key = Protocol.annotation.keyFor('di:factory');
-            Protocol.annotation.set(IValidationController, 'di:factory', new options.ValidationControllerFactoryType());
-            Protocol.annotation.appendTo(IValidationController, key);
-            container.register(Registration.instance(ICustomMessages, options.CustomMessages), Registration.instance(IDefaultTrigger, options.DefaultTrigger), Registration.singleton(IValidator, options.ValidatorType), Registration.singleton(IValidationMessageProvider, options.MessageProviderType), Registration.singleton(IValidationHydrator, options.HydratorType), Registration.transient(IValidationRules, ValidationRules), ValidateBindingBehavior, ValidationDeserializer);
-            if (options.UseSubscriberCustomAttribute) {
-                container.register(ValidationErrorsCustomAttribute);
-            }
-            if (options.UseSubscriberCustomElement) {
-                container.register(ValidationContainerCustomElement);
-            }
+            container.register(Registration.instance(ICustomMessages, options.CustomMessages), Registration.singleton(IValidator, options.ValidatorType), Registration.singleton(IValidationMessageProvider, options.MessageProviderType), Registration.singleton(IValidationHydrator, options.HydratorType), Registration.transient(IValidationRules, ValidationRules), ValidationDeserializer);
             return container;
         },
         customize(cb) {

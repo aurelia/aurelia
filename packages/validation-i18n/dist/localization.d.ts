@@ -1,9 +1,9 @@
-import { I18N } from "@aurelia/i18n";
-import { IValidationController, IValidator, ValidationControllerFactory, ValidationController, ValidationMessageProvider, BaseValidationRule } from "@aurelia/validation";
-import { IExpressionParser, IScheduler, PrimitiveLiteralExpression, IInterpolationExpression } from '@aurelia/runtime';
-import { EventAggregator, ILogger, IContainer, Key } from '@aurelia/kernel';
-import { ValidationCustomizationOptions } from '@aurelia/validation/dist/validation-customization-options';
-export interface ValidationI18nCustomizationOptions extends ValidationCustomizationOptions {
+import { I18N } from '@aurelia/i18n';
+import { EventAggregator, IContainer, ILogger, Key } from '@aurelia/kernel';
+import { IExpressionParser, IInterpolationExpression, IScheduler, PrimitiveLiteralExpression } from '@aurelia/runtime';
+import { IValidationRule, IValidator, ValidationMessageProvider } from '@aurelia/validation';
+import { IValidationController, ValidationController, ValidationControllerFactory, ValidationHtmlCustomizationOptions } from '@aurelia/validation-html';
+export interface ValidationI18nCustomizationOptions extends ValidationHtmlCustomizationOptions {
     DefaultNamespace?: string;
     DefaultKeyPrefix?: string;
 }
@@ -20,7 +20,7 @@ export declare class LocalizedValidationMessageProvider extends ValidationMessag
     private readonly i18n;
     private readonly keyPrefix?;
     constructor(keyConfiguration: I18nKeyConfiguration, i18n: I18N, ea: EventAggregator, parser: IExpressionParser, logger: ILogger);
-    getMessage(rule: BaseValidationRule): IInterpolationExpression | PrimitiveLiteralExpression;
+    getMessage(rule: IValidationRule): IInterpolationExpression | PrimitiveLiteralExpression;
     getDisplayName(propertyName: string | number | undefined, displayName?: string | null | (() => string)): string | undefined;
     private getKey;
 }

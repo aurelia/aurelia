@@ -1,12 +1,12 @@
-import { LocalizedValidationMessageProvider, LocalizedValidationControllerFactory, I18nKeyConfiguration } from './localization';
 import { PLATFORM, Registration } from '@aurelia/kernel';
-import { ValidationConfiguration, getDefaultValidationConfiguration } from '@aurelia/validation';
+import { getDefaultValidationHtmlConfiguration, ValidationHtmlConfiguration } from '@aurelia/validation-html';
+import { I18nKeyConfiguration, LocalizedValidationControllerFactory, LocalizedValidationMessageProvider } from './localization';
 function createConfiguration(optionsProvider) {
     return {
         optionsProvider,
         register(container) {
             const options = {
-                ...getDefaultValidationConfiguration(),
+                ...getDefaultValidationHtmlConfiguration(),
                 MessageProviderType: LocalizedValidationMessageProvider,
                 ValidationControllerFactoryType: LocalizedValidationControllerFactory,
                 DefaultNamespace: void 0,
@@ -17,7 +17,7 @@ function createConfiguration(optionsProvider) {
                 DefaultNamespace: options.DefaultNamespace,
                 DefaultKeyPrefix: options.DefaultKeyPrefix,
             };
-            return container.register(ValidationConfiguration.customize((opt) => {
+            return container.register(ValidationHtmlConfiguration.customize((opt) => {
                 // copy the customization iff the key exists in validation configuration
                 for (const key of Object.keys(opt)) {
                     if (key in options) {

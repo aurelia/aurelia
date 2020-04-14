@@ -80,7 +80,7 @@
         static deserialize(json, validationRules) {
             const messageProvider = this.container.get(rules_1.IValidationMessageProvider);
             const parser = this.container.get(runtime_1.IExpressionParser);
-            const deserializer = new ValidationDeserializer(/* validationRules ?? this.container.get(IValidationRules), */ messageProvider, parser);
+            const deserializer = new ValidationDeserializer(messageProvider, parser);
             const raw = JSON.parse(json);
             return deserializer.hydrate(raw, validationRules);
         }
@@ -221,9 +221,6 @@
                     throw new Error(`Unsupported rule ${ruleName}`);
             }
         }
-        isModelPropertyRule(value) {
-            return typeof value === 'object' && 'rules' in value;
-        }
         setCommonRuleProperties(raw, rule) {
             const messageKey = raw.messageKey;
             if (messageKey !== void 0 && messageKey !== null) {
@@ -243,6 +240,9 @@
                     rule.canExecute = when;
                 }
             }
+        }
+        isModelPropertyRule(value) {
+            return typeof value === 'object' && 'rules' in value;
         }
         hydrateRequiredRule(raw) {
             const rule = new rules_1.RequiredRule();

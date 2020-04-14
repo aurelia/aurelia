@@ -219,7 +219,7 @@ export class Serializer {
     visitBindingIdentifier(expr) {
         return `{"$TYPE":"${ASTExpressionTypes.BindingIdentifier}","name":"${expr.name}"}`;
     }
-    visitHtmlLiteral(expr) { throw new Error('visitHtmlLiteral'); }
+    visitHtmlLiteral(_expr) { throw new Error('visitHtmlLiteral'); }
     visitForOfStatement(expr) {
         return `{"$TYPE":"${ASTExpressionTypes.ForOfStatement}","declaration":${expr.declaration.accept(this)},"iterable":${expr.iterable.accept(this)}}`;
     }

@@ -79,9 +79,6 @@ export interface IValidationVisitor {
     visitRuleProperty(property: IRuleProperty): string;
     visitPropertyRule(propertyRule: IPropertyRule): string;
 }
-export declare type Hydratable = any & {
-    $TYPE: string;
-};
 export declare const IValidationHydrator: import("@aurelia/kernel").InterfaceSymbol<IValidationHydrator>;
 export interface IValidationHydrator {
     readonly astDeserializer: Deserializer;

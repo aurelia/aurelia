@@ -2,7 +2,7 @@ import { __decorate, __metadata, __param } from "tslib";
 import { IExpressionParser, Scope } from '@aurelia/runtime';
 import { Deserializer, serializePrimitive, Serializer } from './ast-serialization';
 import { parsePropertyName, PropertyRule, RuleProperty } from './rule-provider';
-import { EqualsRule, IValidationMessageProvider, LengthRule, RangeRule, RegexRule, RequiredRule, SizeRule } from './rules';
+import { EqualsRule, IValidationMessageProvider, LengthRule, RangeRule, RegexRule, RequiredRule, SizeRule, } from './rules';
 export class ValidationSerializer {
     static serialize(object) {
         if (object == null || typeof object.accept !== 'function') {
@@ -68,7 +68,7 @@ let ValidationDeserializer = class ValidationDeserializer {
     static deserialize(json, validationRules) {
         const messageProvider = this.container.get(IValidationMessageProvider);
         const parser = this.container.get(IExpressionParser);
-        const deserializer = new ValidationDeserializer(/* validationRules ?? this.container.get(IValidationRules), */ messageProvider, parser);
+        const deserializer = new ValidationDeserializer(messageProvider, parser);
         const raw = JSON.parse(json);
         return deserializer.hydrate(raw, validationRules);
     }
@@ -209,9 +209,6 @@ let ModelValidationHydrator = class ModelValidationHydrator {
                 throw new Error(`Unsupported rule ${ruleName}`);
         }
     }
-    isModelPropertyRule(value) {
-        return typeof value === 'object' && 'rules' in value;
-    }
     setCommonRuleProperties(raw, rule) {
         const messageKey = raw.messageKey;
         if (messageKey !== void 0 && messageKey !== null) {
@@ -231,6 +228,9 @@ let ModelValidationHydrator = class ModelValidationHydrator {
                 rule.canExecute = when;
             }
         }
+    }
+    isModelPropertyRule(value) {
+        return typeof value === 'object' && 'rules' in value;
     }
     hydrateRequiredRule(raw) {
         const rule = new RequiredRule();

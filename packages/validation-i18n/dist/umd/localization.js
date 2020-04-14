@@ -4,19 +4,20 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/i18n", "@aurelia/validation", "@aurelia/runtime", "@aurelia/kernel"], factory);
+        define(["require", "exports", "tslib", "@aurelia/i18n", "@aurelia/kernel", "@aurelia/runtime", "@aurelia/validation", "@aurelia/validation-html"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const tslib_1 = require("tslib");
     const i18n_1 = require("@aurelia/i18n");
-    const validation_1 = require("@aurelia/validation");
-    const runtime_1 = require("@aurelia/runtime");
     const kernel_1 = require("@aurelia/kernel");
+    const runtime_1 = require("@aurelia/runtime");
+    const validation_1 = require("@aurelia/validation");
+    const validation_html_1 = require("@aurelia/validation-html");
     const I18N_VALIDATION_EA_CHANNEL = 'i18n:locale:changed:validation';
     exports.I18nKeyConfiguration = kernel_1.DI.createInterface('I18nKeyConfiguration').noDefault();
-    let LocalizedValidationController = class LocalizedValidationController extends validation_1.ValidationController {
+    let LocalizedValidationController = class LocalizedValidationController extends validation_html_1.ValidationController {
         constructor(ea, validator, parser, scheduler) {
             super(validator, parser, scheduler);
             this.localeChangeSubscription = ea.subscribe(I18N_VALIDATION_EA_CHANNEL, () => { scheduler.getPostRenderTaskQueue().queueTask(async () => { await this.revalidateErrors(); }); });
@@ -30,7 +31,7 @@
         tslib_1.__metadata("design:paramtypes", [kernel_1.EventAggregator, Object, Object, Object])
     ], LocalizedValidationController);
     exports.LocalizedValidationController = LocalizedValidationController;
-    class LocalizedValidationControllerFactory extends validation_1.ValidationControllerFactory {
+    class LocalizedValidationControllerFactory extends validation_html_1.ValidationControllerFactory {
         construct(container, _dynamicDependencies) {
             return _dynamicDependencies !== void 0
                 ? Reflect.construct(LocalizedValidationController, _dynamicDependencies)

@@ -34,7 +34,7 @@
         }
     }
     exports.ValidateInstruction = ValidateInstruction;
-    exports.IValidator = kernel_1.DI.createInterface("IValidator").noDefault();
+    exports.IValidator = kernel_1.DI.createInterface('IValidator').noDefault();
     /**
      * Standard implementation of `IValidator`.
      */

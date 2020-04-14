@@ -4,20 +4,20 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./localization", "@aurelia/kernel", "@aurelia/validation"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/validation-html", "./localization"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const localization_1 = require("./localization");
     const kernel_1 = require("@aurelia/kernel");
-    const validation_1 = require("@aurelia/validation");
+    const validation_html_1 = require("@aurelia/validation-html");
+    const localization_1 = require("./localization");
     function createConfiguration(optionsProvider) {
         return {
             optionsProvider,
             register(container) {
                 const options = {
-                    ...validation_1.getDefaultValidationConfiguration(),
+                    ...validation_html_1.getDefaultValidationHtmlConfiguration(),
                     MessageProviderType: localization_1.LocalizedValidationMessageProvider,
                     ValidationControllerFactoryType: localization_1.LocalizedValidationControllerFactory,
                     DefaultNamespace: void 0,
@@ -28,7 +28,7 @@
                     DefaultNamespace: options.DefaultNamespace,
                     DefaultKeyPrefix: options.DefaultKeyPrefix,
                 };
-                return container.register(validation_1.ValidationConfiguration.customize((opt) => {
+                return container.register(validation_html_1.ValidationHtmlConfiguration.customize((opt) => {
                     // copy the customization iff the key exists in validation configuration
                     for (const key of Object.keys(opt)) {
                         if (key in options) {

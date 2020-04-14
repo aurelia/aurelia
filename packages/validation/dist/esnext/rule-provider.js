@@ -2,10 +2,10 @@ import { __decorate, __metadata, __param } from "tslib";
 /* eslint-disable no-template-curly-in-string */
 import { DI, Protocol, Metadata, ILogger } from '@aurelia/kernel';
 import { IExpressionParser, PrimitiveLiteralExpression, Scope, } from '@aurelia/runtime';
-import { BaseValidationRule, RequiredRule, RegexRule, LengthRule, SizeRule, RangeRule, EqualsRule, IValidationMessageProvider, ValidationRuleAliasMessage, } from './rules';
+import { RequiredRule, RegexRule, LengthRule, SizeRule, RangeRule, EqualsRule, IValidationMessageProvider, ValidationRuleAliasMessage, BaseValidationRule, } from './rules';
 import { IValidationHydrator, } from './rule-interfaces';
 /* @internal */
-export const ICustomMessages = DI.createInterface("ICustomMessages").noDefault();
+export const ICustomMessages = DI.createInterface('ICustomMessages').noDefault();
 export class RuleProperty {
     constructor(expression, name = void 0, displayName = void 0) {
         this.expression = expression;
@@ -16,7 +16,7 @@ export class RuleProperty {
         return visitor.visitRuleProperty(this);
     }
 }
-RuleProperty.$TYPE = "RuleProperty";
+RuleProperty.$TYPE = 'RuleProperty';
 export const validationRulesRegistrar = Object.freeze({
     name: 'validation-rules',
     defaultRuleSetName: '__default',
@@ -317,7 +317,7 @@ export class PropertyRule {
         return this.validationRules.on(target, tag);
     }
 }
-PropertyRule.$TYPE = "PropertyRule";
+PropertyRule.$TYPE = 'PropertyRule';
 export class ModelBasedRule {
     constructor(ruleset, tag = validationRulesRegistrar.defaultRuleSetName) {
         this.ruleset = ruleset;
@@ -374,8 +374,8 @@ let ValidationRules = class ValidationRules {
             if (tags.has(tag)) {
                 console.warn(`A ruleset for tag ${tag} is already defined which will be overwritten`); // TODO: use reporter/logger
             }
-            const rules = this.deserializer.hydrateRuleset(rule.ruleset, this);
-            validationRulesRegistrar.set(target, rules, tag);
+            const ruleset = this.deserializer.hydrateRuleset(rule.ruleset, this);
+            validationRulesRegistrar.set(target, ruleset, tag);
             tags.add(tag);
         }
     }
@@ -387,15 +387,16 @@ ValidationRules = __decorate([
     __metadata("design:paramtypes", [Object, Object, Object])
 ], ValidationRules);
 export { ValidationRules };
-const classicAccessorPattern = /^function\s*\([$_\w\d]+\)\s*\{(?:\s*["']{1}use strict["']{1};)?\s*(?:[$_\w\d.['"\]+;]+)?\s*return\s+[$_\w\d]+((\.[$_\w\d]+|\[['"$_\w\d]+\])+)\s*;?\s*\}$/;
+// eslint-disable-next-line no-useless-escape
+const classicAccessorPattern = /^function\s*\([$_\w\d]+\)\s*\{(?:\s*["']{1}use strict["']{1};)?(?:[$_\s\w\d\/\*.['"\]+;]+)?\s*return\s+[$_\w\d]+((\.[$_\w\d]+|\[['"$_\w\d]+\])+)\s*;?\s*\}$/;
 const arrowAccessorPattern = /^\(?[$_\w\d]+\)?\s*=>\s*[$_\w\d]+((\.[$_\w\d]+|\[['"$_\w\d]+\])+)$/;
 export const rootObjectSymbol = '$root';
 export function parsePropertyName(property, parser) {
     var _a;
     switch (typeof property) {
-        case "string":
+        case 'string':
             break;
-        case "function": {
+        case 'function': {
             const fn = property.toString();
             const match = (_a = arrowAccessorPattern.exec(fn)) !== null && _a !== void 0 ? _a : classicAccessorPattern.exec(fn);
             if (match === null) {
@@ -438,12 +439,12 @@ export class ValidationResult {
 }
 ValidationResult.nextId = 0;
 const contextualProperties = new Set([
-    "displayName",
-    "propertyName",
-    "value",
-    "object",
-    "config",
-    "getDisplayName"
+    'displayName',
+    'propertyName',
+    'value',
+    'object',
+    'config',
+    'getDisplayName'
 ]);
 let ValidationMessageProvider = class ValidationMessageProvider {
     constructor(parser, logger, customMessages) {

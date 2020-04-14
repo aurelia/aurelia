@@ -1,6 +1,6 @@
 import { __decorate, __metadata } from "tslib";
-import { Protocol, Metadata, DI } from '@aurelia/kernel';
-export const IValidationMessageProvider = DI.createInterface("IValidationMessageProvider").noDefault();
+import { Protocol, Metadata, DI, toArray } from '@aurelia/kernel';
+export const IValidationMessageProvider = DI.createInterface('IValidationMessageProvider').noDefault();
 export const ValidationRuleAliasMessage = Object.freeze({
     aliasKey: Protocol.annotation.keyFor('validation-rule-alias-message'),
     define(target, definition) {
@@ -16,7 +16,7 @@ export const ValidationRuleAliasMessage = Object.freeze({
                 ...Object.fromEntries(defaultMessages.map(({ name, defaultMessage }) => [name, defaultMessage])),
                 ...Object.fromEntries(aliases.map(({ name, defaultMessage }) => [name, defaultMessage])),
             };
-            aliases = Array.from(Object.entries(allMessages)).map(([name, defaultMessage]) => ({ name, defaultMessage }));
+            aliases = toArray(Object.entries(allMessages)).map(([name, defaultMessage]) => ({ name, defaultMessage }));
         }
         Metadata.define(ValidationRuleAliasMessage.aliasKey, aliases, rule instanceof Function ? rule.prototype : rule);
     },

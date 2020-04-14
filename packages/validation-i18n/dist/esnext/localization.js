@@ -1,8 +1,9 @@
 import { __decorate, __metadata, __param } from "tslib";
-import { I18N } from "@aurelia/i18n";
-import { IValidator, ValidationControllerFactory, ValidationController, ValidationMessageProvider } from "@aurelia/validation";
+import { I18N } from '@aurelia/i18n';
+import { DI, EventAggregator, IEventAggregator, ILogger } from '@aurelia/kernel';
 import { IExpressionParser, IScheduler } from '@aurelia/runtime';
-import { EventAggregator, IEventAggregator, ILogger, DI } from '@aurelia/kernel';
+import { IValidator, ValidationMessageProvider } from '@aurelia/validation';
+import { ValidationController, ValidationControllerFactory } from '@aurelia/validation-html';
 const I18N_VALIDATION_EA_CHANNEL = 'i18n:locale:changed:validation';
 export const I18nKeyConfiguration = DI.createInterface('I18nKeyConfiguration').noDefault();
 let LocalizedValidationController = class LocalizedValidationController extends ValidationController {

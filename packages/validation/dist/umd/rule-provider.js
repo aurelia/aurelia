@@ -16,7 +16,7 @@
     const rules_1 = require("./rules");
     const rule_interfaces_1 = require("./rule-interfaces");
     /* @internal */
-    exports.ICustomMessages = kernel_1.DI.createInterface("ICustomMessages").noDefault();
+    exports.ICustomMessages = kernel_1.DI.createInterface('ICustomMessages').noDefault();
     class RuleProperty {
         constructor(expression, name = void 0, displayName = void 0) {
             this.expression = expression;
@@ -28,7 +28,7 @@
         }
     }
     exports.RuleProperty = RuleProperty;
-    RuleProperty.$TYPE = "RuleProperty";
+    RuleProperty.$TYPE = 'RuleProperty';
     exports.validationRulesRegistrar = Object.freeze({
         name: 'validation-rules',
         defaultRuleSetName: '__default',
@@ -330,7 +330,7 @@
         }
     }
     exports.PropertyRule = PropertyRule;
-    PropertyRule.$TYPE = "PropertyRule";
+    PropertyRule.$TYPE = 'PropertyRule';
     class ModelBasedRule {
         constructor(ruleset, tag = exports.validationRulesRegistrar.defaultRuleSetName) {
             this.ruleset = ruleset;
@@ -388,8 +388,8 @@
                 if (tags.has(tag)) {
                     console.warn(`A ruleset for tag ${tag} is already defined which will be overwritten`); // TODO: use reporter/logger
                 }
-                const rules = this.deserializer.hydrateRuleset(rule.ruleset, this);
-                exports.validationRulesRegistrar.set(target, rules, tag);
+                const ruleset = this.deserializer.hydrateRuleset(rule.ruleset, this);
+                exports.validationRulesRegistrar.set(target, ruleset, tag);
                 tags.add(tag);
             }
         }
@@ -401,15 +401,16 @@
         tslib_1.__metadata("design:paramtypes", [Object, Object, Object])
     ], ValidationRules);
     exports.ValidationRules = ValidationRules;
-    const classicAccessorPattern = /^function\s*\([$_\w\d]+\)\s*\{(?:\s*["']{1}use strict["']{1};)?\s*(?:[$_\w\d.['"\]+;]+)?\s*return\s+[$_\w\d]+((\.[$_\w\d]+|\[['"$_\w\d]+\])+)\s*;?\s*\}$/;
+    // eslint-disable-next-line no-useless-escape
+    const classicAccessorPattern = /^function\s*\([$_\w\d]+\)\s*\{(?:\s*["']{1}use strict["']{1};)?(?:[$_\s\w\d\/\*.['"\]+;]+)?\s*return\s+[$_\w\d]+((\.[$_\w\d]+|\[['"$_\w\d]+\])+)\s*;?\s*\}$/;
     const arrowAccessorPattern = /^\(?[$_\w\d]+\)?\s*=>\s*[$_\w\d]+((\.[$_\w\d]+|\[['"$_\w\d]+\])+)$/;
     exports.rootObjectSymbol = '$root';
     function parsePropertyName(property, parser) {
         var _a;
         switch (typeof property) {
-            case "string":
+            case 'string':
                 break;
-            case "function": {
+            case 'function': {
                 const fn = property.toString();
                 const match = (_a = arrowAccessorPattern.exec(fn)) !== null && _a !== void 0 ? _a : classicAccessorPattern.exec(fn);
                 if (match === null) {
@@ -454,12 +455,12 @@
     exports.ValidationResult = ValidationResult;
     ValidationResult.nextId = 0;
     const contextualProperties = new Set([
-        "displayName",
-        "propertyName",
-        "value",
-        "object",
-        "config",
-        "getDisplayName"
+        'displayName',
+        'propertyName',
+        'value',
+        'object',
+        'config',
+        'getDisplayName'
     ]);
     let ValidationMessageProvider = class ValidationMessageProvider {
         constructor(parser, logger, customMessages) {

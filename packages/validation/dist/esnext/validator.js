@@ -22,7 +22,7 @@ export class ValidateInstruction {
         this.flags = flags;
     }
 }
-export const IValidator = DI.createInterface("IValidator").noDefault();
+export const IValidator = DI.createInterface('IValidator').noDefault();
 /**
  * Standard implementation of `IValidator`.
  */

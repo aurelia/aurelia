@@ -1,11 +1,11 @@
 import { Class, ILogger } from '@aurelia/kernel';
 import { IExpressionParser, IInterpolationExpression, IsBindingBehavior, LifecycleFlags, PrimitiveLiteralExpression, Scope } from '@aurelia/runtime';
-import { BaseValidationRule, ValidationRuleAlias, IValidationMessageProvider } from './rules';
-import { IValidateable, ValidationRuleExecutionPredicate, IValidationVisitor, ValidationDisplayNameAccessor, IRuleProperty, IPropertyRule, IValidationHydrator } from './rule-interfaces';
+import { ValidationRuleAlias, IValidationMessageProvider } from './rules';
+import { IValidateable, ValidationRuleExecutionPredicate, IValidationVisitor, ValidationDisplayNameAccessor, IRuleProperty, IPropertyRule, IValidationHydrator, IValidationRule } from './rule-interfaces';
 /**
  * Contract to register the custom messages for rules, during plugin registration.
  */
-export interface ICustomMessage<TRule extends BaseValidationRule = BaseValidationRule> {
+export interface ICustomMessage<TRule extends IValidationRule = IValidationRule> {
     rule: Class<TRule>;
     aliases: ValidationRuleAlias[];
 }
@@ -30,10 +30,10 @@ export declare class PropertyRule<TObject extends IValidateable = IValidateable,
     readonly validationRules: IValidationRules;
     readonly messageProvider: IValidationMessageProvider;
     property: RuleProperty;
-    $rules: BaseValidationRule[][];
+    $rules: IValidationRule[][];
     static readonly $TYPE: string;
     private latestRule?;
-    constructor(validationRules: IValidationRules, messageProvider: IValidationMessageProvider, property: RuleProperty, $rules?: BaseValidationRule[][]);
+    constructor(validationRules: IValidationRules, messageProvider: IValidationMessageProvider, property: RuleProperty, $rules?: IValidationRule[][]);
     accept(visitor: IValidationVisitor): string;
     private getLeafRules;
     validate(object?: IValidateable, tag?: string, flags?: LifecycleFlags, scope?: Scope): Promise<ValidationResult[]>;
@@ -78,7 +78,7 @@ export declare class PropertyRule<TObject extends IValidateable = IValidateable,
      *
      * @param {TRule} validationRule - rule instance.
      */
-    satisfiesRule<TRule extends BaseValidationRule>(validationRule: TRule): this;
+    satisfiesRule<TRule extends IValidationRule>(validationRule: TRule): this;
     /**
      * Applies an instance of `RequiredRule`.
      */
@@ -213,7 +213,7 @@ export declare function parsePropertyName(property: string | PropertyAccessor, p
 /**
  * The result of validating an individual validation rule.
  */
-export declare class ValidationResult<TRule extends BaseValidationRule = BaseValidationRule> {
+export declare class ValidationResult<TRule extends IValidationRule = IValidationRule> {
     valid: boolean;
     message: string | undefined;
     propertyName: string | number | undefined;
@@ -241,10 +241,10 @@ export declare class ValidationResult<TRule extends BaseValidationRule = BaseVal
 export declare class ValidationMessageProvider implements IValidationMessageProvider {
     parser: IExpressionParser;
     private readonly logger;
-    protected registeredMessages: WeakMap<BaseValidationRule, IInterpolationExpression | PrimitiveLiteralExpression>;
+    protected registeredMessages: WeakMap<IValidationRule, IInterpolationExpression | PrimitiveLiteralExpression>;
     constructor(parser: IExpressionParser, logger: ILogger, customMessages: ICustomMessage[]);
-    getMessage(rule: BaseValidationRule): IInterpolationExpression | PrimitiveLiteralExpression;
-    setMessage(rule: BaseValidationRule, message: string): IInterpolationExpression | PrimitiveLiteralExpression;
+    getMessage(rule: IValidationRule): IInterpolationExpression | PrimitiveLiteralExpression;
+    setMessage(rule: IValidationRule, message: string): IInterpolationExpression | PrimitiveLiteralExpression;
     parseMessage(message: string): IInterpolationExpression | PrimitiveLiteralExpression;
     getDisplayName(propertyName: string | number | undefined, displayName?: string | null | (() => string)): string | undefined;
 }

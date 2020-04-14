@@ -1,14 +1,14 @@
 import { IContainer } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/runtime';
 import { Deserializer } from './ast-serialization';
-import { Hydratable, IPropertyRule, IRuleProperty, IValidationHydrator, IValidationRule, IValidationVisitor } from './rule-interfaces';
+import { IPropertyRule, IRuleProperty, IValidationHydrator, IValidationRule, IValidationVisitor, IValidateable } from './rule-interfaces';
 import { IValidationRules, PropertyRule, RuleProperty } from './rule-provider';
-import { BaseValidationRule, EqualsRule, IValidationMessageProvider, LengthRule, RangeRule, RegexRule, RequiredRule, SizeRule } from './rules';
-export declare type Visitable<T extends BaseValidationRule> = (PropertyRule | RuleProperty | T) & {
+import { EqualsRule, IValidationMessageProvider, LengthRule, RangeRule, RegexRule, RequiredRule, SizeRule } from './rules';
+export declare type Visitable<T extends IValidationRule> = (PropertyRule | RuleProperty | T) & {
     accept(visitor: ValidationSerializer): string;
 };
 export declare class ValidationSerializer implements IValidationVisitor {
-    static serialize<T extends BaseValidationRule>(object: Visitable<T>): string;
+    static serialize<T extends IValidationRule>(object: Visitable<T>): string;
     visitRequiredRule(rule: RequiredRule): string;
     visitRegexRule(rule: RegexRule): string;
     visitLengthRule(rule: LengthRule): string;
@@ -28,8 +28,8 @@ export declare class ValidationDeserializer implements IValidationHydrator {
     static deserialize(json: string, validationRules: IValidationRules): IValidationRule | IRuleProperty | IPropertyRule;
     readonly astDeserializer: Deserializer;
     constructor(messageProvider: IValidationMessageProvider, parser: IExpressionParser);
-    hydrate(raw: Hydratable, validationRules: IValidationRules): any;
-    hydrateRuleset(ruleset: Hydratable[], validationRules: IValidationRules): PropertyRule[];
+    hydrate(raw: any, validationRules: IValidationRules): any;
+    hydrateRuleset(ruleset: any[], validationRules: IValidationRules): PropertyRule[];
 }
 export declare class ModelValidationHydrator implements IValidationHydrator {
     readonly messageProvider: IValidationMessageProvider;
@@ -39,8 +39,10 @@ export declare class ModelValidationHydrator implements IValidationHydrator {
     hydrate(_raw: any, _validationRules: IValidationRules): void;
     hydrateRuleset(ruleset: Record<string, any>, validationRules: IValidationRules): any[];
     protected hydrateRule(ruleName: string, ruleConfig: any): IValidationRule;
+    protected setCommonRuleProperties(raw: Pick<IValidationRule, 'messageKey' | 'tag'> & {
+        when?: string | ((object?: IValidateable) => boolean);
+    }, rule: RequiredRule): void;
     private isModelPropertyRule;
-    private setCommonRuleProperties;
     private hydrateRequiredRule;
     private hydrateRegexRule;
     private hydrateLengthRule;

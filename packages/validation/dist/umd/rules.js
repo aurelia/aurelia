@@ -11,7 +11,7 @@
     Object.defineProperty(exports, "__esModule", { value: true });
     const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
-    exports.IValidationMessageProvider = kernel_1.DI.createInterface("IValidationMessageProvider").noDefault();
+    exports.IValidationMessageProvider = kernel_1.DI.createInterface('IValidationMessageProvider').noDefault();
     exports.ValidationRuleAliasMessage = Object.freeze({
         aliasKey: kernel_1.Protocol.annotation.keyFor('validation-rule-alias-message'),
         define(target, definition) {
@@ -27,7 +27,7 @@
                     ...Object.fromEntries(defaultMessages.map(({ name, defaultMessage }) => [name, defaultMessage])),
                     ...Object.fromEntries(aliases.map(({ name, defaultMessage }) => [name, defaultMessage])),
                 };
-                aliases = Array.from(Object.entries(allMessages)).map(([name, defaultMessage]) => ({ name, defaultMessage }));
+                aliases = kernel_1.toArray(Object.entries(allMessages)).map(([name, defaultMessage]) => ({ name, defaultMessage }));
             }
             kernel_1.Metadata.define(exports.ValidationRuleAliasMessage.aliasKey, aliases, rule instanceof Function ? rule.prototype : rule);
         },

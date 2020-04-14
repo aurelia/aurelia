@@ -769,6 +769,7 @@ export function $$propertyName(
   parent: $AnyParentNode,
   ctx: Context,
   idx: number,
+  // @ts-ignore - TODO(fkleuver): update AOT to use new TS 3.8 ast
 ): $$PropertyName {
   switch (node.kind) {
     case SyntaxKind.Identifier:

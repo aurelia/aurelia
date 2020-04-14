@@ -40,7 +40,10 @@ __decorate([
     __metadata("design:type", Object)
 ], HrefCustomAttribute.prototype, "value", void 0);
 HrefCustomAttribute = __decorate([
-    customAttribute('href'),
+    customAttribute({
+        name: 'href',
+        noMultiBindings: true
+    }),
     __param(0, IDOM),
     __param(1, INode),
     __param(2, IRouter),

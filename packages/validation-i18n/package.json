@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/validation-i18n",
-  "version": "0.7.0-dev.202004141427",
+  "version": "0.7.0-dev.202004141435",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -36,11 +36,11 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.7.0-dev.202004141427",
-    "@aurelia/runtime": "0.7.0-dev.202004141427",
-    "@aurelia/runtime-html": "0.7.0-dev.202004141427",
-    "@aurelia/validation": "0.7.0-dev.202004141427",
-    "@aurelia/i18n": "0.7.0-dev.202004141427"
+    "@aurelia/kernel": "0.7.0-dev.202004141435",
+    "@aurelia/runtime": "0.7.0-dev.202004141435",
+    "@aurelia/runtime-html": "0.7.0-dev.202004141435",
+    "@aurelia/validation": "0.7.0-dev.202004141435",
+    "@aurelia/i18n": "0.7.0-dev.202004141435"
   },
   "devDependencies": {
     "@types/node": "^12.12.21",

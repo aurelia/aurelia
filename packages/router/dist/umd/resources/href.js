@@ -51,7 +51,10 @@
         tslib_1.__metadata("design:type", Object)
     ], HrefCustomAttribute.prototype, "value", void 0);
     HrefCustomAttribute = tslib_1.__decorate([
-        runtime_1.customAttribute('href'),
+        runtime_1.customAttribute({
+            name: 'href',
+            noMultiBindings: true
+        }),
         tslib_1.__param(0, runtime_1.IDOM),
         tslib_1.__param(1, runtime_1.INode),
         tslib_1.__param(2, router_1.IRouter),

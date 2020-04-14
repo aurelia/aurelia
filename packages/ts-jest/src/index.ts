@@ -1,7 +1,7 @@
 import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
 import { createTransformer as tsCreateTransformer } from 'ts-jest';
-import { Config } from '@jest/types';
-import { TransformOptions, TransformedSource, CacheKeyOptions } from '@jest/transform';
+import type { Config } from '@jest/types';
+import type { TransformOptions, TransformedSource, CacheKeyOptions } from '@jest/transform';
 import * as path from 'path';
 
 const tsTransformer = tsCreateTransformer();

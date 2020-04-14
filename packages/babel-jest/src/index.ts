@@ -4,8 +4,8 @@ import {
   getCacheKey as babelGetCacheKey,
   process as babelProcess
 } from 'babel-jest';
-import { Config } from '@jest/types';
-import { TransformOptions, TransformedSource, CacheKeyOptions } from '@jest/transform';
+import type { Config } from '@jest/types';
+import type { TransformOptions, TransformedSource, CacheKeyOptions } from '@jest/transform';
 
 function _createTransformer(
   conventionsOptions = {},

@@ -72,7 +72,7 @@ export class HTMLDOM implements IDOM {
   }
 
   public static register(container: IContainer): IResolver<IDOM> {
-    return Registration.alias(IDOM, this).register(container);
+    return Registration.aliasTo(IDOM, this).register(container);
   }
 
   public addEventListener(eventName: string, subscriber: EventListenerOrEventListenerObject, publisher?: Node, options?: boolean | AddEventListenerOptions): void {

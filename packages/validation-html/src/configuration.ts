@@ -34,9 +34,9 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
       container.register(
         ValidationConfiguration.customize((opt) => {
           // copy the customization iff the key exists in validation configuration
-          for (const key of Object.keys(opt) as (keyof ValidationCustomizationOptions)[]) {
-            if (key in options) {
-              (opt as any)[key] = options[key]; // TS cannot infer that the value of the same key is being copied from A to B, and rejects the assignment due to type broadening
+          for (const optKey of Object.keys(opt) as (keyof ValidationCustomizationOptions)[]) {
+            if (optKey in options) {
+              (opt as any)[optKey] = options[optKey]; // TS cannot infer that the value of the same key is being copied from A to B, and rejects the assignment due to type broadening
             }
           }
         }),

@@ -80,7 +80,7 @@ export class LocalizedValidationMessageProvider extends ValidationMessageProvide
 
   public getDisplayName(propertyName: string | number | undefined, displayName?: string | null | (() => string)): string | undefined {
     if (displayName !== null && displayName !== undefined) {
-      return (displayName instanceof Function) ? displayName() : displayName as string;
+      return (displayName instanceof Function) ? displayName() : displayName;
     }
 
     if (propertyName === void 0) { return; }

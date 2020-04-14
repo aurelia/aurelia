@@ -2,7 +2,6 @@ import { IContainer } from '@aurelia/kernel';
 import { IExpressionParser, BindingType, LifecycleFlags, Scope } from '@aurelia/runtime';
 import { Deserializer, serializePrimitive, Serializer } from './ast-serialization';
 import {
-  Hydratable,
   IPropertyRule,
   IRuleProperty,
   IValidationHydrator,
@@ -86,7 +85,7 @@ export class ValidationDeserializer implements IValidationHydrator {
   public static deserialize(json: string, validationRules: IValidationRules): IValidationRule | IRuleProperty | IPropertyRule {
     const messageProvider = this.container.get(IValidationMessageProvider);
     const parser = this.container.get(IExpressionParser);
-    const deserializer = new ValidationDeserializer(/* validationRules ?? this.container.get(IValidationRules), */ messageProvider, parser);
+    const deserializer = new ValidationDeserializer(messageProvider, parser);
     const raw = JSON.parse(json);
     return deserializer.hydrate(raw, validationRules);
   }
@@ -96,7 +95,7 @@ export class ValidationDeserializer implements IValidationHydrator {
     @IExpressionParser public readonly parser: IExpressionParser
   ) { }
 
-  public hydrate(raw: Hydratable, validationRules: IValidationRules): any {
+  public hydrate(raw: any, validationRules: IValidationRules): any {
     switch (raw.$TYPE) {
       case RequiredRule.$TYPE: {
         const $raw: Pick<RequiredRule, 'messageKey' | 'tag'> = raw;
@@ -173,7 +172,7 @@ export class ValidationDeserializer implements IValidationHydrator {
     }
   }
 
-  public hydrateRuleset(ruleset: Hydratable[], validationRules: IValidationRules): PropertyRule[] {
+  public hydrateRuleset(ruleset: any[], validationRules: IValidationRules): PropertyRule[] {
     if (!Array.isArray(ruleset)) {
       throw new Error("The ruleset has to be an array of serialized property rule objects"); // TODO: use reporter
     }

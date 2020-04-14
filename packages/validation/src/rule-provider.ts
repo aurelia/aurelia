@@ -149,7 +149,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
     if (expression === void 0) {
       value = object;
     } else {
-      value = expression.evaluate(flags, scope, null!);
+      value = expression.evaluate(flags, scope, null);
     }
 
     let isValid = true;
@@ -515,8 +515,8 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
       if (tags.has(tag)) {
         console.warn(`A ruleset for tag ${tag} is already defined which will be overwritten`); // TODO: use reporter/logger
       }
-      const rules = this.deserializer.hydrateRuleset(rule.ruleset, this);
-      validationRulesRegistrar.set(target, rules, tag);
+      const ruleset = this.deserializer.hydrateRuleset(rule.ruleset, this);
+      validationRulesRegistrar.set(target, ruleset, tag);
       tags.add(tag);
     }
   }
@@ -552,7 +552,7 @@ export function parsePropertyName(property: string | PropertyAccessor, parser: I
  * The result of validating an individual validation rule.
  */
 export class ValidationResult<TRule extends IValidationRule = IValidationRule> {
-  private static nextId = 0;
+  private static nextId: number = 0;
 
   /**
    * A number that uniquely identifies the result instance.
@@ -653,7 +653,7 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
 
   public getDisplayName(propertyName: string | number | undefined, displayName?: string | null | (() => string)): string | undefined {
     if (displayName !== null && displayName !== undefined) {
-      return (displayName instanceof Function) ? displayName() : displayName as string;
+      return (displayName instanceof Function) ? displayName() : displayName;
     }
 
     if (propertyName === void 0) { return; }

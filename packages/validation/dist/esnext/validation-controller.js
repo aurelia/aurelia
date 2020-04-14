@@ -131,10 +131,10 @@ let ValidationController = class ValidationController {
     // eslint-disable-next-line @typescript-eslint/require-await
     async validate(instruction) {
         var _a;
-        const { object: obj, objectTag, flags } = (instruction !== null && instruction !== void 0 ? instruction : {});
+        const { object: obj, objectTag, flags } = instruction !== null && instruction !== void 0 ? instruction : {};
         let instructions;
         if (obj !== void 0) {
-            instructions = [new ValidateInstruction(obj, instruction.propertyName, (_a = instruction.rules, (_a !== null && _a !== void 0 ? _a : this.objects.get(obj))), objectTag, instruction.propertyTag)];
+            instructions = [new ValidateInstruction(obj, instruction.propertyName, (_a = instruction.rules) !== null && _a !== void 0 ? _a : this.objects.get(obj), objectTag, instruction.propertyTag)];
         }
         else {
             // validate all objects and bindings.
@@ -244,7 +244,6 @@ let ValidationController = class ValidationController {
                 rules.some((r) => x.propertyRule === void 0 || r.$rules.flat().every(($r) => x.propertyRule.$rules.flat().includes($r))));
     }
     getPropertyInfo(binding, info, flags = 0 /* none */) {
-        var _a, _b;
         let propertyInfo = info.propertyInfo;
         if (propertyInfo !== void 0) {
             return propertyInfo;
@@ -254,7 +253,7 @@ let ValidationController = class ValidationController {
         const locator = binding.locator;
         let toCachePropertyName = true;
         let propertyName = "";
-        while (expression !== void 0 && ((_a = expression) === null || _a === void 0 ? void 0 : _a.$kind) !== 10082 /* AccessScope */) {
+        while (expression !== void 0 && (expression === null || expression === void 0 ? void 0 : expression.$kind) !== 10082 /* AccessScope */) {
             let memberName;
             switch (expression.$kind) {
                 case 38962 /* BindingBehavior */:
@@ -267,7 +266,7 @@ let ValidationController = class ValidationController {
                 case 9324 /* AccessKeyed */: {
                     const keyExpr = expression.key;
                     if (toCachePropertyName) {
-                        toCachePropertyName = ((_b = keyExpr) === null || _b === void 0 ? void 0 : _b.$kind) === 17925 /* PrimitiveLiteral */;
+                        toCachePropertyName = (keyExpr === null || keyExpr === void 0 ? void 0 : keyExpr.$kind) === 17925 /* PrimitiveLiteral */;
                     }
                     memberName = `[${keyExpr.evaluate(flags, scope, locator).toString()}]`;
                     break;

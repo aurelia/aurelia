@@ -45,10 +45,10 @@
             const propertyName = instruction.propertyName;
             const propertyTag = instruction.propertyTag;
             const flags = instruction.flags;
-            const rules = (_b = (_a = instruction.rules, (_a !== null && _a !== void 0 ? _a : rule_provider_1.validationRulesRegistrar.get(object, instruction.objectTag))), (_b !== null && _b !== void 0 ? _b : []));
+            const rules = (_b = (_a = instruction.rules) !== null && _a !== void 0 ? _a : rule_provider_1.validationRulesRegistrar.get(object, instruction.objectTag)) !== null && _b !== void 0 ? _b : [];
             const scope = runtime_1.Scope.create(flags, { [rule_provider_1.rootObjectSymbol]: object });
             if (propertyName !== void 0) {
-                return _d = (await ((_c = rules.find((r) => r.property.name === propertyName)) === null || _c === void 0 ? void 0 : _c.validate(object, propertyTag, flags, scope))), (_d !== null && _d !== void 0 ? _d : []);
+                return (_d = (await ((_c = rules.find((r) => r.property.name === propertyName)) === null || _c === void 0 ? void 0 : _c.validate(object, propertyTag, flags, scope)))) !== null && _d !== void 0 ? _d : [];
             }
             return (await Promise.all(rules.map(async (rule) => rule.validate(object, propertyTag, flags, scope)))).flat();
         }

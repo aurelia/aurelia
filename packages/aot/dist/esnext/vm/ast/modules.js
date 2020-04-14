@@ -1882,6 +1882,7 @@ export class $ExportDeclaration {
             ];
         }
         else {
+            // @ts-ignore - TODO(fkleuver): update AOT to use new TS 3.8 ast
             const $exportClause = this.$exportClause = new $NamedExports(node.exportClause, this, ctx);
             this.ExportedNames = $exportClause.ExportedNames;
             this.ExportEntries = $exportClause.ExportEntriesForModule;

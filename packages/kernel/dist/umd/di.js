@@ -199,7 +199,7 @@
                     throw reporter_1.Reporter.error(17, Interface);
                 };
                 Interface.register = function (container, key) {
-                    return configure(new ResolverBuilder(container, (key !== null && key !== void 0 ? key : Interface)));
+                    return configure(new ResolverBuilder(container, key !== null && key !== void 0 ? key : Interface));
                 };
                 return Interface;
             };

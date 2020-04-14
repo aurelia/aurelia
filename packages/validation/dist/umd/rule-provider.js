@@ -33,7 +33,7 @@
         name: 'validation-rules',
         defaultRuleSetName: '__default',
         set(target, rules, tag) {
-            const key = `${exports.validationRulesRegistrar.name}:${(tag !== null && tag !== void 0 ? tag : exports.validationRulesRegistrar.defaultRuleSetName)}`;
+            const key = `${exports.validationRulesRegistrar.name}:${tag !== null && tag !== void 0 ? tag : exports.validationRulesRegistrar.defaultRuleSetName}`;
             kernel_1.Metadata.define(kernel_1.Protocol.annotation.keyFor(key), rules, target);
             const keys = kernel_1.Metadata.getOwn(kernel_1.Protocol.annotation.name, target);
             if (keys === void 0) {
@@ -45,8 +45,8 @@
         },
         get(target, tag) {
             var _a;
-            const key = kernel_1.Protocol.annotation.keyFor(exports.validationRulesRegistrar.name, (tag !== null && tag !== void 0 ? tag : exports.validationRulesRegistrar.defaultRuleSetName));
-            return _a = kernel_1.Metadata.get(key, target), (_a !== null && _a !== void 0 ? _a : kernel_1.Metadata.getOwn(key, target.constructor));
+            const key = kernel_1.Protocol.annotation.keyFor(exports.validationRulesRegistrar.name, tag !== null && tag !== void 0 ? tag : exports.validationRulesRegistrar.defaultRuleSetName);
+            return (_a = kernel_1.Metadata.get(key, target)) !== null && _a !== void 0 ? _a : kernel_1.Metadata.getOwn(key, target.constructor);
         },
         unset(target, tag) {
             const keys = kernel_1.Metadata.getOwn(kernel_1.Protocol.annotation.name, target);
@@ -367,7 +367,7 @@
             if (Object.is(rules, this.rules)) {
                 return this;
             }
-            this.rules = (rules !== null && rules !== void 0 ? rules : []);
+            this.rules = rules !== null && rules !== void 0 ? rules : [];
             exports.validationRulesRegistrar.set(target, this.rules, tag);
             this.targets.add(target);
             return this;
@@ -411,7 +411,7 @@
                 break;
             case "function": {
                 const fn = property.toString();
-                const match = (_a = arrowAccessorPattern.exec(fn), (_a !== null && _a !== void 0 ? _a : classicAccessorPattern.exec(fn)));
+                const match = (_a = arrowAccessorPattern.exec(fn)) !== null && _a !== void 0 ? _a : classicAccessorPattern.exec(fn);
                 if (match === null) {
                     throw new Error(`Unable to parse accessor function:\n${fn}`); // TODO: use reporter
                 }
@@ -497,15 +497,14 @@
             return parsedMessage;
         }
         parseMessage(message) {
-            var _a, _b;
             const parsed = this.parser.parse(message, 2048 /* Interpolation */);
-            if (((_a = parsed) === null || _a === void 0 ? void 0 : _a.$kind) === 24 /* Interpolation */) {
+            if ((parsed === null || parsed === void 0 ? void 0 : parsed.$kind) === 24 /* Interpolation */) {
                 for (const expr of parsed.expressions) {
                     const name = expr.name;
                     if (contextualProperties.has(name)) {
                         this.logger.warn(`Did you mean to use "$${name}" instead of "${name}" in this validation message template: "${message}"?`);
                     }
-                    if (((_b = expr) === null || _b === void 0 ? void 0 : _b.$kind) === 1793 /* AccessThis */ || expr.ancestor > 0) {
+                    if ((expr === null || expr === void 0 ? void 0 : expr.$kind) === 1793 /* AccessThis */ || expr.ancestor > 0) {
                         throw new Error('$parent is not permitted in validation message expressions.'); // TODO: use reporter
                     }
                 }

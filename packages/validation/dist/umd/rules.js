@@ -70,9 +70,7 @@
      * @see PropertyRule#required
      */
     let RequiredRule = class RequiredRule extends BaseValidationRule {
-        constructor() {
-            super('required');
-        }
+        constructor() { super('required'); }
         execute(value) {
             return value !== null
                 && value !== void 0
@@ -205,8 +203,8 @@
             this.isInclusive = isInclusive;
             this.min = Number.NEGATIVE_INFINITY;
             this.max = Number.POSITIVE_INFINITY;
-            this.min = (min !== null && min !== void 0 ? min : this.min);
-            this.max = (max !== null && max !== void 0 ? max : this.max);
+            this.min = min !== null && min !== void 0 ? min : this.min;
+            this.max = max !== null && max !== void 0 ? max : this.max;
         }
         execute(value, _object) {
             return value === null

@@ -54,7 +54,7 @@ let ValidationErrorsCustomAttribute = class ValidationErrorsCustomAttribute {
     }
     beforeBind() {
         var _a;
-        this.controller = (_a = this.controller, (_a !== null && _a !== void 0 ? _a : this.container.get(IValidationController)));
+        this.controller = (_a = this.controller) !== null && _a !== void 0 ? _a : this.container.get(IValidationController);
         this.controller.addSubscriber(this);
     }
     beforeUnbind() {

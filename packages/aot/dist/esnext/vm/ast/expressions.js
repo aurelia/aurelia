@@ -497,6 +497,7 @@ export class $PropertyAccessExpression {
         this.logger = logger;
         this.path = path;
         this.$expression = $LHSExpression(node.expression, this, ctx, -1);
+        // @ts-ignore - TODO(fkleuver): update AOT to use new TS 3.8 ast
         this.$name = $identifier(node.name, this, ctx | 256 /* IsPropertyAccessName */, -1);
     }
     get $kind() { return SyntaxKind.PropertyAccessExpression; }

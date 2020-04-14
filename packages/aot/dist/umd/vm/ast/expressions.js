@@ -519,6 +519,7 @@
             this.logger = logger;
             this.path = path;
             this.$expression = _shared_1.$LHSExpression(node.expression, this, ctx, -1);
+            // @ts-ignore - TODO(fkleuver): update AOT to use new TS 3.8 ast
             this.$name = _shared_1.$identifier(node.name, this, ctx | 256 /* IsPropertyAccessName */, -1);
         }
         get $kind() { return typescript_1.SyntaxKind.PropertyAccessExpression; }

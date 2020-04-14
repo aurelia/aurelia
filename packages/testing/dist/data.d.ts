@@ -8,973 +8,973 @@
  */
 export declare const CSS_PROPERTIES: {
     'align-content': {
-        'values': string[];
+        values: string[];
     };
     'align-items': {
-        'values': string[];
+        values: string[];
     };
     'align-self': {
-        'values': string[];
+        values: string[];
     };
-    'all': {
-        'values': string[];
+    all: {
+        values: string[];
     };
-    'animation': {
-        'values': string[];
+    animation: {
+        values: string[];
     };
     'animation-delay': {
-        'values': string[];
+        values: string[];
     };
     'animation-direction': {
-        'values': string[];
+        values: string[];
     };
     'animation-duration': {
-        'values': string[];
+        values: string[];
     };
     'animation-fill-mode': {
-        'values': string[];
+        values: string[];
     };
     'animation-iteration-count': {
-        'values': string[];
+        values: string[];
     };
     'animation-name': {
-        'values': string[];
+        values: string[];
     };
     'animation-play-state': {
-        'values': string[];
+        values: string[];
     };
     'animation-timing-function': {
-        'values': string[];
+        values: string[];
     };
     'backface-visibility': {
-        'values': string[];
+        values: string[];
     };
-    'background': {
-        'values': string[];
+    background: {
+        values: string[];
     };
     'background-attachment': {
-        'values': string[];
+        values: string[];
     };
     'background-blend-mode': {
-        'values': string[];
+        values: string[];
     };
     'background-clip': {
-        'values': string[];
+        values: string[];
     };
     'background-color': {
-        'values': string[];
+        values: string[];
     };
     'background-image': {
-        'values': string[];
+        values: string[];
     };
     'background-origin': {
-        'values': string[];
+        values: string[];
     };
     'background-position': {
-        'values': string[];
+        values: string[];
     };
     'background-position-x': {
-        'values': string[];
+        values: string[];
     };
     'background-position-y': {
-        'values': string[];
+        values: string[];
     };
     'background-repeat': {
-        'values': string[];
+        values: string[];
     };
     'background-size': {
-        'values': string[];
+        values: string[];
     };
     'block-size': {
-        'values': string[];
+        values: string[];
     };
-    'border': {
-        'values': string[];
+    border: {
+        values: string[];
     };
     'border-block-end': {
-        'values': string[];
+        values: string[];
     };
     'border-block-end-color': {
-        'values': string[];
+        values: string[];
     };
     'border-block-end-style': {
-        'values': string[];
+        values: string[];
     };
     'border-block-end-width': {
-        'values': string[];
+        values: string[];
     };
     'border-block-start': {
-        'values': string[];
+        values: string[];
     };
     'border-block-start-color': {
-        'values': string[];
+        values: string[];
     };
     'border-block-start-style': {
-        'values': string[];
+        values: string[];
     };
     'border-block-start-width': {
-        'values': string[];
+        values: string[];
     };
     'border-bottom': {
-        'values': string[];
+        values: string[];
     };
     'border-bottom-color': {
-        'values': string[];
+        values: string[];
     };
     'border-bottom-left-radius': {
-        'values': string[];
+        values: string[];
     };
     'border-bottom-right-radius': {
-        'values': string[];
+        values: string[];
     };
     'border-bottom-style': {
-        'values': string[];
+        values: string[];
     };
     'border-bottom-width': {
-        'values': string[];
+        values: string[];
     };
     'border-collapse': {
-        'values': string[];
+        values: string[];
     };
     'border-color': {
-        'values': string[];
+        values: string[];
     };
     'border-image': {
-        'values': string[];
+        values: string[];
     };
     'border-image-outset': {
-        'values': string[];
+        values: string[];
     };
     'border-image-repeat': {
-        'values': string[];
+        values: string[];
     };
     'border-image-slice': {
-        'values': string[];
+        values: string[];
     };
     'border-image-source': {
-        'values': string[];
+        values: string[];
     };
     'border-image-width': {
-        'values': string[];
+        values: string[];
     };
     'border-inline-end': {
-        'values': string[];
+        values: string[];
     };
     'border-inline-end-color': {
-        'values': string[];
+        values: string[];
     };
     'border-inline-end-style': {
-        'values': string[];
+        values: string[];
     };
     'border-inline-end-width': {
-        'values': string[];
+        values: string[];
     };
     'border-inline-start': {
-        'values': string[];
+        values: string[];
     };
     'border-inline-start-color': {
-        'values': string[];
+        values: string[];
     };
     'border-inline-start-style': {
-        'values': string[];
+        values: string[];
     };
     'border-inline-start-width': {
-        'values': string[];
+        values: string[];
     };
     'border-left': {
-        'values': string[];
+        values: string[];
     };
     'border-left-color': {
-        'values': string[];
+        values: string[];
     };
     'border-left-style': {
-        'values': string[];
+        values: string[];
     };
     'border-left-width': {
-        'values': string[];
+        values: string[];
     };
     'border-radius': {
-        'values': string[];
+        values: string[];
     };
     'border-right': {
-        'values': string[];
+        values: string[];
     };
     'border-right-color': {
-        'values': string[];
+        values: string[];
     };
     'border-right-style': {
-        'values': string[];
+        values: string[];
     };
     'border-right-width': {
-        'values': string[];
+        values: string[];
     };
     'border-spacing': {
-        'values': string[];
+        values: string[];
     };
     'border-style': {
-        'values': string[];
+        values: string[];
     };
     'border-top': {
-        'values': string[];
+        values: string[];
     };
     'border-top-color': {
-        'values': string[];
+        values: string[];
     };
     'border-top-left-radius': {
-        'values': string[];
+        values: string[];
     };
     'border-top-right-radius': {
-        'values': string[];
+        values: string[];
     };
     'border-top-style': {
-        'values': string[];
+        values: string[];
     };
     'border-top-width': {
-        'values': string[];
+        values: string[];
     };
     'border-width': {
-        'values': string[];
+        values: string[];
     };
-    'bottom': {
-        'values': string[];
+    bottom: {
+        values: string[];
     };
     'box-decoration-break': {
-        'values': string[];
+        values: string[];
     };
     'box-shadow': {
-        'values': string[];
+        values: string[];
     };
     'box-sizing': {
-        'values': string[];
+        values: string[];
     };
     'caption-side': {
-        'values': string[];
+        values: string[];
     };
     'caret-color': {
-        'values': string[];
+        values: string[];
     };
-    'clear': {
-        'values': string[];
+    clear: {
+        values: string[];
     };
-    'clip': {
-        'values': string[];
+    clip: {
+        values: string[];
     };
     'clip-path': {
-        'values': string[];
+        values: string[];
     };
     'clip-rule': {
-        'values': string[];
+        values: string[];
     };
-    'color': {
-        'values': string[];
+    color: {
+        values: string[];
     };
     'color-adjust': {
-        'values': string[];
+        values: string[];
     };
     'color-interpolation': {
-        'values': string[];
+        values: string[];
     };
     'color-interpolation-filters': {
-        'values': string[];
+        values: string[];
     };
     'column-count': {
-        'values': string[];
+        values: string[];
     };
     'column-fill': {
-        'values': string[];
+        values: string[];
     };
     'column-gap': {
-        'values': string[];
+        values: string[];
     };
     'column-rule': {
-        'values': string[];
+        values: string[];
     };
     'column-rule-color': {
-        'values': string[];
+        values: string[];
     };
     'column-rule-style': {
-        'values': string[];
+        values: string[];
     };
     'column-rule-width': {
-        'values': string[];
+        values: string[];
     };
     'column-width': {
-        'values': string[];
+        values: string[];
     };
-    'columns': {
-        'values': string[];
+    columns: {
+        values: string[];
     };
-    'content': {
-        'values': string[];
+    content: {
+        values: string[];
     };
     'counter-increment': {
-        'values': string[];
+        values: string[];
     };
     'counter-reset': {
-        'values': string[];
+        values: string[];
     };
-    'cursor': {
-        'values': string[];
+    cursor: {
+        values: string[];
     };
-    'direction': {
-        'values': string[];
+    direction: {
+        values: string[];
     };
-    'display': {
-        'values': string[];
+    display: {
+        values: string[];
     };
     'dominant-baseline': {
-        'values': string[];
+        values: string[];
     };
     'empty-cells': {
-        'values': string[];
+        values: string[];
     };
-    'fill': {
-        'values': string[];
+    fill: {
+        values: string[];
     };
     'fill-opacity': {
-        'values': string[];
+        values: string[];
     };
     'fill-rule': {
-        'values': string[];
+        values: string[];
     };
-    'filter': {
-        'values': string[];
+    filter: {
+        values: string[];
     };
-    'flex': {
-        'values': string[];
+    flex: {
+        values: string[];
     };
     'flex-basis': {
-        'values': string[];
+        values: string[];
     };
     'flex-direction': {
-        'values': string[];
+        values: string[];
     };
     'flex-flow': {
-        'values': string[];
+        values: string[];
     };
     'flex-grow': {
-        'values': string[];
+        values: string[];
     };
     'flex-shrink': {
-        'values': string[];
+        values: string[];
     };
     'flex-wrap': {
-        'values': string[];
+        values: string[];
     };
-    'float': {
-        'values': string[];
+    float: {
+        values: string[];
     };
     'flood-color': {
-        'values': string[];
+        values: string[];
     };
     'flood-opacity': {
-        'values': string[];
+        values: string[];
     };
-    'font': {
-        'values': string[];
+    font: {
+        values: string[];
     };
     'font-family': {
-        'values': string[];
+        values: string[];
     };
     'font-feature-settings': {
-        'values': string[];
+        values: string[];
     };
     'font-kerning': {
-        'values': string[];
+        values: string[];
     };
     'font-language-override': {
-        'values': string[];
+        values: string[];
     };
     'font-optical-sizing': {
-        'values': string[];
+        values: string[];
     };
     'font-size': {
-        'values': string[];
+        values: string[];
     };
     'font-size-adjust': {
-        'values': string[];
+        values: string[];
     };
     'font-stretch': {
-        'values': string[];
+        values: string[];
     };
     'font-style': {
-        'values': string[];
+        values: string[];
     };
     'font-synthesis': {
-        'values': string[];
+        values: string[];
     };
     'font-variant': {
-        'values': string[];
+        values: string[];
     };
     'font-variant-alternates': {
-        'values': string[];
+        values: string[];
     };
     'font-variant-caps': {
-        'values': string[];
+        values: string[];
     };
     'font-variant-east-asian': {
-        'values': string[];
+        values: string[];
     };
     'font-variant-ligatures': {
-        'values': string[];
+        values: string[];
     };
     'font-variant-numeric': {
-        'values': string[];
+        values: string[];
     };
     'font-variant-position': {
-        'values': string[];
+        values: string[];
     };
     'font-variation-settings': {
-        'values': string[];
+        values: string[];
     };
     'font-weight': {
-        'values': string[];
+        values: string[];
     };
-    'gap': {
-        'values': string[];
+    gap: {
+        values: string[];
     };
-    'grid': {
-        'values': string[];
+    grid: {
+        values: string[];
     };
     'grid-area': {
-        'values': string[];
+        values: string[];
     };
     'grid-auto-columns': {
-        'values': string[];
+        values: string[];
     };
     'grid-auto-flow': {
-        'values': string[];
+        values: string[];
     };
     'grid-auto-rows': {
-        'values': string[];
+        values: string[];
     };
     'grid-column': {
-        'values': string[];
+        values: string[];
     };
     'grid-column-end': {
-        'values': string[];
+        values: string[];
     };
     'grid-column-gap': {
-        'values': string[];
+        values: string[];
     };
     'grid-column-start': {
-        'values': string[];
+        values: string[];
     };
     'grid-gap': {
-        'values': string[];
+        values: string[];
     };
     'grid-row': {
-        'values': string[];
+        values: string[];
     };
     'grid-row-end': {
-        'values': string[];
+        values: string[];
     };
     'grid-row-gap': {
-        'values': string[];
+        values: string[];
     };
     'grid-row-start': {
-        'values': string[];
+        values: string[];
     };
     'grid-template': {
-        'values': string[];
+        values: string[];
     };
     'grid-template-areas': {
-        'values': string[];
+        values: string[];
     };
     'grid-template-columns': {
-        'values': string[];
+        values: string[];
     };
     'grid-template-rows': {
-        'values': string[];
+        values: string[];
     };
-    'height': {
-        'values': string[];
+    height: {
+        values: string[];
     };
-    'hyphens': {
-        'values': string[];
+    hyphens: {
+        values: string[];
     };
     'image-orientation': {
-        'values': string[];
+        values: string[];
     };
     'image-rendering': {
-        'values': string[];
+        values: string[];
     };
     'ime-mode': {
-        'values': string[];
+        values: string[];
     };
     'inline-size': {
-        'values': string[];
+        values: string[];
     };
     'inset-block-end': {
-        'values': string[];
+        values: string[];
     };
     'inset-block-start': {
-        'values': string[];
+        values: string[];
     };
     'inset-inline-end': {
-        'values': string[];
+        values: string[];
     };
     'inset-inline-start': {
-        'values': string[];
+        values: string[];
     };
-    'isolation': {
-        'values': string[];
+    isolation: {
+        values: string[];
     };
     'justify-content': {
-        'values': string[];
+        values: string[];
     };
     'justify-items': {
-        'values': string[];
+        values: string[];
     };
     'justify-self': {
-        'values': string[];
+        values: string[];
     };
-    'left': {
-        'values': string[];
+    left: {
+        values: string[];
     };
     'letter-spacing': {
-        'values': string[];
+        values: string[];
     };
     'lighting-color': {
-        'values': string[];
+        values: string[];
     };
     'line-height': {
-        'values': string[];
+        values: string[];
     };
     'list-style': {
-        'values': string[];
+        values: string[];
     };
     'list-style-image': {
-        'values': string[];
+        values: string[];
     };
     'list-style-position': {
-        'values': string[];
+        values: string[];
     };
     'list-style-type': {
-        'values': string[];
+        values: string[];
     };
-    'margin': {
-        'values': string[];
+    margin: {
+        values: string[];
     };
     'margin-block-end': {
-        'values': string[];
+        values: string[];
     };
     'margin-block-start': {
-        'values': string[];
+        values: string[];
     };
     'margin-bottom': {
-        'values': string[];
+        values: string[];
     };
     'margin-inline-end': {
-        'values': string[];
+        values: string[];
     };
     'margin-inline-start': {
-        'values': string[];
+        values: string[];
     };
     'margin-left': {
-        'values': string[];
+        values: string[];
     };
     'margin-right': {
-        'values': string[];
+        values: string[];
     };
     'margin-top': {
-        'values': string[];
+        values: string[];
     };
-    'marker': {
-        'values': string[];
+    marker: {
+        values: string[];
     };
     'marker-end': {
-        'values': string[];
+        values: string[];
     };
     'marker-mid': {
-        'values': string[];
+        values: string[];
     };
     'marker-start': {
-        'values': string[];
+        values: string[];
     };
-    'mask': {
-        'values': string[];
+    mask: {
+        values: string[];
     };
     'mask-clip': {
-        'values': string[];
+        values: string[];
     };
     'mask-composite': {
-        'values': string[];
+        values: string[];
     };
     'mask-image': {
-        'values': string[];
+        values: string[];
     };
     'mask-mode': {
-        'values': string[];
+        values: string[];
     };
     'mask-origin': {
-        'values': string[];
+        values: string[];
     };
     'mask-position': {
-        'values': string[];
+        values: string[];
     };
     'mask-position-x': {
-        'values': string[];
+        values: string[];
     };
     'mask-position-y': {
-        'values': string[];
+        values: string[];
     };
     'mask-repeat': {
-        'values': string[];
+        values: string[];
     };
     'mask-size': {
-        'values': string[];
+        values: string[];
     };
     'mask-type': {
-        'values': string[];
+        values: string[];
     };
     'max-block-size': {
-        'values': string[];
+        values: string[];
     };
     'max-height': {
-        'values': string[];
+        values: string[];
     };
     'max-inline-size': {
-        'values': string[];
+        values: string[];
     };
     'max-width': {
-        'values': string[];
+        values: string[];
     };
     'min-block-size': {
-        'values': string[];
+        values: string[];
     };
     'min-height': {
-        'values': string[];
+        values: string[];
     };
     'min-inline-size': {
-        'values': string[];
+        values: string[];
     };
     'min-width': {
-        'values': string[];
+        values: string[];
     };
     'mix-blend-mode': {
-        'values': string[];
+        values: string[];
     };
     'object-fit': {
-        'values': string[];
+        values: string[];
     };
     'object-position': {
-        'values': string[];
+        values: string[];
     };
-    'opacity': {
-        'values': string[];
+    opacity: {
+        values: string[];
     };
-    'order': {
-        'values': string[];
+    order: {
+        values: string[];
     };
-    'outline': {
-        'values': string[];
+    outline: {
+        values: string[];
     };
     'outline-color': {
-        'values': string[];
+        values: string[];
     };
     'outline-offset': {
-        'values': string[];
+        values: string[];
     };
     'outline-style': {
-        'values': string[];
+        values: string[];
     };
     'outline-width': {
-        'values': string[];
+        values: string[];
     };
-    'overflow': {
-        'values': string[];
+    overflow: {
+        values: string[];
     };
     'overflow-wrap': {
-        'values': string[];
+        values: string[];
     };
     'overflow-x': {
-        'values': string[];
+        values: string[];
     };
     'overflow-y': {
-        'values': string[];
+        values: string[];
     };
     'overscroll-behavior': {
-        'values': string[];
+        values: string[];
     };
     'overscroll-behavior-x': {
-        'values': string[];
+        values: string[];
     };
     'overscroll-behavior-y': {
-        'values': string[];
+        values: string[];
     };
-    'padding': {
-        'values': string[];
+    padding: {
+        values: string[];
     };
     'padding-block-end': {
-        'values': string[];
+        values: string[];
     };
     'padding-block-start': {
-        'values': string[];
+        values: string[];
     };
     'padding-bottom': {
-        'values': string[];
+        values: string[];
     };
     'padding-inline-end': {
-        'values': string[];
+        values: string[];
     };
     'padding-inline-start': {
-        'values': string[];
+        values: string[];
     };
     'padding-left': {
-        'values': string[];
+        values: string[];
     };
     'padding-right': {
-        'values': string[];
+        values: string[];
     };
     'padding-top': {
-        'values': string[];
+        values: string[];
     };
     'page-break-after': {
-        'values': string[];
+        values: string[];
     };
     'page-break-before': {
-        'values': string[];
+        values: string[];
     };
     'page-break-inside': {
-        'values': string[];
+        values: string[];
     };
     'paint-order': {
-        'values': string[];
+        values: string[];
     };
-    'perspective': {
-        'values': string[];
+    perspective: {
+        values: string[];
     };
     'perspective-origin': {
-        'values': string[];
+        values: string[];
     };
     'place-content': {
-        'values': string[];
+        values: string[];
     };
     'place-items': {
-        'values': string[];
+        values: string[];
     };
     'place-self': {
-        'values': string[];
+        values: string[];
     };
     'pointer-events': {
-        'values': string[];
+        values: string[];
     };
-    'position': {
-        'values': string[];
+    position: {
+        values: string[];
     };
-    'quotes': {
-        'values': string[];
+    quotes: {
+        values: string[];
     };
-    'resize': {
-        'values': string[];
+    resize: {
+        values: string[];
     };
-    'right': {
-        'values': string[];
+    right: {
+        values: string[];
     };
     'row-gap': {
-        'values': string[];
+        values: string[];
     };
     'ruby-align': {
-        'values': string[];
+        values: string[];
     };
     'ruby-position': {
-        'values': string[];
+        values: string[];
     };
     'scroll-behavior': {
-        'values': string[];
+        values: string[];
     };
     'scroll-snap-coordinate': {
-        'values': string[];
+        values: string[];
     };
     'scroll-snap-destination': {
-        'values': string[];
+        values: string[];
     };
     'scroll-snap-points-x': {
-        'values': string[];
+        values: string[];
     };
     'scroll-snap-points-y': {
-        'values': string[];
+        values: string[];
     };
     'scroll-snap-type': {
-        'values': string[];
+        values: string[];
     };
     'scroll-snap-type-x': {
-        'values': string[];
+        values: string[];
     };
     'scroll-snap-type-y': {
-        'values': string[];
+        values: string[];
     };
     'shape-image-threshold': {
-        'values': string[];
+        values: string[];
     };
     'shape-margin': {
-        'values': string[];
+        values: string[];
     };
     'shape-outside': {
-        'values': string[];
+        values: string[];
     };
     'shape-rendering': {
-        'values': string[];
+        values: string[];
     };
     'stop-color': {
-        'values': string[];
+        values: string[];
     };
     'stop-opacity': {
-        'values': string[];
+        values: string[];
     };
-    'stroke': {
-        'values': string[];
+    stroke: {
+        values: string[];
     };
     'stroke-dasharray': {
-        'values': string[];
+        values: string[];
     };
     'stroke-dashoffset': {
-        'values': string[];
+        values: string[];
     };
     'stroke-linecap': {
-        'values': string[];
+        values: string[];
     };
     'stroke-linejoin': {
-        'values': string[];
+        values: string[];
     };
     'stroke-miterlimit': {
-        'values': string[];
+        values: string[];
     };
     'stroke-opacity': {
-        'values': string[];
+        values: string[];
     };
     'stroke-width': {
-        'values': string[];
+        values: string[];
     };
     'table-layout': {
-        'values': string[];
+        values: string[];
     };
     'text-align': {
-        'values': string[];
+        values: string[];
     };
     'text-align-last': {
-        'values': string[];
+        values: string[];
     };
     'text-anchor': {
-        'values': string[];
+        values: string[];
     };
     'text-combine-upright': {
-        'values': string[];
+        values: string[];
     };
     'text-decoration': {
-        'values': string[];
+        values: string[];
     };
     'text-decoration-color': {
-        'values': string[];
+        values: string[];
     };
     'text-decoration-line': {
-        'values': string[];
+        values: string[];
     };
     'text-decoration-style': {
-        'values': string[];
+        values: string[];
     };
     'text-emphasis': {
-        'values': string[];
+        values: string[];
     };
     'text-emphasis-color': {
-        'values': string[];
+        values: string[];
     };
     'text-emphasis-position': {
-        'values': string[];
+        values: string[];
     };
     'text-emphasis-style': {
-        'values': string[];
+        values: string[];
     };
     'text-indent': {
-        'values': string[];
+        values: string[];
     };
     'text-justify': {
-        'values': string[];
+        values: string[];
     };
     'text-orientation': {
-        'values': string[];
+        values: string[];
     };
     'text-overflow': {
-        'values': string[];
+        values: string[];
     };
     'text-rendering': {
-        'values': string[];
+        values: string[];
     };
     'text-shadow': {
-        'values': string[];
+        values: string[];
     };
     'text-transform': {
-        'values': string[];
+        values: string[];
     };
-    'top': {
-        'values': string[];
+    top: {
+        values: string[];
     };
     'touch-action': {
-        'values': string[];
+        values: string[];
     };
-    'transform': {
-        'values': string[];
+    transform: {
+        values: string[];
     };
     'transform-box': {
-        'values': string[];
+        values: string[];
     };
     'transform-origin': {
-        'values': string[];
+        values: string[];
     };
     'transform-style': {
-        'values': string[];
+        values: string[];
     };
-    'transition': {
-        'values': string[];
+    transition: {
+        values: string[];
     };
     'transition-delay': {
-        'values': string[];
+        values: string[];
     };
     'transition-duration': {
-        'values': string[];
+        values: string[];
     };
     'transition-property': {
-        'values': string[];
+        values: string[];
     };
     'transition-timing-function': {
-        'values': string[];
+        values: string[];
     };
     'unicode-bidi': {
-        'values': string[];
+        values: string[];
     };
     'vector-effect': {
-        'values': string[];
+        values: string[];
     };
     'vertical-align': {
-        'values': string[];
+        values: string[];
     };
-    'visibility': {
-        'values': string[];
+    visibility: {
+        values: string[];
     };
     'white-space': {
-        'values': string[];
+        values: string[];
     };
-    'width': {
-        'values': string[];
+    width: {
+        values: string[];
     };
     'will-change': {
-        'values': string[];
+        values: string[];
     };
     'word-break': {
-        'values': string[];
+        values: string[];
     };
     'word-spacing': {
-        'values': string[];
+        values: string[];
     };
     'word-wrap': {
-        'values': string[];
+        values: string[];
     };
     'writing-mode': {
-        'values': string[];
+        values: string[];
     };
     'z-index': {
-        'values': string[];
+        values: string[];
     };
 };
 /**

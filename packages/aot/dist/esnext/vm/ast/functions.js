@@ -164,7 +164,7 @@ export class $FunctionExpression {
         const funcEnv = new $DeclarativeEnvRec(this.logger, realm, scope);
         // 4. Let envRec be funcEnv's EnvironmentRecord.
         // 5. Let name be StringValue of BindingIdentifier.
-        const name = (_b = (_a = this.$name) === null || _a === void 0 ? void 0 : _a.StringValue, (_b !== null && _b !== void 0 ? _b : void 0));
+        const name = (_b = (_a = this.$name) === null || _a === void 0 ? void 0 : _a.StringValue) !== null && _b !== void 0 ? _b : void 0;
         if (name !== void 0) {
             // 6. Perform envRec.CreateImmutableBinding(name, false).
             funcEnv.CreateImmutableBinding(ctx, name, intrinsics.false);
@@ -213,7 +213,7 @@ export class $FunctionExpression {
         const funcEnv = new $DeclarativeEnvRec(this.logger, realm, scope);
         // 4. Let envRec be funcEnv's EnvironmentRecord.
         // 5. Let name be StringValue of BindingIdentifier.
-        const name = (_b = (_a = this.$name) === null || _a === void 0 ? void 0 : _a.StringValue, (_b !== null && _b !== void 0 ? _b : void 0));
+        const name = (_b = (_a = this.$name) === null || _a === void 0 ? void 0 : _a.StringValue) !== null && _b !== void 0 ? _b : void 0;
         if (name !== void 0) {
             // 6. Perform envRec.CreateImmutableBinding(name, false).
             funcEnv.CreateImmutableBinding(ctx, name, intrinsics.false);
@@ -270,7 +270,7 @@ export class $FunctionExpression {
         const funcEnv = new $DeclarativeEnvRec(this.logger, realm, scope);
         // 4. Let envRec be funcEnv's EnvironmentRecord.
         // 5. Let name be StringValue of BindingIdentifier.
-        const name = (_b = (_a = this.$name) === null || _a === void 0 ? void 0 : _a.StringValue, (_b !== null && _b !== void 0 ? _b : void 0));
+        const name = (_b = (_a = this.$name) === null || _a === void 0 ? void 0 : _a.StringValue) !== null && _b !== void 0 ? _b : void 0;
         if (name !== void 0) {
             // 6. Perform ! envRec.CreateImmutableBinding(name).
             funcEnv.CreateImmutableBinding(ctx, name, intrinsics.false); // TODO: we sure about this?
@@ -325,7 +325,7 @@ export class $FunctionExpression {
         const funcEnv = new $DeclarativeEnvRec(this.logger, realm, scope);
         // 4. Let envRec be funcEnv's EnvironmentRecord.
         // 5. Let name be StringValue of BindingIdentifier.
-        const name = (_b = (_a = this.$name) === null || _a === void 0 ? void 0 : _a.StringValue, (_b !== null && _b !== void 0 ? _b : void 0));
+        const name = (_b = (_a = this.$name) === null || _a === void 0 ? void 0 : _a.StringValue) !== null && _b !== void 0 ? _b : void 0;
         if (name !== void 0) {
             // 6. Perform ! envRec.CreateImmutableBinding(name).
             funcEnv.CreateImmutableBinding(ctx, name, intrinsics.false); // TODO: we sure about this?
@@ -700,7 +700,6 @@ function EvaluateBody(fn, ctx, functionObject, argumentsList) {
 }
 // http://www.ecma-international.org/ecma-262/#sec-functiondeclarationinstantiation
 export function $FunctionDeclarationInstantiation(ctx, func, argumentsList) {
-    var _a, _b;
     ctx.checkTimeout();
     const realm = ctx.Realm;
     const intrinsics = realm['[[Intrinsics]]'];
@@ -831,7 +830,7 @@ export function $FunctionDeclarationInstantiation(ctx, func, argumentsList) {
         // 25. a. Perform ? IteratorBindingInitialization for formals with iteratorRecord and undefined as arguments.
         for (const formal of formals) {
             const result = formal.InitializeIteratorBinding(ctx, iteratorRecord, void 0);
-            if ((_a = result) === null || _a === void 0 ? void 0 : _a.isAbrupt) {
+            if (result === null || result === void 0 ? void 0 : result.isAbrupt) {
                 return result;
             }
         }
@@ -841,7 +840,7 @@ export function $FunctionDeclarationInstantiation(ctx, func, argumentsList) {
         // 26. a. Perform ? IteratorBindingInitialization for formals with iteratorRecord and env as arguments.
         for (const formal of formals) {
             const result = formal.InitializeIteratorBinding(ctx, iteratorRecord, envRec);
-            if ((_b = result) === null || _b === void 0 ? void 0 : _b.isAbrupt) {
+            if (result === null || result === void 0 ? void 0 : result.isAbrupt) {
                 return result;
             }
         }

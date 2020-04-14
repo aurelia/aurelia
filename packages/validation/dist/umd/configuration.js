@@ -51,7 +51,7 @@
                 return container;
             },
             customize(cb) {
-                return createConfiguration((cb !== null && cb !== void 0 ? cb : optionsProvider));
+                return createConfiguration(cb !== null && cb !== void 0 ? cb : optionsProvider);
             },
         };
     }

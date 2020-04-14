@@ -74,12 +74,12 @@ let ValidateBindingBehavior = class ValidateBindingBehavior extends BindingInter
         this.processDelta(delta);
     }
     $unbind(flags) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c;
         (_a = this.target) === null || _a === void 0 ? void 0 : _a.removeEventListener('blur', this);
         (_b = this.controller) === null || _b === void 0 ? void 0 : _b.unregisterBinding(this.propertyBinding);
         this.binding.$unbind(flags);
         for (const expr of this.connectedExpressions) {
-            (_d = (_c = expr).unbind) === null || _d === void 0 ? void 0 : _d.call(_c, flags, this.scope, this);
+            (_c = expr.unbind) === null || _c === void 0 ? void 0 : _c.call(expr, flags, this.scope, this);
         }
     }
     handleTriggerChange(newValue, _previousValue, _flags) {
@@ -132,8 +132,8 @@ let ValidateBindingBehavior = class ValidateBindingBehavior extends BindingInter
     }
     processDelta(delta) {
         var _a, _b, _c;
-        const trigger = (_a = delta.trigger, (_a !== null && _a !== void 0 ? _a : this.trigger));
-        const controller = (_b = delta.controller, (_b !== null && _b !== void 0 ? _b : this.controller));
+        const trigger = (_a = delta.trigger) !== null && _a !== void 0 ? _a : this.trigger;
+        const controller = (_b = delta.controller) !== null && _b !== void 0 ? _b : this.controller;
         const rules = delta.rules;
         if (this.trigger !== trigger) {
             if (this.trigger === ValidationTrigger.blur || this.trigger === ValidationTrigger.changeOrBlur) {

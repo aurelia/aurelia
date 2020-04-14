@@ -155,7 +155,7 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
         const template = DOM.createTemplate();
         this.addContentToTemplate(template, content.prepend, marker);
         // build content: prioritize [html], then textContent, and falls back to original content
-        if (!this.addContentToTemplate(template, (_a = content.innerHTML, (_a !== null && _a !== void 0 ? _a : content.textContent)), marker)) {
+        if (!this.addContentToTemplate(template, (_a = content.innerHTML) !== null && _a !== void 0 ? _a : content.textContent, marker)) {
             for (const fallbackContent of fallBackContents) {
                 template.content.append(fallbackContent);
             }
@@ -184,7 +184,7 @@ let TranslationBinding = TranslationBinding_1 = class TranslationBinding {
     }
     ensureKeyExpression() {
         var _a;
-        const expr = this.keyExpression = (_a = this.keyExpression, (_a !== null && _a !== void 0 ? _a : ''));
+        const expr = this.keyExpression = (_a = this.keyExpression) !== null && _a !== void 0 ? _a : '';
         const exprType = typeof expr;
         if (exprType !== 'string') {
             throw new Error(`Expected the i18n key to be a string, but got ${expr} of type ${exprType}`); // TODO use reporter/logger

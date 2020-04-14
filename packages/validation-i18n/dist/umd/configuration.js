@@ -38,7 +38,7 @@
                 }), kernel_1.Registration.callback(localization_1.I18nKeyConfiguration, () => keyConfiguration));
             },
             customize(cb) {
-                return createConfiguration((cb !== null && cb !== void 0 ? cb : optionsProvider));
+                return createConfiguration(cb !== null && cb !== void 0 ? cb : optionsProvider);
             },
         };
     }

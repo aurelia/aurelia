@@ -173,21 +173,21 @@
         }
         get $kind() { return typescript_1.SyntaxKind.VariableDeclaration; }
         InitializeBinding(ctx, value) {
-            var _a, _b, _c;
+            var _a, _b;
             ctx.checkTimeout();
             const realm = ctx.Realm;
             const bindingName = this.$name;
             const kind = bindingName.$kind;
             const boundNames = bindingName.BoundNames;
             const envRec = ctx.LexicalEnvironment;
-            if ((_b = (_a = boundNames) === null || _a === void 0 ? void 0 : _a.length, (_b !== null && _b !== void 0 ? _b : 0)) > 0) {
+            if (((_a = boundNames === null || boundNames === void 0 ? void 0 : boundNames.length) !== null && _a !== void 0 ? _a : 0) > 0) {
                 switch (kind) {
                     // http://www.ecma-international.org/ecma-262/#sec-identifiers-runtime-semantics-bindinginitialization
                     // 12.1.5 Runtime Semantics: BindingInitialization
                     // http://www.ecma-international.org/ecma-262/#sec-initializeboundname
                     // 12.1.5.1 Runtime Semantics: InitializeBoundName ( name , value , environment )
                     case typescript_1.SyntaxKind.Identifier: {
-                        const name = (_c = boundNames[0]) === null || _c === void 0 ? void 0 : _c.GetValue(ctx);
+                        const name = (_b = boundNames[0]) === null || _b === void 0 ? void 0 : _b.GetValue(ctx);
                         // 1. Assert: Type(name) is String.
                         // 2. If environment is not undefined, then
                         if (envRec !== void 0) {
@@ -1492,11 +1492,10 @@
         // http://www.ecma-international.org/ecma-262/#sec-runtime-semantics-catchclauseevaluation
         // 13.15.7 Runtime Semantics: CatchClauseEvaluation
         EvaluateCatchClause(ctx, thrownValue) {
-            var _a, _b, _c, _d, _e;
             ctx.checkTimeout();
             const realm = ctx.Realm;
             const catchClause = this.$catchClause;
-            const varDeclarations = (_a = catchClause) === null || _a === void 0 ? void 0 : _a.$variableDeclaration;
+            const varDeclarations = catchClause === null || catchClause === void 0 ? void 0 : catchClause.$variableDeclaration;
             const hasCatchParamteres = varDeclarations !== void 0;
             // Catch : catch Block
             // 1. Return the result of evaluating Block.
@@ -1510,13 +1509,13 @@
                 // 4. For each element argName of the BoundNames of CatchParameter, do
                 // 4. a. Perform ! catchEnvRec.CreateMutableBinding(argName, false).
                 // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-                (_b = catchClause) === null || _b === void 0 ? void 0 : _b.CreateBinding(ctx, realm);
+                catchClause === null || catchClause === void 0 ? void 0 : catchClause.CreateBinding(ctx, realm);
                 // 5. Set the running execution context's LexicalEnvironment to catchEnv.
                 realm.stack.push(ctx);
                 // 6. Let status be the result of performing BindingInitialization for CatchParameter passing thrownValue and catchEnv as arguments.
-                const status = (_c = varDeclarations) === null || _c === void 0 ? void 0 : _c.InitializeBinding(ctx, thrownValue);
+                const status = varDeclarations === null || varDeclarations === void 0 ? void 0 : varDeclarations.InitializeBinding(ctx, thrownValue);
                 // 7. If status is an abrupt completion, then
-                if ((_d = status) === null || _d === void 0 ? void 0 : _d.isAbrupt) {
+                if (status === null || status === void 0 ? void 0 : status.isAbrupt) {
                     // 7. a. Set the running execution context's LexicalEnvironment to oldEnv.
                     realm.stack.pop();
                     ctx.LexicalEnvironment = oldEnv;
@@ -1525,7 +1524,7 @@
                 }
             }
             // 8. Let B be the result of evaluating Block.
-            const B = (_e = catchClause) === null || _e === void 0 ? void 0 : _e.$block.Evaluate(ctx);
+            const B = catchClause === null || catchClause === void 0 ? void 0 : catchClause.$block.Evaluate(ctx);
             // 9. Set the running execution context's LexicalEnvironment to oldEnv.
             if (hasCatchParamteres) {
                 realm.stack.pop();
@@ -1678,7 +1677,7 @@
         CreateBinding(ctx, realm) {
             var _a, _b;
             ctx.checkTimeout();
-            for (const argName of (_b = (_a = this.$variableDeclaration) === null || _a === void 0 ? void 0 : _a.BoundNames, (_b !== null && _b !== void 0 ? _b : []))) {
+            for (const argName of (_b = (_a = this.$variableDeclaration) === null || _a === void 0 ? void 0 : _a.BoundNames) !== null && _b !== void 0 ? _b : []) {
                 ctx.LexicalEnvironment.CreateMutableBinding(ctx, argName, realm['[[Intrinsics]]'].false);
             }
         }

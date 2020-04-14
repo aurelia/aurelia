@@ -349,13 +349,12 @@
     exports.RouteRecognizer = RouteRecognizer;
     class State {
         constructor(prevState, segment, value) {
-            var _a;
             this.prevState = prevState;
             this.segment = segment;
             this.value = value;
             this.nextStates = null;
             this.endpoint = null;
-            switch ((_a = segment) === null || _a === void 0 ? void 0 : _a.kind) {
+            switch (segment === null || segment === void 0 ? void 0 : segment.kind) {
                 case 2 /* dynamic */:
                     this.length = prevState.length + 1;
                     this.isSeparator = false;
@@ -413,9 +412,8 @@
             }
         }
         isMatch(ch) {
-            var _a;
             const segment = this.segment;
-            switch ((_a = segment) === null || _a === void 0 ? void 0 : _a.kind) {
+            switch (segment === null || segment === void 0 ? void 0 : segment.kind) {
                 case 2 /* dynamic */:
                     return !this.value.includes(ch);
                 case 1 /* star */:

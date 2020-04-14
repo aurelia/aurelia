@@ -105,7 +105,7 @@
         }
         getAttribute(key, value, checkExists = false) {
             const result = {};
-            if (this.isBound) {
+            if (this.isBound && !checkExists) {
                 return value;
             }
             else {

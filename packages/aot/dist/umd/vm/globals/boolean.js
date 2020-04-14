@@ -26,11 +26,11 @@
         // http://www.ecma-international.org/ecma-262/#sec-boolean-constructor-boolean-value
         // 19.3.1.1 Boolean ( value )
         performSteps(ctx, thisArgument, [value], NewTarget) {
-            var _a, _b;
+            var _a;
             const realm = ctx.Realm;
             const intrinsics = realm['[[Intrinsics]]'];
             // 1. Let b be ToBoolean(value).
-            const b = (_b = (_a = value) === null || _a === void 0 ? void 0 : _a.ToBoolean(ctx), (_b !== null && _b !== void 0 ? _b : intrinsics.undefined));
+            const b = (_a = value === null || value === void 0 ? void 0 : value.ToBoolean(ctx)) !== null && _a !== void 0 ? _a : intrinsics.undefined;
             if (b.isAbrupt) {
                 return b;
             }

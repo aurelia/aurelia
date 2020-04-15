@@ -32,6 +32,8 @@
     { "path": "store" },
     { "path": "testing" },
     { "path": "validation" },
+    { "path": "validation-html" },
+    { "path": "validation-i18n" },
     { "path": "web-components" },
     { "path": "webpack-loader" }
   ]

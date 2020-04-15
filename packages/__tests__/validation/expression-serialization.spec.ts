@@ -22,7 +22,7 @@ import {
   TemplateExpression,
   TaggedTemplateExpression,
   AssignExpression
-} from "@aurelia/runtime";
+} from '@aurelia/runtime';
 import { TestContext, assert } from '@aurelia/testing';
 import { Deserializer, Serializer } from '@aurelia/validation';
 

@@ -70,6 +70,14 @@ export class TaskQueue {
     return this.processingSize === 0 && this.pendingSize === 0 && this.delayedSize === 0;
   }
 
+  /**
+   * Persistent tasks will re-queue themselves indefinitely until they are explicitly canceled,
+   * so we consider them 'infinite work' whereas non-persistent (one-off) tasks are 'finite work'.
+   *
+   * This `hasNoMoreFiniteWork` getters returns true if either all remaining tasks are persistent, or if there are no more tasks.
+   *
+   * If that is the case, we can resolve the promise that was created when `yield()` is called.
+   */
   private get hasNoMoreFiniteWork(): boolean {
     let cur = this.processingHead;
     while (cur !== void 0) {
@@ -112,12 +120,15 @@ export class TaskQueue {
     enter(this, 'flush');
 
     if (this.microTaskRequestFlushTask !== null) {
+      // This may only exist if this is a microtask queue, in which case the macrotask queue is used to poll
+      // async task readiness state and/or re-queue persistent microtasks.
       this.microTaskRequestFlushTask.cancel();
       this.microTaskRequestFlushTask = null;
     }
 
     this.flushRequested = false;
 
+    // Only process normally if we are *not* currently waiting for an async task to finish
     if (this.processingAsync === void 0) {
       if (this.pendingSize > 0) {
         this.movePendingToProcessing();
@@ -163,12 +174,20 @@ export class TaskQueue {
         p.resolve();
       }
     } else {
+      // If we are still waiting for an async task to finish, just schedule the next flush and do nothing else.
+      // Should the task finish before the next flush is invoked,
+      // the callback to `completeAsyncTask` will have reset `this.processingAsync` back to undefined so processing can return back to normal next flush.
       this.requestFlushClamped();
     }
 
     leave(this, 'flush full');
   }
 
+  /**
+   * Cancel the next flush cycle (and/or the macrotask that schedules the next flush cycle, in case this is a microtask queue), if it was requested.
+   *
+   * This operation is idempotent and will do nothing if no flush is scheduled.
+   */
   public cancel(): void {
     enter(this, 'cancel');
 
@@ -185,6 +204,15 @@ export class TaskQueue {
     leave(this, 'cancel');
   }
 
+  /**
+   * Returns a promise that, when awaited, resolves when:
+   * - all *non*-persistent (including async) tasks have finished;
+   * - the last-added persistent task has run exactly once;
+   *
+   * This operation is idempotent: the same promise will be returned until it resolves.
+   *
+   * If `yield()` is called multiple times in a row when there are one or more persistent tasks in the queue, each call will await exactly one cycle of those tasks.
+   */
   public async yield(): Promise<void> {
     enter(this, 'yield');
 
@@ -266,6 +294,9 @@ export class TaskQueue {
     return task;
   }
 
+  /**
+   * Take this task from the taskQueue it's currently queued to, and add it to this queue.
+   */
   public take(task: Task): void {
     enter(this, 'take');
 
@@ -292,6 +323,9 @@ export class TaskQueue {
     leave(this, 'take');
   }
 
+  /**
+   * Remove the task from this queue.
+   */
   public remove<T = any>(task: Task<T>): void {
     enter(this, 'remove');
 
@@ -355,12 +389,19 @@ export class TaskQueue {
     throw new Error(`Task #${task.id} could not be found`);
   }
 
+  /**
+   * Return a reusable task to the shared task pool.
+   * The next queued callback will reuse this task object instead of creating a new one, to save overhead of creating additional objects.
+   */
   public returnToPool(task: Task): void {
     trace(this, 'returnToPool');
 
     this.taskPool[this.taskPoolSize++] = task;
   }
 
+  /**
+   * Reset the persistent task back to its pending state, preparing it for being invoked again on the next flush.
+   */
   public resetPersistentTask(task: Task): void {
     enter(this, 'resetPersistentTask');
 
@@ -387,6 +428,9 @@ export class TaskQueue {
     leave(this, 'resetPersistentTask');
   }
 
+  /**
+   * Notify the queue that this async task has had its promise resolved, so that the queue can proceed with consecutive tasks on the next flush.
+   */
   public completeAsyncTask(task: Task): void {
     enter(this, 'completeAsyncTask');
 

@@ -72,6 +72,9 @@ export type ExposedPromise<T = void> = Promise<T> & {
   reject: PReject;
 };
 
+/**
+ * Efficiently create a promise where the `resolve` and `reject` functions are stored as properties on the prommise itself.
+ */
 export function createExposedPromise<T>(): ExposedPromise<T> {
   const p = new Promise<T>(executor) as ExposedPromise<T>;
   p.resolve = $resolve;

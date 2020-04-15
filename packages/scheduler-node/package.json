@@ -1,0 +1,46 @@
+{
+  "name": "@aurelia/scheduler-node",
+  "version": "0.6.0",
+  "main": "dist/esnext/index.js",
+  "module": "dist/esnext/index.js",
+  "types": "dist/index.d.ts",
+  "typings": "dist/index.d.ts",
+  "license": "MIT",
+  "homepage": "https://aurelia.io",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aurelia/aurelia"
+  },
+  "bugs": {
+    "url": "https://github.com/aurelia/aurelia/issues"
+  },
+  "keywords": [
+    "aurelia",
+    "scheduler-node"
+  ],
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "lint": "eslint --cache --ext .js,.ts src/",
+    "build": "tsc -b",
+    "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system scheduler-node",
+    "dev": "tsc -b -w --preserveWatchOutput"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@aurelia/kernel": "0.6.0",
+    "@aurelia/scheduler": "0.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^12.12.21",
+    "tslib": "^1.11.1",
+    "typescript": "^3.8.3"
+  }
+}

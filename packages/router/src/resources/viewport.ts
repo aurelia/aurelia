@@ -126,7 +126,7 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
 
   private getAttribute(key: string, value: string | boolean, checkExists: boolean = false): string | boolean | undefined {
     const result: Record<string, string | boolean> = {};
-    if (this.isBound) {
+    if (this.isBound && !checkExists) {
       return value;
     } else {
       if (this.element.hasAttribute(key)) {

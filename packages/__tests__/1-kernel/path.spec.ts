@@ -1,4 +1,4 @@
-import { buildQueryString, join, parseQueryString, relativeToFile } from '@aurelia/kernel';
+import { join, relativeToFile } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 
 describe('relativeToFile', function () {
@@ -205,73 +205,5 @@ describe('join', function () {
     const path2 = '/two';
 
     assert.strictEqual(join(path1, path2), 'http://two', `join(path1, path2)`);
-  });
-});
-
-describe('query strings', function () {
-  it('should build query strings', function () {
-    const gen = buildQueryString;
-
-    assert.strictEqual(gen(), '', `gen()`);
-    assert.strictEqual(gen(null), '', `gen(null)`);
-    assert.strictEqual(gen({}), '', `gen({})`);
-    assert.strictEqual(gen({ a: null }), '', `gen({ a: null })`);
-
-    assert.strictEqual(gen({ '': 'a' }), '=a', `gen({ '': 'a' })`);
-    assert.strictEqual(gen({ a: 'b' }), 'a=b', `gen({ a: 'b' })`);
-    assert.strictEqual(gen({ a: 'b', c: 'd' }), 'a=b&c=d', `gen({ a: 'b', c: 'd' })`);
-    assert.strictEqual(gen({ a: 'b', c: 'd' }, true), 'a=b&c=d', `gen({ a: 'b', c: 'd' }, true)`);
-    assert.strictEqual(gen({ a: 'b', c: null }), 'a=b', `gen({ a: 'b', c: null })`);
-    assert.strictEqual(gen({ a: 'b', c: null }, true), 'a=b', `gen({ a: 'b', c: null }, true)`);
-
-    assert.strictEqual(gen({ a: ['b', 'c'] }), 'a%5B%5D=b&a%5B%5D=c', `gen({ a: ['b', 'c'] })`);
-    assert.strictEqual(gen({ a: ['b', 'c'] }, true), 'a=b&a=c', `gen({ a: ['b', 'c'] }, true)`);
-    assert.strictEqual(gen({ '&': ['b', 'c'] }), '%26%5B%5D=b&%26%5B%5D=c', `gen({ '&': ['b', 'c'] })`);
-    assert.strictEqual(gen({ '&': ['b', 'c'] }, true), '%26=b&%26=c', `gen({ '&': ['b', 'c'] }, true)`);
-
-    assert.strictEqual(gen({ a: '&' }), 'a=%26', `gen({ a: '&' })`);
-    assert.strictEqual(gen({ '&': 'a' }), '%26=a', `gen({ '&': 'a' })`);
-    assert.strictEqual(gen({ a: true }), 'a=true', `gen({ a: true })`);
-    assert.strictEqual(gen({ '$test': true }), '$test=true', `gen({ '$test': true })`);
-
-    assert.strictEqual(gen({ obj: { a: 5, b: 'str', c: false } }), 'obj%5Ba%5D=5&obj%5Bb%5D=str&obj%5Bc%5D=false', `gen({ obj: { a: 5, b: 'str', c: false } })`);
-    assert.strictEqual(gen({ obj: { a: 5, b: 'str', c: false } }, true), 'obj=%5Bobject%20Object%5D', `gen({ obj: { a: 5, b: 'str', c: false } }, true)`);
-    assert.strictEqual(gen({ obj: { a: 5, b: undefined}}), 'obj%5Ba%5D=5', `gen({ obj: { a: 5, b: undefined}})`);
-
-    assert.strictEqual(gen({a: {b: ['c', 'd', ['f', 'g']]}}), 'a%5Bb%5D%5B%5D=c&a%5Bb%5D%5B%5D=d&a%5Bb%5D%5B2%5D%5B%5D=f&a%5Bb%5D%5B2%5D%5B%5D=g', `gen({a: {b: ['c', 'd', ['f', 'g']]}})`);
-    assert.strictEqual(gen({a: {b: ['c', 'd', ['f', 'g']]}}, true), 'a=%5Bobject%20Object%5D', `gen({a: {b: ['c', 'd', ['f', 'g']]}}, true)`);
-    assert.strictEqual(gen({a: ['c', 'd', ['f', 'g']]}, true), 'a=c&a=d&a=f%2Cg', `gen({a: ['c', 'd', ['f', 'g']]}, true)`);
-    assert.strictEqual(gen({a: ['c', 'd', {f: 'g'}]}, true), 'a=c&a=d&a=%5Bobject%20Object%5D', `gen({a: ['c', 'd', {f: 'g'}]}, true)`);
-  });
-
-  it('should parse query strings', function () {
-    const parse = parseQueryString;
-
-    assert.deepStrictEqual(parse(''), {}, `parse('')`);
-    assert.deepStrictEqual(parse('='), {}, `parse('=')`);
-    assert.deepStrictEqual(parse('&'), {}, `parse('&')`);
-    assert.deepStrictEqual(parse('?'), {}, `parse('?')`);
-
-    assert.deepStrictEqual(parse('a'), { a: true }, `parse('a')`);
-    assert.deepStrictEqual(parse('a&b'), { a: true, b: true }, `parse('a&b')`);
-    assert.deepStrictEqual(parse('a='), { a: '' }, `parse('a=')`);
-    assert.deepStrictEqual(parse('a=&b='), { a: '', b: '' }, `parse('a=&b=')`);
-
-    assert.deepStrictEqual(parse('a=b'), { a: 'b' }, `parse('a=b')`);
-    assert.deepStrictEqual(parse('a=b&c=d'), { a: 'b', c: 'd' }, `parse('a=b&c=d')`);
-    assert.deepStrictEqual(parse('a=b&&c=d'), { a: 'b', c: 'd' }, `parse('a=b&&c=d')`);
-    assert.deepStrictEqual(parse('a=b&a=c'), { a: ['b', 'c'] }, `parse('a=b&a=c')`);
-
-    assert.deepStrictEqual(parse('a=b&c=d='), { a: 'b', c: 'd' }, `parse('a=b&c=d=')`);
-    assert.deepStrictEqual(parse('a=b&c=d=='), { a: 'b', c: 'd' }, `parse('a=b&c=d==')`);
-
-    assert.deepStrictEqual(parse('a=%26'), { a: '&' }, `parse('a=%26')`);
-    assert.deepStrictEqual(parse('%26=a'), { '&': 'a' }, `parse('%26=a')`);
-    assert.deepStrictEqual(parse('%26[]=b&%26[]=c'), { '&': ['b', 'c'] }, `parse('%26[]=b&%26[]=c')`);
-
-    assert.deepStrictEqual(parse('a[b]=c&a[d]=e'), {a: {b: 'c', d: 'e'}}, `parse('a[b]=c&a[d]=e')`);
-    assert.deepStrictEqual(parse('a[b][c][d]=e'), {a: {b: {c: {d: 'e'}}}}, `parse('a[b][c][d]=e')`);
-    assert.deepStrictEqual(parse('a[b][]=c&a[b][]=d&a[b][2][]=f&a[b][2][]=g'), {a: {b: ['c', 'd', ['f', 'g']]}}, `parse('a[b][]=c&a[b][]=d&a[b][2][]=f&a[b][2][]=g')`);
-    assert.deepStrictEqual(parse('a[0]=b'), {a: ['b']}, `parse('a[0]=b')`);
   });
 });

@@ -35,11 +35,12 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.6.0"
+    "@aurelia/kernel": "0.6.0",
+    "@aurelia/scheduler": "0.6.0"
   },
   "devDependencies": {
     "@types/node": "^12.12.21",
-    "tslib": "^1.10.0",
-    "typescript": "^3.7.4"
+    "tslib": "^1.11.1",
+    "typescript": "^3.8.3"
   }
 }

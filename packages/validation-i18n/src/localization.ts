@@ -1,12 +1,12 @@
-import { I18N, Signals } from "@aurelia/i18n";
-import { IValidationController, IValidator, ValidationControllerFactory, ValidationController, ValidationMessageProvider, BaseValidationRule } from "@aurelia/validation";
-import { IExpressionParser, IScheduler, PrimitiveLiteralExpression, IInterpolationExpression } from '@aurelia/runtime';
-import { EventAggregator, IEventAggregator, ILogger, IDisposable, DI, IContainer, Key } from '@aurelia/kernel';
-import { ValidationCustomizationOptions } from '@aurelia/validation/dist/validation-customization-options';
+import { I18N, Signals } from '@aurelia/i18n';
+import { DI, EventAggregator, IContainer, IDisposable, IEventAggregator, ILogger, Key } from '@aurelia/kernel';
+import { IExpressionParser, IInterpolationExpression, IScheduler, PrimitiveLiteralExpression } from '@aurelia/runtime';
+import { IValidationRule, IValidator, ValidationMessageProvider } from '@aurelia/validation';
+import { IValidationController, ValidationController, ValidationControllerFactory, ValidationHtmlCustomizationOptions } from '@aurelia/validation-html';
 
 const I18N_VALIDATION_EA_CHANNEL = 'i18n:locale:changed:validation';
 
-export interface ValidationI18nCustomizationOptions extends ValidationCustomizationOptions {
+export interface ValidationI18nCustomizationOptions extends ValidationHtmlCustomizationOptions {
   DefaultNamespace?: string;
   DefaultKeyPrefix?: string;
 }
@@ -66,12 +66,12 @@ export class LocalizedValidationMessageProvider extends ValidationMessageProvide
     ea.subscribe(
       Signals.I18N_EA_CHANNEL,
       () => {
-        this.registeredMessages = new WeakMap<BaseValidationRule, IInterpolationExpression | PrimitiveLiteralExpression>();
+        this.registeredMessages = new WeakMap<IValidationRule, IInterpolationExpression | PrimitiveLiteralExpression>();
         ea.publish(I18N_VALIDATION_EA_CHANNEL);
       });
   }
 
-  public getMessage(rule: BaseValidationRule): IInterpolationExpression | PrimitiveLiteralExpression {
+  public getMessage(rule: IValidationRule): IInterpolationExpression | PrimitiveLiteralExpression {
     const parsedMessage = this.registeredMessages.get(rule);
     if (parsedMessage !== void 0) { return parsedMessage; }
 
@@ -80,7 +80,7 @@ export class LocalizedValidationMessageProvider extends ValidationMessageProvide
 
   public getDisplayName(propertyName: string | number | undefined, displayName?: string | null | (() => string)): string | undefined {
     if (displayName !== null && displayName !== undefined) {
-      return (displayName instanceof Function) ? displayName() : displayName as string;
+      return (displayName instanceof Function) ? displayName() : displayName;
     }
 
     if (propertyName === void 0) { return; }

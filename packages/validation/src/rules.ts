@@ -1,4 +1,4 @@
-import { Constructable, Protocol, Metadata, Class, DI } from '@aurelia/kernel';
+import { Constructable, Protocol, Metadata, Class, DI, toArray } from '@aurelia/kernel';
 import { IInterpolationExpression, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import {
   IValidateable,
@@ -35,7 +35,7 @@ export interface IValidationMessageProvider {
   getDisplayName(propertyName: string | number | undefined, displayName?: string | null | ValidationDisplayNameAccessor): string | undefined;
 }
 
-export const IValidationMessageProvider = DI.createInterface<IValidationMessageProvider>("IValidationMessageProvider").noDefault();
+export const IValidationMessageProvider = DI.createInterface<IValidationMessageProvider>('IValidationMessageProvider').noDefault();
 
 export interface ValidationRuleAlias {
   name: string;
@@ -60,7 +60,7 @@ export const ValidationRuleAliasMessage = Object.freeze({
         ...Object.fromEntries(defaultMessages.map(({ name, defaultMessage }) => [name, defaultMessage])) as Record<string, string>,
         ...Object.fromEntries(aliases.map(({ name, defaultMessage }) => [name, defaultMessage])) as Record<string, string>,
       };
-      aliases = Array.from(Object.entries(allMessages)).map(([name, defaultMessage]) => ({ name, defaultMessage }));
+      aliases = toArray(Object.entries(allMessages)).map(([name, defaultMessage]) => ({ name, defaultMessage }));
     }
     Metadata.define(ValidationRuleAliasMessage.aliasKey, aliases, rule instanceof Function ? rule.prototype : rule);
   },

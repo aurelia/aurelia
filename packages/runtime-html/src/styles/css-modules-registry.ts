@@ -2,9 +2,17 @@ import { IContainer, IRegistry } from '@aurelia/kernel';
 import { bindable, customAttribute, INode } from '@aurelia/runtime';
 import { getClassesToAdd } from '../observation/class-attribute-accessor';
 
+export function cssModules(...cssModules: (Record<string, string>)[]) {
+  return new CSSModulesProcessorRegistry(cssModules);
+}
+
 export class CSSModulesProcessorRegistry implements IRegistry {
-  public register(container: IContainer, ...params: (Record<string, string>)[]) {
-    const classLookup = Object.assign({}, ...params) as Record<string, string>;
+  public constructor(
+    private readonly cssModules: Record<string, string>[],
+  ) {}
+
+  public register(container: IContainer) {
+    const classLookup = Object.assign({}, ...this.cssModules) as Record<string, string>;
 
     @customAttribute('class')
     class ClassCustomAttribute {
@@ -12,7 +20,7 @@ export class CSSModulesProcessorRegistry implements IRegistry {
 
       private element: HTMLElement;
 
-      public constructor(@INode element: INode) {
+      public constructor(@INode element: INode /* TODO(fkleuver): fix this type annotation reflection issue in AOT */) {
         this.element = element as HTMLElement;
       }
 

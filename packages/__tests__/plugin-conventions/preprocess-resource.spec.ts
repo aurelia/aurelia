@@ -191,6 +191,50 @@ export class FooBar {}
     assert.equal(result.code, expected);
   });
 
+  it('supports customized name in customElement decorator when there is html file pair', function () {
+    const code = `import { customElement } from '@aurelia/runtime';
+
+@customElement('lorem')
+export class FooBar {}
+`;
+    const expected = `import * as __au2ViewDef from './foo-bar.html';
+import { customElement } from '@aurelia/runtime';
+
+@customElement({ ...__au2ViewDef, name: 'lorem' })
+export class FooBar {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+        filePair: 'foo-bar.html'
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('ignores customized name in customElement decorator when there is no html file pair. This default behaviour is like @noView in Aurelia 1.', function () {
+    const code = `import { customElement } from '@aurelia/runtime';
+
+@customElement('lorem')
+export class FooBar {}
+`;
+    const expected = `import { customElement } from '@aurelia/runtime';
+
+@customElement('lorem')
+export class FooBar {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
   it('injects view decorator with existing runtime import', function () {
     const code = `import { containerless } from '@aurelia/runtime';
 
@@ -658,6 +702,87 @@ export class AbcBindingCommand {
 }
 
 @customElement({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ] })
+export class FooBar {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.ts'),
+        contents: code,
+        filePair: 'foo-bar.html'
+      },
+      preprocessOptions()
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('injects various decorators when there is implicit custom element with customized name', function () {
+    const code = `import {Foo} from './foo';
+import { templateController, customElement } from '@aurelia/runtime';
+import { other } from '@aurelia/jit';
+
+export class LeaveMeAlone {}
+
+@customElement('lorem')
+export class FooBar {}
+
+export class LoremCustomAttribute {
+
+}
+
+@templateController('one')
+export class ForOne {
+}
+
+export class TheSecondValueConverter {
+  toView(value: string): string {
+    return value;
+  }
+}
+
+export class SomeBindingBehavior {
+
+}
+
+export class AbcBindingCommand {
+
+}
+`;
+    const expected = `import * as __au2ViewDef from './foo-bar.html';
+import {Foo} from './foo';
+import { templateController, customElement, customAttribute, valueConverter, bindingBehavior } from '@aurelia/runtime';
+import { other, bindingCommand } from '@aurelia/jit';
+
+export class LeaveMeAlone {}
+
+
+
+@customAttribute('lorem')
+export class LoremCustomAttribute {
+
+}
+
+@templateController('one')
+export class ForOne {
+}
+
+@valueConverter('theSecond')
+export class TheSecondValueConverter {
+  toView(value: string): string {
+    return value;
+  }
+}
+
+@bindingBehavior('some')
+export class SomeBindingBehavior {
+
+}
+
+@bindingCommand('abc')
+export class AbcBindingCommand {
+
+}
+
+@customElement({ ...__au2ViewDef, name: 'lorem', dependencies: [ ...__au2ViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ] })
 export class FooBar {}
 `;
     const result = preprocessResource(

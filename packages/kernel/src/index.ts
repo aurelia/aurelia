@@ -65,7 +65,7 @@ export {
 export {
   metadata,
   Metadata,
-} from './metadata';
+} from '@aurelia/metadata';
 export {
   IConsoleLike,
   ColorOptions,
@@ -85,9 +85,6 @@ export {
 export {
   relativeToFile,
   join,
-  buildQueryString,
-  parseQueryString,
-  IQueryParams
 } from './path';
 export { PLATFORM } from './platform';
 export {

@@ -25,6 +25,61 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Launch current mocha test",
+      "runtimeArgs": [
+        "mocha"
+      ],
+      "outputCapture": "std",
+      "runtimeExecutable": "npx",
+      "args": [
+        "${workspaceRoot}/packages/__tests__/setup-node.ts",
+        "${file}",
+        "--color",
+        "--require",
+        "source-map-support/register",
+        "--require",
+        "ts-node/register",
+        "--require",
+        "esm",
+        "--globals",
+        "expect",
+        "--timeout",
+        "999999",
+      ],
+      "cwd": "${workspaceRoot}",
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch mocha kernel tests",
+      "runtimeArgs": [
+        "mocha"
+      ],
+      "outputCapture": "std",
+      "runtimeExecutable": "npx",
+      "args": [
+        "${workspaceRoot}/packages/__tests__/setup-node.ts",
+        "${workspaceRoot}/packages/__tests__/1-kernel",
+        "--color",
+        "--require",
+        "source-map-support/register",
+        "--require",
+        "ts-node/register",
+        "--require",
+        "esm",
+        "--recursive",
+        "--globals",
+        "expect",
+        "--timeout",
+        "999999"
+      ],
+      "cwd": "${workspaceRoot}",
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Launch mocha runtime tests",
       "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
       "env": {
@@ -72,6 +127,68 @@
       ],
       "cwd": "${workspaceRoot}",
       "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch mocha route-recognizer tests",
+      "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+      "env": {
+        "TS_NODE_PROJECT": "${workspaceRoot}/packages/__tests__/tsconfig.json"
+      },
+      "args": [
+        "-r",
+        "esm",
+        "--opts",
+        "${workspaceRoot}/packages/__tests__/mocha.opts",
+        "${workspaceRoot}/packages/__tests__/dist/esnext/__tests__/setup-node.js",
+        "${workspaceRoot}/packages/__tests__/dist/esnext/__tests__/router/route-recognizer.spec.js"
+      ],
+      "cwd": "${workspaceRoot}",
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch mocha scheduler tests",
+      "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+      "env": {
+        "TS_NODE_PROJECT": "${workspaceRoot}/packages/__tests__/tsconfig.json"
+      },
+      "args": [
+        "-r",
+        "esm",
+        "--opts",
+        "${workspaceRoot}/packages/__tests__/mocha.opts",
+        "${workspaceRoot}/packages/__tests__/dist/esnext/__tests__/setup-node.js",
+        "${workspaceRoot}/packages/__tests__/dist/esnext/__tests__/2-runtime/scheduler.spec.js"
+      ],
+      "cwd": "${workspaceRoot}",
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch mocha router tests",
+      "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+      "env": {
+        "TS_NODE_PROJECT": "${workspaceRoot}/packages/__tests__/tsconfig.json"
+      },
+      "args": [
+        "--opts",
+        "${workspaceRoot}/packages/__tests__/mocha.opts",
+        "${workspaceRoot}/packages/__tests__/dist/esnext/__tests__/setup-node.js",
+        "${workspaceRoot}/packages/__tests__/dist/esnext/__tests__/router/router.spec.js"
+      ],
+      "cwd": "${workspaceRoot}",
+      "internalConsoleOptions": "openOnSessionStart",
+      "runtimeArgs": [
+        "-r",
+        "esm"
+      ],
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
     },
     {
       "type": "node",

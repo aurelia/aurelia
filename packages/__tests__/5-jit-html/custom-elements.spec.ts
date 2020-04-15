@@ -4,11 +4,37 @@ import {
   CustomElement,
   alias,
   CustomElementHost,
-  Aurelia
+  Aurelia,
+  IViewModel,
+  ICustomElementViewModel,
+  IDryCustomElementController,
+  CustomElementDefinition,
+  PartialCustomElementDefinitionParts,
+  PartialCustomElementDefinition,
+  IContextualCustomElementController,
+  ICompiledCustomElementController,
+  ICustomElementController,
+  LifecycleFlags,
+  MaybePromiseOrTask
 } from '@aurelia/runtime';
-import { TestConfiguration, assert, createFixture, TestContext, HTMLTestContext } from '@aurelia/testing';
-import { Registration, IIndexable, PLATFORM } from '@aurelia/kernel';
-import { InterceptorFunc } from '@aurelia/runtime/dist/templating/bindable';
+import {
+  TestConfiguration,
+  assert,
+  createFixture,
+  TestContext,
+  HTMLTestContext,
+  CallCollection,
+} from '@aurelia/testing';
+import {
+  Registration,
+  IIndexable,
+  PLATFORM,
+  Class,
+  IContainer,
+} from '@aurelia/kernel';
+import {
+  InterceptorFunc,
+} from '@aurelia/runtime/dist/templating/bindable';
 
 interface Person { firstName?: string; lastName?: string; fullName?: string }
 const app = class { public value: string = 'wOOt'; };
@@ -786,5 +812,288 @@ describe('5-jit-html/custom-elements/custom-elements.spec.ts', function () {
         au.stop();
       });
     }
+  });
+
+  interface ICallTracingViewModel extends ICustomElementViewModel<HTMLElement> {
+    readonly id: number;
+    readonly $calls: CallCollection;
+  }
+
+  function addHooks<TProto extends ICallTracingViewModel>(ctor: Class<TProto>): Class<TProto> {
+    const proto = ctor.prototype;
+
+    proto.create = function create(
+      this: TProto,
+      controller: IDryCustomElementController<HTMLElement, TProto>,
+      parentContainer: IContainer,
+      definition: CustomElementDefinition,
+      parts: PartialCustomElementDefinitionParts | undefined,
+    ): PartialCustomElementDefinition | void {
+      this.$calls.addCall(this.id, 'create');
+    };
+    proto.beforeCompile = function beforeCompile(
+      this: TProto,
+      controller: IContextualCustomElementController<HTMLElement, TProto>,
+    ): void {
+      this.$calls.addCall(this.id, 'beforeCompile');
+    };
+    proto.afterCompile = function afterCompile(
+      this: TProto,
+      controller: ICompiledCustomElementController<HTMLElement, TProto>,
+    ): void {
+      this.$calls.addCall(this.id, 'afterCompile');
+    };
+    proto.afterCompileChildren = function afterCompileChildren(
+      this: TProto,
+      controller: ICustomElementController<HTMLElement, TProto>,
+    ): void {
+      this.$calls.addCall(this.id, 'afterCompileChildren');
+    };
+
+    proto.beforeBind = function beforeBind(
+      this: TProto,
+      flags: LifecycleFlags,
+    ): MaybePromiseOrTask {
+      this.$calls.addCall(this.id, 'beforeBind');
+    };
+    proto.afterBind = function afterBind(
+      this: TProto,
+      flags: LifecycleFlags,
+    ): void {
+      this.$calls.addCall(this.id, 'afterBind');
+    };
+    proto.afterBindChildren = function afterBindChildren(
+      this: TProto,
+      flags: LifecycleFlags,
+    ): void {
+      this.$calls.addCall(this.id, 'afterBindChildren');
+    };
+
+    proto.beforeUnbind = function beforeUnbind(
+      this: TProto,
+      flags: LifecycleFlags,
+    ): MaybePromiseOrTask {
+      this.$calls.addCall(this.id, 'beforeUnbind');
+    };
+    proto.afterUnbind = function afterUnbind(
+      this: TProto,
+      flags: LifecycleFlags,
+    ): void {
+      this.$calls.addCall(this.id, 'afterUnbind');
+    };
+    proto.afterUnbindChildren = function afterUnbindChildren(
+      this: TProto,
+      flags: LifecycleFlags,
+    ): void {
+      this.$calls.addCall(this.id, 'afterUnbindChildren');
+    };
+
+    proto.beforeAttach = function beforeAttach(
+      this: TProto,
+      flags: LifecycleFlags,
+    ): void {
+      this.$calls.addCall(this.id, 'beforeAttach');
+    };
+    proto.afterAttach = function afterAttach(
+      this: TProto,
+      flags: LifecycleFlags,
+    ): void {
+      this.$calls.addCall(this.id, 'afterAttach');
+    };
+    proto.afterAttachChildren = function afterAttachChildren(
+      this: TProto,
+      flags: LifecycleFlags,
+    ): void {
+      this.$calls.addCall(this.id, 'afterAttachChildren');
+    };
+
+    proto.beforeDetach = function beforeDetach(
+      this: TProto,
+      flags: LifecycleFlags,
+    ): void {
+      this.$calls.addCall(this.id, 'beforeDetach');
+    };
+    proto.afterDetach = function afterDetach(
+      this: TProto,
+      flags: LifecycleFlags,
+    ): void {
+      this.$calls.addCall(this.id, 'afterDetach');
+    };
+    proto.afterDetachChildren = function afterDetachChildren(
+      this: TProto,
+      flags: LifecycleFlags,
+    ): void {
+      this.$calls.addCall(this.id, 'afterDetachChildren');
+    };
+
+    proto.caching = function caching(
+      this: TProto,
+      flags: LifecycleFlags,
+    ): void {
+      this.$calls.addCall(this.id, 'caching');
+    };
+
+    return ctor;
+  }
+
+  describe('hooks fire in the correct order', function () {
+    it(`only root component`, async function () {
+      // Arrange
+      const ctx = TestContext.createHTMLTestContext();
+      const { container } = ctx;
+      const au = new Aurelia(container);
+      const host = ctx.createElement('app');
+
+      const actualCalls = container.get(CallCollection);
+
+      const expectedCalls = new CallCollection();
+      expectedCalls
+        .addCall(1, 'create')
+        .addCall(1, 'beforeCompile')
+        .addCall(1, 'afterCompile')
+        .addCall(1, 'afterCompileChildren')
+        .addCall(1, 'beforeBind')
+        .addCall(1, 'afterBind')
+        .addCall(1, 'afterBindChildren')
+        .addCall(1, 'beforeAttach')
+        .addCall(1, 'afterAttach')
+        .addCall(1, 'afterAttachChildren')
+        .addCall(1, 'beforeDetach')
+        .addCall(1, 'afterDetach')
+        .addCall(1, 'afterDetachChildren')
+        .addCall(1, 'beforeUnbind')
+        .addCall(1, 'afterUnbind')
+        .addCall(1, 'afterUnbindChildren');
+
+      const App = CustomElement.define(
+        {
+          name: 'app',
+        },
+        addHooks(class {
+          public readonly id: number = 1;
+
+          public static get inject(): [typeof CallCollection] {
+            return [CallCollection];
+          }
+
+          public constructor(
+            public readonly $calls: CallCollection,
+          ) {}
+        })
+      );
+
+      au.app({ component: App, host });
+
+      // Act
+      await au.start().wait();
+      await au.stop().wait();
+
+      // Assert
+      assert.deepStrictEqual(actualCalls, expectedCalls);
+    });
+
+    it(`root and child component`, async function () {
+      // Arrange
+      const ctx = TestContext.createHTMLTestContext();
+      const { container } = ctx;
+      const au = new Aurelia(container);
+      const host = ctx.createElement('app');
+
+      const actualCalls = container.get(CallCollection);
+
+      const expectedCalls = new CallCollection();
+      expectedCalls
+        .addCall(1, 'create')
+        .addCall(1, 'beforeCompile')
+        .addCall(1, 'afterCompile')
+
+        .addCall(2, 'create')
+        .addCall(2, 'beforeCompile')
+        .addCall(2, 'afterCompile')
+
+        .addCall(2, 'afterCompileChildren')
+        .addCall(1, 'afterCompileChildren')
+
+        .addCall(1, 'beforeBind')
+        .addCall(1, 'afterBind')
+
+        .addCall(2, 'beforeBind')
+        .addCall(2, 'afterBind')
+
+        .addCall(2, 'afterBindChildren')
+        .addCall(1, 'afterBindChildren')
+
+        .addCall(1, 'beforeAttach')
+        .addCall(1, 'afterAttach')
+
+        .addCall(2, 'beforeAttach')
+        .addCall(2, 'afterAttach')
+
+        .addCall(2, 'afterAttachChildren')
+        .addCall(1, 'afterAttachChildren')
+
+        .addCall(1, 'beforeDetach')
+        .addCall(1, 'afterDetach')
+
+        .addCall(2, 'beforeDetach')
+        .addCall(2, 'afterDetach')
+
+        .addCall(2, 'afterDetachChildren')
+        .addCall(1, 'afterDetachChildren')
+
+        .addCall(1, 'beforeUnbind')
+        .addCall(1, 'afterUnbind')
+
+        .addCall(2, 'beforeUnbind')
+        .addCall(2, 'afterUnbind')
+
+        .addCall(2, 'afterUnbindChildren')
+        .addCall(1, 'afterUnbindChildren');
+
+      const Child = CustomElement.define(
+        {
+          name: 'child',
+        },
+        addHooks(class {
+          public readonly id: number = 2;
+
+          public static get inject(): [typeof CallCollection] {
+            return [CallCollection];
+          }
+
+          public constructor(
+            public readonly $calls: CallCollection,
+          ) {}
+        })
+      );
+
+      const App = CustomElement.define(
+        {
+          name: 'app',
+          dependencies: [Child],
+          template: '<child></child>'
+        },
+        addHooks(class {
+          public readonly id: number = 1;
+
+          public static get inject(): [typeof CallCollection] {
+            return [CallCollection];
+          }
+
+          public constructor(
+            public readonly $calls: CallCollection,
+          ) {}
+        })
+      );
+
+      au.app({ component: App, host });
+
+      // Act
+      await au.start().wait();
+      await au.stop().wait();
+
+      // Assert
+      assert.deepStrictEqual(actualCalls, expectedCalls);
+    });
   });
 });

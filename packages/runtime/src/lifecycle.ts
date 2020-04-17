@@ -429,9 +429,6 @@ export interface IHydratedCustomAttributeViewModel<T extends INode = INode> exte
 export interface ILifecycle {
   readonly batch: IAutoProcessingQueue<IBatchable>;
 
-  readonly mount: IProcessingQueue<IController>;
-  readonly unmount: IProcessingQueue<IController>;
-
   readonly afterBindChildren: IAutoProcessingQueue<IController>;
   readonly afterUnbindChildren: IAutoProcessingQueue<IController>;
 
@@ -621,8 +618,6 @@ export class AttachedQueue implements IAutoProcessingQueue<IController> {
       flags = LifecycleFlags.none;
     }
     if (--this.depth === 0) {
-      // temporary, until everything else works and we're ready for integrating mount/unmount in the RAF queue
-      this.lifecycle.mount.process(flags);
       this.process(flags);
     }
   }
@@ -697,8 +692,6 @@ export class DetachedQueue implements IAutoProcessingQueue<IController> {
       flags = LifecycleFlags.none;
     }
     if (--this.depth === 0) {
-      // temporary, until everything else works and we're ready for integrating mount/unmount in the RAF queue
-      this.lifecycle.unmount.process(flags);
       this.process(flags);
     }
   }
@@ -753,119 +746,6 @@ export class DetachedQueue implements IAutoProcessingQueue<IController> {
     }
   }
 }
-
-export class MountQueue implements IProcessingQueue<IController> {
-  public depth: number = 0;
-
-  public head: IRenderableController | undefined = void 0;
-  public tail: IRenderableController | undefined = void 0;
-
-  public constructor(
-    @ILifecycle public readonly lifecycle: ILifecycle,
-  ) {}
-
-  public add(controller: IRenderableController): void {
-    if (this.head === void 0) {
-      this.head = controller;
-    } else {
-      controller.prevMount = this.tail;
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      this.tail!.nextMount = controller; // implied by mountHead not being undefined
-    }
-    this.tail = controller;
-  }
-
-  public remove(controller: IRenderableController): void {
-    if (controller.prevMount !== void 0) {
-      controller.prevMount.nextMount = controller.nextMount;
-    }
-    if (controller.nextMount !== void 0) {
-      controller.nextMount.prevMount = controller.prevMount;
-    }
-    controller.prevMount = void 0;
-    controller.nextMount = void 0;
-    if (this.tail === controller) {
-      this.tail = controller.prevMount;
-    }
-    if (this.head === controller) {
-      this.head = controller.nextMount;
-    }
-  }
-
-  public process(flags: LifecycleFlags): void {
-    let i = 0;
-    while (this.head !== void 0) {
-      let cur = this.head;
-      this.head = this.tail = void 0;
-      let next: IRenderableController | undefined;
-      do {
-        ++i;
-        cur.mount(flags);
-        next = cur.nextMount;
-        cur.nextMount = void 0;
-        cur.prevMount = void 0;
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        cur = next!; // we're checking it for undefined the next line
-      } while (cur !== void 0);
-    }
-  }
-}
-
-export class UnmountQueue implements IProcessingQueue<IController> {
-  public head: IRenderableController | undefined = void 0;
-  public tail: IRenderableController | undefined = void 0;
-
-  public constructor(
-    @ILifecycle public readonly lifecycle: ILifecycle,
-  ) {}
-
-  public add(controller: IRenderableController): void {
-    if (this.head === void 0) {
-      this.head = controller;
-    } else {
-      controller.prevUnmount = this.tail;
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      this.tail!.nextUnmount = controller; // implied by unmountHead not being undefined
-    }
-    this.tail = controller;
-  }
-
-  public remove(controller: IRenderableController): void {
-    if (controller.prevUnmount !== void 0) {
-      controller.prevUnmount.nextUnmount = controller.nextUnmount;
-    }
-    if (controller.nextUnmount !== void 0) {
-      controller.nextUnmount.prevUnmount = controller.prevUnmount;
-    }
-    controller.prevUnmount = void 0;
-    controller.nextUnmount = void 0;
-    if (this.tail === controller) {
-      this.tail = controller.prevUnmount;
-    }
-    if (this.head === controller) {
-      this.head = controller.nextUnmount;
-    }
-  }
-
-  public process(flags: LifecycleFlags): void {
-    let i = 0;
-    while (this.head !== void 0) {
-      let cur = this.head;
-      this.head = this.tail = void 0;
-      let next: IRenderableController | undefined;
-      do {
-        ++i;
-        cur.unmount(flags);
-        next = cur.nextUnmount;
-        cur.nextUnmount = void 0;
-        cur.prevUnmount = void 0;
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        cur = next!; // we're checking it for undefined the next line
-      } while (cur !== void 0);
-    }
-  }
-}
-
 export class BatchQueue implements IAutoProcessingQueue<IBatchable> {
   public queue: IBatchable[] = [];
   public depth: number = 0;
@@ -919,9 +799,6 @@ export class BatchQueue implements IAutoProcessingQueue<IBatchable> {
 
 export class Lifecycle implements ILifecycle {
   public readonly batch: IAutoProcessingQueue<IBatchable> = new BatchQueue(this);
-
-  public readonly mount: IProcessingQueue<IController> = new MountQueue(this);
-  public readonly unmount: IProcessingQueue<IController> = new UnmountQueue(this);
 
   public readonly afterBindChildren: IAutoProcessingQueue<IController> = new BoundQueue(this);
   public readonly afterUnbindChildren: IAutoProcessingQueue<IController> = new UnboundQueue(this);

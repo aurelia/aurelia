@@ -57,7 +57,6 @@ export const enum State {
   isAttached            = 0b00_00100000,
   isAttachedOrAttaching = 0b00_00101000,
   isAttachedOrDetaching = 0b00_00110000,
-  isMounted             = 0b00_01000000,
   hasLockedScope        = 0b01_00000000,
   canBeCached           = 0b10_00000000,
 }

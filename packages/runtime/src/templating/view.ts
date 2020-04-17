@@ -61,7 +61,6 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
 
   public tryReturnToCache(controller: ISyntheticView<T>): boolean {
     if (this.canReturnToCache(controller)) {
-      controller.cache(LifecycleFlags.none);
       this.cache.push(controller);
       return true;
     }

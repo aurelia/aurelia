@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import {
   IContainer,
   IIndexable,
@@ -78,7 +79,6 @@ import {
 import {
   IRenderContext,
   getRenderContext,
-  ICompiledRenderContext,
 } from './render-context';
 import { ChildrenObserver } from './children';
 
@@ -300,7 +300,7 @@ export class Controller<
 
     controller.hydrateSynthetic(context, viewFactory.parts);
 
-    return controller as Controller<T> & { context: ICompiledRenderContext<T> } as ISyntheticView<T>;
+    return controller as unknown as ISyntheticView<T>;
   }
 
   private hydrateCustomElement(
@@ -458,12 +458,7 @@ export class Controller<
 
   public release(flags: LifecycleFlags): boolean {
     this.state |= State.canBeCached;
-    if ((this.state & State.isAttached) > 0) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      return this.viewFactory!.canReturnToCache(this as unknown as ISyntheticView<T>); // non-null is implied by the hook
-    }
-
-    return this.unmountSynthetic(flags);
+    return this.viewFactory!.canReturnToCache(this as unknown as ISyntheticView<T>); // non-null is implied by the hook
   }
 
   public bind(flags: LifecycleFlags, scope?: IScope, part?: string): ILifecycleTask {
@@ -500,91 +495,48 @@ export class Controller<
   }
 
   public afterBindChildren(flags: LifecycleFlags): void {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.bindingContext!.afterBindChildren(flags); // non-null is implied by the hook
   }
 
   public afterUnbindChildren(flags: LifecycleFlags): void {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.bindingContext!.afterUnbindChildren(flags); // non-null is implied by the hook
   }
 
-  public attach(flags: LifecycleFlags): void {
-    if ((this.state & State.isAttachedOrAttaching) > 0 && (flags & LifecycleFlags.reorderNodes) === 0) {
-      return;
-    }
-
-    flags |= LifecycleFlags.fromAttach;
-    switch (this.vmKind) {
-      case ViewModelKind.customElement:
-        this.attachCustomElement(flags);
-        break;
-      case ViewModelKind.customAttribute:
-        this.attachCustomAttribute(flags);
-        break;
-      case ViewModelKind.synthetic:
-        this.attachSynthetic(flags);
-    }
-  }
-
-  public detach(flags: LifecycleFlags): void {
-    if ((this.state & State.isAttachedOrAttaching) === 0) {
-      return;
-    }
-
-    flags |= LifecycleFlags.fromDetach;
-    switch (this.vmKind) {
-      case ViewModelKind.customElement:
-        this.detachCustomElement(flags);
-        break;
-      case ViewModelKind.customAttribute:
-        this.detachCustomAttribute(flags);
-        break;
-      case ViewModelKind.synthetic:
-        this.detachSynthetic(flags);
-    }
-  }
-
   public afterAttachChildren(flags: LifecycleFlags): void {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.bindingContext!.afterAttachChildren(flags); // non-null is implied by the hook
   }
 
   public afterDetachChildren(flags: LifecycleFlags): void {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.bindingContext!.afterDetachChildren(flags); // non-null is implied by the hook
   }
 
-  public mount(flags: LifecycleFlags): void {
-    switch (this.vmKind) {
-      case ViewModelKind.customElement:
-        this.mountCustomElement(flags);
-        break;
-      case ViewModelKind.synthetic:
-        this.mountSynthetic(flags);
-    }
-  }
-
-  public unmount(flags: LifecycleFlags): void {
-    switch (this.vmKind) {
-      case ViewModelKind.customElement:
-        this.unmountCustomElement(flags);
-        break;
-      case ViewModelKind.synthetic:
-        this.unmountSynthetic(flags);
-    }
-  }
-
   public cache(flags: LifecycleFlags): void {
+    flags |= LifecycleFlags.fromCache;
+
     switch (this.vmKind) {
       case ViewModelKind.customElement:
-        this.cacheCustomElement(flags);
+        if (this.hooks.hasCaching) {
+          this.bindingContext!.caching(flags); // non-null is implied by the hook
+        }
         break;
       case ViewModelKind.customAttribute:
-        this.cacheCustomAttribute(flags);
+        if (this.hooks.hasCaching) {
+          this.bindingContext!.caching(flags); // non-null is implied by the hook
+        }
+
+        if (this.controllers !== void 0) {
+          for (const controller of this.controllers) {
+            controller.cache(flags);
+          }
+        }
         break;
       case ViewModelKind.synthetic:
-        this.cacheSynthetic(flags);
+        if (this.controllers !== void 0) {
+          for (const controller of this.controllers) {
+            controller.cache(flags);
+          }
+        }
+        break;
     }
   }
 
@@ -611,7 +563,6 @@ export class Controller<
     }
 
     flags |= LifecycleFlags.fromBind;
-
     this.state |= State.isBinding;
 
     this.lifecycle.afterBindChildren.begin();
@@ -869,242 +820,148 @@ export class Controller<
   }
   // #endregion
 
-  // #region attach/detach
-  private attachCustomElement(flags: LifecycleFlags): void {
-    flags |= LifecycleFlags.fromAttach;
-    this.state |= State.isAttaching;
-
-    this.lifecycle.mount.add(this);
-    this.lifecycle.afterAttachChildren.begin();
-
-    if (this.hooks.hasBeforeAttach) {
-      (this.bindingContext as BindingContext<T, C>).beforeAttach(flags);
-    }
-
-    this.attachControllers(flags);
-
-    if (this.hooks.hasAfterAttachChildren) {
-      this.lifecycle.afterAttachChildren.add(this);
-    }
-
-    this.state = this.state ^ State.isAttaching | State.isAttached;
-    this.lifecycle.afterAttachChildren.end(flags);
-  }
-
-  private attachCustomAttribute(flags: LifecycleFlags): void {
-    flags |= LifecycleFlags.fromAttach;
-    this.state |= State.isAttaching;
-
-    this.lifecycle.afterAttachChildren.begin();
-
-    if (this.hooks.hasBeforeAttach) {
-      (this.bindingContext as BindingContext<T, C>).beforeAttach(flags);
-    }
-
-    if (this.hooks.hasAfterAttachChildren) {
-      this.lifecycle.afterAttachChildren.add(this);
-    }
-
-    this.state = this.state ^ State.isAttaching | State.isAttached;
-
-    if (this.hooks.hasAfterAttach) {
-      (this.bindingContext as BindingContext<T, C>).afterAttach(flags);
-    }
-
-    this.lifecycle.afterAttachChildren.end(flags);
-  }
-
-  private attachSynthetic(flags: LifecycleFlags): void {
-    if (((this.state & State.isAttached) > 0 && flags & LifecycleFlags.reorderNodes) > 0) {
-      this.lifecycle.mount.add(this);
-    } else {
-      flags |= LifecycleFlags.fromAttach;
-      this.state |= State.isAttaching;
-
-      this.lifecycle.mount.add(this);
-      this.lifecycle.afterAttachChildren.begin();
-
-      this.attachControllers(flags);
-
-      this.state = this.state ^ State.isAttaching | State.isAttached;
-      this.lifecycle.afterAttachChildren.end(flags);
-    }
-  }
-
-  private detachCustomElement(flags: LifecycleFlags): void {
-    flags |= LifecycleFlags.fromDetach;
-    this.state |= State.isDetaching;
-
-    this.lifecycle.afterDetachChildren.begin();
-    this.lifecycle.unmount.add(this);
-
-    if (this.hooks.hasBeforeDetach) {
-      (this.bindingContext as BindingContext<T, C>).beforeDetach(flags);
-    }
-
-    this.detachControllers(flags);
-
-    if (this.hooks.hasAfterDetachChildren) {
-      this.lifecycle.afterDetachChildren.add(this);
-    }
-
-    this.state = (this.state | State.isAttachedOrDetaching) ^ State.isAttachedOrDetaching;
-    this.lifecycle.afterDetachChildren.end(flags);
-  }
-
-  private detachCustomAttribute(flags: LifecycleFlags): void {
-    flags |= LifecycleFlags.fromDetach;
-    this.state |= State.isDetaching;
-
-    this.lifecycle.afterDetachChildren.begin();
-
-    if (this.hooks.hasBeforeDetach) {
-      (this.bindingContext as BindingContext<T, C>).beforeDetach(flags);
-    }
-
-    if (this.hooks.hasAfterDetachChildren) {
-      this.lifecycle.afterDetachChildren.add(this);
-    }
-
-    this.state = (this.state | State.isAttachedOrDetaching) ^ State.isAttachedOrDetaching;
-
-    if (this.hooks.hasAfterDetach) {
-      (this.bindingContext as BindingContext<T, C>).afterDetach(flags);
-    }
-
-    this.lifecycle.afterDetachChildren.end(flags);
-  }
-
-  private detachSynthetic(flags: LifecycleFlags): void {
-    flags |= LifecycleFlags.fromDetach;
-    this.state |= State.isDetaching;
-
-    this.lifecycle.afterDetachChildren.begin();
-    this.lifecycle.unmount.add(this);
-
-    this.detachControllers(flags);
-
-    this.state = (this.state | State.isAttachedOrDetaching) ^ State.isAttachedOrDetaching;
-    this.lifecycle.afterDetachChildren.end(flags);
-  }
-
-  private attachControllers(flags: LifecycleFlags): void {
-    const { controllers } = this;
-    if (controllers !== void 0) {
-      const { length } = controllers;
-      for (let i = 0; i < length; ++i) {
-        controllers[i].attach(flags);
-      }
-    }
-  }
-
-  private detachControllers(flags: LifecycleFlags): void {
-    const { controllers } = this;
-    if (controllers !== void 0) {
-      for (let i = controllers.length - 1; i >= 0; --i) {
-        controllers[i].detach(flags);
-      }
-    }
-  }
-  // #endregion
-
-  // #region mount/unmount/cache
-  private mountCustomElement(flags: LifecycleFlags): void {
-    if ((this.state & State.isMounted) > 0) {
+  public attach(flags: LifecycleFlags): void {
+    if ((this.state & State.isAttached) > 0) {
       return;
     }
 
-    this.state |= State.isMounted;
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this.projector!.project(this.nodes!); // non-null is implied by the hook
+    flags |= LifecycleFlags.fromAttach;
+    this.state |= State.isAttaching;
+    switch (this.vmKind) {
+      case ViewModelKind.customElement:
+        this.lifecycle.afterAttachChildren.begin();
 
-    if (this.hooks.hasAfterAttach) {
-      (this.bindingContext as BindingContext<T, C>).afterAttach(flags);
-    }
-  }
+        if (this.hooks.hasBeforeAttach) {
+          (this.bindingContext as BindingContext<T, C>).beforeAttach(flags);
+        }
 
-  private mountSynthetic(flags: LifecycleFlags): void {
-    const nodes = this.nodes!; // non null is implied by the hook
-    const location = this.location!; // non null is implied by the hook
-    this.state |= State.isMounted;
+        this.projector!.project(this.nodes!);
 
-    switch (this.mountStrategy) {
-      case MountStrategy.append:
-        nodes.appendTo(location as T);
+        if (this.hooks.hasAfterAttach) {
+          (this.bindingContext as BindingContext<T, C>).afterAttach(flags);
+        }
+
+        if (this.controllers !== void 0) {
+          for (const controller of this.controllers) {
+            controller.attach(flags);
+          }
+        }
+
+        if (this.hooks.hasAfterAttachChildren) {
+          this.lifecycle.afterAttachChildren.add(this);
+        }
         break;
-      default:
-        nodes.insertBefore(location);
+      case ViewModelKind.customAttribute:
+        this.lifecycle.afterAttachChildren.begin();
+
+        if (this.hooks.hasBeforeAttach) {
+          (this.bindingContext as BindingContext<T, C>).beforeAttach(flags);
+        }
+
+        if (this.hooks.hasAfterAttach) {
+          (this.bindingContext as BindingContext<T, C>).afterAttach(flags);
+        }
+
+        if (this.hooks.hasAfterAttachChildren) {
+          this.lifecycle.afterAttachChildren.add(this);
+        }
+        break;
+      case ViewModelKind.synthetic:
+        this.lifecycle.afterAttachChildren.begin();
+
+        switch (this.mountStrategy) {
+          case MountStrategy.append:
+            this.nodes!.appendTo(this.location! as T);
+            break;
+          case MountStrategy.insertBefore:
+            this.nodes!.insertBefore(this.location!);
+            break;
+        }
+
+        if (this.controllers !== void 0) {
+          for (const controller of this.controllers) {
+            controller.attach(flags);
+          }
+        }
+        break;
     }
+
+    this.state = this.state ^ State.isAttaching | State.isAttached;
+    this.lifecycle.afterAttachChildren.end(flags);
   }
 
-  private unmountCustomElement(flags: LifecycleFlags): void {
-    if ((this.state & State.isMounted) === 0) {
+  public detach(flags: LifecycleFlags): void {
+    if ((this.state & State.isAttachedOrAttaching) === 0) {
       return;
     }
 
-    this.state = (this.state | State.isMounted) ^ State.isMounted;
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this.projector!.take(this.nodes!); // non-null is implied by the hook
+    flags |= LifecycleFlags.fromDetach;
+    this.state |= State.isDetaching;
 
-    if (this.hooks.hasAfterDetach) {
-      (this.bindingContext as BindingContext<T, C>).afterDetach(flags);
+    this.lifecycle.afterDetachChildren.begin();
+
+    switch (this.vmKind) {
+      case ViewModelKind.customElement:
+        if (this.hooks.hasBeforeDetach) {
+          (this.bindingContext as BindingContext<T, C>).beforeDetach(flags);
+        }
+
+        this.projector!.take(this.nodes!); // non-null is implied by the hook
+
+        if (this.hooks.hasAfterDetach) {
+          (this.bindingContext as BindingContext<T, C>).afterDetach(flags);
+        }
+
+        if (this.controllers !== void 0) {
+          for (const controller of this.controllers) {
+            controller.detach(flags);
+          }
+        }
+
+        if (this.hooks.hasAfterDetachChildren) {
+          this.lifecycle.afterDetachChildren.add(this);
+        }
+        break;
+      case ViewModelKind.customAttribute:
+        if (this.hooks.hasBeforeDetach) {
+          (this.bindingContext as BindingContext<T, C>).beforeDetach(flags);
+        }
+
+        if (this.hooks.hasAfterDetach) {
+          (this.bindingContext as BindingContext<T, C>).afterDetach(flags);
+        }
+
+        if (this.hooks.hasAfterDetachChildren) {
+          this.lifecycle.afterDetachChildren.add(this);
+        }
+        break;
+      case ViewModelKind.synthetic:
+        this.nodes!.remove(); // non-null is implied by the hook
+        this.nodes!.unlink();
+
+        if ((this.state & State.canBeCached) > 0) {
+          this.state = (this.state | State.canBeCached) ^ State.canBeCached;
+          if (
+            this.viewFactory!.tryReturnToCache(this as unknown as ISyntheticView<T>) &&
+            this.controllers !== void 0
+          ) {
+            for (const controller of this.controllers) {
+              controller.cache(flags);
+            }
+          }
+        }
+
+        if (this.controllers !== void 0) {
+          for (const controller of this.controllers) {
+            controller.detach(flags);
+          }
+        }
+        break;
     }
+
+    this.state = (this.state | State.isAttachedOrDetaching) ^ State.isAttachedOrDetaching;
+    this.lifecycle.afterDetachChildren.end(flags);
   }
-
-  private unmountSynthetic(flags: LifecycleFlags): boolean {
-    if ((this.state & State.isMounted) === 0) {
-      return false;
-    }
-
-    this.state = (this.state | State.isMounted) ^ State.isMounted;
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this.nodes!.remove(); // non-null is implied by the hook
-    this.nodes!.unlink();
-
-    if ((this.state & State.canBeCached) > 0) {
-      this.state = (this.state | State.canBeCached) ^ State.canBeCached;
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      if (this.viewFactory!.tryReturnToCache(this as unknown as ISyntheticView<T>)) { // non-null is implied by the hook
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private cacheCustomElement(flags: LifecycleFlags): void {
-    flags |= LifecycleFlags.fromCache;
-    if (this.hooks.hasCaching) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      this.bindingContext!.caching(flags); // non-null is implied by the hook
-    }
-  }
-
-  private cacheCustomAttribute(flags: LifecycleFlags): void {
-    flags |= LifecycleFlags.fromCache;
-    if (this.hooks.hasCaching) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      this.bindingContext!.caching(flags); // non-null is implied by the hook
-    }
-
-    const { controllers } = this;
-    if (controllers !== void 0) {
-      const { length } = controllers;
-      for (let i = length - 1; i >= 0; --i) {
-        controllers[i].cache(flags);
-      }
-    }
-  }
-
-  private cacheSynthetic(flags: LifecycleFlags): void {
-    const { controllers } = this;
-    if (controllers !== void 0) {
-      const { length } = controllers;
-      for (let i = length - 1; i >= 0; --i) {
-        controllers[i].cache(flags);
-      }
-    }
-  }
-  // #endregion
 }
 
 function getBindingContext<T extends INode, C extends IViewModel<T>>(flags: LifecycleFlags, instance: object): BindingContext<T, C> {

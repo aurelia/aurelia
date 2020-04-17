@@ -493,33 +493,28 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     const seqLen = seq.length;
     this.$controller.lifecycle.afterAttachChildren.begin();
 
-    flags |= LF.reorderNodes;
-
     let next: ISyntheticView;
     let j = seqLen - 1;
     let i = newLen - 1;
     let view: ISyntheticView;
     for (; i >= 0; --i) {
       view = views[i];
+      next = views[i + 1];
+
+      view.nodes!.link(next?.nodes ?? location);
+
       if (indexMap[i] === -2) {
         setContextualProperties(view.scope!.overrideContext as IRepeatOverrideContext, i, newLen);
         view.hold(location, MountStrategy.insertBefore);
         view.attach(flags);
       } else if (j < 0 || seqLen === 1 || i !== seq[j]) {
         setContextualProperties(view.scope!.overrideContext as IRepeatOverrideContext, i, newLen);
-        view.attach(flags);
+        view.nodes.insertBefore(view.location!);
       } else {
         if (oldLength !== newLen) {
           setContextualProperties(view.scope!.overrideContext as IRepeatOverrideContext, i, newLen);
         }
         --j;
-      }
-
-      next = views[i + 1];
-      if (next !== void 0) {
-        view.nodes!.link(next.nodes);
-      } else {
-        view.nodes!.link(location);
       }
     }
 

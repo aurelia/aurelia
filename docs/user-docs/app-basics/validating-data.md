@@ -23,17 +23,17 @@ The plugin gives you enough flexibility to write your own rules rather than bein
 * Install the plugin using:
 
   ```bash
-  npm i @aurelia/validation
+  npm i @aurelia/validation @aurelia/validation-html
   ```
 
 * Register the plugin in your app with:
 
   ```typescript
-  import { ValidationConfiguration } from '@aurelia/validation';
+  import { ValidationHtmlConfiguration } from '@aurelia/validation-html';
   import Aurelia from 'aurelia';
 
   Aurelia
-    .register(ValidationConfiguration)
+    .register(ValidationHtmlConfiguration)
     .app(component)
     .start();
   ```
@@ -44,7 +44,8 @@ The plugin gives you enough flexibility to write your own rules rather than bein
   {% tab title="awesome-component.ts" %}
 
   ```typescript
-  import { IValidationController, IValidationRules } from '@aurelia/validation';
+  import { IValidationRules } from '@aurelia/validation';
+  import { IValidationController } from '@aurelia/validation-html';
 
   export class AwesomeComponent {
     private person: Person; // Let us assume that we want to validate instance of Person class
@@ -95,9 +96,25 @@ Here is one similar playable demo, if you want to explore on you own!
 That's all you need to do to get started with the plugin.
 However, read on to understand how the plugin functions, and offers flexible API to support your app.
 
-## How does it work
+## Architecture
 
-This section gives a simplified overview of how this plugin works, so that you can use the plugin with more confidence.
+This section gives a high-level architectural overview.
+
+### Overview
+
+There are three different interrelated packages for validation.
+The relation between the packages are depicted in the following diagram.
+
+![Architecture](../../images/validation/architecture.svg)
+
+* `@aurelia/validation`: Provides the core validation functionality. Hosts the validator, out-of-the-box rule implementations, and the validation message provider.
+* `@aurelia/validation-html`: Provides the view-specific functionalities such as validation controller, `validate` binding behavior, and subscribers. It wraps the `@aurelia/validation` package so that you do not need to register both packages.
+* `@aurelia/validation-i18n`: Provides localized implementation of the validation message provider and validation controller. Wraps the `@aurelia/validation-html` package.
+
+The rest of the document assumes that validation is view is more common scenario.
+For that reason, the demos are mostly integrated with view.
+
+### How does it work
 
 * The validationRules (`IValidationRules` instance) allows defining validation rules on a class or object/instance. The defined rules are stored as metadata in a global registry.
   ![Define rules](../../images/validation/seq-define-rules.svg)
@@ -115,11 +132,11 @@ The following sections describe the API in more detail, which will help understa
 The plugin can be registered as follows.
 
 ```typescript
-import { ValidationConfiguration } from '@aurelia/validation';
+import { ValidationHtmlConfiguration } from '@aurelia/validation-html';
 import Aurelia from 'aurelia';
 
 Aurelia
-  .register(ValidationConfiguration)
+  .register(ValidationHtmlConfiguration)
   .app(component)
   .start();
 ```
@@ -128,11 +145,11 @@ This sets up the plugin with the required dependency registrations.
 The registration can be customized as well as shown below.
 
 ```typescript
-import { ValidationConfiguration } from '@aurelia/validation';
+import { ValidationHtmlConfiguration } from '@aurelia/validation-html';
 import Aurelia from 'aurelia';
 
 Aurelia
-  .register(ValidationConfiguration.customize((options) => {
+  .register(ValidationHtmlConfiguration.customize((options) => {
     // customization callback
     options.DefaultTrigger = customDefaultTrigger;
   }))
@@ -142,16 +159,22 @@ Aurelia
 
 Following options are available for customizations.
 
-* `ValidatorType`: Custom implementation of `IValidator`. Defaults to `StandardValidator`.
-* `MessageProviderType`: Custom implementation of `IValidationMessageProvider`. Defaults to `ValidationMessageProvider`.
-* `ValidationControllerFactoryType`: Custom implementation of factory for `IValidationController`; Defaults to `ValidationControllerFactory`.
-* `CustomMessages`: Custom validation messages.
-* `DefaultTrigger`: Default validation trigger. Defaults to `blur`.
-* `HydratorType`: Custom implementation of `IValidationHydrator`. Defaults to `ModelValidationHydrator`.
-* `UseSubscriberCustomAttribute`: Use the `validation-errors` custom attribute. Defaults to `true`.
-* `UseSubscriberCustomElement`: Use the `validation-container` custom element. Defaults to `true`.
+* From `@aurelia/validation`
+  * `ValidatorType`: Custom implementation of `IValidator`. Defaults to `StandardValidator`.
+  * `MessageProviderType`: Custom implementation of `IValidationMessageProvider`. Defaults to `ValidationMessageProvider`.
+  * `ValidationControllerFactoryType`: Custom implementation of factory for `IValidationController`; Defaults to `ValidationControllerFactory`.
+  * `CustomMessages`: Custom validation messages.
+* From `@aurelia/validation-html`
+  * `HydratorType`: Custom implementation of `IValidationHydrator`. Defaults to `ModelValidationHydrator`.
+  * `DefaultTrigger`: Default validation trigger. Defaults to `blur`.
+  * `UseSubscriberCustomAttribute`: Use the `validation-errors` custom attribute. Defaults to `true`.
+  * `UseSubscriberCustomElement`: Use the `validation-container` custom element. Defaults to `true`.
 
 These options are explained in details in the respective sections.
+Note that the categorization of the options are done with the intent of clarifying the origin package of each option.
+However, as the `@aurelia/validation-html` wraps `@aurelia/validation` all the customization options are available when the `@aurelia/validation-html` package is registered.
+
+The `@aurelia/validation-i18n` package is skipped intentionally for now, as it is discussed in details [later](./validating-data.md#i18n-support).
 
 ## Defining rules
 
@@ -184,7 +207,7 @@ This is shown in the following example.
 {% tab title="awesome-component.ts" %}
 
 ```typescript
-import { IValidationController, IValidationRules } from '@aurelia/validation';
+import { IValidationRules } from '@aurelia/validation';
 
 export class AwesomeComponent {
   public constructor(

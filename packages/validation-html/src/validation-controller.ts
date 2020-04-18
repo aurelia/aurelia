@@ -493,10 +493,13 @@ export class ValidationController implements IValidationController {
     const propertyName = instruction.propertyName;
     const rules = instruction.rules;
 
-    return x => x.object === instruction.object &&
-      (propertyName === void 0 || x.propertyName === propertyName) &&
-      (rules === void 0 || rules.includes(x.propertyRule!) ||
-        rules.some((r) => x.propertyRule === void 0 || r.$rules.flat().every(($r) => x.propertyRule!.$rules.flat().includes($r)))
+    return x => !x.isManual
+      && x.object === instruction.object
+      && (propertyName === void 0 || x.propertyName === propertyName)
+      && (
+        rules === void 0
+        || rules.includes(x.propertyRule!)
+        || rules.some((r) => x.propertyRule === void 0 || r.$rules.flat().every(($r) => x.propertyRule!.$rules.flat().includes($r)))
       );
   }
 

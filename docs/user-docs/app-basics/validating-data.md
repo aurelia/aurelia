@@ -523,7 +523,7 @@ There are two ways custom rules can be defined.
 
   <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=a7e99a9c48fa87b800a250f3bfb3761c&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
 
-  Attentive readers must have noticed that the API for the built rules instantiates a rule implementation.
+  You must have noticed that the API for the built rules instantiates a rule implementation.
   For example, the following two are synonymous.
 
   ```typescript
@@ -610,8 +610,6 @@ validationRules
   .required();
 ```
 
-This feature is bit nuanced with the usage of [tagged rules](validating-data.md#tagging-rules).
-
 ### Customizing rules
 
 In this section you will learn about how to customize the rule definition.
@@ -636,8 +634,8 @@ validationRules
 <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=fc661ec8026974f6decb580b6da43498&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
 
 Note that instead of a literal string, a function can also be used to customize the display name.
-The function signature needs to be `() => string`;
-The following example shows a use case for this.
+The function signature is `() => string`;
+The following example shows a use case for this where the attempt for a guessing game is validated, and the attempt count is increased with each attempt and shown in the validation message.
 Note that some parts of the example is not yet discussed, but those will be addressed in respective sections.
 
 <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=59398645df32122cfeb68e8685e6a4ef&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
@@ -657,7 +655,7 @@ validationRules
   .ensure("address.line1")
   .required()
   .withMessage("Enter the address line1 to continue.")
-  .maxLength(42)
+  .maxLength(7)
   .withMessage("The address line1 is too long.");
 ```
 
@@ -688,7 +686,8 @@ The messages can be customized globally during registering the plugin, using the
 {% tab title="main.ts" %}
 
 ```typescript
-import { ValidationConfiguration, RequiredRule, RangeRule, } from '@aurelia/validation';
+import { RequiredRule, RangeRule, } from '@aurelia/validation';
+import { ValidationHtmlConfiguration } from '@aurelia/validation-html';
 import Aurelia from 'aurelia';
 
 const customMessages: ICustomMessage[] = [
@@ -712,7 +711,7 @@ const customMessages: ICustomMessage[] = [
 
 Aurelia
   .register(
-    ValidationConfiguration
+    ValidationHtmlConfiguration
       .customize((options) => {
         options.CustomMessages = customMessages;
       })
@@ -778,7 +777,8 @@ Note that a new key can also be added to any out of the box rule, and can be ref
 {% tab title="main.ts" %}
 
 ```typescript
-import { ValidationConfiguration } from '@aurelia/validation';
+import { RequiredRule } from '@aurelia/validation';
+import { ValidationHtmlConfiguration } from '@aurelia/validation-html';
 import Aurelia from 'aurelia';
 
 const customMessages: ICustomMessage[] = [
@@ -852,7 +852,7 @@ validationRules
   .on(person)
   .ensure("guardianName")
   .required()
-  .when((p) => p.age < 18 );
+  .when((p) => p.age < 18 ); // guardianName is required for a minor
 ```
 
 <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=7ece8d8c5e13296cacc69a3e8bbcfe39&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
@@ -874,7 +874,7 @@ validationRules
   .satisfiesRule(new UniqueRule());
 ```
 
-Assuming there is an implementation of `UniqueRule`, that validates the data against the records existing in data store/backend service.
+Assuming there is an implementation of `UniqueRule` that validates the data against the records, existing in data store/backend service.
 Such rules can be expensive in nature, and thus it makes sense to execute those when all other preconditions are validated.
 In the above example if either of the `required` or `email` rules fails, the `UniqueRule` will never be executed.
 Verify this in the demo shown below.
@@ -893,7 +893,6 @@ validationRules
   .satisfies((p) => p.name === 'Foo' && p.age === 42);
 ```
 
-TODO fix the demo.
 <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=70572608599cfee591ba80a9e494dd87&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
 
 ## Validator and validate instruction
@@ -918,7 +917,7 @@ This is the main difference between validator and validation controller.
 The following example shows how to use it.
 
 ```typescript
-export class AwesomComponent {
+export class AwesomeComponent {
 
   private person: Person;
   private errors: string[];
@@ -943,6 +942,8 @@ export class AwesomComponent {
 ```
 
 <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=6d5ec84b163215dd47495e41eeb940b8&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+
+> An important aspect of the demo above is that it shows how to use `@aurelia/validation` without the `@aurelia/validation-html`.
 
 Let us now focus on the `ValidateInstruction`, which basically instructs the validator, on what to validate.
 The instruction can be manipulated using the following optional class properties.
@@ -1137,7 +1138,7 @@ Alternatively, if the ruleset is not a plain json, rather a javascript object, a
 You would want to create custom rule hydrator if you have either one of these use-cases.
 
 1. You have custom rules, and you want to use those in model-based rule json data.
-1. You have you own schema for rules or the rules metadata is not even a JSON data.
+1. You have your own schema for rules or the rules metadata is not even a JSON data.
 
 Implementing a custom hydrator ends up implementing the following interface.
 
@@ -1227,7 +1228,7 @@ Aurelia
 
 ## Validation controller
 
-So far the core functionalities of the validation have been discussed.
+So far the functionalities of the `@aurelia/validation` have been discussed.
 The part regarding the integration with view has been kept out of the discussion so far.
 This section starts addressing that.
 
@@ -1245,7 +1246,7 @@ This same instance can later be made available to the child components using the
 // parent-ce.ts
 import { customElement } from '@aurelia/runtime';
 import { newInstanceForScope } from '@aurelia/kernel';
-import { IValidationController } from '@aurelia/validation';
+import { IValidationController } from '@aurelia/validation-html';
 
 @customElement({name:'parent-ce', template:`<child-ce></child-ce>`})
 export class ParentCe {

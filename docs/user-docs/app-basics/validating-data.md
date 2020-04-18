@@ -1360,7 +1360,6 @@ validationController.removeError(result);
 Note that the errors added by the `addError` method, never gets revalidated when `revalidateErrors` is called.
 If the error needs to be removed, it must be done using `removeError` method.
 
-TODO fix the demo in terms of revalidating manual error
 <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=b5db8659d6b46dacb7dfc1c72e646780&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
 
 ### `addSubscriber` and `removeSubscriber`
@@ -1419,7 +1418,7 @@ This is how the validation controller comes to know of the bindings that needs t
 You must have noticed plenty example of the `validate` binding behavior in the demos so far.
 For completeness, this can be used as follows.
 
-```typescript
+```html
 <html-element target.bind="source & validate:[trigger]:[validationController]:[rules]"></html-element>
 ```
 
@@ -1431,24 +1430,39 @@ This dictates when the validation is performed.
 The valid values are as follows.
 
 * `manual`: Use the controller's `validate()` method to validate all bindings.
+  <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=3e158b91575b79de1bbaf3a13f320ed1&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>
+
 * `blur`:  Validate the binding when the binding's target element fires a DOM "blur" event.
-* `focusout`:  Validate the binding when the binding's target element fires a DOM "focusout" event.
+  <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=8a4cba70eaf4cc2d698ddb8c96524c10&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>
+
+* `focusout`:  Validate the binding when the binding's target element fires a DOM "focusout" event. This is useful when the actual input is wrapped in a custom element and the `validate` binding behavior is used on the custom element. In that case the `blur` trigger does not work as the `blur` event does not bubble. See the difference in action below.
+  <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=ba271394705e4b8c040f9090c634baff&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>
+
 * `change`: Validate the binding when the source property property is updated (usually triggered by some change in view).
+  <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=56010d78f8e00e6a329c7ce622d99f0a&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>
+
 * `changeOrBlur`: Validate the binding when the binding's target element fires a DOM "blur" event as well as when the source property is updated.
+  <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=be889598bc49d871ee462877985e36ea&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>
+
 * `changeOrFocusout`: Validate the binding when the binding's target element fires a DOM "focusout" event as well as when the source property is updated.
+  <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=e3a8a0609c2b723caa9c59b7309f81ce&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>
 
-TODO: add details on the new changed behavior for `changeOrEvent` trigger.
-
-TODO: add demo
+ There is an important point to note about the `changeOrEVENT` triggers.
+ The change-triggered validation is ineffective till the associated property is validated once, either by manually calling `ValidationController#validate` or by event-triggered (`blur` or `focusout`) validation.
+ This prevents showing validation failure message immediately in case of an incomplete input, which might be the case if validation is triggered for every change.
+ Note the distinction made between incomplete and invalid input.
+ The event-triggered validation is ineffective until the property is dirty; i.e. any changes were made to the property.
+ This prevents showing a validation failure message when there is a `blur` or `focusout` event without changing the property.
+ This behavior delays "punish"ing the user and "reward"s eagerly.
 
 The default validation trigger is `focusout`, although it can be changed using the `DefaultTrigger` registration customization option.
 
 ```typescript
-import { ValidationConfiguration, ValidationTrigger } from '@aurelia/validation';
+import { ValidationHtmlConfiguration, ValidationTrigger } from '@aurelia/validation-html';
 import Aurelia from 'aurelia';
 
 Aurelia
-  .register(ValidationConfiguration.customize((options) => {
+  .register(ValidationHtmlConfiguration.customize((options) => {
     // customization callback
     options.DefaultTrigger = ValidationTrigger.changeOrFocusout;
   }))
@@ -1513,11 +1527,11 @@ An example can be seen below.
 The usage of this custom element can be deactivated by using `UseSubscriberCustomAttribute` configuration options.
 
 ```typescript
-import { ValidationConfiguration } from '@aurelia/validation';
+import { ValidationHtmlConfiguration } from '@aurelia/validation-html';
 import Aurelia from 'aurelia';
 
 Aurelia
-  .register(ValidationConfiguration.customize((options) => {
+  .register(ValidationHtmlConfiguration.customize((options) => {
     // customization callback
     options.UseSubscriberCustomAttribute = false;
   }))

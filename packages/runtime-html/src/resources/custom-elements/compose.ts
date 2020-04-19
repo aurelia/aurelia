@@ -15,7 +15,6 @@ import {
   LifecycleFlags,
   LifecycleTask,
   PromiseTask,
-  State,
   TargetedInstruction,
   CustomElementDefinition,
   bindable,
@@ -190,14 +189,14 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
   }
 
   private bindView(flags: LifecycleFlags): ILifecycleTask {
-    if (this.view != void 0 && (this.$controller.state & (State.isBoundOrBinding)) > 0) {
+    if (this.view != void 0 && this.$controller.isBound) {
       return this.view.bind(flags, this.$controller.scope, this.$controller.part);
     }
     return LifecycleTask.done;
   }
 
   private attachView(flags: LifecycleFlags): void {
-    if (this.view != void 0 && (this.$controller.state & (State.isAttachedOrAttaching)) > 0) {
+    if (this.view != void 0 && this.$controller.isAttached) {
       this.view.attach(flags);
     }
   }

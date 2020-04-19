@@ -21,7 +21,6 @@ import {
 } from '../dom';
 import {
   LifecycleFlags,
-  State
 } from '../flags';
 import {
   IBinding,
@@ -154,7 +153,10 @@ export class Controller<
   public bindings: IBinding[] | undefined = void 0;
   public controllers: IController<T>[] | undefined = void 0;
 
-  public state: State = State.none;
+  public isBound: boolean = false;
+  public isAttached: boolean = false;
+  public hasLockedScope: boolean = false;
+  public canBeCached: boolean = false;
 
   public scopeParts: string[] | undefined = void 0;
   public isStrictBinding: boolean = false;
@@ -447,17 +449,17 @@ export class Controller<
 
   public lockScope(scope: IScope): void {
     this.scope = scope;
-    this.state |= State.hasLockedScope;
+    this.hasLockedScope = true;
   }
 
   public hold(location: IRenderLocation<T>, mountStrategy: MountStrategy): void {
-    this.state = (this.state | State.canBeCached) ^ State.canBeCached;
+    this.canBeCached = false;
     this.location = location;
     this.mountStrategy = mountStrategy;
   }
 
   public release(flags: LifecycleFlags): boolean {
-    this.state |= State.canBeCached;
+    this.canBeCached = true;
     return this.viewFactory!.canReturnToCache(this as unknown as ISyntheticView<T>); // non-null is implied by the hook
   }
 
@@ -553,17 +555,16 @@ export class Controller<
 
   // #region bind/unbind
   private bindCustomElement(flags: LifecycleFlags, scope?: IScope): ILifecycleTask {
-    const $scope = this.scope as Writable<IScope>;
-
-    $scope.parentScope = scope === void 0 ? null : scope;
-    $scope.scopeParts = this.scopeParts!;
-
-    if ((this.state & State.isBound) > 0) {
+    if (this.isBound) {
       return LifecycleTask.done;
     }
 
+    this.isBound = true;
+    const $scope = this.scope as Writable<IScope>;
+    $scope.parentScope = scope === void 0 ? null : scope;
+    $scope.scopeParts = this.scopeParts!;
+
     flags |= LifecycleFlags.fromBind;
-    this.state |= State.isBinding;
 
     this.lifecycle.afterBindChildren.begin();
 
@@ -579,7 +580,7 @@ export class Controller<
   }
 
   private bindCustomAttribute(flags: LifecycleFlags, scope?: IScope): ILifecycleTask {
-    if ((this.state & State.isBound) > 0) {
+    if (this.isBound) {
       if (this.scope === scope) {
         return LifecycleTask.done;
       }
@@ -594,8 +595,7 @@ export class Controller<
       flags |= LifecycleFlags.fromBind;
     }
 
-    this.state |= State.isBinding;
-
+    this.isBound = true;
     this.scope = scope;
     this.lifecycle.afterBindChildren.begin();
 
@@ -617,8 +617,8 @@ export class Controller<
 
     (scope as Writable<IScope>).scopeParts = mergeDistinct(scope.scopeParts, this.scopeParts, false);
 
-    if ((this.state & State.isBound) > 0) {
-      if (this.scope === scope || (this.state & State.hasLockedScope) > 0) {
+    if (this.isBound) {
+      if (this.scope === scope || this.hasLockedScope) {
         return LifecycleTask.done;
       }
 
@@ -632,11 +632,10 @@ export class Controller<
       flags |= LifecycleFlags.fromBind;
     }
 
-    if ((this.state & State.hasLockedScope) === 0) {
+    this.isBound = true;
+    if (!this.hasLockedScope) {
       this.scope = scope;
     }
-
-    this.state |= State.isBinding;
 
     this.lifecycle.afterBindChildren.begin();
     return this.bindBindings(flags, this.scope!);
@@ -696,18 +695,16 @@ export class Controller<
     if (this.hooks.hasAfterBindChildren) {
       this.lifecycle.afterBindChildren.add(this);
     }
-    this.state = this.state ^ State.isBinding | State.isBound;
     this.lifecycle.afterBindChildren.end(flags);
   }
 
   private unbindCustomElement(flags: LifecycleFlags): ILifecycleTask {
-    if ((this.state & State.isBound) === 0) {
+    if (!this.isBound) {
       return LifecycleTask.done;
     }
 
+    this.isBound = false;
     (this.scope as Writable<IScope>).parentScope = null;
-
-    this.state |= State.isUnbinding;
 
     flags |= LifecycleFlags.fromUnbind;
     this.lifecycle.afterUnbindChildren.begin();
@@ -723,12 +720,11 @@ export class Controller<
   }
 
   private unbindCustomAttribute(flags: LifecycleFlags): ILifecycleTask {
-    if ((this.state & State.isBound) === 0) {
+    if (!this.isBound) {
       return LifecycleTask.done;
     }
 
-    this.state |= State.isUnbinding;
-
+    this.isBound = false;
     flags |= LifecycleFlags.fromUnbind;
     this.lifecycle.afterUnbindChildren.begin();
 
@@ -744,12 +740,11 @@ export class Controller<
   }
 
   private unbindSynthetic(flags: LifecycleFlags): ILifecycleTask {
-    if ((this.state & State.isBound) === 0) {
+    if (!this.isBound) {
       return LifecycleTask.done;
     }
 
-    this.state |= State.isUnbinding;
-
+    this.isBound = false;
     flags |= LifecycleFlags.fromUnbind;
     this.lifecycle.afterUnbindChildren.begin();
 
@@ -803,7 +798,7 @@ export class Controller<
         this.scope = void 0;
         break;
       case ViewModelKind.synthetic:
-        if ((this.state & State.hasLockedScope) === 0) {
+        if (!this.hasLockedScope) {
           this.scope = void 0;
         }
     }
@@ -815,18 +810,17 @@ export class Controller<
       this.lifecycle.afterUnbindChildren.add(this);
     }
 
-    this.state = (this.state | State.isBoundOrUnbinding) ^ State.isBoundOrUnbinding;
     this.lifecycle.afterUnbindChildren.end(flags);
   }
   // #endregion
 
   public attach(flags: LifecycleFlags): void {
-    if ((this.state & State.isAttached) > 0) {
+    if (this.isAttached) {
       return;
     }
 
+    this.isAttached = true;
     flags |= LifecycleFlags.fromAttach;
-    this.state |= State.isAttaching;
     switch (this.vmKind) {
       case ViewModelKind.customElement:
         this.lifecycle.afterAttachChildren.begin();
@@ -886,17 +880,16 @@ export class Controller<
         break;
     }
 
-    this.state = this.state ^ State.isAttaching | State.isAttached;
     this.lifecycle.afterAttachChildren.end(flags);
   }
 
   public detach(flags: LifecycleFlags): void {
-    if ((this.state & State.isAttachedOrAttaching) === 0) {
+    if (!this.isAttached) {
       return;
     }
 
+    this.isAttached = false;
     flags |= LifecycleFlags.fromDetach;
-    this.state |= State.isDetaching;
 
     this.lifecycle.afterDetachChildren.begin();
 
@@ -939,8 +932,8 @@ export class Controller<
         this.nodes!.remove(); // non-null is implied by the hook
         this.nodes!.unlink();
 
-        if ((this.state & State.canBeCached) > 0) {
-          this.state = (this.state | State.canBeCached) ^ State.canBeCached;
+        if (this.canBeCached) {
+          this.canBeCached = false;
           if (
             this.viewFactory!.tryReturnToCache(this as unknown as ISyntheticView<T>) &&
             this.controllers !== void 0
@@ -959,7 +952,6 @@ export class Controller<
         break;
     }
 
-    this.state = (this.state | State.isAttachedOrDetaching) ^ State.isAttachedOrDetaching;
     this.lifecycle.afterDetachChildren.end(flags);
   }
 }

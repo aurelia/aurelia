@@ -9,7 +9,6 @@ import {
   IsBindingBehavior,
   IScope,
   LifecycleFlags,
-  State
 } from '@aurelia/runtime';
 import { IEventManager } from '../observation/event-manager';
 
@@ -20,7 +19,7 @@ export interface Listener extends IConnectableBinding {}
 export class Listener implements IBinding {
   public interceptor: this = this;
 
-  public $state: State = State.none;
+  public isBound: boolean = false;
   public $scope!: IScope;
   public part?: string;
 
@@ -57,15 +56,13 @@ export class Listener implements IBinding {
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
-    if (this.$state & State.isBound) {
+    if (this.isBound) {
       if (this.$scope === scope) {
         return;
       }
 
       this.interceptor.$unbind(flags | LifecycleFlags.fromBind);
     }
-    // add isBinding flag
-    this.$state |= State.isBinding;
 
     this.$scope = scope;
     this.part = part;
@@ -84,16 +81,13 @@ export class Listener implements IBinding {
     );
 
     // add isBound flag and remove isBinding flag
-    this.$state |= State.isBound;
-    this.$state &= ~State.isBinding;
+    this.isBound = true;
   }
 
   public $unbind(flags: LifecycleFlags): void {
-    if (!(this.$state & State.isBound)) {
+    if (!this.isBound) {
       return;
     }
-    // add isUnbinding flag
-    this.$state |= State.isUnbinding;
 
     const sourceExpression = this.sourceExpression;
     if (hasUnbind(sourceExpression)) {
@@ -105,7 +99,7 @@ export class Listener implements IBinding {
     this.handler = null!;
 
     // remove isBound and isUnbinding flags
-    this.$state &= ~(State.isBound | State.isUnbinding);
+    this.isBound = false;
   }
 
   public observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void {

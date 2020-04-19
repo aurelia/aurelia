@@ -124,7 +124,7 @@ type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
   afterDetach(flags: LifecycleFlags): void;
   afterDetachChildren(flags: LifecycleFlags): void;
 
-  caching(flags: LifecycleFlags): void;
+  dispose(): void;
 }>;
 
 const controllerLookup: WeakMap<object, Controller> = new WeakMap();
@@ -156,6 +156,7 @@ export class Controller<
   public isBound: boolean = false;
   public isAttached: boolean = false;
   public hasLockedScope: boolean = false;
+  public isReleased: boolean = false;
 
   public scopeParts: string[] | undefined = void 0;
   public isStrictBinding: boolean = false;
@@ -456,8 +457,8 @@ export class Controller<
     this.mountStrategy = mountStrategy;
   }
 
-  public release(): boolean {
-    return this.viewFactory!.canReturnToCache(this as unknown as ISyntheticView<T>); // non-null is implied by the hook
+  public release(): void {
+    this.isReleased = true;
   }
 
   public bind(flags: LifecycleFlags, scope?: IScope, part?: string): ILifecycleTask {
@@ -509,30 +510,28 @@ export class Controller<
     this.bindingContext!.afterDetachChildren(flags); // non-null is implied by the hook
   }
 
-  public cache(flags: LifecycleFlags): void {
-    flags |= LifecycleFlags.fromCache;
-
+  public dispose(): void {
     switch (this.vmKind) {
       case ViewModelKind.customElement:
-        if (this.hooks.hasCaching) {
-          this.bindingContext!.caching(flags); // non-null is implied by the hook
+        if (this.hooks.hasDispose) {
+          this.bindingContext!.dispose(); // non-null is implied by the hook
         }
         break;
       case ViewModelKind.customAttribute:
-        if (this.hooks.hasCaching) {
-          this.bindingContext!.caching(flags); // non-null is implied by the hook
+        if (this.hooks.hasDispose) {
+          this.bindingContext!.dispose(); // non-null is implied by the hook
         }
 
         if (this.controllers !== void 0) {
           for (const controller of this.controllers) {
-            controller.cache(flags);
+            controller.dispose();
           }
         }
         break;
       case ViewModelKind.synthetic:
         if (this.controllers !== void 0) {
           for (const controller of this.controllers) {
-            controller.cache(flags);
+            controller.dispose();
           }
         }
         break;
@@ -630,6 +629,7 @@ export class Controller<
     }
 
     this.isBound = true;
+    this.isReleased = false;
     if (!this.hasLockedScope) {
       this.scope = scope;
     }
@@ -798,7 +798,15 @@ export class Controller<
         if (!this.hasLockedScope) {
           this.scope = void 0;
         }
+
+        if (
+          this.isReleased &&
+          !this.viewFactory!.tryReturnToCache(this as unknown as ISyntheticView<T>)
+        ) {
+          this.dispose();
+        }
     }
+
     // This can be a customElement or customAttribute. If this is a customElement, bindBindings() will have already called this hook, hence the vmKind check.
     if (this.hooks.hasAfterBind && this.vmKind === ViewModelKind.customAttribute) {
       (this.bindingContext as BindingContext<T, C>).afterUnbind(flags);
@@ -928,15 +936,6 @@ export class Controller<
       case ViewModelKind.synthetic:
         this.nodes!.remove(); // non-null is implied by the hook
         this.nodes!.unlink();
-
-        if (
-          this.viewFactory!.tryReturnToCache(this as unknown as ISyntheticView<T>) &&
-          this.controllers !== void 0
-        ) {
-          for (const controller of this.controllers) {
-            controller.cache(flags);
-          }
-        }
 
         if (this.controllers !== void 0) {
           for (const controller of this.controllers) {

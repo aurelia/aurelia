@@ -401,9 +401,6 @@ const AttachingArgsProcessor = {
   setLocation(info: ITraceInfo): string {
     return `Node{'${((info.params as readonly { textContent: string }[])[0]).textContent}'}`;
   },
-  release(info: ITraceInfo): string {
-    return flagsText(info);
-  }
 };
 
 const MountingArgsProcessor = {
@@ -549,7 +546,6 @@ export function stringifyLifecycleFlags(flags: LifecycleFlags): string {
   if (flags & LifecycleFlags.fromUnbind) { flagNames.push('fromUnbind'); }
   if (flags & LifecycleFlags.fromAttach) { flagNames.push('fromAttach'); }
   if (flags & LifecycleFlags.fromDetach) { flagNames.push('fromDetach'); }
-  if (flags & LifecycleFlags.fromCache) { flagNames.push('fromCache'); }
   if (flags & LifecycleFlags.fromDOMEvent) { flagNames.push('fromDOMEvent'); }
   if (flags & LifecycleFlags.fromLifecycleTask) { flagNames.push('fromLifecycleTask'); }
   if (flags & LifecycleFlags.isTraversingParentScope) { flagNames.push('isTraversingParentScope'); }

@@ -231,7 +231,7 @@ describe('the view locator', function () {
     'beforeAttach',
     'afterAttachChildren',
     'beforeDetach',
-    'caching',
+    'dispose',
     'afterDetachChildren',
     'beforeUnbind',
     'afterUnbindChildren'

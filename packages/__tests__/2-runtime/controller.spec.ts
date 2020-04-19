@@ -46,7 +46,7 @@ describe.skip('controller', function () {
     beforeAttach: true,
     afterAttachChildren: true,
     beforeDetach: true,
-    caching: true,
+    dispose: true,
     afterDetachChildren: true,
     beforeUnbind: true,
     afterUnbindChildren: true,
@@ -60,7 +60,7 @@ describe.skip('controller', function () {
     beforeAttach(...args: any[]): void;
     afterAttachChildren(...args: any[]): void;
     beforeDetach(...args: any[]): void;
-    caching(...args: any[]): void;
+    dispose(...args: any[]): void;
     afterDetachChildren(...args: any[]): void;
     beforeUnbind(...args: any[]): void;
     afterUnbindChildren(...args: any[]): void;
@@ -85,8 +85,8 @@ describe.skip('controller', function () {
     proto.beforeDetach = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'beforeDetach', ...args);
     };
-    proto.caching = function (...args: any[]): void {
-      this.$$calls.addCall(this.id, 'caching', ...args);
+    proto.dispose = function (...args: any[]): void {
+      this.$$calls.addCall(this.id, 'dispose', ...args);
     };
     proto.afterDetachChildren = function (...args: any[]): void {
       this.$$calls.addCall(this.id, 'afterDetachChildren', ...args);

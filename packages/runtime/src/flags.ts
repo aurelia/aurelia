@@ -75,7 +75,6 @@ export const enum LifecycleFlags {
   fromUnbind                    = 0b00000_0000000_0000010000000_00_0000,
   fromAttach                    = 0b00000_0000000_0000100000000_00_0000,
   fromDetach                    = 0b00000_0000000_0001000000000_00_0000,
-  fromCache                     = 0b00000_0000000_0010000000000_00_0000,
   fromDOMEvent                  = 0b00000_0000000_0100000000000_00_0000,
   fromLifecycleTask             = 0b00000_0000000_1000000000000_00_0000,
   allowPublishRoundtrip         = 0b00000_0000001_0000000000000_00_0000,

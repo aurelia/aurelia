@@ -35,6 +35,8 @@
     { "path": "validation-html" },
     { "path": "validation-i18n" },
     { "path": "web-components" },
-    { "path": "webpack-loader" }
+    { "path": "webpack-loader" },
+    { "path": "babel-jest" },
+    { "path": "ts-jest" }
   ]
 }

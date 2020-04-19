@@ -86,7 +86,7 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
 
     this.view = this.factory.create();
     dom.setEffectiveParentNode(this.view.nodes!, originalLoc as unknown as Node);
-    this.view.hold(originalLoc, MountStrategy.insertBefore);
+    this.view.setLocation(originalLoc, MountStrategy.insertBefore);
   }
 
   public beforeBind(flags: LifecycleFlags): ILifecycleTask {
@@ -140,7 +140,7 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
     } = this;
     let task = this.task;
 
-    view.hold(target, MountStrategy.append);
+    view.setLocation(target, MountStrategy.append);
 
     if (!this.$controller.isAttached) {
       return task;

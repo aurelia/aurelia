@@ -115,7 +115,7 @@ export class If<T extends INode = INode> implements ICustomAttributeViewModel<T>
       view = factory.create(flags);
     }
 
-    view.hold(this.location, MountStrategy.insertBefore);
+    view.setLocation(this.location, MountStrategy.insertBefore);
 
     return view;
   }

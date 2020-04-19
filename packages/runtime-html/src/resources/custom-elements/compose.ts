@@ -209,7 +209,7 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
     const view = this.provideViewFor(subject, flags);
 
     if (view) {
-      view.hold(this.$controller.projector!.host, MountStrategy.insertBefore);
+      view.setLocation(this.$controller.projector!.host, MountStrategy.insertBefore);
       view.lockScope(this.$controller.scope!);
       return view;
     }

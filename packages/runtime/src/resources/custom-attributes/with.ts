@@ -23,7 +23,7 @@ export class With<T extends INode = INode> implements ICustomAttributeViewModel<
     this.id = nextId('au$component');
 
     this.view = this.factory.create();
-    this.view.hold(location, MountStrategy.insertBefore);
+    this.view.setLocation(location, MountStrategy.insertBefore);
   }
 
   public valueChanged(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void {

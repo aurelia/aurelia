@@ -156,7 +156,6 @@ export class Controller<
   public isBound: boolean = false;
   public isAttached: boolean = false;
   public hasLockedScope: boolean = false;
-  public canBeCached: boolean = false;
 
   public scopeParts: string[] | undefined = void 0;
   public isStrictBinding: boolean = false;
@@ -452,14 +451,12 @@ export class Controller<
     this.hasLockedScope = true;
   }
 
-  public hold(location: IRenderLocation<T>, mountStrategy: MountStrategy): void {
-    this.canBeCached = false;
+  public setLocation(location: IRenderLocation<T>, mountStrategy: MountStrategy): void {
     this.location = location;
     this.mountStrategy = mountStrategy;
   }
 
-  public release(flags: LifecycleFlags): boolean {
-    this.canBeCached = true;
+  public release(): boolean {
     return this.viewFactory!.canReturnToCache(this as unknown as ISyntheticView<T>); // non-null is implied by the hook
   }
 
@@ -932,15 +929,12 @@ export class Controller<
         this.nodes!.remove(); // non-null is implied by the hook
         this.nodes!.unlink();
 
-        if (this.canBeCached) {
-          this.canBeCached = false;
-          if (
-            this.viewFactory!.tryReturnToCache(this as unknown as ISyntheticView<T>) &&
-            this.controllers !== void 0
-          ) {
-            for (const controller of this.controllers) {
-              controller.cache(flags);
-            }
+        if (
+          this.viewFactory!.tryReturnToCache(this as unknown as ISyntheticView<T>) &&
+          this.controllers !== void 0
+        ) {
+          for (const controller of this.controllers) {
+            controller.cache(flags);
           }
         }
 

@@ -420,7 +420,7 @@ describe.skip(`ViewFactory`, function () {
 
 //           for (let i = 0; i < childCount; ++i) {
 //             const child = childSuts[i] = childFactory.create();
-//             child.hold(childLocs[i]);
+//             child.setLocation(childLocs[i]);
 //             addComponent(renderable, child);
 //           }
 //         }
@@ -436,7 +436,7 @@ describe.skip(`ViewFactory`, function () {
 //       if (lockScope1) {
 //         sut.lockScope(scope1);
 //       }
-//       sut.hold(location);
+//       sut.setLocation(location);
 
 //       runBindLifecycle(lifecycle, sut, bindFlags1, scope1);
 
@@ -524,7 +524,7 @@ describe.skip(`ViewFactory`, function () {
 //       if (lockScope2) {
 //         sut.lockScope(scope2);
 //       }
-//       sut.hold(location);
+//       sut.setLocation(location);
 
 //       runBindLifecycle(lifecycle, sut, bindFlags2, scope2);
 

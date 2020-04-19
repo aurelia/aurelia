@@ -461,27 +461,6 @@ export class Controller<
     this.isReleased = true;
   }
 
-  public bind(flags: LifecycleFlags, scope?: IScope, part?: string): ILifecycleTask {
-    this.part = part;
-    // TODO: benchmark which of these techniques is fastest:
-    // - the current one (enum with switch)
-    // - set the name of the method in the constructor, e.g. this.bindMethod = 'bindCustomElement'
-    //    and then doing this[this.bindMethod](flags, scope) instead of switch (eliminates branching
-    //    but computed property access might be harmful to browser optimizations)
-    // - make bind() a property and set it to one of the 3 methods in the constructor,
-    //    e.g. this.bind = this.bindCustomElement (eliminates branching + reduces call stack depth by 1,
-    //    but might make the call site megamorphic)
-    flags |= LifecycleFlags.fromBind;
-    switch (this.vmKind) {
-      case ViewModelKind.customElement:
-        return this.bindCustomElement(flags, scope);
-      case ViewModelKind.customAttribute:
-        return this.bindCustomAttribute(flags, scope);
-      case ViewModelKind.synthetic:
-        return this.bindSynthetic(flags, scope);
-    }
-  }
-
   public unbind(flags: LifecycleFlags): ILifecycleTask {
     flags |= LifecycleFlags.fromUnbind;
     switch (this.vmKind) {
@@ -550,103 +529,72 @@ export class Controller<
   }
 
   // #region bind/unbind
-  private bindCustomElement(flags: LifecycleFlags, scope?: IScope): ILifecycleTask {
+  public bind(flags: LifecycleFlags, scope?: IScope, part?: string): ILifecycleTask {
     if (this.isBound) {
       return LifecycleTask.done;
     }
 
     this.isBound = true;
-    const $scope = this.scope as Writable<IScope>;
-    $scope.parentScope = scope === void 0 ? null : scope;
-    $scope.scopeParts = this.scopeParts!;
-
+    this.part = part;
     flags |= LifecycleFlags.fromBind;
 
-    this.lifecycle.afterBindChildren.begin();
+    switch (this.vmKind) {
+      case ViewModelKind.customElement: {
+        const $scope = this.scope as Writable<IScope>;
+        $scope.parentScope = scope === void 0 ? null : scope;
+        $scope.scopeParts = this.scopeParts!;
 
-    if (this.hooks.hasBeforeBind) {
-      const ret = (this.bindingContext as BindingContext<T, C>).beforeBind(flags);
-      if (hasAsyncWork(ret)) {
-        // this.scope could be reassigned during beforeBind so reference that instead of $scope.
-        return new ContinuationTask(ret, this.bindBindings, this, flags, this.scope!);
+        this.lifecycle.afterBindChildren.begin();
+
+        if (this.hooks.hasBeforeBind) {
+          const ret = (this.bindingContext as BindingContext<T, C>).beforeBind(flags);
+          if (hasAsyncWork(ret)) {
+            // this.scope could be reassigned during beforeBind so reference that instead of $scope.
+            return new ContinuationTask(ret, this.bindBindings, this, flags, this.scope!);
+          }
+        }
+
+        return this.bindBindings(flags, this.scope!);
       }
-    }
+      case ViewModelKind.customAttribute: {
+        this.scope = scope;
+        this.lifecycle.afterBindChildren.begin();
 
-    return this.bindBindings(flags, this.scope!);
-  }
+        if (this.hooks.hasBeforeBind) {
+          const ret = (this.bindingContext as BindingContext<T, C>).beforeBind(flags);
+          if (hasAsyncWork(ret)) {
+            return new ContinuationTask(ret, this.endBind, this, flags);
+          }
+        }
 
-  private bindCustomAttribute(flags: LifecycleFlags, scope?: IScope): ILifecycleTask {
-    if (this.isBound) {
-      if (this.scope === scope) {
+        this.endBind(flags);
         return LifecycleTask.done;
       }
+      case ViewModelKind.synthetic: {
+        if (scope == void 0) {
+          throw new Error(`Scope is null or undefined`); // TODO: create error code
+        }
 
-      flags |= LifecycleFlags.fromBind;
-      const task = this.unbind(flags);
+        (scope as Writable<IScope>).scopeParts = mergeDistinct(scope.scopeParts, this.scopeParts, false);
 
-      if (!task.done) {
-        return new ContinuationTask(task, this.bind, this, flags, scope);
-      }
-    } else {
-      flags |= LifecycleFlags.fromBind;
-    }
+        this.isReleased = false;
+        if (!this.hasLockedScope) {
+          this.scope = scope;
+        }
 
-    this.isBound = true;
-    this.scope = scope;
-    this.lifecycle.afterBindChildren.begin();
-
-    if (this.hooks.hasBeforeBind) {
-      const ret = (this.bindingContext as BindingContext<T, C>).beforeBind(flags);
-      if (hasAsyncWork(ret)) {
-        return new ContinuationTask(ret, this.endBind, this, flags);
+        this.lifecycle.afterBindChildren.begin();
+        return this.bindBindings(flags, this.scope!);
       }
     }
-
-    this.endBind(flags);
-    return LifecycleTask.done;
-  }
-
-  private bindSynthetic(flags: LifecycleFlags, scope?: IScope): ILifecycleTask {
-    if (scope == void 0) {
-      throw new Error(`Scope is null or undefined`); // TODO: create error code
-    }
-
-    (scope as Writable<IScope>).scopeParts = mergeDistinct(scope.scopeParts, this.scopeParts, false);
-
-    if (this.isBound) {
-      if (this.scope === scope || this.hasLockedScope) {
-        return LifecycleTask.done;
-      }
-
-      flags |= LifecycleFlags.fromBind;
-      const task = this.unbind(flags);
-
-      if (!task.done) {
-        return new ContinuationTask(task, this.bind, this, flags, scope);
-      }
-    } else {
-      flags |= LifecycleFlags.fromBind;
-    }
-
-    this.isBound = true;
-    this.isReleased = false;
-    if (!this.hasLockedScope) {
-      this.scope = scope;
-    }
-
-    this.lifecycle.afterBindChildren.begin();
-    return this.bindBindings(flags, this.scope!);
   }
 
   private bindBindings(flags: LifecycleFlags, scope: IScope): ILifecycleTask {
-    const { bindings } = this;
-    if (bindings !== void 0) {
-      const { length } = bindings;
+    if (this.bindings !== void 0) {
       if (this.isStrictBinding) {
         flags |= LifecycleFlags.isStrictBindingStrategy;
       }
-      for (let i = 0; i < length; ++i) {
-        bindings[i].$bind(flags, scope, this.part);
+      for (const binding of this.bindings) {
+        binding.$bind(flags, scope, this.part);
       }
     }
 
@@ -662,17 +610,12 @@ export class Controller<
     let tasks: ILifecycleTask[] | undefined = void 0;
     let task: ILifecycleTask | undefined;
 
-    const { controllers } = this;
-    if (controllers !== void 0) {
-      const { length } = controllers;
-      for (let i = 0; i < length; ++i) {
-        controllers[i].parent = this as unknown as IHydratedController<T>;
-        task = controllers[i].bind(flags, scope, this.part);
+    if (this.controllers !== void 0) {
+      for (const controller of this.controllers) {
+        controller.parent = this as unknown as IHydratedController<T>;
+        task = controller.bind(flags, scope, this.part);
         if (!task.done) {
-          if (tasks === void 0) {
-            tasks = [];
-          }
-          tasks.push(task);
+          (tasks ?? (tasks = [])).push(task);
         }
       }
     }

@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/debug",
-  "version": "0.7.0-dev.202004141951",
+  "version": "0.7.0-dev.202004191446",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -35,8 +35,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.7.0-dev.202004141951",
-    "@aurelia/runtime": "0.7.0-dev.202004141951"
+    "@aurelia/kernel": "0.7.0-dev.202004191446",
+    "@aurelia/runtime": "0.7.0-dev.202004191446"
   },
   "devDependencies": {
     "@types/node": "^12.12.21",

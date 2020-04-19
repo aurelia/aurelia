@@ -1,7 +1,7 @@
 {
   "name": "@aurelia/ts-jest",
-  "version": "0.6.0",
-  "main": "dist/esnext/index.js",
+  "version": "0.7.0-dev.202004191446",
+  "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
@@ -35,7 +35,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/plugin-conventions": "0.6.0",
+    "@aurelia/plugin-conventions": "0.7.0-dev.202004191446",
     "ts-jest": "^25.3.1"
   },
   "devDependencies": {

@@ -404,12 +404,6 @@ const AttachingArgsProcessor = {
 };
 
 const MountingArgsProcessor = {
-  $mount(info: ITraceInfo): string {
-    return flagsText(info);
-  },
-  $unmount(info: ITraceInfo): string {
-    return flagsText(info);
-  },
   project(info: ITraceInfo): string {
     return ctorName(info);
   },

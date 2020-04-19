@@ -45,22 +45,6 @@ export function ensureValidStrategy(strategy: BindingStrategy | null | undefined
   return strategy!;
 }
 
-export const enum State {
-  none                  = 0b00_00000000,
-  isBinding             = 0b00_00000001,
-  isUnbinding           = 0b00_00000010,
-  isBound               = 0b00_00000100,
-  isBoundOrBinding      = 0b00_00000101,
-  isBoundOrUnbinding    = 0b00_00000110,
-  isAttaching           = 0b00_00001000,
-  isDetaching           = 0b00_00010000,
-  isAttached            = 0b00_00100000,
-  isAttachedOrAttaching = 0b00_00101000,
-  isAttachedOrDetaching = 0b00_00110000,
-  hasLockedScope        = 0b01_00000000,
-  canBeCached           = 0b10_00000000,
-}
-
 export const enum LifecycleFlags {
   none                          = 0b00000_0000000_0000000000000_00_0000,
   // Bitmask for flags that need to be stored on a binding during $bind for mutation

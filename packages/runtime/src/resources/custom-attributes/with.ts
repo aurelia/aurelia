@@ -1,6 +1,6 @@
 import { nextId } from '@aurelia/kernel';
 import { INode, IRenderLocation } from '../../dom';
-import { LifecycleFlags, State } from '../../flags';
+import { LifecycleFlags } from '../../flags';
 import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel } from '../../lifecycle';
 import { templateController } from '../custom-attribute';
 import { bindable } from '../../templating/bindable';
@@ -27,7 +27,7 @@ export class With<T extends INode = INode> implements ICustomAttributeViewModel<
   }
 
   public valueChanged(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void {
-    if ((this.$controller.state & State.isBoundOrBinding) > 0) {
+    if (this.$controller.isBound) {
       this.bindChild(LifecycleFlags.fromBind);
     }
   }

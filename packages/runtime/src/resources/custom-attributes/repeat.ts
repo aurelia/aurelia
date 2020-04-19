@@ -2,7 +2,7 @@ import { compareNumber, nextId } from '@aurelia/kernel';
 import { ForOfStatement } from '../../binding/ast';
 import { PropertyBinding } from '../../binding/property-binding';
 import { INode, IRenderLocation } from '../../dom';
-import { LifecycleFlags as LF, State, LifecycleFlags } from '../../flags';
+import { LifecycleFlags as LF, LifecycleFlags } from '../../flags';
 import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController, IRenderableController, IController, ICustomAttributeViewModel } from '../../lifecycle';
 import {
   AggregateContinuationTask,
@@ -117,7 +117,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   private processViewsKeyed(indexMap: IndexMap | undefined, flags: LF): void {
     const oldLength = this.views.length;
     if (indexMap === void 0) {
-      if ((this.$controller.state & State.isBoundOrBinding) > 0) {
+      if (this.$controller.isBound) {
         this.detachViewsByRange(0, oldLength, flags);
         if (this.task.done) {
           this.task = this.unbindAndRemoveViewsByRange(0, oldLength, flags, false);
@@ -132,7 +132,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         }
       }
 
-      if ((this.$controller.state & State.isAttachedOrAttaching) > 0) {
+      if (this.$controller.isAttached) {
         if (this.task.done) {
           this.attachViewsKeyed(flags);
         } else {
@@ -141,7 +141,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       }
     } else {
       applyMutationsToIndices(indexMap);
-      if ((this.$controller.state & State.isBoundOrBinding) > 0) {
+      if (this.$controller.isBound) {
         // first detach+unbind+(remove from array) the deleted view indices
         if (indexMap.deletedItems.length > 0) {
           indexMap.deletedItems.sort(compareNumber);
@@ -166,7 +166,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         }
       }
 
-      if ((this.$controller.state & State.isAttachedOrAttaching) > 0) {
+      if (this.$controller.isAttached) {
         if (this.task.done) {
           this.sortViewsByKey(oldLength, indexMap, flags);
         } else {
@@ -183,7 +183,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       if (oldObserver !== void 0) {
         oldObserver.unsubscribeFromCollection(this);
       }
-    } else if ((this.$controller.state & State.isBoundOrBinding) > 0) {
+    } else if (this.$controller.isBound) {
       const newObserver = this.observer = getCollectionObserver(flags, this.$controller.lifecycle, this.items);
       if (oldObserver !== newObserver && oldObserver) {
         oldObserver.unsubscribeFromCollection(this);

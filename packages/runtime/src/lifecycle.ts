@@ -17,7 +17,6 @@ import {
 } from './dom';
 import {
   LifecycleFlags,
-  State
 } from './flags';
 import {
   ILifecycleTask,
@@ -51,7 +50,7 @@ export interface IBinding {
    * This property is passed through the AST during evaluation, which allows the scope traversal to go up to the scope of the `replace-part` if a property does not exist inside the `replaceable`.
    */
   readonly part?: string;
-  readonly $state: State;
+  readonly isBound: boolean;
   $bind(flags: LifecycleFlags, scope: IScope, part?: string): void;
   $unbind(flags: LifecycleFlags): void;
 }
@@ -77,7 +76,8 @@ export interface IController<
 > {
   /** @internal */readonly id: number;
   readonly flags: LifecycleFlags;
-  readonly state: State;
+  readonly isBound: boolean;
+  readonly isAttached: boolean;
 
   parent?: IHydratedController<T>;
 

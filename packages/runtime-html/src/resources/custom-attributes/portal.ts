@@ -11,7 +11,6 @@ import {
   IViewFactory,
   LifecycleFlags,
   LifecycleTask,
-  State,
   templateController,
   TerminalTask,
   ISyntheticView,
@@ -113,7 +112,7 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
 
   public targetChanged(): void {
     const $controller = this.$controller;
-    if (($controller.state & State.isBound) === 0) {
+    if (!$controller.isBound) {
       return;
     }
 
@@ -143,7 +142,7 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
 
     view.hold(target, MountStrategy.append);
 
-    if ((this.$controller.state & State.isAttachedOrAttaching) === 0) {
+    if (!this.$controller.isAttached) {
       return task;
     }
 

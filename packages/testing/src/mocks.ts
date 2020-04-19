@@ -15,7 +15,6 @@ import {
   ISignaler,
   ISubscribable,
   LifecycleFlags,
-  State
 } from '@aurelia/runtime';
 
 export class MockBinding implements IConnectableBinding {
@@ -26,7 +25,7 @@ export class MockBinding implements IConnectableBinding {
   public observerLocator!: IObserverLocator;
   public locator!: IServiceLocator;
   public $scope?: IScope | undefined;
-  public $state!: State;
+  public isBound!: boolean;
 
   public calls: [keyof MockBinding, ...any[]][] = [];
 

@@ -404,7 +404,6 @@ export {
   BindingStrategy,
   ExpressionKind,
   LifecycleFlags,
-  State
 } from './flags';
 export {
   CallBindingInstruction,

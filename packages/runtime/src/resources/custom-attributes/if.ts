@@ -1,6 +1,6 @@
 import { nextId } from '@aurelia/kernel';
 import { INode, IRenderLocation } from '../../dom';
-import { LifecycleFlags, State } from '../../flags';
+import { LifecycleFlags } from '../../flags';
 import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel } from '../../lifecycle';
 import {
   ContinuationTask,
@@ -86,7 +86,7 @@ export class If<T extends INode = INode> implements ICustomAttributeViewModel<T>
   }
 
   public valueChanged(newValue: boolean, oldValue: boolean, flags: LifecycleFlags): void {
-    if ((this.$controller.state & State.isBound) === 0) {
+    if (!this.$controller.isBound) {
       return;
     }
     if (this.task.done) {
@@ -155,7 +155,7 @@ export class If<T extends INode = INode> implements ICustomAttributeViewModel<T>
       return LifecycleTask.done;
     }
     let task = this.bindView(flags);
-    if ((this.$controller.state & State.isAttached) === 0) {
+    if (!this.$controller.isAttached) {
       return task;
     }
 
@@ -168,7 +168,7 @@ export class If<T extends INode = INode> implements ICustomAttributeViewModel<T>
   }
 
   private bindView(flags: LifecycleFlags): ILifecycleTask {
-    if (this.view !== void 0 && (this.$controller.state & State.isBoundOrBinding) > 0) {
+    if (this.view !== void 0 && this.$controller.isBound) {
       this.view.parent = this.$controller;
       return this.view.bind(flags, this.$controller.scope, this.$controller.part);
     }
@@ -176,7 +176,7 @@ export class If<T extends INode = INode> implements ICustomAttributeViewModel<T>
   }
 
   private attachView(flags: LifecycleFlags): void {
-    if (this.view !== void 0 && (this.$controller.state & State.isAttachedOrAttaching) > 0) {
+    if (this.view !== void 0 && this.$controller.isAttached) {
       this.view.attach(flags);
     }
   }

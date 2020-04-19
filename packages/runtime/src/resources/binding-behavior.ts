@@ -16,7 +16,7 @@ import {
   fromAnnotationOrDefinitionOrTypeOrDefault,
 } from '@aurelia/kernel';
 import { registerAliases } from '../definitions';
-import { LifecycleFlags, State } from '../flags';
+import { LifecycleFlags } from '../flags';
 import { IScope, ISubscribable, IProxySubscribable } from '../observation';
 import { IBinding } from '../lifecycle';
 import { connectable, IConnectableBinding } from '../binding/connectable';
@@ -174,8 +174,8 @@ export class BindingInterceptor implements IInterceptableBinding {
   public get part(): string | undefined {
     return this.binding.part;
   }
-  public get $state(): State {
-    return this.binding.$state;
+  public get isBound(): boolean {
+    return this.binding.isBound;
   }
 
   public constructor(

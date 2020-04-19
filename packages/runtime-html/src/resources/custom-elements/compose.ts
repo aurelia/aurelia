@@ -116,7 +116,7 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
     return this.task;
   }
 
-  public caching(flags: LifecycleFlags): void {
+  public dispose(): void {
     this.view = void 0;
   }
 

@@ -926,11 +926,10 @@ describe('5-jit-html/custom-elements/custom-elements.spec.ts', function () {
       this.$calls.addCall(this.id, 'afterDetachChildren');
     };
 
-    proto.caching = function caching(
+    proto.dispose = function dispose(
       this: TProto,
-      flags: LifecycleFlags,
     ): void {
-      this.$calls.addCall(this.id, 'caching');
+      this.$calls.addCall(this.id, 'dispose');
     };
 
     return ctor;

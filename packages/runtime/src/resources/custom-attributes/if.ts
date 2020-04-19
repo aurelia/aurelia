@@ -73,12 +73,14 @@ export class If<T extends INode = INode> implements ICustomAttributeViewModel<T>
     return this.task;
   }
 
-  public caching(flags: LifecycleFlags): void {
-    if (this.ifView !== void 0 && this.ifView.release(flags)) {
+  public dispose(): void {
+    if (this.ifView !== void 0) {
+      this.ifView.dispose();
       this.ifView = void 0;
     }
 
-    if (this.elseView !== void 0 && this.elseView.release(flags)) {
+    if (this.elseView !== void 0) {
+      this.elseView.dispose();
       this.elseView = void 0;
     }
 

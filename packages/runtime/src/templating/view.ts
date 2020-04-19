@@ -356,9 +356,9 @@ export class ViewLocator implements IViewLocator {
         };
       }
 
-      if ('caching' in object) {
-        proto.caching = function caching(flags: LifecycleFlags): void {
-          this.viewModel.caching!(flags);
+      if ('dispose' in object) {
+        proto.dispose = function dispose(): void {
+          this.viewModel.dispose!();
         };
       }
 

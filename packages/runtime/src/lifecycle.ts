@@ -91,7 +91,7 @@ export interface IController<
   unbind(flags: LifecycleFlags): ILifecycleTask;
   attach(flags: LifecycleFlags): void;
   detach(flags: LifecycleFlags): void;
-  cache(flags: LifecycleFlags): void;
+  dispose(): void;
 }
 
 /**
@@ -219,13 +219,13 @@ export interface ISyntheticView<
    */
   setLocation(location: IRenderLocation<T>, mountStrategy: MountStrategy): void;
   /**
-   * Mark this view as not-in-use, so that it can either be dereferenced and garbage-collected, or returned to cache if caching was enabled for this view.
+   * Mark this view as not-in-use, so that it can either be disposed or returned to cache after finishing the unbind lifecycle.
    *
-   * If this view is not attached when this method is called, it will immediately be unmounted (if it was still mounted) and returned to cache (if it could be cached).
+   * If this view is cached and later retrieved from the cache, it will be marked as in-use again before starting the bind lifecycle, so this method must be called each time.
    *
-   * @param flags - The flags to pass to the synchronous unmount operation.
+   * If this method is *not* called before `unbind()`, this view will neither be cached nor disposed.
    */
-  release(flags: LifecycleFlags): boolean;
+  release(): void;
 }
 
 export interface ICustomAttributeController<
@@ -392,7 +392,7 @@ export interface IViewModel<T extends INode = INode> {
   afterDetach?(flags: LifecycleFlags): void;
   afterDetachChildren?(flags: LifecycleFlags): void;
 
-  caching?(flags: LifecycleFlags): void;
+  dispose?(): void;
 }
 
 export interface ICustomElementViewModel<T extends INode = INode> extends IViewModel<T> {

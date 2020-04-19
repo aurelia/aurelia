@@ -1331,14 +1331,14 @@ const methodNamesWithFlags: PropertyKey[] = [
   'unmountCustomAttribute',
   'unmountSynthetic',
 
-  'release',
+  'tryReturnToCache',
 
   'cache',
   'cacheCustomElement',
   'cacheCustomAttribute',
   'cacheSynthetic',
 
-  'caching',
+  'dispose',
 
   'unbind',
   'unbindCustomElement',
@@ -1412,14 +1412,14 @@ export function formatProperty(
           case 'unmountCustomAttribute':
           case 'unmountSynthetic':
 
-          case 'release':
+          case 'tryReturnToCache':
 
           case 'cache':
           case 'cacheCustomElement':
           case 'cacheCustomAttribute':
           case 'cacheSynthetic':
 
-          case 'caching':
+          case 'dispose':
 
           case 'unbind':
           case 'unbindCustomElement':

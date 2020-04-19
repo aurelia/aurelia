@@ -217,7 +217,6 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     let view: ISyntheticView<T>;
     for (let i = iStart; i < iEnd; ++i) {
       view = views[i];
-      view.release(flags);
       view.detach(flags);
     }
     this.$controller.lifecycle.afterDetachChildren.end(flags);
@@ -231,6 +230,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     let view: ISyntheticView<T>;
     for (let i = iStart; i < iEnd; ++i) {
       view = views[i];
+      view.release();
       task = view.unbind(flags);
       view.parent = void 0;
       if (!task.done) {
@@ -266,7 +266,6 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     let view: ISyntheticView<T>;
     for (let i = 0; i < deletedLen; ++i) {
       view = views[deleted[i]];
-      view.release(flags);
       view.detach(flags);
     }
     this.$controller.lifecycle.afterDetachChildren.end(flags);
@@ -283,6 +282,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     let i = 0;
     for (; i < deletedLen; ++i) {
       view = views[deleted[i]];
+      view.release();
       task = view.unbind(flags);
       view.parent = void 0;
       if (!task.done) {

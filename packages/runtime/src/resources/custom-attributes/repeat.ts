@@ -449,7 +449,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     if (indexMap === void 0) {
       for (let i = 0, ii = views.length; i < ii; ++i) {
         view = views[i];
-        view.hold(location, MountStrategy.insertBefore);
+        view.setLocation(location, MountStrategy.insertBefore);
         view.nodes!.unlink();
         view.attach(flags);
       }
@@ -457,7 +457,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       for (let i = 0, ii = views.length; i < ii; ++i) {
         if (indexMap[i] !== i) {
           view = views[i];
-          view.hold(location, MountStrategy.insertBefore);
+          view.setLocation(location, MountStrategy.insertBefore);
           view.nodes!.unlink();
           view.attach(flags);
         }
@@ -473,7 +473,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     this.$controller.lifecycle.afterAttachChildren.begin();
     for (let i = 0, ii = views.length; i < ii; ++i) {
       view = views[i];
-      view.hold(location, MountStrategy.insertBefore);
+      view.setLocation(location, MountStrategy.insertBefore);
       view.nodes!.unlink();
       view.attach(flags);
     }
@@ -505,7 +505,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
       if (indexMap[i] === -2) {
         setContextualProperties(view.scope!.overrideContext as IRepeatOverrideContext, i, newLen);
-        view.hold(location, MountStrategy.insertBefore);
+        view.setLocation(location, MountStrategy.insertBefore);
         view.attach(flags);
       } else if (j < 0 || seqLen === 1 || i !== seq[j]) {
         setContextualProperties(view.scope!.overrideContext as IRepeatOverrideContext, i, newLen);

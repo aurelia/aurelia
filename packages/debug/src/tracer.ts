@@ -398,7 +398,7 @@ const AttachingArgsProcessor = {
   $cache(info: ITraceInfo): string {
     return flagsText(info);
   },
-  hold(info: ITraceInfo): string {
+  setLocation(info: ITraceInfo): string {
     return `Node{'${((info.params as readonly { textContent: string }[])[0]).textContent}'}`;
   },
   release(info: ITraceInfo): string {

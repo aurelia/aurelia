@@ -217,7 +217,7 @@ export interface ISyntheticView<
    * @param location - The `IRenderLocation` that this view will be mounted to.
    * @param mountStrategy - The method that will be used during mounting.
    */
-  hold(location: IRenderLocation<T>, mountStrategy: MountStrategy): void;
+  setLocation(location: IRenderLocation<T>, mountStrategy: MountStrategy): void;
   /**
    * Mark this view as not-in-use, so that it can either be dereferenced and garbage-collected, or returned to cache if caching was enabled for this view.
    *

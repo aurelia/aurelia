@@ -18,7 +18,7 @@ export class Replaceable<T extends INode = INode> implements ICustomAttributeVie
     @IRenderLocation private readonly location: IRenderLocation<T>
   ) {
     this.view = this.factory.create();
-    this.view.hold(location, MountStrategy.insertBefore);
+    this.view.setLocation(location, MountStrategy.insertBefore);
   }
 
   public beforeBind(flags: LifecycleFlags): ILifecycleTask {

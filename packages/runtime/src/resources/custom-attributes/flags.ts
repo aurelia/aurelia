@@ -20,7 +20,7 @@ abstract class FlagsTemplateController<T extends INode = INode> implements ICust
     this.id = nextId('au$component');
 
     this.view = this.factory.create();
-    this.view.hold(location, MountStrategy.insertBefore);
+    this.view.setLocation(location, MountStrategy.insertBefore);
   }
 
   public beforeBind(flags: LifecycleFlags): ILifecycleTask {

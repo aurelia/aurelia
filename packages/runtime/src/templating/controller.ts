@@ -461,18 +461,6 @@ export class Controller<
     this.isReleased = true;
   }
 
-  public unbind(flags: LifecycleFlags): ILifecycleTask {
-    flags |= LifecycleFlags.fromUnbind;
-    switch (this.vmKind) {
-      case ViewModelKind.customElement:
-        return this.unbindCustomElement(flags);
-      case ViewModelKind.customAttribute:
-        return this.unbindCustomAttribute(flags);
-      case ViewModelKind.synthetic:
-        return this.unbindSynthetic(flags);
-    }
-  }
-
   public afterBindChildren(flags: LifecycleFlags): void {
     this.bindingContext!.afterBindChildren(flags); // non-null is implied by the hook
   }
@@ -528,7 +516,6 @@ export class Controller<
     return void 0;
   }
 
-  // #region bind/unbind
   public bind(flags: LifecycleFlags, scope?: IScope, part?: string): ILifecycleTask {
     if (this.isBound) {
       return LifecycleTask.done;
@@ -638,64 +625,54 @@ export class Controller<
     this.lifecycle.afterBindChildren.end(flags);
   }
 
-  private unbindCustomElement(flags: LifecycleFlags): ILifecycleTask {
+  public unbind(flags: LifecycleFlags): ILifecycleTask {
     if (!this.isBound) {
       return LifecycleTask.done;
     }
 
     this.isBound = false;
-    (this.scope as Writable<IScope>).parentScope = null;
-
     flags |= LifecycleFlags.fromUnbind;
-    this.lifecycle.afterUnbindChildren.begin();
 
-    if (this.hooks.hasBeforeUnbind) {
-      const ret = (this.bindingContext as BindingContext<T, C>).beforeUnbind(flags);
-      if (hasAsyncWork(ret)) {
-        return new ContinuationTask(ret, this.unbindBindings, this, flags);
+    switch (this.vmKind) {
+      case ViewModelKind.customElement: {
+        (this.scope as Writable<IScope>).parentScope = null;
+
+        this.lifecycle.afterUnbindChildren.begin();
+
+        if (this.hooks.hasBeforeUnbind) {
+          const ret = (this.bindingContext as BindingContext<T, C>).beforeUnbind(flags);
+          if (hasAsyncWork(ret)) {
+            return new ContinuationTask(ret, this.unbindBindings, this, flags);
+          }
+        }
+
+        return this.unbindBindings(flags);
+      }
+      case ViewModelKind.customAttribute: {
+        this.lifecycle.afterUnbindChildren.begin();
+
+        if (this.hooks.hasBeforeUnbind) {
+          const ret = (this.bindingContext as BindingContext<T, C>).beforeUnbind(flags);
+          if (hasAsyncWork(ret)) {
+            return new ContinuationTask(ret, this.endUnbind, this, flags);
+          }
+        }
+
+        this.endUnbind(flags);
+        return LifecycleTask.done;
+      }
+      case ViewModelKind.synthetic: {
+        this.lifecycle.afterUnbindChildren.begin();
+
+        return this.unbindBindings(flags);
       }
     }
-
-    return this.unbindBindings(flags);
-  }
-
-  private unbindCustomAttribute(flags: LifecycleFlags): ILifecycleTask {
-    if (!this.isBound) {
-      return LifecycleTask.done;
-    }
-
-    this.isBound = false;
-    flags |= LifecycleFlags.fromUnbind;
-    this.lifecycle.afterUnbindChildren.begin();
-
-    if (this.hooks.hasBeforeUnbind) {
-      const ret = (this.bindingContext as BindingContext<T, C>).beforeUnbind(flags);
-      if (hasAsyncWork(ret)) {
-        return new ContinuationTask(ret, this.endUnbind, this, flags);
-      }
-    }
-
-    this.endUnbind(flags);
-    return LifecycleTask.done;
-  }
-
-  private unbindSynthetic(flags: LifecycleFlags): ILifecycleTask {
-    if (!this.isBound) {
-      return LifecycleTask.done;
-    }
-
-    this.isBound = false;
-    flags |= LifecycleFlags.fromUnbind;
-    this.lifecycle.afterUnbindChildren.begin();
-
-    return this.unbindBindings(flags);
   }
 
   private unbindBindings(flags: LifecycleFlags): ILifecycleTask {
-    const { bindings } = this;
-    if (bindings !== void 0) {
-      for (let i = bindings.length - 1; i >= 0; --i) {
-        bindings[i].$unbind(flags);
+    if (this.bindings !== void 0) {
+      for (const binding of this.bindings) {
+        binding.$unbind(flags);
       }
     }
 
@@ -711,16 +688,12 @@ export class Controller<
     let tasks: ILifecycleTask[] | undefined = void 0;
     let task: ILifecycleTask | undefined;
 
-    const { controllers } = this;
-    if (controllers !== void 0) {
-      for (let i = controllers.length - 1; i >= 0; --i) {
-        task = controllers[i].unbind(flags);
-        controllers[i].parent = void 0;
+    if (this.controllers !== void 0) {
+      for (const controller of this.controllers) {
+        task = controller.unbind(flags);
+        controller.parent = void 0;
         if (!task.done) {
-          if (tasks === void 0) {
-            tasks = [];
-          }
-          tasks.push(task);
+          (tasks ?? (tasks = [])).push(task);
         }
       }
     }
@@ -760,7 +733,6 @@ export class Controller<
 
     this.lifecycle.afterUnbindChildren.end(flags);
   }
-  // #endregion
 
   public attach(flags: LifecycleFlags): void {
     if (this.isAttached) {

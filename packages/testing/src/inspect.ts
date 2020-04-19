@@ -1311,11 +1311,6 @@ const methodNamesWithFlags: PropertyKey[] = [
   'beforeAttach',
   'afterAttachChildren',
 
-  'mount',
-  'mountCustomElement',
-  'mountCustomAttribute',
-  'mountSynthetic',
-
   'detach',
   'detachCustomElement',
   'detachCustomAttribute',
@@ -1325,11 +1320,6 @@ const methodNamesWithFlags: PropertyKey[] = [
 
   'beforeDetach',
   'afterDetachChildren',
-
-  'unmount',
-  'unmountCustomElement',
-  'unmountCustomAttribute',
-  'unmountSynthetic',
 
   'tryReturnToCache',
 
@@ -1392,11 +1382,6 @@ export function formatProperty(
           case 'beforeAttach':
           case 'afterAttachChildren':
 
-          case 'mount':
-          case 'mountCustomElement':
-          case 'mountCustomAttribute':
-          case 'mountSynthetic':
-
           case 'detach':
           case 'detachCustomElement':
           case 'detachCustomAttribute':
@@ -1406,11 +1391,6 @@ export function formatProperty(
 
           case 'beforeDetach':
           case 'afterDetachChildren':
-
-          case 'unmount':
-          case 'unmountCustomElement':
-          case 'unmountCustomAttribute':
-          case 'unmountSynthetic':
 
           case 'tryReturnToCache':
 

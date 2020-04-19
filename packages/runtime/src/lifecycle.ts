@@ -147,16 +147,8 @@ export interface IRenderableController<
 > extends IController<T, C> {
   readonly vmKind: ViewModelKind.customElement | ViewModelKind.synthetic;
 
-  /** @internal */nextMount: IRenderableController | undefined;
-  /** @internal */nextUnmount: IRenderableController | undefined;
-  /** @internal */prevMount: IRenderableController | undefined;
-  /** @internal */prevUnmount: IRenderableController | undefined;
-
   readonly bindings: readonly IBinding[] | undefined;
   readonly controllers: readonly IHydratedController<T>[] | undefined;
-
-  /** @internal */mount(flags: LifecycleFlags): void;
-  /** @internal */unmount(flags: LifecycleFlags): void;
 
   getTargetAccessor(propertyName: string): IBindingTargetAccessor | undefined;
 

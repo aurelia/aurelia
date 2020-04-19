@@ -87,7 +87,7 @@ The plugin gives you enough flexibility to write your own rules rather than bein
   {% endtab %}
   {% endtabs %}
 
-  > `@newInstanceForScope(IValidationController)` injects a new instance of validation controller which is made available to the children of `awesome-component`. More on validation controller [later](TODO).
+  > `@newInstanceForScope(IValidationController)` injects a new instance of validation controller which is made available to the children of `awesome-component`. More on validation controller [later](validating-data.md#validation-controller).
 
 Here is one similar playable demo, if you want to explore on you own!
 
@@ -120,7 +120,7 @@ For that reason, the demos are mostly integrated with view.
   ![Define rules](../../images/validation/seq-define-rules.svg)
 * The instance of `PropertyRule` instance hold the collection of rules defined for a property. In simplified terms it can be described by the diagram below.
   ![Rules class diagram](../../images/validation/class-rules.svg)
-* The validator (`IValidator` instance) allows you to execute a validate instruction, which instructs which object and property needs to be validated (more details on the validation instruction discussed [later](TODO)). The validator gets the matching rules from the RulesRegistry (see the diagram above), and executes those.
+* The validator (`IValidator` instance) allows you to execute a [validate instruction](validating-data.md#validator-and-validate-instruction), which instructs which object and property needs to be validated. The validator gets the matching rules from the RulesRegistry (see the diagram above), and executes those.
   ![Rules class diagram](../../images/validation/seq-validator.svg)
 * The last piece of the puzzle is to getting the rules executed on demand. For this the validation controller (`IValidationController` instance) is used along with the `validate` binding behavior (more on these later). The binding behavior registers the property binding with the validation controller, and on configured event, instructs the controller to validate the binding. The validation controller eventually ends up invoking the `IValidator#validate` with certain instruction which triggers the workflow shown in the last diagram. The following diagram shows a simplified version of this.
   ![Rules class diagram](../../images/validation/seq-validation-controller.svg)
@@ -168,7 +168,7 @@ Following options are available for customizations.
   * `HydratorType`: Custom implementation of `IValidationHydrator`. Defaults to `ModelValidationHydrator`.
   * `DefaultTrigger`: Default validation trigger. Defaults to `blur`.
   * `UseSubscriberCustomAttribute`: Use the `validation-errors` custom attribute. Defaults to `true`.
-  * `UseSubscriberCustomElement`: Use the `validation-container` custom element. Defaults to `true`.
+  * `SubscriberCustomElementTemplate`: Custom template for `validation-container` custom element. Defaults to the default template of the custom element.
 
 These options are explained in details in the respective sections.
 Note that the categorization of the options are done with the intent of clarifying the origin package of each option.
@@ -1455,6 +1455,9 @@ The valid values are as follows.
  This prevents showing a validation failure message when there is a `blur` or `focusout` event without changing the property.
  This behavior delays "punish"ing the user and "reward"s eagerly.
 
+The examples aboves shows an explicit usage of trigger.
+However this is a optional value; when used it overrides the default trigger configured.
+When the value is omitted the default trigger is used for that instance.
 The default validation trigger is `focusout`, although it can be changed using the `DefaultTrigger` registration customization option.
 
 ```typescript
@@ -1470,18 +1473,18 @@ Aurelia
   .start();
 ```
 
-TODO: add demo
-
 ### Explicit validation controller
 
 The binding behavior by default registers the binding to the closest (in terms of dependency injection container) available instance of validation controller.
-Note that the validation controller instance can be made available for the scope using the `@newInstanceForScope` decorator ([refer this](validating-data.md#injecting-a-controller-instance) for more details).
+Note that the validation controller instance can be made available for the scope using the `@newInstanceForScope` decorator (refer [Injecting a controller instance](validating-data.md#injecting-a-controller-instance) for more details).
 If no instance of validation controller is available, it throws error.
 
 However, an instance of validation can be explicitly bound to the binding behavior, using the positional argument.
 This is useful when you need to use multiple instances of validation controller to perform different set of validation.
+In the example below, there are two injected controllers and the property `person.age` the `validationController2` is used.
+Playing with the example you can see that the `person.age` does not get validated by the scoped validation controller instance.
 
-TODO: add demo
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=4c914071a28238425ac1b6f8e664901b&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>
 
 ## Displaying errors
 
@@ -1524,7 +1527,19 @@ An example can be seen below.
 
 <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=5c6bffb7f9fdcfccac6dfb57b1e6523e&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>
 
-The usage of this custom element can be deactivated by using `UseSubscriberCustomAttribute` configuration options.
+A point to note is that multiple validation targets can also be used for a single `validation-errors` custom attribute, and the errors for multiple targets will be captured the same way.
+
+```html
+<div validation-errors.from-view="errors"> <!--binds all errors for name, and age to the "errors" property-->
+  <input value.bind="person.name & validate">
+  <input value.bind="person.age & validate">
+  <div>
+    <span repeat.for="error of errors">${error.result.message}</span>
+  </div>
+</div>
+```
+
+The usage of this custom element can be deactivated by using `UseSubscriberCustomAttribute` configuration option.
 
 ```typescript
 import { ValidationHtmlConfiguration } from '@aurelia/validation-html';
@@ -1557,7 +1572,35 @@ For example, using this custom element, displaying the errors reduces to the fol
 </validation-container>
 ```
 
-TODO: add demo + explain options to override the template.
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=a8eaf96a1aab35d142055086bd717cab&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
+
+There are couple of important points to note about the examples shown above.
+The first validation target shown in the example uses the default template of the custom element.
+This custom element template is based on two `slot`s as shown below.
+
+```html
+<slot>
+  <!--meant for validation target-->
+</slot>
+<slot name='secondary'>
+  <!--here goes error-->
+</slot>
+```
+
+The results of using the default template may not also suite your app or esthetics.
+However content can be injected into the slot from Light DOM (in case you are unfamiliar with the concepts, you are encouraged to give this [excellent article](https://developers.google.com/web/fundamentals/web-components/shadowdom#styling) a read) as shown in the example.
+Although traditionally the default slot is meant for the validation target(s), it can also be used to inject the error template, as shown in the example above.
+
+It is quite understandable that the CSS-containment of the Shadow DOM can come in the way of styling the custom element as per your need.
+It can be argued that this can be facilitated using CSS variables extensively.
+However, there is a far easy alternative to reach the same goal is offered by facilitating the customization of the whole template.
+To this end, use the `SubscriberCustomElementTemplate` configuration option.
+
+<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=a0e2134dcfffc0fd32bbdfa0bb8405a3&open=src%2Fmain.ts&open=src%2Fvalidation-container-template.html&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
+
+There is another aspect of this configuration option.
+When a `null`, `undefined`, or '' (empty string) is used as the value for this configuration option, it deactivates the usage of this custom element.
+This is in sense similar to the `UseSubscriberCustomAttribute` configuration option.
 
 ### `ValidationResultPresenterService`
 
@@ -1673,5 +1716,61 @@ It should not come as any surprise that localization also works for [model-based
 <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=9bc5b730ad55625131845d68d6c645b3&open=src%2Fmy-app.ts&open=src%2Fmodel-based-rules.ts&open=src%2Flocales%2Fen.json&open=src%2Flocales%2Fde.json"></iframe>
 
 ## Migration Guide and Breaking Changes
-* Transient `IValidationRules`
-* `.on` is the starting point
+
+This section outlines the breaking changes introduced by `@aurelia/validation*` as compared to the predecessor `aurelia-validation`.
+However, it is recommended that you read the documentation as there are many new features that has been added.
+
+* Instead of a single validation package, the functionalities are arranged in [three different packages](validating-data.md#architecture). These are `@aurelia/validation` (provides core functionalities), `@aurelia/validation-html` (provides integration with view), and `@aurelia/validation-i18n` (provides localization support for validation in view).
+* Usage of `ValidationRules` in terms of defining rules is bit different. The example below shows the difference. Refer the [Defining rules](validating-data.md#defining-rules) section for the details.
+
+  ```typescript
+  // aurelia-validation
+    ValidationRules
+      .ensure('firstName')
+      .required()
+      .on(this.person);
+
+  // @aurelia/validation
+  import { IValidationRules } from '@aurelia/validation';
+  //...
+  constructor(
+    @IValidationRules validationRules: IValidationRules
+  ) {
+    ValidationRules
+      .on(this.person)
+      .ensure('firstName')
+      .required();
+  }
+  ```
+
+* Named registration of reusable custom rules is not supported any longer in favor of simply using an instance of the rule implementation. The example below shows the difference. Refer the [Customizing rules](validating-data.md#customizing-rules) section for the details.
+
+  ```typescript
+  // aurelia-validation
+  ValidationRules.customRule(
+    'customRule',
+    // rule body
+    // rule config
+  );
+
+  ValidationRules
+    .ensure('property')
+      .satisfiesRule('customRule' ...);
+
+  // @aurelia/validation
+  class CustomRule extends BaseValidationRule { // of implements IValidationRule
+    // rule config
+    public execute() {
+      // rule body
+    }
+  }
+
+  validationRules
+    .on(obj)
+    .ensure('property')
+      .satisfiesRule(new CustomRule(...));
+  ```
+
+* Validator interface has been changed to have only one method named `validate` equipped with validate instruction. Refer the [Validator and validate instruction](validating-data.md#validator-and-validate-instruction) section for the details.
+* Usage of validation controller factory is changed. Instead of using `controllerFactory.createForCurrentScope();` you need to use the argument decorator `@newInstanceForScope(IValidationController)` syntax. Refer the [Injecting a controller instance](validating-data.md#injecting-a-controller-instance) section for the details.
+* No validation renderer in favor of `ValidationResultsSubscriber`. Refer the [`addSubscriber` and `removeSubscriber`](validating-data.md#addSubscriber-and-removeSubscriber) section for the details.

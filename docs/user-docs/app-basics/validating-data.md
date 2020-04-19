@@ -91,7 +91,8 @@ The plugin gives you enough flexibility to write your own rules rather than bein
 
 Here is one similar playable demo, if you want to explore on you own!
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=3a45de5a62157688181c0c78e5bcd570&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=3a45de5a62157688181c0c78e5bcd570&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=3a45de5a62157688181c0c78e5bcd570&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %\}
 
 That's all you need to do to get started with the plugin.
 However, read on to understand how the plugin functions, and offers flexible API to support your app.
@@ -298,7 +299,8 @@ validationRules
 
 This instantiates a `RequiredRule` for the property.
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=3a45de5a62157688181c0c78e5bcd570&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=3a45de5a62157688181c0c78e5bcd570&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=3a45de5a62157688181c0c78e5bcd570&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %\}
 
 > Note that this is the only built-in rule that considers `null`, `undefined`, or empty string as invalid value. The other built-in rules purposefully consider `null`, `undefined`, or empty string as valid value. This is done to ensure single responsibility for the built-in rules.
 
@@ -315,7 +317,8 @@ validationRules
 
 This instantiates a `RegexRule` for the property.
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=5e0ef6c9fdcdb9d34927ce2e116b0de7&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=5e0ef6c9fdcdb9d34927ce2e116b0de7&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=5e0ef6c9fdcdb9d34927ce2e116b0de7&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %\}
 
 **`email`**
 
@@ -328,7 +331,8 @@ validationRules
   .email();     // person's email need to be valid
 ```
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=dbf7ec616b3d458e0e980f3c29f2d624&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=dbf7ec616b3d458e0e980f3c29f2d624&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=dbf7ec616b3d458e0e980f3c29f2d624&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %\}
 
 **`minLength`**
 
@@ -342,7 +346,8 @@ validationRules
   .minLength(42);     // name must be at least 42 characters long
 ```
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=8bd5721cda282b888d0b640326b399bc&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=8bd5721cda282b888d0b640326b399bc&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=8bd5721cda282b888d0b640326b399bc&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %\}
 
 **`maxLength`**
 
@@ -356,7 +361,8 @@ validationRules
   .maxLength(42);     // name must be at most 42 characters long
 ```
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=35d3ca11fdc8089c362de84498be1e15&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=35d3ca11fdc8089c362de84498be1e15&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=35d3ca11fdc8089c362de84498be1e15&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %\}
 
 **`minItems`**
 
@@ -370,7 +376,8 @@ validationRules
   .minItems(42);    // a person should have at least 42 pets
 ```
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=abd1f558567e7380876c0c685f8d294a&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=abd1f558567e7380876c0c685f8d294a&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=abd1f558567e7380876c0c685f8d294a&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %\}
 
 **`maxItems`**
 
@@ -384,7 +391,8 @@ validationRules
   .maxItems(42);    // a person should have at most 42 pets
 ```
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=154f65652c9bc6d3513867c42fde7dd9&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=154f65652c9bc6d3513867c42fde7dd9&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=154f65652c9bc6d3513867c42fde7dd9&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %\}
 
 **`min`**
 
@@ -398,7 +406,8 @@ validationRules
   .min(42);     // a person should be at least 42 years old
 ```
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=25537dd2aa59549d040e6965e0fa2f71&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=25537dd2aa59549d040e6965e0fa2f71&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=25537dd2aa59549d040e6965e0fa2f71&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %\}
 
 **`max`**
 
@@ -412,7 +421,8 @@ validationRules
   .max(42);     // a person should be at most 42 years old
 ```
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=2e7dbfdee0cbab766935c7d46b9f5bb0&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=2e7dbfdee0cbab766935c7d46b9f5bb0&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=2e7dbfdee0cbab766935c7d46b9f5bb0&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %\}
 
 **`range`**
 
@@ -426,7 +436,8 @@ validationRules
   .range(42, 84);     // a person's age should be between 42 and 84 or equal to these values
 ```
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=379e9f3dcc4cc08cd440653d2c0940d8&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=379e9f3dcc4cc08cd440653d2c0940d8&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=379e9f3dcc4cc08cd440653d2c0940d8&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %\}
 
 **`between`**
 
@@ -441,7 +452,8 @@ validationRules
   .between(42, 84);     // a person's age should be between 42 and 84, but cannot be equal to any these values
 ```
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=450b17bf4a6774807d193172b180c5a2&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=450b17bf4a6774807d193172b180c5a2&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=450b17bf4a6774807d193172b180c5a2&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %\}
 
 **`equals`**
 
@@ -455,7 +467,8 @@ validationRules
   .equals('John Doe');  // Only people named 'John Doe' are valid
 ```
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=7dbffc2a9961d5f4de1b9669abc8a7c7&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=7dbffc2a9961d5f4de1b9669abc8a7c7&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=7dbffc2a9961d5f4de1b9669abc8a7c7&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %\}
 
 > Have you noticed that the same rule implementation is "alias"ed for multiple validation rules? You will get know another aspect of aliasing rules in the [customizing validation messages](validating-data.md#customizing-rules) section.
 
@@ -487,7 +500,8 @@ There are two ways custom rules can be defined.
     For example, in one of view-model you need to apply a very specific rule that is not needed elsewhere.
     However, if you want to reuse you rule, then you need to use the `satisfiesRule`.
 
-    <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=87d8206a6d1d4037933ea9e383aabf3e&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+    <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=87d8206a6d1d4037933ea9e383aabf3e&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
+    \{% embed url="https://gist.dumber.app/?gist=87d8206a6d1d4037933ea9e383aabf3e&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %\}
 
 * `satisfiesRule`
 
@@ -521,7 +535,8 @@ There are two ways custom rules can be defined.
     .satisfiesRule(new NotTestName([ "John Doe", "Max Mustermann" ]));
   ```
 
-  <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=a7e99a9c48fa87b800a250f3bfb3761c&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+  <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=a7e99a9c48fa87b800a250f3bfb3761c&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
+  \{% embed url="https://gist.dumber.app/?gist=a7e99a9c48fa87b800a250f3bfb3761c&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %\}
 
   You must have noticed that the API for the built rules instantiates a rule implementation.
   For example, the following two are synonymous.
@@ -567,7 +582,8 @@ There are two ways custom rules can be defined.
     .satisfiesRule(new IntegerRangeRule(true, { min:42, max: 84 })); // the age must between 42 and 84 (inclusive) and must be an integer.
   ```
 
-  <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=94aeaa114ac92d556d762794b651f375&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+  <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=94aeaa114ac92d556d762794b651f375&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
+  \{% embed url="https://gist.dumber.app/?gist=94aeaa114ac92d556d762794b651f375&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %\}
 
 > In the light of using rule *instance*, note that the the lambda in `satisfies` is actually wrapped in an instance of anonymous subclass of `BaseValidationRule`.
 
@@ -631,14 +647,16 @@ validationRules
   .required();  // results in validation message: "First line of address is required."
 ```
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=fc661ec8026974f6decb580b6da43498&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=fc661ec8026974f6decb580b6da43498&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=fc661ec8026974f6decb580b6da43498&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %\}
 
 Note that instead of a literal string, a function can also be used to customize the display name.
 The function signature is `() => string`;
 The following example shows a use case for this where the attempt for a guessing game is validated, and the attempt count is increased with each attempt and shown in the validation message.
 Note that some parts of the example is not yet discussed, but those will be addressed in respective sections.
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=59398645df32122cfeb68e8685e6a4ef&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=59398645df32122cfeb68e8685e6a4ef&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=59398645df32122cfeb68e8685e6a4ef&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %\}
 
 **Customize the validation message**
 
@@ -659,7 +677,8 @@ validationRules
   .withMessage("The address line1 is too long.");
 ```
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=cf929a91cb875bd88c27b14e8011e7be&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=cf929a91cb875bd88c27b14e8011e7be&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=cf929a91cb875bd88c27b14e8011e7be&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %\}
 
 The above examples shows usage of string literal as custom message.
 A message template can also be used instead.
@@ -674,7 +693,8 @@ The expressions supported in the template are as follows.
 
 Let us look at the following example, to understand these better.
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=311cbeb44313ee9ed54a4b9a4467c7d6&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=311cbeb44313ee9ed54a4b9a4467c7d6&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=311cbeb44313ee9ed54a4b9a4467c7d6&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %\}
 
 Apart from this the messages the can be customized globally.
 You must have noted that same rule implementations are aliased quite frequently.
@@ -725,7 +745,8 @@ Aurelia
 
 You are encouraged to play with the following demo; define more rules, change the custom messages, etc. to see it in action.
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=27399da21435c959a5e4229de5c383b4&open=src%2Fmain.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=27399da21435c959a5e4229de5c383b4&open=src%2Fmain.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=27399da21435c959a5e4229de5c383b4&open=src%2Fmain.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %\}
 
 Following is the complete list of default messages for the out of the box validation rules.
 
@@ -817,7 +838,8 @@ validationRules
 {% endtab %}
 {% endtabs %}
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=115bdc1fd460f1469f5500da03064235&open=src%2Fmain.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=115bdc1fd460f1469f5500da03064235&open=src%2Fmain.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=115bdc1fd460f1469f5500da03064235&open=src%2Fmain.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %\}
 
 If you want to define aliases for your custom rules, you need to decorate the rule class with `validationRule`.
 
@@ -838,7 +860,8 @@ class CustomRule extends BaseValidationRule {
 Then you can refer the second message by using `.withMessageKey('key2')`.
 Refer the demo below, to see this in action.
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=606cf358fdd58d14cf4848729eec9a48&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=606cf358fdd58d14cf4848729eec9a48&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=606cf358fdd58d14cf4848729eec9a48&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %\}
 
 **Conditional Rule**
 
@@ -855,7 +878,8 @@ validationRules
   .when((p) => p.age < 18 ); // guardianName is required for a minor
 ```
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=7ece8d8c5e13296cacc69a3e8bbcfe39&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=7ece8d8c5e13296cacc69a3e8bbcfe39&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=7ece8d8c5e13296cacc69a3e8bbcfe39&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %\}
 
 **Sequencing Rules**
 
@@ -879,7 +903,8 @@ Such rules can be expensive in nature, and thus it makes sense to execute those 
 In the above example if either of the `required` or `email` rules fails, the `UniqueRule` will never be executed.
 Verify this in the demo shown below.
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=c3ef11edf8feca7cea0275fc179cc160&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=c3ef11edf8feca7cea0275fc179cc160&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=c3ef11edf8feca7cea0275fc179cc160&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %\}
 
 ### Validating object
 
@@ -893,7 +918,8 @@ validationRules
   .satisfies((p) => p.name === 'Foo' && p.age === 42);
 ```
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=70572608599cfee591ba80a9e494dd87&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=70572608599cfee591ba80a9e494dd87&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=70572608599cfee591ba80a9e494dd87&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %\}
 
 ## Validator and validate instruction
 
@@ -941,7 +967,8 @@ export class AwesomeComponent {
 }
 ```
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=6d5ec84b163215dd47495e41eeb940b8&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=6d5ec84b163215dd47495e41eeb940b8&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=6d5ec84b163215dd47495e41eeb940b8&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %\}
 
 > An important aspect of the demo above is that it shows how to use `@aurelia/validation` without the `@aurelia/validation-html`.
 
@@ -1019,7 +1046,8 @@ validator.validate(new ValidateInstruction(person, undefined, 'ruleset1'));
 validator.validate(new ValidateInstruction(person, 'name', undefined, 'ruleset1'));
 ```
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=fa08f913ac506f7f150fc6ff8115e589&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=fa08f913ac506f7f150fc6ff8115e589&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=fa08f913ac506f7f150fc6ff8115e589&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %\}
 
 ## Model-based validation
 
@@ -1033,7 +1061,8 @@ For this we assume that the server is capable of communicating the validation ru
 The plugin uses an implementation of `IValidationHydrator` to adapt the json data to aurelia validation rules.
 Let us see an example of this.
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=9a27bcf1caec45f5aa5bba4f8831be5d&open=src%2Fmodel-based-rules.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=9a27bcf1caec45f5aa5bba4f8831be5d&open=src%2Fmodel-based-rules.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=9a27bcf1caec45f5aa5bba4f8831be5d&open=src%2Fmodel-based-rules.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %\}
 
 Let us deconstruct the example.
 The method that applies the model based rules is the following (refer `my-app.ts`).
@@ -1224,7 +1253,8 @@ Aurelia
 {% endtab %}
 {% endtabs %}
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=d07e3aed9e606424a8f9526d14ebcfe8&open=src%2Fcustom-model-validation-hydrator.ts&open=src%2Fmain.ts&open=src%2Finteger-range-rule.ts&open=src%2Fmodel-based-rules.ts"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=d07e3aed9e606424a8f9526d14ebcfe8&open=src%2Fcustom-model-validation-hydrator.ts&open=src%2Fmain.ts&open=src%2Finteger-range-rule.ts&open=src%2Fmodel-based-rules.ts"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=d07e3aed9e606424a8f9526d14ebcfe8&open=src%2Fcustom-model-validation-hydrator.ts&open=src%2Fmain.ts&open=src%2Finteger-range-rule.ts&open=src%2Fmodel-based-rules.ts" %\}
 
 ## Validation controller
 
@@ -1277,7 +1307,8 @@ export class Parent {
 A new instance of validation controller can always be injected using the `@newInstanceOf(IValidationController)` decorator.
 See this action in the demo below.
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=86d6dddcdf06e16bdf8a7b788aa15959&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fperson-partial.ts&open=src%2Fperson-partial.html"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=86d6dddcdf06e16bdf8a7b788aa15959&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fperson-partial.ts&open=src%2Fperson-partial.html"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=86d6dddcdf06e16bdf8a7b788aa15959&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fperson-partial.ts&open=src%2Fperson-partial.html" %\}
 
 ### `validate` and `reset`
 
@@ -1305,7 +1336,8 @@ The `reset` method on the other hand removes the errors from the validation cont
 It also has an optional argument of type `ValidateInstruction` which when provided instructs the controller to remove errors for specific object, and/or properties.
 Note that other properties of the instruction object has no effect on resetting the errors.
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=56355313e67c8f53565d8475cac55cb1&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=56355313e67c8f53565d8475cac55cb1&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=56355313e67c8f53565d8475cac55cb1&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %\}
 
 ### `revalidateErrors`
 
@@ -1317,7 +1349,8 @@ It is useful when you don't want to get a new set of errors, and rather check on
 await validationController.revalidateErrors();
 ```
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=950d94ec248471cd37647b811053daba&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=950d94ec248471cd37647b811053daba&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=950d94ec248471cd37647b811053daba&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %\}
 
 ### `addObject` and `removeObject`
 
@@ -1336,7 +1369,8 @@ validationController.addObject(person);
 validationController.removeObject(person);
 ```
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=6a97821e6e13db71aafd50967856841c&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=6a97821e6e13db71aafd50967856841c&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=6a97821e6e13db71aafd50967856841c&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %\}
 
 ### `addError` and `removeError`
 
@@ -1360,7 +1394,8 @@ validationController.removeError(result);
 Note that the errors added by the `addError` method, never gets revalidated when `revalidateErrors` is called.
 If the error needs to be removed, it must be done using `removeError` method.
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=b5db8659d6b46dacb7dfc1c72e646780&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=b5db8659d6b46dacb7dfc1c72e646780&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=b5db8659d6b46dacb7dfc1c72e646780&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %\}
 
 ### `addSubscriber` and `removeSubscriber`
 
@@ -1407,7 +1442,8 @@ A obvious use-case is to present the errors to the end-users.
 In fact the [out-of-the-box subscribers](validating-data.md#displaying-errors) are used for the purpose only.
 Below is one example of how you can create a custom subscriber.
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=51923879d83c2dc7016141343e73cd31&open=src%2Fresult-subscriber.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=51923879d83c2dc7016141343e73cd31&open=src%2Fresult-subscriber.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=51923879d83c2dc7016141343e73cd31&open=src%2Fresult-subscriber.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %\}
 
 ## `validate` binding behavior
 
@@ -1430,22 +1466,28 @@ This dictates when the validation is performed.
 The valid values are as follows.
 
 * `manual`: Use the controller's `validate()` method to validate all bindings.
-  <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=3e158b91575b79de1bbaf3a13f320ed1&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>
+  <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=3e158b91575b79de1bbaf3a13f320ed1&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>-->
+  \{% embed url="https://gist.dumber.app/?gist=3e158b91575b79de1bbaf3a13f320ed1&open=src%2Fmy-app.html&open=src%2Fmy-app.ts" %\}
 
 * `blur`:  Validate the binding when the binding's target element fires a DOM "blur" event.
-  <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=8a4cba70eaf4cc2d698ddb8c96524c10&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>
+  <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=8a4cba70eaf4cc2d698ddb8c96524c10&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>-->
+  \{% embed url="https://gist.dumber.app/?gist=8a4cba70eaf4cc2d698ddb8c96524c10&open=src%2Fmy-app.html&open=src%2Fmy-app.ts" %\}
 
 * `focusout`:  Validate the binding when the binding's target element fires a DOM "focusout" event. This is useful when the actual input is wrapped in a custom element and the `validate` binding behavior is used on the custom element. In that case the `blur` trigger does not work as the `blur` event does not bubble. See the difference in action below.
-  <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=ba271394705e4b8c040f9090c634baff&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>
+  <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=ba271394705e4b8c040f9090c634baff&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>-->
+  \{% embed url="https://gist.dumber.app/?gist=ba271394705e4b8c040f9090c634baff&open=src%2Fmy-app.html&open=src%2Fmy-app.ts" %\}
 
 * `change`: Validate the binding when the source property property is updated (usually triggered by some change in view).
-  <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=56010d78f8e00e6a329c7ce622d99f0a&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>
+  <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=56010d78f8e00e6a329c7ce622d99f0a&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>-->
+  \{% embed url="https://gist.dumber.app/?gist=56010d78f8e00e6a329c7ce622d99f0a&open=src%2Fmy-app.html&open=src%2Fmy-app.ts" %\}
 
 * `changeOrBlur`: Validate the binding when the binding's target element fires a DOM "blur" event as well as when the source property is updated.
-  <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=be889598bc49d871ee462877985e36ea&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>
+  <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=be889598bc49d871ee462877985e36ea&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>-->
+  \{% embed url="https://gist.dumber.app/?gist=be889598bc49d871ee462877985e36ea&open=src%2Fmy-app.html&open=src%2Fmy-app.ts" %\}
 
 * `changeOrFocusout`: Validate the binding when the binding's target element fires a DOM "focusout" event as well as when the source property is updated.
-  <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=e3a8a0609c2b723caa9c59b7309f81ce&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>
+  <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=e3a8a0609c2b723caa9c59b7309f81ce&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>-->
+  \{% embed url="https://gist.dumber.app/?gist=e3a8a0609c2b723caa9c59b7309f81ce&open=src%2Fmy-app.html&open=src%2Fmy-app.ts" %\}
 
  There is an important point to note about the `changeOrEVENT` triggers.
  The change-triggered validation is ineffective till the associated property is validated once, either by manually calling `ValidationController#validate` or by event-triggered (`blur` or `focusout`) validation.
@@ -1484,7 +1526,8 @@ This is useful when you need to use multiple instances of validation controller 
 In the example below, there are two injected controllers and the property `person.age` the `validationController2` is used.
 Playing with the example you can see that the `person.age` does not get validated by the scoped validation controller instance.
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=4c914071a28238425ac1b6f8e664901b&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=4c914071a28238425ac1b6f8e664901b&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=4c914071a28238425ac1b6f8e664901b&open=src%2Fmy-app.html&open=src%2Fmy-app.ts" %\}
 
 ## Displaying errors
 
@@ -1498,7 +1541,8 @@ The validation controller maintains the active list of validation results which 
 </ul>
 ```
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=eadef7045bb99a4ebe251c5efd69ead5&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=eadef7045bb99a4ebe251c5efd69ead5&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=eadef7045bb99a4ebe251c5efd69ead5&open=src%2Fmy-app.html&open=src%2Fmy-app.ts" %\}
 
 There are also some out-of-the-box components that can be used to display the errors.
 These are discussed in the following sections.
@@ -1525,7 +1569,8 @@ This custom attribute can be used to bind the errors for children the target ele
 Note that this in itself does not show any error, unless errors are iterated to be bound with the view.
 An example can be seen below.
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=5c6bffb7f9fdcfccac6dfb57b1e6523e&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=5c6bffb7f9fdcfccac6dfb57b1e6523e&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=5c6bffb7f9fdcfccac6dfb57b1e6523e&open=src%2Fmy-app.html&open=src%2Fmy-app.ts" %\}
 
 A point to note is that multiple validation targets can also be used for a single `validation-errors` custom attribute, and the errors for multiple targets will be captured the same way.
 
@@ -1572,7 +1617,8 @@ For example, using this custom element, displaying the errors reduces to the fol
 </validation-container>
 ```
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=a8eaf96a1aab35d142055086bd717cab&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=a8eaf96a1aab35d142055086bd717cab&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=a8eaf96a1aab35d142055086bd717cab&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %\}
 
 There are couple of important points to note about the examples shown above.
 The first validation target shown in the example uses the default template of the custom element.
@@ -1596,7 +1642,8 @@ It can be argued that this can be facilitated using CSS variables extensively.
 However, there is a far easy alternative to reach the same goal is offered by facilitating the customization of the whole template.
 To this end, use the `SubscriberCustomElementTemplate` configuration option.
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=a0e2134dcfffc0fd32bbdfa0bb8405a3&open=src%2Fmain.ts&open=src%2Fvalidation-container-template.html&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=a0e2134dcfffc0fd32bbdfa0bb8405a3&open=src%2Fmain.ts&open=src%2Fvalidation-container-template.html&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=a0e2134dcfffc0fd32bbdfa0bb8405a3&open=src%2Fmain.ts&open=src%2Fvalidation-container-template.html&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %\}
 
 There is another aspect of this configuration option.
 When a `null`, `undefined`, or '' (empty string) is used as the value for this configuration option, it deactivates the usage of this custom element.
@@ -1624,7 +1671,8 @@ export class MyApp {
 }
 ```
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=1d2eadca8b559d169819bd2ca93888a6&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=1d2eadca8b559d169819bd2ca93888a6&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=1d2eadca8b559d169819bd2ca93888a6&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %\}
 
 The error rendering process can be completely overridden in the child classes.
 The use methods for overriding are described below.
@@ -1685,7 +1733,8 @@ Stated differently, it [customizes](validating-data.md#registering-the-plugin) t
 
 Check the demo to see this in action.
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=b4994288b5c91cc9d9eb94def72fca26&open=src%2Fmy-app.ts&open=src%2Fmain.ts&open=src%2Flocales%2Fen.json&open=src%2Flocales%2Fde.json"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=b4994288b5c91cc9d9eb94def72fca26&open=src%2Fmy-app.ts&open=src%2Fmain.ts&open=src%2Flocales%2Fen.json&open=src%2Flocales%2Fde.json"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=b4994288b5c91cc9d9eb94def72fca26&open=src%2Fmy-app.ts&open=src%2Fmain.ts&open=src%2Flocales%2Fen.json&open=src%2Flocales%2Fde.json" %\}
 
 All the configuration options of the `@aurelia/validation` plugin are also available from `@aurelia/validation-i18n`.
 This means it even allows you provide your own implementation of message provider or validation controller factory!
@@ -1698,22 +1747,26 @@ Apart from that it has two additional configuration options that dictates how th
   This is useful if you want to keep the validation resources separate from your regular 18N resources.
   See the example below.
 
-  <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=7659284c799ec6215968ef9111ff2b95&open=src%2Fmain.ts&open=src%2Flocales%2Fen-validation.json&open=src%2Flocales%2Fde-validation.json"></iframe>
+  <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=7659284c799ec6215968ef9111ff2b95&open=src%2Fmain.ts&open=src%2Flocales%2Fen-validation.json&open=src%2Flocales%2Fde-validation.json"></iframe>-->
+  \{% embed url="https://gist.dumber.app/?gist=7659284c799ec6215968ef9111ff2b95&open=src%2Fmain.ts&open=src%2Flocales%2Fen-validation.json&open=src%2Flocales%2Fde-validation.json" %\}
 
 * `DefaultKeyPrefix`
 
   Instead of using a separate namespace a key prefix can be used for the keys related to validation resources.
   This is shown in the example below.
 
-  <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=8631eae51a833f27411725c8ab85ec5a&open=src%2Fmain.ts&open=src%2Flocales%2Fen.json&open=src%2Flocales%2Fde.json"></iframe>
+  <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=8631eae51a833f27411725c8ab85ec5a&open=src%2Fmain.ts&open=src%2Flocales%2Fen.json&open=src%2Flocales%2Fde.json"></iframe>-->
+  \{% embed url="https://gist.dumber.app/?gist=8631eae51a833f27411725c8ab85ec5a&open=src%2Fmain.ts&open=src%2Flocales%2Fen.json&open=src%2Flocales%2Fde.json" %\}
 
   Naturally, the `DefaultNamespace` and the `DefaultKeyPrefix` can be used together.
 
-  <iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=54309a17b89925b4fadb50f068f5bdf9&open=src%2Fmain.ts&open=src%2Flocales%2Fen-ns1.json&open=src%2Flocales%2Fde-ns1.json"></iframe>
+  <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=54309a17b89925b4fadb50f068f5bdf9&open=src%2Fmain.ts&open=src%2Flocales%2Fen-ns1.json&open=src%2Flocales%2Fde-ns1.json"></iframe>-->
+  \{% embed url="https://gist.dumber.app/?gist=54309a17b89925b4fadb50f068f5bdf9&open=src%2Fmain.ts&open=src%2Flocales%2Fen-ns1.json&open=src%2Flocales%2Fde-ns1.json" %\}
 
 It should not come as any surprise that localization also works for [model-based rules](validating-data.md#model-based-validation), when appropriate `messageKey` is specified in the rule definition.
 
-<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=9bc5b730ad55625131845d68d6c645b3&open=src%2Fmy-app.ts&open=src%2Fmodel-based-rules.ts&open=src%2Flocales%2Fen.json&open=src%2Flocales%2Fde.json"></iframe>
+<!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=9bc5b730ad55625131845d68d6c645b3&open=src%2Fmy-app.ts&open=src%2Fmodel-based-rules.ts&open=src%2Flocales%2Fen.json&open=src%2Flocales%2Fde.json"></iframe>-->
+\{% embed url="https://gist.dumber.app/?gist=9bc5b730ad55625131845d68d6c645b3&open=src%2Fmy-app.ts&open=src%2Fmodel-based-rules.ts&open=src%2Flocales%2Fen.json&open=src%2Flocales%2Fde.json" %\}
 
 ## Migration Guide and Breaking Changes
 

@@ -6,6 +6,7 @@ import {
   nextId,
   Writable,
   Constructable,
+  IDisposable,
 } from '@aurelia/kernel';
 import {
   PropertyBinding,
@@ -80,6 +81,10 @@ import {
   getRenderContext,
 } from './render-context';
 import { ChildrenObserver } from './children';
+
+function dispose(disposable: IDisposable): void {
+  disposable.dispose();
+}
 
 type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
   create(
@@ -173,19 +178,19 @@ export class Controller<
     /**
      * The viewFactory. Only present for synthetic views.
      */
-    public readonly viewFactory: IViewFactory<T> | undefined,
+    public viewFactory: IViewFactory<T> | undefined,
     /**
      * The backing viewModel. This is never a proxy. Only present for custom attributes and elements.
      */
-    public readonly viewModel: C | undefined,
+    public viewModel: C | undefined,
     /**
      * The binding context. This may be a proxy. If it is not, then it is the same instance as the viewModel. Only present for custom attributes and elements.
      */
-    public readonly bindingContext: BindingContext<T, C> | undefined,
+    public bindingContext: BindingContext<T, C> | undefined,
     /**
      * The physical host dom node. Only present for custom elements.
      */
-    public readonly host: T | undefined,
+    public host: T | undefined,
   ) {}
 
   public static getCached<
@@ -473,31 +478,30 @@ export class Controller<
   }
 
   public dispose(): void {
-    switch (this.vmKind) {
-      case ViewModelKind.customElement:
-        if (this.hooks.hasDispose) {
-          this.bindingContext!.dispose(); // non-null is implied by the hook
-        }
-        break;
-      case ViewModelKind.customAttribute:
-        if (this.hooks.hasDispose) {
-          this.bindingContext!.dispose(); // non-null is implied by the hook
-        }
-
-        if (this.controllers !== void 0) {
-          for (const controller of this.controllers) {
-            controller.dispose();
-          }
-        }
-        break;
-      case ViewModelKind.synthetic:
-        if (this.controllers !== void 0) {
-          for (const controller of this.controllers) {
-            controller.dispose();
-          }
-        }
-        break;
+    if (this.hooks.hasDispose) {
+      this.bindingContext!.dispose();
     }
+
+    this.controllers?.forEach(dispose);
+    this.controllers = void 0;
+
+    this.bindings?.forEach(dispose);
+    this.bindings = void 0;
+
+    this.scope = void 0;
+    this.projector = void 0;
+
+    this.nodes = void 0;
+    this.context = void 0;
+    this.location = void 0;
+
+    this.viewFactory = void 0;
+    if (this.viewModel !== void 0) {
+      controllerLookup.delete(this.viewModel);
+      this.viewModel = void 0;
+    }
+    this.bindingContext = void 0;
+    this.host = void 0;
   }
 
   public getTargetAccessor(propertyName: string): IBindingTargetAccessor | undefined {

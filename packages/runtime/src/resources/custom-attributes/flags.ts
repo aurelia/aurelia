@@ -8,7 +8,7 @@ import { templateController } from '../custom-attribute';
 abstract class FlagsTemplateController<T extends INode = INode> implements ICustomAttributeViewModel<T> {
   public readonly id: number;
 
-  public readonly view: ISyntheticView<T>;
+  public view: ISyntheticView<T>;
 
   public readonly $controller!: ICustomAttributeController<T, this>;
 
@@ -40,6 +40,11 @@ abstract class FlagsTemplateController<T extends INode = INode> implements ICust
     const task = this.view.unbind(flags);
     this.view.parent = void 0;
     return task;
+  }
+
+  public dispose(): void {
+    this.view.dispose();
+    this.view = (void 0)!;
   }
 }
 

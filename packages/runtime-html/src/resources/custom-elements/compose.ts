@@ -116,10 +116,6 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
     return this.task;
   }
 
-  public dispose(): void {
-    this.view = void 0;
-  }
-
   public subjectChanged(newValue: Subject<T> | Promise<Subject<T>>, previousValue: Subject<T> | Promise<Subject<T>>, flags: LifecycleFlags): void {
     flags |= this.$controller.flags;
     if (this.task.done) {
@@ -248,6 +244,11 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
         ? PLATFORM.emptyArray
         : this.$controller.projector.children
     ).createView(this.$controller.context!);
+  }
+
+  public dispose(): void {
+    this.view?.dispose();
+    this.view = (void 0)!;
   }
 }
 

@@ -5,6 +5,7 @@ import {
   IResolver,
   IServiceLocator,
   Registration,
+  IDisposable,
 } from '@aurelia/kernel';
 import {
   HooksDefinition,
@@ -40,7 +41,7 @@ import {
   Scope,
 } from './observation/binding-context';
 
-export interface IBinding {
+export interface IBinding extends IDisposable {
   interceptor: this;
   readonly locator: IServiceLocator;
   readonly $scope?: IScope;

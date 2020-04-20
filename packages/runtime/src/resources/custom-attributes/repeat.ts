@@ -1,4 +1,4 @@
-import { compareNumber, nextId } from '@aurelia/kernel';
+import { compareNumber, nextId, IDisposable } from '@aurelia/kernel';
 import { ForOfStatement } from '../../binding/ast';
 import { PropertyBinding } from '../../binding/property-binding';
 import { INode, IRenderLocation } from '../../dom';
@@ -25,6 +25,10 @@ import { bindable } from '../../templating/bindable';
 import { templateController } from '../custom-attribute';
 
 type Items<C extends ObservedCollection = IObservedArray> = C | undefined;
+
+function dispose(disposable: IDisposable): void {
+  disposable.dispose();
+}
 
 @templateController('repeat')
 export class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> implements ICustomAttributeViewModel<T> {
@@ -519,6 +523,11 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
 
     this.$controller.lifecycle.afterAttachChildren.end(flags);
+  }
+
+  public dispose(): void {
+    this.views.forEach(dispose);
+    this.views = (void 0)!;
   }
 }
 

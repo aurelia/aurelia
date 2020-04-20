@@ -60,7 +60,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   private isInterpolatedSourceExpr!: boolean;
   private readonly targetObservers: Set<IBindingTargetAccessor>;
 
-  public readonly target: HTMLElement;
+  public target: HTMLElement;
 
   public constructor(
     target: INode,
@@ -280,5 +280,11 @@ export class TranslationBinding implements IPartialConnectableBinding {
     if (exprType !== 'string') {
       throw new Error(`Expected the i18n key to be a string, but got ${expr} of type ${exprType}`); // TODO use reporter/logger
     }
+  }
+
+  public dispose(): void {
+    this.interceptor = (void 0)!;
+    this.locator = (void 0)!;
+    this.target = (void 0)!;
   }
 }

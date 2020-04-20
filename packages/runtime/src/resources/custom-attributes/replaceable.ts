@@ -9,7 +9,7 @@ import { templateController } from '../custom-attribute';
 export class Replaceable<T extends INode = INode> implements ICustomAttributeViewModel<T> {
   public readonly id: number = nextId('au$component');
 
-  public readonly view: ISyntheticView<T>;
+  public view: ISyntheticView<T>;
 
   public readonly $controller!: ICustomAttributeController<T, this>; // This is set by the controller after this instance is constructed
 
@@ -38,5 +38,10 @@ export class Replaceable<T extends INode = INode> implements ICustomAttributeVie
     const task = this.view.unbind(flags);
     this.view.parent = void 0;
     return task;
+  }
+
+  public dispose(): void {
+    this.view.dispose();
+    this.view = (void 0)!;
   }
 }

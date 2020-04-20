@@ -59,14 +59,14 @@ describe('I18N', function () {
         {
           type: 'postProcessor',
           name: 'custom1',
-          process: function (value) { return value; }
+          process: function (value: string, _key: string, _options: any, _translator: any) { return value; }
         },
         {
           type: 'postProcessor',
           name: 'custom2',
-          process: function (value) { return value; }
+          process: function (value: string, _key: string, _options: any, _translator: any) { return value; }
         }
-      ] as I18nModule[]
+      ] as i18next.PostProcessorModule[]
     };
     const { i18nextSpy } = await createFixture(customization);
 

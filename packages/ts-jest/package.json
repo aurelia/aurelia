@@ -42,7 +42,7 @@
     "@jest/transform": "^25.3.0",
     "@jest/types": "^25.3.0",
     "@types/node": "^12.12.21",
-    "tslib": "^1.10.0",
-    "typescript": "^3.7.4"
+    "tslib": "^1.11.1",
+    "typescript": "^3.8.3"
   }
 }

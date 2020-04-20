@@ -69,7 +69,7 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
   @bindable()
   public callbackContext: unknown;
 
-  public readonly view: ISyntheticView<T>;
+  public view: ISyntheticView<T>;
 
   private task: ILifecycleTask = LifecycleTask.done;
 
@@ -239,5 +239,10 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
     }
 
     return target!;
+  }
+
+  public dispose(): void {
+    this.view.dispose();
+    this.view = (void 0)!;
   }
 }

@@ -10,7 +10,7 @@ import { Scope } from '../../observation/binding-context';
 export class With<T extends INode = INode> implements ICustomAttributeViewModel<T> {
   public readonly id: number = nextId('au$component');
 
-  public readonly view: ISyntheticView<T>;
+  public view: ISyntheticView<T>;
 
   public readonly $controller!: ICustomAttributeController<T, this>; // This is set by the controller after this instance is constructed
 
@@ -53,5 +53,10 @@ export class With<T extends INode = INode> implements ICustomAttributeViewModel<
   private bindChild(flags: LifecycleFlags): void {
     const scope = Scope.fromParent(flags, this.$controller.scope!, this.value === void 0 ? {} : this.value);
     this.view.bind(flags, scope, this.$controller.part);
+  }
+
+  public dispose(): void {
+    this.view.dispose();
+    this.view = (void 0)!;
   }
 }

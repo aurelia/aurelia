@@ -64,6 +64,10 @@ export class MockBinding implements IConnectableBinding {
   public trace(fnName: keyof MockBinding, ...args: any[]): void {
     this.calls.push([fnName, ...args]);
   }
+
+  public dispose(): void {
+    this.trace('dispose');
+  }
 }
 
 export class MockBindingBehavior {

@@ -10,8 +10,12 @@ describe('binding-resources', function () {
   function createFixture() {
       const ctx = TestContext.createHTMLTestContext();
       const au = new Aurelia(ctx.container);
-      const host = ctx.createElement("div");
-      return { au, host, scheduler: ctx.scheduler, doc: ctx.doc };
+      const host = ctx.createElement('div');
+      return {
+        au,
+        host,
+        ctx,
+      };
   }
 
   describe('debounce', function () {
@@ -25,7 +29,7 @@ describe('binding-resources', function () {
         public receiver: HTMLInputElement;
       }
 
-      const { au, host, scheduler } = createFixture();
+      const { au, host, ctx } = createFixture();
 
       const component = new App();
       au.app({ component, host });
@@ -50,7 +54,7 @@ describe('binding-resources', function () {
 
       assert.strictEqual(receiver.value, '0', `change 3 not yet propagated`);
 
-      await scheduler.yieldAll();
+      await ctx.scheduler.yieldAll();
 
       assert.strictEqual(receiver.value, '3', `change 3 propagated`);
     });
@@ -75,7 +79,7 @@ describe('binding-resources', function () {
         public receiver: Receiver;
       }
 
-      const { au, host, scheduler } = createFixture();
+      const { au, host, ctx } = createFixture();
 
       const component = new App();
       au.app({ component, host });
@@ -100,7 +104,7 @@ describe('binding-resources', function () {
 
       assert.strictEqual(receiver.value, '0', `change 3 not yet propagated`);
 
-      await scheduler.yieldAll();
+      await ctx.scheduler.yieldAll();
 
       assert.strictEqual(receiver.value, '3', `change 3 propagated`);
     });
@@ -125,7 +129,7 @@ describe('binding-resources', function () {
         public receiver: Receiver;
       }
 
-      const { au, host, scheduler } = createFixture();
+      const { au, host, ctx } = createFixture();
 
       const component = new App();
       au.app({ component, host });
@@ -153,7 +157,7 @@ describe('binding-resources', function () {
       assert.strictEqual(component.value, '3', `component keeps change 3`);
       assert.strictEqual(receiver.value, '2', `change 3 not yet propagated to receiver`);
 
-      await scheduler.yieldAll();
+      await ctx.scheduler.yieldAll();
 
       assert.strictEqual(receiver.value, '3', `change 3 propagated`);
     });
@@ -167,44 +171,44 @@ describe('binding-resources', function () {
         class App {
           public receiver: HTMLDivElement;
 
-          public events: MouseEvent[] = [];
-          public handleClick($event: MouseEvent): void {
+          public events: CustomEvent[] = [];
+          public handleClick($event: CustomEvent): void {
             this.events.push($event);
           }
         }
 
-        const { au, host, scheduler, doc } = createFixture();
+        const { au, host, ctx } = createFixture();
 
         const component = new App();
 
-        doc.body.appendChild(host);
+        ctx.doc.body.appendChild(host);
         au.app({ component, host });
         await au.start().wait();
 
         const eventInit = { bubbles: true, cancelable: true };
         const receiver = component.receiver;
-        const event1 = new MouseEvent('click', eventInit);
+        const event1 = new ctx.CustomEvent('click', eventInit);
         receiver.dispatchEvent(event1);
 
         await wait(20);
 
         assert.strictEqual(component.events.length, 0, `event 1 not yet propagated`);
 
-        const event2 = new MouseEvent('click', eventInit);
+        const event2 = new ctx.CustomEvent('click', eventInit);
         receiver.dispatchEvent(event2);
 
         await wait(20);
 
         assert.strictEqual(component.events.length, 0, `event 2 not yet propagated`);
 
-        const event3 = new MouseEvent('click', eventInit);
+        const event3 = new ctx.CustomEvent('click', eventInit);
         receiver.dispatchEvent(event3);
 
         await wait(20);
 
         assert.strictEqual(component.events.length, 0, `event 3 not yet propagated`);
 
-        await scheduler.yieldAll();
+        await ctx.scheduler.yieldAll();
 
         assert.strictEqual(component.events.length, 1, `event 3 propagated`);
         assert.strictEqual(component.events[0], event3, `event 3 is the specific event that propagated`);

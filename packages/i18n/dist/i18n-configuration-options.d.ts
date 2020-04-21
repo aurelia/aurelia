@@ -1,11 +1,12 @@
-import i18next from 'i18next';
-export declare type I18nModule = i18next.BackendModule | i18next.LanguageDetectorModule | i18next.LanguageDetectorAsyncModule | i18next.PostProcessorModule | i18next.I18nFormatModule | i18next.ThirdPartyModule;
+import { Class } from '@aurelia/kernel';
+import { InitOptions, Module, ThirdPartyModule } from 'i18next';
+export declare type I18nModule = Module | ThirdPartyModule;
 export declare const I18nInitOptions: import("@aurelia/kernel").IDefaultableInterfaceSymbol<I18nInitOptions>;
-export interface I18nInitOptions extends i18next.InitOptions {
+export interface I18nInitOptions extends InitOptions {
     /**
      * Collection of i18next plugins to use.
      */
-    plugins?: I18nModule[];
+    plugins?: (I18nModule | Class<I18nModule>)[];
     skipTranslationOnMissingKey?: boolean;
     /**
      * Leeway for computing the time difference for relative time formatting.

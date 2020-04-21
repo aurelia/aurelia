@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/scheduler",
-  "version": "0.7.0-dev.202004200124",
+  "version": "0.7.0-dev.202004212046",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -35,7 +35,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.7.0-dev.202004200124"
+    "@aurelia/kernel": "0.7.0-dev.202004212046"
   },
   "devDependencies": {
     "tslib": "^1.11.1",

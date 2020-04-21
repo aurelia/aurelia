@@ -90,8 +90,8 @@ export interface IController<
 
   bind(flags: LifecycleFlags, scope?: IScope, partName?: string): ILifecycleTask;
   unbind(flags: LifecycleFlags): ILifecycleTask;
-  attach(flags: LifecycleFlags): void;
-  detach(flags: LifecycleFlags): void;
+  attach(flags: LifecycleFlags): ILifecycleTask;
+  detach(flags: LifecycleFlags): ILifecycleTask;
   dispose(): void;
 }
 
@@ -378,10 +378,10 @@ export interface IViewModel<T extends INode = INode> {
   afterUnbindChildren?(flags: LifecycleFlags): void;
 
   beforeAttach?(flags: LifecycleFlags): void;
-  afterAttach?(flags: LifecycleFlags): void;
+  afterAttach?(flags: LifecycleFlags): MaybePromiseOrTask;
   afterAttachChildren?(flags: LifecycleFlags): void;
 
-  beforeDetach?(flags: LifecycleFlags): void;
+  beforeDetach?(flags: LifecycleFlags): MaybePromiseOrTask;
   afterDetach?(flags: LifecycleFlags): void;
   afterDetachChildren?(flags: LifecycleFlags): void;
 

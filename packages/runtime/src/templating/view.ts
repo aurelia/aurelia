@@ -330,8 +330,8 @@ export class ViewLocator implements IViewLocator {
         };
       }
       if ('afterAttach' in object) {
-        proto.afterAttach = function afterAttach(flags: LifecycleFlags): void {
-          this.viewModel.afterAttach!(flags);
+        proto.afterAttach = function afterAttach(flags: LifecycleFlags): MaybePromiseOrTask {
+          return this.viewModel.afterAttach!(flags);
         };
       }
       if ('afterAttachChildren' in object) {
@@ -341,8 +341,8 @@ export class ViewLocator implements IViewLocator {
       }
 
       if ('beforeDetach' in object) {
-        proto.beforeDetach = function beforeDetach(flags: LifecycleFlags): void {
-          this.viewModel.beforeDetach!(flags);
+        proto.beforeDetach = function beforeDetach(flags: LifecycleFlags): MaybePromiseOrTask {
+          return this.viewModel.beforeDetach!(flags);
         };
       }
       if ('afterDetach' in object) {

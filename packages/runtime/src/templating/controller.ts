@@ -122,7 +122,7 @@ type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
   afterUnbindChildren(flags: LifecycleFlags): void;
 
   beforeAttach(flags: LifecycleFlags): void;
-  afterAttach(flags: LifecycleFlags): void;
+  afterAttach(flags: LifecycleFlags): MaybePromiseOrTask;
   afterAttachChildren(flags: LifecycleFlags): void;
 
   beforeDetach(flags: LifecycleFlags): void;
@@ -733,15 +733,15 @@ export class Controller<
     this.lifecycle.afterUnbindChildren.end(flags);
   }
 
-  public attach(flags: LifecycleFlags): void {
+  public attach(flags: LifecycleFlags): ILifecycleTask {
     if (this.isAttached) {
-      return;
+      return LifecycleTask.done;
     }
 
     this.isAttached = true;
     flags |= LifecycleFlags.fromAttach;
     switch (this.vmKind) {
-      case ViewModelKind.customElement:
+      case ViewModelKind.customElement: {
         this.lifecycle.afterAttachChildren.begin();
 
         if (this.hooks.hasBeforeAttach) {
@@ -751,20 +751,15 @@ export class Controller<
         this.projector!.project(this.nodes!);
 
         if (this.hooks.hasAfterAttach) {
-          (this.bindingContext as BindingContext<T, C>).afterAttach(flags);
-        }
-
-        if (this.controllers !== void 0) {
-          for (const controller of this.controllers) {
-            controller.attach(flags);
+          const ret = (this.bindingContext as BindingContext<T, C>).afterAttach(flags);
+          if (hasAsyncWork(ret)) {
+            return new ContinuationTask(ret, this.attachControllers, this, flags);
           }
         }
 
-        if (this.hooks.hasAfterAttachChildren) {
-          this.lifecycle.afterAttachChildren.add(this);
-        }
-        break;
-      case ViewModelKind.customAttribute:
+        return this.attachControllers(flags);
+      }
+      case ViewModelKind.customAttribute: {
         this.lifecycle.afterAttachChildren.begin();
 
         if (this.hooks.hasBeforeAttach) {
@@ -772,14 +767,16 @@ export class Controller<
         }
 
         if (this.hooks.hasAfterAttach) {
-          (this.bindingContext as BindingContext<T, C>).afterAttach(flags);
+          const ret = (this.bindingContext as BindingContext<T, C>).afterAttach(flags);
+          if (hasAsyncWork(ret)) {
+            return new ContinuationTask(ret, this.endAttach, this, flags);
+          }
         }
 
-        if (this.hooks.hasAfterAttachChildren) {
-          this.lifecycle.afterAttachChildren.add(this);
-        }
-        break;
-      case ViewModelKind.synthetic:
+        this.endAttach(flags);
+        return LifecycleTask.done;
+      }
+      case ViewModelKind.synthetic: {
         this.lifecycle.afterAttachChildren.begin();
 
         switch (this.mountStrategy) {
@@ -791,20 +788,42 @@ export class Controller<
             break;
         }
 
-        if (this.controllers !== void 0) {
-          for (const controller of this.controllers) {
-            controller.attach(flags);
-          }
+        return this.attachControllers(flags);
+      }
+    }
+  }
+
+  private attachControllers(flags: LifecycleFlags): ILifecycleTask {
+    let tasks: ILifecycleTask[] | undefined = void 0;
+    let task: ILifecycleTask | undefined;
+
+    if (this.controllers !== void 0) {
+      for (const controller of this.controllers) {
+        controller.parent = this as unknown as IHydratedController<T>;
+        task = controller.attach(flags);
+        if (!task.done) {
+          (tasks ?? (tasks = [])).push(task);
         }
-        break;
+      }
     }
 
+    if (tasks === void 0) {
+      this.endAttach(flags);
+      return LifecycleTask.done;
+    }
+    return new AggregateContinuationTask(tasks, this.endAttach, this, flags);
+  }
+
+  private endAttach(flags: LifecycleFlags): void {
+    if (this.hooks.hasAfterAttachChildren) {
+      this.lifecycle.afterAttachChildren.add(this);
+    }
     this.lifecycle.afterAttachChildren.end(flags);
   }
 
-  public detach(flags: LifecycleFlags): void {
+  public detach(flags: LifecycleFlags): ILifecycleTask {
     if (!this.isAttached) {
-      return;
+      return LifecycleTask.done;
     }
 
     this.isAttached = false;
@@ -815,50 +834,74 @@ export class Controller<
     switch (this.vmKind) {
       case ViewModelKind.customElement:
         if (this.hooks.hasBeforeDetach) {
-          (this.bindingContext as BindingContext<T, C>).beforeDetach(flags);
-        }
-
-        this.projector!.take(this.nodes!); // non-null is implied by the hook
-
-        if (this.hooks.hasAfterDetach) {
-          (this.bindingContext as BindingContext<T, C>).afterDetach(flags);
-        }
-
-        if (this.controllers !== void 0) {
-          for (const controller of this.controllers) {
-            controller.detach(flags);
+          const ret = (this.bindingContext as BindingContext<T, C>).beforeDetach(flags);
+          if (hasAsyncWork(ret)) {
+            return new ContinuationTask(ret, this.afterDetachCustomElement, this, flags);
           }
         }
 
-        if (this.hooks.hasAfterDetachChildren) {
-          this.lifecycle.afterDetachChildren.add(this);
-        }
-        break;
+        return this.afterDetachCustomElement(flags);
       case ViewModelKind.customAttribute:
         if (this.hooks.hasBeforeDetach) {
-          (this.bindingContext as BindingContext<T, C>).beforeDetach(flags);
+          const ret = (this.bindingContext as BindingContext<T, C>).beforeDetach(flags);
+          if (hasAsyncWork(ret)) {
+            return new ContinuationTask(ret, this.afterDetachCustomAttribute, this, flags);
+          }
         }
 
-        if (this.hooks.hasAfterDetach) {
-          (this.bindingContext as BindingContext<T, C>).afterDetach(flags);
-        }
-
-        if (this.hooks.hasAfterDetachChildren) {
-          this.lifecycle.afterDetachChildren.add(this);
-        }
-        break;
+        this.afterDetachCustomAttribute(flags);
+        return LifecycleTask.done;
       case ViewModelKind.synthetic:
         this.nodes!.remove(); // non-null is implied by the hook
         this.nodes!.unlink();
 
-        if (this.controllers !== void 0) {
-          for (const controller of this.controllers) {
-            controller.detach(flags);
-          }
-        }
-        break;
+        return this.detachControllers(flags);
+    }
+  }
+
+  private afterDetachCustomElement(flags: LifecycleFlags): ILifecycleTask {
+    this.projector!.take(this.nodes!); // non-null is implied by the hook
+
+    if (this.hooks.hasAfterDetach) {
+      (this.bindingContext as BindingContext<T, C>).afterDetach(flags);
     }
 
+    return this.detachControllers(flags);
+  }
+
+  private afterDetachCustomAttribute(flags: LifecycleFlags): void {
+    if (this.hooks.hasAfterDetach) {
+      (this.bindingContext as BindingContext<T, C>).afterDetach(flags);
+    }
+
+    this.endDetach(flags);
+  }
+
+  private detachControllers(flags: LifecycleFlags): ILifecycleTask {
+    let tasks: ILifecycleTask[] | undefined = void 0;
+    let task: ILifecycleTask | undefined;
+
+    if (this.controllers !== void 0) {
+      for (const controller of this.controllers) {
+        controller.parent = this as unknown as IHydratedController<T>;
+        task = controller.detach(flags);
+        if (!task.done) {
+          (tasks ?? (tasks = [])).push(task);
+        }
+      }
+    }
+
+    if (tasks === void 0) {
+      this.endDetach(flags);
+      return LifecycleTask.done;
+    }
+    return new AggregateContinuationTask(tasks, this.endDetach, this, flags);
+  }
+
+  private endDetach(flags: LifecycleFlags): void {
+    if (this.hooks.hasAfterDetachChildren) {
+      this.lifecycle.afterDetachChildren.add(this);
+    }
     this.lifecycle.afterDetachChildren.end(flags);
   }
 }

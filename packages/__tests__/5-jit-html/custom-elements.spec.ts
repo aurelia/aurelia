@@ -897,7 +897,7 @@ describe('5-jit-html/custom-elements/custom-elements.spec.ts', function () {
     proto.afterAttach = function afterAttach(
       this: TProto,
       flags: LifecycleFlags,
-    ): void {
+    ): MaybePromiseOrTask {
       this.$calls.addCall(this.id, 'afterAttach');
     };
     proto.afterAttachChildren = function afterAttachChildren(
@@ -910,7 +910,7 @@ describe('5-jit-html/custom-elements/custom-elements.spec.ts', function () {
     proto.beforeDetach = function beforeDetach(
       this: TProto,
       flags: LifecycleFlags,
-    ): void {
+    ): MaybePromiseOrTask {
       this.$calls.addCall(this.id, 'beforeDetach');
     };
     proto.afterDetach = function afterDetach(

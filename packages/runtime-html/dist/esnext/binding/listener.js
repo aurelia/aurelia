@@ -43,7 +43,7 @@ export class Listener {
         if (hasBind(sourceExpression)) {
             sourceExpression.bind(flags, scope, this.interceptor);
         }
-        this.handler = this.eventManager.addEventListener(this.dom, this.target, this.targetEvent, this.interceptor, this.delegationStrategy);
+        this.handler = this.eventManager.addEventListener(this.dom, this.target, this.targetEvent, this, this.delegationStrategy);
         // add isBound flag and remove isBinding flag
         this.$state |= 4 /* isBound */;
         this.$state &= ~1 /* isBinding */;

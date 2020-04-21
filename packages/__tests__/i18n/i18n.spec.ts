@@ -1,4 +1,4 @@
-import { I18nInitOptions, I18nModule, I18nService, Signals } from '@aurelia/i18n';
+import { I18nInitOptions, I18nService, Signals } from '@aurelia/i18n';
 import { EventAggregator } from '@aurelia/kernel';
 import { assert, MockSignaler } from '@aurelia/testing';
 import i18next from 'i18next';
@@ -59,14 +59,14 @@ describe('I18N', function () {
         {
           type: 'postProcessor',
           name: 'custom1',
-          process: function (value) { return value; }
+          process: function (value: string, _key: string, _options: any, _translator: any) { return value; }
         },
         {
           type: 'postProcessor',
           name: 'custom2',
-          process: function (value) { return value; }
+          process: function (value: string, _key: string, _options: any, _translator: any) { return value; }
         }
-      ] as I18nModule[]
+      ] as i18next.PostProcessorModule[]
     };
     const { i18nextSpy } = await createFixture(customization);
 

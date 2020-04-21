@@ -1,4 +1,4 @@
-import { Metadata, metadata } from '@aurelia/kernel';
+import { Metadata, metadata, singleton } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 
 describe('Metadata', function () {
@@ -291,6 +291,29 @@ describe('Metadata', function () {
 
       assert.strictEqual(actual, void 0);
     });
+
+    describe('real class', function () {
+
+      it('string param', function () {
+        @singleton
+        class Foo {
+          public constructor(public readonly test: string) {}
+        }
+        const actual = Metadata.getOwn('design:paramtypes', Foo);
+        assert.deepStrictEqual(actual, [String]);
+      });
+
+      it('class param', function () {
+        class Bar {}
+        @singleton
+        class Foo {
+          public constructor(public readonly test: Bar) {}
+        }
+        const actual = Metadata.getOwn('design:paramtypes', Foo);
+        assert.deepStrictEqual(actual, [Bar]);
+      });
+    });
+
   });
 
   describe('getOwnKeys', function () {

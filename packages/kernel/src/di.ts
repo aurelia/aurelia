@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 /// <reference types="reflect-metadata" />
 import { Metadata } from '@aurelia/metadata';
-
+import { isArrayIndex, isNativeFunction, isObject } from './functions';
 import { Class, Constructable } from './interfaces';
 import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
-import { ResourceType, Protocol } from './resource';
-import { isArrayIndex, isNativeFunction, isObject } from './functions';
+import { Protocol, ResourceType } from './resource';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -22,6 +21,7 @@ export interface IDefaultableInterfaceSymbol<K> extends InterfaceSymbol<K> {
 // This interface exists only to break a circular type referencing issue in the IServiceLocator interface.
 // Otherwise IServiceLocator references IResolver, which references IContainer, which extends IServiceLocator.
 interface IResolverLike<C, K = any> {
+  readonly $isResolver: true;
   resolve(handler: C, requestor: C): Resolved<K>;
   getFactory?(container: C): (K extends Constructable ? IFactory<K> : never) | null;
 }
@@ -383,10 +383,11 @@ export const IServiceLocator = IContainer as unknown as InterfaceSymbol<IService
 
 function createResolver(getter: (key: any, handler: IContainer, requestor: IContainer) => any): (key: any) => any {
   return function (key: any): ReturnType<typeof DI.inject> {
-    const resolver: ReturnType<typeof DI.inject> & Partial<Pick<IResolver, 'resolve'>> = function (target: Injectable, property?: string | number, descriptor?: PropertyDescriptor | number): void {
+    const resolver: ReturnType<typeof DI.inject> & Partial<Pick<IResolver, 'resolve'>> & { $isResolver: true} = function (target: Injectable, property?: string | number, descriptor?: PropertyDescriptor | number): void {
       DI.inject(resolver)(target, property, descriptor);
     };
 
+    resolver.$isResolver = true;
     resolver.resolve = function (handler: IContainer, requestor: IContainer): any {
       return getter(key, handler, requestor);
     };
@@ -472,7 +473,7 @@ export const optional = createResolver((key: any, handler: IContainer, requestor
   if (requestor.has(key, true)) {
     return requestor.get(key);
   } else {
-    return null;
+    return undefined;
   }
 });
 
@@ -514,6 +515,8 @@ export class Resolver implements IResolver, IRegistration {
     public strategy: ResolverStrategy,
     public state: any,
   ) {}
+
+  public get $isResolver(): true { return true; }
 
   public register(container: IContainer, key?: Key): IResolver {
     return container.registerResolver(key || this.key, this);
@@ -716,6 +719,7 @@ export interface IContainerConfiguration {
 }
 
 const containerResolver: IResolver = {
+  $isResolver: true,
   resolve(handler: IContainer, requestor: IContainer): IContainer {
     return requestor;
   }
@@ -732,6 +736,41 @@ function isClass<T extends { prototype?: any }>(obj: T): obj is Class<any, T> {
 function isResourceKey(key: Key): key is string {
   return typeof key === 'string' && key.indexOf(':') > 0;
 }
+
+const InstrinsicTypeNames = new Set<string>([
+  'Array',
+  'ArrayBuffer',
+  'Boolean',
+  'DataView',
+  'Date',
+  'Error',
+  'EvalError',
+  'Float32Array',
+  'Float64Array',
+  'Function',
+  'Int8Array',
+  'Int16Array',
+  'Int32Array',
+  'Map',
+  'Number',
+  'Object',
+  'Promise',
+  'RangeError',
+  'ReferenceError',
+  'RegExp',
+  'Set',
+  'SharedArrayBuffer',
+  'String',
+  'SyntaxError',
+  'TypeError',
+  'Uint8Array',
+  'Uint8ClampedArray',
+  'Uint16Array',
+  'Uint32Array',
+  'URIError',
+  'WeakMap',
+  'WeakSet',
+]);
 
 /** @internal */
 export class Container implements IContainer {
@@ -906,7 +945,7 @@ export class Container implements IContainer {
   public get<K extends Key>(key: K): Resolved<K> {
     validateKey(key);
 
-    if ((key as IResolver).resolve !== void 0) {
+    if ((key as IResolver).$isResolver) {
       return (key as IResolver).resolve(this, this);
     }
 
@@ -978,6 +1017,9 @@ export class Container implements IContainer {
   private jitRegister(keyAsValue: any, handler: Container): IResolver {
     if (typeof keyAsValue !== 'function') {
       throw new Error(`Attempted to jitRegister something that is not a constructor: '${keyAsValue}'. Did you forget to register this resource?`);
+    }
+    if (InstrinsicTypeNames.has(keyAsValue.name)) {
+      throw new Error(`Attempted to jitRegister an intrinsic type: ${keyAsValue.name}. Did you forget to add @inject(Key)`);
     }
 
     if (isRegistry(keyAsValue)) {
@@ -1162,7 +1204,9 @@ export class InstanceProvider<K extends Key> implements IDisposableResolver<K | 
     this.instance = instance;
   }
 
-  public resolve(handler: IContainer, requestor: IContainer): Resolved<K> | null {
+  public get $isResolver(): true {return true;}
+
+  public resolve(): Resolved<K> | null {
     if (this.instance === undefined) { // unmet precondition: call prepare
       throw Reporter.error(50); // TODO: organize error codes
     }

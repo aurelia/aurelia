@@ -174,21 +174,9 @@ export class Controller<
 > implements IController<T, C> {
   public readonly id: number = nextId('au$component');
 
-  public bindHead: IComponentController<T, C> | null = null;
-  public bindTail: IComponentController<T, C> | null = null;
-  public unbindHead: IComponentController<T, C> | null = null;
-  public unbindTail: IComponentController<T, C> | null = null;
-
-  public attachHead: IComponentController<T, C> | null = null;
-  public attachTail: IComponentController<T, C> | null = null;
-  public detachHead: IComponentController<T, C> | null = null;
-  public detachTail: IComponentController<T, C> | null = null;
-
-  public nextBind: IComponentController<T, C> | null = null;
-  public nextUnbind: IComponentController<T, C> | null = null;
-
-  public nextAttach: IComponentController<T, C> | null = null;
-  public nextDetach: IComponentController<T, C> | null = null;
+  public head: IComponentController<T, C> | null = null;
+  public tail: IComponentController<T, C> | null = null;
+  public next: IComponentController<T, C> | null = null;
 
   public parent: ISyntheticView<T> | ICustomElementController<T> | ICustomAttributeController<T> | undefined = void 0;
   public bindings: IBinding[] | undefined = void 0;
@@ -667,22 +655,22 @@ export class Controller<
     }
 
     if (this.hooks.hasAfterBindChildren) {
-      if (initiator.bindHead === null) {
-        initiator.bindHead = this as unknown as IComponentController;
+      if (initiator.head === null) {
+        initiator.head = this as unknown as IComponentController;
       } else {
-        initiator.bindTail!.nextBind = this as unknown as IComponentController;
+        initiator.tail!.next = this as unknown as IComponentController;
       }
-      initiator.bindTail = this as unknown as IComponentController;
+      initiator.tail = this as unknown as IComponentController;
     }
 
-    if (initiator === this as unknown as IHydratedController<T> && initiator.bindHead !== null) {
-      let cur = initiator.bindHead;
-      initiator.bindHead = initiator.bindTail = null;
+    if (initiator === this as unknown as IHydratedController<T> && initiator.head !== null) {
+      let cur = initiator.head;
+      initiator.head = initiator.tail = null;
       let next: IComponentController | null;
       do {
         cur.bindingContext.afterBindChildren!(flags);
-        next = cur.nextBind;
-        cur.nextBind = null;
+        next = cur.next;
+        cur.next = null;
         cur = next!;
       } while (cur !== null);
     }
@@ -804,22 +792,22 @@ export class Controller<
     }
 
     if (this.hooks.hasAfterUnbindChildren) {
-      if (initiator.unbindHead === null) {
-        initiator.unbindHead = this as unknown as IComponentController;
+      if (initiator.head === null) {
+        initiator.head = this as unknown as IComponentController;
       } else {
-        initiator.unbindTail!.nextUnbind = this as unknown as IComponentController;
+        initiator.tail!.next = this as unknown as IComponentController;
       }
-      initiator.unbindTail = this as unknown as IComponentController;
+      initiator.tail = this as unknown as IComponentController;
     }
 
-    if (initiator === this as unknown as IHydratedController<T> && initiator.unbindHead !== null) {
-      let cur = initiator.unbindHead;
-      initiator.unbindHead = initiator.unbindTail = null;
+    if (initiator === this as unknown as IHydratedController<T> && initiator.head !== null) {
+      let cur = initiator.head;
+      initiator.head = initiator.tail = null;
       let next: IComponentController | null;
       do {
         cur.bindingContext.afterUnbindChildren!(flags);
-        next = cur.nextUnbind;
-        cur.nextUnbind = null;
+        next = cur.next;
+        cur.next = null;
         cur = next!;
       } while (cur !== null);
     }
@@ -918,22 +906,22 @@ export class Controller<
     flags: LifecycleFlags,
   ): void {
     if (this.hooks.hasAfterAttachChildren) {
-      if (initiator.attachHead === null) {
-        initiator.attachHead = this as unknown as IComponentController;
+      if (initiator.head === null) {
+        initiator.head = this as unknown as IComponentController;
       } else {
-        initiator.attachTail!.nextAttach = this as unknown as IComponentController;
+        initiator.tail!.next = this as unknown as IComponentController;
       }
-      initiator.attachTail = this as unknown as IComponentController;
+      initiator.tail = this as unknown as IComponentController;
     }
 
-    if (initiator === this as unknown as IHydratedController<T> && initiator.attachHead !== null) {
-      let cur = initiator.attachHead;
-      initiator.attachHead = initiator.attachTail = null;
+    if (initiator === this as unknown as IHydratedController<T> && initiator.head !== null) {
+      let cur = initiator.head;
+      initiator.head = initiator.tail = null;
       let next: IComponentController | null;
       do {
         cur.bindingContext.afterAttachChildren!(flags);
-        next = cur.nextAttach;
-        cur.nextAttach = null;
+        next = cur.next;
+        cur.next = null;
         cur = next!;
       } while (cur !== null);
     }
@@ -1039,22 +1027,22 @@ export class Controller<
     flags: LifecycleFlags,
   ): void {
     if (this.hooks.hasAfterDetachChildren) {
-      if (initiator.detachHead === null) {
-        initiator.detachHead = this as unknown as IComponentController;
+      if (initiator.head === null) {
+        initiator.head = this as unknown as IComponentController;
       } else {
-        initiator.detachTail!.nextDetach = this as unknown as IComponentController;
+        initiator.tail!.next = this as unknown as IComponentController;
       }
-      initiator.detachTail = this as unknown as IComponentController;
+      initiator.tail = this as unknown as IComponentController;
     }
 
-    if (initiator === this as unknown as IHydratedController<T> && initiator.detachHead !== null) {
-      let cur = initiator.detachHead;
-      initiator.detachHead = initiator.detachTail = null;
+    if (initiator === this as unknown as IHydratedController<T> && initiator.head !== null) {
+      let cur = initiator.head;
+      initiator.head = initiator.tail = null;
       let next: IComponentController | null;
       do {
         cur.bindingContext.afterDetachChildren!(flags);
-        next = cur.nextDetach;
-        cur.nextDetach = null;
+        next = cur.next;
+        cur.next = null;
         cur = next!;
       } while (cur !== null);
     }

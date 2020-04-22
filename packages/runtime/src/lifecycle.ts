@@ -88,15 +88,8 @@ export interface IController<
 
   part: string | undefined;
 
-  /** @internal */bindHead: IComponentController | null;
-  /** @internal */bindTail: IComponentController | null;
-  /** @internal */unbindHead: IComponentController | null;
-  /** @internal */unbindTail: IComponentController | null;
-
-  /** @internal */attachHead: IComponentController | null;
-  /** @internal */attachTail: IComponentController | null;
-  /** @internal */detachHead: IComponentController | null;
-  /** @internal */detachTail: IComponentController | null;
+  /** @internal */head: IComponentController | null;
+  /** @internal */tail: IComponentController | null;
 
   bind(
     initiator: IHydratedController<T>,
@@ -147,11 +140,7 @@ export interface IComponentController<
    */
   readonly bindingContext: C & IIndexable;
 
-  /** @internal */nextBind: IComponentController | null;
-  /** @internal */nextUnbind: IComponentController | null;
-
-  /** @internal */nextAttach: IComponentController | null;
-  /** @internal */nextDetach: IComponentController | null;
+  /** @internal */next: IComponentController | null;
 }
 
 /**

@@ -141,13 +141,9 @@ export class Controller<
 
   public nextBound: IController<T, C> | undefined = void 0;
   public nextUnbound: IController<T, C> | undefined = void 0;
-  public prevBound: IController<T, C> | undefined = void 0;
-  public prevUnbound: IController<T, C> | undefined = void 0;
 
   public nextAttached: IController<T, C> | undefined = void 0;
   public nextDetached: IController<T, C> | undefined = void 0;
-  public prevAttached: IController<T, C> | undefined = void 0;
-  public prevDetached: IController<T, C> | undefined = void 0;
 
   public parent: ISyntheticView<T> | ICustomElementController<T> | ICustomAttributeController<T> | undefined = void 0;
   public bindings: IBinding[] | undefined = void 0;

@@ -199,8 +199,10 @@ export class ViewportContent {
     }
     // Don't initialize cached content or instantiated history content
     // if (!this.fromCache || !this.fromHistory) {
-    // ((this.content.componentInstance as IRouteableComponent).$controller as IController).parent = parent;
-    ((this.content.componentInstance as IRouteableComponent).$controller as IController).bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
+    // this.content.componentInstance!.$controller!.parent = parent;
+    const controller = this.content.componentInstance!.$controller!;
+    // TODO(fkleuver): revisit later, still need to wireup lifecycle task and make sure the correct initializer and parent are passed down
+    controller.bind(controller, null, LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
     // }
     this.contentStatus = ContentStatus.initialized;
   }
@@ -211,8 +213,10 @@ export class ViewportContent {
     }
     // Don't terminate cached content
     // if (!stateful) {
-    await ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind).wait();
-    // ((this.content.componentInstance as IRouteableComponent).$controller as IController).parent = void 0;
+    const controller = this.content.componentInstance!.$controller!;
+    // TODO(fkleuver): revisit later, still need to wireup lifecycle task and make sure the correct initializer and parent are passed down
+    await controller.unbind(controller, null, LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind).wait();
+    // this.content.componentInstance!.$controller!.parent = void 0;
     // }
     this.contentStatus = ContentStatus.loaded;
   }
@@ -221,7 +225,9 @@ export class ViewportContent {
     if (this.contentStatus !== ContentStatus.initialized) {
       return;
     }
-    ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).attach(LifecycleFlags.fromStartTask);
+    const controller = this.content.componentInstance!.$controller!;
+    // TODO(fkleuver): revisit later, still need to wireup lifecycle task and make sure the correct initializer and parent are passed down
+    controller.attach(controller, null, LifecycleFlags.fromStartTask);
     if (this.fromCache || this.fromHistory) {
       const elements = Array.from(element.getElementsByTagName('*'));
       for (const el of elements) {
@@ -247,7 +253,9 @@ export class ViewportContent {
         }
       }
     }
-    ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).detach(LifecycleFlags.fromStopTask);
+    const controller = this.content.componentInstance!.$controller!;
+    // TODO(fkleuver): revisit later, still need to wireup lifecycle task and make sure the correct initializer and parent are passed down
+    controller.detach(controller, null, LifecycleFlags.fromStopTask);
     this.contentStatus = ContentStatus.initialized;
   }
 

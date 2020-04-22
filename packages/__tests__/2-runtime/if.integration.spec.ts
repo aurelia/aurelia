@@ -24,25 +24,17 @@ import {
 import { Writable } from '@aurelia/kernel';
 
 describe(`If/Else`, function () {
-  function runBindLifecycle(lifecycle: ILifecycle, sut: If<AuNode>, flags: LifecycleFlags, scope: IScope): void {
-    lifecycle.afterBindChildren.begin();
-    sut.$controller.bind(flags, scope);
-    lifecycle.afterBindChildren.end(flags);
+  function runBindLifecycle(sut: If<AuNode>, flags: LifecycleFlags, scope: IScope): void {
+    sut.$controller.bind(sut.$controller, null, flags, scope);
   }
-  function runUnbindLifecycle(lifecycle: ILifecycle, sut: If<AuNode>, flags: LifecycleFlags): void {
-    lifecycle.afterUnbindChildren.begin();
-    sut.$controller.unbind(flags);
-    lifecycle.afterUnbindChildren.end(flags);
+  function runUnbindLifecycle(sut: If<AuNode>, flags: LifecycleFlags): void {
+    sut.$controller.unbind(sut.$controller, null, flags);
   }
-  function runAttachLifecycle(lifecycle: ILifecycle, sut: If<AuNode>, flags: LifecycleFlags): void {
-    lifecycle.afterAttachChildren.begin();
-    sut.$controller.attach(flags);
-    lifecycle.afterAttachChildren.end(flags);
+  function runAttachLifecycle(sut: If<AuNode>, flags: LifecycleFlags): void {
+    sut.$controller.attach(sut.$controller, null, flags);
   }
-  function runDetachLifecycle(lifecycle: ILifecycle, sut: If<AuNode>, flags: LifecycleFlags): void {
-    lifecycle.afterDetachChildren.begin();
-    sut.$controller.detach(flags);
-    lifecycle.afterDetachChildren.end(flags);
+  function runDetachLifecycle(sut: If<AuNode>, flags: LifecycleFlags): void {
+    sut.$controller.detach(sut.$controller, null, flags);
   }
 
   interface Spec {
@@ -236,7 +228,7 @@ describe(`If/Else`, function () {
 
         sut.value = value1;
 
-        runBindLifecycle(lifecycle, sut, baseFlags | bindFlags1, scope);
+        runBindLifecycle(sut, baseFlags | bindFlags1, scope);
 
         assert.strictEqual(sut.view.nodes.firstChild['textContent'], firstBindInitialNodesText, '$nodes.textContent #1');
 
@@ -247,15 +239,15 @@ describe(`If/Else`, function () {
           }
           sut.value = newValueForDuplicateBind;
 
-          runBindLifecycle(lifecycle, sut, baseFlags | bindFlags1, scope);
+          runBindLifecycle(sut, baseFlags | bindFlags1, scope);
         }
         assert.strictEqual(sut.view.nodes.firstChild['textContent'], firstBindFinalNodesText, '$nodes.textContent #2');
 
-        runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags1);
+        runAttachLifecycle(sut, baseFlags | attachFlags1);
 
         assert.strictEqual(host.textContent, firstAttachInitialHostText, 'host.textContent #1');
         if (attachTwice) {
-          runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags1);
+          runAttachLifecycle(sut, baseFlags | attachFlags1);
 
           assert.strictEqual(host.textContent, firstAttachInitialHostText, 'host.textContent #2');
         }
@@ -264,17 +256,17 @@ describe(`If/Else`, function () {
 
         assert.strictEqual(host.textContent, firstAttachFinalHostText, 'host.textContent #2');
 
-        runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags1);
+        runDetachLifecycle(sut, baseFlags | detachFlags1);
         if (detachTwice) {
-          runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags1);
+          runDetachLifecycle(sut, baseFlags | detachFlags1);
         }
         // host should be empty but nodes below should still be intact and up-to-date
 
         assert.strictEqual(host.textContent, '', 'host.textContent #3');
 
-        runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags1);
+        runUnbindLifecycle(sut, baseFlags | unbindFlags1);
         if (unbindTwice) {
-          runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags1);
+          runUnbindLifecycle(sut, baseFlags | unbindFlags1);
         }
         // unbind should not affect existing values but stops them from updating afterwards
 
@@ -282,7 +274,7 @@ describe(`If/Else`, function () {
 
         sut.value = value2;
 
-        runBindLifecycle(lifecycle, sut, baseFlags | bindFlags2, scope);
+        runBindLifecycle(sut, baseFlags | bindFlags2, scope);
 
         assert.strictEqual(sut.view.nodes.firstChild['textContent'], secondBindInitialNodesText, '$nodes.textContent #3');
         if (bindTwice) {
@@ -290,16 +282,16 @@ describe(`If/Else`, function () {
             scope = Scope.create(baseFlags, ctx);
           }
           sut.value = newValueForDuplicateBind;
-          runBindLifecycle(lifecycle, sut, baseFlags | bindFlags2, scope);
+          runBindLifecycle(sut, baseFlags | bindFlags2, scope);
         }
 
         assert.strictEqual(sut.view.nodes.firstChild['textContent'], secondBindFinalNodesText, '$nodes.textContent #4');
 
-        runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags2);
+        runAttachLifecycle(sut, baseFlags | attachFlags2);
 
         assert.strictEqual(host.textContent, secondAttachInitialHostText, 'host.textContent #4');
         if (attachTwice) {
-          runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags2);
+          runAttachLifecycle(sut, baseFlags | attachFlags2);
 
           assert.strictEqual(host.textContent, secondAttachInitialHostText, 'host.textContent #5');
         }
@@ -308,16 +300,16 @@ describe(`If/Else`, function () {
 
         assert.strictEqual(host.textContent, secondAttachFinalHostText, 'host.textContent #5');
 
-        runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags2);
+        runDetachLifecycle(sut, baseFlags | detachFlags2);
         if (detachTwice) {
-          runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags2);
+          runDetachLifecycle(sut, baseFlags | detachFlags2);
         }
 
         assert.strictEqual(host.textContent, '', 'host.textContent #6');
 
-        runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags2);
+        runUnbindLifecycle(sut, baseFlags | unbindFlags2);
         if (unbindTwice) {
-          runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags2);
+          runUnbindLifecycle(sut, baseFlags | unbindFlags2);
         }
       });
     });

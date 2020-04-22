@@ -10,6 +10,7 @@ import {
   IContextualCustomElementController,
   ICompiledCustomElementController,
   ICustomElementController,
+  IHydratedController,
 } from '../lifecycle';
 import { Scope } from '../observation/binding-context';
 import { CustomElement, PartialCustomElementDefinition, CustomElementDefinition } from '../resources/custom-element';
@@ -293,8 +294,12 @@ export class ViewLocator implements IViewLocator {
       }
 
       if ('beforeBind' in object) {
-        proto.beforeBind = function beforeBind(flags: LifecycleFlags): MaybePromiseOrTask {
-          return this.viewModel.beforeBind!(flags);
+        proto.beforeBind = function beforeBind(
+          initiator: IHydratedController<T>,
+          parent: IHydratedController<T> | null,
+          flags: LifecycleFlags,
+        ): MaybePromiseOrTask {
+          return this.viewModel.beforeBind!(initiator, parent, flags);
         };
       }
       if ('afterBind' in object) {
@@ -309,8 +314,12 @@ export class ViewLocator implements IViewLocator {
       }
 
       if ('beforeUnbind' in object) {
-        proto.beforeUnbind = function beforeUnbind(flags: LifecycleFlags): MaybePromiseOrTask {
-          return this.viewModel.beforeUnbind!(flags);
+        proto.beforeUnbind = function beforeUnbind(
+          initiator: IHydratedController<T>,
+          parent: IHydratedController<T> | null,
+          flags: LifecycleFlags,
+        ): MaybePromiseOrTask {
+          return this.viewModel.beforeUnbind!(initiator, parent, flags);
         };
       }
       if ('afterUnbind' in object) {
@@ -325,8 +334,12 @@ export class ViewLocator implements IViewLocator {
       }
 
       if ('beforeAttach' in object) {
-        proto.beforeAttach = function beforeAttach(flags: LifecycleFlags): void {
-          this.viewModel.beforeAttach!(flags);
+        proto.beforeAttach = function beforeAttach(
+          initiator: IHydratedController<T>,
+          parent: IHydratedController<T> | null,
+          flags: LifecycleFlags,
+        ): void {
+          this.viewModel.beforeAttach!(initiator, parent, flags);
         };
       }
       if ('afterAttach' in object) {
@@ -341,8 +354,12 @@ export class ViewLocator implements IViewLocator {
       }
 
       if ('beforeDetach' in object) {
-        proto.beforeDetach = function beforeDetach(flags: LifecycleFlags): MaybePromiseOrTask {
-          return this.viewModel.beforeDetach!(flags);
+        proto.beforeDetach = function beforeDetach(
+          initiator: IHydratedController<T>,
+          parent: IHydratedController<T> | null,
+          flags: LifecycleFlags,
+        ): MaybePromiseOrTask {
+          return this.viewModel.beforeDetach!(initiator, parent, flags);
         };
       }
       if ('afterDetach' in object) {

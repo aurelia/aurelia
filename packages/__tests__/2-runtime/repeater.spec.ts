@@ -29,25 +29,17 @@ import {
 import { Writable } from '@aurelia/kernel';
 
 describe(`Repeat`, function () {
-  function runBindLifecycle(lifecycle: ILifecycle, sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags, scope: IScope): void {
-    lifecycle.afterBindChildren.begin();
-    sut.$controller.bind(flags, scope);
-    lifecycle.afterBindChildren.end(flags);
+  function runBindLifecycle(sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags, scope: IScope): void {
+    sut.$controller.bind(sut.$controller, null, flags, scope);
   }
-  function runUnbindLifecycle(lifecycle: ILifecycle, sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags): void {
-    lifecycle.afterUnbindChildren.begin();
-    sut.$controller.unbind(flags);
-    lifecycle.afterUnbindChildren.end(flags);
+  function runUnbindLifecycle(sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags): void {
+    sut.$controller.unbind(sut.$controller, null, flags);
   }
-  function runAttachLifecycle(lifecycle: ILifecycle, sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags): void {
-    lifecycle.afterAttachChildren.begin();
-    sut.$controller.attach(flags);
-    lifecycle.afterAttachChildren.end(flags);
+  function runAttachLifecycle(sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags): void {
+    sut.$controller.attach(sut.$controller, null, flags);
   }
-  function runDetachLifecycle(lifecycle: ILifecycle, sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags): void {
-    lifecycle.afterDetachChildren.begin();
-    sut.$controller.detach(flags);
-    lifecycle.afterDetachChildren.end(flags);
+  function runDetachLifecycle(sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags): void {
+    sut.$controller.detach(sut.$controller, null, flags);
   }
 
   interface Spec {
@@ -625,20 +617,20 @@ describe(`Repeat`, function () {
         sut.items = items;
         const expectedText1 = sut.items ? sut.items.join('') : '';
 
-        runBindLifecycle(lifecycle, sut, baseFlags | bindFlags1, scope);
+        runBindLifecycle(sut, baseFlags | bindFlags1, scope);
 
         if (bindTwice) {
           if (newScopeForDuplicateBind) {
             scope = Scope.create(baseFlags, scope.bindingContext);
           }
-          runBindLifecycle(lifecycle, sut, baseFlags | bindFlags1, scope);
+          runBindLifecycle(sut, baseFlags | bindFlags1, scope);
         }
 
-        runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags1);
+        runAttachLifecycle(sut, baseFlags | attachFlags1);
 
         assert.strictEqual(host.textContent, expectedText1, 'host.textContent #1');
         if (attachTwice) {
-          runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags1);
+          runAttachLifecycle(sut, baseFlags | attachFlags1);
 
           assert.strictEqual(host.textContent, expectedText1, 'host.textContent #2');
         }
@@ -660,16 +652,16 @@ describe(`Repeat`, function () {
           }
         }
 
-        runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags1);
+        runDetachLifecycle(sut, baseFlags | detachFlags1);
         if (detachTwice) {
-          runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags1);
+          runDetachLifecycle(sut, baseFlags | detachFlags1);
         }
 
         assert.strictEqual(host.textContent, '', 'host.textContent #6');
 
-        runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags1);
+        runUnbindLifecycle(sut, baseFlags | unbindFlags1);
         if (unbindTwice) {
-          runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags1);
+          runUnbindLifecycle(sut, baseFlags | unbindFlags1);
         }
 
         // -- Round 2 --
@@ -677,19 +669,19 @@ describe(`Repeat`, function () {
         sut.items = items;
         const expectedText3 = sut.items ? sut.items.join('') : '';
 
-        runBindLifecycle(lifecycle, sut, baseFlags | bindFlags2, scope);
+        runBindLifecycle(sut, baseFlags | bindFlags2, scope);
         if (bindTwice) {
           if (newScopeForDuplicateBind) {
             scope = Scope.create(baseFlags, scope.bindingContext);
           }
-          runBindLifecycle(lifecycle, sut, baseFlags | bindFlags2, scope);
+          runBindLifecycle(sut, baseFlags | bindFlags2, scope);
         }
 
-        runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags2);
+        runAttachLifecycle(sut, baseFlags | attachFlags2);
 
         assert.strictEqual(host.textContent, expectedText3, 'host.textContent #7');
         if (attachTwice) {
-          runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags2);
+          runAttachLifecycle(sut, baseFlags | attachFlags2);
 
           assert.strictEqual(host.textContent, expectedText3, 'host.textContent #8');
         }
@@ -711,16 +703,16 @@ describe(`Repeat`, function () {
           }
         }
 
-        runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags2);
+        runDetachLifecycle(sut, baseFlags | detachFlags2);
         if (detachTwice) {
-          runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags2);
+          runDetachLifecycle(sut, baseFlags | detachFlags2);
         }
 
         assert.strictEqual(host.textContent, '', 'host.textContent #12');
 
-        runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags2);
+        runUnbindLifecycle(sut, baseFlags | unbindFlags2);
         if (unbindTwice) {
-          runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags2);
+          runUnbindLifecycle(sut, baseFlags | unbindFlags2);
         }
       });
     });

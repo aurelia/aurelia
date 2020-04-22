@@ -88,10 +88,38 @@ export interface IController<
 
   part: string | undefined;
 
-  bind(flags: LifecycleFlags, scope?: IScope, partName?: string): ILifecycleTask;
-  unbind(flags: LifecycleFlags): ILifecycleTask;
-  attach(flags: LifecycleFlags): ILifecycleTask;
-  detach(flags: LifecycleFlags): ILifecycleTask;
+  /** @internal */bindHead: IComponentController | null;
+  /** @internal */bindTail: IComponentController | null;
+  /** @internal */unbindHead: IComponentController | null;
+  /** @internal */unbindTail: IComponentController | null;
+
+  /** @internal */attachHead: IComponentController | null;
+  /** @internal */attachTail: IComponentController | null;
+  /** @internal */detachHead: IComponentController | null;
+  /** @internal */detachTail: IComponentController | null;
+
+  bind(
+    initiator: IHydratedController<T>,
+    parent: IHydratedController<T> | null,
+    flags: LifecycleFlags,
+    scope?: IScope,
+    partName?: string,
+  ): ILifecycleTask;
+  unbind(
+    initiator: IHydratedController<T>,
+    parent: IHydratedController<T> | null,
+    flags: LifecycleFlags,
+  ): ILifecycleTask;
+  attach(
+    initiator: IHydratedController<T>,
+    parent: IHydratedController<T> | null,
+    flags: LifecycleFlags,
+  ): ILifecycleTask;
+  detach(
+    initiator: IHydratedController<T>,
+    parent: IHydratedController<T> | null,
+    flags: LifecycleFlags,
+  ): ILifecycleTask;
   dispose(): void;
 }
 
@@ -119,16 +147,11 @@ export interface IComponentController<
    */
   readonly bindingContext: C & IIndexable;
 
-  /** @internal */nextBound: IComponentController | undefined;
-  /** @internal */nextUnbound: IComponentController | undefined;
+  /** @internal */nextBind: IComponentController | null;
+  /** @internal */nextUnbind: IComponentController | null;
 
-  /** @internal */nextAttached: IComponentController | undefined;
-  /** @internal */nextDetached: IComponentController | undefined;
-
-  /** @internal */afterBindChildren(flags: LifecycleFlags): void;
-  /** @internal */afterUnbindChildren(flags: LifecycleFlags): void;
-  /** @internal */afterAttachChildren(flags: LifecycleFlags): void;
-  /** @internal */afterDetachChildren(flags: LifecycleFlags): void;
+  /** @internal */nextAttach: IComponentController | null;
+  /** @internal */nextDetach: IComponentController | null;
 }
 
 /**
@@ -365,19 +388,39 @@ export interface IViewModel<T extends INode = INode> {
   constructor: Function;
   readonly $controller?: IController<T, this>;
 
-  beforeBind?(flags: LifecycleFlags): MaybePromiseOrTask;
-  afterBind?(flags: LifecycleFlags): void;
-  afterBindChildren?(flags: LifecycleFlags): void;
+  beforeBind?(
+    initiator: IHydratedController<T>,
+    parent: IHydratedController<T> | null,
+    flags: LifecycleFlags,
+  ): MaybePromiseOrTask;
+  afterBind?(
+    flags: LifecycleFlags,
+  ): void;
+  afterBindChildren?(
+    flags: LifecycleFlags,
+  ): void;
 
-  beforeUnbind?(flags: LifecycleFlags): MaybePromiseOrTask;
+  beforeUnbind?(
+    initiator: IHydratedController<T>,
+    parent: IHydratedController<T> | null,
+    flags: LifecycleFlags,
+  ): MaybePromiseOrTask;
   afterUnbind?(flags: LifecycleFlags): void;
   afterUnbindChildren?(flags: LifecycleFlags): void;
 
-  beforeAttach?(flags: LifecycleFlags): void;
+  beforeAttach?(
+    initiator: IHydratedController<T>,
+    parent: IHydratedController<T> | null,
+    flags: LifecycleFlags,
+  ): void;
   afterAttach?(flags: LifecycleFlags): MaybePromiseOrTask;
   afterAttachChildren?(flags: LifecycleFlags): void;
 
-  beforeDetach?(flags: LifecycleFlags): MaybePromiseOrTask;
+  beforeDetach?(
+    initiator: IHydratedController<T>,
+    parent: IHydratedController<T> | null,
+    flags: LifecycleFlags,
+  ): MaybePromiseOrTask;
   afterDetach?(flags: LifecycleFlags): void;
   afterDetachChildren?(flags: LifecycleFlags): void;
 
@@ -417,12 +460,6 @@ export interface IHydratedCustomAttributeViewModel<T extends INode = INode> exte
 
 export interface ILifecycle {
   readonly batch: IAutoProcessingQueue<IBatchable>;
-
-  readonly afterBindChildren: IAutoProcessingQueue<IController>;
-  readonly afterUnbindChildren: IAutoProcessingQueue<IController>;
-
-  readonly afterAttachChildren: IAutoProcessingQueue<IController>;
-  readonly afterDetachChildren: IAutoProcessingQueue<IController>;
 }
 
 export const ILifecycle = DI.createInterface<ILifecycle>('ILifecycle').withDefault(x => x.singleton(Lifecycle));
@@ -439,225 +476,6 @@ export interface IAutoProcessingQueue<T> extends IProcessingQueue<T> {
   inline(fn: () => void, flags?: LifecycleFlags): void;
 }
 
-export class BoundQueue implements IAutoProcessingQueue<IController> {
-  public depth: number = 0;
-
-  public head: IComponentController | undefined = void 0;
-  public tail: IComponentController | undefined = void 0;
-
-  public constructor(
-    @ILifecycle public readonly lifecycle: ILifecycle,
-  ) {}
-
-  public begin(): void {
-    ++this.depth;
-  }
-
-  public end(flags?: LifecycleFlags): void {
-    if (flags === void 0) {
-      flags = LifecycleFlags.none;
-    }
-    if (--this.depth === 0) {
-      this.process(flags);
-    }
-  }
-
-  public inline(fn: () => void, flags?: LifecycleFlags): void {
-    this.begin();
-    fn();
-    this.end(flags);
-  }
-
-  public add(controller: IComponentController): void {
-    if (this.head === void 0) {
-      this.head = controller;
-    } else {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-      this.tail!.nextBound = controller; // implied by boundHead not being undefined
-    }
-    this.tail = controller;
-  }
-
-  public process(flags: LifecycleFlags): void {
-    while (this.head !== void 0) {
-      let cur = this.head;
-      this.head = this.tail = void 0;
-      let next: IComponentController | undefined;
-      do {
-        cur.afterBindChildren(flags);
-        next = cur.nextBound;
-        cur.nextBound = void 0;
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        cur = next!; // we're checking it for undefined the next line
-      } while (cur !== void 0);
-    }
-  }
-}
-
-export class UnboundQueue implements IAutoProcessingQueue<IController> {
-  public depth: number = 0;
-
-  public head: IComponentController | undefined = void 0;
-  public tail: IComponentController | undefined = void 0;
-
-  public constructor(
-    @ILifecycle public readonly lifecycle: ILifecycle,
-  ) {}
-
-  public begin(): void {
-    ++this.depth;
-  }
-
-  public end(flags?: LifecycleFlags): void {
-    if (flags === void 0) {
-      flags = LifecycleFlags.none;
-    }
-    if (--this.depth === 0) {
-      this.process(flags);
-    }
-  }
-
-  public inline(fn: () => void, flags?: LifecycleFlags): void {
-    this.begin();
-    fn();
-    this.end(flags);
-  }
-
-  public add(controller: IComponentController): void {
-    if (this.head === void 0) {
-      this.head = controller;
-    } else {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-      this.tail!.nextUnbound = controller; // implied by unboundHead not being undefined
-    }
-    this.tail = controller;
-  }
-
-  public process(flags: LifecycleFlags): void {
-    while (this.head !== void 0) {
-      let cur = this.head;
-      this.head = this.tail = void 0;
-      let next: IComponentController | undefined;
-      do {
-        cur.afterUnbindChildren(flags);
-        next = cur.nextUnbound;
-        cur.nextUnbound = void 0;
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        cur = next!; // we're checking it for undefined the next line
-      } while (cur !== void 0);
-    }
-  }
-}
-
-export class AttachedQueue implements IAutoProcessingQueue<IController> {
-  public depth: number = 0;
-
-  public head: IComponentController | undefined = void 0;
-  public tail: IComponentController | undefined = void 0;
-
-  public constructor(
-    @ILifecycle public readonly lifecycle: ILifecycle,
-  ) {}
-
-  public begin(): void {
-    ++this.depth;
-  }
-
-  public end(flags?: LifecycleFlags): void {
-    if (flags === void 0) {
-      flags = LifecycleFlags.none;
-    }
-    if (--this.depth === 0) {
-      this.process(flags);
-    }
-  }
-
-  public inline(fn: () => void, flags?: LifecycleFlags): void {
-    this.begin();
-    fn();
-    this.end(flags);
-  }
-
-  public add(controller: IComponentController): void {
-    if (this.head === void 0) {
-      this.head = controller;
-    } else {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-      this.tail!.nextAttached = controller; // implied by attachedHead not being undefined
-    }
-    this.tail = controller;
-  }
-
-  public process(flags: LifecycleFlags): void {
-    while (this.head !== void 0) {
-      let cur = this.head;
-      this.head = this.tail = void 0;
-      let next: IComponentController | undefined;
-      do {
-        cur.afterAttachChildren(flags);
-        next = cur.nextAttached;
-        cur.nextAttached = void 0;
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        cur = next!; // we're checking it for undefined the next line
-      } while (cur !== void 0);
-    }
-  }
-}
-
-export class DetachedQueue implements IAutoProcessingQueue<IController> {
-  public depth: number = 0;
-
-  public head: IComponentController | undefined = void 0;
-  public tail: IComponentController | undefined = void 0;
-
-  public constructor(
-    @ILifecycle public readonly lifecycle: ILifecycle,
-  ) {}
-
-  public begin(): void {
-    ++this.depth;
-  }
-
-  public end(flags?: LifecycleFlags): void {
-    if (flags === void 0) {
-      flags = LifecycleFlags.none;
-    }
-    if (--this.depth === 0) {
-      this.process(flags);
-    }
-  }
-
-  public inline(fn: () => void, flags?: LifecycleFlags): void {
-    this.begin();
-    fn();
-    this.end(flags);
-  }
-
-  public add(controller: IComponentController): void {
-    if (this.head === void 0) {
-      this.head = controller;
-    } else {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-      this.tail!.nextDetached = controller; // implied by detachedHead not being undefined
-    }
-    this.tail = controller;
-  }
-
-  public process(flags: LifecycleFlags): void {
-    while (this.head !== void 0) {
-      let cur = this.head;
-      this.head = this.tail = void 0;
-      let next: IComponentController | undefined;
-      do {
-        cur.afterDetachChildren(flags);
-        next = cur.nextDetached;
-        cur.nextDetached = void 0;
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        cur = next!; // we're checking it for undefined the next line
-      } while (cur !== void 0);
-    }
-  }
-}
 export class BatchQueue implements IAutoProcessingQueue<IBatchable> {
   public queue: IBatchable[] = [];
   public depth: number = 0;
@@ -711,12 +529,6 @@ export class BatchQueue implements IAutoProcessingQueue<IBatchable> {
 
 export class Lifecycle implements ILifecycle {
   public readonly batch: IAutoProcessingQueue<IBatchable> = new BatchQueue(this);
-
-  public readonly afterBindChildren: IAutoProcessingQueue<IController> = new BoundQueue(this);
-  public readonly afterUnbindChildren: IAutoProcessingQueue<IController> = new UnboundQueue(this);
-
-  public readonly afterAttachChildren: IAutoProcessingQueue<IController> = new AttachedQueue(this);
-  public readonly afterDetachChildren: IAutoProcessingQueue<IController> = new DetachedQueue(this);
 
   public static register(container: IContainer): IResolver<ILifecycle> {
     return Registration.singleton(ILifecycle, this).register(container);

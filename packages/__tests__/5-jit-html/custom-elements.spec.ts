@@ -5,7 +5,6 @@ import {
   alias,
   CustomElementHost,
   Aurelia,
-  IViewModel,
   ICustomElementViewModel,
   IDryCustomElementController,
   CustomElementDefinition,
@@ -15,7 +14,8 @@ import {
   ICompiledCustomElementController,
   ICustomElementController,
   LifecycleFlags,
-  MaybePromiseOrTask
+  MaybePromiseOrTask,
+  IHydratedController
 } from '@aurelia/runtime';
 import {
   TestConfiguration,
@@ -852,6 +852,8 @@ describe('5-jit-html/custom-elements/custom-elements.spec.ts', function () {
 
     proto.beforeBind = function beforeBind(
       this: TProto,
+      initiator: IHydratedController,
+      parent: IHydratedController | null,
       flags: LifecycleFlags,
     ): MaybePromiseOrTask {
       this.$calls.addCall(this.id, 'beforeBind');
@@ -871,6 +873,8 @@ describe('5-jit-html/custom-elements/custom-elements.spec.ts', function () {
 
     proto.beforeUnbind = function beforeUnbind(
       this: TProto,
+      initiator: IHydratedController,
+      parent: IHydratedController | null,
       flags: LifecycleFlags,
     ): MaybePromiseOrTask {
       this.$calls.addCall(this.id, 'beforeUnbind');
@@ -890,6 +894,8 @@ describe('5-jit-html/custom-elements/custom-elements.spec.ts', function () {
 
     proto.beforeAttach = function beforeAttach(
       this: TProto,
+      initiator: IHydratedController,
+      parent: IHydratedController | null,
       flags: LifecycleFlags,
     ): void {
       this.$calls.addCall(this.id, 'beforeAttach');
@@ -909,6 +915,8 @@ describe('5-jit-html/custom-elements/custom-elements.spec.ts', function () {
 
     proto.beforeDetach = function beforeDetach(
       this: TProto,
+      initiator: IHydratedController,
+      parent: IHydratedController | null,
       flags: LifecycleFlags,
     ): MaybePromiseOrTask {
       this.$calls.addCall(this.id, 'beforeDetach');

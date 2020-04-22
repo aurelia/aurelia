@@ -1,7 +1,7 @@
 import { nextId } from '@aurelia/kernel';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags } from '../../flags';
-import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel } from '../../lifecycle';
+import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController } from '../../lifecycle';
 import { ILifecycleTask } from '../../lifecycle-task';
 import { templateController } from '../custom-attribute';
 
@@ -21,21 +21,37 @@ export class Replaceable<T extends INode = INode> implements ICustomAttributeVie
     this.view.setLocation(location, MountStrategy.insertBefore);
   }
 
-  public beforeBind(flags: LifecycleFlags): ILifecycleTask {
+  public beforeBind(
+    initiator: IHydratedController<T>,
+    parent: IHydratedController<T> | null,
+    flags: LifecycleFlags,
+  ): ILifecycleTask {
     this.view.parent = this.$controller;
-    return this.view.bind(flags | LifecycleFlags.allowParentScopeTraversal, this.$controller.scope, this.factory.name);
+    return this.view.bind(initiator, this.$controller, flags | LifecycleFlags.allowParentScopeTraversal, this.$controller.scope, this.factory.name);
   }
 
-  public beforeAttach(flags: LifecycleFlags): void {
-    this.view.attach(flags);
+  public beforeAttach(
+    initiator: IHydratedController<T>,
+    parent: IHydratedController<T> | null,
+    flags: LifecycleFlags,
+  ): void {
+    this.view.attach(initiator, this.$controller, flags);
   }
 
-  public beforeDetach(flags: LifecycleFlags): void {
-    this.view.detach(flags);
+  public beforeDetach(
+    initiator: IHydratedController<T>,
+    parent: IHydratedController<T> | null,
+    flags: LifecycleFlags,
+  ): void {
+    this.view.detach(initiator, this.$controller, flags);
   }
 
-  public beforeUnbind(flags: LifecycleFlags): ILifecycleTask {
-    const task = this.view.unbind(flags);
+  public beforeUnbind(
+    initiator: IHydratedController<T>,
+    parent: IHydratedController<T> | null,
+    flags: LifecycleFlags,
+  ): ILifecycleTask {
+    const task = this.view.unbind(initiator, this.$controller, flags);
     this.view.parent = void 0;
     return task;
   }

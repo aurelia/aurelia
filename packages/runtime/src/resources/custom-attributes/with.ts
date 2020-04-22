@@ -1,7 +1,7 @@
 import { nextId } from '@aurelia/kernel';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags } from '../../flags';
-import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel } from '../../lifecycle';
+import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController } from '../../lifecycle';
 import { templateController } from '../custom-attribute';
 import { bindable } from '../../templating/bindable';
 import { Scope } from '../../observation/binding-context';
@@ -28,31 +28,50 @@ export class With<T extends INode = INode> implements ICustomAttributeViewModel<
 
   public valueChanged(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void {
     if (this.$controller.isBound) {
-      this.bindChild(LifecycleFlags.fromBind);
+      this.bindChild(this.$controller, LifecycleFlags.fromBind);
     }
   }
 
-  public beforeBind(flags: LifecycleFlags): void {
+  public beforeBind(
+    initiator: IHydratedController<T>,
+    parent: IHydratedController<T> | null,
+    flags: LifecycleFlags,
+  ): void {
     this.view.parent = this.$controller;
-    this.bindChild(flags);
+    this.bindChild(initiator, flags);
   }
 
-  public beforeAttach(flags: LifecycleFlags): void {
-    this.view.attach(flags);
+  public beforeAttach(
+    initiator: IHydratedController<T>,
+    parent: IHydratedController<T> | null,
+    flags: LifecycleFlags,
+  ): void {
+    this.view.attach(initiator, this.$controller, flags);
   }
 
-  public beforeDetach(flags: LifecycleFlags): void {
-    this.view.detach(flags);
+  public beforeDetach(
+    initiator: IHydratedController<T>,
+    parent: IHydratedController<T> | null,
+    flags: LifecycleFlags,
+  ): void {
+    this.view.detach(initiator, this.$controller, flags);
   }
 
-  public beforeUnbind(flags: LifecycleFlags): void {
-    this.view.unbind(flags);
+  public beforeUnbind(
+    initiator: IHydratedController<T>,
+    parent: IHydratedController<T> | null,
+    flags: LifecycleFlags,
+  ): void {
+    this.view.unbind(initiator, this.$controller, flags);
     this.view.parent = void 0;
   }
 
-  private bindChild(flags: LifecycleFlags): void {
+  private bindChild(
+    initiator: IHydratedController<T>,
+    flags: LifecycleFlags,
+  ): void {
     const scope = Scope.fromParent(flags, this.$controller.scope!, this.value === void 0 ? {} : this.value);
-    this.view.bind(flags, scope, this.$controller.part);
+    this.view.bind(initiator, this.$controller, flags, scope, this.$controller.part);
   }
 
   public dispose(): void {

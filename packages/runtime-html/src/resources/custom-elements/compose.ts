@@ -24,6 +24,7 @@ import {
   ICustomElementController,
   ISyntheticView,
   ICustomElementViewModel,
+  IHydratedController,
 } from '@aurelia/runtime';
 import {
   createElement,
@@ -69,47 +70,65 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
     );
   }
 
-  public beforeBind(flags: LifecycleFlags): ILifecycleTask {
+  public beforeBind(
+    initiator: IHydratedController<T>,
+    parent: IHydratedController<T> | null,
+    flags: LifecycleFlags,
+  ): ILifecycleTask {
     if (this.task.done) {
-      this.task = this.compose(this.subject, flags);
+      this.task = this.compose(initiator, this.subject, flags);
     } else {
-      this.task = new ContinuationTask(this.task, this.compose, this, this.subject, flags);
+      this.task = new ContinuationTask(this.task, this.compose, this, initiator, this.subject, flags);
     }
 
     if (this.task.done) {
-      this.task = this.bindView(flags);
+      this.task = this.bindView(initiator, flags);
     } else {
-      this.task = new ContinuationTask(this.task, this.bindView, this, flags);
+      this.task = new ContinuationTask(this.task, this.bindView, this, initiator, flags);
     }
 
     return this.task;
   }
 
-  public beforeAttach(flags: LifecycleFlags): void {
+  public beforeAttach(
+    initiator: IHydratedController<T>,
+    parent: IHydratedController<T> | null,
+    flags: LifecycleFlags,
+  ): void {
     if (this.task.done) {
-      this.attachView(flags);
+      this.attachView(initiator, flags);
     } else {
-      this.task = new ContinuationTask(this.task, this.attachView, this, flags);
+      this.task = new ContinuationTask(this.task, this.attachView, this, initiator, flags);
     }
   }
 
-  public beforeDetach(flags: LifecycleFlags): void {
+  public beforeDetach(
+    initiator: IHydratedController<T>,
+    parent: IHydratedController<T> | null,
+    flags: LifecycleFlags,
+  ): ILifecycleTask {
     if (this.view != void 0) {
       if (this.task.done) {
-        this.view.detach(flags);
+        this.task = this.view.detach(initiator, this.$controller, flags);
       } else {
-        this.task = new ContinuationTask(this.task, this.view.detach, this.view, flags);
+        this.task = new ContinuationTask(this.task, this.view.detach, initiator, this.$controller, this.view, flags);
       }
     }
+
+    return this.task;
   }
 
-  public beforeUnbind(flags: LifecycleFlags): ILifecycleTask {
+  public beforeUnbind(
+    initiator: IHydratedController<T>,
+    parent: IHydratedController<T> | null,
+    flags: LifecycleFlags,
+  ): ILifecycleTask {
     this.lastSubject = void 0;
     if (this.view != void 0) {
       if (this.task.done) {
-        this.task = this.view.unbind(flags);
+        this.task = this.view.unbind(initiator, this.$controller, flags);
       } else {
-        this.task = new ContinuationTask(this.task, this.view.unbind, this.view, flags);
+        this.task = new ContinuationTask(this.task, this.view.unbind, initiator, this.$controller, this.view, flags);
       }
     }
 
@@ -119,13 +138,17 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
   public subjectChanged(newValue: Subject<T> | Promise<Subject<T>>, previousValue: Subject<T> | Promise<Subject<T>>, flags: LifecycleFlags): void {
     flags |= this.$controller.flags;
     if (this.task.done) {
-      this.task = this.compose(newValue, flags);
+      this.task = this.compose(this.$controller, newValue, flags);
     } else {
-      this.task = new ContinuationTask(this.task, this.compose, this, newValue, flags);
+      this.task = new ContinuationTask(this.task, this.compose, this, this.$controller, newValue, flags);
     }
   }
 
-  private compose(subject: MaybeSubjectPromise<T> | undefined, flags: LifecycleFlags): ILifecycleTask {
+  private compose(
+    initiator: IHydratedController<T>,
+    subject: MaybeSubjectPromise<T> | undefined,
+    flags: LifecycleFlags,
+  ): ILifecycleTask {
     if (this.lastSubject === subject) {
       return LifecycleTask.done;
     }
@@ -133,7 +156,7 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
     this.lastSubject = subject;
     this.composing = true;
 
-    let task = this.deactivate(flags);
+    let task = this.deactivate(initiator, flags);
 
     if (subject instanceof Promise) {
       let viewPromise: Promise<ISyntheticView<T> | undefined>;
@@ -142,13 +165,13 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
       } else {
         viewPromise = task.wait().then(() => subject.then(s => this.resolveView(s, flags)));
       }
-      task = new PromiseTask<[LifecycleFlags], ISyntheticView<T> | undefined>(viewPromise, this.activate, this, flags);
+      task = new PromiseTask<[IHydratedController<T>, LifecycleFlags], ISyntheticView<T> | undefined>(viewPromise, this.activate, this, initiator, flags);
     } else {
       const view = this.resolveView(subject, flags);
       if (task.done) {
-        task = this.activate(view, flags);
+        task = this.activate(view, initiator, flags);
       } else {
-        task = new ContinuationTask(task, this.activate, this, view, flags);
+        task = new ContinuationTask(task, this.activate, this, view, initiator, flags);
       }
     }
 
@@ -161,39 +184,52 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
     return task;
   }
 
-  private deactivate(flags: LifecycleFlags): ILifecycleTask {
+  private deactivate(
+    initiator: IHydratedController<T>,
+    flags: LifecycleFlags,
+  ): ILifecycleTask {
     const view = this.view;
     if (view == void 0) {
       return LifecycleTask.done;
     }
-    view.detach(flags);
-    return view.unbind(flags);
+    view.detach(initiator, this.$controller, flags);
+    return view.unbind(initiator, this.$controller, flags);
   }
 
-  private activate(view: ISyntheticView<T> | undefined, flags: LifecycleFlags): ILifecycleTask {
+  private activate(
+    view: ISyntheticView<T> | undefined,
+    initiator: IHydratedController<T>,
+    flags: LifecycleFlags,
+  ): ILifecycleTask {
     this.view = view;
     if (view == void 0) {
       return LifecycleTask.done;
     }
-    let task = this.bindView(flags);
+    let task = this.bindView(initiator, flags);
     if (task.done) {
-      this.attachView(flags);
+      this.attachView(initiator, flags);
     } else {
-      task = new ContinuationTask(task, this.attachView, this, flags);
+      task = new ContinuationTask(task, this.attachView, this, initiator, flags);
     }
     return task;
   }
 
-  private bindView(flags: LifecycleFlags): ILifecycleTask {
+  private bindView(
+    initiator: IHydratedController<T>,
+    flags: LifecycleFlags,
+  ): ILifecycleTask {
     if (this.view != void 0 && this.$controller.isBound) {
-      return this.view.bind(flags, this.$controller.scope, this.$controller.part);
+      return this.view.bind(initiator, this.$controller, flags, this.$controller.scope, this.$controller.part);
     }
     return LifecycleTask.done;
   }
 
-  private attachView(flags: LifecycleFlags): void {
+  private attachView(
+    initiator: IHydratedController<T>,
+    flags: LifecycleFlags,
+  ): void {
     if (this.view != void 0 && this.$controller.isAttached) {
-      this.view.attach(flags);
+      this.view.attach(initiator, this.$controller, flags);
     }
   }
 

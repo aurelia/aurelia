@@ -1,7 +1,7 @@
 import { nextId } from '@aurelia/kernel';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags } from '../../flags';
-import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel } from '../../lifecycle';
+import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController } from '../../lifecycle';
 import {
   ContinuationTask,
   ILifecycleTask,
@@ -31,42 +31,58 @@ export class If<T extends INode = INode> implements ICustomAttributeViewModel<T>
     @IRenderLocation private readonly location: IRenderLocation<T>,
   ) {}
 
-  public beforeBind(flags: LifecycleFlags): ILifecycleTask {
+  public beforeBind(
+    initiator: IHydratedController<T>,
+    parent: IHydratedController<T> | null,
+    flags: LifecycleFlags,
+  ): ILifecycleTask {
     if (this.task.done) {
-      this.task = this.swap(this.value, flags);
+      this.task = this.swap(initiator, this.value, flags);
     } else {
-      this.task = new ContinuationTask(this.task, this.swap, this, this.value, flags);
+      this.task = new ContinuationTask(this.task, this.swap, this, initiator, this.value, flags);
     }
 
     return this.task;
   }
 
-  public beforeAttach(flags: LifecycleFlags): void {
+  public beforeAttach(
+    initiator: IHydratedController<T>,
+    parent: IHydratedController<T> | null,
+    flags: LifecycleFlags,
+  ): void {
     if (this.task.done) {
-      this.attachView(flags);
+      this.attachView(initiator, flags);
     } else {
-      this.task = new ContinuationTask(this.task, this.attachView, this, flags);
+      this.task = new ContinuationTask(this.task, this.attachView, this, initiator, flags);
     }
   }
 
-  public beforeDetach(flags: LifecycleFlags): ILifecycleTask {
+  public beforeDetach(
+    initiator: IHydratedController<T>,
+    parent: IHydratedController<T> | null,
+    flags: LifecycleFlags,
+  ): ILifecycleTask {
     if (this.view !== void 0) {
       if (this.task.done) {
-        this.view.detach(flags);
+        this.view.detach(initiator, this.$controller, flags);
       } else {
-        this.task = new ContinuationTask(this.task, this.view.detach, this.view, flags);
+        this.task = new ContinuationTask(this.task, this.view.detach, this.view, initiator, this.$controller, flags);
       }
     }
 
     return this.task;
   }
 
-  public beforeUnbind(flags: LifecycleFlags): ILifecycleTask {
+  public beforeUnbind(
+    initiator: IHydratedController<T>,
+    parent: IHydratedController<T> | null,
+    flags: LifecycleFlags,
+  ): ILifecycleTask {
     if (this.view !== void 0) {
       if (this.task.done) {
-        this.task = this.view.unbind(flags);
+        this.task = this.view.unbind(initiator, this.$controller, flags);
       } else {
-        this.task = new ContinuationTask(this.task, this.view.unbind, this.view, flags);
+        this.task = new ContinuationTask(this.task, this.view.unbind, this.view, initiator, this.$controller, flags);
       }
     }
 
@@ -92,9 +108,9 @@ export class If<T extends INode = INode> implements ICustomAttributeViewModel<T>
       return;
     }
     if (this.task.done) {
-      this.task = this.swap(this.value, flags);
+      this.task = this.swap(this.$controller, this.value, flags);
     } else {
-      this.task = new ContinuationTask(this.task, this.swap, this, this.value, flags);
+      this.task = new ContinuationTask(this.task, this.swap, this, this.$controller, this.value, flags);
     }
   }
 
@@ -122,64 +138,87 @@ export class If<T extends INode = INode> implements ICustomAttributeViewModel<T>
     return view;
   }
 
-  private swap(value: boolean, flags: LifecycleFlags): ILifecycleTask {
+  private swap(
+    initiator: IHydratedController<T>,
+    value: boolean,
+    flags: LifecycleFlags,
+  ): ILifecycleTask {
     let task: ILifecycleTask = LifecycleTask.done;
     if (
       (value === true && this.elseView !== void 0)
       || (value !== true && this.ifView !== void 0)
     ) {
-      task = this.deactivate(flags);
+      task = this.deactivate(initiator, flags);
     }
     if (task.done) {
       const view = this.updateView(value, flags);
-      task = this.activate(view, flags);
+      task = this.activate(view, initiator, flags);
     } else {
-      task = new PromiseTask<[LifecycleFlags], ISyntheticView<T> | undefined>(task.wait().then(() => this.updateView(value, flags)), this.activate, this, flags);
+      task = new PromiseTask<[IHydratedController<T>, LifecycleFlags], ISyntheticView<T> | undefined>(
+        task.wait().then(() => this.updateView(value, flags)),
+        this.activate,
+        this,
+        initiator,
+        flags,
+      );
     }
     return task;
   }
 
-  private deactivate(flags: LifecycleFlags): ILifecycleTask {
+  private deactivate(
+    initiator: IHydratedController<T>,
+    flags: LifecycleFlags,
+  ): ILifecycleTask {
     const view = this.view;
     if (view === void 0) {
       return LifecycleTask.done;
     }
 
-    view.detach(flags); // TODO: link this up with unbind
-    const task = view.unbind(flags);
+    view.detach(initiator, this.$controller, flags); // TODO: link this up with unbind
+    const task = view.unbind(initiator, this.$controller, flags);
     view.parent = void 0;
     return task;
   }
 
-  private activate(view: ISyntheticView<T> | undefined, flags: LifecycleFlags): ILifecycleTask {
+  private activate(
+    view: ISyntheticView<T> | undefined,
+    initiator: IHydratedController<T>,
+    flags: LifecycleFlags,
+  ): ILifecycleTask {
     this.view = view;
     if (view === void 0) {
       return LifecycleTask.done;
     }
-    let task = this.bindView(flags);
+    let task = this.bindView(initiator, flags);
     if (!this.$controller.isAttached) {
       return task;
     }
 
     if (task.done) {
-      this.attachView(flags);
+      this.attachView(initiator, flags);
     } else {
-      task = new ContinuationTask(task, this.attachView, this, flags);
+      task = new ContinuationTask(task, this.attachView, this, initiator, flags);
     }
     return task;
   }
 
-  private bindView(flags: LifecycleFlags): ILifecycleTask {
+  private bindView(
+    initiator: IHydratedController<T>,
+    flags: LifecycleFlags,
+  ): ILifecycleTask {
     if (this.view !== void 0 && this.$controller.isBound) {
       this.view.parent = this.$controller;
-      return this.view.bind(flags, this.$controller.scope, this.$controller.part);
+      return this.view.bind(initiator, this.$controller, flags, this.$controller.scope, this.$controller.part);
     }
     return LifecycleTask.done;
   }
 
-  private attachView(flags: LifecycleFlags): void {
+  private attachView(
+    initiator: IHydratedController<T>,
+    flags: LifecycleFlags,
+  ): void {
     if (this.view !== void 0 && this.$controller.isAttached) {
-      this.view.attach(flags);
+      this.view.attach(initiator, this.$controller, flags);
     }
   }
 }

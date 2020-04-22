@@ -16,6 +16,7 @@ import {
   ISyntheticView,
   ICustomAttributeController,
   ICustomAttributeViewModel,
+  IHydratedController,
 } from '@aurelia/runtime';
 import {
   HTMLDOM,
@@ -89,25 +90,39 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
     this.view.setLocation(originalLoc, MountStrategy.insertBefore);
   }
 
-  public beforeBind(flags: LifecycleFlags): ILifecycleTask {
+  public beforeBind(
+    initiator: IHydratedController<T>,
+    parent: IHydratedController<T> | null,
+    flags: LifecycleFlags,
+  ): ILifecycleTask {
     if (this.callbackContext == null) {
       this.callbackContext = this.$controller.scope!.bindingContext;
     }
 
-    return this.view.bind(flags, this.$controller.scope);
+    return this.view.bind(initiator, this.$controller, flags, this.$controller.scope);
   }
 
-  public afterAttachChildren(flags: LifecycleFlags): void {
+  public afterAttachChildren(
+    flags: LifecycleFlags,
+  ): void {
     this.targetChanged();
   }
 
-  public beforeDetach(flags: LifecycleFlags): void {
-    this.task = this.deactivate(flags);
+  public beforeDetach(
+    initiator: IHydratedController<T>,
+    parent: IHydratedController<T> | null,
+    flags: LifecycleFlags,
+  ): void {
+    this.task = this.deactivate(initiator, flags);
   }
 
-  public beforeUnbind(flags: LifecycleFlags): ILifecycleTask {
+  public beforeUnbind(
+    initiator: IHydratedController<T>,
+    parent: IHydratedController<T> | null,
+    flags: LifecycleFlags,
+  ): ILifecycleTask {
     this.callbackContext = null;
-    return this.view.unbind(flags);
+    return this.view.unbind(initiator, this.$controller, flags);
   }
 
   public targetChanged(): void {
@@ -116,10 +131,13 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
       return;
     }
 
-    this.project($controller.flags);
+    this.project($controller, $controller.flags);
   }
 
-  private project(flags: LifecycleFlags): void {
+  private project(
+    initiator: IHydratedController<T>,
+    flags: LifecycleFlags,
+  ): void {
     const oldTarget = this.currentTarget;
     const newTarget = this.currentTarget = this.resolveTarget();
 
@@ -127,11 +145,15 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
       return;
     }
 
-    this.task = this.deactivate(flags);
-    this.task = this.activate(newTarget, flags);
+    this.task = this.deactivate(initiator, flags);
+    this.task = this.activate(initiator, newTarget, flags);
   }
 
-  private activate(target: T, flags: LifecycleFlags): ILifecycleTask {
+  private activate(
+    initiator: IHydratedController<T>,
+    target: T,
+    flags: LifecycleFlags,
+  ): ILifecycleTask {
     const {
       activating,
       activated,
@@ -155,9 +177,9 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
     }
 
     if (task.done) {
-      view.attach(flags);
+      view.attach(initiator, this.$controller, flags);
     } else {
-      task = new ContinuationTask(task, view.attach, view, flags);
+      task = new ContinuationTask(task, view.attach, view, initiator, this.$controller, flags);
     }
 
     if (typeof activated === 'function') {
@@ -173,7 +195,10 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
     return task;
   }
 
-  private deactivate(flags: LifecycleFlags): ILifecycleTask {
+  private deactivate(
+    initiator: IHydratedController<T>,
+    flags: LifecycleFlags,
+  ): ILifecycleTask {
     const {
       deactivating,
       deactivated,
@@ -192,9 +217,9 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
     }
 
     if (task.done) {
-      view.detach(flags);
+      view.detach(initiator, this.$controller, flags);
     } else {
-      task = new ContinuationTask(task, view.detach, view, flags);
+      task = new ContinuationTask(task, view.detach, view, initiator, this.$controller, flags);
     }
 
     if (typeof deactivated === 'function') {

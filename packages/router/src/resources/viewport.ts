@@ -8,6 +8,9 @@ import {
   ICompiledCustomElementController,
   ICustomElementViewModel,
   ICustomElementController,
+  IHydratedController,
+  ILifecycleTask,
+  LifecycleTask,
 } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { IViewportOptions, Viewport } from '../viewport';
@@ -95,29 +98,50 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
     this.viewport = null;
   }
 
-  public beforeBind(flags: LifecycleFlags): void {
+  public beforeBind(
+    initiator: IHydratedController<Element>,
+    parent: IHydratedController<Element> | null,
+    flags: LifecycleFlags,
+  ): ILifecycleTask {
     this.isBound = true;
     this.connect();
     if (this.viewport) {
+      // TODO(fkleuver): wireup with ILifecycleTask
       this.viewport.beforeBind(flags);
     }
+    return LifecycleTask.done;
   }
 
-  public beforeAttach(flags: LifecycleFlags): Promise<void> {
+  public beforeAttach(
+    initiator: IHydratedController<Element>,
+    parent: IHydratedController<Element> | null,
+    flags: LifecycleFlags,
+  ): Promise<void> {
+    // TODO(fkleuver): make this method synchronous or support async beforeAttach from the runtime
     if (this.viewport) {
       return this.viewport.beforeAttach(flags);
     }
     return Promise.resolve();
   }
 
-  public beforeDetach(flags: LifecycleFlags): Promise<void> {
+  public beforeDetach(
+    initiator: IHydratedController<Element>,
+    parent: IHydratedController<Element> | null,
+    flags: LifecycleFlags,
+  ): Promise<void> {
+    // TODO(fkleuver): return ILifecycleTask
     if (this.viewport) {
       return this.viewport.beforeDetach(flags);
     }
     return Promise.resolve();
   }
 
-  public async beforeUnbind(flags: LifecycleFlags): Promise<void> {
+  public async beforeUnbind(
+    initiator: IHydratedController<Element>,
+    parent: IHydratedController<Element> | null,
+    flags: LifecycleFlags,
+    // TODO(fkleuver): return ILifecycleTask
+  ): Promise<void> {
     if (this.viewport) {
       await this.viewport.beforeUnbind(flags);
       this.disconnect();

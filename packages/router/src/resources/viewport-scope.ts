@@ -111,7 +111,11 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Eleme
     this.viewportScope = null;
   }
 
-  public beforeBind(flags: LifecycleFlags): void {
+  public beforeBind(
+    initiator: IHydratedController<Element>,
+    parent: IHydratedController<Element> | null,
+    flags: LifecycleFlags,
+  ): void {
     this.isBound = true;
 
     (this.$controller as Writable<ICustomElementController>).scope = this.parentController.scope!;
@@ -121,7 +125,11 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Eleme
       this.viewportScope.beforeBind();
     }
   }
-  public async beforeUnbind(flags: LifecycleFlags): Promise<void> {
+  public async beforeUnbind(
+    initiator: IHydratedController<Element>,
+    parent: IHydratedController<Element> | null,
+    flags: LifecycleFlags,
+  ): Promise<void> {
     if (this.viewportScope !== null) {
       this.viewportScope.beforeUnbind();
     }

@@ -82,8 +82,8 @@ export class Activator implements IActivator {
 
   public deactivate(component: ICustomElementViewModel, flags: LifecycleFlags = LifecycleFlags.fromStopTask): ILifecycleTask {
     const controller = Controller.getCachedOrThrow(component);
-    controller.detach(flags | LifecycleFlags.fromDetach);
-    return controller.unbind(flags | LifecycleFlags.fromUnbind);
+    controller.detach(controller, null, flags | LifecycleFlags.fromDetach);
+    return controller.unbind(controller, null, flags | LifecycleFlags.fromUnbind);
   }
 
   private render(
@@ -101,13 +101,15 @@ export class Activator implements IActivator {
     flags: LifecycleFlags,
     parentScope?: IScope,
   ): ILifecycleTask {
-    return Controller.getCachedOrThrow(component).bind(flags | LifecycleFlags.fromBind, parentScope);
+    const controller = Controller.getCachedOrThrow(component);
+    return controller.bind(controller, null, flags | LifecycleFlags.fromBind, parentScope);
   }
 
   private attach(
     component: ICustomElementViewModel,
     flags: LifecycleFlags,
   ): void {
-    Controller.getCachedOrThrow(component).attach(flags | LifecycleFlags.fromAttach);
+    const controller = Controller.getCachedOrThrow(component);
+    controller.attach(controller, null, flags | LifecycleFlags.fromAttach);
   }
 }

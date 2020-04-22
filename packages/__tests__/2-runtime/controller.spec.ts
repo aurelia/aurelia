@@ -223,7 +223,7 @@ describe.skip('controller', function () {
         '1',
       );
 
-      sut.bind(flags);
+      sut.bind(sut, null, flags);
 
       assert.deepStrictEqual(
         calls,
@@ -239,7 +239,7 @@ describe.skip('controller', function () {
         '2',
       );
 
-      sut.attach(flags);
+      sut.attach(sut, null, flags);
 
       assert.deepStrictEqual(
         calls,
@@ -265,7 +265,7 @@ describe.skip('controller', function () {
       );
       assert.strictEqual(host.textContent, '1', '6');
 
-      sut.detach(flags);
+      sut.detach(sut, null, flags);
 
       assert.deepStrictEqual(
         calls,
@@ -291,7 +291,7 @@ describe.skip('controller', function () {
       );
       assert.strictEqual(host.textContent, '', '10');
 
-      sut.unbind(flags);
+      sut.unbind(sut, null, flags);
 
       assert.deepStrictEqual(
         calls,
@@ -366,7 +366,7 @@ describe.skip('controller', function () {
         '1',
       );
 
-      sut.bind(flags);
+      sut.bind(sut, null, flags);
 
       const ifInstance = sut.controllers[0].bindingContext as unknown as If;
       const secondCustomElementController = ifInstance.ifView.controllers[0] as ICustomElementController;
@@ -466,7 +466,7 @@ describe.skip('controller', function () {
         '2',
       );
 
-      sut.attach(flags);
+      sut.attach(sut, null, flags);
 
       assert.deepStrictEqual(
         calls,
@@ -546,7 +546,7 @@ describe.skip('controller', function () {
       );
       assert.strictEqual(host.textContent, '16', '6');
 
-      sut.detach(flags);
+      sut.detach(sut, null, flags);
 
       assert.deepStrictEqual(
         calls,
@@ -625,7 +625,7 @@ describe.skip('controller', function () {
       );
       assert.strictEqual(host.textContent, '', '10');
 
-      sut.unbind(flags);
+      sut.unbind(sut, null, flags);
 
       assert.deepStrictEqual(
         calls,
@@ -768,7 +768,7 @@ describe.skip('controller', function () {
         '1',
       );
 
-      sut.bind(flags);
+      sut.bind(sut, null, flags);
 
       const ifInstance = sut.controllers[0].bindingContext as unknown as If;
       const secondCustomElementController = ifInstance.ifView.controllers[0] as ICustomElementController;
@@ -868,7 +868,7 @@ describe.skip('controller', function () {
         '2',
       );
 
-      sut.attach(flags);
+      sut.attach(sut, null, flags);
 
       assert.deepStrictEqual(
         calls,
@@ -948,7 +948,7 @@ describe.skip('controller', function () {
       );
       assert.strictEqual(host.textContent, 'hihi', '6');
 
-      sut.detach(flags);
+      sut.detach(sut, null, flags);
 
       assert.deepStrictEqual(
         calls,
@@ -1027,7 +1027,7 @@ describe.skip('controller', function () {
       );
       assert.strictEqual(host.textContent, '', '10');
 
-      sut.unbind(flags);
+      sut.unbind(sut, null, flags);
 
       assert.deepStrictEqual(
         calls,

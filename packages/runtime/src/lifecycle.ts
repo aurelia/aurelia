@@ -121,13 +121,9 @@ export interface IComponentController<
 
   /** @internal */nextBound: IComponentController | undefined;
   /** @internal */nextUnbound: IComponentController | undefined;
-  /** @internal */prevBound: IComponentController | undefined;
-  /** @internal */prevUnbound: IComponentController | undefined;
 
   /** @internal */nextAttached: IComponentController | undefined;
   /** @internal */nextDetached: IComponentController | undefined;
-  /** @internal */prevAttached: IComponentController | undefined;
-  /** @internal */prevDetached: IComponentController | undefined;
 
   /** @internal */afterBindChildren(flags: LifecycleFlags): void;
   /** @internal */afterUnbindChildren(flags: LifecycleFlags): void;
@@ -433,7 +429,6 @@ export const ILifecycle = DI.createInterface<ILifecycle>('ILifecycle').withDefau
 
 export interface IProcessingQueue<T> {
   add(requestor: T): void;
-  remove(requestor: T): void;
   process(flags: LifecycleFlags): void;
 }
 
@@ -477,28 +472,10 @@ export class BoundQueue implements IAutoProcessingQueue<IController> {
     if (this.head === void 0) {
       this.head = controller;
     } else {
-      controller.prevBound = this.tail;
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       this.tail!.nextBound = controller; // implied by boundHead not being undefined
     }
     this.tail = controller;
-  }
-
-  public remove(controller: IComponentController): void {
-    if (controller.prevBound !== void 0) {
-      controller.prevBound.nextBound = controller.nextBound;
-    }
-    if (controller.nextBound !== void 0) {
-      controller.nextBound.prevBound = controller.prevBound;
-    }
-    controller.prevBound = void 0;
-    controller.nextBound = void 0;
-    if (this.tail === controller) {
-      this.tail = controller.prevBound;
-    }
-    if (this.head === controller) {
-      this.head = controller.nextBound;
-    }
   }
 
   public process(flags: LifecycleFlags): void {
@@ -510,8 +487,7 @@ export class BoundQueue implements IAutoProcessingQueue<IController> {
         cur.afterBindChildren(flags);
         next = cur.nextBound;
         cur.nextBound = void 0;
-        cur.prevBound = void 0;
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         cur = next!; // we're checking it for undefined the next line
       } while (cur !== void 0);
     }
@@ -551,28 +527,10 @@ export class UnboundQueue implements IAutoProcessingQueue<IController> {
     if (this.head === void 0) {
       this.head = controller;
     } else {
-      controller.prevUnbound = this.tail;
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       this.tail!.nextUnbound = controller; // implied by unboundHead not being undefined
     }
     this.tail = controller;
-  }
-
-  public remove(controller: IComponentController): void {
-    if (controller.prevUnbound !== void 0) {
-      controller.prevUnbound.nextUnbound = controller.nextUnbound;
-    }
-    if (controller.nextUnbound !== void 0) {
-      controller.nextUnbound.prevUnbound = controller.prevUnbound;
-    }
-    controller.prevUnbound = void 0;
-    controller.nextUnbound = void 0;
-    if (this.tail === controller) {
-      this.tail = controller.prevUnbound;
-    }
-    if (this.head === controller) {
-      this.head = controller.nextUnbound;
-    }
   }
 
   public process(flags: LifecycleFlags): void {
@@ -584,8 +542,7 @@ export class UnboundQueue implements IAutoProcessingQueue<IController> {
         cur.afterUnbindChildren(flags);
         next = cur.nextUnbound;
         cur.nextUnbound = void 0;
-        cur.prevUnbound = void 0;
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         cur = next!; // we're checking it for undefined the next line
       } while (cur !== void 0);
     }
@@ -625,28 +582,10 @@ export class AttachedQueue implements IAutoProcessingQueue<IController> {
     if (this.head === void 0) {
       this.head = controller;
     } else {
-      controller.prevAttached = this.tail;
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       this.tail!.nextAttached = controller; // implied by attachedHead not being undefined
     }
     this.tail = controller;
-  }
-
-  public remove(controller: IComponentController): void {
-    if (controller.prevAttached !== void 0) {
-      controller.prevAttached.nextAttached = controller.nextAttached;
-    }
-    if (controller.nextAttached !== void 0) {
-      controller.nextAttached.prevAttached = controller.prevAttached;
-    }
-    controller.prevAttached = void 0;
-    controller.nextAttached = void 0;
-    if (this.tail === controller) {
-      this.tail = controller.prevAttached;
-    }
-    if (this.head === controller) {
-      this.head = controller.nextAttached;
-    }
   }
 
   public process(flags: LifecycleFlags): void {
@@ -658,8 +597,7 @@ export class AttachedQueue implements IAutoProcessingQueue<IController> {
         cur.afterAttachChildren(flags);
         next = cur.nextAttached;
         cur.nextAttached = void 0;
-        cur.prevAttached = void 0;
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         cur = next!; // we're checking it for undefined the next line
       } while (cur !== void 0);
     }
@@ -699,28 +637,10 @@ export class DetachedQueue implements IAutoProcessingQueue<IController> {
     if (this.head === void 0) {
       this.head = controller;
     } else {
-      controller.prevDetached = this.tail;
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       this.tail!.nextDetached = controller; // implied by detachedHead not being undefined
     }
     this.tail = controller;
-  }
-
-  public remove(controller: IComponentController): void {
-    if (controller.prevDetached !== void 0) {
-      controller.prevDetached.nextDetached = controller.nextDetached;
-    }
-    if (controller.nextDetached !== void 0) {
-      controller.nextDetached.prevDetached = controller.prevDetached;
-    }
-    controller.prevDetached = void 0;
-    controller.nextDetached = void 0;
-    if (this.tail === controller) {
-      this.tail = controller.prevDetached;
-    }
-    if (this.head === controller) {
-      this.head = controller.nextDetached;
-    }
   }
 
   public process(flags: LifecycleFlags): void {
@@ -732,8 +652,7 @@ export class DetachedQueue implements IAutoProcessingQueue<IController> {
         cur.afterDetachChildren(flags);
         next = cur.nextDetached;
         cur.nextDetached = void 0;
-        cur.prevDetached = void 0;
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         cur = next!; // we're checking it for undefined the next line
       } while (cur !== void 0);
     }

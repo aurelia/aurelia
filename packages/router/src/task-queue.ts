@@ -38,10 +38,6 @@ export class QueueTask<T> implements ILifecycleTask {
   public wait(): Promise<void> {
     return this.promise;
   }
-  public canCancel(): boolean {
-    return false;
-  }
-  public cancel(): void { return; }
 }
 
 export interface ITaskQueueOptions {

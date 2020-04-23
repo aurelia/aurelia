@@ -1185,7 +1185,7 @@ describe('validate-binding-behavior', function () {
     `
     }
   );
-  $it('can be used to validate nested property - intial non-undefined',
+  $it('can be used to validate nested property - initial non-undefined',
     async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const person = app.person;

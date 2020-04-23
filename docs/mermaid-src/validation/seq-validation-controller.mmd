@@ -1,0 +1,27 @@
+sequenceDiagram
+  participant VM/BB
+  participant VC as ValidationController
+  participant V as Validator
+  note left of VM/BB: ViewModel or<br/>BindingBehavior
+
+  VM/BB->>VC: validate(instruction?) (async)
+  alt instruction present
+    VC->>V: validate(instruction) (async)
+    V->>VC: Validation results
+  else not present
+    loop every binding
+      VC->>VC: create instruction for binding
+      VC->>V: validate(instruction_binding) (async)
+    V->>VC: Validation results
+    end
+    loop every object
+      VC->>VC: create instruction for object
+      VC->>V: validate(instruction_object) (async)
+    V->>VC: Validation results
+    end
+  end
+  VC->>VC: process the results in terms of old and new results
+  loop every subscriber
+    VC->>Subscriber: notify
+  end
+  VC->>VM/BB: result

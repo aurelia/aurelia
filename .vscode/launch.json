@@ -31,9 +31,10 @@
       ],
       "outputCapture": "std",
       "runtimeExecutable": "npx",
+      "env": {
+        "TS_NODE_PROJECT": "${workspaceRoot}/packages/__tests__/tsconfig-vscode.json"
+      },
       "args": [
-        "${workspaceRoot}/packages/__tests__/setup-node.ts",
-        "${file}",
         "--color",
         "--require",
         "source-map-support/register",
@@ -45,8 +46,10 @@
         "expect",
         "--timeout",
         "999999",
+        "setup-node.ts",
+        "${file}",
       ],
-      "cwd": "${workspaceRoot}",
+      "cwd": "${workspaceRoot}/packages/__tests__",
       "internalConsoleOptions": "openOnSessionStart"
     },
     {

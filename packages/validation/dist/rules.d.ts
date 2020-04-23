@@ -1,6 +1,6 @@
 import { Constructable, Class } from '@aurelia/kernel';
 import { IInterpolationExpression, PrimitiveLiteralExpression } from '@aurelia/runtime';
-import { IValidateable, IValidationRule, IRequiredRule, IRegexRule, ILengthRule, ISizeRule, IRangeRule, IEqualsRule, IValidationVisitor } from './rule-interfaces';
+import { IValidateable, IValidationRule, IRequiredRule, IRegexRule, ILengthRule, ISizeRule, IRangeRule, IEqualsRule, IValidationVisitor, ValidationDisplayNameAccessor } from './rule-interfaces';
 /**
  * Retrieves validation messages and property display names.
  */
@@ -20,7 +20,7 @@ export interface IValidationMessageProvider {
     /**
      * Formulates a property display name using the property name and the configured displayName (if provided).
      */
-    getDisplayName(propertyName: string | number | undefined, displayName?: string | null | (() => string)): string | undefined;
+    getDisplayName(propertyName: string | number | undefined, displayName?: string | null | ValidationDisplayNameAccessor): string | undefined;
 }
 export declare const IValidationMessageProvider: import("@aurelia/kernel").InterfaceSymbol<IValidationMessageProvider>;
 export interface ValidationRuleAlias {

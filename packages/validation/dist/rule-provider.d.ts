@@ -246,6 +246,6 @@ export declare class ValidationMessageProvider implements IValidationMessageProv
     getMessage(rule: IValidationRule): IInterpolationExpression | PrimitiveLiteralExpression;
     setMessage(rule: IValidationRule, message: string): IInterpolationExpression | PrimitiveLiteralExpression;
     parseMessage(message: string): IInterpolationExpression | PrimitiveLiteralExpression;
-    getDisplayName(propertyName: string | number | undefined, displayName?: string | null | (() => string)): string | undefined;
+    getDisplayName(propertyName: string | number | undefined, displayName?: string | null | ValidationDisplayNameAccessor): string | undefined;
 }
 //# sourceMappingURL=rule-provider.d.ts.map

@@ -1,0 +1,99 @@
+name: Github Actions
+on: [push]
+jobs:
+  install:
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - uses: actions/cache@master
+        with:
+          path: |
+            node_modules
+            */*/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+      - run: npm ci
+
+  build:
+    needs: ["install"]
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - uses: actions/cache@master
+        with:
+          path: |
+            node_modules
+            */*/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+      - run: npm run build
+      - run: tar -cJf dist.tar.xz packages/*/dist
+      - uses: actions/upload-artifact@v1
+        with:
+          name: dist
+          path: dist.tar.xz
+
+  lint:
+    needs: ["install"]
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - uses: actions/cache@master
+        with:
+          path: |
+            node_modules
+            */*/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+      - run: npm run lint
+
+  test:
+    needs: ["build"]
+    timeout-minutes: 5
+    strategy:
+      matrix:
+        suite: [
+          "aot",
+          "babel-jest",
+          "i18n",
+          "jit",
+          "jit-html",
+          "kernel",
+          "plugin-conventions",
+          "plugin-gulp",
+          "router",
+          "route-recognizer",
+          "runtime",
+          "runtime-html",
+          "scheduler",
+          "ts-jest",
+          "validation",
+          "webpack-loader",
+        ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - uses: actions/cache@master
+        with:
+          path: |
+            node_modules
+            */*/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+      - uses: actions/download-artifact@v1
+        with:
+          name: dist
+      - run: tar -xf dist/dist.tar.xz
+      - run: npm run test-node:${{matrix.suite}}
+        working-directory: packages/__tests__

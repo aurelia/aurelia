@@ -92,7 +92,8 @@ The plugin gives you enough flexibility to write your own rules rather than bein
 Here is one similar playable demo, if you want to explore on you own!
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=3a45de5a62157688181c0c78e5bcd570&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=3a45de5a62157688181c0c78e5bcd570&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=3a45de5a62157688181c0c78e5bcd570&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-required" %}
 
 That's all you need to do to get started with the plugin.
 However, read on to understand how the plugin functions, and offers flexible API to support your app.
@@ -300,7 +301,8 @@ validationRules
 This instantiates a `RequiredRule` for the property.
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=3a45de5a62157688181c0c78e5bcd570&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=3a45de5a62157688181c0c78e5bcd570&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=3a45de5a62157688181c0c78e5bcd570&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-required" %}
 
 > Note that this is the only built-in rule that considers `null`, `undefined`, or empty string as invalid value. The other built-in rules purposefully consider `null`, `undefined`, or empty string as valid value. This is done to ensure single responsibility for the built-in rules.
 
@@ -318,7 +320,8 @@ validationRules
 This instantiates a `RegexRule` for the property.
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=5e0ef6c9fdcdb9d34927ce2e116b0de7&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=5e0ef6c9fdcdb9d34927ce2e116b0de7&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=5e0ef6c9fdcdb9d34927ce2e116b0de7&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-matches" %}
 
 **`email`**
 
@@ -332,7 +335,8 @@ validationRules
 ```
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=dbf7ec616b3d458e0e980f3c29f2d624&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=dbf7ec616b3d458e0e980f3c29f2d624&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=dbf7ec616b3d458e0e980f3c29f2d624&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-email" %}
 
 **`minLength`**
 
@@ -347,7 +351,8 @@ validationRules
 ```
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=8bd5721cda282b888d0b640326b399bc&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=8bd5721cda282b888d0b640326b399bc&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=8bd5721cda282b888d0b640326b399bc&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-minlength" %}
 
 **`maxLength`**
 
@@ -362,7 +367,8 @@ validationRules
 ```
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=35d3ca11fdc8089c362de84498be1e15&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=35d3ca11fdc8089c362de84498be1e15&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=35d3ca11fdc8089c362de84498be1e15&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-maxlength" %}
 
 **`minItems`**
 
@@ -377,7 +383,8 @@ validationRules
 ```
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=abd1f558567e7380876c0c685f8d294a&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=abd1f558567e7380876c0c685f8d294a&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=abd1f558567e7380876c0c685f8d294a&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-minitems" %}
 
 **`maxItems`**
 
@@ -392,7 +399,8 @@ validationRules
 ```
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=154f65652c9bc6d3513867c42fde7dd9&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=154f65652c9bc6d3513867c42fde7dd9&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=154f65652c9bc6d3513867c42fde7dd9&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-maxitems" %}
 
 **`min`**
 
@@ -407,7 +415,8 @@ validationRules
 ```
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=25537dd2aa59549d040e6965e0fa2f71&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=25537dd2aa59549d040e6965e0fa2f71&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=25537dd2aa59549d040e6965e0fa2f71&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-min" %}
 
 **`max`**
 
@@ -422,7 +431,8 @@ validationRules
 ```
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=2e7dbfdee0cbab766935c7d46b9f5bb0&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=2e7dbfdee0cbab766935c7d46b9f5bb0&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=2e7dbfdee0cbab766935c7d46b9f5bb0&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-max" %}
 
 **`range`**
 
@@ -437,7 +447,8 @@ validationRules
 ```
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=379e9f3dcc4cc08cd440653d2c0940d8&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=379e9f3dcc4cc08cd440653d2c0940d8&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=379e9f3dcc4cc08cd440653d2c0940d8&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-range" %}
 
 **`between`**
 
@@ -453,7 +464,8 @@ validationRules
 ```
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=450b17bf4a6774807d193172b180c5a2&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=450b17bf4a6774807d193172b180c5a2&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=450b17bf4a6774807d193172b180c5a2&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-between" %}
 
 **`equals`**
 
@@ -468,7 +480,8 @@ validationRules
 ```
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=7dbffc2a9961d5f4de1b9669abc8a7c7&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=7dbffc2a9961d5f4de1b9669abc8a7c7&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=7dbffc2a9961d5f4de1b9669abc8a7c7&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-equals" %}
 
 > Have you noticed that the same rule implementation is "alias"ed for multiple validation rules? You will get know another aspect of aliasing rules in the [customizing validation messages](validating-data.md#customizing-rules) section.
 
@@ -501,7 +514,8 @@ There are two ways custom rules can be defined.
     However, if you want to reuse you rule, then you need to use the `satisfiesRule`.
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=87d8206a6d1d4037933ea9e383aabf3e&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=87d8206a6d1d4037933ea9e383aabf3e&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=87d8206a6d1d4037933ea9e383aabf3e&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-satisfies" %}
 
 * `satisfiesRule`
 
@@ -536,7 +550,8 @@ There are two ways custom rules can be defined.
   ```
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=a7e99a9c48fa87b800a250f3bfb3761c&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=a7e99a9c48fa87b800a250f3bfb3761c&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=a7e99a9c48fa87b800a250f3bfb3761c&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-satisfiesrule" %}
 
   You must have noticed that the API for the built rules instantiates a rule implementation.
   For example, the following two are synonymous.
@@ -583,7 +598,8 @@ There are two ways custom rules can be defined.
   ```
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=94aeaa114ac92d556d762794b651f375&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=94aeaa114ac92d556d762794b651f375&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=94aeaa114ac92d556d762794b651f375&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-integerrangerule" %}
 
 > In the light of using rule *instance*, note that the the lambda in `satisfies` is actually wrapped in an instance of anonymous subclass of `BaseValidationRule`.
 
@@ -648,7 +664,8 @@ validationRules
 ```
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=fc661ec8026974f6decb580b6da43498&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=fc661ec8026974f6decb580b6da43498&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=fc661ec8026974f6decb580b6da43498&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-displayname-navigationproperty" %}
 
 Note that instead of a literal string, a function can also be used to customize the display name.
 The function signature is `() => string`;
@@ -656,7 +673,8 @@ The following example shows a use case for this where the attempt for a guessing
 Note that some parts of the example is not yet discussed, but those will be addressed in respective sections.
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=59398645df32122cfeb68e8685e6a4ef&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=59398645df32122cfeb68e8685e6a4ef&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=59398645df32122cfeb68e8685e6a4ef&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-displayname-function" %}
 
 **Customize the validation message**
 
@@ -678,7 +696,8 @@ validationRules
 ```
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=cf929a91cb875bd88c27b14e8011e7be&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=cf929a91cb875bd88c27b14e8011e7be&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=cf929a91cb875bd88c27b14e8011e7be&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-instance-based-message-customization" %}
 
 The above examples shows usage of string literal as custom message.
 A message template can also be used instead.
@@ -694,7 +713,8 @@ The expressions supported in the template are as follows.
 Let us look at the following example, to understand these better.
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=311cbeb44313ee9ed54a4b9a4467c7d6&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=311cbeb44313ee9ed54a4b9a4467c7d6&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=311cbeb44313ee9ed54a4b9a4467c7d6&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-message-template" %}
 
 Apart from this the messages the can be customized globally.
 You must have noted that same rule implementations are aliased quite frequently.
@@ -746,7 +766,8 @@ Aurelia
 You are encouraged to play with the following demo; define more rules, change the custom messages, etc. to see it in action.
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=27399da21435c959a5e4229de5c383b4&open=src%2Fmain.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=27399da21435c959a5e4229de5c383b4&open=src%2Fmain.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=27399da21435c959a5e4229de5c383b4&open=src%2Fmain.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-customizing-messages-globally" %}
 
 Following is the complete list of default messages for the out of the box validation rules.
 
@@ -839,7 +860,8 @@ validationRules
 {% endtabs %}
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=115bdc1fd460f1469f5500da03064235&open=src%2Fmain.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=115bdc1fd460f1469f5500da03064235&open=src%2Fmain.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=115bdc1fd460f1469f5500da03064235&open=src%2Fmain.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-withmessagekey" %}
 
 If you want to define aliases for your custom rules, you need to decorate the rule class with `validationRule`.
 
@@ -861,7 +883,8 @@ Then you can refer the second message by using `.withMessageKey('key2')`.
 Refer the demo below, to see this in action.
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=606cf358fdd58d14cf4848729eec9a48&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=606cf358fdd58d14cf4848729eec9a48&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=606cf358fdd58d14cf4848729eec9a48&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-withmessagekey-custom-rule" %}
 
 **Conditional Rule**
 
@@ -879,7 +902,8 @@ validationRules
 ```
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=7ece8d8c5e13296cacc69a3e8bbcfe39&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=7ece8d8c5e13296cacc69a3e8bbcfe39&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=7ece8d8c5e13296cacc69a3e8bbcfe39&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-conditional" %}
 
 **Sequencing Rules**
 
@@ -904,7 +928,8 @@ In the above example if either of the `required` or `email` rules fails, the `Un
 Verify this in the demo shown below.
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=c3ef11edf8feca7cea0275fc179cc160&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=c3ef11edf8feca7cea0275fc179cc160&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=c3ef11edf8feca7cea0275fc179cc160&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-sequence" %}
 
 ### Validating object
 
@@ -919,7 +944,8 @@ validationRules
 ```
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=70572608599cfee591ba80a9e494dd87&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=70572608599cfee591ba80a9e494dd87&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=70572608599cfee591ba80a9e494dd87&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-validating-object" %}
 
 ## Validator and validate instruction
 
@@ -968,7 +994,8 @@ export class AwesomeComponent {
 ```
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=6d5ec84b163215dd47495e41eeb940b8&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=6d5ec84b163215dd47495e41eeb940b8&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=6d5ec84b163215dd47495e41eeb940b8&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fmain.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-validator" %}
 
 > An important aspect of the demo above is that it shows how to use `@aurelia/validation` without the `@aurelia/validation-html`.
 
@@ -1047,7 +1074,8 @@ validator.validate(new ValidateInstruction(person, 'name', undefined, 'ruleset1'
 ```
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=fa08f913ac506f7f150fc6ff8115e589&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=fa08f913ac506f7f150fc6ff8115e589&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=fa08f913ac506f7f150fc6ff8115e589&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-tagging-rules" %}
 
 ## Model-based validation
 
@@ -1062,7 +1090,8 @@ The plugin uses an implementation of `IValidationHydrator` to adapt the json dat
 Let us see an example of this.
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=9a27bcf1caec45f5aa5bba4f8831be5d&open=src%2Fmodel-based-rules.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=9a27bcf1caec45f5aa5bba4f8831be5d&open=src%2Fmodel-based-rules.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=9a27bcf1caec45f5aa5bba4f8831be5d&open=src%2Fmodel-based-rules.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-model-based-validation" %}
 
 Let us deconstruct the example.
 The method that applies the model based rules is the following (refer `my-app.ts`).
@@ -1254,7 +1283,8 @@ Aurelia
 {% endtabs %}
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=d07e3aed9e606424a8f9526d14ebcfe8&open=src%2Fcustom-model-validation-hydrator.ts&open=src%2Fmain.ts&open=src%2Finteger-range-rule.ts&open=src%2Fmodel-based-rules.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=d07e3aed9e606424a8f9526d14ebcfe8&open=src%2Fcustom-model-validation-hydrator.ts&open=src%2Fmain.ts&open=src%2Finteger-range-rule.ts&open=src%2Fmodel-based-rules.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=d07e3aed9e606424a8f9526d14ebcfe8&open=src%2Fcustom-model-validation-hydrator.ts&open=src%2Fmain.ts&open=src%2Finteger-range-rule.ts&open=src%2Fmodel-based-rules.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-model-based-validation-custom-rule-hydration" %}
 
 ## Validation controller
 
@@ -1308,7 +1338,8 @@ A new instance of validation controller can always be injected using the `@newIn
 See this action in the demo below.
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=86d6dddcdf06e16bdf8a7b788aa15959&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fperson-partial.ts&open=src%2Fperson-partial.html"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=86d6dddcdf06e16bdf8a7b788aa15959&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fperson-partial.ts&open=src%2Fperson-partial.html" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=86d6dddcdf06e16bdf8a7b788aa15959&open=src%2Fmy-app.ts&open=src%2Fmy-app.html&open=src%2Fperson-partial.ts&open=src%2Fperson-partial.html" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-injecting-validation-controller" %}
 
 ### `validate` and `reset`
 
@@ -1337,7 +1368,8 @@ It also has an optional argument of type `ValidateInstruction` which when provid
 Note that other properties of the instruction object has no effect on resetting the errors.
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=56355313e67c8f53565d8475cac55cb1&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=56355313e67c8f53565d8475cac55cb1&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=56355313e67c8f53565d8475cac55cb1&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-validationcontroller-validate-reset" %}
 
 ### `revalidateErrors`
 
@@ -1350,7 +1382,8 @@ await validationController.revalidateErrors();
 ```
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=950d94ec248471cd37647b811053daba&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=950d94ec248471cd37647b811053daba&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=950d94ec248471cd37647b811053daba&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-validationcontroller-revalidateerrors" %}
 
 ### `addObject` and `removeObject`
 
@@ -1370,7 +1403,8 @@ validationController.removeObject(person);
 ```
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=6a97821e6e13db71aafd50967856841c&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=6a97821e6e13db71aafd50967856841c&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=6a97821e6e13db71aafd50967856841c&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-validationcontroller-addobject-removeobject" %}
 
 ### `addError` and `removeError`
 
@@ -1395,7 +1429,8 @@ Note that the errors added by the `addError` method, never gets revalidated when
 If the error needs to be removed, it must be done using `removeError` method.
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=b5db8659d6b46dacb7dfc1c72e646780&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=b5db8659d6b46dacb7dfc1c72e646780&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=b5db8659d6b46dacb7dfc1c72e646780&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-validationcontroller-adderror-removeerror" %}
 
 ### `addSubscriber` and `removeSubscriber`
 
@@ -1443,7 +1478,8 @@ In fact the [out-of-the-box subscribers](validating-data.md#displaying-errors) a
 Below is one example of how you can create a custom subscriber.
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=51923879d83c2dc7016141343e73cd31&open=src%2Fresult-subscriber.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=51923879d83c2dc7016141343e73cd31&open=src%2Fresult-subscriber.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=51923879d83c2dc7016141343e73cd31&open=src%2Fresult-subscriber.ts&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-validationcontroller-add-remove-subscriber" %}
 
 ## `validate` binding behavior
 
@@ -1467,27 +1503,33 @@ The valid values are as follows.
 
 * `manual`: Use the controller's `validate()` method to validate all bindings.
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=3e158b91575b79de1bbaf3a13f320ed1&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=3e158b91575b79de1bbaf3a13f320ed1&open=src%2Fmy-app.html&open=src%2Fmy-app.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=3e158b91575b79de1bbaf3a13f320ed1&open=src%2Fmy-app.html&open=src%2Fmy-app.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-trigger-manual" %}
 
 * `blur`:  Validate the binding when the binding's target element fires a DOM "blur" event.
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=8a4cba70eaf4cc2d698ddb8c96524c10&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=8a4cba70eaf4cc2d698ddb8c96524c10&open=src%2Fmy-app.html&open=src%2Fmy-app.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=8a4cba70eaf4cc2d698ddb8c96524c10&open=src%2Fmy-app.html&open=src%2Fmy-app.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-trigger-blur" %}
 
 * `focusout`:  Validate the binding when the binding's target element fires a DOM "focusout" event. This is useful when the actual input is wrapped in a custom element and the `validate` binding behavior is used on the custom element. In that case the `blur` trigger does not work as the `blur` event does not bubble. See the difference in action below.
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=ba271394705e4b8c040f9090c634baff&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=ba271394705e4b8c040f9090c634baff&open=src%2Fmy-app.html&open=src%2Fmy-app.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=ba271394705e4b8c040f9090c634baff&open=src%2Fmy-app.html&open=src%2Fmy-app.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-trigger-focusout" %}
 
 * `change`: Validate the binding when the source property property is updated (usually triggered by some change in view).
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=56010d78f8e00e6a329c7ce622d99f0a&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=56010d78f8e00e6a329c7ce622d99f0a&open=src%2Fmy-app.html&open=src%2Fmy-app.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=56010d78f8e00e6a329c7ce622d99f0a&open=src%2Fmy-app.html&open=src%2Fmy-app.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-trigger-change" %}
 
 * `changeOrBlur`: Validate the binding when the binding's target element fires a DOM "blur" event as well as when the source property is updated.
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=be889598bc49d871ee462877985e36ea&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=be889598bc49d871ee462877985e36ea&open=src%2Fmy-app.html&open=src%2Fmy-app.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=be889598bc49d871ee462877985e36ea&open=src%2Fmy-app.html&open=src%2Fmy-app.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-trigger-changeorblur" %}
 
 * `changeOrFocusout`: Validate the binding when the binding's target element fires a DOM "focusout" event as well as when the source property is updated.
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=e3a8a0609c2b723caa9c59b7309f81ce&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=e3a8a0609c2b723caa9c59b7309f81ce&open=src%2Fmy-app.html&open=src%2Fmy-app.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=e3a8a0609c2b723caa9c59b7309f81ce&open=src%2Fmy-app.html&open=src%2Fmy-app.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-trigger-changeorfocusout" %}
 
  There is an important point to note about the `changeOrEVENT` triggers.
  The change-triggered validation is ineffective till the associated property is validated once, either by manually calling `ValidationController#validate` or by event-triggered (`blur` or `focusout`) validation.
@@ -1527,7 +1569,8 @@ In the example below, there are two injected controllers and the property `perso
 Playing with the example you can see that the `person.age` does not get validated by the scoped validation controller instance.
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=4c914071a28238425ac1b6f8e664901b&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=4c914071a28238425ac1b6f8e664901b&open=src%2Fmy-app.html&open=src%2Fmy-app.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=4c914071a28238425ac1b6f8e664901b&open=src%2Fmy-app.html&open=src%2Fmy-app.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-validate-controller" %}
 
 ## Displaying errors
 
@@ -1542,7 +1585,8 @@ The validation controller maintains the active list of validation results which 
 ```
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=eadef7045bb99a4ebe251c5efd69ead5&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=eadef7045bb99a4ebe251c5efd69ead5&open=src%2Fmy-app.html&open=src%2Fmy-app.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=eadef7045bb99a4ebe251c5efd69ead5&open=src%2Fmy-app.html&open=src%2Fmy-app.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-display-errors" %}
 
 There are also some out-of-the-box components that can be used to display the errors.
 These are discussed in the following sections.
@@ -1570,7 +1614,8 @@ Note that this in itself does not show any error, unless errors are iterated to 
 An example can be seen below.
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=5c6bffb7f9fdcfccac6dfb57b1e6523e&open=src%2Fmy-app.html&open=src%2Fmy-app.ts"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=5c6bffb7f9fdcfccac6dfb57b1e6523e&open=src%2Fmy-app.html&open=src%2Fmy-app.ts" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=5c6bffb7f9fdcfccac6dfb57b1e6523e&open=src%2Fmy-app.html&open=src%2Fmy-app.ts" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-validation-errors-ca" %}
 
 A point to note is that multiple validation targets can also be used for a single `validation-errors` custom attribute, and the errors for multiple targets will be captured the same way.
 
@@ -1618,7 +1663,8 @@ For example, using this custom element, displaying the errors reduces to the fol
 ```
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=a8eaf96a1aab35d142055086bd717cab&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=a8eaf96a1aab35d142055086bd717cab&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=a8eaf96a1aab35d142055086bd717cab&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-validation-container-ce" %}
 
 There are couple of important points to note about the examples shown above.
 The first validation target shown in the example uses the default template of the custom element.
@@ -1643,7 +1689,8 @@ However, there is a far easy alternative to reach the same goal is offered by fa
 To this end, use the `SubscriberCustomElementTemplate` configuration option.
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=a0e2134dcfffc0fd32bbdfa0bb8405a3&open=src%2Fmain.ts&open=src%2Fvalidation-container-template.html&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=a0e2134dcfffc0fd32bbdfa0bb8405a3&open=src%2Fmain.ts&open=src%2Fvalidation-container-template.html&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=a0e2134dcfffc0fd32bbdfa0bb8405a3&open=src%2Fmain.ts&open=src%2Fvalidation-container-template.html&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-validation-container-ce-custom-template" %}
 
 There is another aspect of this configuration option.
 When a `null`, `undefined`, or '' (empty string) is used as the value for this configuration option, it deactivates the usage of this custom element.
@@ -1672,7 +1719,8 @@ export class MyApp {
 ```
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=1d2eadca8b559d169819bd2ca93888a6&open=src%2Fmy-app.ts&open=src%2Fmy-app.html"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=1d2eadca8b559d169819bd2ca93888a6&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=1d2eadca8b559d169819bd2ca93888a6&open=src%2Fmy-app.ts&open=src%2Fmy-app.html" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-validation-validationresultpresenterservice" %}
 
 The error rendering process can be completely overridden in the child classes.
 The use methods for overriding are described below.
@@ -1734,7 +1782,8 @@ Stated differently, it [customizes](validating-data.md#registering-the-plugin) t
 Check the demo to see this in action.
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=b4994288b5c91cc9d9eb94def72fca26&open=src%2Fmy-app.ts&open=src%2Fmain.ts&open=src%2Flocales%2Fen.json&open=src%2Flocales%2Fde.json"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=b4994288b5c91cc9d9eb94def72fca26&open=src%2Fmy-app.ts&open=src%2Fmain.ts&open=src%2Flocales%2Fen.json&open=src%2Flocales%2Fde.json" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=b4994288b5c91cc9d9eb94def72fca26&open=src%2Fmy-app.ts&open=src%2Fmain.ts&open=src%2Flocales%2Fen.json&open=src%2Flocales%2Fde.json" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-localization" %}
 
 All the configuration options of the `@aurelia/validation` plugin are also available from `@aurelia/validation-i18n`.
 This means it even allows you provide your own implementation of message provider or validation controller factory!
@@ -1748,7 +1797,8 @@ Apart from that it has two additional configuration options that dictates how th
   See the example below.
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=7659284c799ec6215968ef9111ff2b95&open=src%2Fmain.ts&open=src%2Flocales%2Fen-validation.json&open=src%2Flocales%2Fde-validation.json"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=7659284c799ec6215968ef9111ff2b95&open=src%2Fmain.ts&open=src%2Flocales%2Fen-validation.json&open=src%2Flocales%2Fde-validation.json" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=7659284c799ec6215968ef9111ff2b95&open=src%2Fmain.ts&open=src%2Flocales%2Fen-validation.json&open=src%2Flocales%2Fde-validation.json" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-localization-defaultnamespace" %}
 
 * `DefaultKeyPrefix`
 
@@ -1756,17 +1806,20 @@ Apart from that it has two additional configuration options that dictates how th
   This is shown in the example below.
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=8631eae51a833f27411725c8ab85ec5a&open=src%2Fmain.ts&open=src%2Flocales%2Fen.json&open=src%2Flocales%2Fde.json"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=8631eae51a833f27411725c8ab85ec5a&open=src%2Fmain.ts&open=src%2Flocales%2Fen.json&open=src%2Flocales%2Fde.json" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=8631eae51a833f27411725c8ab85ec5a&open=src%2Fmain.ts&open=src%2Flocales%2Fen.json&open=src%2Flocales%2Fde.json" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-localization-defaultkeyprefix" %}
 
   Naturally, the `DefaultNamespace` and the `DefaultKeyPrefix` can be used together.
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=54309a17b89925b4fadb50f068f5bdf9&open=src%2Fmain.ts&open=src%2Flocales%2Fen-ns1.json&open=src%2Flocales%2Fde-ns1.json"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=54309a17b89925b4fadb50f068f5bdf9&open=src%2Fmain.ts&open=src%2Flocales%2Fen-ns1.json&open=src%2Flocales%2Fde-ns1.json" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=54309a17b89925b4fadb50f068f5bdf9&open=src%2Fmain.ts&open=src%2Flocales%2Fen-ns1.json&open=src%2Flocales%2Fde-ns1.json" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-localization-defaultnamespace-defaultkeyprefix" %}
 
 It should not come as any surprise that localization also works for [model-based rules](validating-data.md#model-based-validation), when appropriate `messageKey` is specified in the rule definition.
 
 <!--<iframe style="width: 100%; height: 400px; border: 0;" loading="lazy" src="https://gist.dumber.app/?gist=9bc5b730ad55625131845d68d6c645b3&open=src%2Fmy-app.ts&open=src%2Fmodel-based-rules.ts&open=src%2Flocales%2Fen.json&open=src%2Flocales%2Fde.json"></iframe>-->
-{% embed url="https://gist.dumber.app/?gist=9bc5b730ad55625131845d68d6c645b3&open=src%2Fmy-app.ts&open=src%2Fmodel-based-rules.ts&open=src%2Flocales%2Fen.json&open=src%2Flocales%2Fde.json" %}
+<!-- {% embed url="https://gist.dumber.app/?gist=9bc5b730ad55625131845d68d6c645b3&open=src%2Fmy-app.ts&open=src%2Fmodel-based-rules.ts&open=src%2Flocales%2Fen.json&open=src%2Flocales%2Fde.json" %} -->
+{% embed url="https://stackblitz.com/edit/au2-validation-localization-model-based-rules" %}
 
 ## Migration Guide and Breaking Changes
 

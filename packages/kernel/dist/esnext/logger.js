@@ -1,6 +1,6 @@
 import { __decorate, __metadata, __param } from "tslib";
+import { all, DI, optional, Registration } from './di';
 import { toLookup } from './functions';
-import { DI, all, Registration } from './di';
 /**
  * Flags to enable/disable color usage in the logging output.
  */
@@ -19,6 +19,7 @@ export const ILogConfig = DI.createInterface('ILogConfig').withDefault(x => x.in
 export const ISink = DI.createInterface('ISink').noDefault();
 export const ILogEventFactory = DI.createInterface('ILogEventFactory').withDefault(x => x.singleton(DefaultLogEventFactory));
 export const ILogger = DI.createInterface('ILogger').withDefault(x => x.singleton(DefaultLogger));
+export const ILogScopes = DI.createInterface('ILogScope').noDefault();
 // http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
 export const format = toLookup({
     red(str) {
@@ -241,6 +242,8 @@ DefaultLogger = __decorate([
     __param(0, ILogConfig),
     __param(1, ILogEventFactory),
     __param(2, all(ISink)),
+    __param(3, optional(ILogScopes)),
+    __param(4, optional(ILogger)),
     __metadata("design:paramtypes", [Object, Object, Array, Array, Object])
 ], DefaultLogger);
 export { DefaultLogger };

@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/babel-jest",
-  "version": "0.7.0-dev.202004212351",
+  "version": "0.7.0-dev.202004230128",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -35,7 +35,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/plugin-conventions": "0.7.0-dev.202004212351",
+    "@aurelia/plugin-conventions": "0.7.0-dev.202004230128",
     "babel-jest": "^25.3.0"
   },
   "devDependencies": {

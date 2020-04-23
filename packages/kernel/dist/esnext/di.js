@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 /// <reference types="reflect-metadata" />
 import { Metadata } from '@aurelia/metadata';
+import { isArrayIndex, isNativeFunction, isObject } from './functions';
 import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
 import { Protocol } from './resource';
-import { isArrayIndex, isNativeFunction, isObject } from './functions';
 export class ResolverBuilder {
     constructor(container, key) {
         this.container = container;
@@ -289,6 +289,7 @@ function createResolver(getter) {
         const resolver = function (target, property, descriptor) {
             DI.inject(resolver)(target, property, descriptor);
         };
+        resolver.$isResolver = true;
         resolver.resolve = function (handler, requestor) {
             return getter(key, handler, requestor);
         };
@@ -323,7 +324,7 @@ export const optional = createResolver((key, handler, requestor) => {
         return requestor.get(key);
     }
     else {
-        return null;
+        return undefined;
     }
 });
 export const newInstanceForScope = createResolver((key, handler, requestor) => {
@@ -358,6 +359,7 @@ export class Resolver {
         this.strategy = strategy;
         this.state = state;
     }
+    get $isResolver() { return true; }
     register(container, key) {
         return container.registerResolver(key || this.key, this);
     }
@@ -508,6 +510,7 @@ const createFactory = (function () {
     };
 })();
 const containerResolver = {
+    $isResolver: true,
     resolve(handler, requestor) {
         return requestor;
     }
@@ -521,6 +524,40 @@ function isClass(obj) {
 function isResourceKey(key) {
     return typeof key === 'string' && key.indexOf(':') > 0;
 }
+const InstrinsicTypeNames = new Set([
+    'Array',
+    'ArrayBuffer',
+    'Boolean',
+    'DataView',
+    'Date',
+    'Error',
+    'EvalError',
+    'Float32Array',
+    'Float64Array',
+    'Function',
+    'Int8Array',
+    'Int16Array',
+    'Int32Array',
+    'Map',
+    'Number',
+    'Object',
+    'Promise',
+    'RangeError',
+    'ReferenceError',
+    'RegExp',
+    'Set',
+    'SharedArrayBuffer',
+    'String',
+    'SyntaxError',
+    'TypeError',
+    'Uint8Array',
+    'Uint8ClampedArray',
+    'Uint16Array',
+    'Uint32Array',
+    'URIError',
+    'WeakMap',
+    'WeakSet',
+]);
 /** @internal */
 export class Container {
     constructor(parent) {
@@ -667,7 +704,7 @@ export class Container {
     }
     get(key) {
         validateKey(key);
-        if (key.resolve !== void 0) {
+        if (key.$isResolver) {
             return key.resolve(this, this);
         }
         let current = this;
@@ -727,6 +764,9 @@ export class Container {
     jitRegister(keyAsValue, handler) {
         if (typeof keyAsValue !== 'function') {
             throw new Error(`Attempted to jitRegister something that is not a constructor: '${keyAsValue}'. Did you forget to register this resource?`);
+        }
+        if (InstrinsicTypeNames.has(keyAsValue.name)) {
+            throw new Error(`Attempted to jitRegister an intrinsic type: ${keyAsValue.name}. Did you forget to add @inject(Key)`);
         }
         if (isRegistry(keyAsValue)) {
             const registrationResolver = keyAsValue.register(handler, keyAsValue);
@@ -908,7 +948,8 @@ export class InstanceProvider {
     prepare(instance) {
         this.instance = instance;
     }
-    resolve(handler, requestor) {
+    get $isResolver() { return true; }
+    resolve() {
         if (this.instance === undefined) { // unmet precondition: call prepare
             throw Reporter.error(50); // TODO: organize error codes
         }

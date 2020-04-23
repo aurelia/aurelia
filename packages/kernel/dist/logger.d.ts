@@ -282,6 +282,7 @@ export declare const ILogConfig: import("./di").InterfaceSymbol<ILogConfig>;
 export declare const ISink: import("./di").InterfaceSymbol<ISink>;
 export declare const ILogEventFactory: import("./di").InterfaceSymbol<ILogEventFactory>;
 export declare const ILogger: import("./di").InterfaceSymbol<ILogger>;
+export declare const ILogScopes: import("./di").InterfaceSymbol<string[]>;
 export interface IConsoleLike {
     debug(message: string, ...optionalParams: unknown[]): void;
     info(message: string, ...optionalParams: unknown[]): void;

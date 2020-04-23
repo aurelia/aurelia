@@ -6,6 +6,7 @@ export interface IDefaultableInterfaceSymbol<K> extends InterfaceSymbol<K> {
     noDefault(): InterfaceSymbol<K>;
 }
 interface IResolverLike<C, K = any> {
+    readonly $isResolver: true;
     resolve(handler: C, requestor: C): Resolved<K>;
     getFactory?(container: C): (K extends Constructable ? IFactory<K> : never) | null;
 }
@@ -298,7 +299,8 @@ export declare const Registration: {
 export declare class InstanceProvider<K extends Key> implements IDisposableResolver<K | null> {
     private instance;
     prepare(instance: Resolved<K>): void;
-    resolve(handler: IContainer, requestor: IContainer): Resolved<K> | null;
+    get $isResolver(): true;
+    resolve(): Resolved<K> | null;
     dispose(): void;
 }
 export {};

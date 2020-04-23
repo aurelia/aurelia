@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/metadata", "./platform", "./reporter", "./resource", "./functions"], factory);
+        define(["require", "exports", "@aurelia/metadata", "./functions", "./platform", "./reporter", "./resource"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -12,10 +12,10 @@
     /* eslint-disable @typescript-eslint/no-use-before-define */
     /// <reference types="reflect-metadata" />
     const metadata_1 = require("@aurelia/metadata");
+    const functions_1 = require("./functions");
     const platform_1 = require("./platform");
     const reporter_1 = require("./reporter");
     const resource_1 = require("./resource");
-    const functions_1 = require("./functions");
     class ResolverBuilder {
         constructor(container, key) {
             this.container = container;
@@ -301,6 +301,7 @@
             const resolver = function (target, property, descriptor) {
                 exports.DI.inject(resolver)(target, property, descriptor);
             };
+            resolver.$isResolver = true;
             resolver.resolve = function (handler, requestor) {
                 return getter(key, handler, requestor);
             };
@@ -337,7 +338,7 @@
             return requestor.get(key);
         }
         else {
-            return null;
+            return undefined;
         }
     });
     exports.newInstanceForScope = createResolver((key, handler, requestor) => {
@@ -372,6 +373,7 @@
             this.strategy = strategy;
             this.state = state;
         }
+        get $isResolver() { return true; }
         register(container, key) {
             return container.registerResolver(key || this.key, this);
         }
@@ -524,6 +526,7 @@
         };
     })();
     const containerResolver = {
+        $isResolver: true,
         resolve(handler, requestor) {
             return requestor;
         }
@@ -537,6 +540,40 @@
     function isResourceKey(key) {
         return typeof key === 'string' && key.indexOf(':') > 0;
     }
+    const InstrinsicTypeNames = new Set([
+        'Array',
+        'ArrayBuffer',
+        'Boolean',
+        'DataView',
+        'Date',
+        'Error',
+        'EvalError',
+        'Float32Array',
+        'Float64Array',
+        'Function',
+        'Int8Array',
+        'Int16Array',
+        'Int32Array',
+        'Map',
+        'Number',
+        'Object',
+        'Promise',
+        'RangeError',
+        'ReferenceError',
+        'RegExp',
+        'Set',
+        'SharedArrayBuffer',
+        'String',
+        'SyntaxError',
+        'TypeError',
+        'Uint8Array',
+        'Uint8ClampedArray',
+        'Uint16Array',
+        'Uint32Array',
+        'URIError',
+        'WeakMap',
+        'WeakSet',
+    ]);
     /** @internal */
     class Container {
         constructor(parent) {
@@ -683,7 +720,7 @@
         }
         get(key) {
             validateKey(key);
-            if (key.resolve !== void 0) {
+            if (key.$isResolver) {
                 return key.resolve(this, this);
             }
             let current = this;
@@ -743,6 +780,9 @@
         jitRegister(keyAsValue, handler) {
             if (typeof keyAsValue !== 'function') {
                 throw new Error(`Attempted to jitRegister something that is not a constructor: '${keyAsValue}'. Did you forget to register this resource?`);
+            }
+            if (InstrinsicTypeNames.has(keyAsValue.name)) {
+                throw new Error(`Attempted to jitRegister an intrinsic type: ${keyAsValue.name}. Did you forget to add @inject(Key)`);
             }
             if (isRegistry(keyAsValue)) {
                 const registrationResolver = keyAsValue.register(handler, keyAsValue);
@@ -926,7 +966,8 @@
         prepare(instance) {
             this.instance = instance;
         }
-        resolve(handler, requestor) {
+        get $isResolver() { return true; }
+        resolve() {
             if (this.instance === undefined) { // unmet precondition: call prepare
                 throw reporter_1.Reporter.error(50); // TODO: organize error codes
             }

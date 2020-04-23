@@ -4,14 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "./functions", "./di"], factory);
+        define(["require", "exports", "tslib", "./di", "./functions"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const tslib_1 = require("tslib");
-    const functions_1 = require("./functions");
     const di_1 = require("./di");
+    const functions_1 = require("./functions");
     /**
      * Flags to enable/disable color usage in the logging output.
      */
@@ -30,6 +30,7 @@
     exports.ISink = di_1.DI.createInterface('ISink').noDefault();
     exports.ILogEventFactory = di_1.DI.createInterface('ILogEventFactory').withDefault(x => x.singleton(DefaultLogEventFactory));
     exports.ILogger = di_1.DI.createInterface('ILogger').withDefault(x => x.singleton(DefaultLogger));
+    exports.ILogScopes = di_1.DI.createInterface('ILogScope').noDefault();
     // http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
     exports.format = functions_1.toLookup({
         red(str) {
@@ -255,6 +256,8 @@
         tslib_1.__param(0, exports.ILogConfig),
         tslib_1.__param(1, exports.ILogEventFactory),
         tslib_1.__param(2, di_1.all(exports.ISink)),
+        tslib_1.__param(3, di_1.optional(exports.ILogScopes)),
+        tslib_1.__param(4, di_1.optional(exports.ILogger)),
         tslib_1.__metadata("design:paramtypes", [Object, Object, Array, Array, Object])
     ], DefaultLogger);
     exports.DefaultLogger = DefaultLogger;

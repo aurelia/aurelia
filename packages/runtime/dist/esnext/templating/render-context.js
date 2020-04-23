@@ -1,9 +1,9 @@
-import { CustomElementDefinition } from '../resources/custom-element';
-import { ITargetedInstruction, mergeParts } from '../definitions';
-import { InstanceProvider, Reporter } from '@aurelia/kernel';
-import { IController, IViewFactory, ILifecycle } from '../lifecycle';
+import { InstanceProvider, Reporter, } from '@aurelia/kernel';
+import { ITargetedInstruction, mergeParts, } from '../definitions';
 import { IDOM, IRenderLocation } from '../dom';
+import { IController, ILifecycle, IViewFactory, } from '../lifecycle';
 import { IRenderer, ITemplateCompiler } from '../renderer';
+import { CustomElementDefinition } from '../resources/custom-element';
 import { ViewFactory } from './view';
 const definitionContainerLookup = new WeakMap();
 const definitionContainerPartsLookup = new WeakMap();
@@ -200,6 +200,7 @@ export class ViewFactoryProvider {
     prepare(factory) {
         this.factory = factory;
     }
+    get $isResolver() { return true; }
     resolve(handler, requestor) {
         const factory = this.factory;
         if (factory === null) { // unmet precondition: call prepare

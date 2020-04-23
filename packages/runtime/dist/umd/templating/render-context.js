@@ -4,17 +4,17 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../resources/custom-element", "../definitions", "@aurelia/kernel", "../lifecycle", "../dom", "../renderer", "./view"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../definitions", "../dom", "../lifecycle", "../renderer", "../resources/custom-element", "./view"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const custom_element_1 = require("../resources/custom-element");
-    const definitions_1 = require("../definitions");
     const kernel_1 = require("@aurelia/kernel");
-    const lifecycle_1 = require("../lifecycle");
+    const definitions_1 = require("../definitions");
     const dom_1 = require("../dom");
+    const lifecycle_1 = require("../lifecycle");
     const renderer_1 = require("../renderer");
+    const custom_element_1 = require("../resources/custom-element");
     const view_1 = require("./view");
     const definitionContainerLookup = new WeakMap();
     const definitionContainerPartsLookup = new WeakMap();
@@ -214,6 +214,7 @@
         prepare(factory) {
             this.factory = factory;
         }
+        get $isResolver() { return true; }
         resolve(handler, requestor) {
             const factory = this.factory;
             if (factory === null) { // unmet precondition: call prepare

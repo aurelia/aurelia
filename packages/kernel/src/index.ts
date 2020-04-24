@@ -23,7 +23,10 @@ export {
   Resolved,
   Transformer,
   newInstanceForScope,
-  newInstanceOf
+  newInstanceOf,
+  DefaultContainerConfiguration,
+  DefaultResolver,
+  IContainerConfiguration
 } from './di';
 export {
   Class,

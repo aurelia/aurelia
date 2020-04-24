@@ -47,14 +47,18 @@ function cloneArrayWithPossibleProps(source) {
     }
     return clone;
 }
+export const DefaultResolver = {
+    none(key) { throw Error(`${key.toString()} not registered, did you forget to add @singleton()?`); },
+    singleton(key) { return new Resolver(key, 1 /* singleton */, key); },
+    transient(key) { return new Resolver(key, 2 /* transient */, key); },
+};
+export const DefaultContainerConfiguration = {
+    jitRegisterInRoot: true,
+    defaultResolver: DefaultResolver.singleton,
+};
 export const DI = {
-    createContainer(...params) {
-        if (params.length === 0) {
-            return new Container(null);
-        }
-        else {
-            return new Container(null).register(...params);
-        }
+    createContainer(config = DefaultContainerConfiguration) {
+        return new Container(null, config);
     },
     getDesignParamtypes(Type) {
         return Metadata.getOwn('design:paramtypes', Type);
@@ -143,7 +147,7 @@ export const DI = {
     },
     /**
      * creates a decorator that also matches an interface and can be used as a {@linkcode Key}.
-     * ```
+     * ```ts
      * const ILogger = DI.createInterface<Logger>('Logger').noDefault();
      * container.register(Registration.singleton(ILogger, getSomeLogger()));
      * const log = container.get(ILogger);
@@ -155,7 +159,7 @@ export const DI = {
      * }
      * ```
      * you can also build default registrations into your interface.
-     * ```
+     * ```ts
      * export const ILogger = DI.createInterface<Logger>('Logger')
      *        .withDefault( builder => builder.cachedCallback(LoggerDefault));
      * const log = container.get(ILogger);
@@ -166,8 +170,23 @@ export const DI = {
      *   }
      * }
      * ```
+     * but these default registrations won't work the same with other decorators that take keys, for example
+     * ```ts
+     * export const MyStr = DI.createInterface<string>('MyStr')
+     *        .withDefault( builder => builder.instance('somestring'));
+     * class Foo {
+     *   constructor( @optional(MyStr) public readonly str: string ) {
+     *   }
+     * }
+     * container.get(Foo).str; // returns undefined
+     * ```
+     * to fix this add this line somewhere before you do a `get`
+     * ```ts
+     * container.register(MyStr);
+     * container.get(Foo).str; // returns 'somestring'
+     * ```
      *
-     * @param friendlyName
+     * - @param friendlyName used to improve error messaging
      */
     createInterface(friendlyName) {
         const Interface = function (target, property, index) {
@@ -310,15 +329,58 @@ export function singleton(target) {
     return target == null ? singletonDecorator : singletonDecorator(target);
 }
 export const all = createResolver((key, handler, requestor) => requestor.getAll(key));
+/**
+ * Lazily inject a dependency depending on whether the [[`Key`]] is present at the time of function call.
+ *
+ * You need to make your argument a function that returns the type, for example
+ * ```ts
+ * class Foo {
+ *   constructor( @lazy('random') public random: () => number )
+ * }
+ * const foo = container.get(Foo); // instanceof Foo
+ * foo.random(); // throws
+ * ```
+ * would throw an exception because you haven't registered `'random'` before calling the method. This, would give you a
+ * new [['Math.random()']] number each time.
+ * ```ts
+ * class Foo {
+ *   constructor( @lazy('random') public random: () => random )
+ * }
+ * container.register(Registration.callback('random', Math.random ));
+ * container.get(Foo).random(); // some random number
+ * container.get(Foo).random(); // another random number
+ * ```
+ * `@lazy` does not manage the lifecycle of the underlying key. If you want a singleton, you have to register as a
+ * `singleton`, `transient` would also behave as you would expect, providing you a new instance each time.
+ *
+ * - @param key [[`Key`]]
+ * see { @link DI.createInterface } on interactions with interfaces
+ */
 export const lazy = createResolver((key, handler, requestor) => {
-    let instance = null; // cache locally so that lazy always returns the same instance once resolved
-    return () => {
-        if (instance == null) {
-            instance = requestor.get(key);
-        }
-        return instance;
-    };
+    return () => requestor.get(key);
 });
+/**
+ * Allows you to optionally inject a dependency depending on whether the [[`Key`]] is present, for example
+ * ```ts
+ * class Foo {
+ *   constructor( @inject('mystring') public str: string = 'somestring' )
+ * }
+ * container.get(Foo); // throws
+ * ```
+ * would fail
+ * ```ts
+ * class Foo {
+ *   constructor( @optional('mystring') public str: string = 'somestring' )
+ * }
+ * container.get(Foo).str // somestring
+ * ```
+ * if you use it without a default it will inject `undefined`, so rember to mark your input type as
+ * possibly `undefined`!
+ *
+ * - @param key: [[`Key`]]
+ *
+ * see { @link DI.createInterface } on interactions with interfaces
+ */
 export const optional = createResolver((key, handler, requestor) => {
     if (requestor.has(key, true)) {
         return requestor.get(key);
@@ -560,8 +622,9 @@ const InstrinsicTypeNames = new Set([
 ]);
 /** @internal */
 export class Container {
-    constructor(parent) {
+    constructor(parent, config = DefaultContainerConfiguration) {
         this.parent = parent;
+        this.config = config;
         this.registerDepth = 0;
         this.disposableResolvers = new Set();
         if (parent === null) {
@@ -685,7 +748,8 @@ export class Container {
             resolver = current.resolvers.get(key);
             if (resolver == null) {
                 if (current.parent == null) {
-                    return autoRegister ? this.jitRegister(key, current) : null;
+                    const handler = this.config.jitRegisterInRoot ? current : this;
+                    return autoRegister ? this.jitRegister(key, handler) : null;
                 }
                 current = current.parent;
             }
@@ -713,7 +777,8 @@ export class Container {
             resolver = current.resolvers.get(key);
             if (resolver == null) {
                 if (current.parent == null) {
-                    resolver = this.jitRegister(key, current);
+                    const handler = this.config.jitRegisterInRoot ? current : this;
+                    resolver = this.jitRegister(key, handler);
                     return resolver.resolve(current, this);
                 }
                 current = current.parent;
@@ -751,8 +816,8 @@ export class Container {
         }
         return factory;
     }
-    createChild() {
-        return new Container(this);
+    createChild(config) {
+        return new Container(this, config !== null && config !== void 0 ? config : this.config);
     }
     disposeResolvers() {
         var _a;
@@ -798,7 +863,7 @@ export class Container {
             throw Reporter.error(40); // did not return a valid resolver from the static register method
         }
         else {
-            const resolver = new Resolver(keyAsValue, 1 /* singleton */, keyAsValue);
+            const resolver = this.config.defaultResolver(keyAsValue, handler);
             handler.resolvers.set(keyAsValue, resolver);
             return resolver;
         }

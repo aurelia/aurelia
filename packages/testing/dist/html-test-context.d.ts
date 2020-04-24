@@ -1,5 +1,5 @@
 import { IContainer, IRegistry } from '@aurelia/kernel';
-import { ILifecycle, IObserverLocator, IProjectorLocator, IRenderer, ITemplateCompiler, IScheduler } from '@aurelia/runtime';
+import { ILifecycle, IObserverLocator, IProjectorLocator, IRenderer, IScheduler, ITemplateCompiler } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
 export declare class HTMLTestContext {
     readonly wnd: Window;

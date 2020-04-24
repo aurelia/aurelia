@@ -41,7 +41,7 @@
         }
         get container() {
             if (this._container === void 0) {
-                this._container = kernel_1.DI.createContainer(this.config);
+                this._container = kernel_1.DI.createContainer().register(this.config);
                 kernel_1.Registration.instance(runtime_1.IDOM, this.dom).register(this._container);
                 kernel_1.Registration.instance(HTMLTestContext, this).register(this._container);
                 kernel_1.Registration.instance(runtime_1.IScheduler, scheduler_dom_1.createDOMScheduler(this._container, this.wnd)).register(this._container);

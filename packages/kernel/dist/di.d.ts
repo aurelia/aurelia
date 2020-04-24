@@ -42,7 +42,7 @@ export interface IContainer extends IServiceLocator {
     registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
     getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
     getFactory<T extends Constructable>(key: T): IFactory<T> | null;
-    createChild(): IContainer;
+    createChild(config?: IContainerConfiguration): IContainer;
     disposeResolvers(): void;
 }
 export declare class ResolverBuilder<K> {
@@ -65,15 +65,25 @@ export declare type Resolved<K> = (K extends InterfaceSymbol<infer T> ? T : K ex
 export declare type Injectable<T = {}> = Constructable<T> & {
     inject?: Key[];
 };
+export interface IContainerConfiguration {
+    jitRegisterInRoot: boolean;
+    defaultResolver(key: Key, handler: IContainer): IResolver;
+}
+export declare const DefaultResolver: {
+    none(key: Key): never;
+    singleton(key: Key): Resolver;
+    transient(key: Key): Resolver;
+};
+export declare const DefaultContainerConfiguration: IContainerConfiguration;
 export declare const DI: {
-    createContainer(...params: any[]): IContainer;
+    createContainer(config?: IContainerConfiguration): IContainer;
     getDesignParamtypes(Type: Constructable<{}> | Injectable<{}>): readonly Key[] | undefined;
     getAnnotationParamtypes(Type: Constructable<{}> | Injectable<{}>): readonly Key[] | undefined;
     getOrCreateAnnotationParamTypes(Type: Constructable<{}> | Injectable<{}>): Key[];
     getDependencies(Type: Constructable<{}> | Injectable<{}>): Key[];
     /**
      * creates a decorator that also matches an interface and can be used as a {@linkcode Key}.
-     * ```
+     * ```ts
      * const ILogger = DI.createInterface<Logger>('Logger').noDefault();
      * container.register(Registration.singleton(ILogger, getSomeLogger()));
      * const log = container.get(ILogger);
@@ -85,7 +95,7 @@ export declare const DI: {
      * }
      * ```
      * you can also build default registrations into your interface.
-     * ```
+     * ```ts
      * export const ILogger = DI.createInterface<Logger>('Logger')
      *        .withDefault( builder => builder.cachedCallback(LoggerDefault));
      * const log = container.get(ILogger);
@@ -96,8 +106,23 @@ export declare const DI: {
      *   }
      * }
      * ```
+     * but these default registrations won't work the same with other decorators that take keys, for example
+     * ```ts
+     * export const MyStr = DI.createInterface<string>('MyStr')
+     *        .withDefault( builder => builder.instance('somestring'));
+     * class Foo {
+     *   constructor( @optional(MyStr) public readonly str: string ) {
+     *   }
+     * }
+     * container.get(Foo).str; // returns undefined
+     * ```
+     * to fix this add this line somewhere before you do a `get`
+     * ```ts
+     * container.register(MyStr);
+     * container.get(Foo).str; // returns 'somestring'
+     * ```
      *
-     * @param friendlyName
+     * - @param friendlyName used to improve error messaging
      */
     createInterface<K extends Key>(friendlyName?: string | undefined): IDefaultableInterfaceSymbol<K>;
     inject(...dependencies: Key[]): (target: Injectable<{}>, key?: string | number | undefined, descriptor?: number | PropertyDescriptor | undefined) => void;
@@ -189,7 +214,56 @@ export declare function singleton<T extends Constructable>(): typeof singletonDe
  */
 export declare function singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
 export declare const all: (key: any) => any;
+/**
+ * Lazily inject a dependency depending on whether the [[`Key`]] is present at the time of function call.
+ *
+ * You need to make your argument a function that returns the type, for example
+ * ```ts
+ * class Foo {
+ *   constructor( @lazy('random') public random: () => number )
+ * }
+ * const foo = container.get(Foo); // instanceof Foo
+ * foo.random(); // throws
+ * ```
+ * would throw an exception because you haven't registered `'random'` before calling the method. This, would give you a
+ * new [['Math.random()']] number each time.
+ * ```ts
+ * class Foo {
+ *   constructor( @lazy('random') public random: () => random )
+ * }
+ * container.register(Registration.callback('random', Math.random ));
+ * container.get(Foo).random(); // some random number
+ * container.get(Foo).random(); // another random number
+ * ```
+ * `@lazy` does not manage the lifecycle of the underlying key. If you want a singleton, you have to register as a
+ * `singleton`, `transient` would also behave as you would expect, providing you a new instance each time.
+ *
+ * - @param key [[`Key`]]
+ * see { @link DI.createInterface } on interactions with interfaces
+ */
 export declare const lazy: (key: any) => any;
+/**
+ * Allows you to optionally inject a dependency depending on whether the [[`Key`]] is present, for example
+ * ```ts
+ * class Foo {
+ *   constructor( @inject('mystring') public str: string = 'somestring' )
+ * }
+ * container.get(Foo); // throws
+ * ```
+ * would fail
+ * ```ts
+ * class Foo {
+ *   constructor( @optional('mystring') public str: string = 'somestring' )
+ * }
+ * container.get(Foo).str // somestring
+ * ```
+ * if you use it without a default it will inject `undefined`, so rember to mark your input type as
+ * possibly `undefined`!
+ *
+ * - @param key: [[`Key`]]
+ *
+ * see { @link DI.createInterface } on interactions with interfaces
+ */
 export declare const optional: (key: any) => any;
 export declare const newInstanceForScope: (key: any) => any;
 export declare const newInstanceOf: (key: any) => any;

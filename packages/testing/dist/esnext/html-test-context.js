@@ -1,8 +1,8 @@
-import { DebugConfiguration, } from '@aurelia/debug';
-import { DI, Registration, } from '@aurelia/kernel';
-import { IDOM, ILifecycle, IObserverLocator, IProjectorLocator, IRenderer, ITemplateCompiler, IScheduler, } from '@aurelia/runtime';
-import { HTMLDOM, } from '@aurelia/runtime-html';
-import { createDOMScheduler, } from '@aurelia/scheduler-dom';
+import { DebugConfiguration } from '@aurelia/debug';
+import { DI, Registration } from '@aurelia/kernel';
+import { IDOM, ILifecycle, IObserverLocator, IProjectorLocator, IRenderer, IScheduler, ITemplateCompiler, } from '@aurelia/runtime';
+import { HTMLDOM } from '@aurelia/runtime-html';
+import { createDOMScheduler } from '@aurelia/scheduler-dom';
 export class HTMLTestContext {
     constructor(config, wnd, UIEventType, EventType, CustomEventType, NodeType, ElementType, HTMLElementType, HTMLDivElementType, TextType, CommentType, DOMParserType, CSSStyleSheetType, ShadowRootType) {
         this.config = config;
@@ -30,7 +30,7 @@ export class HTMLTestContext {
     }
     get container() {
         if (this._container === void 0) {
-            this._container = DI.createContainer(this.config);
+            this._container = DI.createContainer().register(this.config);
             Registration.instance(IDOM, this.dom).register(this._container);
             Registration.instance(HTMLTestContext, this).register(this._container);
             Registration.instance(IScheduler, createDOMScheduler(this._container, this.wnd)).register(this._container);

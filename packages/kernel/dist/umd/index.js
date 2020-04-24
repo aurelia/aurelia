@@ -23,6 +23,8 @@
     exports.InstanceProvider = di_1.InstanceProvider;
     exports.newInstanceForScope = di_1.newInstanceForScope;
     exports.newInstanceOf = di_1.newInstanceOf;
+    exports.DefaultContainerConfiguration = di_1.DefaultContainerConfiguration;
+    exports.DefaultResolver = di_1.DefaultResolver;
     var metadata_1 = require("@aurelia/metadata");
     exports.metadata = metadata_1.metadata;
     exports.Metadata = metadata_1.Metadata;

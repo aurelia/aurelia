@@ -1,13 +1,13 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { DI, IContainer, IRegistry, Registration } from '@aurelia/kernel';
 import {
-    IDOM,
-    ILifecycle,
-    IObserverLocator,
-    IProjectorLocator,
-    IRenderer,
-    IScheduler,
-    ITemplateCompiler,
+  IDOM,
+  ILifecycle,
+  IObserverLocator,
+  IProjectorLocator,
+  IRenderer,
+  IScheduler,
+  ITemplateCompiler,
 } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
 import { createDOMScheduler } from '@aurelia/scheduler-dom';

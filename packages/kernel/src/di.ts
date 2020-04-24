@@ -459,14 +459,7 @@ export function singleton<T extends Constructable>(target?: T & Partial<Register
 export const all = createResolver((key: any, handler: IContainer, requestor: IContainer) => requestor.getAll(key));
 
 export const lazy = createResolver((key: any, handler: IContainer, requestor: IContainer) =>  {
-  let instance: unknown = null; // cache locally so that lazy always returns the same instance once resolved
-  return () => {
-    if (instance == null) {
-      instance = requestor.get(key);
-    }
-
-    return instance;
-  };
+  return () => requestor.get(key);
 });
 
 export const optional = createResolver((key: any, handler: IContainer, requestor: IContainer) =>  {

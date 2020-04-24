@@ -1,4 +1,4 @@
-import { all, DI, IContainer, inject, InterfaceSymbol, optional, Registration, singleton } from '@aurelia/kernel';
+import { all, DI, IContainer, inject, InterfaceSymbol, lazy, optional, Registration, singleton } from '@aurelia/kernel';
 import { assert, createSpy, ISpy } from '@aurelia/testing';
 
 describe('DI.getDependencies', function () {
@@ -27,6 +27,30 @@ describe('DI.get', function () {
   // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
     container = DI.createContainer();
+  });
+
+  describe('@lazy', function () {
+    class Bar {
+
+    }
+    class Foo {
+      public constructor(@lazy(Bar) public readonly provider: () => Bar) {}
+    }
+    it('singleton', function () {
+      const bar0 = container.get(Foo).provider();
+      const bar1 = container.get(Foo).provider();
+
+      assert.strictEqual(bar0, bar1);
+    });
+
+    it('transient', function () {
+      container.register(Registration.transient(Bar, Bar));
+      const bar0 = container.get(Foo).provider();
+      const bar1 = container.get(Foo).provider();
+
+      assert.notStrictEqual(bar0, bar1);
+    });
+
   });
 
   describe('@optional', function () {

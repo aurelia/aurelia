@@ -248,7 +248,7 @@ export const DI = {
   },
   /**
    * creates a decorator that also matches an interface and can be used as a {@linkcode Key}.
-   * ```
+   * ```ts
    * const ILogger = DI.createInterface<Logger>('Logger').noDefault();
    * container.register(Registration.singleton(ILogger, getSomeLogger()));
    * const log = container.get(ILogger);
@@ -260,7 +260,7 @@ export const DI = {
    * }
    * ```
    * you can also build default registrations into your interface.
-   * ```
+   * ```ts
    * export const ILogger = DI.createInterface<Logger>('Logger')
    *        .withDefault( builder => builder.cachedCallback(LoggerDefault));
    * const log = container.get(ILogger);
@@ -271,8 +271,23 @@ export const DI = {
    *   }
    * }
    * ```
+   * but these default registrations won't work the same with other decorators that take keys, for example
+   * ```ts
+   * export const MyStr = DI.createInterface<string>('MyStr')
+   *        .withDefault( builder => builder.instance('somestring'));
+   * class Foo {
+   *   constructor( @optional(MyStr) public readonly str: string ) {
+   *   }
+   * }
+   * container.get(Foo).str; // returns undefined
+   * ```
+   * to fix this add this line somewhere before you do a `get`
+   * ```ts
+   * container.register(MyStr);
+   * container.get(Foo).str; // returns 'somestring'
+   * ```
    *
-   * @param friendlyName
+   * - @param friendlyName used to improve error messaging
    */
   createInterface<K extends Key>(friendlyName?: string): IDefaultableInterfaceSymbol<K> {
     const Interface: InternalDefaultableInterfaceSymbol<K> = function (target: Injectable<K>, property: string, index: number): any {
@@ -468,13 +483,62 @@ export function singleton<T extends Constructable>(target?: T & Partial<Register
   return target == null ? singletonDecorator : singletonDecorator(target);
 }
 
-export const all = createResolver((key: any, handler: IContainer, requestor: IContainer) => requestor.getAll(key));
+export const all = createResolver((key: Key, handler: IContainer, requestor: IContainer) => requestor.getAll(key));
 
-export const lazy = createResolver((key: any, handler: IContainer, requestor: IContainer) =>  {
+/**
+ * Lazily inject a dependency depending on whether the [[`Key`]] is present at the time of function call.
+ *
+ * You need to make your argument a function that returns the type, for example
+ * ```ts
+ * class Foo {
+ *   constructor( @lazy('random') public random: () => number )
+ * }
+ * const foo = container.get(Foo); // instanceof Foo
+ * foo.random(); // throws
+ * ```
+ * would throw an exception because you haven't registered `'random'` before calling the method. This, would give you a
+ * new [['Math.random()']] number each time.
+ * ```ts
+ * class Foo {
+ *   constructor( @lazy('random') public random: () => random )
+ * }
+ * container.register(Registration.callback('random', Math.random ));
+ * container.get(Foo).random(); // some random number
+ * container.get(Foo).random(); // another random number
+ * ```
+ * `@lazy` does not manage the lifecycle of the underlying key. If you want a singleton, you have to register as a
+ * `singleton`, `transient` would also behave as you would expect, providing you a new instance each time.
+ *
+ * - @param key [[`Key`]]
+ * see { @link DI.createInterface } on interactions with interfaces
+ */
+export const lazy = createResolver((key: Key, handler: IContainer, requestor: IContainer) =>  {
   return () => requestor.get(key);
 });
 
-export const optional = createResolver((key: any, handler: IContainer, requestor: IContainer) =>  {
+/**
+ * Allows you to optionally inject a dependency depending on whether the [[`Key`]] is present, for example
+ * ```ts
+ * class Foo {
+ *   constructor( @inject('mystring') public str: string = 'somestring' )
+ * }
+ * container.get(Foo); // throws
+ * ```
+ * would fail
+ * ```ts
+ * class Foo {
+ *   constructor( @optional('mystring') public str: string = 'somestring' )
+ * }
+ * container.get(Foo).str // somestring
+ * ```
+ * if you use it without a default it will inject `undefined`, so rember to mark your input type as
+ * possibly `undefined`!
+ *
+ * - @param key: [[`Key`]]
+ *
+ * see { @link DI.createInterface } on interactions with interfaces
+ */
+export const optional = createResolver((key: Key, handler: IContainer, requestor: IContainer) =>  {
   if (requestor.has(key, true)) {
     return requestor.get(key);
   } else {

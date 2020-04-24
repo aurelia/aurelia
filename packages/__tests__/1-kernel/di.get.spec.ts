@@ -66,6 +66,25 @@ describe('DI.get', function () {
 
       assert.deepStrictEqual(container.get(Foo).test, undefined);
     });
+
+    it('interface with default and default in constructor', function () {
+      const MyStr = DI.createInterface<string>().withDefault(x => x.instance('hello'));
+      class Foo {
+        public constructor(@optional(MyStr) public readonly test: string = 'test') {}
+      }
+
+      assert.deepStrictEqual(container.get(Foo).test, 'test');
+    });
+
+    it('interface with default registered and default in constructor', function () {
+      const MyStr = DI.createInterface<string>().withDefault(x => x.instance('hello'));
+      container.register(MyStr);
+      class Foo {
+        public constructor(@optional(MyStr) public readonly test: string = 'test') {}
+      }
+
+      assert.deepStrictEqual(container.get(Foo).test, 'hello');
+    });
   });
 
   describe('intrinsic', function () {

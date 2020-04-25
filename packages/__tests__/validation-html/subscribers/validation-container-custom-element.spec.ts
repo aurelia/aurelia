@@ -258,7 +258,7 @@ describe('validation-container-custom-element', function () {
     }
   );
 
-  it.skip('can be used without any available registration for scoped controller', async function () {
+  it('can be used without any available registration for scoped controller', async function () {
     @customElement({
       name: 'app',
       template: `

@@ -221,7 +221,7 @@
         "--opts",
         "${workspaceRoot}/packages/__tests__/mocha.opts",
         "${workspaceRoot}/packages/__tests__/dist/esnext/__tests__/setup-node.js",
-        "${workspaceRoot}/packages/__tests__/dist/esnext/__tests__/validation/**/*.spec.js"
+        "${workspaceRoot}/packages/__tests__/dist/esnext/__tests__/validation*/**/*.spec.js"
       ],
       "cwd": "${workspaceRoot}",
       "internalConsoleOptions": "openOnSessionStart"

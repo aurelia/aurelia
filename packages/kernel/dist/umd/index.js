@@ -17,6 +17,7 @@
     exports.IServiceLocator = di_1.IServiceLocator;
     exports.lazy = di_1.lazy;
     exports.optional = di_1.optional;
+    exports.ignore = di_1.ignore;
     exports.Registration = di_1.Registration;
     exports.singleton = di_1.singleton;
     exports.transient = di_1.transient;

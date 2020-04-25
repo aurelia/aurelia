@@ -190,13 +190,14 @@ export const DI = {
      */
     createInterface(friendlyName) {
         const Interface = function (target, property, index) {
-            if (target == null) {
-                throw Reporter.error(16, Interface.friendlyName, Interface); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
+            if (target == null || new.target !== undefined) {
+                throw new Error(`No registration for interface: '${Interface.friendlyName}'`); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
             }
             const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
             annotationParamtypes[index] = Interface;
             return target;
         };
+        Interface.$isInterface = true;
         Interface.friendlyName = friendlyName == null ? 'Interface' : friendlyName;
         Interface.noDefault = function () {
             return Interface;
@@ -389,6 +390,14 @@ export const optional = createResolver((key, handler, requestor) => {
         return undefined;
     }
 });
+/**
+ * ignore tells the container not to try to inject a dependency
+ */
+export function ignore(target, property, descriptor) {
+    DI.inject(ignore)(target, property, descriptor);
+}
+ignore.$isResolver = true;
+ignore.resolve = () => undefined;
 export const newInstanceForScope = createResolver((key, handler, requestor) => {
     const instance = createNewInstance(key, handler);
     const instanceProvider = new InstanceProvider();
@@ -420,6 +429,7 @@ export class Resolver {
         this.key = key;
         this.strategy = strategy;
         this.state = state;
+        this.resolving = false;
     }
     get $isResolver() { return true; }
     register(container, key) {
@@ -430,12 +440,18 @@ export class Resolver {
             case 0 /* instance */:
                 return this.state;
             case 1 /* singleton */: {
-                this.strategy = 0 /* instance */;
+                if (this.resolving) {
+                    throw new Error(`Cyclic dependency found: ${this.state.name}`);
+                }
+                this.resolving = true;
                 const factory = handler.getFactory(this.state);
                 if (factory === null) {
                     throw new Error(`Resolver for ${String(this.key)} returned a null factory`);
                 }
-                return this.state = factory.construct(requestor);
+                this.state = factory.construct(requestor);
+                this.strategy = 0 /* instance */;
+                this.resolving = false;
+                return this.state;
             }
             case 2 /* transient */: {
                 // Always create transients from the requesting container
@@ -861,6 +877,9 @@ export class Container {
                 return newResolver;
             }
             throw Reporter.error(40); // did not return a valid resolver from the static register method
+        }
+        else if (keyAsValue.$isInterface) {
+            throw new Error(`Attempted to jitRegister an interface: ${keyAsValue.friendlyName}`);
         }
         else {
             const resolver = this.config.defaultResolver(keyAsValue, handler);

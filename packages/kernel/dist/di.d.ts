@@ -265,6 +265,14 @@ export declare const lazy: (key: any) => any;
  * see { @link DI.createInterface } on interactions with interfaces
  */
 export declare const optional: (key: any) => any;
+/**
+ * ignore tells the container not to try to inject a dependency
+ */
+export declare function ignore(target: Injectable, property?: string | number, descriptor?: PropertyDescriptor | number): void;
+export declare namespace ignore {
+    var $isResolver: boolean;
+    var resolve: () => undefined;
+}
 export declare const newInstanceForScope: (key: any) => any;
 export declare const newInstanceOf: (key: any) => any;
 /**

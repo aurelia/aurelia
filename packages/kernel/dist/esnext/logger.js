@@ -1,5 +1,5 @@
 import { __decorate, __metadata, __param } from "tslib";
-import { all, DI, optional, Registration } from './di';
+import { all, DI, ignore, optional, Registration } from './di';
 import { toLookup } from './functions';
 /**
  * Flags to enable/disable color usage in the logging output.
@@ -243,7 +243,7 @@ DefaultLogger = __decorate([
     __param(1, ILogEventFactory),
     __param(2, all(ISink)),
     __param(3, optional(ILogScopes)),
-    __param(4, optional(ILogger)),
+    __param(4, ignore),
     __metadata("design:paramtypes", [Object, Object, Array, Array, Object])
 ], DefaultLogger);
 export { DefaultLogger };

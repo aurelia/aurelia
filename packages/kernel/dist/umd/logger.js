@@ -257,7 +257,7 @@
         tslib_1.__param(1, exports.ILogEventFactory),
         tslib_1.__param(2, di_1.all(exports.ISink)),
         tslib_1.__param(3, di_1.optional(exports.ILogScopes)),
-        tslib_1.__param(4, di_1.optional(exports.ILogger)),
+        tslib_1.__param(4, di_1.ignore),
         tslib_1.__metadata("design:paramtypes", [Object, Object, Array, Array, Object])
     ], DefaultLogger);
     exports.DefaultLogger = DefaultLogger;

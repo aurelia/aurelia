@@ -1318,7 +1318,7 @@ describe('validate-binding-behavior', function () {
     });
   }
 
-  it.skip('can be used without any available registration for scoped controller', async function () {
+  it('can be used without any available registration for scoped controller', async function () {
     @customElement({ name: 'app', template: '<input id="target" type="text" value.two-way="person.name & validate:undefined:controller">' })
     class App1 {
       public person: Person = new Person((void 0)!, (void 0)!);

@@ -86,7 +86,9 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     const locator = this.locator;
     this.scheduler = locator.get(IScheduler);
     this.defaultTrigger = locator.get(IDefaultTrigger);
-    this.scopedController = locator.get(IValidationController);
+    if (locator.has(IValidationController, true)) {
+      this.scopedController = locator.get(IValidationController);
+    }
     this.setPropertyBinding();
   }
 

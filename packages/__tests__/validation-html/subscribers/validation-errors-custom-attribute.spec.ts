@@ -1,14 +1,12 @@
-import { toArray, newInstanceForScope, newInstanceOf } from '@aurelia/kernel';
-import { Aurelia, CustomElement, IScheduler, CustomAttribute, customElement } from '@aurelia/runtime';
-import { TestContext, assert, createSpy, ISpy, getVisibleText, HTMLTestContext } from '@aurelia/testing';
-import {
-  IValidationRules,
-} from '@aurelia/validation';
+import { newInstanceForScope, newInstanceOf, toArray } from '@aurelia/kernel';
+import { Aurelia, CustomAttribute, CustomElement, customElement, IScheduler } from '@aurelia/runtime';
+import { assert, createSpy, getVisibleText, HTMLTestContext, ISpy, TestContext } from '@aurelia/testing';
+import { IValidationRules } from '@aurelia/validation';
 import {
   IValidationController,
-  ValidationHtmlConfiguration,
   ValidationController,
   ValidationErrorsCustomAttribute,
+  ValidationHtmlConfiguration,
   ValidationResultsSubscriber,
 } from '@aurelia/validation-html';
 import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../../util';

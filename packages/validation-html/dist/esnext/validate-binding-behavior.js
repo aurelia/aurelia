@@ -55,7 +55,9 @@ let ValidateBindingBehavior = class ValidateBindingBehavior extends BindingInter
         const locator = this.locator;
         this.scheduler = locator.get(IScheduler);
         this.defaultTrigger = locator.get(IDefaultTrigger);
-        this.scopedController = locator.get(IValidationController);
+        if (locator.has(IValidationController, true)) {
+            this.scopedController = locator.get(IValidationController);
+        }
         this.setPropertyBinding();
     }
     updateSource(value, flags) {

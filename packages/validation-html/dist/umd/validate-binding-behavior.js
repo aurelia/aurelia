@@ -66,7 +66,9 @@
             const locator = this.locator;
             this.scheduler = locator.get(runtime_1.IScheduler);
             this.defaultTrigger = locator.get(exports.IDefaultTrigger);
-            this.scopedController = locator.get(validation_controller_1.IValidationController);
+            if (locator.has(validation_controller_1.IValidationController, true)) {
+                this.scopedController = locator.get(validation_controller_1.IValidationController);
+            }
             this.setPropertyBinding();
         }
         updateSource(value, flags) {

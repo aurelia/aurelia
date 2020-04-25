@@ -56,7 +56,7 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
       - run: npm run lint
 
-  test:
+  node:
     needs: ["build"]
     timeout-minutes: 5
     strategy:
@@ -97,3 +97,49 @@ jobs:
       - run: tar -xf dist/dist.tar.xz
       - run: npm run test-node:${{matrix.suite}}
         working-directory: packages/__tests__
+
+  browsers:
+    needs: ["build"]
+    runs-on: ubuntu-latest
+    container:
+      image: "cypress/browsers:node12.13.0-chrome80-ff74"
+      options: --user 1001
+    strategy:
+      matrix:
+        browser: ["chrome", "firefox"]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@master
+        with:
+          path: |
+            node_modules
+            */*/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+      - uses: actions/download-artifact@v1
+        with:
+          name: dist
+      - run: tar -xf dist/dist.tar.xz
+      - run: npm run test-${{matrix.browser}}:verbose
+        working-directory: packages/__tests__
+
+  cypress:
+    needs: ["build"]
+    runs-on: ubuntu-latest
+    container:
+      image: "cypress/browsers:node12.13.0-chrome80-ff74"
+      options: --user 1001
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@master
+        with:
+          path: |
+            node_modules
+            */*/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+      - uses: actions/download-artifact@v1
+        with:
+          name: dist
+      - run: tar -xf dist/dist.tar.xz
+      - run: npm rebuild
+      - run: npm run e2e
+        working-directory: packages/__e2e__

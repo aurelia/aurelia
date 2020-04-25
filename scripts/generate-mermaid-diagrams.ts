@@ -48,7 +48,7 @@ function convertDir(root: string) {
       const relativeSrcPath = path.relative(mermaidRoot, root);
       const outputDir = path.resolve(imagesRoot, relativeSrcPath);
       fs.mkdirSync(outputDir, { recursive: true });
-      execSync(`mmdc -i "${qualifiedPath}" -o "${path.join(outputDir, `${fileName}.svg`)}"`);
+      execSync(`mmdc -i "${qualifiedPath}" -o "${path.join(outputDir, `${fileName}.png`)}"`);
     } else {
       convertDir(qualifiedPath);
     }

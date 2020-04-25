@@ -12,6 +12,7 @@ export {
   Key,
   lazy,
   optional,
+  ignore,
   RegisterSelf,
   Registration,
   ResolveCallback,

@@ -1,4 +1,4 @@
-import { all, DI, IContainer, IRegistry, optional, Registration } from './di';
+import { all, DI, IContainer, ignore, IRegistry, optional, Registration } from './di';
 import { toLookup } from './functions';
 import { LogLevel } from './reporter';
 
@@ -491,7 +491,7 @@ export class DefaultLogger implements ILogger {
     @ILogEventFactory private readonly factory: ILogEventFactory,
     @all(ISink) private readonly sinks: ISink[],
     @optional(ILogScopes) public readonly scope: string[] = [],
-    @optional(ILogger) parent: ILogger | null = null,
+    @ignore parent: ILogger | null = null,
   ) {
     if (parent === null) {
       this.root = this;

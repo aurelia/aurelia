@@ -124,7 +124,8 @@ export type Resolved<K> = (
 
 export type Injectable<T = {}> = Constructable<T> & { inject?: Key[] };
 
-type InternalDefaultableInterfaceSymbol<K> = IDefaultableInterfaceSymbol<K> & Partial<IRegistration<K> & {friendlyName: string}>;
+type InternalDefaultableInterfaceSymbol<K> = IDefaultableInterfaceSymbol<K> & Partial<IRegistration<K> & {
+  friendlyName: string; $isInterface: true;}>;
 
 function cloneArrayWithPossibleProps<T>(source: readonly T[]): T[] {
   const clone = source.slice();
@@ -291,13 +292,14 @@ export const DI = {
    */
   createInterface<K extends Key>(friendlyName?: string): IDefaultableInterfaceSymbol<K> {
     const Interface: InternalDefaultableInterfaceSymbol<K> = function (target: Injectable<K>, property: string, index: number): any {
-      if (target == null) {
-        throw Reporter.error(16, Interface.friendlyName, Interface); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
+      if (target == null || new.target !== undefined) {
+        throw new Error(`No registration for interface: '${Interface.friendlyName}'`); // TODO: add error (trying to resolve an InterfaceSymbol that has no registrations)
       }
       const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
       annotationParamtypes[index] = Interface;
       return target;
     };
+    Interface.$isInterface = true;
     Interface.friendlyName = friendlyName == null ? 'Interface' : friendlyName;
 
     Interface.noDefault = function (): InterfaceSymbol<K> {
@@ -545,7 +547,14 @@ export const optional = createResolver((key: Key, handler: IContainer, requestor
     return undefined;
   }
 });
-
+/**
+ * ignore tells the container not to try to inject a dependency
+ */
+export function ignore(target: Injectable, property?: string | number, descriptor?: PropertyDescriptor | number): void {
+  DI.inject(ignore)(target, property, descriptor);
+}
+ignore.$isResolver = true;
+ignore.resolve = () => undefined;
 export const newInstanceForScope = createResolver((key: any, handler: IContainer, requestor: IContainer) => {
   const instance = createNewInstance(key, handler);
 
@@ -587,6 +596,8 @@ export class Resolver implements IResolver, IRegistration {
 
   public get $isResolver(): true { return true; }
 
+  private resolving: boolean = false;
+
   public register(container: IContainer, key?: Key): IResolver {
     return container.registerResolver(key || this.key, this);
   }
@@ -596,12 +607,18 @@ export class Resolver implements IResolver, IRegistration {
       case ResolverStrategy.instance:
         return this.state;
       case ResolverStrategy.singleton: {
-        this.strategy = ResolverStrategy.instance;
+        if (this.resolving) {
+          throw new Error(`Cyclic dependency found: ${this.state.name}`);
+        }
+        this.resolving = true;
         const factory = handler.getFactory(this.state as Constructable);
         if (factory === null) {
           throw new Error(`Resolver for ${String(this.key)} returned a null factory`);
         }
-        return this.state = factory.construct(requestor);
+        this.state = factory.construct(requestor);
+        this.strategy = ResolverStrategy.instance;
+        this.resolving = false;
+        return this.state;
       }
       case ResolverStrategy.transient: {
         // Always create transients from the requesting container
@@ -654,7 +671,6 @@ export interface IInvoker<T extends Constructable = any> {
 /** @internal */
 export class Factory<T extends Constructable = any> implements IFactory<T> {
   private transformers: ((instance: any) => any)[] | null = null;
-
   public constructor(
     public Type: T,
     private readonly invoker: IInvoker,
@@ -1114,6 +1130,8 @@ export class Container implements IContainer {
         return newResolver;
       }
       throw Reporter.error(40); // did not return a valid resolver from the static register method
+    } else if (keyAsValue.$isInterface) {
+      throw new Error(`Attempted to jitRegister an interface: ${keyAsValue.friendlyName}`);
     } else {
       const resolver = this.config.defaultResolver(keyAsValue, handler);
       handler.resolvers.set(keyAsValue, resolver);

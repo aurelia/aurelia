@@ -20,10 +20,6 @@ import {
   LifecycleFlags,
 } from './flags';
 import {
-  ILifecycleTask,
-  MaybePromiseOrTask,
-} from './lifecycle-task';
-import {
   IBatchable,
   IBindingTargetAccessor,
   IScope,
@@ -52,6 +48,9 @@ export interface IBinding extends IDisposable {
    */
   readonly part?: string;
   readonly isBound: boolean;
+  /**
+   * {@type IBinding}
+   */
   $bind(flags: LifecycleFlags, scope: IScope, part?: string): void;
   $unbind(flags: LifecycleFlags): void;
 }
@@ -62,9 +61,31 @@ export const enum ViewModelKind {
   synthetic
 }
 
+/**
+ * A controller that is ready for activation. It can be `ISyntheticView`, `ICustomElementController` or `ICustomAttributeController`.
+ *
+ * In terms of specificity this is identical to `IController`. The only difference is that this
+ * type is further initialized and thus has more properties and APIs available.
+ */
 export type IHydratedController<T extends INode = INode> = ISyntheticView<T> | ICustomElementController<T> | ICustomAttributeController<T>;
+/**
+ * A controller that is ready for activation. It can be `ICustomElementController` or `ICustomAttributeController`.
+ *
+ * This type of controller is backed by a real component (hence the name) and therefore has ViewModel and may have lifecycle hooks.
+ *
+ * In contrast, `ISyntheticView` has neither a view model nor lifecycle hooks (but its child controllers, if any, may).
+ */
 export type IHydratedComponentController<T extends INode = INode> = ICustomElementController<T> | ICustomAttributeController<T>;
-export type IHydratedRenderableController<T extends INode = INode> = ISyntheticView<T> | ICustomElementController<T>;
+/**
+ * A controller that is ready for activation. It can be `ISyntheticView` or `ICustomElementController`.
+ *
+ * This type of controller may have child controllers (hence the name) and bindings directly placed on it during hydration.
+ *
+ * In contrast, `ICustomAttributeController` has neither child controllers nor bindings directly placed on it (but the backing component may).
+ *
+ * Note: the parent of a `ISyntheticView` is always a `IHydratedComponentController` because views cannot directly own other views. Views may own components, and components may own views or components.
+ */
+export type IHydratedParentController<T extends INode = INode> = ISyntheticView<T> | ICustomElementController<T>;
 
 /**
  * The base type for all controller types.
@@ -74,46 +95,15 @@ export type IHydratedRenderableController<T extends INode = INode> = ISyntheticV
 export interface IController<
   T extends INode = INode,
   C extends IViewModel<T> = IViewModel<T>,
-> {
+> extends IDisposable {
   /** @internal */readonly id: number;
   readonly flags: LifecycleFlags;
-  readonly isBound: boolean;
-  readonly isAttached: boolean;
-
-  parent?: IHydratedController<T>;
 
   readonly lifecycle: ILifecycle;
   readonly hooks: HooksDefinition;
   readonly vmKind: ViewModelKind;
 
   part: string | undefined;
-
-  /** @internal */head: IComponentController | null;
-  /** @internal */tail: IComponentController | null;
-
-  bind(
-    initiator: IHydratedController<T>,
-    parent: IHydratedController<T> | null,
-    flags: LifecycleFlags,
-    scope?: IScope,
-    partName?: string,
-  ): ILifecycleTask;
-  unbind(
-    initiator: IHydratedController<T>,
-    parent: IHydratedController<T> | null,
-    flags: LifecycleFlags,
-  ): ILifecycleTask;
-  attach(
-    initiator: IHydratedController<T>,
-    parent: IHydratedController<T> | null,
-    flags: LifecycleFlags,
-  ): ILifecycleTask;
-  detach(
-    initiator: IHydratedController<T>,
-    parent: IHydratedController<T> | null,
-    flags: LifecycleFlags,
-  ): ILifecycleTask;
-  dispose(): void;
 }
 
 /**
@@ -140,14 +130,13 @@ export interface IComponentController<
    */
   readonly bindingContext: C & IIndexable;
 
-  /** @internal */next: IComponentController | null;
 }
 
 /**
  * The base type for `ISyntheticView` and `ICustomElementController`.
  *
  * Both of those types can:
- * - Have `bindings` and `controllers` which are populated during rendering (hence, 'Renderable').
+ * - Have `bindings` and `children` which are populated during rendering (hence, 'Renderable').
  * - Have physical DOM nodes that can be mounted.
  */
 export interface IRenderableController<
@@ -157,12 +146,22 @@ export interface IRenderableController<
   readonly vmKind: ViewModelKind.customElement | ViewModelKind.synthetic;
 
   readonly bindings: readonly IBinding[] | undefined;
-  readonly controllers: readonly IHydratedController<T>[] | undefined;
+  readonly children: readonly IHydratedController<T>[] | undefined;
 
   getTargetAccessor(propertyName: string): IBindingTargetAccessor | undefined;
 
   addBinding(binding: IBinding): void;
   addController(controller: IController<T>): void;
+}
+
+interface IHydratedControllerProperties<
+  T extends INode = INode,
+> {
+  readonly isActive: boolean;
+
+  /** @internal */head: IHydratedController<T> | null;
+  /** @internal */tail: IHydratedController<T> | null;
+  /** @internal */next: IHydratedController<T> | null;
 }
 
 /**
@@ -174,16 +173,18 @@ export interface IRenderableController<
  */
 export interface ISyntheticView<
   T extends INode = INode,
-> extends IRenderableController<T> {
+> extends IRenderableController<T>, IHydratedControllerProperties<T> {
+  parent: IHydratedComponentController<T> | null;
+
   readonly vmKind: ViewModelKind.synthetic;
   readonly viewModel: undefined;
   readonly bindingContext: undefined;
   /**
    * The scope that belongs to this view. This property will always be defined when the `state` property of this view indicates that the view is currently bound.
    *
-   * The `scope` may be set during `bind()` and unset during `unbind()`, or it may be statically set during rendering with `lockScope()`.
+   * The `scope` may be set during `activate()` and unset during `deactivate()`, or it may be statically set during rendering with `lockScope()`.
    */
-  readonly scope: Scope | undefined;
+  readonly scope: Scope;
   /**
    * The compiled render context used for rendering this view. Compilation was done by the `IViewFactory` prior to creating this view.
    */
@@ -191,7 +192,7 @@ export interface ISyntheticView<
   /**
    * The names of the `replace` parts that were declared in the same scope as this view's template.
    *
-   * The `replaceable` template controllers with those names will use this view's scope as the outer scope for properties that don't exist on the inner scope.
+   * The `replaceable` template children with those names will use this view's scope as the outer scope for properties that don't exist on the inner scope.
    */
   readonly scopeParts: readonly string[];
   readonly isStrictBinding: boolean;
@@ -204,8 +205,21 @@ export interface ISyntheticView<
    */
   readonly location: IRenderLocation<T> | undefined;
 
+  activate(
+    initiator: IHydratedController<T>,
+    parent: IHydratedComponentController<T>,
+    flags: LifecycleFlags,
+    scope: IScope,
+    part?: string,
+  ): void | Promise<void>;
+  deactivate(
+    initiator: IHydratedController<T>,
+    parent: IHydratedComponentController<T>,
+    flags: LifecycleFlags,
+  ): void | Promise<void>;
+
   /**
-   * Lock this view's scope to the provided `IScope`. The scope, which is normally set during `bind()`, will then not change anymore.
+   * Lock this view's scope to the provided `IScope`. The scope, which is normally set during `activate()`, will then not change anymore.
    *
    * This is used by `au-compose` to set the binding context of a view to a particular component instance.
    *
@@ -220,11 +234,11 @@ export interface ISyntheticView<
    */
   setLocation(location: IRenderLocation<T>, mountStrategy: MountStrategy): void;
   /**
-   * Mark this view as not-in-use, so that it can either be disposed or returned to cache after finishing the unbind lifecycle.
+   * Mark this view as not-in-use, so that it can either be disposed or returned to cache after finishing the deactivate lifecycle.
    *
-   * If this view is cached and later retrieved from the cache, it will be marked as in-use again before starting the bind lifecycle, so this method must be called each time.
+   * If this view is cached and later retrieved from the cache, it will be marked as in-use again before starting the activate lifecycle, so this method must be called each time.
    *
-   * If this method is *not* called before `unbind()`, this view will neither be cached nor disposed.
+   * If this method is *not* called before `deactivate()`, this view will neither be cached nor disposed.
    */
   release(): void;
 }
@@ -232,7 +246,9 @@ export interface ISyntheticView<
 export interface ICustomAttributeController<
   T extends INode = INode,
   C extends ICustomAttributeViewModel<T> = ICustomAttributeViewModel<T>,
-> extends IComponentController<T, C> {
+> extends IComponentController<T, C>, IHydratedControllerProperties<T> {
+  parent: IHydratedParentController<T> | null;
+
   readonly vmKind: ViewModelKind.customAttribute;
   /**
    * @inheritdoc
@@ -245,13 +261,26 @@ export interface ICustomAttributeController<
   /**
    * The scope that belongs to this custom attribute. This property will always be defined when the `state` property of this view indicates that the view is currently bound.
    *
-   * The `scope` will be set during `bind()` and unset during `unbind()`.
+   * The `scope` will be set during `activate()` and unset during `deactivate()`.
    *
    * The scope's `bindingContext` will be the same instance as this controller's `bindingContext` property.
    */
-  readonly scope: Scope | undefined;
-  readonly controllers: undefined;
+  readonly scope: Scope;
+  readonly children: undefined;
   readonly bindings: undefined;
+
+  activate(
+    initiator: IHydratedController<T>,
+    parent: IHydratedParentController<T>,
+    flags: LifecycleFlags,
+    scope: IScope,
+    part?: string,
+  ): void | Promise<void>;
+  deactivate(
+    initiator: IHydratedController<T>,
+    parent: IHydratedParentController<T>,
+    flags: LifecycleFlags,
+  ): void | Promise<void>;
 }
 
 /**
@@ -301,7 +330,7 @@ export interface IContextualCustomElementController<
 export interface ICompiledCustomElementController<
   T extends INode = INode,
   C extends IViewModel<T> = IViewModel<T>,
-> extends IContextualCustomElementController<T, C> {
+> extends IContextualCustomElementController<T, C>, IHydratedControllerProperties<T> {
   /**
    * The compiled render context used for hydrating this controller.
    */
@@ -309,7 +338,7 @@ export interface ICompiledCustomElementController<
   /**
    * The names of the `replace` parts that were declared in the same scope as this component's template.
    *
-   * The `replaceable` template controllers with those names will use this components's scope as the outer scope for properties that don't exist on the inner scope.
+   * The `replaceable` template children with those names will use this components's scope as the outer scope for properties that don't exist on the inner scope.
    */
   readonly scopeParts: readonly string[];
   readonly isStrictBinding: boolean;
@@ -333,6 +362,8 @@ export interface ICustomElementController<
   T extends INode = INode,
   C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>,
 > extends ICompiledCustomElementController<T, C> {
+  parent: IHydratedParentController<T> | null;
+
   /**
    * @inheritdoc
    */
@@ -341,6 +372,19 @@ export interface ICustomElementController<
    * @inheritdoc
    */
   readonly bindingContext: C & IIndexable;
+
+  activate(
+    initiator: IHydratedController<T>,
+    parent: IHydratedParentController<T> | null,
+    flags: LifecycleFlags,
+    scope?: IScope,
+    part?: string,
+  ): void | Promise<void>;
+  deactivate(
+    initiator: IHydratedController<T>,
+    parent: IHydratedParentController<T> | null,
+    flags: LifecycleFlags,
+  ): void | Promise<void>;
 }
 
 export const IController = DI.createInterface<IController>('IController').noDefault();
@@ -369,55 +413,51 @@ export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
 
 export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory').noDefault();
 
-/**
- * Defines optional lifecycle hooks that will be called only when they are implemented.
- */
-export interface IViewModel<T extends INode = INode> {
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  constructor: Function;
-  readonly $controller?: IController<T, this>;
-
+export interface IActivationHooks<TParent, T extends INode = INode> {
   beforeBind?(
     initiator: IHydratedController<T>,
-    parent: IHydratedController<T> | null,
+    parent: TParent,
     flags: LifecycleFlags,
-  ): MaybePromiseOrTask;
+  ): void | Promise<void>;
   afterBind?(
-    flags: LifecycleFlags,
-  ): void;
-  afterBindChildren?(
-    flags: LifecycleFlags,
-  ): void;
-
-  beforeUnbind?(
     initiator: IHydratedController<T>,
-    parent: IHydratedController<T> | null,
+    parent: TParent,
     flags: LifecycleFlags,
-  ): MaybePromiseOrTask;
-  afterUnbind?(flags: LifecycleFlags): void;
-  afterUnbindChildren?(flags: LifecycleFlags): void;
-
-  beforeAttach?(
+  ): void | Promise<void>;
+  afterAttach?(
     initiator: IHydratedController<T>,
-    parent: IHydratedController<T> | null,
+    parent: TParent,
     flags: LifecycleFlags,
-  ): void;
-  afterAttach?(flags: LifecycleFlags): MaybePromiseOrTask;
-  afterAttachChildren?(flags: LifecycleFlags): void;
+  ): void | Promise<void>;
+  afterAttachChildren?(
+    initiator: IHydratedController<T>,
+    flags: LifecycleFlags,
+  ): void | Promise<void>;
 
   beforeDetach?(
     initiator: IHydratedController<T>,
-    parent: IHydratedController<T> | null,
+    parent: TParent,
     flags: LifecycleFlags,
-  ): MaybePromiseOrTask;
-  afterDetach?(flags: LifecycleFlags): void;
-  afterDetachChildren?(flags: LifecycleFlags): void;
+  ): void | Promise<void>;
+  beforeUnbind?(
+    initiator: IHydratedController<T>,
+    parent: TParent,
+    flags: LifecycleFlags,
+  ): void | Promise<void>;
+  afterUnbind?(
+    initiator: IHydratedController<T>,
+    parent: TParent,
+    flags: LifecycleFlags,
+  ): void | Promise<void>;
+  afterUnbindChildren?(
+    initiator: IHydratedController<T>,
+    flags: LifecycleFlags,
+  ): void | Promise<void>;
 
   dispose?(): void;
 }
 
-export interface ICustomElementViewModel<T extends INode = INode> extends IViewModel<T> {
-  readonly $controller?: ICustomElementController<T, this>;
+export interface ICompileHooks<T extends INode = INode> {
   create?(
     controller: IDryCustomElementController<T, this>,
     parentContainer: IContainer,
@@ -435,7 +475,20 @@ export interface ICustomElementViewModel<T extends INode = INode> extends IViewM
   ): void;
 }
 
-export interface ICustomAttributeViewModel<T extends INode = INode> extends IViewModel<T> {
+/**
+ * Defines optional lifecycle hooks that will be called only when they are implemented.
+ */
+export interface IViewModel<T extends INode = INode> {
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  constructor: Function;
+  readonly $controller?: IController<T, this>;
+}
+
+export interface ICustomElementViewModel<T extends INode = INode> extends IViewModel<T>, IActivationHooks<IHydratedParentController<T> | null, T>, ICompileHooks<T> {
+  readonly $controller?: ICustomElementController<T, this>;
+}
+
+export interface ICustomAttributeViewModel<T extends INode = INode> extends IViewModel<T>, IActivationHooks<IHydratedParentController<T>, T> {
   readonly $controller?: ICustomAttributeController<T, this>;
 }
 

@@ -434,7 +434,7 @@ export {
   ICustomAttributeController,
   IHydratedController,
   IHydratedComponentController,
-  IHydratedRenderableController,
+  IHydratedParentController,
   ICompiledCustomElementController,
   ICustomElementController,
   IViewCache,

@@ -137,7 +137,7 @@ const defaultOptions: ILiveLoggingOptions = {
   rendering: true,
   binding: true,
   observation: true,
-  beforeAttach: true,
+  attaching: true,
   mounting: true,
   di: true,
   lifecycle: true,
@@ -493,7 +493,7 @@ function createLiveTraceWriter(options: ILiveLoggingOptions): ITraceWriter {
   if (options.observation) {
     Object.assign(Processors, ObservationArgsProcessor);
   }
-  if (options.beforeAttach) {
+  if (options.attaching) {
     Object.assign(Processors, AttachingArgsProcessor);
   }
   if (options.mounting) {

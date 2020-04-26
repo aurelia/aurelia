@@ -170,14 +170,14 @@ describe('templating-compiler.ref.spec.ts', function () {
       root: class App {
         public static inject = [INode];
         public div: HTMLElement;
-        public bindingCalls = 0;
-        public boundCalls = 0;
-        public attachingCalls = 0;
-        public attachedCalls = 0;
-        public detachingCalls = 0;
-        public detachedCalls = 0;
-        public unbindingCalls = 0;
-        public unboundCalls = 0;
+        public beforeBindCalls = 0;
+        public afterBindCalls = 0;
+        public afterAttachCalls = 0;
+        public afterAttachChildrenCalls = 0;
+        public beforeDetachCalls = 0;
+        public beforeUnbindCalls = 0;
+        public afterUnbindCalls = 0;
+        public afterUnbindChildrenCalls = 0;
 
         private readonly el: Element;
         public constructor(el: INode) {
@@ -185,97 +185,96 @@ describe('templating-compiler.ref.spec.ts', function () {
         }
 
         public beforeBind(): void {
-          this.bindingCalls++;
-          assert.strictEqual(this.div, undefined, '[binding] div !== undefined');
-          assert.notContains(this.el, this.div, '[binding] this.el.contains(this.div) === false');
+          this.beforeBindCalls++;
+          assert.strictEqual(this.div, undefined, '[beforeBind] div !== undefined');
+          assert.notContains(this.el, this.div, '[beforeBind] this.el.contains(this.div) === false');
         }
 
-        public afterBindChildren(): void {
-          this.boundCalls++;
-          assert.notStrictEqual(this.div, undefined, '[bound] div !== undefined');
-          assert.notContains(this.el, this.div, '[bound] this.el.contains(this.div) === false');
+        public afterBind(): void {
+          this.afterBindCalls++;
+          assert.notStrictEqual(this.div, undefined, '[afterBind] div !== undefined');
+          assert.notContains(this.el, this.div, '[afterBind] this.el.contains(this.div) === false');
         }
 
-        public beforeAttach(): void {
-          this.attachingCalls++;
-          assert.notStrictEqual(this.div, undefined, '[beforeAttach] div !== undefined');
-          assert.notContains(this.el, this.div, '[beforeAttach] this.el.contains(this.div)');
+        public afterAttach(): void {
+          this.afterAttachCalls++;
+          assert.notStrictEqual(this.div, undefined);
+          assert.contains(this.el, this.div, '[afterAttach] this.el.contains(this.div)');
         }
 
         public afterAttachChildren(): void {
-          this.attachedCalls++;
+          this.afterAttachChildrenCalls++;
           assert.notStrictEqual(this.div, undefined);
           assert.contains(this.el, this.div, '[afterAttachChildren] this.el.contains(this.div)');
         }
 
         public beforeDetach(): void {
-          this.detachingCalls++;
+          this.beforeDetachCalls++;
           assert.notStrictEqual(this.div, undefined);
           assert.contains(this.el, this.div, '[beforeDetach] this.el.contains(this.div)');
         }
 
-        public afterDetachChildren(): void {
-          this.detachedCalls++;
-          assert.notStrictEqual(this.div, undefined);
-          assert.notContains(this.el, this.div, '[afterDetachChildren] this.el.contains(this.div)');
-        }
-
         public beforeUnbind(): void {
-          this.unbindingCalls++;
+          this.beforeUnbindCalls++;
           assert.notStrictEqual(this.div, undefined);
           assert.notContains(this.el, this.div, '[beforeUnbind] this.el.contains(this.div)');
         }
 
+        public afterUnbind(): void {
+          this.afterUnbindCalls++;
+          assert.strictEqual(this.div, null, '[afterUnbind] this.div === null');
+        }
+
         public afterUnbindChildren(): void {
-          this.unboundCalls++;
-          assert.strictEqual(this.div, null, '[unbound] this.div === null');
+          this.afterUnbindChildrenCalls++;
         }
       },
       assertFn: (
         ctx,
         host,
         comp: {
-          bindingCalls: number;
-          boundCalls: number;
-          attachingCalls: number;
-          attachedCalls: number;
-          detachingCalls: number;
-          detachedCalls: number;
-          unbindingCalls: number;
-          unboundCalls: number;
+          beforeBindCalls: number;
+          afterBindCalls: number;
+          afterAttachCalls: number;
+          afterAttachChildrenCalls: number;
+          beforeDetachCalls: number;
+          afterDetachCalls: number;
+          beforeUnbindCalls: number;
+          afterUnbindCalls: number;
+          afterUnbindChildrenCalls: number;
         }
       ) => {
-        assert.equal(comp.bindingCalls, 1, '[binding]');
-        assert.equal(comp.boundCalls, 1, '[bound]');
-        assert.equal(comp.attachingCalls, 1, '[beforeAttach]');
-        assert.equal(comp.attachedCalls, 1, '[afterAttachChildren]');
-        assert.equal(comp.detachingCalls, 0, '[beforeDetach]');
-        assert.equal(comp.detachedCalls, 0, '[afterDetachChildren]');
-        assert.equal(comp.unbindingCalls, 0, '[beforeUnbind]');
-        assert.equal(comp.unboundCalls, 0, '[unbound]');
+        assert.equal(comp.beforeBindCalls, 1, '[beforeBind]');
+        assert.equal(comp.afterBindCalls, 1, '[afterBind]');
+        assert.equal(comp.afterAttachCalls, 1, '[afterAttach]');
+        assert.equal(comp.afterAttachChildrenCalls, 1, '[afterAttachChildren]');
+        assert.equal(comp.beforeDetachCalls, 0, '[beforeDetach]');
+        assert.equal(comp.beforeUnbindCalls, 0, '[beforeUnbind]');
+        assert.equal(comp.afterUnbindCalls, 0, '[afterUnbind]');
+        assert.equal(comp.afterUnbindChildrenCalls, 0, '[afterUnbind]');
       },
       assertFnAfterDestroy: (
         ctx,
         host,
         comp: {
-          bindingCalls: number;
-          boundCalls: number;
-          attachingCalls: number;
-          attachedCalls: number;
-          detachingCalls: number;
-          detachedCalls: number;
-          unbindingCalls: number;
-          unboundCalls: number;
+          beforeBindCalls: number;
+          afterBindCalls: number;
+          afterAttachCalls: number;
+          afterAttachChildrenCalls: number;
+          beforeDetachCalls: number;
+          beforeUnbindCalls: number;
+          afterUnbindCalls: number;
+          afterUnbindChildrenCalls: number;
         }
       ) => {
-        assert.equal(comp.bindingCalls, 1, '[binding]');
-        assert.equal(comp.boundCalls, 1, '[bound]');
-        assert.equal(comp.attachingCalls, 1, '[beforeAttach]');
-        assert.equal(comp.attachedCalls, 1, '[afterAttachChildren]');
-        assert.equal(comp.detachingCalls, 1, '[beforeDetach]');
-        assert.equal(comp.detachedCalls, 1, '[afterDetachChildren]');
-        assert.equal(comp.unbindingCalls, 1, '[beforeUnbind]');
-        assert.equal(comp.unboundCalls, 1, '[unbound]');
+        assert.equal(comp.beforeBindCalls, 1, '[beforeBind]');
+        assert.equal(comp.afterBindCalls, 1, '[afterBind]');
+        assert.equal(comp.afterAttachCalls, 1, '[afterAttach]');
+        assert.equal(comp.afterAttachChildrenCalls, 1, '[afterAttachChildren]');
+        assert.equal(comp.beforeDetachCalls, 1, '[beforeDetach]');
+        assert.equal(comp.beforeUnbindCalls, 1, '[beforeUnbind]');
+        assert.equal(comp.afterUnbindCalls, 1, '[afterUnbind]');
+        assert.equal(comp.afterUnbindChildrenCalls, 1, '[afterUnbind]');
       }
     },
     ...Array
@@ -330,7 +329,7 @@ describe('templating-compiler.ref.spec.ts', function () {
         ] as IRefIntegrationTestCase[];
       })
       .reduce((arr, cases) => arr.concat(cases), []),
-    // #region ref-binding order
+    // #region ref-beforeBind order
     {
       title: 'works regardless of declaration order',
       template: '<input value.to-view="div.toString()"><div ref="div"></div>',
@@ -411,7 +410,7 @@ describe('templating-compiler.ref.spec.ts', function () {
         assert.strictEqual(comp.divSetterCount, 11, 'shoulda called setter 11 times' /* 1 comes from $unbind */);
       }
     },
-    // #endregion ref-binding order
+    // #endregion ref-beforeBind order
 
     // #region wrong usage
     // bellow are non-happy-path scenarios

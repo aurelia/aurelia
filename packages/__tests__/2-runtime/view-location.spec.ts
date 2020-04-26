@@ -226,15 +226,18 @@ describe('the view locator', function () {
     'create',
     'afterCompile',
     'afterCompileChildren',
+
     'beforeBind',
-    'afterBindChildren',
-    'beforeAttach',
+    'afterBind',
+    'afterAttach',
     'afterAttachChildren',
+
     'beforeDetach',
-    'dispose',
-    'afterDetachChildren',
     'beforeUnbind',
-    'afterUnbindChildren'
+    'afterUnbind',
+    'afterUnbindChildren',
+
+    'dispose',
   ].forEach(lifecycleHook => {
     it(`returns a component that implements lifecycle '${lifecycleHook}' if present on the model`, function () {
       const template = { name: 'name' };

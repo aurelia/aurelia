@@ -1299,7 +1299,7 @@ const methodNamesWithFlags: PropertyKey[] = [
   'endBind',
 
   'beforeBind',
-  'afterBindChildren',
+  'afterBind',
 
   'attach',
   'attachCustomElement',
@@ -1308,7 +1308,7 @@ const methodNamesWithFlags: PropertyKey[] = [
 
   'attachControllers',
 
-  'beforeAttach',
+  'afterAttach',
   'afterAttachChildren',
 
   'detach',
@@ -1370,7 +1370,6 @@ export function formatProperty(
 
           case 'beforeBind':
           case 'afterBind':
-          case 'afterBindChildren':
 
           case 'attach':
           case 'attachCustomElement':
@@ -1379,7 +1378,7 @@ export function formatProperty(
 
           case 'attachControllers':
 
-          case 'beforeAttach':
+          case 'afterAttach':
           case 'afterAttachChildren':
 
           case 'detach':

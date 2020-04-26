@@ -406,8 +406,8 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     Metadata.define(key, childController, renderLocation);
 
     if (instruction.link) {
-      const controllers = controller.controllers!;
-      (component as { link(componentTail: IController): void}).link(controllers[controllers.length - 1]);
+      const children = controller.children!;
+      (component as { link(componentTail: IController): void}).link(children[children.length - 1]);
     }
 
     parentContext.renderInstructions(

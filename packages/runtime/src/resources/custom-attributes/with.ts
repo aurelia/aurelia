@@ -1,7 +1,7 @@
 import { nextId } from '@aurelia/kernel';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags } from '../../flags';
-import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController } from '../../lifecycle';
+import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController } from '../../lifecycle';
 import { templateController } from '../custom-attribute';
 import { bindable } from '../../templating/bindable';
 import { Scope } from '../../observation/binding-context';
@@ -26,52 +26,41 @@ export class With<T extends INode = INode> implements ICustomAttributeViewModel<
     this.view.setLocation(location, MountStrategy.insertBefore);
   }
 
-  public valueChanged(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void {
-    if (this.$controller.isBound) {
-      this.bindChild(this.$controller, LifecycleFlags.fromBind);
+  public valueChanged(
+    newValue: unknown,
+    oldValue: unknown,
+    flags: LifecycleFlags,
+  ): void {
+    if (this.$controller.isActive) {
+      // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.activateView(this.view, LifecycleFlags.fromBind);
     }
   }
 
-  public beforeBind(
+  public afterAttach(
     initiator: IHydratedController<T>,
-    parent: IHydratedController<T> | null,
+    parent: IHydratedParentController<T>,
     flags: LifecycleFlags,
-  ): void {
-    this.view.parent = this.$controller;
-    this.bindChild(initiator, flags);
+  ): void | Promise<void> {
+    return this.activateView(initiator, flags);
   }
 
-  public beforeAttach(
+  public afterUnbind(
     initiator: IHydratedController<T>,
-    parent: IHydratedController<T> | null,
+    parent: IHydratedParentController<T>,
     flags: LifecycleFlags,
-  ): void {
-    this.view.attach(initiator, this.$controller, flags);
+  ): void | Promise<void> {
+    return this.view.deactivate(initiator, this.$controller, flags);
   }
 
-  public beforeDetach(
-    initiator: IHydratedController<T>,
-    parent: IHydratedController<T> | null,
-    flags: LifecycleFlags,
-  ): void {
-    this.view.detach(initiator, this.$controller, flags);
-  }
-
-  public beforeUnbind(
-    initiator: IHydratedController<T>,
-    parent: IHydratedController<T> | null,
-    flags: LifecycleFlags,
-  ): void {
-    this.view.unbind(initiator, this.$controller, flags);
-    this.view.parent = void 0;
-  }
-
-  private bindChild(
+  private activateView(
     initiator: IHydratedController<T>,
     flags: LifecycleFlags,
-  ): void {
-    const scope = Scope.fromParent(flags, this.$controller.scope!, this.value === void 0 ? {} : this.value);
-    this.view.bind(initiator, this.$controller, flags, scope, this.$controller.part);
+  ): void | Promise<void> {
+    const { $controller, value } = this;
+    const scope = Scope.fromParent(flags, $controller.scope, value === void 0 ? {} : value);
+    return this.view.activate(initiator, $controller, flags, scope, $controller.part);
   }
 
   public dispose(): void {

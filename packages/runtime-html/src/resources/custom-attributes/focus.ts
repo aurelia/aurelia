@@ -46,7 +46,7 @@ export class Focus implements ICustomAttributeViewModel<HTMLElement> {
     // while it's disconnected from the document
     // thus, there neesd to be a check if it's currently connected or not
     // before applying the value to the element
-    if (this.$controller.isAttached) {
+    if (this.$controller.isActive) {
       this.apply();
     } else {
       // If the element is not currently connect

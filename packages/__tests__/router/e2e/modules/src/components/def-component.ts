@@ -13,8 +13,8 @@ export class DefComponent {
 
   public constructor(private readonly appState: AppState) { }
 
-  public afterBindChildren(...rest) {
-    console.log(this.name, 'afterBindChildren', this.appState, rest);
+  public afterBind(...rest) {
+    console.log(this.name, 'afterBind', this.appState, rest);
   }
   public afterAttachChildren(...rest) {
     console.log(this.name, 'afterAttachChildren', rest);

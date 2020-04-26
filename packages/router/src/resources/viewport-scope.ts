@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/promise-function-async */
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import {
   bindable,
   INode,
@@ -13,6 +17,7 @@ import {
   PartialCustomElementDefinition,
   IController,
   IHydratedController,
+  IHydratedParentController,
 } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { IViewportScopeOptions, ViewportScope } from '../viewport-scope';
@@ -113,7 +118,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Eleme
 
   public beforeBind(
     initiator: IHydratedController<Element>,
-    parent: IHydratedController<Element> | null,
+    parent: IHydratedParentController<Element> | null,
     flags: LifecycleFlags,
   ): void {
     this.isBound = true;
@@ -127,7 +132,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Eleme
   }
   public async beforeUnbind(
     initiator: IHydratedController<Element>,
-    parent: IHydratedController<Element> | null,
+    parent: IHydratedParentController<Element> | null,
     flags: LifecycleFlags,
   ): Promise<void> {
     if (this.viewportScope !== null) {

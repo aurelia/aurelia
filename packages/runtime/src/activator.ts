@@ -12,6 +12,9 @@ import {
   ContinuationTask,
   ILifecycleTask,
   IStartTaskManager,
+  hasAsyncWork,
+  TerminalTask,
+  LifecycleTask,
 } from './lifecycle-task';
 import { IScope } from './observation';
 import { Controller } from './templating/controller';
@@ -60,21 +63,15 @@ export class Activator implements IActivator {
     }
 
     if (task.done) {
-      task = this.bind(component, flags, parentScope);
+      task = this.activateController(component, flags, parentScope);
     } else {
-      task = new ContinuationTask(task, this.bind, this, component, flags, parentScope);
+      task = new ContinuationTask(task, this.activateController, this, component, flags, parentScope);
     }
 
     if (task.done) {
-      task = mgr.runBeforeAttach();
+      task = mgr.runAfterAttach();
     } else {
-      task = new ContinuationTask(task, mgr.runBeforeAttach, mgr);
-    }
-
-    if (task.done) {
-      this.attach(component, flags);
-    } else {
-      task = new ContinuationTask(task, this.attach, this, component, flags);
+      task = new ContinuationTask(task, mgr.runAfterAttach, mgr);
     }
 
     return task;
@@ -82,8 +79,11 @@ export class Activator implements IActivator {
 
   public deactivate(component: ICustomElementViewModel, flags: LifecycleFlags = LifecycleFlags.fromStopTask): ILifecycleTask {
     const controller = Controller.getCachedOrThrow(component);
-    controller.detach(controller, null, flags | LifecycleFlags.fromDetach);
-    return controller.unbind(controller, null, flags | LifecycleFlags.fromUnbind);
+    const ret = controller.deactivate(controller, null, flags);
+    if (hasAsyncWork(ret)) {
+      return new TerminalTask(ret);
+    }
+    return LifecycleTask.done;
   }
 
   private render(
@@ -96,20 +96,16 @@ export class Activator implements IActivator {
     Controller.forCustomElement(component, lifecycle, host, container, void 0, flags);
   }
 
-  private bind(
+  private activateController(
     component: ICustomElementViewModel,
     flags: LifecycleFlags,
     parentScope?: IScope,
   ): ILifecycleTask {
     const controller = Controller.getCachedOrThrow(component);
-    return controller.bind(controller, null, flags | LifecycleFlags.fromBind, parentScope);
-  }
-
-  private attach(
-    component: ICustomElementViewModel,
-    flags: LifecycleFlags,
-  ): void {
-    const controller = Controller.getCachedOrThrow(component);
-    controller.attach(controller, null, flags | LifecycleFlags.fromAttach);
+    const ret = controller.activate(controller, null, flags | LifecycleFlags.fromBind, parentScope);
+    if (hasAsyncWork(ret)) {
+      return new TerminalTask(ret);
+    }
+    return LifecycleTask.done;
   }
 }

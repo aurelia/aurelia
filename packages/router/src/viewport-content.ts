@@ -1,5 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/promise-function-async */
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { IContainer, Reporter } from '@aurelia/kernel';
-import { Controller, IController, INode, LifecycleFlags, ILifecycle, CustomElement } from '@aurelia/runtime';
+import { Controller, IController, INode, LifecycleFlags, ILifecycle, CustomElement, IHydratedController, ICustomElementController } from '@aurelia/runtime';
 import { INavigatorInstruction, IRouteableComponent, RouteableComponentType, ReentryBehavior } from './interfaces';
 import { parseQuery } from './parser';
 import { Viewport } from './viewport';
@@ -9,8 +13,7 @@ export const enum ContentStatus {
   none = 0,
   created = 1,
   loaded = 2,
-  initialized = 3,
-  added = 4,
+  activated = 3,
 }
 
 export class ViewportContent {
@@ -148,7 +151,7 @@ export class ViewportContent {
     this.entered = true;
   }
   public async leave(nextInstruction: INavigatorInstruction | null): Promise<void> {
-    if (this.contentStatus !== ContentStatus.added || !this.entered) {
+    if (this.contentStatus !== ContentStatus.activated || !this.entered) {
       return;
     }
     if (this.content.componentInstance && this.content.componentInstance.leave) {
@@ -158,23 +161,21 @@ export class ViewportContent {
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  public async loadComponent(container: IContainer, element: Element, viewport: Viewport): Promise<void> {
+  public async loadComponent(viewportController: ICustomElementController<Element>, viewport: Viewport): Promise<void> {
     // if (this.contentStatus !== ContentStatus.created || !this.entered || !this.content.componentInstance) {
     if (this.contentStatus !== ContentStatus.created || this.entered || !this.content.componentInstance) {
       return;
     }
     // Don't load cached content or instantiated history content
     if (!this.fromCache || !this.fromHistory) {
-      const host: INode = element as INode;
-      const controller = Controller.forCustomElement(
+      Controller.forCustomElement(
         this.content.componentInstance,
-        container.get(ILifecycle),
-        host,
-        container,
+        viewportController.context.get(ILifecycle),
+        viewportController.host as INode,
+        viewportController.context,
         void 0,
         void 0,
       );
-      controller.parent = CustomElement.for(element)!;
     }
     this.contentStatus = ContentStatus.loaded;
   }
@@ -193,43 +194,19 @@ export class ViewportContent {
     }
   }
 
-  public initializeComponent(parent: IController): void {
+  public async activateComponent(
+    initiator: IHydratedController<Element> | null,
+    viewportController: ICustomElementController<Element> | null,
+    flags: LifecycleFlags,
+  ): Promise<void> {
     if (this.contentStatus !== ContentStatus.loaded) {
       return;
     }
-    // Don't initialize cached content or instantiated history content
-    // if (!this.fromCache || !this.fromHistory) {
-    // this.content.componentInstance!.$controller!.parent = parent;
-    const controller = this.content.componentInstance!.$controller!;
-    // TODO(fkleuver): revisit later, still need to wireup lifecycle task and make sure the correct initializer and parent are passed down
-    controller.bind(controller, null, LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
-    // }
-    this.contentStatus = ContentStatus.initialized;
-  }
 
-  public async terminateComponent(stateful: boolean = false): Promise<void> {
-    if (this.contentStatus !== ContentStatus.initialized) {
-      return;
-    }
-    // Don't terminate cached content
-    // if (!stateful) {
     const controller = this.content.componentInstance!.$controller!;
-    // TODO(fkleuver): revisit later, still need to wireup lifecycle task and make sure the correct initializer and parent are passed down
-    await controller.unbind(controller, null, LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind).wait();
-    // this.content.componentInstance!.$controller!.parent = void 0;
-    // }
-    this.contentStatus = ContentStatus.loaded;
-  }
-
-  public addComponent(element: Element): void {
-    if (this.contentStatus !== ContentStatus.initialized) {
-      return;
-    }
-    const controller = this.content.componentInstance!.$controller!;
-    // TODO(fkleuver): revisit later, still need to wireup lifecycle task and make sure the correct initializer and parent are passed down
-    controller.attach(controller, null, LifecycleFlags.fromStartTask);
-    if (this.fromCache || this.fromHistory) {
-      const elements = Array.from(element.getElementsByTagName('*'));
+    await controller.activate(initiator ?? controller, null, flags | LifecycleFlags.fromStartTask);
+    if ((this.fromCache || this.fromHistory) && viewportController) {
+      const elements = Array.from(viewportController.host.getElementsByTagName('*'));
       for (const el of elements) {
         const attr = el.getAttribute('au-element-scroll');
         if (attr) {
@@ -239,33 +216,42 @@ export class ViewportContent {
         }
       }
     }
-    this.contentStatus = ContentStatus.added;
+    this.contentStatus = ContentStatus.activated;
   }
-  public removeComponent(element: Element | null, stateful: boolean = false): void {
-    if (this.contentStatus !== ContentStatus.added || this.entered) {
+
+  public async deactivateComponent(
+    initiator: IHydratedController<Element> | null,
+    viewportController: ICustomElementController<Element> | null,
+    flags: LifecycleFlags,
+    stateful: boolean = false,
+  ): Promise<void> {
+    if (this.contentStatus !== ContentStatus.activated || this.entered) {
       return;
     }
-    if (stateful && element !== null) {
-      const elements = Array.from(element.getElementsByTagName('*'));
+    if (stateful && viewportController) {
+      const elements = Array.from(viewportController.host.getElementsByTagName('*'));
       for (const el of elements) {
         if (el.scrollTop > 0 || el.scrollLeft) {
           el.setAttribute('au-element-scroll', `${el.scrollTop},${el.scrollLeft}`);
         }
       }
     }
+
     const controller = this.content.componentInstance!.$controller!;
-    // TODO(fkleuver): revisit later, still need to wireup lifecycle task and make sure the correct initializer and parent are passed down
-    controller.detach(controller, null, LifecycleFlags.fromStopTask);
-    this.contentStatus = ContentStatus.initialized;
+    await controller.deactivate(initiator ?? controller, null, flags | LifecycleFlags.fromStopTask);
+    this.contentStatus = ContentStatus.loaded;
   }
 
-  public async freeContent(element: Element | null, nextInstruction: INavigatorInstruction | null, cache: ViewportContent[], stateful: boolean = false): Promise<void> {
+  public async freeContent(
+    viewportController: ICustomElementController<Element> | null,
+    nextInstruction: INavigatorInstruction | null,
+    cache: ViewportContent[],
+    stateful: boolean = false,
+  ): Promise<void> {
     switch (this.contentStatus) {
-      case ContentStatus.added:
+      case ContentStatus.activated:
         await this.leave(nextInstruction);
-        this.removeComponent(element, stateful);
-      case ContentStatus.initialized:
-        await this.terminateComponent(stateful);
+        await this.deactivateComponent(null, viewportController, LifecycleFlags.none);
       case ContentStatus.loaded:
         this.unloadComponent(cache, stateful);
       case ContentStatus.created:

@@ -12,6 +12,7 @@ export {
   Key,
   lazy,
   optional,
+  ignore,
   RegisterSelf,
   Registration,
   ResolveCallback,
@@ -23,7 +24,10 @@ export {
   Resolved,
   Transformer,
   newInstanceForScope,
-  newInstanceOf
+  newInstanceOf,
+  DefaultContainerConfiguration,
+  DefaultResolver,
+  IContainerConfiguration
 } from './di';
 export {
   Class,

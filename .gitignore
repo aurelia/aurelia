@@ -17,3 +17,5 @@ TESTS-*.xml
 
 test/cypress/integration/examples
 screenshots
+
+*.code-workspace

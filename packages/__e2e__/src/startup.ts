@@ -32,6 +32,7 @@ Intl['RelativeTimeFormat'] = Intl['RelativeTimeFormat'] || RelativeTimeFormat;
         if (fetchResource) {
           plugins.push(Fetch);
         }
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         options.initOptions = {
           plugins,
           resources: !fetchResource ? resources : undefined,

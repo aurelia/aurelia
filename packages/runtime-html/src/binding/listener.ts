@@ -76,7 +76,7 @@ export class Listener implements IBinding {
       this.dom,
       this.target,
       this.targetEvent,
-      this.interceptor,
+      this,
       this.delegationStrategy
     );
 

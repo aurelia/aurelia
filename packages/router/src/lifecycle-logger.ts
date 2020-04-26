@@ -3,10 +3,11 @@ export function lifecycleLogger(name: string) {
     'canLeave', 'leave',
     'canEnter', 'enter',
     'created',
-    'beforeBind', 'afterBindChildren',
-    'beforeAttach', 'afterAttachChildren',
-    'beforeDetach', 'afterDetachChildren',
-    'beforeUnbind', 'afterUnbindChildren',
+    'beforeBind', 'afterBind',
+    'afterAttach', 'afterAttachChildren',
+    'beforeDetach', 'beforeUnbind',
+    'afterUnbind', 'afterUnbindChildren',
+    'dispose',
   ];
 
   return function (target: any) {
@@ -33,14 +34,15 @@ export class LifecycleClass {
   public canEnter() { console.log(`name canEnter`); return true; }
   public enter(params: any) { console.log(`name enter`); }
   public created() { console.log(`name created`); }
-  public beforeBind() { console.log(`name binding`); }
-  public afterBindChildren() { console.log(`name bound`); }
-  public beforeAttach() { console.log(`name beforeAttach`); }
+  public beforeBind() { console.log(`name beforeBind`); }
+  public afterBind() { console.log(`name afterBind`); }
+  public afterAttach() { console.log(`name afterAttach`); }
   public afterAttachChildren() { console.log(`name afterAttachChildren`); }
   public canLeave() { console.log(`name canLeave`); return true; }
   public leave() { console.log(`name leave`); }
   public beforeDetach() { console.log(`name beforeDetach`); }
-  public afterDetachChildren() { console.log(`name afterDetachChildren`); }
   public beforeUnbind() { console.log(`name beforeUnbind`); }
-  public afterUnbindChildren() { console.log(`name unbound`); }
+  public afterUnbind() { console.log(`name afterUnbind`); }
+  public afterUnbindChildren() { console.log(`name afterUnbindChildren`); }
+  public dispose() { console.log(`name dispose`); }
 }

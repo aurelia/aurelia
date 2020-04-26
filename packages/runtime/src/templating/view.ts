@@ -11,13 +11,13 @@ import {
   ICompiledCustomElementController,
   ICustomElementController,
   IHydratedController,
+  IHydratedParentController,
 } from '../lifecycle';
 import { Scope } from '../observation/binding-context';
 import { CustomElement, PartialCustomElementDefinition, CustomElementDefinition } from '../resources/custom-element';
 import { Controller } from './controller';
 import { PartialCustomElementDefinitionParts, mergeParts } from '../definitions';
 import { IRenderContext, getRenderContext } from './render-context';
-import { MaybePromiseOrTask } from '../lifecycle-task';
 
 export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
   public static maxCacheSize: number = 0xFFFF;
@@ -296,80 +296,72 @@ export class ViewLocator implements IViewLocator {
       if ('beforeBind' in object) {
         proto.beforeBind = function beforeBind(
           initiator: IHydratedController<T>,
-          parent: IHydratedController<T> | null,
+          parent: IHydratedParentController<T> | null,
           flags: LifecycleFlags,
-        ): MaybePromiseOrTask {
+        ): void | Promise<void> {
           return this.viewModel.beforeBind!(initiator, parent, flags);
         };
       }
       if ('afterBind' in object) {
-        proto.afterBind = function afterBind(flags: LifecycleFlags): void {
-          this.viewModel.afterBind!(flags);
-        };
-      }
-      if ('afterBindChildren' in object) {
-        proto.afterBindChildren = function afterBindChildren(flags: LifecycleFlags): void {
-          this.viewModel.afterBindChildren!(flags);
-        };
-      }
-
-      if ('beforeUnbind' in object) {
-        proto.beforeUnbind = function beforeUnbind(
+        proto.afterBind = function afterBind(
           initiator: IHydratedController<T>,
-          parent: IHydratedController<T> | null,
+          parent: IHydratedParentController<T> | null,
           flags: LifecycleFlags,
-        ): MaybePromiseOrTask {
-          return this.viewModel.beforeUnbind!(initiator, parent, flags);
-        };
-      }
-      if ('afterUnbind' in object) {
-        proto.afterUnbind = function afterUnbind(flags: LifecycleFlags): void {
-          this.viewModel.afterUnbind!(flags);
-        };
-      }
-      if ('afterUnbindChildren' in object) {
-        proto.afterUnbindChildren = function afterUnbindChildren(flags: LifecycleFlags): void {
-          this.viewModel.afterUnbindChildren!(flags);
-        };
-      }
-
-      if ('beforeAttach' in object) {
-        proto.beforeAttach = function beforeAttach(
-          initiator: IHydratedController<T>,
-          parent: IHydratedController<T> | null,
-          flags: LifecycleFlags,
-        ): void {
-          this.viewModel.beforeAttach!(initiator, parent, flags);
+        ): void | Promise<void> {
+          return this.viewModel.afterBind!(initiator, parent, flags);
         };
       }
       if ('afterAttach' in object) {
-        proto.afterAttach = function afterAttach(flags: LifecycleFlags): MaybePromiseOrTask {
-          return this.viewModel.afterAttach!(flags);
+        proto.afterAttach = function afterAttach(
+          initiator: IHydratedController<T>,
+          parent: IHydratedParentController<T> | null,
+          flags: LifecycleFlags,
+        ): void | Promise<void> {
+          return this.viewModel.afterAttach!(initiator, parent, flags);
         };
       }
       if ('afterAttachChildren' in object) {
-        proto.afterAttachChildren = function afterAttachChildren(flags: LifecycleFlags): void {
-          this.viewModel.afterAttachChildren!(flags);
+        proto.afterAttachChildren = function afterAttachChildren(
+          initiator: IHydratedController<T>,
+          flags: LifecycleFlags,
+        ): void | Promise<void> {
+          return this.viewModel.afterAttachChildren!(initiator, flags);
         };
       }
 
       if ('beforeDetach' in object) {
         proto.beforeDetach = function beforeDetach(
           initiator: IHydratedController<T>,
-          parent: IHydratedController<T> | null,
+          parent: IHydratedParentController<T> | null,
           flags: LifecycleFlags,
-        ): MaybePromiseOrTask {
+        ): void | Promise<void> {
           return this.viewModel.beforeDetach!(initiator, parent, flags);
         };
       }
-      if ('afterDetach' in object) {
-        proto.afterDetach = function afterDetach(flags: LifecycleFlags): void {
-          this.viewModel.afterDetach!(flags);
+      if ('beforeUnbind' in object) {
+        proto.beforeUnbind = function beforeUnbind(
+          initiator: IHydratedController<T>,
+          parent: IHydratedParentController<T> | null,
+          flags: LifecycleFlags,
+        ): void | Promise<void> {
+          return this.viewModel.beforeUnbind!(initiator, parent, flags);
         };
       }
-      if ('afterDetachChildren' in object) {
-        proto.afterDetachChildren = function afterDetachChildren(flags: LifecycleFlags): void {
-          this.viewModel.afterDetachChildren!(flags);
+      if ('afterUnbind' in object) {
+        proto.afterUnbind = function afterUnbind(
+          initiator: IHydratedController<T>,
+          parent: IHydratedParentController<T> | null,
+          flags: LifecycleFlags,
+        ): void | Promise<void> {
+          return this.viewModel.afterUnbind!(initiator, parent, flags);
+        };
+      }
+      if ('afterUnbindChildren' in object) {
+        proto.afterUnbindChildren = function afterUnbindChildren(
+          initiator: IHydratedController<T>,
+          flags: LifecycleFlags,
+        ): void | Promise<void> {
+          return this.viewModel.afterUnbindChildren!(initiator, flags);
         };
       }
 

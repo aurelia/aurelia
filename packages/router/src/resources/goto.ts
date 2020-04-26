@@ -60,7 +60,7 @@ export class GotoCustomAttribute implements ICustomAttributeViewModel<HTMLElemen
   }
 
   public handleChange(): void {
-    const controller = CustomAttribute.for(this.element, 'goto')!.parent;
+    const controller = CustomAttribute.for(this.element, 'goto')!.parent!;
     const created = NavigationInstructionResolver.createViewportInstructions(this.router, this.value as any, { context: controller });
     const instructions = NavigationInstructionResolver.toViewportInstructions(this.router, created.instructions);
     for (const instruction of instructions) {

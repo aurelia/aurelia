@@ -1,4 +1,4 @@
-import { customAttribute, INode, bindable, BindingMode, ViewModelKind, IDOM, DelegationStrategy, ICustomAttributeViewModel, IController, IRenderableController, ICustomAttributeController } from '@aurelia/runtime';
+import { customAttribute, INode, bindable, BindingMode, ViewModelKind, IDOM, DelegationStrategy, ICustomAttributeViewModel, ICustomAttributeController } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { GotoCustomAttribute } from '../configuration';
 import { IEventManager } from '@aurelia/runtime-html';
@@ -48,7 +48,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel<HTMLElemen
 
   private hasGoto(): boolean {
     const parent = this.$controller.parent!;
-    const siblings = parent.vmKind !== ViewModelKind.customAttribute ? parent.controllers : void 0;
+    const siblings = parent.children;
     return siblings !== void 0
       && siblings.some(c => c.vmKind === ViewModelKind.customAttribute && c.viewModel instanceof GotoCustomAttribute);
   }

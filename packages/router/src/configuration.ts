@@ -61,7 +61,7 @@ const routerConfiguration = {
       ...DefaultComponents,
       ...DefaultResources,
       StartTask.with(IRouter).beforeBind().call(configurationCall),
-      StartTask.with(IRouter).beforeAttach().call(router => router.loadUrl()),
+      StartTask.with(IRouter).afterAttach().call(router => router.loadUrl()),
     );
   },
   /**

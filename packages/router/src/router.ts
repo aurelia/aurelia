@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/promise-function-async */
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 /* eslint-disable max-lines-per-function */
 import { DI, IContainer, Key, Reporter, Registration, Metadata } from '@aurelia/kernel';
 import { Aurelia, CustomElementType, CustomElement, INode, DOM, ICustomElementController, ICustomElementViewModel, isRenderContext } from '@aurelia/runtime';
@@ -70,9 +74,9 @@ export interface IRouter {
   unsetClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer): void;
 
   // Called from the viewport custom element
-  connectViewport(viewport: Viewport | null, container: IContainer, name: string, element: Element, options?: IViewportOptions): Viewport;
+  connectViewport(viewport: Viewport | null, controller: ICustomElementController<Element>, name: string, options?: IViewportOptions): Viewport;
   // Called from the viewport custom element
-  disconnectViewport(viewport: Viewport, container: IContainer, element: Element | null): void;
+  disconnectViewport(viewport: Viewport, controller: ICustomElementController<Element>): void;
   // Called from the viewport scope custom element
   connectViewportScope(viewportScope: ViewportScope | null, name: string, container: IContainer, element: Element, options?: IViewportScopeOptions): ViewportScope;
   // Called from the viewport scope custom element
@@ -552,20 +556,20 @@ export class Router implements IRouter {
   }
 
   // Called from the viewport custom element in attached()
-  public connectViewport(viewport: Viewport | null, container: IContainer, name: string, element: Element, options?: IViewportOptions): Viewport {
-    const parentScope: Scope = this.findParentScope(container);
+  public connectViewport(viewport: Viewport | null, controller: ICustomElementController<Element>, name: string, options?: IViewportOptions): Viewport {
+    const parentScope: Scope = this.findParentScope(controller.context);
     if (viewport === null) {
-      viewport = parentScope.addViewport(name, element, container, options);
-      this.setClosestScope(container, viewport.connectedScope);
+      viewport = parentScope.addViewport(name, controller, options);
+      this.setClosestScope(controller.context, viewport.connectedScope);
     }
     return viewport as Viewport;
   }
   // Called from the viewport custom element
-  public disconnectViewport(viewport: Viewport, container: IContainer, element: Element | null): void {
-    if (!viewport.connectedScope.parent!.removeViewport(viewport, element, container)) {
+  public disconnectViewport(viewport: Viewport, controller: ICustomElementController<Element>): void {
+    if (!viewport.connectedScope.parent!.removeViewport(viewport, controller)) {
       throw new Error(`Failed to remove viewport: ${viewport.name}`);
     }
-    this.unsetClosestScope(container);
+    this.unsetClosestScope(controller.context);
   }
   // Called from the viewport scope custom element in attached()
   public connectViewportScope(viewportScope: ViewportScope | null, name: string, container: IContainer, element: Element, options?: IViewportScopeOptions): ViewportScope {

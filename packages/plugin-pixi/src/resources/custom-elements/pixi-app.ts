@@ -54,7 +54,7 @@ export class PixiApp {
     };
   }
 
-  public afterBindChildren(): void {
+  public afterBind(): void {
     const boundOptions = {
       width: typeof this.width === 'string' ? parseInt(this.width, 10) : this.width,
       height: typeof this.height === 'string' ? parseInt(this.height, 10) : this.height,
@@ -81,14 +81,14 @@ export class PixiApp {
     this.stage = this._app.stage;
   }
 
-  public afterAttachChildren(): void {
+  public afterAttach(): void {
     if (this._app !== null) {
       this.element.appendChild(this._app.view);
       this._app.ticker.add(this.callTick);
     }
   }
 
-  public afterDetachChildren(): void {
+  public beforeUnbind(): void {
     if (this._app !== null) {
       this.element.removeChild(this._app.view);
       this._app.ticker.remove(this.callTick);

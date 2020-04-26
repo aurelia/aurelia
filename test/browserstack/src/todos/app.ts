@@ -64,12 +64,16 @@ export class App {
     }
   }
 
-  public afterBindChildren(): void {
-    console.log('app bound');
+  public beforeBind(): void {
+    console.log('app beforeBind');
   }
 
-  public beforeAttach(): void {
-    console.log('app beforeAttach');
+  public afterBind(): void {
+    console.log('app afterBind');
+  }
+
+  public afterAttach(): void {
+    console.log('app afterAttach');
   }
 
   public afterAttachChildren(): void {
@@ -80,11 +84,15 @@ export class App {
     console.log('app beforeDetach');
   }
 
-  public afterDetachChildren(): void {
-    console.log('app afterDetachChildren');
+  public beforeUnbind(): void {
+    console.log('app beforeUnbind');
+  }
+
+  public afterUnbind(): void {
+    console.log('app afterUnbind');
   }
 
   public afterUnbindChildren(): void {
-    console.log('app unbound');
+    console.log('app afterUnbindChildren');
   }
 }

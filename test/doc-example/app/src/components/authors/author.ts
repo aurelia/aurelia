@@ -42,8 +42,20 @@ export class Author {
     private readonly state: State,
   ) {}
 
-  public created() {
-    console.log('### created', this);
+  public create() {
+    console.log('### create', this);
+  }
+
+  public beforeCompile() {
+    console.log('### beforeCompile', this);
+  }
+
+  public afterCompile() {
+    console.log('### afterCompile', this);
+  }
+
+  public afterCompileChildren() {
+    console.log('### afterCompileChildren', this);
   }
 
   // KEEP THIS!
@@ -76,7 +88,7 @@ export class Author {
     }
   }
   public beforeBind() {
-    console.log('### binding', this);
+    console.log('### beforeBind', this);
     const newRoutes = this.router.addRoutes([
       { path: 'awards', instructions: [{ component: 'awards', viewport: 'down' }] },
       { path: '/new', instructions: [{ component: 'new', viewport: 'right' }] },
@@ -93,11 +105,11 @@ export class Author {
     // console.log('route', route);
     // this.match(route);
   }
-  public afterBindChildren() {
-    console.log('### bound', this);
+  public afterBind() {
+    console.log('### afterBind', this);
   }
-  public beforeAttach() {
-    console.log('### beforeAttach', this);
+  public afterAttach() {
+    console.log('### afterAttach', this);
   }
   public afterAttachChildren() {
     console.log('### afterAttachChildren', this);
@@ -114,13 +126,13 @@ export class Author {
   public beforeDetach() {
     console.log('### beforeDetach', this);
   }
-  public afterDetachChildren() {
-    console.log('### afterDetachChildren', this);
-  }
   public beforeUnbind() {
     console.log('### beforeUnbind', this);
   }
+  public afterUnbind() {
+    console.log('### afterUnbind', this);
+  }
   public afterUnbindChildren() {
-    console.log('### unbound', this);
+    console.log('### afterUnbindChildren', this);
   }
 }

@@ -215,19 +215,13 @@ export class HooksDefinition {
 
   public readonly hasBeforeBind: boolean;
   public readonly hasAfterBind: boolean;
-  public readonly hasAfterBindChildren: boolean;
-
-  public readonly hasBeforeUnbind: boolean;
-  public readonly hasAfterUnbind: boolean;
-  public readonly hasAfterUnbindChildren: boolean;
-
-  public readonly hasBeforeAttach: boolean;
   public readonly hasAfterAttach: boolean;
   public readonly hasAfterAttachChildren: boolean;
 
   public readonly hasBeforeDetach: boolean;
-  public readonly hasAfterDetach: boolean;
-  public readonly hasAfterDetachChildren: boolean;
+  public readonly hasBeforeUnbind: boolean;
+  public readonly hasAfterUnbind: boolean;
+  public readonly hasAfterUnbindChildren: boolean;
 
   public readonly hasDispose: boolean;
 
@@ -240,19 +234,13 @@ export class HooksDefinition {
 
     this.hasBeforeBind = 'beforeBind' in target;
     this.hasAfterBind = 'afterBind' in target;
-    this.hasAfterBindChildren = 'afterBindChildren' in target;
-
-    this.hasBeforeUnbind = 'beforeUnbind' in target;
-    this.hasAfterUnbind = 'afterUnbind' in target;
-    this.hasAfterUnbindChildren = 'afterUnbindChildren' in target;
-
-    this.hasBeforeAttach = 'beforeAttach' in target;
     this.hasAfterAttach = 'afterAttach' in target;
     this.hasAfterAttachChildren = 'afterAttachChildren' in target;
 
     this.hasBeforeDetach = 'beforeDetach' in target;
-    this.hasAfterDetach = 'afterDetach' in target;
-    this.hasAfterDetachChildren = 'afterDetachChildren' in target;
+    this.hasBeforeUnbind = 'beforeUnbind' in target;
+    this.hasAfterUnbind = 'afterUnbind' in target;
+    this.hasAfterUnbindChildren = 'afterUnbindChildren' in target;
 
     this.hasDispose = 'dispose' in target;
   }

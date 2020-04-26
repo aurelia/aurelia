@@ -23,7 +23,7 @@ export const enum TaskSlot {
   beforeCreate = 0,
   beforeRender = 1,
   beforeBind   = 2,
-  beforeAttach = 3,
+  afterAttach = 3,
 }
 
 export const IStartTask = DI.createInterface<IStartTask>('IStartTask').noDefault();
@@ -38,7 +38,7 @@ export interface ISlotChooser {
   beforeCreate(): IStartTask;
   beforeRender(): IStartTask;
   beforeBind(): IStartTask;
-  beforeAttach(): IStartTask;
+  afterAttach(): IStartTask;
   at(slot: TaskSlot): IStartTask;
 }
 
@@ -46,7 +46,7 @@ export interface ICallbackSlotChooser<K extends Key> {
   beforeCreate(): ICallbackChooser<K>;
   beforeRender(): ICallbackChooser<K>;
   beforeBind(): ICallbackChooser<K>;
-  beforeAttach(): ICallbackChooser<K>;
+  afterAttach(): ICallbackChooser<K>;
   at(slot: TaskSlot): ICallbackChooser<K>;
 }
 
@@ -59,7 +59,6 @@ const enum TaskType {
   from,
 }
 
-// eslint-disable-next-line @typescript-eslint/class-name-casing
 export const StartTask = class $StartTask implements IStartTask {
   public get slot(): TaskSlot {
     if (this._slot === void 0) {
@@ -136,8 +135,8 @@ export const StartTask = class $StartTask implements IStartTask {
     return this.at(TaskSlot.beforeBind);
   }
 
-  public beforeAttach(): $StartTask {
-    return this.at(TaskSlot.beforeAttach);
+  public afterAttach(): $StartTask {
+    return this.at(TaskSlot.afterAttach);
   }
 
   public at(slot: TaskSlot): $StartTask {
@@ -180,7 +179,7 @@ export interface IStartTaskManager {
   runBeforeCreate(container?: IContainer): ILifecycleTask;
   runBeforeRender(container?: IContainer): ILifecycleTask;
   runBeforeBind(container?: IContainer): ILifecycleTask;
-  runBeforeAttach(container?: IContainer): ILifecycleTask;
+  runAfterAttach(container?: IContainer): ILifecycleTask;
   run(slot: TaskSlot, container?: IContainer): ILifecycleTask;
 }
 
@@ -205,8 +204,8 @@ export class StartTaskManager implements IStartTaskManager {
     return this.run(TaskSlot.beforeBind, locator);
   }
 
-  public runBeforeAttach(locator: IServiceLocator = this.locator): ILifecycleTask {
-    return this.run(TaskSlot.beforeAttach, locator);
+  public runAfterAttach(locator: IServiceLocator = this.locator): ILifecycleTask {
+    return this.run(TaskSlot.afterAttach, locator);
   }
 
   public run(slot: TaskSlot, locator: IServiceLocator = this.locator): ILifecycleTask {

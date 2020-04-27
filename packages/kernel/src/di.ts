@@ -630,8 +630,11 @@ export class Resolver implements IResolver, IRegistration {
       }
       case ResolverStrategy.callback:
         return (this.state as ResolveCallback)(handler, requestor, this);
-      case ResolverStrategy.array:
-        throw new Error(`There is more than one resolver for ${String(this.key)}, use 'container.getAll'`);
+      case ResolverStrategy.array: {
+        const name = (this.key as InternalDefaultableInterfaceSymbol<unknown>)?.$isInterface
+          ? (this.key as InternalDefaultableInterfaceSymbol<unknown>).friendlyName : String(this.key);
+        throw new Error(`There is more than one resolver for ${name}, use 'container.getAll'`);
+      }
       case ResolverStrategy.alias:
         return handler.get(this.state);
       default:

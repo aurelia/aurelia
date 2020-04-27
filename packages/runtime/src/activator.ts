@@ -42,7 +42,7 @@ export class Activator implements IActivator {
     host: INode,
     component: ICustomElementViewModel,
     container: IContainer,
-    flags: LifecycleFlags = LifecycleFlags.fromStartTask,
+    flags: LifecycleFlags = LifecycleFlags.none,
     parentScope?: IScope
   ): ILifecycleTask {
     flags = flags === void 0 ? LifecycleFlags.none : flags;
@@ -77,7 +77,10 @@ export class Activator implements IActivator {
     return task;
   }
 
-  public deactivate(component: ICustomElementViewModel, flags: LifecycleFlags = LifecycleFlags.fromStopTask): ILifecycleTask {
+  public deactivate(
+    component: ICustomElementViewModel,
+    flags: LifecycleFlags = LifecycleFlags.none,
+  ): ILifecycleTask {
     const controller = Controller.getCachedOrThrow(component);
     const ret = controller.deactivate(controller, null, flags);
     if (hasAsyncWork(ret)) {

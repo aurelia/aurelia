@@ -152,7 +152,6 @@ describe('PropertyBinding', function () {
     const flagsVariations: (() => [LF, string])[] = [
       () => [LF.fromBind,                                            `fromBind               `],
       () => [LF.updateTargetInstance,                                `updateTarget           `],
-      () => [LF.updateTargetInstance | LF.fromFlush, `updateTarget|fromFlush `]
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [
@@ -225,7 +224,6 @@ describe('PropertyBinding', function () {
     const flagsVariations: (() => [LF, string])[] = [
       () => [LF.fromBind,                                            `fromBind               `],
       () => [LF.updateTargetInstance,                                `updateTarget           `],
-      () => [LF.updateTargetInstance | LF.fromFlush, `updateTarget|fromFlush `]
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [
@@ -455,7 +453,6 @@ describe('PropertyBinding', function () {
     const flagsVariations: (() => [LF, string])[] = [
       () => [LF.fromBind,                                            `fromBind               `],
       () => [LF.updateTargetInstance,                                `updateTarget           `],
-      () => [LF.updateTargetInstance | LF.fromFlush, `updateTarget|fromFlush `]
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [

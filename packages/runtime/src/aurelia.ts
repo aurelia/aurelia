@@ -92,7 +92,7 @@ export class CompositionRoot<T extends INode = INode> {
 
   public activate(antecedent?: ILifecycleTask): ILifecycleTask {
     const { task, host, viewModel, container, activator, strategy } = this;
-    const flags = strategy | LifecycleFlags.fromStartTask;
+    const flags = strategy as number;
 
     if (viewModel === void 0) {
       if (this.createTask === void 0) {
@@ -121,7 +121,7 @@ export class CompositionRoot<T extends INode = INode> {
 
   public deactivate(antecedent?: ILifecycleTask): ILifecycleTask {
     const { task, viewModel, activator, strategy } = this;
-    const flags = strategy | LifecycleFlags.fromStopTask;
+    const flags = strategy as number;
 
     if (viewModel === void 0) {
       if (this.createTask === void 0) {

@@ -63,7 +63,7 @@ describe(spec, function () {
 
     assert.strictEqual(host.textContent, '012', `host.textContent`);
 
-    signaler.dispatchSignal('updateItem', LifecycleFlags.fromFlush);
+    signaler.dispatchSignal('updateItem', LifecycleFlags.none);
 
     assert.strictEqual(host.textContent, '212', `host.textContent`);
 
@@ -99,7 +99,7 @@ describe(spec, function () {
 
     assert.strictEqual(host.textContent, '012', `host.textContent`);
 
-    signaler.dispatchSignal('updateItem', LifecycleFlags.fromFlush);
+    signaler.dispatchSignal('updateItem', LifecycleFlags.none);
 
     assert.strictEqual(host.textContent, '212', `host.textContent`);
 

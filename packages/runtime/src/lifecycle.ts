@@ -557,7 +557,6 @@ export class BatchQueue implements IAutoProcessingQueue<IBatchable> {
   }
 
   public process(flags: LifecycleFlags): void {
-    flags |= LifecycleFlags.fromBatch;
     while (this.queue.length > 0) {
       const batch = this.queue.slice();
       this.queue = [];

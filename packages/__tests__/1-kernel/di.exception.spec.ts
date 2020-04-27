@@ -1,7 +1,16 @@
-import { DefaultContainerConfiguration, DefaultResolver, DI, optional } from '@aurelia/kernel';
+import { DefaultContainerConfiguration, DefaultResolver, DI, optional, Registration } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 
 describe('Exception', function () {
+  it('multiple registrations, using get', function () {
+    const container = DI.createContainer();
+    class Foo {
+    }
+    container.register(Registration.singleton(Foo, Foo));
+    container.register(Registration.singleton(Foo, Foo));
+    assert.throws(() => container.get(Foo), /.*Foo.*/, 'contains key');
+    assert.throws(() => container.get(Foo), /.*getAll.*/, 'contains getAll');
+  });
   it('DefaultResolvers.none', function () {
     class Foo {}
     const container = DI.createContainer({...DefaultContainerConfiguration, defaultResolver: DefaultResolver.none});

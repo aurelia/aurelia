@@ -44,7 +44,6 @@
     "@aurelia/i18n": "0.6.0"
   },
   "devDependencies": {
-    "@types/node": "^12.12.21",
     "tslib": "^1.11.1",
     "typescript": "^3.8.3"
   }

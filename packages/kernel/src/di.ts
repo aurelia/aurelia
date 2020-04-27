@@ -147,9 +147,9 @@ export interface IContainerConfiguration {
 }
 
 export const DefaultResolver = {
-  none(key: Key) {throw Error(`${key.toString()} not registered, did you forget to add @singleton()?`);},
-  singleton(key: Key) {return new Resolver(key, ResolverStrategy.singleton, key);},
-  transient(key: Key) {return new Resolver(key, ResolverStrategy.transient, key);},
+  none(key: Key): IResolver {throw Error(`${key.toString()} not registered, did you forget to add @singleton()?`);},
+  singleton(key: Key): IResolver {return new Resolver(key, ResolverStrategy.singleton, key);},
+  transient(key: Key): IResolver {return new Resolver(key, ResolverStrategy.transient, key);},
 };
 
 export const DefaultContainerConfiguration: IContainerConfiguration = {

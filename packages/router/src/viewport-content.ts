@@ -204,7 +204,7 @@ export class ViewportContent {
     }
 
     const controller = this.content.componentInstance!.$controller!;
-    await controller.activate(initiator ?? controller, null, flags | LifecycleFlags.fromStartTask);
+    await controller.activate(initiator ?? controller, null, flags);
     if ((this.fromCache || this.fromHistory) && viewportController) {
       const elements = Array.from(viewportController.host.getElementsByTagName('*'));
       for (const el of elements) {
@@ -238,7 +238,7 @@ export class ViewportContent {
     }
 
     const controller = this.content.componentInstance!.$controller!;
-    await controller.deactivate(initiator ?? controller, null, flags | LifecycleFlags.fromStopTask);
+    await controller.deactivate(initiator ?? controller, null, flags);
     this.contentStatus = ContentStatus.loaded;
   }
 

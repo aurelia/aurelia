@@ -521,36 +521,12 @@ describe(`Repeat`, function () {
   ];
 
   const none = LifecycleFlags.none;
-  const fromFlush = LifecycleFlags.fromFlush;
-  const start = LifecycleFlags.fromStartTask;
-  const stop = LifecycleFlags.fromStopTask;
   const bind = LifecycleFlags.fromBind;
-  const attach = LifecycleFlags.fromAttach;
-  const detach = LifecycleFlags.fromDetach;
   const unbind = LifecycleFlags.fromUnbind;
-  const flushBind = fromFlush | bind;
-  const flushAttach = fromFlush | attach;
-  const flushBindAttach = fromFlush | bind | attach;
-  const flushDetach = fromFlush | detach;
-  const flushUnbind = fromFlush | unbind;
-  const flushDetachUnbind = fromFlush | unbind | detach;
-  const startBind = start | bind;
-  const startAttach = start | attach;
-  const startBindAttach = start | bind | attach;
-  const stopDetach = stop | detach;
-  const stopUnbind = stop | unbind;
-  const stopDetachUnbind = stop | detach | unbind;
 
   const flagsSpecs: FlagsSpec[] = [
     { t: '1', activateFlags1: none,            deactivateFlags1: none,              activateFlags2: none,            deactivateFlags2: none,              },
     { t: '2', activateFlags1: bind,            deactivateFlags1: unbind,            activateFlags2: bind,            deactivateFlags2: unbind,            },
-    { t: '3', activateFlags1: flushBind,       deactivateFlags1: flushUnbind,       activateFlags2: flushBind,       deactivateFlags2: flushUnbind,       },
-    { t: '4', activateFlags1: flushAttach,     deactivateFlags1: flushDetach,       activateFlags2: flushAttach,     deactivateFlags2: flushDetach,       },
-    { t: '5', activateFlags1: flushBindAttach, deactivateFlags1: flushDetachUnbind, activateFlags2: flushBindAttach, deactivateFlags2: flushDetachUnbind, },
-    { t: '6', activateFlags1: start,           deactivateFlags1: stop,              activateFlags2: start,           deactivateFlags2: stop,              },
-    { t: '7', activateFlags1: startBind,       deactivateFlags1: stopUnbind,        activateFlags2: startBind,       deactivateFlags2: stopUnbind,        },
-    { t: '8', activateFlags1: startAttach,     deactivateFlags1: stopDetach,        activateFlags2: startAttach,     deactivateFlags2: stopDetach,        },
-    { t: '9', activateFlags1: startBindAttach, deactivateFlags1: stopDetachUnbind,  activateFlags2: startBindAttach, deactivateFlags2: stopDetachUnbind,  },
   ];
 
   eachCartesianJoin(

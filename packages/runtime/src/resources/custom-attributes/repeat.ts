@@ -122,7 +122,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       return;
     }
     flags |= $controller.flags;
-    flags |= (LF.fromFlush | LF.updateTargetInstance);
+    flags |= LF.updateTargetInstance;
     this.normalizeToArray(flags);
 
     if (indexMap === void 0) {

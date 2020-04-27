@@ -451,8 +451,6 @@ export class Controller<
     parent: Controller<T> | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    flags |= LifecycleFlags.fromAttach;
-
     switch (this.vmKind) {
       case ViewModelKind.customElement:
         this.projector!.project(this.nodes!);
@@ -563,8 +561,6 @@ export class Controller<
     }
     this.busy = true;
     this.isActive = false;
-
-    flags |= LifecycleFlags.fromDetach;
 
     if (this.hooks.hasBeforeDetach) {
       const ret = this.bindingContext!.beforeDetach(initiator as IHydratedController<T>, parent as IHydratedParentController<T>, flags);

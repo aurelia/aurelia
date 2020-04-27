@@ -21,6 +21,7 @@
     { "path": "plugin-pixi" },
     { "path": "plugin-svg" },
     { "path": "router" },
+    { "path": "router-html" },
     { "path": "route-recognizer" },
     { "path": "runtime" },
     { "path": "runtime-html" },

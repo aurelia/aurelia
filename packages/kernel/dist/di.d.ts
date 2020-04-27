@@ -70,9 +70,9 @@ export interface IContainerConfiguration {
     defaultResolver(key: Key, handler: IContainer): IResolver;
 }
 export declare const DefaultResolver: {
-    none(key: Key): never;
-    singleton(key: Key): Resolver;
-    transient(key: Key): Resolver;
+    none(key: Key): IResolver<any>;
+    singleton(key: Key): IResolver<any>;
+    transient(key: Key): IResolver<any>;
 };
 export declare const DefaultContainerConfiguration: IContainerConfiguration;
 export declare const DI: {

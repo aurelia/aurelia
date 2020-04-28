@@ -134,7 +134,7 @@ export class CompositionRoot<T extends INode = INode> {
       : config.component as ICustomElementViewModel<T>;
 
     const container = this.container;
-    const lifecycle = container.get(ILifecycle);
+    const lifecycle = container.getAll(ILifecycle)[0];
     this.controller = Controller.forCustomElement(instance, lifecycle, this.host, container, void 0, this.strategy as number);
   }
 }

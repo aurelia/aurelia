@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/promise-function-async */
+/* eslint-disable @typescript-eslint/typedef */
 import { Reporter } from '@aurelia/kernel';
 import { INavigatorInstruction, IRoute } from './interfaces';
 import { Queue, QueueItem } from './queue';
@@ -30,7 +32,6 @@ export interface INavigatorViewerState {
 }
 
 export interface INavigatorViewerEvent extends INavigatorViewerState {
-  event: PopStateEvent;
   state?: INavigatorState;
 }
 

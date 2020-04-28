@@ -13,11 +13,6 @@ export {
 } from './interfaces';
 
 export {
-  lifecycleLogger,
-  LifecycleClass,
-} from './lifecycle-logger';
-
-export {
   HookManager,
   HookTypes,
   IHookDefinition,

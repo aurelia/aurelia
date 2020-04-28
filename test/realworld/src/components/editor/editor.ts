@@ -1,11 +1,10 @@
 import { inject } from '@aurelia/kernel';
-import { IRouter, lifecycleLogger } from '@aurelia/router';
+import { IRouter } from '@aurelia/router';
 import { bindable, BindingMode } from '@aurelia/runtime';
 
 import { Article } from 'shared/models/article';
 import { ArticleService } from 'shared/services/article-service';
 
-@lifecycleLogger('editor')
 @inject(ArticleService, IRouter)
 export class Editor {
   @bindable({ mode: BindingMode.twoWay }) public tag?: string;

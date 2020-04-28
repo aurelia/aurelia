@@ -49,9 +49,6 @@ export {
   ReentryBehavior,
   IRoute,
 
-  lifecycleLogger,
-  LifecycleClass,
-
   HookManager,
   HookTypes,
   IHookDefinition,

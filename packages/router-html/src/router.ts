@@ -20,8 +20,9 @@ import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
 import { INavClasses } from './resources/nav';
 import { BrowserViewerStore } from './browser-viewer-store';
+import { HTMLStateManager } from './state-manager';
 
-export interface IHTMLRouter extends IRouter {
+export interface IHTMLRouter extends IRouter<Element> {
   readonly navigation: BrowserViewerStore;
   readonly linkHandler: LinkHandler;
   readonly navs: Readonly<Record<string, Nav>>;
@@ -36,22 +37,23 @@ export interface IHTMLRouter extends IRouter {
 
 export const IHTMLRouter = DI.createInterface<IHTMLRouter>('IHTMLRouter').withDefault(x => x.singleton(HTMLRouter));
 
-export class HTMLRouter extends Router implements IHTMLRouter {
+export class HTMLRouter extends Router<Element> implements IHTMLRouter {
   public navs: Record<string, Nav> = {};
   private loadedFirst: boolean = false;
 
   public constructor(
     @IContainer container: IContainer,
-    navigator: Navigator,
-    instructionResolver: InstructionResolver,
-    hookManager: HookManager,
+    navigator: Navigator<Element>,
+    instructionResolver: InstructionResolver<Element>,
+    hookManager: HookManager<Element>,
     public navigation: BrowserViewerStore,
     public linkHandler: LinkHandler,
+    stateManager: HTMLStateManager,
   ) {
-    super(container, navigator, instructionResolver, hookManager);
+    super(container, navigator, instructionResolver, hookManager, stateManager);
   }
 
-  public activate(options?: IRouterOptions): void {
+  public activate(options?: IRouterOptions<Element>): void {
     super.activate(options);
 
     this.navigator.activate(this, {
@@ -80,7 +82,7 @@ export class HTMLRouter extends Router implements IHTMLRouter {
   }
 
    public async loadUrl(): Promise<void> {
-     const entry: INavigatorEntry = {
+     const entry: INavigatorEntry<Element> = {
        ...this.navigation.viewerState,
        ...{
          fullStateInstruction: '',
@@ -110,9 +112,9 @@ export class HTMLRouter extends Router implements IHTMLRouter {
 
   // TODO: use @bound and improve name (eslint-disable is temp)
   // eslint-disable-next-line @typescript-eslint/typedef
-  public browserNavigatorCallback = (browserNavigationEvent: INavigatorViewerEvent): void => {
-    const entry: INavigatorEntry = (browserNavigationEvent.state && browserNavigationEvent.state.currentEntry
-      ? browserNavigationEvent.state.currentEntry as INavigatorEntry
+  public browserNavigatorCallback = (browserNavigationEvent: INavigatorViewerEvent<Element>): void => {
+    const entry: INavigatorEntry<Element> = (browserNavigationEvent.state && browserNavigationEvent.state.currentEntry
+      ? browserNavigationEvent.state.currentEntry as INavigatorEntry<Element>
       : { instruction: '', fullStateInstruction: '' });
     entry.instruction = browserNavigationEvent.instruction;
     entry.fromBrowser = true;

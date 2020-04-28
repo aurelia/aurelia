@@ -9,12 +9,12 @@ import {
 } from '@aurelia/router';
 
 export class NavRoute {
-  public instructions: ViewportInstruction[] = [];
+  public instructions: ViewportInstruction<Element>[] = [];
   public title: string;
   public link: string | null = null;
   public execute?: ((route: NavRoute) => void);
   public linkVisible: boolean | ((route: NavRoute) => boolean) | null = null;
-  public linkActive: NavigationInstruction | NavigationInstruction[] | ((route: NavRoute) => boolean) | null = null;
+  public linkActive: NavigationInstruction<Element> | NavigationInstruction<Element>[] | ((route: NavRoute) => boolean) | null = null;
   public compareParameters: boolean = false;
   public children: NavRoute[] | null = null;
   public meta?: Record<string, unknown>;
@@ -35,7 +35,7 @@ export class NavRoute {
     }
     this.linkActive = route.consideredActive !== null && route.consideredActive !== void 0 ? route.consideredActive : this.link;
     if (this.linkActive !== null && (!(this.linkActive instanceof Function) || ComponentAppellationResolver.isType(this.linkActive as RouteableComponentType))) {
-      this.linkActive = NavigationInstructionResolver.toViewportInstructions(this.nav.router, this.linkActive as NavigationInstruction | NavigationInstruction[]);
+      this.linkActive = NavigationInstructionResolver.toViewportInstructions(this.nav.router, this.linkActive as NavigationInstruction<Element> | NavigationInstruction<Element>[]);
     }
     this.execute = route.execute;
     this.compareParameters = !!route.compareParameters;
@@ -67,7 +67,7 @@ export class NavRoute {
     this.active = (this.active.startsWith('nav-active') ? '' : 'nav-active');
   }
 
-  private parseRoute<C extends Constructable>(routes: NavigationInstruction | NavigationInstruction[]): ViewportInstruction[] {
+  private parseRoute<C extends Constructable>(routes: NavigationInstruction<Element> | NavigationInstruction<Element>[]): ViewportInstruction<Element>[] {
     return NavigationInstructionResolver.toViewportInstructions(this.nav.router, routes);
   }
 
@@ -82,7 +82,7 @@ export class NavRoute {
     if (!Array.isArray(this.linkActive)) {
       return (this.linkActive as ((route: NavRoute) => boolean))(this) ? 'nav-active' : '';
     }
-    const components = this.linkActive as ViewportInstruction[];
+    const components = this.linkActive as ViewportInstruction<Element>[];
     const activeComponents = this.nav.router.instructionResolver.flattenViewportInstructions(this.nav.router.activeComponents);
     for (const component of components) {
       if (activeComponents.every((active) => !active.sameComponent(component, this.compareParameters && component.typedParameters !== null))) {
@@ -92,7 +92,7 @@ export class NavRoute {
     return 'nav-active';
   }
 
-  private computeLink(instructions: ViewportInstruction[]): string {
+  private computeLink(instructions: ViewportInstruction<Element>[]): string {
     return this.nav.router.instructionResolver.stringifyViewportInstructions(instructions);
   }
 

@@ -44,7 +44,7 @@ describe('InstructionResolver', function () {
   it('handles state strings', async function () {
     const { host, router, tearDown } = await createFixture();
 
-    let instructions: ViewportInstruction[] = [
+    let instructions: ViewportInstruction<Element>[] = [
       router.createViewportInstruction('foo', 'left', '123'),
       router.createViewportInstruction('bar', 'right', '456'),
     ];
@@ -69,7 +69,7 @@ describe('InstructionResolver', function () {
   describe('can handle viewport instructions', function () {
     interface InstructionTest {
       instruction: string;
-      viewportInstruction: ViewportInstruction;
+      viewportInstruction: ViewportInstruction<Element>;
     }
 
     const ctx = TestContext.createHTMLTestContext();
@@ -170,7 +170,7 @@ describe('InstructionResolver', function () {
     e.nextScopeInstructions = [f];
     f.nextScopeInstructions = [g];
 
-    const instructions: ViewportInstruction[] = [a, h];
+    const instructions: ViewportInstruction<Element>[] = [a, h];
 
     const instructionsString = router.instructionResolver.stringifyViewportInstructions(instructions);
     const parsedInstructions = router.instructionResolver.parseViewportInstructions(instructionsString);

@@ -19,13 +19,13 @@ import { IDisposable } from '@aurelia/kernel';
   name: 'href',
   noMultiBindings: true
 })
-export class HrefCustomAttribute implements ICustomAttributeViewModel<HTMLElement> {
+export class HrefCustomAttribute implements ICustomAttributeViewModel<Element> {
   @bindable({ mode: BindingMode.toView })
   public value: string | undefined;
 
   private eventListener: IDisposable | null = null;
-  private readonly element: HTMLElement;
-  public readonly $controller!: ICustomAttributeController<HTMLElement, this>;
+  private readonly element: Element;
+  public readonly $controller!: ICustomAttributeController<Element, this>;
 
   public constructor(
     @IDOM private readonly dom: IDOM,
@@ -33,7 +33,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel<HTMLElemen
     @IHTMLRouter private readonly router: IHTMLRouter,
     @IEventManager private readonly eventManager: IEventManager,
   ) {
-    this.element = element as HTMLElement;
+    this.element = element as Element;
   }
 
   public beforeBind(): void {

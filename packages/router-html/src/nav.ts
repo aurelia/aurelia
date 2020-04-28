@@ -4,10 +4,10 @@ import { INavClasses } from './resources/nav';
 import { IHTMLRouter } from './router';
 
 export interface INavRoute {
-  route?: NavigationInstruction | NavigationInstruction[];
+  route?: NavigationInstruction<Element> | NavigationInstruction<Element>[];
   execute?: ((route: NavRoute) => void);
   condition?: boolean | ((route: NavRoute) => boolean);
-  consideredActive?: NavigationInstruction | NavigationInstruction[] | ((route: NavRoute) => boolean);
+  consideredActive?: NavigationInstruction<Element> | NavigationInstruction<Element>[] | ((route: NavRoute) => boolean);
   compareParameters?: boolean;
   link?: string;
   title: string;

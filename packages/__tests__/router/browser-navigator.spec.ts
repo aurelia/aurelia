@@ -243,7 +243,7 @@ describe('BrowserNavigator', function () {
   });
 });
 
-const toNavigatorState = (instruction: string): INavigatorState => {
+const toNavigatorState = (instruction: string): INavigatorState<Element> => {
   return {
     entries: [],
     currentEntry: {

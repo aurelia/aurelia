@@ -39,6 +39,10 @@ export {
 } from './router';
 
 export {
+  HTMLStateManager,
+} from './state-manager';
+
+export {
   InstructionResolver,
 
   INavigatorInstruction,

@@ -1297,7 +1297,7 @@ describe('Router', function () {
   describe('can use configuration', function () {
     this.timeout(30000);
 
-    async function $setup(config?, dependencies: any[] = [], routes: IRoute[] = [], stateSpy?) {
+    async function $setup(config?, dependencies: any[] = [], routes: IRoute<Element>[] = [], stateSpy?) {
       const ctx = TestContext.createHTMLTestContext();
 
       const { container, scheduler } = ctx;
@@ -1307,7 +1307,7 @@ describe('Router', function () {
         template: '<au-viewport></au-viewport>',
         dependencies
       }, class {
-        public static routes: IRoute[] = routes;
+        public static routes: IRoute<Element>[] = routes;
       });
 
       const host = ctx.doc.createElement('div');
@@ -1346,18 +1346,18 @@ describe('Router', function () {
     }
 
     const Parent = CustomElement.define({ name: 'parent', template: '!parent!<au-viewport name="parent"></au-viewport>' }, class {
-      public static routes: IRoute[] = [
+      public static routes: IRoute<Element>[] = [
         { path: 'child-config', instructions: [{ component: 'child', viewport: 'parent' }] },
       ];
     });
     const Parent2 = CustomElement.define({ name: 'parent2', template: '!parent2!<au-viewport name="parent2"></au-viewport>' }, class {
-      public static routes: IRoute[] = [
+      public static routes: IRoute<Element>[] = [
         { path: 'child-config', instructions: [{ component: 'child', viewport: 'parent2' }] },
         // { path: ':id', instructions: [{ component: 'child', viewport: 'parent' }] },
       ];
     });
     const Child = CustomElement.define({ name: 'child', template: `!child\${param ? ":" + param : ""}!<au-viewport name="child"></au-viewport>` }, class {
-      public static routes: IRoute[] = [
+      public static routes: IRoute<Element>[] = [
         { path: 'grandchild-config', instructions: [{ component: 'grandchild', viewport: 'child' }] },
       ];
       public param: string;
@@ -1368,7 +1368,7 @@ describe('Router', function () {
       }
     });
     const Child2 = CustomElement.define({ name: 'child2', template: `!child2\${param ? ":" + param : ""}!<au-viewport name="child2"></au-viewport>` }, class {
-      public static routes: IRoute[] = [
+      public static routes: IRoute<Element>[] = [
         { path: 'grandchild-config', instructions: [{ component: 'grandchild', viewport: 'child2' }] },
       ];
       public static parameters = ['id'];
@@ -1424,7 +1424,7 @@ describe('Router', function () {
       // { path: '/parent2@default/abc/grandchild-config', result: '!parent2!!child:abc!!grandchild!' },
     ];
     const appDependencies = [Parent, Parent2, Child, Child2, Grandchild, Grandchild2];
-    const appRoutes: IRoute[] = [
+    const appRoutes: IRoute<Element>[] = [
       { path: 'parent-config', instructions: [{ component: 'parent', viewport: 'default' }] },
       { path: 'parent-config/:id', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child', viewport: 'parent' }] }] },
       { path: 'parent-config/child-config', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child', viewport: 'parent' }] }] },

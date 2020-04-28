@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/promise-function-async */
 import { IDOM, IScheduler } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
 import {
@@ -19,11 +20,11 @@ interface IForwardedState {
   suppressPopstate: boolean;
 }
 
-export interface IBrowserViewerStoreOptions extends INavigatorViewerOptions {
+export interface IBrowserViewerStoreOptions extends INavigatorViewerOptions<Element> {
   useUrlFragmentHash?: boolean;
 }
 
-export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
+export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorViewer<Element> {
   public window: Window;
   public history: History;
   public location: Location;
@@ -113,14 +114,14 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
     return doneTask.wait();
   }
 
-  public pushNavigatorState(state: INavigatorState): Promise<void> {
+  public pushNavigatorState(state: INavigatorState<Element>): Promise<void> {
     const { title, path } = state.currentEntry;
     const fragment: string = this.options.useUrlFragmentHash ? '#/' : '';
 
     return this.pendingCalls.enqueue(
       (task: QueueTask<IAction>) => {
         const history: History = this.history;
-        const data: INavigatorState = state;
+        const data: INavigatorState<Element> = state;
         const titleOrEmpty: string = title || '';
         const url: string = `${fragment}${path}`;
 
@@ -129,14 +130,14 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
       }, 1).wait();
   }
 
-  public replaceNavigatorState(state: INavigatorState): Promise<void> {
+  public replaceNavigatorState(state: INavigatorState<Element>): Promise<void> {
     const { title, path } = state.currentEntry;
     const fragment: string = this.options.useUrlFragmentHash ? '#/' : '';
 
     return this.pendingCalls.enqueue(
       (task: QueueTask<IAction>) => {
         const history: History = this.history;
-        const data: INavigatorState = state;
+        const data: INavigatorState<Element> = state;
         const titleOrEmpty: string = title || '';
         const url: string = `${fragment}${path}`;
 

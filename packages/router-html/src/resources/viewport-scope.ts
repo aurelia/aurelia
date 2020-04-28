@@ -36,7 +36,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Eleme
   @bindable public catches: string = '';
   @bindable public collection: boolean = false;
   @bindable public source: unknown[] | null = null;
-  public viewportScope: ViewportScope | null = null;
+  public viewportScope: ViewportScope<Element> | null = null;
 
   public readonly $controller!: ICustomElementController<Element, this>;
 
@@ -51,7 +51,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Eleme
     @ParentViewportScope private readonly parent: ViewportScopeCustomElement,
     @IController private readonly parentController: IHydratedController,
   ) {
-    this.element = element as HTMLElement;
+    this.element = element as Element;
   }
 
   public create(

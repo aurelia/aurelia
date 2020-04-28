@@ -21,17 +21,17 @@ import { IEventManager } from '@aurelia/runtime-html';
 import { IDisposable } from '@aurelia/kernel';
 
 @customAttribute('goto')
-export class GotoCustomAttribute implements ICustomAttributeViewModel<HTMLElement> {
+export class GotoCustomAttribute implements ICustomAttributeViewModel<Element> {
   @bindable({ mode: BindingMode.toView })
   public value: unknown;
 
   private listener: IDisposable | null = null;
   private hasHref: boolean | null = null;
 
-  private readonly element: HTMLElement;
+  private readonly element: Element;
   private observer: any;
 
-  public readonly $controller!: ICustomAttributeController<HTMLElement, this>;
+  public readonly $controller!: ICustomAttributeController<Element, this>;
 
   private readonly activeClass: string = 'goto-active';
   public constructor(
@@ -40,7 +40,7 @@ export class GotoCustomAttribute implements ICustomAttributeViewModel<HTMLElemen
     @IHTMLRouter private readonly router: IHTMLRouter,
     @IEventManager private readonly eventManager: IEventManager,
   ) {
-    this.element = element as HTMLElement;
+    this.element = element as Element;
   }
 
   public beforeBind(): void {

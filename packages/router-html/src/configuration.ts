@@ -45,7 +45,7 @@ export const DefaultResources: IRegistry[] = [
   HrefCustomAttribute as unknown as IRegistry,
 ];
 
-let configurationOptions: IRouterOptions = {};
+let configurationOptions: IRouterOptions<Element> = {};
 let configurationCall: ((router: IHTMLRouter) => void) = (router: IHTMLRouter) => {
   router.activate(configurationOptions);
 };
@@ -78,7 +78,7 @@ export const RouterConfiguration = {
    * Parameter is either a config object that's passed to Router's activate
    * or a config function that's called instead of Router's activate.
    */
-  customize(config?: IRouterOptions | ((router: IHTMLRouter) => void)) {
+  customize(config?: IRouterOptions<Element> | ((router: IHTMLRouter) => void)) {
     if (config === undefined) {
       configurationOptions = {};
       configurationCall = (router: IHTMLRouter) => {

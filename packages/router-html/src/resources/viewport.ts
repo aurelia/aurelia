@@ -33,7 +33,7 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
   @bindable public noHistory: boolean = false;
   @bindable public stateful: boolean = false;
 
-  public viewport: Viewport | null = null;
+  public viewport: Viewport<Element> | null = null;
 
   public readonly $controller!: ICustomElementController<Element, this>;
 
@@ -45,7 +45,7 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
     @IContainer private container: IContainer,
     @ParentViewport private readonly parentViewport: ViewportCustomElement,
   ) {
-    this.element = element as HTMLElement;
+    this.element = element as Element;
   }
 
   public afterCompile(controller: ICompiledCustomElementController) {

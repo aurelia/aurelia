@@ -24,11 +24,11 @@ interface ForwardedState {
   resolve?: ((value: void | PromiseLike<void>) => void) | null;
 }
 
-export interface IBrowserNavigatorOptions extends INavigatorViewerOptions {
+export interface IBrowserNavigatorOptions extends INavigatorViewerOptions<Element> {
   useUrlFragmentHash?: boolean;
 }
 
-export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
+export class BrowserNavigator implements INavigatorStore<Element>, INavigatorViewer<Element> {
   public window: Window;
   public history: History;
   public location: Location;
@@ -98,13 +98,13 @@ export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
     return this.enqueue(this.history, 'go', [delta], suppressPopstate);
   }
 
-  public pushNavigatorState(state: INavigatorState): Promise<void> {
+  public pushNavigatorState(state: INavigatorState<Element>): Promise<void> {
     const { title, path } = state.currentEntry;
     const fragment = this.options.useUrlFragmentHash ? '#/' : '';
     return this.enqueue(this.history, 'pushState', [state, title, `${fragment}${path}`]);
   }
 
-  public replaceNavigatorState(state: INavigatorState): Promise<void> {
+  public replaceNavigatorState(state: INavigatorState<Element>): Promise<void> {
     const { title, path } = state.currentEntry;
     const fragment = this.options.useUrlFragmentHash ? '#/' : '';
     return this.enqueue(this.history, 'replaceState', [state, title, `${fragment}${path}`]);

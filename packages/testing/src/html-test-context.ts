@@ -50,7 +50,7 @@ export class HTMLTestContext {
   }
   public get templateCompiler(): ITemplateCompiler {
     if (this._templateCompiler === void 0) {
-      this._templateCompiler = this.container.get(ITemplateCompiler);
+      this._templateCompiler = this.container.getAll(ITemplateCompiler)[0];
     }
     return this._templateCompiler;
   }

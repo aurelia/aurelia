@@ -5,13 +5,14 @@ import { ViewportCustomElement } from './resources/viewport';
 import { ViewportScopeCustomElement } from './resources/viewport-scope';
 import { GotoCustomAttribute } from './resources/goto';
 import { HrefCustomAttribute } from './resources/href';
-import { IRouter, IRouterOptions } from './router';
+import { IHTMLRouter } from './router';
+import { IRouterOptions } from '@aurelia/router';
 
-export const RouterRegistration = IRouter as unknown as IRegistry;
+export const RouterRegistration = IHTMLRouter as unknown as IRegistry;
 
 /**
  * Default runtime/environment-agnostic implementations for the following interfaces:
- * - `IRouter`
+ * - `IHTMLRouter`
  */
 export const DefaultComponents = [
   RouterRegistration,
@@ -45,7 +46,7 @@ export const DefaultResources: IRegistry[] = [
 ];
 
 let configurationOptions: IRouterOptions = {};
-let configurationCall: ((router: IRouter) => void) = (router: IRouter) => {
+let configurationCall: ((router: IHTMLRouter) => void) = (router: IHTMLRouter) => {
   router.activate(configurationOptions);
 };
 
@@ -60,8 +61,8 @@ const routerConfiguration = {
     return container.register(
       ...DefaultComponents,
       ...DefaultResources,
-      StartTask.with(IRouter).beforeBind().call(configurationCall),
-      StartTask.with(IRouter).afterAttach().call(router => router.loadUrl()),
+      StartTask.with(IHTMLRouter).beforeBind().call(configurationCall),
+      StartTask.with(IHTMLRouter).afterAttach().call(router => router.loadUrl()),
     );
   },
   /**
@@ -77,10 +78,10 @@ export const RouterConfiguration = {
    * Parameter is either a config object that's passed to Router's activate
    * or a config function that's called instead of Router's activate.
    */
-  customize(config?: IRouterOptions | ((router: IRouter) => void)) {
+  customize(config?: IRouterOptions | ((router: IHTMLRouter) => void)) {
     if (config === undefined) {
       configurationOptions = {};
-      configurationCall = (router: IRouter) => {
+      configurationCall = (router: IHTMLRouter) => {
         router.activate(configurationOptions);
       };
     } else if (config instanceof Function) {

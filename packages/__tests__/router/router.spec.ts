@@ -1,12 +1,12 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { PLATFORM, inject, IContainer } from '@aurelia/kernel';
-import { IRouter, RouterConfiguration, IConfigurableRoute, IRoute } from '@aurelia/router';
+import { IHTMLRouter, RouterConfiguration, IConfigurableRoute, IRoute } from '@aurelia/router-html';
 import { Aurelia, CustomElement, customElement, IScheduler } from '@aurelia/runtime';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
 describe('Router', function () {
   function getModifiedRouter(container) {
-    const router = container.get(IRouter) as IRouter;
+    const router = container.get(IHTMLRouter) as IHTMLRouter;
     const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
     mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate;
     router.navigation.history = mockBrowserHistoryLocation as any;
@@ -51,8 +51,8 @@ describe('Router', function () {
       public id = 'no id';
       public name = 'no name';
 
-      // public static inject = [IRouter];
-      // public constructor(private readonly router: IRouter) { }
+      // public static inject = [IHTMLRouter];
+      // public constructor(private readonly router: IHTMLRouter) { }
       // public created() {
       //   console.log('created', 'closest viewport', this.router.getClosestViewport(this));
       // }
@@ -940,7 +940,7 @@ describe('Router', function () {
         .register(DebugConfiguration, RouterConfiguration)
         .app({ host: host, component: App });
 
-      const router = container.get(IRouter);
+      const router = container.get(IHTMLRouter);
       const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
       mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate;
       router.navigation.history = mockBrowserHistoryLocation as any;
@@ -1549,7 +1549,7 @@ describe('Router', function () {
 let quxCantLeave = 0;
 let plughReentryBehavior = 'default';
 
-const $goto = async (path: string, router: IRouter, scheduler: IScheduler) => {
+const $goto = async (path: string, router: IHTMLRouter, scheduler: IScheduler) => {
   await router.goto(path);
   scheduler.getRenderTaskQueue().flush();
 };

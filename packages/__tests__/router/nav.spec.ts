@@ -1,5 +1,5 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { IRouter, RouterConfiguration, ViewportInstruction } from '@aurelia/router';
+import { IHTMLRouter, RouterConfiguration, ViewportInstruction } from '@aurelia/router-html';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
@@ -10,19 +10,19 @@ describe('Nav', function () {
 
     const App = CustomElement.define({ name: 'app', template: `<template><au-viewport name="app" used-by="${component}" default="${component}"></au-viewport></template>` });
     const Foo = CustomElement.define({ name: 'foo', template: '<template>Nav: foo <au-nav name="main-nav"></au-nav></template>' }, class {
-      public static inject = [IRouter];
-      public constructor(private readonly r: IRouter) { }
+      public static inject = [IHTMLRouter];
+      public constructor(private readonly r: IHTMLRouter) { }
       public enter() { this.r.setNav('main-nav', [{ title: 'Bar', route: 'bar' }]); }
     });
     const Bar = CustomElement.define({ name: 'bar', template: '<template>Nav: bar <au-nav name="main-nav"></au-nav><au-viewport name="main-viewport" default="baz"></au-viewport></template>' }, class {
-      public static inject = [IRouter];
-      public constructor(private readonly r: IRouter) { }
+      public static inject = [IHTMLRouter];
+      public constructor(private readonly r: IHTMLRouter) { }
       public enter() { this.r.setNav('main-nav', [{ title: 'Baz', route: 'baz' }]); }
     });
     const Baz = CustomElement.define({ name: 'baz', template: '<template>Baz</template>' }, class { });
     const Qux = CustomElement.define({ name: 'qux', template: '<template>Nav: qux <au-nav name="main-nav"></au-nav><au-viewport name="main-viewport" default="baz"></au-viewport></template>' }, class {
-      public static inject = [IRouter];
-      public constructor(private readonly r: IRouter) { }
+      public static inject = [IHTMLRouter];
+      public constructor(private readonly r: IHTMLRouter) { }
       public enter() {
         this.r.addNav('main-nav', [{ title: 'Baz', route: Baz, children: [{ title: 'Bar', route: ['bar', Baz] }] }, { title: 'Foo', route: { component: Foo, viewport: 'main-viewport' } }]);
       }
@@ -35,7 +35,7 @@ describe('Nav', function () {
       .register(DebugConfiguration, RouterConfiguration)
       .app({ host: host, component: App });
 
-    const router = container.get(IRouter);
+    const router = container.get(IHTMLRouter);
     const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
     mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate;
     router.navigation.history = mockBrowserHistoryLocation as any;

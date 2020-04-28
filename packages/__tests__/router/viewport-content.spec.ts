@@ -1,4 +1,4 @@
-import { IRouter, ViewportContent, ViewportInstruction } from '@aurelia/router';
+import { IHTMLRouter, ViewportContent, ViewportInstruction } from '@aurelia/router-html';
 import { CustomElement } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 
@@ -15,7 +15,7 @@ describe('ViewportContent', function () {
     function $setup(dependencies: any[] = []) {
       const ctx = TestContext.createHTMLTestContext();
       const container = ctx.container;
-      const router = container.get(IRouter);
+      const router = container.get(IHTMLRouter);
       return { container, router };
     }
 

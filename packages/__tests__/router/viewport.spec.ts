@@ -1,4 +1,4 @@
-import { Viewport, RouterConfiguration, IRouter } from '@aurelia/router';
+import { Viewport, RouterConfiguration, IHTMLRouter } from '@aurelia/router-html';
 import { CustomElement, Aurelia } from '@aurelia/runtime';
 import { TestContext, assert } from '@aurelia/testing';
 import { DebugConfiguration } from '@aurelia/debug';
@@ -26,7 +26,7 @@ describe('Viewport', function () {
         App)
       .app({ host: host, component: App });
 
-    const router = container.get(IRouter);
+    const router = container.get(IHTMLRouter);
 
     await au.start().wait();
 

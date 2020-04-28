@@ -4,7 +4,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
-import { IContainer } from '@aurelia/kernel';
 import { CustomElementType, ICustomElementController } from '@aurelia/runtime';
 import { IRoute, ComponentAppellation, INavigatorInstruction } from './interfaces';
 import { FoundRoute } from './found-route';

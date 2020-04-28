@@ -1,6 +1,22 @@
-import { NavigationInstructionResolver } from '../type-resolvers';
-import { customAttribute, INode, bindable, BindingMode, IDOM, DelegationStrategy, IObserverLocator, LifecycleFlags, CustomAttribute, ICustomAttributeController, ICustomAttributeViewModel } from '@aurelia/runtime';
-import { IRouter } from '../router';
+import {
+  NavigationInstructionResolver,
+} from '@aurelia/router';
+
+import {
+  customAttribute,
+  INode,
+  bindable,
+  BindingMode,
+  IDOM,
+  DelegationStrategy,
+  IObserverLocator,
+  LifecycleFlags,
+  CustomAttribute,
+  ICustomAttributeController,
+  ICustomAttributeViewModel,
+} from '@aurelia/runtime';
+
+import { IHTMLRouter } from '../router';
 import { IEventManager } from '@aurelia/runtime-html';
 import { IDisposable } from '@aurelia/kernel';
 
@@ -21,7 +37,7 @@ export class GotoCustomAttribute implements ICustomAttributeViewModel<HTMLElemen
   public constructor(
     @IDOM private readonly dom: IDOM,
     @INode element: INode,
-    @IRouter private readonly router: IRouter,
+    @IHTMLRouter private readonly router: IHTMLRouter,
     @IEventManager private readonly eventManager: IEventManager,
   ) {
     this.element = element as HTMLElement;

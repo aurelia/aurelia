@@ -11,8 +11,11 @@ import {
   IHydratedController,
   IHydratedParentController,
 } from '@aurelia/runtime';
-import { IRouter } from '../router';
-import { IViewportOptions, Viewport } from '../viewport';
+import { IHTMLRouter } from '../router';
+import {
+  IViewportOptions,
+  Viewport
+} from '@aurelia/router';
 
 export const ParentViewport = CustomElement.createInjectable();
 
@@ -37,7 +40,7 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
   private readonly element: Element;
 
   public constructor(
-    @IRouter private readonly router: IRouter,
+    @IHTMLRouter private readonly router: IHTMLRouter,
     @INode element: INode,
     @IContainer private container: IContainer,
     @ParentViewport private readonly parentViewport: ViewportCustomElement,

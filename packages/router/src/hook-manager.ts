@@ -1,7 +1,6 @@
 import { Hook } from './hook';
 import { INavigatorInstruction, ComponentAppellation, IComponentAndOrViewportOrNothing } from './interfaces';
 import { ViewportInstruction } from './viewport-instruction';
-import { Viewport } from './viewport';
 
 export const enum HookTypes {
   BeforeNavigation = 'beforeNavigation',

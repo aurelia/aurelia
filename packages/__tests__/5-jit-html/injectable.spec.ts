@@ -1,4 +1,4 @@
-import { RouterConfiguration } from '@aurelia/router';
+import { RouterConfiguration } from '@aurelia/router-html';
 import { CustomElement, Aurelia, customElement } from '@aurelia/runtime';
 import { TestContext, assert } from '@aurelia/testing';
 

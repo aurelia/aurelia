@@ -1,5 +1,5 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { IRouter, RouterConfiguration, ViewportInstruction } from '@aurelia/router';
+import { IHTMLRouter, RouterConfiguration, ViewportInstruction } from '@aurelia/router-html';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
@@ -17,7 +17,7 @@ describe('InstructionResolver', function () {
       .register(DebugConfiguration, RouterConfiguration)
       .app({ host: host, component: App });
 
-    const router = container.get(IRouter);
+    const router = container.get(IHTMLRouter);
     const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
     mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate;
     router.navigation.history = mockBrowserHistoryLocation as any;
@@ -74,7 +74,7 @@ describe('InstructionResolver', function () {
 
     const ctx = TestContext.createHTMLTestContext();
     const container = ctx.container;
-    const router = container.get(IRouter);
+    const router = container.get(IHTMLRouter);
 
     const instructions: InstructionTest[] = [
       { instruction: 'foo', viewportInstruction: router.createViewportInstruction('foo') },

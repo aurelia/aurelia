@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { IContainer, Reporter } from '@aurelia/kernel';
-import { Controller, IController, INode, LifecycleFlags, ILifecycle, CustomElement, IHydratedController, ICustomElementController } from '@aurelia/runtime';
+import { Controller, INode, LifecycleFlags, ILifecycle, IHydratedController, ICustomElementController } from '@aurelia/runtime';
 import { INavigatorInstruction, IRouteableComponent, RouteableComponentType, ReentryBehavior } from './interfaces';
 import { parseQuery } from './parser';
 import { Viewport } from './viewport';

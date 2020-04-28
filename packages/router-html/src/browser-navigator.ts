@@ -1,8 +1,15 @@
 import { Reporter } from '@aurelia/kernel';
 import { IDOM, IScheduler } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
-import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions, INavigatorViewerState } from './navigator';
-import { Queue, QueueItem } from './queue';
+import {
+  INavigatorState,
+  INavigatorStore,
+  INavigatorViewer,
+  INavigatorViewerOptions,
+  INavigatorViewerState,
+  Queue,
+  QueueItem,
+} from '@aurelia/router';
 
 interface Call {
   target: object;

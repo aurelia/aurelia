@@ -1,8 +1,46 @@
 export {
-  InstructionResolver,
-} from './instruction-resolver';
+  BrowserNavigator,
+} from './browser-navigator';
 
 export {
+  ILinkHandlerOptions,
+  AnchorEventInfo,
+
+  LinkHandler,
+} from './link-handler';
+
+export {
+  INavRoute,
+  Nav,
+} from './nav';
+
+export {
+  NavRoute,
+} from './nav-route';
+
+export {
+  RouterConfiguration,
+  RouterRegistration,
+  DefaultComponents,
+  DefaultResources,
+  ViewportCustomElement,
+  ViewportCustomElementRegistration,
+  NavCustomElement,
+  NavCustomElementRegistration,
+  GotoCustomAttribute,
+  GotoCustomAttributeRegistration,
+  HrefCustomAttribute,
+  HrefCustomAttributeRegistration,
+} from './configuration';
+
+export {
+  IHTMLRouter,
+  HTMLRouter,
+} from './router';
+
+export {
+  InstructionResolver,
+
   INavigatorInstruction,
   IRouteableComponent,
   RouteableComponentType,
@@ -10,20 +48,14 @@ export {
   NavigationInstruction,
   ReentryBehavior,
   IRoute,
-} from './interfaces';
 
-export {
   lifecycleLogger,
   LifecycleClass,
-} from './lifecycle-logger';
 
-export {
   HookManager,
   HookTypes,
   IHookDefinition,
-} from './hook-manager';
 
-export {
   IStoredNavigatorEntry,
   INavigatorEntry,
   INavigatorOptions,
@@ -32,57 +64,27 @@ export {
   INavigatorStore,
   INavigatorViewer,
   INavigatorViewerEvent,
-  INavigatorViewerOptions,
-  INavigatorViewerState,
   Navigator,
-} from './navigator';
 
-export {
   QueueItem,
   IQueueOptions,
   Queue,
-} from './queue';
 
-export {
   RouteRecognizer,
   IConfigurableRoute,
   ConfigurableRoute,
   RecognizedRoute,
   Endpoint,
-} from './route-recognizer';
 
-export {
   IRouterOptions,
   IRouter,
   Router,
-} from './router';
 
-export {
-  QueueTask,
-  TaskQueue,
-} from './task-queue';
-
-export {
-  NavigationInstructionResolver,
-  ComponentAppellationResolver,
-} from './type-resolvers';
-
-export {
   IViewportOptions,
   Viewport,
-} from './viewport';
 
-export {
   ContentStatus,
   ViewportContent,
-} from './viewport-content';
 
-export {
   ViewportInstruction,
-} from './viewport-instruction';
-
-export {
-  IViewportScopeOptions,
-  ViewportScope,
-} from './viewport-scope';
-
+} from '@aurelia/router';

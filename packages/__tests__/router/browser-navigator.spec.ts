@@ -1,4 +1,4 @@
-import { BrowserNavigator, INavigatorState } from '@aurelia/router';
+import { BrowserNavigator, INavigatorState } from '@aurelia/router-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
 describe('BrowserNavigator', function () {

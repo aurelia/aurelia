@@ -1,7 +1,14 @@
 import { IDOM, IScheduler } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
-import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions, INavigatorViewerState } from './navigator';
-import { QueueTask, TaskQueue } from './task-queue';
+import {
+  INavigatorState,
+  INavigatorStore,
+  INavigatorViewer,
+  INavigatorViewerOptions,
+  INavigatorViewerState,
+  QueueTask,
+  TaskQueue,
+} from '@aurelia/router';
 
 interface IAction {
   execute(task: QueueTask<IAction>, resolve?: ((value?: void | PromiseLike<void>) => void) | null | undefined, suppressEvent?: boolean): void;

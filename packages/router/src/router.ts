@@ -3,15 +3,12 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 /* eslint-disable max-lines-per-function */
-import { DI, IContainer, Key, Reporter, Registration, Metadata } from '@aurelia/kernel';
+import { DI, IContainer, Reporter, Registration, Metadata } from '@aurelia/kernel';
 import { Aurelia, CustomElementType, CustomElement, INode, DOM, ICustomElementController, ICustomElementViewModel, isRenderContext } from '@aurelia/runtime';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
 import { INavigatorInstruction, IRouteableComponent, NavigationInstruction, IRoute, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces';
-import { AnchorEventInfo, LinkHandler } from './link-handler';
-import { INavRoute, Nav } from './nav';
 import { INavigatorEntry, INavigatorFlags, INavigatorOptions, INavigatorViewerEvent, IStoredNavigatorEntry, Navigator } from './navigator';
 import { QueueItem } from './queue';
-import { INavClasses } from './resources/nav';
 import { NavigationInstructionResolver, IViewportInstructionsOptions } from './type-resolvers';
 import { arrayRemove } from './utils';
 import { IViewportOptions, Viewport } from './viewport';
@@ -20,7 +17,6 @@ import { FoundRoute } from './found-route';
 import { HookManager, IHookDefinition, HookIdentity, HookFunction, IHookOptions, BeforeNavigationHookFunction, TransformFromUrlHookFunction, TransformToUrlHookFunction } from './hook-manager';
 import { Scope, IScopeOwner } from './scope';
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
-import { BrowserViewerStore } from './browser-viewer-store';
 
 export interface IGotoOptions {
   title?: string;
@@ -50,18 +46,13 @@ export interface IRouter {
   readonly container: IContainer;
   readonly instructionResolver: InstructionResolver;
   navigator: Navigator;
-  readonly navigation: BrowserViewerStore;
   readonly hookManager: HookManager;
-  readonly linkHandler: LinkHandler;
-  readonly navs: Readonly<Record<string, Nav>>;
   readonly options: IRouterOptions;
 
   readonly statefulHistory: boolean;
   activate(options?: IRouterOptions): void;
-  loadUrl(): Promise<void>;
+  // loadUrl(): Promise<void>;
   deactivate(): void;
-
-  linkCallback(info: AnchorEventInfo): void;
 
   processNavigations(qInstruction: QueueItem<INavigatorInstruction>): Promise<void>;
 
@@ -92,11 +83,6 @@ export interface IRouter {
 
   checkActive(instructions: ViewportInstruction[]): boolean;
 
-  setNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
-  addNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
-  updateNav(name?: string): void;
-  findNav(name: string): Nav;
-
   addRoutes(routes: IRoute[], context?: ICustomElementViewModel | Element): IRoute[];
   removeRoutes(routes: IRoute[] | string[], context?: ICustomElementViewModel | Element): void;
   addHooks(hooks: IHookDefinition[]): HookIdentity[];
@@ -110,19 +96,13 @@ export interface IRouter {
   createViewportInstruction(component: ComponentAppellation, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope?: boolean, nextScopeInstructions?: ViewportInstruction[] | null): ViewportInstruction;
 }
 
-class ClosestViewportCustomElement { }
 class ClosestScope { }
 
 export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x.singleton(Router));
 
 export class Router implements IRouter {
-  public static readonly inject: readonly Key[] = [IContainer, Navigator, BrowserViewerStore, LinkHandler, InstructionResolver];
-
   public rootScope: ViewportScope | null = null;
 
-  public hookManager: HookManager;
-
-  public navs: Record<string, Nav> = {};
   public activeComponents: ViewportInstruction[] = [];
   public activeRoute?: IRoute;
 
@@ -135,21 +115,18 @@ export class Router implements IRouter {
     useConfiguredRoutes: true,
   };
   private isActive: boolean = false;
-  private loadedFirst: boolean = false;
+  // private loadedFirst: boolean = false;
 
   private processingNavigation: INavigatorInstruction | null = null;
   private lastNavigation: INavigatorInstruction | null = null;
   private staleChecks: Record<string, ViewportInstruction[]> = {};
 
   public constructor(
-    public readonly container: IContainer,
+    @IContainer public readonly container: IContainer,
     public navigator: Navigator,
-    public navigation: BrowserViewerStore,
-    public linkHandler: LinkHandler,
-    public instructionResolver: InstructionResolver
-  ) {
-    this.hookManager = new HookManager();
-  }
+    public instructionResolver: InstructionResolver,
+    public hookManager: HookManager,
+  ) {}
 
   public get isNavigating(): boolean {
     return this.processingNavigation !== null;
@@ -174,57 +151,42 @@ export class Router implements IRouter {
     }
 
     this.instructionResolver.activate({ separators: this.options.separators });
-    this.navigator.activate(this, {
-      callback: this.navigatorCallback,
-      store: this.navigation,
-      statefulHistoryLength: this.options.statefulHistoryLength,
-      serializeCallback: this.statefulHistory ? this.navigatorSerializeCallback : void 0,
-    });
-    this.linkHandler.activate({ callback: this.linkCallback, useHref: this.options.useHref });
-    this.navigation.activate({
-      callback: this.browserNavigatorCallback,
-      useUrlFragmentHash: this.options.useUrlFragmentHash
-    });
+    //  this.navigator.activate(this, {
+    //    callback: this.navigatorCallback,
+    //    store: this.navigation,
+    //    statefulHistoryLength: this.options.statefulHistoryLength,
+    //    serializeCallback: this.statefulHistory ? this.navigatorSerializeCallback : void 0,
+    //  });
+    // this.linkHandler.activate({ callback: this.linkCallback, useHref: this.options.useHref });
+    // this.navigation.activate({
+    //   callback: this.browserNavigatorCallback,
+    //   useUrlFragmentHash: this.options.useUrlFragmentHash
+    // });
     this.ensureRootScope();
   }
 
-  public async loadUrl(): Promise<void> {
-    const entry: INavigatorEntry = {
-      ...this.navigation.viewerState,
-      ...{
-        fullStateInstruction: '',
-        replacing: true,
-        fromBrowser: false,
-      }
-    };
-    const result = this.navigator.navigate(entry);
-    this.loadedFirst = true;
-    return result;
-  }
+  //  public async loadUrl(): Promise<void> {
+  //    const entry: INavigatorEntry = {
+  //      // ...this.navigation.viewerState,
+  //      ...{
+  //        fullStateInstruction: '',
+  //        replacing: true,
+  //        fromBrowser: false,
+  //      }
+  //    };
+  //    const result = this.navigator.navigate(entry);
+  //    this.loadedFirst = true;
+  //    return result;
+  //  }
 
   public deactivate(): void {
     if (!this.isActive) {
       throw new Error('Router has not been activated');
     }
-    this.linkHandler.deactivate();
+    // this.linkHandler.deactivate();
     this.navigator.deactivate();
-    this.navigation.deactivate();
+    // this.navigation.deactivate();
   }
-
-  // TODO: use @bound and improve name (eslint-disable is temp)
-  // eslint-disable-next-line @typescript-eslint/typedef
-  public linkCallback = (info: AnchorEventInfo): void => {
-    let instruction = info.instruction || '';
-    if (typeof instruction === 'string' && instruction.startsWith('#')) {
-      instruction = instruction.slice(1);
-      // '#' === '/' === '#/'
-      if (!instruction.startsWith('/')) {
-        instruction = `/${instruction}`;
-      }
-    }
-    // Adds to Navigator's Queue, which makes sure it's serial
-    this.goto(instruction, { origin: info.anchor! }).catch(error => { throw error; });
-  };
 
   // TODO: use @bound and improve name (eslint-disable is temp)
   // eslint-disable-next-line @typescript-eslint/typedef
@@ -275,17 +237,6 @@ export class Router implements IRouter {
       await this.freeComponents(instruction, excludeComponents, alreadyDone);
     }
     return serialized;
-  };
-
-  // TODO: use @bound and improve name (eslint-disable is temp)
-  // eslint-disable-next-line @typescript-eslint/typedef
-  public browserNavigatorCallback = (browserNavigationEvent: INavigatorViewerEvent): void => {
-    const entry: INavigatorEntry = (browserNavigationEvent.state && browserNavigationEvent.state.currentEntry
-      ? browserNavigationEvent.state.currentEntry as INavigatorEntry
-      : { instruction: '', fullStateInstruction: '' });
-    entry.instruction = browserNavigationEvent.instruction;
-    entry.fromBrowser = true;
-    this.navigator.navigate(entry).catch(error => { throw error; });
   };
 
   // TODO: use @bound and improve name (eslint-disable is temp)
@@ -659,35 +610,6 @@ export class Router implements IRouter {
       }
     }
     return true;
-  }
-
-  public setNav(name: string, routes: INavRoute[], classes?: INavClasses): void {
-    const nav = this.findNav(name);
-    if (nav !== void 0 && nav !== null) {
-      nav.routes = [];
-    }
-    this.addNav(name, routes, classes);
-  }
-  public addNav(name: string, routes: INavRoute[], classes?: INavClasses): void {
-    let nav = this.navs[name];
-    if (nav === void 0 || nav === null) {
-      nav = this.navs[name] = new Nav(this, name, [], classes);
-    }
-    nav.addRoutes(routes);
-    nav.update();
-  }
-  public updateNav(name?: string): void {
-    const navs = name
-      ? [name]
-      : Object.keys(this.navs);
-    for (const nav of navs) {
-      if (this.navs[nav] !== void 0 && this.navs[nav] !== null) {
-        this.navs[nav].update();
-      }
-    }
-  }
-  public findNav(name: string): Nav {
-    return this.navs[name];
   }
 
   public addRoutes(routes: IRoute[], context?: ICustomElementViewModel | Element): IRoute[] {

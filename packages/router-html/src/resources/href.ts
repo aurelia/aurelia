@@ -1,5 +1,16 @@
-import { customAttribute, INode, bindable, BindingMode, ViewModelKind, IDOM, DelegationStrategy, ICustomAttributeViewModel, ICustomAttributeController } from '@aurelia/runtime';
-import { IRouter } from '../router';
+import {
+  customAttribute,
+  INode,
+  bindable,
+  BindingMode,
+  ViewModelKind,
+  IDOM,
+  DelegationStrategy,
+  ICustomAttributeViewModel,
+  ICustomAttributeController,
+} from '@aurelia/runtime';
+
+import { IHTMLRouter } from '../router';
 import { GotoCustomAttribute } from '../configuration';
 import { IEventManager } from '@aurelia/runtime-html';
 import { IDisposable } from '@aurelia/kernel';
@@ -19,7 +30,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel<HTMLElemen
   public constructor(
     @IDOM private readonly dom: IDOM,
     @INode element: INode,
-    @IRouter private readonly router: IRouter,
+    @IHTMLRouter private readonly router: IHTMLRouter,
     @IEventManager private readonly eventManager: IEventManager,
   ) {
     this.element = element as HTMLElement;

@@ -19,8 +19,8 @@ import {
   IHydratedController,
   IHydratedParentController,
 } from '@aurelia/runtime';
-import { IRouter } from '../router';
-import { IViewportScopeOptions, ViewportScope } from '../viewport-scope';
+import { IHTMLRouter } from '../router';
+import { IViewportScopeOptions, ViewportScope } from '@aurelia/router';
 import { IContainer, Writable } from '@aurelia/kernel';
 
 export const ParentViewportScope = CustomElement.createInjectable();
@@ -45,7 +45,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Eleme
   private isBound: boolean = false;
 
   public constructor(
-    @IRouter private readonly router: IRouter,
+    @IHTMLRouter private readonly router: IHTMLRouter,
     @INode element: INode,
     @IContainer private container: IContainer,
     @ParentViewportScope private readonly parent: ViewportScopeCustomElement,

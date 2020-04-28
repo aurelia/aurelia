@@ -2,8 +2,8 @@
 /* eslint-disable @typescript-eslint/promise-function-async */
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { IContainer, Reporter } from '@aurelia/kernel';
-import { LifecycleFlags, IController, CustomElement, INode, IHydratedController, ICustomElementController } from '@aurelia/runtime';
+import { Reporter } from '@aurelia/kernel';
+import { LifecycleFlags, CustomElement, IHydratedController, ICustomElementController } from '@aurelia/runtime';
 import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, ReentryBehavior, IRoute, RouteableComponentType } from './interfaces';
 import { INavigatorFlags } from './navigator';
 import { IRouter } from './router';

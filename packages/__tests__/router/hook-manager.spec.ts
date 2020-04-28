@@ -1,4 +1,11 @@
-import { HookManager, HookTypes, INavigatorInstruction, ViewportInstruction, RouterConfiguration, IRouter } from '@aurelia/router';
+import {
+  HookManager,
+  HookTypes,
+  INavigatorInstruction,
+  ViewportInstruction,
+  RouterConfiguration,
+  IHTMLRouter,
+} from '@aurelia/router-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { CustomElement, Aurelia, IScheduler } from '@aurelia/runtime';
 import { DebugConfiguration } from '@aurelia/debug';
@@ -31,7 +38,7 @@ describe('HookManager', function () {
         App)
       .app({ host: host, component: App });
 
-    const router = container.get(IRouter);
+    const router = container.get(IHTMLRouter);
     const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
 
     await au.start().wait();
@@ -71,7 +78,7 @@ describe('HookManager', function () {
       router.navigation.history.replaceState = _replace;
     }
   }
-  const $goto = async (path: string, router: IRouter, scheduler: IScheduler) => {
+  const $goto = async (path: string, router: IHTMLRouter, scheduler: IScheduler) => {
     await router.goto(path);
     scheduler.getRenderTaskQueue().flush();
   };

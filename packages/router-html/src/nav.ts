@@ -1,7 +1,7 @@
-import { NavigationInstruction } from './interfaces';
+import { NavigationInstruction } from '@aurelia/router';
 import { NavRoute } from './nav-route';
 import { INavClasses } from './resources/nav';
-import { IRouter } from './router';
+import { IHTMLRouter } from './router';
 
 export interface INavRoute {
   route?: NavigationInstruction | NavigationInstruction[];
@@ -18,7 +18,7 @@ export interface INavRoute {
 export class Nav {
 
   public constructor(
-    public router: IRouter,
+    public router: IHTMLRouter,
     public name: string,
     public routes: NavRoute[] = [],
     public classes: INavClasses = {}

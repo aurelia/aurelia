@@ -1,11 +1,11 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { IRouter, RouterConfiguration } from '@aurelia/router';
+import { IHTMLRouter, RouterConfiguration } from '@aurelia/router-html';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
 describe('Configuration', function () {
   function getModifiedRouter(container) {
-    const router = container.get(IRouter);
+    const router = container.get(IHTMLRouter);
     const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
     mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate;
     router.navigation.history = mockBrowserHistoryLocation as any;

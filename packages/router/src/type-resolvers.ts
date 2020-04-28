@@ -1,5 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import { CustomElement, IController, ICustomElementViewModel } from '@aurelia/runtime';
+import { CustomElement, IController, ICustomElementViewModel, INode } from '@aurelia/runtime';
 import { ComponentAppellation, IRouteableComponent, RouteableComponentType, IViewportInstruction, NavigationInstruction, ViewportHandle } from './interfaces';
 import { IRouter } from './router';
 import { Viewport } from './viewport';
@@ -7,17 +7,17 @@ import { ViewportInstruction } from './viewport-instruction';
 import { Scope } from './scope';
 
 export const ComponentAppellationResolver = {
-  isName: function (component: ComponentAppellation): component is string {
+  isName<T extends INode>(component: ComponentAppellation<T>): component is string {
     return typeof component === 'string';
   },
-  isType: function (component: ComponentAppellation): component is RouteableComponentType {
+  isType<T extends INode>(component: ComponentAppellation<T>): component is RouteableComponentType {
     return CustomElement.isType(component);
   },
-  isInstance: function (component: ComponentAppellation): component is IRouteableComponent {
+  isInstance<T extends INode>(component: ComponentAppellation<T>): component is IRouteableComponent<T> {
     return !ComponentAppellationResolver.isName(component) && !ComponentAppellationResolver.isType(component);
   },
 
-  getName: function (component: ComponentAppellation): string {
+  getName<T extends INode>(component: ComponentAppellation<T>): string {
     if (ComponentAppellationResolver.isName(component)) {
       return component;
     } else if (ComponentAppellationResolver.isType(component)) {
@@ -26,39 +26,39 @@ export const ComponentAppellationResolver = {
       return ComponentAppellationResolver.getName(component.constructor as Constructable);
     }
   },
-  getType: function (component: ComponentAppellation): RouteableComponentType | null {
+  getType<T extends INode>(component: ComponentAppellation<T>): RouteableComponentType | null {
     if (ComponentAppellationResolver.isName(component as Constructable & string)) {
       return null;
     } else if (ComponentAppellationResolver.isType(component as RouteableComponentType)) {
       return component as RouteableComponentType;
     } else {
-      return ((component as IRouteableComponent).constructor as RouteableComponentType);
+      return ((component as IRouteableComponent<T>).constructor as RouteableComponentType);
     }
   },
-  getInstance: function (component: ComponentAppellation): IRouteableComponent | null {
+  getInstance<T extends INode>(component: ComponentAppellation<T>): IRouteableComponent<T> | null {
     if (ComponentAppellationResolver.isName(component as Constructable & string) || ComponentAppellationResolver.isType(component as Constructable & string)) {
       return null;
     } else {
-      return component as IRouteableComponent;
+      return component as IRouteableComponent<T>;
     }
   },
 };
 
 export const ViewportHandleResolver = {
-  isName: function (viewport: ViewportHandle): viewport is string {
+  isName<T extends INode>(viewport: ViewportHandle<T>): viewport is string {
     return typeof viewport === 'string';
   },
-  isInstance: function (viewport: ViewportHandle): viewport is Viewport {
+  isInstance<T extends INode>(viewport: ViewportHandle<T>): viewport is Viewport<T> {
     return viewport instanceof Viewport;
   },
-  getName: function (viewport: ViewportHandle): string | null {
+  getName<T extends INode>(viewport: ViewportHandle<T>): string | null {
     if (ViewportHandleResolver.isName(viewport)) {
       return viewport;
     } else {
       return viewport ? (viewport).name : null;
     }
   },
-  getInstance: function (viewport: ViewportHandle): Viewport | null {
+  getInstance<T extends INode>(viewport: ViewportHandle<T>): Viewport<T> | null {
     if (ViewportHandleResolver.isName(viewport)) {
       return null;
     } else {
@@ -67,18 +67,21 @@ export const ViewportHandleResolver = {
   },
 };
 
-export interface IViewportInstructionsOptions {
-  context?: ICustomElementViewModel | Element | IController;
+export interface IViewportInstructionsOptions<T extends INode> {
+  context?: ICustomElementViewModel | T | IController;
 }
 
 export const NavigationInstructionResolver = {
-  createViewportInstructions: function (
-    router: IRouter,
-    navigationInstructions: NavigationInstruction | NavigationInstruction[],
-    options?: IViewportInstructionsOptions,
-  ): { instructions: string | ViewportInstruction[]; scope: Scope | null } {
+  createViewportInstructions<T extends INode>(
+    router: IRouter<T>,
+    navigationInstructions: NavigationInstruction<T> | NavigationInstruction<T>[],
+    options?: IViewportInstructionsOptions<T>,
+  ): {
+    instructions: string | ViewportInstruction<T>[];
+    scope: Scope<T> | null;
+  } {
     options = options || {};
-    let scope: Scope | null = null;
+    let scope: Scope<T> | null = null;
     if (options.context) {
       scope = router.findScope(options.context);
       if (typeof navigationInstructions === 'string') {
@@ -105,7 +108,7 @@ export const NavigationInstructionResolver = {
         }
       } else {
         navigationInstructions = NavigationInstructionResolver.toViewportInstructions(router, navigationInstructions);
-        for (const instruction of navigationInstructions as ViewportInstruction[]) {
+        for (const instruction of navigationInstructions as ViewportInstruction<T>[]) {
           if (instruction.scope === null) {
             instruction.scope = scope;
           }
@@ -114,30 +117,33 @@ export const NavigationInstructionResolver = {
     }
 
     return {
-      instructions: navigationInstructions as string | ViewportInstruction[],
+      instructions: navigationInstructions as string | ViewportInstruction<T>[],
       scope,
     };
   },
 
-  toViewportInstructions: function (router: IRouter, navigationInstructions: NavigationInstruction | NavigationInstruction[]): ViewportInstruction[] {
+  toViewportInstructions<T extends INode>(
+    router: IRouter<T>,
+    navigationInstructions: NavigationInstruction<T> | NavigationInstruction<T>[],
+  ): ViewportInstruction<T>[] {
     if (!Array.isArray(navigationInstructions)) {
       return NavigationInstructionResolver.toViewportInstructions(router, [navigationInstructions]);
     }
-    const instructions: ViewportInstruction[] = [];
+    const instructions: ViewportInstruction<T>[] = [];
     for (const instruction of navigationInstructions) {
       if (typeof instruction === 'string') {
         instructions.push(...router.instructionResolver.parseViewportInstructions(instruction));
       } else if (instruction instanceof ViewportInstruction) {
         instructions.push(instruction);
-      } else if ((instruction as IViewportInstruction).component) {
-        const viewportComponent = instruction as IViewportInstruction;
+      } else if ((instruction as IViewportInstruction<T>).component) {
+        const viewportComponent = instruction as IViewportInstruction<T>;
         const newInstruction = router.createViewportInstruction(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters);
         if (viewportComponent.children !== void 0 && viewportComponent.children !== null) {
           newInstruction.nextScopeInstructions = NavigationInstructionResolver.toViewportInstructions(router, viewportComponent.children);
         }
         instructions.push(newInstruction);
       } else {
-        instructions.push(router.createViewportInstruction(instruction as ComponentAppellation));
+        instructions.push(router.createViewportInstruction(instruction as ComponentAppellation<T>));
       }
     }
     return instructions;

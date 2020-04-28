@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/promise-function-async */
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { CustomElementType } from '@aurelia/runtime';
+import { CustomElementType, INode } from '@aurelia/runtime';
 import { ComponentAppellation, INavigatorInstruction, IRoute, RouteableComponentType } from './interfaces';
 import { IRouter } from './router';
 import { ViewportInstruction } from './viewport-instruction';
@@ -15,13 +15,13 @@ export interface IViewportScopeOptions extends IScopeOwnerOptions {
   source?: unknown[] | null;
 }
 
-export class ViewportScope implements IScopeOwner {
-  public connectedScope: Scope;
+export class ViewportScope<T extends INode> implements IScopeOwner<T> {
+  public connectedScope: Scope<T>;
 
   public path: string | null = null;
 
-  public content: ViewportInstruction | null = null;
-  public nextContent: ViewportInstruction | null = null;
+  public content: ViewportInstruction<T> | null = null;
+  public nextContent: ViewportInstruction<T> | null = null;
 
   public available: boolean = true;
   public sourceItem: unknown | null = null;
@@ -32,9 +32,9 @@ export class ViewportScope implements IScopeOwner {
 
   public constructor(
     public name: string,
-    public readonly router: IRouter,
-    public element: Element | null,
-    owningScope: Scope | null,
+    public readonly router: IRouter<T>,
+    public element: T | null,
+    owningScope: Scope<T> | null,
     scope: boolean,
     public rootComponentType: CustomElementType | null = null, // temporary. Metadata will probably eliminate it
     public options: IViewportScopeOptions = {
@@ -48,10 +48,10 @@ export class ViewportScope implements IScopeOwner {
     }
   }
 
-  public get scope(): Scope {
+  public get scope(): Scope<T> {
     return this.connectedScope.scope!;
   }
-  public get owningScope(): Scope {
+  public get owningScope(): Scope<T> {
     return this.connectedScope.owningScope!;
   }
 
@@ -77,8 +77,8 @@ export class ViewportScope implements IScopeOwner {
     return this.rootComponentType === null && this.catches.length === 0;
   }
 
-  public get siblings(): ViewportScope[] {
-    const parent: Scope | null = this.connectedScope.parent;
+  public get siblings(): ViewportScope<T>[] {
+    const parent: Scope<T> | null = this.connectedScope.parent;
     if (parent === null) {
       return [this];
     }
@@ -105,8 +105,11 @@ export class ViewportScope implements IScopeOwner {
     }
   }
 
-  public setNextContent(content: ComponentAppellation | ViewportInstruction, instruction: INavigatorInstruction): boolean {
-    let viewportInstruction: ViewportInstruction;
+  public setNextContent(
+    content: ComponentAppellation<T> | ViewportInstruction<T>,
+    instruction: INavigatorInstruction<T>,
+  ): boolean {
+    let viewportInstruction: ViewportInstruction<T>;
     if (content instanceof ViewportInstruction) {
       viewportInstruction = content;
     } else {
@@ -139,7 +142,7 @@ export class ViewportScope implements IScopeOwner {
   public canLeave(): Promise<boolean> {
     return Promise.resolve(true);
   }
-  public canEnter(): Promise<boolean | ViewportInstruction[]> {
+  public canEnter(): Promise<boolean | ViewportInstruction<T>[]> {
     return Promise.resolve(true);
   }
 
@@ -210,7 +213,7 @@ export class ViewportScope implements IScopeOwner {
     if (this.source === null) {
       return null;
     }
-    const siblings: ViewportScope[] = this.siblings;
+    const siblings: ViewportScope<T>[] = this.siblings;
     for (const item of this.source) {
       if (siblings.every(sibling => sibling.sourceItem !== item)) {
         return item;
@@ -230,9 +233,9 @@ export class ViewportScope implements IScopeOwner {
     }
   }
 
-  public getRoutes(): IRoute[] | null {
+  public getRoutes(): IRoute<T>[] | null {
     if (this.rootComponentType !== null) {
-      return (this.rootComponentType as RouteableComponentType & { routes: IRoute[] }).routes;
+      return (this.rootComponentType as RouteableComponentType & { routes: IRoute<T>[] }).routes;
     }
     return null;
   }

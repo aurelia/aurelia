@@ -1,5 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import { CustomElementType, INode, ICustomElementViewModel } from '@aurelia/runtime';
+import { CustomElementType, INode, ICustomElementViewModel, ICustomElementController } from '@aurelia/runtime';
 import { INavigatorEntry, INavigatorFlags, IStoredNavigatorEntry } from './navigator';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
@@ -10,16 +10,35 @@ import { ViewportInstruction } from './viewport-instruction';
 * of the API.
 */
 
+export interface IStateManager<T extends INode> {
+  saveState(controller: ICustomElementController<T>): void;
+  restoreState(controller: ICustomElementController<T>): void;
+}
+
 export type RouteableComponentType<C extends Constructable = Constructable> = CustomElementType<C> & {
   parameters?: string[];
 };
 
-export interface IRouteableComponent<T extends INode = INode> extends ICustomElementViewModel<T> {
+export interface IRouteableComponent<T extends INode> extends ICustomElementViewModel<T> {
   reentryBehavior?: ReentryBehavior;
-  canEnter?(parameters: Record<string, unknown>, nextInstruction: INavigatorInstruction, instruction: INavigatorInstruction): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]>;
-  enter?(parameters: Record<string, unknown>, nextInstruction: INavigatorInstruction, instruction: INavigatorInstruction): void | Promise<void>;
-  canLeave?(nextInstruction: INavigatorInstruction | null, instruction: INavigatorInstruction): boolean | Promise<boolean>;
-  leave?(nextInstruction: INavigatorInstruction | null, instruction: INavigatorInstruction): void | Promise<void>;
+  canEnter?(
+    parameters: Record<string, unknown>,
+    nextInstruction: INavigatorInstruction<T>,
+    instruction: INavigatorInstruction<T>,
+  ): boolean | string | ViewportInstruction<T>[] | Promise<boolean | string | ViewportInstruction<T>[]>;
+  enter?(
+    parameters: Record<string, unknown>,
+    nextInstruction: INavigatorInstruction<T>,
+    instruction: INavigatorInstruction<T>,
+  ): void | Promise<void>;
+  canLeave?(
+    nextInstruction: INavigatorInstruction<T> | null,
+    instruction: INavigatorInstruction<T>,
+  ): boolean | Promise<boolean>;
+  leave?(
+    nextInstruction: INavigatorInstruction<T> | null,
+    instruction: INavigatorInstruction<T>,
+  ): void | Promise<void>;
 }
 
 export const enum ReentryBehavior {
@@ -29,32 +48,32 @@ export const enum ReentryBehavior {
   refresh = 'refresh',
 }
 
-export interface INavigatorInstruction extends INavigatorEntry {
+export interface INavigatorInstruction<T extends INode> extends INavigatorEntry<T> {
   navigation?: INavigatorFlags;
-  previous?: IStoredNavigatorEntry;
+  previous?: IStoredNavigatorEntry<T>;
   repeating?: boolean;
 }
 
-export interface IViewportInstruction {
-  component: ComponentAppellation;
-  viewport?: ViewportHandle;
+export interface IViewportInstruction<T extends INode> {
+  component: ComponentAppellation<T>;
+  viewport?: ViewportHandle<T>;
   parameters?: ComponentParameters;
-  children?: NavigationInstruction[];
+  children?: NavigationInstruction<T>[];
 }
 
-export interface IRoute {
+export interface IRoute<T extends INode> {
   path: string;
   id?: string;
-  instructions: NavigationInstruction[] | ViewportInstruction[];
+  instructions: NavigationInstruction<T>[] | ViewportInstruction<T>[];
 }
 
-export interface IComponentAndOrViewportOrNothing {
-  component?: ComponentAppellation;
-  viewport?: ViewportHandle;
+export interface IComponentAndOrViewportOrNothing<T extends INode> {
+  component?: ComponentAppellation<T>;
+  viewport?: ViewportHandle<T>;
 }
 
-export type NavigationInstruction = ComponentAppellation | IViewportInstruction | ViewportInstruction;
+export type NavigationInstruction<T extends INode> = ComponentAppellation<T> | IViewportInstruction<T> | ViewportInstruction<T>;
 
-export type ComponentAppellation = string | RouteableComponentType | IRouteableComponent | Constructable;
-export type ViewportHandle = string | Viewport;
+export type ComponentAppellation<T extends INode> = string | RouteableComponentType | IRouteableComponent<T> | Constructable;
+export type ViewportHandle<T extends INode> = string | Viewport<T>;
 export type ComponentParameters = string | Record<string, unknown> | unknown[];

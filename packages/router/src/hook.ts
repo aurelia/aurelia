@@ -3,15 +3,16 @@ import { IComponentAndOrViewportOrNothing, INavigatorInstruction, RouteableCompo
 import { ComponentAppellationResolver, ViewportHandleResolver } from './type-resolvers';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
+import { INode } from '@aurelia/runtime';
 
-export class Hook {
+export class Hook<T extends INode> {
   public type: HookTypes = HookTypes.BeforeNavigation;
-  public includeTargets: Target[] = [];
-  public excludeTargets: Target[] = [];
+  public includeTargets: Target<T>[] = [];
+  public excludeTargets: Target<T>[] = [];
 
   public constructor(
-    public hook: HookFunction,
-    options: IHookOptions,
+    public hook: HookFunction<T>,
+    options: IHookOptions<T>,
     public id: HookIdentity
   ) {
     if (options.type !== void 0) {
@@ -30,36 +31,36 @@ export class Hook {
     return this.includeTargets.length > 0 || this.excludeTargets.length > 0;
   }
 
-  public matches(viewportInstructions: HookParameter): boolean {
-    if (this.includeTargets.length && !this.includeTargets.some(target => target.matches(viewportInstructions as ViewportInstruction[]))) {
+  public matches(viewportInstructions: HookParameter<T>): boolean {
+    if (this.includeTargets.length && !this.includeTargets.some(target => target.matches(viewportInstructions as ViewportInstruction<T>[]))) {
       return false;
     }
-    if (this.excludeTargets.length && this.excludeTargets.some(target => target.matches(viewportInstructions as ViewportInstruction[]))) {
+    if (this.excludeTargets.length && this.excludeTargets.some(target => target.matches(viewportInstructions as ViewportInstruction<T>[]))) {
       return false;
     }
     return true;
   }
 
-  public invoke(navigationInstruction: INavigatorInstruction, arg: HookParameter): Promise<HookResult> {
+  public invoke(navigationInstruction: INavigatorInstruction<T>, arg: HookParameter<T>): Promise<HookResult<T>> {
     // TODO: Fix the type here
     return this.hook(arg as any, navigationInstruction);
   }
 }
 
-class Target {
+class Target<T extends INode> {
   public componentType: RouteableComponentType | null = null;
   public componentName: string | null = null;
-  public viewport: Viewport | null = null;
+  public viewport: Viewport<T> | null = null;
   public viewportName: string | null = null;
 
-  public constructor(target: HookTarget) {
+  public constructor(target: HookTarget<T>) {
     if (typeof target === 'string') {
       this.componentName = target;
     } else if (ComponentAppellationResolver.isType(target as RouteableComponentType)) {
       this.componentType = target as RouteableComponentType;
       this.componentName = ComponentAppellationResolver.getName(target as RouteableComponentType);
     } else {
-      const cvTarget = target as IComponentAndOrViewportOrNothing;
+      const cvTarget = target as IComponentAndOrViewportOrNothing<T>;
       if (cvTarget.component) {
         this.componentType = ComponentAppellationResolver.isType(cvTarget.component)
           ? ComponentAppellationResolver.getType(cvTarget.component)
@@ -67,13 +68,13 @@ class Target {
         this.componentName = ComponentAppellationResolver.getName(cvTarget.component);
       }
       if (cvTarget.viewport) {
-        this.viewport = ViewportHandleResolver.isInstance(cvTarget.viewport) ? cvTarget.viewport : null;
+        this.viewport = ViewportHandleResolver.isInstance<T>(cvTarget.viewport) ? cvTarget.viewport : null;
         this.viewportName = ViewportHandleResolver.getName(cvTarget.viewport);
       }
     }
   }
 
-  public matches(viewportInstructions: ViewportInstruction[]): boolean {
+  public matches(viewportInstructions: ViewportInstruction<T>[]): boolean {
     const instructions = viewportInstructions.slice();
     if (!instructions.length) {
       instructions.push(new ViewportInstruction(''));

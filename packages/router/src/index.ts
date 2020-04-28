@@ -3,6 +3,7 @@ export {
 } from './instruction-resolver';
 
 export {
+  IStateManager,
   INavigatorInstruction,
   IRouteableComponent,
   RouteableComponentType,

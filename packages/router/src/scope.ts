@@ -356,7 +356,7 @@ export class Scope<T extends INode> {
     viewportController: ICustomElementController<T> | null,
     options: IViewportOptions = {},
   ): Viewport<T> {
-    let viewport = this.getEnabledViewports(this.getOwnedScopes())[name];
+    let viewport = this.getEnabledViewports(this.getOwnedScopes())[name] ?? null;
     // Each au-viewport element has its own Viewport
     if (
       viewportController !== null &&

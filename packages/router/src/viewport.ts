@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/promise-function-async */
-/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { Reporter } from '@aurelia/kernel';
 import { LifecycleFlags, CustomElement, IHydratedController, ICustomElementController, INode } from '@aurelia/runtime';
 import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, ReentryBehavior, IRoute, RouteableComponentType } from './interfaces';
@@ -52,10 +48,10 @@ export class Viewport<T extends INode> implements IScopeOwner<T> {
   }
 
   public get scope(): Scope<T> {
-    return this.connectedScope.scope!;
+    return this.connectedScope.scope;
   }
-  public get owningScope(): Scope<T> {
-    return this.connectedScope.owningScope!;
+  public get owningScope(): Scope<T> | null {
+    return this.connectedScope.owningScope;
   }
 
   public get enabled(): boolean {

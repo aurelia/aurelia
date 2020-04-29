@@ -20,9 +20,9 @@ export interface IScopeOwnerOptions {
 }
 
 export interface IScopeOwner<T extends INode> {
-  connectedScope: Scope<T>;
-  scope: Scope<T>;
-  owningScope: Scope<T>;
+  readonly connectedScope: Scope<T>;
+  readonly scope: Scope<T>;
+  readonly owningScope: Scope<T> | null;
   enabled: boolean;
   path: string | null;
 

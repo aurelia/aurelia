@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/kernel",
-  "version": "0.7.0-dev.202004271637",
+  "version": "0.7.0-dev.202004290436",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -35,7 +35,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/metadata": "0.7.0-dev.202004271637"
+    "@aurelia/metadata": "0.7.0-dev.202004290436"
   },
   "devDependencies": {
     "reflect-metadata": "^0.1.13",

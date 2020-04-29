@@ -146,8 +146,8 @@ export class InstructionResolver<T extends INode> {
     if (typeof instruction === 'string') {
       return this.stringifyAViewportInstruction(instruction, excludeViewport);
     } else {
-      let excludeCurrentViewport: boolean = excludeViewport;
-      let excludeCurrentComponent: boolean = false;
+      let excludeCurrentViewport = excludeViewport;
+      let excludeCurrentComponent = false;
       if (viewportContext) {
         if (instruction.viewport && instruction.viewport.options.noLink) {
           return '';
@@ -253,7 +253,7 @@ export class InstructionResolver<T extends INode> {
   ): ViewportInstruction<T>[] {
     const clones: ViewportInstruction<T>[] = [];
     for (const instruction of instructions) {
-      const clone: ViewportInstruction<T> = this.createViewportInstruction(
+      const clone = this.createViewportInstruction(
         (keepInstances ? instruction.componentInstance : null) || instruction.componentType || instruction.componentName!,
         keepInstances ? instruction.viewport || instruction.viewportName! : instruction.viewportName!,
         instruction.typedParameters !== null ? instruction.typedParameters : void 0,
@@ -283,7 +283,7 @@ export class InstructionResolver<T extends INode> {
     }
     if (typeof parameters === 'string') {
       const list: IComponentParameter[] = [];
-      const params: string[] = parameters.split(this.separators.parameterSeparator);
+      const params = parameters.split(this.separators.parameterSeparator);
       for (const param of params) {
         let key: string | undefined;
         let value: string;
@@ -302,7 +302,7 @@ export class InstructionResolver<T extends INode> {
     if (Array.isArray(parameters)) {
       return parameters.map(param => ({ key: void 0, value: param }));
     }
-    const keys: string[] = Object.keys(parameters);
+    const keys = Object.keys(parameters);
     keys.sort();
     return keys.map(key => ({ key, value: parameters[key] }));
   }
@@ -311,11 +311,11 @@ export class InstructionResolver<T extends INode> {
     if (!Array.isArray(parameters) || parameters.length === 0) {
       return '';
     }
-    const seps: ISeparators = this.separators;
+    const seps = this.separators;
     return parameters
       .map(param => {
-        const key: string | undefined = param.key !== void 0 && uriComponent ? encodeURIComponent(param.key) : param.key;
-        const value: string = uriComponent ? encodeURIComponent(param.value as string) : param.value as string;
+        const key = param.key !== void 0 && uriComponent ? encodeURIComponent(param.key) : param.key;
+        const value = uriComponent ? encodeURIComponent(param.value as string) : param.value as string;
         return key !== void 0 && key !== value ? key + seps.parameterKeySeparator + value : value;
       })
       .join(seps.parameterSeparator);
@@ -341,7 +341,7 @@ export class InstructionResolver<T extends INode> {
     active: ViewportInstruction<T>[],
   ): boolean {
     for (const instruction of instructions) {
-      const matching: ViewportInstruction<T>[] = active.filter(instr => instr.sameComponent(instruction));
+      const matching = active.filter(instr => instr.sameComponent(instruction));
       if (matching.length === 0) {
         return false;
       }
@@ -440,16 +440,16 @@ export class InstructionResolver<T extends INode> {
     instruction: ViewportInstruction<T>;
     remaining: string;
   } {
-    const seps: ISeparators = this.separators;
-    const tokens: string[] = [seps.parameters, seps.viewport, seps.noScope, seps.scopeEnd, seps.scope, seps.sibling];
+    const seps = this.separators;
+    const tokens = [seps.parameters, seps.viewport, seps.noScope, seps.scopeEnd, seps.scope, seps.sibling];
     let component: string | undefined = void 0;
     let parametersString: string | undefined = void 0;
     let viewport: string | undefined = void 0;
-    let scope: boolean = true;
+    let scope = true;
     let token!: string;
     let pos: number;
 
-    const specials: string[] = [seps.add, seps.clear];
+    const specials = [seps.add, seps.clear];
     for (const special of specials) {
       if (instruction === special) {
         component = instruction;

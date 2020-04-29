@@ -91,20 +91,20 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
   }
 
   public go(delta: number, suppressPopstateEvent: boolean = false): Promise<void> {
-    const doneTask: QueueTask<IAction> = this.pendingCalls.createQueueTask((task: QueueTask<IAction>) => task.resolve(), 1);
+    const doneTask = this.pendingCalls.createQueueTask(task => task.resolve(), 1);
 
     this.pendingCalls.enqueue([
-      (task: QueueTask<IAction>) => {
-        const store: BrowserViewerStore = this;
-        const eventTask: QueueTask<IAction> = doneTask;
-        const suppressPopstate: boolean = suppressPopstateEvent;
+      task => {
+        const store = this;
+        const eventTask = doneTask;
+        const suppressPopstate = suppressPopstateEvent;
 
         store.forwardState({ eventTask, suppressPopstate });
         task.resolve();
       },
-      (task: QueueTask<IAction>) => {
-        const history: History = this.history;
-        const steps: number = delta;
+      task => {
+        const history = this.history;
+        const steps = delta;
 
         history.go(steps);
         task.resolve();
@@ -116,14 +116,14 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
 
   public pushNavigatorState(state: INavigatorState<Element>): Promise<void> {
     const { title, path } = state.currentEntry;
-    const fragment: string = this.options.useUrlFragmentHash ? '#/' : '';
+    const fragment = this.options.useUrlFragmentHash ? '#/' : '';
 
     return this.pendingCalls.enqueue(
-      (task: QueueTask<IAction>) => {
-        const history: History = this.history;
-        const data: INavigatorState<Element> = state;
-        const titleOrEmpty: string = title || '';
-        const url: string = `${fragment}${path}`;
+      task => {
+        const history = this.history;
+        const data = state;
+        const titleOrEmpty = title || '';
+        const url = `${fragment}${path}`;
 
         history.pushState(data, titleOrEmpty, url);
         task.resolve();
@@ -132,14 +132,14 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
 
   public replaceNavigatorState(state: INavigatorState<Element>): Promise<void> {
     const { title, path } = state.currentEntry;
-    const fragment: string = this.options.useUrlFragmentHash ? '#/' : '';
+    const fragment = this.options.useUrlFragmentHash ? '#/' : '';
 
     return this.pendingCalls.enqueue(
-      (task: QueueTask<IAction>) => {
-        const history: History = this.history;
-        const data: INavigatorState<Element> = state;
-        const titleOrEmpty: string = title || '';
-        const url: string = `${fragment}${path}`;
+      task => {
+        const history = this.history;
+        const data = state;
+        const titleOrEmpty = title || '';
+        const url = `${fragment}${path}`;
 
         history.replaceState(data, titleOrEmpty, url);
         task.resolve();
@@ -147,12 +147,12 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
   }
 
   public popNavigatorState(): Promise<void> {
-    const doneTask: QueueTask<IAction> = this.pendingCalls.createQueueTask((task: QueueTask<IAction>) => task.resolve(), 1);
+    const doneTask = this.pendingCalls.createQueueTask(task => task.resolve(), 1);
 
     this.pendingCalls.enqueue(
-      async (task: QueueTask<IAction>): Promise<void> => {
-        const store: BrowserViewerStore = this;
-        const eventTask: QueueTask<IAction> = doneTask;
+      async task => {
+        const store = this;
+        const eventTask = doneTask;
 
         await store.popState(eventTask);
         task.resolve();
@@ -165,11 +165,11 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
     this.forwardedState = { eventTask: null, suppressPopstate: false };
 
     return this.pendingCalls.enqueue(
-      async (task: QueueTask<IAction>) => {
-        const store: BrowserViewerStore = this;
-        const ev: PopStateEvent = event;
-        const evTask: QueueTask<IAction> | null = eventTask;
-        const suppressPopstateEvent: boolean = suppressPopstate;
+      async task => {
+        const store = this;
+        const ev = event;
+        const evTask = eventTask;
+        const suppressPopstateEvent = suppressPopstate;
 
         await store.popstate(ev, evTask, suppressPopstateEvent);
         task.resolve();

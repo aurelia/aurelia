@@ -199,7 +199,7 @@ export class ViewportInstruction<T extends INode> {
     const specified: Record<string, unknown> = {};
     for (const spec of specifications) {
       // First get named if it exists
-      let index: number = parameters.findIndex(param => param.key === spec);
+      let index = parameters.findIndex(param => param.key === spec);
       if (index >= 0) {
         const [parameter] = parameters.splice(index, 1);
         specified[spec] = parameter.value;
@@ -216,7 +216,7 @@ export class ViewportInstruction<T extends INode> {
     for (const parameter of parameters.filter(param => param.key !== void 0)) {
       specified[parameter.key!] = parameter.value;
     }
-    let index: number = specifications.length;
+    let index = specifications.length;
     // Add all remaining unnamed...
     for (const parameter of parameters.filter(param => param.key === void 0)) {
       // ..with an index
@@ -232,7 +232,7 @@ export class ViewportInstruction<T extends INode> {
     const sorted: IComponentParameter[] = [];
     for (const spec of specifications) {
       // First get named if it exists
-      let index: number = parameters.findIndex(param => param.key === spec);
+      let index = parameters.findIndex(param => param.key === spec);
       if (index >= 0) {
         const parameter = { ...parameters.splice(index, 1)[0] };
         parameter.key = void 0;

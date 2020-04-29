@@ -85,8 +85,8 @@ export class LinkHandler {
     }
 
     const gotoAttr = CustomAttribute.for(target, 'goto');
-    const goto: string | null = gotoAttr !== void 0 ? (gotoAttr.viewModel as GotoCustomAttribute).value as string : null;
-    const href: string | null = options.useHref && target.hasAttribute('href') ? target.getAttribute('href') : null;
+    const goto = gotoAttr !== void 0 ? (gotoAttr.viewModel as GotoCustomAttribute).value as string : null;
+    const href = options.useHref && target.hasAttribute('href') ? target.getAttribute('href') : null;
     if ((goto === null || goto.length === 0) && (href === null || href.length === 0)) {
       return info;
     }

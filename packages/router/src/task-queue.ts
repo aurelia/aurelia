@@ -99,11 +99,11 @@ export class TaskQueue<T> {
   public enqueue(task: QueueTask<T>): QueueTask<T>;
   public enqueue(tasks: QueueTask<T>[]): QueueTask<T>[];
   public enqueue(itemOrItems: IQueueableItem<T> | QueueableFunction | (IQueueableItem<T> | QueueableFunction)[] | QueueTask<T> | QueueTask<T>[], costOrCosts?: number | number[]): QueueTask<T> | QueueTask<T>[] {
-    const list: boolean = Array.isArray(itemOrItems);
-    const items: (IQueueableItem<T> | QueueTask<T>)[] = (list ? itemOrItems : [itemOrItems]) as (IQueueableItem<T> | QueueTask<T>)[];
-    const costs: number[] = items
-      .map((value: IQueueableItem<T> | QueueTask<T>, index: number): number | undefined => !Array.isArray(costOrCosts) ? costOrCosts : costOrCosts[index])
-      .map((value: number | undefined): number => value !== undefined ? value : 1);
+    const list = Array.isArray(itemOrItems);
+    const items = (list ? itemOrItems : [itemOrItems]) as (IQueueableItem<T> | QueueTask<T>)[];
+    const costs = items
+      .map((value, index) => !Array.isArray(costOrCosts) ? costOrCosts : costOrCosts[index])
+      .map(value => value !== undefined ? value : 1);
     const tasks: QueueTask<T>[] = [];
     for (const item of items) {
       tasks.push(item instanceof QueueTask

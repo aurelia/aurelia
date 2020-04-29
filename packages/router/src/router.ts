@@ -324,13 +324,13 @@ export class Router<T extends INode> implements IRouter<T> {
   // TODO: use @bound and improve name (eslint-disable is temp)
   // eslint-disable-next-line @typescript-eslint/typedef
   public processNavigations = async (qInstruction: QueueItem<INavigatorInstruction<T>>): Promise<void> => {
-    const instruction: INavigatorInstruction<T> = this.processingNavigation = qInstruction as INavigatorInstruction<T>;
+    const instruction = this.processingNavigation = qInstruction as INavigatorInstruction<T>;
 
     if (this.options.reportCallback) {
       this.options.reportCallback(instruction);
     }
-    let fullStateInstruction: boolean = false;
-    const instructionNavigation: INavigatorFlags = instruction.navigation as INavigatorFlags;
+    let fullStateInstruction = false;
+    const instructionNavigation = instruction.navigation!;
     if ((instructionNavigation.back || instructionNavigation.forward) && instruction.fullStateInstruction) {
       fullStateInstruction = true;
       // if (!confirm('Perform history navigation?')) { this.navigator.cancel(instruction); this.processingNavigation = null; return Promise.resolve(); }
@@ -391,7 +391,7 @@ export class Router<T extends INode> implements IRouter<T> {
         viewportInstructions = hooked as ViewportInstruction<T>[];
       }
       for (const viewportInstruction of viewportInstructions) {
-        const scopeOwner: IScopeOwner<T> | null = viewportInstruction.owner;
+        const scopeOwner = viewportInstruction.owner;
         if (scopeOwner !== null) {
           scopeOwner.path = configuredRoutePath;
           if (scopeOwner.setNextContent(viewportInstruction, instruction)) {
@@ -442,10 +442,10 @@ export class Router<T extends INode> implements IRouter<T> {
         viewportInstructions.length === 0 &&
         remainingInstructions.length === 0) {
         let configured = new FoundRoute<T>();
-        const routeScopeOwners: IScopeOwner<T>[] = alreadyFoundInstructions
+        const routeScopeOwners = alreadyFoundInstructions
           .filter(instr => instr.owner !== null && instr.owner.path === configuredRoutePath)
-          .map(instr => instr.owner)
-          .filter((value, index, arr) => arr.indexOf(value) === index) as IScopeOwner<T>[];
+          .map(instr => instr.owner!)
+          .filter((value, index, arr) => arr.indexOf(value) === index);
         for (const owner of routeScopeOwners) {
           configured = await this.findInstructions(owner.scope, configuredRoute.remaining, owner.scope);
           if (configured.foundConfiguration) {
@@ -466,19 +466,19 @@ export class Router<T extends INode> implements IRouter<T> {
         this.appendedInstructions = this.appendedInstructions.filter(instruction => !instruction.default);
       }
       // Process non-defaults first
-      let appendedInstructions: ViewportInstruction<T>[] = this.appendedInstructions.filter(instruction => !instruction.default);
+      let appendedInstructions = this.appendedInstructions.filter(instruction => !instruction.default);
       this.appendedInstructions = this.appendedInstructions.filter(instruction => instruction.default);
       if (appendedInstructions.length === 0) {
-        const index: number = this.appendedInstructions.findIndex(instruction => instruction.default);
+        const index = this.appendedInstructions.findIndex(instruction => instruction.default);
         if (index >= 0) {
           appendedInstructions = this.appendedInstructions.splice(index, 1);
         }
       }
       while (appendedInstructions.length > 0) {
         const appendedInstruction = appendedInstructions.shift() as ViewportInstruction<T>;
-        const existingAlreadyFound: boolean = alreadyFoundInstructions.some(instruction => instruction.sameViewport(appendedInstruction));
-        const existingFound: ViewportInstruction<T> | undefined = viewportInstructions.find(value => value.sameViewport(appendedInstruction));
-        const existingRemaining: ViewportInstruction<T> | undefined = remainingInstructions.find(value => value.sameViewport(appendedInstruction));
+        const existingAlreadyFound = alreadyFoundInstructions.some(instruction => instruction.sameViewport(appendedInstruction));
+        const existingFound = viewportInstructions.find(value => value.sameViewport(appendedInstruction));
+        const existingRemaining = remainingInstructions.find(value => value.sameViewport(appendedInstruction));
         if (appendedInstruction.default &&
           (existingAlreadyFound ||
             (existingFound !== void 0 && !existingFound.default) ||
@@ -499,15 +499,17 @@ export class Router<T extends INode> implements IRouter<T> {
       }
       if (viewportInstructions.length === 0 && remainingInstructions.length === 0) {
         viewportInstructions = clearScopeOwners.map(owner => {
-          const instruction: ViewportInstruction<T> =
-            this.createViewportInstruction(this.instructionResolver.clearViewportInstruction, owner.isViewport ? owner as Viewport<T> : void 0);
+          const instruction = this.createViewportInstruction(
+            this.instructionResolver.clearViewportInstruction,
+            owner.isViewport ? owner as Viewport<T> : void 0,
+          );
           if (owner.isViewportScope) {
             instruction.viewportScope = owner as ViewportScope<T>;
           }
           return instruction;
         });
         viewportInstructions.push(...clearViewportScopes.map(viewportScope => {
-          const instr: ViewportInstruction<T> = this.createViewportInstruction(this.instructionResolver.clearViewportInstruction);
+          const instr = this.createViewportInstruction(this.instructionResolver.clearViewportInstruction);
           instr.viewportScope = viewportScope;
           return instr;
         }));
@@ -520,7 +522,12 @@ export class Router<T extends INode> implements IRouter<T> {
     // this.updateNav();
 
     // Remove history entry if no history viewports updated
-    if (instructionNavigation.new && !instructionNavigation.first && !instruction.repeating && updatedScopeOwners.every(viewport => viewport.options.noHistory)) {
+    if (
+      instructionNavigation.new &&
+      !instructionNavigation.first &&
+      !instruction.repeating &&
+      updatedScopeOwners.every(viewport => viewport.options.noHistory)
+    ) {
       instruction.untracked = true;
     }
     updatedScopeOwners.forEach((viewport) => {
@@ -593,11 +600,11 @@ export class Router<T extends INode> implements IRouter<T> {
     viewModelOrContainer: ICustomElementViewModel | IContainer,
     scope: Scope<T>,
   ): void {
-    const container: IContainer | null = this.getContainer(viewModelOrContainer);
+    const container = this.getContainer(viewModelOrContainer);
     Registration.instance(ClosestScope, scope).register(container!);
   }
   public unsetClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer): void {
-    const container: IContainer | null = this.getContainer(viewModelOrContainer);
+    const container = this.getContainer(viewModelOrContainer);
     // TODO: Get an 'unregister' on container
     (container as any).resolvers.delete(ClosestScope);
   }
@@ -609,12 +616,12 @@ export class Router<T extends INode> implements IRouter<T> {
     name: string,
     options?: IViewportOptions,
   ): Viewport<T> {
-    const parentScope: Scope<T> = this.findParentScope(controller.context);
+    const parentScope = this.findParentScope(controller.context);
     if (viewport === null) {
       viewport = parentScope.addViewport(name, controller, options);
       this.setClosestScope(controller.context, viewport.connectedScope);
     }
-    return viewport as Viewport<T>;
+    return viewport;
   }
   // Called from the viewport custom element
   public disconnectViewport(
@@ -634,12 +641,12 @@ export class Router<T extends INode> implements IRouter<T> {
     element: T,
     options?: IViewportScopeOptions,
   ): ViewportScope<T> {
-    const parentScope: Scope<T> = this.findParentScope(container);
+    const parentScope = this.findParentScope(container);
     if (viewportScope === null) {
       viewportScope = parentScope.addViewportScope(name, element, options);
       this.setClosestScope(container, viewportScope.connectedScope);
     }
-    return viewportScope as ViewportScope<T>;
+    return viewportScope;
   }
   // Called from the viewport scope custom element
   public disconnectViewportScope(viewportScope: ViewportScope<T>, container: IContainer): void {
@@ -708,8 +715,8 @@ export class Router<T extends INode> implements IRouter<T> {
 
   public checkActive(instructions: ViewportInstruction<T>[]): boolean {
     for (const instruction of instructions) {
-      const scopeInstructions: ViewportInstruction<T>[] = this.instructionResolver.matchScope(this.activeComponents, instruction.scope!);
-      const matching: ViewportInstruction<T>[] = scopeInstructions.filter(instr => instr.sameComponent(instruction, true));
+      const scopeInstructions = this.instructionResolver.matchScope(this.activeComponents, instruction.scope!);
+      const matching = scopeInstructions.filter(instr => instr.sameComponent(instruction, true));
       if (matching.length === 0) {
         return false;
       }
@@ -836,7 +843,7 @@ export class Router<T extends INode> implements IRouter<T> {
   }
 
   private checkStale(name: string, instructions: ViewportInstruction<T>[]): boolean {
-    const staleCheck: ViewportInstruction<T>[] | undefined = this.staleChecks[name];
+    const staleCheck = this.staleChecks[name];
     if (staleCheck === void 0) {
       this.staleChecks[name] = instructions.slice();
       return false;
@@ -941,7 +948,7 @@ export class Router<T extends INode> implements IRouter<T> {
     this.activeRoute = instruction.route;
 
     // First invoke with viewport instructions (should it perhaps get full state?)
-    let state: string | ViewportInstruction<T>[] = await this.hookManager.invokeTransformToUrl(instructions, instruction);
+    let state = await this.hookManager.invokeTransformToUrl(instructions, instruction);
     if (typeof state !== 'string') {
       // Convert to string if necessary
       state = this.instructionResolver.stringifyViewportInstructions(state, false, true);

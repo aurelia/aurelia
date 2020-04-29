@@ -27,16 +27,16 @@ export const ComponentAppellationResolver = {
     }
   },
   getType<T extends INode>(component: ComponentAppellation<T>): RouteableComponentType | null {
-    if (ComponentAppellationResolver.isName(component as Constructable & string)) {
+    if (ComponentAppellationResolver.isName(component)) {
       return null;
-    } else if (ComponentAppellationResolver.isType(component as RouteableComponentType)) {
-      return component as RouteableComponentType;
+    } else if (ComponentAppellationResolver.isType(component)) {
+      return component;
     } else {
       return ((component as IRouteableComponent<T>).constructor as RouteableComponentType);
     }
   },
   getInstance<T extends INode>(component: ComponentAppellation<T>): IRouteableComponent<T> | null {
-    if (ComponentAppellationResolver.isName(component as Constructable & string) || ComponentAppellationResolver.isType(component as Constructable & string)) {
+    if (ComponentAppellationResolver.isName(component) || ComponentAppellationResolver.isType(component)) {
       return null;
     } else {
       return component as IRouteableComponent<T>;

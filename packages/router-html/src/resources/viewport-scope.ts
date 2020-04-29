@@ -93,7 +93,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Eleme
     if (this.router.rootScope === null) {
       return;
     }
-    const name: string = this.getAttribute('name', this.name) as string;
+    const name = this.getAttribute('name', this.name) as string;
     const options: IViewportScopeOptions = {};
     let value: string | boolean | undefined = this.getAttribute('catches', this.catches);
     if (value !== void 0) {

@@ -166,7 +166,7 @@ export class ViewportScope<T extends INode> implements IScopeOwner<T> {
   public abortContentChange(): Promise<void> {
     this.nextContent = null;
     if (this.add) {
-      const index: number = this.source!.indexOf(this.sourceItem);
+      const index = this.source!.indexOf(this.sourceItem);
       this.source!.splice(index, 1);
       this.sourceItem = null;
     }
@@ -197,14 +197,14 @@ export class ViewportScope<T extends INode> implements IScopeOwner<T> {
   }
 
   public beforeBind(): void {
-    const source: unknown[] = this.source || [];
+    const source = this.source || [];
     if (source.length > 0 && this.sourceItem === null) {
       this.sourceItem = this.getAvailableSourceItem();
     }
   }
   public beforeUnbind(): void {
     if (this.sourceItem !== null && this.source !== null) {
-      arrayRemove(this.source!, (item: unknown) => item === this.sourceItem);
+      arrayRemove(this.source!, item => item === this.sourceItem);
     }
     this.sourceItem = null;
   }
@@ -213,7 +213,7 @@ export class ViewportScope<T extends INode> implements IScopeOwner<T> {
     if (this.source === null) {
       return null;
     }
-    const siblings: ViewportScope<T>[] = this.siblings;
+    const siblings = this.siblings;
     for (const item of this.source) {
       if (siblings.every(sibling => sibling.sourceItem !== item)) {
         return item;
@@ -222,7 +222,7 @@ export class ViewportScope<T extends INode> implements IScopeOwner<T> {
     return null;
   }
   public addSourceItem(): unknown {
-    const item: unknown = {};
+    const item = {};
     this.source!.push(item);
     return item;
   }

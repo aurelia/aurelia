@@ -428,7 +428,7 @@ export class Viewport<T extends INode> implements IScopeOwner<T> {
     if (componentType === null || componentType === void 0) {
       return null;
     }
-    const routes: IRoute<T>[] = (componentType as RouteableComponentType & { routes: IRoute<T>[] }).routes;
+    const routes = (componentType as RouteableComponentType & { routes: IRoute<T>[] }).routes;
     return Array.isArray(routes) ? routes : null;
   }
 

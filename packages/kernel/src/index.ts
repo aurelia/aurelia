@@ -114,7 +114,6 @@ export {
 } from './resource';
 export {
   EventAggregator,
-  EventAggregatorCallback,
   IEventAggregator,
 } from './eventaggregator';
 export {

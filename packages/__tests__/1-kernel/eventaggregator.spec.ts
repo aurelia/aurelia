@@ -1,8 +1,8 @@
-import { EventAggregator, IEventAggregator, EventAggregatorCallback } from '@aurelia/kernel';
+import { EventAggregator, IEventAggregator } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 
 type EA = IEventAggregator & {
-  eventLookup: Record<string, EventAggregatorCallback[]>;
+  eventLookup: Record<string, ((...args: unknown[]) => void)[]>;
   messageHandlers: any[];
 };
 

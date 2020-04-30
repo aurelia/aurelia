@@ -74,8 +74,12 @@ export class HTMLRouter extends Router<Element> implements IHTMLRouter {
     });
 
     this.linkHandler.activate({
-      callback: this.linkCallback,
       useHref: this.options.useHref,
+    });
+    this.events.subscribe('au:router:link-click', (info: AnchorEventInfo) => {
+      const instruction = anchorEventInfoToInstruction(info);
+      // Adds to Navigator's Queue, which makes sure it's serial
+      this.goto(instruction, { origin: info.anchor! }).catch(error => { throw error; });
     });
 
     this.navigation.activate({
@@ -104,20 +108,6 @@ export class HTMLRouter extends Router<Element> implements IHTMLRouter {
     return result;
   }
 
-  // TODO: use @bound and improve name (eslint-disable is temp)
-  // eslint-disable-next-line @typescript-eslint/typedef
-  public linkCallback = (info: AnchorEventInfo): void => {
-    let instruction = info.instruction || '';
-    if (typeof instruction === 'string' && instruction.startsWith('#')) {
-      instruction = instruction.slice(1);
-      // '#' === '/' === '#/'
-      if (!instruction.startsWith('/')) {
-        instruction = `/${instruction}`;
-      }
-    }
-    // Adds to Navigator's Queue, which makes sure it's serial
-    this.goto(instruction, { origin: info.anchor! }).catch(error => { throw error; });
-  };
   public setNav(name: string, routes: INavRoute[], classes?: INavClasses): void {
     const nav = this.findNav(name);
     if (nav !== void 0 && nav !== null) {
@@ -147,3 +137,16 @@ export class HTMLRouter extends Router<Element> implements IHTMLRouter {
     return this.navs[name];
   }
 }
+
+function anchorEventInfoToInstruction(info: AnchorEventInfo) {
+  let instruction = info.instruction || '';
+  if (typeof instruction === 'string' && instruction.startsWith('#')) {
+    instruction = instruction.slice(1);
+    // '#' === '/' === '#/'
+    if (!instruction.startsWith('/')) {
+      instruction = `/${instruction}`;
+    }
+  }
+  return instruction;
+}
+

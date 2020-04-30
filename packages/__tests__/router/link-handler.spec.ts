@@ -11,8 +11,9 @@ describe('LinkHandler', function () {
     container.register(LoggerConfiguration.create(ctx.wnd.console, LogLevel.debug));
 
     const sut = container.get(LinkHandler);
+    const events = container.get(IRouterEvents);
 
-    return { sut, ctx };
+    return { sut, ctx, events };
   }
 
   async function setupApp(App) {
@@ -30,13 +31,15 @@ describe('LinkHandler', function () {
     await au.start().wait();
 
     const sut = container.get(LinkHandler);
+    const events = container.get(IRouterEvents);
 
     async function tearDown() {
+      events.unsubscribeAll();
       await au.stop().wait();
       doc.body.removeChild(host);
     }
 
-    return { sut, au, container, host, ctx, tearDown };
+    return { sut, au, container, host, ctx, events, tearDown };
   }
 
   it('can be created', function () {
@@ -46,11 +49,11 @@ describe('LinkHandler', function () {
   });
 
   it('can be activated', function () {
-    const { sut, ctx } = createFixture();
+    const { sut, ctx, events } = createFixture();
 
     const addEventListener = createSpy(ctx.doc, 'addEventListener');
 
-    sut.activate({ callback: info => console.log('can be activated', info) });
+    sut.activate({});
 
     assert.strictEqual(sut['isActive'], true, `linkHandler.isActive`);
 
@@ -68,9 +71,9 @@ describe('LinkHandler', function () {
   });
 
   it('can be deactivated', function () {
-    const { sut } = createFixture();
+    const { sut, events } = createFixture();
 
-    sut.activate({ callback: info => console.log('can be deactivated', info) });
+    sut.activate({});
 
     assert.strictEqual(sut['isActive'], true, `linkHandler.isActive`);
 
@@ -80,11 +83,11 @@ describe('LinkHandler', function () {
   });
 
   it('throws when activated while active', function () {
-    const { sut, ctx } = createFixture();
+    const { sut, ctx, events } = createFixture();
 
     const addEventListener = createSpy(ctx.doc, 'addEventListener');
 
-    sut.activate({ callback: info => console.log('throws when activated while active', info) });
+    sut.activate({});
 
     assert.strictEqual(sut['isActive'], true, `linkHandler.isActive`);
 
@@ -98,7 +101,7 @@ describe('LinkHandler', function () {
 
     let err;
     try {
-      sut.activate({ callback: info => console.log('throws when activated AGAIN while active', info) });
+      sut.activate({});
     } catch (e) {
       err = e;
     }
@@ -142,7 +145,7 @@ describe('LinkHandler', function () {
           template: `<a ${test.href ? 'href="href"' : ''} ${test.goto ? 'goto="goto"' : ''}>Link</a>`
         });
 
-        const { sut, tearDown, ctx } = await setupApp(App);
+        const { sut, tearDown, ctx, events } = await setupApp(App);
         const { doc } = ctx;
 
         const anchor = doc.getElementsByTagName('A')[0];
@@ -159,8 +162,8 @@ describe('LinkHandler', function () {
         const prevent = (ev => ev.preventDefault());
         doc.addEventListener('click', prevent, true);
 
+        events.subscribe('au:router:link-click', (clickInfo: AnchorEventInfo) => info = clickInfo);
         sut.activate({
-          callback: (clickInfo) => info = clickInfo,
           useHref: test.useHref
         });
         anchor.dispatchEvent(evt);

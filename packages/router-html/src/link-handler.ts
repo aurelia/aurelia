@@ -12,10 +12,6 @@ export interface ILinkHandlerOptions {
    * attribute goto is not present
    */
   useHref?: boolean;
-  /**
-   * Callback method for when a link is clicked
-   */
-  callback(info: AnchorEventInfo): void;
 }
 
 /**
@@ -45,12 +41,12 @@ export class LinkHandler {
 
   private options: ILinkHandlerOptions = {
     useHref: true,
-    callback: () => { return; }
   };
   private isActive: boolean = false;
 
   public constructor(
-    @IDOM dom: HTMLDOM
+    @IDOM dom: HTMLDOM,
+    @IRouterEvents private readonly events: IRouterEvents,
   ) {
     this.window = dom.window;
     this.document = dom.document;
@@ -156,7 +152,7 @@ export class LinkHandler {
 
     if (info.shouldHandleEvent) {
       e.preventDefault();
-      this.options.callback(info);
+      this.events.publish('au:router:link-click', info);
     }
   };
 }

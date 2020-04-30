@@ -1,8 +1,4 @@
 export {
-  BrowserNavigator,
-} from './browser-navigator';
-
-export {
   ILinkHandlerOptions,
   AnchorEventInfo,
 

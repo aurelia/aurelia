@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/promise-function-async */
 /* eslint-disable @typescript-eslint/typedef */
-import { Reporter } from '@aurelia/kernel';
 import { INavigatorInstruction, IRoute } from './interfaces';
 import { Queue, QueueItem } from './queue';
 import { IRouter } from './router';
 import { ViewportInstruction } from './viewport-instruction';
 import { Scope } from './scope';
 import { INode } from '@aurelia/runtime';
+import { IRouterEvents } from './router-events';
 
 export interface INavigatorStore<T extends INode> {
   length: number;
@@ -18,11 +18,8 @@ export interface INavigatorStore<T extends INode> {
 }
 
 export interface INavigatorViewer<T extends INode> {
-  activate(options: INavigatorViewerOptions<T>): void;
+  activate(options: {}): void;
   deactivate(): void;
-}
-export interface INavigatorViewerOptions<T extends INode> {
-  callback(ev: INavigatorViewerEvent<T>): void;
 }
 
 export interface INavigatorViewerState {
@@ -65,7 +62,6 @@ export interface INavigatorOptions<T extends INode> {
   viewer?: INavigatorViewer<T>;
   store?: INavigatorStore<T>;
   statefulHistoryLength?: number;
-  callback?(instruction: INavigatorInstruction<T>): void;
   serializeCallback?(entry: IStoredNavigatorEntry<T>, entries: IStoredNavigatorEntry<T>[]): Promise<IStoredNavigatorEntry<T>>;
 }
 
@@ -97,7 +93,9 @@ export class Navigator<T extends INode> {
   private router!: IRouter<T>;
   private readonly uninitializedEntry: INavigatorInstruction<T>;
 
-  public constructor() {
+  public constructor(
+    @IRouterEvents private readonly events: IRouterEvents,
+  ) {
     this.uninitializedEntry = {
       instruction: 'NAVIGATOR UNINITIALIZED',
       fullStateInstruction: '',
@@ -174,7 +172,11 @@ export class Navigator<T extends INode> {
       navigationFlags.new = true;
       entry.index = this.currentEntry.index !== void 0 ? this.currentEntry.index + 1 : this.entries.length;
     }
-    this.invokeCallback(entry, navigationFlags, this.currentEntry);
+
+    entry.navigation = navigationFlags;
+    entry.previous = this.currentEntry;
+
+    this.events.publish('au:router:navigate', entry);
   };
 
   public refresh(): Promise<void> {
@@ -318,16 +320,6 @@ export class Navigator<T extends INode> {
     }
     if (this.currentEntry.resolve) {
       this.currentEntry.resolve();
-    }
-  }
-
-  private invokeCallback(entry: INavigatorEntry<T>, navigationFlags: INavigatorFlags, previousEntry: INavigatorEntry<T>): void {
-    const instruction: INavigatorInstruction<T> = { ...entry };
-    instruction.navigation = navigationFlags;
-    instruction.previous = this.toStoredEntry(previousEntry);
-    Reporter.write(10000, 'callback', instruction, instruction.previous, this.entries);
-    if (this.options.callback) {
-      this.options.callback(instruction);
     }
   }
 

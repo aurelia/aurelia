@@ -12,8 +12,8 @@ import {
   HookManager,
   IRouterOptions,
   INavigatorEntry,
-  INavigatorViewerEvent,
   Navigator,
+  IRouterEvents,
 } from '@aurelia/router';
 
 import { AnchorEventInfo, LinkHandler } from './link-handler';
@@ -21,6 +21,7 @@ import { INavRoute, Nav } from './nav';
 import { INavClasses } from './resources/nav';
 import { BrowserViewerStore } from './browser-viewer-store';
 import { HTMLStateManager } from './state-manager';
+import { IScheduler } from '@aurelia/runtime';
 
 export interface IHTMLRouter extends IRouter<Element> {
   readonly navigation: BrowserViewerStore;
@@ -43,6 +44,8 @@ export class HTMLRouter extends Router<Element> implements IHTMLRouter {
 
   public constructor(
     @IContainer container: IContainer,
+    @IRouterEvents events: IRouterEvents,
+    @IScheduler scheduler: IScheduler,
     navigator: Navigator<Element>,
     instructionResolver: InstructionResolver<Element>,
     hookManager: HookManager<Element>,
@@ -50,14 +53,21 @@ export class HTMLRouter extends Router<Element> implements IHTMLRouter {
     public linkHandler: LinkHandler,
     stateManager: HTMLStateManager,
   ) {
-    super(container, navigator, instructionResolver, hookManager, stateManager);
+    super(
+      container,
+      events,
+      scheduler,
+      navigator,
+      instructionResolver,
+      hookManager,
+      stateManager,
+    );
   }
 
   public activate(options?: IRouterOptions<Element>): void {
     super.activate(options);
 
     this.navigator.activate(this, {
-      callback: this.navigatorCallback,
       store: this.navigation,
       statefulHistoryLength: this.options.statefulHistoryLength,
       serializeCallback: this.statefulHistory ? this.navigatorSerializeCallback : void 0,
@@ -69,7 +79,6 @@ export class HTMLRouter extends Router<Element> implements IHTMLRouter {
     });
 
     this.navigation.activate({
-      callback: this.browserNavigatorCallback,
       useUrlFragmentHash: this.options.useUrlFragmentHash,
     });
   }
@@ -81,19 +90,19 @@ export class HTMLRouter extends Router<Element> implements IHTMLRouter {
     this.navigation.deactivate();
   }
 
-   public async loadUrl(): Promise<void> {
-     const entry: INavigatorEntry<Element> = {
-       ...this.navigation.viewerState,
-       ...{
-         fullStateInstruction: '',
-         replacing: true,
-         fromBrowser: false,
-       }
-     };
-     const result = this.navigator.navigate(entry);
-     this.loadedFirst = true;
-     return result;
-   }
+  public async loadUrl(): Promise<void> {
+    const entry: INavigatorEntry<Element> = {
+      ...this.navigation.viewerState,
+      ...{
+        fullStateInstruction: '',
+        replacing: true,
+        fromBrowser: false,
+      }
+    };
+    const result = this.navigator.navigate(entry);
+    this.loadedFirst = true;
+    return result;
+  }
 
   // TODO: use @bound and improve name (eslint-disable is temp)
   // eslint-disable-next-line @typescript-eslint/typedef
@@ -109,18 +118,6 @@ export class HTMLRouter extends Router<Element> implements IHTMLRouter {
     // Adds to Navigator's Queue, which makes sure it's serial
     this.goto(instruction, { origin: info.anchor! }).catch(error => { throw error; });
   };
-
-  // TODO: use @bound and improve name (eslint-disable is temp)
-  // eslint-disable-next-line @typescript-eslint/typedef
-  public browserNavigatorCallback = (browserNavigationEvent: INavigatorViewerEvent<Element>): void => {
-    const entry: INavigatorEntry<Element> = (browserNavigationEvent.state && browserNavigationEvent.state.currentEntry
-      ? browserNavigationEvent.state.currentEntry as INavigatorEntry<Element>
-      : { instruction: '', fullStateInstruction: '' });
-    entry.instruction = browserNavigationEvent.instruction;
-    entry.fromBrowser = true;
-    this.navigator.navigate(entry).catch(error => { throw error; });
-  };
-
   public setNav(name: string, routes: INavRoute[], classes?: INavClasses): void {
     const nav = this.findNav(name);
     if (nav !== void 0 && nav !== null) {

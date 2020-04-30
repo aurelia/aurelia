@@ -2,11 +2,13 @@ import { DebugConfiguration } from '@aurelia/debug';
 import { IHTMLRouter, RouterConfiguration, ViewportInstruction } from '@aurelia/router-html';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
+import { LoggerConfiguration, LogLevel } from '@aurelia/kernel';
 
 describe('InstructionResolver', function () {
   async function createFixture() {
     const ctx = TestContext.createHTMLTestContext();
     const container = ctx.container;
+    container.register(LoggerConfiguration.create(ctx.wnd.console, LogLevel.debug));
 
     const App = CustomElement.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
 

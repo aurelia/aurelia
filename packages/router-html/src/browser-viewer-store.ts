@@ -5,10 +5,12 @@ import {
   INavigatorState,
   INavigatorStore,
   INavigatorViewer,
-  INavigatorViewerOptions,
   INavigatorViewerState,
   QueueTask,
   TaskQueue,
+  INavigatorViewerEvent,
+  INavigatorEntry,
+  Navigator,
 } from '@aurelia/router';
 
 interface IAction {
@@ -20,7 +22,7 @@ interface IForwardedState {
   suppressPopstate: boolean;
 }
 
-export interface IBrowserViewerStoreOptions extends INavigatorViewerOptions<Element> {
+export interface IBrowserViewerStoreOptions {
   useUrlFragmentHash?: boolean;
 }
 
@@ -35,14 +37,14 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
   private isActive: boolean = false;
   private options: IBrowserViewerStoreOptions = {
     useUrlFragmentHash: true,
-    callback: () => { return; },
   };
 
   private forwardedState: IForwardedState = { eventTask: null, suppressPopstate: false };
 
   public constructor(
     @IScheduler public readonly scheduler: IScheduler,
-    @IDOM dom: HTMLDOM
+    @IDOM dom: HTMLDOM,
+    private readonly navigator: Navigator<Element>,
   ) {
     this.window = dom.window;
     this.history = dom.window.history;
@@ -55,7 +57,6 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
       throw new Error('Browser navigation has already been activated');
     }
     this.isActive = true;
-    this.options.callback = options.callback;
     if (options.useUrlFragmentHash != void 0) {
       this.options.useUrlFragmentHash = options.useUrlFragmentHash;
     }
@@ -69,7 +70,7 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
     }
     this.window.removeEventListener('popstate', this.handlePopstate as (ev: PopStateEvent) => void);
     this.pendingCalls.deactivate();
-    this.options = { useUrlFragmentHash: true, callback: () => { return; } };
+    this.options = { useUrlFragmentHash: true };
     this.isActive = false;
   }
 
@@ -193,13 +194,19 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
 
   public async popstate(ev: PopStateEvent, eventTask: QueueTask<IAction> | null, suppressPopstate: boolean = false): Promise<void> {
     if (!suppressPopstate) {
-      this.options.callback({
+      const browserNavigationEvent: INavigatorViewerEvent<Element> = {
         ...this.viewerState,
         ...{
           event: ev,
           state: this.history.state,
         },
-      });
+      };
+      const entry: INavigatorEntry<Element> = (browserNavigationEvent.state && browserNavigationEvent.state.currentEntry
+        ? browserNavigationEvent.state.currentEntry as INavigatorEntry<Element>
+        : { instruction: '', fullStateInstruction: '' });
+      entry.instruction = browserNavigationEvent.instruction;
+      entry.fromBrowser = true;
+      this.navigator.navigate(entry).catch(error => { throw error; });
     }
     if (eventTask !== null) {
       await eventTask.execute();

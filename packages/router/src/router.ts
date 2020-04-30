@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/promise-function-async */
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+/* eslint-disable no-await-in-loop */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 /* eslint-disable max-lines-per-function */
 import {
@@ -10,6 +10,8 @@ import {
   Registration,
   Metadata,
   IIndexable,
+  IEventAggregator,
+  IDisposable,
 } from '@aurelia/kernel';
 import {
   Aurelia,
@@ -20,6 +22,7 @@ import {
   ICustomElementController,
   ICustomElementViewModel,
   isRenderContext,
+  IScheduler,
 } from '@aurelia/runtime';
 import {
   InstructionResolver,
@@ -61,6 +64,7 @@ import {
 } from './hook-manager';
 import { Scope, IScopeOwner } from './scope';
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
+import { IRouterEvents } from './router-events';
 
 export interface IGotoOptions<T extends INode> {
   title?: string;
@@ -79,7 +83,6 @@ export interface IRouterOptions<T extends INode> extends INavigatorOptions<T> {
   useDirectRoutes?: boolean;
   useConfiguredRoutes?: boolean;
   hooks?: IHookDefinition<T>[];
-  reportCallback?(instruction: INavigatorInstruction<T>): void;
 }
 
 export interface IRouter<T extends INode> {
@@ -98,8 +101,6 @@ export interface IRouter<T extends INode> {
   activate(options?: IRouterOptions<T>): void;
   // loadUrl(): Promise<void>;
   deactivate(): void;
-
-  processNavigations(qInstruction: QueueItem<INavigatorInstruction<T>>): Promise<void>;
 
   // External API to get viewport by name
   getViewport(name: string): Viewport<T> | null;
@@ -201,6 +202,8 @@ export class Router<T extends INode> implements IRouter<T> {
 
   public constructor(
     @IContainer public readonly container: IContainer,
+    @IRouterEvents public readonly events: IRouterEvents,
+    @IScheduler public readonly scheduler: IScheduler,
     public navigator: Navigator<T>,
     public instructionResolver: InstructionResolver<T>,
     public hookManager: HookManager<T>,
@@ -241,6 +244,11 @@ export class Router<T extends INode> implements IRouter<T> {
     //   callback: this.browserNavigatorCallback,
     //   useUrlFragmentHash: this.options.useUrlFragmentHash
     // });
+    this.events.subscribe('au:router:navigate', (instruction: INavigatorInstruction<T>) => {
+      this.scheduler.queueMicroTask(async () => {
+        await this.processNavigations(instruction);
+      }, { async: true });
+    });
     this.ensureRootScope();
   }
 
@@ -264,15 +272,9 @@ export class Router<T extends INode> implements IRouter<T> {
     }
     // this.linkHandler.deactivate();
     this.navigator.deactivate();
+    this.events.unsubscribeAll();
     // this.navigation.deactivate();
   }
-
-  // TODO: use @bound and improve name (eslint-disable is temp)
-  // eslint-disable-next-line @typescript-eslint/typedef
-  public navigatorCallback = (instruction: INavigatorInstruction<T>): void => {
-    // Instructions extracted from queue, one at a time
-    this.processNavigations(instruction).catch(error => { throw error; });
-  };
 
   // TODO: use @bound and improve name (eslint-disable is temp)
   // eslint-disable-next-line @typescript-eslint/typedef
@@ -322,13 +324,9 @@ export class Router<T extends INode> implements IRouter<T> {
   };
 
   // TODO: use @bound and improve name (eslint-disable is temp)
-  // eslint-disable-next-line @typescript-eslint/typedef
-  public processNavigations = async (qInstruction: QueueItem<INavigatorInstruction<T>>): Promise<void> => {
+  private async processNavigations(qInstruction: INavigatorInstruction<T>): Promise<void> {
     const instruction = this.processingNavigation = qInstruction as INavigatorInstruction<T>;
 
-    if (this.options.reportCallback) {
-      this.options.reportCallback(instruction);
-    }
     let fullStateInstruction = false;
     const instructionNavigation = instruction.navigation!;
     if ((instructionNavigation.back || instructionNavigation.forward) && instruction.fullStateInstruction) {
@@ -539,7 +537,7 @@ export class Router<T extends INode> implements IRouter<T> {
     }
     this.processingNavigation = null;
     await this.navigator.finalize(instruction);
-  };
+  }
 
   public findScope(origin: T | ICustomElementViewModel | Viewport<T> | Scope<T> | ICustomElementController | null): Scope<T> {
     const rootScope = this.rootScope!.scope;

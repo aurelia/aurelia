@@ -28,7 +28,6 @@ export {
   INavigatorStore,
   INavigatorViewer,
   INavigatorViewerEvent,
-  INavigatorViewerOptions,
   INavigatorViewerState,
   Navigator,
 } from './navigator';
@@ -52,6 +51,10 @@ export {
   IRouter,
   Router,
 } from './router';
+
+export {
+  IRouterEvents,
+} from './router-events';
 
 export {
   QueueTask,

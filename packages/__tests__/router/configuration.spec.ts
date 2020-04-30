@@ -2,6 +2,7 @@ import { DebugConfiguration } from '@aurelia/debug';
 import { IHTMLRouter, RouterConfiguration } from '@aurelia/router-html';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
+import { LoggerConfiguration, LogLevel } from '@aurelia/kernel';
 
 describe('Configuration', function () {
   function getModifiedRouter(container) {
@@ -16,6 +17,7 @@ describe('Configuration', function () {
   async function createFixture(config?) {
     const ctx = TestContext.createHTMLTestContext();
     const { container, lifecycle } = ctx;
+    container.register(LoggerConfiguration.create(ctx.wnd.console, LogLevel.debug));
 
     const App = CustomElement.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
     const host = ctx.doc.createElement('div');

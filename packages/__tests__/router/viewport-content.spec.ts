@@ -1,6 +1,7 @@
 import { IHTMLRouter, ViewportContent, ViewportInstruction, HTMLStateManager } from '@aurelia/router-html';
 import { CustomElement } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
+import { LoggerConfiguration, LogLevel } from '@aurelia/kernel';
 
 const define = (CustomElement as any).define;
 
@@ -15,6 +16,7 @@ describe('ViewportContent', function () {
     function $setup(dependencies: any[] = []) {
       const ctx = TestContext.createHTMLTestContext();
       const container = ctx.container;
+      container.register(LoggerConfiguration.create(ctx.wnd.console, LogLevel.debug));
       const router = container.get(IHTMLRouter);
       return { container, router };
     }

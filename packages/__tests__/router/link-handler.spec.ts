@@ -1,12 +1,14 @@
 import { AnchorEventInfo, LinkHandler, GotoCustomAttribute, HrefCustomAttribute } from '@aurelia/router-html';
 import { assert, createSpy, TestContext } from '@aurelia/testing';
-import { Writable, IRegistry, PLATFORM } from '@aurelia/kernel';
+import { Writable, IRegistry, PLATFORM, LoggerConfiguration, LogLevel } from '@aurelia/kernel';
 import { CustomElement, Aurelia } from '@aurelia/runtime';
+import { IRouterEvents } from '@aurelia/router';
 
 describe('LinkHandler', function () {
   function createFixture() {
     const ctx = TestContext.createHTMLTestContext();
     const { container } = ctx;
+    container.register(LoggerConfiguration.create(ctx.wnd.console, LogLevel.debug));
 
     const sut = container.get(LinkHandler);
 
@@ -16,6 +18,7 @@ describe('LinkHandler', function () {
   async function setupApp(App) {
     const ctx = TestContext.createHTMLTestContext();
     const { container, doc } = ctx;
+    container.register(LoggerConfiguration.create(ctx.wnd.console, LogLevel.debug));
 
     const host = doc.createElement('div');
     doc.body.appendChild(host as any);

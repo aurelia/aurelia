@@ -1,261 +1,263 @@
-import { BrowserNavigator, INavigatorState } from '@aurelia/router-html';
-import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
+// import { BrowserNavigator, INavigatorState } from '@aurelia/router-html';
+// import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
+// import { LoggerConfiguration, LogLevel } from '@aurelia/kernel';
 
-describe('BrowserNavigator', function () {
-  this.timeout(5000);
-  let browserNavigator;
-  let callbackCount = 0;
-  const callback = ((info) => {
-    callbackCount++;
-  });
-  class MockWindow {
-    public window: Window;
-    public history: History;
-    public location: Location;
+// describe('BrowserNavigator', function () {
+//   this.timeout(5000);
+//   let browserNavigator;
+//   let callbackCount = 0;
+//   const callback = ((info) => {
+//     callbackCount++;
+//   });
+//   class MockWindow {
+//     public window: Window;
+//     public history: History;
+//     public location: Location;
 
-    public constructor(window: Window, history: History, location: Location) {
-      this.window = window;
-      this.history = history;
-      this.location = location;
-    }
+//     public constructor(window: Window, history: History, location: Location) {
+//       this.window = window;
+//       this.history = history;
+//       this.location = location;
+//     }
 
-    public addEventListener(event, handler, preventDefault) {
-      this.window.addEventListener(event, handler, preventDefault);
-    }
-    public removeEventListener(event, handler) {
-      this.window.removeEventListener(event, handler);
-    }
-  }
+//     public addEventListener(event, handler, preventDefault) {
+//       this.window.addEventListener(event, handler, preventDefault);
+//     }
+//     public removeEventListener(event, handler) {
+//       this.window.removeEventListener(event, handler);
+//     }
+//   }
 
-  function createFixture() {
-    const ctx = TestContext.createHTMLTestContext();
-    const { lifecycle, scheduler, dom } = ctx;
-    // const originalWnd = ctx.wnd;
+//   function createFixture() {
+//     const ctx = TestContext.createHTMLTestContext();
+//     const { lifecycle, scheduler, dom, container } = ctx;
+//     container.register(LoggerConfiguration.create(ctx.wnd.console, LogLevel.debug));
+//     // const originalWnd = ctx.wnd;
 
-    // const mockWnd = new MockWindow(originalWnd, originalWnd.history, originalWnd.location);
-    // const addEventListener = createSpy(mockWnd, 'addEventListener');
-    // const removeEventListener = createSpy(mockWnd, 'removeEventListener');
+//     // const mockWnd = new MockWindow(originalWnd, originalWnd.history, originalWnd.location);
+//     // const addEventListener = createSpy(mockWnd, 'addEventListener');
+//     // const removeEventListener = createSpy(mockWnd, 'removeEventListener');
 
-    // (DOM as Writable<typeof DOM>).window = mockWnd;
+//     // (DOM as Writable<typeof DOM>).window = mockWnd;
 
-    const sut = new BrowserNavigator(scheduler, dom);
-    const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
-    mockBrowserHistoryLocation.changeCallback = sut.handlePopstate;
-    sut.history = mockBrowserHistoryLocation as any;
-    sut.location = mockBrowserHistoryLocation as any;
+//     const sut = new BrowserNavigator(scheduler, dom);
+//     const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
+//     mockBrowserHistoryLocation.changeCallback = sut.handlePopstate;
+//     sut.history = mockBrowserHistoryLocation as any;
+//     sut.location = mockBrowserHistoryLocation as any;
 
-    function tearDown() {
-      // (DOM as Writable<typeof DOM>).window = originalWnd;
-    }
+//     function tearDown() {
+//       // (DOM as Writable<typeof DOM>).window = originalWnd;
+//     }
 
-    callbackCount = 0;
-    const callback = ((info) => {
-      callbackCount++;
-    });
+//     callbackCount = 0;
+//     const callback = ((info) => {
+//       callbackCount++;
+//     });
 
-    return { sut, tearDown, callback, lifecycle };
-  }
+//     return { sut, tearDown, callback, lifecycle };
+//   }
 
-  it('can be created', function () {
-    const { sut, tearDown, callback } = createFixture();
+//   it('can be created', function () {
+//     const { sut, tearDown, callback } = createFixture();
 
-    assert.notStrictEqual(sut, null, `sut`);
-    tearDown();
-  });
+//     assert.notStrictEqual(sut, null, `sut`);
+//     tearDown();
+//   });
 
-  it('can be activated', function () {
-    const { sut, tearDown, callback } = createFixture();
+//   it('can be activated', function () {
+//     const { sut, tearDown, callback } = createFixture();
 
-    sut.activate({ callback });
+//     sut.activate({ callback });
 
-    assert.strictEqual(sut['isActive'], true, `sut.isActive`);
-    // assert.strictEqual(addEventListener.calls.length, 1, `addEventListener.calls.length`);
+//     assert.strictEqual(sut['isActive'], true, `sut.isActive`);
+//     // assert.strictEqual(addEventListener.calls.length, 1, `addEventListener.calls.length`);
 
-    sut.deactivate();
+//     sut.deactivate();
 
-    tearDown();
-  });
+//     tearDown();
+//   });
 
-  it('can be deactivated', function () {
-    const { sut, tearDown, callback } = createFixture();
+//   it('can be deactivated', function () {
+//     const { sut, tearDown, callback } = createFixture();
 
-    sut.activate({ callback });
-    assert.strictEqual(sut['isActive'], true, `sut.isActive`);
-    // assert.strictEqual(addEventListener.calls.length, 1, `addEventListener.calls.length`);
+//     sut.activate({ callback });
+//     assert.strictEqual(sut['isActive'], true, `sut.isActive`);
+//     // assert.strictEqual(addEventListener.calls.length, 1, `addEventListener.calls.length`);
 
-    sut.deactivate();
+//     sut.deactivate();
 
-    assert.strictEqual(sut['isActive'], false, `sut.isActive`);
-    // assert.strictEqual(removeEventListener.calls.length, 1, `removeEventListener.calls.length`);
+//     assert.strictEqual(sut['isActive'], false, `sut.isActive`);
+//     // assert.strictEqual(removeEventListener.calls.length, 1, `removeEventListener.calls.length`);
 
-    tearDown();
-  });
+//     tearDown();
+//   });
 
-  it('throws when activated while active', function () {
-    const { sut, tearDown, callback } = createFixture();
+//   it('throws when activated while active', function () {
+//     const { sut, tearDown, callback } = createFixture();
 
-    sut.activate({ callback });
-    assert.strictEqual(sut['isActive'], true, `sut.isActive`);
+//     sut.activate({ callback });
+//     assert.strictEqual(sut['isActive'], true, `sut.isActive`);
 
-    let err;
-    try {
-      sut.activate({ callback });
-    } catch (e) {
-      err = e;
-    }
-    assert.strictEqual(err.message, 'Browser navigation has already been activated', `err.message`);
+//     let err;
+//     try {
+//       sut.activate({ callback });
+//     } catch (e) {
+//       err = e;
+//     }
+//     assert.strictEqual(err.message, 'Browser navigation has already been activated', `err.message`);
 
-    sut.deactivate();
+//     sut.deactivate();
 
-    tearDown();
-  });
+//     tearDown();
+//   });
 
-  it('suppresses popstate event callback', async function () {
-    const { sut, tearDown, callback } = createFixture();
+//   it('suppresses popstate event callback', async function () {
+//     const { sut, tearDown, callback } = createFixture();
 
-    let counter = 0;
-    sut.activate({
-      callback:
-        // Called once for each url/location change (no longer in as part of activation)
-        function () {
-          counter++;
-        }
-    });
+//     let counter = 0;
+//     sut.activate({
+//       callback:
+//         // Called once for each url/location change (no longer in as part of activation)
+//         function () {
+//           counter++;
+//         }
+//     });
 
-    await sut.pushNavigatorState(toNavigatorState('one'));
-    assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
-    await sut.pushNavigatorState(toNavigatorState('two'));
-    assert.strictEqual(sut.history.state.currentEntry.instruction, 'two', `sut.history.state.currentEntry.instruction`);
-    await sut.go(-1, true);
-    await Promise.resolve();
-    assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
+//     await sut.pushNavigatorState(toNavigatorState('one'));
+//     assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
+//     await sut.pushNavigatorState(toNavigatorState('two'));
+//     assert.strictEqual(sut.history.state.currentEntry.instruction, 'two', `sut.history.state.currentEntry.instruction`);
+//     await sut.go(-1, true);
+//     await Promise.resolve();
+//     assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
 
-    assert.strictEqual(counter, 0, `counter`); // Not the above 'go' (and no longer initial)
+//     assert.strictEqual(counter, 0, `counter`); // Not the above 'go' (and no longer initial)
 
-    sut.deactivate();
+//     sut.deactivate();
 
-    tearDown();
-  });
+//     tearDown();
+//   });
 
-  it('queues consecutive calls', async function () {
-    const { sut, tearDown, callback } = createFixture();
+//   it('queues consecutive calls', async function () {
+//     const { sut, tearDown, callback } = createFixture();
 
-    sut.activate({ callback });
-    await wait();
+//     sut.activate({ callback });
+//     await wait();
 
-    const length: number = sut['pendingCalls'].length;
-    sut.pushNavigatorState(toNavigatorState('one')).catch((error: Error) => { throw error; }); // 1 item, cost 1
-    sut.replaceNavigatorState(toNavigatorState('two')).catch((error: Error) => { throw error; }); // 1 item, cost 1
-    sut.go(-1).catch((error: Error) => { throw error; }); // 2 items (forwardState + go), cost 0 + 1
-    sut.go(1).catch((error: Error) => { throw error; }); // 2 items (forwardState + go), cost 0 + 1
-    const noOfItems = 6;
-    const processedItems = 3; // sut.allowedNoOfExecsWithinTick === 2
-    assert.strictEqual(sut['pendingCalls'].length, length + noOfItems - processedItems, `sut.pendingCalls.length`);
-    await wait();
+//     const length: number = sut['pendingCalls'].length;
+//     sut.pushNavigatorState(toNavigatorState('one')).catch((error: Error) => { throw error; }); // 1 item, cost 1
+//     sut.replaceNavigatorState(toNavigatorState('two')).catch((error: Error) => { throw error; }); // 1 item, cost 1
+//     sut.go(-1).catch((error: Error) => { throw error; }); // 2 items (forwardState + go), cost 0 + 1
+//     sut.go(1).catch((error: Error) => { throw error; }); // 2 items (forwardState + go), cost 0 + 1
+//     const noOfItems = 6;
+//     const processedItems = 3; // sut.allowedNoOfExecsWithinTick === 2
+//     assert.strictEqual(sut['pendingCalls'].length, length + noOfItems - processedItems, `sut.pendingCalls.length`);
+//     await wait();
 
-    sut.deactivate();
+//     sut.deactivate();
 
-    tearDown();
-  });
+//     tearDown();
+//   });
 
-  it('awaits go', async function () {
-    const { sut, tearDown, callback } = createFixture();
+//   it('awaits go', async function () {
+//     const { sut, tearDown, callback } = createFixture();
 
-    let counter = 0;
-    sut.activate({
-      callback:
-        // Called once for each url/location change (no longer in as part of activation)
-        function () {
-          counter++;
-        }
-    });
+//     let counter = 0;
+//     sut.activate({
+//       callback:
+//         // Called once for each url/location change (no longer in as part of activation)
+//         function () {
+//           counter++;
+//         }
+//     });
 
-    await sut.pushNavigatorState(toNavigatorState('one'));
-    assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
-    await sut.pushNavigatorState(toNavigatorState('two'));
-    assert.strictEqual(sut.history.state.currentEntry.instruction, 'two', `sut.history.state.currentEntry.instruction`);
-    await sut.go(-1);
-    await Promise.resolve();
-    assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
+//     await sut.pushNavigatorState(toNavigatorState('one'));
+//     assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
+//     await sut.pushNavigatorState(toNavigatorState('two'));
+//     assert.strictEqual(sut.history.state.currentEntry.instruction, 'two', `sut.history.state.currentEntry.instruction`);
+//     await sut.go(-1);
+//     await Promise.resolve();
+//     assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
 
-    assert.strictEqual(counter, 1, `counter`);
+//     assert.strictEqual(counter, 1, `counter`);
 
-    sut.deactivate();
+//     sut.deactivate();
 
-    tearDown();
-  });
+//     tearDown();
+//   });
 
-  it('defaults to using url fragment hash', async function () {
-    const { sut, tearDown, callback } = createFixture();
+//   it('defaults to using url fragment hash', async function () {
+//     const { sut, tearDown, callback } = createFixture();
 
-    let instruction;
-    sut.activate({
-      callback:
-        function (state) {
-          instruction = state;
-        }
-    });
+//     let instruction;
+//     sut.activate({
+//       callback:
+//         function (state) {
+//           instruction = state;
+//         }
+//     });
 
-    await sut.pushNavigatorState(toNavigatorState('one'));
-    assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
-    await sut.pushNavigatorState(toNavigatorState('two'));
-    assert.strictEqual(sut.history.state.currentEntry.instruction, 'two', `sut.history.state.currentEntry.instruction`);
-    await sut.go(-1);
-    await Promise.resolve();
-    assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
+//     await sut.pushNavigatorState(toNavigatorState('one'));
+//     assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
+//     await sut.pushNavigatorState(toNavigatorState('two'));
+//     assert.strictEqual(sut.history.state.currentEntry.instruction, 'two', `sut.history.state.currentEntry.instruction`);
+//     await sut.go(-1);
+//     await Promise.resolve();
+//     assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
 
-    assert.strictEqual(instruction.instruction, '/one', `instruction.instruction`);
-    assert.strictEqual(instruction.path, '/', `instruction.path`);
-    assert.strictEqual(instruction.hash, '#/one', `instruction.hash`);
+//     assert.strictEqual(instruction.instruction, '/one', `instruction.instruction`);
+//     assert.strictEqual(instruction.path, '/', `instruction.path`);
+//     assert.strictEqual(instruction.hash, '#/one', `instruction.hash`);
 
-    sut.deactivate();
+//     sut.deactivate();
 
-    tearDown();
-  });
+//     tearDown();
+//   });
 
-  it('can be set to not using url fragment hash', async function () {
-    const { sut, tearDown, callback } = createFixture();
+//   it('can be set to not using url fragment hash', async function () {
+//     const { sut, tearDown, callback } = createFixture();
 
-    let instruction;
-    sut.activate({
-      callback:
-        function (state) {
-          instruction = state;
-        },
-      useUrlFragmentHash: false,
-    });
+//     let instruction;
+//     sut.activate({
+//       callback:
+//         function (state) {
+//           instruction = state;
+//         },
+//       useUrlFragmentHash: false,
+//     });
 
-    await sut.pushNavigatorState(toNavigatorState('one'));
-    assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
-    await sut.pushNavigatorState(toNavigatorState('two'));
-    assert.strictEqual(sut.history.state.currentEntry.instruction, 'two', `sut.history.state.currentEntry.instruction`);
-    await sut.go(-1);
-    await Promise.resolve();
-    assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
+//     await sut.pushNavigatorState(toNavigatorState('one'));
+//     assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
+//     await sut.pushNavigatorState(toNavigatorState('two'));
+//     assert.strictEqual(sut.history.state.currentEntry.instruction, 'two', `sut.history.state.currentEntry.instruction`);
+//     await sut.go(-1);
+//     await Promise.resolve();
+//     assert.strictEqual(sut.history.state.currentEntry.instruction, 'one', `sut.history.state.currentEntry.instruction`);
 
-    assert.strictEqual(instruction.instruction, '/one', `instruction.instruction`);
-    assert.strictEqual(instruction.path, '/one', `instruction.path`);
-    assert.strictEqual(instruction.hash, '', `instruction.hash`);
+//     assert.strictEqual(instruction.instruction, '/one', `instruction.instruction`);
+//     assert.strictEqual(instruction.path, '/one', `instruction.path`);
+//     assert.strictEqual(instruction.hash, '', `instruction.hash`);
 
-    sut.deactivate();
+//     sut.deactivate();
 
-    tearDown();
-  });
-});
+//     tearDown();
+//   });
+// });
 
-const toNavigatorState = (instruction: string): INavigatorState<Element> => {
-  return {
-    entries: [],
-    currentEntry: {
-      instruction: instruction,
-      fullStateInstruction: null,
-      path: instruction,
-    }
-  };
-};
+// const toNavigatorState = (instruction: string): INavigatorState<Element> => {
+//   return {
+//     entries: [],
+//     currentEntry: {
+//       instruction: instruction,
+//       fullStateInstruction: null,
+//       path: instruction,
+//     }
+//   };
+// };
 
-const wait = async (time = 100) => {
-  await new Promise((resolve) => {
-    setTimeout(resolve, time);
-  });
-};
+// const wait = async (time = 100) => {
+//   await new Promise((resolve) => {
+//     setTimeout(resolve, time);
+//   });
+// };

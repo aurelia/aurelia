@@ -2,11 +2,13 @@ import { Viewport, RouterConfiguration, IHTMLRouter, HTMLStateManager, IRouter }
 import { CustomElement, Aurelia } from '@aurelia/runtime';
 import { TestContext, assert } from '@aurelia/testing';
 import { DebugConfiguration } from '@aurelia/debug';
+import { LoggerConfiguration, LogLevel } from '@aurelia/kernel';
 
 describe('Viewport', function () {
   async function createFixture(config?, App?) {
     const ctx = TestContext.createHTMLTestContext();
     const { container, scheduler, doc, wnd } = ctx;
+    container.register(LoggerConfiguration.create(ctx.wnd.console, LogLevel.debug));
 
     let path = wnd.location.href;
     const hash = path.indexOf('#');

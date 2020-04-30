@@ -1,7 +1,7 @@
 import { IDOM, CustomAttribute } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
-import { Key } from '@aurelia/kernel';
 import { GotoCustomAttribute } from './resources/goto';
+import { IRouterEvents } from '@aurelia/router';
 
 /**
  * Provides information about how to handle an anchor event.
@@ -40,8 +40,6 @@ export interface AnchorEventInfo {
  * Class responsible for handling interactions that should trigger navigation.
  */
 export class LinkHandler {
-  public static readonly inject: readonly Key[] = [IDOM];
-
   public window: Window;
   public document: Document;
 
@@ -52,7 +50,7 @@ export class LinkHandler {
   private isActive: boolean = false;
 
   public constructor(
-    dom: HTMLDOM
+    @IDOM dom: HTMLDOM
   ) {
     this.window = dom.window;
     this.document = dom.document;

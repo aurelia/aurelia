@@ -2,11 +2,13 @@ import { DebugConfiguration } from '@aurelia/debug';
 import { IHTMLRouter, RouterConfiguration, ViewportInstruction } from '@aurelia/router-html';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
+import { LoggerConfiguration, LogLevel } from '@aurelia/kernel';
 
 describe('Nav', function () {
   async function createFixture(component) {
     const ctx = TestContext.createHTMLTestContext();
     const container = ctx.container;
+    container.register(LoggerConfiguration.create(ctx.wnd.console, LogLevel.debug));
 
     const App = CustomElement.define({ name: 'app', template: `<template><au-viewport name="app" used-by="${component}" default="${component}"></au-viewport></template>` });
     const Foo = CustomElement.define({ name: 'foo', template: '<template>Nav: foo <au-nav name="main-nav"></au-nav></template>' }, class {

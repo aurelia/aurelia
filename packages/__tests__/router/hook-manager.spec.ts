@@ -9,6 +9,7 @@ import {
 import { assert, TestContext } from '@aurelia/testing';
 import { CustomElement, Aurelia, IScheduler } from '@aurelia/runtime';
 import { DebugConfiguration } from '@aurelia/debug';
+import { LoggerConfiguration, LogLevel } from '@aurelia/kernel';
 
 describe('HookManager', function () {
   this.timeout(5000);
@@ -16,6 +17,7 @@ describe('HookManager', function () {
   async function createFixture(config?, App?, dependencies: any[] = [], stateSpy?) {
     const ctx = TestContext.createHTMLTestContext();
     const { container, scheduler, doc, wnd } = ctx;
+    container.register(LoggerConfiguration.create(ctx.wnd.console, LogLevel.debug));
 
     let path = wnd.location.href;
     const hash = path.indexOf('#');

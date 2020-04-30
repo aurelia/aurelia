@@ -1,5 +1,5 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { PLATFORM, inject, IContainer } from '@aurelia/kernel';
+import { PLATFORM, inject, IContainer, LoggerConfiguration, LogLevel } from '@aurelia/kernel';
 import { IHTMLRouter, RouterConfiguration, IConfigurableRoute, IRoute } from '@aurelia/router-html';
 import { Aurelia, CustomElement, customElement, IScheduler } from '@aurelia/runtime';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
@@ -41,6 +41,7 @@ describe('Router', function () {
   async function createFixture(config?, App?, stateSpy?) {
     const ctx = TestContext.createHTMLTestContext();
     const { container, scheduler } = ctx;
+    container.register(LoggerConfiguration.create(ctx.wnd.console, LogLevel.debug));
 
     if (App === void 0) {
       App = CustomElement.define({ name: 'app', template: '<template>left<au-viewport name="left"></au-viewport>right<au-viewport name="right"></au-viewport></template>' });

@@ -28,7 +28,7 @@ export {
   INavigatorStore,
   INavigatorViewer,
   INavigatorViewerEvent,
-  INavigatorViewerState,
+  NavigatorViewerState,
   Navigator,
 } from './navigator';
 

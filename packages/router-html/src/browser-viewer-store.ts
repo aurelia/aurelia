@@ -5,7 +5,7 @@ import {
   INavigatorState,
   INavigatorStore,
   INavigatorViewer,
-  INavigatorViewerState,
+  NavigatorViewerState,
   QueueTask,
   TaskQueue,
   INavigatorViewerEvent,
@@ -81,14 +81,8 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
     return this.history.state;
   }
 
-  public get viewerState(): INavigatorViewerState {
-    const { pathname, search, hash } = this.location;
-    return {
-      path: pathname,
-      query: search,
-      hash,
-      instruction: this.options.useUrlFragmentHash ? hash.slice(1) : pathname,
-    };
+  public get viewerState(): NavigatorViewerState {
+    return NavigatorViewerState.fromLocation(this.location, this.options.useUrlFragmentHash === true);
   }
 
   public go(delta: number, suppressPopstateEvent: boolean = false): Promise<void> {

@@ -22,14 +22,32 @@ export interface INavigatorViewer<T extends INode> {
   deactivate(): void;
 }
 
-export interface INavigatorViewerState {
-  path: string;
-  query: string;
-  hash: string;
-  instruction: string;
+export class NavigatorViewerState {
+  private constructor(
+    public readonly path: string,
+    public readonly query: string,
+    public readonly hash: string,
+    public readonly instruction: string,
+  ) {}
+
+  public static fromLocation(
+    location: {
+      pathname: string;
+      search: string;
+      hash: string;
+    },
+    useUrlFragmentHash: boolean,
+  ): NavigatorViewerState {
+    return new NavigatorViewerState(
+      location.pathname,
+      location.search,
+      location.hash,
+      useUrlFragmentHash ? location.hash.slice(1) : location.pathname,
+    );
+  }
 }
 
-export interface INavigatorViewerEvent<T extends INode> extends INavigatorViewerState {
+export interface INavigatorViewerEvent<T extends INode> extends NavigatorViewerState {
   state?: INavigatorState<T>;
 }
 

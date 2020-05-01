@@ -1,9 +1,6 @@
 import { IScheduler, ITask, ILifecycleTask } from '@aurelia/runtime';
 import { bound } from '@aurelia/kernel';
 
-export interface IQueueableItem<T> {
-  execute: ((task: QueueTask<IQueueableItem<T>>) => void | Promise<void>);
-}
 export type QueueableFunction = ((task: QueueTask<void>) => void | Promise<void>);
 
 export class QueueTask<T> implements ILifecycleTask {
@@ -15,25 +12,24 @@ export class QueueTask<T> implements ILifecycleTask {
 
   public constructor(
     private readonly taskQueue: TaskQueue<T>,
-    public item: IQueueableItem<T> | QueueableFunction,
-    public cost: number = 0,
+    public item: QueueableFunction,
   ) {
     this.promise = new Promise((resolve, reject) => {
       this.resolve = () => {
-        this.taskQueue.resolve(this, resolve);
+        resolve();
+        this.taskQueue.processing = null;
+        this.taskQueue.dequeue();
       };
       this.reject = (reason: unknown) => {
-        this.taskQueue.reject(this, reject, reason);
+        reject(reason);
+        this.taskQueue.processing = null;
+        this.taskQueue.dequeue();
       };
     });
   }
 
   public async execute(): Promise<void> {
-    if ('execute' in this.item) {
-      await this.item.execute(this);
-    } else {
-      await this.item(this);
-    }
+    await this.item(this);
   }
   public wait(): Promise<void> {
     return this.promise;
@@ -93,30 +89,11 @@ export class TaskQueue<T> {
     this.clear();
   }
 
-  public enqueue(item: IQueueableItem<T> | QueueableFunction, cost?: number): QueueTask<T>;
-  public enqueue(items: (IQueueableItem<T> | QueueableFunction)[], cost?: number): QueueTask<T>[];
-  public enqueue(items: (IQueueableItem<T> | QueueableFunction)[], costs?: number[]): QueueTask<T>[];
-  public enqueue(task: QueueTask<T>): QueueTask<T>;
-  public enqueue(tasks: QueueTask<T>[]): QueueTask<T>[];
-  public enqueue(itemOrItems: IQueueableItem<T> | QueueableFunction | (IQueueableItem<T> | QueueableFunction)[] | QueueTask<T> | QueueTask<T>[], costOrCosts?: number | number[]): QueueTask<T> | QueueTask<T>[] {
-    const list = Array.isArray(itemOrItems);
-    const items = (list ? itemOrItems : [itemOrItems]) as (IQueueableItem<T> | QueueTask<T>)[];
-    const costs = items
-      .map((value, index) => !Array.isArray(costOrCosts) ? costOrCosts : costOrCosts[index])
-      .map(value => value !== undefined ? value : 1);
-    const tasks: QueueTask<T>[] = [];
-    for (const item of items) {
-      tasks.push(item instanceof QueueTask
-        ? item
-        : this.createQueueTask(item, costs.shift())); // TODO: Get cancellable in as well
-    }
-    this.pending.push(...tasks);
+  public enqueue(item: QueueableFunction): QueueTask<T> {
+    const task = new QueueTask(this, item);
+    this.pending.push(task);
     this.dequeue();
-    return list ? tasks : tasks[0];
-  }
-
-  public createQueueTask(item: IQueueableItem<T> | QueueableFunction, cost?: number): QueueTask<T> {
-    return new QueueTask(this, item, cost);
+    return task;
   }
 
   @bound
@@ -130,12 +107,16 @@ export class TaskQueue<T> {
     if (!this.pending.length) {
       return;
     }
-    if (this.allowedExecutionCostWithinTick !== null && delta === undefined && this.currentExecutionCostInCurrentTick + (this.pending[0].cost || 0) > this.allowedExecutionCostWithinTick) {
+    if (
+      this.allowedExecutionCostWithinTick !== null &&
+      delta === undefined &&
+      this.currentExecutionCostInCurrentTick + 1 > this.allowedExecutionCostWithinTick
+    ) {
       return;
     }
     this.processing = this.pending.shift() || null;
     if (this.processing) {
-      this.currentExecutionCostInCurrentTick += this.processing.cost || 0;
+      ++this.currentExecutionCostInCurrentTick;
       if (this.callback !== void 0) {
         this.callback(this.processing);
       } else {
@@ -148,16 +129,5 @@ export class TaskQueue<T> {
 
   public clear(): void {
     this.pending.splice(0, this.pending.length);
-  }
-
-  public resolve(task: QueueTask<T>, resolve: ((value: void | PromiseLike<void>) => void)): void {
-    resolve();
-    this.processing = null;
-    this.dequeue();
-  }
-  public reject(task: QueueTask<T>, reject: ((value: unknown | PromiseLike<unknown>) => void), reason: unknown): void {
-    reject(reason);
-    this.processing = null;
-    this.dequeue();
   }
 }

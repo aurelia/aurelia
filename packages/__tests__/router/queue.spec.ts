@@ -50,18 +50,18 @@ describe('Queue', function () {
     q.enqueue(new Animal('cat', 'Figaro II'), 2).catch((error: Error) => { throw error; });
     assert.strictEqual(q.pending.length, 2, `q.pending.length`);
     assert.strictEqual(q.pending[1].cost, 2, `q.pending[1].cost`);
-    q.enqueue([
-      new Animal('dog', 'Pluto III'),
-      new Animal('cat', 'Figaro III')], 3);
-    assert.strictEqual(q.pending.length, 4, `q.pending.length`);
-    assert.strictEqual(q.pending[2].cost, 3, `q.pending[2].cost`);
-    assert.strictEqual(q.pending[3].cost, 3, `q.pending[3].cost`);
-    q.enqueue([
-      new Animal('dog', 'Pluto IV'),
-      new Animal('cat', 'Figaro V')], [6, 7]);
-    assert.strictEqual(q.pending.length, 6, `q.pending.length`);
-    assert.strictEqual(q.pending[4].cost, 6, `q.pending[4].cost`);
-    assert.strictEqual(q.pending[5].cost, 7, `q.pending[5].cost`);
+    // q.enqueue([
+    //   new Animal('dog', 'Pluto III'),
+    //   new Animal('cat', 'Figaro III')], 3);
+    // assert.strictEqual(q.pending.length, 4, `q.pending.length`);
+    // assert.strictEqual(q.pending[2].cost, 3, `q.pending[2].cost`);
+    // assert.strictEqual(q.pending[3].cost, 3, `q.pending[3].cost`);
+    // q.enqueue([
+    //   new Animal('dog', 'Pluto IV'),
+    //   new Animal('cat', 'Figaro V')], [6, 7]);
+    // assert.strictEqual(q.pending.length, 6, `q.pending.length`);
+    // assert.strictEqual(q.pending[4].cost, 6, `q.pending[4].cost`);
+    // assert.strictEqual(q.pending[5].cost, 7, `q.pending[5].cost`);
   });
 
   it('can tick the queue', async function () {

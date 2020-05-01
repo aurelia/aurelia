@@ -95,7 +95,7 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
         this.forwardedState = { resolve, suppressPopstate };
         this.history.go(delta);
         task.resolve();
-      }, 1);
+      });
 
     await eventPromise;
   }
@@ -108,7 +108,7 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
       task => {
         this.history.pushState(state, title ?? '', `${fragment}${path}`);
         task.resolve();
-      }, 1).wait();
+      }).wait();
   }
 
   public replaceNavigatorState(state: INavigatorState<Element>): Promise<void> {
@@ -119,7 +119,7 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
       task => {
         this.history.replaceState(state, title ?? '', `${fragment}${path}`);
         task.resolve();
-      }, 1).wait();
+      }).wait();
   }
 
   public async popNavigatorState(): Promise<void> {
@@ -137,7 +137,7 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
         }
         resolve();
         task.resolve();
-      }, 1);
+      });
     await promise;
   }
 
@@ -165,6 +165,6 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
           resolve();
         }
         task.resolve();
-      }, 1);
+      });
   }
 }

@@ -211,7 +211,7 @@ export class MockContext {
 export type ExposedContext = IContainer & IDisposable & IContainer;
 
 export class MockBrowserHistoryLocation {
-  public changeCallback?: (ev: PopStateEvent) => Promise<void>;
+  public changeCallback?: (ev: PopStateEvent) => void;
 
   private readonly states: Record<string, unknown>[] = [{}];
   private readonly paths: string[] = [''];
@@ -331,7 +331,7 @@ export class MockBrowserHistoryLocation {
 
   private notifyChange() {
     if (this.changeCallback) {
-      this.changeCallback(null as any).catch((error: Error) => { throw error; });
+      this.changeCallback(null as any);
     }
   }
 }

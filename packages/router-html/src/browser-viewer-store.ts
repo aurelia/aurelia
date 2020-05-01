@@ -12,6 +12,7 @@ import {
   INavigatorEntry,
   Navigator,
 } from '@aurelia/router';
+import { bound } from '@aurelia/kernel';
 
 interface IAction {
   execute(task: QueueTask<IAction>, resolve?: ((value?: void | PromiseLike<void>) => void) | null | undefined, suppressEvent?: boolean): void;
@@ -155,11 +156,12 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
     return doneTask.wait();
   }
 
-  public readonly handlePopstate = (event: PopStateEvent): Promise<void> => {
+  @bound
+  public handlePopstate(event: PopStateEvent): void {
     const { eventTask, suppressPopstate } = this.forwardedState;
     this.forwardedState = { eventTask: null, suppressPopstate: false };
 
-    return this.pendingCalls.enqueue(
+    this.pendingCalls.enqueue(
       async task => {
         const store = this;
         const ev = event;
@@ -168,8 +170,8 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
 
         await store.popstate(ev, evTask, suppressPopstateEvent);
         task.resolve();
-      }, 1).wait();
-  };
+      }, 1);
+  }
 
   public async popState(doneTask: QueueTask<IAction>): Promise<void> {
     await this.go(-1, true);

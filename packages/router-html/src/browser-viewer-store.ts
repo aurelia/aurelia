@@ -62,14 +62,14 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
       this.options.useUrlFragmentHash = options.useUrlFragmentHash;
     }
     this.pendingCalls.activate({ scheduler: this.scheduler, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
-    this.window.addEventListener('popstate', this.handlePopstate as (ev: PopStateEvent) => void);
+    this.window.addEventListener('popstate', this.handlePopstate);
   }
 
   public deactivate(): void {
     if (!this.isActive) {
       throw new Error('Browser navigation has not been activated');
     }
-    this.window.removeEventListener('popstate', this.handlePopstate as (ev: PopStateEvent) => void);
+    this.window.removeEventListener('popstate', this.handlePopstate);
     this.pendingCalls.deactivate();
     this.options = { useUrlFragmentHash: true };
     this.isActive = false;
@@ -86,28 +86,21 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
     return NavigatorViewerState.fromLocation(this.location, this.options.useUrlFragmentHash === true);
   }
 
-  public go(delta: number, suppressPopstateEvent: boolean = false): Promise<void> {
-    const doneTask = this.pendingCalls.createQueueTask(task => task.resolve(), 1);
+  public go(delta: number, suppressPopstate: boolean = false): Promise<void> {
+    const eventTask = this.pendingCalls.createQueueTask(task => task.resolve(), 1);
 
     this.pendingCalls.enqueue([
       task => {
-        const store = this;
-        const eventTask = doneTask;
-        const suppressPopstate = suppressPopstateEvent;
-
-        store.forwardState({ eventTask, suppressPopstate });
+        this.forwardedState = { eventTask, suppressPopstate };
         task.resolve();
       },
       task => {
-        const history = this.history;
-        const steps = delta;
-
-        history.go(steps);
+        this.history.go(delta);
         task.resolve();
       },
     ], [0, 1]);
 
-    return doneTask.wait();
+    return eventTask.wait();
   }
 
   public pushNavigatorState(state: INavigatorState<Element>): Promise<void> {
@@ -116,12 +109,7 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
 
     return this.pendingCalls.enqueue(
       task => {
-        const history = this.history;
-        const data = state;
-        const titleOrEmpty = title || '';
-        const url = `${fragment}${path}`;
-
-        history.pushState(data, titleOrEmpty, url);
+        this.history.pushState(state, title ?? '', `${fragment}${path}`);
         task.resolve();
       }, 1).wait();
   }
@@ -132,12 +120,7 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
 
     return this.pendingCalls.enqueue(
       task => {
-        const history = this.history;
-        const data = state;
-        const titleOrEmpty = title || '';
-        const url = `${fragment}${path}`;
-
-        history.replaceState(data, titleOrEmpty, url);
+        this.history.replaceState(state, title ?? '', `${fragment}${path}`);
         task.resolve();
       }, 1).wait();
   }
@@ -147,10 +130,14 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
 
     this.pendingCalls.enqueue(
       async task => {
-        const store = this;
-        const eventTask = doneTask;
-
-        await store.popState(eventTask);
+        await this.go(-1, true);
+        const state = this.history.state;
+        // TODO: Fix browser forward bug after pop on first entry
+        if (state && state.navigationEntry && !state.navigationEntry.firstEntry) {
+          await this.go(-1, true);
+          await this.pushNavigatorState(state);
+        }
+        await doneTask.execute();
         task.resolve();
       }, 1);
     return doneTask.wait();
@@ -163,49 +150,23 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
 
     this.pendingCalls.enqueue(
       async task => {
-        const store = this;
-        const ev = event;
-        const evTask = eventTask;
-        const suppressPopstateEvent = suppressPopstate;
-
-        await store.popstate(ev, evTask, suppressPopstateEvent);
+        if (!suppressPopstate) {
+          const browserNavigationEvent: INavigatorViewerEvent<Element> = {
+            ...this.viewerState,
+            ...{
+              event,
+              state: this.history.state,
+            },
+          };
+          const entry: INavigatorEntry<Element> = browserNavigationEvent.state?.currentEntry ?? { instruction: '', fullStateInstruction: '' };
+          entry.instruction = browserNavigationEvent.instruction;
+          entry.fromBrowser = true;
+          this.navigator.navigate(entry).catch(error => { throw error; });
+        }
+        if (eventTask !== null) {
+          await eventTask.execute();
+        }
         task.resolve();
       }, 1);
-  }
-
-  public async popState(doneTask: QueueTask<IAction>): Promise<void> {
-    await this.go(-1, true);
-    const state = this.history.state;
-    // TODO: Fix browser forward bug after pop on first entry
-    if (state && state.navigationEntry && !state.navigationEntry.firstEntry) {
-      await this.go(-1, true);
-      await this.pushNavigatorState(state);
-    }
-    await doneTask.execute();
-  }
-
-  public forwardState(state: IForwardedState): void {
-    this.forwardedState = state;
-  }
-
-  public async popstate(ev: PopStateEvent, eventTask: QueueTask<IAction> | null, suppressPopstate: boolean = false): Promise<void> {
-    if (!suppressPopstate) {
-      const browserNavigationEvent: INavigatorViewerEvent<Element> = {
-        ...this.viewerState,
-        ...{
-          event: ev,
-          state: this.history.state,
-        },
-      };
-      const entry: INavigatorEntry<Element> = (browserNavigationEvent.state && browserNavigationEvent.state.currentEntry
-        ? browserNavigationEvent.state.currentEntry as INavigatorEntry<Element>
-        : { instruction: '', fullStateInstruction: '' });
-      entry.instruction = browserNavigationEvent.instruction;
-      entry.fromBrowser = true;
-      this.navigator.navigate(entry).catch(error => { throw error; });
-    }
-    if (eventTask !== null) {
-      await eventTask.execute();
-    }
   }
 }

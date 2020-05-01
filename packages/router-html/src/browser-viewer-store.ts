@@ -19,7 +19,7 @@ interface IAction {
 }
 
 interface IForwardedState {
-  eventTask: QueueTask<IAction> | null;
+  resolve: (() => void) | null;
   suppressPopstate: boolean;
 }
 
@@ -40,7 +40,7 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
     useUrlFragmentHash: true,
   };
 
-  private forwardedState: IForwardedState = { eventTask: null, suppressPopstate: false };
+  private forwardedState: IForwardedState = { resolve: null, suppressPopstate: false };
 
   public constructor(
     @IScheduler public readonly scheduler: IScheduler,
@@ -86,21 +86,18 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
     return NavigatorViewerState.fromLocation(this.location, this.options.useUrlFragmentHash === true);
   }
 
-  public go(delta: number, suppressPopstate: boolean = false): Promise<void> {
-    const eventTask = this.pendingCalls.createQueueTask(task => task.resolve(), 1);
+  public async go(delta: number, suppressPopstate: boolean = false): Promise<void> {
+    let resolve: () => void;
+    const eventPromise = new Promise($resolve => resolve = $resolve);
 
-    this.pendingCalls.enqueue([
+    this.pendingCalls.enqueue(
       task => {
-        this.forwardedState = { eventTask, suppressPopstate };
-        task.resolve();
-      },
-      task => {
+        this.forwardedState = { resolve, suppressPopstate };
         this.history.go(delta);
         task.resolve();
-      },
-    ], [0, 1]);
+      }, 1);
 
-    return eventTask.wait();
+    await eventPromise;
   }
 
   public pushNavigatorState(state: INavigatorState<Element>): Promise<void> {
@@ -125,8 +122,9 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
       }, 1).wait();
   }
 
-  public popNavigatorState(): Promise<void> {
-    const doneTask = this.pendingCalls.createQueueTask(task => task.resolve(), 1);
+  public async popNavigatorState(): Promise<void> {
+    let resolve: () => void;
+    const promise = new Promise($resolve => resolve = $resolve);
 
     this.pendingCalls.enqueue(
       async task => {
@@ -137,19 +135,19 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
           await this.go(-1, true);
           await this.pushNavigatorState(state);
         }
-        await doneTask.execute();
+        resolve();
         task.resolve();
       }, 1);
-    return doneTask.wait();
+    await promise;
   }
 
   @bound
   public handlePopstate(event: PopStateEvent): void {
-    const { eventTask, suppressPopstate } = this.forwardedState;
-    this.forwardedState = { eventTask: null, suppressPopstate: false };
+    const { resolve, suppressPopstate } = this.forwardedState;
+    this.forwardedState = { resolve: null, suppressPopstate: false };
 
     this.pendingCalls.enqueue(
-      async task => {
+      task => {
         if (!suppressPopstate) {
           const browserNavigationEvent: INavigatorViewerEvent<Element> = {
             ...this.viewerState,
@@ -163,8 +161,8 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
           entry.fromBrowser = true;
           this.navigator.navigate(entry).catch(error => { throw error; });
         }
-        if (eventTask !== null) {
-          await eventTask.execute();
+        if (resolve !== null) {
+          resolve();
         }
         task.resolve();
       }, 1);

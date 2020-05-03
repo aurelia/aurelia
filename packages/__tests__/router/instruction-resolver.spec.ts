@@ -1,29 +1,25 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { IHTMLRouter, RouterConfiguration, ViewportInstruction } from '@aurelia/router-html';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
-import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
-import { LoggerConfiguration, LogLevel } from '@aurelia/kernel';
+import { assert, TestContext } from '@aurelia/testing';
+import { TestRouterConfiguration } from './configuration';
 
 describe('InstructionResolver', function () {
   async function createFixture() {
     const ctx = TestContext.createHTMLTestContext();
     const container = ctx.container;
-    container.register(LoggerConfiguration.create(ctx.wnd.console, LogLevel.debug));
+    container.register(TestRouterConfiguration.for(ctx));
 
     const App = CustomElement.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
 
     const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host);
 
-    const au = ctx.wnd['au'] = new Aurelia(container)
+    const au = new Aurelia(container)
       .register(DebugConfiguration, RouterConfiguration)
       .app({ host: host, component: App });
 
     const router = container.get(IHTMLRouter);
-    const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
-    mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate;
-    router.navigation.history = mockBrowserHistoryLocation as any;
-    router.navigation.location = mockBrowserHistoryLocation as any;
 
     await au.start().wait();
 

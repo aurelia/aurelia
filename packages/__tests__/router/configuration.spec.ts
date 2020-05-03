@@ -1,23 +1,14 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { IHTMLRouter, RouterConfiguration } from '@aurelia/router-html';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
-import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
-import { LoggerConfiguration, LogLevel } from '@aurelia/kernel';
+import { assert, TestContext } from '@aurelia/testing';
+import { TestRouterConfiguration } from './configuration';
 
 describe('Configuration', function () {
-  function getModifiedRouter(container) {
-    const router = container.get(IHTMLRouter);
-    const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
-    mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate;
-    router.navigation.history = mockBrowserHistoryLocation as any;
-    router.navigation.location = mockBrowserHistoryLocation as any;
-    return router;
-  }
-
   async function createFixture(config?) {
     const ctx = TestContext.createHTMLTestContext();
     const { container, lifecycle } = ctx;
-    container.register(LoggerConfiguration.create(ctx.wnd.console, LogLevel.debug));
+    container.register(TestRouterConfiguration.for(ctx));
 
     const App = CustomElement.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
     const host = ctx.doc.createElement('div');
@@ -30,7 +21,7 @@ describe('Configuration', function () {
         App)
       .app({ host: host, component: App });
 
-    const router = getModifiedRouter(container);
+    const router = container.get(IHTMLRouter);
 
     await au.start().wait();
 
@@ -82,6 +73,7 @@ describe('Configuration', function () {
 
     const ctx = TestContext.createHTMLTestContext();
     const { container } = ctx;
+    container.register(TestRouterConfiguration.for(ctx));
 
     const App = CustomElement.define({ name: 'app', template: '<au-viewport default="foo"></au-viewport>' });
     const Foo = CustomElement.define({ name: 'foo', template: `<div>foo: \${message}</div>` }, class {
@@ -103,7 +95,7 @@ describe('Configuration', function () {
         Foo)
       .app({ host: host, component: App });
 
-    const router = getModifiedRouter(container);
+      const router = container.get(IHTMLRouter);
 
     await au.start().wait();
 

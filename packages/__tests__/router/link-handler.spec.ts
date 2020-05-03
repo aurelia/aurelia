@@ -3,12 +3,13 @@ import { assert, createSpy, TestContext } from '@aurelia/testing';
 import { Writable, IRegistry, PLATFORM, LoggerConfiguration, LogLevel } from '@aurelia/kernel';
 import { CustomElement, Aurelia } from '@aurelia/runtime';
 import { IRouterEvents } from '@aurelia/router';
+import { TestRouterConfiguration } from './configuration';
 
 describe('LinkHandler', function () {
   function createFixture() {
     const ctx = TestContext.createHTMLTestContext();
     const { container } = ctx;
-    container.register(LoggerConfiguration.create(ctx.wnd.console, LogLevel.debug));
+    container.register(TestRouterConfiguration.for(ctx));
 
     const sut = container.get(LinkHandler);
     const events = container.get(IRouterEvents);

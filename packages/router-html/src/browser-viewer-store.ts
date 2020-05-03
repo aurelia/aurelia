@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/promise-function-async */
-import { IDOM, IScheduler } from '@aurelia/runtime';
-import { HTMLDOM } from '@aurelia/runtime-html';
+import { IScheduler } from '@aurelia/runtime';
 import {
   INavigatorState,
   INavigatorStore,
@@ -13,6 +12,7 @@ import {
   Navigator,
 } from '@aurelia/router';
 import { bound } from '@aurelia/kernel';
+import { IWindow, IHistory, ILocation } from './interfaces';
 
 interface IAction {
   execute(task: QueueTask<IAction>, resolve?: ((value?: void | PromiseLike<void>) => void) | null | undefined, suppressEvent?: boolean): void;
@@ -28,10 +28,6 @@ export interface IBrowserViewerStoreOptions {
 }
 
 export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorViewer<Element> {
-  public window: Window;
-  public history: History;
-  public location: Location;
-
   public allowedExecutionCostWithinTick: number = 2; // Limit no of executed actions within the same RAF (due to browser limitation)
 
   private readonly pendingCalls: TaskQueue<IAction>;
@@ -44,12 +40,11 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
 
   public constructor(
     @IScheduler public readonly scheduler: IScheduler,
-    @IDOM dom: HTMLDOM,
+    @IWindow public readonly window: IWindow,
+    @IHistory public readonly history: IHistory,
+    @ILocation public readonly location: ILocation,
     private readonly navigator: Navigator<Element>,
   ) {
-    this.window = dom.window;
-    this.history = dom.window.history;
-    this.location = dom.window.location;
     this.pendingCalls = new TaskQueue<IAction>();
   }
 
@@ -78,8 +73,9 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
   public get length(): number {
     return this.history.length;
   }
-  public get state(): Record<string, unknown> {
-    return this.history.state;
+  public get state(): Record<string, unknown> | null {
+    // TODO: this cast is not necessarily safe. Either we should do some type checks (and throw on "invalid" state?), or otherwise ensure (e.g. with replaceState) that it's always an object.
+    return this.history.state as Record<string, unknown> | null;
   }
 
   public get viewerState(): NavigatorViewerState {
@@ -127,15 +123,9 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
     const promise = new Promise($resolve => resolve = $resolve);
 
     this.pendingCalls.enqueue(
-      async task => {
-        await this.go(-1, true);
-        const state = this.history.state;
-        // TODO: Fix browser forward bug after pop on first entry
-        if (state && state.navigationEntry && !state.navigationEntry.firstEntry) {
-          await this.go(-1, true);
-          await this.pushNavigatorState(state);
-        }
-        resolve();
+      task => {
+        this.forwardedState = { resolve, suppressPopstate: true };
+        this.history.go(-1);
         task.resolve();
       });
     await promise;
@@ -153,7 +143,7 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
             ...this.viewerState,
             ...{
               event,
-              state: this.history.state,
+              state: this.history.state as INavigatorState<Element>,
             },
           };
           const entry: INavigatorEntry<Element> = browserNavigationEvent.state?.currentEntry ?? { instruction: '', fullStateInstruction: '' };

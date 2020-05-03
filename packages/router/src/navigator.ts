@@ -9,8 +9,8 @@ import { INode } from '@aurelia/runtime';
 import { IRouterEvents } from './router-events';
 
 export interface INavigatorStore<T extends INode> {
-  length: number;
-  state: Record<string, unknown>;
+  readonly length: number;
+  readonly state: Record<string, unknown> | null;
   go(delta?: number, suppressPopstate?: boolean): Promise<void>;
   pushNavigatorState(state: INavigatorState<T>): Promise<void>;
   replaceNavigatorState(state: INavigatorState<T>): Promise<void>;

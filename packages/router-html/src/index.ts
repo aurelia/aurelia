@@ -39,6 +39,12 @@ export {
 } from './state-manager';
 
 export {
+  IWindow,
+  IHistory,
+  ILocation,
+} from './interfaces';
+
+export {
   InstructionResolver,
 
   INavigatorInstruction,

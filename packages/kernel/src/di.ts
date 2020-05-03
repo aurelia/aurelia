@@ -679,9 +679,19 @@ export class Factory<T extends Constructable = any> implements IFactory<T> {
 
   public construct(container: IContainer, dynamicDependencies?: Key[]): Resolved<T> {
     const transformers = this.transformers;
-    let instance = dynamicDependencies !== void 0
-      ? this.invoker.invokeWithDynamicDependencies(container, this.Type, this.dependencies, dynamicDependencies)
-      : this.invoker.invoke(container, this.Type, this.dependencies);
+    let instance: Resolved<T>;
+    try {
+      if (dynamicDependencies === void 0) {
+        instance = this.invoker.invoke(container, this.Type, this.dependencies);
+      } else {
+        instance = this.invoker.invokeWithDynamicDependencies(container, this.Type, this.dependencies, dynamicDependencies);
+      }
+    } catch (err) {
+      if (err instanceof Error && err.message.includes('Attempted to jitRegister an intrinsic type')) {
+        throw new Error(`Unable to construct ${this.Type.name}. ${err.message}`);
+      }
+      throw err;
+    }
 
     if (transformers == null) {
       return instance;

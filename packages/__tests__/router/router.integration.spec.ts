@@ -1,5 +1,5 @@
 import { Aurelia, CustomElement, customElement } from '@aurelia/runtime';
-import { RouterConfiguration, IHTMLRouter } from '@aurelia/router-html';
+import { RouterConfiguration, IRouter } from '@aurelia/router';
 import { TestContext, assert } from '@aurelia/testing';
 
 function createFixture() {

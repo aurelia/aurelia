@@ -1,4 +1,4 @@
-import { Viewport, RouterConfiguration, IHTMLRouter, HTMLStateManager, IRouter } from '@aurelia/router-html';
+import { Viewport, RouterConfiguration, ScrollStateManager, IRouter } from '@aurelia/router';
 import { CustomElement, Aurelia } from '@aurelia/runtime';
 import { TestContext, assert } from '@aurelia/testing';
 import { DebugConfiguration } from '@aurelia/debug';
@@ -28,7 +28,7 @@ describe('Viewport', function () {
         App)
       .app({ host: host, component: App });
 
-    const router = container.get(IHTMLRouter);
+    const router = container.get(IRouter);
 
     await au.start().wait();
 
@@ -42,7 +42,7 @@ describe('Viewport', function () {
   }
 
   it('can be created', function () {
-    const sut = new Viewport({ stateManager: new HTMLStateManager() } as unknown as IRouter<Element>, null, null, null, null, null);
+    const sut = new Viewport({ stateManager: new ScrollStateManager() } as unknown as IRouter, null, null, null, null, null);
   });
 
   it('can understand exist attributes', async function () {

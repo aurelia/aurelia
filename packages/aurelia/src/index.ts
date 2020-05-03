@@ -374,7 +374,7 @@ export {
   // NavCustomElementRegistration,
   // GotoCustomAttribute,
   // GotoCustomAttributeRegistration
-} from '@aurelia/router-html';
+} from '@aurelia/router';
 
 export {
   // CallFunctionExpression,

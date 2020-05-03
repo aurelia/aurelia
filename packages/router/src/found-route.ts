@@ -1,12 +1,11 @@
 import { IRoute } from './interfaces';
 import { ViewportInstruction } from './viewport-instruction';
-import { INode } from '@aurelia/runtime';
 
-export class FoundRoute<T extends INode> {
+export class FoundRoute {
   public constructor(
-    public match: IRoute<T> | null = null,
+    public match: IRoute | null = null,
     public matching: string = '',
-    public instructions: ViewportInstruction<T>[] = [],
+    public instructions: ViewportInstruction[] = [],
     public remaining: string = '',
   ) { }
 

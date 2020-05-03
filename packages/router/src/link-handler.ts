@@ -1,7 +1,7 @@
 import { IDOM, CustomAttribute } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
 import { GotoCustomAttribute } from './resources/goto';
-import { IRouterEvents } from '@aurelia/router';
+import { IRouterEvents } from './router-events';
 
 /**
  * Provides information about how to handle an anchor event.

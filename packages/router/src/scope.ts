@@ -1,5 +1,5 @@
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
-import { CustomElementType, ICustomElementController, INode } from '@aurelia/runtime';
+import { CustomElementType, ICustomElementController } from '@aurelia/runtime';
 import { IRoute, ComponentAppellation, INavigatorInstruction } from './interfaces';
 import { FoundRoute } from './found-route';
 import { IRouter } from './router';
@@ -10,19 +10,19 @@ import { arrayRemove } from './utils';
 import { Collection } from './collection';
 import { IConfigurableRoute, RouteRecognizer } from './route-recognizer';
 
-export interface IFindViewportsResult<T extends INode> {
-  foundViewports: ViewportInstruction<T>[];
-  remainingInstructions: ViewportInstruction<T>[];
+export interface IFindViewportsResult {
+  foundViewports: ViewportInstruction[];
+  remainingInstructions: ViewportInstruction[];
 }
 
 export interface IScopeOwnerOptions {
   noHistory?: boolean;
 }
 
-export interface IScopeOwner<T extends INode> {
-  readonly connectedScope: Scope<T>;
-  readonly scope: Scope<T>;
-  readonly owningScope: Scope<T> | null;
+export interface IScopeOwner {
+  readonly connectedScope: Scope;
+  readonly scope: Scope;
+  readonly owningScope: Scope | null;
   enabled: boolean;
   path: string | null;
 
@@ -33,26 +33,26 @@ export interface IScopeOwner<T extends INode> {
   isEmpty: boolean;
 
   setNextContent(
-    content: ComponentAppellation<T> | ViewportInstruction<T>,
-    instruction: INavigatorInstruction<T>,
+    content: ComponentAppellation | ViewportInstruction,
+    instruction: INavigatorInstruction,
   ): boolean;
   canLeave(): Promise<boolean>;
-  canEnter(): Promise<boolean | ViewportInstruction<T>[]>;
+  canEnter(): Promise<boolean | ViewportInstruction[]>;
   enter(): Promise<boolean>;
   loadContent(): Promise<boolean>;
   finalizeContentChange(): void;
   abortContentChange(): Promise<void>;
 
-  getRoutes(): IRoute<T>[] | null;
+  getRoutes(): IRoute[] | null;
 }
 
-export class Scope<T extends INode> {
+export class Scope {
   public id: string = '.';
-  public scope: Scope<T>;
+  public scope: Scope;
 
-  public parent: Scope<T> | null = null;
-  public children: Scope<T>[] = [];
-  public replacedChildren: Scope<T>[] = [];
+  public parent: Scope | null = null;
+  public children: Scope[] = [];
+  public replacedChildren: Scope[] = [];
   public path: string | null = null;
 
   public enabled: boolean = true;
@@ -61,11 +61,11 @@ export class Scope<T extends INode> {
   public childCollections: Record<string, unknown[]> = {};
 
   public constructor(
-    public readonly router: IRouter<T>,
+    public readonly router: IRouter,
     public readonly hasScope: boolean,
-    public owningScope: Scope<T> | null,
-    public viewport: Viewport<T> | null = null,
-    public viewportScope: ViewportScope<T> | null = null,
+    public owningScope: Scope | null,
+    public viewport: Viewport | null = null,
+    public viewportScope: ViewportScope | null = null,
     public rootComponentType: CustomElementType | null = null, // temporary. Metadata will probably eliminate it
   ) {
     this.owningScope = owningScope ?? this;
@@ -82,7 +82,7 @@ export class Scope<T extends INode> {
     return this.isViewportScope && this.viewportScope!.passThroughScope;
   }
 
-  public get owner(): IScopeOwner<T> | null {
+  public get owner(): IScopeOwner | null {
     if (this.isViewport) {
       return this.viewport;
     }
@@ -91,10 +91,10 @@ export class Scope<T extends INode> {
     }
     return null;
   }
-  public get enabledChildren(): Scope<T>[] {
+  public get enabledChildren(): Scope[] {
     return this.children.filter(scope => scope.enabled);
   }
-  public get hoistedChildren(): Scope<T>[] {
+  public get hoistedChildren(): Scope[] {
     const scopes = this.enabledChildren;
     while (scopes.some(scope => scope.passThroughScope)) {
       for (const scope of scopes.slice()) {
@@ -107,13 +107,13 @@ export class Scope<T extends INode> {
     return scopes;
   }
 
-  public get enabledViewports(): Viewport<T>[] {
+  public get enabledViewports(): Viewport[] {
     return this.children
       .filter(scope => scope.isViewport && scope.enabled)
       .map(scope => scope.viewport!);
   }
 
-  public get viewportInstruction(): ViewportInstruction<T> | null {
+  public get viewportInstruction(): ViewportInstruction | null {
     if (this.isViewportScope) {
       return this.viewportScope!.content;
     }
@@ -123,11 +123,11 @@ export class Scope<T extends INode> {
     return null;
   }
 
-  public getEnabledViewports(viewportScopes: Scope<T>[]): Record<string, Viewport<T> | null> {
+  public getEnabledViewports(viewportScopes: Scope[]): Record<string, Viewport | null> {
     return viewportScopes
       .filter(scope => !scope.isViewportScope)
       .map(scope => scope.viewport!)
-      .reduce<Record<string, Viewport<T>>>(
+      .reduce<Record<string, Viewport>>(
         (viewports, viewport) => {
           viewports[viewport.name] = viewport;
           return viewports;
@@ -136,11 +136,11 @@ export class Scope<T extends INode> {
       );
   }
 
-  public getOwnedViewports(includeDisabled: boolean = false): Viewport<T>[] {
+  public getOwnedViewports(includeDisabled: boolean = false): Viewport[] {
     return this.allViewports(includeDisabled).filter(viewport => viewport.owningScope === this);
   }
 
-  public getOwnedScopes(includeDisabled: boolean = false): Scope<T>[] {
+  public getOwnedScopes(includeDisabled: boolean = false): Scope[] {
     const scopes = this.allScopes(includeDisabled).filter(scope => scope.owningScope === this);
     // Hoist children to pass through scopes
     for (const scope of scopes.slice()) {
@@ -154,12 +154,12 @@ export class Scope<T extends INode> {
 
   // Note: This can't change state other than the instructions!
   public findViewports(
-    instructions: ViewportInstruction<T>[],
-    alreadyFound: ViewportInstruction<T>[],
+    instructions: ViewportInstruction[],
+    alreadyFound: ViewportInstruction[],
     disregardViewports: boolean = false,
-  ): IFindViewportsResult<T> {
-    const foundViewports: ViewportInstruction<T>[] = [];
-    let remainingInstructions: ViewportInstruction<T>[] = [];
+  ): IFindViewportsResult {
+    const foundViewports: ViewportInstruction[] = [];
+    let remainingInstructions: ViewportInstruction[] = [];
 
     const ownedScopes = this.getOwnedScopes();
     // Get a shallow copy of all available manual viewport scopes
@@ -171,8 +171,8 @@ export class Scope<T extends INode> {
       availableViewports[instruction.viewportName!] = null;
     }
 
-    const viewportInstructions = new Collection<ViewportInstruction<T>>(...instructions.slice());
-    let instruction: ViewportInstruction<T> | null = null;
+    const viewportInstructions = new Collection<ViewportInstruction>(...instructions.slice());
+    let instruction: ViewportInstruction | null = null;
 
     // The viewport scope is already known
     while ((instruction = viewportInstructions.next()) !== null) {
@@ -265,7 +265,7 @@ export class Scope<T extends INode> {
 
     // Finally, only one accepting viewport left?
     while ((instruction = viewportInstructions.next()) !== null) {
-      const remainingViewports: Viewport<T>[] = [];
+      const remainingViewports: Viewport[] = [];
       for (const name in availableViewports) {
         const viewport = availableViewports[name];
         if (viewport?.acceptComponent(instruction.componentName!)) {
@@ -318,9 +318,9 @@ export class Scope<T extends INode> {
   }
 
   public foundViewportScope(
-    instruction: ViewportInstruction<T>,
-    viewportScope: ViewportScope<T>,
-  ): ViewportInstruction<T>[] {
+    instruction: ViewportInstruction,
+    viewportScope: ViewportScope,
+  ): ViewportInstruction[] {
     instruction.viewportScope = viewportScope;
     instruction.needsViewportDescribed = false;
     const remaining = instruction.nextScopeInstructions?.slice() ?? [];
@@ -333,11 +333,11 @@ export class Scope<T extends INode> {
   }
 
   public foundViewport(
-    instruction: ViewportInstruction<T>,
-    viewport: Viewport<T>,
+    instruction: ViewportInstruction,
+    viewport: Viewport,
     withoutViewports: boolean,
     doesntNeedViewportDescribed: boolean = false,
-  ): ViewportInstruction<T>[] {
+  ): ViewportInstruction[] {
     instruction.setViewport(viewport);
     if (doesntNeedViewportDescribed) {
       instruction.needsViewportDescribed = false;
@@ -353,9 +353,9 @@ export class Scope<T extends INode> {
 
   public addViewport(
     name: string,
-    viewportController: ICustomElementController<T> | null,
+    viewportController: ICustomElementController | null,
     options: IViewportOptions = {},
-  ): Viewport<T> {
+  ): Viewport {
     let viewport = this.getEnabledViewports(this.getOwnedScopes())[name] ?? null;
     // Each au-viewport element has its own Viewport
     if (
@@ -381,8 +381,8 @@ export class Scope<T extends INode> {
     return viewport;
   }
   public removeViewport(
-    viewport: Viewport<T>,
-    viewportController: ICustomElementController<T> | null,
+    viewport: Viewport,
+    viewportController: ICustomElementController | null,
   ): boolean {
 
     if (viewportController === null || viewport.remove(viewportController)) {
@@ -393,20 +393,20 @@ export class Scope<T extends INode> {
   }
   public addViewportScope(
     name: string,
-    element: T | null,
+    element: Node | null,
     options: IViewportScopeOptions = {},
-  ): ViewportScope<T> {
-    const viewportScope = new ViewportScope<T>(name, this.router, element, this.scope, true, null, options);
+  ): ViewportScope {
+    const viewportScope = new ViewportScope(name, this.router, element, this.scope, true, null, options);
     this.addChild(viewportScope.connectedScope);
     return viewportScope;
   }
-  public removeViewportScope(viewportScope: ViewportScope<T>): boolean {
+  public removeViewportScope(viewportScope: ViewportScope): boolean {
     // viewportScope.remove();
     this.removeChild(viewportScope.connectedScope);
     return true;
   }
 
-  public addChild(scope: Scope<T>): void {
+  public addChild(scope: Scope): void {
     if (!this.children.some(vp => vp === scope)) {
       if (scope.parent !== null) {
         scope.parent.removeChild(scope);
@@ -415,7 +415,7 @@ export class Scope<T extends INode> {
       scope.parent = this;
     }
   }
-  public removeChild(scope: Scope<T>): void {
+  public removeChild(scope: Scope): void {
     const index = this.children.indexOf(scope);
     if (index >= 0) {
       this.children.splice(index, 1);
@@ -441,22 +441,22 @@ export class Scope<T extends INode> {
   public allViewports(
     includeDisabled: boolean = false,
     includeReplaced: boolean = false,
-  ): Viewport<T>[] {
+  ): Viewport[] {
     return this.allScopes(includeDisabled, includeReplaced).filter(scope => scope.isViewport).map(scope => scope.viewport!);
   }
 
   public allScopes(
     includeDisabled: boolean = false,
     includeReplaced: boolean = false,
-  ): Scope<T>[] {
-    const scopes: Scope<T>[] = includeDisabled ? this.children.slice() : this.enabledChildren;
+  ): Scope[] {
+    const scopes: Scope[] = includeDisabled ? this.children.slice() : this.enabledChildren;
     for (const scope of scopes.slice()) {
       scopes.push(...scope.allScopes(includeDisabled, includeReplaced));
     }
     return scopes;
   }
 
-  public reparentViewportInstructions(): ViewportInstruction<T>[] | null {
+  public reparentViewportInstructions(): ViewportInstruction[] | null {
     const scopes = this.hoistedChildren.filter(scope => scope.viewportInstruction !== null && scope.viewportInstruction.componentName);
     if (!scopes.length) {
       return null;
@@ -469,7 +469,7 @@ export class Scope<T extends INode> {
     return scopes.map(scope => scope.viewportInstruction!);
   }
 
-  public findMatchingRoute(path: string): FoundRoute<T> | null {
+  public findMatchingRoute(path: string): FoundRoute | null {
     if (this.isViewportScope && !this.passThroughScope) {
       return this.findMatchingRouteInRoutes(path, this.viewportScope!.getRoutes());
     }
@@ -496,13 +496,13 @@ export class Scope<T extends INode> {
     return !results.some(result => result === false);
   }
 
-  private findMatchingRouteInRoutes(path: string, routes: IRoute<T>[] | null): FoundRoute<T> | null {
+  private findMatchingRouteInRoutes(path: string, routes: IRoute[] | null): FoundRoute | null {
     if (!Array.isArray(routes)) {
       return null;
     }
 
     routes = routes.map(route => this.ensureProperRoute(route));
-    const cRoutes: IConfigurableRoute<T>[] = routes.map(route => ({
+    const cRoutes: IConfigurableRoute[] = routes.map(route => ({
       path: route.path,
       handler: route,
     }));
@@ -514,12 +514,12 @@ export class Scope<T extends INode> {
       });
     }
 
-    const found = new FoundRoute<T>();
+    const found = new FoundRoute();
     let params: Record<string, unknown> = {};
     if (path.startsWith('/') || path.startsWith('+')) {
       path = path.slice(1);
     }
-    const recognizer = new RouteRecognizer<T>();
+    const recognizer = new RouteRecognizer();
 
     recognizer.add(cRoutes);
     const result = recognizer.recognize(path);
@@ -536,7 +536,7 @@ export class Scope<T extends INode> {
     }
     if (found.foundConfiguration) {
       // clone it so config doesn't get modified
-      found.instructions = this.router.instructionResolver.cloneViewportInstructions(found.match!.instructions as ViewportInstruction<T>[], false, true);
+      found.instructions = this.router.instructionResolver.cloneViewportInstructions(found.match!.instructions as ViewportInstruction[], false, true);
       const instructions = found.instructions.slice();
       while (instructions.length > 0) {
         const instruction = instructions.shift()!;
@@ -553,7 +553,7 @@ export class Scope<T extends INode> {
     return found;
   }
 
-  private ensureProperRoute(route: IRoute<T>): IRoute<T> {
+  private ensureProperRoute(route: IRoute): IRoute {
     if (route.id === void 0) {
       route.id = route.path;
     }

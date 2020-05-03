@@ -1,35 +1,34 @@
 import { Hook } from './hook';
 import { INavigatorInstruction, ComponentAppellation, IComponentAndOrViewportOrNothing } from './interfaces';
 import { ViewportInstruction } from './viewport-instruction';
-import { INode } from '@aurelia/runtime';
 
 export const enum HookTypes {
   BeforeNavigation = 'beforeNavigation',
   TransformFromUrl = 'transformFromUrl',
   TransformToUrl = 'transformToUrl',
 }
-export type BeforeNavigationHookFunction<T extends INode> = (
-  viewportInstructions: ViewportInstruction<T>[],
-  navigationInstruction: INavigatorInstruction<T>,
-) => Promise<boolean | ViewportInstruction<T>[]>;
-export type TransformFromUrlHookFunction<T extends INode> = (
+export type BeforeNavigationHookFunction = (
+  viewportInstructions: ViewportInstruction[],
+  navigationInstruction: INavigatorInstruction,
+) => Promise<boolean | ViewportInstruction[]>;
+export type TransformFromUrlHookFunction = (
   url: string,
-  navigationInstruction: INavigatorInstruction<T>,
-) => Promise<string | ViewportInstruction<T>[]>;
-export type TransformToUrlHookFunction<T extends INode> = (
-  state: string | ViewportInstruction<T>[],
-  navigationInstruction: INavigatorInstruction<T>,
-) => Promise<string | ViewportInstruction<T>[]>;
+  navigationInstruction: INavigatorInstruction,
+) => Promise<string | ViewportInstruction[]>;
+export type TransformToUrlHookFunction = (
+  state: string | ViewportInstruction[],
+  navigationInstruction: INavigatorInstruction,
+) => Promise<string | ViewportInstruction[]>;
 
-export type HookFunction<T extends INode> = BeforeNavigationHookFunction<T> | TransformFromUrlHookFunction<T> | TransformToUrlHookFunction<T>;
-export type HookParameter<T extends INode> = string | ViewportInstruction<T>[];
-export type HookResult<T extends INode> = boolean | string | ViewportInstruction<T>[];
+export type HookFunction = BeforeNavigationHookFunction | TransformFromUrlHookFunction | TransformToUrlHookFunction;
+export type HookParameter = string | ViewportInstruction[];
+export type HookResult = boolean | string | ViewportInstruction[];
 
-export type HookTarget<T extends INode> = ComponentAppellation<T> | IComponentAndOrViewportOrNothing<T>;
+export type HookTarget = ComponentAppellation | IComponentAndOrViewportOrNothing;
 
 export type HookIdentity = number;
 
-export interface IHookOptions<T extends INode> {
+export interface IHookOptions {
   /**
    * What event/when to hook. Defaults to BeforeNavigation
    */
@@ -37,20 +36,20 @@ export interface IHookOptions<T extends INode> {
   /**
    * What to hook. If omitted, everything is included
    */
-  include?: HookTarget<T>[];
+  include?: HookTarget[];
   /**
    * What not to hook. If omitted, nothing is excluded
    */
-  exclude?: HookTarget<T>[];
+  exclude?: HookTarget[];
 }
 
-export interface IHookDefinition<T extends INode> {
-  hook: HookFunction<T>;
-  options: IHookOptions<T>;
+export interface IHookDefinition {
+  hook: HookFunction;
+  options: IHookOptions;
 }
 
-export class HookManager<T extends INode> {
-  public hooks: Record<HookTypes, Hook<T>[]> = {
+export class HookManager {
+  public hooks: Record<HookTypes, Hook[]> = {
     beforeNavigation: [],
     transformFromUrl: [],
     transformToUrl: [],
@@ -59,22 +58,22 @@ export class HookManager<T extends INode> {
   private lastIdentity: number = 0;
 
   public addHook(
-    beforeNavigationHookFunction: BeforeNavigationHookFunction<T>,
-    options?: IHookOptions<T>,
+    beforeNavigationHookFunction: BeforeNavigationHookFunction,
+    options?: IHookOptions,
   ): HookIdentity;
   public addHook(
-    transformFromUrlHookFunction: TransformFromUrlHookFunction<T>,
-    options?: IHookOptions<T>,
+    transformFromUrlHookFunction: TransformFromUrlHookFunction,
+    options?: IHookOptions,
   ): HookIdentity;
   public addHook(
-    transformToUrlHookFunction: TransformToUrlHookFunction<T>,
-    options?: IHookOptions<T>,
+    transformToUrlHookFunction: TransformToUrlHookFunction,
+    options?: IHookOptions,
   ): HookIdentity;
   public addHook(
-    hookFunction: HookFunction<T>, options?: IHookOptions<T>,
+    hookFunction: HookFunction, options?: IHookOptions,
   ): HookIdentity;
   public addHook(
-    hookFunction: HookFunction<T>, options?: IHookOptions<T>,
+    hookFunction: HookFunction, options?: IHookOptions,
   ): HookIdentity {
     const hook = new Hook(hookFunction, options || {}, ++this.lastIdentity);
 
@@ -95,29 +94,29 @@ export class HookManager<T extends INode> {
   }
 
   public invokeBeforeNavigation(
-    viewportInstructions: ViewportInstruction<T>[],
-    navigationInstruction: INavigatorInstruction<T>,
-  ): Promise<boolean | ViewportInstruction<T>[]> {
-    return this.invoke(HookTypes.BeforeNavigation, navigationInstruction, viewportInstructions) as Promise<boolean | ViewportInstruction<T>[]>;
+    viewportInstructions: ViewportInstruction[],
+    navigationInstruction: INavigatorInstruction,
+  ): Promise<boolean | ViewportInstruction[]> {
+    return this.invoke(HookTypes.BeforeNavigation, navigationInstruction, viewportInstructions) as Promise<boolean | ViewportInstruction[]>;
   }
   public invokeTransformFromUrl(
     url: string,
-    navigationInstruction: INavigatorInstruction<T>,
-  ): Promise<string | ViewportInstruction<T>[]> {
-    return this.invoke(HookTypes.TransformFromUrl, navigationInstruction, url) as Promise<string | ViewportInstruction<T>[]>;
+    navigationInstruction: INavigatorInstruction,
+  ): Promise<string | ViewportInstruction[]> {
+    return this.invoke(HookTypes.TransformFromUrl, navigationInstruction, url) as Promise<string | ViewportInstruction[]>;
   }
   public invokeTransformToUrl(
-    state: string | ViewportInstruction<T>[],
-    navigationInstruction: INavigatorInstruction<T>,
-  ): Promise<string | ViewportInstruction<T>[]> {
-    return this.invoke(HookTypes.TransformToUrl, navigationInstruction, state) as Promise<string | ViewportInstruction<T>[]>;
+    state: string | ViewportInstruction[],
+    navigationInstruction: INavigatorInstruction,
+  ): Promise<string | ViewportInstruction[]> {
+    return this.invoke(HookTypes.TransformToUrl, navigationInstruction, state) as Promise<string | ViewportInstruction[]>;
   }
 
   public async invoke(
     type: HookTypes,
-    navigationInstruction: INavigatorInstruction<T>,
-    arg: HookParameter<T>,
-  ): Promise<HookResult<T>> {
+    navigationInstruction: INavigatorInstruction,
+    arg: HookParameter,
+  ): Promise<HookResult> {
     for (const hook of this.hooks[type]) {
       if (!hook.wantsMatch || hook.matches(arg)) {
         const outcome = await hook.invoke(navigationInstruction, arg);

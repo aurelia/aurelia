@@ -1,5 +1,5 @@
-import { IStateManager } from '@aurelia/router';
 import { ICustomElementController } from '@aurelia/runtime';
+import { DI } from '@aurelia/kernel';
 
 class ScrollState {
   private readonly top: number;
@@ -53,7 +53,13 @@ class HostElementState {
   }
 }
 
-export class HTMLStateManager implements IStateManager<Element> {
+export const IStateManager = DI.createInterface<IStateManager>('IStateManager').withDefault(x => x.singleton(ScrollStateManager));
+export interface IStateManager {
+  saveState(controller: ICustomElementController): void;
+  restoreState(controller: ICustomElementController): void;
+}
+
+export class ScrollStateManager implements IStateManager {
   private readonly cache: WeakMap<Element, HostElementState> = new WeakMap();
 
   public saveState(controller: ICustomElementController<Element>): void {

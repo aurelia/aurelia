@@ -5,14 +5,13 @@ import { ViewportCustomElement } from './resources/viewport';
 import { ViewportScopeCustomElement } from './resources/viewport-scope';
 import { GotoCustomAttribute } from './resources/goto';
 import { HrefCustomAttribute } from './resources/href';
-import { IHTMLRouter } from './router';
-import { IRouterOptions } from '@aurelia/router';
+import { IRouter, IRouterOptions } from './router';
 
-export const RouterRegistration = IHTMLRouter as unknown as IRegistry;
+export const RouterRegistration = IRouter as unknown as IRegistry;
 
 /**
  * Default runtime/environment-agnostic implementations for the following interfaces:
- * - `IHTMLRouter`
+ * - `IRouter`
  */
 export const DefaultComponents = [
   RouterRegistration,
@@ -45,8 +44,8 @@ export const DefaultResources: IRegistry[] = [
   HrefCustomAttribute as unknown as IRegistry,
 ];
 
-let configurationOptions: IRouterOptions<Element> = {};
-let configurationCall: ((router: IHTMLRouter) => void) = (router: IHTMLRouter) => {
+let configurationOptions: IRouterOptions = {};
+let configurationCall: ((router: IRouter) => void) = (router: IRouter) => {
   router.activate(configurationOptions);
 };
 
@@ -61,8 +60,8 @@ const routerConfiguration = {
     return container.register(
       ...DefaultComponents,
       ...DefaultResources,
-      StartTask.with(IHTMLRouter).beforeBind().call(configurationCall),
-      StartTask.with(IHTMLRouter).afterAttach().call(router => router.loadUrl()),
+      StartTask.with(IRouter).beforeBind().call(configurationCall),
+      StartTask.with(IRouter).afterAttach().call(router => router.loadUrl()),
     );
   },
   /**
@@ -78,10 +77,10 @@ export const RouterConfiguration = {
    * Parameter is either a config object that's passed to Router's activate
    * or a config function that's called instead of Router's activate.
    */
-  customize(config?: IRouterOptions<Element> | ((router: IHTMLRouter) => void)) {
+  customize(config?: IRouterOptions | ((router: IRouter) => void)) {
     if (config === undefined) {
       configurationOptions = {};
-      configurationCall = (router: IHTMLRouter) => {
+      configurationCall = (router: IRouter) => {
         router.activate(configurationOptions);
       };
     } else if (config instanceof Function) {

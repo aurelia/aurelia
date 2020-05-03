@@ -1,4 +1,4 @@
-// import { BrowserNavigator, INavigatorState } from '@aurelia/router-html';
+// import { BrowserNavigator, INavigatorState } from '@aurelia/router';
 // import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 // import { LoggerConfiguration, LogLevel } from '@aurelia/kernel';
 

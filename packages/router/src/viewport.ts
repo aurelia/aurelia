@@ -1,5 +1,5 @@
 import { Reporter } from '@aurelia/kernel';
-import { LifecycleFlags, CustomElement, IHydratedController, ICustomElementController, INode } from '@aurelia/runtime';
+import { LifecycleFlags, CustomElement, IHydratedController, ICustomElementController } from '@aurelia/runtime';
 import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, ReentryBehavior, IRoute, RouteableComponentType } from './interfaces';
 import { INavigatorFlags } from './navigator';
 import { IRouter } from './router';
@@ -18,10 +18,10 @@ export interface IViewportOptions extends IScopeOwnerOptions {
   forceDescription?: boolean;
 }
 
-export class Viewport<T extends INode> implements IScopeOwner<T> {
-  public connectedScope: Scope<T>;
-  public content: ViewportContent<T>;
-  public nextContent: ViewportContent<T> | null = null;
+export class Viewport implements IScopeOwner {
+  public connectedScope: Scope;
+  public content: ViewportContent;
+  public nextContent: ViewportContent | null = null;
 
   public forceRemove: boolean = false;
 
@@ -30,16 +30,16 @@ export class Viewport<T extends INode> implements IScopeOwner<T> {
   private clear: boolean = false;
   private elementResolve?: ((value?: void | PromiseLike<void>) => void) | null = null;
 
-  private previousViewportState: Viewport<T> | null = null;
+  private previousViewportState: Viewport | null = null;
 
-  private cache: ViewportContent<T>[] = [];
-  private historyCache: ViewportContent<T>[] = [];
+  private cache: ViewportContent[] = [];
+  private historyCache: ViewportContent[] = [];
 
   public constructor(
-    public readonly router: IRouter<T>,
+    public readonly router: IRouter,
     public name: string,
-    public viewportController: ICustomElementController<T> | null,
-    owningScope: Scope<T>,
+    public viewportController: ICustomElementController | null,
+    owningScope: Scope,
     scope: boolean,
     public options: IViewportOptions = {}
   ) {
@@ -47,10 +47,10 @@ export class Viewport<T extends INode> implements IScopeOwner<T> {
     this.connectedScope = new Scope(router, scope, owningScope, this);
   }
 
-  public get scope(): Scope<T> {
+  public get scope(): Scope {
     return this.connectedScope.scope;
   }
-  public get owningScope(): Scope<T> | null {
+  public get owningScope(): Scope | null {
     return this.connectedScope.owningScope;
   }
 
@@ -73,7 +73,7 @@ export class Viewport<T extends INode> implements IScopeOwner<T> {
   }
 
   public get doForceRemove(): boolean {
-    let scope: Scope<T> | null = this.connectedScope;
+    let scope: Scope | null = this.connectedScope;
     while (scope !== null) {
       if (scope.viewport !== null && scope.viewport.forceRemove) {
         return true;
@@ -84,10 +84,10 @@ export class Viewport<T extends INode> implements IScopeOwner<T> {
   }
 
   public setNextContent(
-    content: ComponentAppellation<T> | ViewportInstruction<T>,
-    instruction: INavigatorInstruction<T>,
+    content: ComponentAppellation | ViewportInstruction,
+    instruction: INavigatorInstruction,
   ): boolean {
-    let viewportInstruction: ViewportInstruction<T>;
+    let viewportInstruction: ViewportInstruction;
     if (content instanceof ViewportInstruction) {
       viewportInstruction = content;
     } else {
@@ -168,7 +168,7 @@ export class Viewport<T extends INode> implements IScopeOwner<T> {
   }
 
   public setController(
-    viewportController: ICustomElementController<T>,
+    viewportController: ICustomElementController,
     options: IViewportOptions,
   ): void {
     options = options || {};
@@ -217,7 +217,7 @@ export class Viewport<T extends INode> implements IScopeOwner<T> {
   }
 
   public async remove(
-    viewportController: ICustomElementController<T> | null,
+    viewportController: ICustomElementController | null,
   ): Promise<boolean> {
     if (this.viewportController === viewportController) {
       if (this.content.componentInstance) {
@@ -250,7 +250,7 @@ export class Viewport<T extends INode> implements IScopeOwner<T> {
     return this.content.canLeave(this.nextContent ? this.nextContent.instruction : null);
   }
 
-  public async canEnter(): Promise<boolean | ViewportInstruction<T>[]> {
+  public async canEnter(): Promise<boolean | ViewportInstruction[]> {
     if (this.clear) {
       return true;
     }
@@ -337,7 +337,7 @@ export class Viewport<T extends INode> implements IScopeOwner<T> {
   }
 
   // TODO: Deal with non-string components
-  public wantComponent(component: ComponentAppellation<T>): boolean {
+  public wantComponent(component: ComponentAppellation): boolean {
     let usedBy = this.options.usedBy || [];
     if (typeof usedBy === 'string') {
       usedBy = usedBy.split(',');
@@ -345,7 +345,7 @@ export class Viewport<T extends INode> implements IScopeOwner<T> {
     return usedBy.includes(component as string);
   }
   // TODO: Deal with non-string components
-  public acceptComponent(component: ComponentAppellation<T>): boolean {
+  public acceptComponent(component: ComponentAppellation): boolean {
     if (component === '-' || component === null) {
       return true;
     }
@@ -366,8 +366,8 @@ export class Viewport<T extends INode> implements IScopeOwner<T> {
   }
 
   public async activate(
-    initiator: IHydratedController<T>,
-    viewportController: ICustomElementController<T>,
+    initiator: IHydratedController,
+    viewportController: ICustomElementController,
     flags: LifecycleFlags,
   ): Promise<void> {
     this.enabled = true;
@@ -378,8 +378,8 @@ export class Viewport<T extends INode> implements IScopeOwner<T> {
   }
 
   public async deactivate(
-    initiator: IHydratedController<T>,
-    viewportController: ICustomElementController<T>,
+    initiator: IHydratedController,
+    viewportController: ICustomElementController,
     flags: LifecycleFlags,
   ): Promise<void> {
     if (this.content.componentInstance) {
@@ -395,7 +395,7 @@ export class Viewport<T extends INode> implements IScopeOwner<T> {
     this.enabled = false;
   }
 
-  public async freeContent(component: IRouteableComponent<T>) {
+  public async freeContent(component: IRouteableComponent) {
     const content = this.historyCache.find(cached => cached.componentInstance === component);
     if (content !== void 0) {
       this.forceRemove = true;
@@ -410,7 +410,7 @@ export class Viewport<T extends INode> implements IScopeOwner<T> {
     }
   }
 
-  public getRoutes(): IRoute<T>[] | null {
+  public getRoutes(): IRoute[] | null {
     let componentType: RouteableComponentType | null =
       this.nextContent !== null
         && this.nextContent.content !== null
@@ -424,7 +424,7 @@ export class Viewport<T extends INode> implements IScopeOwner<T> {
     if (componentType === null || componentType === void 0) {
       return null;
     }
-    const routes = (componentType as RouteableComponentType & { routes: IRoute<T>[] }).routes;
+    const routes = (componentType as RouteableComponentType & { routes: IRoute[] }).routes;
     return Array.isArray(routes) ? routes : null;
   }
 

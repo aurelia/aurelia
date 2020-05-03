@@ -1,6 +1,6 @@
 import { bindable, customElement } from '@aurelia/runtime';
 import { NavRoute } from '../nav-route';
-import { IHTMLRouter } from '../router';
+import { IRouter } from '../router';
 
 export interface INavClasses {
   nav?: string;
@@ -37,7 +37,7 @@ export class NavCustomElement {
   @bindable public classes: INavClasses = {};
 
   public constructor(
-    @IHTMLRouter private readonly router: IHTMLRouter,
+    @IRouter private readonly router: IRouter,
   ) {}
 
   public get navRoutes(): NavRoute[] {

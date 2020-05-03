@@ -3,10 +3,11 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { IContainer, Reporter } from '@aurelia/kernel';
 import { Controller, INode, LifecycleFlags, ILifecycle, IHydratedController, ICustomElementController } from '@aurelia/runtime';
-import { INavigatorInstruction, IRouteableComponent, RouteableComponentType, ReentryBehavior, IStateManager } from './interfaces';
+import { INavigatorInstruction, IRouteableComponent, RouteableComponentType, ReentryBehavior } from './interfaces';
 import { parseQuery } from './parser';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
+import { IStateManager } from './state-manager';
 
 export const enum ContentStatus {
   none = 0,
@@ -15,7 +16,7 @@ export const enum ContentStatus {
   activated = 3,
 }
 
-export class ViewportContent<T extends INode> {
+export class ViewportContent {
   public contentStatus: ContentStatus = ContentStatus.none;
   public entered: boolean = false;
   public fromCache: boolean = false;
@@ -23,10 +24,10 @@ export class ViewportContent<T extends INode> {
   public reentry: boolean = false;
 
   public constructor(
-    public readonly stateManager: IStateManager<T>,
+    public readonly stateManager: IStateManager,
     // Can (and wants) be a (resolved) type or a string (to be resolved later)
-    public content: ViewportInstruction<T> = new ViewportInstruction(''),
-    public instruction: INavigatorInstruction<T> = {
+    public content: ViewportInstruction = new ViewportInstruction(''),
+    public instruction: INavigatorInstruction = {
       instruction: '',
       fullStateInstruction: '',
     },
@@ -38,18 +39,18 @@ export class ViewportContent<T extends INode> {
     }
   }
 
-  public get componentInstance(): IRouteableComponent<T> | null {
+  public get componentInstance(): IRouteableComponent | null {
     return this.content.componentInstance;
   }
-  public get viewport(): Viewport<T> | null {
+  public get viewport(): Viewport | null {
     return this.content.viewport;
   }
 
-  public equalComponent(other: ViewportContent<T>): boolean {
+  public equalComponent(other: ViewportContent): boolean {
     return this.content.sameComponent(other.content);
   }
 
-  public equalParameters(other: ViewportContent<T>): boolean {
+  public equalParameters(other: ViewportContent): boolean {
     return this.content.sameComponent(other.content, true) &&
       // TODO: Review whether query is relevant
       this.instruction.query === other.instruction.query;
@@ -63,7 +64,7 @@ export class ViewportContent<T extends INode> {
       : ReentryBehavior.default;
   }
 
-  public isCacheEqual(other: ViewportContent<T>): boolean {
+  public isCacheEqual(other: ViewportContent): boolean {
     return this.content.sameComponent(other.content, true);
   }
 
@@ -101,9 +102,9 @@ export class ViewportContent<T extends INode> {
   }
 
   public async canEnter(
-    viewport: Viewport<T>,
-    previousInstruction: INavigatorInstruction<T>,
-  ): Promise<boolean | ViewportInstruction<T>[]> {
+    viewport: Viewport,
+    previousInstruction: INavigatorInstruction,
+  ): Promise<boolean | ViewportInstruction[]> {
     if (!this.content.componentInstance) {
       return false;
     }
@@ -123,11 +124,11 @@ export class ViewportContent<T extends INode> {
     if (typeof result === 'string') {
       return [viewport.router.createViewportInstruction(result, viewport)];
     }
-    return result as Promise<ViewportInstruction<T>[]>;
+    return result as Promise<ViewportInstruction[]>;
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  public async canLeave(nextInstruction: INavigatorInstruction<T> | null): Promise<boolean> {
+  public async canLeave(nextInstruction: INavigatorInstruction | null): Promise<boolean> {
     if (!this.content.componentInstance || !this.content.componentInstance.canLeave) {
       return true;
     }
@@ -141,7 +142,7 @@ export class ViewportContent<T extends INode> {
     return result;
   }
 
-  public async enter(previousInstruction: INavigatorInstruction<T>): Promise<void> {
+  public async enter(previousInstruction: INavigatorInstruction): Promise<void> {
     // if (!this.reentry && (this.contentStatus !== ContentStatus.created || this.entered)) {
     if (!this.reentry && (this.contentStatus !== ContentStatus.loaded || this.entered)) {
       return;
@@ -154,7 +155,7 @@ export class ViewportContent<T extends INode> {
     }
     this.entered = true;
   }
-  public async leave(nextInstruction: INavigatorInstruction<T> | null): Promise<void> {
+  public async leave(nextInstruction: INavigatorInstruction | null): Promise<void> {
     if (this.contentStatus !== ContentStatus.activated || !this.entered) {
       return;
     }
@@ -165,7 +166,7 @@ export class ViewportContent<T extends INode> {
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  public async loadComponent(viewportController: ICustomElementController<T>, viewport: Viewport<T>): Promise<void> {
+  public async loadComponent(viewportController: ICustomElementController, viewport: Viewport): Promise<void> {
     // if (this.contentStatus !== ContentStatus.created || !this.entered || !this.content.componentInstance) {
     if (this.contentStatus !== ContentStatus.created || this.entered || !this.content.componentInstance) {
       return;
@@ -184,7 +185,7 @@ export class ViewportContent<T extends INode> {
     this.contentStatus = ContentStatus.loaded;
   }
 
-  public unloadComponent(cache: ViewportContent<T>[], stateful: boolean = false): void {
+  public unloadComponent(cache: ViewportContent[], stateful: boolean = false): void {
     // TODO: We might want to do something here eventually, who knows?
     if (this.contentStatus !== ContentStatus.loaded) {
       return;
@@ -199,8 +200,8 @@ export class ViewportContent<T extends INode> {
   }
 
   public async activateComponent(
-    initiator: IHydratedController<T> | null,
-    viewportController: ICustomElementController<T> | null,
+    initiator: IHydratedController | null,
+    viewportController: ICustomElementController | null,
     flags: LifecycleFlags,
   ): Promise<void> {
     if (this.contentStatus !== ContentStatus.loaded) {
@@ -216,8 +217,8 @@ export class ViewportContent<T extends INode> {
   }
 
   public async deactivateComponent(
-    initiator: IHydratedController<T> | null,
-    viewportController: ICustomElementController<T> | null,
+    initiator: IHydratedController | null,
+    viewportController: ICustomElementController | null,
     flags: LifecycleFlags,
     stateful: boolean = false,
   ): Promise<void> {
@@ -234,9 +235,9 @@ export class ViewportContent<T extends INode> {
   }
 
   public async freeContent(
-    viewportController: ICustomElementController<T> | null,
-    nextInstruction: INavigatorInstruction<T> | null,
-    cache: ViewportContent<T>[],
+    viewportController: ICustomElementController | null,
+    nextInstruction: INavigatorInstruction | null,
+    cache: ViewportContent[],
     stateful: boolean = false,
   ): Promise<void> {
     switch (this.contentStatus) {
@@ -259,7 +260,7 @@ export class ViewportContent<T extends INode> {
     }
     return this.content.toComponentType(container);
   }
-  public toComponentInstance(container: IContainer): IRouteableComponent<T> | null {
+  public toComponentInstance(container: IContainer): IRouteableComponent | null {
     if (this.content.isEmpty()) {
       return null;
     }

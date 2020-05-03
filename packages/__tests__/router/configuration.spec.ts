@@ -1,5 +1,5 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { IHTMLRouter, RouterConfiguration } from '@aurelia/router-html';
+import { IRouter, RouterConfiguration } from '@aurelia/router';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import { TestRouterConfiguration } from './configuration';
@@ -21,7 +21,7 @@ describe('Configuration', function () {
         App)
       .app({ host: host, component: App });
 
-    const router = container.get(IHTMLRouter);
+    const router = container.get(IRouter);
 
     await au.start().wait();
 
@@ -95,7 +95,7 @@ describe('Configuration', function () {
         Foo)
       .app({ host: host, component: App });
 
-      const router = container.get(IHTMLRouter);
+      const router = container.get(IRouter);
 
     await au.start().wait();
 

@@ -1,4 +1,4 @@
-import { CustomElementType, INode } from '@aurelia/runtime';
+import { CustomElementType } from '@aurelia/runtime';
 import { ComponentAppellation, INavigatorInstruction, IRoute, RouteableComponentType } from './interfaces';
 import { IRouter } from './router';
 import { ViewportInstruction } from './viewport-instruction';
@@ -11,13 +11,13 @@ export interface IViewportScopeOptions extends IScopeOwnerOptions {
   source?: unknown[] | null;
 }
 
-export class ViewportScope<T extends INode> implements IScopeOwner<T> {
-  public connectedScope: Scope<T>;
+export class ViewportScope implements IScopeOwner {
+  public connectedScope: Scope;
 
   public path: string | null = null;
 
-  public content: ViewportInstruction<T> | null = null;
-  public nextContent: ViewportInstruction<T> | null = null;
+  public content: ViewportInstruction | null = null;
+  public nextContent: ViewportInstruction | null = null;
 
   public available: boolean = true;
   public sourceItem: unknown | null = null;
@@ -28,9 +28,9 @@ export class ViewportScope<T extends INode> implements IScopeOwner<T> {
 
   public constructor(
     public name: string,
-    public readonly router: IRouter<T>,
-    public element: T | null,
-    owningScope: Scope<T> | null,
+    public readonly router: IRouter,
+    public element: Node | null,
+    owningScope: Scope | null,
     scope: boolean,
     public rootComponentType: CustomElementType | null = null, // temporary. Metadata will probably eliminate it
     public options: IViewportScopeOptions = {
@@ -44,10 +44,10 @@ export class ViewportScope<T extends INode> implements IScopeOwner<T> {
     }
   }
 
-  public get scope(): Scope<T> {
+  public get scope(): Scope {
     return this.connectedScope.scope;
   }
-  public get owningScope(): Scope<T> | null {
+  public get owningScope(): Scope | null {
     return this.connectedScope.owningScope;
   }
 
@@ -73,8 +73,8 @@ export class ViewportScope<T extends INode> implements IScopeOwner<T> {
     return this.rootComponentType === null && this.catches.length === 0;
   }
 
-  public get siblings(): ViewportScope<T>[] {
-    const parent: Scope<T> | null = this.connectedScope.parent;
+  public get siblings(): ViewportScope[] {
+    const parent: Scope | null = this.connectedScope.parent;
     if (parent === null) {
       return [this];
     }
@@ -102,10 +102,10 @@ export class ViewportScope<T extends INode> implements IScopeOwner<T> {
   }
 
   public setNextContent(
-    content: ComponentAppellation<T> | ViewportInstruction<T>,
-    instruction: INavigatorInstruction<T>,
+    content: ComponentAppellation | ViewportInstruction,
+    instruction: INavigatorInstruction,
   ): boolean {
-    let viewportInstruction: ViewportInstruction<T>;
+    let viewportInstruction: ViewportInstruction;
     if (content instanceof ViewportInstruction) {
       viewportInstruction = content;
     } else {
@@ -138,7 +138,7 @@ export class ViewportScope<T extends INode> implements IScopeOwner<T> {
   public canLeave(): Promise<boolean> {
     return Promise.resolve(true);
   }
-  public canEnter(): Promise<boolean | ViewportInstruction<T>[]> {
+  public canEnter(): Promise<boolean | ViewportInstruction[]> {
     return Promise.resolve(true);
   }
 
@@ -229,9 +229,9 @@ export class ViewportScope<T extends INode> implements IScopeOwner<T> {
     }
   }
 
-  public getRoutes(): IRoute<T>[] | null {
+  public getRoutes(): IRoute[] | null {
     if (this.rootComponentType !== null) {
-      return (this.rootComponentType as RouteableComponentType & { routes: IRoute<T>[] }).routes;
+      return (this.rootComponentType as RouteableComponentType & { routes: IRoute[] }).routes;
     }
     return null;
   }

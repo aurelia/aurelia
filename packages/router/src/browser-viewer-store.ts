@@ -1,18 +1,9 @@
 /* eslint-disable @typescript-eslint/promise-function-async */
 import { IScheduler } from '@aurelia/runtime';
-import {
-  INavigatorState,
-  INavigatorStore,
-  INavigatorViewer,
-  NavigatorViewerState,
-  QueueTask,
-  TaskQueue,
-  INavigatorViewerEvent,
-  INavigatorEntry,
-  Navigator,
-} from '@aurelia/router';
 import { bound } from '@aurelia/kernel';
 import { IWindow, IHistory, ILocation } from './interfaces';
+import { INavigatorStore, INavigatorViewer, NavigatorViewerState, INavigatorState, INavigatorViewerEvent, INavigatorEntry, Navigator } from './navigator';
+import { TaskQueue, QueueTask } from './task-queue';
 
 interface IAction {
   execute(task: QueueTask<IAction>, resolve?: ((value?: void | PromiseLike<void>) => void) | null | undefined, suppressEvent?: boolean): void;
@@ -27,7 +18,7 @@ export interface IBrowserViewerStoreOptions {
   useUrlFragmentHash?: boolean;
 }
 
-export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorViewer<Element> {
+export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
   public allowedExecutionCostWithinTick: number = 2; // Limit no of executed actions within the same RAF (due to browser limitation)
 
   private readonly pendingCalls: TaskQueue<IAction>;
@@ -43,7 +34,7 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
     @IWindow public readonly window: IWindow,
     @IHistory public readonly history: IHistory,
     @ILocation public readonly location: ILocation,
-    private readonly navigator: Navigator<Element>,
+    private readonly navigator: Navigator,
   ) {
     this.pendingCalls = new TaskQueue<IAction>();
   }
@@ -96,7 +87,7 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
     await eventPromise;
   }
 
-  public pushNavigatorState(state: INavigatorState<Element>): Promise<void> {
+  public pushNavigatorState(state: INavigatorState): Promise<void> {
     const { title, path } = state.currentEntry;
     const fragment = this.options.useUrlFragmentHash ? '#/' : '';
 
@@ -107,7 +98,7 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
       }).wait();
   }
 
-  public replaceNavigatorState(state: INavigatorState<Element>): Promise<void> {
+  public replaceNavigatorState(state: INavigatorState): Promise<void> {
     const { title, path } = state.currentEntry;
     const fragment = this.options.useUrlFragmentHash ? '#/' : '';
 
@@ -139,14 +130,14 @@ export class BrowserViewerStore implements INavigatorStore<Element>, INavigatorV
     this.pendingCalls.enqueue(
       task => {
         if (!suppressPopstate) {
-          const browserNavigationEvent: INavigatorViewerEvent<Element> = {
+          const browserNavigationEvent: INavigatorViewerEvent = {
             ...this.viewerState,
             ...{
               event,
-              state: this.history.state as INavigatorState<Element>,
+              state: this.history.state as INavigatorState,
             },
           };
-          const entry: INavigatorEntry<Element> = browserNavigationEvent.state?.currentEntry ?? { instruction: '', fullStateInstruction: '' };
+          const entry: INavigatorEntry = browserNavigationEvent.state?.currentEntry ?? { instruction: '', fullStateInstruction: '' };
           entry.instruction = browserNavigationEvent.instruction;
           entry.fromBrowser = true;
           this.navigator.navigate(entry).catch(error => { throw error; });

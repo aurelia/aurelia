@@ -26,7 +26,6 @@
     "packages/plugin-pixi",
     "packages/plugin-svg",
     "packages/router",
-    "packages/router-html",
     "packages/route-recognizer",
     "packages/runtime",
     "packages/runtime-html",

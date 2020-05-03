@@ -1,6 +1,6 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { PLATFORM } from '@aurelia/kernel';
-import { IHTMLRouter, RouterConfiguration, IRoute } from '@aurelia/router-html';
+import { IRouter, RouterConfiguration, IRoute } from '@aurelia/router';
 import { Aurelia, CustomElement, customElement, IScheduler } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import { TestRouterConfiguration } from './configuration';
@@ -45,8 +45,8 @@ for (const i of [1, 2, 3]) {
         public id = 'no id';
         public name = 'no name';
 
-        // public static inject = [IHTMLRouter];
-        // public constructor(private readonly router: IHTMLRouter) { }
+        // public static inject = [IRouter];
+        // public constructor(private readonly router: IRouter) { }
         // public created() {
         //   console.log('created', 'closest viewport', this.router.getClosestViewport(this));
         // }
@@ -135,7 +135,7 @@ for (const i of [1, 2, 3]) {
           App)
         .app({ host: host, component: App });
 
-      const router = container.get(IHTMLRouter);
+      const router = container.get(IRouter);
       const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
 
       container.register(Foo, Bar, Baz, Qux, Quux, Corge, Uier, Grault, Garply, Waldo, Plugh);
@@ -935,7 +935,7 @@ for (const i of [1, 2, 3]) {
           .register(DebugConfiguration, RouterConfiguration)
           .app({ host: host, component: App });
 
-        const router = container.get(IHTMLRouter);
+        const router = container.get(IRouter);
 
         await au.start().wait();
 
@@ -1183,7 +1183,7 @@ for (const i of [1, 2, 3]) {
             App)
           .app({ host: host, component: App });
 
-        const router = container.get(IHTMLRouter);
+        const router = container.get(IRouter);
         const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
 
         await au.start().wait();
@@ -1289,7 +1289,7 @@ for (const i of [1, 2, 3]) {
     describe('can use configuration', function () {
       this.timeout(30000);
 
-      async function $setup(config?, dependencies: any[] = [], routes: IRoute<Element>[] = [], stateSpy?) {
+      async function $setup(config?, dependencies: any[] = [], routes: IRoute[] = [], stateSpy?) {
         const ctx = TestContext.createHTMLTestContext();
 
         const { container, scheduler } = ctx;
@@ -1300,7 +1300,7 @@ for (const i of [1, 2, 3]) {
           template: '<au-viewport></au-viewport>',
           dependencies
         }, class {
-          public static routes: IRoute<Element>[] = routes;
+          public static routes: IRoute[] = routes;
         });
 
         const host = ctx.doc.createElement('div');
@@ -1313,7 +1313,7 @@ for (const i of [1, 2, 3]) {
             App)
           .app({ host: host, component: App });
 
-        const router = container.get(IHTMLRouter);
+        const router = container.get(IRouter);
         const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
 
         await au.start().wait();
@@ -1339,18 +1339,18 @@ for (const i of [1, 2, 3]) {
       }
 
       const Parent = CustomElement.define({ name: 'parent', template: '!parent!<au-viewport name="parent"></au-viewport>' }, class {
-        public static routes: IRoute<Element>[] = [
+        public static routes: IRoute[] = [
           { path: 'child-config', instructions: [{ component: 'child', viewport: 'parent' }] },
         ];
       });
       const Parent2 = CustomElement.define({ name: 'parent2', template: '!parent2!<au-viewport name="parent2"></au-viewport>' }, class {
-        public static routes: IRoute<Element>[] = [
+        public static routes: IRoute[] = [
           { path: 'child-config', instructions: [{ component: 'child', viewport: 'parent2' }] },
           // { path: ':id', instructions: [{ component: 'child', viewport: 'parent' }] },
         ];
       });
       const Child = CustomElement.define({ name: 'child', template: `!child\${param ? ":" + param : ""}!<au-viewport name="child"></au-viewport>` }, class {
-        public static routes: IRoute<Element>[] = [
+        public static routes: IRoute[] = [
           { path: 'grandchild-config', instructions: [{ component: 'grandchild', viewport: 'child' }] },
         ];
         public param: string;
@@ -1361,7 +1361,7 @@ for (const i of [1, 2, 3]) {
         }
       });
       const Child2 = CustomElement.define({ name: 'child2', template: `!child2\${param ? ":" + param : ""}!<au-viewport name="child2"></au-viewport>` }, class {
-        public static routes: IRoute<Element>[] = [
+        public static routes: IRoute[] = [
           { path: 'grandchild-config', instructions: [{ component: 'grandchild', viewport: 'child2' }] },
         ];
         public static parameters = ['id'];
@@ -1417,7 +1417,7 @@ for (const i of [1, 2, 3]) {
         // { path: '/parent2@default/abc/grandchild-config', result: '!parent2!!child:abc!!grandchild!' },
       ];
       const appDependencies = [Parent, Parent2, Child, Child2, Grandchild, Grandchild2];
-      const appRoutes: IRoute<Element>[] = [
+      const appRoutes: IRoute[] = [
         { path: 'parent-config', instructions: [{ component: 'parent', viewport: 'default' }] },
         { path: 'parent-config/:id', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child', viewport: 'parent' }] }] },
         { path: 'parent-config/child-config', instructions: [{ component: 'parent', viewport: 'default', children: [{ component: 'child', viewport: 'parent' }] }] },
@@ -1543,7 +1543,7 @@ for (const i of [1, 2, 3]) {
 let quxCantLeave = 0;
 let plughReentryBehavior = 'default';
 
-const $goto = async (path: string, router: IHTMLRouter, scheduler: IScheduler) => {
+const $goto = async (path: string, router: IRouter, scheduler: IScheduler) => {
   await router.goto(path);
   scheduler.getRenderTaskQueue().flush();
 };

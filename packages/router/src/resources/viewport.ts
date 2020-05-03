@@ -11,11 +11,8 @@ import {
   IHydratedController,
   IHydratedParentController,
 } from '@aurelia/runtime';
-import { IHTMLRouter } from '../router';
-import {
-  IViewportOptions,
-  Viewport
-} from '@aurelia/router';
+import { IRouter } from '../router';
+import { Viewport, IViewportOptions } from '../viewport';
 
 export const ParentViewport = CustomElement.createInjectable();
 
@@ -23,7 +20,7 @@ export const ParentViewport = CustomElement.createInjectable();
   name: 'au-viewport',
   injectable: ParentViewport
 })
-export class ViewportCustomElement implements ICustomElementViewModel<Element> {
+export class ViewportCustomElement implements ICustomElementViewModel<Node> {
   @bindable public name: string = 'default';
   @bindable public usedBy: string = '';
   @bindable public default: string = '';
@@ -33,14 +30,14 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
   @bindable public noHistory: boolean = false;
   @bindable public stateful: boolean = false;
 
-  public viewport: Viewport<Element> | null = null;
+  public viewport: Viewport | null = null;
 
   public readonly $controller!: ICustomElementController<Element, this>;
 
   private readonly element: Element;
 
   public constructor(
-    @IHTMLRouter private readonly router: IHTMLRouter,
+    @IRouter private readonly router: IRouter,
     @INode element: INode,
     @IContainer private container: IContainer,
     @ParentViewport private readonly parentViewport: ViewportCustomElement,
@@ -55,8 +52,8 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
   }
 
   public async afterAttach(
-    initiator: IHydratedController<Element>,
-    parent: IHydratedParentController<Element> | null,
+    initiator: IHydratedController<Node>,
+    parent: IHydratedParentController<Node> | null,
     flags: LifecycleFlags,
   ): Promise<void> {
     if (this.router.rootScope === null) {
@@ -77,8 +74,8 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
   }
 
   public async afterUnbind(
-    initiator: IHydratedController<Element>,
-    parent: IHydratedParentController<Element> | null,
+    initiator: IHydratedController<Node>,
+    parent: IHydratedParentController<Node> | null,
     flags: LifecycleFlags,
   ): Promise<void> {
     const { viewport } = this;

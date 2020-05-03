@@ -1,9 +1,29 @@
 export {
+  RouterConfiguration,
+  RouterRegistration,
+  DefaultComponents,
+  DefaultResources,
+  ViewportCustomElement,
+  ViewportCustomElementRegistration,
+  NavCustomElement,
+  NavCustomElementRegistration,
+  GotoCustomAttribute,
+  GotoCustomAttributeRegistration,
+  HrefCustomAttribute,
+  HrefCustomAttributeRegistration,
+} from './configuration';
+
+export {
+  HookManager,
+  HookTypes,
+  IHookDefinition,
+} from './hook-manager';
+
+export {
   InstructionResolver,
 } from './instruction-resolver';
 
 export {
-  IStateManager,
   INavigatorInstruction,
   IRouteableComponent,
   RouteableComponentType,
@@ -11,13 +31,26 @@ export {
   NavigationInstruction,
   ReentryBehavior,
   IRoute,
+  IWindow,
+  IHistory,
+  ILocation,
 } from './interfaces';
 
 export {
-  HookManager,
-  HookTypes,
-  IHookDefinition,
-} from './hook-manager';
+  ILinkHandlerOptions,
+  AnchorEventInfo,
+
+  LinkHandler,
+} from './link-handler';
+
+export {
+  NavRoute,
+} from './nav-route';
+
+export {
+  INavRoute,
+  Nav,
+} from './nav';
 
 export {
   IStoredNavigatorEntry,
@@ -47,14 +80,19 @@ export {
 } from './route-recognizer';
 
 export {
+  IRouterEvents,
+} from './router-events';
+
+export {
   IRouterOptions,
   IRouter,
   Router,
 } from './router';
 
 export {
-  IRouterEvents,
-} from './router-events';
+  IStateManager,
+  ScrollStateManager,
+} from './state-manager';
 
 export {
   QueueTask,
@@ -65,11 +103,6 @@ export {
   NavigationInstructionResolver,
   ComponentAppellationResolver,
 } from './type-resolvers';
-
-export {
-  IViewportOptions,
-  Viewport,
-} from './viewport';
 
 export {
   ContentStatus,
@@ -85,3 +118,7 @@ export {
   ViewportScope,
 } from './viewport-scope';
 
+export {
+  IViewportOptions,
+  Viewport,
+} from './viewport';

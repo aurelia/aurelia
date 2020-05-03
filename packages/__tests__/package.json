@@ -56,7 +56,6 @@
     "@aurelia/plugin-conventions": "0.6.0",
     "@aurelia/plugin-gulp": "0.6.0",
     "@aurelia/router": "0.6.0",
-    "@aurelia/router-html": "0.6.0",
     "@aurelia/route-recognizer": "0.6.0",
     "@aurelia/runtime-html-browser": "0.6.0",
     "@aurelia/runtime-html-jsdom": "0.6.0",

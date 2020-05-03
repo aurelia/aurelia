@@ -1,4 +1,4 @@
-import { IHTMLRouter, ViewportContent, HTMLStateManager } from '@aurelia/router-html';
+import { IRouter, ViewportContent, ScrollStateManager } from '@aurelia/router';
 import { CustomElement } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import { TestRouterConfiguration } from './configuration';
@@ -7,7 +7,7 @@ const define = (CustomElement as any).define;
 
 describe('ViewportContent', function () {
   it('can be created', function () {
-    const sut = new ViewportContent(new HTMLStateManager());
+    const sut = new ViewportContent(new ScrollStateManager());
   });
 
   describe('resolving globals', function () {
@@ -17,7 +17,7 @@ describe('ViewportContent', function () {
       const ctx = TestContext.createHTMLTestContext();
       const container = ctx.container;
       container.register(TestRouterConfiguration.for(ctx));
-      const router = container.get(IHTMLRouter);
+      const router = container.get(IRouter);
       return { container, router };
     }
 

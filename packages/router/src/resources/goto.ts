@@ -1,6 +1,4 @@
-import {
-  NavigationInstructionResolver,
-} from '@aurelia/router';
+import { IDisposable } from '@aurelia/kernel';
 
 import {
   customAttribute,
@@ -15,10 +13,12 @@ import {
   ICustomAttributeController,
   ICustomAttributeViewModel,
 } from '@aurelia/runtime';
+import {
+  IEventManager,
+} from '@aurelia/runtime-html';
 
-import { IHTMLRouter } from '../router';
-import { IEventManager } from '@aurelia/runtime-html';
-import { IDisposable } from '@aurelia/kernel';
+import { IRouter } from '../router';
+import { NavigationInstructionResolver } from '../type-resolvers';
 
 @customAttribute('goto')
 export class GotoCustomAttribute implements ICustomAttributeViewModel<Element> {
@@ -37,7 +37,7 @@ export class GotoCustomAttribute implements ICustomAttributeViewModel<Element> {
   public constructor(
     @IDOM private readonly dom: IDOM,
     @INode element: INode,
-    @IHTMLRouter private readonly router: IHTMLRouter,
+    @IRouter private readonly router: IRouter,
     @IEventManager private readonly eventManager: IEventManager,
   ) {
     this.element = element as Element;

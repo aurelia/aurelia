@@ -1,13 +1,13 @@
-import { NavigationInstruction } from '@aurelia/router';
+import { NavigationInstruction } from './interfaces';
 import { NavRoute } from './nav-route';
 import { INavClasses } from './resources/nav';
-import { IHTMLRouter } from './router';
+import { IRouter } from './router';
 
 export interface INavRoute {
-  route?: NavigationInstruction<Element> | NavigationInstruction<Element>[];
+  route?: NavigationInstruction | NavigationInstruction[];
   execute?: ((route: NavRoute) => void);
   condition?: boolean | ((route: NavRoute) => boolean);
-  consideredActive?: NavigationInstruction<Element> | NavigationInstruction<Element>[] | ((route: NavRoute) => boolean);
+  consideredActive?: NavigationInstruction | NavigationInstruction[] | ((route: NavRoute) => boolean);
   compareParameters?: boolean;
   link?: string;
   title: string;
@@ -18,7 +18,7 @@ export interface INavRoute {
 export class Nav {
 
   public constructor(
-    public router: IHTMLRouter,
+    public router: IRouter,
     public name: string,
     public routes: NavRoute[] = [],
     public classes: INavClasses = {}

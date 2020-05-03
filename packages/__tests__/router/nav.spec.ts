@@ -1,5 +1,5 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { IHTMLRouter, RouterConfiguration } from '@aurelia/router-html';
+import { IRouter, RouterConfiguration } from '@aurelia/router';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import { TestRouterConfiguration } from './configuration';
@@ -12,19 +12,19 @@ describe('Nav', function () {
 
     const App = CustomElement.define({ name: 'app', template: `<template><au-viewport name="app" used-by="${component}" default="${component}"></au-viewport></template>` });
     const Foo = CustomElement.define({ name: 'foo', template: '<template>Nav: foo <au-nav name="main-nav"></au-nav></template>' }, class {
-      public static inject = [IHTMLRouter];
-      public constructor(private readonly r: IHTMLRouter) { }
+      public static inject = [IRouter];
+      public constructor(private readonly r: IRouter) { }
       public enter() { this.r.setNav('main-nav', [{ title: 'Bar', route: 'bar' }]); }
     });
     const Bar = CustomElement.define({ name: 'bar', template: '<template>Nav: bar <au-nav name="main-nav"></au-nav><au-viewport name="main-viewport" default="baz"></au-viewport></template>' }, class {
-      public static inject = [IHTMLRouter];
-      public constructor(private readonly r: IHTMLRouter) { }
+      public static inject = [IRouter];
+      public constructor(private readonly r: IRouter) { }
       public enter() { this.r.setNav('main-nav', [{ title: 'Baz', route: 'baz' }]); }
     });
     const Baz = CustomElement.define({ name: 'baz', template: '<template>Baz</template>' }, class { });
     const Qux = CustomElement.define({ name: 'qux', template: '<template>Nav: qux <au-nav name="main-nav"></au-nav><au-viewport name="main-viewport" default="baz"></au-viewport></template>' }, class {
-      public static inject = [IHTMLRouter];
-      public constructor(private readonly r: IHTMLRouter) { }
+      public static inject = [IRouter];
+      public constructor(private readonly r: IRouter) { }
       public enter() {
         this.r.addNav('main-nav', [{ title: 'Baz', route: Baz, children: [{ title: 'Bar', route: ['bar', Baz] }] }, { title: 'Foo', route: { component: Foo, viewport: 'main-viewport' } }]);
       }
@@ -37,7 +37,7 @@ describe('Nav', function () {
       .register(DebugConfiguration, RouterConfiguration)
       .app({ host: host, component: App });
 
-    const router = container.get(IHTMLRouter);
+    const router = container.get(IRouter);
 
     container.register(Foo, Bar, Baz, Qux);
 

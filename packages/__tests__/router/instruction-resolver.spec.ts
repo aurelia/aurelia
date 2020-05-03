@@ -1,5 +1,5 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { IHTMLRouter, RouterConfiguration, ViewportInstruction } from '@aurelia/router-html';
+import { IRouter, RouterConfiguration, ViewportInstruction } from '@aurelia/router';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import { TestRouterConfiguration } from './configuration';
@@ -19,7 +19,7 @@ describe('InstructionResolver', function () {
       .register(DebugConfiguration, RouterConfiguration)
       .app({ host: host, component: App });
 
-    const router = container.get(IHTMLRouter);
+    const router = container.get(IRouter);
 
     await au.start().wait();
 
@@ -42,7 +42,7 @@ describe('InstructionResolver', function () {
   it('handles state strings', async function () {
     const { host, router, tearDown } = await createFixture();
 
-    let instructions: ViewportInstruction<Element>[] = [
+    let instructions: ViewportInstruction[] = [
       router.createViewportInstruction('foo', 'left', '123'),
       router.createViewportInstruction('bar', 'right', '456'),
     ];
@@ -67,12 +67,12 @@ describe('InstructionResolver', function () {
   describe('can handle viewport instructions', function () {
     interface InstructionTest {
       instruction: string;
-      viewportInstruction: ViewportInstruction<Element>;
+      viewportInstruction: ViewportInstruction;
     }
 
     const ctx = TestContext.createHTMLTestContext();
     const container = ctx.container;
-    const router = container.get(IHTMLRouter);
+    const router = container.get(IRouter);
 
     const instructions: InstructionTest[] = [
       { instruction: 'foo', viewportInstruction: router.createViewportInstruction('foo') },
@@ -168,7 +168,7 @@ describe('InstructionResolver', function () {
     e.nextScopeInstructions = [f];
     f.nextScopeInstructions = [g];
 
-    const instructions: ViewportInstruction<Element>[] = [a, h];
+    const instructions: ViewportInstruction[] = [a, h];
 
     const instructionsString = router.instructionResolver.stringifyViewportInstructions(instructions);
     const parsedInstructions = router.instructionResolver.parseViewportInstructions(instructionsString);

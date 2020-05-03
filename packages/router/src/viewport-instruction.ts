@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { CustomElement, INode } from '@aurelia/runtime';
+import { CustomElement } from '@aurelia/runtime';
 import { ComponentAppellation, ComponentParameters, IRouteableComponent, RouteableComponentType, ViewportHandle } from './interfaces';
 import { IRouter } from './router';
 import { ComponentAppellationResolver } from './type-resolvers';
@@ -15,40 +15,40 @@ export const enum ParametersType {
   object = 'object',
 }
 
-export class ViewportInstruction<T extends INode> {
+export class ViewportInstruction {
   public componentName: string | null = null;
   public componentType: RouteableComponentType | null = null;
-  public componentInstance: IRouteableComponent<T> | null = null;
+  public componentInstance: IRouteableComponent | null = null;
   public viewportName: string | null = null;
-  public viewport: Viewport<T> | null = null;
+  public viewport: Viewport | null = null;
   public parametersString: string | null = null;
   public parametersRecord: Record<string, unknown> | null = null;
   public parametersList: unknown[] | null = null;
   public parametersType: ParametersType = ParametersType.none;
 
-  public scope: Scope<T> | null = null;
+  public scope: Scope | null = null;
   public context: string = '';
-  public viewportScope: ViewportScope<T> | null = null;
+  public viewportScope: ViewportScope | null = null;
   public needsViewportDescribed: boolean = false;
   public route: string | null = null;
 
   public default: boolean = false;
 
-  private instructionResolver: InstructionResolver<T> | null = null;
+  private instructionResolver: InstructionResolver | null = null;
 
   public constructor(
-    component: ComponentAppellation<T>,
-    viewport?: ViewportHandle<T>,
+    component: ComponentAppellation,
+    viewport?: ViewportHandle,
     parameters?: ComponentParameters,
     public ownsScope: boolean = true,
-    public nextScopeInstructions: ViewportInstruction<T>[] | null = null,
+    public nextScopeInstructions: ViewportInstruction[] | null = null,
   ) {
     this.setComponent(component);
     this.setViewport(viewport);
     this.setParameters(parameters);
   }
 
-  public get owner(): IScopeOwner<T> | null {
+  public get owner(): IScopeOwner | null {
     return this.viewport || this.viewportScope || null;
   }
 
@@ -78,7 +78,7 @@ export class ViewportInstruction<T extends INode> {
     return '';
   }
 
-  public setComponent(component: ComponentAppellation<T>): void {
+  public setComponent(component: ComponentAppellation): void {
     if (ComponentAppellationResolver.isName(component)) {
       this.componentName = ComponentAppellationResolver.getName(component);
       this.componentType = null;
@@ -93,7 +93,7 @@ export class ViewportInstruction<T extends INode> {
       this.componentInstance = ComponentAppellationResolver.getInstance(component);
     }
   }
-  public setViewport(viewport?: ViewportHandle<T> | null): void {
+  public setViewport(viewport?: ViewportHandle | null): void {
     if (viewport === undefined || viewport === '') {
       viewport = null;
     }
@@ -135,7 +135,7 @@ export class ViewportInstruction<T extends INode> {
     }
     this.setParameters({ ...this.parametersRecord, ...parameters });
   }
-  public setInstructionResolver(instructionResolver: InstructionResolver<T>): void {
+  public setInstructionResolver(instructionResolver: InstructionResolver): void {
     this.instructionResolver = instructionResolver;
   }
 
@@ -171,21 +171,21 @@ export class ViewportInstruction<T extends INode> {
     }
     return null;
   }
-  public toComponentInstance(container: IContainer): IRouteableComponent<T> | null {
+  public toComponentInstance(container: IContainer): IRouteableComponent | null {
     if (this.componentInstance !== null) {
       return this.componentInstance;
     }
     if (container !== void 0 && container !== null) {
       if (this.isComponentType()) {
-        return container.get<IRouteableComponent<T>>(this.componentType!);
+        return container.get<IRouteableComponent>(this.componentType!);
       } else {
-        return container.get<IRouteableComponent<T>>(CustomElement.keyFrom(this.componentName!));
+        return container.get<IRouteableComponent>(CustomElement.keyFrom(this.componentName!));
       }
     }
     return null;
   }
 
-  public toViewportInstance(router: IRouter<T>): Viewport<T> | null {
+  public toViewportInstance(router: IRouter): Viewport | null {
     if (this.viewport !== null) {
       return this.viewport;
     }
@@ -259,7 +259,7 @@ export class ViewportInstruction<T extends INode> {
     return sorted;
   }
 
-  public sameComponent(other: ViewportInstruction<T>, compareParameters: boolean = false, compareType: boolean = false): boolean {
+  public sameComponent(other: ViewportInstruction, compareParameters: boolean = false, compareType: boolean = false): boolean {
     if (compareParameters && !this.sameParameters(other, compareType)) {
       return false;
     }
@@ -267,7 +267,7 @@ export class ViewportInstruction<T extends INode> {
   }
 
   // TODO: Somewhere we need to check for format such as spaces etc
-  public sameParameters(other: ViewportInstruction<T>, compareType: boolean = false): boolean {
+  public sameParameters(other: ViewportInstruction, compareType: boolean = false): boolean {
     if (!this.sameComponent(other, false, compareType)) {
       return false;
     }
@@ -279,7 +279,7 @@ export class ViewportInstruction<T extends INode> {
       && Object.keys(others).every(key => others[key] === mine[key]);
   }
 
-  public sameViewport(other: ViewportInstruction<T>): boolean {
+  public sameViewport(other: ViewportInstruction): boolean {
     if (this.viewport !== null && other.viewport !== null) {
       return this.viewport === other.viewport;
     }

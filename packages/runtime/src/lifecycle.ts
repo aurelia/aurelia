@@ -154,9 +154,68 @@ export interface IRenderableController<
   addController(controller: IController<T>): void;
 }
 
+export const enum State {
+  none                     = 0b00_0000_0000,
+  activating               = 0b00_0000_0001,
+  beforeBindCalled         = 0b00_0000_0010,
+  activateChildrenCalled   = 0b00_0000_0100,
+  activated                = 0b00_0000_1110,
+  deactivating             = 0b00_0001_0000,
+  beforeDetachCalled       = 0b00_0010_0000,
+  deactivateChildrenCalled = 0b00_0100_0000,
+  deactivated              = 0b00_1110_0000,
+  released                 = 0b01_0000_0000,
+  disposed                 = 0b10_0000_0000,
+}
+
+export function stringifyState(state: State): string {
+  const names: string[] = [];
+
+  if ((state & State.activating) === State.activating) {
+    names.push('activating');
+  }
+
+  if ((state & State.activated) === State.activated) {
+    names.push('activated');
+  } else {
+    if ((state & State.beforeBindCalled) === State.beforeBindCalled) {
+      names.push('beforeBindCalled');
+    }
+    if ((state & State.activateChildrenCalled) === State.activateChildrenCalled) {
+      names.push('activateChildrenCalled');
+    }
+  }
+
+  if ((state & State.deactivating) === State.deactivating) {
+    names.push('deactivating');
+  }
+
+  if ((state & State.deactivated) === State.deactivated) {
+    names.push('deactivated');
+  } else {
+    if ((state & State.beforeDetachCalled) === State.beforeDetachCalled) {
+      names.push('beforeDetachCalled');
+    }
+    if ((state & State.deactivateChildrenCalled) === State.deactivateChildrenCalled) {
+      names.push('deactivateChildrenCalled');
+    }
+  }
+
+  if ((state & State.released) === State.released) {
+    names.push('released');
+  }
+
+  if ((state & State.disposed) === State.disposed) {
+    names.push('disposed');
+  }
+
+  return names.join('|');
+}
+
 interface IHydratedControllerProperties<
   T extends INode = INode,
 > {
+  readonly state: State;
   readonly isActive: boolean;
 
   /** @internal */head: IHydratedController<T> | null;

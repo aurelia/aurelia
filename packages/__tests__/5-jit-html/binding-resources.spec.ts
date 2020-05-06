@@ -54,7 +54,7 @@ describe('binding-resources', function () {
 
       assert.strictEqual(receiver.value, '0', `change 3 not yet propagated`);
 
-      await ctx.scheduler.yieldAll();
+      await wait(50);
 
       assert.strictEqual(receiver.value, '3', `change 3 propagated`);
     });

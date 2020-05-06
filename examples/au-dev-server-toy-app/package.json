@@ -1,0 +1,26 @@
+{
+  "name": "vanilla-ts",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=10.16.0",
+    "npm": ">=6.1.0"
+  },
+  "version": "0.3.0",
+  "scripts": {
+    "start1": "node -r esm node_modules/au/dist/esnext/index.js dev --entryfile ./src/startup.ts --scratchdir ./au-app/",
+    "start": "node -r esm node_modules/au/dist/esnext/index.js dev --entryfile ./src/startup.ts --scratchdir ./au-app/ --usehttp2 true --keypath ./key.pem --certpath ./cert.pem"
+  },
+  "dependencies": {
+    "@aurelia/debug": "0.6.0",
+    "@aurelia/jit-html-browser": "0.6.0",
+    "@aurelia/runtime": "0.6.0",
+    "@aurelia/kernel": "0.6.0",
+    "au": "0.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^12.12.21",
+    "rimraf": "^3.0.0",
+    "typescript": "^3.7.4"
+  }
+}

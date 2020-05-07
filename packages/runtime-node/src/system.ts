@@ -1,6 +1,7 @@
-import { IFileSystem, IProcess, ISystem } from './interfaces';
-import { normalize, delimiter, join } from 'path';
 import { tmpdir } from 'os';
+import { normalize, delimiter, join } from 'path';
+import { ensureDir, rimraf, isReadable, getStats } from './file-utils';
+import { IProcess, ISystem } from './interfaces';
 
 function trimWrappingQuotes(value: string): string {
   // eslint-disable-next-line @typescript-eslint/prefer-string-starts-ends-with
@@ -15,7 +16,6 @@ export class TempDir {
   public readonly path: string;
 
   public constructor(
-    public readonly fs: IFileSystem,
     public readonly name: string,
   ) {
     this.dir = tmpdir();
@@ -23,11 +23,11 @@ export class TempDir {
   }
 
   public async ensureExists(): Promise<void> {
-    await this.fs.ensureDir(this.path);
+    await ensureDir(this.path);
   }
 
   public async dispose(): Promise<void> {
-    await this.fs.rimraf(this.path);
+    await rimraf(this.path);
   }
 }
 
@@ -39,8 +39,6 @@ export class System implements ISystem {
   public constructor(
     @IProcess
     private readonly proc: IProcess,
-    @IFileSystem
-    private readonly fs: IFileSystem,
   ) {
     const platform = proc.platform;
     const env = proc.env;
@@ -137,9 +135,8 @@ export class System implements ISystem {
   }
 
   private async isExe(path: string): Promise<boolean> {
-    const fs = this.fs;
-    if (await fs.isReadable(path)) {
-      const stat = await fs.stat(path);
+    if (await isReadable(path)) {
+      const stat = await getStats(path);
       if (this.isWin) {
         return stat.isSymbolicLink() || stat.isFile();
       }

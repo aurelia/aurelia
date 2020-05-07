@@ -20,94 +20,6 @@ export const enum FileKind {
   JSON    = 4,
 }
 
-// Better to use the fs.Stats?
-export interface IStats {
-  isFile(): boolean;
-  isDirectory(): boolean;
-  isSymbolicLink(): boolean;
-  readonly mode: number;
-  readonly uid: number;
-  readonly gid: number;
-  readonly size: number;
-  readonly mtime: Date;
-}
-
-export interface IDirent {
-  isFile(): boolean;
-  isDirectory(): boolean;
-  isSymbolicLink(): boolean;
-  readonly name: string;
-}
-
-export interface IFile {
-  readonly shortPath: string;
-  readonly kind: FileKind;
-
-  readonly path: string;
-  readonly dir: string;
-  readonly rootlessPath: string;
-  readonly name: string;
-  readonly shortName: string;
-  readonly ext: string;
-
-  getContent(force?: boolean): Promise<string>;
-  getContentSync(force?: boolean): string;
-}
-
-export interface IFileSystem {
-  realpath(path: string): Promise<string>;
-  realpathSync(path: string): string;
-
-  readdir(path: string): Promise<readonly string[]>;
-  readdir(path: string, withFileTypes: true): Promise<readonly IDirent[]>;
-  readdirSync(path: string): readonly string[];
-  readdirSync(path: string, withFileTypes: true): readonly IDirent[];
-
-  mkdir(path: string): Promise<void>;
-  mkdirSync(path: string): void;
-
-  isReadable(path: string): Promise<boolean>;
-  isReadableSync(path: string): boolean;
-
-  fileExists(path: string): Promise<boolean>;
-  fileExistsSync(path: string): boolean;
-
-  stat(path: string): Promise<IStats>;
-  statSync(path: string): IStats;
-
-  lstat(path: string): Promise<IStats>;
-  lstatSync(path: string): IStats;
-
-  readFile(path: string, encoding: Encoding, cache?: boolean, force?: boolean): Promise<string>;
-  readFileSync(path: string, encoding: Encoding, cache?: boolean, force?: boolean): string;
-
-  ensureDir(path: string): Promise<void>;
-  ensureDirSync(path: string): void;
-
-  writeFile(path: string, content: string, encoding: Encoding): Promise<void>;
-  writeFileSync(path: string, content: string, encoding: Encoding): void;
-
-  rimraf(path: string): Promise<void>;
-
-  getRealPath(path: string): Promise<string>;
-  getRealPathSync(path: string): string;
-
-  getChildren(path: string): Promise<readonly string[]>;
-  getChildrenSync(path: string): readonly string[];
-
-  getFiles(dir: string, loadContent?: boolean): Promise<readonly IFile[]>;
-  getFilesSync(dir: string, loadContent?: boolean): readonly IFile[];
-
-  getFile(path: string, loadContent?: boolean): Promise<IFile>;
-  getFileSync(path: string, loadContent?: boolean): IFile;
-
-  open(path: string, flags: string | number, modeOrCallback: string | number | undefined | null | ((err: NodeJS.ErrnoException | null, fd: number) => void), callback: (err: NodeJS.ErrnoException | null, fd: number) => void): void;
-  openSync(path: string, flags: string | number, mode?: string | number | undefined | null): number;
-
-  close(fd: number, callback: (err: NodeJS.ErrnoException | null) => void): void;
-  closeSync(fd: number): void;
-}
-
 export type IProcessEnv = NodeJS.ProcessEnv;
 
 export type IProcess = NodeJS.Process;
@@ -149,7 +61,6 @@ export interface IHttp2FileServer {
   handleRequest(context: IHttpContext): void;
 }
 
-export const IFileSystem = DI.createInterface<IFileSystem>('IFileSystem').noDefault();
 export const IProcessEnv = DI.createInterface<IProcessEnv>('IProcessEnv').withDefault(x => x.instance(process.env));
 export const IProcess = DI.createInterface<IProcess>('IProcess').withDefault(x => x.instance(process));
 export const ISystem = DI.createInterface<ISystem>('ISystem').noDefault();

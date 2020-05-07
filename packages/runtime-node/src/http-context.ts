@@ -1,15 +1,6 @@
-import * as http from 'http';
-
-import {
-  IContainer,
-  Key,
-  Resolved,
-  IResolver,
-  Transformer,
-  Constructable,
-  IFactory,
-} from '@aurelia/kernel';
-import { Http2ServerResponse, Http2ServerRequest } from 'http2';
+import { IContainer } from '@aurelia/kernel';
+import { IncomingMessage, ServerResponse } from 'http';
+import { Http2ServerRequest, Http2ServerResponse } from 'http2';
 
 export const enum HttpContextState {
   head = 1,
@@ -17,68 +8,23 @@ export const enum HttpContextState {
   end = 3,
 }
 
-export interface IHttpContext extends IContainer {
+export interface IHttpContext {
   state: HttpContextState;
-  readonly request: http.IncomingMessage | Http2ServerRequest;
-  readonly response: http.ServerResponse | Http2ServerResponse;
+  readonly request: IncomingMessage | Http2ServerRequest;
+  readonly response: ServerResponse | Http2ServerResponse;
   readonly requestBuffer: Buffer;
 }
 
 export class HttpContext implements IHttpContext {
-  private readonly container: IContainer;
-
+  public readonly container: IContainer;
   public state: HttpContextState = HttpContextState.head;
 
   public constructor(
     container: IContainer,
-    public readonly request: http.IncomingMessage | Http2ServerRequest,
-    public readonly response: http.ServerResponse | Http2ServerResponse,
+    public readonly request: IncomingMessage | Http2ServerRequest,
+    public readonly response: ServerResponse | Http2ServerResponse,
     public readonly requestBuffer: Buffer,
   ) {
     this.container = container.createChild();
   }
-
-  // #region IServiceLocator api
-  public has<K extends Key>(key: K | Key, searchAncestors: boolean): boolean {
-    return this.container.has(key, searchAncestors);
-  }
-
-  public get<K extends Key>(key: K | Key): Resolved<K> {
-    return this.container.get(key);
-  }
-
-  public getAll<K extends Key>(key: K | Key): readonly Resolved<K>[] {
-    return this.container.getAll(key);
-  }
-  // #endregion
-
-  // #region IContainer api
-  public register(...params: unknown[]): IContainer {
-    return this.container.register(...params);
-  }
-
-  public registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>): IResolver<T> {
-    return this.container.registerResolver(key, resolver);
-  }
-
-  public registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean {
-    return this.container.registerTransformer(key, transformer);
-  }
-
-  public getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null {
-    return this.container.getResolver(key, autoRegister);
-  }
-
-  public getFactory<T extends Constructable>(key: T): IFactory<T> | null {
-    return this.container.getFactory(key);
-  }
-
-  public createChild(): IContainer {
-    return this.container.createChild();
-  }
-
-  public disposeResolvers(): void {
-    this.container.disposeResolvers();
-  }
-  // #endregion
 }

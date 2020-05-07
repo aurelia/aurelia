@@ -1,7 +1,5 @@
-import { ServiceHost } from '@aurelia/aot';
-import { IFileSystem, Encoding, RuntimeNodeConfiguration, normalizePath, IHttpServer, IHttpServerOptions } from '@aurelia/runtime-node';
+import { RuntimeNodeConfiguration, normalizePath, IHttpServer, IHttpServerOptions } from '@aurelia/runtime-node';
 import { ILogger, IContainer, LogLevel, DI } from '@aurelia/kernel';
-import { join } from 'path';
 import { ChromeBrowser } from './browser/chrome';
 import { BrowserHost } from './browser/host';
 
@@ -54,7 +52,7 @@ export class DevServer {
     // wireup
     const container = this.container.createChild();
     container.register(RuntimeNodeConfiguration.create(this.getNodeConfigurationOptions(logLevel, scratchDir, useHttp2, keyPath, certPath)));
-    const fs = container.get(IFileSystem);
+    // const fs = container.get(IFileSystem);
     // const serviceHost = container.get(ServiceHost);
     const logger = container.get(ILogger);
     logger.info(`Starting test runner with scratchDir ${scratchDir} and entryFile ${entryFile}`);

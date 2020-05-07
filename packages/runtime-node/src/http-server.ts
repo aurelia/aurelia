@@ -1,6 +1,6 @@
-import * as http from 'http';
+import { Server, createServer, IncomingMessage, ServerResponse } from 'http';
 import { readFileSync } from 'fs';
-import { Http2Server as $Http2Server, createSecureServer, ServerHttp2Stream, IncomingHttpHeaders, Http2ServerRequest, Http2ServerResponse } from 'http2';
+import { Http2Server as $Http2Server, createSecureServer, Http2ServerRequest, Http2ServerResponse } from 'http2';
 
 import { ILogger, bound, all, IContainer } from '@aurelia/kernel';
 import { IHttpServer, IHttpServerOptions, IRequestHandler, StartOutput, IHttp2FileServer } from './interfaces';
@@ -9,10 +9,8 @@ import { HTTPStatusCode, readBuffer } from './http-utils';
 import { HttpContext } from './http-context';
 import { WebSocket } from './websocket';
 
-// import * as ws from 'ws';
-
 export class HttpServer implements IHttpServer {
-  private server: http.Server | null = null;
+  private server: Server | null = null;
 
   public constructor(
     @ILogger
@@ -33,7 +31,7 @@ export class HttpServer implements IHttpServer {
     const { hostName, port } = this.opts;
 
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    this.server = http.createServer(this.handleRequest).listen(port, hostName);
+    this.server = createServer(this.handleRequest).listen(port, hostName);
     await new Promise(resolve => this.server!.on('listening', resolve));
 
     const { address, port: realPort } = this.server.address() as AddressInfo;
@@ -65,7 +63,7 @@ export class HttpServer implements IHttpServer {
   }
 
   @bound
-  private async handleRequest(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  private async handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
     this.logger.debug(`handleRequest(url=${req.url})`);
 
     try {

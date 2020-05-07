@@ -1,13 +1,15 @@
-import { IncomingMessage, ServerResponse } from "http";
+import { statSync, openSync, readdirSync } from 'fs';
+import { IncomingMessage, ServerResponse } from 'http';
 import { ServerHttp2Stream, constants, Http2ServerRequest, Http2ServerResponse, OutgoingHttpHeaders } from 'http2';
 import * as url from 'url';
 import { join, resolve, relative } from 'path';
 
 import { ILogger } from '@aurelia/kernel';
 
-import { IRequestHandler, IHttpServerOptions, IFileSystem, Encoding, IHttp2FileServer } from '../interfaces';
+import { IRequestHandler, IHttpServerOptions, /* IFileSystem, */ Encoding, IHttp2FileServer } from '../interfaces';
 import { IHttpContext, HttpContextState } from '../http-context';
 import { getContentType, HTTPStatusCode } from '../http-utils';
+import { readFile, isReadable } from "../file-utils";
 
 const {
   HTTP2_HEADER_PATH,
@@ -24,8 +26,6 @@ export class FileServer implements IRequestHandler {
     private readonly opts: IHttpServerOptions,
     @ILogger
     private readonly logger: ILogger,
-    @IFileSystem
-    private readonly fs: IFileSystem,
   ) {
     this.logger = logger.root.scopeTo('FileServer');
 
@@ -42,10 +42,10 @@ export class FileServer implements IRequestHandler {
     const parsedUrl = url.parse(request.url!);
     const path = join(this.root, parsedUrl.path!);
 
-    if (await this.fs.isReadable(path)) {
+    if (await isReadable(path)) {
       this.logger.debug(`Serving file "${path}"`);
 
-      const content = await this.fs.readFile(path, Encoding.utf8);
+      const content = await readFile(path, Encoding.utf8);
       const contentType = getContentType(path);
 
       response.writeHead(HTTPStatusCode.OK, {
@@ -84,8 +84,6 @@ export class Http2FileServer implements IHttp2FileServer {
     private readonly opts: IHttpServerOptions,
     @ILogger
     private readonly logger: ILogger,
-    @IFileSystem
-    private readonly fs: IFileSystem,
   ) {
     this.logger = logger.root.scopeTo('FileServer');
 
@@ -126,10 +124,9 @@ export class Http2FileServer implements IHttp2FileServer {
   }
 
   private getFile(path: string) {
-    const fs = this.fs;
-    const stat = fs.statSync(path);
+    const stat = statSync(path);
     return new PushInfo(
-      fs.openSync(path, 'r'),
+      openSync(path, 'r'),
       {
         [HTTP2_HEADER_CONTENT_LENGTH]: stat.size,
         [HTTP2_HEADER_LAST_MODIFIED]: stat.mtime.toUTCString(),
@@ -157,9 +154,9 @@ export class Http2FileServer implements IHttp2FileServer {
   }
 
   private prepare(root = this.opts.root) {
-    for (const item of this.fs.readdirSync(root)) {
+    for (const item of readdirSync(root)) {
       const path = join(root, item);
-      const stats = this.fs.statSync(path);
+      const stats = statSync(path);
       if (stats.isFile()) {
         this.filePushMap.set(`/${relative(this.root, path)}`, this.getFile(path));
       } else {

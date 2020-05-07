@@ -1,6 +1,6 @@
 import { IBrowserSession, IBrowser } from './interfaces';
 import { ILogger } from '@aurelia/kernel';
-import { TempDir, ISystem, IProcess, IFileSystem } from '@aurelia/runtime-node';
+import { TempDir, ISystem, IProcess } from '@aurelia/runtime-node';
 import { join } from 'path';
 
 export class ChromeBrowserSession implements IBrowserSession {
@@ -35,8 +35,6 @@ export class ChromeBrowser implements IBrowser {
     private readonly sys: ISystem,
     @IProcess
     private readonly proc: IProcess,
-    @IFileSystem
-    private readonly fs: IFileSystem,
     @ILogger
     private readonly logger: ILogger,
   ) {
@@ -49,7 +47,6 @@ export class ChromeBrowser implements IBrowser {
   ): Promise<IBrowserSession> {
     const sys = this.sys;
     const proc = this.proc;
-    const fs = this.fs;
     const env = proc.env;
 
     this.logger.debug(`createSessionContext(url=${url},flags=${flags})`);
@@ -71,7 +68,7 @@ export class ChromeBrowser implements IBrowser {
     }
 
     const name = sys.generateName();
-    const tmp = new TempDir(fs, name);
+    const tmp = new TempDir(name);
     const path = await sys.which(paths);
     const args = [
       `--user-data-dir=${tmp.path}`,

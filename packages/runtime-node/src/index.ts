@@ -5,10 +5,6 @@ export {
   RuntimeNodeConfiguration,
 } from './configuration';
 export {
-  File,
-  NodeFileSystem,
-} from './file-system';
-export {
   HttpContextState,
   HttpContext,
   IHttpContext,
@@ -26,27 +22,18 @@ export {
 export {
   Encoding,
   FileKind,
-  IStats,
-  IDirent,
-  IFile,
-  IFileSystem,
-  ISystem,
   IProcessEnv,
   IProcess,
   IHttpServer,
   IHttpServerOptions,
   IRequestHandler,
+  ISystem,
 } from './interfaces';
-export {
-  Package,
-} from './package-types';
 export {
   joinPath,
   resolvePath,
-  isRelativeModulePath,
   normalizePath,
 } from './path-utils';
 export {
   TempDir,
-  System,
 } from './system';

@@ -1,15 +1,11 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { resolve } from 'path';
-import { TestRunner } from './test-runner';
 import { IDevServerConfig, DevServer } from "./dev-server";
 
-interface TestCommandArgs extends IDevServerConfig {
-  cmd: 'test';
-}
 interface DevCommandArgs extends IDevServerConfig {
   cmd: 'dev';
 }
-type ParsedArgs = TestCommandArgs | DevCommandArgs;
+type ParsedArgs = DevCommandArgs;
 
 // TODO gather this from config file from user-space
 const keyMap = {
@@ -29,8 +25,7 @@ function parseArgs(args: readonly string[]): ParsedArgs {
   }
 
   switch (cmd) {
-    case 'dev':
-    case 'test': {
+    case 'dev': {
       const parsed = {
         cmd,
         entryFile: '',
@@ -77,11 +72,6 @@ function parseArgs(args: readonly string[]): ParsedArgs {
 
   const args = parseArgs(process.argv.slice(2));
   switch (args.cmd) {
-    case 'test': {
-      const runner = TestRunner.create();
-      await runner.runOnce(args);
-      break;
-    }
     case 'dev': {
       const server = DevServer.create();
       await server.run(args);

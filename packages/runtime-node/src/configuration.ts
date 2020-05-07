@@ -1,8 +1,6 @@
 import { Registration, IContainer, LogLevel, LoggerConfiguration, ColorOptions } from '@aurelia/kernel';
-import { IFileSystem, IHttpServer, IHttpServerOptions, ISystem, IRequestHandler, IHttp2FileServer } from './interfaces';
-import { NodeFileSystem } from './file-system';
+import { IHttpServer, IHttpServerOptions, IRequestHandler, IHttp2FileServer } from './interfaces';
 import { HttpServer, Http2Server } from './http-server';
-import { System } from './system';
 import { FileServer, Http2FileServer } from './request-handlers/file-server';
 
 const defaultOpts: IHttpServerOptions = {
@@ -19,8 +17,6 @@ export const RuntimeNodeConfiguration = {
     return {
       register(container: IContainer): IContainer {
         container.register(
-          Registration.singleton(IFileSystem, NodeFileSystem),
-          Registration.singleton(ISystem, System),
           Registration.instance(IHttpServerOptions, opts),
           Registration.singleton(IRequestHandler, FileServer),
           Registration.singleton(IHttp2FileServer, Http2FileServer),

@@ -55,8 +55,7 @@
     "test/navigation-skeleton/app",
     "test/rainbow-spiral",
     "test/realworld",
-    "test/sierpinski-triangle",
-    "examples/au-dev-server-toy-app"
+    "test/sierpinski-triangle"
   ],
   "version": "0.6.0"
 }

@@ -65,7 +65,6 @@ export {
   IfEquals,
   ReadonlyKeys,
   WritableKeys,
-  Char,
 } from './interfaces';
 export {
   metadata,

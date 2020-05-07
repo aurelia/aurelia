@@ -1,26 +1,9 @@
 import { DI, LogLevel } from '@aurelia/kernel';
 import { IHttpContext } from './http-context';
-import { ServerHttp2Stream, IncomingHttpHeaders } from 'http2';
 
 export const enum Encoding {
   utf8 = 'utf8',
-  utf16le = 'utf16le',
-  latin1 = 'latin1',
-  base64 = 'base64',
-  ascii = 'ascii',
-  hex = 'hex',
-  raw = 'raw',
 }
-
-export const enum FileKind {
-  Unknown = 0,
-  Script  = 1,
-  Markup  = 2,
-  Style   = 3,
-  JSON    = 4,
-}
-
-export type IProcessEnv = NodeJS.ProcessEnv;
 
 export type IProcess = NodeJS.Process;
 
@@ -61,7 +44,6 @@ export interface IHttp2FileServer {
   handleRequest(context: IHttpContext): void;
 }
 
-export const IProcessEnv = DI.createInterface<IProcessEnv>('IProcessEnv').withDefault(x => x.instance(process.env));
 export const IProcess = DI.createInterface<IProcess>('IProcess').withDefault(x => x.instance(process));
 export const ISystem = DI.createInterface<ISystem>('ISystem').noDefault();
 export const IHttpServerOptions = DI.createInterface<IHttpServerOptions>('IHttpServerOptions').noDefault();

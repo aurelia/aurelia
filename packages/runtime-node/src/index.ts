@@ -21,8 +21,6 @@ export {
 } from './http-utils';
 export {
   Encoding,
-  FileKind,
-  IProcessEnv,
   IProcess,
   IHttpServer,
   IHttpServerOptions,

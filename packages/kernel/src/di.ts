@@ -142,7 +142,6 @@ function cloneArrayWithPossibleProps<T>(source: readonly T[]): T[] {
 }
 
 export interface IContainerConfiguration {
-  jitRegisterInRoot: boolean;
   defaultResolver(key: Key, handler: IContainer): IResolver;
 }
 
@@ -153,7 +152,6 @@ export const DefaultResolver = {
 };
 
 export const DefaultContainerConfiguration: IContainerConfiguration = {
-  jitRegisterInRoot: true,
   defaultResolver: DefaultResolver.singleton,
 };
 
@@ -1002,8 +1000,7 @@ export class Container implements IContainer {
 
       if (resolver == null) {
         if (current.parent == null) {
-          const handler = this.config.jitRegisterInRoot ? current : this;
-          return autoRegister ? this.jitRegister(key, handler) : null;
+          return autoRegister ? this.jitRegister(key, current) : null;
         }
 
         current = current.parent;
@@ -1038,8 +1035,7 @@ export class Container implements IContainer {
 
       if (resolver == null) {
         if (current.parent == null) {
-          const handler = this.config.jitRegisterInRoot ? current : this;
-          resolver = this.jitRegister(key, handler);
+          resolver = this.jitRegister(key, current);
           return resolver.resolve(current, this);
         }
 

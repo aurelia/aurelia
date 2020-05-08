@@ -1,7 +1,8 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
-/// <reference types="reflect-metadata" />
-import { Metadata } from '@aurelia/metadata';
-import { isArrayIndex, isNativeFunction, isObject } from './functions';
+import { Metadata, isObject, applyMetadataPolyfill } from '@aurelia/metadata';
+
+applyMetadataPolyfill(Reflect);
+
+import { isArrayIndex, isNativeFunction } from './functions';
 import { Class, Constructable } from './interfaces';
 import { PLATFORM } from './platform';
 import { Reporter } from './reporter';

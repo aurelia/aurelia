@@ -28,22 +28,22 @@
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
     "build": "tsc -b",
-    "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system jit-html-browser",
     "dev": "tsc -b -w"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.7.0-dev.202004290436",
-    "@aurelia/runtime": "0.7.0-dev.202004290436",
-    "@aurelia/runtime-html": "0.7.0-dev.202004290436",
-    "@aurelia/runtime-html-browser": "0.7.0-dev.202004290436",
-    "@aurelia/jit": "0.7.0-dev.202004290436",
-    "@aurelia/jit-html": "0.7.0-dev.202004290436"
+    "@aurelia/jit-html": "0.6.0",
+    "@aurelia/jit": "0.6.0",
+    "@aurelia/kernel": "0.6.0",
+    "@aurelia/metadata": "0.6.0",
+    "@aurelia/runtime-html-browser": "0.6.0",
+    "@aurelia/runtime-html": "0.6.0",
+    "@aurelia/runtime": "0.6.0",
+    "@aurelia/scheduler": "0.6.0"
   },
   "devDependencies": {
-    "tslib": "^1.11.1",
     "typescript": "^3.8.3"
   }
 }

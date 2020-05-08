@@ -28,7 +28,6 @@
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
     "build": "tsc -b",
-    "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system kernel",
     "dev": "tsc -b -w --preserveWatchOutput"
   },
   "publishConfig": {
@@ -38,8 +37,6 @@
     "@aurelia/metadata": "0.7.0-dev.202004290436"
   },
   "devDependencies": {
-    "reflect-metadata": "^0.1.13",
-    "tslib": "^1.11.1",
     "typescript": "^3.8.3"
   }
 }

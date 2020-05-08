@@ -41,8 +41,7 @@
     "@aurelia/runtime-html": "0.6.0",
     "@aurelia/runtime": "0.6.0",
     "@aurelia/scheduler-dom": "0.6.0",
-    "@aurelia/scheduler": "0.6.0",
-    "tslib": "^1.11.2"
+    "@aurelia/scheduler": "0.6.0"
   },
   "devDependencies": {
     "@types/mocha": "^5.2.7",

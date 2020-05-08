@@ -40,7 +40,6 @@
     "@aurelia/runtime": "0.6.0",
     "@aurelia/scheduler": "0.6.0",
     "loader-utils": "^1.2.3",
-    "tslib": "^1.11.2",
     "webpack": "^4.41.4"
   },
   "devDependencies": {

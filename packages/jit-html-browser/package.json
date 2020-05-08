@@ -41,8 +41,7 @@
     "@aurelia/runtime-html-browser": "0.6.0",
     "@aurelia/runtime-html": "0.6.0",
     "@aurelia/runtime": "0.6.0",
-    "@aurelia/scheduler": "0.6.0",
-    "tslib": "^1.11.2"
+    "@aurelia/scheduler": "0.6.0"
   },
   "devDependencies": {
     "typescript": "^3.8.3"

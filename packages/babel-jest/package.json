@@ -39,8 +39,7 @@
     "@aurelia/plugin-conventions": "0.6.0",
     "@aurelia/runtime": "0.6.0",
     "@aurelia/scheduler": "0.6.0",
-    "babel-jest": "^25.3.0",
-    "tslib": "^1.11.2"
+    "babel-jest": "^25.3.0"
   },
   "devDependencies": {
     "@jest/transform": "^25.3.0",

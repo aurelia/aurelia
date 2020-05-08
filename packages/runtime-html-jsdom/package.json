@@ -40,8 +40,7 @@
     "@aurelia/runtime": "0.6.0",
     "@aurelia/scheduler-dom": "0.6.0",
     "@aurelia/scheduler": "0.6.0",
-    "jsdom": "^15.2.1",
-    "tslib": "^1.11.2"
+    "jsdom": "^15.2.1"
   },
   "devDependencies": {
     "@types/node": "^12.12.21",

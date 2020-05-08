@@ -38,8 +38,7 @@
     "@aurelia/metadata": "0.6.0",
     "@aurelia/runtime": "0.6.0",
     "@aurelia/scheduler": "0.6.0",
-    "pixi.js": "^4.8.8",
-    "tslib": "^1.11.2"
+    "pixi.js": "^4.8.8"
   },
   "devDependencies": {
     "typescript": "^3.8.3"

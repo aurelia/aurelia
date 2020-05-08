@@ -1,7 +1,5 @@
 import { RuntimeNodeConfiguration, normalizePath, IHttpServer, IHttpServerOptions } from '@aurelia/runtime-node';
 import { ILogger, IContainer, LogLevel, DI } from '@aurelia/kernel';
-import { ChromeBrowser } from './browser/chrome';
-import { BrowserHost } from './browser/host';
 
 export interface IDevServerConfig {
   readonly entryFile: string;
@@ -39,7 +37,6 @@ export class DevServer {
   public async run({
     entryFile,
     scratchDir,
-    wipeScratchDir,
     logLevel,
     keyPath,
     certPath,
@@ -52,45 +49,15 @@ export class DevServer {
     // wireup
     const container = this.container.createChild();
     container.register(RuntimeNodeConfiguration.create(this.getNodeConfigurationOptions(logLevel, scratchDir, useHttp2, keyPath, certPath)));
-    // const fs = container.get(IFileSystem);
-    // const serviceHost = container.get(ServiceHost);
     const logger = container.get(ILogger);
     logger.info(`Starting test runner with scratchDir ${scratchDir} and entryFile ${entryFile}`);
 
     // TODO compile/bundle
-    /* const result = await serviceHost.execute({ entries: [{ file: entryFile }] });
-    if (await fs.isReadable(scratchDir) && wipeScratchDir) {
-      await fs.rimraf(scratchDir);
-    }
-    await result.ws.emit({ outDir: scratchDir }); */
+    // TODO inject the entry script to index.html template (from user-space)
 
     // start the http/file/websocket server
     const server = container.get(IHttpServer);
-    const { realPort } = await server.start();
-
-    // TODO generate html file to run
-    /*
-    // TODO: this template need to come from the user-space, and just inject the script.
-    const outFile = join(scratchDir, 'index.html');
-    const html = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-      </head>
-      <body>
-        <app></app>
-        <script type="module">
-          import '.${entryFile.replace(result.ws.lastCommonRootDir, '').replace(/\.ts$/, '.js')}';
-        </script>
-      </body>
-    </html>
-    `;
-    await fs.writeFile(outFile, html, Encoding.utf8); */
-    // navigate to the html file
-    const browser = container.get(ChromeBrowser);
-    const browserHost = container.get(BrowserHost);
-    const protocol = useHttp2 ? 'https' : 'http';
-    await browserHost.open(browser, `${protocol}://localhost:${realPort}/index.html`);
+    await server.start();
   }
 
   protected getNodeConfigurationOptions(

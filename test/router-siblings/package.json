@@ -1,5 +1,5 @@
 {
-  "name": "@test/router-siblings",
+  "name": "test-router-siblings",
   "private": true,
   "version": "0.6.0",
   "scripts": {

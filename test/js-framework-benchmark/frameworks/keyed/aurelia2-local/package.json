@@ -1,5 +1,5 @@
 {
-  "name": "@test/js-framework-benchmark-aurelia2-local",
+  "name": "test-js-framework-benchmark-aurelia2-local",
   "description": "An Aurelia 2 client application.",
   "js-framework-benchmark": {
     "frameworkVersion": "",

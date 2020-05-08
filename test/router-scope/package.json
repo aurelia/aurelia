@@ -1,5 +1,5 @@
 {
-  "name": "@test/router-scope",
+  "name": "test-router-scope",
   "private": true,
   "version": "0.6.0",
   "scripts": {

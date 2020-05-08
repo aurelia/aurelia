@@ -1,6 +1,6 @@
 {
   "name": "au",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "main": "dist/esnext/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -39,17 +39,17 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/aot": "0.6.0",
-    "@aurelia/debug": "0.6.0",
-    "@aurelia/jit": "0.6.0",
-    "@aurelia/kernel": "0.6.0",
-    "@aurelia/metadata": "0.6.0",
-    "@aurelia/runtime-html": "0.6.0",
-    "@aurelia/runtime": "0.6.0",
-    "@aurelia/scheduler-dom": "0.6.0",
-    "@aurelia/scheduler": "0.6.0",
-    "@aurelia/testing": "0.6.0",
-		"jsdom": "^15.2.1",
+    "@aurelia/aot": "0.7.0",
+    "@aurelia/debug": "0.7.0",
+    "@aurelia/jit": "0.7.0",
+    "@aurelia/kernel": "0.7.0",
+    "@aurelia/metadata": "0.7.0",
+    "@aurelia/runtime-html": "0.7.0",
+    "@aurelia/runtime": "0.7.0",
+    "@aurelia/scheduler-dom": "0.7.0",
+    "@aurelia/scheduler": "0.7.0",
+    "@aurelia/testing": "0.7.0",
+    "jsdom": "^15.2.1",
     "typescript": "^3.8.3"
   },
   "devDependencies": {

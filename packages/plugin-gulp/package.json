@@ -28,20 +28,22 @@
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
     "build": "tsc -b",
-    "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system plugin-gulp",
     "dev": "tsc -b -w"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
+    "@aurelia/kernel": "0.6.0",
+    "@aurelia/metadata": "0.6.0",
     "@aurelia/plugin-conventions": "0.6.0",
+    "@aurelia/runtime": "0.6.0",
+    "@aurelia/scheduler": "0.6.0",
     "vinyl": "^2.2.0"
   },
   "devDependencies": {
     "@types/node": "^12.12.21",
     "@types/vinyl": "^2.0.4",
-    "tslib": "^1.11.1",
     "typescript": "^3.8.3"
   }
 }

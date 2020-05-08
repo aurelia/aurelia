@@ -33,7 +33,6 @@
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
     "build": "tsc -b",
-    "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system aurelia",
     "dev": "tsc -b -w"
   },
   "publishConfig": {
@@ -44,12 +43,16 @@
     "@aurelia/debug": "0.6.0",
     "@aurelia/jit": "0.6.0",
     "@aurelia/kernel": "0.6.0",
+    "@aurelia/metadata": "0.6.0",
+    "@aurelia/runtime-html": "0.6.0",
     "@aurelia/runtime": "0.6.0",
-    "@aurelia/testing": "0.6.0"
+    "@aurelia/scheduler-dom": "0.6.0",
+    "@aurelia/scheduler": "0.6.0",
+    "@aurelia/testing": "0.6.0",
+		"jsdom": "^15.2.1",
+    "typescript": "^3.8.3"
   },
   "devDependencies": {
-    "@types/node": "^12.12.21",
-    "tslib": "^1.11.1",
-    "typescript": "^3.8.3"
+    "@types/node": "^12.12.21"
   }
 }

@@ -28,15 +28,14 @@
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
     "build": "tsc -b",
-    "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system route-recognizer",
     "dev": "tsc -b -w"
   },
   "publishConfig": {
     "access": "public"
   },
-  "dependencies": {},
+  "dependencies": {
+  },
   "devDependencies": {
-    "tslib": "^1.11.1",
     "typescript": "^3.8.3"
   }
 }

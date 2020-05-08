@@ -1,9 +1,66 @@
+/**
+ * Determine whether a value is an object.
+ *
+ * Uses `typeof` to guarantee this works cross-realm, which is where `instanceof Object` might fail.
+ *
+ * Some environments where these issues are known to arise:
+ * - same-origin iframes (accessing the other realm via `window.top`)
+ * - `jest`.
+ *
+ * The exact test is:
+ * ```ts
+ * typeof value === 'object' && value !== null || typeof value === 'function'
+ * ```
+ *
+ * @param value - The value to test.
+ * @returns `true` if the value is an object, otherwise `false`.
+ * Also performs a type assertion that defaults to `value is Object | Function` which, if the input type is a union with an object type, will infer the correct type.
+ * This can be overridden with the generic type argument.
+ *
+ * @example
+ *
+ * ```ts
+ * class Foo {
+ *   bar = 42;
+ * }
+ *
+ * function doStuff(input?: Foo | null) {
+ *   input.bar; // Object is possibly 'null' or 'undefined'
+ *
+ *   // input has an object type in its union (Foo) so that type will be extracted for the 'true' condition
+ *   if (isObject(input)) {
+ *     input.bar; // OK (input is now typed as Foo)
+ *   }
+ * }
+ *
+ * function doOtherStuff(input: unknown) {
+ *   input.bar; // Object is of type 'unknown'
+ *
+ *   // input is 'unknown' so there is no union type to match and it will default to 'Object | Function'
+ *   if (isObject(input)) {
+ *     input.bar; // Property 'bar' does not exist on type 'Object | Function'
+ *   }
+ *
+ *   // if we know for sure that, if input is an object, it must be a specific type, we can explicitly tell the function to assert that for us
+ *   if (isObject<Foo>(input)) {
+ *    input.bar; // OK (input is now typed as Foo)
+ *   }
+ * }
+ * ```
+ */
 // eslint-disable-next-line @typescript-eslint/ban-types
-function isObject<T extends object = Object | Function>(value: unknown): value is T {
+export function isObject<T extends object = Object | Function>(value: unknown): value is T {
   return typeof value === 'object' && value !== null || typeof value === 'function';
 }
 
-function isNullOrUndefined(value: unknown): value is null | undefined {
+/**
+ * Determine whether a value is `null` or `undefined`.
+ *
+ * @param value - The value to test.
+ * @returns `true` if the value is `null` or `undefined`, otherwise `false`.
+ * Also performs a type assertion that ensures TypeScript treats the value appropriately in the `if` and `else` branches after this check.
+ */
+export function isNullOrUndefined(value: unknown): value is null | undefined {
   return value === null || value === void 0;
 }
 
@@ -351,7 +408,7 @@ function OrdinaryDeleteMetadata(O: any, MetadataKey: any, P: string | symbol | u
  * @param metadataValue - The value for the metadata entry.
  * @returns A decorator function.
  */
-function metadata(metadataKey: any, metadataValue: any) {
+export function metadata(metadataKey: any, metadataValue: any) {
   function decorator(target: Function): void;
   function decorator(target: any, propertyKey: string | symbol): void;
   function decorator(target: any, propertyKey?: string | symbol): void {
@@ -927,7 +984,7 @@ function $delete(metadataKey: any, target: any, propertyKey?: string | symbol): 
   return OrdinaryDeleteMetadata(target, metadataKey, toPropertyKeyOrUndefined(propertyKey));
 }
 
-const Metadata = {
+export const Metadata = {
   define: $define,
   has: $has,
   hasOwn: $hasOwn,
@@ -947,81 +1004,44 @@ function def(obj: object, key: string, value: unknown): void {
   });
 }
 
-def(Metadata, '$Internal', metadataInternalSlot);
-
-const hasMetadata = 'metadata' in Reflect;
-const hasDecorate = 'decorate' in Reflect;
-const hasDefineMetadata = 'defineMetadata' in Reflect;
-const hasHasMetadata = 'hasMetadata' in Reflect;
-const hasHasOwnMetadata = 'hasOwnMetadata' in Reflect;
-const hasGetMetadata = 'getMetadata' in Reflect;
-const hasGetOwnMetadata = 'getOwnMetadata' in Reflect;
-const hasGetMetadataKeys = 'getMetadataKeys' in Reflect;
-const hasGetOwnMetadataKeys = 'getOwnMetadataKeys' in Reflect;
-const hasDeleteMetadata = 'deleteMetadata' in Reflect;
-const hasSome = (
-  hasMetadata ||
-  hasDecorate ||
-  hasDefineMetadata ||
-  hasHasMetadata ||
-  hasHasOwnMetadata ||
-  hasGetMetadata ||
-  hasGetOwnMetadata ||
-  hasGetMetadataKeys ||
-  hasGetOwnMetadataKeys ||
-  hasDeleteMetadata
-);
-const hasAll = (
-  hasMetadata &&
-  hasDecorate &&
-  hasDefineMetadata &&
-  hasHasMetadata &&
-  hasHasOwnMetadata &&
-  hasGetMetadata &&
-  hasGetOwnMetadata &&
-  hasGetMetadataKeys &&
-  hasGetOwnMetadataKeys &&
-  hasDeleteMetadata
-);
-
-if (hasSome && !hasAll) {
-  // This is temporary until we have the reporter / logging component working properly.
-  // We should kind of throw here, but it's a bit harsh to completely stop Aurelia from loading for something that's not guaranteed to fail,
-  // so just log a warning instead.
-  /* eslint-disable no-console, no-undef, @typescript-eslint/ban-ts-ignore */
-  // @ts-ignore
-  console.warn('Partial existing Reflect.metadata polyfill found. Working environment cannot be guaranteed. Please file an issue at https://github.com/aurelia/aurelia/issues so that we can look into compatibility options for this scenario.');
+const internalSlotName = '[[$au]]';
+function hasInternalSlot(reflect: typeof Reflect): reflect is typeof Reflect & { [internalSlotName]: typeof metadataInternalSlot } {
+  return internalSlotName in reflect;
 }
 
-if (!hasMetadata) {
-  def(Reflect, 'metadata', metadata);
-}
-if (!hasDecorate) {
-  def(Reflect, 'decorate', decorate);
-}
-if (!hasDefineMetadata) {
-  def(Reflect, 'defineMetadata', $define);
-}
-if (!hasHasMetadata) {
-  def(Reflect, 'hasMetadata', $has);
-}
-if (!hasHasOwnMetadata) {
-  def(Reflect, 'hasOwnMetadata', $hasOwn);
-}
-if (!hasGetMetadata) {
-  def(Reflect, 'getMetadata', $get);
-}
-if (!hasGetOwnMetadata) {
-  def(Reflect, 'getOwnMetadata', $getOwn);
-}
-if (!hasGetMetadataKeys) {
-  def(Reflect, 'getMetadataKeys', $getKeys);
-}
-if (!hasGetOwnMetadataKeys) {
-  def(Reflect, 'getOwnMetadataKeys', $getOwnKeys);
-}
-if (!hasDeleteMetadata) {
-  def(Reflect, 'deleteMetadata', $delete);
-}
+export function applyMetadataPolyfill(reflect: typeof Reflect): void {
+  if (hasInternalSlot(reflect)) {
+    if (reflect[internalSlotName] === metadataInternalSlot) {
+      return;
+    }
+    throw new Error(`Conflicting @aurelia/metadata module import detected. Please make sure you have the same version of all Aurelia packages in your dependency tree.`);
+  }
 
-export { Metadata, metadata };
+  if (
+    'metadata' in reflect ||
+    'decorate' in reflect ||
+    'defineMetadata' in reflect ||
+    'hasMetadata' in reflect ||
+    'hasOwnMetadata' in reflect ||
+    'getMetadata' in reflect ||
+    'getOwnMetadata' in reflect ||
+    'getMetadataKeys' in reflect ||
+    'getOwnMetadataKeys' in reflect ||
+    'deleteMetadata' in reflect
+  ) {
+    throw new Error(`Conflicting reflect.metadata polyfill found. If you have 'reflect-metadata' or any other reflect polyfill imported, please remove it, if not (or if you must use a specific polyfill) please file an issue at https://github.com/aurelia/aurelia/issues so that we can look into compatibility options for this scenario.`);
+  }
+
+  def(Metadata, '$Internal', metadataInternalSlot);
+
+  def(reflect, 'metadata', metadata);
+  def(reflect, 'decorate', decorate);
+  def(reflect, 'defineMetadata', $define);
+  def(reflect, 'hasMetadata', $has);
+  def(reflect, 'hasOwnMetadata', $hasOwn);
+  def(reflect, 'getMetadata', $get);
+  def(reflect, 'getOwnMetadata', $getOwn);
+  def(reflect, 'getMetadataKeys', $getKeys);
+  def(reflect, 'getOwnMetadataKeys', $getOwnKeys);
+  def(reflect, 'deleteMetadata', $delete);
+}

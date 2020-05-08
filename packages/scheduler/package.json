@@ -28,17 +28,16 @@
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
     "build": "tsc -b",
-    "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system scheduler",
     "dev": "tsc -b -w --preserveWatchOutput"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.6.0"
+    "@aurelia/kernel": "0.6.0",
+    "@aurelia/metadata": "0.6.0"
   },
   "devDependencies": {
-    "tslib": "^1.11.1",
     "typescript": "^3.8.3"
   }
 }

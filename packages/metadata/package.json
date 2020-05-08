@@ -28,15 +28,14 @@
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
     "build": "tsc -b",
-    "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system metadata",
     "dev": "tsc -b -w --preserveWatchOutput"
   },
   "publishConfig": {
     "access": "public"
   },
+  "dependencies": {
+  },
   "devDependencies": {
-    "reflect-metadata": "^0.1.13",
-    "tslib": "^1.11.1",
     "typescript": "^3.8.3"
   }
 }

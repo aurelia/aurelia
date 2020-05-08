@@ -1,5 +1,5 @@
 {
-  "name": "grid",
+  "name": "@test/grid",
   "license": "MIT",
   "engines": {
     "node": ">=10.16.0",
@@ -13,15 +13,18 @@
     "serve": "http-server -c-1 -p 9000 dist"
   },
   "dependencies": {
-    "bulma": "latest",
-    "faker": "latest",
-    "@aurelia/jit-html": "0.6.0",
     "@aurelia/jit-html-browser": "0.6.0",
+    "@aurelia/jit-html": "0.6.0",
     "@aurelia/jit": "0.6.0",
     "@aurelia/kernel": "0.6.0",
-    "@aurelia/runtime-html": "0.6.0",
+    "@aurelia/metadata": "0.6.0",
     "@aurelia/runtime-html-browser": "0.6.0",
-    "@aurelia/runtime": "0.6.0"
+    "@aurelia/runtime-html": "0.6.0",
+    "@aurelia/runtime": "0.6.0",
+    "@aurelia/scheduler-dom": "0.6.0",
+    "@aurelia/scheduler": "0.6.0",
+    "bulma": "latest",
+    "faker": "latest"
   },
   "devDependencies": {
     "@types/node": "^12.12.21",

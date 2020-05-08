@@ -1,5 +1,5 @@
 {
-  "name": "@test/navigation-skeleton",
+  "name": "@test/navigation-skeleton-app",
   "version": "0.1.1",
   "scripts": {
     "watch": "webpack-dev-server --no-inline",

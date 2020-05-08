@@ -1,4 +1,5 @@
 {
+  "name": "aurelia-monorepo",
   "private": true,
   "license": "MIT",
   "engines": {

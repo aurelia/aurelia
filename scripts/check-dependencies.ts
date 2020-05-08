@@ -34,6 +34,7 @@ function run(baseDir: string): void {
   function addNode(path: string, pkg: Package): void {
     const name = pkg.name;
     if (name === void 0) {
+      log(`WARNING: no package name at ${path}`);
       return;
     }
 

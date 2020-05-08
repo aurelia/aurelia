@@ -1,5 +1,5 @@
 {
-  "name": "@test/cypress",
+  "name": "@test/cypress-app",
   "license": "MIT",
   "engines": {
     "node": ">=10.16.0",

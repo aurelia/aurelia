@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/testing",
-  "version": "0.7.0-dev.202004290436",
+  "version": "0.7.0-dev.202005080322",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -34,14 +34,14 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/debug": "0.6.0",
-    "@aurelia/jit": "0.6.0",
-    "@aurelia/kernel": "0.6.0",
-    "@aurelia/metadata": "0.6.0",
-    "@aurelia/runtime-html": "0.6.0",
-    "@aurelia/runtime": "0.6.0",
-    "@aurelia/scheduler-dom": "0.6.0",
-    "@aurelia/scheduler": "0.6.0"
+    "@aurelia/debug": "0.7.0-dev.202005080322",
+    "@aurelia/jit": "0.7.0-dev.202005080322",
+    "@aurelia/kernel": "0.7.0-dev.202005080322",
+    "@aurelia/metadata": "0.7.0-dev.202005080322",
+    "@aurelia/runtime-html": "0.7.0-dev.202005080322",
+    "@aurelia/runtime": "0.7.0-dev.202005080322",
+    "@aurelia/scheduler-dom": "0.7.0-dev.202005080322",
+    "@aurelia/scheduler": "0.7.0-dev.202005080322"
   },
   "devDependencies": {
     "@types/mocha": "^5.2.7",

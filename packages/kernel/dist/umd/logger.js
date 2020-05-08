@@ -1,15 +1,26 @@
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "./di", "./functions"], factory);
+        define(["require", "exports", "./di", "./functions"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const tslib_1 = require("tslib");
     const di_1 = require("./di");
     const functions_1 = require("./functions");
     /**
@@ -147,9 +158,9 @@
             return new DefaultLogEvent(level, message, optionalParams, logger.scope, this.config.colorOptions, Date.now());
         }
     };
-    DefaultLogEventFactory = tslib_1.__decorate([
-        tslib_1.__param(0, exports.ILogConfig),
-        tslib_1.__metadata("design:paramtypes", [Object])
+    DefaultLogEventFactory = __decorate([
+        __param(0, exports.ILogConfig),
+        __metadata("design:paramtypes", [Object])
     ], DefaultLogEventFactory);
     exports.DefaultLogEventFactory = DefaultLogEventFactory;
     class ConsoleSink {
@@ -252,13 +263,13 @@
             return scopedLogger;
         }
     };
-    DefaultLogger = tslib_1.__decorate([
-        tslib_1.__param(0, exports.ILogConfig),
-        tslib_1.__param(1, exports.ILogEventFactory),
-        tslib_1.__param(2, di_1.all(exports.ISink)),
-        tslib_1.__param(3, di_1.optional(exports.ILogScopes)),
-        tslib_1.__param(4, di_1.ignore),
-        tslib_1.__metadata("design:paramtypes", [Object, Object, Array, Array, Object])
+    DefaultLogger = __decorate([
+        __param(0, exports.ILogConfig),
+        __param(1, exports.ILogEventFactory),
+        __param(2, di_1.all(exports.ISink)),
+        __param(3, di_1.optional(exports.ILogScopes)),
+        __param(4, di_1.ignore),
+        __metadata("design:paramtypes", [Object, Object, Array, Array, Object])
     ], DefaultLogger);
     exports.DefaultLogger = DefaultLogger;
     /**

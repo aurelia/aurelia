@@ -1,15 +1,23 @@
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/runtime", "pixi.js"], factory);
+        define(["require", "exports", "@aurelia/runtime", "pixi.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const tslib_1 = require("tslib");
     const runtime_1 = require("@aurelia/runtime");
     const pixi_js_1 = require("pixi.js");
     const directProps = [
@@ -107,165 +115,165 @@
             }
         }
     };
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", pixi_js_1.Container)
+        __metadata("design:type", pixi_js_1.Container)
     ], PixiSprite.prototype, "container", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", String)
+        __metadata("design:type", String)
     ], PixiSprite.prototype, "src", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Number)
+        __metadata("design:type", Number)
     ], PixiSprite.prototype, "alpha", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Boolean)
+        __metadata("design:type", Boolean)
     ], PixiSprite.prototype, "buttomMode", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Boolean)
+        __metadata("design:type", Boolean)
     ], PixiSprite.prototype, "cacheAsBitmap", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", String)
+        __metadata("design:type", String)
     ], PixiSprite.prototype, "cursor", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", pixi_js_1.Rectangle)
+        __metadata("design:type", pixi_js_1.Rectangle)
     ], PixiSprite.prototype, "filterArea", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Array)
+        __metadata("design:type", Array)
     ], PixiSprite.prototype, "filters", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Object)
+        __metadata("design:type", Object)
     ], PixiSprite.prototype, "hitArea", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Boolean)
+        __metadata("design:type", Boolean)
     ], PixiSprite.prototype, "interactive", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", pixi_js_1.Graphics)
+        __metadata("design:type", pixi_js_1.Graphics)
     ], PixiSprite.prototype, "mask", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", String)
+        __metadata("design:type", String)
     ], PixiSprite.prototype, "name", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Number)
+        __metadata("design:type", Number)
     ], PixiSprite.prototype, "pivotX", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Number)
+        __metadata("design:type", Number)
     ], PixiSprite.prototype, "pivotY", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Number)
+        __metadata("design:type", Number)
     ], PixiSprite.prototype, "positionX", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Number)
+        __metadata("design:type", Number)
     ], PixiSprite.prototype, "positionY", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Boolean)
+        __metadata("design:type", Boolean)
     ], PixiSprite.prototype, "renderable", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Number)
+        __metadata("design:type", Number)
     ], PixiSprite.prototype, "rotation", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Number)
+        __metadata("design:type", Number)
     ], PixiSprite.prototype, "scaleX", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Number)
+        __metadata("design:type", Number)
     ], PixiSprite.prototype, "scaleY", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Number)
+        __metadata("design:type", Number)
     ], PixiSprite.prototype, "skewX", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Number)
+        __metadata("design:type", Number)
     ], PixiSprite.prototype, "skewY", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", pixi_js_1.TransformBase)
+        __metadata("design:type", pixi_js_1.TransformBase)
     ], PixiSprite.prototype, "transform", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Boolean)
+        __metadata("design:type", Boolean)
     ], PixiSprite.prototype, "visible", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Number)
+        __metadata("design:type", Number)
     ], PixiSprite.prototype, "x", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Number)
+        __metadata("design:type", Number)
     ], PixiSprite.prototype, "y", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Number)
+        __metadata("design:type", Number)
     ], PixiSprite.prototype, "zIndex", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Number)
+        __metadata("design:type", Number)
     ], PixiSprite.prototype, "height", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Boolean)
+        __metadata("design:type", Boolean)
     ], PixiSprite.prototype, "interactiveChildren", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Boolean)
+        __metadata("design:type", Boolean)
     ], PixiSprite.prototype, "sortableChildren", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Boolean)
+        __metadata("design:type", Boolean)
     ], PixiSprite.prototype, "sortDirty", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Number)
+        __metadata("design:type", Number)
     ], PixiSprite.prototype, "width", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", pixi_js_1.ObservablePoint)
+        __metadata("design:type", pixi_js_1.ObservablePoint)
     ], PixiSprite.prototype, "anchor", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Number)
+        __metadata("design:type", Number)
     ], PixiSprite.prototype, "blendMode", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", String)
+        __metadata("design:type", String)
     ], PixiSprite.prototype, "pluginName", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Boolean)
+        __metadata("design:type", Boolean)
     ], PixiSprite.prototype, "roundPixels", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Object)
+        __metadata("design:type", Object)
     ], PixiSprite.prototype, "shader", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", pixi_js_1.Texture)
+        __metadata("design:type", pixi_js_1.Texture)
     ], PixiSprite.prototype, "texture", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Number)
+        __metadata("design:type", Number)
     ], PixiSprite.prototype, "tint", void 0);
-    PixiSprite = tslib_1.__decorate([
+    PixiSprite = __decorate([
         runtime_1.customElement({ name: 'pixi-sprite', template: '<template></template>' }),
-        tslib_1.__metadata("design:paramtypes", [])
+        __metadata("design:paramtypes", [])
     ], PixiSprite);
     exports.PixiSprite = PixiSprite;
     for (const prop of directProps) {

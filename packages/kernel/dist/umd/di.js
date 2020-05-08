@@ -9,9 +9,8 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    /* eslint-disable @typescript-eslint/no-use-before-define */
-    /// <reference types="reflect-metadata" />
     const metadata_1 = require("@aurelia/metadata");
+    metadata_1.applyMetadataPolyfill(Reflect);
     const functions_1 = require("./functions");
     const platform_1 = require("./platform");
     const reporter_1 = require("./reporter");
@@ -686,7 +685,7 @@
             let jj;
             for (let i = 0, ii = params.length; i < ii; ++i) {
                 current = params[i];
-                if (!functions_1.isObject(current)) {
+                if (!metadata_1.isObject(current)) {
                     continue;
                 }
                 if (isRegistry(current)) {
@@ -714,7 +713,7 @@
                     jj = keys.length;
                     for (; j < jj; ++j) {
                         value = current[keys[j]];
-                        if (!functions_1.isObject(value)) {
+                        if (!metadata_1.isObject(value)) {
                             continue;
                         }
                         // note: we could remove this if-branch and call this.register directly

@@ -1,15 +1,26 @@
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/kernel", "./binding/call-binding", "./binding/expression-parser", "./binding/interpolation-binding", "./binding/let-binding", "./binding/property-binding", "./binding/ref-binding", "./definitions", "./flags", "./lifecycle", "./observation/observer-locator", "./resources/custom-attribute", "./resources/custom-element", "./templating/controller", "./templating/render-context", "./binding/ast", "./resources/binding-behavior"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./binding/call-binding", "./binding/expression-parser", "./binding/interpolation-binding", "./binding/let-binding", "./binding/property-binding", "./binding/ref-binding", "./definitions", "./flags", "./lifecycle", "./observation/observer-locator", "./resources/custom-attribute", "./resources/custom-element", "./templating/controller", "./templating/render-context", "./binding/ast", "./resources/binding-behavior"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
     const call_binding_1 = require("./binding/call-binding");
     const expression_parser_1 = require("./binding/expression-parser");
@@ -104,9 +115,9 @@
             }
         }
     };
-    Renderer = tslib_1.__decorate([
-        tslib_1.__param(0, kernel_1.all(exports.IInstructionRenderer)),
-        tslib_1.__metadata("design:paramtypes", [Array])
+    Renderer = __decorate([
+        __param(0, kernel_1.all(exports.IInstructionRenderer)),
+        __metadata("design:paramtypes", [Array])
     ], Renderer);
     exports.Renderer = Renderer;
     function ensureExpression(parser, srcOrExpr, bindingType) {
@@ -164,7 +175,7 @@
             }
         }
     };
-    SetPropertyRenderer = tslib_1.__decorate([
+    SetPropertyRenderer = __decorate([
         instructionRenderer("re" /* setProperty */)
         /** @internal */
     ], SetPropertyRenderer);
@@ -202,7 +213,7 @@
             factory.dispose();
         }
     };
-    CustomElementRenderer = tslib_1.__decorate([
+    CustomElementRenderer = __decorate([
         instructionRenderer("ra" /* hydrateElement */)
         /** @internal */
     ], CustomElementRenderer);
@@ -236,7 +247,7 @@
             factory.dispose();
         }
     };
-    CustomAttributeRenderer = tslib_1.__decorate([
+    CustomAttributeRenderer = __decorate([
         instructionRenderer("rb" /* hydrateAttribute */)
         /** @internal */
     ], CustomAttributeRenderer);
@@ -277,7 +288,7 @@
             componentFactory.dispose();
         }
     };
-    TemplateControllerRenderer = tslib_1.__decorate([
+    TemplateControllerRenderer = __decorate([
         instructionRenderer("rc" /* hydrateTemplateController */)
         /** @internal */
     ], TemplateControllerRenderer);
@@ -304,13 +315,13 @@
             }
         }
     };
-    LetElementRenderer = tslib_1.__decorate([
+    LetElementRenderer = __decorate([
         instructionRenderer("rd" /* hydrateLetElement */)
         /** @internal */
         ,
-        tslib_1.__param(0, expression_parser_1.IExpressionParser),
-        tslib_1.__param(1, observer_locator_1.IObserverLocator),
-        tslib_1.__metadata("design:paramtypes", [Object, Object])
+        __param(0, expression_parser_1.IExpressionParser),
+        __param(1, observer_locator_1.IObserverLocator),
+        __metadata("design:paramtypes", [Object, Object])
     ], LetElementRenderer);
     exports.LetElementRenderer = LetElementRenderer;
     let CallBindingRenderer = 
@@ -326,13 +337,13 @@
             controller.addBinding(binding);
         }
     };
-    CallBindingRenderer = tslib_1.__decorate([
+    CallBindingRenderer = __decorate([
         instructionRenderer("rh" /* callBinding */)
         /** @internal */
         ,
-        tslib_1.__param(0, expression_parser_1.IExpressionParser),
-        tslib_1.__param(1, observer_locator_1.IObserverLocator),
-        tslib_1.__metadata("design:paramtypes", [Object, Object])
+        __param(0, expression_parser_1.IExpressionParser),
+        __param(1, observer_locator_1.IObserverLocator),
+        __metadata("design:paramtypes", [Object, Object])
     ], CallBindingRenderer);
     exports.CallBindingRenderer = CallBindingRenderer;
     let RefBindingRenderer = 
@@ -347,12 +358,12 @@
             controller.addBinding(binding);
         }
     };
-    RefBindingRenderer = tslib_1.__decorate([
+    RefBindingRenderer = __decorate([
         instructionRenderer("rj" /* refBinding */)
         /** @internal */
         ,
-        tslib_1.__param(0, expression_parser_1.IExpressionParser),
-        tslib_1.__metadata("design:paramtypes", [Object])
+        __param(0, expression_parser_1.IExpressionParser),
+        __metadata("design:paramtypes", [Object])
     ], RefBindingRenderer);
     exports.RefBindingRenderer = RefBindingRenderer;
     let InterpolationBindingRenderer = 
@@ -374,13 +385,13 @@
             controller.addBinding(binding);
         }
     };
-    InterpolationBindingRenderer = tslib_1.__decorate([
+    InterpolationBindingRenderer = __decorate([
         instructionRenderer("rf" /* interpolation */)
         /** @internal */
         ,
-        tslib_1.__param(0, expression_parser_1.IExpressionParser),
-        tslib_1.__param(1, observer_locator_1.IObserverLocator),
-        tslib_1.__metadata("design:paramtypes", [Object, Object])
+        __param(0, expression_parser_1.IExpressionParser),
+        __param(1, observer_locator_1.IObserverLocator),
+        __metadata("design:paramtypes", [Object, Object])
     ], InterpolationBindingRenderer);
     exports.InterpolationBindingRenderer = InterpolationBindingRenderer;
     let PropertyBindingRenderer = 
@@ -396,13 +407,13 @@
             controller.addBinding(binding);
         }
     };
-    PropertyBindingRenderer = tslib_1.__decorate([
+    PropertyBindingRenderer = __decorate([
         instructionRenderer("rg" /* propertyBinding */)
         /** @internal */
         ,
-        tslib_1.__param(0, expression_parser_1.IExpressionParser),
-        tslib_1.__param(1, observer_locator_1.IObserverLocator),
-        tslib_1.__metadata("design:paramtypes", [Object, Object])
+        __param(0, expression_parser_1.IExpressionParser),
+        __param(1, observer_locator_1.IObserverLocator),
+        __metadata("design:paramtypes", [Object, Object])
     ], PropertyBindingRenderer);
     exports.PropertyBindingRenderer = PropertyBindingRenderer;
     let IteratorBindingRenderer = 
@@ -418,13 +429,13 @@
             controller.addBinding(binding);
         }
     };
-    IteratorBindingRenderer = tslib_1.__decorate([
+    IteratorBindingRenderer = __decorate([
         instructionRenderer("rk" /* iteratorBinding */)
         /** @internal */
         ,
-        tslib_1.__param(0, expression_parser_1.IExpressionParser),
-        tslib_1.__param(1, observer_locator_1.IObserverLocator),
-        tslib_1.__metadata("design:paramtypes", [Object, Object])
+        __param(0, expression_parser_1.IExpressionParser),
+        __param(1, observer_locator_1.IObserverLocator),
+        __metadata("design:paramtypes", [Object, Object])
     ], IteratorBindingRenderer);
     exports.IteratorBindingRenderer = IteratorBindingRenderer;
     let behaviorExpressionIndex = 0;

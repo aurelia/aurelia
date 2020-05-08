@@ -1,15 +1,20 @@
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/jit", "@aurelia/runtime", "@aurelia/runtime-html"], factory);
+        define(["require", "exports", "@aurelia/jit", "@aurelia/runtime", "@aurelia/runtime-html"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const tslib_1 = require("tslib");
     const jit_1 = require("@aurelia/jit");
     const runtime_1 = require("@aurelia/runtime");
     const runtime_html_1 = require("@aurelia/runtime-html");
@@ -24,7 +29,7 @@
             return new runtime_html_1.TriggerBindingInstruction(binding.expression, jit_1.getTarget(binding, false));
         }
     };
-    TriggerBindingCommand = tslib_1.__decorate([
+    TriggerBindingCommand = __decorate([
         jit_1.bindingCommand('trigger')
     ], TriggerBindingCommand);
     exports.TriggerBindingCommand = TriggerBindingCommand;
@@ -39,7 +44,7 @@
             return new runtime_html_1.DelegateBindingInstruction(binding.expression, jit_1.getTarget(binding, false));
         }
     };
-    DelegateBindingCommand = tslib_1.__decorate([
+    DelegateBindingCommand = __decorate([
         jit_1.bindingCommand('delegate')
     ], DelegateBindingCommand);
     exports.DelegateBindingCommand = DelegateBindingCommand;
@@ -54,7 +59,7 @@
             return new runtime_html_1.CaptureBindingInstruction(binding.expression, jit_1.getTarget(binding, false));
         }
     };
-    CaptureBindingCommand = tslib_1.__decorate([
+    CaptureBindingCommand = __decorate([
         jit_1.bindingCommand('capture')
     ], CaptureBindingCommand);
     exports.CaptureBindingCommand = CaptureBindingCommand;
@@ -70,7 +75,7 @@
             return new runtime_html_1.AttributeBindingInstruction(target, binding.expression, target);
         }
     };
-    AttrBindingCommand = tslib_1.__decorate([
+    AttrBindingCommand = __decorate([
         jit_1.bindingCommand('attr')
     ], AttrBindingCommand);
     exports.AttrBindingCommand = AttrBindingCommand;
@@ -85,7 +90,7 @@
             return new runtime_html_1.AttributeBindingInstruction('style', binding.expression, jit_1.getTarget(binding, false));
         }
     };
-    StyleBindingCommand = tslib_1.__decorate([
+    StyleBindingCommand = __decorate([
         jit_1.bindingCommand('style')
     ], StyleBindingCommand);
     exports.StyleBindingCommand = StyleBindingCommand;
@@ -100,7 +105,7 @@
             return new runtime_html_1.AttributeBindingInstruction('class', binding.expression, jit_1.getTarget(binding, false));
         }
     };
-    ClassBindingCommand = tslib_1.__decorate([
+    ClassBindingCommand = __decorate([
         jit_1.bindingCommand('class')
     ], ClassBindingCommand);
     exports.ClassBindingCommand = ClassBindingCommand;
@@ -115,7 +120,7 @@
             return new runtime_1.RefBindingInstruction(binding.expression, jit_1.getTarget(binding, false));
         }
     };
-    RefBindingCommand = tslib_1.__decorate([
+    RefBindingCommand = __decorate([
         jit_1.bindingCommand('ref')
     ], RefBindingCommand);
     exports.RefBindingCommand = RefBindingCommand;

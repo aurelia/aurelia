@@ -4,18 +4,20 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "./configuration", "./rule-provider", "./rules", "./validator", "./rule-interfaces", "./serialization", "./ast-serialization"], factory);
+        define(["require", "exports", "./configuration", "./rule-provider", "./rules", "./validator", "./rule-interfaces", "./serialization", "./ast-serialization"], factory);
     }
 })(function (require, exports) {
     "use strict";
+    function __export(m) {
+        for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+    }
     Object.defineProperty(exports, "__esModule", { value: true });
-    const tslib_1 = require("tslib");
-    tslib_1.__exportStar(require("./configuration"), exports);
-    tslib_1.__exportStar(require("./rule-provider"), exports);
-    tslib_1.__exportStar(require("./rules"), exports);
-    tslib_1.__exportStar(require("./validator"), exports);
-    tslib_1.__exportStar(require("./rule-interfaces"), exports);
-    tslib_1.__exportStar(require("./serialization"), exports);
-    tslib_1.__exportStar(require("./ast-serialization"), exports);
+    __export(require("./configuration"));
+    __export(require("./rule-provider"));
+    __export(require("./rules"));
+    __export(require("./validator"));
+    __export(require("./rule-interfaces"));
+    __export(require("./serialization"));
+    __export(require("./ast-serialization"));
 });
 //# sourceMappingURL=index.js.map

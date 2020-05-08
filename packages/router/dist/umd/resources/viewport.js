@@ -1,15 +1,26 @@
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/kernel", "@aurelia/runtime", "../router"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../router"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const router_1 = require("../router");
@@ -124,48 +135,48 @@
             return void 0;
         }
     };
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", String)
+        __metadata("design:type", String)
     ], ViewportCustomElement.prototype, "name", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", String)
+        __metadata("design:type", String)
     ], ViewportCustomElement.prototype, "usedBy", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", String)
+        __metadata("design:type", String)
     ], ViewportCustomElement.prototype, "default", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", String)
+        __metadata("design:type", String)
     ], ViewportCustomElement.prototype, "fallback", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Boolean)
+        __metadata("design:type", Boolean)
     ], ViewportCustomElement.prototype, "noScope", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Boolean)
+        __metadata("design:type", Boolean)
     ], ViewportCustomElement.prototype, "noLink", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Boolean)
+        __metadata("design:type", Boolean)
     ], ViewportCustomElement.prototype, "noHistory", void 0);
-    tslib_1.__decorate([
+    __decorate([
         runtime_1.bindable,
-        tslib_1.__metadata("design:type", Boolean)
+        __metadata("design:type", Boolean)
     ], ViewportCustomElement.prototype, "stateful", void 0);
-    ViewportCustomElement = tslib_1.__decorate([
+    ViewportCustomElement = __decorate([
         runtime_1.customElement({
             name: 'au-viewport',
             injectable: exports.ParentViewport
         }),
-        tslib_1.__param(0, router_1.IRouter),
-        tslib_1.__param(1, runtime_1.INode),
-        tslib_1.__param(2, kernel_1.IContainer),
-        tslib_1.__param(3, exports.ParentViewport),
-        tslib_1.__metadata("design:paramtypes", [Object, Object, Object, ViewportCustomElement])
+        __param(0, router_1.IRouter),
+        __param(1, runtime_1.INode),
+        __param(2, kernel_1.IContainer),
+        __param(3, exports.ParentViewport),
+        __metadata("design:paramtypes", [Object, Object, Object, ViewportCustomElement])
     ], ViewportCustomElement);
     exports.ViewportCustomElement = ViewportCustomElement;
 });

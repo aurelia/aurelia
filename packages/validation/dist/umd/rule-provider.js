@@ -1,15 +1,26 @@
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/kernel", "@aurelia/runtime", "./rules", "./rule-interfaces"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./rules", "./rule-interfaces"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const tslib_1 = require("tslib");
     /* eslint-disable no-template-curly-in-string */
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
@@ -394,11 +405,11 @@
             }
         }
     };
-    ValidationRules = tslib_1.__decorate([
-        tslib_1.__param(0, runtime_1.IExpressionParser),
-        tslib_1.__param(1, rules_1.IValidationMessageProvider),
-        tslib_1.__param(2, rule_interfaces_1.IValidationHydrator),
-        tslib_1.__metadata("design:paramtypes", [Object, Object, Object])
+    ValidationRules = __decorate([
+        __param(0, runtime_1.IExpressionParser),
+        __param(1, rules_1.IValidationMessageProvider),
+        __param(2, rule_interfaces_1.IValidationHydrator),
+        __metadata("design:paramtypes", [Object, Object, Object])
     ], ValidationRules);
     exports.ValidationRules = ValidationRules;
     // eslint-disable-next-line no-useless-escape
@@ -526,11 +537,11 @@
             return words.charAt(0).toUpperCase() + words.slice(1);
         }
     };
-    ValidationMessageProvider = tslib_1.__decorate([
-        tslib_1.__param(0, runtime_1.IExpressionParser),
-        tslib_1.__param(1, kernel_1.ILogger),
-        tslib_1.__param(2, exports.ICustomMessages),
-        tslib_1.__metadata("design:paramtypes", [Object, Object, Array])
+    ValidationMessageProvider = __decorate([
+        __param(0, runtime_1.IExpressionParser),
+        __param(1, kernel_1.ILogger),
+        __param(2, exports.ICustomMessages),
+        __metadata("design:paramtypes", [Object, Object, Array])
     ], ValidationMessageProvider);
     exports.ValidationMessageProvider = ValidationMessageProvider;
 });

@@ -1,15 +1,23 @@
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/kernel"], factory);
+        define(["require", "exports", "@aurelia/kernel"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const tslib_1 = require("tslib");
     const kernel_1 = require("@aurelia/kernel");
     exports.IValidationMessageProvider = kernel_1.DI.createInterface('IValidationMessageProvider').noDefault();
     exports.ValidationRuleAliasMessage = Object.freeze({
@@ -58,9 +66,9 @@
         }
     };
     BaseValidationRule.$TYPE = '';
-    BaseValidationRule = tslib_1.__decorate([
+    BaseValidationRule = __decorate([
         validationRule({ aliases: [{ name: (void 0), defaultMessage: `\${$displayName} is invalid.` }] }),
-        tslib_1.__metadata("design:paramtypes", [String])
+        __metadata("design:paramtypes", [String])
     ], BaseValidationRule);
     exports.BaseValidationRule = BaseValidationRule;
     /**
@@ -81,9 +89,9 @@
         }
     };
     RequiredRule.$TYPE = 'RequiredRule';
-    RequiredRule = tslib_1.__decorate([
+    RequiredRule = __decorate([
         validationRule({ aliases: [{ name: 'required', defaultMessage: `\${$displayName} is required.` }] }),
-        tslib_1.__metadata("design:paramtypes", [])
+        __metadata("design:paramtypes", [])
     ], RequiredRule);
     exports.RequiredRule = RequiredRule;
     /**
@@ -109,14 +117,14 @@
         }
     };
     RegexRule.$TYPE = 'RegexRule';
-    RegexRule = tslib_1.__decorate([
+    RegexRule = __decorate([
         validationRule({
             aliases: [
                 { name: 'matches', defaultMessage: `\${$displayName} is not correctly formatted.` },
                 { name: 'email', defaultMessage: `\${$displayName} is not a valid email.` },
             ]
         }),
-        tslib_1.__metadata("design:paramtypes", [RegExp, String])
+        __metadata("design:paramtypes", [RegExp, String])
     ], RegexRule);
     exports.RegexRule = RegexRule;
     /**
@@ -143,14 +151,14 @@
         }
     };
     LengthRule.$TYPE = 'LengthRule';
-    LengthRule = tslib_1.__decorate([
+    LengthRule = __decorate([
         validationRule({
             aliases: [
                 { name: 'minLength', defaultMessage: `\${$displayName} must be at least \${$rule.length} character\${$rule.length === 1 ? '' : 's'}.` },
                 { name: 'maxLength', defaultMessage: `\${$displayName} cannot be longer than \${$rule.length} character\${$rule.length === 1 ? '' : 's'}.` },
             ]
         }),
-        tslib_1.__metadata("design:paramtypes", [Number, Boolean])
+        __metadata("design:paramtypes", [Number, Boolean])
     ], LengthRule);
     exports.LengthRule = LengthRule;
     /**
@@ -176,14 +184,14 @@
         }
     };
     SizeRule.$TYPE = 'SizeRule';
-    SizeRule = tslib_1.__decorate([
+    SizeRule = __decorate([
         validationRule({
             aliases: [
                 { name: 'minItems', defaultMessage: `\${$displayName} must contain at least \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.` },
                 { name: 'maxItems', defaultMessage: `\${$displayName} cannot contain more than \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.` },
             ]
         }),
-        tslib_1.__metadata("design:paramtypes", [Number, Boolean])
+        __metadata("design:paramtypes", [Number, Boolean])
     ], SizeRule);
     exports.SizeRule = SizeRule;
     /**
@@ -218,7 +226,7 @@
         }
     };
     RangeRule.$TYPE = 'RangeRule';
-    RangeRule = tslib_1.__decorate([
+    RangeRule = __decorate([
         validationRule({
             aliases: [
                 { name: 'min', defaultMessage: `\${$displayName} must be at least \${$rule.min}.` },
@@ -227,7 +235,7 @@
                 { name: 'between', defaultMessage: `\${$displayName} must be between but not equal to \${$rule.min} and \${$rule.max}.` },
             ]
         }),
-        tslib_1.__metadata("design:paramtypes", [Boolean, Object])
+        __metadata("design:paramtypes", [Boolean, Object])
     ], RangeRule);
     exports.RangeRule = RangeRule;
     /**
@@ -251,13 +259,13 @@
         }
     };
     EqualsRule.$TYPE = 'EqualsRule';
-    EqualsRule = tslib_1.__decorate([
+    EqualsRule = __decorate([
         validationRule({
             aliases: [
                 { name: 'equals', defaultMessage: `\${$displayName} must be \${$rule.expectedValue}.` },
             ]
         }),
-        tslib_1.__metadata("design:paramtypes", [Object])
+        __metadata("design:paramtypes", [Object])
     ], EqualsRule);
     exports.EqualsRule = EqualsRule;
 });

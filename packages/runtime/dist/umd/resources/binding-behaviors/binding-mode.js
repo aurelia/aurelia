@@ -1,15 +1,23 @@
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "../../flags", "../binding-behavior"], factory);
+        define(["require", "exports", "../../flags", "../binding-behavior"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const tslib_1 = require("tslib");
     const flags_1 = require("../../flags");
     const binding_behavior_1 = require("../binding-behavior");
     class BindingModeBehavior {
@@ -31,9 +39,9 @@
             super(flags_1.BindingMode.oneTime);
         }
     };
-    OneTimeBindingBehavior = tslib_1.__decorate([
+    OneTimeBindingBehavior = __decorate([
         binding_behavior_1.bindingBehavior('oneTime'),
-        tslib_1.__metadata("design:paramtypes", [])
+        __metadata("design:paramtypes", [])
     ], OneTimeBindingBehavior);
     exports.OneTimeBindingBehavior = OneTimeBindingBehavior;
     let ToViewBindingBehavior = class ToViewBindingBehavior extends BindingModeBehavior {
@@ -41,9 +49,9 @@
             super(flags_1.BindingMode.toView);
         }
     };
-    ToViewBindingBehavior = tslib_1.__decorate([
+    ToViewBindingBehavior = __decorate([
         binding_behavior_1.bindingBehavior('toView'),
-        tslib_1.__metadata("design:paramtypes", [])
+        __metadata("design:paramtypes", [])
     ], ToViewBindingBehavior);
     exports.ToViewBindingBehavior = ToViewBindingBehavior;
     let FromViewBindingBehavior = class FromViewBindingBehavior extends BindingModeBehavior {
@@ -51,9 +59,9 @@
             super(flags_1.BindingMode.fromView);
         }
     };
-    FromViewBindingBehavior = tslib_1.__decorate([
+    FromViewBindingBehavior = __decorate([
         binding_behavior_1.bindingBehavior('fromView'),
-        tslib_1.__metadata("design:paramtypes", [])
+        __metadata("design:paramtypes", [])
     ], FromViewBindingBehavior);
     exports.FromViewBindingBehavior = FromViewBindingBehavior;
     let TwoWayBindingBehavior = class TwoWayBindingBehavior extends BindingModeBehavior {
@@ -61,9 +69,9 @@
             super(flags_1.BindingMode.twoWay);
         }
     };
-    TwoWayBindingBehavior = tslib_1.__decorate([
+    TwoWayBindingBehavior = __decorate([
         binding_behavior_1.bindingBehavior('twoWay'),
-        tslib_1.__metadata("design:paramtypes", [])
+        __metadata("design:paramtypes", [])
     ], TwoWayBindingBehavior);
     exports.TwoWayBindingBehavior = TwoWayBindingBehavior;
 });

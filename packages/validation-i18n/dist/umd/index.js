@@ -4,13 +4,15 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "./localization", "./configuration"], factory);
+        define(["require", "exports", "./localization", "./configuration"], factory);
     }
 })(function (require, exports) {
     "use strict";
+    function __export(m) {
+        for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+    }
     Object.defineProperty(exports, "__esModule", { value: true });
-    const tslib_1 = require("tslib");
-    tslib_1.__exportStar(require("./localization"), exports);
-    tslib_1.__exportStar(require("./configuration"), exports);
+    __export(require("./localization"));
+    __export(require("./configuration"));
 });
 //# sourceMappingURL=index.js.map

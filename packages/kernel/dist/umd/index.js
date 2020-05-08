@@ -29,6 +29,9 @@
     var metadata_1 = require("@aurelia/metadata");
     exports.metadata = metadata_1.metadata;
     exports.Metadata = metadata_1.Metadata;
+    exports.isNullOrUndefined = metadata_1.isNullOrUndefined;
+    exports.isObject = metadata_1.isObject;
+    exports.applyMetadataPolyfill = metadata_1.applyMetadataPolyfill;
     var logger_1 = require("./logger");
     exports.ColorOptions = logger_1.ColorOptions;
     exports.ILogConfig = logger_1.ILogConfig;
@@ -78,8 +81,6 @@
     exports.mergeObjects = functions_1.mergeObjects;
     exports.firstDefined = functions_1.firstDefined;
     exports.getPrototypeChain = functions_1.getPrototypeChain;
-    exports.isObject = functions_1.isObject;
-    exports.isNullOrUndefined = functions_1.isNullOrUndefined;
     exports.isNativeFunction = functions_1.isNativeFunction;
 });
 //# sourceMappingURL=index.js.map

@@ -1,15 +1,20 @@
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "tslib", "@aurelia/runtime", "./binding-command", "./semantic-model"], factory);
+        define(["require", "exports", "@aurelia/runtime", "./binding-command", "./semantic-model"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const tslib_1 = require("tslib");
     const runtime_1 = require("@aurelia/runtime");
     const binding_command_1 = require("./binding-command");
     const semantic_model_1 = require("./semantic-model");
@@ -21,7 +26,7 @@
             return new runtime_1.OneTimeBindingInstruction(binding.expression, binding_command_1.getTarget(binding, false));
         }
     };
-    OneTimeBindingCommand = tslib_1.__decorate([
+    OneTimeBindingCommand = __decorate([
         binding_command_1.bindingCommand('one-time')
     ], OneTimeBindingCommand);
     exports.OneTimeBindingCommand = OneTimeBindingCommand;
@@ -33,7 +38,7 @@
             return new runtime_1.ToViewBindingInstruction(binding.expression, binding_command_1.getTarget(binding, false));
         }
     };
-    ToViewBindingCommand = tslib_1.__decorate([
+    ToViewBindingCommand = __decorate([
         binding_command_1.bindingCommand('to-view')
     ], ToViewBindingCommand);
     exports.ToViewBindingCommand = ToViewBindingCommand;
@@ -45,7 +50,7 @@
             return new runtime_1.FromViewBindingInstruction(binding.expression, binding_command_1.getTarget(binding, false));
         }
     };
-    FromViewBindingCommand = tslib_1.__decorate([
+    FromViewBindingCommand = __decorate([
         binding_command_1.bindingCommand('from-view')
     ], FromViewBindingCommand);
     exports.FromViewBindingCommand = FromViewBindingCommand;
@@ -57,7 +62,7 @@
             return new runtime_1.TwoWayBindingInstruction(binding.expression, binding_command_1.getTarget(binding, false));
         }
     };
-    TwoWayBindingCommand = tslib_1.__decorate([
+    TwoWayBindingCommand = __decorate([
         binding_command_1.bindingCommand('two-way')
     ], TwoWayBindingCommand);
     exports.TwoWayBindingCommand = TwoWayBindingCommand;
@@ -101,7 +106,7 @@
             }
         }
     };
-    DefaultBindingCommand = tslib_1.__decorate([
+    DefaultBindingCommand = __decorate([
         binding_command_1.bindingCommand('bind')
     ], DefaultBindingCommand);
     exports.DefaultBindingCommand = DefaultBindingCommand;
@@ -113,7 +118,7 @@
             return new runtime_1.CallBindingInstruction(binding.expression, binding_command_1.getTarget(binding, true));
         }
     };
-    CallBindingCommand = tslib_1.__decorate([
+    CallBindingCommand = __decorate([
         binding_command_1.bindingCommand('call')
     ], CallBindingCommand);
     exports.CallBindingCommand = CallBindingCommand;
@@ -125,7 +130,7 @@
             return new runtime_1.IteratorBindingInstruction(binding.expression, binding_command_1.getTarget(binding, false));
         }
     };
-    ForBindingCommand = tslib_1.__decorate([
+    ForBindingCommand = __decorate([
         binding_command_1.bindingCommand('for')
     ], ForBindingCommand);
     exports.ForBindingCommand = ForBindingCommand;

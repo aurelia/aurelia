@@ -1,4 +1,7 @@
 import { customElement } from '@aurelia/runtime';
 
-@customElement({ name: 'inventory', template: `<template>A list of my stuff <input></template>` })
+@customElement({
+  name: 'inventory',
+  template: `A list of my stuff <input>`,
+})
 export class Inventory { }

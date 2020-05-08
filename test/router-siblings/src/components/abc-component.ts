@@ -1,9 +1,8 @@
-import { inject } from '@aurelia/kernel';
 import { customElement } from '@aurelia/runtime';
-import { AppState } from './../app-state';
+import { AppState } from '../app-state';
 import * as template from './abc-component.html';
+import { ILogger } from 'aurelia';
 
-@inject(AppState)
 @customElement({ name: 'abc', template })
 export class AbcComponent {
   public name = 'abc';
@@ -11,28 +10,33 @@ export class AbcComponent {
 
   public counter = 0;
 
-  public constructor(private readonly appState: AppState) { }
+  public constructor(
+    private readonly appState: AppState,
+    @ILogger private readonly logger: ILogger,
+  ) {
+    this.logger = logger.scopeTo(this.constructor.name);
+  }
 
   public afterBind(...rest) {
-    console.log(this.name, 'afterBind', this.appState, rest);
+    this.logger.debug(this.name, 'afterBind', this.appState, rest);
   }
   public afterAttach(...rest) {
-    console.log(this.name, 'afterAttach', rest);
+    this.logger.debug(this.name, 'afterAttach', rest);
   }
   public canEnter(instruction, previousInstruction) {
-    console.log(this.name, 'canEnter', ++this.counter, instruction, previousInstruction);
+    this.logger.debug(this.name, 'canEnter', ++this.counter, instruction, previousInstruction);
     return !this.appState.blockEnterAbc;
   }
   public enter(instruction, previousInstruction) {
-    console.log(this.name, 'enter', ++this.counter, instruction, previousInstruction);
+    this.logger.debug(this.name, 'enter', ++this.counter, instruction, previousInstruction);
     return true;
   }
   public canLeave(previousInstruction, instruction) {
-    console.log(this.name, 'canLeave', ++this.counter, previousInstruction, instruction);
+    this.logger.debug(this.name, 'canLeave', ++this.counter, previousInstruction, instruction);
     return !this.blockLeave;
   }
   public leave(previousInstruction, instruction) {
-    console.log(this.name, 'leave', ++this.counter, previousInstruction, instruction);
+    this.logger.debug(this.name, 'leave', ++this.counter, previousInstruction, instruction);
     return true;
   }
 }

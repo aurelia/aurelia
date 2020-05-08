@@ -5,6 +5,10 @@ export class ContactList {
     { id: '789', name: 'SevenEightNine', },
   ];
 
-  public allContacts() { return this.contacts; }
-  public contact(id) { return this.contacts.find((value) => value.id === id); }
+  public allContacts() {
+    return this.contacts;
+  }
+  public contact(id) {
+    return this.contacts.find((value) => value.id === id);
+  }
 }

@@ -1,14 +1,17 @@
+
+const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-module.exports = function(env, { mode }) {
+module.exports = function (env, { mode }) {
   const production = mode === 'production';
   return {
     mode: production ? 'production' : 'development',
     entry: './src/startup.ts',
-    devtool: production ? 'source-map' : 'eval-source-map',
+    devtool: false,
     resolve: {
       extensions: ['.ts', '.js'],
-      modules: ['src', 'node_modules']
+      modules: [path.resolve(__dirname, 'src'), 'node_modules'],
+      mainFields: ['module', 'main']
     },
     devServer: {
       port: 9000,
@@ -23,5 +26,5 @@ module.exports = function(env, { mode }) {
       ]
     },
     plugins: [new HtmlWebpackPlugin({ template: 'index.ejs' })]
-  }
-}
+  };
+};

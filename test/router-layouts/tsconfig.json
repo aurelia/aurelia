@@ -3,9 +3,11 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "lib": ["esnext", "dom"],
-    "module": "umd",
+    "module": "esnext",
     "moduleResolution": "node",
+    "skipLibCheck": true,
     "outDir": "dist",
+    "rootDir": "src",
     "target": "es2018"
   },
   "include": ["src"]

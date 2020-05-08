@@ -1,4 +1,3 @@
-import { inject } from '@aurelia/kernel';
 import { customElement } from '@aurelia/runtime';
 import { Router } from '@aurelia/router';
 
@@ -6,56 +5,57 @@ import { AppState } from './app-state';
 import { AbcComponent } from './components/abc-component';
 import { About } from './components/about';
 import { Calendar } from './components/calendar';
-import { DefComponent } from './components/def-component';
 import { Email } from './components/email';
+import * as deps from './components/index';
+import { ILogger } from 'aurelia';
 
-@inject(Router, AppState)
 @customElement({
-  name: 'app', template:
-    `<template>
-  <p>\${message}</p>
-  <div style="padding: 20px;">
-    <div style="padding: 10px;">
-      <au-nav name="top-menu"></au-nav>
-    </div>
+  name: 'app',
+  template: `
+    <p>\${message}</p>
+    <div style="padding: 20px;">
+      <div style="padding: 10px;">
+        <au-nav name="top-menu"></au-nav>
+      </div>
 
-    <div style="padding: 10px;">
-      <au-viewport name="header" used-by="header"></au-viewport>
-    </div>
-    <div style="padding: 10px;">
-      <a href="header">Add the header</a>
-      <a href="-@header">Remove the header</a>
-    </div>
-    <div style="padding: 10px;">
-      <au-viewport name="steps" used-by="one,two,three"></au-viewport>
-    </div>
-    <div style="padding: 10px;">
-      <a href="one">One</a>
-      <a href="two">Two</a>
-      <a href="three">Three</a>
-    </div>
-    <div repeat.for="i of [1,2,3]" style="padding: 10px;">
-      <au-viewport name="view\${i}" scope></au-viewport>
-      <a href="sub@view\${i}!+sub@view\${i}!/alpha@sub">Alpha \${i}</a>
-      <a href="sub@view\${i}!/beta">Beta \${i}</a>
-    </div>
-    <div style="padding: 10px;">
-      <a href="email">Email</a>
-      <a href="calendar">Calendar</a>
-      <a href="email+contacts@email-content">Email Contacts</a>
-      <a href="contacts@email-content">Only Contacts</a>
-      <a href="calendar/recursive@calendar-content!/email">Recursive > Email</a>
-    </div>
-    <div style="padding: 10px;">
-      <au-viewport name="application" used-by="email,calendar"></au-viewport>
-    </div>
+      <div style="padding: 10px;">
+        <au-viewport name="header" used-by="header"></au-viewport>
+      </div>
+      <div style="padding: 10px;">
+        <a href="header">Add the header</a>
+        <a href="-@header">Remove the header</a>
+      </div>
+      <div style="padding: 10px;">
+        <au-viewport name="steps" used-by="one,two,three"></au-viewport>
+      </div>
+      <div style="padding: 10px;">
+        <a href="one">One</a>
+        <a href="two">Two</a>
+        <a href="three">Three</a>
+      </div>
+      <div repeat.for="i of [1,2,3]" style="padding: 10px;">
+        <au-viewport name="view\${i}" scope></au-viewport>
+        <a href="sub@view\${i}!+sub@view\${i}!/alpha@sub">Alpha \${i}</a>
+        <a href="sub@view\${i}!/beta">Beta \${i}</a>
+      </div>
+      <div style="padding: 10px;">
+        <a href="email">Email</a>
+        <a href="calendar">Calendar</a>
+        <a href="email+contacts@email-content">Email Contacts</a>
+        <a href="contacts@email-content">Only Contacts</a>
+        <a href="calendar/recursive@calendar-content!/email">Recursive > Email</a>
+      </div>
+      <div style="padding: 10px;">
+        <au-viewport name="application" used-by="email,calendar"></au-viewport>
+      </div>
 
-    <div style="padding: 10px;">
-      <pre>\${output}</pre>
+      <div style="padding: 10px;">
+        <pre>\${output}</pre>
+      </div>
     </div>
-  </div>
-</template>
-` })
+  `,
+  dependencies: [deps],
+})
 export class App {
   public message = 'So... we meet again, Mr. World!';
   public output: string = '';
@@ -66,7 +66,12 @@ export class App {
   private readonly left: any;
   private readonly right: any;
 
-  public constructor(private readonly router: Router, private readonly appState: AppState) {
+  public constructor(
+    private readonly router: Router,
+    private readonly appState: AppState,
+    @ILogger private readonly logger: ILogger,
+  ) {
+    this.logger = logger.scopeTo(this.constructor.name);
     this.router.activate({
       reportCallback: (instruction) => {
         this.pathCallback(instruction);
@@ -108,10 +113,10 @@ export class App {
       //   }
       //   return parts.join('/');
       // }
-    }).catch(error => { throw error; });
+    });
 
     this.updateTitle();
-    console.log('ROUTER', this.router);
+    this.logger.debug('ROUTER', this.router);
 
     this.router.addNav('top-menu', [
       {
@@ -154,21 +159,22 @@ export class App {
   }
 
   public pathCallback(instruction) {
-    console.log('app callback', instruction, this.title);
+    this.logger.debug('app callback', instruction, this.title);
     this.output += `Path: ${instruction.path} [${instruction.index}] "${instruction.title}" (${this.stringifyFlags(instruction)}) ${JSON.stringify(instruction.data)}\n`;
-    // this.title = this.router.historyBrowser.titles.join(' > ');
+    // this.title = this.router.navigator.titles.join(' > ');
     if (!instruction.title) {
       setTimeout(() => {
-        this.router.historyBrowser.setEntryTitle(`${instruction.path.split('/').pop()} (async)`);
-        // this.title = this.router.historyBrowser.titles.join(' > ');
-      },         500);
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.router.navigator.setEntryTitle(`${instruction.path.split('/').pop()} (async)`);
+        // this.title = this.router.navigator.titles.join(' > ');
+      }, 500);
     }
   }
 
   public stringifyFlags(flags) {
     const outs = [];
     for (const flag in flags) {
-      if (flag.substring(0, 'is'.length) === 'is') {
+      if (flag.startsWith('is')) {
         outs.push(flag.replace('is', ''));
       }
     }
@@ -176,7 +182,7 @@ export class App {
   }
 
   public updateTitle() {
-    this.title = this.router.historyBrowser.titles.join(' > ');
+    this.title = this.router.navigator.titles.join(' > ');
     setTimeout(() => { this.updateTitle(); }, 150);
   }
   public clickAbc() {
@@ -194,11 +200,11 @@ export class App {
   // clickReplace() {
   //   this.router.replace({ left: Content3Component, right: Content3Component }, 'last', { id: 999 });
   // }
-  public clickBack() {
-    this.router.back();
+  public async clickBack() {
+    await this.router.back();
   }
-  public clickForward() {
-    this.router.forward();
+  public async clickForward() {
+    await this.router.forward();
   }
   public clickBack2() {
     this.router.navigation.history.go(-2);
@@ -206,10 +212,11 @@ export class App {
   public clickForward2() {
     this.router.navigation.history.go(2);
   }
-  public clickCancel() {
-    this.router.historyBrowser.cancel();
+  public async clickCancel() {
+    // TODO(fkleuver) / TODO(jwx): fix this
+    // await this.router.navigator.cancel();
   }
-  public clickRefresh() {
-    this.router.refresh();
+  public async clickRefresh() {
+    await this.router.refresh();
   }
 }

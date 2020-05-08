@@ -1,4 +1,3 @@
-import { inject } from '@aurelia/kernel';
 import { Router } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime';
 import { AppState } from './app-state';
@@ -8,9 +7,10 @@ import { About } from './components/about';
 import { Calendar } from './components/calendar';
 import { DefComponent } from './components/def-component';
 import { Email } from './components/email';
+import * as deps from './components/index';
+import { ILogger } from 'aurelia';
 
-@inject(Router, AppState)
-@customElement({ name: 'app', template })
+@customElement({ name: 'app', template, dependencies: [deps] })
 export class App {
   public message = 'So... we meet again, Mr. World!';
   public output: string = '';
@@ -21,7 +21,12 @@ export class App {
   private readonly left: any;
   private readonly right: any;
 
-  public constructor(private readonly router: Router, private readonly appState: AppState) {
+  public constructor(
+    private readonly router: Router,
+    private readonly appState: AppState,
+    @ILogger private readonly logger: ILogger,
+  ) {
+    this.logger = logger.scopeTo(this.constructor.name);
     this.configureRouter();
   }
 
@@ -31,52 +36,56 @@ export class App {
         this.pathCallback(instruction);
       }
     });
-    this.router.addRoute({ name: 'abc', path: '/test/abc', title: 'Abc Title', viewports: { 'left': AbcComponent, 'right': AbcComponent } });
-    this.router.addRoute({ name: 'def', path: '/test/def', title: 'Def Title', viewports: { 'left': 'def-component', 'right': 'def-component' } });
-    this.router.addRoute({ name: 'abc-left', path: '/test/abc-left', viewports: { 'left': AbcComponent } });
-    this.router.addRoute({ name: 'abc-right', path: '/test/abc-right', viewports: { 'right': AbcComponent } });
-    this.router.addRoute({ name: 'xyz', path: '/test/xyz', viewports: { 'right': DefComponent } });
-    this.router.addRoute({ name: 'redirect', path: '/test/redirect', redirect: '/test/abc' });
-    this.router.addRoute({ name: 'detour', path: '/test/detour', redirect: '/test/abc' });
+    // TODO(fkleuver) / TODO(jwx): the immediately commented-out block below needs to be fixed
+    // this.router.addRoutes([
+    //   { id: 'abc', path: '/test/abc', title: 'Abc Title', viewports: { 'left': AbcComponent, 'right': AbcComponent } },
+    //   { id: 'def', path: '/test/def', title: 'Def Title', viewports: { 'left': 'def-component', 'right': 'def-component' } },
+    //   { id: 'abc-left', path: '/test/abc-left', viewports: { 'left': AbcComponent } },
+    //   { id: 'abc-right', path: '/test/abc-right', viewports: { 'right': AbcComponent } },
+    //   { id: 'xyz', path: '/test/xyz', viewports: { 'right': DefComponent } },
+    //   { id: 'redirect', path: '/test/redirect', redirect: '/test/abc' },
+    //   { id: 'detour', path: '/test/detour', redirect: '/test/abc' },
+    // ]);
+    // TODO(fkleuver) / TODO(jwx): end of block that needs fixing
 
     // this.router.addRoute({ name: 'email', path: '/email', viewports: { 'application': MasterComponent, 'master': DetailComponent } });
     // this.router.addRoute({ name: 'special', path: '/special', viewports: { 'detail': Content3Component } });
 
     this.updateTitle();
-    console.log('ROUTER', this.router);
+    this.logger.debug('ROUTER', this.router);
 
     this.router.addNav('top-menu', [
       {
-        components: Email,
+        route: Email,
         title: 'Email',
         children: [
           {
-            components: [Email, 'inbox@email-content'],
+            route: [Email, 'inbox@email-content'],
             title: 'Inbox',
           },
           {
-            components: [Email, { component: About, viewport: 'email-content' }],
+            route: [Email, { component: About, viewport: 'email-content' }],
             title: 'About',
           },
           {
-            components: [Email, { component: 'contacts@email-content' }],
+            route: [Email, { component: 'contacts@email-content' }],
             title: 'Contacts',
           },
         ],
       },
       {
-        components: Calendar,
+        route: Calendar,
         title: 'Calendar',
       },
       {
         title: 'Root',
         children: [
           {
-            components: Email,
+            route: Email,
             title: 'Email',
           },
           {
-            components: Calendar,
+            route: Calendar,
             title: 'Calendar',
           },
         ],
@@ -85,21 +94,22 @@ export class App {
   }
 
   public pathCallback(instruction) {
-    console.log('app callback', instruction, this.title);
+    this.logger.debug('app callback', instruction, this.title);
     this.output += `Path: ${instruction.path} [${instruction.index}] "${instruction.title}" (${this.stringifyFlags(instruction)}) ${JSON.stringify(instruction.data)}\n`;
-    // this.title = this.router.historyBrowser.titles.join(' > ');
+    // this.title = this.router.navigator.titles.join(' > ');
     if (!instruction.title) {
       setTimeout(() => {
-        this.router.historyBrowser.setEntryTitle(`${instruction.path.split('/').pop()} (async)`);
-        // this.title = this.router.historyBrowser.titles.join(' > ');
-      },         500);
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.router.navigator.setEntryTitle(`${instruction.path.split('/').pop()} (async)`);
+        // this.title = this.router.navigator.titles.join(' > ');
+      }, 500);
     }
   }
 
   public stringifyFlags(flags) {
     const outs = [];
     for (const flag in flags) {
-      if (flag.substring(0, 'is'.length) === 'is') {
+      if (flag.startsWith('is')) {
         outs.push(flag.replace('is', ''));
       }
     }
@@ -107,29 +117,33 @@ export class App {
   }
 
   public updateTitle() {
-    this.title = this.router.historyBrowser.titles.join(' > ');
+    this.title = this.router.navigator.titles.join(' > ');
     setTimeout(() => { this.updateTitle(); }, 150);
   }
-  public clickAbc() {
-    this.router.goto({ left: AbcComponent, right: AbcComponent }, 'first', { id: 123 });
+  public async clickAbc() {
+    // TODO(fkleuver) / TODO(jwx): fix this
+    // await this.router.goto({ left: AbcComponent, right: AbcComponent }, 'first', { id: 123 });
   }
-  public clickAbcLeft() {
-    this.router.goto({ left: AbcComponent }, 'first-left', { id: '123L' });
+  public async clickAbcLeft() {
+    // TODO(fkleuver) / TODO(jwx): fix this
+    // await this.router.goto({ left: AbcComponent }, 'first-left', { id: '123L' });
   }
-  public clickAbcRight() {
-    this.router.goto({ right: AbcComponent }, 'first-right', { id: '123R' });
+  public async clickAbcRight() {
+    // TODO(fkleuver) / TODO(jwx): fix this
+    // await this.router.goto({ right: AbcComponent }, 'first-right', { id: '123R' });
   }
-  public clickDef() {
-    this.router.goto({ left: DefComponent, right: DefComponent }, 'second', { id: 456 });
+  public async clickDef() {
+    // TODO(fkleuver) / TODO(jwx): fix this
+    // await this.router.goto({ left: DefComponent, right: DefComponent }, 'second', { id: 456 });
   }
   // clickReplace() {
   //   this.router.replace({ left: Content3Component, right: Content3Component }, 'last', { id: 999 });
   // }
-  public clickBack() {
-    this.router.back();
+  public async clickBack() {
+    await this.router.back();
   }
-  public clickForward() {
-    this.router.forward();
+  public async clickForward() {
+    await this.router.forward();
   }
   public clickBack2() {
     this.router.navigation.history.go(-2);
@@ -137,10 +151,11 @@ export class App {
   public clickForward2() {
     this.router.navigation.history.go(2);
   }
-  public clickCancel() {
-    this.router.historyBrowser.cancel();
+  public async clickCancel() {
+    // TODO(fkleuver) / TODO(jwx): fix this
+    // await this.router.navigator.cancel();
   }
-  public clickRefresh() {
-    this.router.refresh();
+  public async clickRefresh() {
+    await this.router.refresh();
   }
 }

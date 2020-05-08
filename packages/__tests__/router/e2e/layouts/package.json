@@ -1,5 +1,5 @@
 {
-  "name": "router-e2e",
+  "name": "@tests-router-e2e/layouts",
   "version": "0.1.1",
   "scripts": {
     "watch": "gulp",
@@ -9,7 +9,9 @@
   "dependencies": {
     "@aurelia/jit": "file:../../../../jit",
     "@aurelia/kernel": "file:../../../../kernel",
-    "@aurelia/runtime": "file:../../../../runtime"
+    "@aurelia/metadata": "file:../../../../metadata",
+    "@aurelia/runtime": "file:../../../../runtime",
+    "@aurelia/scheduler": "file:../../../../scheduler"
   },
   "devDependencies": {
     "@types/node": "^12.12.21",

@@ -1,5 +1,4 @@
 {
-  "name": "cypress-e2e",
   "version": "1.0.0",
   "description": "The Cypress integration tests.",
   "private": true,

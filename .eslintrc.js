@@ -260,7 +260,8 @@ module.exports = {
       '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-var-requires': 'off',
       'compat/compat': 'off',
-      'import/no-nodejs-modules': 'off'
+      'import/no-nodejs-modules': 'off',
+      '@typescript-eslint/require-await': 'off'
     }
   }],
   settings: {

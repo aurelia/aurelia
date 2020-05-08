@@ -1,5 +1,5 @@
 {
-  "name": "js-framework-benchmark-aurelia2",
+  "name": "@test/js-framework-benchmark-aurelia2-local",
   "description": "An Aurelia 2 client application.",
   "js-framework-benchmark": {
     "frameworkVersion": "",
@@ -11,13 +11,16 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@aurelia/jit-html": "0.6.0",
     "@aurelia/jit-html-browser": "0.6.0",
+    "@aurelia/jit-html": "0.6.0",
     "@aurelia/jit": "0.6.0",
     "@aurelia/kernel": "0.6.0",
-    "@aurelia/runtime-html": "0.6.0",
+    "@aurelia/metadata": "0.6.0",
     "@aurelia/runtime-html-browser": "0.6.0",
-    "@aurelia/runtime": "0.6.0"
+    "@aurelia/runtime-html": "0.6.0",
+    "@aurelia/runtime": "0.6.0",
+    "@aurelia/scheduler-dom": "0.6.0",
+    "@aurelia/scheduler": "0.6.0"
   },
   "devDependencies": {
     "copy-webpack-plugin": "^5.1.1",

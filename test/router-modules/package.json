@@ -1,0 +1,39 @@
+{
+  "name": "@test/router-modules",
+  "private": true,
+  "version": "0.1.1",
+  "scripts": {
+    "watch": "gulp",
+    "build": "rimraf dist && gulp build",
+    "serve": "http-server -c-1 -p 9000 ."
+  },
+  "dependencies": {
+    "@aurelia/debug": "0.6.0",
+    "@aurelia/fetch-client": "0.6.0",
+    "@aurelia/jit-html-browser": "0.6.0",
+    "@aurelia/jit-html": "0.6.0",
+    "@aurelia/jit": "0.6.0",
+    "@aurelia/kernel": "0.6.0",
+    "@aurelia/metadata": "0.6.0",
+    "@aurelia/route-recognizer": "0.6.0",
+    "@aurelia/router": "0.6.0",
+    "@aurelia/runtime-html-browser": "0.6.0",
+    "@aurelia/runtime-html": "0.6.0",
+    "@aurelia/runtime": "0.6.0",
+    "@aurelia/scheduler-dom": "0.6.0",
+    "@aurelia/scheduler": "0.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^12.12.21",
+    "browser-sync": "latest",
+    "browserify": "latest",
+    "gulp": "^4.0.2",
+    "http-server": "0.9.0",
+    "rimraf": "^3.0.0",
+    "stringify": "latest",
+    "tsify": "latest",
+    "typescript": "^3.8.3",
+    "vinyl-source-stream": "latest",
+    "watchify": "latest"
+  }
+}

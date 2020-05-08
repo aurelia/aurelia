@@ -18,7 +18,7 @@ import {
   HTMLTestContext,
   TestContext
 } from '@aurelia/testing';
-import { HTMLDOM } from '../../runtime-html/dist';
+import { HTMLDOM } from '@aurelia/runtime-html';
 
 describe('template-compiler.primary-bindable.spec.ts', function () {
 

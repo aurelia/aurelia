@@ -41,7 +41,7 @@
     "@aurelia/runtime": "0.6.0",
     "@aurelia/scheduler": "0.6.0",
     "ts-jest": "^25.3.1",
-    "tslib": "^1.11.1"
+    "tslib": "^1.11.2"
   },
   "devDependencies": {
     "@jest/transform": "^25.3.0",

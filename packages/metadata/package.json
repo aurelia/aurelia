@@ -35,7 +35,7 @@
     "access": "public"
   },
   "dependencies": {
-    "tslib": "^1.11.1"
+    "tslib": "^1.11.2"
   },
   "devDependencies": {
     "reflect-metadata": "^0.1.13",

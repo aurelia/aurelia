@@ -1,5 +1,6 @@
 {
   "name": "test-navigation-skeleton-app",
+  "private": true,
   "version": "0.7.0",
   "scripts": {
     "watch": "webpack-dev-server --no-inline",

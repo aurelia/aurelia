@@ -36,17 +36,20 @@
   "dependencies": {
     "@aurelia/debug": "0.6.0",
     "@aurelia/fetch-client": "0.6.0",
-    "@aurelia/jit": "0.6.0",
-    "@aurelia/jit-html": "0.6.0",
     "@aurelia/jit-html-browser": "0.6.0",
+    "@aurelia/jit-html": "0.6.0",
+    "@aurelia/jit": "0.6.0",
     "@aurelia/kernel": "0.6.0",
+    "@aurelia/metadata": "0.6.0",
     "@aurelia/router": "0.6.0",
-    "@aurelia/runtime": "0.6.0",
+    "@aurelia/runtime-html-browser": "0.6.0",
     "@aurelia/runtime-html": "0.6.0",
-    "@aurelia/runtime-html-browser": "0.6.0"
+    "@aurelia/runtime": "0.6.0",
+    "@aurelia/scheduler-dom": "0.6.0",
+    "@aurelia/scheduler": "0.6.0",
+    "tslib": "^1.11.1"
   },
   "devDependencies": {
-    "tslib": "^1.11.1",
     "typescript": "^3.8.3"
   }
 }

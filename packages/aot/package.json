@@ -37,18 +37,16 @@
   },
   "dependencies": {
     "@aurelia/debug": "0.6.0",
-    "@aurelia/kernel": "0.6.0",
-    "@aurelia/runtime": "0.6.0",
-    "@aurelia/runtime-html": "0.6.0",
-    "@aurelia/runtime-html-jsdom": "0.6.0",
     "@aurelia/jit": "0.6.0",
-    "@aurelia/jit-html": "0.6.0",
-    "@aurelia/jit-html-jsdom": "0.6.0",
-    "typescript": "^3.8.3",
-		"jsdom": "^15.2.1"
+    "@aurelia/kernel": "0.6.0",
+    "@aurelia/metadata": "0.6.0",
+    "@aurelia/runtime": "0.6.0",
+    "@aurelia/scheduler": "0.6.0",
+		"jsdom": "^15.2.1",
+    "tslib": "^1.11.1",
+    "typescript": "^3.8.3"
   },
   "devDependencies": {
-    "@types/node": "^12.12.21",
-    "tslib": "^1.11.1"
+    "@types/node": "^12.12.21"
   }
 }

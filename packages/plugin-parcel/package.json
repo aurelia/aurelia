@@ -36,11 +36,13 @@
   },
   "dependencies": {
     "@aurelia/kernel": "0.6.0",
-    "@aurelia/runtime": "0.6.0"
+    "@aurelia/metadata": "0.6.0",
+    "@aurelia/runtime": "0.6.0",
+    "@aurelia/scheduler": "0.6.0",
+    "tslib": "^1.11.1"
   },
   "devDependencies": {
     "@types/node": "^12.12.21",
-    "tslib": "^1.11.1",
     "typescript": "^3.8.3"
   }
 }

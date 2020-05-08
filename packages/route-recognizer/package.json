@@ -34,9 +34,10 @@
   "publishConfig": {
     "access": "public"
   },
-  "dependencies": {},
+  "dependencies": {
+    "tslib": "^1.11.1"
+  },
   "devDependencies": {
-    "tslib": "^1.11.1",
     "typescript": "^3.8.3"
   }
 }

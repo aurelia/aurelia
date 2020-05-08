@@ -29,7 +29,6 @@
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
     "build": "tsc -b",
-    "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system validation",
     "dev": "tsc -b -w --preserveWatchOutput"
   },
   "publishConfig": {

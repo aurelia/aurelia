@@ -37,7 +37,6 @@
     "@aurelia/metadata": "0.6.0"
   },
   "devDependencies": {
-    "reflect-metadata": "^0.1.13",
     "typescript": "^3.8.3"
   }
 }

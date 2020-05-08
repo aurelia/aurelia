@@ -1,5 +1,5 @@
 {
-  "name": "@test/kitchen-sink",
+  "name": "test-kitchen-sink",
   "license": "MIT",
   "private": true,
   "engines": {

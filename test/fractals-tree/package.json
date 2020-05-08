@@ -1,5 +1,5 @@
 {
-  "name": "@test/fractals-tree",
+  "name": "test-fractals-tree",
   "license": "MIT",
   "private": true,
   "engines": {

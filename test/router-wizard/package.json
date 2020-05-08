@@ -1,5 +1,5 @@
 {
-  "name": "@test/router-wizard",
+  "name": "test-router-wizard",
   "private": true,
   "version": "0.6.0",
   "scripts": {

@@ -1,5 +1,5 @@
 {
-  "name": "@test/router-layouts",
+  "name": "test-router-layouts",
   "private": true,
   "version": "0.6.0",
   "scripts": {

@@ -1,5 +1,5 @@
 {
-  "name": "@test/grid",
+  "name": "test-grid",
   "license": "MIT",
   "engines": {
     "node": ">=10.16.0",

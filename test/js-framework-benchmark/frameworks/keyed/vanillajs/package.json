@@ -1,5 +1,5 @@
 {
-  "name": "@test/js-framework-benchmark-vanillajs",
+  "name": "test-js-framework-benchmark-vanillajs",
   "version": "1.1.1",
   "description": "Vanilla.JS demo",
   "main": "index.js",

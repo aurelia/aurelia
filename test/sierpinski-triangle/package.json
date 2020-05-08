@@ -1,5 +1,5 @@
 {
-  "name": "@test/sierpinski-triangle",
+  "name": "test-sierpinski-triangle",
   "license": "MIT",
   "private": true,
   "engines": {

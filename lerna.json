@@ -54,7 +54,13 @@
     "test/navigation-skeleton/app",
     "test/rainbow-spiral",
     "test/realworld",
-    "test/sierpinski-triangle"
+    "test/sierpinski-triangle",
+    "test/router-layouts",
+    "test/router-modules",
+    "test/router-nav",
+    "test/router-scope",
+    "test/router-siblings",
+    "test/router-wizard"
   ],
-  "version": "0.6.0"
+  "version": "0.7.0"
 }

@@ -3,6 +3,32 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.7.0"></a>
+# 0.7.0 (2020-05-08)
+
+### Features:
+
+* ***:** support binding for Set/Map for CheckedObserver ([7b0dc48](https://github.com/aurelia/aurelia/commit/7b0dc48))
+* **array-index-observer:** add select/checkbox tests ([4237825](https://github.com/aurelia/aurelia/commit/4237825))
+
+
+### Bug Fixes:
+
+* **listener:** fix listener binding to work with interceptors (e.g. debounce) ([4dedf7e](https://github.com/aurelia/aurelia/commit/4dedf7e))
+* ***:** create local RepeatableCollection type ([c462a6d](https://github.com/aurelia/aurelia/commit/c462a6d))
+* ***:** remove down level iteration config in tsconfig ([c9e5fce](https://github.com/aurelia/aurelia/commit/c9e5fce))
+* **shadow-dom-registry:** improve monomorphism by caching via weakmap ([1634cdd](https://github.com/aurelia/aurelia/commit/1634cdd))
+* **shadow-dom-registry:** change find to some for efficient any check ([dff6280](https://github.com/aurelia/aurelia/commit/dff6280))
+
+
+### Refactorings:
+
+* ***:** rename alias to aliasto for readability and consistency ([f3904fe](https://github.com/aurelia/aurelia/commit/f3904fe))
+* ***:** use to string to check for array/set/map for checkedobserver ([f246c0f](https://github.com/aurelia/aurelia/commit/f246c0f))
+* ***:** use lifecycle instead of observer locator for collection observation in CheckedObserver ([147bec2](https://github.com/aurelia/aurelia/commit/147bec2))
+* **shadow-dom-registry:** make explicit factory classes ([a9771ad](https://github.com/aurelia/aurelia/commit/a9771ad))
+* **styles:** a more explicit api for shadow styles and css modules ([3b1f978](https://github.com/aurelia/aurelia/commit/3b1f978))
+
 <a name="0.6.0"></a>
 # 0.6.0 (2019-12-18)
 

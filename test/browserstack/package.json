@@ -1,6 +1,6 @@
 {
-  "name": "e2e",
-  "version": "0.1.1",
+  "name": "test-browserstack",
+  "version": "0.7.0",
   "private": true,
   "scripts": {
     "build": "rimraf dist && tsc -p tsconfig.bs.json && run-p build:*",
@@ -11,13 +11,16 @@
     "e2e:compat": "cross-env BS_COMPAT_CHECK=true npm run e2e"
   },
   "dependencies": {
-    "@aurelia/jit": "0.6.0",
-    "@aurelia/jit-html": "0.6.0",
-    "@aurelia/jit-html-browser": "0.6.0",
-    "@aurelia/kernel": "0.6.0",
-    "@aurelia/runtime": "0.6.0",
-    "@aurelia/runtime-html": "0.6.0",
-    "@aurelia/runtime-html-browser": "0.6.0"
+    "@aurelia/jit-html-browser": "0.7.0",
+    "@aurelia/jit-html": "0.7.0",
+    "@aurelia/jit": "0.7.0",
+    "@aurelia/kernel": "0.7.0",
+    "@aurelia/metadata": "0.7.0",
+    "@aurelia/runtime-html-browser": "0.7.0",
+    "@aurelia/runtime-html": "0.7.0",
+    "@aurelia/runtime": "0.7.0",
+    "@aurelia/scheduler-dom": "0.7.0",
+    "@aurelia/scheduler": "0.7.0"
   },
   "devDependencies": {
     "@types/chai": "^4.2.7",
@@ -44,7 +47,6 @@
     "ts-loader": "^6.2.1",
     "ts-node": "^8.8.2",
     "tsconfig-paths": "^3.9.0",
-    "tslib": "^1.11.1",
     "typescript": "^3.8.3",
     "webpack": "^4.41.4",
     "webpack-cli": "^3.3.10"

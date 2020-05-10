@@ -3,6 +3,56 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.7.0"></a>
+# 0.7.0 (2020-05-08)
+
+### Features:
+
+* **validation:** started deserialization support ([4296f9d](https://github.com/aurelia/aurelia/commit/4296f9d))
+* ***:** AST hydration ([92125d6](https://github.com/aurelia/aurelia/commit/92125d6))
+* **custom-attr:** add no multi bindings cfg ([4daa950](https://github.com/aurelia/aurelia/commit/4daa950))
+* **runtime:** binding mediator ([3f37cb8](https://github.com/aurelia/aurelia/commit/3f37cb8))
+* **observation:** observe array index ([a51edc2](https://github.com/aurelia/aurelia/commit/a51edc2))
+* **validation:** used new BindingInterceptor ([bb8dff2](https://github.com/aurelia/aurelia/commit/bb8dff2))
+* **runtime+html:** binding middleware ([3dc8143](https://github.com/aurelia/aurelia/commit/3dc8143))
+
+
+### Bug Fixes:
+
+* ***:** don't jitRegister intrinsic types. resolves #840 ([4f5d7e8](https://github.com/aurelia/aurelia/commit/4f5d7e8))
+* ***:** validation controller factory fix ([e2e5da4](https://github.com/aurelia/aurelia/commit/e2e5da4))
+* ***:** misc issues + cleanup ([c318d91](https://github.com/aurelia/aurelia/commit/c318d91))
+* **binding:** fromView update source initial value ([5e23f6c](https://github.com/aurelia/aurelia/commit/5e23f6c))
+* ***:** use void 0 instead of undefined ([49322cd](https://github.com/aurelia/aurelia/commit/49322cd))
+* **bindable-observer:** ensure initial value is valid ([6255b03](https://github.com/aurelia/aurelia/commit/6255b03))
+* **bindable-observer:** reverse set interceptor ([0c98007](https://github.com/aurelia/aurelia/commit/0c98007))
+* **array-index-observer:** dont update current value during set value ([6eefd78](https://github.com/aurelia/aurelia/commit/6eefd78))
+* **lint:** fix deep scan issues ([601bbfc](https://github.com/aurelia/aurelia/commit/601bbfc))
+* **index-observation:** simplify keyed access connect ([57e9607](https://github.com/aurelia/aurelia/commit/57e9607))
+* **computed:** always to string ([359706b](https://github.com/aurelia/aurelia/commit/359706b))
+* **observer-locator:** compare against null ([7fc39a2](https://github.com/aurelia/aurelia/commit/7fc39a2))
+* **computed:** observer collection correctly ([7b2db01](https://github.com/aurelia/aurelia/commit/7b2db01))
+* **observer-locator:** use SetterObserver instead of dirty check ([1dc1983](https://github.com/aurelia/aurelia/commit/1dc1983))
+* **computed:** flatter stack ([cadb819](https://github.com/aurelia/aurelia/commit/cadb819))
+* **controller:** correct the timing of beforeBind hook ([d2e4f59](https://github.com/aurelia/aurelia/commit/d2e4f59))
+* **injectable:** prevent renderContext caching ([625348a](https://github.com/aurelia/aurelia/commit/625348a))
+* **computed:** dont bind unnecessarily ([b7dbb46](https://github.com/aurelia/aurelia/commit/b7dbb46))
+* **observation:** don't eagerly dirty check array prop ([fdfb353](https://github.com/aurelia/aurelia/commit/fdfb353))
+* **computed-observer:** better efficiency & works in basic array scenarios ([ad12769](https://github.com/aurelia/aurelia/commit/ad12769))
+
+
+### Refactorings:
+
+* ***:** rename alias to aliasto for readability and consistency ([f3904fe](https://github.com/aurelia/aurelia/commit/f3904fe))
+* **scheduler:** move scheduler to separate package and simplify a few things ([cf33b1a](https://github.com/aurelia/aurelia/commit/cf33b1a))
+* ***:** moved ast hydration to debug package ([691a63f](https://github.com/aurelia/aurelia/commit/691a63f))
+* **validation:** normalized binding host ([732234b](https://github.com/aurelia/aurelia/commit/732234b))
+* **array-index-observer:** behave like native when setting value ([e8fb47e](https://github.com/aurelia/aurelia/commit/e8fb47e))
+* ***:** rename isNumeric to isArrayIndex ([2fab646](https://github.com/aurelia/aurelia/commit/2fab646))
+* **computed-observer:** compare with 0 using > instead of === ([331aed7](https://github.com/aurelia/aurelia/commit/331aed7))
+* **computed:** dont wrap value if function ([e60a2b9](https://github.com/aurelia/aurelia/commit/e60a2b9))
+* **runtime:** add controllers, bindings to custom attribute interface ([5378dbc](https://github.com/aurelia/aurelia/commit/5378dbc))
+
 <a name="0.6.0"></a>
 # 0.6.0 (2019-12-18)
 

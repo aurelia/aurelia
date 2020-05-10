@@ -49,7 +49,11 @@ export class FileServer implements IRequestHandler {
 
     if (!(request instanceof IncomingMessage && response instanceof ServerResponse)) { return; }
     const parsedUrl = url.parse(request.url!);
-    const path = join(this.root, parsedUrl.path!);
+    let parsedPath = parsedUrl.path!;
+    if (parsedPath.endsWith('/')) {
+      parsedPath = `${parsedPath}index.html`;
+    }
+    const path = join(this.root, parsedPath);
 
     if (await isReadable(path)) {
       this.logger.debug(`Serving file "${path}"`);
@@ -127,7 +131,10 @@ export class Http2FileServer implements IHttp2FileServer {
 
     if (!(request instanceof Http2ServerRequest && response instanceof Http2ServerResponse)) { return; }
     const parsedUrl = url.parse(request.url!);
-    const parsedPath = parsedUrl.path!;
+    let parsedPath = parsedUrl.path!;
+    if (parsedPath.endsWith('/')) {
+      parsedPath = `${parsedPath}index.html`;
+    }
     const path = join(this.root, parsedPath);
 
     const contentEncoding = determineContentEncoding(request.headers);

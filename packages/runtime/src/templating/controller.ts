@@ -416,7 +416,7 @@ export class Controller<
         if ((this.state & State.deactivating) === State.deactivating) {
           // We're in an incomplete deactivation, so we can still abort some of it.
           // Simply add the 'activating' bit (and remove 'deactivating' so we know what was the last request) and return.
-          // There is          this.state = (this.state ^ State.deactivating) | State.activating;
+          this.state = (this.state ^ State.deactivating) | State.activating;
           if (
             (this.state & State.deactivateChildrenCalled) === State.deactivateChildrenCalled &&
             this.children !== void 0
@@ -424,7 +424,7 @@ export class Controller<
             const ret = this.$activateChildren(initiator, parent, flags);
             if (ret instanceof Promise) {
               this.ensurePromise();
-              return Promise.all([ret, this.promise]).then(PLATFORM.noop);
+              return Promise.all([ret, this.promise!]) as unknown as Promise<void>;
             }
           }
           return this.promise;
@@ -605,7 +605,7 @@ export class Controller<
     }
 
     if (promises !== void 0) {
-      return Promise.all(promises).then(PLATFORM.noop);
+      return Promise.all(promises) as unknown as Promise<void>;
     }
   }
 
@@ -620,6 +620,7 @@ export class Controller<
       return this.beforeDetach(initiator, parent, flags);
     } else if ((this.state & State.beforeDetachCalled) === State.beforeDetachCalled) {
       this.state ^= State.beforeDetachCalled;
+      this.resolvePromise();
       return;
     }
 
@@ -633,39 +634,45 @@ export class Controller<
     }
     initiator.tail = this as Controller<T>;
 
-    if (initiator === this && initiator.head !== null) {
-      let cur = initiator.head;
-      initiator.head = initiator.tail = null;
-      let next: Controller<T> | null;
-      do {
-        if (cur.hooks.hasAfterAttachChildren) {
-          ret = cur.bindingContext!.afterAttachChildren(initiator as IHydratedController<T>, flags);
-          if (ret instanceof Promise) {
-            const $cur = cur;
-            (promises ?? (promises = [])).push(ret.then(() => {
-              return $cur.postEndActivate(initiator, parent, flags);
-            }));
+    if (initiator === this) {
+      if (initiator.head !== null) {
+        let cur = initiator.head;
+        initiator.head = initiator.tail = null;
+        let next: Controller<T> | null;
+        do {
+          if (cur.hooks.hasAfterAttachChildren) {
+            ret = cur.bindingContext!.afterAttachChildren(initiator as IHydratedController<T>, flags);
+            if (ret instanceof Promise) {
+              const $cur = cur;
+              (promises ?? (promises = [])).push(ret.then(() => {
+                return $cur.postEndActivate(initiator, parent, flags);
+              }));
+            } else {
+              ret = cur.postEndActivate(initiator, parent, flags);
+              if (ret instanceof Promise) {
+                (promises ?? (promises = [])).push(ret);
+              }
+            }
           } else {
             ret = cur.postEndActivate(initiator, parent, flags);
             if (ret instanceof Promise) {
               (promises ?? (promises = [])).push(ret);
             }
           }
-        } else {
-          ret = cur.postEndActivate(initiator, parent, flags);
-          if (ret instanceof Promise) {
-            (promises ?? (promises = [])).push(ret);
-          }
-        }
-        next = cur.next;
-        cur.next = null;
-        cur = next!;
-      } while (cur !== null);
+          next = cur.next;
+          cur.next = null;
+          cur = next!;
+        } while (cur !== null);
 
-      if (promises !== void 0) {
-        this.ensurePromise();
-        return Promise.all(promises).then(PLATFORM.noop);
+        if (promises !== void 0) {
+          this.ensurePromise();
+          return Promise.all(promises).then(() => {
+            this.resolvePromise();
+          });
+        }
       }
+
+      this.resolvePromise();
     }
   }
 
@@ -683,6 +690,12 @@ export class Controller<
     }
 
     this.state = State.activated;
+    if (initiator !== this) {
+      // For the initiator, the promise is resolved at the end of endAactivate because that promise resolution
+      // has to come after all descendant postEndActivate calls resolved. Otherwise, the initiator might resolve
+      // while some of its descendants are still busy.
+      this.resolvePromise();
+    }
   }
 
   public deactivate(
@@ -695,9 +708,10 @@ export class Controller<
         // We're fully activated, so proceed with normal deactivation.
         this.state = State.deactivating;
         break;
+      case State.none:
       case State.deactivated:
       case State.disposed:
-        // If we're already deactivated (or even disposed), no need to do anything.
+        // If we're already deactivated (or even disposed), or never activated in the first place, no need to do anything.
         return;
       default:
         if ((this.state & State.deactivating) === State.deactivating) {
@@ -707,7 +721,7 @@ export class Controller<
         if ((this.state & State.activating) === State.activating) {
           // We're in an incomplete activation, so we can still abort some of it.
           // Simply add the 'deactivating' bit (and remove 'activating' so we know what was the last request) and return.
-          // There is          this.state = (this.state ^ State.activating) | State.deactivating;
+          this.state = (this.state ^ State.activating) | State.deactivating;
           if (
             (this.state & State.activateChildrenCalled) === State.activateChildrenCalled &&
             this.children !== void 0
@@ -715,7 +729,7 @@ export class Controller<
             const ret = this.$deactivateChildren(initiator, parent, flags);
             if (ret instanceof Promise) {
               this.ensurePromise();
-              return Promise.all([ret, this.promise]).then(PLATFORM.noop);
+              return Promise.all([ret, this.promise]) as unknown as Promise<void>;
             }
           }
           return this.promise;
@@ -862,7 +876,7 @@ export class Controller<
     }
 
     if (promises !== void 0) {
-      return Promise.all(promises).then(PLATFORM.noop);
+      return Promise.all(promises) as unknown as Promise<void>;
     }
   }
 

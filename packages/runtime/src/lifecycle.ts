@@ -209,7 +209,7 @@ export function stringifyState(state: State): string {
     names.push('disposed');
   }
 
-  return names.join('|');
+  return names.length === 0 ? 'none' : names.join('|');
 }
 
 interface IHydratedControllerProperties<

@@ -37,6 +37,7 @@ export class AuServerOptions implements Omit<IHttpServerOptions, 'level'> {
     public hostName: string = '0.0.0.0',
     public port: number = 8080,
     public useHttp2: boolean = false,
+    public useHttps: boolean = false,
     public key: string | undefined = undefined,
     public cert: string | undefined = undefined,
     public logLevel: LogLevel = 'info',
@@ -53,10 +54,11 @@ export class AuServerOptions implements Omit<IHttpServerOptions, 'level'> {
   /** @internal */
   public toNodeHttpServerOptions(): IHttpServerOptions {
     const useHttp2 = this.useHttp2;
+    const useHttps = this.useHttps;
     const key = this.key;
     const cert = this.cert;
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-    if (useHttp2 && !(key && cert)) { // boolean coercion is needed
+    if ((useHttp2 || useHttps) && !(key && cert)) { // boolean coercion is needed
       throw new Error(`key and cert are required for a HTTP/2 server`);
     }
 
@@ -66,6 +68,7 @@ export class AuServerOptions implements Omit<IHttpServerOptions, 'level'> {
       port: this.port,
       level: this.serverLogLevel,
       useHttp2,
+      useHttps: useHttp2 || useHttps,
       key: key ? normalizePath(key) : void 0,
       cert: cert ? normalizePath(cert) : void 0,
     };
@@ -86,6 +89,9 @@ export class AuServerOptions implements Omit<IHttpServerOptions, 'level'> {
       + `${indent}useHttp2${EOL}`
       + `${l2Indent}Description: Whether to use HTTP/2 or not${EOL}`
       + `${l2Indent}Value: ${this.useHttp2}${EOL}`
+      + `${indent}useHttps${EOL}`
+      + `${l2Indent}Description: Whether to use SSL or not${EOL}`
+      + `${l2Indent}Value: ${this.useHttps}${EOL}`
       + `${indent}key${EOL}`
       + `${l2Indent}Description: Optional path to the key file; required for https:// and HTTP/2${EOL}`
       + `${l2Indent}Value: ${this.key}${EOL}`

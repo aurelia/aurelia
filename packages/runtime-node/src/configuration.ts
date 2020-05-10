@@ -9,6 +9,7 @@ const defaultOpts: IHttpServerOptions = {
   root: './',
   level: LogLevel.info,
   useHttp2: false,
+  useHttps: false,
 };
 
 export const RuntimeNodeConfiguration = {

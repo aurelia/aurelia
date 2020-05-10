@@ -21,6 +21,7 @@ export interface IHttpServerOptions {
   readonly hostName: string;
   readonly level: LogLevel;
   readonly useHttp2: boolean;
+  readonly useHttps: boolean;
   readonly key?: string;
   readonly cert?: string;
 }

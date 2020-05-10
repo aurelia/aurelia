@@ -1,6 +1,7 @@
-import { Server, createServer, IncomingMessage, ServerResponse } from 'http';
 import { readFileSync } from 'fs';
-import { Http2Server as $Http2Server, createSecureServer, Http2ServerRequest, Http2ServerResponse, constants } from 'http2';
+import { Server, createServer, IncomingMessage, ServerResponse, RequestListener } from 'http';
+import * as https from 'https';
+import { Http2Server as $Http2Server, createSecureServer, Http2ServerRequest, Http2ServerResponse } from 'http2';
 
 import { ILogger, bound, all, IContainer } from '@aurelia/kernel';
 import { IHttpServer, IHttpServerOptions, IRequestHandler, StartOutput, IHttp2FileServer } from './interfaces';
@@ -27,10 +28,13 @@ export class HttpServer implements IHttpServer {
   public async start(): Promise<StartOutput> {
     this.logger.debug(`start()`);
 
-    const { hostName, port } = this.opts;
+    const { hostName, port, useHttps, key, cert } = this.opts;
 
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    const server = this.server = createServer(this.handleRequest).listen(port, hostName);
+    const server = this.server = (
+      useHttps
+        ? https.createServer({ key: readFileSync(key!), cert: readFileSync(cert!) }, this.handleRequest as RequestListener)
+        : createServer(this.handleRequest as RequestListener)
+    ).listen(port, hostName);
     await new Promise(resolve => server.on('listening', resolve));
 
     const { address, port: realPort } = this.server.address() as AddressInfo;

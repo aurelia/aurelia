@@ -55,7 +55,8 @@
     "test/navigation-skeleton/app",
     "test/rainbow-spiral",
     "test/realworld",
-    "test/sierpinski-triangle"
+    "test/sierpinski-triangle",
+    "examples/jit-webpack-vanilla-ts"
   ],
   "version": "0.6.0"
 }

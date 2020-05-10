@@ -30,8 +30,8 @@ export class HttpServer implements IHttpServer {
     const { hostName, port } = this.opts;
 
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    this.server = createServer(this.handleRequest).listen(port, hostName);
-    await new Promise(resolve => this.server!.on('listening', resolve));
+    const server = this.server = createServer(this.handleRequest).listen(port, hostName);
+    await new Promise(resolve => server.on('listening', resolve));
 
     const { address, port: realPort } = this.server.address() as AddressInfo;
     this.logger.info(`Now listening on ${address}:${realPort} (configured: ${hostName}:${port})`);
@@ -40,7 +40,7 @@ export class HttpServer implements IHttpServer {
   }
 
   public async stop(): Promise<void> {
-    this.logger.debug(`start()`);
+    this.logger.debug(`stop()`);
 
     await new Promise(resolve => this.server!.close(resolve));
   }
@@ -85,16 +85,16 @@ export class Http2Server implements IHttpServer {
   public async start(): Promise<StartOutput> {
     this.logger.debug(`start()`);
 
-    const { hostName, port, certPath, keyPath } = this.opts;
+    const { hostName, port, cert, key } = this.opts;
 
     const server = this.server = createSecureServer(
       {
-        key: readFileSync(keyPath!),
-        cert: readFileSync(certPath!)
+        key: readFileSync(key!),
+        cert: readFileSync(cert!)
       },
       this.handleRequest // Do we need this at all?
     ).listen(port, hostName);
-    await new Promise(resolve => server!.on('listening', resolve));
+    await new Promise(resolve => server.on('listening', resolve));
 
     const { address, port: realPort } = server.address() as AddressInfo;
     this.logger.info(`Now listening on ${address}:${realPort} (configured: ${hostName}:${port})`);
@@ -103,7 +103,7 @@ export class Http2Server implements IHttpServer {
   }
 
   public async stop(): Promise<void> {
-    this.logger.debug(`start()`);
+    this.logger.debug(`stop()`);
 
     await new Promise(resolve => this.server!.close(resolve));
   }
@@ -111,6 +111,7 @@ export class Http2Server implements IHttpServer {
   @bound
   private handleRequest(req: Http2ServerRequest, res: Http2ServerResponse): void {
     this.logger.info(`handleRequest(url=${req.url})`);
+    this.logger.info(JSON.stringify(req.headers, undefined, 2));
 
     try {
       // const buffer = await readBuffer(req); // TODO handle this later

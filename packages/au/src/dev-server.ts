@@ -1,28 +1,6 @@
-import { RuntimeNodeConfiguration, normalizePath, IHttpServer, IHttpServerOptions } from '@aurelia/runtime-node';
-import { ILogger, IContainer, LogLevel, DI } from '@aurelia/kernel';
-
-export interface IDevServerConfig {
-  readonly entryFile: string;
-  readonly scratchDir: string;
-  readonly wipeScratchDir?: boolean;
-  readonly logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal' | 'none';
-  readonly useHttp2: boolean;
-  readonly keyPath?: string;
-  readonly certPath?: string;
-}
-
-export function getLogLevel(str: IDevServerConfig['logLevel']): LogLevel {
-  switch (str) {
-    case 'trace': return LogLevel.trace;
-    case 'debug': return LogLevel.debug;
-    case 'info': return LogLevel.info;
-    case 'warn': return LogLevel.warn;
-    case 'error': return LogLevel.error;
-    case 'fatal': return LogLevel.fatal;
-    case 'none': return LogLevel.none;
-  }
-  return LogLevel.info;
-}
+import { DI, IContainer } from '@aurelia/kernel';
+import { IHttpServer, RuntimeNodeConfiguration } from '@aurelia/runtime-node';
+import { AuServerOptions } from './au-configuration-options';
 
 export class DevServer {
   public constructor(
@@ -34,23 +12,11 @@ export class DevServer {
     return new DevServer(container);
   }
 
-  public async run({
-    entryFile,
-    scratchDir,
-    logLevel,
-    keyPath,
-    certPath,
-    useHttp2
-  }: IDevServerConfig): Promise<void> {
-
-    entryFile = normalizePath(entryFile);
-    scratchDir = normalizePath(scratchDir);
+  public async run(option: AuServerOptions): Promise<void> {
 
     // wireup
     const container = this.container.createChild();
-    container.register(RuntimeNodeConfiguration.create(this.getNodeConfigurationOptions(logLevel, scratchDir, useHttp2, keyPath, certPath)));
-    const logger = container.get(ILogger);
-    logger.info(`Starting test runner with scratchDir ${scratchDir} and entryFile ${entryFile}`);
+    container.register(RuntimeNodeConfiguration.create(option.toNodeHttpServerOptions()));
 
     // TODO compile/bundle
     // TODO inject the entry script to index.html template (from user-space)
@@ -58,26 +24,5 @@ export class DevServer {
     // start the http/file/websocket server
     const server = container.get(IHttpServer);
     await server.start();
-  }
-
-  protected getNodeConfigurationOptions(
-    logLevel: IDevServerConfig['logLevel'],
-    scratchDir: string,
-    useHttp2: boolean,
-    keyPath?: string,
-    certPath?: string,
-  ): Partial<IHttpServerOptions> {
-    if (useHttp2 && !(keyPath && certPath)) {
-      throw new Error(`keyPath and certPath are required for a HTTP/2 server`);
-    }
-
-    return {
-      port: useHttp2 ? 443 : 0,
-      level: getLogLevel(logLevel),
-      root: scratchDir,
-      useHttp2,
-      keyPath: keyPath ? normalizePath(keyPath) : void 0,
-      certPath: certPath ? normalizePath(certPath) : void 0,
-    };
   }
 }

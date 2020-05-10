@@ -1,70 +1,90 @@
 import { DebugConfiguration } from '@aurelia/debug';
+import { existsSync } from 'fs';
 import { resolve } from 'path';
-import { IDevServerConfig, DevServer } from "./dev-server";
+import { AuConfigurationOptions, LogLevel } from './au-configuration-options';
+import { DevServer } from "./dev-server";
+export { AuConfigurationOptions, LogLevel };
 
-interface DevCommandArgs extends IDevServerConfig {
-  cmd: 'dev';
+type AuCommands = 'help' | 'dev';
+
+class ParsedArgs {
+  public constructor(
+    public cmd: AuCommands,
+    public configuration: AuConfigurationOptions,
+    public unknownCommand: string | undefined = undefined,
+    public unconsumedArgs: string[] = [],
+  ) { }
 }
-type ParsedArgs = DevCommandArgs;
 
-// TODO gather this from config file from user-space
-const keyMap = {
-  entryfile: 'entryFile',
-  scratchdir: 'scratchDir',
-  usehttp2: 'useHttp2',
-  keypath: 'keyPath',
-  certpath: 'certPath',
-} as const;
-
-function parseArgs(args: readonly string[]): ParsedArgs {
+const cwd = process.cwd();
+function parseArgs(args: string[]): ParsedArgs {
   const cmd = args[0];
   args = args.slice(1);
 
+  const configuration: AuConfigurationOptions = new AuConfigurationOptions();
   if (args.length % 2 === 1) {
-    throw new Error(`Uneven amount of args: ${args}. Args must come in pairs of --key value`);
-  }
-
-  switch (cmd) {
-    case 'dev': {
-      const parsed = {
-        cmd,
-        entryFile: '',
-        scratchDir: '',
-        keyPath: '',
-        certPath: '',
-        useHttp2: false
-      };
-      for (let i = 0, ii = args.length; i < ii; i += 2) {
-        let key = args[i].trim().replace(/-/g, '').toLowerCase();
-        if (!(key in keyMap)) {
-          throw new Error(`Unknown key: ${key}. Possible keys are: ${Object.keys(keyMap)}`);
-        }
-
-        key = keyMap[key as keyof typeof keyMap];
-        switch (key) {
-          case 'entryFile':
-            parsed.entryFile = resolve(process.cwd(), args[i + 1]);
-            break;
-          case 'scratchDir':
-            parsed.scratchDir = resolve(process.cwd(), args[i + 1]);
-            break;
-          case 'keyPath':
-            parsed.keyPath = resolve(process.cwd(), args[i + 1]);
-            break;
-          case 'certPath':
-            parsed.certPath = resolve(process.cwd(), args[i + 1]);
-            break;
-          case 'useHttp2':
-            parsed.useHttp2 = args[i + 1] === 'true';
-            break;
-        }
-      }
-
-      return parsed;
+    // check for configuration file
+    const configurationFile = resolve(cwd, args[0]);
+    if (!existsSync(configurationFile)) {
+      throw new Error(`Configuration file is missing or uneven amount of args: ${args}. Args must come in pairs of --key value`);
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports,@typescript-eslint/no-var-requires
+      configuration.applyConfig(require(configurationFile));
+      args = args.slice(1);
     }
   }
 
-  throw new Error(`Unknown command: ${cmd}`);
+  let parsed: ParsedArgs;
+  switch (cmd) {
+    case 'help':
+      parsed = new ParsedArgs(cmd, new AuConfigurationOptions());
+      break;
+    case 'dev': {
+      parsed = new ParsedArgs(cmd, configuration);
+      const server = configuration.server;
+      while (args.length > 0) {
+        const key = args[0].trim().replace(/-/g, '');
+        const value = args[1];
+        switch (key) {
+          case 'server.root':
+            server.root = resolve(cwd, value);
+            break;
+          case 'server.hostName':
+            server.hostName = value;
+            break;
+          case 'server.port':
+            server.port = Number(value);
+            break;
+          case 'server.key':
+            server.key = resolve(cwd, value);
+            break;
+          case 'server.cert':
+            server.cert = resolve(cwd, value);
+            break;
+          case 'server.useHttp2':
+            server.useHttp2 = value === 'true';
+            break;
+          case 'server.logLevel':
+            server.logLevel = value as unknown as LogLevel;
+            break;
+          default:
+            parsed.unconsumedArgs.push(key, value);
+            break;
+        }
+        args.splice(0, 2);
+      }
+      break;
+    }
+    default:
+      parsed = new ParsedArgs('help', new AuConfigurationOptions(), cmd);
+      break;
+  }
+
+  const unconsumed = parsed.unconsumedArgs;
+  if (unconsumed.length > 0) {
+    console.warn(`Following arguments are not consumed ${unconsumed.join(',')}`);
+  }
+  return parsed;
 }
 
 (async function () {
@@ -74,7 +94,15 @@ function parseArgs(args: readonly string[]): ParsedArgs {
   switch (args.cmd) {
     case 'dev': {
       const server = DevServer.create();
-      await server.run(args);
+      await server.run(args.configuration.server);
+      break;
+    }
+    case 'help': {
+      const unknownCommand = args.unknownCommand;
+      if (unknownCommand !== void 0) {
+        console.error(`Unknown command: ${unknownCommand}; Refer the valid options below.`);
+      }
+      console.log(args.configuration.toString());
       break;
     }
   }

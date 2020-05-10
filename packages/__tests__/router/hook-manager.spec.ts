@@ -5,19 +5,25 @@ import {
   ViewportInstruction,
   RouterConfiguration,
   IRouter,
+  Router,
 } from '@aurelia/router';
 import { assert, TestContext } from '@aurelia/testing';
 import { CustomElement, Aurelia, IScheduler } from '@aurelia/runtime';
 import { DebugConfiguration } from '@aurelia/debug';
-import { LoggerConfiguration, LogLevel } from '@aurelia/kernel';
+import { TestRouterConfiguration } from './configuration';
 
 describe('HookManager', function () {
   this.timeout(5000);
 
-  async function createFixture(config?, App?, dependencies: any[] = [], stateSpy?) {
+  async function createFixture(
+    config?,
+    App?,
+    dependencies: any[] = [],
+    stateSpy?: (type: 'push' | 'replace', data: {}, title: string, path: string) => void,
+  ) {
     const ctx = TestContext.createHTMLTestContext();
     const { container, scheduler, doc, wnd } = ctx;
-    container.register(LoggerConfiguration.create(ctx.wnd.console, LogLevel.debug));
+    container.register(TestRouterConfiguration.for(ctx));
 
     let path = wnd.location.href;
     const hash = path.indexOf('#');
@@ -40,7 +46,7 @@ describe('HookManager', function () {
         App)
       .app({ host: host, component: App });
 
-    const router = container.get(IRouter);
+    const router = container.get(IRouter) as Router;
     const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
 
     await au.start().wait();
@@ -57,27 +63,34 @@ describe('HookManager', function () {
     return { au, container, scheduler, host, router, tearDown, navigationInstruction, viewportInstructions };
   }
 
-  function spyNavigationStates(router, spy) {
+  function spyNavigationStates(
+    router: Router,
+    spy: (type: 'push' | 'replace', data: {}, title: string, path: string) => void,
+  ) {
     let _pushState;
     let _replaceState;
     if (spy) {
-      _pushState = router.navigation.history.pushState;
-      router.navigation.history.pushState = function (data, title, path) {
+      _pushState = router['history'].pushState;
+      router['history'].pushState = function (data, title, path) {
         spy('push', data, title, path);
-        _pushState.call(router.navigation.history, data, title, path);
+        _pushState.call(router['history'], data, title, path);
       };
-      _replaceState = router.navigation.history.replaceState;
-      router.navigation.history.replaceState = function (data, title, path) {
+      _replaceState = router['history'].replaceState;
+      router['history'].replaceState = function (data, title, path) {
         spy('replace', data, title, path);
-        _replaceState.call(router.navigation.history, data, title, path);
+        _replaceState.call(router['history'], data, title, path);
       };
     }
     return { _pushState, _replaceState };
   }
-  function unspyNavigationStates(router, _push, _replace) {
+  function unspyNavigationStates(
+    router: Router,
+    _push: (data: {}, title: string, path: string) => void,
+    _replace: (data: {}, title: string, path: string) => void,
+  ) {
     if (_push) {
-      router.navigation.history.pushState = _push;
-      router.navigation.history.replaceState = _replace;
+      router['history'].pushState = _push;
+      router['history'].replaceState = _replace;
     }
   }
   const $goto = async (path: string, router: IRouter, scheduler: IScheduler) => {

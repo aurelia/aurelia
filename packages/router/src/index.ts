@@ -53,25 +53,6 @@ export {
 } from './nav';
 
 export {
-  IStoredNavigatorEntry,
-  INavigatorEntry,
-  INavigatorOptions,
-  INavigatorFlags,
-  INavigatorState,
-  INavigatorStore,
-  INavigatorViewer,
-  INavigatorViewerEvent,
-  NavigatorViewerState,
-  Navigator,
-} from './navigator';
-
-export {
-  QueueItem,
-  IQueueOptions,
-  Queue,
-} from './queue';
-
-export {
   RouteRecognizer,
   IConfigurableRoute,
   ConfigurableRoute,
@@ -87,17 +68,20 @@ export {
   IRouterOptions,
   IRouter,
   Router,
+  IStoredNavigatorEntry,
+  INavigatorEntry,
+  INavigatorFlags,
+  INavigatorState,
+  INavigatorStore,
+  INavigatorViewer,
+  INavigatorViewerEvent,
+  NavigatorViewerState,
 } from './router';
 
 export {
   IStateManager,
   ScrollStateManager,
 } from './state-manager';
-
-export {
-  QueueTask,
-  TaskQueue,
-} from './task-queue';
 
 export {
   NavigationInstructionResolver,

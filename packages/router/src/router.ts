@@ -8,6 +8,7 @@ import {
   IContainer,
   Registration,
   IIndexable,
+  bound,
 } from '@aurelia/kernel';
 import {
   Aurelia,
@@ -30,14 +31,10 @@ import {
   ComponentAppellation,
   ViewportHandle,
   ComponentParameters,
+  IWindow,
+  IHistory,
+  ILocation,
 } from './interfaces';
-import {
-  INavigatorEntry,
-  INavigatorOptions,
-  IStoredNavigatorEntry,
-  Navigator,
-} from './navigator';
-import { QueueItem } from './queue';
 import { NavigationInstructionResolver, IViewportInstructionsOptions } from './type-resolvers';
 import { arrayRemove } from './utils';
 import { IViewportOptions, Viewport } from './viewport';
@@ -56,7 +53,6 @@ import {
 import { Scope, IScopeOwner } from './scope';
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
 import { IRouterEvents } from './router-events';
-import { BrowserViewerStore } from './browser-viewer-store';
 import { INavClasses } from './resources/nav';
 import { Nav, INavRoute } from './nav';
 import { LinkHandler, AnchorEventInfo } from './link-handler';
@@ -71,7 +67,7 @@ export interface IGotoOptions {
   origin?: ICustomElementViewModel | Node;
 }
 
-export interface IRouterOptions extends INavigatorOptions {
+export interface IRouterOptions {
   separators?: IRouteSeparators;
   useUrlFragmentHash?: boolean;
   useHref?: boolean;
@@ -80,7 +76,93 @@ export interface IRouterOptions extends INavigatorOptions {
   useConfiguredRoutes?: boolean;
   hooks?: IHookDefinition[];
 }
+export interface INavigatorStore {
+  readonly length: number;
+  readonly state: Record<string, unknown> | null;
+  go(delta?: number, suppressPopstate?: boolean): Promise<void>;
+  pushNavigatorState(state: INavigatorState): void;
+  replaceNavigatorState(state: INavigatorState): void;
+  popNavigatorState(): Promise<void>;
+}
 
+export interface INavigatorViewer {
+  activate(options: {}): void;
+  deactivate(): void;
+}
+
+export class NavigatorViewerState {
+  private constructor(
+    public readonly path: string,
+    public readonly query: string,
+    public readonly hash: string,
+    public readonly instruction: string,
+  ) {}
+
+  public static fromLocation(
+    location: {
+      pathname: string;
+      search: string;
+      hash: string;
+    },
+    useUrlFragmentHash: boolean,
+  ): NavigatorViewerState {
+    return new NavigatorViewerState(
+      location.pathname,
+      location.search,
+      location.hash,
+      useUrlFragmentHash ? location.hash.slice(1) : location.pathname,
+    );
+  }
+}
+
+export interface INavigatorViewerEvent extends NavigatorViewerState {
+  state?: INavigatorState;
+}
+
+export interface IStoredNavigatorEntry {
+  instruction: string | ViewportInstruction[];
+  fullStateInstruction: string | ViewportInstruction[];
+  scope?: Scope | null;
+  index?: number;
+  firstEntry?: boolean; // Index might change to not require first === 0, firstEntry should be reliable
+  route?: IRoute;
+  path?: string;
+  title?: string;
+  query?: string;
+  parameters?: Record<string, unknown>;
+  data?: Record<string, unknown>;
+}
+
+export interface INavigatorEntry extends IStoredNavigatorEntry {
+  fromBrowser?: boolean;
+  replacing?: boolean;
+  refreshing?: boolean;
+  repeating?: boolean;
+  untracked?: boolean;
+  historyMovement?: number;
+  resolve?: ((value?: void | PromiseLike<void>) => void);
+  reject?: ((value?: void | PromiseLike<void>) => void);
+}
+
+export interface INavigatorFlags {
+  first?: boolean;
+  new?: boolean;
+  refresh?: boolean;
+  forward?: boolean;
+  back?: boolean;
+  replace?: boolean;
+}
+
+export interface INavigatorState {
+  state?: Record<string, unknown>;
+  entries: IStoredNavigatorEntry[];
+  currentEntry: IStoredNavigatorEntry;
+}
+
+interface IForwardedState {
+  resolve: (() => void) | null;
+  suppressPopstate: boolean;
+}
 export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x.singleton(Router));
 export interface IRouter {
   readonly isNavigating: boolean;
@@ -89,14 +171,12 @@ export interface IRouter {
   readonly activeRoute?: IRoute;
   readonly container: IContainer;
   readonly instructionResolver: InstructionResolver;
-  navigator: Navigator;
   readonly stateManager: IStateManager;
   readonly hookManager: HookManager;
   readonly options: IRouterOptions;
 
   readonly statefulHistory: boolean;
 
-  readonly navigation: BrowserViewerStore;
   readonly linkHandler: LinkHandler;
   readonly navs: Readonly<Record<string, Nav>>;
 
@@ -199,6 +279,11 @@ export class Router implements IRouter {
     useDirectRoutes: true,
     useConfiguredRoutes: true,
   };
+
+  private currentEntry: INavigatorInstruction;
+  private entries: IStoredNavigatorEntry[] = [];
+  private readonly uninitializedEntry: INavigatorInstruction;
+
   private isActive: boolean = false;
   private loadedFirst: boolean = false;
 
@@ -210,13 +295,20 @@ export class Router implements IRouter {
     @IContainer public readonly container: IContainer,
     @IRouterEvents public readonly events: IRouterEvents,
     @IScheduler public readonly scheduler: IScheduler,
-    public navigator: Navigator,
+    @IWindow public readonly window: IWindow,
+    @IHistory public readonly history: IHistory,
+    @ILocation public readonly location: ILocation,
     public instructionResolver: InstructionResolver,
     public hookManager: HookManager,
     @IStateManager public readonly stateManager: IStateManager,
-    public navigation: BrowserViewerStore,
     public linkHandler: LinkHandler,
-  ) {}
+  ) {
+    this.uninitializedEntry = {
+      instruction: 'NAVIGATOR UNINITIALIZED',
+      fullStateInstruction: '',
+    };
+    this.currentEntry = this.uninitializedEntry;
+  }
 
   public get isNavigating(): boolean {
     return this.processingNavigation !== null;
@@ -233,6 +325,7 @@ export class Router implements IRouter {
 
     this.isActive = true;
     this.options = {
+      useUrlFragmentHash: true,
       ...this.options,
       ...options
     };
@@ -244,18 +337,8 @@ export class Router implements IRouter {
       separators: this.options.separators,
     });
 
-    this.navigator.activate(this, {
-      store: this.navigation,
-      statefulHistoryLength: this.options.statefulHistoryLength,
-      serializeCallback: this.statefulHistory ? this.navigatorSerializeCallback : void 0,
-    });
-
     this.linkHandler.activate({
       useHref: this.options.useHref,
-    });
-
-    this.navigation.activate({
-      useUrlFragmentHash: this.options.useUrlFragmentHash,
     });
 
     this.events.subscribe('au:router:link-click', (info: AnchorEventInfo) => {
@@ -264,25 +347,21 @@ export class Router implements IRouter {
       this.goto(instruction, { origin: info.anchor! }).catch(error => { throw error; });
     });
 
-    this.events.subscribe('au:router:navigate', (instruction: INavigatorInstruction) => {
-      this.scheduler.queueMicroTask(async () => {
-        await this.processNavigations(instruction);
-      }, { async: true });
-    });
+    this.window.addEventListener('popstate', this.handlePopstate);
 
     this.ensureRootScope();
   }
 
   public async loadUrl(): Promise<void> {
     const entry: INavigatorEntry = {
-      ...this.navigation.viewerState,
+      ...this.viewerState,
       ...{
         fullStateInstruction: '',
         replacing: true,
         fromBrowser: false,
       }
     };
-    const result = this.navigator.navigate(entry);
+    const result = this.navigate(entry);
     this.loadedFirst = true;
     return result;
   }
@@ -292,10 +371,9 @@ export class Router implements IRouter {
       throw new Error('Router has not been activated');
     }
 
-    this.navigator.deactivate();
     this.linkHandler.deactivate();
-    this.navigation.deactivate();
     this.events.unsubscribeAll();
+    this.window.removeEventListener('popstate', this.handlePopstate);
   }
 
   public setNav(name: string, routes: INavRoute[], classes?: INavClasses): void {
@@ -587,7 +665,90 @@ export class Router implements IRouter {
       this.lastNavigation.repeating = false;
     }
     this.processingNavigation = null;
-    await this.navigator.finalize(instruction);
+    await this.finalize(instruction);
+  }
+
+  private async finalize(instruction: INavigatorInstruction): Promise<void> {
+    this.currentEntry = instruction;
+    let index = this.currentEntry.index !== undefined ? this.currentEntry.index : 0;
+    if (this.currentEntry.untracked) {
+      if (instruction.fromBrowser) {
+        await this.popNavigatorState();
+      }
+      index--;
+      this.currentEntry.index = index;
+      this.entries[index] = this.toStoredEntry(this.currentEntry);
+      await this.saveState();
+    } else if (this.currentEntry.replacing) {
+      this.entries[index] = this.toStoredEntry(this.currentEntry);
+      await this.saveState();
+    } else { // New entry (add and discard later entries)
+      if (this.statefulHistory !== void 0 && this.options.statefulHistoryLength! > 0) {
+        // Need to clear the instructions we discard!
+        const indexPreserve = this.entries.length - this.options.statefulHistoryLength!;
+        for (const entry of this.entries.slice(index)) {
+          if (typeof entry.instruction !== 'string' || typeof entry.fullStateInstruction !== 'string') {
+            await this.navigatorSerializeCallback(entry, this.entries.slice(indexPreserve, index));
+          }
+        }
+      }
+      this.entries = this.entries.slice(0, index);
+      this.entries.push(this.toStoredEntry(this.currentEntry));
+      await this.saveState(true);
+    }
+    if (this.currentEntry.resolve) {
+      this.currentEntry.resolve();
+    }
+  }
+
+  private async saveState(push: boolean = false): Promise<void> {
+    if (this.currentEntry === this.uninitializedEntry) {
+      return;
+    }
+    const storedEntry = this.toStoredEntry(this.currentEntry);
+    this.entries[storedEntry.index !== undefined ? storedEntry.index : 0] = storedEntry;
+
+    if (this.statefulHistory && this.options.statefulHistoryLength! > 0) {
+      const index = this.entries.length - this.options.statefulHistoryLength!;
+      for (let i = 0; i < index; i++) {
+        const entry = this.entries[i];
+        if (typeof entry.instruction !== 'string' || typeof entry.fullStateInstruction !== 'string') {
+          this.entries[i] = await this.navigatorSerializeCallback(entry, this.entries.slice(index));
+        }
+      }
+    }
+
+    const state: INavigatorState = {
+      entries: [],
+      currentEntry: { ...this.toStoreableEntry(storedEntry) },
+    };
+    for (const entry of this.entries) {
+      state.entries.push(this.toStoreableEntry(entry));
+    }
+
+    if (push) {
+      this.pushNavigatorState(state);
+    } else {
+      this.replaceNavigatorState(state);
+    }
+  }
+
+  private toStoredEntry(entry: INavigatorInstruction): IStoredNavigatorEntry {
+    const {
+      previous,
+      fromBrowser,
+      replacing,
+      refreshing,
+      untracked,
+      historyMovement,
+      navigation,
+      scope,
+
+      resolve,
+      reject,
+
+      ...storableEntry } = entry;
+    return storableEntry;
   }
 
   public findScope(origin: Node | ICustomElementViewModel | Viewport | Scope | ICustomElementController | null): Scope {
@@ -710,7 +871,7 @@ export class Router implements IRouter {
     return (this.rootScope as ViewportScope).scope.allViewports(includeDisabled, includeReplaced);
   }
 
-  public goto(
+  public async goto(
     instructions: NavigationInstruction | NavigationInstruction[],
     options?: IGotoOptions,
   ): Promise<void> {
@@ -733,7 +894,7 @@ export class Router implements IRouter {
       instructions = NavigationInstructionResolver.toViewportInstructions(this, instructions);
       this.appendInstructions(instructions as ViewportInstruction[], scope);
       // Can't return current navigation promise since it can lead to deadlock in enter
-      return Promise.resolve();
+      return;
     }
 
     const entry: INavigatorEntry = {
@@ -747,19 +908,109 @@ export class Router implements IRouter {
       repeating: options.append,
       fromBrowser: false,
     };
-    return this.navigator.navigate(entry);
+    await this.navigate(entry);
   }
 
-  public refresh(): Promise<void> {
-    return this.navigator.refresh();
+  public async refresh(): Promise<void> {
+    const entry = this.currentEntry;
+    if (entry === this.uninitializedEntry) {
+      return;
+    }
+    entry.replacing = true;
+    entry.refreshing = true;
+    await this.navigate(entry);
   }
 
-  public back(): Promise<void> {
-    return this.navigator.go(-1);
+  public async back(): Promise<void> {
+    const newIndex = (this.currentEntry.index !== undefined ? this.currentEntry.index : 0) - 1;
+    if (newIndex >= this.entries.length) {
+      return;
+    }
+    const entry = this.entries[newIndex];
+    await this.navigate(entry);
   }
 
-  public forward(): Promise<void> {
-    return this.navigator.go(1);
+  public async forward(): Promise<void> {
+    const newIndex = (this.currentEntry.index !== undefined ? this.currentEntry.index : 0) + 1;
+    if (newIndex >= this.entries.length) {
+      return;
+    }
+    const entry = this.entries[newIndex];
+    await this.navigate(entry);
+  }
+
+  private async navigate(entry: INavigatorInstruction): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/promise-function-async
+    await this.scheduler.queueRenderTask(() => this.$navigate(entry), { async: true }).result;
+  }
+
+  private getState(): INavigatorState {
+    const state = this.state ?? {};
+    const entries = (state.entries || []) as IStoredNavigatorEntry[];
+    const currentEntry = (state.currentEntry || this.uninitializedEntry) as IStoredNavigatorEntry;
+    return { state, entries, currentEntry };
+  }
+
+  private loadState(): void {
+    const state = this.getState();
+    this.entries = state.entries;
+    this.currentEntry = state.currentEntry;
+  }
+
+  private async $navigate(entry: INavigatorInstruction): Promise<void> {
+    const promise = new Promise<void>((resolve, reject) => {
+      entry.resolve = resolve;
+      entry.reject = reject;
+    });
+
+    const navigationFlags: INavigatorFlags = {};
+
+    if (this.currentEntry === this.uninitializedEntry) { // Refresh or first entry
+      this.loadState();
+      if (this.currentEntry !== this.uninitializedEntry) {
+        navigationFlags.refresh = true;
+      } else {
+        navigationFlags.first = true;
+        navigationFlags.new = true;
+        // TODO: Should this really be created here? Shouldn't it be in the viewer?
+        this.currentEntry = {
+          index: 0,
+          instruction: '',
+          fullStateInstruction: '',
+          // path: this.options.viewer.getPath(true),
+          // fromBrowser: null,
+        };
+        this.entries = [];
+      }
+    }
+
+    if (entry.index !== void 0 && !entry.replacing && !entry.refreshing) { // History navigation
+      entry.historyMovement = entry.index - (this.currentEntry.index !== void 0 ? this.currentEntry.index : 0);
+      entry.instruction = this.entries[entry.index] !== void 0 && this.entries[entry.index] !== null ? this.entries[entry.index].fullStateInstruction : entry.fullStateInstruction;
+      entry.replacing = true;
+      if (entry.historyMovement > 0) {
+        navigationFlags.forward = true;
+      } else if (entry.historyMovement < 0) {
+        navigationFlags.back = true;
+      }
+    } else if (entry.refreshing || navigationFlags.refresh) { // Refreshing
+      entry.index = this.currentEntry.index;
+    } else if (entry.replacing) { // Replacing
+      navigationFlags.replace = true;
+      navigationFlags.new = true;
+      entry.index = this.currentEntry.index;
+    } else { // New entry
+      navigationFlags.new = true;
+      entry.index = this.currentEntry.index !== void 0 ? this.currentEntry.index + 1 : this.entries.length;
+    }
+
+    entry.navigation = navigationFlags;
+    entry.previous = this.currentEntry;
+
+    // eslint-disable-next-line @typescript-eslint/promise-function-async
+    this.scheduler.queueMicroTask(() => this.processNavigations(entry), { async: true });
+
+    await promise;
   }
 
   public checkActive(instructions: ViewportInstruction[]): boolean {
@@ -952,15 +1203,28 @@ export class Router implements IRouter {
 
   private async cancelNavigation(
     updatedScopeOwners: IScopeOwner[],
-    qInstruction: QueueItem<INavigatorInstruction>,
+    qInstruction: INavigatorInstruction,
   ): Promise<void> {
     // TODO: Take care of disabling viewports when cancelling and stateful!
     updatedScopeOwners.forEach((viewport) => {
       viewport.abortContentChange().catch(error => { throw error; });
     });
-    await this.navigator.cancel(qInstruction as INavigatorInstruction);
+    await this.cancel(qInstruction as INavigatorInstruction);
     this.processingNavigation = null;
     (qInstruction.resolve as ((value: void | PromiseLike<void>) => void))();
+  }
+
+  private async cancel(instruction: INavigatorInstruction): Promise<void> {
+    if (instruction.fromBrowser) {
+      if (instruction.navigation && instruction.navigation.new) {
+        await this.popNavigatorState();
+      } else {
+        await this.go(-(instruction.historyMovement || 0), true);
+      }
+    }
+    if (this.currentEntry.resolve) {
+      this.currentEntry.resolve();
+    }
   }
 
   private ensureRootScope(): ViewportScope {
@@ -1055,6 +1319,97 @@ export class Router implements IRouter {
     }
 
     return null;
+  }
+
+  private toStoreableEntry(entry: IStoredNavigatorEntry): IStoredNavigatorEntry {
+    const storeable: IStoredNavigatorEntry = { ...entry };
+    if (storeable.instruction && typeof storeable.instruction !== 'string') {
+      storeable.instruction = this.instructionResolver.stringifyViewportInstructions(storeable.instruction);
+    }
+    if (storeable.fullStateInstruction && typeof storeable.fullStateInstruction !== 'string') {
+      storeable.fullStateInstruction = this.instructionResolver.stringifyViewportInstructions(storeable.fullStateInstruction);
+    }
+    return storeable;
+  }
+
+  private get state(): Record<string, unknown> | null {
+    // TODO: this cast is not necessarily safe. Either we should do some type checks (and throw on "invalid" state?), or otherwise ensure (e.g. with replaceState) that it's always an object.
+    return this.history.state as Record<string, unknown> | null;
+  }
+
+  private get viewerState(): NavigatorViewerState {
+    return NavigatorViewerState.fromLocation(this.location, this.options.useUrlFragmentHash === true);
+  }
+
+  private forwardedState: IForwardedState = { resolve: null, suppressPopstate: false };
+  private async go(delta: number, suppressPopstate: boolean = false): Promise<void> {
+    const promise = new Promise(resolve => {
+      this.forwardedState = {
+        resolve,
+        suppressPopstate,
+      };
+    });
+
+    this.history.go(delta);
+
+    await promise;
+  }
+
+  private pushNavigatorState(state: INavigatorState): void {
+    const { title, path } = state.currentEntry;
+    const fragment = this.options.useUrlFragmentHash ? '#/' : '';
+
+    this.history.pushState(state, title ?? '', `${fragment}${path}`);
+  }
+
+  private replaceNavigatorState(state: INavigatorState): void {
+    const { title, path } = state.currentEntry;
+    const fragment = this.options.useUrlFragmentHash ? '#/' : '';
+
+    this.history.replaceState(state, title ?? '', `${fragment}${path}`);
+  }
+
+  private async popNavigatorState(): Promise<void> {
+    const promise = new Promise(resolve => {
+      this.forwardedState = {
+        resolve,
+        suppressPopstate: true,
+      };
+    });
+
+    this.history.go(-1);
+
+    await promise;
+  }
+
+  @bound
+  public handlePopstate(event: PopStateEvent): void {
+    const {
+      resolve,
+      suppressPopstate,
+    } = this.forwardedState;
+
+    this.forwardedState = {
+      resolve: null,
+      suppressPopstate: false,
+    };
+
+    if (!suppressPopstate) {
+      const browserNavigationEvent: INavigatorViewerEvent = {
+        ...this.viewerState,
+        ...{
+          event,
+          state: this.history.state as INavigatorState,
+        },
+      };
+      const entry: INavigatorEntry = browserNavigationEvent.state?.currentEntry ?? { instruction: '', fullStateInstruction: '' };
+      entry.instruction = browserNavigationEvent.instruction;
+      entry.fromBrowser = true;
+      this.navigate(entry).catch(error => { throw error; });
+      if (resolve !== null) {
+        resolve();
+      }
+    }
   }
 }
 

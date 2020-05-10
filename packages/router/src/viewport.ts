@@ -1,8 +1,7 @@
 import { Reporter } from '@aurelia/kernel';
 import { LifecycleFlags, CustomElement, IHydratedController, ICustomElementController } from '@aurelia/runtime';
 import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, ReentryBehavior, IRoute, RouteableComponentType } from './interfaces';
-import { INavigatorFlags } from './navigator';
-import { IRouter } from './router';
+import { IRouter, INavigatorFlags } from './router';
 import { arrayRemove } from './utils';
 import { ViewportContent } from './viewport-content';
 import { ViewportInstruction } from './viewport-instruction';

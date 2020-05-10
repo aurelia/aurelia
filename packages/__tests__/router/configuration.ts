@@ -14,7 +14,7 @@ export const TestRouterConfiguration = {
           Registration.instance(IHistory, mockBrowserHistoryLocation),
           Registration.instance(ILocation, mockBrowserHistoryLocation),
           StartTask.with(IRouter).beforeRender().call(router => {
-            mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate;
+            mockBrowserHistoryLocation.changeCallback = router['handlePopstate'];
           }),
         );
       },

@@ -32,7 +32,6 @@ export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal' |
 // However, keeping these 2 separate offers bit more flexibility to CLI.
 // Merging the two is probably more appropriate.
 export class AuServerOptions implements Omit<IHttpServerOptions, 'level'> {
-  [key: string]: any;
   public constructor(
     public root: string = './public/',
     public hostName: string = '0.0.0.0',
@@ -47,7 +46,7 @@ export class AuServerOptions implements Omit<IHttpServerOptions, 'level'> {
   public applyConfig(config: Partial<AuServerOptions>) {
     // non-nested object-tree is expected.
     for (const [key, value] of Object.entries(config)) {
-      this[key] = value;
+      (this as any)[key] = value;
     }
   }
 
@@ -95,7 +94,8 @@ export class AuServerOptions implements Omit<IHttpServerOptions, 'level'> {
       + `${l2Indent}Value: ${this.cert}${EOL}`
       + `${indent}logLevel${EOL}`
       + `${l2Indent}Description: Log level used by the HTTP server${EOL}`
-      + `${l2Indent}Value: ${this.logLevel}${EOL}`;
+      + `${l2Indent}Value: ${this.logLevel}${EOL}`
+      ;
   }
 
   private get serverLogLevel(): $LogLevel {

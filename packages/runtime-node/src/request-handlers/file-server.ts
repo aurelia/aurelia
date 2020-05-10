@@ -2,21 +2,30 @@ import { statSync, openSync, readdirSync } from 'fs';
 import { IncomingMessage, ServerResponse } from 'http';
 import { ServerHttp2Stream, constants, Http2ServerRequest, Http2ServerResponse, OutgoingHttpHeaders } from 'http2';
 import * as url from 'url';
-import { join, resolve, relative } from 'path';
+import { join, resolve, relative, extname } from 'path';
 
 import { ILogger } from '@aurelia/kernel';
 
 import { IRequestHandler, IHttpServerOptions, /* IFileSystem, */ Encoding, IHttp2FileServer } from '../interfaces';
 import { IHttpContext, HttpContextState } from '../http-context';
-import { getContentType, HTTPStatusCode } from '../http-utils';
-import { readFile, isReadable } from "../file-utils";
+import { getContentType, HTTPStatusCode, QualifiedHeaderValues, Headers, getContentEncoding, ContentEncoding } from '../http-utils';
+import { readFile, isReadable, exists } from "../file-utils";
 
 const {
   HTTP2_HEADER_PATH,
   HTTP2_HEADER_CONTENT_LENGTH,
   HTTP2_HEADER_LAST_MODIFIED,
   HTTP2_HEADER_CONTENT_TYPE,
+  HTTP2_HEADER_ACCEPT_ENCODING,
+  HTTP2_HEADER_CONTENT_ENCODING,
 } = constants;
+
+const contentEncodingExtensionMap = {
+  br: '.br',
+  gzip: '.gz',
+  compress: '.lzw'
+};
+const compressedFileExtensions: Set<string> = new Set(Object.values(contentEncodingExtensionMap));
 
 export class FileServer implements IRequestHandler {
   private readonly root: string;
@@ -45,11 +54,31 @@ export class FileServer implements IRequestHandler {
     if (await isReadable(path)) {
       this.logger.debug(`Serving file "${path}"`);
 
-      const content = await readFile(path, Encoding.utf8);
       const contentType = getContentType(path);
+      const clientEncoding = determineContentEncoding(request.headers);
+
+      let contentEncoding: ContentEncoding = (void 0)!;
+      let content: string = (void 0)!;
+      if (
+        clientEncoding === 'br'
+        || clientEncoding === 'gzip'
+        || clientEncoding === 'compress'
+      ) {
+        const compressedFile = `${path}${contentEncodingExtensionMap[clientEncoding]}`;
+        if (await exists(compressedFile)) {
+          content = await readFile(compressedFile, Encoding.utf8);
+          contentEncoding = getContentEncoding(compressedFile);
+        }
+      }
+      // handles 'identity' and 'deflate' (as no specific extension is known, and on-the-fly compression might be expensive)
+      if (contentEncoding === void 0 || content === void 0) {
+        content = await readFile(path, Encoding.utf8);
+        contentEncoding = getContentEncoding(path);
+      }
 
       response.writeHead(HTTPStatusCode.OK, {
         'Content-Type': contentType,
+        'Content-Encoding': contentEncoding,
       });
 
       await new Promise(function (resolve) {
@@ -101,7 +130,8 @@ export class Http2FileServer implements IHttp2FileServer {
     const parsedPath = parsedUrl.path!;
     const path = join(this.root, parsedPath);
 
-    const file = this.filePushMap.get(parsedPath);
+    const contentEncoding = determineContentEncoding(request.headers);
+    const file = this.getPushInfo(parsedPath, contentEncoding);
 
     if (file !== void 0) {
       this.logger.debug(`Serving file "${path}"`);
@@ -109,7 +139,7 @@ export class Http2FileServer implements IHttp2FileServer {
       const stream = response.stream;
       // TODO make this configurable
       if (parsedPath === '/index.html') {
-        this.pushAll(stream);
+        this.pushAll(stream, contentEncoding);
       }
 
       stream.respondWithFD(file.fd, file.headers);
@@ -123,22 +153,10 @@ export class Http2FileServer implements IHttp2FileServer {
     context.state = HttpContextState.end;
   }
 
-  private getFile(path: string) {
-    const stat = statSync(path);
-    return new PushInfo(
-      openSync(path, 'r'),
-      {
-        [HTTP2_HEADER_CONTENT_LENGTH]: stat.size,
-        [HTTP2_HEADER_LAST_MODIFIED]: stat.mtime.toUTCString(),
-        [HTTP2_HEADER_CONTENT_TYPE]: getContentType(path)
-      }
-    );
-  }
-
-  private pushAll(stream: ServerHttp2Stream) {
-    for (const [path, info] of this.filePushMap) {
-      if (!path.endsWith('index.html')) {
-        this.push(stream, path, info);
+  private pushAll(stream: ServerHttp2Stream, contentEncoding: string) {
+    for (const path of this.filePushMap.keys()) {
+      if (!path.endsWith('index.html') && !compressedFileExtensions.has(extname(path))) {
+        this.push(stream, path, this.getPushInfo(path, contentEncoding)!);
       }
     }
   }
@@ -158,17 +176,53 @@ export class Http2FileServer implements IHttp2FileServer {
       const path = join(root, item);
       const stats = statSync(path);
       if (stats.isFile()) {
-        this.filePushMap.set(`/${relative(this.root, path)}`, this.getFile(path));
+        this.filePushMap.set(`/${relative(this.root, path)}`, PushInfo.create(path));
       } else {
         this.prepare(path);
       }
     }
   }
+
+  private getPushInfo(path: string, contentEncoding: string) {
+    if (
+      contentEncoding === 'br'
+      || contentEncoding === 'gzip'
+      || contentEncoding === 'compress'
+    ) {
+      const info = this.filePushMap.get(`${path}${contentEncodingExtensionMap[contentEncoding]}`);
+      if (info !== void 0) { return info; }
+    }
+    // handles 'identity' and 'deflate' (as no specific extension is known, and on-the-fly compression might be expensive)
+    return this.filePushMap.get(path);
+  }
 }
 
 class PushInfo {
+  public static create(path: string) {
+    const stat = statSync(path);
+    return new PushInfo(
+      openSync(path, 'r'),
+      {
+        [HTTP2_HEADER_CONTENT_LENGTH]: stat.size,
+        [HTTP2_HEADER_LAST_MODIFIED]: stat.mtime.toUTCString(),
+        [HTTP2_HEADER_CONTENT_TYPE]: getContentType(path),
+        [HTTP2_HEADER_CONTENT_ENCODING]: getContentEncoding(path),
+      }
+    );
+  }
   public constructor(
     public fd: number,
     public headers: OutgoingHttpHeaders,
   ) { }
+}
+
+function determineContentEncoding(headers: Headers) {
+  const clientEncoding = new QualifiedHeaderValues(HTTP2_HEADER_ACCEPT_ENCODING, headers);
+
+  // if brotli compression is supported return `br`
+  if (clientEncoding.isAccepted('br')) {
+    return 'br';
+  }
+  // else return the highest prioritized content
+  return clientEncoding.mostPrioritized?.name ?? 'identity';
 }

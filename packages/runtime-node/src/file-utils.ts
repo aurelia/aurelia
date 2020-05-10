@@ -2,7 +2,7 @@ import {
   readFile as $readFile,
   constants,
   access,
-  exists,
+  exists as $exists,
   mkdir as $mkdir,
   lstat,
   readdir as $readdir,
@@ -40,11 +40,13 @@ export async function isReadable(path: string): Promise<boolean> {
 
 export async function ensureDir(path: string): Promise<void> {
 
-  if (await new Promise<boolean>(res => { exists(path, res); })) {
-    return;
-  }
+  if (await exists(path)) { return; }
 
   return mkdir(path);
+}
+
+export async function exists(path: string) {
+  return new Promise<boolean>(res => { $exists(path, res); });
 }
 
 export async function mkdir(path: string): Promise<void> {

@@ -1,6 +1,6 @@
 import { Server, createServer, IncomingMessage, ServerResponse } from 'http';
 import { readFileSync } from 'fs';
-import { Http2Server as $Http2Server, createSecureServer, Http2ServerRequest, Http2ServerResponse } from 'http2';
+import { Http2Server as $Http2Server, createSecureServer, Http2ServerRequest, Http2ServerResponse, constants } from 'http2';
 
 import { ILogger, bound, all, IContainer } from '@aurelia/kernel';
 import { IHttpServer, IHttpServerOptions, IRequestHandler, StartOutput, IHttp2FileServer } from './interfaces';
@@ -111,7 +111,6 @@ export class Http2Server implements IHttpServer {
   @bound
   private handleRequest(req: Http2ServerRequest, res: Http2ServerResponse): void {
     this.logger.info(`handleRequest(url=${req.url})`);
-    this.logger.info(JSON.stringify(req.headers, undefined, 2));
 
     try {
       // const buffer = await readBuffer(req); // TODO handle this later

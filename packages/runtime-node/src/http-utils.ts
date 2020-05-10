@@ -1,5 +1,5 @@
-import * as http from 'http';
-import { Http2ServerRequest } from 'http2';
+import { IncomingMessage, IncomingHttpHeaders } from 'http';
+import { Http2ServerRequest, IncomingHttpHeaders as IncomingHttp2Headers } from 'http2';
 
 export const enum HTTPStatusCode {
   SwitchingProtocols = 101,
@@ -31,6 +31,14 @@ export const enum ContentType {
   css = 'text/css; charset=utf-8',
 }
 
+export const enum ContentEncoding {
+  identity = 'identity',
+  br = 'br',
+  gzip = 'gzip',
+  compress = 'compress',
+  // deflate = 'deflate', // Need to deal with this later. No known fixed file extension for deflate
+}
+
 export class HTTPError extends Error {
   public readonly statusCode: number;
 
@@ -41,7 +49,7 @@ export class HTTPError extends Error {
   }
 }
 
-export async function readBuffer(req: http.IncomingMessage | Http2ServerRequest): Promise<Buffer> {
+export async function readBuffer(req: IncomingMessage | Http2ServerRequest): Promise<Buffer> {
   let totalLength: number = 0;
   const chunks: Buffer[] = [];
 
@@ -73,4 +81,73 @@ export function getContentType(path: string): ContentType {
   }
 
   return ContentType.plain;
+}
+
+export function getContentEncoding(path: string): ContentEncoding {
+  const i = path.lastIndexOf('.');
+  if (i >= 0) {
+    switch (path.slice(i)) {
+      case '.br': return ContentEncoding.br;
+      case '.gz': return ContentEncoding.gzip;
+      case '.lzw': return ContentEncoding.compress;
+    }
+  }
+
+  return ContentEncoding.identity;
+}
+
+export type Headers = IncomingHttpHeaders | IncomingHttp2Headers;
+
+export class QualifiedHeaderValues {
+
+  public headerName: string;
+  public readonly mostPrioritized: { name: string; q: number } | undefined;
+  private readonly parsedMap: Map<string, number>;
+
+  public constructor(
+    headerName: string,
+    headers: Headers
+  ) {
+    this.headerName = headerName.toLowerCase();
+    const rawValue: string = (headers[headerName] ?? headers[this.headerName]) as string;
+    const parsedMap = this.parsedMap = new Map<string, number>();
+
+    // TODO handle the partial values such as `text/html;q=0.8,text/*;q=0.8,*/*;q=0.8`, `*`, or `*;q=0.8`
+    /**
+     * Example:
+     * Header-Name: value1
+     * Header-Name: value1, value2, value3
+     * Header-Name: value1, value2;q=[0-1], value3;q=[0-1]
+     */
+
+    for (const item of rawValue.split(',')) {
+      // TODO validate the `value` against a set of acceptable values.
+      const [value, q] = item.trim().split(';');
+      let qValue = 1;
+      if (q !== void 0) {
+        const rawQValue = q.substring(2);
+        qValue = Number(rawQValue);
+        if (Number.isNaN(qValue) || qValue < 0 || qValue > 1) {
+          throw new Error(`Invalid qValue ${rawQValue} for ${value} in ${headerName} header`);
+        }
+      }
+      parsedMap.set(value, qValue);
+      if (this.mostPrioritized === void 0 || this.mostPrioritized.q < qValue) {
+        this.mostPrioritized = { name: value, q: qValue };
+      }
+    }
+  }
+
+  public isAccepted(value: string) {
+    const qValue = this.parsedMap.get(value);
+    if (qValue !== void 0) {
+      return qValue !== 0;
+    }
+    return this.parsedMap.has('*'); // TODO handle this properly
+  }
+
+  public getQValueFor(value: string) {
+    const qValue = this.parsedMap.get(value);
+    return qValue ?? 0;
+  }
 }

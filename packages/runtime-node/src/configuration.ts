@@ -8,7 +8,7 @@ const defaultOpts: IHttpServerOptions = {
   port: 8080,
   root: './',
   level: LogLevel.info,
-  useHttp2: false
+  useHttp2: false,
 };
 
 export const RuntimeNodeConfiguration = {

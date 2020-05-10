@@ -58,7 +58,7 @@ export class FileServer implements IRequestHandler {
       const clientEncoding = determineContentEncoding(request.headers);
 
       let contentEncoding: ContentEncoding = (void 0)!;
-      let content: string = (void 0)!;
+      let content: any = (void 0)!;
       if (
         clientEncoding === 'br'
         || clientEncoding === 'gzip'
@@ -66,13 +66,13 @@ export class FileServer implements IRequestHandler {
       ) {
         const compressedFile = `${path}${contentEncodingExtensionMap[clientEncoding]}`;
         if (await exists(compressedFile)) {
-          content = await readFile(compressedFile, Encoding.utf8);
+          content = await readFile(compressedFile);
           contentEncoding = getContentEncoding(compressedFile);
         }
       }
       // handles 'identity' and 'deflate' (as no specific extension is known, and on-the-fly compression might be expensive)
       if (contentEncoding === void 0 || content === void 0) {
-        content = await readFile(path, Encoding.utf8);
+        content = await readFile(path);
         contentEncoding = getContentEncoding(path);
       }
 

@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.7.0"></a>
+# 0.7.0 (2020-05-08)
+
+### Features:
+
+* **custom-attr:** add no multi bindings cfg ([4daa950](https://github.com/aurelia/aurelia/commit/4daa950))
+
+
+### Bug Fixes:
+
+* **computed-observer:** better efficiency & works in basic array scenarios ([ad12769](https://github.com/aurelia/aurelia/commit/ad12769))
+
 <a name="0.6.0"></a>
 # 0.6.0 (2019-12-18)
 

@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.7.0"></a>
+# 0.7.0 (2020-05-08)
+
+### Features:
+
+* **plugin-conventions:** support customized element name in customElement ([ed51357](https://github.com/aurelia/aurelia/commit/ed51357))
+
+
+### Bug Fixes:
+
+* ***:** update conventions to use latest shadowCSS and cssModules ([bcbbe77](https://github.com/aurelia/aurelia/commit/bcbbe77))
+
 <a name="0.6.0"></a>
 # 0.6.0 (2019-12-18)
 

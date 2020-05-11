@@ -56,7 +56,12 @@
     "test/rainbow-spiral",
     "test/realworld",
     "test/sierpinski-triangle",
-    "examples/jit-webpack-vanilla-ts"
+    "test/router-layouts",
+    "test/router-modules",
+    "test/router-nav",
+    "test/router-scope",
+    "test/router-siblings",
+    "test/router-wizard"
   ],
-  "version": "0.6.0"
+  "version": "0.7.0"
 }

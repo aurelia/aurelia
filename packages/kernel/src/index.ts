@@ -69,6 +69,9 @@ export {
 export {
   metadata,
   Metadata,
+  isNullOrUndefined,
+  isObject,
+  applyMetadataPolyfill,
 } from '@aurelia/metadata';
 export {
   IConsoleLike,
@@ -134,7 +137,5 @@ export {
   mergeObjects,
   firstDefined,
   getPrototypeChain,
-  isObject,
-  isNullOrUndefined,
   isNativeFunction,
 } from './functions';

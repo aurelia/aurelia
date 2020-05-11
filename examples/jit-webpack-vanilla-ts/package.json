@@ -10,7 +10,9 @@
   "scripts": {
     "watch": "webpack-dev-server --no-inline",
     "build": "rimraf dist && webpack",
-    "serve": "http-server -c-1 -p 9000 dist"
+    "serve": "http-server -c-1 -p 9000 dist",
+    "start:au": "node -r esm ../../packages/au/dist/esnext/index.js dev au.conf.js",
+    "start:au1": "node -r esm ../../packages/au/dist/esnext/index.js dev --server.root ./dist/ --server.port 443 --server.useHttp2 true --server.key ./ssl/key.pem --server.cert ./ssl/cert.pem"
   },
   "dependencies": {
     "@aurelia/debug": "dev",
@@ -31,6 +33,9 @@
   },
   "devDependencies": {
     "@types/node": "^12.12.21",
+    "au": "0.6.0",
+    "clean-webpack-plugin": "^3.0.0",
+    "compression-webpack-plugin": "^3.1.0",
     "html-loader": "^0.5.5",
     "html-webpack-plugin": "latest",
     "http-server": "0.9.0",

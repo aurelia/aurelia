@@ -3,11 +3,10 @@ import { CustomElementType, ICustomElementController } from '@aurelia/runtime';
 import { IRoute, ComponentAppellation, INavigatorInstruction } from './interfaces';
 import { FoundRoute } from './found-route';
 import { IRouter } from './router';
-import { ViewportInstruction } from './viewport-instruction';
+import { ViewportInstruction, ViewportInstructionCollection } from './viewport-instruction';
 import { NavigationInstructionResolver } from './type-resolvers';
 import { Viewport, IViewportOptions } from './viewport';
 import { arrayRemove } from './utils';
-import { Collection } from './collection';
 import { IConfigurableRoute, RouteRecognizer } from './route-recognizer';
 
 export interface IFindViewportsResult {
@@ -171,7 +170,7 @@ export class Scope {
       availableViewports[instruction.viewportName!] = null;
     }
 
-    const viewportInstructions = new Collection<ViewportInstruction>(...instructions.slice());
+    const viewportInstructions = ViewportInstructionCollection.from(instructions);
     let instruction: ViewportInstruction | null = null;
 
     // The viewport scope is already known

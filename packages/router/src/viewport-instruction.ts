@@ -7,12 +7,38 @@ import { Viewport } from './viewport';
 import { IComponentParameter, InstructionResolver } from './instruction-resolver';
 import { Scope, IScopeOwner } from './scope';
 import { ViewportScope } from './viewport-scope';
+import { arrayRemove } from './utils';
 
 export const enum ParametersType {
   none = 'none',
   string = 'string',
   array = 'array',
   object = 'object',
+}
+
+export class ViewportInstructionCollection extends Array<ViewportInstruction> {
+  private currentIndex: number = -1;
+
+  public next(): ViewportInstruction | null {
+    if (this.length > this.currentIndex + 1) {
+      return this[++this.currentIndex];
+    } else {
+      this.currentIndex = -1;
+      return null;
+    }
+  }
+
+  public removeCurrent(): void {
+    this.splice(this.currentIndex--, 1);
+  }
+
+  public remove(instruction?: ViewportInstruction): void {
+    arrayRemove(this, value => value === instruction);
+  }
+
+  public static from(instructions: readonly ViewportInstruction[]): ViewportInstructionCollection {
+    return new ViewportInstructionCollection(...instructions.slice());
+  }
 }
 
 export class ViewportInstruction {

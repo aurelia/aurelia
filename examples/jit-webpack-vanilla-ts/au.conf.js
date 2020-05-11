@@ -1,6 +1,6 @@
 // @ts-check
 
-/** @type{import('au').AuConfigurationOptions} */
+/** @type {import('au').AuConfigurationOptions} */
 module.exports = {
   server: {
     root: './dist/',

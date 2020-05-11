@@ -67,6 +67,9 @@ function parseArgs(args: string[]): ParsedArgs {
           case 'server.logLevel':
             server.logLevel = value as unknown as LogLevel;
             break;
+          case 'server.responseCacheControl':
+            server.responseCacheControl = value;
+            break;
           default:
             parsed.unconsumedArgs.push(key, value);
             break;

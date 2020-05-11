@@ -18,6 +18,7 @@ const {
   HTTP2_HEADER_CONTENT_TYPE,
   HTTP2_HEADER_ACCEPT_ENCODING,
   HTTP2_HEADER_CONTENT_ENCODING,
+  HTTP2_HEADER_CACHE_CONTROL
 } = constants;
 
 const contentEncodingExtensionMap = {
@@ -29,6 +30,7 @@ const compressedFileExtensions: Set<string> = new Set(Object.values(contentEncod
 
 export class FileServer implements IRequestHandler {
   private readonly root: string;
+  private readonly cacheControlDirective: string;
 
   public constructor(
     @IHttpServerOptions
@@ -36,6 +38,7 @@ export class FileServer implements IRequestHandler {
     @ILogger
     private readonly logger: ILogger,
   ) {
+    this.cacheControlDirective = this.opts.responseCacheControl ?? 'no-store';
     this.logger = logger.root.scopeTo('FileServer');
 
     this.root = resolve(opts.root);
@@ -83,6 +86,7 @@ export class FileServer implements IRequestHandler {
       response.writeHead(HTTPStatusCode.OK, {
         'Content-Type': contentType,
         'Content-Encoding': contentEncoding,
+        'Cache-Control': this.cacheControlDirective
       });
 
       await new Promise(function (resolve) {
@@ -109,6 +113,7 @@ export class FileServer implements IRequestHandler {
  */
 export class Http2FileServer implements IHttp2FileServer {
 
+  private readonly cacheControlDirective: string;
   private readonly root: string;
   private readonly filePushMap: Map<string, PushInfo> = new Map<string, PushInfo>();
 
@@ -118,7 +123,8 @@ export class Http2FileServer implements IHttp2FileServer {
     @ILogger
     private readonly logger: ILogger,
   ) {
-    this.logger = logger.root.scopeTo('FileServer');
+    this.cacheControlDirective = this.opts.responseCacheControl ?? 'no-store';
+    this.logger = logger.root.scopeTo('Http2FileServer');
 
     this.root = resolve(opts.root);
     this.prepare();
@@ -179,11 +185,12 @@ export class Http2FileServer implements IHttp2FileServer {
   }
 
   private prepare(root = this.opts.root) {
+    const cacheControlDirective = this.cacheControlDirective;
     for (const item of readdirSync(root)) {
       const path = join(root, item);
       const stats = statSync(path);
       if (stats.isFile()) {
-        this.filePushMap.set(`/${relative(this.root, path)}`, PushInfo.create(path));
+        this.filePushMap.set(`/${relative(this.root, path)}`, PushInfo.create(path, cacheControlDirective));
       } else {
         this.prepare(path);
       }
@@ -205,7 +212,7 @@ export class Http2FileServer implements IHttp2FileServer {
 }
 
 class PushInfo {
-  public static create(path: string) {
+  public static create(path: string, cacheControlDirective: string) {
     const stat = statSync(path);
     return new PushInfo(
       openSync(path, 'r'),
@@ -214,6 +221,7 @@ class PushInfo {
         [HTTP2_HEADER_LAST_MODIFIED]: stat.mtime.toUTCString(),
         [HTTP2_HEADER_CONTENT_TYPE]: getContentType(path),
         [HTTP2_HEADER_CONTENT_ENCODING]: getContentEncoding(path),
+        [HTTP2_HEADER_CACHE_CONTROL]: cacheControlDirective
       }
     );
   }

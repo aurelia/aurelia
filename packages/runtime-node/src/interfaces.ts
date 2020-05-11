@@ -24,6 +24,7 @@ export interface IHttpServerOptions {
   readonly useHttps: boolean;
   readonly key?: string;
   readonly cert?: string;
+  readonly responseCacheControl?: string;
 }
 
 export class StartOutput {

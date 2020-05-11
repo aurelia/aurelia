@@ -1,6 +1,5 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const CompressionPlugin = require('compression-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 module.exports = function (env, { mode }) {
@@ -29,23 +28,6 @@ module.exports = function (env, { mode }) {
     plugins: [
       new CleanWebpackPlugin(),
       new HtmlWebpackPlugin({ template: 'index.ejs' }),
-      new CompressionPlugin({
-        filename: '[path].br[query]',
-        algorithm: 'brotliCompress',
-        test: /\.(js|css|svg)$/,
-        compressionOptions: {
-          // zlib’s `level` option matches Brotli’s `BROTLI_PARAM_QUALITY` option.
-          level: 11,
-        },
-        threshold: 10240,
-        minRatio: 0.8,
-        deleteOriginalAssets: false,
-      }),
-      new CompressionPlugin({
-        filename: '[path].gz[query]',
-        test: /\.(js|css|svg)$/,
-        deleteOriginalAssets: false,
-      }),
     ]
   };
 };

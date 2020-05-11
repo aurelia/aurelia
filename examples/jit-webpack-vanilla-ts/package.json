@@ -35,7 +35,6 @@
     "@types/node": "^12.12.21",
     "au": "0.6.0",
     "clean-webpack-plugin": "^3.0.0",
-    "compression-webpack-plugin": "^3.1.0",
     "html-loader": "^0.5.5",
     "html-webpack-plugin": "latest",
     "http-server": "0.9.0",

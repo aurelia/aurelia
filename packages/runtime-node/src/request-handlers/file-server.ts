@@ -6,7 +6,7 @@ import { join, resolve, relative, extname } from 'path';
 
 import { ILogger } from '@aurelia/kernel';
 
-import { IRequestHandler, IHttpServerOptions, /* IFileSystem, */ Encoding, IHttp2FileServer } from '../interfaces';
+import { IRequestHandler, IHttpServerOptions, IHttp2FileServer } from '../interfaces';
 import { IHttpContext, HttpContextState } from '../http-context';
 import { getContentType, HTTPStatusCode, QualifiedHeaderValues, Headers, getContentEncoding, ContentEncoding } from '../http-utils';
 import { readFile, isReadable, exists } from "../file-utils";

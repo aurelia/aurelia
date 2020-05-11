@@ -8,6 +8,7 @@ import { parseQuery } from './parser';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 import { IStateManager } from './state-manager';
+import { createViewportInstruction } from './instruction-resolver';
 
 export const enum ContentStatus {
   none = 0,
@@ -122,7 +123,7 @@ export class ViewportContent {
       return result;
     }
     if (typeof result === 'string') {
-      return [viewport.router.createViewportInstruction(result, viewport)];
+      return [createViewportInstruction(result, viewport)];
     }
     return result as Promise<ViewportInstruction[]>;
   }

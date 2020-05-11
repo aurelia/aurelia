@@ -1,5 +1,5 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { IRouter, RouterConfiguration } from '@aurelia/router';
+import { IRouter, RouterConfiguration, InstructionResolver } from '@aurelia/router';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import { TestRouterConfiguration } from './configuration';
@@ -70,7 +70,7 @@ describe('Nav', function () {
   it('generates nav with an active link', async function () {
     this.timeout(5000);
     const { host, router, tearDown, scheduler } = await createFixture('bar');
-    router.activeComponents = [router.createViewportInstruction('baz', 'main-viewport')];
+    router.activeComponents = [InstructionResolver.createViewportInstruction('baz', 'main-viewport')];
 
     await scheduler.yieldAll();
 
@@ -82,7 +82,7 @@ describe('Nav', function () {
   it('generates nav with child links', async function () {
     this.timeout(5000);
     const { host, router, tearDown, scheduler } = await createFixture('qux');
-    router.activeComponents =[router.createViewportInstruction('baz', 'main-viewport')];
+    router.activeComponents = [InstructionResolver.createViewportInstruction('baz', 'main-viewport')];
 
     await scheduler.yieldAll();
 

@@ -1,4 +1,4 @@
-import { IRouter, ViewportContent, ScrollStateManager } from '@aurelia/router';
+import { IRouter, ViewportContent, ScrollStateManager, InstructionResolver } from '@aurelia/router';
 import { CustomElement } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import { TestRouterConfiguration } from './configuration';
@@ -27,7 +27,7 @@ describe('ViewportContent', function () {
       const { container, router } = $setup([Local]);
 
       container.register(Global);
-      const viewport = new ViewportContent(router.stateManager, router.createViewportInstruction('global'), null, router.container);
+      const viewport = new ViewportContent(router.stateManager, InstructionResolver.createViewportInstruction('global'), null, router.container);
       assert.strictEqual(viewport.toComponentName(), 'global', `viewport.toComponentName()`);
     });
     it('resolves component name from type', function () {
@@ -36,7 +36,7 @@ describe('ViewportContent', function () {
       const { container, router } = $setup([Local]);
 
       container.register(Global);
-      const viewport = new ViewportContent(router.stateManager, router.createViewportInstruction('global'), null, router.container);
+      const viewport = new ViewportContent(router.stateManager, InstructionResolver.createViewportInstruction('global'), null, router.container);
       assert.strictEqual(viewport.toComponentName(), 'global', `viewport.toComponentName()`);
     });
 
@@ -46,7 +46,7 @@ describe('ViewportContent', function () {
       const { container, router } = $setup([Local]);
 
       container.register(Global);
-      const viewport = new ViewportContent(router.stateManager, router.createViewportInstruction('global'), null, router.container);
+      const viewport = new ViewportContent(router.stateManager, InstructionResolver.createViewportInstruction('global'), null, router.container);
       assert.strictEqual(viewport.toComponentType(router.container), Global, `viewport.toComponentType(router.container)`);
     });
     it('resolves component type from type', function () {
@@ -55,7 +55,7 @@ describe('ViewportContent', function () {
       const { container, router } = $setup([Local]);
 
       container.register(Global);
-      const viewport = new ViewportContent(router.stateManager, router.createViewportInstruction(Global), null, router.container);
+      const viewport = new ViewportContent(router.stateManager, InstructionResolver.createViewportInstruction(Global), null, router.container);
       assert.strictEqual(viewport.toComponentType(router.container), Global, `viewport.toComponentType(router.container)`);
     });
 
@@ -65,7 +65,7 @@ describe('ViewportContent', function () {
       const { container, router } = $setup([Local]);
 
       container.register(Global);
-      const viewport = new ViewportContent(router.stateManager, router.createViewportInstruction('global'), null, router.container);
+      const viewport = new ViewportContent(router.stateManager, InstructionResolver.createViewportInstruction('global'), null, router.container);
       const component = viewport.toComponentInstance(router.container);
       assert.strictEqual(component.constructor, Global, `component.constructor`);
     });
@@ -77,7 +77,7 @@ describe('ViewportContent', function () {
       container.register(Global);
       // Registration.aliasTo(CustomElement.keyFrom('global'), Global).register(container);
 
-      const viewport = new ViewportContent(router.stateManager, router.createViewportInstruction(Global), null, router.container);
+      const viewport = new ViewportContent(router.stateManager, InstructionResolver.createViewportInstruction(Global), null, router.container);
       const component = viewport.toComponentInstance(router.container);
       assert.strictEqual(component.constructor, Global, `component.constructor`);
     });

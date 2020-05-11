@@ -4,7 +4,7 @@ import { ComponentAppellation, ComponentParameters, IRouteableComponent, Routeab
 import { IRouter } from './router';
 import { ComponentAppellationResolver } from './type-resolvers';
 import { Viewport } from './viewport';
-import { IComponentParameter, InstructionResolver } from './instruction-resolver';
+import { IComponentParameter, parseComponentParameters, stringifyComponentParameters } from './instruction-resolver';
 import { Scope, IScopeOwner } from './scope';
 import { ViewportScope } from './viewport-scope';
 import { arrayRemove } from './utils';
@@ -60,8 +60,6 @@ export class ViewportInstruction {
 
   public default: boolean = false;
 
-  private instructionResolver: InstructionResolver | null = null;
-
   public constructor(
     component: ComponentAppellation,
     viewport?: ViewportHandle,
@@ -92,14 +90,11 @@ export class ViewportInstruction {
   }
 
   public get parameters(): IComponentParameter[] {
-    if (this.instructionResolver !== null) {
-      return this.instructionResolver.parseComponentParameters(this.typedParameters);
-    }
-    return [];
+    return parseComponentParameters(this.typedParameters);
   }
   public get normalizedParameters(): string {
-    if (this.instructionResolver !== null && this.typedParameters !== null) {
-      return this.instructionResolver.stringifyComponentParameters(this.parameters);
+    if (this.typedParameters !== null) {
+      return stringifyComponentParameters(this.parameters);
     }
     return '';
   }
@@ -160,9 +155,6 @@ export class ViewportInstruction {
       throw new Error('Can\'t add object parameters to existing non-object parameters!');
     }
     this.setParameters({ ...this.parametersRecord, ...parameters });
-  }
-  public setInstructionResolver(instructionResolver: InstructionResolver): void {
-    this.instructionResolver = instructionResolver;
   }
 
   public isEmpty(): boolean {

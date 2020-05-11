@@ -34,39 +34,39 @@ describe('Configuration', function () {
     return { au, container, lifecycle, host, router, ctx, tearDown };
   }
 
-  it('can be activated with defaults', async function () {
-    this.timeout(5000);
+  // it('can be activated with defaults', async function () {
+  //   this.timeout(5000);
 
-    const { router, tearDown } = await createFixture();
-    assert.strictEqual(router['isActive'], true, `router.isActive`);
-    assert.strictEqual(router.instructionResolver.separators.viewport, '@', `router.instructionResolver.separators.viewport`);
+  //   const { router, tearDown } = await createFixture();
+  //   assert.strictEqual(router['isActive'], true, `router.isActive`);
+  //   assert.strictEqual(router.instructionResolver.separators.viewport, '@', `router.instructionResolver.separators.viewport`);
 
-    await tearDown();
-  });
+  //   await tearDown();
+  // });
 
-  it('can be activated with config object', async function () {
-    this.timeout(5000);
+  // it('can be activated with config object', async function () {
+  //   this.timeout(5000);
 
-    const { router, tearDown } = await createFixture({ separators: { viewport: '#' } });
-    assert.strictEqual(router['isActive'], true, `router.isActive`);
-    assert.strictEqual(router.instructionResolver.separators.viewport, '#', `router.instructionResolver.separators.viewport`);
+  //   const { router, tearDown } = await createFixture({ separators: { viewport: '#' } });
+  //   assert.strictEqual(router['isActive'], true, `router.isActive`);
+  //   assert.strictEqual(router.instructionResolver.separators.viewport, '#', `router.instructionResolver.separators.viewport`);
 
-    RouterConfiguration.customize();
-    await tearDown();
-  });
+  //   RouterConfiguration.customize();
+  //   await tearDown();
+  // });
 
-  it('can be activated with config function', async function () {
-    this.timeout(5000);
+  // it('can be activated with config function', async function () {
+  //   this.timeout(5000);
 
-    const { router, tearDown } = await createFixture((router) => {
-      router.activate({ separators: { viewport: '%' } });
-    });
-    assert.strictEqual(router['isActive'], true, `router.isActive`);
-    assert.strictEqual(router.instructionResolver.separators.viewport, '%', `router.instructionResolver.separators.viewport`);
+  //   const { router, tearDown } = await createFixture((router) => {
+  //     router.activate({ separators: { viewport: '%' } });
+  //   });
+  //   assert.strictEqual(router['isActive'], true, `router.isActive`);
+  //   assert.strictEqual(router.instructionResolver.separators.viewport, '%', `router.instructionResolver.separators.viewport`);
 
-    RouterConfiguration.customize();
-    await tearDown();
-  });
+  //   RouterConfiguration.customize();
+  //   await tearDown();
+  // });
 
   it('is awaitable at start up', async function () {
     this.timeout(5000);

@@ -6,6 +6,7 @@ import {
 } from './interfaces';
 import { ViewportInstruction } from './viewport-instruction';
 import { ComponentAppellationResolver, NavigationInstructionResolver } from './type-resolvers';
+import { stringifyViewportInstructions, flattenViewportInstructions } from './instruction-resolver';
 
 export class NavRoute {
   public instructions: ViewportInstruction[] = [];
@@ -30,7 +31,7 @@ export class NavRoute {
 
     if (route.route) {
       this.instructions = this.parseRoute(route.route);
-      this.link = this.computeLink(this.instructions);
+      this.link = stringifyViewportInstructions(this.instructions);
     }
     this.linkActive = route.consideredActive !== null && route.consideredActive !== void 0 ? route.consideredActive : this.link;
     if (this.linkActive !== null && (!(this.linkActive instanceof Function) || ComponentAppellationResolver.isType(this.linkActive as RouteableComponentType))) {
@@ -82,17 +83,13 @@ export class NavRoute {
       return (this.linkActive as ((route: NavRoute) => boolean))(this) ? 'nav-active' : '';
     }
     const components = this.linkActive as ViewportInstruction[];
-    const activeComponents = this.nav.router.instructionResolver.flattenViewportInstructions(this.nav.router.activeComponents);
+    const activeComponents = flattenViewportInstructions(this.nav.router.activeComponents);
     for (const component of components) {
       if (activeComponents.every((active) => !active.sameComponent(component, this.compareParameters && component.typedParameters !== null))) {
         return '';
       }
     }
     return 'nav-active';
-  }
-
-  private computeLink(instructions: ViewportInstruction[]): string {
-    return this.nav.router.instructionResolver.stringifyViewportInstructions(instructions);
   }
 
   private activeChild(): boolean {

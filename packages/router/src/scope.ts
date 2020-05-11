@@ -8,6 +8,7 @@ import { NavigationInstructionResolver } from './type-resolvers';
 import { Viewport, IViewportOptions } from './viewport';
 import { arrayRemove } from './utils';
 import { IConfigurableRoute, RouteRecognizer } from './route-recognizer';
+import { isAddViewportInstruction, cloneViewportInstructions } from './instruction-resolver';
 
 export interface IFindViewportsResult {
   foundViewports: ViewportInstruction[];
@@ -175,7 +176,7 @@ export class Scope {
 
     // The viewport scope is already known
     while ((instruction = viewportInstructions.next()) !== null) {
-      if (instruction.viewportScope !== null && !this.router.instructionResolver.isAddViewportInstruction(instruction)) {
+      if (instruction.viewportScope !== null && !isAddViewportInstruction(instruction)) {
         remainingInstructions.push(...this.foundViewportScope(instruction, instruction.viewportScope));
         foundViewports.push(instruction);
         arrayRemove(availableViewportScopes, available => available === instruction!.viewportScope);
@@ -202,7 +203,7 @@ export class Scope {
           if (Array.isArray(viewportScope.source)) {
             // console.log('available', viewportScope.available, source);
             let available = availableViewportScopes.find(available => available.name === viewportScope.name);
-            if (available === void 0 || this.router.instructionResolver.isAddViewportInstruction(instruction)) {
+            if (available === void 0 || isAddViewportInstruction(instruction)) {
               const item = viewportScope.addSourceItem();
               available = this.getOwnedScopes()
                 .filter(scope => scope.isViewportScope)
@@ -535,7 +536,7 @@ export class Scope {
     }
     if (found.foundConfiguration) {
       // clone it so config doesn't get modified
-      found.instructions = this.router.instructionResolver.cloneViewportInstructions(found.match!.instructions as ViewportInstruction[], false, true);
+      found.instructions = cloneViewportInstructions(found.match!.instructions as ViewportInstruction[], false, true);
       const instructions = found.instructions.slice();
       while (instructions.length > 0) {
         const instruction = instructions.shift()!;

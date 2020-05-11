@@ -4,6 +4,7 @@ import { IRouter } from './router';
 import { ViewportInstruction } from './viewport-instruction';
 import { IScopeOwner, IScopeOwnerOptions, Scope } from './scope';
 import { arrayRemove } from './utils';
+import { parseViewportInstruction, isClearViewportInstruction, isClearAllViewportsInstruction, isAddViewportInstruction, createViewportInstruction } from './instruction-resolver';
 
 export interface IViewportScopeOptions extends IScopeOwnerOptions {
   catches?: string | string[];
@@ -40,7 +41,7 @@ export class ViewportScope implements IScopeOwner {
   ) {
     this.connectedScope = new Scope(router, scope, owningScope, null, this);
     if (this.catches.length > 0) {
-      this.content = router.createViewportInstruction(this.catches[0], this.name);
+      this.content = createViewportInstruction(this.catches[0], this.name);
     }
   }
 
@@ -110,16 +111,16 @@ export class ViewportScope implements IScopeOwner {
       viewportInstruction = content;
     } else {
       if (typeof content === 'string') {
-        viewportInstruction = this.router.instructionResolver.parseViewportInstruction(content);
+        viewportInstruction = parseViewportInstruction(content);
       } else {
-        viewportInstruction = this.router.createViewportInstruction(content);
+        viewportInstruction = createViewportInstruction(content);
       }
     }
     viewportInstruction.viewportScope = this;
 
-    this.remove = this.router.instructionResolver.isClearViewportInstruction(viewportInstruction)
-      || this.router.instructionResolver.isClearAllViewportsInstruction(viewportInstruction);
-    this.add = this.router.instructionResolver.isAddViewportInstruction(viewportInstruction)
+    this.remove = isClearViewportInstruction(viewportInstruction)
+      || isClearAllViewportsInstruction(viewportInstruction);
+    this.add = isAddViewportInstruction(viewportInstruction)
       && Array.isArray(this.source);
 
     if (this.add) {
@@ -173,9 +174,7 @@ export class ViewportScope implements IScopeOwner {
     if (segment === null && segment === void 0 || segment.length === 0) {
       return true;
     }
-    if (segment === this.router.instructionResolver.clearViewportInstruction
-      || segment === this.router.instructionResolver.addViewportInstruction
-      || segment === this.name) {
+    if (segment === '-' || segment === '+' || segment === this.name) {
       return true;
     }
 

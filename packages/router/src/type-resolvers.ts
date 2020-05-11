@@ -5,6 +5,7 @@ import { IRouter } from './router';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 import { Scope } from './scope';
+import { createViewportInstruction, parseViewportInstructions } from './instruction-resolver';
 
 export const ComponentAppellationResolver = {
   isName(component: ComponentAppellation): component is string {
@@ -132,18 +133,18 @@ export const NavigationInstructionResolver = {
     const instructions: ViewportInstruction[] = [];
     for (const instruction of navigationInstructions) {
       if (typeof instruction === 'string') {
-        instructions.push(...router.instructionResolver.parseViewportInstructions(instruction));
+        instructions.push(...parseViewportInstructions(instruction));
       } else if (instruction instanceof ViewportInstruction) {
         instructions.push(instruction);
       } else if ((instruction as IViewportInstruction).component) {
         const viewportComponent = instruction as IViewportInstruction;
-        const newInstruction = router.createViewportInstruction(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters);
+        const newInstruction = createViewportInstruction(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters);
         if (viewportComponent.children !== void 0 && viewportComponent.children !== null) {
           newInstruction.nextScopeInstructions = NavigationInstructionResolver.toViewportInstructions(router, viewportComponent.children);
         }
         instructions.push(newInstruction);
       } else {
-        instructions.push(router.createViewportInstruction(instruction as ComponentAppellation));
+        instructions.push(createViewportInstruction(instruction as ComponentAppellation));
       }
     }
     return instructions;

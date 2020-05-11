@@ -6,6 +6,7 @@ import { arrayRemove } from './utils';
 import { ViewportContent } from './viewport-content';
 import { ViewportInstruction } from './viewport-instruction';
 import { IScopeOwner, IScopeOwnerOptions, Scope } from './scope';
+import { createViewportInstruction, parseViewportInstruction, isClearViewportInstruction, parseViewportInstructions } from './instruction-resolver';
 
 export interface IViewportOptions extends IScopeOwnerOptions {
   scope?: boolean;
@@ -91,13 +92,13 @@ export class Viewport implements IScopeOwner {
       viewportInstruction = content;
     } else {
       if (typeof content === 'string') {
-        viewportInstruction = this.router.instructionResolver.parseViewportInstruction(content);
+        viewportInstruction = parseViewportInstruction(content);
       } else {
-        viewportInstruction = this.router.createViewportInstruction(content);
+        viewportInstruction = createViewportInstruction(content);
       }
     }
     viewportInstruction.setViewport(this);
-    this.clear = this.router.instructionResolver.isClearViewportInstruction(viewportInstruction);
+    this.clear = isClearViewportInstruction(viewportInstruction);
 
     // Can have a (resolved) type or a string (to be resolved later)
     this.nextContent = new ViewportContent(this.router.stateManager, !this.clear ? viewportInstruction : void 0, instruction, this.viewportController?.context ?? null);
@@ -204,7 +205,7 @@ export class Viewport implements IScopeOwner {
     // }
 
     if (!this.content.componentInstance && (!this.nextContent || !this.nextContent.componentInstance) && this.options.default) {
-      const instructions = this.router.instructionResolver.parseViewportInstructions(this.options.default);
+      const instructions = parseViewportInstructions(this.options.default);
       for (const instruction of instructions) {
         // Set to name to be delayed one turn
         instruction.setViewport(this.name);

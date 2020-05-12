@@ -9,6 +9,7 @@ const opts: HttpServerOptions = new HttpServerOptions();
 export const RuntimeNodeConfiguration = {
   create(customization: Partial<IHttpServerOptions>) {
     opts.applyConfig(customization);
+    opts.validate();
     return {
       register(container: IContainer): IContainer {
         container.register(

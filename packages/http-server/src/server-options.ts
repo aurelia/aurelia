@@ -35,17 +35,6 @@ export class HttpServerOptions implements IHttpServerOptions {
     if ((useHttp2 || useHttps) && !(key && cert)) { // boolean coercion is needed
       throw new Error(`key and cert are required for a HTTP/2 server`);
     }
-
-    // return {
-    //   root: this.root,
-    //   hostName: this.hostName,
-    //   port: this.port,
-    //   level: this.serverLogLevel,
-    //   useHttp2,
-    //   useHttps: useHttp2 || useHttps,
-    //   key: key ? normalizePath(key) : void 0,
-    //   cert: cert ? normalizePath(cert) : void 0,
-    // };
   }
 
   public toString(indent = '') {
@@ -90,43 +79,46 @@ export class HttpServerOptions implements IHttpServerOptions {
       case 'none': return $LogLevel.none;
     }
   }
-}
 
-export function parseServerOptions(cwd: string, args: string[], options: HttpServerOptions = new HttpServerOptions(), argPrefix = '') {
-  const unconsumedArgs: string[] = [];
-  while (args.length > 0) {
-    const key = args[0].trim().replace(/-/g, '');
-    const value = args[1];
-    switch (key) {
-      case `${argPrefix}root`:
-        options.root = resolve(cwd, value);
-        break;
-      case `${argPrefix}hostName`:
-        options.hostName = value;
-        break;
-      case `${argPrefix}port`:
-        options.port = Number(value);
-        break;
-      case `${argPrefix}key`:
-        options.key = resolve(cwd, value);
-        break;
-      case `${argPrefix}cert`:
-        options.cert = resolve(cwd, value);
-        break;
-      case `${argPrefix}useHttp2`:
-        options.useHttp2 = value === 'true';
-        break;
-      case `${argPrefix}logLevel`:
-        options.logLevel = value as unknown as LogLevel;
-        break;
-      case `${argPrefix}responseCacheControl`:
-        options.responseCacheControl = value;
-        break;
-      default:
-        unconsumedArgs.push(key, value);
-        break;
+  public parseServerOptionsFromCli(cwd: string, args: string[], argPrefix = '') {
+    const unconsumedArgs: string[] = [];
+    while (args.length > 0) {
+      const key = args[0].trim().replace(/-/g, '');
+      const value = args[1];
+      switch (key) {
+        case `${argPrefix}root`:
+          this.root = resolve(cwd, value);
+          break;
+        case `${argPrefix}hostName`:
+          this.hostName = value;
+          break;
+        case `${argPrefix}port`:
+          this.port = Number(value);
+          break;
+        case `${argPrefix}key`:
+          this.key = resolve(cwd, value);
+          break;
+        case `${argPrefix}cert`:
+          this.cert = resolve(cwd, value);
+          break;
+        case `${argPrefix}useHttp2`:
+          this.useHttp2 = value === 'true';
+          break;
+        case `${argPrefix}logLevel`:
+          this.logLevel = value as unknown as LogLevel;
+          break;
+        case `${argPrefix}responseCacheControl`:
+          this.responseCacheControl = value;
+          break;
+        default:
+          unconsumedArgs.push(key, value);
+          break;
+      }
+      args.splice(0, 2);
     }
-    args.splice(0, 2);
+
+    if (unconsumedArgs.length > 0) {
+      console.warn(`Following arguments are not consumed ${unconsumedArgs.join(',')}`);
+    }
   }
-  return { options, unconsumedArgs };
 }

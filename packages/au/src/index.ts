@@ -3,7 +3,6 @@ import { existsSync } from 'fs';
 import { resolve } from 'path';
 import { AuConfigurationOptions } from './au-configuration-options';
 import { DevServer } from "./dev-server";
-import { parseServerOptions } from '@aurelia/http-server';
 export { AuConfigurationOptions };
 
 type AuCommands = 'help' | 'dev';
@@ -42,7 +41,7 @@ function parseArgs(args: string[]): ParsedArgs {
       break;
     case 'dev': {
       parsed = new ParsedArgs(cmd, configuration);
-      parseServerOptions(cwd, args, configuration.server, 'server.');
+      configuration.server.parseServerOptionsFromCli(cwd, args, 'server.');
       break;
     }
     default:

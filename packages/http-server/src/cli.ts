@@ -1,7 +1,7 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { existsSync } from 'fs';
 import { resolve } from 'path';
-import { HttpServerOptions, parseServerOptions } from './server-options';
+import { HttpServerOptions } from './server-options';
 import { DI } from '@aurelia/kernel';
 import { RuntimeNodeConfiguration } from './configuration';
 import { IHttpServer } from './interfaces';
@@ -19,17 +19,14 @@ function parseArgs(args: string[]): null | HttpServerOptions {
       throw new Error(`Configuration file is missing or uneven amount of args: ${args}. Args must come in pairs of --key value`);
     } else {
       // eslint-disable-next-line @typescript-eslint/no-require-imports,@typescript-eslint/no-var-requires
-      configuration.applyConfig(require(configurationFile));
+      const config = require(configurationFile);
+      configuration.applyConfig(config);
       args = args.slice(1);
     }
   }
 
-  const { options, unconsumedArgs } = parseServerOptions(cwd, args);
-
-  if (unconsumedArgs.length > 0) {
-    console.warn(`Following arguments are not consumed ${unconsumedArgs.join(',')}`);
-  }
-  return options;
+  configuration.parseServerOptionsFromCli(cwd, args);
+  return configuration;
 }
 
 (async function () {

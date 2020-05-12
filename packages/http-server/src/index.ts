@@ -38,5 +38,4 @@ export {
 } from './system';
 export {
   HttpServerOptions,
-  parseServerOptions,
 } from './server-options';

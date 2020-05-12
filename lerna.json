@@ -62,5 +62,5 @@
     "test/router-siblings",
     "test/router-wizard"
   ],
-  "version": "0.7.0-dev.202005082022"
+  "version": "0.7.0"
 }

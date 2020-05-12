@@ -1,7 +1,7 @@
 {
   "name": "@aurelia/store",
-  "version": "0.7.0-dev.202005082022",
-  "main": "dist/umd/index.js",
+  "version": "0.7.0",
+  "main": "dist/esnext/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
@@ -34,8 +34,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.7.0-dev.202005082022",
-    "@aurelia/metadata": "0.7.0-dev.202005082022",
+    "@aurelia/kernel": "0.7.0",
+    "@aurelia/metadata": "0.7.0",
     "rxjs": "^6.5.3"
   },
   "devDependencies": {

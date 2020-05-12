@@ -9,7 +9,7 @@
   "scripts": {
     "watch": "webpack-dev-server --no-inline",
     "build": "rimraf dist && webpack --config webpack.config.js",
-    "serve": "au dev au.conf.js"
+    "serve": "node -r esm ./node_modules/au/dist/esnext/index.js dev au.conf.js"
   },
   "dependencies": {
     "@aurelia/debug": "dev",

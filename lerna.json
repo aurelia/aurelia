@@ -61,8 +61,7 @@
     "test/router-nav",
     "test/router-scope",
     "test/router-siblings",
-    "test/router-wizard",
-    "examples/jit-webpack-vanilla-ts"
+    "test/router-wizard"
   ],
   "version": "0.7.0"
 }

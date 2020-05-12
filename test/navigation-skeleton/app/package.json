@@ -5,8 +5,8 @@
   "scripts": {
     "watch": "webpack-dev-server --no-inline",
     "build": "rimraf dist && webpack --config webpack.config.js",
-    "serve": "au dev au.conf.js",
-    "build-serve": "rimraf dist && webpack --config webpack.config.js && au dev au.conf.js",
+    "serve": "node -r esm ./node_modules/au/dist/esnext/index.js dev au.conf.js",
+    "build-serve": "rimraf dist && webpack --config webpack.config.js && node -r esm ./node_modules/au/dist/esnext/index.js dev au.conf.js",
     "now": "rimraf dist && webpack --config webpack.config.js && cd dist && now && cd .."
   },
   "dependencies": {

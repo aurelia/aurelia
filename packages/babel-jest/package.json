@@ -39,11 +39,11 @@
     "@aurelia/plugin-conventions": "0.7.0",
     "@aurelia/runtime": "0.7.0",
     "@aurelia/scheduler": "0.7.0",
-    "babel-jest": "^25.3.0"
+    "babel-jest": "^26.0.1"
   },
   "devDependencies": {
-    "@jest/transform": "^25.3.0",
-    "@jest/types": "^25.3.0",
+    "@jest/transform": "^26.0.1",
+    "@jest/types": "^26.0.1",
     "@types/node": "^12.12.21",
     "typescript": "^3.8.3"
   }

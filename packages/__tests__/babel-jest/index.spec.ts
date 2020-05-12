@@ -22,7 +22,6 @@ function babelProcess(
 
 const config: Config.ProjectConfig = {
   automock: false,
-  browser: false,
   cache: false,
   cacheDirectory: '/test_cache_dir/',
   clearMocks: false,
@@ -38,9 +37,7 @@ const config: Config.ProjectConfig = {
   globalSetup: null,
   globalTeardown: null,
   globals: {},
-  haste: {
-    providesModuleNodeModules: [],
-  },
+  haste: {},
   moduleDirectories: [],
   moduleFileExtensions: ['js'],
   moduleLoader: '/test_module_loader_path',

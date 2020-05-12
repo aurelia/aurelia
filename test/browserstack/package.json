@@ -6,7 +6,7 @@
     "build": "rimraf dist && tsc -p tsconfig.bs.json && run-p build:*",
     "build:todos": "webpack --app todos",
     "build:select": "webpack --app select",
-    "start": "node -r esm ./node_modules/@aurelia/http-server/dist/esnext/cli.js dev au.conf.js",
+    "start": "node -r esm ./node_modules/@aurelia/http-server/dist/esnext/cli.js au.conf.js",
     "e2e": "npm run build && cross-env TS_NODE_PROJECT=\"tsconfig.bs.json\" wdio browserstack.conf.js",
     "e2e:compat": "cross-env BS_COMPAT_CHECK=true npm run e2e"
   },

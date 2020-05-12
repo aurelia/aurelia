@@ -10,7 +10,7 @@
   "scripts": {
     "watch": "webpack-dev-server",
     "build": "rimraf dist && webpack --config webpack.config.js",
-    "serve": "node -r esm ./node_modules/@aurelia/http-server/dist/esnext/cli.js dev au.conf.js"
+    "serve": "node -r esm ./node_modules/@aurelia/http-server/dist/esnext/cli.js au.conf.js"
   },
   "dependencies": {
     "@aurelia/jit-html-browser": "0.7.0",

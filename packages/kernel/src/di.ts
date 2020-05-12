@@ -484,7 +484,7 @@ export function singleton<T extends Constructable>(): any;
 export function singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
 export function singleton<T extends Constructable>(
   target?: T & Partial<RegisterSelf<T>>,
-  registerInRequester?: boolean): any {
+  registerInRequester: boolean = false): any {
   return target === undefined && !registerInRequester ? singletonDecorator()
     : target === undefined && registerInRequester ? singletonDecorator(true)
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion

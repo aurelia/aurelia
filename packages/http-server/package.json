@@ -25,6 +25,9 @@
     "CHANGELOG.md",
     "LICENSE"
   ],
+  "bin": {
+    "au:dev": "./bin/cli.js"
+  },
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
     "build": "tsc -b",

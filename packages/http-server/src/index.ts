@@ -26,6 +26,7 @@ export {
   IHttpServerOptions,
   IRequestHandler,
   ISystem,
+  LogLevel,
 } from './interfaces';
 export {
   joinPath,
@@ -35,3 +36,7 @@ export {
 export {
   TempDir,
 } from './system';
+export {
+  HttpServerOptions,
+  parseServerOptions,
+} from './server-options';

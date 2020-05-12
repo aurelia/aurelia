@@ -21,7 +21,7 @@
     "promise-polyfill": "^8.1.3"
   },
   "devDependencies": {
-    "au": "0.7.0",
+    "@aurelia/http-server": "0.7.0",
     "htmlhint": "^0.11.0",
     "rimraf": "^3.0.0",
     "webpack": "^4.41.4",
@@ -46,8 +46,8 @@
     "build": "rimraf dist && webpack --mode=production",
     "lint:js": "tslint --project tsconfig.json",
     "watch": "webpack-dev-server --no-inline",
-    "serve": "node -r esm ./node_modules/au/dist/esnext/index.js dev au.conf.js",
-    "build-serve": "rimraf dist && webpack --mode=production && node -r esm ./node_modules/au/dist/esnext/index.js dev au.conf.js",
+    "serve": "node -r esm ./node_modules/@aurelia/http-server/dist/esnext/cli.js dev au.conf.js",
+    "build-serve": "rimraf dist && webpack --mode=production && node -r esm ./node_modules/@aurelia/http-server/dist/esnext/cli.js dev au.conf.js",
     "now": "rimraf dist && webpack --config webpack.config.js && cd dist && now && cd .."
   }
 }

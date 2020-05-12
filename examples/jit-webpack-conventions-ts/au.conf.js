@@ -1,10 +1,8 @@
 // @ts-check
 
-/** @type {import('au').AuConfigurationOptions} */
+/** @type {import('@aurelia/http-server').HttpServerOptions} */
 module.exports = {
-  server: {
     root: './dist/',
     port: 9000,
     responseCacheControl: 'no-store',
-  }
 };

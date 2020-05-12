@@ -6,7 +6,7 @@
     "build": "rimraf dist && tsc -p tsconfig.bs.json && run-p build:*",
     "build:todos": "webpack --app todos",
     "build:select": "webpack --app select",
-    "start": "node -r esm ./node_modules/au/dist/esnext/index.js dev au.conf.js",
+    "start": "node -r esm ./node_modules/@aurelia/http-server/dist/esnext/cli.js dev au.conf.js",
     "e2e": "npm run build && cross-env TS_NODE_PROJECT=\"tsconfig.bs.json\" wdio browserstack.conf.js",
     "e2e:compat": "cross-env BS_COMPAT_CHECK=true npm run e2e"
   },
@@ -33,7 +33,7 @@
     "@wdio/selenium-standalone-service": "^5.16.10",
     "@wdio/spec-reporter": "^5.16.11",
     "@wdio/sync": "^5.17.0",
-    "au": "0.7.0",
+    "@aurelia/http-server": "0.7.0",
     "browserstack-local": "^1.4.3",
     "chai": "^4.2.0",
     "chalk": "^3.0.0",

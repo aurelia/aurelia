@@ -1,6 +1,5 @@
+import { HttpServerOptions, IHttpServer, RuntimeNodeConfiguration } from '@aurelia/http-server';
 import { DI, IContainer } from '@aurelia/kernel';
-import { IHttpServer, RuntimeNodeConfiguration } from '@aurelia/http-server';
-import { AuServerOptions } from './au-configuration-options';
 
 export class DevServer {
   public constructor(
@@ -12,11 +11,11 @@ export class DevServer {
     return new DevServer(container);
   }
 
-  public async run(option: AuServerOptions): Promise<void> {
+  public async run(option: HttpServerOptions): Promise<void> {
 
     // wireup
     const container = this.container.createChild();
-    container.register(RuntimeNodeConfiguration.create(option.toNodeHttpServerOptions()));
+    container.register(RuntimeNodeConfiguration.create(option));
 
     // TODO compile/bundle
     // TODO inject the entry script to index.html template (from user-space)

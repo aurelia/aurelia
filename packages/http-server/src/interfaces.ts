@@ -1,4 +1,4 @@
-import { DI, LogLevel } from '@aurelia/kernel';
+import { DI, LogLevel as $LogLevel } from '@aurelia/kernel';
 import { IHttpContext } from './http-context';
 
 export const enum Encoding {
@@ -15,11 +15,14 @@ export interface ISystem {
   generateName(): string;
 }
 
+export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal' | 'none';
 export interface IHttpServerOptions {
   readonly root: string;
   readonly port: number;
   readonly hostName: string;
-  readonly level: LogLevel;
+  readonly logLevel: LogLevel;
+  /** @internal */
+  readonly level: $LogLevel;
   readonly useHttp2: boolean;
   readonly useHttps: boolean;
   readonly key?: string;

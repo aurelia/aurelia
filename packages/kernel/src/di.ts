@@ -455,8 +455,10 @@ export function transient<T extends Constructable>(target?: T & Partial<Register
   return target == null ? transientDecorator : transientDecorator(target);
 }
 
-function singletonDecorator<T extends Constructable>(target: T & Partial<RegisterSelf<T>>, registerInRequester: boolean = false): T & RegisterSelf<T> {
-  return DI.singleton(target, registerInRequester);
+function singletonDecorator<T extends Constructable>(registerInRequester: boolean = false): (target: T & Partial<RegisterSelf<T>>) => T & RegisterSelf<T> {
+  return function (target: T & Partial<RegisterSelf<T>>) {
+    return DI.singleton(target, registerInRequester);
+  };
 }
 /**
  * Registers the decorated class as a singleton dependency; the class will only be created once. Each
@@ -481,10 +483,11 @@ export function singleton<T extends Constructable>(registerInRequester?: boolean
  * ```
  */
 export function singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
-export function singleton<T extends Constructable>(target?: T & Partial<RegisterSelf<T>>, registerInRequester: boolean = false): T & RegisterSelf<T> | typeof singletonDecorator {
-  return target === undefined && !registerInRequester ? singletonDecorator
-    : target === undefined && registerInRequester ? singletonDecorator(target, true)
-    : singletonDecorator(target!, registerInRequester);
+export function singleton<T extends Constructable>(target?: T & Partial<RegisterSelf<T>>, registerInRequester: boolean = false): T & RegisterSelf<T> | any {
+  return target === undefined && !registerInRequester ? singletonDecorator()
+    : target === undefined && registerInRequester ? singletonDecorator(true)
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+    : singletonDecorator(registerInRequester)(target!);
 }
 
 export const all = createResolver((key: Key, handler: IContainer, requestor: IContainer) => requestor.getAll(key));

@@ -469,8 +469,7 @@ function singletonDecorator<T extends Constructable>(registerInRequester: boolea
  * class Foo { }
  * ```
  */
-export function singleton<T extends Constructable>(): typeof singletonDecorator;
-export function singleton<T extends Constructable>(registerInRequester?: boolean): typeof singletonDecorator;
+export function singleton<T extends Constructable>(): any;
 /**
  * Registers the `target` class as a singleton dependency; the class will only be created once. Each
  * consecutive time the dependency is resolved, the same instance will be returned.
@@ -483,7 +482,9 @@ export function singleton<T extends Constructable>(registerInRequester?: boolean
  * ```
  */
 export function singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
-export function singleton<T extends Constructable>(target?: T & Partial<RegisterSelf<T>>, registerInRequester: boolean = false): T & RegisterSelf<T> | any {
+export function singleton<T extends Constructable>(
+  target?: T & Partial<RegisterSelf<T>>,
+  registerInRequester?: boolean): any {
   return target === undefined && !registerInRequester ? singletonDecorator()
     : target === undefined && registerInRequester ? singletonDecorator(true)
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion

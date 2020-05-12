@@ -41,7 +41,7 @@ function parseArgs(args: string[]): ParsedArgs {
       break;
     case 'dev': {
       parsed = new ParsedArgs(cmd, configuration);
-      configuration.server.parseServerOptionsFromCli(cwd, args, 'server.');
+      configuration.server.applyOptionsFromCli(cwd, args, 'server.');
       break;
     }
     default:

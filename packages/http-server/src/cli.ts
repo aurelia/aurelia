@@ -25,7 +25,7 @@ function parseArgs(args: string[]): null | HttpServerOptions {
     }
   }
 
-  configuration.parseServerOptionsFromCli(cwd, args);
+  configuration.applyOptionsFromCli(cwd, args);
   return configuration;
 }
 

@@ -80,7 +80,7 @@ export class HttpServerOptions implements IHttpServerOptions {
     }
   }
 
-  public parseServerOptionsFromCli(cwd: string, args: string[], argPrefix = '') {
+  public applyOptionsFromCli(cwd: string, args: string[], argPrefix = '') {
     const unconsumedArgs: string[] = [];
     while (args.length > 0) {
       const key = args[0].trim().replace(/-/g, '');

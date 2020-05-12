@@ -41,7 +41,7 @@ export class AuServerOptions implements Omit<IHttpServerOptions, 'level'> {
     public key: string | undefined = undefined,
     public cert: string | undefined = undefined,
     public logLevel: LogLevel = 'info',
-    public responseCacheControl: string | undefined = 'no-store',
+    public responseCacheControl: string | undefined = 'max-age=3600',
   ) { }
 
   /** @internal */

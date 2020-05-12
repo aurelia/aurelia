@@ -10,7 +10,7 @@ const defaultOpts: IHttpServerOptions = {
   level: LogLevel.info,
   useHttp2: false,
   useHttps: false,
-  responseCacheControl: 'no-store'
+  responseCacheControl: 'max-age=3600'
 };
 
 export const RuntimeNodeConfiguration = {

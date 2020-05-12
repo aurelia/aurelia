@@ -3,7 +3,7 @@
 /** @type {import('au').AuConfigurationOptions} */
 module.exports = {
   server: {
-    root: './dist/',
+    root: '.',
     port: 9000,
     responseCacheControl: 'no-store',
   }

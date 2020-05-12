@@ -38,7 +38,7 @@ export class FileServer implements IRequestHandler {
     @ILogger
     private readonly logger: ILogger,
   ) {
-    this.cacheControlDirective = this.opts.responseCacheControl ?? 'no-store';
+    this.cacheControlDirective = this.opts.responseCacheControl ?? 'max-age=3600';
     this.logger = logger.root.scopeTo('FileServer');
 
     this.root = resolve(opts.root);
@@ -123,7 +123,7 @@ export class Http2FileServer implements IHttp2FileServer {
     @ILogger
     private readonly logger: ILogger,
   ) {
-    this.cacheControlDirective = this.opts.responseCacheControl ?? 'no-store';
+    this.cacheControlDirective = this.opts.responseCacheControl ?? 'max-age=3600';
     this.logger = logger.root.scopeTo('Http2FileServer');
 
     this.root = resolve(opts.root);

@@ -21,6 +21,7 @@
     "promise-polyfill": "^8.1.3"
   },
   "devDependencies": {
+    "au": "0.7.0",
     "htmlhint": "^0.11.0",
     "rimraf": "^3.0.0",
     "webpack": "^4.41.4",
@@ -36,8 +37,7 @@
     "tslint": "^5.20.1",
     "cypress": "^3.8.0",
     "babel-eslint": "^10.0.3",
-    "eslint": "^6.8.0",
-    "http-server": "0.9.0"
+    "eslint": "^6.8.0"
   },
   "scripts": {
     "lint:html": "htmlhint -c .htmlhintrc src",
@@ -46,8 +46,8 @@
     "build": "rimraf dist && webpack --mode=production",
     "lint:js": "tslint --project tsconfig.json",
     "watch": "webpack-dev-server --no-inline",
-    "serve": "http-server -c-1 -p 9000 dist",
-    "build-serve": "rimraf dist && webpack --mode=production && http-server -c-1 -p 9000 dist",
+    "serve": "au dev au.conf.js",
+    "build-serve": "rimraf dist && webpack --mode=production && au dev au.conf.js",
     "now": "rimraf dist && webpack --config webpack.config.js && cd dist && now && cd .."
   }
 }

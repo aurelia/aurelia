@@ -11,7 +11,7 @@
     "prestart": "rimraf dist",
     "start": "webpack-dev-server --no-inline",
     "preserve": "rimraf dist && webpack --config webpack.config.js",
-    "serve": "au:dev au.conf.js",
+    "serve": "au-dev au.conf.js",
     "cypress:run": "cypress run",
     "cypress:debug": "cypress open --config watchForFileChanges=true",
     "e2e": "start-server-and-test :9500 cypress:run",

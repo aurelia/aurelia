@@ -42,7 +42,7 @@
   "dependencies": {
     "@aurelia/debug": "0.7.0",
     "@aurelia/kernel": "0.7.0",
-    "@aurelia/runtime-node": "0.7.0"
+    "@aurelia/http-server": "0.7.0"
   },
   "devDependencies": {
     "@types/node": "^12.12.21",

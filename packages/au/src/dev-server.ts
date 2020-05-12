@@ -1,5 +1,5 @@
 import { DI, IContainer } from '@aurelia/kernel';
-import { IHttpServer, RuntimeNodeConfiguration } from '@aurelia/runtime-node';
+import { IHttpServer, RuntimeNodeConfiguration } from '@aurelia/http-server';
 import { AuServerOptions } from './au-configuration-options';
 
 export class DevServer {

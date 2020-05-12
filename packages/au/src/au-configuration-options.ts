@@ -1,6 +1,6 @@
 /* eslint-disable prefer-template */
 import { LogLevel as $LogLevel } from '@aurelia/kernel';
-import { IHttpServerOptions, normalizePath } from '@aurelia/runtime-node';
+import { IHttpServerOptions, normalizePath } from '@aurelia/http-server';
 import { EOL } from 'os';
 
 const space = ' ';

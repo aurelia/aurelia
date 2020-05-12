@@ -38,6 +38,6 @@
     { "path": "webpack-loader" },
     { "path": "babel-jest" },
     { "path": "ts-jest" },
-    { "path": "runtime-node" }
+    { "path": "http-server" }
   ]
 }

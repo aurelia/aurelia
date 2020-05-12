@@ -1,5 +1,5 @@
 {
-  "name": "@aurelia/runtime-node",
+  "name": "@aurelia/http-server",
   "version": "0.7.0",
   "main": "dist/esnext/index.js",
   "module": "dist/esnext/index.js",
@@ -16,7 +16,7 @@
   },
   "keywords": [
     "aurelia",
-    "runtime-node"
+    "http-server"
   ],
   "files": [
     "dist",

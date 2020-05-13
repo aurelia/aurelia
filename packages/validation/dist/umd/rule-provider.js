@@ -516,7 +516,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                     if (contextualProperties.has(name)) {
                         this.logger.warn(`Did you mean to use "$${name}" instead of "${name}" in this validation message template: "${message}"?`);
                     }
-                    if ((expr === null || expr === void 0 ? void 0 : expr.$kind) === 1793 /* AccessThis */ || expr.ancestor > 0) {
+                    if (expr.$kind === 1793 /* AccessThis */ || expr.ancestor > 0) {
                         throw new Error('$parent is not permitted in validation message expressions.'); // TODO: use reporter
                     }
                 }

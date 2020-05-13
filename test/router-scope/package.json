@@ -5,7 +5,7 @@
   "scripts": {
     "watch": "webpack-dev-server --no-inline",
     "build": "rimraf dist && webpack",
-    "serve": "http-server -c-1 -p 9000 dist"
+    "serve": "node -r esm ./node_modules/@aurelia/http-server/dist/esnext/cli.js au.conf.js"
   },
   "dependencies": {
     "aurelia": "0.7.0",
@@ -26,9 +26,9 @@
   },
   "devDependencies": {
     "@types/node": "^12.12.21",
+    "@aurelia/http-server": "0.7.0",
     "html-loader": "^0.5.5",
     "html-webpack-plugin": "^3.2.0",
-    "http-server": "0.9.0",
     "rimraf": "^3.0.0",
     "ts-loader": "^6.2.1",
     "typescript": "^3.8.3",

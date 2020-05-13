@@ -10,7 +10,7 @@
   "scripts": {
     "watch": "webpack-dev-server --no-inline",
     "build": "rimraf dist && webpack",
-    "serve": "http-server -c-1 -p 9000 dist"
+    "serve": "au-http-server au.conf.js"
   },
   "dependencies": {
     "@aurelia/debug": "dev",
@@ -30,10 +30,10 @@
     "aurelia": "dev"
   },
   "devDependencies": {
+    "@aurelia/http-server": "dev",
     "@types/node": "^12.12.21",
     "html-loader": "^0.5.5",
-    "html-webpack-plugin": "latest",
-    "http-server": "0.9.0",
+    "html-webpack-plugin": "^3.2.0",
     "rimraf": "^3.0.0",
     "ts-loader": "^6.2.1",
     "typescript": "^3.8.3",

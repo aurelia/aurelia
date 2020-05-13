@@ -6,7 +6,7 @@ import { HttpServerOptions } from './server-options';
 
 const opts: HttpServerOptions = new HttpServerOptions();
 
-export const RuntimeNodeConfiguration = {
+export const HttpServerConfiguration = {
   create(customization: Partial<IHttpServerOptions>) {
     opts.applyConfig(customization);
     opts.validate();

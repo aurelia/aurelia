@@ -10,7 +10,7 @@
   "scripts": {
     "watch": "webpack-dev-server --no-inline",
     "build": "rimraf dist && webpack",
-    "serve": "au-dev au.conf.js"
+    "serve": "au-http-server au.conf.js"
   },
   "dependencies": {
     "@aurelia/debug": "dev",

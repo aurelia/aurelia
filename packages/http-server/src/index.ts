@@ -2,7 +2,7 @@ export {
   FileServer,
 } from './request-handlers/file-server';
 export {
-  RuntimeNodeConfiguration,
+  HttpServerConfiguration as RuntimeNodeConfiguration,
 } from './configuration';
 export {
   HttpContextState,

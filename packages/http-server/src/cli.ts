@@ -3,7 +3,7 @@ import { existsSync } from 'fs';
 import { resolve } from 'path';
 import { HttpServerOptions } from './server-options';
 import { DI } from '@aurelia/kernel';
-import { RuntimeNodeConfiguration } from './configuration';
+import { HttpServerConfiguration } from './configuration';
 import { IHttpServer } from './interfaces';
 
 const cwd = process.cwd();
@@ -37,7 +37,7 @@ function parseArgs(args: string[]): null | HttpServerOptions {
     console.log(new HttpServerOptions().toString());
   } else {
     const container = DI.createContainer();
-    container.register(RuntimeNodeConfiguration.create(parsed));
+    container.register(HttpServerConfiguration.create(parsed));
     const server = container.get(IHttpServer);
     await server.start();
   }

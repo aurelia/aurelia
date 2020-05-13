@@ -5,16 +5,6 @@ export const enum Encoding {
   utf8 = 'utf8',
 }
 
-export type IProcess = NodeJS.Process;
-
-export interface ISystem {
-  readonly isWin: boolean;
-  readonly isMac: boolean;
-  readonly isLinux: boolean;
-  which(cmd: string | string[]): Promise<string>;
-  generateName(): string;
-}
-
 export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal' | 'none';
 export interface IHttpServerOptions {
   readonly root: string;
@@ -49,8 +39,6 @@ export interface IHttp2FileServer {
   handleRequest(context: IHttpContext): void;
 }
 
-export const IProcess = DI.createInterface<IProcess>('IProcess').withDefault(x => x.instance(process));
-export const ISystem = DI.createInterface<ISystem>('ISystem').noDefault();
 export const IHttpServerOptions = DI.createInterface<IHttpServerOptions>('IHttpServerOptions').noDefault();
 export const IHttpServer = DI.createInterface<IHttpServer>('IHttpServer').noDefault();
 export const IRequestHandler = DI.createInterface<IRequestHandler>('IRequestHandler').noDefault();

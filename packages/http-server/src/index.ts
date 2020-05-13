@@ -21,11 +21,9 @@ export {
 } from './http-utils';
 export {
   Encoding,
-  IProcess,
   IHttpServer,
   IHttpServerOptions,
   IRequestHandler,
-  ISystem,
   LogLevel,
 } from './interfaces';
 export {
@@ -33,9 +31,6 @@ export {
   resolvePath,
   normalizePath,
 } from './path-utils';
-export {
-  TempDir,
-} from './system';
 export {
   HttpServerOptions,
 } from './server-options';

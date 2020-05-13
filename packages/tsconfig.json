@@ -37,6 +37,7 @@
     { "path": "web-components" },
     { "path": "webpack-loader" },
     { "path": "babel-jest" },
-    { "path": "ts-jest" }
+    { "path": "ts-jest" },
+    { "path": "http-server" }
   ]
 }

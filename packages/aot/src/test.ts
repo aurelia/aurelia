@@ -33,7 +33,7 @@ import {
 
   const container = DI.createContainer();
   container.register(
-    LoggerConfiguration.create(console, LogLevel.debug, ColorOptions.colors),
+    LoggerConfiguration.create({ $console: console, level: LogLevel.debug, colorOptions: ColorOptions.colors }),
     Registration.singleton(IFileSystem, NodeFileSystem),
   );
 

@@ -27,7 +27,7 @@ export {
   newInstanceOf,
   DefaultContainerConfiguration,
   DefaultResolver,
-  IContainerConfiguration
+  IContainerConfiguration,
 } from './di';
 export {
   Class,
@@ -88,6 +88,7 @@ export {
   ConsoleSink,
   LoggerConfiguration,
   format,
+  sink,
 } from './logger';
 export {
   relativeToFile,

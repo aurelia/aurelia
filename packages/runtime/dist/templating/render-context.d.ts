@@ -140,6 +140,7 @@ export declare class RenderContext<T extends INode = INode> implements IComponen
     registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
     getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
     getFactory<T extends Constructable>(key: T): IFactory<T> | null;
+    registerFactory<K extends Constructable>(key: K, factory: IFactory<K>): void;
     createChild(): IContainer;
     disposeResolvers(): void;
     compile(): ICompiledRenderContext<T>;

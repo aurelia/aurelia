@@ -32,9 +32,7 @@
             register(container) {
                 const options = getDefaultValidationHtmlConfiguration();
                 optionsProvider(options);
-                const key = kernel_1.Protocol.annotation.keyFor('di:factory');
-                kernel_1.Protocol.annotation.set(validation_controller_1.IValidationController, 'di:factory', new options.ValidationControllerFactoryType());
-                kernel_1.Protocol.annotation.appendTo(validation_controller_1.IValidationController, key);
+                container.registerFactory(validation_controller_1.IValidationController, new options.ValidationControllerFactoryType());
                 container.register(validation_1.ValidationConfiguration.customize((opt) => {
                     // copy the customization iff the key exists in validation configuration
                     for (const optKey of Object.keys(opt)) {

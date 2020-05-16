@@ -652,6 +652,8 @@
         'WeakMap',
         'WeakSet',
     ]);
+    const factoryKey = 'di:factory';
+    const factoryAnnotationKey = resource_1.Protocol.annotation.keyFor(factoryKey);
     /** @internal */
     class Container {
         constructor(parent, config = exports.DefaultContainerConfiguration) {
@@ -840,13 +842,16 @@
             return platform_1.PLATFORM.emptyArray;
         }
         getFactory(Type) {
-            const key = resource_1.Protocol.annotation.keyFor('di:factory');
-            let factory = metadata_1.Metadata.getOwn(key, Type);
+            let factory = metadata_1.Metadata.getOwn(factoryAnnotationKey, Type);
             if (factory === void 0) {
-                metadata_1.Metadata.define(key, factory = createFactory(Type), Type);
-                resource_1.Protocol.annotation.appendTo(Type, key);
+                metadata_1.Metadata.define(factoryAnnotationKey, factory = createFactory(Type), Type);
+                resource_1.Protocol.annotation.appendTo(Type, factoryAnnotationKey);
             }
             return factory;
+        }
+        registerFactory(key, factory) {
+            resource_1.Protocol.annotation.set(key, factoryKey, factory);
+            resource_1.Protocol.annotation.appendTo(key, factoryAnnotationKey);
         }
         createChild(config) {
             return new Container(this, config !== null && config !== void 0 ? config : this.config);

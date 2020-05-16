@@ -635,6 +635,8 @@ const InstrinsicTypeNames = new Set([
     'WeakMap',
     'WeakSet',
 ]);
+const factoryKey = 'di:factory';
+const factoryAnnotationKey = Protocol.annotation.keyFor(factoryKey);
 /** @internal */
 export class Container {
     constructor(parent, config = DefaultContainerConfiguration) {
@@ -823,13 +825,16 @@ export class Container {
         return PLATFORM.emptyArray;
     }
     getFactory(Type) {
-        const key = Protocol.annotation.keyFor('di:factory');
-        let factory = Metadata.getOwn(key, Type);
+        let factory = Metadata.getOwn(factoryAnnotationKey, Type);
         if (factory === void 0) {
-            Metadata.define(key, factory = createFactory(Type), Type);
-            Protocol.annotation.appendTo(Type, key);
+            Metadata.define(factoryAnnotationKey, factory = createFactory(Type), Type);
+            Protocol.annotation.appendTo(Type, factoryAnnotationKey);
         }
         return factory;
+    }
+    registerFactory(key, factory) {
+        Protocol.annotation.set(key, factoryKey, factory);
+        Protocol.annotation.appendTo(key, factoryAnnotationKey);
     }
     createChild(config) {
         return new Container(this, config !== null && config !== void 0 ? config : this.config);

@@ -104,6 +104,9 @@
         getFactory(key) {
             return this.container.getFactory(key);
         }
+        registerFactory(key, factory) {
+            this.container.registerFactory(key, factory);
+        }
         createChild() {
             return this.container.createChild();
         }

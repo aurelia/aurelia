@@ -1,4 +1,4 @@
-import { PLATFORM, Protocol, Registration } from '@aurelia/kernel';
+import { PLATFORM, Registration } from '@aurelia/kernel';
 import { getDefaultValidationConfiguration, ValidationConfiguration } from '@aurelia/validation';
 import { ValidationContainerCustomElement, defaultContainerDefinition, defaultContainerTemplate } from './subscribers/validation-container-custom-element';
 import { ValidationErrorsCustomAttribute } from './subscribers/validation-errors-custom-attribute';
@@ -20,9 +20,7 @@ function createConfiguration(optionsProvider) {
         register(container) {
             const options = getDefaultValidationHtmlConfiguration();
             optionsProvider(options);
-            const key = Protocol.annotation.keyFor('di:factory');
-            Protocol.annotation.set(IValidationController, 'di:factory', new options.ValidationControllerFactoryType());
-            Protocol.annotation.appendTo(IValidationController, key);
+            container.registerFactory(IValidationController, new options.ValidationControllerFactoryType());
             container.register(ValidationConfiguration.customize((opt) => {
                 // copy the customization iff the key exists in validation configuration
                 for (const optKey of Object.keys(opt)) {

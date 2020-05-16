@@ -41,6 +41,7 @@ export interface IContainer extends IServiceLocator {
     registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>, isDisposable?: boolean): IResolver<T>;
     registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
     getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
+    registerFactory<T extends Constructable>(key: T, factory: IFactory<T>): void;
     getFactory<T extends Constructable>(key: T): IFactory<T> | null;
     createChild(config?: IContainerConfiguration): IContainer;
     disposeResolvers(): void;

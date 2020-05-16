@@ -330,6 +330,10 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     return this.container.getFactory(key);
   }
 
+  public registerFactory<K extends Constructable>(key: K, factory: IFactory<K>): void {
+    this.container.registerFactory(key, factory);
+  }
+
   public createChild(): IContainer {
     return this.container.createChild();
   }

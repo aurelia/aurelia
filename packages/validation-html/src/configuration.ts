@@ -1,4 +1,4 @@
-import { Constructable, IContainer, PLATFORM, Protocol, Registration } from '@aurelia/kernel';
+import { Constructable, IContainer, PLATFORM, Registration } from '@aurelia/kernel';
 import { getDefaultValidationConfiguration, ValidationCustomizationOptions, ValidationConfiguration } from '@aurelia/validation';
 import { ValidationContainerCustomElement, defaultContainerDefinition, defaultContainerTemplate } from './subscribers/validation-container-custom-element';
 import { ValidationErrorsCustomAttribute } from './subscribers/validation-errors-custom-attribute';
@@ -27,9 +27,7 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
 
       optionsProvider(options);
 
-      const key = Protocol.annotation.keyFor('di:factory');
-      Protocol.annotation.set(IValidationController as unknown as Constructable, 'di:factory', new options.ValidationControllerFactoryType());
-      Protocol.annotation.appendTo(IValidationController as unknown as Constructable, key);
+      container.registerFactory(IValidationController as unknown as Constructable, new options.ValidationControllerFactoryType());
 
       container.register(
         ValidationConfiguration.customize((opt) => {

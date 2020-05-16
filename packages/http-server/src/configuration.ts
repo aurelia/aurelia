@@ -16,7 +16,7 @@ export const HttpServerConfiguration = {
           Registration.instance(IHttpServerOptions, opts),
           Registration.singleton(IRequestHandler, FileServer),
           Registration.singleton(IHttp2FileServer, Http2FileServer),
-          LoggerConfiguration.create(console, opts.level, ColorOptions.colors)
+          LoggerConfiguration.create({ $console: console, level: opts.level, colorOptions: ColorOptions.colors })
         );
 
         if (opts.useHttp2) {

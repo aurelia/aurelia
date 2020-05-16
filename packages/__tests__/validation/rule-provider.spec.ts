@@ -547,7 +547,7 @@ describe('ValidationRules', function () {
 describe('ValidationMessageProvider', function () {
   class EventLog implements ISink {
     public log: ILogEvent[] = [];
-    public emit(event: ILogEvent): void {
+    public handleEvent(event: ILogEvent): void {
       this.log.push(event);
     }
   }

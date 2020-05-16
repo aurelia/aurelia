@@ -21,7 +21,7 @@
             opts.validate();
             return {
                 register(container) {
-                    container.register(kernel_1.Registration.instance(interfaces_1.IHttpServerOptions, opts), kernel_1.Registration.singleton(interfaces_1.IRequestHandler, file_server_1.FileServer), kernel_1.Registration.singleton(interfaces_1.IHttp2FileServer, file_server_1.Http2FileServer), kernel_1.LoggerConfiguration.create(console, opts.level, 1 /* colors */));
+                    container.register(kernel_1.Registration.instance(interfaces_1.IHttpServerOptions, opts), kernel_1.Registration.singleton(interfaces_1.IRequestHandler, file_server_1.FileServer), kernel_1.Registration.singleton(interfaces_1.IHttp2FileServer, file_server_1.Http2FileServer), kernel_1.LoggerConfiguration.create({ $console: console, level: opts.level, colorOptions: 1 /* colors */ }));
                     if (opts.useHttp2) {
                         container.register(kernel_1.Registration.singleton(interfaces_1.IHttpServer, http_server_1.Http2Server));
                     }

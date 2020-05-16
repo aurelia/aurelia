@@ -12,6 +12,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 import { all, DI, ignore, optional, Registration } from './di';
 import { toLookup } from './functions';
+import { Protocol } from './resource';
+import { Metadata } from '@aurelia/metadata';
 /**
  * Flags to enable/disable color usage in the logging output.
  */
@@ -31,6 +33,21 @@ export const ISink = DI.createInterface('ISink').noDefault();
 export const ILogEventFactory = DI.createInterface('ILogEventFactory').withDefault(x => x.singleton(DefaultLogEventFactory));
 export const ILogger = DI.createInterface('ILogger').withDefault(x => x.singleton(DefaultLogger));
 export const ILogScopes = DI.createInterface('ILogScope').noDefault();
+export const LoggerSink = Object.freeze({
+    key: Protocol.annotation.keyFor('logger-sink-handles'),
+    define(target, definition) {
+        Metadata.define(this.key, definition.handles, target.prototype);
+        return target;
+    },
+    getHandles(target) {
+        return Metadata.get(this.key, target);
+    },
+});
+export function sink(definition) {
+    return function (target) {
+        return LoggerSink.define(target, definition);
+    };
+}
 // http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
 export const format = toLookup({
     red(str) {
@@ -152,7 +169,7 @@ DefaultLogEventFactory = __decorate([
 export { DefaultLogEventFactory };
 export class ConsoleSink {
     constructor($console) {
-        this.emit = function emit(event) {
+        this.handleEvent = function emit(event) {
             const optionalParams = event.optionalParams;
             if (optionalParams === void 0 || optionalParams.length === 0) {
                 switch (event.severity) {
@@ -187,56 +204,93 @@ export class ConsoleSink {
 }
 let DefaultLogger = class DefaultLogger {
     constructor(config, factory, sinks, scope = [], parent = null) {
+        var _a, _b, _c, _d, _e, _f;
         this.config = config;
         this.factory = factory;
-        this.sinks = sinks;
         this.scope = scope;
         this.scopedLoggers = Object.create(null);
+        let traceSinks;
+        let debugSinks;
+        let infoSinks;
+        let warnSinks;
+        let errorSinks;
+        let fatalSinks;
         if (parent === null) {
             this.root = this;
             this.parent = this;
+            traceSinks = this.traceSinks = [];
+            debugSinks = this.debugSinks = [];
+            infoSinks = this.infoSinks = [];
+            warnSinks = this.warnSinks = [];
+            errorSinks = this.errorSinks = [];
+            fatalSinks = this.fatalSinks = [];
+            for (const $sink of sinks) {
+                const handles = LoggerSink.getHandles($sink);
+                if ((_a = handles === null || handles === void 0 ? void 0 : handles.includes(0 /* trace */)) !== null && _a !== void 0 ? _a : true) {
+                    traceSinks.push($sink);
+                }
+                if ((_b = handles === null || handles === void 0 ? void 0 : handles.includes(1 /* debug */)) !== null && _b !== void 0 ? _b : true) {
+                    debugSinks.push($sink);
+                }
+                if ((_c = handles === null || handles === void 0 ? void 0 : handles.includes(2 /* info */)) !== null && _c !== void 0 ? _c : true) {
+                    infoSinks.push($sink);
+                }
+                if ((_d = handles === null || handles === void 0 ? void 0 : handles.includes(3 /* warn */)) !== null && _d !== void 0 ? _d : true) {
+                    warnSinks.push($sink);
+                }
+                if ((_e = handles === null || handles === void 0 ? void 0 : handles.includes(4 /* error */)) !== null && _e !== void 0 ? _e : true) {
+                    errorSinks.push($sink);
+                }
+                if ((_f = handles === null || handles === void 0 ? void 0 : handles.includes(5 /* fatal */)) !== null && _f !== void 0 ? _f : true) {
+                    fatalSinks.push($sink);
+                }
+            }
         }
         else {
             this.root = parent.root;
             this.parent = parent;
+            traceSinks = this.traceSinks = parent.traceSinks;
+            debugSinks = this.debugSinks = parent.debugSinks;
+            infoSinks = this.infoSinks = parent.infoSinks;
+            warnSinks = this.warnSinks = parent.warnSinks;
+            errorSinks = this.errorSinks = parent.errorSinks;
+            fatalSinks = this.fatalSinks = parent.fatalSinks;
         }
-        const sinksLen = sinks.length;
-        let i = 0;
-        const emit = (level, msgOrGetMsg, optionalParams) => {
+        const emit = ($sinks, level, msgOrGetMsg, optionalParams) => {
             const message = typeof msgOrGetMsg === 'function' ? msgOrGetMsg() : msgOrGetMsg;
             const event = factory.createLogEvent(this, level, message, optionalParams);
-            for (i = 0; i < sinksLen; ++i) {
-                sinks[i].emit(event);
+            for (let i = 0, ii = $sinks.length; i < ii; ++i) {
+                $sinks[i].handleEvent(event);
             }
         };
         this.trace = function trace(messageOrGetMessage, ...optionalParams) {
             if (config.level <= 0 /* trace */) {
-                emit(0 /* trace */, messageOrGetMessage, optionalParams);
+                emit(traceSinks, 0 /* trace */, messageOrGetMessage, optionalParams);
             }
         };
         this.debug = function debug(messageOrGetMessage, ...optionalParams) {
             if (config.level <= 1 /* debug */) {
-                emit(1 /* debug */, messageOrGetMessage, optionalParams);
+                emit(debugSinks, 1 /* debug */, messageOrGetMessage, optionalParams);
             }
         };
         this.info = function info(messageOrGetMessage, ...optionalParams) {
             if (config.level <= 2 /* info */) {
-                emit(2 /* info */, messageOrGetMessage, optionalParams);
+                emit(infoSinks, 2 /* info */, messageOrGetMessage, optionalParams);
             }
         };
         this.warn = function warn(messageOrGetMessage, ...optionalParams) {
             if (config.level <= 3 /* warn */) {
-                emit(3 /* warn */, messageOrGetMessage, optionalParams);
+                emit(warnSinks, 3 /* warn */, messageOrGetMessage, optionalParams);
             }
         };
         this.error = function error(messageOrGetMessage, ...optionalParams) {
             if (config.level <= 4 /* error */) {
-                emit(4 /* error */, messageOrGetMessage, optionalParams);
+                emit(errorSinks, 4 /* error */, messageOrGetMessage, optionalParams);
             }
         };
         this.fatal = function fatal(messageOrGetMessage, ...optionalParams) {
             if (config.level <= 5 /* fatal */) {
-                emit(5 /* fatal */, messageOrGetMessage, optionalParams);
+                emit(fatalSinks, 5 /* fatal */, messageOrGetMessage, optionalParams);
             }
         };
     }
@@ -244,7 +298,7 @@ let DefaultLogger = class DefaultLogger {
         const scopedLoggers = this.scopedLoggers;
         let scopedLogger = scopedLoggers[name];
         if (scopedLogger === void 0) {
-            scopedLogger = scopedLoggers[name] = new DefaultLogger(this.config, this.factory, this.sinks, this.scope.concat(name), this);
+            scopedLogger = scopedLoggers[name] = new DefaultLogger(this.config, this.factory, (void 0), this.scope.concat(name), this);
         }
         return scopedLogger;
     }
@@ -263,23 +317,26 @@ export { DefaultLogger };
  *
  * NOTE: You *must* register the return value of `.create` with the container / au instance, not this `LoggerConfiguration` object itself.
  *
+ * @example
  * ```ts
- * // GOOD
- * container.register(LoggerConfiguration.create(console))
- * // GOOD
- * container.register(LoggerConfiguration.create(console, LogLevel.debug))
- * // GOOD
- * container.register(LoggerConfiguration.create({
- *   debug: PLATFORM.noop,
- *   info: PLATFORM.noop,
- *   warn: PLATFORM.noop,
- *   error: msg => {
- *     throw new Error(msg);
- *   }
- * }, LogLevel.debug))
+ * container.register(LoggerConfiguration.create());
  *
- * // BAD
- * container.register(LoggerConfiguration)
+ * container.register(LoggerConfiguration.create({$console: console}))
+ *
+ * container.register(LoggerConfiguration.create({$console: console, level: LogLevel.debug}))
+ *
+ * container.register(LoggerConfiguration.create({
+ *  $console: {
+ *     debug: PLATFORM.noop,
+ *     info: PLATFORM.noop,
+ *     warn: PLATFORM.noop,
+ *     error: msg => {
+ *       throw new Error(msg);
+ *     }
+ *  },
+ *  level: LogLevel.debug
+ * }))
+ *
  * ```
  */
 export const LoggerConfiguration = toLookup({
@@ -288,10 +345,17 @@ export const LoggerConfiguration = toLookup({
      * @param level - The global `LogLevel` to configure. Defaults to `warn` or higher.
      * @param colorOptions - Whether to use colors or not. Defaults to `noColors`. Colors are especially nice in nodejs environments but don't necessarily work (well) in all environments, such as browsers.
      */
-    create($console, level = 3 /* warn */, colorOptions = 0 /* noColors */) {
+    create({ $console, level = 3 /* warn */, colorOptions = 0 /* noColors */, sinks = [], } = {}) {
         return toLookup({
             register(container) {
-                return container.register(Registration.instance(ILogConfig, new LogConfig(colorOptions, level)), Registration.instance(ISink, new ConsoleSink($console)));
+                container.register(Registration.instance(ILogConfig, new LogConfig(colorOptions, level)));
+                if ($console !== void 0 && $console !== null) {
+                    container.register(Registration.instance(ISink, new ConsoleSink($console)));
+                }
+                for (const $sink of sinks) {
+                    container.register(Registration.singleton(ISink, $sink));
+                }
+                return container;
             },
         });
     },

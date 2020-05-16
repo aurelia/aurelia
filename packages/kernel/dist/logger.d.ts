@@ -1,5 +1,6 @@
 import { IRegistry } from './di';
 import { LogLevel } from './reporter';
+import { Class, Constructable } from './interfaces';
 /**
  * Flags to enable/disable color usage in the logging output.
  */
@@ -27,6 +28,10 @@ export interface ILogConfig {
      * The global log level. Only log calls with the same level or higher are emitted.
      */
     level: LogLevel;
+}
+interface ILoggingConfigurationOptions extends ILogConfig {
+    $console: IConsoleLike;
+    sinks: Class<ISink>[];
 }
 /**
  * Component that creates log event objects based on raw inputs sent to `ILogger`.
@@ -98,11 +103,11 @@ export interface ILogEventFactory {
  */
 export interface ISink {
     /**
-     * Emit the provided `ILogEvent` to the output interface wrapped by this sink.
+     * Handle the provided `ILogEvent` to the output interface wrapped by this sink.
      *
      * @param event - The event object to emit. Built-in sinks will call `.toString()` on the event object but custom sinks can do anything they like with the event.
      */
-    emit(event: ILogEvent): void;
+    handleEvent(event: ILogEvent): void;
 }
 /**
  * The main interface to the logging API.
@@ -283,6 +288,15 @@ export declare const ISink: import("./di").InterfaceSymbol<ISink>;
 export declare const ILogEventFactory: import("./di").InterfaceSymbol<ILogEventFactory>;
 export declare const ILogger: import("./di").InterfaceSymbol<ILogger>;
 export declare const ILogScopes: import("./di").InterfaceSymbol<string[]>;
+interface SinkDefinition {
+    handles: Exclude<LogLevel, LogLevel.none>[];
+}
+export declare const LoggerSink: Readonly<{
+    key: string;
+    define<TSink extends ISink>(target: Constructable<TSink>, definition: SinkDefinition): Constructable<TSink>;
+    getHandles<TSink_1 extends ISink>(target: TSink_1 | Constructable<TSink_1>): LogLevel[] | undefined;
+}>;
+export declare function sink(definition: SinkDefinition): <TSink extends ISink>(target: Constructable<TSink>) => Constructable<TSink>;
 export interface IConsoleLike {
     debug(message: string, ...optionalParams: unknown[]): void;
     info(message: string, ...optionalParams: unknown[]): void;
@@ -325,16 +339,15 @@ export declare class DefaultLogEventFactory implements ILogEventFactory {
     createLogEvent(logger: ILogger, level: LogLevel, message: string, optionalParams: unknown[]): ILogEvent;
 }
 export declare class ConsoleSink implements ISink {
-    readonly emit: (event: ILogEvent) => void;
+    readonly handleEvent: (event: ILogEvent) => void;
     constructor($console: IConsoleLike);
 }
 export declare class DefaultLogger implements ILogger {
     readonly config: ILogConfig;
     private readonly factory;
-    private readonly sinks;
     readonly scope: string[];
-    readonly root: ILogger;
-    readonly parent: ILogger;
+    readonly root: DefaultLogger;
+    readonly parent: DefaultLogger;
     readonly trace: (...args: unknown[]) => void;
     readonly debug: (...args: unknown[]) => void;
     readonly info: (...args: unknown[]) => void;
@@ -342,7 +355,7 @@ export declare class DefaultLogger implements ILogger {
     readonly error: (...args: unknown[]) => void;
     readonly fatal: (...args: unknown[]) => void;
     private readonly scopedLoggers;
-    constructor(config: ILogConfig, factory: ILogEventFactory, sinks: ISink[], scope?: string[], parent?: ILogger | null);
+    constructor(config: ILogConfig, factory: ILogEventFactory, sinks: readonly ISink[], scope?: string[], parent?: DefaultLogger | null);
     scopeTo(name: string): ILogger;
 }
 /**
@@ -350,23 +363,26 @@ export declare class DefaultLogger implements ILogger {
  *
  * NOTE: You *must* register the return value of `.create` with the container / au instance, not this `LoggerConfiguration` object itself.
  *
+ * @example
  * ```ts
- * // GOOD
- * container.register(LoggerConfiguration.create(console))
- * // GOOD
- * container.register(LoggerConfiguration.create(console, LogLevel.debug))
- * // GOOD
- * container.register(LoggerConfiguration.create({
- *   debug: PLATFORM.noop,
- *   info: PLATFORM.noop,
- *   warn: PLATFORM.noop,
- *   error: msg => {
- *     throw new Error(msg);
- *   }
- * }, LogLevel.debug))
+ * container.register(LoggerConfiguration.create());
  *
- * // BAD
- * container.register(LoggerConfiguration)
+ * container.register(LoggerConfiguration.create({$console: console}))
+ *
+ * container.register(LoggerConfiguration.create({$console: console, level: LogLevel.debug}))
+ *
+ * container.register(LoggerConfiguration.create({
+ *  $console: {
+ *     debug: PLATFORM.noop,
+ *     info: PLATFORM.noop,
+ *     warn: PLATFORM.noop,
+ *     error: msg => {
+ *       throw new Error(msg);
+ *     }
+ *  },
+ *  level: LogLevel.debug
+ * }))
+ *
  * ```
  */
 export declare const LoggerConfiguration: {
@@ -375,6 +391,7 @@ export declare const LoggerConfiguration: {
      * @param level - The global `LogLevel` to configure. Defaults to `warn` or higher.
      * @param colorOptions - Whether to use colors or not. Defaults to `noColors`. Colors are especially nice in nodejs environments but don't necessarily work (well) in all environments, such as browsers.
      */
-    create($console: IConsoleLike, level?: LogLevel, colorOptions?: ColorOptions): IRegistry;
+    create({ $console, level, colorOptions, sinks, }?: Partial<ILoggingConfigurationOptions>): IRegistry;
 };
+export {};
 //# sourceMappingURL=logger.d.ts.map

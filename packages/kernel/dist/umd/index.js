@@ -45,6 +45,7 @@
     exports.ConsoleSink = logger_1.ConsoleSink;
     exports.LoggerConfiguration = logger_1.LoggerConfiguration;
     exports.format = logger_1.format;
+    exports.sink = logger_1.sink;
     var path_1 = require("./path");
     exports.relativeToFile = path_1.relativeToFile;
     exports.join = path_1.join;

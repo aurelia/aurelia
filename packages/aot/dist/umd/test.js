@@ -21,7 +21,7 @@
         // Just for testing
         const root = path_1.resolve(__dirname, '..', '..', '..', '..', 'test', 'realworld');
         const container = kernel_1.DI.createContainer();
-        container.register(kernel_1.LoggerConfiguration.create(console, 1 /* debug */, 1 /* colors */), kernel_1.Registration.singleton(interfaces_1.IFileSystem, file_system_1.NodeFileSystem));
+        container.register(kernel_1.LoggerConfiguration.create({ $console: console, level: 1 /* debug */, colorOptions: 1 /* colors */ }), kernel_1.Registration.singleton(interfaces_1.IFileSystem, file_system_1.NodeFileSystem));
         const host = new service_host_1.ServiceHost(container);
         await host.executeEntryFile(root);
     })().catch(err => {

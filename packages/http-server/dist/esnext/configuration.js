@@ -10,7 +10,7 @@ export const HttpServerConfiguration = {
         opts.validate();
         return {
             register(container) {
-                container.register(Registration.instance(IHttpServerOptions, opts), Registration.singleton(IRequestHandler, FileServer), Registration.singleton(IHttp2FileServer, Http2FileServer), LoggerConfiguration.create(console, opts.level, 1 /* colors */));
+                container.register(Registration.instance(IHttpServerOptions, opts), Registration.singleton(IRequestHandler, FileServer), Registration.singleton(IHttp2FileServer, Http2FileServer), LoggerConfiguration.create({ $console: console, level: opts.level, colorOptions: 1 /* colors */ }));
                 if (opts.useHttp2) {
                     container.register(Registration.singleton(IHttpServer, Http2Server));
                 }

@@ -10,7 +10,7 @@ import { ServiceHost, } from './service-host';
     // Just for testing
     const root = resolve(__dirname, '..', '..', '..', '..', 'test', 'realworld');
     const container = DI.createContainer();
-    container.register(LoggerConfiguration.create(console, 1 /* debug */, 1 /* colors */), Registration.singleton(IFileSystem, NodeFileSystem));
+    container.register(LoggerConfiguration.create({ $console: console, level: 1 /* debug */, colorOptions: 1 /* colors */ }), Registration.singleton(IFileSystem, NodeFileSystem));
     const host = new ServiceHost(container);
     await host.executeEntryFile(root);
 })().catch(err => {

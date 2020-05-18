@@ -1,4 +1,9 @@
 export {
+  RouteExpression,
+  AST,
+} from './ast';
+
+export {
   RouterConfiguration,
   RouterRegistration,
   DefaultComponents,

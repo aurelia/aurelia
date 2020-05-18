@@ -353,7 +353,7 @@ export class Scope {
 
   public addViewport(
     name: string,
-    viewportController: ICustomElementController | null,
+    viewportController: ICustomElementController<Element> | null,
     options: IViewportOptions = {},
   ): Viewport {
     let viewport = this.getEnabledViewports(this.getOwnedScopes())[name] ?? null;
@@ -382,7 +382,7 @@ export class Scope {
   }
   public removeViewport(
     viewport: Viewport,
-    viewportController: ICustomElementController | null,
+    viewportController: ICustomElementController<Element> | null,
   ): boolean {
 
     if (viewportController === null || viewport.remove(viewportController)) {

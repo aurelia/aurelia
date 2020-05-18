@@ -69,7 +69,7 @@ export const ViewportHandleResolver = {
 };
 
 export interface IViewportInstructionsOptions {
-  context?: ICustomElementViewModel | Node | IController;
+  context?: ICustomElementViewModel<Element> | Node | IController;
 }
 
 export const NavigationInstructionResolver = {

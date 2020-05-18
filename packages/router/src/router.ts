@@ -63,7 +63,7 @@ export interface IGotoOptions {
   data?: Record<string, unknown>;
   replace?: boolean;
   append?: boolean;
-  origin?: ICustomElementViewModel | Node;
+  origin?: ICustomElementViewModel<Element> | Node;
 }
 
 export interface IRouterOptions {
@@ -186,25 +186,25 @@ export interface IRouter {
 
   // Called from the viewport scope custom element
   setClosestScope(
-    viewModelOrContainer: ICustomElementViewModel | IContainer,
+    viewModelOrContainer: ICustomElementViewModel<Element> | IContainer,
     scope: Scope,
   ): void;
   // getClosestScope(viewModelOrElement: ICustomElementViewModel | T | ICustomElementController | IContainer): Scope | null;
   unsetClosestScope(
-    viewModelOrContainer: ICustomElementViewModel | IContainer,
+    viewModelOrContainer: ICustomElementViewModel<Element> | IContainer,
   ): void;
 
   // Called from the viewport custom element
   connectViewport(
     viewport: Viewport | null,
-    controller: ICustomElementController,
+    controller: ICustomElementController<Element>,
     name: string,
     options?: IViewportOptions,
   ): Viewport;
   // Called from the viewport custom element
   disconnectViewport(
     viewport: Viewport,
-    controller: ICustomElementController,
+    controller: ICustomElementController<Element>,
   ): void;
   // Called from the viewport scope custom element
   connectViewportScope(
@@ -222,7 +222,7 @@ export interface IRouter {
 
   allViewports(includeDisabled?: boolean): Viewport[];
   findScope(
-    elementOrViewmodelOrviewport: Node | ICustomElementViewModel | Viewport | ICustomElementController | null,
+    elementOrViewmodelOrviewport: Node | ICustomElementViewModel<Element> | Viewport | ICustomElementController<Element> | null,
   ): Scope;
 
   goto(
@@ -235,8 +235,8 @@ export interface IRouter {
 
   checkActive(instructions: ViewportInstruction[]): boolean;
 
-  addRoutes(routes: IRoute[], context?: ICustomElementViewModel | Node): IRoute[];
-  removeRoutes(routes: IRoute[] | string[], context?: ICustomElementViewModel | Node): void;
+  addRoutes(routes: IRoute[], context?: ICustomElementViewModel<Element> | Node): IRoute[];
+  removeRoutes(routes: IRoute[] | string[], context?: ICustomElementViewModel<Element> | Node): void;
   addHooks(hooks: IHookDefinition[]): HookIdentity[];
 
   addHook(beforeNavigationHookFunction: BeforeNavigationHookFunction, options?: IHookOptions): HookIdentity;
@@ -732,7 +732,7 @@ export class Router implements IRouter {
     return storableEntry;
   }
 
-  public findScope(origin: Node | ICustomElementViewModel | Viewport | Scope | ICustomElementController | null): Scope {
+  public findScope(origin: Node | ICustomElementViewModel<Element> | Viewport | Scope | ICustomElementController<Element> | null): Scope {
     const rootScope = this.rootScope!.scope;
 
     if (origin === void 0 || origin === null) {
@@ -788,13 +788,13 @@ export class Router implements IRouter {
 
   // Called from the viewport scope custom element in created()
   public setClosestScope(
-    viewModelOrContainer: ICustomElementViewModel | IContainer,
+    viewModelOrContainer: ICustomElementViewModel<Element> | IContainer,
     scope: Scope,
   ): void {
     const container = this.getContainer(viewModelOrContainer);
     Registration.instance(ClosestScope, scope).register(container!);
   }
-  public unsetClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer): void {
+  public unsetClosestScope(viewModelOrContainer: ICustomElementViewModel<Element> | IContainer): void {
     const container = this.getContainer(viewModelOrContainer);
     // TODO: Get an 'unregister' on container
     (container as any).resolvers.delete(ClosestScope);
@@ -803,7 +803,7 @@ export class Router implements IRouter {
   // Called from the viewport custom element in attached()
   public connectViewport(
     viewport: Viewport | null,
-    controller: ICustomElementController,
+    controller: ICustomElementController<Element>,
     name: string,
     options?: IViewportOptions,
   ): Viewport {
@@ -817,7 +817,7 @@ export class Router implements IRouter {
   // Called from the viewport custom element
   public disconnectViewport(
     viewport: Viewport,
-    controller: ICustomElementController,
+    controller: ICustomElementController<Element>,
   ): void {
     if (!viewport.connectedScope.parent!.removeViewport(viewport, controller)) {
       throw new Error(`Failed to remove viewport: ${viewport.name}`);
@@ -1013,14 +1013,14 @@ export class Router implements IRouter {
     return true;
   }
 
-  public addRoutes(routes: IRoute[], context?: ICustomElementViewModel | Node): IRoute[] {
+  public addRoutes(routes: IRoute[], context?: ICustomElementViewModel<Element> | Node): IRoute[] {
     // TODO: This should add to the context instead
     // TODO: Add routes without context to rootScope content (which needs to be created)?
     return [];
     // const viewport = (context !== void 0 ? this.closestViewport(context) : this.rootScope) || this.rootScope as Viewport;
     // return viewport.addRoutes(routes);
   }
-  public removeRoutes(routes: IRoute[] | string[], context?: ICustomElementViewModel | Node): void {
+  public removeRoutes(routes: IRoute[] | string[], context?: ICustomElementViewModel<Element> | Node): void {
     // TODO: This should remove from the context instead
     // const viewport = (context !== void 0 ? this.closestViewport(context) : this.rootScope) || this.rootScope as Viewport;
     // return viewport.removeRoutes(routes);
@@ -1276,7 +1276,7 @@ export class Router implements IRouter {
     }
   }
 
-  private getContainer(viewModelOrContainer: ICustomElementViewModel | IContainer): IContainer | null {
+  private getContainer(viewModelOrContainer: ICustomElementViewModel<Element> | IContainer): IContainer | null {
     if ('resourceResolvers' in viewModelOrContainer) {
       return viewModelOrContainer;
     }

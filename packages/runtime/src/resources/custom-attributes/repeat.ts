@@ -3,7 +3,7 @@ import { ForOfStatement } from '../../binding/ast';
 import { PropertyBinding } from '../../binding/property-binding';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags as LF, LifecycleFlags } from '../../flags';
-import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController, IRenderableController, IController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController } from '../../lifecycle';
+import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController, IRenderableController, IController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../lifecycle';
 import {
   CollectionObserver,
   IndexMap,
@@ -358,6 +358,18 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   public dispose(): void {
     this.views.forEach(dispose);
     this.views = (void 0)!;
+  }
+
+  public accept(visitor: ControllerVisitor<T>): void | true {
+    const { views } = this;
+
+    if (views !== void 0) {
+      for (let i = 0, ii = views.length; i < ii; ++i) {
+        if (views[i].accept(visitor) === true) {
+          return true;
+        }
+      }
+    }
   }
 }
 

@@ -22,6 +22,7 @@ import {
   ICustomElementViewModel,
   IHydratedController,
   IHydratedParentController,
+  ControllerVisitor,
 } from '@aurelia/runtime';
 import {
   createElement,
@@ -215,6 +216,12 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
   public dispose(): void {
     this.view?.dispose();
     this.view = (void 0)!;
+  }
+
+  public accept(visitor: ControllerVisitor<T>): void | true {
+    if (this.view?.accept(visitor) === true) {
+      return true;
+    }
   }
 }
 

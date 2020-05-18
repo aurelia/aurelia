@@ -224,6 +224,7 @@ export class HooksDefinition {
   public readonly hasAfterUnbindChildren: boolean;
 
   public readonly hasDispose: boolean;
+  public readonly hasAccept: boolean;
 
   public constructor(target: object) {
     this.hasCreate = 'create' in target;
@@ -243,6 +244,7 @@ export class HooksDefinition {
     this.hasAfterUnbindChildren = 'afterUnbindChildren' in target;
 
     this.hasDispose = 'dispose' in target;
+    this.hasAccept = 'accept' in target;
   }
 }
 

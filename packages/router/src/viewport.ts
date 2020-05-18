@@ -38,7 +38,7 @@ export class Viewport implements IScopeOwner {
   public constructor(
     public readonly router: IRouter,
     public name: string,
-    public viewportController: ICustomElementController | null,
+    public viewportController: ICustomElementController<Element> | null,
     owningScope: Scope,
     scope: boolean,
     public options: IViewportOptions = {}
@@ -168,7 +168,7 @@ export class Viewport implements IScopeOwner {
   }
 
   public setController(
-    viewportController: ICustomElementController,
+    viewportController: ICustomElementController<Element>,
     options: IViewportOptions,
   ): void {
     options = options || {};
@@ -217,7 +217,7 @@ export class Viewport implements IScopeOwner {
   }
 
   public async remove(
-    viewportController: ICustomElementController | null,
+    viewportController: ICustomElementController<Element> | null,
   ): Promise<boolean> {
     if (this.viewportController === viewportController) {
       if (this.content.componentInstance) {
@@ -366,8 +366,8 @@ export class Viewport implements IScopeOwner {
   }
 
   public async activate(
-    initiator: IHydratedController,
-    viewportController: ICustomElementController,
+    initiator: IHydratedController<Element>,
+    viewportController: ICustomElementController<Element>,
     flags: LifecycleFlags,
   ): Promise<void> {
     this.enabled = true;
@@ -378,8 +378,8 @@ export class Viewport implements IScopeOwner {
   }
 
   public async deactivate(
-    initiator: IHydratedController,
-    viewportController: ICustomElementController,
+    initiator: IHydratedController<Element>,
+    viewportController: ICustomElementController<Element>,
     flags: LifecycleFlags,
   ): Promise<void> {
     if (this.content.componentInstance) {

@@ -167,7 +167,7 @@ export class ViewportContent {
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  public async loadComponent(viewportController: ICustomElementController, viewport: Viewport): Promise<void> {
+  public async loadComponent(viewportController: ICustomElementController<Element>, viewport: Viewport): Promise<void> {
     // if (this.contentStatus !== ContentStatus.created || !this.entered || !this.content.componentInstance) {
     if (this.contentStatus !== ContentStatus.created || this.entered || !this.content.componentInstance) {
       return;
@@ -201,8 +201,8 @@ export class ViewportContent {
   }
 
   public async activateComponent(
-    initiator: IHydratedController | null,
-    viewportController: ICustomElementController | null,
+    initiator: IHydratedController<Element> | null,
+    viewportController: ICustomElementController<Element> | null,
     flags: LifecycleFlags,
   ): Promise<void> {
     if (this.contentStatus !== ContentStatus.loaded) {
@@ -218,8 +218,8 @@ export class ViewportContent {
   }
 
   public async deactivateComponent(
-    initiator: IHydratedController | null,
-    viewportController: ICustomElementController | null,
+    initiator: IHydratedController<Element> | null,
+    viewportController: ICustomElementController<Element> | null,
     flags: LifecycleFlags,
     stateful: boolean = false,
   ): Promise<void> {
@@ -236,7 +236,7 @@ export class ViewportContent {
   }
 
   public async freeContent(
-    viewportController: ICustomElementController | null,
+    viewportController: ICustomElementController<Element> | null,
     nextInstruction: INavigatorInstruction | null,
     cache: ViewportContent[],
     stateful: boolean = false,

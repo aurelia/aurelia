@@ -17,6 +17,7 @@ import {
   IController,
   IHydratedController,
   IHydratedParentController,
+  ControllerVisitor,
 } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { IContainer, Writable } from '@aurelia/kernel';
@@ -48,7 +49,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Node>
     @INode element: INode,
     @IContainer private container: IContainer,
     @ParentViewportScope private readonly parent: ViewportScopeCustomElement,
-    @IController private readonly parentController: IHydratedController,
+    @IController private readonly parentController: IHydratedController<Element>,
   ) {
     this.element = element as Element;
   }
@@ -116,8 +117,8 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Node>
   }
 
   public beforeBind(
-    initiator: IHydratedController<Node>,
-    parent: IHydratedParentController<Node> | null,
+    initiator: IHydratedController<Element>,
+    parent: IHydratedParentController<Element> | null,
     flags: LifecycleFlags,
   ): void {
     this.isBound = true;
@@ -130,8 +131,8 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Node>
     }
   }
   public async beforeUnbind(
-    initiator: IHydratedController<Node>,
-    parent: IHydratedParentController<Node> | null,
+    initiator: IHydratedController<Element>,
+    parent: IHydratedParentController<Element> | null,
     flags: LifecycleFlags,
   ): Promise<void> {
     if (this.viewportScope !== null) {
@@ -158,5 +159,11 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Node>
       }
     }
     return void 0;
+  }
+
+  public accept(visitor: ControllerVisitor<Element>): void | true {
+    if (this.viewportScope?.content?.componentInstance?.accept?.(visitor) === true) {
+      return true;
+    }
   }
 }

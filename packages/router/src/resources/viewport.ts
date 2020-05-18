@@ -10,6 +10,7 @@ import {
   ICustomElementController,
   IHydratedController,
   IHydratedParentController,
+  ControllerVisitor,
 } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { Viewport, IViewportOptions } from '../viewport';
@@ -52,8 +53,8 @@ export class ViewportCustomElement implements ICustomElementViewModel<Node> {
   }
 
   public async afterAttach(
-    initiator: IHydratedController<Node>,
-    parent: IHydratedParentController<Node> | null,
+    initiator: IHydratedController<Element>,
+    parent: IHydratedParentController<Element> | null,
     flags: LifecycleFlags,
   ): Promise<void> {
     if (this.router.rootScope === null) {
@@ -74,8 +75,8 @@ export class ViewportCustomElement implements ICustomElementViewModel<Node> {
   }
 
   public async afterUnbind(
-    initiator: IHydratedController<Node>,
-    parent: IHydratedParentController<Node> | null,
+    initiator: IHydratedController<Element>,
+    parent: IHydratedParentController<Element> | null,
     flags: LifecycleFlags,
   ): Promise<void> {
     const { viewport } = this;
@@ -91,5 +92,11 @@ export class ViewportCustomElement implements ICustomElementViewModel<Node> {
       return this.element.hasAttribute(key);
     }
     return value;
+  }
+
+  public accept(visitor: ControllerVisitor<Element>): void | true {
+    if (this.viewport?.content?.content?.componentInstance?.accept?.(visitor) === true) {
+      return true;
+    }
   }
 }

@@ -88,6 +88,13 @@ export type IHydratedComponentController<T extends INode = INode> = ICustomEleme
 export type IHydratedParentController<T extends INode = INode> = ISyntheticView<T> | ICustomElementController<T>;
 
 /**
+ * A callback that is invoked on each controller in the component tree.
+ *
+ * Return `true` to stop traversal.
+ */
+export type ControllerVisitor<T extends INode = INode> = (controller: IHydratedController<T>) => void | true;
+
+/**
  * The base type for all controller types.
  *
  * Every controller, regardless of their type and state, will have at least the properties/methods in this interface.
@@ -221,6 +228,11 @@ interface IHydratedControllerProperties<
   /** @internal */head: IHydratedController<T> | null;
   /** @internal */tail: IHydratedController<T> | null;
   /** @internal */next: IHydratedController<T> | null;
+
+  /**
+   * Return `true` to stop traversal.
+   */
+  accept(visitor: ControllerVisitor<T>): void | true;
 }
 
 /**
@@ -514,6 +526,13 @@ export interface IActivationHooks<TParent, T extends INode = INode> {
   ): void | Promise<void>;
 
   dispose?(): void;
+  /**
+   * If this component controls the instantiation and lifecycles of one or more controllers,
+   * implement this hook to enable component tree traversal for plugins that use it (such as the router).
+   *
+   * Return `true` to stop traversal.
+   */
+  accept?(visitor: ControllerVisitor<T>): void | true;
 }
 
 export interface ICompileHooks<T extends INode = INode> {

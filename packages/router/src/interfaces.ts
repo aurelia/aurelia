@@ -115,7 +115,7 @@ export type RouteableComponentType<C extends Constructable = Constructable> = Cu
   parameters?: string[];
 };
 
-export interface IRouteableComponent extends ICustomElementViewModel {
+export interface IRouteableComponent extends ICustomElementViewModel<Element> {
   reentryBehavior?: ReentryBehavior;
   canEnter?(
     parameters: Record<string, unknown>,

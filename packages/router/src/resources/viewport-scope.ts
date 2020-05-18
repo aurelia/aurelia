@@ -18,6 +18,7 @@ import {
   IController,
   IHydratedController,
   IHydratedParentController,
+  ControllerVisitor,
 } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { IViewportScopeOptions, ViewportScope } from '../viewport-scope';
@@ -49,7 +50,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Eleme
     @INode element: INode,
     @IContainer private container: IContainer,
     @ParentViewportScope private readonly parent: ViewportScopeCustomElement,
-    @IController private readonly parentController: IHydratedController,
+    @IController private readonly parentController: IHydratedController<Element>,
   ) {
     this.element = element as HTMLElement;
   }
@@ -159,5 +160,11 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Eleme
       }
     }
     return void 0;
+  }
+
+  public accept(visitor: ControllerVisitor<Element>): void | true {
+    if (this.viewportScope?.content?.componentInstance?.accept?.(visitor) === true) {
+      return true;
+    }
   }
 }

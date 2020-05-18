@@ -10,6 +10,7 @@ import {
   ICustomElementController,
   IHydratedController,
   IHydratedParentController,
+  ControllerVisitor,
 } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { IViewportOptions, Viewport } from '../viewport';
@@ -91,5 +92,11 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
       return this.element.hasAttribute(key);
     }
     return value;
+  }
+
+  public accept(visitor: ControllerVisitor<Element>): void | true {
+    if (this.viewport?.content?.content?.componentInstance?.accept?.(visitor) === true) {
+      return true;
+    }
   }
 }

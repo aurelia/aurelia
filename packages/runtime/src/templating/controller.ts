@@ -7,7 +7,6 @@ import {
   Writable,
   Constructable,
   IDisposable,
-  PLATFORM,
 } from '@aurelia/kernel';
 import {
   PropertyBinding,
@@ -46,6 +45,7 @@ import {
   IHydratedParentController,
   State,
   stringifyState,
+  ControllerVisitor,
 } from '../lifecycle';
 import {
   IBindingTargetAccessor,
@@ -1070,6 +1070,25 @@ export class Controller<
     }
     this.bindingContext = void 0;
     this.host = void 0;
+  }
+
+  public accept(visitor: ControllerVisitor<T>): void | true {
+    if (visitor(this as IHydratedController<T>) === true) {
+      return true;
+    }
+
+    if (this.hooks.hasAccept && this.bindingContext!.accept(visitor) === true) {
+      return true;
+    }
+
+    if (this.children !== void 0) {
+      const { children } = this;
+      for (let i = 0, ii = children.length; i < ii; ++i) {
+        if (children[i].accept(visitor) === true) {
+          return true;
+        }
+      }
+    }
   }
 
   public getTargetAccessor(propertyName: string): IBindingTargetAccessor | undefined {

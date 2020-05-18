@@ -423,6 +423,7 @@ export {
 } from './instructions';
 export {
   ViewModelKind,
+  ControllerVisitor,
   IBinding,
   ILifecycle,
   IViewModel,

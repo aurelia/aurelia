@@ -14,6 +14,7 @@ import {
   ICustomAttributeViewModel,
   IHydratedController,
   IHydratedParentController,
+  ControllerVisitor,
 } from '@aurelia/runtime';
 import {
   HTMLDOM,
@@ -253,5 +254,11 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
     this.view.dispose();
     this.view = (void 0)!;
     this.callbackContext = null;
+  }
+
+  public accept(visitor: ControllerVisitor<T>): void | true {
+    if (this.view?.accept(visitor) === true) {
+      return true;
+    }
   }
 }

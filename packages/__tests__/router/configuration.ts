@@ -7,7 +7,7 @@ export const TestRouterConfiguration = {
   for(ctx: HTMLTestContext): IRegistry {
     return {
       register(container: IContainer): void {
-        container.register(LoggerConfiguration.create(ctx.wnd.console, LogLevel.debug));
+        container.register(LoggerConfiguration.create({ $console: console, level: LogLevel.debug }));
 
         const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
         container.register(

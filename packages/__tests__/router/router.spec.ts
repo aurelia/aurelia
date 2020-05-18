@@ -141,7 +141,7 @@ describe('Router', function () {
         App)
       .app({ host: host, component: App });
 
-    const router = container.get(IRouter) as Router;
+    const router = container.get(IRouter) as unknown as Router;
     const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
 
     container.register(Foo, Bar, Baz, Qux, Quux, Corge, Uier, Grault, Garply, Waldo, Plugh);
@@ -939,7 +939,7 @@ describe('Router', function () {
         .register(DebugConfiguration, RouterConfiguration)
         .app({ host: host, component: App });
 
-      const router = container.get(IRouter);
+      const router = container.get(IRouter) as unknown as Router;
 
       await au.start().wait();
 
@@ -1187,7 +1187,7 @@ describe('Router', function () {
           App)
         .app({ host: host, component: App });
 
-      const router = container.get(IRouter) as Router;
+      const router = container.get(IRouter) as unknown as Router;
       const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
 
       await au.start().wait();
@@ -1317,7 +1317,7 @@ describe('Router', function () {
           App)
         .app({ host: host, component: App });
 
-      const router = container.get(IRouter) as Router;
+      const router = container.get(IRouter) as unknown as Router;
       const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
 
       await au.start().wait();
@@ -1546,7 +1546,7 @@ describe('Router', function () {
 let quxCantLeave = 0;
 let plughReentryBehavior = 'default';
 
-const $goto = async (path: string, router: IRouter, scheduler: IScheduler) => {
+const $goto = async (path: string, router: Router, scheduler: IScheduler) => {
   await router.goto(path);
   scheduler.getRenderTaskQueue().flush();
 };

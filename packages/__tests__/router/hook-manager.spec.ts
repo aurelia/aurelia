@@ -47,7 +47,7 @@ describe('HookManager', function () {
         App)
       .app({ host: host, component: App });
 
-    const router = container.get(IRouter) as Router;
+    const router = container.get(IRouter) as unknown as Router;
     const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
 
     await au.start().wait();
@@ -94,7 +94,7 @@ describe('HookManager', function () {
       router['history'].replaceState = _replace;
     }
   }
-  const $goto = async (path: string, router: IRouter, scheduler: IScheduler) => {
+  const $goto = async (path: string, router: Router, scheduler: IScheduler) => {
     await router.goto(path);
     scheduler.getRenderTaskQueue().flush();
   };

@@ -10,6 +10,9 @@
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const nav_route_1 = require("./nav-route");
+    /**
+     * Public API - Used by au-nav and Router add/setNav
+     */
     class Nav {
         constructor(router, name, routes = [], classes = {}) {
             this.router = router;

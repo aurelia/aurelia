@@ -1,2 +1,2 @@
-export declare function arrayRemove<T>(arr: T[], func: (value: T, index?: number, obj?: T[]) => boolean): T[];
+export {};
 //# sourceMappingURL=utils.d.ts.map

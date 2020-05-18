@@ -9,6 +9,9 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * @internal - Shouldn't be used directly
+     */
     function parseQuery(query) {
         if (!query || !query.length) {
             return {};

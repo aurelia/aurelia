@@ -10,6 +10,9 @@
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const utils_1 = require("./utils");
+    /**
+     * @internal - Helper class
+     */
     class Collection extends Array {
         constructor() {
             super(...arguments);

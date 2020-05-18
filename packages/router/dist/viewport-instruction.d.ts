@@ -5,12 +5,9 @@ import { Viewport } from './viewport';
 import { IComponentParameter, InstructionResolver } from './instruction-resolver';
 import { Scope, IScopeOwner } from './scope';
 import { ViewportScope } from './viewport-scope';
-export declare const enum ParametersType {
-    none = "none",
-    string = "string",
-    array = "array",
-    object = "object"
-}
+/**
+ * Public API - The viewport instructions are the core of the router's navigations
+ */
 export declare class ViewportInstruction {
     ownsScope: boolean;
     nextScopeInstructions: ViewportInstruction[] | null;

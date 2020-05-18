@@ -1,4 +1,7 @@
 import { NavRoute } from './nav-route';
+/**
+ * Public API - Used by au-nav and Router add/setNav
+ */
 export class Nav {
     constructor(router, name, routes = [], classes = {}) {
         this.router = router;

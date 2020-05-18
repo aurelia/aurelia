@@ -10,6 +10,9 @@
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const utils_1 = require("./utils");
+    /**
+     * @internal - Shouldn't be used directly
+     */
     class ViewportInstructionCollection extends Array {
         get empty() {
             return this.length === 0;

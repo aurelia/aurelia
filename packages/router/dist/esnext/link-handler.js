@@ -1,6 +1,8 @@
 import { IDOM, CustomAttribute } from '@aurelia/runtime';
 /**
  * Class responsible for handling interactions that should trigger navigation.
+ *
+ * @internal - Shouldn't be used directly.
  */
 export class LinkHandler {
     constructor(dom) {

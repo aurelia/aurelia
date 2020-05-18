@@ -11,6 +11,9 @@
     Object.defineProperty(exports, "__esModule", { value: true });
     const runtime_1 = require("@aurelia/runtime");
     const type_resolvers_1 = require("./type-resolvers");
+    /**
+     * @internal - Shouldn't be used directly
+     */
     var ParametersType;
     (function (ParametersType) {
         ParametersType["none"] = "none";
@@ -18,6 +21,9 @@
         ParametersType["array"] = "array";
         ParametersType["object"] = "object";
     })(ParametersType = exports.ParametersType || (exports.ParametersType = {}));
+    /**
+     * Public API - The viewport instructions are the core of the router's navigations
+     */
     class ViewportInstruction {
         constructor(component, viewport, parameters, ownsScope = true, nextScopeInstructions = null) {
             this.ownsScope = ownsScope;

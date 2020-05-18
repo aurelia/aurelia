@@ -26,20 +26,55 @@
     const browser_viewer_store_1 = require("./browser-viewer-store");
     class ClosestViewportCustomElement {
     }
+    /**
+     * @internal
+     */
     class ClosestScope {
     }
     exports.IRouter = kernel_1.DI.createInterface('IRouter').withDefault(x => x.singleton(Router));
     class Router {
-        constructor(container, navigator, navigation, linkHandler, instructionResolver) {
+        constructor(
+        /**
+         * @internal - Shouldn't be used directly.
+         */
+        container, 
+        /**
+         * @internal - Shouldn't be used directly.
+         */
+        navigator, 
+        /**
+         * @internal - Shouldn't be used directly.
+         */
+        navigation, 
+        /**
+         * @internal - Shouldn't be used directly.
+         */
+        linkHandler, 
+        /**
+         * @internal - Shouldn't be used directly. Probably.
+         */
+        instructionResolver) {
             this.container = container;
             this.navigator = navigator;
             this.navigation = navigation;
             this.linkHandler = linkHandler;
             this.instructionResolver = instructionResolver;
             this.rootScope = null;
+            /**
+             * @internal
+             */
             this.navs = {};
+            /**
+             * Public API
+             */
             this.activeComponents = [];
+            /**
+             * @internal
+             */
             this.appendedInstructions = [];
+            /**
+             * @internal
+             */
             this.options = {
                 useHref: true,
                 statefulHistoryLength: 0,
@@ -51,6 +86,9 @@
             this.processingNavigation = null;
             this.lastNavigation = null;
             this.staleChecks = {};
+            /**
+             * @internal
+             */
             // TODO: use @bound and improve name (eslint-disable is temp)
             // eslint-disable-next-line @typescript-eslint/typedef
             this.linkCallback = (info) => {
@@ -65,12 +103,18 @@
                 // Adds to Navigator's Queue, which makes sure it's serial
                 this.goto(instruction, { origin: info.anchor }).catch(error => { throw error; });
             };
+            /**
+             * @internal
+             */
             // TODO: use @bound and improve name (eslint-disable is temp)
             // eslint-disable-next-line @typescript-eslint/typedef
             this.navigatorCallback = (instruction) => {
                 // Instructions extracted from queue, one at a time
                 this.processNavigations(instruction).catch(error => { throw error; });
             };
+            /**
+             * @internal
+             */
             // TODO: use @bound and improve name (eslint-disable is temp)
             // eslint-disable-next-line @typescript-eslint/typedef
             this.navigatorSerializeCallback = async (entry, preservedEntries) => {
@@ -107,6 +151,9 @@
                 }
                 return serialized;
             };
+            /**
+             * @internal
+             */
             // TODO: use @bound and improve name (eslint-disable is temp)
             // eslint-disable-next-line @typescript-eslint/typedef
             this.browserNavigatorCallback = (browserNavigationEvent) => {
@@ -117,6 +164,9 @@
                 entry.fromBrowser = true;
                 this.navigator.navigate(entry).catch(error => { throw error; });
             };
+            /**
+             * @internal
+             */
             // TODO: use @bound and improve name (eslint-disable is temp)
             // eslint-disable-next-line @typescript-eslint/typedef
             this.processNavigations = async (qInstruction) => {
@@ -319,12 +369,21 @@
             };
             this.hookManager = new hook_manager_1.HookManager();
         }
+        /**
+         * Public API
+         */
         get isNavigating() {
             return this.processingNavigation !== null;
         }
+        /**
+         * @internal
+         */
         get statefulHistory() {
             return this.options.statefulHistoryLength !== void 0 && this.options.statefulHistoryLength > 0;
         }
+        /**
+         * Public API
+         */
         activate(options) {
             if (this.isActive) {
                 throw new Error('Router has already been activated');
@@ -351,6 +410,9 @@
             });
             this.ensureRootScope();
         }
+        /**
+         * Public API
+         */
         async loadUrl() {
             const entry = {
                 ...this.navigation.viewerState,
@@ -364,6 +426,9 @@
             this.loadedFirst = true;
             return result;
         }
+        /**
+         * Public API
+         */
         deactivate() {
             if (!this.isActive) {
                 throw new Error('Router has not been activated');
@@ -372,6 +437,9 @@
             this.navigator.deactivate();
             this.navigation.deactivate();
         }
+        /**
+         * @internal
+         */
         findScope(origin) {
             // this.ensureRootScope();
             if (origin === void 0 || origin === null) {
@@ -382,6 +450,9 @@
             }
             return this.getClosestScope(origin) || this.rootScope.scope;
         }
+        /**
+         * @internal
+         */
         findParentScope(container) {
             if (container === null) {
                 return this.rootScope.scope;
@@ -398,15 +469,40 @@
             }
             return this.rootScope.scope;
         }
-        // External API to get viewport by name
+        /**
+         * Public API - Get viewport by name
+         */
         getViewport(name) {
             return this.allViewports().find(viewport => viewport.name === name) || null;
         }
-        // Called from the viewport scope custom element in created()
+        /**
+         * Public API (not yet implemented)
+         */
+        addViewport(...args) {
+            throw new Error('Not implemented');
+        }
+        /**
+         * Public API (not yet implemented)
+         */
+        findViewportScope(...args) {
+            throw new Error('Not implemented');
+        }
+        /**
+         * Public API (not yet implemented)
+         */
+        addViewportScope(...args) {
+            throw new Error('Not implemented');
+        }
+        /**
+         * @internal - Called from the viewport scope custom element in created()
+         */
         setClosestScope(viewModelOrContainer, scope) {
             const container = this.getContainer(viewModelOrContainer);
             kernel_1.Registration.instance(ClosestScope, scope).register(container);
         }
+        /**
+         * @internal
+         */
         getClosestScope(viewModelOrElement) {
             const container = 'resourceResolvers' in viewModelOrElement
                 ? viewModelOrElement
@@ -419,12 +515,17 @@
             }
             return container.get(ClosestScope) || null;
         }
+        /**
+         * @internal
+         */
         unsetClosestScope(viewModelOrContainer) {
             const container = this.getContainer(viewModelOrContainer);
             // TODO: Get an 'unregister' on container
             container.resolvers.delete(ClosestScope);
         }
-        // Called from the viewport custom element in attached()
+        /**
+         * @internal - Called from the viewport custom element
+         */
         connectViewport(viewport, container, name, element, options) {
             const parentScope = this.findParentScope(container);
             if (viewport === null) {
@@ -433,14 +534,18 @@
             }
             return viewport;
         }
-        // Called from the viewport custom element
+        /**
+         * @internal - Called from the viewport custom element
+         */
         disconnectViewport(viewport, container, element) {
             if (!viewport.connectedScope.parent.removeViewport(viewport, element, container)) {
                 throw new Error(`Failed to remove viewport: ${viewport.name}`);
             }
             this.unsetClosestScope(container);
         }
-        // Called from the viewport scope custom element in attached()
+        /**
+         * @internal - Called from the viewport scope custom element
+         */
         connectViewportScope(viewportScope, name, container, element, options) {
             const parentScope = this.findParentScope(container);
             if (viewportScope === null) {
@@ -449,17 +554,25 @@
             }
             return viewportScope;
         }
-        // Called from the viewport scope custom element
+        /**
+         * @internal - Called from the viewport scope custom element
+         */
         disconnectViewportScope(viewportScope, container) {
             if (!viewportScope.connectedScope.parent.removeViewportScope(viewportScope)) {
                 throw new Error(`Failed to remove viewport scope: ${viewportScope.path}`);
             }
             this.unsetClosestScope(container);
         }
+        /**
+         * @internal
+         */
         allViewports(includeDisabled = false, includeReplaced = false) {
             // this.ensureRootScope();
             return this.rootScope.scope.allViewports(includeDisabled, includeReplaced);
         }
+        /**
+         * Public API - THE navigation API
+         */
         goto(instructions, options) {
             options = options || {};
             // TODO: Review query extraction; different pos for path and fragment!
@@ -493,15 +606,27 @@
             };
             return this.navigator.navigate(entry);
         }
+        /**
+         * Public API
+         */
         refresh() {
             return this.navigator.refresh();
         }
+        /**
+         * Public API
+         */
         back() {
             return this.navigator.go(-1);
         }
+        /**
+         * Public API
+         */
         forward() {
             return this.navigator.go(1);
         }
+        /**
+         * Public API
+         */
         checkActive(instructions) {
             for (const instruction of instructions) {
                 const scopeInstructions = this.instructionResolver.matchScope(this.activeComponents, instruction.scope);
@@ -517,6 +642,9 @@
             }
             return true;
         }
+        /**
+         * Public API
+         */
         setNav(name, routes, classes) {
             const nav = this.findNav(name);
             if (nav !== void 0 && nav !== null) {
@@ -524,6 +652,9 @@
             }
             this.addNav(name, routes, classes);
         }
+        /**
+         * Public API
+         */
         addNav(name, routes, classes) {
             let nav = this.navs[name];
             if (nav === void 0 || nav === null) {
@@ -532,6 +663,9 @@
             nav.addRoutes(routes);
             nav.update();
         }
+        /**
+         * Public API
+         */
         updateNav(name) {
             const navs = name
                 ? [name]
@@ -542,9 +676,15 @@
                 }
             }
         }
+        /**
+         * Public API
+         */
         findNav(name) {
             return this.navs[name];
         }
+        /**
+         * Public API
+         */
         addRoutes(routes, context) {
             // TODO: This should add to the context instead
             // TODO: Add routes without context to rootScope content (which needs to be created)?
@@ -552,20 +692,32 @@
             // const viewport = (context !== void 0 ? this.closestViewport(context) : this.rootScope) || this.rootScope as Viewport;
             // return viewport.addRoutes(routes);
         }
+        /**
+         * Public API
+         */
         removeRoutes(routes, context) {
             // TODO: This should remove from the context instead
             // const viewport = (context !== void 0 ? this.closestViewport(context) : this.rootScope) || this.rootScope as Viewport;
             // return viewport.removeRoutes(routes);
         }
+        /**
+         * Public API
+         */
         addHooks(hooks) {
             return hooks.map(hook => this.addHook(hook.hook, hook.options));
         }
         addHook(hook, options) {
             return this.hookManager.addHook(hook, options);
         }
+        /**
+         * Public API
+         */
         removeHooks(hooks) {
             return;
         }
+        /**
+         * Public API - The right way to create ViewportInstructions
+         */
         createViewportInstruction(component, viewport, parameters, ownsScope = true, nextScopeInstructions = null) {
             return this.instructionResolver.createViewportInstruction(component, viewport, parameters, ownsScope, nextScopeInstructions);
         }

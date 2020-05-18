@@ -12,6 +12,8 @@
     const runtime_1 = require("@aurelia/runtime");
     /**
      * Class responsible for handling interactions that should trigger navigation.
+     *
+     * @internal - Shouldn't be used directly.
      */
     class LinkHandler {
         constructor(dom) {

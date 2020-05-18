@@ -10,12 +10,18 @@
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const hook_1 = require("./hook");
+    /**
+     * Public API
+     */
     var HookTypes;
     (function (HookTypes) {
         HookTypes["BeforeNavigation"] = "beforeNavigation";
         HookTypes["TransformFromUrl"] = "transformFromUrl";
         HookTypes["TransformToUrl"] = "transformToUrl";
     })(HookTypes = exports.HookTypes || (exports.HookTypes = {}));
+    /**
+     * @internal - Shouldn't be used directly
+     */
     class HookManager {
         constructor() {
             this.hooks = {

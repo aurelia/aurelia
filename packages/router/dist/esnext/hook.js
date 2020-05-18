@@ -1,5 +1,8 @@
 import { ComponentAppellationResolver, ViewportHandleResolver } from './type-resolvers';
 import { ViewportInstruction } from './viewport-instruction';
+/**
+ * @internal - Shouldn't be used directly
+ */
 export class Hook {
     constructor(hook, options, id) {
         this.hook = hook;

@@ -16,6 +16,8 @@ import { bound } from '@aurelia/kernel';
  * Enqueued items can be awaited. Enqueued items can specify an (arbitrary)
  * execution cost and the queue can be set up (activated) to only process
  * a specific amount of execution cost per RAF/tick.
+ *
+ * @internal - Shouldn't be used directly.
  */
 export class Queue {
     constructor(callback) {

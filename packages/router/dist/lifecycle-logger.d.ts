@@ -1,4 +1,3 @@
-export declare function lifecycleLogger(name: string): (target: any) => void;
 export declare class LifecycleClass {
     canEnter(): boolean;
     enter(params: any): void;

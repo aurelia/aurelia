@@ -9,6 +9,9 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * @internal - Used when founding route/instructions
+     */
     class FoundRoute {
         constructor(match = null, matching = '', instructions = [], remaining = '') {
             this.match = match;

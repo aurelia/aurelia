@@ -1,4 +1,7 @@
 import { arrayRemove } from './utils';
+/**
+ * @internal - Shouldn't be used directly
+ */
 export class ViewportInstructionCollection extends Array {
     get empty() {
         return this.length === 0;

@@ -1,3 +1,6 @@
+/**
+ * @internal - Shouldn't be used directly
+ */
 export function parseQuery(query) {
     if (!query || !query.length) {
         return {};

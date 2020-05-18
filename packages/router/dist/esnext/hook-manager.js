@@ -1,10 +1,16 @@
 import { Hook } from './hook';
+/**
+ * Public API
+ */
 export var HookTypes;
 (function (HookTypes) {
     HookTypes["BeforeNavigation"] = "beforeNavigation";
     HookTypes["TransformFromUrl"] = "transformFromUrl";
     HookTypes["TransformToUrl"] = "transformToUrl";
 })(HookTypes || (HookTypes = {}));
+/**
+ * @internal - Shouldn't be used directly
+ */
 export class HookManager {
     constructor() {
         this.hooks = {

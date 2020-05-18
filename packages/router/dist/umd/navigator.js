@@ -11,6 +11,9 @@
     Object.defineProperty(exports, "__esModule", { value: true });
     const kernel_1 = require("@aurelia/kernel");
     const queue_1 = require("./queue");
+    /**
+     * @internal - Shouldn't be used directly
+     */
     class Navigator {
         constructor() {
             this.entries = [];

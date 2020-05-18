@@ -1,5 +1,8 @@
 import { CustomElement } from '@aurelia/runtime';
 import { ComponentAppellationResolver } from './type-resolvers';
+/**
+ * @internal - Shouldn't be used directly
+ */
 export var ParametersType;
 (function (ParametersType) {
     ParametersType["none"] = "none";
@@ -7,6 +10,9 @@ export var ParametersType;
     ParametersType["array"] = "array";
     ParametersType["object"] = "object";
 })(ParametersType || (ParametersType = {}));
+/**
+ * Public API - The viewport instructions are the core of the router's navigations
+ */
 export class ViewportInstruction {
     constructor(component, viewport, parameters, ownsScope = true, nextScopeInstructions = null) {
         this.ownsScope = ownsScope;

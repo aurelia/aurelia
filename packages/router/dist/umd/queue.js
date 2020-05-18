@@ -27,6 +27,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
      * Enqueued items can be awaited. Enqueued items can specify an (arbitrary)
      * execution cost and the queue can be set up (activated) to only process
      * a specific amount of execution cost per RAF/tick.
+     *
+     * @internal - Shouldn't be used directly.
      */
     class Queue {
         constructor(callback) {

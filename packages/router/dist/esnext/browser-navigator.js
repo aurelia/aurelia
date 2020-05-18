@@ -14,6 +14,9 @@ import { Reporter } from '@aurelia/kernel';
 import { IDOM, IScheduler } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
 import { Queue } from './queue';
+/**
+ * @internal - Will be removed
+ */
 let BrowserNavigator = class BrowserNavigator {
     constructor(scheduler, dom) {
         this.scheduler = scheduler;

@@ -1,3 +1,6 @@
+/**
+ * @internal - Used when founding route/instructions
+ */
 export class FoundRoute {
     constructor(match = null, matching = '', instructions = [], remaining = '') {
         this.match = match;

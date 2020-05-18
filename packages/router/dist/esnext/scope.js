@@ -5,6 +5,9 @@ import { Viewport } from './viewport';
 import { arrayRemove } from './utils';
 import { Collection } from './collection';
 import { RouteRecognizer } from './route-recognizer';
+/**
+ * @internal - Shouldn't be used directly
+ */
 export class Scope {
     constructor(router, hasScope, owningScope, viewport = null, viewportScope = null, rootComponentType = null) {
         this.router = router;

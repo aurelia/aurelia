@@ -13,6 +13,9 @@
     const runtime_1 = require("@aurelia/runtime");
     const parser_1 = require("./parser");
     const viewport_instruction_1 = require("./viewport-instruction");
+    /**
+     * @internal - Shouldn't be used directly
+     */
     var ContentStatus;
     (function (ContentStatus) {
         ContentStatus[ContentStatus["none"] = 0] = "none";
@@ -21,6 +24,9 @@
         ContentStatus[ContentStatus["initialized"] = 3] = "initialized";
         ContentStatus[ContentStatus["added"] = 4] = "added";
     })(ContentStatus = exports.ContentStatus || (exports.ContentStatus = {}));
+    /**
+     * @internal - Shouldn't be used directly
+     */
     class ViewportContent {
         constructor(
         // Can (and wants) be a (resolved) type or a string (to be resolved later)

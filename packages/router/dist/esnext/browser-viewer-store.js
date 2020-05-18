@@ -13,6 +13,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 import { IDOM, IScheduler } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
 import { TaskQueue } from './task-queue';
+/**
+ * @internal - Shouldn't be used directly
+ */
 let BrowserViewerStore = class BrowserViewerStore {
     constructor(scheduler, dom) {
         this.scheduler = scheduler;

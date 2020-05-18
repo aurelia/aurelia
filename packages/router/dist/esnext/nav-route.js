@@ -1,4 +1,7 @@
 import { ComponentAppellationResolver, NavigationInstructionResolver } from './type-resolvers';
+/**
+ * @internal - Used by au-nav
+ */
 export class NavRoute {
     constructor(nav, route) {
         this.nav = nav;

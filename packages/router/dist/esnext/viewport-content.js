@@ -2,6 +2,9 @@ import { Reporter } from '@aurelia/kernel';
 import { Controller, ILifecycle, CustomElement } from '@aurelia/runtime';
 import { parseQuery } from './parser';
 import { ViewportInstruction } from './viewport-instruction';
+/**
+ * @internal - Shouldn't be used directly
+ */
 export var ContentStatus;
 (function (ContentStatus) {
     ContentStatus[ContentStatus["none"] = 0] = "none";
@@ -10,6 +13,9 @@ export var ContentStatus;
     ContentStatus[ContentStatus["initialized"] = 3] = "initialized";
     ContentStatus[ContentStatus["added"] = 4] = "added";
 })(ContentStatus || (ContentStatus = {}));
+/**
+ * @internal - Shouldn't be used directly
+ */
 export class ViewportContent {
     constructor(
     // Can (and wants) be a (resolved) type or a string (to be resolved later)

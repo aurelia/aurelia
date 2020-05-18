@@ -9,6 +9,9 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * @internal - Will be removed
+     */
     function lifecycleLogger(name) {
         const lifecycles = [
             'canLeave', 'leave',

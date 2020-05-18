@@ -1,3 +1,6 @@
+/**
+ * @internal - Shouldn't be used directly
+ */
 export function arrayRemove(arr, func) {
     const removed = [];
     let arrIndex = arr.findIndex(func);

@@ -1,5 +1,8 @@
 import { Reporter } from '@aurelia/kernel';
 import { Queue } from './queue';
+/**
+ * @internal - Shouldn't be used directly
+ */
 export class Navigator {
     constructor() {
         this.entries = [];

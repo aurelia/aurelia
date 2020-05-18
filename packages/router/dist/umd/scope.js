@@ -16,6 +16,9 @@
     const utils_1 = require("./utils");
     const collection_1 = require("./collection");
     const route_recognizer_1 = require("./route-recognizer");
+    /**
+     * @internal - Shouldn't be used directly
+     */
     class Scope {
         constructor(router, hasScope, owningScope, viewport = null, viewportScope = null, rootComponentType = null) {
             this.router = router;

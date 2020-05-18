@@ -8,6 +8,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { bound } from '@aurelia/kernel';
+/**
+ * @internal - Shouldn't be used directly
+ */
 export class QueueTask {
     constructor(taskQueue, item, cost = 0) {
         this.taskQueue = taskQueue;
@@ -49,6 +52,8 @@ export class QueueTask {
  * Enqueued items' tasks can be awaited. Enqueued items can specify an
  * (arbitrary) execution cost and the queue can be set up (activated) to
  * only process a specific amount of execution cost per RAF/tick.
+ *
+ * @internal - Shouldn't be used directly.
  */
 export class TaskQueue {
     constructor(callback) {

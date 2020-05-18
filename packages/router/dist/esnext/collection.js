@@ -1,4 +1,7 @@
 import { arrayRemove } from './utils';
+/**
+ * @internal - Helper class
+ */
 export class Collection extends Array {
     constructor() {
         super(...arguments);

@@ -24,6 +24,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     const runtime_1 = require("@aurelia/runtime");
     const runtime_html_1 = require("@aurelia/runtime-html");
     const task_queue_1 = require("./task-queue");
+    /**
+     * @internal - Shouldn't be used directly
+     */
     let BrowserViewerStore = class BrowserViewerStore {
         constructor(scheduler, dom) {
             this.scheduler = scheduler;

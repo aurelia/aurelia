@@ -11,6 +11,9 @@
     Object.defineProperty(exports, "__esModule", { value: true });
     const type_resolvers_1 = require("./type-resolvers");
     const viewport_instruction_1 = require("./viewport-instruction");
+    /**
+     * @internal - Shouldn't be used directly
+     */
     class Hook {
         constructor(hook, options, id) {
             this.hook = hook;

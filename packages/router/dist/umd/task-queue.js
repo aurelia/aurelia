@@ -19,6 +19,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const kernel_1 = require("@aurelia/kernel");
+    /**
+     * @internal - Shouldn't be used directly
+     */
     class QueueTask {
         constructor(taskQueue, item, cost = 0) {
             this.taskQueue = taskQueue;
@@ -61,6 +64,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
      * Enqueued items' tasks can be awaited. Enqueued items can specify an
      * (arbitrary) execution cost and the queue can be set up (activated) to
      * only process a specific amount of execution cost per RAF/tick.
+     *
+     * @internal - Shouldn't be used directly.
      */
     class TaskQueue {
         constructor(callback) {

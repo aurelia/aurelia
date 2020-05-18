@@ -5,6 +5,8 @@ import { GotoCustomAttribute } from './resources/goto';
 
 /**
  * Provides information about how to handle an anchor event.
+ *
+ * @internal - Shouldn't be used directly.
  */
 export interface ILinkHandlerOptions {
   /**
@@ -20,6 +22,8 @@ export interface ILinkHandlerOptions {
 
 /**
  * Provides information about how to handle an anchor event.
+ *
+ * @internal - Shouldn't be used directly.
  */
 export interface AnchorEventInfo {
   /**
@@ -38,6 +42,8 @@ export interface AnchorEventInfo {
 
 /**
  * Class responsible for handling interactions that should trigger navigation.
+ *
+ * @internal - Shouldn't be used directly.
  */
 export class LinkHandler {
   public static readonly inject: readonly Key[] = [IDOM];

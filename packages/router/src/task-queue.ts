@@ -1,11 +1,20 @@
 import { IScheduler, ITask, ILifecycleTask } from '@aurelia/runtime';
 import { bound } from '@aurelia/kernel';
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export interface IQueueableItem<T> {
   execute: ((task: QueueTask<IQueueableItem<T>>) => void | Promise<void>);
 }
+/**
+ * @internal - Shouldn't be used directly
+ */
 export type QueueableFunction = ((task: QueueTask<void>) => void | Promise<void>);
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export class QueueTask<T> implements ILifecycleTask {
   public done: boolean = false;
   private readonly promise: Promise<void>;
@@ -59,6 +68,8 @@ export interface ITaskQueueOptions {
  * Enqueued items' tasks can be awaited. Enqueued items can specify an
  * (arbitrary) execution cost and the queue can be set up (activated) to
  * only process a specific amount of execution cost per RAF/tick.
+ *
+ * @internal - Shouldn't be used directly.
  */
 export class TaskQueue<T> {
   public get isActive(): boolean {

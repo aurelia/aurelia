@@ -1,6 +1,9 @@
 import { IRoute } from './interfaces';
 import { ViewportInstruction } from './viewport-instruction';
 
+/**
+ * @internal - Used when founding route/instructions
+ */
 export class FoundRoute {
   public constructor(
     public match: IRoute | null = null,

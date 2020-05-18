@@ -127,11 +127,11 @@ export class HTMLDOM implements IDOM {
     return this.createTemplate(markupOrNode).content;
   }
 
-  public createNodeSequence(fragment: DocumentFragment | null): FragmentNodeSequence {
+  public createNodeSequence(fragment: DocumentFragment | null, cloneNode: boolean = true): FragmentNodeSequence {
     if (fragment === null) {
       return this.emptyNodes;
     }
-    return new FragmentNodeSequence(this, fragment.cloneNode(true) as DocumentFragment);
+    return new FragmentNodeSequence(this, cloneNode ? fragment.cloneNode(true) as DocumentFragment: fragment);
   }
 
   public createElement(name: string): HTMLElement {

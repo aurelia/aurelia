@@ -1,4 +1,4 @@
-import { DI, IContainer, InterfaceSymbol, IResolver, Registration } from '@aurelia/kernel';
+import { DI, IContainer, InterfaceSymbol, IResolver, Registration, toArray } from '@aurelia/kernel';
 import { IDOM, INode } from '@aurelia/runtime';
 
 /**
@@ -15,18 +15,17 @@ export interface ITemplateElementFactory<TNode extends INode = INode> {
    */
   createTemplate(markup: string): TNode;
   /**
-   * Create a `HTMLTemplateElement` from a provided DOM node. If the node is already a template, it
+   * Create a `HTMLTemplateElement` from a provided DOM node or a NodeList. If the node is already a template, it
    * will be returned as-is (and removed from the DOM).
    *
    * @param node - A DOM node that may or may not be wrapped in `<template></template>`
    */
-  createTemplate(node: TNode): TNode;
+  createTemplate(node: TNode | NodeList): TNode;
   /**
    * Create a `HTMLTemplateElement` from a provided DOM node or html string.
    *
    * @param input - A DOM node or raw html string that may or may not be wrapped in `<template></template>`
    */
-  createTemplate(input: unknown): TNode;
   createTemplate(input: unknown): TNode;
 }
 
@@ -56,9 +55,9 @@ export class HTMLTemplateElementFactory implements ITemplateElementFactory {
   }
 
   public createTemplate(markup: string): HTMLTemplateElement;
-  public createTemplate(node: Node): HTMLTemplateElement;
+  public createTemplate(node: Node | NodeList): HTMLTemplateElement;
   public createTemplate(input: unknown): HTMLTemplateElement;
-  public createTemplate(input: string | Node): HTMLTemplateElement {
+  public createTemplate(input: string | Node | NodeList): HTMLTemplateElement {
     if (typeof input === 'string') {
       let result = markupCache[input];
       if (result === void 0) {
@@ -82,6 +81,13 @@ export class HTMLTemplateElementFactory implements ITemplateElementFactory {
 
       return result.cloneNode(true) as HTMLTemplateElement;
     }
+
+    if (input instanceof NodeList) {
+      const template = this.dom.createTemplate() as HTMLTemplateElement;
+      template.content.append(...toArray(input));
+      return template;
+    }
+
     if (input.nodeName !== 'TEMPLATE') {
       // if we get one node that is not a template, wrap it in one
       const template = this.dom.createTemplate() as HTMLTemplateElement;

@@ -182,6 +182,7 @@ export function getRenderContext<T extends INode = INode>(
   partialDefinition: PartialCustomElementDefinition,
   parentContainer: IContainer,
   parts: PartialCustomElementDefinitionParts | undefined,
+  toEnhance: boolean = false,
 ): IRenderContext<T> {
   const definition = CustomElementDefinition.getOrCreate(partialDefinition);
   if (isRenderContext(parentContainer)) {
@@ -190,7 +191,7 @@ export function getRenderContext<T extends INode = INode>(
 
   // injectable completely prevents caching, ensuring that each instance gets a new render context
   if (definition.injectable !== null) {
-    return new RenderContext<T>(definition, parentContainer, parts);
+    return new RenderContext<T>(definition, parentContainer, parts, toEnhance);
   }
 
   if (parts === void 0) {
@@ -206,7 +207,7 @@ export function getRenderContext<T extends INode = INode>(
     if (context === void 0) {
       containerLookup.set(
         parentContainer,
-        context = new RenderContext<T>(definition, parentContainer, parts),
+        context = new RenderContext<T>(definition, parentContainer, parts, toEnhance),
       );
     }
 
@@ -233,7 +234,7 @@ export function getRenderContext<T extends INode = INode>(
   if (context === void 0) {
     partsLookup.set(
       parts,
-      context = new RenderContext<T>(definition, parentContainer, parts),
+      context = new RenderContext<T>(definition, parentContainer, parts, toEnhance),
     );
   }
 
@@ -263,6 +264,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     public readonly definition: CustomElementDefinition,
     public readonly parentContainer: IContainer,
     public readonly parts: PartialCustomElementDefinitionParts | undefined,
+    private readonly toEnhance: boolean = false,
   ) {
     const container = this.container = parentContainer.createChild();
     this.renderer = container.get(IRenderer);
@@ -413,7 +415,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
   // #region ICompiledRenderContext api
 
   public createNodes(): INodeSequence<T> {
-    return this.dom.createNodeSequence(this.fragment);
+    return this.dom.createNodeSequence(this.fragment, !this.toEnhance);
   }
 
   // TODO: split up into 2 methods? getComponentFactory + getSyntheticFactory or something

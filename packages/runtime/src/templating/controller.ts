@@ -241,6 +241,42 @@ export class Controller<
     return controller as unknown as ICustomElementController<T, C>;
   }
 
+  public static enhance<
+    T extends INode = INode,
+    C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>,
+  >(
+    viewModel: C,
+    definition: CustomElementDefinition,
+    lifecycle: ILifecycle,
+    host: T,
+    parentContainer: IContainer,
+    parts: PartialCustomElementDefinitionParts | undefined,
+    flags: LifecycleFlags = LifecycleFlags.none,
+  ): ICustomElementController<T, C> {
+    if (controllerLookup.has(viewModel)) {
+      return controllerLookup.get(viewModel) as unknown as ICustomElementController<T, C>;
+    }
+
+    flags |= definition.strategy;
+
+    const controller = new Controller<T, C>(
+      /* vmKind         */ViewModelKind.customElement,
+      /* flags          */flags,
+      /* lifecycle      */lifecycle,
+      /* hooks          */definition.hooks,
+      /* viewFactory    */void 0,
+      /* viewModel      */viewModel,
+      /* bindingContext */getBindingContext<T, C>(flags, viewModel),
+      /* host           */host,
+    );
+
+    controllerLookup.set(viewModel, controller as Controller<INode, IViewModel>);
+
+    controller.hydrateCustomElement(definition, parentContainer, parts, true);
+
+    return controller as unknown as ICustomElementController<T, C>;
+  }
+
   public static forCustomAttribute<
     T extends INode = INode,
     C extends ICustomAttributeViewModel<T> = ICustomAttributeViewModel<T>,
@@ -303,6 +339,7 @@ export class Controller<
     definition: CustomElementDefinition,
     parentContainer: IContainer,
     parts: PartialCustomElementDefinitionParts | undefined,
+    toEnhance: boolean = false,
   ): void {
     const flags = this.flags |= definition.strategy;
     const instance = this.viewModel as ICustomElementViewModel<T>;
@@ -324,7 +361,7 @@ export class Controller<
       }
     }
 
-    const context = this.context = getRenderContext<T>(definition, parentContainer, parts);
+    const context = this.context = getRenderContext<T>(definition, parentContainer, parts, toEnhance);
     // Support Recursive Components by adding self to own context
     definition.register(context);
     if (definition.injectable !== null) {

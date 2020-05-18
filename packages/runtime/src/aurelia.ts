@@ -3,7 +3,8 @@ import {
   DI,
   IContainer,
   PLATFORM,
-  Registration
+  Registration,
+  InstanceProvider
 } from '@aurelia/kernel';
 import { IActivator } from './activator';
 import {
@@ -188,6 +189,8 @@ export class Aurelia<TNode extends INode = INode> {
 
   private next?: CompositionRoot<TNode>;
 
+  private readonly rootProvider: InstanceProvider<CompositionRoot<TNode>>;
+
   public constructor(container: IContainer = DI.createContainer()) {
     this.container = container;
     this.task = LifecycleTask.done;
@@ -201,6 +204,7 @@ export class Aurelia<TNode extends INode = INode> {
     this.next = (void 0)!;
 
     Registration.instance(Aurelia, this).register(container);
+    container.registerResolver(CompositionRoot, this.rootProvider = new InstanceProvider());
   }
 
   public register(...params: any[]): this {
@@ -268,7 +272,7 @@ export class Aurelia<TNode extends INode = INode> {
 
   private onBeforeStart(root: CompositionRoot<TNode>): void {
     Reflect.set(root.host, '$aurelia', this);
-    this._root = root;
+    this.rootProvider.prepare(this._root = root);
     this._isStarting = true;
   }
 
@@ -288,6 +292,7 @@ export class Aurelia<TNode extends INode = INode> {
   private onAfterStop(root: CompositionRoot): ILifecycleTask {
     Reflect.deleteProperty(root.host, '$aurelia');
     this._root = void 0;
+    this.rootProvider.dispose();
     this._isStopping = false;
     this.dispatchEvent(root, 'au-stopped', root.host as Publisher);
     return LifecycleTask.done;

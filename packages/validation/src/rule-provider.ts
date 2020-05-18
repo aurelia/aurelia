@@ -642,7 +642,7 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
         if (contextualProperties.has(name)) {
           this.logger.warn(`Did you mean to use "$${name}" instead of "${name}" in this validation message template: "${message}"?`);
         }
-        if (expr?.$kind === ExpressionKind.AccessThis || (expr as AccessScopeExpression).ancestor > 0) {
+        if (expr.$kind === ExpressionKind.AccessThis || (expr as AccessScopeExpression).ancestor > 0) {
           throw new Error('$parent is not permitted in validation message expressions.'); // TODO: use reporter
         }
       }

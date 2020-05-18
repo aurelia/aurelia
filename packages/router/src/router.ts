@@ -57,6 +57,9 @@ import { Nav, INavRoute } from './nav';
 import { LinkHandler, AnchorEventInfo } from './link-handler';
 import { IStateManager } from './state-manager';
 
+/**
+ * Public API
+ */
 export interface IGotoOptions {
   title?: string;
   query?: string;
@@ -66,6 +69,9 @@ export interface IGotoOptions {
   origin?: ICustomElementViewModel<Element> | Node;
 }
 
+/**
+ * Public API
+ */
 export interface IRouterOptions {
   useUrlFragmentHash?: boolean;
   useHref?: boolean;
@@ -162,6 +168,9 @@ interface IForwardedState {
   suppressPopstate: boolean;
 }
 export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x.singleton(Router));
+/**
+ * Public API
+ */
 export interface IRouter {
   readonly isNavigating: boolean;
   activeComponents: ViewportInstruction[];
@@ -251,17 +260,33 @@ export interface IRouter {
   findNav(name: string): Nav;
 }
 
+class ClosestViewportCustomElement { }
+/**
+ * @internal
+ */
 class ClosestScope { }
 
 export class Router implements IRouter {
   public navs: Record<string, Nav> = {};
   public rootScope: ViewportScope | null = null;
 
+  /**
+   * Public API
+   */
   public activeComponents: ViewportInstruction[] = [];
+  /**
+   * Public API
+   */
   public activeRoute?: IRoute;
 
+  /**
+   * @internal
+   */
   public appendedInstructions: ViewportInstruction[] = [];
 
+  /**
+   * @internal
+   */
   public options: IRouterOptions = {
     useHref: true,
     statefulHistoryLength: 0,
@@ -298,14 +323,23 @@ export class Router implements IRouter {
     this.currentEntry = this.uninitializedEntry;
   }
 
+  /**
+   * Public API
+   */
   public get isNavigating(): boolean {
     return this.processingNavigation !== null;
   }
 
+  /**
+   * @internal
+   */
   public get statefulHistory(): boolean {
     return this.options.statefulHistoryLength !== void 0 && this.options.statefulHistoryLength > 0;
   }
 
+  /**
+   * Public API
+   */
   public activate(options?: IRouterOptions): void {
     if (this.isActive) {
       throw new Error('Router has already been activated');
@@ -336,6 +370,9 @@ export class Router implements IRouter {
     this.ensureRootScope();
   }
 
+  /**
+   * Public API
+   */
   public async loadUrl(): Promise<void> {
     const entry: INavigatorEntry = {
       ...this.viewerState,
@@ -350,6 +387,9 @@ export class Router implements IRouter {
     return result;
   }
 
+  /**
+   * Public API
+   */
   public deactivate(): void {
     if (!this.isActive) {
       throw new Error('Router has not been activated');
@@ -360,6 +400,9 @@ export class Router implements IRouter {
     this.window.removeEventListener('popstate', this.handlePopstate);
   }
 
+  /**
+   * Public API
+   */
   public setNav(name: string, routes: INavRoute[], classes?: INavClasses): void {
     const nav = this.findNav(name);
     if (nav !== void 0 && nav !== null) {
@@ -367,6 +410,9 @@ export class Router implements IRouter {
     }
     this.addNav(name, routes, classes);
   }
+  /**
+   * Public API
+   */
   public addNav(name: string, routes: INavRoute[], classes?: INavClasses): void {
     let nav = this.navs[name];
     if (nav === void 0 || nav === null) {
@@ -375,6 +421,9 @@ export class Router implements IRouter {
     nav.addRoutes(routes);
     nav.update();
   }
+  /**
+   * Public API
+   */
   public updateNav(name?: string): void {
     const navs = name
       ? [name]
@@ -385,10 +434,16 @@ export class Router implements IRouter {
       }
     }
   }
+  /**
+   * Public API
+   */
   public findNav(name: string): Nav {
     return this.navs[name];
   }
 
+  /**
+   * @internal
+   */
   // TODO: use @bound and improve name (eslint-disable is temp)
   // eslint-disable-next-line @typescript-eslint/typedef
   public navigatorSerializeCallback = async (
@@ -436,6 +491,9 @@ export class Router implements IRouter {
     return serialized;
   };
 
+  /**
+   * @internal
+   */
   // TODO: use @bound and improve name (eslint-disable is temp)
   private async processNavigations(qInstruction: INavigatorInstruction): Promise<void> {
     const instruction = this.processingNavigation = qInstruction as INavigatorInstruction;
@@ -732,9 +790,13 @@ export class Router implements IRouter {
     return storableEntry;
   }
 
+  /**
+   * @internal
+   */
   public findScope(origin: Node | ICustomElementViewModel<Element> | Viewport | Scope | ICustomElementController<Element> | null): Scope {
     const rootScope = this.rootScope!.scope;
 
+    // this.ensureRootScope();
     if (origin === void 0 || origin === null) {
       return rootScope;
     }
@@ -763,7 +825,9 @@ export class Router implements IRouter {
     }
     return container.get<Scope>(ClosestScope) ?? rootScope;
   }
-
+  /**
+   * @internal
+   */
   public findParentScope(container: IContainer | null): Scope {
     if (container === null) {
       return this.rootScope!.scope;
@@ -781,12 +845,34 @@ export class Router implements IRouter {
     return this.rootScope!.scope;
   }
 
-  // External API to get viewport by name
+  /**
+   * Public API - Get viewport by name
+   */
   public getViewport(name: string): Viewport | null {
     return this.allViewports().find(viewport => viewport.name === name) || null;
   }
+  /**
+   * Public API (not yet implemented)
+   */
+  public addViewport(...args: unknown[]): unknown {
+    throw new Error('Not implemented');
+  }
+  /**
+   * Public API (not yet implemented)
+   */
+  public findViewportScope(...args: unknown[]): unknown {
+    throw new Error('Not implemented');
+  }
+  /**
+   * Public API (not yet implemented)
+   */
+  public addViewportScope(...args: unknown[]): unknown {
+    throw new Error('Not implemented');
+  }
 
-  // Called from the viewport scope custom element in created()
+  /**
+   * @internal - Called from the viewport scope custom element in created()
+   */
   public setClosestScope(
     viewModelOrContainer: ICustomElementViewModel<Element> | IContainer,
     scope: Scope,
@@ -800,7 +886,9 @@ export class Router implements IRouter {
     (container as any).resolvers.delete(ClosestScope);
   }
 
-  // Called from the viewport custom element in attached()
+  /**
+   * @internal - Called from the viewport custom element
+   */
   public connectViewport(
     viewport: Viewport | null,
     controller: ICustomElementController<Element>,
@@ -814,7 +902,9 @@ export class Router implements IRouter {
     }
     return viewport;
   }
-  // Called from the viewport custom element
+  /**
+   * @internal - Called from the viewport custom element
+   */
   public disconnectViewport(
     viewport: Viewport,
     controller: ICustomElementController<Element>,
@@ -824,7 +914,9 @@ export class Router implements IRouter {
     }
     this.unsetClosestScope(controller.context);
   }
-  // Called from the viewport scope custom element in attached()
+  /**
+   * @internal - Called from the viewport scope custom element
+   */
   public connectViewportScope(
     viewportScope: ViewportScope | null,
     name: string,
@@ -839,7 +931,9 @@ export class Router implements IRouter {
     }
     return viewportScope;
   }
-  // Called from the viewport scope custom element
+  /**
+   * @internal - Called from the viewport scope custom element
+   */
   public disconnectViewportScope(viewportScope: ViewportScope, container: IContainer): void {
     if (!viewportScope.connectedScope.parent!.removeViewportScope(viewportScope)) {
       throw new Error(`Failed to remove viewport scope: ${viewportScope.path}`);
@@ -847,11 +941,17 @@ export class Router implements IRouter {
     this.unsetClosestScope(container);
   }
 
+  /**
+   * @internal
+   */
   public allViewports(includeDisabled: boolean = false, includeReplaced: boolean = false): Viewport[] {
     // this.ensureRootScope();
     return (this.rootScope as ViewportScope).scope.allViewports(includeDisabled, includeReplaced);
   }
 
+  /**
+   * Public API - THE navigation API
+   */
   public async goto(
     instructions: NavigationInstruction | NavigationInstruction[],
     options?: IGotoOptions,
@@ -892,6 +992,9 @@ export class Router implements IRouter {
     await this.navigate(entry);
   }
 
+  /**
+   * Public API
+   */
   public async refresh(): Promise<void> {
     const entry = this.currentEntry;
     if (entry === this.uninitializedEntry) {
@@ -902,6 +1005,9 @@ export class Router implements IRouter {
     await this.navigate(entry);
   }
 
+  /**
+   * Public API
+   */
   public async back(): Promise<void> {
     const newIndex = (this.currentEntry.index !== undefined ? this.currentEntry.index : 0) - 1;
     if (newIndex >= this.entries.length) {
@@ -911,6 +1017,9 @@ export class Router implements IRouter {
     await this.navigate(entry);
   }
 
+  /**
+   * Public API
+   */
   public async forward(): Promise<void> {
     const newIndex = (this.currentEntry.index !== undefined ? this.currentEntry.index : 0) + 1;
     if (newIndex >= this.entries.length) {
@@ -994,6 +1103,9 @@ export class Router implements IRouter {
     await promise;
   }
 
+  /**
+   * Public API
+   */
   public checkActive(instructions: ViewportInstruction[]): boolean {
     for (const instruction of instructions) {
       const scopeInstructions = matchScope(this.activeComponents, instruction.scope!);
@@ -1013,6 +1125,9 @@ export class Router implements IRouter {
     return true;
   }
 
+  /**
+   * Public API
+   */
   public addRoutes(routes: IRoute[], context?: ICustomElementViewModel<Element> | Node): IRoute[] {
     // TODO: This should add to the context instead
     // TODO: Add routes without context to rootScope content (which needs to be created)?
@@ -1020,15 +1135,24 @@ export class Router implements IRouter {
     // const viewport = (context !== void 0 ? this.closestViewport(context) : this.rootScope) || this.rootScope as Viewport;
     // return viewport.addRoutes(routes);
   }
+  /**
+   * Public API
+   */
   public removeRoutes(routes: IRoute[] | string[], context?: ICustomElementViewModel<Element> | Node): void {
     // TODO: This should remove from the context instead
     // const viewport = (context !== void 0 ? this.closestViewport(context) : this.rootScope) || this.rootScope as Viewport;
     // return viewport.removeRoutes(routes);
   }
 
+  /**
+   * Public API
+   */
   public addHooks(hooks: IHookDefinition[]): HookIdentity[] {
     return hooks.map(hook => this.addHook(hook.hook, hook.options));
   }
+  /**
+   * Public API
+   */
   public addHook(beforeNavigationHookFunction: BeforeNavigationHookFunction, options?: IHookOptions): HookIdentity;
   public addHook(transformFromUrlHookFunction: TransformFromUrlHookFunction, options?: IHookOptions): HookIdentity;
   public addHook(transformToUrlHookFunction: TransformToUrlHookFunction, options?: IHookOptions): HookIdentity;
@@ -1036,6 +1160,9 @@ export class Router implements IRouter {
   public addHook(hook: HookFunction, options: IHookOptions): HookIdentity {
     return this.hookManager.addHook(hook, options);
   }
+  /**
+   * Public API
+   */
   public removeHooks(hooks: HookIdentity[]): void {
     return;
   }

@@ -8,6 +8,9 @@ import { ViewportInstruction } from './viewport-instruction';
 import { ComponentAppellationResolver, NavigationInstructionResolver } from './type-resolvers';
 import { stringifyViewportInstructions, flattenViewportInstructions } from './instruction-resolver';
 
+/**
+ * @internal - Used by au-nav
+ */
 export class NavRoute {
   public instructions: ViewportInstruction[] = [];
   public title: string;

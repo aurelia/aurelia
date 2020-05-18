@@ -1,3 +1,6 @@
+/**
+ * @internal - Shouldn't be used directly
+ */
 export function arrayRemove<T>(arr: T[], func: (value: T, index?: number, obj?: T[]) => boolean): T[] {
   const removed: T[] = [];
   let arrIndex = arr.findIndex(func);

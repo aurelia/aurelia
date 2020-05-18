@@ -9,6 +9,9 @@ import { Scope, IScopeOwner } from './scope';
 import { ViewportScope } from './viewport-scope';
 import { arrayRemove } from './utils';
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export const enum ParametersType {
   none = 'none',
   string = 'string',
@@ -41,6 +44,9 @@ export class ViewportInstructionCollection extends Array<ViewportInstruction> {
   }
 }
 
+/**
+ * Public API - The viewport instructions are the core of the router's navigations
+ */
 export class ViewportInstruction {
   public componentName: string | null = null;
   public componentType: RouteableComponentType | null = null;

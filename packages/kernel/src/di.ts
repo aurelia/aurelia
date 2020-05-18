@@ -63,6 +63,7 @@ export interface IContainer extends IServiceLocator {
   registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>, isDisposable?: boolean): IResolver<T>;
   registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
   getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
+  registerFactory<T extends Constructable>(key: T, factory: IFactory<T>): void;
   getFactory<T extends Constructable>(key: T): IFactory<T> | null;
   createChild(config?: IContainerConfiguration): IContainer;
   disposeResolvers(): void;
@@ -862,6 +863,8 @@ const InstrinsicTypeNames = new Set<string>([
   'WeakSet',
 ]);
 
+const factoryKey = 'di:factory';
+const factoryAnnotationKey = Protocol.annotation.keyFor(factoryKey);
 /** @internal */
 export class Container implements IContainer {
   private registerDepth: number = 0;
@@ -1087,13 +1090,17 @@ export class Container implements IContainer {
   }
 
   public getFactory<K extends Constructable>(Type: K): IFactory<K> | null {
-    const key = Protocol.annotation.keyFor('di:factory');
-    let factory = Metadata.getOwn(key, Type);
+    let factory = Metadata.getOwn(factoryAnnotationKey, Type);
     if (factory === void 0) {
-      Metadata.define(key, factory = createFactory(Type), Type);
-      Protocol.annotation.appendTo(Type, key);
+      Metadata.define(factoryAnnotationKey, factory = createFactory(Type), Type);
+      Protocol.annotation.appendTo(Type, factoryAnnotationKey);
     }
     return factory;
+  }
+
+  public registerFactory<K extends Constructable>(key: K, factory: IFactory<K>): void {
+    Protocol.annotation.set(key, factoryKey, factory);
+    Protocol.annotation.appendTo(key, factoryAnnotationKey);
   }
 
   public createChild(config?: IContainerConfiguration): IContainer {

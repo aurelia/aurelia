@@ -3,6 +3,9 @@ import { NavRoute } from './nav-route';
 import { INavClasses } from './resources/nav';
 import { IRouter } from './router';
 
+/**
+ * Public API - Used by au-nav and Router add/setNav
+ */
 export interface INavRoute {
   route?: NavigationInstruction | NavigationInstruction[];
   execute?: ((route: NavRoute) => void);
@@ -15,6 +18,9 @@ export interface INavRoute {
   meta?: Record<string, unknown>;
 }
 
+/**
+ * Public API - Used by au-nav and Router add/setNav
+ */
 export class Nav {
 
   public constructor(

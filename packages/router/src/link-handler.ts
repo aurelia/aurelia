@@ -5,6 +5,8 @@ import { IRouterEvents } from './router-events';
 
 /**
  * Provides information about how to handle an anchor event.
+ *
+ * @internal - Shouldn't be used directly.
  */
 export interface ILinkHandlerOptions {
   /**
@@ -16,6 +18,8 @@ export interface ILinkHandlerOptions {
 
 /**
  * Provides information about how to handle an anchor event.
+ *
+ * @internal - Shouldn't be used directly.
  */
 export interface AnchorEventInfo {
   /**
@@ -34,6 +38,8 @@ export interface AnchorEventInfo {
 
 /**
  * Class responsible for handling interactions that should trigger navigation.
+ *
+ * @internal - Shouldn't be used directly.
  */
 export class LinkHandler {
   public window: Window;

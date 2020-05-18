@@ -10,6 +10,9 @@ import { ViewportInstruction } from './viewport-instruction';
 import { IStateManager } from './state-manager';
 import { createViewportInstruction } from './instruction-resolver';
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export const enum ContentStatus {
   none = 0,
   created = 1,
@@ -17,6 +20,9 @@ export const enum ContentStatus {
   activated = 3,
 }
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export class ViewportContent {
   public contentStatus: ContentStatus = ContentStatus.none;
   public entered: boolean = false;

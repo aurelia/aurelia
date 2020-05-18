@@ -49,9 +49,6 @@ export interface INavigatorViewerEvent extends INavigatorViewerState {
   state?: INavigatorState;
 }
 
-/**
- * @internal - Shouldn't be used directly
- */
 export interface IStoredNavigatorEntry {
   instruction: string | ViewportInstruction[];
   fullStateInstruction: string | ViewportInstruction[];
@@ -66,9 +63,6 @@ export interface IStoredNavigatorEntry {
   data?: Record<string, unknown>;
 }
 
-/**
- * @internal - Shouldn't be used directly
- */
 export interface INavigatorEntry extends IStoredNavigatorEntry {
   fromBrowser?: boolean;
   replacing?: boolean;

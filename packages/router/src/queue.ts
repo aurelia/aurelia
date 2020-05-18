@@ -1,12 +1,18 @@
 import { IScheduler, ITask } from '@aurelia/runtime';
 import { bound } from '@aurelia/kernel';
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export interface QueueItem<T> {
   resolve?: ((value: void | PromiseLike<void>) => void);
   reject?: ((value: void | PromiseLike<void>) => void);
   cost?: number;
 }
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export interface IQueueOptions {
   scheduler: IScheduler;
   allowedExecutionCostWithinTick: number;
@@ -20,6 +26,8 @@ export interface IQueueOptions {
  * Enqueued items can be awaited. Enqueued items can specify an (arbitrary)
  * execution cost and the queue can be set up (activated) to only process
  * a specific amount of execution cost per RAF/tick.
+ *
+ * @internal - Shouldn't be used directly.
  */
 export class Queue<T> {
   public get isActive(): boolean {

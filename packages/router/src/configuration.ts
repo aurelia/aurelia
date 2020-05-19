@@ -2,7 +2,6 @@ import { DI, IContainer, IRegistry } from '@aurelia/kernel';
 import { StartTask } from '@aurelia/runtime';
 import { NavCustomElement } from './resources/nav';
 import { ViewportCustomElement } from './resources/viewport';
-import { ViewportScopeCustomElement } from './resources/viewport-scope';
 import { GotoCustomAttribute } from './resources/goto';
 import { HrefCustomAttribute } from './resources/href';
 import { IRouter, IRouterOptions } from './router';
@@ -19,14 +18,12 @@ export const DefaultComponents = [
 
 export {
   ViewportCustomElement,
-  ViewportScopeCustomElement,
   NavCustomElement,
   GotoCustomAttribute,
   HrefCustomAttribute,
 };
 
 export const ViewportCustomElementRegistration = ViewportCustomElement as unknown as IRegistry;
-export const ViewportScopeCustomElementRegistration = ViewportScopeCustomElement as unknown as IRegistry;
 export const NavCustomElementRegistration = NavCustomElement as unknown as IRegistry;
 export const GotoCustomAttributeRegistration = GotoCustomAttribute as unknown as IRegistry;
 export const HrefCustomAttributeRegistration = HrefCustomAttribute as unknown as IRegistry;
@@ -38,7 +35,6 @@ export const HrefCustomAttributeRegistration = HrefCustomAttribute as unknown as
  */
 export const DefaultResources: IRegistry[] = [
   ViewportCustomElement as unknown as IRegistry,
-  ViewportScopeCustomElement as unknown as IRegistry,
   NavCustomElement as unknown as IRegistry,
   GotoCustomAttribute as unknown as IRegistry,
   HrefCustomAttribute as unknown as IRegistry,

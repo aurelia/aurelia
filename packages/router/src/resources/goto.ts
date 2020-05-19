@@ -17,7 +17,7 @@ import {
   IEventManager,
 } from '@aurelia/runtime-html';
 
-import { Router } from '../router';
+import { IRouter } from '../router';
 import { NavigationInstructionResolver } from '../type-resolvers';
 
 @customAttribute('goto')
@@ -37,7 +37,7 @@ export class GotoCustomAttribute implements ICustomAttributeViewModel<Element> {
   public constructor(
     @IDOM private readonly dom: IDOM,
     @INode element: INode,
-    private readonly router: Router,
+    @IRouter private readonly router: IRouter,
     @IEventManager private readonly eventManager: IEventManager,
   ) {
     this.element = element as Element;

@@ -1,6 +1,6 @@
 # Working with Form Elements
 
-// Intro...
+Inevitably, while building an application using Aurelia, you'll need to work with forms and form elements, whether it's a login form or something more involved like a customer registration form. Aurelia makes it easy and intuitive to bind to form elements from text inputs to select dropdowns.
 
 {% hint style="success" %}
 **Here's what you'll learn...**
@@ -13,7 +13,35 @@
 
 ## Text Input and Textarea
 
-// TODO
+Binding to text inputs uses similar syntax to that of binding to other elements in Aurelia. By default, input elements will use `two-way` binding which means the value will update in the view when changed inside of the view-model and updated in the view-model when changed in the view.
+
+### Text Input
+
+```HTML
+<form>
+  <label>User value</label><br>
+  <input type="text" value.bind="userValue" />
+</form>
+```
+
+You can even bind to other attributes on form elements such as the `placeholder` attribute.
+
+```HTML
+<form>
+  <label>User value</label><br>
+  <input type="text" value.bind="userValue" placeholder"myPlaceholder" />
+</form>
+```
+
+### Textarea
+
+A textarea element is just like any other form element. It allows you to bind to its value and by default value.bind will be two-way binding (meaning changes flow from out of the view into the viewModel and changes in the view-model flow back to the view).
+
+```HTML
+<form role="form">
+  <textarea value.bind="textAreaValue"></textarea>
+</form>
+```
 
 ## Checkboxes
 
@@ -32,18 +60,16 @@ export class App {
 ```
 
 ```HTML
-<template>
-  <form>
-    <h4>Products</h4>
-    <label><input type="checkbox" checked.bind="motherboard">  Motherboard</label>
-    <label><input type="checkbox" checked.bind="cpu"> CPU</label>
-    <label><input type="checkbox" checked.bind="memory"> Memory</label>
+<form>
+  <h4>Products</h4>
+  <label><input type="checkbox" checked.bind="motherboard">  Motherboard</label>
+  <label><input type="checkbox" checked.bind="cpu"> CPU</label>
+  <label><input type="checkbox" checked.bind="memory"> Memory</label>
 
-    motherboard = ${motherboard}<br>
-    cpu = ${cpu}<br>
-    memory = ${memory}<br>
-  </form>
-</template>
+  motherboard = ${motherboard}<br>
+  cpu = ${cpu}<br>
+  memory = ${memory}<br>
+</form>
 ```
 
 [Boolean Demo](https://codesandbox.io/embed/9zvm06x9pp?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
@@ -67,17 +93,15 @@ export class App {
 ```
 
 ```HTML
-<template>
-  <form>
-    <h4>Products</h4>
-    <label repeat.for="product of products">
-      <input type="checkbox" model.bind="product.id" checked.bind="selectedProductIds">
-      ${product.id} - ${product.name}
-    </label>
-    <br>
-    Selected product IDs: ${selectedProductIds}
-  </form>
-</template>
+<form>
+  <h4>Products</h4>
+  <label repeat.for="product of products">
+    <input type="checkbox" model.bind="product.id" checked.bind="selectedProductIds">
+    ${product.id} - ${product.name}
+  </label>
+  <br>
+  Selected product IDs: ${selectedProductIds}
+</form>
 ```
 
 [Number Array Demo](https://codesandbox.io/embed/pm0lxx0q2m?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
@@ -104,20 +128,18 @@ export class App {
 ```
 
 ```HTML
-<template>
-  <form>
-    <h4>Products</h4>
-    <label repeat.for="product of products">
-      <input type="checkbox" model.bind="product" checked.bind="selectedProducts">
-      ${product.id} - ${product.name}
-    </label>
+<form>
+  <h4>Products</h4>
+  <label repeat.for="product of products">
+    <input type="checkbox" model.bind="product" checked.bind="selectedProducts">
+    ${product.id} - ${product.name}
+  </label>
 
-    Selected products:
-    <ul>
-      <li repeat.for="product of selectedProducts">${product.id} - ${product.name}</li>
-    </ul>
-  </form>
-</template>
+  Selected products:
+  <ul>
+    <li repeat.for="product of selectedProducts">${product.id} - ${product.name}</li>
+  </ul>
+</form>
 ```
 
 [Object Array Demo](https://codesandbox.io/embed/1qr32k1po3?autoresize=1&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
@@ -138,34 +160,32 @@ export class App {
 ```
 
 ```HTML
-<template>
-  <form>
-    <h4>Products</h4>
-    <label>
-      <input type="checkbox" model.bind="{ id: 0, name: 'Motherboard' }"
-              matcher.bind="productMatcher"
-              checked.bind="selectedProducts">
-      Motherboard
-    </label>
-    <label>
-      <input type="checkbox" model.bind="{ id: 1, name: 'CPU' }"
-              matcher.bind="productMatcher"
-              checked.bind="selectedProducts">
-      CPU
-    </label>
-    <label>
-      <input type="checkbox" model.bind="{ id: 2, name: 'Memory' }"
-              matcher.bind="productMatcher"
-              checked.bind="selectedProducts">
-      Memory
-    </label>
+<form>
+  <h4>Products</h4>
+  <label>
+    <input type="checkbox" model.bind="{ id: 0, name: 'Motherboard' }"
+            matcher.bind="productMatcher"
+            checked.bind="selectedProducts">
+    Motherboard
+  </label>
+  <label>
+    <input type="checkbox" model.bind="{ id: 1, name: 'CPU' }"
+            matcher.bind="productMatcher"
+            checked.bind="selectedProducts">
+    CPU
+  </label>
+  <label>
+    <input type="checkbox" model.bind="{ id: 2, name: 'Memory' }"
+            matcher.bind="productMatcher"
+            checked.bind="selectedProducts">
+    Memory
+  </label>
 
-    Selected products:
-    <ul>
-      <li repeat.for="product of selectedProducts">${product.id} - ${product.name}</li>
-    </ul>
-  </form>
-</template>
+  Selected products:
+  <ul>
+    <li repeat.for="product of selectedProducts">${product.id} - ${product.name}</li>
+  </ul>
+</form>
 ```
 
 [Object Array Matcher Demo](https://codesandbox.io/embed/14wj6p05j7?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
@@ -182,8 +202,7 @@ export class App {
 ```
 
 ```HTML
-<template>
-  <form>
+<form>
     <h4>Products</h4>
     <label repeat.for="product of products">
       <input type="checkbox" value.bind="product" checked.bind="selectedProducts">
@@ -191,8 +210,7 @@ export class App {
     </label>
     <br>
     Selected products: ${selectedProducts}
-  </form>
-</template>
+</form>
 ```
 
 ## Radios
@@ -220,18 +238,16 @@ export class App {
 ```
 
 ```HTML
-<template>
-  <form>
-    <h4>Products</h4>
-    <label repeat.for="product of products">
-      <input type="radio" name="group1"
-              model.bind="product.id" checked.bind="selectedProductId">
-      ${product.id} - ${product.name}
-    </label>
-    <br>
-    Selected product ID: ${selectedProductId}
-  </form>
-</template>
+<form>
+  <h4>Products</h4>
+  <label repeat.for="product of products">
+    <input type="radio" name="group1"
+            model.bind="product.id" checked.bind="selectedProductId">
+    ${product.id} - ${product.name}
+  </label>
+  <br>
+  Selected product ID: ${selectedProductId}
+</form>
 ```
 
 [Number Demo](https://codesandbox.io/embed/mzjz8pyryp?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
@@ -253,18 +269,16 @@ export class App {
 ```
 
 ```HTML
-<template>
-  <form>
-    <h4>Products</h4>
-    <label repeat.for="product of products">
-      <input type="radio" name="group2"
-              model.bind="product" checked.bind="selectedProduct">
-      ${product.id} - ${product.name}
-    </label>
+<form>
+  <h4>Products</h4>
+  <label repeat.for="product of products">
+    <input type="radio" name="group2"
+            model.bind="product" checked.bind="selectedProduct">
+    ${product.id} - ${product.name}
+  </label>
 
-    Selected product: ${selectedProduct.id} - ${selectedProduct.name}
-  </form>
-</template>
+  Selected product: ${selectedProduct.id} - ${selectedProduct.name}
+</form>
 ```
 
 [Object Demo](https://codesandbox.io/embed/mqy966y08p?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
@@ -282,34 +296,32 @@ export class App {
 ```
 
 ```HTML
-<template>
-  <form>
-    <h4>Products</h4>
-    <label>
-      <input type="radio" name="group3"
-              model.bind="{ id: 0, name: 'Motherboard' }"
-              matcher.bind="productMatcher"
-              checked.bind="selectedProduct">
-      Motherboard
-    </label>
-    <label>
-      <input type="radio" name="group3"
-              model.bind="{ id: 1, name: 'CPU' }"
-              matcher.bind="productMatcher"
-              checked.bind="selectedProduct">
-      CPU
-    </label>
-    <label>
-      <input type="radio" name="group3"
-              model.bind="{ id: 2, name: 'Memory' }"
-              matcher.bind="productMatcher"
-              checked.bind="selectedProduct">
-      Memory
-    </label>
+<form>
+  <h4>Products</h4>
+  <label>
+    <input type="radio" name="group3"
+            model.bind="{ id: 0, name: 'Motherboard' }"
+            matcher.bind="productMatcher"
+            checked.bind="selectedProduct">
+    Motherboard
+  </label>
+  <label>
+    <input type="radio" name="group3"
+            model.bind="{ id: 1, name: 'CPU' }"
+            matcher.bind="productMatcher"
+            checked.bind="selectedProduct">
+    CPU
+  </label>
+  <label>
+    <input type="radio" name="group3"
+            model.bind="{ id: 2, name: 'Memory' }"
+            matcher.bind="productMatcher"
+            checked.bind="selectedProduct">
+    Memory
+  </label>
 
-    Selected product: ${selectedProduct.id} - ${selectedProduct.name}
-  </form>
-</template>
+  Selected product: ${selectedProduct.id} - ${selectedProduct.name}
+</form
 ```
 
 [Object Matcher Demo](https://codesandbox.io/embed/1ok5l0z29j?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
@@ -325,28 +337,26 @@ export class App {
 ```
 
 ```HTML
-<template>
-  <form>
-    <h4>Do you like cake?</h4>
-    <label>
-      <input type="radio" name="group3"
-              model.bind="null" checked.bind="likesCake">
-      Don't Know
-    </label>
-    <label>
-      <input type="radio" name="group3"
-              model.bind="true" checked.bind="likesCake">
-      Yes
-    </label>
-    <label>
-      <input type="radio" name="group3"
-              model.bind="false" checked.bind="likesCake">
-      No
-    </label>
+<form>
+  <h4>Do you like cake?</h4>
+  <label>
+    <input type="radio" name="group3"
+            model.bind="null" checked.bind="likesCake">
+    Don't Know
+  </label>
+  <label>
+    <input type="radio" name="group3"
+            model.bind="true" checked.bind="likesCake">
+    Yes
+  </label>
+  <label>
+    <input type="radio" name="group3"
+            model.bind="false" checked.bind="likesCake">
+    No
+  </label>
 
-    likesCake = ${likesCake}
-  </form>
-</template>
+  likesCake = ${likesCake}
+</form>
 ```
 
 [Boolean Demo](https://codesandbox.io/embed/qzyly2kxy4?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
@@ -363,18 +373,16 @@ export class App {
 ```
 
 ```HTML
-<template>
-  <form>
-    <h4>Products</h4>
-    <label repeat.for="product of products">
-      <input type="radio" name="group4"
-              value.bind="product" checked.bind="selectedProduct">
-      ${product}
-    </label>
-    <br>
-    Selected product: ${selectedProduct}
-  </form>
-</template>
+<form>
+  <h4>Products</h4>
+  <label repeat.for="product of products">
+    <input type="radio" name="group4"
+            value.bind="product" checked.bind="selectedProduct">
+    ${product}
+  </label>
+  <br>
+  Selected product: ${selectedProduct}
+</form>
 ```
 
 [String Demo](https://codesandbox.io/embed/52nwnv7vpp?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
@@ -407,19 +415,17 @@ export class App {
 ```
 
 ```HTML
-<template>
-  <label>
-    Select product:<br>
-    <select value.bind="selectedProductId">
-      <option model.bind="null">Choose...</option>
-      <option repeat.for="product of products"
-              model.bind="product.id">
-        ${product.id} - ${product.name}
-      </option>
-    </select>
-  </label>
-  Selected product ID: ${selectedProductId}
-</template>
+<label>
+  Select product:<br>
+  <select value.bind="selectedProductId">
+    <option model.bind="null">Choose...</option>
+    <option repeat.for="product of products"
+            model.bind="product.id">
+      ${product.id} - ${product.name}
+    </option>
+  </select>
+</label>
+Selected product ID: ${selectedProductId}
 ```
 
 [Select Number Demo](https://codesandbox.io/embed/5j0zxp7rk?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
@@ -439,20 +445,18 @@ export class App {
 ```
 
 ```HTML
-<template>
-  <label>
-    Select product:<br>
-    <select value.bind="selectedProduct">
-      <option model.bind="null">Choose...</option>
-      <option repeat.for="product of products"
-              model.bind="product">
-        ${product.id} - ${product.name}
-      </option>
-    </select>
-  </label>
+<label>
+  Select product:<br>
+  <select value.bind="selectedProduct">
+    <option model.bind="null">Choose...</option>
+    <option repeat.for="product of products"
+            model.bind="product">
+      ${product.id} - ${product.name}
+    </option>
+  </select>
+</label>
 
-  Selected product: ${selectedProduct.id} - ${selectedProduct.name}
-</template>
+Selected product: ${selectedProduct.id} - ${selectedProduct.name}
 ```
 
 [Select Object Demo](https://codesandbox.io/embed/j20q48yp3?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
@@ -476,20 +480,18 @@ export class App {
 ```
 
 ```HTML
-<template>
-  <label>
-    Select product:<br>
-    <select value.bind="selectedProduct" matcher.bind="productMatcher">
-      <option model.bind="null">Choose...</option>
-      <option repeat.for="product of products"
-              model.bind="product">
-        ${product.id} - ${product.name}
-      </option>
-    </select>
-  </label>
+<label>
+  Select product:<br>
+  <select value.bind="selectedProduct" matcher.bind="productMatcher">
+    <option model.bind="null">Choose...</option>
+    <option repeat.for="product of products"
+            model.bind="product">
+      ${product.id} - ${product.name}
+    </option>
+  </select>
+</label>
 
-  Selected product: ${selectedProduct.id} - ${selectedProduct.name}
-</template>
+Selected product: ${selectedProduct.id} - ${selectedProduct.name}
 ```
 
 [Select Object Matcher Demo](https://codesandbox.io/embed/nk5m6216xl?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
@@ -503,17 +505,15 @@ export class App {
 ```
 
 ```HTML
-<template>
-  <label>
-    Do you like tacos?:
-    <select value.bind="likesTacos">
-      <option model.bind="null">Choose...</option>
-      <option model.bind="true">Yes</option>
-      <option model.bind="false">No</option>
-    </select>
-  </label>
-  likesTacos: ${likesTacos}
-</template>
+<label>
+  Do you like tacos?:
+  <select value.bind="likesTacos">
+    <option model.bind="null">Choose...</option>
+    <option model.bind="true">Yes</option>
+    <option model.bind="false">No</option>
+  </select>
+</label>
+likesTacos: ${likesTacos}
 ```
 
 [Select Boolean Demo](https://codesandbox.io/embed/zz2o6259wl?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
@@ -528,19 +528,17 @@ export class App {
 ```
 
 ```HTML
-<template>
-  <label>
-    Select product:<br>
-    <select value.bind="selectedProduct">
-      <option value="">Choose...</option>
-      <option repeat.for="product of products"
-              value.bind="product">
-        ${product}
-      </option>
-    </select>
-  </label>
-  Selected product: ${selectedProduct}
-</template>
+<label>
+  Select product:<br>
+  <select value.bind="selectedProduct">
+    <option value="">Choose...</option>
+    <option repeat.for="product of products"
+            value.bind="product">
+      ${product}
+    </option>
+  </select>
+</label>
+Selected product: ${selectedProduct}
 ```
 
 [Select String Demo](https://codesandbox.io/embed/o8o7yozoz?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
@@ -560,18 +558,16 @@ export class App {
 ```
 
 ```HTML
-<template>
-  <label>
-    Select products:
-    <select multiple value.bind="selectedProductIds">
-      <option repeat.for="product of products"
-              model.bind="product.id">
-        ${product.id} - ${product.name}
-      </option>
-    </select>
-  </label>
-  Selected product IDs: ${selectedProductIds}
-</template>
+<label>
+  Select products:
+  <select multiple value.bind="selectedProductIds">
+    <option repeat.for="product of products"
+            model.bind="product.id">
+      ${product.id} - ${product.name}
+    </option>
+  </select>
+</label>
+Selected product IDs: ${selectedProductIds}
 ```
 
 [Select Multiple Numbers Demo](https://codesandbox.io/embed/88xzwon19?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
@@ -591,22 +587,20 @@ export class App {
 ```
 
 ```HTML
-<template>
-  <label>
-    Select products:
-    <select multiple value.bind="selectedProducts">
-      <option repeat.for="product of products"
-              model.bind="product">
-        ${product.id} - ${product.name}
-      </option>
-    </select>
-  </label>
+<label>
+  Select products:
+  <select multiple value.bind="selectedProducts">
+    <option repeat.for="product of products"
+            model.bind="product">
+      ${product.id} - ${product.name}
+    </option>
+  </select>
+</label>
 
-  Selected products:
-  <ul>
-    <li repeat.for="product of selectedProducts">${product.id} - ${product.name}</li>
-  </ul>
-</template>
+Selected products:
+<ul>
+  <li repeat.for="product of selectedProducts">${product.id} - ${product.name}</li>
+</ul>
 ```
 
 [Select Multiple Objects Demo](https://codesandbox.io/embed/o10mn3p0qq?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
@@ -621,18 +615,16 @@ export class App {
 ```
 
 ```HTML
-<template>
-  <label>
-    Select products:
-    <select multiple value.bind="selectedProducts">
-      <option repeat.for="product of products"
-              value.bind="product">
-        ${product}
-      </option>
-    </select>
-  </label>
-  Selected products: ${selectedProducts}
-</template>
+<label>
+  Select products:
+  <select multiple value.bind="selectedProducts">
+    <option repeat.for="product of products"
+            value.bind="product">
+      ${product}
+    </option>
+  </select>
+</label>
+Selected products: ${selectedProducts}
 ```
 
 [Select Multiple Strings Demo](https://codesandbox.io/embed/yvr7p888q9?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)

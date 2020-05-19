@@ -2,7 +2,7 @@ import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
 import { CustomElementType, ICustomElementController } from '@aurelia/runtime';
 import { IRoute, ComponentAppellation, INavigatorInstruction } from './interfaces';
 import { FoundRoute } from './found-route';
-import { IRouter } from './router';
+import { Router } from './router';
 import { ViewportInstruction, ViewportInstructionCollection } from './viewport-instruction';
 import { NavigationInstructionResolver } from './type-resolvers';
 import { Viewport, IViewportOptions } from './viewport';
@@ -73,7 +73,7 @@ export class Scope {
   public childCollections: Record<string, unknown[]> = {};
 
   public constructor(
-    public readonly router: IRouter,
+    public readonly router: Router,
     public readonly hasScope: boolean,
     public owningScope: Scope | null,
     public viewport: Viewport | null = null,

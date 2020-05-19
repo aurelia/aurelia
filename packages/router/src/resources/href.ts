@@ -10,7 +10,7 @@ import {
   ICustomAttributeController,
 } from '@aurelia/runtime';
 
-import { IRouter } from '../router';
+import { Router } from '../router';
 import { GotoCustomAttribute } from '../configuration';
 import { IEventManager } from '@aurelia/runtime-html';
 import { IDisposable } from '@aurelia/kernel';
@@ -30,7 +30,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel<Element> {
   public constructor(
     @IDOM private readonly dom: IDOM,
     @INode element: INode,
-    @IRouter private readonly router: IRouter,
+    private readonly router: Router,
     @IEventManager private readonly eventManager: IEventManager,
   ) {
     this.element = element as Element;

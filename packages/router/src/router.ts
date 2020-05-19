@@ -174,100 +174,15 @@ interface IForwardedState {
   resolve: (() => void) | null;
   suppressPopstate: boolean;
 }
+export interface IRouter extends Router {}
 export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x.singleton(Router));
-/**
- * Public API
- */
-export interface IRouter {
-  readonly isNavigating: boolean;
-  activeComponents: ViewportInstruction[];
-  readonly rootScope: ViewportScope | null;
-  readonly activeRoute?: IRoute;
-  readonly container: IContainer;
-  readonly stateManager: IStateManager;
-  readonly hookManager: HookManager;
-  readonly options: IRouterOptions;
 
-  readonly statefulHistory: boolean;
-
-  readonly linkHandler: LinkHandler;
-
-  activate(options?: IRouterOptions): void;
-  loadUrl(): Promise<void>;
-  deactivate(): void;
-
-  // External API to get viewport by name
-  getViewport(name: string): Viewport | null;
-
-  // Called from the viewport scope custom element
-  setClosestScope(
-    viewModelOrContainer: ICustomElementViewModel<Element> | IContainer,
-    scope: Scope,
-  ): void;
-  // getClosestScope(viewModelOrElement: ICustomElementViewModel | T | ICustomElementController | IContainer): Scope | null;
-  unsetClosestScope(
-    viewModelOrContainer: ICustomElementViewModel<Element> | IContainer,
-  ): void;
-
-  // Called from the viewport custom element
-  connectViewport(
-    viewport: Viewport | null,
-    controller: ICustomElementController<Element>,
-    name: string,
-    options?: IViewportOptions,
-  ): Viewport;
-  // Called from the viewport custom element
-  disconnectViewport(
-    viewport: Viewport,
-    controller: ICustomElementController<Element>,
-  ): void;
-  // Called from the viewport scope custom element
-  connectViewportScope(
-    viewportScope: ViewportScope | null,
-    name: string,
-    container: IContainer,
-    element: Node,
-    options?: IViewportScopeOptions,
-  ): ViewportScope;
-  // Called from the viewport scope custom element
-  disconnectViewportScope(
-    viewportScope: ViewportScope,
-    container: IContainer,
-  ): void;
-
-  allViewports(includeDisabled?: boolean): Viewport[];
-  findScope(
-    elementOrViewmodelOrviewport: Node | ICustomElementViewModel<Element> | Viewport | ICustomElementController<Element> | null,
-  ): Scope;
-
-  goto(
-    instructions: NavigationInstruction | NavigationInstruction[],
-    options?: IGotoOptions,
-  ): Promise<void>;
-  refresh(): Promise<void>;
-  back(): Promise<void>;
-  forward(): Promise<void>;
-
-  checkActive(instructions: ViewportInstruction[]): boolean;
-
-  addRoutes(routes: IRoute[], context?: ICustomElementViewModel<Element> | Node): IRoute[];
-  removeRoutes(routes: IRoute[] | string[], context?: ICustomElementViewModel<Element> | Node): void;
-  addHooks(hooks: IHookDefinition[]): HookIdentity[];
-
-  addHook(beforeNavigationHookFunction: BeforeNavigationHookFunction, options?: IHookOptions): HookIdentity;
-  addHook(transformFromUrlHookFunction: TransformFromUrlHookFunction, options?: IHookOptions): HookIdentity;
-  addHook(transformToUrlHookFunction: TransformToUrlHookFunction, options?: IHookOptions): HookIdentity;
-  addHook(hook: HookFunction, options: IHookOptions): HookIdentity;
-  removeHooks(hooks: HookIdentity[]): void;
-}
-
-class ClosestViewportCustomElement { }
 /**
  * @internal
  */
 class ClosestScope { }
 
-export class Router implements IRouter {
+export class Router {
   public rootScope: ViewportScope | null = null;
 
   /**
@@ -900,9 +815,6 @@ export class Router implements IRouter {
     this.unsetClosestScope(container);
   }
 
-  /**
-   * @internal
-   */
   public allViewports(includeDisabled: boolean = false, includeReplaced: boolean = false): Viewport[] {
     // this.ensureRootScope();
     return (this.rootScope as ViewportScope).scope.allViewports(includeDisabled, includeReplaced);

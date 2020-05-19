@@ -29,7 +29,7 @@ You can even bind to other attributes on form elements such as the `placeholder`
 ```HTML
 <form>
   <label>User value</label><br>
-  <input type="text" value.bind="userValue" placeholder.bind"myPlaceholder" />
+  <input type="text" value.bind="userValue" placeholder.bind="myPlaceholder" />
 </form>
 ```
 

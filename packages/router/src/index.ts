@@ -10,8 +10,6 @@ export {
   DefaultResources,
   ViewportCustomElement,
   ViewportCustomElementRegistration,
-  NavCustomElement,
-  NavCustomElementRegistration,
   GotoCustomAttribute,
   GotoCustomAttributeRegistration,
   HrefCustomAttribute,
@@ -47,15 +45,6 @@ export {
 
   LinkHandler,
 } from './link-handler';
-
-export {
-  NavRoute,
-} from './nav-route';
-
-export {
-  INavRoute,
-  Nav,
-} from './nav';
 
 export {
   RouteRecognizer,

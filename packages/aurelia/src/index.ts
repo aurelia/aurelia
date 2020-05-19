@@ -317,11 +317,6 @@ export {
   // lifecycleLogger,
   // LifecycleClass,
 
-  INavRoute,
-  // Nav,
-
-  NavRoute,
-
   // IStoredNavigatorEntry,
   // INavigatorEntry,
   // INavigatorOptions,

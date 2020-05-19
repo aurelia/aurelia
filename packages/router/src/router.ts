@@ -20,21 +20,30 @@ import {
   IScheduler,
 } from '@aurelia/runtime';
 import {
-  IRouteSeparators, flattenViewportInstructions, stringifyViewportInstructions, isClearAllViewportsInstruction, isAddAllViewportsInstruction, isClearViewportInstruction, matchScope, matchChildren, createViewportInstruction, parseViewportInstructions, cloneViewportInstructions, createClearViewportInstruction,
+  flattenViewportInstructions,
+  stringifyViewportInstructions,
+  isClearAllViewportsInstruction,
+  isAddAllViewportsInstruction,
+  isClearViewportInstruction,
+  matchScope,
+  matchChildren,
+  parseViewportInstructions,
+  cloneViewportInstructions,
+  createClearViewportInstruction,
 } from './instruction-resolver';
 import {
   INavigatorInstruction,
   IRouteableComponent,
   NavigationInstruction,
   IRoute,
-  ComponentAppellation,
-  ViewportHandle,
-  ComponentParameters,
   IWindow,
   IHistory,
   ILocation,
 } from './interfaces';
-import { NavigationInstructionResolver, IViewportInstructionsOptions } from './type-resolvers';
+import {
+  NavigationInstructionResolver,
+  IViewportInstructionsOptions,
+} from './type-resolvers';
 import { arrayRemove } from './utils';
 import { IViewportOptions, Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
@@ -52,8 +61,6 @@ import {
 import { Scope, IScopeOwner } from './scope';
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
 import { IRouterEvents } from './router-events';
-import { INavClasses } from './resources/nav';
-import { Nav, INavRoute } from './nav';
 import { LinkHandler, AnchorEventInfo } from './link-handler';
 import { IStateManager } from './state-manager';
 
@@ -184,7 +191,6 @@ export interface IRouter {
   readonly statefulHistory: boolean;
 
   readonly linkHandler: LinkHandler;
-  readonly navs: Readonly<Record<string, Nav>>;
 
   activate(options?: IRouterOptions): void;
   loadUrl(): Promise<void>;
@@ -253,11 +259,6 @@ export interface IRouter {
   addHook(transformToUrlHookFunction: TransformToUrlHookFunction, options?: IHookOptions): HookIdentity;
   addHook(hook: HookFunction, options: IHookOptions): HookIdentity;
   removeHooks(hooks: HookIdentity[]): void;
-
-  setNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
-  addNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
-  updateNav(name?: string): void;
-  findNav(name: string): Nav;
 }
 
 class ClosestViewportCustomElement { }
@@ -267,7 +268,6 @@ class ClosestViewportCustomElement { }
 class ClosestScope { }
 
 export class Router implements IRouter {
-  public navs: Record<string, Nav> = {};
   public rootScope: ViewportScope | null = null;
 
   /**
@@ -398,47 +398,6 @@ export class Router implements IRouter {
     this.linkHandler.deactivate();
     this.events.unsubscribeAll();
     this.window.removeEventListener('popstate', this.handlePopstate);
-  }
-
-  /**
-   * Public API
-   */
-  public setNav(name: string, routes: INavRoute[], classes?: INavClasses): void {
-    const nav = this.findNav(name);
-    if (nav !== void 0 && nav !== null) {
-      nav.routes = [];
-    }
-    this.addNav(name, routes, classes);
-  }
-  /**
-   * Public API
-   */
-  public addNav(name: string, routes: INavRoute[], classes?: INavClasses): void {
-    let nav = this.navs[name];
-    if (nav === void 0 || nav === null) {
-      nav = this.navs[name] = new Nav(this, name, [], classes);
-    }
-    nav.addRoutes(routes);
-    nav.update();
-  }
-  /**
-   * Public API
-   */
-  public updateNav(name?: string): void {
-    const navs = name
-      ? [name]
-      : Object.keys(this.navs);
-    for (const nav of navs) {
-      if (this.navs[nav] !== void 0 && this.navs[nav] !== null) {
-        this.navs[nav].update();
-      }
-    }
-  }
-  /**
-   * Public API
-   */
-  public findNav(name: string): Nav {
-    return this.navs[name];
   }
 
   /**

@@ -307,7 +307,7 @@ export class Controller<
     definition.register(context);
     if (definition.injectable !== null) {
       // If the element is registered as injectable, support injecting the instance into children
-      context.beginChildComponentOperation(instance);
+      context.beginChildComponentOperation(instance as ICustomElementViewModel);
     }
 
     if (hooks.hasBeforeCompile) {
@@ -324,7 +324,7 @@ export class Controller<
 
     this.projector = projectorLocator.getElementProjector(
       context.dom,
-      this as unknown as ICustomElementController<T, typeof instance>,
+      this as unknown as ICustomElementController,
       this.host!,
       compiledDefinition,
     );
@@ -347,7 +347,7 @@ export class Controller<
     );
 
     if (hooks.hasAfterCompileChildren) {
-      instance.afterCompileChildren(this as unknown as ICustomElementController<T, typeof instance>);
+      instance.afterCompileChildren(this as unknown as ICustomElementController<T, ICompileHooks<T>>);
     }
   }
 

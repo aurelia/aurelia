@@ -57,7 +57,10 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly scopeParts?: readonly string[];
 }>;
 
-export type CustomElementType<T extends Constructable = Constructable> = ResourceType<T, ICustomElementViewModel & (T extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
+export type CustomElementType<
+  C extends Constructable = Constructable,
+  T extends INode = INode,
+> = ResourceType<C, ICustomElementViewModel<T> & (C extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
 export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDefinition> & {
   /**
    * Returns the closest controller that is associated with either this node (if it is a custom element) or the first
@@ -93,12 +96,12 @@ export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDe
    * @returns The controller associated with the provided node, if it is a custom element, or otherwise `undefined`.
    */
   for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T): ICustomElementController<T, C> | undefined;
-  isType<T>(value: T): value is (T extends Constructable ? CustomElementType<T> : never);
-  define<T extends Constructable>(name: string, Type: T): CustomElementType<T>;
-  define<T extends Constructable>(def: PartialCustomElementDefinition, Type: T): CustomElementType<T>;
-  define<T extends Constructable = Constructable>(def: PartialCustomElementDefinition, Type?: null): CustomElementType<T>;
-  define<T extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type: T): CustomElementType<T>;
-  getDefinition<T extends Constructable>(Type: T): CustomElementDefinition<T>;
+  isType<T extends INode, C>(value: C): value is (C extends Constructable ? CustomElementType<C, T> : never);
+  define<T extends INode, C extends Constructable >(name: string, Type: C): CustomElementType<C, T>;
+  define<T extends INode, C extends Constructable >(def: PartialCustomElementDefinition, Type: C): CustomElementType<C, T>;
+  define<T extends INode, C extends Constructable >(def: PartialCustomElementDefinition, Type?: null): CustomElementType<C, T>;
+  define<T extends INode, C extends Constructable >(nameOrDef: string | PartialCustomElementDefinition, Type: C): CustomElementType<C, T>;
+  getDefinition<T extends INode, C extends Constructable>(Type: C): CustomElementDefinition<C, T>;
   annotate<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K, value: PartialCustomElementDefinition[K]): void;
   getAnnotation<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K): PartialCustomElementDefinition[K];
   generateName(): string;
@@ -187,9 +190,12 @@ export function strict(target?: Constructable): void | ((target: Constructable) 
 
 const definitionLookup = new WeakMap<PartialCustomElementDefinition, CustomElementDefinition>();
 
-export class CustomElementDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, ICustomElementViewModel, PartialCustomElementDefinition> {
+export class CustomElementDefinition<
+  C extends Constructable = Constructable,
+  T extends INode = INode
+> implements ResourceDefinition<C, ICustomElementViewModel<T>, PartialCustomElementDefinition> {
   private constructor(
-    public readonly Type: CustomElementType<T>,
+    public readonly Type: CustomElementType<C, T>,
     public readonly name: string,
     public readonly aliases: string[],
     public readonly key: string,
@@ -197,7 +203,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
     public readonly template: unknown,
     public readonly instructions: readonly (readonly ITargetedInstruction[])[],
     public readonly dependencies: readonly Key[],
-    public readonly injectable: InjectableToken<T> | null,
+    public readonly injectable: InjectableToken<C> | null,
     public readonly needsCompile: boolean,
     public readonly surrogates: readonly ITargetedInstruction[],
     public readonly bindables: Record<string, BindableDefinition>,
@@ -382,7 +388,7 @@ export const CustomElement: CustomElementKind = {
   keyFrom(name: string): string {
     return `${CustomElement.name}:${name}`;
   },
-  isType<T>(value: T): value is (T extends Constructable ? CustomElementType<T> : never) {
+  isType<T extends INode, C>(value: C): value is (C extends Constructable ? CustomElementType<C, T> : never) {
     return typeof value === 'function' && Metadata.hasOwn(CustomElement.name, value);
   },
   for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, nameOrSearchParents?: string | boolean, searchParents?: boolean): ICustomElementController<T, C> {
@@ -428,16 +434,16 @@ export const CustomElement: CustomElementKind = {
 
     return (void 0)!;
   },
-  define<T extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type?: T | null): CustomElementType<T> {
+  define<T extends INode, C extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type?: C | null): CustomElementType<C, T> {
     const definition = CustomElementDefinition.create(nameOrDef, Type as Constructable | null);
     Metadata.define(CustomElement.name, definition, definition.Type);
     Metadata.define(CustomElement.name, definition, definition);
     Protocol.resource.appendTo(definition.Type, CustomElement.name);
 
-    return definition.Type as CustomElementType<T>;
+    return definition.Type as CustomElementType<C, T>;
   },
-  getDefinition<T extends Constructable>(Type: T): CustomElementDefinition<T> {
-    const def = Metadata.getOwn(CustomElement.name, Type) as CustomElementDefinition<T>;
+  getDefinition<T extends INode, C extends Constructable>(Type: C): CustomElementDefinition<C, T> {
+    const def = Metadata.getOwn(CustomElement.name, Type) as CustomElementDefinition<C, T>;
     if (def === void 0) {
       throw new Error(`No definition found for type ${Type.name}`);
     }

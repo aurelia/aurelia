@@ -85,7 +85,7 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
   public static getOrCreate<T extends object>(obj: T, key?: string | number): IProxyObserver<T> | PropertyObserver {
     let proxyObserver: ProxyObserver<T>;
     if ((obj as T & { $raw?: T }).$raw === void 0) {
-      const proxy = lookup.get(obj);
+      const proxy = lookup.get(obj) as T;
       if (proxy === void 0) {
         proxyObserver = new ProxyObserver(obj);
       } else {

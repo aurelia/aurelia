@@ -213,7 +213,7 @@ export class ViewLocator implements IViewLocator {
         resolvedViewName
       );
 
-      BoundComponent = CustomElement.define<ComposableObjectComponentType<T>>(
+      BoundComponent = CustomElement.define<INode, ComposableObjectComponentType<T>>(
         CustomElement.getDefinition(UnboundComponent),
         class extends UnboundComponent {
           public constructor() {
@@ -244,7 +244,7 @@ export class ViewLocator implements IViewLocator {
     }
 
     if (UnboundComponent === void 0) {
-      UnboundComponent = CustomElement.define<ComposableObjectComponentType<T>>(
+      UnboundComponent = CustomElement.define<INode, ComposableObjectComponentType<T>>(
         this.getView(availableViews, resolvedViewName),
         class {
           public constructor(public viewModel: T) {}

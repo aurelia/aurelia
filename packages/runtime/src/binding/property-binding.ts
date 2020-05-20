@@ -176,7 +176,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     if ((this.targetObserver as IBindingTargetObserver).unbind) {
       (this.targetObserver as IBindingTargetObserver).unbind!(flags);
     }
-    if ((this.targetObserver as IBindingTargetObserver).unsubscribe) {
+    if ((this.targetObserver as Partial<IBindingTargetObserver>).unsubscribe) {
       (this.targetObserver as IBindingTargetObserver).unsubscribe(this.interceptor);
       (this.targetObserver as this['targetObserver'] & { [key: number]: number })[this.id] &= ~LifecycleFlags.updateSourceExpression;
     }

@@ -297,7 +297,7 @@ export class HTMLDOM implements IDOM {
   }
 
   public remove(node: Node): void {
-    if ((node as ChildNode).remove) {
+    if ((node as Partial<ChildNode>).remove) {
       (node as ChildNode).remove();
     } else {
       node.parentNode!.removeChild(node);

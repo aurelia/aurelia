@@ -129,13 +129,14 @@ export class BindingBehaviorFactory<T extends Constructable = Constructable> {
       case 0:
       case 1:
       case 2:
-        return new this.Type(binding, expr) as IInterceptableBinding;
+        // TODO(fkleuver): fix this cast
+        return new this.Type(binding, expr) as unknown as IInterceptableBinding;
       case 3:
-        return new this.Type(container.get(deps[0]), binding, expr) as IInterceptableBinding;
+        return new this.Type(container.get(deps[0]), binding, expr) as unknown as IInterceptableBinding;
       case 4:
-        return new this.Type(container.get(deps[0]), container.get(deps[1]), binding, expr) as IInterceptableBinding;
+        return new this.Type(container.get(deps[0]), container.get(deps[1]), binding, expr) as unknown as IInterceptableBinding;
       default:
-        return new this.Type(...deps.map(d => container.get(d)), binding, expr) as IInterceptableBinding;
+        return new this.Type(...deps.map(d => container.get(d)), binding, expr) as unknown as IInterceptableBinding;
     }
   }
 }

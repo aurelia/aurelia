@@ -44,6 +44,7 @@ The plugin gives you enough flexibility to write your own rules rather than bein
   {% tab title="awesome-component.ts" %}
 
   ```typescript
+  import { newInstanceForScope } from '@aurelia/kernel';
   import { IValidationRules } from '@aurelia/validation';
   import { IValidationController } from '@aurelia/validation-html';
 

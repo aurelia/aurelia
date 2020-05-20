@@ -6,7 +6,49 @@
 
 ## HTML-Only Components
 
-// TODO
+In some instances, a component does not need a view-model, just the HTML aspect. Perhaps you have a component that renders a profile photo or displays a stylized heading, both of which only require basic bindable values.
+
+The convention for HTML-only components is the filename becomes the tag name, and when you are referencing them throughout your application, you must also add the `.html` file extension.
+
+### Without Bindable Properties
+
+Here is a basic example that will render a heading one element with a value of `This is a HTML-only component`. 
+
+```HTML
+<h1>This is a HTML-only component</h1>
+```
+
+Saving this as `my-element.html` will result in a component that will be referenced using its tag `<my-element></my-element>`. To import the component in your application, use the `<import>` element.
+
+```HTML
+<import from="./my-element.html"></import>
+
+<my-element></my-element>
+```
+
+### With Bindable Properties
+
+In many instances, you'll want a custom element which supports one or more bindable properties. These properties allow you to pass in data to the component itself. Taking the above example, let's allow the text to be changed and we will save it as `heading-one.html` instead.
+
+```HTML
+<bindable name="text"></bindable>
+<h1>${text}</h1>
+```
+
+To use our newly created `heading-one` component, import it and use it like this:
+
+```HTML
+<import from="./heading-one.html"></import>
+
+<heading-one text="This is my heading..."></heading-one>
+```
+
+You can even specify the binding mode for your bindables. This will make our bindable property `two-way` so it updates in both directions.
+
+```HTML
+<bindable name="text" mode="two-way"></bindable>
+<h1>${text}</h1>
+```
 
 ## Odds and Ends
 

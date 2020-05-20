@@ -33,7 +33,7 @@
     "@aurelia/webpack-loader": "0.7.0",
     "ts-loader": "^6.2.1",
     "@types/node": "^12.12.21",
-    "typescript": "^3.8.3",
+    "typescript": "^3.9.3",
     "tslint": "^5.20.1",
     "cypress": "^3.8.0",
     "babel-eslint": "^10.0.3",

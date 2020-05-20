@@ -235,7 +235,7 @@ export class Router {
       throw new Error('Router has already been activated');
     }
 
-    this.logger.debug('activating');
+    this.logger.trace('activating');
 
     this.isActive = true;
     this.options = {
@@ -270,7 +270,7 @@ export class Router {
       throw new Error('Router has not been activated');
     }
 
-    this.logger.debug('deactivating');
+    this.logger.trace('deactivating');
 
     this.linkHandler.deactivate();
     this.events.unsubscribeAll();

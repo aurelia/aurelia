@@ -1,7 +1,7 @@
 import { Reporter } from '@aurelia/kernel';
 import { LifecycleFlags, CustomElement, IHydratedController, ICustomElementController } from '@aurelia/runtime';
-import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, ReentryBehavior, IRoute, RouteableComponentType } from './interfaces';
-import { Router, INavigatorFlags } from './router';
+import { ComponentAppellation, NavigatorInstruction, IRouteableComponent, ReentryBehavior, IRoute, RouteableComponentType } from './interfaces';
+import { IRouter, INavigatorFlags } from './router';
 import { arrayRemove } from './utils';
 import { ViewportContent } from './viewport-content';
 import { ViewportInstruction } from './viewport-instruction';
@@ -36,7 +36,7 @@ export class Viewport implements IScopeOwner {
   private historyCache: ViewportContent[] = [];
 
   public constructor(
-    public readonly router: Router,
+    public readonly router: IRouter,
     public name: string,
     public viewportController: ICustomElementController<Element> | null,
     owningScope: Scope,
@@ -85,7 +85,7 @@ export class Viewport implements IScopeOwner {
 
   public setNextContent(
     content: ComponentAppellation | ViewportInstruction,
-    instruction: INavigatorInstruction,
+    instruction: NavigatorInstruction,
   ): boolean {
     let viewportInstruction: ViewportInstruction;
     if (content instanceof ViewportInstruction) {

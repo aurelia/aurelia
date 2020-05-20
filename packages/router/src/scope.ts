@@ -1,8 +1,8 @@
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
 import { CustomElementType, ICustomElementController } from '@aurelia/runtime';
-import { IRoute, ComponentAppellation, INavigatorInstruction } from './interfaces';
+import { IRoute, ComponentAppellation, NavigatorInstruction } from './interfaces';
 import { FoundRoute } from './found-route';
-import { Router } from './router';
+import { IRouter } from './router';
 import { ViewportInstruction, ViewportInstructionCollection } from './viewport-instruction';
 import { NavigationInstructionResolver } from './type-resolvers';
 import { Viewport, IViewportOptions } from './viewport';
@@ -43,7 +43,7 @@ export interface IScopeOwner {
 
   setNextContent(
     content: ComponentAppellation | ViewportInstruction,
-    instruction: INavigatorInstruction,
+    instruction: NavigatorInstruction,
   ): boolean;
   canLeave(): Promise<boolean>;
   canEnter(): Promise<boolean | ViewportInstruction[]>;
@@ -73,7 +73,7 @@ export class Scope {
   public childCollections: Record<string, unknown[]> = {};
 
   public constructor(
-    public readonly router: Router,
+    public readonly router: IRouter,
     public readonly hasScope: boolean,
     public owningScope: Scope | null,
     public viewport: Viewport | null = null,

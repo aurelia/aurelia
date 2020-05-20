@@ -1,7 +1,7 @@
 import { IContainer } from '@aurelia/kernel';
 import { CustomElement } from '@aurelia/runtime';
 import { ComponentAppellation, ComponentParameters, IRouteableComponent, RouteableComponentType, ViewportHandle } from './interfaces';
-import { Router } from './router';
+import { IRouter } from './router';
 import { ComponentAppellationResolver } from './type-resolvers';
 import { Viewport } from './viewport';
 import { IComponentParameter, parseComponentParameters, stringifyComponentParameters } from './instruction-resolver';
@@ -209,7 +209,7 @@ export class ViewportInstruction {
     return null;
   }
 
-  public toViewportInstance(router: Router): Viewport | null {
+  public toViewportInstance(router: IRouter): Viewport | null {
     if (this.viewport !== null) {
       return this.viewport;
     }

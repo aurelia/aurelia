@@ -1,4 +1,4 @@
-import { ConfigurableRoute, Endpoint, RecognizedRoute, RouteRecognizer } from '@aurelia/route-recognizer';
+import { ConfigurableRoute, Endpoint, RecognizedRoute, RouteRecognizer } from '@aurelia/router';
 import { assert } from '@aurelia/testing';
 
 describe(RouteRecognizer.name, function () {

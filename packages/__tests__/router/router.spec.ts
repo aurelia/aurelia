@@ -1,13 +1,13 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { PLATFORM } from '@aurelia/kernel';
-import { IRouter, RouterConfiguration, IRoute, Router } from '@aurelia/router';
+import { IRouter, RouterConfiguration, IRoute } from '@aurelia/router';
 import { Aurelia, CustomElement, customElement, IScheduler } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import { TestRouterConfiguration } from './configuration';
 
 describe('Router', function () {
   function spyNavigationStates(
-    router: Router,
+    router: IRouter,
     spy: (type: 'push' | 'replace', data: {}, title: string, path: string) => void,
   ) {
     let _pushState;
@@ -27,7 +27,7 @@ describe('Router', function () {
     return { _pushState, _replaceState };
   }
   function unspyNavigationStates(
-    router: Router,
+    router: IRouter,
     _push?: (data: {}, title: string, path: string) => void,
     _replace?: (data: {}, title: string, path: string) => void,
   ) {
@@ -141,7 +141,7 @@ describe('Router', function () {
         App)
       .app({ host: host, component: App });
 
-    const router = container.get(IRouter) as unknown as Router;
+    const router = container.get(IRouter);
     const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
 
     container.register(Foo, Bar, Baz, Qux, Quux, Corge, Uier, Grault, Garply, Waldo, Plugh);
@@ -939,7 +939,7 @@ describe('Router', function () {
         .register(DebugConfiguration, RouterConfiguration)
         .app({ host: host, component: App });
 
-      const router = container.get(IRouter) as unknown as Router;
+      const router = container.get(IRouter);
 
       await au.start().wait();
 
@@ -1187,7 +1187,7 @@ describe('Router', function () {
           App)
         .app({ host: host, component: App });
 
-      const router = container.get(IRouter) as unknown as Router;
+      const router = container.get(IRouter);
       const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
 
       await au.start().wait();
@@ -1317,7 +1317,7 @@ describe('Router', function () {
           App)
         .app({ host: host, component: App });
 
-      const router = container.get(IRouter) as unknown as Router;
+      const router = container.get(IRouter);
       const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
 
       await au.start().wait();
@@ -1546,7 +1546,7 @@ describe('Router', function () {
 let quxCantLeave = 0;
 let plughReentryBehavior = 'default';
 
-const $goto = async (path: string, router: Router, scheduler: IScheduler) => {
+const $goto = async (path: string, router: IRouter, scheduler: IScheduler) => {
   await router.goto(path);
   scheduler.getRenderTaskQueue().flush();
 };

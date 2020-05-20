@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/promise-function-async */
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable no-await-in-loop */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -9,6 +11,7 @@ import {
   Registration,
   IIndexable,
   bound,
+  ILogger,
 } from '@aurelia/kernel';
 import {
   Aurelia,
@@ -32,13 +35,15 @@ import {
   createClearViewportInstruction,
 } from './instruction-resolver';
 import {
-  INavigatorInstruction,
+  NavigatorInstruction,
   IRouteableComponent,
   NavigationInstruction,
   IRoute,
   IWindow,
   IHistory,
   ILocation,
+  NavigatorEntry,
+  NavigatorEntrySnapshot,
 } from './interfaces';
 import {
   NavigationInstructionResolver,
@@ -130,31 +135,6 @@ export interface INavigatorViewerEvent extends NavigatorViewerState {
   state?: INavigatorState;
 }
 
-export interface IStoredNavigatorEntry {
-  instruction: string | ViewportInstruction[];
-  fullStateInstruction: string | ViewportInstruction[];
-  scope?: Scope | null;
-  index?: number;
-  firstEntry?: boolean; // Index might change to not require first === 0, firstEntry should be reliable
-  route?: IRoute;
-  path?: string;
-  title?: string;
-  query?: string;
-  parameters?: Record<string, unknown>;
-  data?: Record<string, unknown>;
-}
-
-export interface INavigatorEntry extends IStoredNavigatorEntry {
-  fromBrowser?: boolean;
-  replacing?: boolean;
-  refreshing?: boolean;
-  repeating?: boolean;
-  untracked?: boolean;
-  historyMovement?: number;
-  resolve?: ((value?: void | PromiseLike<void>) => void);
-  reject?: ((value?: void | PromiseLike<void>) => void);
-}
-
 export interface INavigatorFlags {
   first?: boolean;
   new?: boolean;
@@ -166,15 +146,15 @@ export interface INavigatorFlags {
 
 export interface INavigatorState {
   state?: Record<string, unknown>;
-  entries: IStoredNavigatorEntry[];
-  currentEntry: IStoredNavigatorEntry;
+  entries: NavigatorEntry[];
+  currentEntry: NavigatorEntry;
 }
 
 interface IForwardedState {
   resolve: (() => void) | null;
   suppressPopstate: boolean;
 }
-export interface IRouter extends Router {}
+export interface IRouter extends Router { }
 export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x.singleton(Router));
 
 /**
@@ -192,7 +172,7 @@ export class Router {
   /**
    * Public API
    */
-  public activeRoute?: IRoute;
+  public activeRoute: IRoute | null = null;
 
   /**
    * @internal
@@ -209,16 +189,13 @@ export class Router {
     useConfiguredRoutes: true,
   };
 
-  private currentEntry: INavigatorInstruction;
-  private entries: IStoredNavigatorEntry[] = [];
-  private readonly uninitializedEntry: INavigatorInstruction;
+  private entries: (NavigatorEntry | NavigatorEntrySnapshot)[] = [];
 
   private isActive: boolean = false;
-  private loadedFirst: boolean = false;
 
-  private processingNavigation: INavigatorInstruction | null = null;
-  private lastNavigation: INavigatorInstruction | null = null;
-  private staleChecks: Record<string, ViewportInstruction[]> = {};
+  private currentEntry: NavigatorInstruction;
+  private processingNavigation: NavigatorInstruction | null = null;
+  private lastNavigation: NavigatorInstruction | null = null;
 
   public constructor(
     @IContainer public readonly container: IContainer,
@@ -227,15 +204,13 @@ export class Router {
     @IWindow public readonly window: IWindow,
     @IHistory public readonly history: IHistory,
     @ILocation public readonly location: ILocation,
+    @ILogger private readonly logger: ILogger,
     public hookManager: HookManager,
     @IStateManager public readonly stateManager: IStateManager,
     public linkHandler: LinkHandler,
   ) {
-    this.uninitializedEntry = {
-      instruction: 'NAVIGATOR UNINITIALIZED',
-      fullStateInstruction: '',
-    };
-    this.currentEntry = this.uninitializedEntry;
+    this.currentEntry = NavigatorInstruction.INITIAL;
+    this.logger = logger.root.scopeTo('Router');
   }
 
   /**
@@ -259,6 +234,8 @@ export class Router {
     if (this.isActive) {
       throw new Error('Router has already been activated');
     }
+
+    this.logger.debug('activating');
 
     this.isActive = true;
     this.options = {
@@ -288,31 +265,30 @@ export class Router {
   /**
    * Public API
    */
-  public async loadUrl(): Promise<void> {
-    const entry: INavigatorEntry = {
-      ...this.viewerState,
-      ...{
-        fullStateInstruction: '',
-        replacing: true,
-        fromBrowser: false,
-      }
-    };
-    const result = this.navigate(entry);
-    this.loadedFirst = true;
-    return result;
-  }
-
-  /**
-   * Public API
-   */
   public deactivate(): void {
     if (!this.isActive) {
       throw new Error('Router has not been activated');
     }
 
+    this.logger.debug('deactivating');
+
     this.linkHandler.deactivate();
     this.events.unsubscribeAll();
     this.window.removeEventListener('popstate', this.handlePopstate);
+  }
+
+  /**
+   * Public API
+   */
+  public loadUrl(): Promise<void> {
+    this.logger.trace('loadUrl');
+
+    const entry = NavigatorInstruction.create({
+      ...this.viewerState,
+      replacing: true,
+      fromBrowser: false,
+    });
+    return this.navigate(entry);
   }
 
   /**
@@ -321,57 +297,53 @@ export class Router {
   // TODO: use @bound and improve name (eslint-disable is temp)
   // eslint-disable-next-line @typescript-eslint/typedef
   public navigatorSerializeCallback = async (
-    entry: IStoredNavigatorEntry,
-    preservedEntries: IStoredNavigatorEntry[],
-  ): Promise<IStoredNavigatorEntry> => {
-    let excludeComponents = [];
+    entry: NavigatorEntry,
+    preservedEntries: (NavigatorEntry | NavigatorEntrySnapshot)[],
+  ): Promise<NavigatorEntrySnapshot> => {
+    this.logger.trace(() => `navigatorSerializeCallback(${entry.toString()})`);
+
+    const $excludeComponents: (IRouteableComponent | null)[] = [];
     for (const preservedEntry of preservedEntries) {
       if (typeof preservedEntry.instruction !== 'string') {
-        excludeComponents.push(...flattenViewportInstructions(preservedEntry.instruction)
-          .filter(instruction => instruction.viewport !== null)
-          .map(instruction => instruction.componentInstance));
+        $excludeComponents.push(
+          ...flattenViewportInstructions(preservedEntry.instruction)
+            .filter(instruction => instruction.viewport !== null)
+            .map(instruction => instruction.componentInstance)
+        );
       }
       if (typeof preservedEntry.fullStateInstruction !== 'string') {
-        excludeComponents.push(...flattenViewportInstructions(preservedEntry.fullStateInstruction)
-          .filter(instruction => instruction.viewport !== null)
-          .map(instruction => instruction.componentInstance));
+        $excludeComponents.push(
+          ...flattenViewportInstructions(preservedEntry.fullStateInstruction)
+            .filter(instruction => instruction.viewport !== null)
+            .map(instruction => instruction.componentInstance)
+        );
       }
     }
-    excludeComponents = excludeComponents.filter(
-      (component, i, arr) => component !== null && arr.indexOf(component) === i
-    ) as IRouteableComponent[];
+    const excludeComponents = $excludeComponents.filter((x, i) => x !== null && $excludeComponents.indexOf(x) === i) as IRouteableComponent[];
 
-    const serialized: IStoredNavigatorEntry = { ...entry };
-    let instructions = [];
-    if (serialized.fullStateInstruction && typeof serialized.fullStateInstruction !== 'string') {
-      instructions.push(...serialized.fullStateInstruction);
-      serialized.fullStateInstruction = stringifyViewportInstructions(serialized.fullStateInstruction);
-    }
-    if (serialized.instruction && typeof serialized.instruction !== 'string') {
-      instructions.push(...serialized.instruction);
-      serialized.instruction = stringifyViewportInstructions(serialized.instruction);
-    }
-    instructions = instructions.filter(
-      (instruction, i, arr) =>
-        instruction !== null
-        && instruction.componentInstance !== null
-        && arr.indexOf(instruction) === i
-    );
+    let instructions = [
+      ...entry.instructions,
+      ...entry.fullStateInstructions,
+    ];
+    instructions = instructions.filter((x, i) => (x?.componentInstance ?? null) !== null && instructions.indexOf(x) === i);
+
+    const snapshot = entry.toSnapshot();
 
     const alreadyDone: IRouteableComponent[] = [];
     for (const instruction of instructions) {
       await this.freeComponents(instruction, excludeComponents, alreadyDone);
     }
-    return serialized;
+    return snapshot;
   };
 
   /**
    * @internal
    */
   // TODO: use @bound and improve name (eslint-disable is temp)
-  private async processNavigations(qInstruction: INavigatorInstruction): Promise<void> {
-    const instruction = this.processingNavigation = qInstruction as INavigatorInstruction;
+  private async processNavigations(instruction: NavigatorInstruction): Promise<void> {
+    this.logger.trace(() => `processNavigations(${instruction.toString()})`);
 
+    this.processingNavigation = instruction;
     let fullStateInstruction = false;
     const instructionNavigation = instruction.navigation!;
     if ((instructionNavigation.back || instructionNavigation.forward) && instruction.fullStateInstruction) {
@@ -393,7 +365,8 @@ export class Router {
 
     if (configuredRoute.foundConfiguration) {
       instruction.path = (instruction.instruction as string).startsWith('/')
-        ? (instruction.instruction as string).slice(1) : instruction.instruction as string;
+        ? (instruction.instruction as string).slice(1)
+        : instruction.instruction as string;
       configuredRoutePath = `${configuredRoutePath || ''}${configuredRoute.matching}`;
       this.rootScope!.path = configuredRoutePath;
     }
@@ -402,7 +375,7 @@ export class Router {
     let clearViewportScopes: ViewportScope[] = [];
     for (const clearInstruction of instructions.filter(instr => isClearAllViewportsInstruction(instr))) {
       const scope = clearInstruction.scope || this.rootScope!.scope;
-      clearScopeOwners.push(...scope.children.filter(scope => !scope.owner!.isEmpty).map(scope => scope.owner!));
+      clearScopeOwners.push(...scope.children.filter(x => !x.owner!.isEmpty).map(x => x.owner!));
       if (scope.viewportScope !== null) {
         clearViewportScopes.push(scope.viewportScope);
       }
@@ -469,7 +442,7 @@ export class Router {
         return true;
       }));
       if (results.some(result => result === false)) {
-        return this.cancelNavigation([...changedScopeOwners, ...updatedScopeOwners], qInstruction);
+        return this.cancelNavigation([...changedScopeOwners, ...updatedScopeOwners], instruction);
       }
       for (const viewport of changedScopeOwners) {
         if (updatedScopeOwners.every(value => value !== viewport)) {
@@ -506,20 +479,20 @@ export class Router {
       }
       // Don't use defaults when it's a full state navigation
       if (fullStateInstruction) {
-        this.appendedInstructions = this.appendedInstructions.filter(instruction => !instruction.default);
+        this.appendedInstructions = this.appendedInstructions.filter(x => !x.default);
       }
       // Process non-defaults first
-      let appendedInstructions = this.appendedInstructions.filter(instruction => !instruction.default);
-      this.appendedInstructions = this.appendedInstructions.filter(instruction => instruction.default);
+      let appendedInstructions = this.appendedInstructions.filter(x => !x.default);
+      this.appendedInstructions = this.appendedInstructions.filter(x => x.default);
       if (appendedInstructions.length === 0) {
-        const index = this.appendedInstructions.findIndex(instruction => instruction.default);
+        const index = this.appendedInstructions.findIndex(x => x.default);
         if (index >= 0) {
           appendedInstructions = this.appendedInstructions.splice(index, 1);
         }
       }
       while (appendedInstructions.length > 0) {
-        const appendedInstruction = appendedInstructions.shift() as ViewportInstruction;
-        const existingAlreadyFound = alreadyFoundInstructions.some(instruction => instruction.sameViewport(appendedInstruction));
+        const appendedInstruction = appendedInstructions.shift()!;
+        const existingAlreadyFound = alreadyFoundInstructions.some(x => x.sameViewport(appendedInstruction));
         const existingFound = viewportInstructions.find(value => value.sameViewport(appendedInstruction));
         const existingRemaining = remainingInstructions.find(value => value.sameViewport(appendedInstruction));
         if (appendedInstruction.default &&
@@ -542,11 +515,11 @@ export class Router {
       }
       if (viewportInstructions.length === 0 && remainingInstructions.length === 0) {
         viewportInstructions = clearScopeOwners.map(owner => {
-          const instruction = createClearViewportInstruction(owner.isViewport ? owner as Viewport : void 0);
+          const instr = createClearViewportInstruction(owner.isViewport ? owner as Viewport : void 0);
           if (owner.isViewportScope) {
-            instruction.viewportScope = owner as ViewportScope;
+            instr.viewportScope = owner as ViewportScope;
           }
-          return instruction;
+          return instr;
         });
         viewportInstructions.push(...clearViewportScopes.map(viewportScope => {
           const instr = createClearViewportInstruction();
@@ -573,7 +546,7 @@ export class Router {
     updatedScopeOwners.forEach((viewport) => {
       viewport.finalizeContentChange();
     });
-    this.lastNavigation = this.processingNavigation;
+    this.lastNavigation = this.processingNavigation!;
     if (this.lastNavigation.repeating) {
       this.lastNavigation.repeating = false;
     }
@@ -581,63 +554,64 @@ export class Router {
     await this.finalize(instruction);
   }
 
-  private async finalize(instruction: INavigatorInstruction): Promise<void> {
+  private async finalize(instruction: NavigatorInstruction): Promise<void> {
+    this.logger.trace(() => `finalize(${instruction.toString()})`);
+
     this.currentEntry = instruction;
-    let index = this.currentEntry.index !== undefined ? this.currentEntry.index : 0;
+    let index = this.currentEntry.index >= 0 ? this.currentEntry.index : 0;
     if (this.currentEntry.untracked) {
       if (instruction.fromBrowser) {
         await this.popNavigatorState();
       }
       index--;
       this.currentEntry.index = index;
-      this.entries[index] = this.toStoredEntry(this.currentEntry);
+      this.entries[index] = this.currentEntry.toEntry();
       await this.saveState();
     } else if (this.currentEntry.replacing) {
-      this.entries[index] = this.toStoredEntry(this.currentEntry);
+      this.entries[index] = this.currentEntry.toEntry();
       await this.saveState();
     } else { // New entry (add and discard later entries)
       if (this.statefulHistory !== void 0 && this.options.statefulHistoryLength! > 0) {
         // Need to clear the instructions we discard!
         const indexPreserve = this.entries.length - this.options.statefulHistoryLength!;
         for (const entry of this.entries.slice(index)) {
-          if (typeof entry.instruction !== 'string' || typeof entry.fullStateInstruction !== 'string') {
+          if (entry.hasInstructions) {
             await this.navigatorSerializeCallback(entry, this.entries.slice(indexPreserve, index));
           }
         }
       }
       this.entries = this.entries.slice(0, index);
-      this.entries.push(this.toStoredEntry(this.currentEntry));
+      this.entries.push(this.currentEntry.toEntry());
       await this.saveState(true);
     }
-    if (this.currentEntry.resolve) {
-      this.currentEntry.resolve();
-    }
+    this.currentEntry.resolve();
   }
 
   private async saveState(push: boolean = false): Promise<void> {
-    if (this.currentEntry === this.uninitializedEntry) {
+
+    if (this.currentEntry.isInitial) {
+      this.logger.trace(`saveState(push:${push}) - discarding initial entry`);
       return;
+    } else {
+      this.logger.trace(`saveState(push:${push})`);
     }
-    const storedEntry = this.toStoredEntry(this.currentEntry);
+    const storedEntry = this.currentEntry.toEntry();
     this.entries[storedEntry.index !== undefined ? storedEntry.index : 0] = storedEntry;
 
     if (this.statefulHistory && this.options.statefulHistoryLength! > 0) {
       const index = this.entries.length - this.options.statefulHistoryLength!;
       for (let i = 0; i < index; i++) {
         const entry = this.entries[i];
-        if (typeof entry.instruction !== 'string' || typeof entry.fullStateInstruction !== 'string') {
+        if (entry.hasInstructions) {
           this.entries[i] = await this.navigatorSerializeCallback(entry, this.entries.slice(index));
         }
       }
     }
 
     const state: INavigatorState = {
-      entries: [],
-      currentEntry: { ...this.toStoreableEntry(storedEntry) },
+      entries: this.entries.map(x => x.toEntry()),
+      currentEntry: storedEntry.toEntry(),
     };
-    for (const entry of this.entries) {
-      state.entries.push(this.toStoreableEntry(entry));
-    }
 
     if (push) {
       this.pushNavigatorState(state);
@@ -646,28 +620,12 @@ export class Router {
     }
   }
 
-  private toStoredEntry(entry: INavigatorInstruction): IStoredNavigatorEntry {
-    const {
-      previous,
-      fromBrowser,
-      replacing,
-      refreshing,
-      untracked,
-      historyMovement,
-      navigation,
-      scope,
-
-      resolve,
-      reject,
-
-      ...storableEntry } = entry;
-    return storableEntry;
-  }
-
   /**
    * @internal
    */
   public findScope(origin: Node | ICustomElementViewModel<Element> | Viewport | Scope | ICustomElementController<Element> | null): Scope {
+    this.logger.trace(() => `findScope(origin:${origin})`);
+
     const rootScope = this.rootScope!.scope;
 
     // this.ensureRootScope();
@@ -703,6 +661,8 @@ export class Router {
    * @internal
    */
   public findParentScope(container: IContainer | null): Scope {
+    this.logger.trace(() => `findParentScope(container:${container})`);
+
     if (container === null) {
       return this.rootScope!.scope;
     }
@@ -723,6 +683,8 @@ export class Router {
    * Public API - Get viewport by name
    */
   public getViewport(name: string): Viewport | null {
+    this.logger.trace(`getViewport(name:${name})`);
+
     return this.allViewports().find(viewport => viewport.name === name) || null;
   }
   /**
@@ -751,10 +713,14 @@ export class Router {
     viewModelOrContainer: ICustomElementViewModel<Element> | IContainer,
     scope: Scope,
   ): void {
+    this.logger.trace(() => `setClosestScope(viewModelOrContainer:${viewModelOrContainer},scope:{id:${scope.id}})`);
+
     const container = this.getContainer(viewModelOrContainer);
     Registration.instance(ClosestScope, scope).register(container!);
   }
   public unsetClosestScope(viewModelOrContainer: ICustomElementViewModel<Element> | IContainer): void {
+    this.logger.trace(() => `unsetClosestScope(viewModelOrContainer:${viewModelOrContainer})`);
+
     const container = this.getContainer(viewModelOrContainer);
     // TODO: Get an 'unregister' on container
     (container as any).resolvers.delete(ClosestScope);
@@ -769,6 +735,8 @@ export class Router {
     name: string,
     options?: IViewportOptions,
   ): Viewport {
+    this.logger.trace(`connectViewport(name:${name})`);
+
     const parentScope = this.findParentScope(controller.context);
     if (viewport === null) {
       viewport = parentScope.addViewport(name, controller, options);
@@ -783,6 +751,8 @@ export class Router {
     viewport: Viewport,
     controller: ICustomElementController<Element>,
   ): void {
+    this.logger.trace(`disconnectViewport(name:${viewport.name})`);
+
     if (!viewport.connectedScope.parent!.removeViewport(viewport, controller)) {
       throw new Error(`Failed to remove viewport: ${viewport.name}`);
     }
@@ -798,6 +768,8 @@ export class Router {
     element: Node,
     options?: IViewportScopeOptions,
   ): ViewportScope {
+    this.logger.trace(`connectViewportScope(name:${name})`);
+
     const parentScope = this.findParentScope(container);
     if (viewportScope === null) {
       viewportScope = parentScope.addViewportScope(name, element, options);
@@ -809,6 +781,8 @@ export class Router {
    * @internal - Called from the viewport scope custom element
    */
   public disconnectViewportScope(viewportScope: ViewportScope, container: IContainer): void {
+    this.logger.trace(`disconnectViewportScope(name:${viewportScope.name})`);
+
     if (!viewportScope.connectedScope.parent!.removeViewportScope(viewportScope)) {
       throw new Error(`Failed to remove viewport scope: ${viewportScope.path}`);
     }
@@ -816,6 +790,8 @@ export class Router {
   }
 
   public allViewports(includeDisabled: boolean = false, includeReplaced: boolean = false): Viewport[] {
+    this.logger.trace(`allViewports(includeDisabled:${includeDisabled},includeReplaced:${includeReplaced})`);
+
     // this.ensureRootScope();
     return (this.rootScope as ViewportScope).scope.allViewports(includeDisabled, includeReplaced);
   }
@@ -827,6 +803,8 @@ export class Router {
     instructions: NavigationInstruction | NavigationInstruction[],
     options?: IGotoOptions,
   ): Promise<void> {
+    this.logger.trace(`goto(instructions:${instructions},options:${options})`);
+
     options = options || {};
     // TODO: Review query extraction; different pos for path and fragment!
     if (typeof instructions === 'string' && !options.query) {
@@ -842,24 +820,24 @@ export class Router {
     let scope: Scope | null = null;
     ({ instructions, scope } = NavigationInstructionResolver.createViewportInstructions(this, instructions, toOptions));
 
-    if (options.append && this.processingNavigation) {
+    if (options.append && this.processingNavigation !== null) {
       instructions = NavigationInstructionResolver.toViewportInstructions(this, instructions);
       this.appendInstructions(instructions as ViewportInstruction[], scope);
       // Can't return current navigation promise since it can lead to deadlock in enter
+      this.logger.trace(`goto(instructions:${instructions},options:${options}) - already processing, appending instruction`);
       return;
     }
 
-    const entry: INavigatorEntry = {
-      instruction: instructions as ViewportInstruction[],
-      fullStateInstruction: '',
-      scope: scope,
+    const entry = NavigatorInstruction.create({
+      instruction: instructions as string | ViewportInstruction[],
+      scope,
       title: options.title,
       data: options.data,
       query: options.query,
       replacing: options.replace,
       repeating: options.append,
       fromBrowser: false,
-    };
+    });
     await this.navigate(entry);
   }
 
@@ -868,9 +846,13 @@ export class Router {
    */
   public async refresh(): Promise<void> {
     const entry = this.currentEntry;
-    if (entry === this.uninitializedEntry) {
+    if (entry.isInitial) {
+      this.logger.trace('refresh() - discarding initial entry');
       return;
+    } else {
+      this.logger.trace('refresh()');
     }
+
     entry.replacing = true;
     entry.refreshing = true;
     await this.navigate(entry);
@@ -880,11 +862,15 @@ export class Router {
    * Public API
    */
   public async back(): Promise<void> {
-    const newIndex = (this.currentEntry.index !== undefined ? this.currentEntry.index : 0) - 1;
+    const newIndex = (this.currentEntry.index >= 0 ? this.currentEntry.index : 0) - 1;
     if (newIndex >= this.entries.length) {
+      this.logger.trace('back() - discarding index out of bounds');
       return;
+    } else {
+      this.logger.trace('back()');
     }
-    const entry = this.entries[newIndex];
+
+    const entry = this.entries[newIndex].toInstruction();
     await this.navigate(entry);
   }
 
@@ -892,62 +878,66 @@ export class Router {
    * Public API
    */
   public async forward(): Promise<void> {
-    const newIndex = (this.currentEntry.index !== undefined ? this.currentEntry.index : 0) + 1;
+    const newIndex = (this.currentEntry.index >= 0 ? this.currentEntry.index : 0) + 1;
     if (newIndex >= this.entries.length) {
+      this.logger.trace('forward() - discarding index out of bounds');
       return;
+    } else {
+      this.logger.trace('forward()');
     }
-    const entry = this.entries[newIndex];
+
+    const entry = this.entries[newIndex].toInstruction();
     await this.navigate(entry);
   }
 
-  private async navigate(entry: INavigatorInstruction): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/promise-function-async
+  private async navigate(entry: NavigatorInstruction): Promise<void> {
+    this.logger.trace('navigate');
+
     await this.scheduler.queueRenderTask(() => this.$navigate(entry), { async: true }).result;
   }
 
   private getState(): INavigatorState {
+    this.logger.trace('getState');
+
     const state = this.state ?? {};
-    const entries = (state.entries || []) as IStoredNavigatorEntry[];
-    const currentEntry = (state.currentEntry || this.uninitializedEntry) as IStoredNavigatorEntry;
+    const entries = (state.entries || []) as NavigatorEntry[];
+    const currentEntry = (state.currentEntry as NavigatorEntry | null) ?? NavigatorInstruction.INITIAL;
     return { state, entries, currentEntry };
   }
 
   private loadState(): void {
+    this.logger.trace('loadState');
+
     const state = this.getState();
     this.entries = state.entries;
-    this.currentEntry = state.currentEntry;
+    this.currentEntry = state.currentEntry.toInstruction();
   }
 
-  private async $navigate(entry: INavigatorInstruction): Promise<void> {
-    const promise = new Promise<void>((resolve, reject) => {
-      entry.resolve = resolve;
-      entry.reject = reject;
-    });
+  private async $navigate(entry: NavigatorInstruction): Promise<void> {
+    this.logger.trace(() => `$navigate(${entry.toString()})`);
 
     const navigationFlags: INavigatorFlags = {};
 
-    if (this.currentEntry === this.uninitializedEntry) { // Refresh or first entry
+    if (this.currentEntry.isInitial) { // Refresh or first entry
       this.loadState();
-      if (this.currentEntry !== this.uninitializedEntry) {
+      if (!this.currentEntry.isInitial) {
         navigationFlags.refresh = true;
       } else {
         navigationFlags.first = true;
         navigationFlags.new = true;
         // TODO: Should this really be created here? Shouldn't it be in the viewer?
-        this.currentEntry = {
+        this.currentEntry = NavigatorInstruction.create({
           index: 0,
           instruction: '',
           fullStateInstruction: '',
-          // path: this.options.viewer.getPath(true),
-          // fromBrowser: null,
-        };
+        });
         this.entries = [];
       }
     }
 
-    if (entry.index !== void 0 && !entry.replacing && !entry.refreshing) { // History navigation
-      entry.historyMovement = entry.index - (this.currentEntry.index !== void 0 ? this.currentEntry.index : 0);
-      entry.instruction = this.entries[entry.index] !== void 0 && this.entries[entry.index] !== null ? this.entries[entry.index].fullStateInstruction : entry.fullStateInstruction;
+    if (entry.index >= 0 && !entry.replacing && !entry.refreshing) { // History navigation
+      entry.historyMovement = entry.index - (this.currentEntry.index >= 0 ? this.currentEntry.index : 0);
+      entry.instruction = this.entries[entry.index]?.fullStateInstruction ?? entry.fullStateInstruction;
       entry.replacing = true;
       if (entry.historyMovement > 0) {
         navigationFlags.forward = true;
@@ -962,7 +952,7 @@ export class Router {
       entry.index = this.currentEntry.index;
     } else { // New entry
       navigationFlags.new = true;
-      entry.index = this.currentEntry.index !== void 0 ? this.currentEntry.index + 1 : this.entries.length;
+      entry.index = this.currentEntry.index >= 0 ? this.currentEntry.index + 1 : this.entries.length;
     }
 
     entry.navigation = navigationFlags;
@@ -971,13 +961,15 @@ export class Router {
     // eslint-disable-next-line @typescript-eslint/promise-function-async
     this.scheduler.queueMicroTask(() => this.processNavigations(entry), { async: true });
 
-    await promise;
+    await entry.promise;
   }
 
   /**
    * Public API
    */
   public checkActive(instructions: ViewportInstruction[]): boolean {
+    this.logger.trace('checkActive');
+
     for (const instruction of instructions) {
       const scopeInstructions = matchScope(this.activeComponents, instruction.scope!);
       const matching = scopeInstructions.filter(instr => instr.sameComponent(instruction, true));
@@ -1019,6 +1011,8 @@ export class Router {
    * Public API
    */
   public addHooks(hooks: IHookDefinition[]): HookIdentity[] {
+    this.logger.trace('addHooks');
+
     return hooks.map(hook => this.addHook(hook.hook, hook.options));
   }
   /**
@@ -1029,13 +1023,15 @@ export class Router {
   public addHook(transformToUrlHookFunction: TransformToUrlHookFunction, options?: IHookOptions): HookIdentity;
   public addHook(hookFunction: HookFunction, options?: IHookOptions): HookIdentity;
   public addHook(hook: HookFunction, options: IHookOptions): HookIdentity {
+    this.logger.trace('addHook');
+
     return this.hookManager.addHook(hook, options);
   }
   /**
    * Public API
    */
   public removeHooks(hooks: HookIdentity[]): void {
-    return;
+    this.logger.trace('removeHooks');
   }
 
   private async findInstructions(
@@ -1044,10 +1040,12 @@ export class Router {
     instructionScope: Scope,
     transformUrl: boolean = false,
   ): Promise<FoundRoute> {
+    this.logger.trace(`findInstructions(scope:${scope},instruction:${instruction},instructionScope:${instructionScope},transformUrl:${transformUrl})`);
+
     let route = new FoundRoute();
     if (typeof instruction === 'string') {
       instruction = transformUrl
-        ? await this.hookManager.invokeTransformFromUrl(instruction as string, this.processingNavigation as INavigatorInstruction)
+        ? await this.hookManager.invokeTransformFromUrl(instruction, this.processingNavigation!)
         : instruction;
       if (Array.isArray(instruction)) {
         route.instructions = instruction;
@@ -1060,7 +1058,7 @@ export class Router {
         const instructions = parseViewportInstructions(instruction);
         if (this.options.useConfiguredRoutes && !this.hasSiblingInstructions(instructions)) {
           const foundRoute = scope.findMatchingRoute(instruction);
-          if (foundRoute !== null && foundRoute.foundConfiguration) {
+          if (foundRoute?.foundConfiguration) {
             route = foundRoute;
           } else {
             if (this.options.useDirectRoutes) {
@@ -1091,15 +1089,21 @@ export class Router {
 
   private hasSiblingInstructions(instructions: ViewportInstruction[] | null): boolean {
     if (instructions === null) {
+      this.logger.trace(`hasSiblingInstructions(instructions:null) - false`);
       return false;
     }
+
     if (instructions.length > 1) {
+      this.logger.trace(`hasSiblingInstructions(instructions.length:${instructions.length}) - true`);
       return true;
     }
+
     return instructions.some(instruction => this.hasSiblingInstructions(instruction.nextScopeInstructions));
   }
 
   private appendInstructions(instructions: ViewportInstruction[], scope: Scope | null = null): void {
+    this.logger.trace(`appendInstructions(instructions.length:${instructions.length},scope:${scope})`);
+
     if (scope === null) {
       scope = this.rootScope!.scope;
     }
@@ -1108,29 +1112,12 @@ export class Router {
         instruction.scope = scope;
       }
     }
-    this.appendedInstructions.push(...(instructions as ViewportInstruction[]));
-  }
-
-  private checkStale(name: string, instructions: ViewportInstruction[]): boolean {
-    const staleCheck = this.staleChecks[name];
-    if (staleCheck === void 0) {
-      this.staleChecks[name] = instructions.slice();
-      return false;
-    }
-    if (staleCheck.length !== instructions.length) {
-      this.staleChecks[name] = instructions.slice();
-      return false;
-    }
-    for (let i = 0, ii = instructions.length; i < ii; i++) {
-      if (staleCheck[i] !== instructions[i]) {
-        this.staleChecks[name] = instructions.slice();
-        return false;
-      }
-    }
-    return true;
+    this.appendedInstructions.push(...instructions);
   }
 
   private unknownRoute(route: string) {
+    this.logger.trace(`unknownRoute(route:${route})`);
+
     if (typeof route !== 'string' || route.length === 0) {
       return;
     }
@@ -1154,6 +1141,8 @@ export class Router {
     found: ViewportInstruction[];
     remaining: ViewportInstruction[];
   } {
+    this.logger.trace(`findViewports(instructions.length:${instructions.length},alreadyFound.length:${alreadyFound.length},withoutViewports:${withoutViewports})`);
+
     const found: ViewportInstruction[] = [];
     const remaining: ViewportInstruction[] = [];
 
@@ -1172,31 +1161,30 @@ export class Router {
 
   private async cancelNavigation(
     updatedScopeOwners: IScopeOwner[],
-    qInstruction: INavigatorInstruction,
+    instruction: NavigatorInstruction,
   ): Promise<void> {
+    this.logger.trace(() => `cancelNavigation(${instruction.toString()})`);
+
     // TODO: Take care of disabling viewports when cancelling and stateful!
     updatedScopeOwners.forEach((viewport) => {
       viewport.abortContentChange().catch(error => { throw error; });
     });
-    await this.cancel(qInstruction as INavigatorInstruction);
-    this.processingNavigation = null;
-    (qInstruction.resolve as ((value: void | PromiseLike<void>) => void))();
-  }
 
-  private async cancel(instruction: INavigatorInstruction): Promise<void> {
     if (instruction.fromBrowser) {
       if (instruction.navigation && instruction.navigation.new) {
         await this.popNavigatorState();
       } else {
-        await this.go(-(instruction.historyMovement || 0), true);
+        await this.go(instruction.historyMovement, true);
       }
     }
-    if (this.currentEntry.resolve) {
-      this.currentEntry.resolve();
-    }
+
+    this.processingNavigation = null;
+    instruction.resolve();
   }
 
   private ensureRootScope(): ViewportScope {
+    this.logger.trace('ensureRootScope');
+
     if (!this.rootScope) {
       const root = this.container.get(Aurelia).root;
       // root.config.component shouldn't be used in the end. Metadata will probably eliminate it
@@ -1205,11 +1193,13 @@ export class Router {
     return this.rootScope;
   }
 
-  private async replacePaths(instruction: INavigatorInstruction): Promise<void> {
+  private async replacePaths(instruction: NavigatorInstruction): Promise<void> {
+    this.logger.trace(() => `replacePaths(${instruction.toString()})`);
+
     (this.rootScope as ViewportScope).scope.reparentViewportInstructions();
-    let instructions: ViewportInstruction[] = (this.rootScope as ViewportScope).scope.hoistedChildren
+    let instructions = this.rootScope!.scope.hoistedChildren
       .filter(scope => scope.viewportInstruction !== null && !scope.viewportInstruction.isEmpty())
-      .map(scope => scope.viewportInstruction) as ViewportInstruction[];
+      .map(scope => scope.viewportInstruction!);
     instructions = cloneViewportInstructions(instructions, true);
 
     // The following makes sure right viewport/viewport scopes are set and update
@@ -1248,8 +1238,6 @@ export class Router {
     instruction.fullStateInstruction = fullViewportStates;
 
     // TODO: Fetch and update title
-
-    return Promise.resolve();
   }
 
   private async freeComponents(
@@ -1257,6 +1245,8 @@ export class Router {
     excludeComponents: IRouteableComponent[],
     alreadyDone: IRouteableComponent[],
   ): Promise<void> {
+    this.logger.trace('freeComponents');
+
     const component = instruction.componentInstance;
     const viewport = instruction.viewport;
     if (component === null || viewport === null || alreadyDone.some(done => done === component)) {
@@ -1275,6 +1265,8 @@ export class Router {
   }
 
   private getContainer(viewModelOrContainer: ICustomElementViewModel<Element> | IContainer): IContainer | null {
+    this.logger.trace(`getContainer(viewModelOrContainer:${viewModelOrContainer})`);
+
     if ('resourceResolvers' in viewModelOrContainer) {
       return viewModelOrContainer;
     }
@@ -1290,17 +1282,6 @@ export class Router {
     return null;
   }
 
-  private toStoreableEntry(entry: IStoredNavigatorEntry): IStoredNavigatorEntry {
-    const storeable: IStoredNavigatorEntry = { ...entry };
-    if (storeable.instruction && typeof storeable.instruction !== 'string') {
-      storeable.instruction = stringifyViewportInstructions(storeable.instruction);
-    }
-    if (storeable.fullStateInstruction && typeof storeable.fullStateInstruction !== 'string') {
-      storeable.fullStateInstruction = stringifyViewportInstructions(storeable.fullStateInstruction);
-    }
-    return storeable;
-  }
-
   private get state(): Record<string, unknown> | null {
     // TODO: this cast is not necessarily safe. Either we should do some type checks (and throw on "invalid" state?), or otherwise ensure (e.g. with replaceState) that it's always an object.
     return this.history.state as Record<string, unknown> | null;
@@ -1312,6 +1293,8 @@ export class Router {
 
   private forwardedState: IForwardedState = { resolve: null, suppressPopstate: false };
   private async go(delta: number, suppressPopstate: boolean = false): Promise<void> {
+    this.logger.trace(`go(delta:${delta},suppressPopstate:${suppressPopstate})`);
+
     const promise = new Promise(resolve => {
       this.forwardedState = {
         resolve,
@@ -1325,6 +1308,8 @@ export class Router {
   }
 
   private pushNavigatorState(state: INavigatorState): void {
+    this.logger.trace('pushNavigatorState');
+
     const { title, path } = state.currentEntry;
     const fragment = this.options.useUrlFragmentHash ? '#/' : '';
 
@@ -1332,6 +1317,8 @@ export class Router {
   }
 
   private replaceNavigatorState(state: INavigatorState): void {
+    this.logger.trace('replaceNavigatorState');
+
     const { title, path } = state.currentEntry;
     const fragment = this.options.useUrlFragmentHash ? '#/' : '';
 
@@ -1339,6 +1326,8 @@ export class Router {
   }
 
   private async popNavigatorState(): Promise<void> {
+    this.logger.trace('popNavigatorState');
+
     const promise = new Promise(resolve => {
       this.forwardedState = {
         resolve,
@@ -1353,6 +1342,8 @@ export class Router {
 
   @bound
   public handlePopstate(event: PopStateEvent): void {
+    this.logger.trace('handlePopstate');
+
     const {
       resolve,
       suppressPopstate,
@@ -1371,10 +1362,13 @@ export class Router {
           state: this.history.state as INavigatorState,
         },
       };
-      const entry: INavigatorEntry = browserNavigationEvent.state?.currentEntry ?? { instruction: '', fullStateInstruction: '' };
+      const entry = browserNavigationEvent.state?.currentEntry?.toInstruction() ?? NavigatorInstruction.create();
       entry.instruction = browserNavigationEvent.instruction;
       entry.fromBrowser = true;
-      this.navigate(entry).catch(error => { throw error; });
+      this.navigate(entry).catch(error => {
+        this.logger.error(error);
+        throw error;
+      });
       if (resolve !== null) {
         resolve();
       }

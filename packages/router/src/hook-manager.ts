@@ -1,4 +1,4 @@
-import { INavigatorInstruction, ComponentAppellation, IComponentAndOrViewportOrNothing, RouteableComponentType } from './interfaces';
+import { NavigatorInstruction, ComponentAppellation, IComponentAndOrViewportOrNothing, RouteableComponentType } from './interfaces';
 import { ViewportInstruction } from './viewport-instruction';
 import { ComponentAppellationResolver, ViewportHandleResolver } from './type-resolvers';
 import { Viewport } from './viewport';
@@ -13,15 +13,15 @@ export const enum HookTypes {
 /**
  * Public API
  */
-export type BeforeNavigationHookFunction = (viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction) => Promise<boolean | ViewportInstruction[]>;
+export type BeforeNavigationHookFunction = (viewportInstructions: ViewportInstruction[], navigationInstruction: NavigatorInstruction) => Promise<boolean | ViewportInstruction[]>;
 /**
  * Public API
  */
-export type TransformFromUrlHookFunction = (url: string, navigationInstruction: INavigatorInstruction) => Promise<string | ViewportInstruction[]>;
+export type TransformFromUrlHookFunction = (url: string, navigationInstruction: NavigatorInstruction) => Promise<string | ViewportInstruction[]>;
 /**
  * Public API
  */
-export type TransformToUrlHookFunction = (state: string | ViewportInstruction[], navigationInstruction: INavigatorInstruction) => Promise<string | ViewportInstruction[]>;
+export type TransformToUrlHookFunction = (state: string | ViewportInstruction[], navigationInstruction: NavigatorInstruction) => Promise<string | ViewportInstruction[]>;
 
 /**
  * @internal
@@ -119,26 +119,26 @@ export class HookManager {
 
   public invokeBeforeNavigation(
     viewportInstructions: ViewportInstruction[],
-    navigationInstruction: INavigatorInstruction,
+    navigationInstruction: NavigatorInstruction,
   ): Promise<boolean | ViewportInstruction[]> {
     return this.invoke(HookTypes.BeforeNavigation, navigationInstruction, viewportInstructions) as Promise<boolean | ViewportInstruction[]>;
   }
   public invokeTransformFromUrl(
     url: string,
-    navigationInstruction: INavigatorInstruction,
+    navigationInstruction: NavigatorInstruction,
   ): Promise<string | ViewportInstruction[]> {
     return this.invoke(HookTypes.TransformFromUrl, navigationInstruction, url) as Promise<string | ViewportInstruction[]>;
   }
   public invokeTransformToUrl(
     state: string | ViewportInstruction[],
-    navigationInstruction: INavigatorInstruction,
+    navigationInstruction: NavigatorInstruction,
   ): Promise<string | ViewportInstruction[]> {
     return this.invoke(HookTypes.TransformToUrl, navigationInstruction, state) as Promise<string | ViewportInstruction[]>;
   }
 
   public async invoke(
     type: HookTypes,
-    navigationInstruction: INavigatorInstruction,
+    navigationInstruction: NavigatorInstruction,
     arg: HookParameter,
   ): Promise<HookResult> {
     for (const hook of this.hooks[type]) {
@@ -196,7 +196,7 @@ export class Hook {
     return true;
   }
 
-  public invoke(navigationInstruction: INavigatorInstruction, arg: HookParameter): Promise<HookResult> {
+  public invoke(navigationInstruction: NavigatorInstruction, arg: HookParameter): Promise<HookResult> {
     // TODO: Fix the type here
     return this.hook(arg as any, navigationInstruction);
   }

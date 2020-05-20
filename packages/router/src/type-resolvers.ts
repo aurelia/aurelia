@@ -1,7 +1,7 @@
 import { Constructable } from '@aurelia/kernel';
 import { CustomElement, IController, ICustomElementViewModel } from '@aurelia/runtime';
 import { ComponentAppellation, IRouteableComponent, RouteableComponentType, IViewportInstruction, NavigationInstruction, ViewportHandle } from './interfaces';
-import { Router } from './router';
+import { IRouter } from './router';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 import { Scope } from './scope';
@@ -74,7 +74,7 @@ export interface IViewportInstructionsOptions {
 
 export const NavigationInstructionResolver = {
   createViewportInstructions(
-    router: Router,
+    router: IRouter,
     navigationInstructions: NavigationInstruction | NavigationInstruction[],
     options?: IViewportInstructionsOptions,
   ): {
@@ -124,7 +124,7 @@ export const NavigationInstructionResolver = {
   },
 
   toViewportInstructions(
-    router: Router,
+    router: IRouter,
     navigationInstructions: NavigationInstruction | NavigationInstruction[],
   ): ViewportInstruction[] {
     if (!Array.isArray(navigationInstructions)) {

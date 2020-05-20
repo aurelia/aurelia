@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { IContainer, Reporter } from '@aurelia/kernel';
 import { Controller, INode, LifecycleFlags, ILifecycle, IHydratedController, ICustomElementController } from '@aurelia/runtime';
-import { INavigatorInstruction, IRouteableComponent, RouteableComponentType, ReentryBehavior } from './interfaces';
+import { NavigatorInstruction, IRouteableComponent, RouteableComponentType, ReentryBehavior } from './interfaces';
 import { parseQuery } from './parser';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
@@ -34,10 +34,7 @@ export class ViewportContent {
     public readonly stateManager: IStateManager,
     // Can (and wants) be a (resolved) type or a string (to be resolved later)
     public content: ViewportInstruction = new ViewportInstruction(''),
-    public instruction: INavigatorInstruction = {
-      instruction: '',
-      fullStateInstruction: '',
-    },
+    public instruction: NavigatorInstruction = NavigatorInstruction.create(),
     container: IContainer | null = null
   ) {
     // If we've got a container, we're good to resolve type
@@ -110,7 +107,7 @@ export class ViewportContent {
 
   public async canEnter(
     viewport: Viewport,
-    previousInstruction: INavigatorInstruction,
+    previousInstruction: NavigatorInstruction,
   ): Promise<boolean | ViewportInstruction[]> {
     if (!this.content.componentInstance) {
       return false;
@@ -135,7 +132,7 @@ export class ViewportContent {
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  public async canLeave(nextInstruction: INavigatorInstruction | null): Promise<boolean> {
+  public async canLeave(nextInstruction: NavigatorInstruction | null): Promise<boolean> {
     if (!this.content.componentInstance || !this.content.componentInstance.canLeave) {
       return true;
     }
@@ -149,7 +146,7 @@ export class ViewportContent {
     return result;
   }
 
-  public async enter(previousInstruction: INavigatorInstruction): Promise<void> {
+  public async enter(previousInstruction: NavigatorInstruction): Promise<void> {
     // if (!this.reentry && (this.contentStatus !== ContentStatus.created || this.entered)) {
     if (!this.reentry && (this.contentStatus !== ContentStatus.loaded || this.entered)) {
       return;
@@ -162,7 +159,7 @@ export class ViewportContent {
     }
     this.entered = true;
   }
-  public async leave(nextInstruction: INavigatorInstruction | null): Promise<void> {
+  public async leave(nextInstruction: NavigatorInstruction | null): Promise<void> {
     if (this.contentStatus !== ContentStatus.activated || !this.entered) {
       return;
     }
@@ -243,7 +240,7 @@ export class ViewportContent {
 
   public async freeContent(
     viewportController: ICustomElementController<Element> | null,
-    nextInstruction: INavigatorInstruction | null,
+    nextInstruction: NavigatorInstruction | null,
     cache: ViewportContent[],
     stateful: boolean = false,
   ): Promise<void> {

@@ -27,7 +27,8 @@ export {
 } from './instruction-resolver';
 
 export {
-  INavigatorInstruction,
+  NavigatorEntry,
+  NavigatorInstruction,
   IRouteableComponent,
   RouteableComponentType,
   IViewportInstruction,
@@ -62,8 +63,6 @@ export {
   IRouterOptions,
   IRouter,
   Router,
-  IStoredNavigatorEntry,
-  INavigatorEntry,
   INavigatorFlags,
   INavigatorState,
   INavigatorStore,

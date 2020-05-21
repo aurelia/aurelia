@@ -82,7 +82,7 @@ export class HTMLTemplateElementFactory implements ITemplateElementFactory {
       return result.cloneNode(true) as HTMLTemplateElement;
     }
 
-    if (input instanceof NodeList) {
+    if (this.dom.isNodeList(input)) {
       const template = this.dom.createTemplate() as HTMLTemplateElement;
       template.content.append(...toArray(input));
       return template;

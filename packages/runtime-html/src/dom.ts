@@ -281,6 +281,10 @@ export class HTMLDOM implements IDOM {
     return potentialNode != null && (potentialNode as Node).nodeType > 0;
   }
 
+  public isNodeList(input: unknown): input is NodeList {
+    return input == '[object NodeList]';
+  }
+
   public isRenderLocation(node: unknown): node is IRenderLocation {
     return (node as Comment).textContent === 'au-end';
   }

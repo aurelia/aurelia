@@ -167,15 +167,15 @@ export class CompositionRoot<T extends INode = INode> {
   private enhance(): void {
     const container = this.container;
     const config = this.config;
-    const component = config.component;
+    const component = config.component as Constructable | ICustomElementViewModel<T>;
     const template = (this.host as INode as Element).childNodes;
     let instance: ICustomElementViewModel<T>;
     let definition: CustomElementDefinition;
-    if (CustomElement.isType(component as Constructable)) {
+    if (CustomElement.isType(component)) {
       CustomElement.define(
-        definition = CustomElementDefinition.create({ ...CustomElement.getDefinition(component as Constructable), template }),
-        component as Constructable);
-      instance = container.get(component as Constructable | {}) as ICustomElementViewModel<T>;
+        definition = CustomElementDefinition.create({ ...CustomElement.getDefinition(component), template }),
+        component);
+      instance = container.get(component) as ICustomElementViewModel<T>;
     } else {
       CustomElement.define(
         definition = CustomElementDefinition.create({ name: CustomElement.generateName(), template }),

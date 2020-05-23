@@ -43,7 +43,7 @@ export async function startup(config: StartupConfiguration = {}) {
   if (method === 'app') {
     componentClass = CustomElement.define({ name: 'app', isStrictBinding: true, template }, App);
   } else if (method === 'enhance') {
-    componentClass = App;
+    componentClass = CustomElement.define('app', App);
     host.innerHTML = template;
   }
   let component: unknown;

@@ -1,6 +1,6 @@
 // This is to test for some intrinsic properties of enhance which is otherwise difficult to test in Data-driven tests parallel to `.app`
 import { Constructable, IContainer } from '@aurelia/kernel';
-import { Aurelia, CustomElement, ICustomElementViewModel, IScheduler } from '@aurelia/runtime';
+import { Aurelia, CustomElement, ICustomElementViewModel, IScheduler, customElement } from '@aurelia/runtime';
 import { assert, HTMLTestContext, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util';
 
@@ -58,12 +58,12 @@ describe('enhance', function () {
 
   const $it = createSpecFunction(testEnhance);
 
-  class App {
+  class App1 {
     public foo: string = 'Bar';
   }
   for (const { text, getComponent } of [
-    { text: 'class', getComponent: () => CustomElement.define("app", App) },
-    { text: 'instance', getComponent: () => new App() },
+    { text: 'class', getComponent: () => CustomElement.define("app", App1) },
+    { text: 'instance', getComponent: () => new App1() },
     { text: 'raw object', getComponent: () => ({ foo: 'Bar' }) },
   ]) {
     $it(`hydrates the root - ${text}`, function ({ host }) {
@@ -86,5 +86,59 @@ describe('enhance', function () {
           child.addEventListener('click', function () { handled = true; });
         }
       });
+  }
+
+  for (const initialMethod of ['app', 'enhance'] as const) {
+    it(`can be applied on an unhydrated inner node after initial hydration - ${initialMethod}`, async function () {
+      const message = "Awesome Possum";
+      const template = `
+    <button click.delegate="enhance()"></button>
+    <div id="r1" ref="r1" innerhtml.bind="'<div>\${message}</div>'"></div>
+    <div id="r2" ref="r2" innerhtml.bind="'<div>\${message}</div>'"></div>
+    `;
+
+      class App2 {
+        private readonly r1!: HTMLDivElement;
+        private readonly r2!: HTMLDivElement;
+
+        public async afterAttach() {
+          await this.enhance(this.r1);
+        }
+
+        private async enhance(host = this.r2) {
+          await new Aurelia(TestContext.createHTMLTestContext().container)
+            .enhance({ host, component: { message } })
+            .start()
+            .wait();
+        }
+      }
+      const ctx = TestContext.createHTMLTestContext();
+
+      const host = ctx.dom.createElement('div');
+      ctx.doc.body.appendChild(host);
+
+      const container = ctx.container;
+      const au = new Aurelia(container);
+      let component;
+      if (initialMethod === 'app') {
+        component = CustomElement.define({ name: 'app', template }, App2);
+      } else {
+        host.innerHTML = template;
+        component = CustomElement.define('app', App2);
+      }
+      au[initialMethod]({ host, component });
+      await au.start().wait();
+
+      assert.html.textContent('#r1>div', message, '#r1>div', host);
+
+      host.querySelector('button').click();
+      const scheduler = container.get(IScheduler);
+      scheduler.getPostRenderTaskQueue().flush();
+
+      assert.html.textContent('#r2>div', message, '#r2>div', host);
+
+      await au.stop().wait();
+      ctx.doc.body.removeChild(host);
+    });
   }
 });

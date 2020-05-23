@@ -4,6 +4,9 @@ import { INavRoute, Nav } from './nav';
 import { ComponentAppellationResolver, NavigationInstructionResolver } from './type-resolvers';
 import { ViewportInstruction } from './viewport-instruction';
 
+/**
+ * @internal - Used by au-nav
+ */
 export class NavRoute {
   public instructions: ViewportInstruction[] = [];
   public title: string;

@@ -2,6 +2,9 @@ import { ViewportInstruction } from './viewport-instruction';
 import { IScopeOwner } from './scope';
 import { arrayRemove } from './utils';
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export class ViewportInstructionCollection extends Array<ViewportInstruction> {
   public get empty(): boolean {
     return this.length === 0;

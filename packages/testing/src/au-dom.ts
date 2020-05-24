@@ -362,9 +362,6 @@ export class AuDOM implements IDOM<AuNode> {
   public isNodeInstance(node: AuNode): node is AuNode {
     return node instanceof AuNode;
   }
-  public isNodeList(input: unknown): input is NodeList {
-    return input == '[object NodeList]';
-  }
   public isRenderLocation(node: unknown): node is IRenderLocation<AuNode> & AuNode {
     return node !== void 0 && (node as AuNode).isRenderLocation;
   }

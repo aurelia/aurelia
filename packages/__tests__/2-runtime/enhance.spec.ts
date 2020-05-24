@@ -93,8 +93,8 @@ describe('enhance', function () {
       const message = "Awesome Possum";
       const template = `
     <button click.delegate="enhance()"></button>
-    <div id="r1" ref="r1" innerhtml.bind="'<div>\${message}</div>'"></div>
-    <div id="r2" ref="r2" innerhtml.bind="'<div>\${message}</div>'"></div>
+    <div ref="r1" innerhtml.bind="'<div>\${message}</div>'"></div>
+    <div ref="r2" innerhtml.bind="'<div>\${message}</div>'"></div>
     `;
 
       class App2 {
@@ -107,7 +107,7 @@ describe('enhance', function () {
 
         private async enhance(host = this.r2) {
           await new Aurelia(TestContext.createHTMLTestContext().container)
-            .enhance({ host, component: { message } })
+            .enhance({ host: host.querySelector('div'), component: { message } })
             .start()
             .wait();
         }
@@ -129,13 +129,13 @@ describe('enhance', function () {
       au[initialMethod]({ host, component });
       await au.start().wait();
 
-      assert.html.textContent('#r1>div', message, '#r1>div', host);
+      assert.html.textContent('div', message, 'div', host);
 
       host.querySelector('button').click();
       const scheduler = container.get(IScheduler);
       scheduler.getPostRenderTaskQueue().flush();
 
-      assert.html.textContent('#r2>div', message, '#r2>div', host);
+      assert.html.textContent('div:nth-of-type(2)', message, 'div:nth-of-type(2)', host);
 
       await au.stop().wait();
       ctx.doc.body.removeChild(host);

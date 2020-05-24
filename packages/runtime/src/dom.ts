@@ -112,7 +112,6 @@ export interface IDOM<T extends INode = INode> {
   insertBefore(nodeToInsert: T, referenceNode: T): void;
   isMarker(node: unknown): node is T;
   isNodeInstance(potentialNode: unknown): potentialNode is T;
-  isNodeList(input: unknown): input is NodeList;
   isRenderLocation(node: unknown): node is IRenderLocation<T>;
   makeTarget(node: T): void;
   registerElementResolver(container: IContainer, resolver: IResolver): void;
@@ -144,7 +143,6 @@ const niDOM: IDOM = {
   insertBefore: ni,
   isMarker: ni,
   isNodeInstance: ni,
-  isNodeList: ni,
   isRenderLocation: ni,
   makeTarget: ni,
   registerElementResolver: ni,

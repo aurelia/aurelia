@@ -358,7 +358,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
       const container = this.container;
       const compiler = container.get(ITemplateCompiler);
 
-      compiledDefinition = this.compiledDefinition = compiler.compile(definition, container);
+      compiledDefinition = this.compiledDefinition = compiler.compile(definition, container, !this.toEnhance);
     } else {
       compiledDefinition = this.compiledDefinition = definition;
     }
@@ -375,7 +375,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
       } else {
         fragmentCache.set(
           compiledDefinition,
-          this.fragment = this.dom.createDocumentFragment(template),
+          this.fragment = this.toEnhance ? template as T : this.dom.createDocumentFragment(template),
         );
       }
     }

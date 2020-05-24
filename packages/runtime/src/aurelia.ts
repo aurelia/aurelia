@@ -168,7 +168,7 @@ export class CompositionRoot<T extends INode = INode> {
     const container = this.container;
     const config = this.config;
     const component = config.component as Constructable | ICustomElementViewModel<T>;
-    const template = (this.host as INode as Element).childNodes;
+    const template = this.host;
     let instance: ICustomElementViewModel<T>;
     let definition: CustomElementDefinition;
     if (CustomElement.isType(component)) {

@@ -106,7 +106,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     return Registration.singleton(ITemplateCompiler, this).register(container);
   }
 
-  public compile(partialDefinition: PartialCustomElementDefinition, context: IContainer): CustomElementDefinition {
+  public compile(partialDefinition: PartialCustomElementDefinition, context: IContainer, wrap: boolean = true): CustomElementDefinition {
     const definition = CustomElementDefinition.getOrCreate(partialDefinition);
     if (definition.template === null || definition.template === void 0) {
       return definition;
@@ -117,7 +117,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     const binder = new TemplateBinder(context.get(IDOM), resources, attrParser, exprParser, attrSyntaxModifier);
 
-    const template = factory.createTemplate(definition.template) as HTMLTemplateElement;
+    const template = factory.createTemplate(definition.template, wrap) as HTMLTemplateElement;
     const surrogate = binder.bind(template);
 
     const compilation = this.compilation = new CustomElementCompilationUnit(definition, surrogate, template);

@@ -131,7 +131,7 @@ export class HTMLDOM implements IDOM {
     if (fragment === null) {
       return this.emptyNodes;
     }
-    return new FragmentNodeSequence(this, cloneNode ? fragment.cloneNode(true) as DocumentFragment: fragment);
+    return new FragmentNodeSequence(this, cloneNode ? fragment.cloneNode(true) as DocumentFragment : fragment);
   }
 
   public createElement(name: string): HTMLElement {
@@ -434,7 +434,9 @@ export class FragmentNodeSequence implements INodeSequence {
       }
     } else {
       this.isMounted = true;
-      parent.appendChild(this.fragment);
+      if (!parent.contains(this.fragment)) {
+        parent.appendChild(this.fragment);
+      }
     }
   }
 

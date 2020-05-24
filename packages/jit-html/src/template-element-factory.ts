@@ -19,14 +19,18 @@ export interface ITemplateElementFactory<TNode extends INode = INode> {
    * will be returned as-is (and removed from the DOM).
    *
    * @param node - A DOM node that may or may not be wrapped in `<template></template>`
+   * @param [wrap] - Whether to wrap the node in template or not.
+   * Default is `true`. While 'enhance'ing, setting this to `false` would be useful.
    */
-  createTemplate(node: TNode | NodeList): TNode;
+  createTemplate(node: TNode | NodeList, wrap?: boolean): TNode;
   /**
    * Create a `HTMLTemplateElement` from a provided DOM node or html string.
    *
    * @param input - A DOM node or raw html string that may or may not be wrapped in `<template></template>`
+   * @param [wrap] - Whether to wrap the node in template or not.
+   * Default is `true`. While 'enhance'ing, setting this to `false` would be useful.
    */
-  createTemplate(input: unknown): TNode;
+  createTemplate(input: unknown, wrap?: boolean): TNode;
 }
 
 // For some reason rollup complains about `DI.createInterface<ITemplateElementFactory>().noDefault()` with this message:
@@ -55,9 +59,9 @@ export class HTMLTemplateElementFactory implements ITemplateElementFactory {
   }
 
   public createTemplate(markup: string): HTMLTemplateElement;
-  public createTemplate(node: Node | NodeList): HTMLTemplateElement;
-  public createTemplate(input: unknown): HTMLTemplateElement;
-  public createTemplate(input: string | Node | NodeList): HTMLTemplateElement {
+  public createTemplate(node: Node | NodeList, wrap?: boolean): HTMLTemplateElement;
+  public createTemplate(input: unknown, wrap?: boolean): HTMLTemplateElement;
+  public createTemplate(input: string | Node | NodeList, wrap: boolean = true): HTMLElement {
     if (typeof input === 'string') {
       let result = markupCache[input];
       if (result === void 0) {
@@ -89,6 +93,7 @@ export class HTMLTemplateElementFactory implements ITemplateElementFactory {
     }
 
     if (input.nodeName !== 'TEMPLATE') {
+      if (!wrap) { return input as HTMLElement; }
       // if we get one node that is not a template, wrap it in one
       const template = this.dom.createTemplate() as HTMLTemplateElement;
       template.content.appendChild(input);

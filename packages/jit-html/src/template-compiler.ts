@@ -117,7 +117,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     const binder = new TemplateBinder(context.get(IDOM), resources, attrParser, exprParser, attrSyntaxModifier);
 
-    const template = definition.enhance
+    const template = definition.enhance === true
       ? definition.template as HTMLElement
       : factory.createTemplate(definition.template) as HTMLTemplateElement;
     const surrogate = binder.bind(template);

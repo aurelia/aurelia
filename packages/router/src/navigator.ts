@@ -23,6 +23,7 @@ export interface INavigatorStore {
 export interface INavigatorViewer {
   activate(options: INavigatorViewerOptions): void;
   deactivate(): void;
+  setTitle(title: string): void;
 }
 /**
  * @internal - Shouldn't be used directly
@@ -273,6 +274,10 @@ export class Navigator {
     };
     for (const entry of this.entries) {
       state.entries.push(this.toStoreableEntry(entry));
+    }
+
+    if (state.currentEntry.title !== void 0) {
+      (this.options!.store! as any).setTitle(state.currentEntry.title);
     }
 
     if (push) {

@@ -14,6 +14,7 @@ export interface IViewportOptions extends IScopeOwnerOptions {
   default?: string;
   fallback?: string;
   noLink?: boolean;
+  noTitle?: boolean;
   stateful?: boolean;
   forceDescription?: boolean;
 }
@@ -183,6 +184,9 @@ export class Viewport implements IScopeOwner {
       }
       if (options.noLink) {
         this.options.noLink = options.noLink;
+      }
+      if (options.noTitle) {
+        this.options.noTitle = options.noTitle;
       }
       if (options.noHistory) {
         this.options.noHistory = options.noHistory;

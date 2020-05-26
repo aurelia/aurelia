@@ -13,7 +13,7 @@ import { arrayRemove } from './utils';
 import { IViewportOptions, Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 import { FoundRoute } from './found-route';
-import { HookManager, IHookDefinition, HookIdentity, HookFunction, IHookOptions, BeforeNavigationHookFunction, TransformFromUrlHookFunction, TransformToUrlHookFunction } from './hook-manager';
+import { HookManager, IHookDefinition, HookIdentity, HookFunction, IHookOptions, BeforeNavigationHookFunction, TransformFromUrlHookFunction, TransformToUrlHookFunction, SetTitleHookFunction } from './hook-manager';
 import { Scope, IScopeOwner } from './scope';
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
 import { BrowserViewerStore } from './browser-viewer-store';
@@ -33,15 +33,41 @@ export interface IGotoOptions {
 /**
  * Public API
  */
+export interface IRouterActivateOptions extends Omit<Partial<IRouterOptions>, 'title'> {
+  title?: string | IRouterTitle;
+}
+
+/**
+ * Public API
+ */
 export interface IRouterOptions extends INavigatorOptions {
   separators?: IRouteSeparators;
-  useUrlFragmentHash?: boolean;
-  useHref?: boolean;
-  statefulHistoryLength?: number;
-  useDirectRoutes?: boolean;
-  useConfiguredRoutes?: boolean;
+  useUrlFragmentHash: boolean;
+  useHref: boolean;
+  statefulHistoryLength: number;
+  useDirectRoutes: boolean;
+  useConfiguredRoutes: boolean;
+  title: ITitleConfiguration;
   hooks?: IHookDefinition[];
   reportCallback?(instruction: INavigatorInstruction): void;
+}
+
+/**
+ * Public API
+ */
+export interface IRouterTitle extends Partial<ITitleConfiguration> { }
+
+/**
+ * Public API
+ */
+export interface ITitleConfiguration {
+  appTitle: string;
+  appTitleSeparator: string;
+  componentTitleOrder: 'top-down' | 'bottom-up';
+  componentTitleSeparator: string;
+  useComponentNames: boolean;
+  componentPrefix: string;
+  transformTitle?: (title: string, instruction: string | ViewportInstruction | FoundRoute) => string;
 }
 
 /**
@@ -62,7 +88,7 @@ export interface IRouter {
   readonly options: IRouterOptions;
 
   readonly statefulHistory: boolean;
-  activate(options?: IRouterOptions): void;
+  activate(options?: IRouterActivateOptions): void;
   loadUrl(): Promise<void>;
   deactivate(): void;
 
@@ -109,6 +135,7 @@ export interface IRouter {
   addHook(beforeNavigationHookFunction: BeforeNavigationHookFunction, options?: IHookOptions): HookIdentity;
   addHook(transformFromUrlHookFunction: TransformFromUrlHookFunction, options?: IHookOptions): HookIdentity;
   addHook(transformToUrlHookFunction: TransformToUrlHookFunction, options?: IHookOptions): HookIdentity;
+  addHook(setTitleHookFunction: SetTitleHookFunction, options?: IHookOptions): HookIdentity;
   addHook(hook: HookFunction, options: IHookOptions): HookIdentity;
   removeHooks(hooks: HookIdentity[]): void;
 
@@ -155,10 +182,19 @@ export class Router implements IRouter {
    * @internal
    */
   public options: IRouterOptions = {
+    useUrlFragmentHash: true,
     useHref: true,
     statefulHistoryLength: 0,
     useDirectRoutes: true,
     useConfiguredRoutes: true,
+    title: {
+      appTitle: '${componentTitles}${appTitleSeparator}Aurelia',
+      appTitleSeparator: ' | ',
+      componentTitleOrder: 'top-down',
+      componentTitleSeparator: ' > ',
+      useComponentNames: true,
+      componentPrefix: 'app-',
+    }
   };
   private isActive: boolean = false;
   private loadedFirst: boolean = false;
@@ -209,16 +245,21 @@ export class Router implements IRouter {
   /**
    * Public API
    */
-  public activate(options?: IRouterOptions): void {
+  public activate(options?: IRouterActivateOptions): void {
     if (this.isActive) {
       throw new Error('Router has already been activated');
     }
 
     this.isActive = true;
-    this.options = {
-      ...this.options,
-      ...options
+    options = options ?? {};
+    const titleOptions = {
+      ...this.options.title,
+      ...(typeof options.title === 'string' ? { appTitle: options.title } : options.title),
     };
+    options.title = titleOptions;
+
+    Object.assign(this.options, options);
+
     if (this.options.hooks !== void 0) {
       this.addHooks(this.options.hooks);
     }
@@ -773,6 +814,13 @@ export class Router implements IRouter {
   /**
    * Public API
    */
+  public go(delta: number): Promise<void> {
+    return this.navigator.go(delta);
+  }
+
+  /**
+   * Public API
+   */
   public checkActive(instructions: ViewportInstruction[]): boolean {
     for (const instruction of instructions) {
       const scopeInstructions: ViewportInstruction[] = this.instructionResolver.matchScope(this.activeComponents, instruction.scope!);
@@ -864,6 +912,7 @@ export class Router implements IRouter {
   public addHook(beforeNavigationHookFunction: BeforeNavigationHookFunction, options?: IHookOptions): HookIdentity;
   public addHook(transformFromUrlHookFunction: TransformFromUrlHookFunction, options?: IHookOptions): HookIdentity;
   public addHook(transformToUrlHookFunction: TransformToUrlHookFunction, options?: IHookOptions): HookIdentity;
+  public addHook(setTitleHookFunction: SetTitleHookFunction, options?: IHookOptions): HookIdentity;
   public addHook(hookFunction: HookFunction, options?: IHookOptions): HookIdentity;
   public addHook(hook: HookFunction, options: IHookOptions): HookIdentity {
     return this.hookManager.addHook(hook, options);
@@ -1033,9 +1082,9 @@ export class Router implements IRouter {
     const alreadyFound: ViewportInstruction[] = [];
     let { found, remaining } = this.findViewports(instructions, alreadyFound, true);
     let guard = 100;
-    while (remaining.length) {
+    while (remaining.length > 0) {
       // Guard against endless loop
-      if (!guard--) {
+      if (guard-- === 0) {
         throw new Error('Failed to find viewport when updating viewer paths.');
       }
       alreadyFound.push(...found);
@@ -1063,9 +1112,123 @@ export class Router implements IRouter {
     fullViewportStates.push(...this.instructionResolver.cloneViewportInstructions(instructions, this.statefulHistory));
     instruction.fullStateInstruction = fullViewportStates;
 
-    // TODO: Fetch and update title
+    if ((instruction.title ?? null) === null) {
+      const title = await this.getTitle(instructions, instruction);
+      if (title !== null) {
+        instruction.title = title;
+      }
+    }
 
     return Promise.resolve();
+  }
+
+  private async getTitle(instructions: ViewportInstruction[], instruction: INavigatorInstruction): Promise<string | null> {
+    // First invoke with viewport instructions
+    let title: string | ViewportInstruction[] = await this.hookManager.invokeSetTitle(instructions, instruction);
+    if (typeof title !== 'string') {
+      // Hook didn't return a title, so run title logic
+      const componentTitles = this.stringifyTitles(title, instruction);
+
+      title = this.options.title.appTitle;
+      title = title.replace('${componentTitles}', componentTitles);
+      title = title.replace('${appTitleSeparator}',
+        componentTitles !== ''
+          ? this.options.title.appTitleSeparator
+          : '');
+    }
+    // Invoke again with complete string
+    title = await this.hookManager.invokeSetTitle(title, instruction);
+
+    return title as string;
+  }
+
+  private stringifyTitles(instructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction): string {
+    const titles = instructions
+      .map(instruction => this.stringifyTitle(instruction, navigationInstruction))
+      .filter(instruction => (instruction?.length ?? 0) > 0);
+
+    return titles.join(' + ');
+  }
+
+  private stringifyTitle(instruction: ViewportInstruction | string, navigationInstruction: INavigatorInstruction): string {
+    if (typeof instruction === 'string') {
+      return this.resolveTitle(instruction, navigationInstruction);
+    } else {
+      if (instruction.viewport && (instruction.viewport.options as any).noTitle) {
+        return '';
+      }
+    }
+    // const route = (instruction.route as FoundRoute)?.matching ?? null;
+    const route = instruction.route ?? null;
+    const nextInstructions: ViewportInstruction[] | null = instruction.nextScopeInstructions;
+    let stringified: string = '';
+    // It's a configured route
+    if (route !== null) {
+      // Already added as part of a configuration, skip to next scope
+      if (route === '') {
+        return Array.isArray(nextInstructions)
+          ? this.stringifyTitles(nextInstructions, navigationInstruction)
+          : '';
+      } else {
+        stringified += this.resolveTitle(route, navigationInstruction);
+      }
+    } else {
+      stringified += this.resolveTitle(instruction, navigationInstruction);
+    }
+    if (Array.isArray(nextInstructions) && nextInstructions.length > 0) {
+      let nextStringified: string = this.stringifyTitles(nextInstructions, navigationInstruction);
+      if (nextStringified.length > 0) {
+        if (nextInstructions.length !== 1) { // TODO: This should really also check that the instructions have value
+          nextStringified = `[ ${nextStringified} ]`;
+        }
+        if (stringified.length > 0) {
+          stringified = this.options.title.componentTitleOrder === 'top-down'
+            ? `${stringified}${this.options.title.componentTitleSeparator}${nextStringified}`
+            : `${nextStringified}${this.options.title.componentTitleSeparator}${stringified}`;
+        } else {
+          stringified = nextStringified;
+        }
+      }
+    }
+    return stringified;
+  }
+
+  private resolveTitle(instruction: string | ViewportInstruction | FoundRoute, navigationInstruction: INavigatorInstruction): string {
+    let title = '';
+    if (typeof instruction === 'string') {
+      title = instruction;
+    } else if (instruction instanceof ViewportInstruction) {
+      const typeTitle = instruction.componentType!.title;
+      if (typeTitle !== void 0) {
+        if (typeof typeTitle === 'string') {
+          title = typeTitle;
+        } else {
+          title = typeTitle.call(instruction.componentInstance, instruction.componentInstance!, navigationInstruction);
+        }
+      } else if (this.options.title.useComponentNames) {
+        let name = (instruction.componentName ?? '');
+        const prefix = this.options.title.componentPrefix ?? '';
+        if (name.startsWith(prefix)) {
+          name = name.slice(prefix.length);
+        }
+        name = name.replace('-', ' ');
+        title = name.slice(0, 1).toLocaleUpperCase() + name.slice(1);
+      }
+    }
+    if (instruction instanceof FoundRoute) {
+      const routeTitle = instruction.match?.title;
+      if (routeTitle !== void 0) {
+        if (typeof routeTitle === 'string') {
+          title = routeTitle;
+        } else {
+          title = routeTitle.call(instruction, instruction, navigationInstruction);
+        }
+      }
+    }
+    if (this.options.title.transformTitle !== void 0) {
+      title = this.options.title.transformTitle.call(this, title, instruction);
+    }
+    return title;
   }
 
   private async freeComponents(instruction: ViewportInstruction, excludeComponents: IRouteableComponent[], alreadyDone: IRouteableComponent[]): Promise<void> {

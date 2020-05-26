@@ -99,9 +99,14 @@ export class RouteExpression {
     public readonly root: ParseType<typeof CompositeSegmentExpression>,
   ) {}
 
-  public static parse(
-    path: string,
-  ): RouteExpression {
+  public static parse(path: string): RouteExpression;
+  public static parse(path: null): null;
+  public static parse(path: string | null): RouteExpression | null;
+  public static parse(path: string | null): RouteExpression | null {
+    if (path === null) {
+      return null;
+    }
+
     /*
      * Notes:
      * A NT-Name as per DOM level 2: https://www.w3.org/TR/1998/REC-xml-19980210#NT-Name

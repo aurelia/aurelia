@@ -41,10 +41,6 @@ describe('Viewport', function () {
     return { au, container, scheduler, host, router, tearDown };
   }
 
-  it('can be created', function () {
-    const sut = new Viewport({ stateManager: new ScrollStateManager() } as unknown as IRouter, null, null, null, null, null);
-  });
-
   it('can understand exist attributes', async function () {
     const App = CustomElement.define({ name: 'app', template: '<au-viewport no-link></au-viewport>' });
 

@@ -3,7 +3,6 @@
 // import { LoggerConfiguration, LogLevel } from '@aurelia/kernel';
 
 // describe('BrowserNavigator', function () {
-//   this.timeout(5000);
 //   let browserNavigator;
 //   let callbackCount = 0;
 //   const callback = ((info) => {

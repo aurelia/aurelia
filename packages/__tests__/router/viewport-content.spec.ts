@@ -11,8 +11,6 @@ describe('ViewportContent', function () {
   });
 
   describe('resolving globals', function () {
-    this.timeout(5000);
-
     function $setup(dependencies: any[] = []) {
       const ctx = TestContext.createHTMLTestContext();
       const container = ctx.container;

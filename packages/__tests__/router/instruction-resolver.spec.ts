@@ -32,7 +32,6 @@ describe('InstructionResolver', function () {
     return { au, container, host, router, tearDown, ctx };
   }
 
-  this.timeout(5000);
   it('can be created', async function () {
     const { router, tearDown } = await createFixture();
 

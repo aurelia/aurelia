@@ -13,8 +13,6 @@ import { DebugConfiguration } from '@aurelia/debug';
 import { TestRouterConfiguration } from './configuration';
 
 describe('HookManager', function () {
-  this.timeout(5000);
-
   async function createFixture(
     config?,
     App?,

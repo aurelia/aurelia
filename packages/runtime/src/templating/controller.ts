@@ -215,48 +215,13 @@ export class Controller<
     parentContainer: IContainer,
     parts: PartialCustomElementDefinitionParts | undefined,
     flags: LifecycleFlags = LifecycleFlags.none,
+    definition: CustomElementDefinition | undefined = void 0,
   ): ICustomElementController<T, C> {
     if (controllerLookup.has(viewModel)) {
       return controllerLookup.get(viewModel) as unknown as ICustomElementController<T, C>;
     }
 
-    const definition = CustomElement.getDefinition(viewModel.constructor as Constructable);
-    flags |= definition.strategy;
-
-    const controller = new Controller<T, C>(
-      /* vmKind         */ViewModelKind.customElement,
-      /* flags          */flags,
-      /* lifecycle      */lifecycle,
-      /* hooks          */definition.hooks,
-      /* viewFactory    */void 0,
-      /* viewModel      */viewModel,
-      /* bindingContext */getBindingContext<T, C>(flags, viewModel),
-      /* host           */host,
-    );
-
-    controllerLookup.set(viewModel, controller as Controller<INode, IViewModel>);
-
-    controller.hydrateCustomElement(definition, parentContainer, parts);
-
-    return controller as unknown as ICustomElementController<T, C>;
-  }
-
-  public static enhance<
-    T extends INode = INode,
-    C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>,
-  >(
-    viewModel: C,
-    definition: CustomElementDefinition,
-    lifecycle: ILifecycle,
-    host: T,
-    parentContainer: IContainer,
-    parts: PartialCustomElementDefinitionParts | undefined,
-    flags: LifecycleFlags = LifecycleFlags.none,
-  ): ICustomElementController<T, C> {
-    if (controllerLookup.has(viewModel)) {
-      return controllerLookup.get(viewModel) as unknown as ICustomElementController<T, C>;
-    }
-
+    definition = definition ?? CustomElement.getDefinition(viewModel.constructor as Constructable);
     flags |= definition.strategy;
 
     const controller = new Controller<T, C>(

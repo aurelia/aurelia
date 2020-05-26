@@ -51,6 +51,7 @@ export class CompositionRoot<T extends INode = INode> {
   public viewModel?: ICustomElementViewModel<T>;
 
   private createTask?: ILifecycleTask;
+  private enhanceDefinition: CustomElementDefinition | undefined;
 
   public constructor(
     config: ISinglePageApp<T>,
@@ -83,15 +84,28 @@ export class CompositionRoot<T extends INode = INode> {
     const taskManager = this.container.get(IStartTaskManager);
     const beforeCreateTask = taskManager.runBeforeCreate();
 
+    if (toEnhance) {
+      this.setEnhanceDefinition(config);
+    }
+
     if (beforeCreateTask.done) {
       this.task = LifecycleTask.done;
-      if (toEnhance) {
-        this.enhance();
-      } else {
-        this.create();
-      }
+      this.create();
     } else {
-      this.task = new ContinuationTask(beforeCreateTask, toEnhance ? this.enhance : this.create, this);
+      this.task = new ContinuationTask(beforeCreateTask, this.create, this);
+    }
+  }
+
+  private setEnhanceDefinition(config: ISinglePageApp<T>) {
+    const component = config.component as Constructable | ICustomElementViewModel<T>;
+    if (CustomElement.isType(component)) {
+      CustomElement.define(
+        this.enhanceDefinition = CustomElementDefinition.create({ ...CustomElement.getDefinition(component), template: this.host, enhance: true }),
+        component);
+    } else {
+      CustomElement.define(
+        this.enhanceDefinition = CustomElementDefinition.create({ name: CustomElement.generateName(), template: this.host, enhance: true }),
+        class { });
     }
   }
 
@@ -161,30 +175,7 @@ export class CompositionRoot<T extends INode = INode> {
 
     const container = this.container;
     const lifecycle = container.get(ILifecycle);
-    this.controller = Controller.forCustomElement(instance, lifecycle, this.host, container, void 0, this.strategy as number);
-  }
-
-  private enhance(): void {
-    const container = this.container;
-    const config = this.config;
-    const component = config.component as Constructable | ICustomElementViewModel<T>;
-    const template = this.host;
-    let instance: ICustomElementViewModel<T>;
-    let definition: CustomElementDefinition;
-    if (CustomElement.isType(component)) {
-      CustomElement.define(
-        definition = CustomElementDefinition.create({ ...CustomElement.getDefinition(component), template, enhance: true }),
-        component);
-      instance = container.get(component) as ICustomElementViewModel<T>;
-    } else {
-      CustomElement.define(
-        definition = CustomElementDefinition.create({ name: CustomElement.generateName(), template, enhance: true }),
-        class { });
-      instance = component as ICustomElementViewModel<T>;
-    }
-
-    const lifecycle = container.get(ILifecycle);
-    this.controller = Controller.enhance(this.viewModel = instance, definition, lifecycle, this.host, container, void 0, this.strategy as number);
+    this.controller = Controller.forCustomElement(instance, lifecycle, this.host, container, void 0, this.strategy as number, this.enhanceDefinition);
   }
 }
 

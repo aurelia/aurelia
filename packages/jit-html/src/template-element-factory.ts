@@ -27,6 +27,7 @@ export interface ITemplateElementFactory<TNode extends INode = INode> {
    * @param input - A DOM node or raw html string that may or may not be wrapped in `<template></template>`
    */
   createTemplate(input: unknown): TNode;
+  createTemplate(input: unknown): TNode;
 }
 
 // For some reason rollup complains about `DI.createInterface<ITemplateElementFactory>().noDefault()` with this message:
@@ -81,7 +82,6 @@ export class HTMLTemplateElementFactory implements ITemplateElementFactory {
 
       return result.cloneNode(true) as HTMLTemplateElement;
     }
-
     if (input.nodeName !== 'TEMPLATE') {
       // if we get one node that is not a template, wrap it in one
       const template = this.dom.createTemplate() as HTMLTemplateElement;

@@ -58,7 +58,7 @@ import { BindingBehaviorExpression } from './binding/ast';
 import { BindingBehaviorFactory, BindingBehaviorInstance, IInterceptableBinding } from './resources/binding-behavior';
 
 export interface ITemplateCompiler {
-  compile(partialDefinition: PartialCustomElementDefinition, context: IContainer, wrap?: boolean): CustomElementDefinition;
+  compile(partialDefinition: PartialCustomElementDefinition, context: IContainer): CustomElementDefinition;
 }
 
 export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>('ITemplateCompiler').noDefault();

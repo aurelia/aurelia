@@ -192,6 +192,9 @@ export class ResourceModel {
   }
 
   public static getOrCreate(context: IContainer): ResourceModel {
+    // Get the container from itself in case it's wrapped by a subtype (in which case the internals would not be accessible)
+    // TODO(fkleuver): make this stuff more foolproof by NOT accessing internals
+    context = context.get(IContainer);
     let model = contextLookup.get(context);
     if (model === void 0) {
       contextLookup.set(
@@ -261,7 +264,7 @@ export class ResourceModel {
     return result;
   }
 
-  private find<
+  public find<
     TType extends ResourceType,
     TDef extends ResourceDefinition,
   >(kind: IResourceKind<TType, TDef>, name: string): TDef | null {

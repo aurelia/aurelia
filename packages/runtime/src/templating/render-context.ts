@@ -9,6 +9,9 @@ import {
     Reporter,
     Resolved,
     Transformer,
+    ResourceType,
+    ResourceDefinition,
+    IResourceKind,
 } from '@aurelia/kernel';
 import {
     IHydrateInstruction,
@@ -340,6 +343,20 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
 
   public disposeResolvers() {
     this.container.disposeResolvers();
+  }
+
+  public findResource<
+    TType extends ResourceType,
+    TDef extends ResourceDefinition,
+  >(kind: IResourceKind<TType, TDef>, name: string): TDef | null {
+    return this.container.findResource(kind, name);
+  }
+
+  public createResource<
+    TType extends ResourceType,
+    TDef extends ResourceDefinition,
+  >(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null {
+    return this.container.createResource(kind, name);
   }
   // #endregion
 

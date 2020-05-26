@@ -6,7 +6,7 @@ import { isArrayIndex, isNativeFunction } from './functions';
 import { Class, Constructable } from './interfaces';
 import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
-import { Protocol } from './resource';
+import { Protocol, ResourceType, ResourceDefinition, IResourceKind } from './resource';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -67,6 +67,14 @@ export interface IContainer extends IServiceLocator {
   getFactory<T extends Constructable>(key: T): IFactory<T> | null;
   createChild(config?: IContainerConfiguration): IContainer;
   disposeResolvers(): void;
+  findResource<
+    TType extends ResourceType,
+    TDef extends ResourceDefinition,
+  >(kind: IResourceKind<TType, TDef>, name: string): TDef | null;
+  createResource<
+    TType extends ResourceType,
+    TDef extends ResourceDefinition,
+  >(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null;
 }
 
 export class ResolverBuilder<K> {
@@ -1112,6 +1120,67 @@ export class Container implements IContainer {
     while (disposables.length > 0) {
       disposables.pop()?.dispose();
     }
+  }
+
+  public findResource<
+    TType extends ResourceType,
+    TDef extends ResourceDefinition,
+  >(kind: IResourceKind<TType, TDef>, name: string): TDef | null {
+    const key = kind.keyFrom(name);
+    let resolver = this.resourceResolvers[key];
+    if (resolver === void 0) {
+      resolver = this.root.resourceResolvers[key];
+      if (resolver === void 0) {
+        return null;
+      }
+    }
+
+    if (resolver === null) {
+      return null;
+    }
+
+    if (typeof resolver.getFactory === 'function') {
+      const factory = resolver.getFactory(this);
+      if (factory === null || factory === void 0) {
+        return null;
+      }
+
+      const definition = Metadata.getOwn(kind.name, factory.Type);
+      if (definition === void 0) {
+        // TODO: we may want to log a warning here, or even throw. This would happen if a dependency is registered with a resource-like key
+        // but does not actually have a definition associated via the type's metadata. That *should* generally not happen.
+        return null;
+      }
+
+      return definition;
+    }
+
+    return null;
+  }
+
+  public createResource<
+    TType extends ResourceType,
+    TDef extends ResourceDefinition,
+  >(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null {
+    const key = kind.keyFrom(name);
+    let resolver = this.resourceResolvers[key];
+    if (resolver === void 0) {
+      resolver = this.root.resourceResolvers[key];
+      if (resolver === void 0) {
+        return null;
+      }
+    }
+
+    if (resolver === null) {
+      return null;
+    }
+
+    const instance = resolver.resolve(this, this);
+    if (instance === void 0) {
+      return null;
+    }
+
+    return instance;
   }
 
   private jitRegister(keyAsValue: any, handler: Container): IResolver {

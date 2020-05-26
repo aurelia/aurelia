@@ -1,11 +1,6 @@
 import {
   kebabCase,
   IContainer,
-  IResolver,
-  Metadata,
-  ResourceType,
-  ResourceDefinition,
-  IResourceKind,
 } from '@aurelia/kernel';
 import {
   CustomAttributeDefinition,
@@ -178,18 +173,9 @@ export class ResourceModel {
   private readonly attributeLookup: Record<string, AttrInfo | null | undefined> = Object.create(null);
   private readonly commandLookup: Record<string, BindingCommandInstance | null | undefined> = Object.create(null);
 
-  private readonly container: IContainer;
-
-  private readonly resourceResolvers: Record<string, IResolver | undefined | null>;
-  private readonly rootResourceResolvers: Record<string, IResolver | undefined | null>;
-
-  public constructor(container: IContainer) {
-    // Note: don't do this sort of thing elsewhere, this is purely for perf reasons
-    this.container = container;
-    const rootContainer = (container as IContainer & { root: IContainer }).root;
-    this.resourceResolvers = (container as IContainer & { resourceResolvers: Record<string, IResolver | undefined | null> }).resourceResolvers;
-    this.rootResourceResolvers = (rootContainer as IContainer & { resourceResolvers: Record<string, IResolver | undefined | null> }).resourceResolvers;
-  }
+  public constructor(
+    private readonly container: IContainer,
+  ) {}
 
   public static getOrCreate(context: IContainer): ResourceModel {
     // Get the container from itself in case it's wrapped by a subtype (in which case the internals would not be accessible)
@@ -215,7 +201,7 @@ export class ResourceModel {
   public getElementInfo(name: string): ElementInfo | null {
     let result = this.elementLookup[name];
     if (result === void 0) {
-      const def = this.find(CustomElement, name) as unknown as CustomElementDefinition;
+      const def = this.container.findResource(CustomElement, name) as unknown as CustomElementDefinition;
       this.elementLookup[name] = result = def === null ? null : ElementInfo.from(def);
     }
 
@@ -232,7 +218,7 @@ export class ResourceModel {
   public getAttributeInfo(syntax: AttrSyntax): AttrInfo | null {
     let result = this.attributeLookup[syntax.target];
     if (result === void 0) {
-      const def = this.find(CustomAttribute, syntax.target) as unknown as CustomAttributeDefinition;
+      const def = this.container.findResource(CustomAttribute, syntax.target) as unknown as CustomAttributeDefinition;
       this.attributeLookup[syntax.target] = result = def === null ? null : AttrInfo.from(def);
     }
     return result;
@@ -252,7 +238,7 @@ export class ResourceModel {
     }
     let result = this.commandLookup[name];
     if (result === void 0) {
-      result = this.create(BindingCommand, name) as BindingCommandInstance;
+      result = this.container.createResource(BindingCommand, name) as BindingCommandInstance;
       if (result === null) {
         if (optional) {
           return null;
@@ -262,66 +248,5 @@ export class ResourceModel {
       this.commandLookup[name] = result;
     }
     return result;
-  }
-
-  public find<
-    TType extends ResourceType,
-    TDef extends ResourceDefinition,
-  >(kind: IResourceKind<TType, TDef>, name: string): TDef | null {
-    const key = kind.keyFrom(name);
-    let resolver = this.resourceResolvers[key];
-    if (resolver === void 0) {
-      resolver = this.rootResourceResolvers[key];
-      if (resolver === void 0) {
-        return null;
-      }
-    }
-
-    if (resolver === null) {
-      return null;
-    }
-
-    if (typeof resolver.getFactory === 'function') {
-      const factory = resolver.getFactory(this.container);
-      if (factory === null || factory === void 0) {
-        return null;
-      }
-
-      const definition = Metadata.getOwn(kind.name, factory.Type);
-      if (definition === void 0) {
-        // TODO: we may want to log a warning here, or even throw. This would happen if a dependency is registered with a resource-like key
-        // but does not actually have a definition associated via the type's metadata. That *should* generally not happen.
-        return null;
-      }
-
-      return definition;
-    }
-
-    return null;
-  }
-
-  private create<
-    TType extends ResourceType,
-    TDef extends ResourceDefinition,
-  >(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null {
-    const key = kind.keyFrom(name);
-    let resolver = this.resourceResolvers[key];
-    if (resolver === void 0) {
-      resolver = this.rootResourceResolvers[key];
-      if (resolver === void 0) {
-        return null;
-      }
-    }
-
-    if (resolver === null) {
-      return null;
-    }
-
-    const instance = resolver.resolve(this.container, this.container);
-    if (instance === void 0) {
-      return null;
-    }
-
-    return instance;
   }
 }

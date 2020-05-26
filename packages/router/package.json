@@ -34,7 +34,6 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/jit": "0.7.0",
     "@aurelia/kernel": "0.7.0",
     "@aurelia/metadata": "0.7.0",
     "@aurelia/route-recognizer": "0.7.0",

@@ -182,7 +182,6 @@ export function getRenderContext<T extends INode = INode>(
   partialDefinition: PartialCustomElementDefinition,
   parentContainer: IContainer,
   parts: PartialCustomElementDefinitionParts | undefined,
-  toEnhance: boolean = false,
 ): IRenderContext<T> {
   const definition = CustomElementDefinition.getOrCreate(partialDefinition);
   if (isRenderContext(parentContainer)) {
@@ -191,7 +190,7 @@ export function getRenderContext<T extends INode = INode>(
 
   // injectable completely prevents caching, ensuring that each instance gets a new render context
   if (definition.injectable !== null) {
-    return new RenderContext<T>(definition, parentContainer, parts, toEnhance);
+    return new RenderContext<T>(definition, parentContainer, parts);
   }
 
   if (parts === void 0) {
@@ -207,7 +206,7 @@ export function getRenderContext<T extends INode = INode>(
     if (context === void 0) {
       containerLookup.set(
         parentContainer,
-        context = new RenderContext<T>(definition, parentContainer, parts, toEnhance),
+        context = new RenderContext<T>(definition, parentContainer, parts),
       );
     }
 
@@ -234,7 +233,7 @@ export function getRenderContext<T extends INode = INode>(
   if (context === void 0) {
     partsLookup.set(
       parts,
-      context = new RenderContext<T>(definition, parentContainer, parts, toEnhance),
+      context = new RenderContext<T>(definition, parentContainer, parts),
     );
   }
 
@@ -264,7 +263,6 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     public readonly definition: CustomElementDefinition,
     public readonly parentContainer: IContainer,
     public readonly parts: PartialCustomElementDefinitionParts | undefined,
-    private readonly toEnhance: boolean = false,
   ) {
     const container = this.container = parentContainer.createChild();
     this.renderer = container.get(IRenderer);
@@ -358,7 +356,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
       const container = this.container;
       const compiler = container.get(ITemplateCompiler);
 
-      compiledDefinition = this.compiledDefinition = compiler.compile(definition, container, !this.toEnhance);
+      compiledDefinition = this.compiledDefinition = compiler.compile(definition, container);
     } else {
       compiledDefinition = this.compiledDefinition = definition;
     }
@@ -375,7 +373,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
       } else {
         fragmentCache.set(
           compiledDefinition,
-          this.fragment = this.toEnhance ? template as T : this.dom.createDocumentFragment(template),
+          this.fragment = this.definition.enhance ? template as T : this.dom.createDocumentFragment(template),
         );
       }
     }
@@ -415,7 +413,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
   // #region ICompiledRenderContext api
 
   public createNodes(): INodeSequence<T> {
-    return this.dom.createNodeSequence(this.fragment, !this.toEnhance);
+    return this.dom.createNodeSequence(this.fragment, !this.definition.enhance);
   }
 
   // TODO: split up into 2 methods? getComponentFactory + getSyntheticFactory or something

@@ -55,7 +55,7 @@ export class CompositionRoot<T extends INode = INode> {
   public constructor(
     config: ISinglePageApp<T>,
     container: IContainer,
-    public toEnhance: boolean = false,
+    toEnhance: boolean = false,
   ) {
     this.config = config;
     if (config.host != void 0) {
@@ -173,12 +173,12 @@ export class CompositionRoot<T extends INode = INode> {
     let definition: CustomElementDefinition;
     if (CustomElement.isType(component)) {
       CustomElement.define(
-        definition = CustomElementDefinition.create({ ...CustomElement.getDefinition(component), template }),
+        definition = CustomElementDefinition.create({ ...CustomElement.getDefinition(component), template, enhance: true }),
         component);
       instance = container.get(component) as ICustomElementViewModel<T>;
     } else {
       CustomElement.define(
-        definition = CustomElementDefinition.create({ name: CustomElement.generateName(), template }),
+        definition = CustomElementDefinition.create({ name: CustomElement.generateName(), template, enhance: true }),
         class { });
       instance = component as ICustomElementViewModel<T>;
     }

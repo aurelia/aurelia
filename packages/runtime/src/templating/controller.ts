@@ -236,7 +236,7 @@ export class Controller<
 
     controllerLookup.set(viewModel, controller as Controller<INode, IViewModel>);
 
-    controller.hydrateCustomElement(definition, parentContainer, parts, false);
+    controller.hydrateCustomElement(definition, parentContainer, parts);
 
     return controller as unknown as ICustomElementController<T, C>;
   }
@@ -272,7 +272,7 @@ export class Controller<
 
     controllerLookup.set(viewModel, controller as Controller<INode, IViewModel>);
 
-    controller.hydrateCustomElement(definition, parentContainer, parts, true);
+    controller.hydrateCustomElement(definition, parentContainer, parts);
 
     return controller as unknown as ICustomElementController<T, C>;
   }
@@ -339,7 +339,6 @@ export class Controller<
     definition: CustomElementDefinition,
     parentContainer: IContainer,
     parts: PartialCustomElementDefinitionParts | undefined,
-    toEnhance: boolean,
   ): void {
     const flags = this.flags |= definition.strategy;
     const instance = this.viewModel as ICustomElementViewModel<T>;
@@ -361,7 +360,7 @@ export class Controller<
       }
     }
 
-    const context = this.context = getRenderContext<T>(definition, parentContainer, parts, toEnhance);
+    const context = this.context = getRenderContext<T>(definition, parentContainer, parts);
     // Support Recursive Components by adding self to own context
     definition.register(context);
     if (definition.injectable !== null) {

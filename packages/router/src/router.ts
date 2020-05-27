@@ -188,7 +188,7 @@ export class Router implements IRouter {
     useDirectRoutes: true,
     useConfiguredRoutes: true,
     title: {
-      appTitle: '${componentTitles}${appTitleSeparator}Aurelia',
+      appTitle: `\${componentTitles}\${appTitleSeparator}Aurelia`,
       appTitleSeparator: ' | ',
       componentTitleOrder: 'top-down',
       componentTitleSeparator: ' > ',
@@ -753,7 +753,7 @@ export class Router implements IRouter {
   /**
    * Public API - THE navigation API
    */
-  public goto(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void> {
+  public async goto(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void> {
     options = options || {};
     // TODO: Review query extraction; different pos for path and fragment!
     if (typeof instructions === 'string' && !options.query) {
@@ -1130,8 +1130,8 @@ export class Router implements IRouter {
       const componentTitles = this.stringifyTitles(title, instruction);
 
       title = this.options.title.appTitle;
-      title = title.replace('${componentTitles}', componentTitles);
-      title = title.replace('${appTitleSeparator}',
+      title = title.replace(`\${componentTitles}`, componentTitles);
+      title = title.replace(`\${appTitleSeparator}`,
         componentTitles !== ''
           ? this.options.title.appTitleSeparator
           : '');

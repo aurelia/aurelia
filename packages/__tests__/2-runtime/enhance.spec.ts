@@ -1,7 +1,7 @@
 // This is to test for some intrinsic properties of enhance which is otherwise difficult to test in Data-driven tests parallel to `.app`
 import { Constructable, IContainer } from '@aurelia/kernel';
 import { Aurelia, CustomElement, ICustomElementViewModel, IScheduler } from '@aurelia/runtime';
-import { assert, HTMLTestContext, TestContext } from '@aurelia/testing';
+import { assert, HTMLTestContext, TestContext, eachCartesianJoin } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util';
 
 describe('enhance', function () {
@@ -88,57 +88,84 @@ describe('enhance', function () {
       });
   }
 
-  for (const initialMethod of ['app', 'enhance'] as const) {
-    it(`can be applied on an unhydrated inner node after initial hydration - ${initialMethod}`, async function () {
-      const message = "Awesome Possum";
-      const template = `
+  const enum ContainerType {
+    new = "new",
+    same = "same",
+    child = "child",
+  }
+  eachCartesianJoin(
+    [
+      ['app', 'enhance'],
+      [ContainerType.new, ContainerType.same, ContainerType.child]
+    ],
+    function (initialMethod, containerType) {
+
+      it(`can be applied on an unhydrated inner node after initial hydration - ${initialMethod} - ${containerType} container`, async function () {
+        const message = "Awesome Possum";
+        const template = `
     <button click.delegate="enhance()"></button>
     <div ref="r1" innerhtml.bind="'<div>\${message}</div>'"></div>
     <div ref="r2" innerhtml.bind="'<div>\${message}</div>'"></div>
     `;
 
-      class App2 {
-        private readonly r1!: HTMLDivElement;
-        private readonly r2!: HTMLDivElement;
+        class App2 {
+          private readonly r1!: HTMLDivElement;
+          private readonly r2!: HTMLDivElement;
+          public constructor(
+            @IContainer public container: IContainer
+          ) { }
 
-        public async afterAttach() {
-          await this.enhance(this.r1);
+          public async afterAttach() {
+            await this.enhance(this.r1);
+          }
+
+          private async enhance(host = this.r2) {
+            let container: IContainer;
+            switch (containerType) {
+              case ContainerType.new:
+                container = TestContext.createHTMLTestContext().container;
+                break;
+              case ContainerType.same:
+                container = this.container;
+                break;
+              case ContainerType.child:
+                container = this.container.createChild();
+                break;
+            }
+            await new Aurelia(container)
+              .enhance({ host: host.querySelector('div'), component: { message } })
+              .start()
+              .wait();
+          }
         }
+        const ctx = TestContext.createHTMLTestContext();
 
-        private async enhance(host = this.r2) {
-          await new Aurelia(TestContext.createHTMLTestContext().container)
-            .enhance({ host: host.querySelector('div'), component: { message } })
-            .start()
-            .wait();
+        const host = ctx.dom.createElement('div');
+        ctx.doc.body.appendChild(host);
+
+        const container = ctx.container;
+        const au = new Aurelia(container);
+        let component;
+        if (initialMethod === 'app') {
+          component = CustomElement.define({ name: 'app', template }, App2);
+        } else {
+          host.innerHTML = template;
+          component = CustomElement.define('app', App2);
         }
-      }
-      const ctx = TestContext.createHTMLTestContext();
+        au[initialMethod]({ host, component });
+        await au.start().wait();
 
-      const host = ctx.dom.createElement('div');
-      ctx.doc.body.appendChild(host);
+        assert.html.textContent('div', message, 'div', host);
 
-      const container = ctx.container;
-      const au = new Aurelia(container);
-      let component;
-      if (initialMethod === 'app') {
-        component = CustomElement.define({ name: 'app', template }, App2);
-      } else {
-        host.innerHTML = template;
-        component = CustomElement.define('app', App2);
-      }
-      au[initialMethod]({ host, component });
-      await au.start().wait();
+        host.querySelector('button').click();
+        const scheduler = container.get(IScheduler);
+        scheduler.getPostRenderTaskQueue().flush();
 
-      assert.html.textContent('div', message, 'div', host);
+        assert.html.textContent('div:nth-of-type(2)', message, 'div:nth-of-type(2)', host);
 
-      host.querySelector('button').click();
-      const scheduler = container.get(IScheduler);
-      scheduler.getPostRenderTaskQueue().flush();
-
-      assert.html.textContent('div:nth-of-type(2)', message, 'div:nth-of-type(2)', host);
-
-      await au.stop().wait();
-      ctx.doc.body.removeChild(host);
-    });
-  }
+        await au.stop().wait();
+        ctx.doc.body.removeChild(host);
+      });
+    }
+  );
 });

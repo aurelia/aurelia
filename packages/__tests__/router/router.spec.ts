@@ -1644,8 +1644,8 @@ describe('Router', function () {
     });
 
     const titleConfigs: (IRouterTitle | string)[] = [
-      '${componentTitles}${appTitleSeparator}Aurelia2',
-      { appTitle: 'Test${appTitleSeparator}${componentTitles}', appTitleSeparator: ' : ', componentTitleOrder: 'top-down', componentTitleSeparator: ' + ', useComponentNames: true },
+      `\${componentTitles}\${appTitleSeparator}Aurelia2`,
+      { appTitle: `Test\${appTitleSeparator}\${componentTitles}`, appTitleSeparator: ' : ', componentTitleOrder: 'top-down', componentTitleSeparator: ' + ', useComponentNames: true },
       { componentTitleOrder: 'bottom-up', componentTitleSeparator: ' < ', useComponentNames: true, componentPrefix: 'my-' },
       { useComponentNames: false },
       { transformTitle: (title, instruction) => title.length === 0 ? '' : instruction instanceof ViewportInstruction ? `C:${title}` : `R:${title}` },

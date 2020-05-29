@@ -227,11 +227,11 @@ export class Aurelia<TNode extends INode = INode> {
     return this;
   }
 
-  public app(config: ISinglePageApp<TNode>): Omit<this, 'register' | 'app'> {
+  public app(config: ISinglePageApp<TNode>): Omit<this, 'register' | 'app' | 'enhance'> {
     return this.configureRoot(config);
   }
 
-  public enhance(config: ISinglePageApp<TNode>): Omit<Aurelia, 'register' | 'app'> {
+  public enhance(config: ISinglePageApp<TNode>): Omit<Aurelia, 'register' | 'app' | 'enhance'> {
     return this.configureRoot(config, true);
   }
 
@@ -283,7 +283,7 @@ export class Aurelia<TNode extends INode = INode> {
     return this.task.wait() as Promise<void>;
   }
 
-  private configureRoot(config: ISinglePageApp<TNode>, toEnhance?: boolean): Omit<this, 'register' | 'app'> {
+  private configureRoot(config: ISinglePageApp<TNode>, toEnhance?: boolean): Omit<this, 'register' | 'app' | 'enhance'> {
     this.next = new CompositionRoot(config, this.container, toEnhance);
 
     if (this.isRunning) {

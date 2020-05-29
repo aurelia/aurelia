@@ -231,7 +231,7 @@ export class Aurelia<TNode extends INode = INode> {
     return this.configureRoot(config);
   }
 
-  public enhance(config: ISinglePageApp<TNode>): Omit<Aurelia, 'register' | 'app' | 'enhance'> {
+  public enhance(config: ISinglePageApp<TNode>): Omit<this, 'register' | 'app' | 'enhance'> {
     return this.configureRoot(config, true);
   }
 

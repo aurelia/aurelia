@@ -4,6 +4,7 @@ import { Queue, QueueItem } from './queue';
 import { IRouter } from './router';
 import { ViewportInstruction } from './viewport-instruction';
 import { Scope } from './scope';
+import { ICustomElementViewModel } from '@aurelia/runtime';
 
 /**
  * @internal - Shouldn't be used directly
@@ -66,6 +67,7 @@ export interface IStoredNavigatorEntry {
 
 export interface INavigatorEntry extends IStoredNavigatorEntry {
   fromBrowser?: boolean;
+  origin?: ICustomElementViewModel | Element;
   replacing?: boolean;
   refreshing?: boolean;
   repeating?: boolean;
@@ -291,6 +293,7 @@ export class Navigator {
     const {
       previous,
       fromBrowser,
+      origin,
       replacing,
       refreshing,
       untracked,

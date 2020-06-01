@@ -786,6 +786,7 @@ export class Router implements IRouter {
       replacing: options.replace,
       repeating: options.append,
       fromBrowser: false,
+      origin: options.origin,
     };
     return this.navigator.navigate(entry);
   }
@@ -1154,7 +1155,7 @@ export class Router implements IRouter {
     if (typeof instruction === 'string') {
       return this.resolveTitle(instruction, navigationInstruction);
     } else {
-      if (instruction.viewport && (instruction.viewport.options as any).noTitle) {
+      if (instruction.viewport?.options?.noTitle) {
         return '';
       }
     }
@@ -1198,24 +1199,24 @@ export class Router implements IRouter {
     if (typeof instruction === 'string') {
       title = instruction;
     } else if (instruction instanceof ViewportInstruction) {
-      const typeTitle = instruction.componentType!.title;
-      if (typeTitle !== void 0) {
-        if (typeof typeTitle === 'string') {
-          title = typeTitle;
-        } else {
-          title = typeTitle.call(instruction.componentInstance, instruction.componentInstance!, navigationInstruction);
-        }
-      } else if (this.options.title.useComponentNames) {
-        let name = (instruction.componentName ?? '');
-        const prefix = this.options.title.componentPrefix ?? '';
-        if (name.startsWith(prefix)) {
-          name = name.slice(prefix.length);
-        }
-        name = name.replace('-', ' ');
-        title = name.slice(0, 1).toLocaleUpperCase() + name.slice(1);
-      }
-    }
-    if (instruction instanceof FoundRoute) {
+      return instruction.viewport!.getTitle(navigationInstruction);
+      // const typeTitle = instruction.componentType!.title;
+      // if (typeTitle !== void 0) {
+      //   if (typeof typeTitle === 'string') {
+      //     title = typeTitle;
+      //   } else {
+      //     title = typeTitle.call(instruction.componentInstance, instruction.componentInstance!, navigationInstruction);
+      //   }
+      // } else if (this.options.title.useComponentNames) {
+      //   let name = (instruction.componentName ?? '');
+      //   const prefix = this.options.title.componentPrefix ?? '';
+      //   if (name.startsWith(prefix)) {
+      //     name = name.slice(prefix.length);
+      //   }
+      //   name = name.replace('-', ' ');
+      //   title = name.slice(0, 1).toLocaleUpperCase() + name.slice(1);
+      // }
+    } else if (instruction instanceof FoundRoute) {
       const routeTitle = instruction.match?.title;
       if (routeTitle !== void 0) {
         if (typeof routeTitle === 'string') {

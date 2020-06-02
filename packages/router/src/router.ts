@@ -1200,22 +1200,6 @@ export class Router implements IRouter {
       title = instruction;
     } else if (instruction instanceof ViewportInstruction) {
       return instruction.viewport!.getTitle(navigationInstruction);
-      // const typeTitle = instruction.componentType!.title;
-      // if (typeTitle !== void 0) {
-      //   if (typeof typeTitle === 'string') {
-      //     title = typeTitle;
-      //   } else {
-      //     title = typeTitle.call(instruction.componentInstance, instruction.componentInstance!, navigationInstruction);
-      //   }
-      // } else if (this.options.title.useComponentNames) {
-      //   let name = (instruction.componentName ?? '');
-      //   const prefix = this.options.title.componentPrefix ?? '';
-      //   if (name.startsWith(prefix)) {
-      //     name = name.slice(prefix.length);
-      //   }
-      //   name = name.replace('-', ' ');
-      //   title = name.slice(0, 1).toLocaleUpperCase() + name.slice(1);
-      // }
     } else if (instruction instanceof FoundRoute) {
       const routeTitle = instruction.match?.title;
       if (routeTitle !== void 0) {

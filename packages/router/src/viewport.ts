@@ -418,19 +418,6 @@ export class Viewport implements IScopeOwner {
     if (componentType === null) {
       return null;
     }
-    // let componentType: RouteableComponentType | null =
-    //   this.nextContent !== null
-    //     && this.nextContent.content !== null
-    //     ? this.nextContent.content.componentType
-    //     : this.content.content.componentType;
-    // // TODO: This is going away once Metadata is in!
-    // if (componentType === null || componentType === void 0) {
-    //   const controller = CustomElement.for(this.element!);
-    //   componentType = (controller as any)!.context!.componentType;
-    // }
-    // if (componentType === null || componentType === void 0) {
-    //   return null;
-    // }
     const routes: IRoute[] = (componentType as RouteableComponentType & { routes: IRoute[] }).routes;
     return Array.isArray(routes) ? routes : null;
   }

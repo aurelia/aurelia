@@ -1154,12 +1154,7 @@ export class Router implements IRouter {
   private stringifyTitle(instruction: ViewportInstruction | string, navigationInstruction: INavigatorInstruction): string {
     if (typeof instruction === 'string') {
       return this.resolveTitle(instruction, navigationInstruction);
-    } else {
-      if (instruction.viewport?.options?.noTitle) {
-        return '';
-      }
     }
-    // const route = (instruction.route as FoundRoute)?.matching ?? null;
     const route = instruction.route ?? null;
     const nextInstructions: ViewportInstruction[] | null = instruction.nextScopeInstructions;
     let stringified: string = '';

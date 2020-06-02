@@ -423,6 +423,9 @@ export class Viewport implements IScopeOwner {
   }
 
   public getTitle(navigationInstruction: NavigationInstruction): string {
+    if (this.options.noTitle) {
+      return '';
+    }
     const componentType = this.getComponentType();
     if (componentType === null) {
       return '';

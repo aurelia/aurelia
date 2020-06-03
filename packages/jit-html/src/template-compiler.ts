@@ -10,6 +10,7 @@ import {
   PLATFORM,
   Registration,
   mergeArrays,
+  toArray,
 } from '@aurelia/kernel';
 import {
   HydrateAttributeInstruction,
@@ -27,7 +28,10 @@ import {
   LetElementInstruction,
   SetPropertyInstruction,
   CustomElementDefinition,
-  IDOM
+  IDOM,
+  BindingMode,
+  Bindable,
+  CustomElement
 } from '@aurelia/runtime';
 import {
   HTMLAttributeInstruction,
@@ -115,9 +119,11 @@ export class TemplateCompiler implements ITemplateCompiler {
     const resources = ResourceModel.getOrCreate(context);
     const { attrParser, exprParser, attrSyntaxModifier, factory } = this;
 
-    const binder = new TemplateBinder(context.get(IDOM), resources, attrParser, exprParser, attrSyntaxModifier);
+    const dom = context.get(IDOM);
+    const binder = new TemplateBinder(dom, resources, attrParser, exprParser, attrSyntaxModifier);
 
     const template = factory.createTemplate(definition.template) as HTMLTemplateElement;
+    this.processLocalTemplates(template, context, dom);
     const surrogate = binder.bind(template);
 
     const compilation = this.compilation = new CustomElementCompilationUnit(definition, surrogate, template);
@@ -144,6 +150,67 @@ export class TemplateCompiler implements ITemplateCompiler {
     this.compilation = null!;
 
     return compiledDefinition;
+  }
+
+  private processLocalTemplates(template: HTMLElement, context: IContainer, dom: IDOM) {
+    const root = template.nodeName === 'TEMPLATE' ? (template as HTMLTemplateElement).content : template;
+    const localTemplates = toArray(root.querySelectorAll('template[as-custom-element]')) as HTMLTemplateElement[];
+    if (localTemplates.length === 0) { return; }
+    const localTemplateNames: Set<string> = new Set();
+
+    function getTemplateName(localTemplate: HTMLTemplateElement): string {
+      const name = localTemplate.getAttribute('as-custom-element');
+      if (name === null || name === '') {
+        throw new Error('The value of "as-custom-element" attribute cannot be empty for local template'); /* TODO: use reporter/logger */
+      }
+      if (localTemplateNames.has(name)) {
+        throw new Error(`Duplicate definition of the local template named ${name}`); /* TODO: use reporter/logger */
+      } else {
+        localTemplateNames.add(name);
+      }
+      return name;
+    }
+    function getBindingMode(bindable: Element): BindingMode {
+      switch (bindable.getAttribute('mode')) {
+        case 'oneTime':
+          return BindingMode.oneTime;
+        case 'toView':
+          return BindingMode.toView;
+        case 'fromView':
+          return BindingMode.fromView;
+        case 'twoWay':
+          return BindingMode.twoWay;
+        case 'default':
+        default:
+          return BindingMode.default;
+      }
+    }
+
+    for (const localTemplate of localTemplates) {
+      const name = getTemplateName(localTemplate);
+
+      // eslint-disable-next-line @typescript-eslint/class-name-casing
+      const localTemplateType = class { };
+      const content = localTemplate.content;
+      const bindables = toArray(content.querySelectorAll('bindable'));
+      const bindableDefinitions = Bindable.for(localTemplateType);
+      for (const bindable of bindables) {
+        const property = bindable.getAttribute('property');
+        if (property === null) { throw new Error(`The attribute 'property' is missing in ${bindable.outerHTML}`); /* TODO: use reporter/logger */ }
+        bindableDefinitions.add({
+          property,
+          attribute: bindable.getAttribute('attribute') ?? void 0,
+          mode: getBindingMode(bindable),
+        });
+        content.removeChild(bindable);
+      }
+
+      const div = dom.createElement('div') as HTMLDivElement;
+      div.appendChild(content);
+      context.register(CustomElement.define({ name, template: div.innerHTML }, localTemplateType));
+
+      root.removeChild(localTemplate);
+    }
   }
 
   private compileChildNodes(

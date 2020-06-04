@@ -1,5 +1,5 @@
 
-import { parseExpression } from '@aurelia/jit';
+import { parseExpression, ResourceModel, ElementInfo, BindableInfo } from '@aurelia/jit';
 import {
   Constructable,
   IContainer,
@@ -28,7 +28,10 @@ import {
   TargetedInstructionType as TT,
   IHydrateLetElementInstruction,
   PartialCustomAttributeDefinition,
-  HooksDefinition
+  HooksDefinition,
+  CustomElementDefinition,
+  HydrateElementInstruction,
+  Aurelia,
 } from '@aurelia/runtime';
 import { HTMLTargetedInstructionType as HTT } from '@aurelia/runtime-html';
 import {
@@ -36,7 +39,7 @@ import {
   eachCartesianJoinFactory,
   HTMLTestContext,
   TestContext,
-  verifyBindingInstructionsEqual
+  verifyBindingInstructionsEqual,
 } from '@aurelia/testing';
 
 export function createAttribute(name: string, value: string): Attr {
@@ -1226,4 +1229,119 @@ describe(`TemplateCompiler - combinations`, function () {
       });
     });
   });
+});
+
+describe.only('TemplateCompiler - local templates', function () {
+  function createFixture() {
+    const ctx = TestContext.createHTMLTestContext();
+    const container = ctx.container;
+    const sut = ctx.templateCompiler;
+    return { ctx, container, sut };
+  }
+
+  class LocalTemplateTestData {
+
+    public constructor(
+      public readonly template: string,
+      private readonly expectedResources: Map<string, ElementInfo>,
+      private readonly templateFreq: Map<string, number>,
+      public readonly expectedContent: string,
+    ) {
+      this.verifyDefinition = this.verifyDefinition.bind(this);
+    }
+    public verifyDefinition(definition: CustomElementDefinition, resources: ResourceModel): void {
+      assert.equal((definition.template as HTMLTemplateElement).querySelector('template[as-custom-element]'), null);
+
+      for (const [name, info] of this.expectedResources) {
+        assert.deepStrictEqual(resources.getElementInfo(name), info);
+      }
+      const ceInstructions: HydrateElementInstruction[] = definition.instructions.flatMap((i) => i).filter((i) => i instanceof HydrateElementInstruction) as HydrateElementInstruction[];
+      for (const [template, freq] of this.templateFreq) {
+        assert.strictEqual(ceInstructions.filter((i) => i.res === template).length, freq);
+      }
+    }
+
+  }
+  function* getLocalTemplateTestData() {
+    yield new LocalTemplateTestData(
+      `<template as-custom-element="foo-bar">static</template>
+      <foo-bar></foo-bar>`,
+      new Map([['foo-bar', new ElementInfo('foo-bar', false)]]),
+      new Map([['foo-bar', 1]]),
+      'static'
+    );
+    yield new LocalTemplateTestData(
+      `<foo-bar></foo-bar>
+      <template as-custom-element="foo-bar">static</template>`,
+      new Map([['foo-bar', new ElementInfo('foo-bar', false)]]),
+      new Map([['foo-bar', 1]]),
+      'static'
+    );
+    yield new LocalTemplateTestData(
+      `<foo-bar></foo-bar>
+      <template as-custom-element="foo-bar">static</template>
+      <foo-bar></foo-bar>`,
+      new Map([['foo-bar', new ElementInfo('foo-bar', false)]]),
+      new Map([['foo-bar', 2]]),
+      'static static'
+    );
+    yield new LocalTemplateTestData(
+      `<template as-custom-element="foo-bar">static foo-bar</template>
+      <template as-custom-element="fiz-baz">static fiz-baz</template>
+      <fiz-baz></fiz-baz>
+      <foo-bar></foo-bar>`,
+      new Map([['foo-bar', new ElementInfo('foo-bar', false)], ['fiz-baz', new ElementInfo('fiz-baz', false)]]),
+      new Map([['foo-bar', 1], ['fiz-baz', 1]]),
+      'static fiz-baz static foo-bar'
+    );
+    const bindingModeMap = new Map([
+      ['oneTime', BindingMode.oneTime],
+      ['toView', BindingMode.toView],
+      ['fromView', BindingMode.fromView],
+      ['twoWay', BindingMode.twoWay],
+      ['default', BindingMode.toView],
+    ]);
+    for (const bindingMode of [...bindingModeMap.keys(), void 0])
+      for (const attributeName of ['fizBaz', undefined]) {
+
+        const mode = bindingModeMap.get(bindingMode) ?? BindingMode.toView;
+        const bi = new BindableInfo('prop', mode);
+        const ei1 = new ElementInfo('foo-bar', false);
+        const attr = attributeName ?? 'prop';
+        ei1.bindables[attr] = bi;
+
+        yield new LocalTemplateTestData(
+          `<template as-custom-element="foo-bar">
+          <bindable property='prop'${bindingMode !== void 0 ? ` mode="${bindingMode}"` : ''}${attributeName !== void 0 ? ` attribute="${attributeName}"` : ''}></bindable>
+          \${prop}
+        </template>
+        <foo-bar ${kebabCase(attr)}="awesome possum"></foo-bar>`,
+          new Map([['foo-bar', ei1]]),
+          new Map([['foo-bar', 1]]),
+          'awesome possum'
+        );
+      }
+  }
+  for (const { template, verifyDefinition, expectedContent } of getLocalTemplateTestData()) {
+    it(template, function () {
+      const { container, sut } = createFixture();
+      const definition = sut.compile({ name: 'lorem-ipsum', template }, container);
+      verifyDefinition(definition, ResourceModel.getOrCreate(container));
+    });
+    if (template.includes(`mode="fromView"`)) { continue; }
+    it(`${template} - content`, async function () {
+      const { ctx, container } = createFixture();
+      const host = ctx.dom.createElement('div');
+      ctx.doc.body.appendChild(host);
+      const au = new Aurelia(container)
+        .app({ host, component: CustomElement.define({ name: 'lorem-ipsum', template }, class { }) });
+
+      await au.start().wait();
+
+      assert.html.textContent(host, expectedContent);
+
+      await au.stop().wait();
+      ctx.doc.body.removeChild(host);
+    });
+  }
 });

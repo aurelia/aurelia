@@ -31,7 +31,7 @@ import {
   IDOM,
   BindingMode,
   Bindable,
-  CustomElement
+  CustomElement,
 } from '@aurelia/runtime';
 import {
   HTMLAttributeInstruction,
@@ -193,11 +193,11 @@ export class TemplateCompiler implements ITemplateCompiler {
       const localTemplateType = class { };
       const content = localTemplate.content;
       const bindables = toArray(content.querySelectorAll('bindable'));
-      const bindableDefinitions = Bindable.for(localTemplateType);
+      const bindableInstructions = Bindable.for(localTemplateType);
       for (const bindable of bindables) {
         const property = bindable.getAttribute('property');
         if (property === null) { throw new Error(`The attribute 'property' is missing in ${bindable.outerHTML}`); /* TODO: use reporter/logger */ }
-        bindableDefinitions.add({
+        bindableInstructions.add({
           property,
           attribute: bindable.getAttribute('attribute') ?? void 0,
           mode: getBindingMode(bindable),

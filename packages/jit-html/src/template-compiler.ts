@@ -11,6 +11,8 @@ import {
   Registration,
   mergeArrays,
   toArray,
+  kebabCase,
+  Key,
 } from '@aurelia/kernel';
 import {
   HydrateAttributeInstruction,
@@ -123,7 +125,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     const binder = new TemplateBinder(dom, resources, attrParser, exprParser, attrSyntaxModifier);
 
     const template = factory.createTemplate(definition.template) as HTMLTemplateElement;
-    this.processLocalTemplates(template, context, dom);
+    this.processLocalTemplates(template, definition, context, dom);
     const surrogate = binder.bind(template);
 
     const compilation = this.compilation = new CustomElementCompilationUnit(definition, surrogate, template);
@@ -152,7 +154,12 @@ export class TemplateCompiler implements ITemplateCompiler {
     return compiledDefinition;
   }
 
-  private processLocalTemplates(template: HTMLElement, context: IContainer, dom: IDOM) {
+  private processLocalTemplates(
+    template: HTMLElement,
+    definition: CustomElementDefinition,
+    context: IContainer,
+    dom: IDOM
+  ) {
     const root = template.nodeName === 'TEMPLATE' ? (template as HTMLTemplateElement).content : template;
     const localTemplates = toArray(root.querySelectorAll('template[as-custom-element]')) as HTMLTemplateElement[];
     if (localTemplates.length === 0) { return; }
@@ -197,9 +204,10 @@ export class TemplateCompiler implements ITemplateCompiler {
       for (const bindable of bindables) {
         const property = bindable.getAttribute('property');
         if (property === null) { throw new Error(`The attribute 'property' is missing in ${bindable.outerHTML}`); /* TODO: use reporter/logger */ }
+        const attribute = bindable.getAttribute('attribute');
         bindableInstructions.add({
           property,
-          attribute: bindable.getAttribute('attribute') ?? void 0,
+          attribute: attribute !== null ? kebabCase(attribute) : void 0,
           mode: getBindingMode(bindable),
         });
         content.removeChild(bindable);
@@ -207,7 +215,10 @@ export class TemplateCompiler implements ITemplateCompiler {
 
       const div = dom.createElement('div') as HTMLDivElement;
       div.appendChild(content);
-      context.register(CustomElement.define({ name, template: div.innerHTML }, localTemplateType));
+      const localTemplateDefinition = CustomElement.define({ name, template: div.innerHTML }, localTemplateType);
+      // the casting is needed here as the dependencies are typed as readonly array
+      (definition.dependencies as Key[]).push(localTemplateDefinition);
+      context.register(localTemplateDefinition);
 
       root.removeChild(localTemplate);
     }

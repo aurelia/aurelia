@@ -1307,7 +1307,7 @@ describe.only('TemplateCompiler - local templates', function () {
         const mode = bindingModeMap.get(bindingMode) ?? BindingMode.toView;
         const bi = new BindableInfo('prop', mode);
         const ei1 = new ElementInfo('foo-bar', false);
-        const attr = attributeName ?? 'prop';
+        const attr = kebabCase(attributeName ?? 'prop');
         ei1.bindables[attr] = bi;
 
         yield new LocalTemplateTestData(
@@ -1315,7 +1315,7 @@ describe.only('TemplateCompiler - local templates', function () {
           <bindable property='prop'${bindingMode !== void 0 ? ` mode="${bindingMode}"` : ''}${attributeName !== void 0 ? ` attribute="${attributeName}"` : ''}></bindable>
           \${prop}
         </template>
-        <foo-bar ${kebabCase(attr)}="awesome possum"></foo-bar>`,
+        <foo-bar ${attr}="awesome possum"></foo-bar>`,
           new Map([['foo-bar', ei1]]),
           new Map([['foo-bar', 1]]),
           'awesome possum'

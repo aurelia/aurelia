@@ -193,6 +193,9 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
 
     for (const localTemplate of localTemplates) {
+      if (localTemplate.parentNode !== root) {
+        throw new Error('Local templates needs to be defined directly under root.'); /* TODO: use reporter/logger */
+      }
       const name = getTemplateName(localTemplate);
 
       // eslint-disable-next-line @typescript-eslint/class-name-casing
@@ -201,6 +204,9 @@ export class TemplateCompiler implements ITemplateCompiler {
       const bindables = toArray(content.querySelectorAll('bindable'));
       const bindableInstructions = Bindable.for(localTemplateType);
       for (const bindable of bindables) {
+        if (bindable.parentNode !== content) {
+          throw new Error('Bindable properties of local templates needs to be defined directly under root.'); /* TODO: use reporter/logger */
+        }
         const property = bindable.getAttribute('property');
         if (property === null) { throw new Error(`The attribute 'property' is missing in ${bindable.outerHTML}`); /* TODO: use reporter/logger */ }
         bindableInstructions.add({

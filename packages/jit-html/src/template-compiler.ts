@@ -11,7 +11,6 @@ import {
   Registration,
   mergeArrays,
   toArray,
-  kebabCase,
   Key,
 } from '@aurelia/kernel';
 import {
@@ -204,10 +203,9 @@ export class TemplateCompiler implements ITemplateCompiler {
       for (const bindable of bindables) {
         const property = bindable.getAttribute('property');
         if (property === null) { throw new Error(`The attribute 'property' is missing in ${bindable.outerHTML}`); /* TODO: use reporter/logger */ }
-        const attribute = bindable.getAttribute('attribute');
         bindableInstructions.add({
           property,
-          attribute: attribute !== null ? kebabCase(attribute) : void 0,
+          attribute: bindable.getAttribute('attribute') ?? void 0,
           mode: getBindingMode(bindable),
         });
         content.removeChild(bindable);

@@ -1302,7 +1302,7 @@ describe.only('TemplateCompiler - local templates', function () {
       ['default', BindingMode.toView],
     ]);
     for (const bindingMode of [...bindingModeMap.keys(), void 0])
-      for (const attributeName of ['fizBaz', undefined]) {
+      for (const attributeName of ['fiz-baz', undefined]) {
 
         const mode = bindingModeMap.get(bindingMode) ?? BindingMode.toView;
         const bi = new BindableInfo('prop', mode);

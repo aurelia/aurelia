@@ -1419,7 +1419,7 @@ describe('TemplateCompiler - local templates', function () {
     ctx.doc.body.removeChild(host);
   });
 
-  it('works with nested templates', async function () {
+  it('works with nested templates - 1', async function () {
     @customElement({ name: 'level-one', template: `<template as-custom-element="foo-bar"><bindable property='prop'></bindable>Level One \${prop}</template><foo-bar prop.bind="prop"></foo-bar>` })
     class LevelOne {
       @bindable public prop: string;
@@ -1445,6 +1445,41 @@ describe('TemplateCompiler - local templates', function () {
     ctx.doc.body.appendChild(host);
     const au = new Aurelia(container)
       .register(LevelOne, LevelTwo)
+      .app({ host, component: CustomElement.define({ name: 'lorem-ipsum', template }, class { }) });
+
+    await au.start().wait();
+
+    assert.html.textContent(host, expectedContent);
+
+    await au.stop().wait();
+    ctx.doc.body.removeChild(host);
+  });
+
+  it('works with nested templates - 2', async function () {
+    const template = `
+    <template as-custom-element="el-one">
+      <template as-custom-element="one-two">
+        1
+      </template>
+      2
+      <one-two></one-two>
+    </template>
+    <template as-custom-element="el-two">
+      <template as-custom-element="two-two">
+        3
+      </template>
+      4
+      <two-two></two-two>
+    </template>
+    <el-two></el-two>
+    <el-one></el-one>
+    `;
+    const expectedContent = "4 3 2 1";
+
+    const { ctx, container } = createFixture();
+    const host = ctx.dom.createElement('div');
+    ctx.doc.body.appendChild(host);
+    const au = new Aurelia(container)
       .app({ host, component: CustomElement.define({ name: 'lorem-ipsum', template }, class { }) });
 
     await au.start().wait();
